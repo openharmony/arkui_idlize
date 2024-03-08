@@ -409,10 +409,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     this.print(`${param}Index += serializeInt32(${param}Array, ${param}Index, ${value}Type)`)
                     this.checkUniques(param, memberConvertors)
                     memberConvertors.forEach((it, index) => {
-                        let maybeElse = (index > 0) ? "else " : ""
-                        this.print(`${maybeElse}if (${it.runtimeTypes.map(it => `(${it} == ${value}Type)`).join(" || ")}) {`)
-                        this.pushIndent()
                         let typeName = type.types[index].getText(type.types[index].getSourceFile())
+                        if (it.runtimeTypes.length == 0) {
+                            console.log(`WARNING: branch for ${typeName} was consumed`)
+                            return
+                        }
+                        let maybeElse = (index > 0) ? "else " : ""
+                        let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
+                        let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
+                        
+                        this.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
+                        this.pushIndent()
                         this.print(`let ${value}_${index}: ${typeName} = ${value} as ${typeName}`)
                         it.convertorToArray(param, `${value}_${index}`)
                         this.popIndent()
@@ -520,14 +527,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         throw new Error(`Cannot convert: ${asString(type)} ${type.getText(this.sourceFile)}`)
     }
 
-    checkUniques(param: string, convertors: ArgConvertor[]) {
+    checkUniques(param: string, convertors: ArgConvertor[]): void {
         for (let i = 0; i < convertors.length; i++) {
             for (let j = i + 1; j < convertors.length; j++) {
                 let first = convertors[i].runtimeTypes
                 let second = convertors[j].runtimeTypes
                 first.forEach(value => {
-                    if (second.includes(value)) {
+                    let index = second.findIndex(it => it == value)
+                    if (index != -1) {
                         console.log(`WARNING: Runtime type conflict in ${param}: could be ${RuntimeType[value]}`)
+                        second.splice(index, 1)
                     }
                 })
             }

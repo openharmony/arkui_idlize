@@ -27,8 +27,8 @@ function createContainerType(): TypeInfo {
     return new TypeInfo(TypeKind.Container, undefined, undefined)
 }
 
-function createReferenceType(kind: TypeKind): TypeInfo {
-    idl.name, new TypeInfo(TypeKind.Interface, idl, idl.fileName)
+function createReferenceType(idl: IDLEntry, kind: TypeKind): TypeInfo {
+    return new TypeInfo(TypeKind.Interface, idl, idl.fileName)
 }
 
 export class TypeTable {
@@ -37,7 +37,6 @@ export class TypeTable {
         ["boolean", [new TypeInfo(TypeKind.Primitive, undefined, undefined)]],
         ["string", [new TypeInfo(TypeKind.Primitive, undefined, undefined)]],
         ["number", [new TypeInfo(TypeKind.Primitive, undefined, undefined)]],
-
         ["sequence", [new TypeInfo(TypeKind.Container, undefined, undefined)]],
         ["record", [new TypeInfo(TypeKind.Container, undefined, undefined)]]
     ])
