@@ -1,11 +1,12 @@
 {
     "name": "@azanat/idlize",
-    "version": "1.0.6",
+    "version": "1.0.11",
     "description": "",
     "main": "lib/index.js",
     "bin": "lib/index.js",
     "files": [
-        "lib/*.js"
+        "lib/*.js",
+        "stdlib.d.ts"
     ],
     "license": "Apache-2.0",
     "keywords": [],
@@ -13,7 +14,8 @@
         "@types/webidl2": "^24.4.1",
         "commander": "^10.0.0",
         "typescript": "^4.9.5",
-        "webidl2": "^24.4.1"
+        "webidl2": "^24.4.1",
+        "@types/node": "^18.0.0"
     },
     "devDependencies": {
         "@rollup/plugin-node-resolve": "^15.2.3",

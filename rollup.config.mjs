@@ -24,7 +24,7 @@ export default {
         format: "commonjs",
         sourcemap: false, // Enable for debugging
         plugins: [
-            //terser()
+            // terser()
         ],
         banner: [
             "#!/usr/bin/env node",
