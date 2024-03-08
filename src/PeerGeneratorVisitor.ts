@@ -290,7 +290,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     typeConvertor(param: string, value: string, type: ts.TypeNode): ArgConvertor {
-        if (type.kind == ts.SyntaxKind.UndefinedKeyword || type.kind == ts.SyntaxKind.VoidKeyword || type.kind == ts.SyntaxKind.ObjectKeyword) {
+        if (type.kind == ts.SyntaxKind.ObjectKeyword) {
+            return this.anyConvertor(param, value)
+        }
+        if (type.kind == ts.SyntaxKind.UndefinedKeyword || type.kind == ts.SyntaxKind.VoidKeyword) {
             return {
                 param: param,
                 value: value,
