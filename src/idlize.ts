@@ -30,7 +30,7 @@ export function generate<T>(
     let program = ts.createProgram(inputFile ? [
         path.join(inputDir, inputFile)
     ] : fs.readdirSync(inputDir)
-        .map(elem => path.join(inputDir, elem)), options.compilerOptions)
+        .map(elem => path.join(inputDir, elem)).concat([path.join(__dirname, "../stdlib.d.ts")]), options.compilerOptions)
 
     // Get the checker, we will use it to find more about classes
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true })

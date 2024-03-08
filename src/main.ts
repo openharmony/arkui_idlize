@@ -27,7 +27,6 @@ import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
 import { isDefined, stringOrNone, toSet } from "./util";
-import { testTypecheck } from "./typecheck";
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -57,7 +56,8 @@ const options = program
 let defaultCompilerOptions: ts.CompilerOptions = {
     target: ts.ScriptTarget.ES5,
     module: ts.ModuleKind.CommonJS,
-    noLib: true
+    noLib: true,
+    types: []
 }
 
 if (options.dts2idl) {

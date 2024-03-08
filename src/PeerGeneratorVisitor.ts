@@ -344,6 +344,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         if (ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
+            if (asString(type.typeName) == "Array") {
+                console.log("Array from ", declaration.getSourceFile().fileName)
+            }
             if (!declaration) {
                 throw new Error(`Declaration not found: ${asString(type.typeName)}`)
             }
@@ -420,7 +423,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                         let maybeElse = (index > 0) ? "else " : ""
                         let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
                         let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
-                        
+
                         this.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
                         this.pushIndent()
                         this.print(`let ${value}_${index}: ${typeName} = ${value} as ${typeName}`)
