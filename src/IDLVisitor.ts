@@ -35,6 +35,11 @@ const typeMapper = new Map<string, string>(
     ]
 )
 
+export class CompileContext {
+    functionCounter = 0
+    objectCounter = 0
+}
+
 export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private output: IDLEntry[] = []
     private currentScope:  IDLEntry[] = []
@@ -53,6 +58,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     constructor(
         private sourceFile: ts.SourceFile,
         private typeChecker: ts.TypeChecker,
+        private compileContext: CompileContext,
         private commonToAttributes: boolean) { }
 
     visitWholeFile(): IDLEntry[] {
@@ -279,8 +285,6 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return false
     }
 
-    functionCounter = 0
-    objectCounter = 0
     serializeType(type: ts.TypeNode | undefined, nameSuggestion: string|undefined = undefined): IDLType {
         if (type == undefined) return createUndefinedType() // TODO: can we have implicit types in d.ts?
         if (type.kind == ts.SyntaxKind.UndefinedKeyword ||
@@ -328,7 +332,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return this.serializeType(type.type)
         }
         if (ts.isFunctionTypeNode(type)) {
-            const counter = this.functionCounter++
+            const counter = this.compileContext.functionCounter++
             const name = `${nameSuggestion??"callback"}__${counter}`
             const callback = this.serializeFunctionType(name, type)
             this.addToScope(callback)
@@ -339,7 +343,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return createStringType()
         }
         if (ts.isTypeLiteralNode(type)) {
-            const counter = this.objectCounter++
+            const counter = this.compileContext.objectCounter++
             const name = `${nameSuggestion ?? "anonymous_interface"}__${counter}`
             const literal = this.serializeObjectType(name, type)
             this.addToScope(literal)

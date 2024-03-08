@@ -23,10 +23,11 @@ import { generate } from "./idlize"
 import { IDLEntry, forEachChild, toIDLString } from "./idl"
 import { printHeader, toHeaderString, wrapWithPrologueAndEpilogue } from "./idl2h"
 import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
-import { IDLVisitor } from "./IDLVisitor"
+import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
 import { isDefined, stringOrNone, toSet } from "./util";
+import { testTypecheck } from "./typecheck";
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -60,11 +61,12 @@ let defaultCompilerOptions: ts.CompilerOptions = {
 }
 
 if (options.dts2idl) {
+    const tsCompileContext = new CompileContext()
     generate(
         options.inputDir,
         options.inputFile,
         options.outputDir ?? "./idl",
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options.commonToAttributes ?? false),
+        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options.commonToAttributes ?? false),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: IDLEntry[], outputDir, sourceFile) => {
@@ -88,11 +90,12 @@ if (options.dts2idl) {
 
 if (options.dts2h) {
     const allEntries = new Array<IDLEntry[]>()
+    const tsCompileContext = new CompileContext()
     generate(
         options.inputDir,
         options.inputFile,
         options.outputDir ?? "./headers",
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options.commonToAttributes ?? false),
+        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options.commonToAttributes ?? false),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: IDLEntry[]) => allEntries.push(entries),
@@ -166,6 +169,7 @@ if (options.idl2h) {
         options.inputDir,
         options.inputFile
     )
+    // testTypecheck(idlFiles.flat())
     const body = idlFiles
         .flatMap(it => printHeader(it, toSet(options.generateInterface)))
         .filter(isDefined)
