@@ -119,12 +119,22 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return inheritance?.map(it => this.serializeHeritage(it)).flat() ?? []
     }
 
+    computeExtendedAttributes(isClass: boolean, node: ts.ClassDeclaration | ts.InterfaceDeclaration): string[] | undefined {
+        let result: string[] = []
+        if (isClass) result.push("Class")
+        let name = asString(node.name)
+        if (name == "CommonMethod" || name == "CommonShapeMethod" || name.endsWith("Attribute")) {
+            result.push("Component")
+        }
+        return result.length > 0 ? result : undefined
+    }
+
     /** Serialize a class information */
     serializeClass(node: ts.ClassDeclaration): IDLInterface {
         this.startScope()
         const result: IDLInterface = {
             kind: IDLKind.Class,
-            extendedAttributes: ['Class'],
+            extendedAttributes: this.computeExtendedAttributes(true, node),
             name: ts.idText(node.name!),
             documentation: getComment(this.sourceFile, node),
             inheritance: this.serializeInheritance(node.heritageClauses),
@@ -196,6 +206,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const result: IDLInterface = {
             kind: IDLKind.Interface,
             name: ts.idText(node.name),
+            extendedAttributes: this.computeExtendedAttributes(false, node),
             documentation: getComment(this.sourceFile, node),
             inheritance: this.serializeInheritance(node.heritageClauses),
             constructors: this.pickConstructors(node.members),

@@ -27,6 +27,7 @@ import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
 import { isDefined, stringOrNone, toSet } from "./util";
+import { TypeChecker, testTypecheck } from "./typecheck";
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -104,7 +105,7 @@ if (options.dts2h) {
     const outFile = path.join(options.outputDir ?? "./headers", "arkoala_api.h")
     console.log("producing", outFile)
 
-    const generated = toHeaderString(allEntries, options.generateInterface)
+    const generated = toHeaderString(new TypeChecker(allEntries.flat()), allEntries, options.generateInterface)
     if (options.verbose) console.log(generated)
     fs.writeFileSync(outFile, generated)
 }
@@ -169,9 +170,9 @@ if (options.idl2h) {
         options.inputDir,
         options.inputFile
     )
-    // testTypecheck(idlFiles.flat())
+    const typeChecker = new TypeChecker(idlFiles.flat())
     const body = idlFiles
-        .flatMap(it => printHeader(it, toSet(options.generateInterface)))
+        .flatMap(it => printHeader(typeChecker, it, toSet(options.generateInterface)))
         .filter(isDefined)
         .filter(it => it.length > 0)
         .join("\n")
@@ -189,29 +190,6 @@ if (options.idl2h) {
 }
 
 if (options.dts2peer) {
-    /*
-    generate(
-        options.inputDir,
-        options.inputFile,
-        options.outputDir ?? "./peers",
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker),
-        {
-            compilerOptions: {
-                target: ts.ScriptTarget.ES5,
-                module: ts.ModuleKind.CommonJS
-            },
-            onSingleFile: (entries: IDLEntry[], outputDir, sourceFile) => {
-                const outFile = path.join(outputDir,
-                    path.basename(sourceFile.fileName).replace(".d.ts", ".ts"))
-                let generated = toPeersString(entries)
-                if (generated) {
-                    console.log("producing", outFile)
-                    if (options.verbose) console.log(generated)
-                    fs.writeFileSync(outFile, generated)
-                }
-            }
-        }
-    ) */
     generate(
         options.inputDir,
         undefined,

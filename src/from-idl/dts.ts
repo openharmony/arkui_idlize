@@ -183,9 +183,9 @@ function tsNodeToString(node: ts.Node): string {
     return printer.printNode(ts.EmitHint.Unspecified, node, ts.createSourceFile("", "", ts.ScriptTarget.ESNext))
 }
 
-export function idlToString(input: string): string {
-    return webidl2.parse(input)
-        .map(toIDLNode)
+export function idlToString(name: string, content: string): string {
+    return webidl2.parse(content)
+        .map(it => toIDLNode(name, it))
         .map(toTsNode)
         .map(tsNodeToString)
         .join('\n')

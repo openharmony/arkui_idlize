@@ -48,9 +48,9 @@ export class TypeTable {
             return
         }
         if (alreadyKnown.length > 0) {
-            console.log(`Duplicate type declaration: ${name}`)
+            // console.log(`Duplicate type declaration: ${name}`)
         }
-        alreadyKnown?.push(typeInfo)
+        alreadyKnown.push(typeInfo)
     }
     get(name: string): TypeInfo[] {
         return this.table.get(name) ?? []
@@ -59,8 +59,9 @@ export class TypeTable {
 
 export class TypeChecker {
     typeTable: TypeTable
-    constructor(typeTable?: TypeTable) {
+    constructor(idls?: IDLEntry[], typeTable?: TypeTable) {
         this.typeTable = typeTable ?? new TypeTable()
+        idls?.forEach(idl => this.typecheck(idl))
     }
 
     typecheck(idl: IDLEntry) {
@@ -99,10 +100,7 @@ export class TypeChecker {
 }
 
 export function testTypecheck(entries: IDLEntry[]) {
-    const typeChecker = new TypeChecker()
-    entries.forEach(idl => {
-        typeChecker.typecheck(idl)
-    })
+    const typeChecker = new TypeChecker(entries)
     typeChecker.typeTable.table.forEach((types, name) => {
         console.log(`${name}:`)
         types.forEach(type =>

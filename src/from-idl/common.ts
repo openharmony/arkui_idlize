@@ -25,7 +25,7 @@ export function fromIDL(
     outputDir: string,
     extension: string,
     verbose: boolean,
-    transform: (input: string) => string
+    transform: (name: string, content: string) => string
 ): void {
     inputDir = path.resolve(inputDir)
     const files: string[] =
@@ -36,8 +36,7 @@ export function fromIDL(
 
     const results: string[] =
         files
-            .map((file: string) => fs.readFileSync(file).toString())
-            .map(transform)
+            .map((file: string) => transform(file, fs.readFileSync(file).toString()))
 
     zip(files, results)
         .forEach(([fileName, output]: [string, string]) => {
@@ -63,9 +62,11 @@ export function scanIDL(
                 .map((elem: string) => path.join(inputDir, elem))
 
     return files
-        .map((file: string) => fs.readFileSync(file).toString())
-        .map((input: string) => webidl2.parse(input))
-        .map((webIDL: webidl2.IDLRootType[]) => webIDL.map(toIDLNode))
+        .map((file: string) => {
+            let content = fs.readFileSync(file).toString()
+            let parsed = webidl2.parse(content)
+            return parsed.map(it => toIDLNode(file, it))
+        })
 }
 
 function zip<A, B>(to: A[], from: B[]): [A, B][] {
