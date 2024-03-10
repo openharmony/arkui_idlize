@@ -50,6 +50,7 @@ export interface IDLType {
     name: string
     kind: IDLKind
     fileName?: string
+    extendedAttributes?: string[]
     documentation?: string
 }
 
@@ -171,9 +172,9 @@ export function forEachChild(node: IDLEntry, cb: (entry: IDLEntry) => void): voi
             let iface = node as IDLInterface
             iface.inheritance.forEach((value) => forEachChild(value, cb))
             iface.constructors?.forEach((value) => forEachChild(value, cb))
-            iface.properties?.forEach((value) => forEachChild(value, cb))
-            iface.methods?.forEach((value) => forEachChild(value, cb))
-            iface.callables?.forEach((value) => forEachChild(value, cb))
+            iface.properties.forEach((value) => forEachChild(value, cb))
+            iface.methods.forEach((value) => forEachChild(value, cb))
+            iface.callables.forEach((value) => forEachChild(value, cb))
             iface.scope?.forEach((value) => forEachChild(value, cb))
             break
         }
@@ -331,8 +332,8 @@ export function printParameters(parameters: IDLParameter[] | undefined): string 
         ?.join(", ") ?? ""
 }
 
-export function printConstructor(idl: IDLFunction): string {
-    return `\tconstructor(${printParameters(idl.parameters)});`
+export function printConstructor(idl: IDLFunction): stringOrNone[] {
+    return [`\tconstructor(${printParameters(idl.parameters)});`]
 }
 
 export function nameWithType(
@@ -346,102 +347,102 @@ export function nameWithType(
     return `${optional}${type}${variadic} ${idl.name}`
 }
 
-function printProperty(idl: IDLProperty): string {
+function printProperty(idl: IDLProperty): stringOrNone[] {
     const staticMod = idl.isStatic ? "static " : ""
     const readonlyMod = idl.isReadonly ? "readonly " : ""
 
     return [
         idl.documentation,
-        idl.extendedAttributes ? `\t` + printExternalAttributes(idl.extendedAttributes) : undefined,
+        ... printExternalAttributes(idl.extendedAttributes),
         `\t${staticMod}${readonlyMod}attribute ${nameWithType(idl)};`
-    ].filter(element => (element?.length ?? 0) > 0).join("\n")
+    ]
 }
 
-function printExternalAttributes(attributes: string[]|undefined): stringOrNone {
-    return attributes ? `[${attributes.join(", ")}]` : undefined
+function printExternalAttributes(attributes: string[]|undefined): stringOrNone[] {
+    return [attributes ? `\t[${attributes.join(", ")}]` : undefined]
 }
 
-function maybeLine(string: string|undefined): string {
-    return string ? string + "\n" : ""
-}
-
-export function printFunction(idl: IDLFunction): string {
+export function printFunction(idl: IDLFunction): stringOrNone[] {
     if (idl.name?.startsWith("__")) {
         console.log(`Ignore ${idl.name}`)
-        return "";
+        return []
     }
-    return maybeLine(idl.documentation) + `\t${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`
-}
-
-export function printMethod(idl: IDLMethod): string {
-    if (idl.name?.startsWith("__")) {
-        console.log(`Ignore ${idl.name}`)
-        return "";
-    }
-    return maybeLine(idl.documentation) + `\t${idl.isStatic ? "static " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`
-}
-
-export function printCallback(idl: IDLCallback): string {
-    return `callback ${idl.name} = ${printType(idl.returnType)} (${printParameters(idl.parameters)});`
-}
-
-export function printScoped(idl: IDLEntry): string {
-    if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
-    if (idl.kind == IDLKind.AnonymousInterface) return printInterface(idl as IDLInterface)
-    return `/* Unexpected scoped: ${idl.kind} ${idl.name} */`
-}
-
-export function printInterface(idl: IDLInterface): string {
     return [
         idl.documentation,
-        printExternalAttributes(idl.extendedAttributes),
-        // This way we can support multiple inheritance.
-        //`interface ${idl.name} ${idl.inheritance.length > 0 ? ": " + idl.inheritance.join(", ") : ""} {`,
-        `interface ${idl.name} ${idl.inheritance.length > 0 ? ": " + printType(idl.inheritance[0]) : ""} {`,
-        idl.constructors?.map(printConstructor)?.join("\n"),
-        idl.properties?.map(printProperty)?.join("\n"),
-        idl.methods?.map(printMethod)?.join("\n"),
-        idl.callables?.map(printFunction)?.join("\n"),
-        "};"
-    ].filter(element => (element?.length ?? 0) > 0).join("\n")
+        ... printExternalAttributes(idl.extendedAttributes), 
+        `\t${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`
+    ]
 }
 
-export function printEnumMember(idl: IDLEnumMember): string {
+export function printMethod(idl: IDLMethod): stringOrNone[] {
+    if (idl.name?.startsWith("__")) {
+        console.log(`Ignore ${idl.name}`)
+        return []
+    }
+    return [
+        idl.documentation,
+        ... printExternalAttributes(idl.extendedAttributes),
+        `\t${idl.isStatic ? "static " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`
+    ]
+}
+
+export function printCallback(idl: IDLCallback): stringOrNone[] {
+    return [`callback ${idl.name} = ${printType(idl.returnType)} (${printParameters(idl.parameters)});`]
+}
+
+export function printScoped(idl: IDLEntry): stringOrNone[] {
+    if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
+    if (idl.kind == IDLKind.AnonymousInterface) return printInterface(idl as IDLInterface)
+    return [`/* Unexpected scoped: ${idl.kind} ${idl.name} */`]
+}
+
+export function printInterface(idl: IDLInterface): stringOrNone[] {
+    return [
+        idl.documentation,
+        ... printExternalAttributes(idl.extendedAttributes),
+        `interface ${idl.name} ${idl.inheritance.length > 0 ? ": " + printType(idl.inheritance[0]) : ""} {`,
+        // TODO: type system hack!
+    ]
+    .concat(idl.constructors.map(printConstructor).flat())
+    .concat(idl.properties.map(printProperty).flat())
+    .concat(idl.methods.map(printMethod).flat())
+    .concat(idl.callables.map(printFunction).flat())
+    .concat(["};"])
+}
+
+export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
     const type = printType(idl.type)
     const initializer = type == "string" ? `"${idl.initializer}"` : idl.initializer
-    return `\t${type} ${idl.name}${initializer ? ` = ${initializer}` : ``};`
+    return [`\t${type} ${idl.name}${initializer ? ` = ${initializer}` : ``};`]
 }
 
-export function printEnum(idl: IDLEnum, skipInitializers: boolean): string {
+export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone[] {
     if (skipInitializers) {
         return [
             idl.documentation,
             `enum ${idl.name!} {`,
-            idl.elements.map(it => `\t"${it.name}"${it.initializer ? " /* " + it.initializer + " */" : ""}`).join(",\n"),
+            ... idl.elements.map(it => `\t"${it.name}"${it.initializer ? " /* " + it.initializer + " */" : ""}`),
             "};"
-        ].join("\n")
+        ]
     } else {
         return [
             idl.documentation,
-
             `dictionary ${idl.name!} {`,
-            idl.elements.map(
-                it => printEnumMember(it)
-            ).join("\n"),
+            ... idl.elements.map(printEnumMember) as any,
             "};"
-        ].join("\n")
+        ]
     }
 }
 
-export function printTypedef(idl: IDLTypedef): string {
+export function printTypedef(idl: IDLTypedef): stringOrNone[] {
     return [
         idl.documentation,
         `typedef ${printType(idl.type)} ${idl.name!};`
-    ].join("\n")
+    ]
 }
 
 
-export function printIDL(idl: IDLEntry, options?: Partial<IDLPrintOptions>): string {
+export function printIDL(idl: IDLEntry, options?: Partial<IDLPrintOptions>): stringOrNone[] {
     if (idl.kind == IDLKind.Class
         || idl.kind == IDLKind.Interface
         || idl.kind == IDLKind.AnonymousInterface
@@ -449,7 +450,7 @@ export function printIDL(idl: IDLEntry, options?: Partial<IDLPrintOptions>): str
     if (idl.kind == IDLKind.Enum) return printEnum(idl as IDLEnum, options?.disableEnumInitializers ?? false)
     if (idl.kind == IDLKind.Typedef) return printTypedef(idl as IDLTypedef)
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
-    return `unexpected kind: ${idl.kind}`
+    return [`unexpected kind: ${idl.kind}`]
 }
 
 export interface IDLPrintOptions {
@@ -457,12 +458,14 @@ export interface IDLPrintOptions {
     disableEnumInitializers: boolean
 }
 
-// https://github.com/giniedp/webidl2ts/blob/master/src/convert-idl.ts
 export function toIDLString(entries: IDLEntry[], options: Partial<IDLPrintOptions>): string {
     const generatedScopes = printScopes(entries)
     const generatedIdl = entries
         .map(it => printIDL(it, options))
         .concat(generatedScopes)
+        .flat()
+        .filter(isDefined)
+        .filter(it => it.length > 0)
         .join("\n")
     if (options.verifyIdl) webidl2.validate(webidl2.parse(generatedIdl))
     return generatedIdl

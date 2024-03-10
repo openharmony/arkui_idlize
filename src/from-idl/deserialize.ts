@@ -50,6 +50,11 @@ export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
     throw new Error(`unexpected node type: ${toString(node)}`)
 }
 
+
+function isCallable(node: webidl2.IDLInterfaceMemberType): boolean {
+    return node.extAttrs.some(it => it.name == "Invoke")
+}
+
 function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface {
     return {
         kind: isClass(node) ? IDLKind.Class : IDLKind.Interface,
@@ -66,9 +71,13 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
             .map(it => toIDLProperty(file, it)),
         methods: node.members
             .filter(isOperation)
+            .filter(it => !isCallable(it))
             .map(it => toIDLMethod(file, it)),
         extendedAttributes: toExtendedAttributes(node.extAttrs),
-        callables: []
+        callables: node.members
+            .filter(isOperation)
+            .filter(it => isCallable(it))
+            .map(it => toIDLMethod(file, it)),
     }
 }
 
@@ -90,7 +99,8 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string): IDL
         return {
             name: type.idlType,
             fileName: file,
-            kind: IDLKind.ReferenceType
+            kind: IDLKind.ReferenceType,
+            extendedAttributes: toExtendedAttributes(type.extAttrs)
         }
     }
     if (isSequenceTypeDescription(type) || isPromiseTypeDescription(type) || isRecordTypeDescription(type)) {

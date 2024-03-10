@@ -25,6 +25,14 @@ enum RuntimeType {
     UNDEFINED
 }
 
+/**
+ * Theory of operations.
+ * 
+ * We use type definition as "grammar", and perform recursive descent to terminal nodes of such grammar
+ * generating serialization code. We use TS typechecker to analyze compound and union types and generate
+ * universal finite automata to serialize any value of the given type.
+ */
+
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
 

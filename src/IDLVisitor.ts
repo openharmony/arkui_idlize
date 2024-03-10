@@ -381,7 +381,9 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (ts.isImportTypeNode(type)) {
             console.log(`Warning: import type: ${type.getText(this.sourceFile)}`)
             let typeName = `/* ${type.getText(this.sourceFile)} */ ` + asString(type.qualifier)
-            return createReferenceType(typeName)
+            let result = createReferenceType(typeName)
+            result.extendedAttributes = ["Import"]
+            return result
         }
         if (ts.isNamedTupleMember(type)) {
             return this.serializeType(type.type)
@@ -511,6 +513,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return {
             kind: IDLKind.Callable,
             name: "invoke",
+            extendedAttributes: ["CallSignature"],
             documentation: getComment(this.sourceFile, method),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),
