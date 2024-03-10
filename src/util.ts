@@ -133,3 +133,9 @@ export function toSet(option: string|undefined): Set<string> {
 /*export function enumElementName<T: EnumType>(element: T): string {
     return Object.keys(T)[Object.values(T).indexOf(element)]
 }*/
+
+export function indentedBy(input: string, indentedBy: number): string {
+    let space = ""
+    for (let i = 0; i < indentedBy; i++) space += "  "
+    return `${space}${input}`
+}

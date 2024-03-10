@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import * as ts from "typescript"
-import { asString, nameOrNull as nameOrUndefined, getDeclarationsByNode, stringOrNone } from "./util"
+import { asString, nameOrNull as nameOrUndefined, getDeclarationsByNode, stringOrNone, indentedBy } from "./util"
 import { GenericVisitor } from "./options"
 
 enum RuntimeType {
@@ -206,9 +206,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     private indent = 0
     indented(input: string): string {
-        let space = ""
-        for (let i = 0; i < this.indent; i++) space += "  "
-        return `${space}${input}`
+        return indentedBy(input, this.indent)
     }
     pushIndent() {
         this.indent++

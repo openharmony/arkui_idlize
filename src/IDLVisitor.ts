@@ -380,7 +380,9 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
         if (ts.isImportTypeNode(type)) {
             console.log(`Warning: import type: ${type.getText(this.sourceFile)}`)
-            let typeName = `/* ${type.getText(this.sourceFile)} */ ` + asString(type.qualifier)
+            let where = type.argument.getText(type.getSourceFile()).split("/").map(it => it.replaceAll("'", ""))
+            let what = asString(type.qualifier)
+            let typeName = `/* ${type.getText(this.sourceFile)} */ ` + (what == "default" ? "Imported" + where[where.length - 1] : "Imported" +  what)
             let result = createReferenceType(typeName)
             result.extendedAttributes = ["Import"]
             return result

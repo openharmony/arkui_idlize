@@ -14,7 +14,7 @@
  */
 
 import * as webidl2 from "webidl2"
-import { asString, isDefined, stringOrNone } from "./util";
+import { asString, indentedBy, isDefined, stringOrNone } from "./util";
 
 export enum IDLKind {
     Interface,
@@ -104,7 +104,7 @@ export interface IDLEnumMember extends IDLEntry {
     kind: IDLKind.EnumMember
     name: string
     type: IDLPrimitiveType
-    initializer: number|string|undefined
+    initializer: number | string | undefined
 }
 
 export interface IDLProperty extends IDLTypedEntry {
@@ -149,7 +149,7 @@ export interface IDLConstructor extends IDLSignature {
 
 export interface IDLInterface extends IDLEntry {
     name: string
-    kind: IDLKind.Interface|IDLKind.Class|IDLKind.AnonymousInterface
+    kind: IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface
     inheritance: IDLType[]
     constructors: IDLConstructor[]
     properties: IDLProperty[]
@@ -333,7 +333,7 @@ export function printParameters(parameters: IDLParameter[] | undefined): string 
 }
 
 export function printConstructor(idl: IDLFunction): stringOrNone[] {
-    return [`\tconstructor(${printParameters(idl.parameters)});`]
+    return [indentedBy(`constructor(${printParameters(idl.parameters)});`, 1)]
 }
 
 export function nameWithType(
@@ -341,7 +341,7 @@ export function nameWithType(
     isVariadic: boolean = false,
     isOptional: boolean = false
 ): string {
-    const type= printType(idl.type)
+    const type = printType(idl.type)
     const variadic = isVariadic ? "..." : ""
     const optional = isOptional ? "optional " : ""
     return `${optional}${type}${variadic} ${idl.name}`
@@ -353,13 +353,13 @@ function printProperty(idl: IDLProperty): stringOrNone[] {
 
     return [
         idl.documentation,
-        ... printExternalAttributes(idl.extendedAttributes),
-        `\t${staticMod}${readonlyMod}attribute ${nameWithType(idl)};`
+        ...printExternalAttributes(idl.extendedAttributes, 1),
+        indentedBy(`${staticMod}${readonlyMod}attribute ${nameWithType(idl)};`, 1)
     ]
 }
 
-function printExternalAttributes(attributes: string[]|undefined): stringOrNone[] {
-    return [attributes ? `\t[${attributes.join(", ")}]` : undefined]
+function printExternalAttributes(attributes: string[] | undefined, indentLevel: number): stringOrNone[] {
+    return [attributes ? indentedBy(`[${attributes.join(", ")}]`, indentLevel) : undefined]
 }
 
 export function printFunction(idl: IDLFunction): stringOrNone[] {
@@ -369,8 +369,8 @@ export function printFunction(idl: IDLFunction): stringOrNone[] {
     }
     return [
         idl.documentation,
-        ... printExternalAttributes(idl.extendedAttributes), 
-        `\t${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`
+        ...printExternalAttributes(idl.extendedAttributes, 1),
+        indentedBy(`${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
     ]
 }
 
@@ -381,8 +381,8 @@ export function printMethod(idl: IDLMethod): stringOrNone[] {
     }
     return [
         idl.documentation,
-        ... printExternalAttributes(idl.extendedAttributes),
-        `\t${idl.isStatic ? "static " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`
+        ...printExternalAttributes(idl.extendedAttributes, 1),
+        indentedBy(`${idl.isStatic ? "static " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
     ]
 }
 
@@ -399,21 +399,21 @@ export function printScoped(idl: IDLEntry): stringOrNone[] {
 export function printInterface(idl: IDLInterface): stringOrNone[] {
     return [
         idl.documentation,
-        ... printExternalAttributes(idl.extendedAttributes),
+        ...printExternalAttributes(idl.extendedAttributes, 0),
         `interface ${idl.name} ${idl.inheritance.length > 0 ? ": " + printType(idl.inheritance[0]) : ""} {`,
         // TODO: type system hack!
     ]
-    .concat(idl.constructors.map(printConstructor).flat())
-    .concat(idl.properties.map(printProperty).flat())
-    .concat(idl.methods.map(printMethod).flat())
-    .concat(idl.callables.map(printFunction).flat())
-    .concat(["};"])
+        .concat(idl.constructors.map(printConstructor).flat())
+        .concat(idl.properties.map(printProperty).flat())
+        .concat(idl.methods.map(printMethod).flat())
+        .concat(idl.callables.map(printFunction).flat())
+        .concat(["};"])
 }
 
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
     const type = printType(idl.type)
     const initializer = type == "string" ? `"${idl.initializer}"` : idl.initializer
-    return [`\t${type} ${idl.name}${initializer ? ` = ${initializer}` : ``};`]
+    return [indentedBy(`${type} ${idl.name}${initializer ? ` = ${initializer}` : ``};`, 1)]
 }
 
 export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone[] {
@@ -421,14 +421,14 @@ export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone
         return [
             idl.documentation,
             `enum ${idl.name!} {`,
-            ... idl.elements.map(it => `\t"${it.name}"${it.initializer ? " /* " + it.initializer + " */" : ""}`),
+            ...idl.elements.map(it => indentedBy(`${it.name} ${(it.initializer ? " /* " + it.initializer + " */" : "")}`, 1)),
             "};"
         ]
     } else {
         return [
             idl.documentation,
             `dictionary ${idl.name!} {`,
-            ... idl.elements.map(printEnumMember) as any,
+            ...idl.elements.map(printEnumMember) as any,
             "};"
         ]
     }
