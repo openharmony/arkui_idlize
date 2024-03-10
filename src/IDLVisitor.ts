@@ -296,6 +296,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return false
     }
 
+    isKnownParametrizedType(type: ts.TypeNode): boolean {
+        if (!ts.isTypeReferenceNode(type)) return false
+        const name = asString((type.parent.parent as ts.NamedDeclaration).name)
+        return name == "Indicator"
+    }
+
     serializeType(type: ts.TypeNode | undefined, nameSuggestion: string|undefined = undefined): IDLType {
         if (type == undefined) return createUndefinedType() // TODO: can we have implicit types in d.ts?
         if (type.kind == ts.SyntaxKind.UndefinedKeyword ||
@@ -314,7 +320,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             )
         }
         if (this.isTypeParameterReference(type)) {
-            if (this.isTypeParameterReferenceOfCommonMethod(type)) {
+            if (this.isTypeParameterReferenceOfCommonMethod(type) || this.isKnownParametrizedType(type)) {
                 return createReferenceType("this")
             }
             return createTypeParameterReference(nameOrUndefined((type as ts.TypeReferenceNode).typeName) ?? "UNEXPECTED_TYPE_PARAMETER")
