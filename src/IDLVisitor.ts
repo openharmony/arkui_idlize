@@ -375,7 +375,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 return createNumberType()
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
-                // TODO: Is it correct to have undefrined for null?
+                // TODO: Is it correct to have undefined for null?
                 return createUndefinedType()
             }
             throw new Error(`Non-representable type: ${asString(type)}`)

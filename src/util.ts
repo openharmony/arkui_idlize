@@ -139,3 +139,17 @@ export function indentedBy(input: string, indentedBy: number): string {
     for (let i = 0; i < indentedBy; i++) space += "  "
     return `${space}${input}`
 }
+
+export function typeOrUndefined(type: ts.TypeNode): ts.TypeNode {
+    let needUndefined = true
+    if (ts.isUnionTypeNode(type)) {
+        type.types?.forEach(it => {
+            if (it.kind == ts.SyntaxKind.UndefinedKeyword) needUndefined = false
+        })
+    }
+    if (!needUndefined) return type
+    return ts.factory.createUnionTypeNode([
+        type,
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
+    ])
+}

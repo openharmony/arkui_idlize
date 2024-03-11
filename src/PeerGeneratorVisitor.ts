@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import * as ts from "typescript"
-import { asString, nameOrNull as nameOrUndefined, getDeclarationsByNode, stringOrNone, indentedBy } from "./util"
+import { asString, nameOrNull as nameOrUndefined, getDeclarationsByNode, stringOrNone, indentedBy, typeOrUndefined } from "./util"
 import { GenericVisitor } from "./options"
 
 enum RuntimeType {
@@ -291,12 +291,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return {
             param: param,
             value: value,
-            runtimeTypes: [],
+            runtimeTypes: [ RuntimeType.UNDEFINED ],
             isScoped: false,
             useArray: false,
             convertor: (param) => this.print("nullptr"),
             convertorToArray: (param: string, value: string) => {
-                this.print(`${param}Index += serializeNull(${param}Array, ${param}Index)`)
+                this.print(`${param}Index += serializeUndefined(${param}Array, ${param}Index)`)
             },
             estimateSize: () => 8
         }
@@ -334,7 +334,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.print(`${param}Index += serializeInt32(${param}Array, ${param}Index, ${value}Type)`)
                 this.checkUniques(param, memberConvertors)
                 memberConvertors.forEach((it, index) => {
-                    let typeName = type.types[index].getText(type.types[index].getSourceFile())
+                    let typeIt = type.types[index]
+                    let typeName = typeIt.getSourceFile() ? typeIt.getText(typeIt.getSourceFile()) : "any"
                     if (it.runtimeTypes.length == 0) {
                         console.log(`WARNING: branch for ${typeName} was consumed`)
                         return
@@ -345,6 +346,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
                     this.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
                     this.pushIndent()
+
                     this.print(`let ${value}_${index}: ${typeName} = ${value} as ${typeName}`)
                     it.convertorToArray(param, `${value}_${index}`)
                     this.popIndent()
@@ -399,6 +401,55 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
     }
 
+    interfaceConvertor(param: string, value: string, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): ArgConvertor {
+        let canDoConvertor = true
+        declaration
+            .members
+            .forEach(it => {
+                if (ts.isPropertySignature(it)) {
+                    if (it.type?.kind != ts.SyntaxKind.NumberKeyword) canDoConvertor = false
+                }
+                if (ts.isPropertyDeclaration(it)) {
+                    if (it.type?.kind != ts.SyntaxKind.NumberKeyword) canDoConvertor = false
+                }
+            })
+        let ifaceName = ts.idText(declaration.name as ts.Identifier)
+        if (!canDoConvertor) {
+            return {
+                param: param,
+                value: value,
+                runtimeTypes: [RuntimeType.OBJECT],
+                estimateSize: () => 32,
+                useArray: true,
+                isScoped: false,
+                convertor: (param, value) => { throw new Error("Must never be used") },
+                convertorToArray: (param, value) => {
+                    this.print(`${param}Index += serialize${ifaceName}(${param}Array, ${param}Index, ${value})`)
+                }
+            }
+        }
+        
+        return {
+            param: param,
+            value: value,
+            runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
+            isScoped: false,
+            useArray: true,
+            convertor: (param: string) => { throw new Error("Do not use") },
+            convertorToArray: (param: string, value: string) => {
+                declaration
+                    .members
+                    .filter(it => ts.isPropertySignature(it) || ts.isPropertyDeclaration(it))
+                    .forEach(it => {
+                        let fieldName = ts.idText(it.name as ts.Identifier)
+                        this.print(`let ${fieldName}_value = ${value}.${fieldName}`)
+                        this.print(`${param}Index += serializeNumber(${param}Array, ${param}Index,${fieldName}_value})`)
+                    })
+            },
+            estimateSize: () => { return 4}
+        }
+    }
+
     tupleConvertor(param: string, value: string, type: ts.TupleTypeNode): ArgConvertor {
         let memberConvertors = type
             .elements
@@ -436,10 +487,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             convertor: (param: string) => { throw new Error("Do not use") },
             convertorToArray: (param: string, value: string) => {
                 // Array length.
-                this.print(`${param}Index += this.serializeInt32(${param}Array, ${param}Index, ${param}.length)`)
-                this.print(`for (let i = 0; i < ${param}.length; i++) {`)
+                this.print(`${param}Index += serializeInt32(${param}Array, ${param}Index, ${value}.length)`)
+                this.print(`for (let i = 0; i < ${value}.length; i++) {`)
                 this.pushIndent()
-                this.print(`let element = ${param}[i]`)
+                this.print(`let element = ${value}[i]`)
                 convertor.convertorToArray(param, "element")
                 this.popIndent()
                 this.print(`}`)
@@ -502,33 +553,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     else
                         return this.emptyConvertor(param, value)
                 }
-                return {
-                    param: param,
-                    value: value,
-                    runtimeTypes: [RuntimeType.OBJECT],
-                    estimateSize: () => 32,
-                    useArray: true,
-                    isScoped: false,
-                    convertor: (param, value) => this.print(`${value}.peer`),
-                    convertorToArray: (param, value) => {
-                        this.print(`${param}Index += serialize${ifaceName}(${param}Array, ${param}Index, ${value})`)
-                    }
-                }
+                return this.interfaceConvertor(param, value, declaration)
             }
             if (ts.isClassDeclaration(declaration)) {
-                // TODO: fix
-                return {
-                    param: param,
-                    value: value,
-                    runtimeTypes: [RuntimeType.OBJECT],
-                    estimateSize: () => 32,
-                    useArray: true,
-                    isScoped: false,
-                    convertor: (param, value) => this.print(`${value}.peer`),
-                    convertorToArray: (param, value) => {
-                        this.print(`${param}Index += serializeClass${asString(declaration.name)}(${param}Array, ${param}Index, ${value})`)
-                    }
-                }
+                return this.interfaceConvertor(param, value, declaration)
             }
             if (ts.isTypeParameterDeclaration(declaration)) {
                 return this.anyConvertor(param, value)
@@ -625,7 +653,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")
         let paramName = asString(param.name)
-        return this.typeConvertor(paramName, paramName, param.type)
+        return this.typeConvertor(paramName, paramName, param.questionToken ? typeOrUndefined(param.type) : param.type)
     }
 
     processProperty(property: ts.PropertyDeclaration | ts.PropertySignature) {
@@ -641,10 +669,15 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isComponent = true
         }
         [
-            `import { runtimeType, serializeString, serializeNumber, serializeResource, serializeInt32, enumToInt32, serializeLabelStyle } from "../../utils/Serialize"`,
+            `import { runtimeType, serializeString, serializeNumber, serializeResource, serializeInt32, enumToInt32, serializeLabelStyle,`,
+            `         serializeBoolean, serializeUndefined, serializeAny, serializeRectangle, serializeMenuOptions, serializePopupOptions,`,
+            `         serializeSizeOptions, serializeConstraintSizeOptions, serializeBackgroundBlurStyleOptions, serializePosition`,
+            `       } from "../../utils/Serialize"`,
             // isComponent ? undefined : `import { Ark${component}Component } from "./Ark${component}"`,
-            isComponent ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "../../utils/Interop"`,
-            `import { nativeModule, int32 } from "../../utils/Interop"`,
+            isComponent ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "./common"`,
+            `import { int32 } from "../../utils/types"`,
+            `import { nativeModule } from "./NativeModule"`,
+            `import { PeerNode } from "../../utils/Interop"`,
             `export class Ark${component}Peer extends ${isComponent ? "PeerNode" : "ArkComponentPeer"} {`
         ].map(it => this.print(it))
         this.pushIndent()
@@ -749,6 +782,16 @@ interface ArgConvertor {
 export function nativeModuleDeclaration(methods: string[]): string {
     methods = methods.map(it => `\n  ${it}`)
     return `
+import { int32 } from "../../utils/types"
+
+let theModule: NativeModule | undefined = undefined
+
+export function nativeModule(): NativeModule {
+    if (theModule) return theModule
+    theModule = require("nativeModule") as NativeModule
+    return theModule
+}
+
 export interface NativeModule {${methods}
 }
 `.trim()

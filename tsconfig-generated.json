@@ -12,7 +12,7 @@
         "strict": true,
         "skipLibCheck": true,
         "removeComments": false,
-        "outDir": "build/lib",
+        "outDir": "build/peers",
         "rootDirs": ["src"],
         "module": "CommonJS",
     },
