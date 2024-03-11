@@ -93,6 +93,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         })
         this.epilogue()
         this.generateAttributesValuesInterfaces()
+        this.generateNativeModule(node)
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
@@ -141,7 +142,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
         let isComponent = false
         let methodName = method.name.getText(this.sourceFile)
-        console.log("processsing", methodName)
+        console.log("processing", methodName)
         this.pushIndent()
         this.print(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         if (isComponent) {
@@ -704,6 +705,31 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     epilogue() {
         this.popIndent()
         this.print(`}`)
+    }
+
+    private generateNativeModule(node: ts.ClassDeclaration) {
+        this.print(`export interface NativeModule {`)
+        this.pushIndent()
+        node.members.forEach(child => {
+            if (ts.isMethodDeclaration(child)) {
+                if (node.name === undefined) throw new Error(`Encountered nameless method ${node}`)
+                this.printNativeMethodDeclaration(child, ts.idText(node.name))
+            }
+        })
+        this.popIndent()
+        this.print(`}`)
+    }
+
+    private printNativeMethodDeclaration(node: ts.MethodDeclaration, component: string) {
+        const method = node.name.getText()
+        const parameters = node.parameters
+            .map(it => this.argConvertor(it))
+            .map(it => {
+                const type = it.useArray ? "Uint8Array" : "int32"
+                return `${it.param}: ${type}`
+            })
+            .join(", ")
+        this.print(`_${component}_${method}Impl(${parameters}): void`)
     }
 }
 
