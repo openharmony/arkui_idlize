@@ -76,7 +76,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (ts.isConstructorDeclaration(child)) {
                 this.processConstructor(child)
             } else if (ts.isMethodDeclaration(child)) {
-                this.processMethod(child)
+                this.processMethod(node, child)
             } else if (ts.isPropertyDeclaration(child)) {
                 this.processProperty(child)
             }
@@ -102,7 +102,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (ts.isConstructorDeclaration(child)) {
                 this.processConstructor(child)
             } else if (ts.isMethodSignature(child)) {
-                this.processMethod(child)
+                this.processMethod(node, child)
             } else if (ts.isPropertyDeclaration(child)) {
                 this.processProperty(child)
             }
@@ -138,7 +138,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (value) this.output.push(this.indented(value))
     }
 
-    processMethod(method: ts.MethodDeclaration | ts.MethodSignature) {
+    processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
         let isComponent = false
         let methodName = method.name.getText(this.sourceFile)
         console.log("processsing", methodName)
@@ -156,18 +156,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.print(`throw new Error("${methodName}Attribute() is not implemented")`)
             } else {
                 if (!methodName.startsWith("on"))
-                    this.generateNativeCall(method)
+                    this.generateNativeCall(clazz, method)
             }
         }
         this.print(`}`)
         this.popIndent()
     }
 
-    generateNativeCall(method: ts.MethodDeclaration | ts.MethodSignature) {
+    generateNativeCall(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
         this.pushIndent()
         let argConvertors = method.parameters
             .map((param) => this.argConvertor(param))
-        let name = `_${asString(method.name)}Impl`
+        let name = `${ts.idText(method.name as ts.Identifier)}Impl`
         let scopes = new Array<ArgConvertor>()
         argConvertors
             .filter(it => it.isScoped)
@@ -184,7 +184,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 it.convertorToArray(it.param, it.value)
             }
         })
-        this.print(`nativeModule().${name}(`)
+        let clazzName = ts.idText(clazz.name as ts.Identifier)
+        this.print(`nativeModule()._${clazzName}_${name}(`)
         this.pushIndent()
         argConvertors.forEach((it, index) => {
             let maybeComma = index == argConvertors.length - 1 ? "" : ","
@@ -233,12 +234,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             param: param,
             value: value,
             runtimeTypes: [RuntimeType.STRING],
-            isScoped: true,
+            isScoped: false,
             useArray: false,
-            scopeStart: (param) => `withString(${param}, (${param}Ptr: KStringPtr) => {`,
-            scopeEnd: () => '})',
+            //scopeStart: (param) => `withString(${param}, (${param}Ptr: KStringPtr) => {`,
+            //scopeEnd: () => '})',
             convertor: (param) => {
-                this.print(`${param}Ptr`)
+                this.print(`${param}`)
             },
             convertorToArray: (param: string, value: string) => {
                 this.print(`${param}Index += serializeString(${param}Array, ${param}Index, ${value})`)
@@ -632,19 +633,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isComponent = true
         }
         [
-            `import { KStringPtr, withString } from "@koalaui/interop"`,
-            isComponent ? undefined : `import { Ark${component}Component } from "./Ark${component}"`,
-            isComponent ? undefined : `import { ArkComponentPeer } from "./ArkComponentPeer"`,
-            `import { nativeModule } from "@koalaui/arkoala"`,
-            `function runtimeType(value: any): number {`,
-            `  let type = typeof value`,
-            `  if (type == "number") return ${RuntimeType.NUMBER}`,
-            `  if (type == "string") return ${RuntimeType.STRING}`,
-            `  if (type == "undefined") return ${RuntimeType.UNDEFINED}`,
-            `  if (type == "object") return ${RuntimeType.OBJECT}`,
-            `  if (type == "boolean") return ${RuntimeType.BOOLEAN}`,
-            `  throw new Error("bug: " + value)`,
-            `}`,
+            `import { runtimeType, serializeString, serializeNumber, serializeResource, serializeInt32, enumToInt32, serializeLabelStyle } from "../../utils/Serialize"`,
+            // isComponent ? undefined : `import { Ark${component}Component } from "./Ark${component}"`,
+            isComponent ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "../../utils/Interop"`,
+            `import { nativeModule, int32 } from "../../utils/Interop"`,
             `export class Ark${component}Peer extends ${isComponent ? "PeerNode" : "ArkComponentPeer"} {`
         ].map(it => this.print(it))
         this.pushIndent()

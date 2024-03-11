@@ -39,8 +39,9 @@
         "run": "npm run compile && node . --dts2idl --input-dir ./ohos-sdk/component --input-file common.d.ts --verify-idl --common-to-attributes --skip-comments",
         "run2h": "npm run compile && node . --dts2h --input-dir ./ohos-sdk/component --input-file common.d.ts --verbose",
         "run2test": "npm run compile && node . --dts2test --input-dir ./ohos-sdk/component --verbose --test-interface ButtonAttribute",
-        "run2peer": "npm run compile && node . --dts2peer --input-dir ./ohos-sdk/component --generate-interface ButtonAttribute --verbose",
+        "run2peer": "npm run compile && node . --dts2peer --input-dir ./ohos-sdk/component --generate-interface ButtonAttribute --output-dir ./generated/peers",
         "lint": "npm run compile && node . --linter --input-dir ./ohos-sdk/component --input-file common.d.ts --verbose",
-        "lint:all": "npm run compile && node . --linter --input-dir ./ohos-sdk/component --verbose"
+        "lint:all": "npm run compile && node . --linter --input-dir ./ohos-sdk/component --verbose",
+        "check:peers": "npm run run2peer && tsc -p ./tsconfig-generated.json"
     }
 }
