@@ -36,9 +36,12 @@ enum RuntimeType {
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
 
-    constructor(private sourceFile: ts.SourceFile, private typeChecker: ts.TypeChecker,
-        private interfacesToGenerate: Set<string>) {
-    }
+    constructor(
+        private sourceFile: ts.SourceFile,
+        private typeChecker: ts.TypeChecker,
+        private interfacesToGenerate: Set<string>,
+        private nativeModuleMethods: string[]
+    ) {}
 
     private output: stringOrNone[] = []
 
@@ -93,7 +96,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         })
         this.epilogue()
         this.generateAttributesValuesInterfaces()
-        this.generateNativeModule(node)
+        node.members.forEach(it => {
+            if (ts.isMethodDeclaration(it)) {
+                this.collectMethod(it, node)
+            }
+        })
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
@@ -707,29 +714,22 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.print(`}`)
     }
 
-    private generateNativeModule(node: ts.ClassDeclaration) {
-        this.print(`export interface NativeModule {`)
-        this.pushIndent()
-        node.members.forEach(child => {
-            if (ts.isMethodDeclaration(child)) {
-                if (node.name === undefined) throw new Error(`Encountered nameless method ${node}`)
-                this.printNativeMethodDeclaration(child, ts.idText(node.name))
-            }
-        })
-        this.popIndent()
-        this.print(`}`)
-    }
-
-    private printNativeMethodDeclaration(node: ts.MethodDeclaration, component: string) {
+    private collectMethod(node: ts.MethodDeclaration, parent: ts.ClassDeclaration): void {
+        if (parent.name === undefined) throw new Error(`Encountered nameless method ${node}`)
+        const component = ts.idText(parent.name)
         const method = node.name.getText()
         const parameters = node.parameters
             .map(it => this.argConvertor(it))
             .map(it => {
-                const type = it.useArray ? "Uint8Array" : "int32"
-                return `${it.param}: ${type}`
+                if (it.useArray) {
+                    const array = `${it.param}Array`
+                    const size = `${it.param}Size`
+                    return `${array}: Uint8Array, ${size}: int32`
+                }
+                return `${it.param}: int32`
             })
             .join(", ")
-        this.print(`_${component}_${method}Impl(${parameters}): void`)
+        this.nativeModuleMethods.push(`_${component}_${method}Impl(${parameters}): void`)
     }
 }
 
@@ -744,4 +744,12 @@ interface ArgConvertor {
     convertorToArray: (param: string, value: string) => void
     param: string
     value: string
+}
+
+export function nativeModuleDeclaration(methods: string[]): string {
+    methods = methods.map(it => `\n  ${it}`)
+    return `
+export interface NativeModule {${methods}
+}
+`.trim()
 }

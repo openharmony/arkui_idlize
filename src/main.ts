@@ -25,7 +25,7 @@ import { printHeader, toHeaderString, wrapWithPrologueAndEpilogue } from "./idl2
 import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
+import { nativeModuleDeclaration, PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
 import { isDefined, stringOrNone, toSet } from "./util";
 import { TypeChecker, testTypecheck } from "./typecheck";
 
@@ -190,11 +190,17 @@ if (options.idl2h) {
 }
 
 if (options.dts2peer) {
+    const nativeMethods: string[] = []
     generate(
         options.inputDir,
         undefined,
         options.outputDir ?? "./peers",
-        (sourceFile, typeChecker) => new PeerGeneratorVisitor(sourceFile, typeChecker, toSet(options.generateInterface)),
+        (sourceFile, typeChecker) => new PeerGeneratorVisitor(
+            sourceFile,
+            typeChecker,
+            toSet(options.generateInterface),
+            nativeMethods
+        ),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: stringOrNone[], outputDir, sourceFile) => {
@@ -208,6 +214,10 @@ if (options.dts2peer) {
                     if (options.verbose) console.log(generated)
                     fs.writeFileSync(outFile, generated)
                 }
+            },
+            onEnd(outDir: string) {
+                const nativeModule = nativeModuleDeclaration(nativeMethods)
+                fs.writeFileSync(path.join(outDir, 'NativeModule.d.ts'), nativeModule)
             }
         }
     )
