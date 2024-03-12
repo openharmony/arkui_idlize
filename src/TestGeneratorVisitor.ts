@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import * as ts from "typescript"
-import { asString, nameOrNull as nameOrUndefined, getDeclarationsByNode } from "./util"
+import { asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode } from "./util"
 import { GenericVisitor } from "./options"
 
 export class TestGeneratorVisitor implements GenericVisitor<string[]> {

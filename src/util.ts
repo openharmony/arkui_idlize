@@ -37,7 +37,7 @@ const keywords = new Map<string, string>(
     ]
 )
 
-export function nameOrNull(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {
+export function nameOrNullForIdl(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {
     if (name == undefined) return undefined
 
     if (ts.isIdentifier(name)) {
@@ -47,6 +47,15 @@ export function nameOrNull(name: ts.EntityName | ts.DeclarationName | undefined)
 
     return undefined
 }
+
+export function nameOrNull(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {
+    if (name == undefined) return undefined
+    if (ts.isIdentifier(name)) {
+        return ts.idText(name)
+    }
+    return undefined
+}
+
 
 export function isNamedDeclaration(node: ts.Node): node is ts.NamedDeclaration {
     return ("name" in node )

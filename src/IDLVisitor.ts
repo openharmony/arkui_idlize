@@ -19,7 +19,7 @@ import {
     IDLEntry, IDLEnum, IDLEnumMember, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType
 } from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, isCommonAttribute, isNodePublic, isReadonly, isStatic, nameOrNull as nameOrUndefined
+    asString, capitalize, getComment, getDeclarationsByNode, isCommonAttribute, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined
 } from "./util"
 import { GenericVisitor } from "./options"
 

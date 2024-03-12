@@ -15,14 +15,6 @@
 
 export class PeerNode {
     constructor() {}
-}
-
-// TODO: generate me.
-export class ArkComponentAttributes {
-}
-export class ArkComponentPeer {
-    applyAttributes(attrs: ArkComponentAttributes): void {
-
-    }
+    applyAttributes(attrs: Object) {}
 }
 

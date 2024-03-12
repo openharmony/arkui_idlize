@@ -16,7 +16,7 @@
 import * as ts from "typescript"
 import { GenericVisitor } from "./options"
 import * as path from "path"
-import { asString, getDeclarationsByNode, getLineNumberString, nameOrNull } from "./util"
+import { asString, getDeclarationsByNode, getLineNumberString, nameOrNullForIdl } from "./util"
 
 export enum LinterError {
     NONE,
@@ -187,7 +187,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.report(
                     member,
                     LinterError.ENUM_WITH_INIT,
-                    `Enum ${nameOrNull(enumDeclaration.name)}.${nameOrNull(member.name)} with an initializer: ${member.initializer.getText(this.sourceFile)}`
+                    `Enum ${nameOrNullForIdl(enumDeclaration.name)}.${nameOrNullForIdl(member.name)} with an initializer: ${member.initializer.getText(this.sourceFile)}`
                 )
             }
         })
