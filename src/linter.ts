@@ -29,7 +29,8 @@ export enum LinterError {
     IMPORT_TYPE,
     MULTIPLE_INHERITANCE,
     UNSUPPORTED_TYPE_PARAMETER,
-    PARAMETER_INITIALIZER
+    PARAMETER_INITIALIZER,
+    DUPLICATE_INTERFACE
 }
 
 export interface LinterMessage {
@@ -42,6 +43,8 @@ export interface LinterMessage {
 function stringMessage(message: LinterMessage): string {
     return `${path.basename(message.file.fileName)}:${getLineNumberString(message.file, message.pos)} - [${message.error}] ${message.message}`
 }
+
+let allInterfaces = new Map<string, string>()
 
 export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     private output: LinterMessage[] = []
@@ -72,6 +75,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     }
 
     visitClass(clazz: ts.ClassDeclaration): void {
+        this.checkClassDuplicate(clazz)
         const allInheritCount = clazz.heritageClauses
             ?.map(it => it.types)
             ?.flatMap(it => it)
@@ -90,7 +94,17 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         })
     }
 
+    checkClassDuplicate(clazz: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+        let clazzName = asString(clazz.name)
+        if (allInterfaces.has(clazzName)) {
+            this.report(clazz, LinterError.DUPLICATE_INTERFACE, 
+                `Duplicate interface ${clazzName}: ${clazz.getSourceFile().fileName} and ${allInterfaces.get(clazzName)}`)
+        }
+        allInterfaces.set(clazzName, clazz.getSourceFile().fileName)
+    }
+ 
     visitInterface(clazz: ts.InterfaceDeclaration): void {
+        this.checkClassDuplicate(clazz)
         const allInheritCount = clazz.heritageClauses
             ?.map(it => it.types)
             ?.flatMap(it => it)

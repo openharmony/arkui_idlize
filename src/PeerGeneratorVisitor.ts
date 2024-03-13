@@ -48,7 +48,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     visitWholeFile(): stringOrNone[] {
         let isCommon = this.sourceFile.fileName.endsWith("common.d.ts") ?? false;
         [
-            `import { runtimeType, Serializer, enumToInt32, functionToInt32 } from "../../utils/Serialize"`,
+            `import { runtimeType, Serializer, functionToInt32, withLength, withLengthArray } from "../../utils/Serialize"`,
                 isCommon ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "./common"`,
                 `import { int32 } from "../../utils/types"`,
                 `import { nativeModule } from "./NativeModule"`,
@@ -141,16 +141,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     processConstructor(ctor: ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration) {
     }
 
-    /*
-    mapType(type: ts.TypeParameter): string {
-        if (ts.isTypeReferenceNode(type)) {
+    mapType(type: ts.TypeNode | undefined): string {
+        if (type && ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
-        if (ts.isTypeParameterDeclaration(type)) return "any"
+            if (ts.isTypeParameterDeclaration(declaration)) return "any"
         }
-    }*/
+        return type?.getText(this.sourceFile) ?? "any"
+    }
     
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
-        return params?.map(param => `${nameOrNull(param.name)}${param.questionToken ? "?" : ""}: ${param.type?.getText(this.sourceFile)}`).join(", ")
+        return params?.map(param => `${nameOrNull(param.name)}${param.questionToken ? "?" : ""}: ${this.mapType(param.type)}`).join(", ")
     }
 
     generateValues(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
@@ -332,9 +332,27 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             useArray: false,
             isScoped: false,
             nativeType: () => "int32",
-            convertor: (param, value) => this.print(`enumToInt32(${value})`),
-            convertorToArray: (param) => {
-                this.print(`${param}Serializer.writeInt32(enumToInt32(${value}))`)
+            convertor: (param, value) => this.print(`${value} as int32`),
+            convertorToArray: (param, value) => {
+                this.print(`${param}Serializer.writeInt32(${value} as int32)`)
+            },
+            estimateSize: () => 4
+        }
+    }
+
+    lengthConvertor(param: string, value: string): ArgConvertor {
+        return {
+            param: param,
+            value: value,
+            runtimeTypes: [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT, RuntimeType.UNDEFINED],
+            useArray: false,
+            isScoped: true,
+            scopeStart: (param) => `withLengthArray(${param}, (${param}Ptr) => {`,
+            scopeEnd: () => '})',
+            nativeType: () => "Uint32Array",
+            convertor: (param, value) => this.print(`${value}Ptr`),
+            convertorToArray: (param, value) => {
+                this.print(`${param}Serializer.writeLength(${value})`)
             },
             estimateSize: () => 4
         }
@@ -354,7 +372,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             convertorToArray: (param: string, value: string) => {
                 this.print(`let ${value}Type = runtimeType(${value})`)
                 // Save actual type being passed.
-                this.print(`${param}Serializer.writeInt32(${value}Type)`)
+                this.print(`${param}Serializer.writeInt8(${value}Type)`)
                 this.checkUniques(param, memberConvertors)
                 memberConvertors.forEach((it, index) => {
                     let typeIt = type.types[index]
@@ -577,6 +595,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
             if (!declaration) {
                 throw new Error(`Declaration not found: ${asString(type.typeName)}`)
+            }
+            if (asString(type.typeName) == "Length") {
+                // Important common case.
+                return this.lengthConvertor(param, value)
             }
             if (ts.isEnumDeclaration(declaration)) {
                 return this.enumMemberConvertor(param, value)

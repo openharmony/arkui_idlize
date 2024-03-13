@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { int32 } from "./types"
+import { float32, int32 } from "./types"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -41,27 +41,177 @@ export function functionToInt32<T>(value: T): int32 {
     return 42
 }
 
-export class Serializer {
-    constructor(expectedSize: int32) {}
+enum Tags {
+    UNDEFINED = 1,
+    INT32 = 2,
+    FLOAT32 = 3,
+    STRING = 4,
+    LENGTH = 5,
+    RESOURCE = 6,
+}
 
+export function withLength(valueLength: Length|undefined, body: (value: float32, unit: int32, resource: int32) => void) {
+    let type = runtimeType(valueLength)
+    let value = 0
+    let unit = 1 // vp
+    let resource = 0
+    switch (type) {
+        case RuntimeType.UNDEFINED:
+            value = 0
+            unit = 0
+            break
+        case RuntimeType.NUMBER:
+            value = valueLength as float32
+            break
+        case RuntimeType.STRING:
+            let valueStr = valueLength as string
+            // TODO: faster parse.
+            if (valueStr.endsWith("vp")) {
+                unit = 1 // vp
+                value = Number(valueStr.substring(0, valueStr.length - 2))
+            } else if (valueStr.endsWith("%")) {
+                unit = 3 // percent
+                value = Number(valueStr.substring(0, valueStr.length - 1))
+            } else if (valueStr.endsWith("lpx")) {
+                unit = 4 // lpx
+                value = Number(valueStr.substring(0, valueStr.length - 3))
+            } else if (valueStr.endsWith("px")) {
+                unit = 0 // px
+                value = Number(valueStr.substring(0, valueStr.length - 2))
+            }
+            break
+        case RuntimeType.OBJECT:
+            resource = (valueLength as Resource).id
+            break
+    }
+    body(value, unit, resource)
+}
+
+
+export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: Uint32Array) => void) {
+    withLength(valueLength, (value, unit, resource) => {
+        let array = new Uint32Array(3)
+        array[0] = value
+        array[1] = unit
+        array[2] = resource
+        body(array)
+    })
+}
+
+let textEncoder = new TextEncoder()
+
+export class Serializer {
+    private position = 0
+    private buffer: ArrayBuffer
+    private view: DataView
+    constructor(expectedSize: int32) {
+        this.buffer = new ArrayBuffer(expectedSize)
+        this.view = new DataView(this.buffer)
+    }
     asArray(): Uint8Array {
-        return new Uint8Array(0)
+        return new Uint8Array(this.buffer)
     }
     length(): int32 {
-        return 0
+        return this.position
     }
-    writeNumber(value: number|undefined) {}
-    writeInt32(value: int32) {}
-    writeBoolean(value: boolean|undefined) {}
-    writeFunction(value: object) {}
-    writeString(value: string|undefined) {}
-    writeResource(value: Resource) {}
-    writeUndefined() {}
-    writeAny(value: any) {}
-    writeRectangle(value: Rectangle) {}
-    writePosition(value: Position) {}
+    private checkCapacity(value: int32) {
+    } 
+    writeNumber(value: number|undefined) {
+        this.checkCapacity(5)
+        if (value == undefined) {
+            this.view.setInt8(this.position, Tags.UNDEFINED)
+            this.position++
+            return
+        }
+        if (value == Math.round(value)) {
+            this.view.setInt8(this.position, Tags.INT32)
+            this.view.setInt32(this.position + 1, value)
+            this.position += 5
+            return
+        }
+        this.view.setInt8(this.position, Tags.FLOAT32)
+        this.view.setFloat32(this.position + 1, value)
+        this.position += 5
+    }
+    writeInt8(value: int32) {
+        this.checkCapacity(1)
+        this.view.setInt8(this.position, value)
+        this.position += 1
+    }
+    writeInt32(value: int32) {
+        this.checkCapacity(4)
+        this.view.setInt32(this.position, value)
+        this.position += 4
+    }
+    writeFloat32(value: float32) {
+        this.checkCapacity(4)
+        this.view.setFloat32(this.position, value)
+        this.position += 4
+    }
+    writeBoolean(value: boolean|undefined) {
+        this.checkCapacity(1)
+        this.view.setInt8(this.position, value == undefined ? 2 : +value)
+        this.position++
+    }
+    writeFunction(value: object) {
+        throw new Error("Functions not yet supported")
+    }
+    writeString(value: string|undefined) {
+        if (value == undefined) {
+            this.checkCapacity(1)
+            this.view.setInt8(this.position, Tags.UNDEFINED)
+            this.position++
+        }
+        let encoded = textEncoder.encode(value)
+        this.checkCapacity(5 + encoded.length)
+        this.view.setInt8(this.position, Tags.STRING)
+        this.view.setInt32(this.position + 1, encoded.length)
+        new Uint8Array(this.view.buffer, this.position + 5).set(encoded)
+        this.position += 5 + encoded.length
+    }
+    writeUndefined() {
+        this.view.setInt8(this.position, Tags.UNDEFINED)
+        this.position++
+    }
+    writeAny(value: any) {
+        throw new Error("How to write any?")
+    }
+    writeResource(value: Resource) {
+        this.writeInt32(value.id)
+        this.writeInt32(value.type)
+        this.writeString(value.bundleName)
+        this.writeString(value.moduleName)
+    }
+    // Length is an important common case.
+    writeLength(value: Length|undefined) {
+        this.checkCapacity(1)
+        let valueType = runtimeType(value)
+        this.writeInt8(valueType)
+        this.position++
+        if (valueType != RuntimeType.UNDEFINED) {
+            withLength(value, (value, unit, resource) => {
+                this.writeFloat32(value)
+                this.writeInt32(unit)
+                this.writeInt32(resource)
+            })
+        }
+    }
+    writeRectangle(value: Rectangle) {
+        this.writeLength(value.x)
+        this.writeLength(value.y)
+        this.writeLength(value.width)
+        this.writeLength(value.height)
+    }
+    writePosition(value: Position) {
+        this.writeLength(value.x)
+        this.writeLength(value.y)
+    }
+    // TODO: two LabelStyle: in tab_content.d.ts and button.d.ts.
     writeLabelStyle(value: LabelStyle) {}
-    writeSizeOptions(value: SizeOptions) {}
+    writeSizeOptions(value: SizeOptions) {
+        this.writeLength(value.width)
+        this.writeLength(value.height)
+    }
     writeConstraintSizeOptions(value: ConstraintSizeOptions) {}
     writeBorderOptions(value: BorderOptions) {}
     writeBorderImageOption(value: BorderImageOption) {}
