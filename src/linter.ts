@@ -197,11 +197,11 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
 
     visitEnum(enumDeclaration: ts.EnumDeclaration): void {
         enumDeclaration.members.forEach(member => {
-            if (member.initializer) {
+            if (member.initializer && !ts.isNumericLiteral(member.initializer)) {
                 this.report(
                     member,
                     LinterError.ENUM_WITH_INIT,
-                    `Enum ${nameOrNullForIdl(enumDeclaration.name)}.${nameOrNullForIdl(member.name)} with an initializer: ${member.initializer.getText(this.sourceFile)}`
+                    `Enum ${nameOrNullForIdl(enumDeclaration.name)}.${nameOrNullForIdl(member.name)} with non-int initializer: ${member.initializer.getText(this.sourceFile)}`
                 )
             }
         })
