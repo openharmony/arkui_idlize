@@ -20,7 +20,8 @@ npm run compile
 node . --linter --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/component
 ```
 
-Results are in `./linter/linter.txt`.
+Results are in `./<outputDir>/linter.txt` if  `--output-dir` parameter specified, otherwise printed to stdout.
+If there are no unsuppressed errors - exit code is 1, otherwise it is 0.
 
 
 ### IDL generator

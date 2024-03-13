@@ -41,11 +41,12 @@ const options = program
     .option('--idl2dts', 'Convert IDL to .d.ts definitions')
     .option('--idl2h', 'Convert IDL to .h definitions')
     .option('--linter', 'Run linter')
+    .option('--linter-suppress-errors <suppress>', 'Error codes to suppress, comma separated, no space')
+    .option('--linter-suppress-locations <suppress>', 'Error locations to suppress, comma separated, no space')
     .option('--verbose', 'Verbose processing')
     .option('--verify-idl', 'Verify produced IDL')
     .option('--skip-comments', 'Emit no comments to idl')
     .option('--common-to-attributes', 'Transform common attributes as IDL attributes')
-    .option('--suppress-errors <suppress>', 'Errors to suppress, comma separated, no space')
     .option('--test-interface <name>', 'Interfaces to test (comma separated)')
     .option('--test-method <name>', 'Methods to test (comma separated)')
     .option('--test-property <name>', 'Properties to test (comma separated)')
@@ -115,18 +116,18 @@ if (options.linter) {
     generate(
         options.inputDir,
         options.inputFile,
-        options.outputDir ?? "./linter",
+        options.outputDir,
         (sourceFile, typeChecker) => new LinterVisitor(sourceFile, typeChecker),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: LinterMessage[]) => allEntries.push(entries),
             onBegin: () => {},
             onEnd: (outputDir) => {
-                const outFile = path.join(outputDir, "linter.txt")
-                console.log("producing", outFile)
-                let generated = toLinterString(allEntries, options.suppressErrors)
-                if (options.verbose) console.log(generated)
-                fs.writeFileSync(outFile, generated)
+                const outFile = options.outputDir ? path.join(outputDir, "linter.txt") : undefined
+                let [generated, exitCode] = toLinterString(allEntries, options.linterSuppressErrors, options.linterSuppressLocations)
+                if (!outFile || options.verbose) console.log(generated)
+                if (outFile) fs.writeFileSync(outFile, generated)
+                process.exit(exitCode)
             }
         }
     )

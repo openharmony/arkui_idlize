@@ -33,7 +33,7 @@ export function generate<T>(
         .map(elem => path.join(inputDir, elem)).concat([path.join(__dirname, "../stdlib.d.ts")]), options.compilerOptions)
 
     // Get the checker, we will use it to find more about classes
-    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true })
+    if (outputDir && !fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true })
 
     options.onBegin?.(outputDir)
 

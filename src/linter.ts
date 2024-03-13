@@ -35,13 +35,13 @@ export enum LinterError {
 
 export interface LinterMessage {
     file: ts.SourceFile
-    pos: number
+    pos: string
     message: string,
     error: LinterError
 }
 
 function stringMessage(message: LinterMessage): string {
-    return `${path.basename(message.file.fileName)}:${getLineNumberString(message.file, message.pos)} - [${message.error}] ${message.message}`
+    return `${message.pos} - [${message.error}] ${message.message}`
 }
 
 let allInterfaces = new Map<string, string>()
@@ -97,12 +97,12 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     checkClassDuplicate(clazz: ts.InterfaceDeclaration | ts.ClassDeclaration) {
         let clazzName = asString(clazz.name)
         if (allInterfaces.has(clazzName)) {
-            this.report(clazz, LinterError.DUPLICATE_INTERFACE, 
+            this.report(clazz, LinterError.DUPLICATE_INTERFACE,
                 `Duplicate interface ${clazzName}: ${clazz.getSourceFile().fileName} and ${allInterfaces.get(clazzName)}`)
         }
         allInterfaces.set(clazzName, clazz.getSourceFile().fileName)
     }
- 
+
     visitInterface(clazz: ts.InterfaceDeclaration): void {
         this.checkClassDuplicate(clazz)
         const allInheritCount = clazz.heritageClauses
@@ -218,24 +218,33 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     report(node: ts.Node, error: LinterError, message: string): void {
         this.output.push({
             file: this.sourceFile,
-            pos: node.getStart(this.sourceFile, false),
+            pos: `${path.basename(this.sourceFile.fileName)}:${getLineNumberString(this.sourceFile, node.getStart(this.sourceFile, false))}`,
             message: message,
             error: error
         })
     }
 }
 
-export function toLinterString(allEntries: Array<LinterMessage[]>, suppress: string | undefined): string {
-    const suppressed = new Set<LinterError>()
-    if (suppress) {
-        suppress.split(",").forEach(it => suppressed.add(Number(it) as LinterError))
+export function toLinterString(allEntries: Array<LinterMessage[]>,
+    suppressErrors: string | undefined,
+    suppressLocations: string | undefined
+): [string, number] {
+    const suppressedErrorsSet = new Set<LinterError>()
+    if (suppressErrors) {
+        suppressErrors.split(",").forEach(it => suppressedErrorsSet.add(Number(it) as LinterError))
     }
-    return allEntries
+    const suppressLocationsSet = new Set<string>()
+    if (suppressLocations) {
+        console.log(typeof suppressLocations)
+        suppressLocations.split(",").forEach(it => suppressLocationsSet.add(it))
+    }
+    let errors = allEntries
         .flatMap(entries =>
             entries
-                .filter(it => !suppressed.has(it.error))
+                .filter(it => !suppressedErrorsSet.has(it.error))
+                .filter(it => !suppressLocationsSet.has(it.pos))
                 .map(stringMessage)
         )
         .filter(element => (element?.length ?? 0) > 0)
-        .join("\n")
+    return [errors.join("\n"), errors.length > 0 ? 1 : 0 ]
 }
