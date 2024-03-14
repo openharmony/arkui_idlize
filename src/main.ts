@@ -27,7 +27,7 @@ import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { nativeModuleDeclaration, PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
 import { isDefined, stringOrNone, toSet } from "./util";
-import { TypeChecker, testTypecheck } from "./typecheck";
+import { TypeChecker  } from "./typecheck";
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -52,6 +52,7 @@ const options = program
     .option('--test-property <name>', 'Properties to test (comma separated)')
     .option('--generate-interface <name>', 'Interfaces to generate (comma separated)')
     .option('--disable-enum-initializers', "Don't include enum member initializers in the interface")
+    .option('--version')
     .parse()
     .opts()
 
@@ -61,6 +62,11 @@ let defaultCompilerOptions: ts.CompilerOptions = {
     noLib: true,
     types: []
 }
+if (process.env.npm_package_version) {
+    console.log(`IDLize version ${process.env.npm_package_version}`)
+}
+
+let didJob = false
 
 if (options.dts2idl) {
     const tsCompileContext = new CompileContext()
@@ -88,6 +94,7 @@ if (options.dts2idl) {
             }
         }
     )
+    didJob = true
 }
 
 if (options.dts2h) {
@@ -109,6 +116,7 @@ if (options.dts2h) {
     const generated = toHeaderString(new TypeChecker(allEntries.flat()), allEntries, options.generateInterface)
     if (options.verbose) console.log(generated)
     fs.writeFileSync(outFile, generated)
+    didJob = true
 }
 
 if (options.linter) {
@@ -131,6 +139,7 @@ if (options.linter) {
             }
         }
     )
+    didJob = true
 }
 
 if (options.dts2test) {
@@ -153,6 +162,7 @@ if (options.dts2test) {
             }
         }
     )
+    didJob = true
 }
 
 if (options.idl2dts) {
@@ -164,6 +174,7 @@ if (options.idl2dts) {
         options.verbose ?? false,
         idlToString,
     )
+    didJob = true
 }
 
 if (options.idl2h) {
@@ -188,6 +199,7 @@ if (options.idl2h) {
     const outFile = path.join(outputDir, "arkoala_api.h")
     console.log("producing", outFile)
     fs.writeFileSync(outFile, generatedHeader)
+    didJob = true
 }
 
 if (options.dts2peer) {
@@ -222,4 +234,9 @@ if (options.dts2peer) {
             }
         }
     )
+    didJob = true
+}
+
+if (!didJob) {
+    program.help()
 }
