@@ -62,8 +62,20 @@ let defaultCompilerOptions: ts.CompilerOptions = {
     noLib: true,
     types: []
 }
+
+function findVersion() {
+    if (process.env.npm_package_version) return process.env.npm_package_version
+    let packageJson = path.join(__dirname, '..', 'package.json')
+    try {
+        let json = fs.readFileSync(packageJson).toString()
+        return json ? JSON.parse(json).version : undefined
+    } catch(e) {
+        return undefined
+    }
+}
+
 if (process.env.npm_package_version) {
-    console.log(`IDLize version ${process.env.npm_package_version}`)
+    console.log(`IDLize version ${findVersion()}`)
 }
 
 let didJob = false
