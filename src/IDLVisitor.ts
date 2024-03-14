@@ -19,7 +19,7 @@ import {
     IDLEntry, IDLEnum, IDLEnumMember, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType
 } from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, isCommonAttribute, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, isCommonAttribute, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
 
@@ -135,7 +135,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const result: IDLInterface = {
             kind: IDLKind.Class,
             extendedAttributes: this.computeExtendedAttributes(true, node),
-            name: ts.idText(node.name!),
+            name: getExportedDeclarationNameByDecl(this.typeChecker, node) ?? "UNDEFINED",
             documentation: getComment(this.sourceFile, node),
             inheritance: this.serializeInheritance(node.heritageClauses),
             constructors: node.members.filter(ts.isConstructorDeclaration).map(it => this.serializeConstructor(it as ts.ConstructorDeclaration)),
@@ -205,7 +205,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const allMembers = this.membersWithFakeOverrides(node)
         const result: IDLInterface = {
             kind: IDLKind.Interface,
-            name: ts.idText(node.name),
+            name: getExportedDeclarationNameByDecl(this.typeChecker, node) ?? "UNDEFINED",
             extendedAttributes: this.computeExtendedAttributes(false, node),
             documentation: getComment(this.sourceFile, node),
             inheritance: this.serializeInheritance(node.heritageClauses),
@@ -304,6 +304,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     serializeType(type: ts.TypeNode | undefined, nameSuggestion: string|undefined = undefined): IDLType {
         if (type == undefined) return createUndefinedType() // TODO: can we have implicit types in d.ts?
+
         if (type.kind == ts.SyntaxKind.UndefinedKeyword ||
             type.kind == ts.SyntaxKind.NullKeyword) {
             return createUndefinedType()
@@ -326,7 +327,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return createTypeParameterReference(nameOrUndefined((type as ts.TypeReferenceNode).typeName) ?? "UNEXPECTED_TYPE_PARAMETER")
         }
         if (ts.isTypeReferenceNode(type)) {
-            const rawType = nameOrUndefined(type.typeName) ?? "undefined"
+            const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName)) ?? "undefined"
             const transformedType = typeMapper.get(rawType) ?? rawType
             if (rawType == "AnimationRange") {
                 let typeArg = type.typeArguments![0]
@@ -388,7 +389,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             console.log(`Warning: import type: ${type.getText(this.sourceFile)}`)
             let where = type.argument.getText(type.getSourceFile()).split("/").map(it => it.replaceAll("'", ""))
             let what = asString(type.qualifier)
-            let typeName = `/* ${type.getText(this.sourceFile)} */ ` + (what == "default" ? "Imported" + where[where.length - 1] : "Imported" +  what)
+            let typeName = `/* ${type.getText(this.sourceFile)} */ ` + sanitize(what == "default" ? "Imported" + where[where.length - 1] : "Imported" +  what)
             let result = createReferenceType(typeName)
             result.extendedAttributes = ["Import"]
             return result
@@ -540,5 +541,15 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             parameters: constr.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(constr.type),
         };
+    }
+}
+
+function sanitize(type: stringOrNone): stringOrNone {
+    if (!type) return undefined
+    let dotIndex = type.lastIndexOf(".")
+    if (dotIndex >= 0) {
+        return type.substring(dotIndex + 1)
+    } else {
+        return type
     }
 }

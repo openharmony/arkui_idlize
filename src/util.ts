@@ -100,6 +100,37 @@ export function getDeclarationsByNode(typechecker: ts.TypeChecker, node: ts.Node
     return getSymbolByNode(typechecker, node)?.getDeclarations() ?? []
 }
 
+export function getExportedDeclarationNameByDecl(typechecker: ts.TypeChecker, declaration: ts.NamedDeclaration) : string|undefined {
+    let declName = declaration.name ? ts.idText(declaration.name as ts.Identifier) : undefined
+    let current: ts.Node = declaration
+    while (current != undefined && !ts.isSourceFile(current)) {
+        current = current.parent
+    }
+    let source = current as ts.SourceFile
+    let exportedName = declName
+    source.forEachChild(it => {
+        if (ts.isExportDeclaration(it)) {
+            let clause = it.exportClause!
+            if (ts.isNamedExportBindings(clause) && ts.isNamedExports(clause)) {
+                clause.elements.forEach(it => {
+                    let propName = it.propertyName ? ts.idText(it.propertyName) : undefined
+                    let property = ts.idText(it.name)
+                    if (propName == declName) {
+                        exportedName = property
+                    }
+                })
+            }
+        }
+    })
+    return exportedName
+}
+
+export function getExportedDeclarationNameByNode(typechecker: ts.TypeChecker, node: ts.Node) : string|undefined {
+    let declarations = getDeclarationsByNode(typechecker, node)
+    if (declarations.length == 0) return undefined
+    return getExportedDeclarationNameByDecl(typechecker, declarations[0])
+}
+
 export function isReadonly(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined): boolean {
     return modifierLikes?.find(it => it.kind == ts.SyntaxKind.ReadonlyKeyword) != undefined
 }
