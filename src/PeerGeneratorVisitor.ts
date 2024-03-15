@@ -13,7 +13,15 @@
  * limitations under the License.
  */
 import * as ts from "typescript"
-import { asString, nameOrNull, getDeclarationsByNode, stringOrNone, indentedBy, typeOrUndefined } from "./util"
+import {
+    asString,
+    nameOrNull,
+    getDeclarationsByNode,
+    stringOrNone,
+    indentedBy,
+    typeOrUndefined,
+    capitalize
+} from "./util"
 import { GenericVisitor } from "./options"
 
 enum RuntimeType {
@@ -35,6 +43,7 @@ enum RuntimeType {
 
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
+    private seenAttributes = new Set<ts.MethodDeclaration | ts.MethodSignature>()
 
     constructor(
         private sourceFile: ts.SourceFile,
@@ -93,17 +102,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         })
         this.processApplyMethod(node)
-        this.popIndent()
-        this.print('}')
-        this.prepareInterfaceAttributes(node)
-        this.pushIndent()
-        node.members.forEach(child => {
-            if (ts.isMethodDeclaration(child)) {
-                this.processOptionAttribute(child)
-            }
-        })
         this.epilogue()
+
+        this.createComponentAttributesDeclaration(node)
         this.generateAttributesValuesInterfaces()
+
         node.members.forEach(it => {
             if (ts.isMethodDeclaration(it)) {
                 this.collectMethod(it, node)
@@ -126,7 +129,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.processApplyMethod(node)
         this.popIndent()
         if (false) {
-            this.prepareInterfaceAttributes(node)
+            this.createComponentAttributesDeclaration(node)
             this.pushIndent()
             node.members.forEach(child => {
                 if (ts.isMethodSignature(child)) {
@@ -172,7 +175,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return
         }
         this.seenMethods.add(methodName)
-        this.pushIndent()
         this.print(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         if (isComponent) {
             this.print(`if (this.checkPriority("${methodName}")) {`)
@@ -189,7 +191,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         }
         this.print(`}`)
-        this.popIndent()
     }
 
     generateNativeCall(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
@@ -739,7 +740,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.print(`}`)
     }
 
-
     processApplyMethod(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         let clazzName = nameOrNull(node.name)!
         let isCommon = clazzName == "CommonMethodAttribute"
@@ -748,10 +748,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             component = "Component"
         }
         const interfaceName = `Ark${component}Attributes`
-        this.pushIndent()
-        if (isCommon) {
-
-        }
         this.print(`applyAttributes${isCommon ? `<T extends ${interfaceName}>` : ``}(attributes: ${isCommon ? `T` : interfaceName}): void {`)
         this.pushIndent()
         this.print(isCommon ? undefined : `super.applyAttributes(attributes)`)
@@ -759,46 +755,82 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.print(`}`)
     }
 
-    prepareInterfaceAttributes(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        let clazzName = nameOrNull(node.name)!
-        let component = clazzName.replace("Attribute", "")
+    private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
+        const className = nameOrNull(node.name)!
+        let component = className.replace("Attribute", "")
+        let extendsClause = "extends ArkComponentAttributes"
         if (component == "CommonMethod") {
             component = "Component"
+            extendsClause = ""
         }
-        this.print(`export interface Ark${component}Attributes ${component == "Component" ? "" : "extends ArkComponentAttributes"} {`)
+        this.print(`export interface Ark${component}Attributes ${extendsClause} {`)
+        this.pushIndent()
+        node.members.forEach(child => {
+            if (ts.isMethodDeclaration(child)) {
+                this.processOptionAttribute(child)
+            }
+        })
+        this.popIndent()
+        this.print("}")
     }
 
-    seenAttributes = new Set<string>()
-    processOptionAttribute(method: ts.MethodDeclaration | ts.MethodSignature) {
-        let methodName = method.name.getText(this.sourceFile)
-        if (this.seenAttributes.has(methodName)) {
+    private processOptionAttribute(method: ts.MethodDeclaration | ts.MethodSignature): void {
+        const methodName = method.name.getText(this.sourceFile)
+        if (this.seenAttributes.has(method)) {
             console.log(`WARNING: ignore seen method: ${methodName}`)
             return
         }
-        this.seenAttributes.add(methodName)
-        /*
-        let parameters = this.generateParams(method.parameters)
-        if (parameters) {
-            if (parameters.includes('=>')) {
-                parameters = parameters.substring(parameters.indexOf(':') + 1, parameters.length)
-            } else if (parameters.includes('{')) {
-                const name = methodName.charAt(0).toUpperCase() + methodName.slice(1) + "ValuesType"
-                this.typesToGenerate.push(`export interface ${name} { ${parameters.substring(parameters.indexOf(':') + 1, parameters.length).replace(/{|}/g, '')} }`)
-                parameters = name
-            } else if (parameters.split(':').length > 2) {
-                const name = methodName.charAt(0).toUpperCase() + methodName.slice(1) + "ValuesType"
-                this.typesToGenerate.push(`export interface ${name} { ${parameters} }`)
-                parameters = name
-            } else {
-                parameters = parameters.substring(parameters.indexOf(':') + 1, parameters.length)
-            }
-        }
-        if (parameters) {
-            this.print(`${methodName}?:${parameters},`)
-        } */
+        this.seenAttributes.add(method)
+        const type = this.argumentType(methodName, method.parameters)
+        this.print(`${methodName}?: ${type}`)
     }
 
-    generateAttributesValuesInterfaces() {
+    private argumentType(methodName: string, parameters: ts.NodeArray<ts.ParameterDeclaration>): string {
+        const argumentTypeName = capitalize(methodName) + "ValuesType"
+        if (parameters.length === 1 && ts.isTypeLiteralNode(parameters[0].type!)) {
+            const typeLiteralStatements = parameters[0].type!.members
+                .map(it => {
+                    if (!ts.isPropertySignature(it)) {
+                        throw new Error(`Expected type literal property to be ts.PropertySignature: ${it}`)
+                    }
+                    return {
+                        name: asString(it.name),
+                        type: it.type!,
+                        questionToken: !!it.questionToken
+                    }
+                })
+
+            this.typesToGenerate.push(
+                this.createParameterType(argumentTypeName, typeLiteralStatements)
+            )
+            return argumentTypeName
+        }
+        if (parameters.length > 2) {
+            const attributeInterfaceStatements = parameters.map(it => ({
+                name: asString(it.name),
+                type: it.type!,
+                questionToken: !!it.questionToken
+            }))
+            this.typesToGenerate.push(
+                this.createParameterType(argumentTypeName, attributeInterfaceStatements)
+            )
+            return argumentTypeName
+        }
+
+        return parameters.map(it => this.mapType(it.type)).join(', ')
+    }
+
+    private createParameterType(
+        name: string,
+        attributes: { name: string, type: ts.TypeNode, questionToken: boolean }[]
+    ): string {
+        const attributeDeclarations = attributes
+            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${it.type.getText()}`)
+            .join('')
+        return `export interface ${name} {${attributeDeclarations}\n}`
+    }
+
+    private generateAttributesValuesInterfaces() {
         this.typesToGenerate.forEach((value: string) => {
             this.print(value)
         })
@@ -816,7 +848,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     return `${array}: Uint8Array, ${array}Length: int32`
                 } else {
                     return `${it.param}: ${it.nativeType!()}`
-
                 }
             })
             .join(", ")
