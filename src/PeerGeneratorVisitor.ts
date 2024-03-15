@@ -27,7 +27,7 @@ enum RuntimeType {
 
 /**
  * Theory of operations.
- * 
+ *
  * We use type definition as "grammar", and perform recursive descent to terminal nodes of such grammar
  * generating serialization code. We use TS typechecker to analyze compound and union types and generate
  * universal finite automata to serialize any value of the given type.
@@ -148,7 +148,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         return type?.getText(this.sourceFile) ?? "any"
     }
-    
+
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
         return params?.map(param => `${nameOrNull(param.name)}${param.questionToken ? "?" : ""}: ${this.mapType(param.type)}`).join(", ")
     }
@@ -428,7 +428,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 memberConvertors.forEach((it, index) => {
                     let memberName = ts.idText(members[index].name as ts.Identifier)
                     this.print(`let ${it.value} = ${value}${members[index].questionToken ? "?" : ""}.${memberName}`)
-                    it.convertorToArray(it.param, it.value) 
+                    it.convertorToArray(it.param, it.value)
                 })
             },
             estimateSize: () => {
@@ -468,17 +468,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 }
             }
         }
-        
+
         return {
             param: param,
             value: value,
             runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
             isScoped: false,
             useArray: true,
-            convertor: (param: string) => { throw new Error("Do not use") },
+            convertor: (param, value) => { throw new Error("Do not use") },
             convertorToArray: (param: string, value: string) => {
-                declaration
-                    .members
+                (declaration
+                    .members as ts.NodeArray<ts.NamedDeclaration>)
                     .filter(it => ts.isPropertySignature(it) || ts.isPropertyDeclaration(it))
                     .forEach(it => {
                         let fieldName = ts.idText(it.name as ts.Identifier)
@@ -504,7 +504,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             estimateSize: () => {
                 let result = 0
                 memberConvertors.forEach(it => result += it.estimateSize())
-                return result 
+                return result
             },
             convertor: (param: string) => { throw new Error("Do not use") },
             convertorToArray: (param: string, value: string) => {
