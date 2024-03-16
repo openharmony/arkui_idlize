@@ -43,7 +43,7 @@ enum RuntimeType {
 
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
-    private seenAttributes = new Set<ts.MethodDeclaration | ts.MethodSignature>()
+    private seenAttributes = new Set<string>()
 
     constructor(
         private sourceFile: ts.SourceFile,
@@ -776,7 +776,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     private processOptionAttribute(method: ts.MethodDeclaration | ts.MethodSignature): void {
         const methodName = method.name.getText(this.sourceFile)
-        if (this.seenAttributes.has(method)) {
+        if (this.seenAttributes.has(methodName)) {
             console.log(`WARNING: ignore seen method: ${methodName}`)
             return
         }
@@ -784,7 +784,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             // We only convert one argument methods to attributes.
             return
         }
-        this.seenAttributes.add(method)
+        this.seenAttributes.add(methodName)
         const type = this.argumentType(methodName, method.parameters)
         this.print(`${methodName}?: ${type}`)
     }
