@@ -14,7 +14,7 @@
  */
 import * as ts from "typescript"
 import {
-    createAnyType, createContainerType, createNumberType, createReferenceType, createStringType, createTypedef,
+    createAnyType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
     createTypeParameterReference, createUndefinedType, createUnionType, IDLCallable, IDLCallback, IDLConstructor,
     IDLEntry, IDLEnum, IDLEnumMember, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType
 } from "./idl"
@@ -135,7 +135,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const result: IDLInterface = {
             kind: IDLKind.Class,
             extendedAttributes: this.computeExtendedAttributes(true, node),
-            name: getExportedDeclarationNameByDecl(this.typeChecker, node) ?? "UNDEFINED",
+            name: getExportedDeclarationNameByDecl(node) ?? "UNDEFINED",
             documentation: getComment(this.sourceFile, node),
             inheritance: this.serializeInheritance(node.heritageClauses),
             constructors: node.members.filter(ts.isConstructorDeclaration).map(it => this.serializeConstructor(it as ts.ConstructorDeclaration)),
@@ -205,7 +205,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const allMembers = this.membersWithFakeOverrides(node)
         const result: IDLInterface = {
             kind: IDLKind.Interface,
-            name: getExportedDeclarationNameByDecl(this.typeChecker, node) ?? "UNDEFINED",
+            name: getExportedDeclarationNameByDecl(node) ?? "UNDEFINED",
             extendedAttributes: this.computeExtendedAttributes(false, node),
             documentation: getComment(this.sourceFile, node),
             inheritance: this.serializeInheritance(node.heritageClauses),
@@ -327,7 +327,19 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return createTypeParameterReference(nameOrUndefined((type as ts.TypeReferenceNode).typeName) ?? "UNEXPECTED_TYPE_PARAMETER")
         }
         if (ts.isTypeReferenceNode(type)) {
-            const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName)) ?? "undefined"
+            if (ts.isQualifiedName(type.typeName)) {
+                let left = type.typeName.left
+                let declaration = getDeclarationsByNode(this.typeChecker, left)
+                if (declaration && declaration[0]) {
+                    if (!ts.isEnumDeclaration(declaration[0])) throw new Error("Only enums supported for now")
+                }
+                return  createEnumType(left.getText(left.getSourceFile()))
+            }
+            let declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
+            if (declaration.length == 0)
+                throw new Error(`Do not know type ${type.typeName.getText(type.typeName.getSourceFile())}`)
+            let isEnum = ts.isEnumDeclaration(declaration[0])
+            const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
             const transformedType = typeMapper.get(rawType) ?? rawType
             if (rawType == "AnimationRange") {
                 let typeArg = type.typeArguments![0]
@@ -337,7 +349,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 return createContainerType(transformedType, type.typeArguments?.map(it => this.serializeType(it))?.[0]!)
             }
 
-            return createReferenceType(transformedType)
+            return isEnum ? createEnumType(transformedType) : createReferenceType(transformedType)
         }
         if (ts.isArrayTypeNode(type)) {
             return createContainerType("sequence", this.serializeType(type.elementType))

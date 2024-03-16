@@ -29,3 +29,7 @@ interface Float32Array extends RelativeIndexable<number> {}
 interface Float64Array extends RelativeIndexable<number> {}
 interface BigInt64Array extends RelativeIndexable<bigint> {}
 interface BigUint64Array extends RelativeIndexable<bigint> {}
+interface Date {}
+interface IterableIterator<T> {}
+interface Object {}
+interface Function {}

@@ -100,7 +100,7 @@ export function getDeclarationsByNode(typechecker: ts.TypeChecker, node: ts.Node
     return getSymbolByNode(typechecker, node)?.getDeclarations() ?? []
 }
 
-export function getExportedDeclarationNameByDecl(typechecker: ts.TypeChecker, declaration: ts.NamedDeclaration) : string|undefined {
+export function getExportedDeclarationNameByDecl(declaration: ts.NamedDeclaration) : string|undefined {
     let declName = declaration.name ? ts.idText(declaration.name as ts.Identifier) : undefined
     let current: ts.Node = declaration
     while (current != undefined && !ts.isSourceFile(current)) {
@@ -128,7 +128,7 @@ export function getExportedDeclarationNameByDecl(typechecker: ts.TypeChecker, de
 export function getExportedDeclarationNameByNode(typechecker: ts.TypeChecker, node: ts.Node) : string|undefined {
     let declarations = getDeclarationsByNode(typechecker, node)
     if (declarations.length == 0) return undefined
-    return getExportedDeclarationNameByDecl(typechecker, declarations[0])
+    return getExportedDeclarationNameByDecl(declarations[0])
 }
 
 export function isReadonly(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined): boolean {

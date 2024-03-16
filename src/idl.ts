@@ -281,6 +281,13 @@ export function createReferenceType(name: string): IDLReferenceType {
     }
 }
 
+export function createEnumType(name: string): IDLEnumType {
+    return {
+        kind: IDLKind.EnumType,
+        name: name
+    }
+}
+
 export function createContainerType(container: string, element: IDLType): IDLContainerType {
     return {
         kind: IDLKind.ContainerType,
