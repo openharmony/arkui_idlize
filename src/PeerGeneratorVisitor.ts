@@ -780,6 +780,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             console.log(`WARNING: ignore seen method: ${methodName}`)
             return
         }
+        if (method.parameters.length > 1) {
+            // We only convert one argument methods to attributes.
+            return
+        }
         this.seenAttributes.add(method)
         const type = this.argumentType(methodName, method.parameters)
         this.print(`${methodName}?: ${type}`)

@@ -269,9 +269,6 @@ function renameType(literal: string): string {
 }
 
 function renameMethod(method: string): string {
-    if (method === "invoke") {
-        return ""
-    }
     return method
 }
 
