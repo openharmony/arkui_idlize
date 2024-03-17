@@ -334,14 +334,12 @@ export function createTypedef(name: string, type: IDLType): IDLTypedef {
     }
 }
 
-export function printType(type: IDLType | undefined, undefinedToVoid?: boolean): string {
+export function printType(type: IDLType | undefined): string {
     if (!type) throw new Error("Missing type")
-    if (type.name == "undefined" && undefinedToVoid) return "void"
-    if (type.name == "int32" || type.name == "float32") return "number"
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) return `${type.name}<${printType(type.elementType)}>`
     if (isReferenceType(type)) return `${type.name}`
-    if (isUnionType(type)) return `(${type.types.map(it => printType(it, undefinedToVoid)).join(" or ")})`
+    if (isUnionType(type)) return `(${type.types.map(printType).join(" or ")})`
     if (isEnumType(type)) return type.name
     if (isTypeParameterType(type)) return type.name
     throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)

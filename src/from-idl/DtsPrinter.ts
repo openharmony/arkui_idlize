@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 import { indentedBy, stringOrNone } from "../util"
-import { IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLTypedef, getExtAttribute,
+import { IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
     hasExtAttribute,
     isCallback,
-    isClass, isConstructor, isEnum, isInterface, isMethod, isProperty, isTypedef, printType } from "../idl"
+    isClass, isConstructor, isContainerType, isEnum, isEnumType, isInterface, isMethod, isPrimitiveType, isProperty, isReferenceType, isTypeParameterType, isTypedef, isUnionType } from "../idl"
 import * as webidl2 from "webidl2"
 import { toIDLNode } from "./deserialize"
 
@@ -60,17 +60,17 @@ export class CustomPrintVisitor  {
     }
 
     printMethod(node: IDLMethod|IDLConstructor) {
-        let returnType = node.returnType ? `: ${printType(node.returnType, true)}` : ""
+        let returnType = node.returnType ? `: ${printTypeForTS(node.returnType, true)}` : ""
         let isStatic = isMethod(node) && node.isStatic
         let name = isConstructor(node) ? "constructor" : node.name
         if (hasExtAttribute(node, "CallSignature")) name = ""
         this.print(`${isStatic ? "static " : ""}${name}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
     }
     paramText(param: IDLParameter): string {
-        return `${param.name}${param.isOptional ? "?" : ""}: ${printType(param.type)}`
+        return `${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
     }
     printProperty(node: IDLProperty) {
-        this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${node.name}${node.isOptional ? "?" : ""}: ${printType(node.type)};`)
+        this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${node.name}${node.isOptional ? "?" : ""}: ${printTypeForTS(node.type)};`)
     }
     printEnum(node: IDLEnum) {
         this.print(`declare enum ${node.name} {`)
@@ -83,10 +83,10 @@ export class CustomPrintVisitor  {
     }
     printCallback(node: IDLCallback) {
         // TODO: is it correct.
-        this.print(`type ${(node.name)} = (${node.parameters.map(it => printType(it.type)).join(", ")}) => ${printType(node.returnType)}`)
+        this.print(`type ${(node.name)} = (${node.parameters.map(it => printTypeForTS(it.type)).join(", ")}) => ${printTypeForTS(node.returnType)}`)
     }
     printTypedef(node: IDLTypedef) {
-        this.print(`type ${(node.name)} = ${printType(node.type)}`)
+        this.print(`type ${(node.name)} = ${printTypeForTS(node.type)}`)
     }
     checkVerbatim(node: IDLEntry) {
         let verbatim = getExtAttribute(node, "VerbatimDts")
@@ -119,5 +119,18 @@ export function idlToString(name: string, content: string): string {
         .map(it => toIDLNode(name, it))
         .map(it => printer.visit(it))
     return printer.output.join("\n")
+}
+
+export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: boolean): string {
+    if (!type) throw new Error("Missing type")
+    if (type.name == "undefined" && undefinedToVoid) return "void"
+    if (type.name == "int32" || type.name == "float32") return "number"
+    if (isPrimitiveType(type)) return type.name
+    if (isContainerType(type)) return `Array<${printTypeForTS(type.elementType)}>`
+    if (isReferenceType(type)) return `${type.name}`
+    if (isUnionType(type)) return `(${type.types.map(it => printTypeForTS(it, undefinedToVoid)).join("|")})`
+    if (isEnumType(type)) return type.name
+    if (isTypeParameterType(type)) return type.name
+    throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
 }
 
