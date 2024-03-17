@@ -26,7 +26,7 @@ import {
     createContainerType, createNumberType, createUnionType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLInterface, IDLKind,
     IDLMethod, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
 } from "../idl"
-import { isDefined } from "../util"
+import { isDefined, stringOrNone } from "../util"
 
 export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
     if (isEnum(node)) {
@@ -60,6 +60,7 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
         kind: isClass(node) ? IDLKind.Class : IDLKind.Interface,
         name: node.name,
         fileName: file,
+        documentation: makeDocs(node),
         inheritance: [node.inheritance]
             .filter(isDefined)
             .map(it => toIDLType(file, it)),
@@ -122,6 +123,7 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): IDLMethod
         name: node.name ?? "",
         isStatic: node.special === "static",
         parameters: node.arguments.map(it => toIDLParameter(file, it)),
+        documentation: makeDocs(node),
         returnType: toIDLType(file, node.idlType),
         extendedAttributes: toExtendedAttributes(node.extAttrs),
         kind: IDLKind.Method
@@ -131,6 +133,7 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): IDLMethod
 function toIDLConstructor(file: string, node: webidl2.ConstructorMemberType): IDLConstructor {
     return {
         parameters: node.arguments.map(it => toIDLParameter(file, it)),
+        documentation: makeDocs(node),
         kind: IDLKind.Constructor
     }
 }
@@ -152,6 +155,7 @@ function toIDLCallback(file: string, node: webidl2.CallbackType): IDLCallback {
         name: node.name,
         fileName: file,
         parameters: node.arguments.map(it => toIDLParameter(file, it)),
+        documentation: makeDocs(node),
         returnType: toIDLType(file, node.idlType)
     }
 }
@@ -160,6 +164,7 @@ function toIDLTypedef(file: string, node: webidl2.TypedefType): IDLTypedef {
     return {
         kind: IDLKind.Typedef,
         type: toIDLType(file, node.idlType),
+        documentation: makeDocs(node),
         fileName: file,
         name: node.name
     }
@@ -169,6 +174,7 @@ function toIDLDictionary(file: string, node: webidl2.DictionaryType): IDLEnum {
     return {
         kind: IDLKind.Enum,
         name: node.name,
+        documentation: makeDocs(node),
         fileName: file,
         elements: node.members.map(it => toIDLEnumMember(file, it))
     }
@@ -178,6 +184,7 @@ function toIDLProperty(file: string, node: webidl2.AttributeMemberType): IDLProp
     return {
         kind: IDLKind.Property,
         name: node.name,
+        documentation: makeDocs(node),
         fileName: file,
         type: toIDLType(file, node.idlType),
         isReadonly: node.readonly,
@@ -211,11 +218,20 @@ function toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): string[]|u
     return extAttrs.map(it => `${it.name}${it.rhs?.value ? it.rhs?.value : ""}`)
 }
 
+function makeDocs(node: webidl2.AbstractBase): stringOrNone {
+    let docs = undefined
+    node.extAttrs.forEach(it => {
+        if (it.name == "Documentation") docs = it.rhs?.value
+    })
+    return docs
+}
+
 function toIDLEnum(file: string, node: webidl2.EnumType): IDLEnum {
     return {
         kind: IDLKind.Enum,
         name: node.name,
         fileName: file,
+        documentation: makeDocs(node),
         elements: node.values.map((it: { value: string }) => {
             return {
                 kind: IDLKind.EnumMember,
