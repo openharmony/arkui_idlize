@@ -132,6 +132,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 if (ts.isPropertySignature(it)) this.visitProperty(it)
                 if (ts.isIndexSignatureDeclaration(it)) {
                     this.report(it, LinterError.INDEX_SIGNATURE, `Index signature type: ${type.getText(this.sourceFile)}`)
+                    it.parameters.forEach(it => this.checkType(it.type))
                 }
 
             })

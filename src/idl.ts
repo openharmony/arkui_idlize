@@ -37,13 +37,18 @@ export enum IDLKind {
     TypeParameterType
 }
 
+export interface IDLExtendedAttribute {
+    name: string
+    value?: string
+}
+
 export interface IDLEntry {
     name?: string
     kind?: IDLKind
     fileName?: string
     comment?: string
     documentation?: string
-    extendedAttributes?: string[]
+    extendedAttributes?: IDLExtendedAttribute[]
     scope?: IDLEntry[]
 }
 
@@ -51,7 +56,7 @@ export interface IDLType {
     name: string
     kind: IDLKind
     fileName?: string
-    extendedAttributes?: string[]
+    extendedAttributes?: IDLExtendedAttribute[]
     documentation?: string
 }
 
@@ -239,6 +244,15 @@ export function isInterface(node: IDLEntry): node is IDLInterface {
 export function isClass(node: IDLEntry): node is IDLInterface {
     return node.kind === IDLKind.Class
 }
+export function isMethod(node: IDLEntry): node is IDLMethod {
+    return node.kind === IDLKind.Method
+}
+export function isConstructor(node: IDLEntry): node is IDLConstructor {
+    return node.kind === IDLKind.Constructor
+}
+export function isProperty(node: IDLEntry): node is IDLProperty {
+    return node.kind === IDLKind.Property
+}
 export function isCallback(node: IDLEntry): node is IDLCallback {
     return node.kind === IDLKind.Callback
 }
@@ -320,16 +334,16 @@ export function createTypedef(name: string, type: IDLType): IDLTypedef {
     }
 }
 
-export function printType(type: IDLType | undefined): string {
-    if (!type) return "UNKNOWN_TYPE"
+export function printType(type: IDLType | undefined, undefinedToVoid?: boolean): string {
+    if (!type) throw new Error("Missing type")
+    if (type.name == "undefined" && undefinedToVoid) return "void"
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) return `${type.name}<${printType(type.elementType)}>`
     if (isReferenceType(type)) return `${type.name}`
-    if (isUnionType(type)) return `(${type.types.map(printType).join(" or ")})`
+    if (isUnionType(type)) return `(${type.types.map(it => printType(it, undefinedToVoid)).join(" or ")})`
     if (isEnumType(type)) return type.name
     if (isTypeParameterType(type)) return type.name
-
-    return "??? A " + type.kind + type.name
+    throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
 }
 
 export function printParameters(parameters: IDLParameter[] | undefined): string {
@@ -372,7 +386,10 @@ function escapeDocs(input: string): string {
 function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNone[] {
     let attributes = idl.extendedAttributes
     if (idl.documentation) {
-        let docs = `Documentation="${escapeDocs(idl.documentation)}"`
+        let docs: IDLExtendedAttribute = {
+            name: 'Documentation',
+            value: `"${escapeDocs(idl.documentation)}"`
+        }
         if (attributes)
             attributes.push(docs)
         else
@@ -495,5 +512,13 @@ function printScopes(entries: IDLEntry[]) {
 }
 
 export function hasExtAttribute(node: IDLEntry, attribute: string): boolean {
-    return node.extendedAttributes?.find((it) => it == attribute) != undefined
+    return node.extendedAttributes?.find((it) => it.name == attribute) != undefined
+}
+
+export function getExtAttribute(node: IDLEntry, name: string): stringOrNone {
+    let value = undefined
+    node.extendedAttributes?.forEach(it => {
+        if (it.name == name) value = it.value
+    })
+    return value
 }

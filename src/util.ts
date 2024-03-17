@@ -14,7 +14,6 @@
  */
 
 import * as ts from "typescript"
-import { EnumType } from "webidl2"
 
 // Several things stolen from our memo plugin
 // for easier life

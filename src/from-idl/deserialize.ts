@@ -23,7 +23,7 @@ import {
 } from "./webidl2-utils"
 import { toString } from "./toString"
 import {
-    createContainerType, createNumberType, createUnionType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLInterface, IDLKind,
+    createContainerType, createNumberType, createUnionType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLInterface, IDLKind,
     IDLMethod, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
 } from "../idl"
 import { isDefined, stringOrNone } from "../util"
@@ -213,9 +213,14 @@ function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLE
     }
 }
 
-function toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): string[]|undefined {
+function toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): IDLExtendedAttribute[]|undefined {
     // TODO: be smarter about RHS.
-    return extAttrs.map(it => `${it.name}${it.rhs?.value ? it.rhs?.value : ""}`)
+    return extAttrs.map(it => {
+        return {
+            name: it.name,
+            value: it.rhs?.value ? it.rhs?.value : undefined
+        } as IDLExtendedAttribute
+    })
 }
 
 function makeDocs(node: webidl2.AbstractBase): stringOrNone {

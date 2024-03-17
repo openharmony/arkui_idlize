@@ -16,7 +16,7 @@ import * as ts from "typescript"
 import {
     createAnyType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
     createTypeParameterReference, createUndefinedType, createUnionType, IDLCallable, IDLCallback, IDLConstructor,
-    IDLEntry, IDLEnum, IDLEnumMember, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType
+    IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType
 } from "./idl"
 import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, isCommonAttribute, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
@@ -119,12 +119,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return inheritance?.map(it => this.serializeHeritage(it)).flat() ?? []
     }
 
-    computeExtendedAttributes(isClass: boolean, node: ts.ClassDeclaration | ts.InterfaceDeclaration): string[] | undefined {
-        let result: string[] = []
-        if (isClass) result.push("Class")
+    computeExtendedAttributes(isClass: boolean, node: ts.ClassDeclaration | ts.InterfaceDeclaration): IDLExtendedAttribute[] | undefined {
+        let result: IDLExtendedAttribute[] = []
+        if (isClass) result.push({name: "Class"})
         let name = asString(node.name)
         if (name == "CommonMethod" || name == "CommonShapeMethod" || name.endsWith("Attribute")) {
-            result.push("Component")
+            result.push({name: "Component"})
         }
         return result.length > 0 ? result : undefined
     }
@@ -415,7 +415,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             let what = asString(type.qualifier)
             let typeName = `/* ${type.getText(this.sourceFile)} */ ` + sanitize(what == "default" ? "Imported" + where[where.length - 1] : "Imported" +  what)
             let result = createReferenceType(typeName)
-            result.extendedAttributes = ["Import"]
+            result.extendedAttributes = [{ name: "Import", value: type.argument.getText(this.sourceFile)}]
             return result
         }
         if (ts.isNamedTupleMember(type)) {
@@ -475,7 +475,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return {
                 kind: IDLKind.Property,
                 name: name,
-                extendedAttributes: [`CommonMethod`],
+                extendedAttributes: [{ name: "CommonMethod" } ],
                 documentation: getComment(this.sourceFile, property),
                 type: this.serializeType(property.parameters[0].type),
                 isReadonly: false,
@@ -494,7 +494,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 isReadonly: isReadonly(property.modifiers),
                 isStatic: isStatic(property.modifiers),
                 isOptional: !!property.questionToken,
-                extendedAttributes: !!property.questionToken ? ['Optional'] : undefined,
+                extendedAttributes: !!property.questionToken ? [{name: 'Optional'}] : undefined,
             }
         }
         throw new Error("Unknown")
@@ -535,7 +535,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 name: "indexSignature",
                 documentation: getComment(this.sourceFile, method),
                 returnType: this.serializeType(method.type),
-                extendedAttributes: ['IndexSignature'],
+                extendedAttributes: [{name: 'IndexSignature' }],
                 isStatic: false,
                 parameters: method.parameters.map(it => this.serializeParameter(it))
             }
@@ -554,7 +554,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return {
             kind: IDLKind.Callable,
             name: "invoke",
-            extendedAttributes: ["CallSignature"],
+            extendedAttributes: [{name: "CallSignature"}],
             documentation: getComment(this.sourceFile, method),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),
