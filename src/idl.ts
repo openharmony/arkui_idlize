@@ -14,7 +14,7 @@
  */
 
 import * as webidl2 from "webidl2"
-import { asString, indentedBy, isDefined, stringOrNone } from "./util";
+import { indentedBy, isDefined, stringOrNone } from "./util";
 
 export enum IDLKind {
     Interface,
@@ -337,6 +337,7 @@ export function createTypedef(name: string, type: IDLType): IDLTypedef {
 export function printType(type: IDLType | undefined, undefinedToVoid?: boolean): string {
     if (!type) throw new Error("Missing type")
     if (type.name == "undefined" && undefinedToVoid) return "void"
+    if (type.name == "int32" || type.name == "float32") return "number"
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) return `${type.name}<${printType(type.elementType)}>`
     if (isReferenceType(type)) return `${type.name}`
@@ -395,7 +396,7 @@ function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNo
         else
             attributes = [docs]
     }
-    return [attributes ? indentedBy(`[${attributes.join(", ")}]`, indentLevel) : undefined]
+    return [attributes ? indentedBy(`[${attributes.map(it => `${it.name}${it.value ? "=" + it.value : ""}`).join(", ")}]`, indentLevel) : undefined]
 }
 
 export function printFunction(idl: IDLFunction): stringOrNone[] {

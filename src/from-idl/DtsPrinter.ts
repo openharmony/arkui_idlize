@@ -14,6 +14,7 @@
  */
 import { indentedBy, stringOrNone } from "../util"
 import { IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLTypedef, getExtAttribute,
+    hasExtAttribute,
     isCallback,
     isClass, isConstructor, isEnum, isInterface, isMethod, isProperty, isTypedef, printType } from "../idl"
 import * as webidl2 from "webidl2"
@@ -42,7 +43,8 @@ export class CustomPrintVisitor  {
     }
 
     printClass(node: IDLInterface) {
-        this.print(`declare class ${node.name} {`)
+        let keyword = hasExtAttribute(node, "Class") ? "declare class" : "interface"
+        this.print(`${keyword} ${node.name} {`)
         this.pushIndent()
         node.constructors.map(it => this.visit(it))
         node.properties.map(it => this.visit(it))
@@ -50,25 +52,31 @@ export class CustomPrintVisitor  {
         node.callables.map(it => this.visit(it))
         this.popIndent()
         this.print("}")
+        if (hasExtAttribute(node, "Component")) {
+            let name = getExtAttribute(node, "Component")
+            this.print(`declare const ${name}Instance: ${name}Attribute;`)
+            this.print(`declare const ${name}: ${name}Interface;`)
+        }
     }
 
     printMethod(node: IDLMethod|IDLConstructor) {
         let returnType = node.returnType ? `: ${printType(node.returnType, true)}` : ""
         let isStatic = isMethod(node) && node.isStatic
         let name = isConstructor(node) ? "constructor" : node.name
+        if (hasExtAttribute(node, "CallSignature")) name = ""
         this.print(`${isStatic ? "static " : ""}${name}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
     }
     paramText(param: IDLParameter): string {
         return `${param.name}${param.isOptional ? "?" : ""}: ${printType(param.type)}`
     }
     printProperty(node: IDLProperty) {
-        this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${node.name}${node.isOptional ? "?" : ""}: ${printType(node.type)}`)
+        this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${node.name}${node.isOptional ? "?" : ""}: ${printType(node.type)};`)
     }
     printEnum(node: IDLEnum) {
         this.print(`declare enum ${node.name} {`)
         this.pushIndent()
-        node.elements.forEach(it => {
-            this.print(`${it.name}${it.initializer ? " = " + it.initializer : ""},`)
+        node.elements.forEach((it, index) => {
+            this.print(`${it.name}${it.initializer ? " = " + it.initializer : ""}${index < node.elements.length - 1 ? "," : ""}`)
         })
         this.popIndent()
         this.print("}")

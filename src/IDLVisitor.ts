@@ -123,8 +123,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         let result: IDLExtendedAttribute[] = []
         if (isClass) result.push({name: "Class"})
         let name = asString(node.name)
-        if (name == "CommonMethod" || name == "CommonShapeMethod" || name.endsWith("Attribute")) {
-            result.push({name: "Component"})
+        if (name.endsWith("Attribute") && name != "CommonAttribute") {
+            result.push({name: "Component", value: name.substring(0, name.length - 9)})
         }
         return result.length > 0 ? result : undefined
     }
