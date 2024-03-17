@@ -41,6 +41,7 @@ export interface IDLEntry {
     name?: string
     kind?: IDLKind
     fileName?: string
+    comment?: string
     documentation?: string
     extendedAttributes?: string[]
     scope?: IDLEntry[]
@@ -359,13 +360,24 @@ function printProperty(idl: IDLProperty): stringOrNone[] {
     const readonlyMod = idl.isReadonly ? "readonly " : ""
 
     return [
-        idl.documentation,
-        ...printExternalAttributes(idl.extendedAttributes, 1),
+        ...printExtendedAttributes(idl, 1),
         indentedBy(`${staticMod}${readonlyMod}attribute ${nameWithType(idl)};`, 1)
     ]
 }
 
-function printExternalAttributes(attributes: string[] | undefined, indentLevel: number): stringOrNone[] {
+function escapeDocs(input: string): string {
+    return input.replaceAll('"', "'")
+}
+
+function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNone[] {
+    let attributes = idl.extendedAttributes
+    if (idl.documentation) {
+        let docs = `Documentation="${escapeDocs(idl.documentation)}"`
+        if (attributes)
+            attributes.push(docs)
+        else
+            attributes = [docs]
+    }
     return [attributes ? indentedBy(`[${attributes.join(", ")}]`, indentLevel) : undefined]
 }
 
@@ -375,8 +387,7 @@ export function printFunction(idl: IDLFunction): stringOrNone[] {
         return []
     }
     return [
-        idl.documentation,
-        ...printExternalAttributes(idl.extendedAttributes, 1),
+        ...printExtendedAttributes(idl, 1),
         indentedBy(`${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
     ]
 }
@@ -387,8 +398,7 @@ export function printMethod(idl: IDLMethod): stringOrNone[] {
         return []
     }
     return [
-        idl.documentation,
-        ...printExternalAttributes(idl.extendedAttributes, 1),
+        ...printExtendedAttributes(idl, 1),
         indentedBy(`${idl.isStatic ? "static " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
     ]
 }
@@ -405,8 +415,7 @@ export function printScoped(idl: IDLEntry): stringOrNone[] {
 
 export function printInterface(idl: IDLInterface): stringOrNone[] {
     return [
-        idl.documentation,
-        ...printExternalAttributes(idl.extendedAttributes, 0),
+        ...printExtendedAttributes(idl, 0),
         `interface ${idl.name} ${idl.inheritance.length > 0 ? ": " + printType(idl.inheritance[0]) : ""} {`,
         // TODO: type system hack!
     ]

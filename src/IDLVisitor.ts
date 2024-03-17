@@ -158,7 +158,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
     pickMethods(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>): IDLMethod[] {
         return members
-            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it))
+            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it))
             .map(it => this.serializeMethod(it as ts.MethodDeclaration|ts.MethodSignature))
     }
     pickCallables(members: ReadonlyArray<ts.TypeElement>): IDLFunction[] {
@@ -226,7 +226,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             constructors: this.pickConstructors(node.members),
             properties: this.pickProperties(node.members),
             methods: this.pickMethods(node.members),
-            callables: []
+            callables: this.pickCallables(node.members)
         }
     }
 
@@ -302,13 +302,22 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return name == "Indicator"
     }
 
+    warn(message: string) {
+        console.log(`WARNING: ${message}`)
+    }
+
     serializeType(type: ts.TypeNode | undefined, nameSuggestion: string|undefined = undefined): IDLType {
         if (type == undefined) return createUndefinedType() // TODO: can we have implicit types in d.ts?
 
         if (type.kind == ts.SyntaxKind.UndefinedKeyword ||
-            type.kind == ts.SyntaxKind.NullKeyword) {
+            type.kind == ts.SyntaxKind.NullKeyword ||
+            type.kind == ts.SyntaxKind.VoidKeyword) {
             return createUndefinedType()
         }
+        if (type.kind == ts.SyntaxKind.Unknown) {
+            return createReferenceType("unknown")
+        }
+
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
             return createNumberType()
         }
@@ -330,14 +339,17 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             if (ts.isQualifiedName(type.typeName)) {
                 let left = type.typeName.left
                 let declaration = getDeclarationsByNode(this.typeChecker, left)
-                if (declaration && declaration[0]) {
+                if (declaration.length > 0) {
                     if (!ts.isEnumDeclaration(declaration[0])) throw new Error("Only enums supported for now")
                 }
                 return  createEnumType(left.getText(left.getSourceFile()))
             }
             let declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
-            if (declaration.length == 0)
-                throw new Error(`Do not know type ${type.typeName.getText(type.typeName.getSourceFile())}`)
+            if (declaration.length == 0) {
+                let name = type.typeName.getText(type.typeName.getSourceFile())
+                this.warn(`Do not know type ${name}`)
+                return createReferenceType(name)
+            }
             let isEnum = ts.isEnumDeclaration(declaration[0])
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
             const transformedType = typeMapper.get(rawType) ?? rawType
@@ -398,7 +410,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return createStringType()
         }
         if (ts.isImportTypeNode(type)) {
-            console.log(`Warning: import type: ${type.getText(this.sourceFile)}`)
+            this.warn(`import type: ${type.getText(this.sourceFile)}`)
             let where = type.argument.getText(type.getSourceFile()).split("/").map(it => it.replaceAll("'", ""))
             let what = asString(type.qualifier)
             let typeName = `/* ${type.getText(this.sourceFile)} */ ` + sanitize(what == "default" ? "Imported" + where[where.length - 1] : "Imported" +  what)
@@ -516,13 +528,21 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     /** Serialize a signature (call or construct) */
-    serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature): IDLMethod {
-        if (!ts.isIdentifier(method.name)) {
-            throw new Error(`Method name is not ts.Identifier: ${method}`)
+    serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration): IDLMethod {
+        if (ts.isIndexSignatureDeclaration(method)) {
+            return {
+                kind: IDLKind.Method,
+                name: "indexSignature",
+                documentation: getComment(this.sourceFile, method),
+                returnType: this.serializeType(method.type),
+                extendedAttributes: ['IndexSignature'],
+                isStatic: false,
+                parameters: method.parameters.map(it => this.serializeParameter(it))
+            }
         }
         return {
             kind: IDLKind.Method,
-            name: ts.idText(method.name),
+            name: method.name!.getText(this.sourceFile),
             documentation: getComment(this.sourceFile, method),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),

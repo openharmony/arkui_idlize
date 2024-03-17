@@ -188,7 +188,6 @@ function toIDLProperty(file: string, node: webidl2.AttributeMemberType): IDLProp
 }
 
 function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLEnumMember {
-
     let initializer = undefined
     if (node.default?.type == "string") {
         initializer = node.default?.value

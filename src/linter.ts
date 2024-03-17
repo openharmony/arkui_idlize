@@ -30,7 +30,8 @@ export enum LinterError {
     MULTIPLE_INHERITANCE,
     UNSUPPORTED_TYPE_PARAMETER,
     PARAMETER_INITIALIZER,
-    DUPLICATE_INTERFACE
+    DUPLICATE_INTERFACE,
+    INDEX_SIGNATURE
 }
 
 export interface LinterMessage {
@@ -129,6 +130,10 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             this.report(type, LinterError.TYPE_LITERAL, `Type literal`)
             type.members.forEach(it => {
                 if (ts.isPropertySignature(it)) this.visitProperty(it)
+                if (ts.isIndexSignatureDeclaration(it)) {
+                    this.report(it, LinterError.INDEX_SIGNATURE, `Index signature type: ${type.getText(this.sourceFile)}`)
+                }
+
             })
         }
         if (ts.isTupleTypeNode(type)) {

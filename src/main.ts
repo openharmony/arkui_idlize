@@ -45,7 +45,7 @@ const options = program
     .option('--linter-suppress-locations <suppress>', 'Error locations to suppress, comma separated, no space')
     .option('--verbose', 'Verbose processing')
     .option('--verify-idl', 'Verify produced IDL')
-    .option('--skip-comments', 'Emit no comments to idl')
+    .option('--skip-docs', 'Emit no docs to idl')
     .option('--common-to-attributes', 'Transform common attributes as IDL attributes')
     .option('--test-interface <name>', 'Interfaces to test (comma separated)')
     .option('--test-method <name>', 'Methods to test (comma separated)')
@@ -93,7 +93,7 @@ if (options.dts2idl) {
                 const outFile = path.join(outputDir,
                     path.basename(sourceFile.fileName).replace(".d.ts", ".idl"))
                 console.log("producing", outFile)
-                if (options.skipComments) {
+                if (options.skipDocs) {
                     entries.forEach(it => forEachChild(
                         it, (it) => it.documentation = undefined))
                 }

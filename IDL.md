@@ -11,3 +11,5 @@ We use WebIDL language with several custom extension attributes documented below
    * `CommonMethod` - if given property to be translated into builder function
    * `Optional` - if given attribute is optional
    * `CallSignature` - if given method is the call signature for .d.ts
+   * `Documentation` - documentation for given entity
+   * `IndexSignature` - marker for index signature methods
