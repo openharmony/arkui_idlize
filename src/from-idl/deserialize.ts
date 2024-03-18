@@ -155,6 +155,7 @@ function toIDLCallback(file: string, node: webidl2.CallbackType): IDLCallback {
         name: node.name,
         fileName: file,
         parameters: node.arguments.map(it => toIDLParameter(file, it)),
+        extendedAttributes: toExtendedAttributes(node.extAttrs),
         documentation: makeDocs(node),
         returnType: toIDLType(file, node.idlType)
     }
@@ -164,6 +165,7 @@ function toIDLTypedef(file: string, node: webidl2.TypedefType): IDLTypedef {
     return {
         kind: IDLKind.Typedef,
         type: toIDLType(file, node.idlType),
+        extendedAttributes: toExtendedAttributes(node.extAttrs),
         documentation: makeDocs(node),
         fileName: file,
         name: node.name
@@ -175,6 +177,7 @@ function toIDLDictionary(file: string, node: webidl2.DictionaryType): IDLEnum {
         kind: IDLKind.Enum,
         name: node.name,
         documentation: makeDocs(node),
+        extendedAttributes: toExtendedAttributes(node.extAttrs),
         fileName: file,
         elements: node.members.map(it => toIDLEnumMember(file, it))
     }
@@ -209,6 +212,7 @@ function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLE
         kind: IDLKind.EnumMember,
         name: node.name,
         type: toIDLType(file, node.idlType) as IDLPrimitiveType,
+        extendedAttributes: toExtendedAttributes(node.extAttrs),
         initializer: initializer
     }
 }
@@ -237,6 +241,7 @@ function toIDLEnum(file: string, node: webidl2.EnumType): IDLEnum {
         name: node.name,
         fileName: file,
         documentation: makeDocs(node),
+        extendedAttributes: toExtendedAttributes(node.extAttrs),
         elements: node.values.map((it: { value: string }) => {
             return {
                 kind: IDLKind.EnumMember,

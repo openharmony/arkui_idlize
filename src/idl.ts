@@ -521,3 +521,8 @@ export function getExtAttribute(node: IDLEntry, name: string): stringOrNone {
     })
     return value
 }
+
+export function getVerbatimDts(node: IDLEntry): stringOrNone {
+    let value = getExtAttribute(node, "VerbatimDts")
+    return value ? value.substring(1, value.length - 1) : undefined
+}

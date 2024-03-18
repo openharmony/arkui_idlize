@@ -14,6 +14,7 @@
  */
 import { indentedBy, stringOrNone } from "../util"
 import { IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
+    getVerbatimDts,
     hasExtAttribute,
     isCallback,
     isClass, isConstructor, isContainerType, isEnum, isEnumType, isInterface, isMethod, isPrimitiveType, isProperty, isReferenceType, isTypeParameterType, isTypedef, isUnionType } from "../idl"
@@ -50,6 +51,13 @@ export class CustomPrintVisitor  {
         node.properties.map(it => this.visit(it))
         node.methods.map(it => this.visit(it))
         node.callables.map(it => this.visit(it))
+        let verbatim = getVerbatimDts(node)
+        if (verbatim) {
+            verbatim
+                .split("\n")
+                .map(it => this.print(it))
+        }
+
         this.popIndent()
         this.print("}")
         if (hasExtAttribute(node, "Component")) {
@@ -83,10 +91,11 @@ export class CustomPrintVisitor  {
     }
     printCallback(node: IDLCallback) {
         // TODO: is it correct.
-        this.print(`type ${(node.name)} = (${node.parameters.map(it => printTypeForTS(it.type)).join(", ")}) => ${printTypeForTS(node.returnType)}`)
+        this.print(`declare type ${(node.name)} = (${node.parameters.map(it => printTypeForTS(it.type)).join(", ")}) => ${printTypeForTS(node.returnType)};`)
     }
     printTypedef(node: IDLTypedef) {
-        this.print(`type ${(node.name)} = ${printTypeForTS(node.type)}`)
+        let text = getVerbatimDts(node) ?? printTypeForTS(node.type)
+        this.print(`declare type ${(node.name)} = ${text};`)
     }
     checkVerbatim(node: IDLEntry) {
         let verbatim = getExtAttribute(node, "VerbatimDts")
