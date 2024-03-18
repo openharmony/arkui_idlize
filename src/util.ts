@@ -63,6 +63,7 @@ export function isNamedDeclaration(node: ts.Node): node is ts.NamedDeclaration {
 export function asString(node: ts.Node|undefined): string {
     if (node === undefined) return "undefined node"
     if (ts.isIdentifier(node)) return ts.idText(node)
+    if (ts.isStringLiteral(node)) return node.text
     if (isNamedDeclaration(node)) {
         if (node.name === undefined) {
             return `${ts.SyntaxKind[node.kind]}(undefined name)`

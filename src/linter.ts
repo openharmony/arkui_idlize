@@ -31,7 +31,8 @@ export enum LinterError {
     UNSUPPORTED_TYPE_PARAMETER,
     PARAMETER_INITIALIZER,
     DUPLICATE_INTERFACE,
-    INDEX_SIGNATURE
+    INDEX_SIGNATURE,
+    NAMESPACE
 }
 
 export interface LinterMessage {
@@ -64,15 +65,23 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         } else if (ts.isInterfaceDeclaration(node)) {
             this.visitInterface(node)
         } else if (ts.isModuleDeclaration(node)) {
-            // This is a namespace, visit its children
-            ts.forEachChild(node, this.visit);
+            this.visitNamespace(node)
         } else if (ts.isEnumDeclaration(node)) {
             this.visitEnum(node)
         } else if (ts.isFunctionDeclaration(node)) {
             this.visitFunctionDeclaration(node)
         } else if (ts.isTypeAliasDeclaration(node)) {
             this.visitTypeAlias(node)
+        } else if (ts.isModuleDeclaration(node)) {
+
         }
+    }
+
+    visitNamespace(node: ts.ModuleDeclaration) {
+        if (node.name) {
+            this.report(node, LinterError.NAMESPACE, `Namespace detected: ${asString(node.name)}`)
+        }
+        ts.forEachChild(node, this.visit);
     }
 
     visitClass(clazz: ts.ClassDeclaration): void {

@@ -33,3 +33,4 @@ interface Date {}
 interface IterableIterator<T> {}
 interface Object {}
 interface Function {}
+interface Promise<T> {}

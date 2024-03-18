@@ -340,9 +340,16 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 let left = type.typeName.left
                 let declaration = getDeclarationsByNode(this.typeChecker, left)
                 if (declaration.length > 0) {
-                    if (!ts.isEnumDeclaration(declaration[0])) throw new Error("Only enums supported for now")
+                    if (ts.isEnumDeclaration(declaration[0])) {
+                        return createEnumType(left.getText(left.getSourceFile()))
+                    }
+                    if (ts.isModuleDeclaration(declaration[0])) {
+                        let rightName = type.typeName.right.getText(left.getSourceFile())
+                        // TODO: is it right?
+                        return createEnumType(`${rightName}`)
+                    }
+                    throw new Error(`Not supported for now: ${type.getText(this.sourceFile)}`)
                 }
-                return  createEnumType(left.getText(left.getSourceFile()))
             }
             let declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
             if (declaration.length == 0) {
