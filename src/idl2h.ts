@@ -67,9 +67,9 @@ function mapType(typechecker: TypeChecker, type: IDLType|undefined): string {
     }
     switch (type.kind) {
         case IDLKind.UnionType: return `ArkUI_${(type as IDLUnionType).types.map(it => capitalize(it.name)).join("Or")}`
-        case IDLKind.ContainerType: return mapType(typechecker, (type as IDLContainerType).elementType) + "*"
+        case IDLKind.ContainerType: return mapType(typechecker, (type as IDLContainerType).elementType[0]) + "*"
         case IDLKind.ReferenceType: return mapInterfaceName(rawType, true)
-        case IDLKind.PrimitiveType: return rawType 
+        case IDLKind.PrimitiveType: return rawType
     }
     throw new Error(`Unhandled ${type}: ${declarations}`)
 }

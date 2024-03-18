@@ -146,11 +146,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     mapType(type: ts.TypeNode | undefined): string {
         if (type && ts.isTypeReferenceNode(type)) {
-            const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
-            if (ts.isTypeParameterDeclaration(declaration)) return "any"
+            const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
+            if (declaration.length == 0 || ts.isTypeParameterDeclaration(declaration[0])) return "any"
         }
         if (type && ts.isImportTypeNode(type)) {
-            return `/* imported */ ${this.mapType(type.argument)}`
+            return `/* imported */ ${asString(type.qualifier)}`
         }
         return type?.getText(this.sourceFile) ?? "any"
     }
@@ -254,6 +254,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             value: value,
             runtimeTypes: [],
             estimateSize: () => 0,
+            nativeType: () => { throw new Error("Called empty convertor") },
             isScoped: false,
             useArray: false,
             convertor: () => { },
@@ -305,6 +306,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [],
             isScoped: false,
             useArray: true,
+            nativeType: () => { throw new Error("any arg convertor") },
             convertor: (param) => { throw new Error("Not for any") },
             convertorToArray: (param: string, value: string) => {
                 this.print(`${param}Serializer.writeAny(${value})`)
@@ -320,6 +322,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [ RuntimeType.UNDEFINED ],
             isScoped: false,
             useArray: false,
+            nativeType: () => { throw new Error("undefined arg convertor") },
             convertor: (param) => this.print("nullptr"),
             convertorToArray: (param: string, value: string) => {
                 this.print(`${param}Serializer.writeUndefined()`)
@@ -371,6 +374,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             param: param,
             value: value,
             runtimeTypes: memberConvertors.flatMap(it => it.runtimeTypes),
+            nativeType: () => { throw new Error("undefined union convertor") },
             isScoped: false,
             useArray: true,
             convertor: (param: string) => { throw new Error("Do not use") },
@@ -426,6 +430,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isScoped: false,
             useArray: true,
             convertor: (param: string) => { throw new Error("Do not use") },
+            nativeType: () => { throw new Error("aggregate arg convertor") },
             convertorToArray: (param: string, value: string) => {
                 let members = type
                     .members
@@ -447,51 +452,19 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     interfaceConvertor(param: string, value: string, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): ArgConvertor {
-        let canDoConvertor = false
-        declaration
-            .members
-            .forEach(it => {
-                if (ts.isPropertySignature(it)) {
-                    if (it.type?.kind != ts.SyntaxKind.NumberKeyword) canDoConvertor = false
-                }
-                if (ts.isPropertyDeclaration(it)) {
-                    if (it.type?.kind != ts.SyntaxKind.NumberKeyword) canDoConvertor = false
-                }
-            })
         let ifaceName = ts.idText(declaration.name as ts.Identifier)
-        if (!canDoConvertor) {
-            return {
+        return {
                 param: param,
                 value: value,
                 runtimeTypes: [RuntimeType.OBJECT],
                 estimateSize: () => 32,
+                nativeType: () => { throw new Error("interface arg convertor") },
                 useArray: true,
                 isScoped: false,
                 convertor: (param, value) => { throw new Error("Must never be used") },
                 convertorToArray: (param, value) => {
                     this.print(`${param}Serializer.write${ifaceName}(${value})`)
                 }
-            }
-        }
-
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
-            isScoped: false,
-            useArray: true,
-            convertor: (param, value) => { throw new Error("Do not use") },
-            convertorToArray: (param: string, value: string) => {
-                (declaration
-                    .members as ts.NodeArray<ts.NamedDeclaration>)
-                    .filter(it => ts.isPropertySignature(it) || ts.isPropertyDeclaration(it))
-                    .forEach(it => {
-                        let fieldName = ts.idText(it.name as ts.Identifier)
-                        this.print(`let ${fieldName}_value = ${value}.${fieldName}`)
-                        this.print(`${param}Serializer.writeNumber(${fieldName}_value})`)
-                    })
-            },
-            estimateSize: () => { return 4}
         }
     }
 
@@ -511,6 +484,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 memberConvertors.forEach(it => result += it.estimateSize())
                 return result
             },
+            nativeType: () => { throw new Error("tuple arg convertor") },
             convertor: (param: string) => { throw new Error("Do not use") },
             convertorToArray: (param: string, value: string) => {
                 memberConvertors.forEach(it => {
@@ -544,6 +518,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [RuntimeType.OBJECT],
             isScoped: false,
             useArray: true,
+            nativeType: () => { throw new Error("array arg convertor") },
             estimateSize: () => convertor.estimateSize() * 4,
             convertor: (param: string) => { throw new Error("Do not use") },
             convertorToArray: (param: string, value: string) => {
@@ -599,7 +574,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
             if (!declaration) {
-                throw new Error(`Declaration not found: ${asString(type.typeName)}`)
+                // throw new Error(`Declaration not found: ${asString(type.typeName)}`)
+                console.log(`WARNING: declaration not found: ${asString(type.typeName)}`)
+                return this.anyConvertor(param, value)
             }
             if (asString(type.typeName) == "Length") {
                 // Important common case.
@@ -627,6 +604,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 return this.interfaceConvertor(param, value, declaration)
             }
             if (ts.isTypeParameterDeclaration(declaration)) {
+                console.log(declaration)
                 return this.anyConvertor(param, value)
             }
             throw new Error(`Unknown kind: ${declaration.kind}`)
@@ -656,25 +634,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return this.functionConvertor(param, value, type)
         }
         if (ts.isParenthesizedTypeNode(type)) {
-            return {
-                param: param,
-                value: value,
-                estimateSize: () => 32,
-                runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
-                isScoped: false,
-                useArray: false,
-                convertor: (param: string, value: string) => {
-                    this.print(param)
-                },
-                convertorToArray: (param: string, value: string) => {
-                    this.print(`throw new Error()`)
-                }
-            }
+            return this.typeConvertor(param, value, type.type)
         }
         if (ts.isImportTypeNode(type)) {
             return {
                 param: param,
                 value: value,
+                nativeType: () => { throw new Error("import arg convertor") },
                 estimateSize: () => 32,
                 runtimeTypes: [RuntimeType.OBJECT], // Assume imported are objects, not really always the case..
                 isScoped: false,
@@ -869,7 +835,7 @@ interface ArgConvertor {
     scopeEnd?: (param: string) => string
     convertor: (param: string, value: string) => void
     convertorToArray: (param: string, value: string) => void
-    nativeType?: () => string
+    nativeType: () => string
     param: string
     value: string
 }

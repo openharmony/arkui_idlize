@@ -34,3 +34,6 @@ interface IterableIterator<T> {}
 interface Object {}
 interface Function {}
 interface Promise<T> {}
+interface ArrayBuffer {}
+interface Map<K, V> {}
+interface Set<T> {}

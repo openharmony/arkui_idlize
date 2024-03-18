@@ -44,8 +44,8 @@ export class CustomPrintVisitor  {
     }
 
     printClass(node: IDLInterface) {
-        let keyword = hasExtAttribute(node, "Class") ? "declare class" : "interface"
-        this.print(`${keyword} ${node.name} {`)
+        let keyword = hasExtAttribute(node, "Class") ? "class" : "interface"
+        this.print(`declare ${keyword} ${node.name} {`)
         this.pushIndent()
         node.constructors.map(it => this.visit(it))
         node.properties.map(it => this.visit(it))
@@ -97,7 +97,7 @@ export class CustomPrintVisitor  {
     }
     printCallback(node: IDLCallback) {
         // TODO: is it correct.
-        this.print(`declare type ${(node.name)} = (${node.parameters.map(it => printTypeForTS(it.type)).join(", ")}) => ${printTypeForTS(node.returnType)};`)
+        this.print(`declare type ${(node.name)} = (${node.parameters.map(it => `${it.name}: ${printTypeForTS(it.type)}`).join(", ")}) => ${printTypeForTS(node.returnType)};`)
     }
     printTypedef(node: IDLTypedef) {
         let text = getVerbatimDts(node) ?? printTypeForTS(node.type)
@@ -130,7 +130,7 @@ export class CustomPrintVisitor  {
 
 export function idlToString(name: string, content: string): string {
     let printer = new CustomPrintVisitor()
-    let nodes = webidl2.parse(content)
+    webidl2.parse(content)
         .map(it => toIDLNode(name, it))
         .map(it => printer.visit(it))
     return printer.output.join("\n")
@@ -140,8 +140,10 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     if (!type) throw new Error("Missing type")
     if (type.name == "undefined" && undefinedToVoid) return "void"
     if (type.name == "int32" || type.name == "float32") return "number"
+    if (type.name == "DOMString") return "string"
     if (isPrimitiveType(type)) return type.name
-    if (isContainerType(type)) return `Array<${printTypeForTS(type.elementType)}>`
+    if (isContainerType(type))
+        return `${mapContainerType(type.name)}<${type.elementType.map(it => printTypeForTS(it)).join("\n")}>`
     if (isReferenceType(type)) return `${type.name}`
     if (isUnionType(type)) return `(${type.types.map(it => printTypeForTS(it, undefinedToVoid)).join("|")})`
     if (isEnumType(type)) return type.name
@@ -149,3 +151,11 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
 }
 
+function mapContainerType(idlName: string): string {
+    switch (idlName) {
+        case "sequence": return "Array"
+        case "record": return "Map"
+        case "Promise": return "Promise"
+        default: throw new Error(`Unmapped container type: ${idlName}`)
+    }
+}

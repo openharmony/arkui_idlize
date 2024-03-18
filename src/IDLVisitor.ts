@@ -28,6 +28,7 @@ const typeMapper = new Map<string, string>(
         ["null", "undefined"],
         ["void", "undefined"],
         ["Array", "sequence"],
+        ["string", "DOMString"],
         ["Map", "record"],
         // TODO: rethink that
         ["\"2d\"", "string"],
@@ -364,18 +365,17 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 let typeArg = type.typeArguments![0]
                 return createReferenceType(`AnimationRange${capitalize(typeArg.getText(this.sourceFile))}`)
             }
-            if (rawType == "Array" || rawType == "Map" || rawType == "Promise") {
-                return createContainerType(transformedType, type.typeArguments?.map(it => this.serializeType(it))?.[0]!)
+            if (rawType == "Array" || rawType == "Promise" || rawType == "Map") {
+                return createContainerType(transformedType, type.typeArguments!.map(it => this.serializeType(it)))
             }
-
             return isEnum ? createEnumType(transformedType) : createReferenceType(transformedType)
         }
         if (ts.isArrayTypeNode(type)) {
-            return createContainerType("sequence", this.serializeType(type.elementType))
+            return createContainerType("sequence", [this.serializeType(type.elementType)])
         }
         if (ts.isTupleTypeNode(type)) {
             // TODO: handle heterogeneous types.
-            return createContainerType("sequence", this.serializeType(type.elements[0]))
+            return createContainerType("sequence", [this.serializeType(type.elements[0])])
         }
         if (ts.isParenthesizedTypeNode(type)) {
             return this.serializeType(type.type)

@@ -72,7 +72,7 @@ export interface IDLPrimitiveType extends IDLType {
 
 export interface IDLContainerType extends IDLType {
     kind: IDLKind.ContainerType
-    elementType: IDLType
+    elementType: IDLType[]
 }
 
 export interface IDLReferenceType extends IDLType {
@@ -263,7 +263,7 @@ export function isTypedef(node: IDLEntry): node is IDLTypedef {
 export function createStringType(): IDLPrimitiveType {
     return {
         kind: IDLKind.PrimitiveType,
-        name: "string"
+        name: "DOMString"
     }
 }
 
@@ -303,7 +303,7 @@ export function createEnumType(name: string): IDLEnumType {
     }
 }
 
-export function createContainerType(container: string, element: IDLType): IDLContainerType {
+export function createContainerType(container: string, element: IDLType[]): IDLContainerType {
     return {
         kind: IDLKind.ContainerType,
         name: container,
@@ -337,7 +337,7 @@ export function createTypedef(name: string, type: IDLType): IDLTypedef {
 export function printType(type: IDLType | undefined): string {
     if (!type) throw new Error("Missing type")
     if (isPrimitiveType(type)) return type.name
-    if (isContainerType(type)) return `${type.name}<${printType(type.elementType)}>`
+    if (isContainerType(type)) return `${type.name}<${type.elementType.map(printType).join(", ")}>`
     if (isReferenceType(type)) return `${type.name}`
     if (isUnionType(type)) return `(${type.types.map(printType).join(" or ")})`
     if (isEnumType(type)) return type.name
@@ -444,7 +444,7 @@ export function printInterface(idl: IDLInterface): stringOrNone[] {
 
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
     const type = printType(idl.type)
-    const initializer = type == "string" ? `"${idl.initializer}"` : idl.initializer
+    const initializer = type == "DOMString" ? `"${idl.initializer}"` : idl.initializer
     return [indentedBy(`${type} ${idl.name}${initializer ? ` = ${initializer}` : ``};`, 1)]
 }
 

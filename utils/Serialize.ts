@@ -178,7 +178,6 @@ export class Serializer {
     }
     writeResource(value: Resource) {
         this.writeInt32(value.id)
-        this.writeInt32(value.type)
         this.writeString(value.bundleName)
         this.writeString(value.moduleName)
     }

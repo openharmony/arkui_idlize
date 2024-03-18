@@ -107,7 +107,7 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string): IDL
     if (isSequenceTypeDescription(type) || isPromiseTypeDescription(type) || isRecordTypeDescription(type)) {
         return createContainerType(
             type.generic,
-            toIDLType(file, type.idlType[0])
+            type.idlType.map(it => toIDLType(file, it))
         )
     }
 
