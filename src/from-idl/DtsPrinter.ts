@@ -78,7 +78,13 @@ export class CustomPrintVisitor  {
         return `${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
     }
     printProperty(node: IDLProperty) {
-        this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${node.name}${node.isOptional ? "?" : ""}: ${printTypeForTS(node.type)};`)
+        const isCommonMethod = hasExtAttribute(node, "CommonMethod")
+        if (isCommonMethod) {
+            this.print(`${node.name}(value: ${printTypeForTS(node.type)}): this;`)
+        } else {
+            this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${node.name}${node.isOptional ? "?" : ""}: ${printTypeForTS(node.type)};`)
+
+        }
     }
     printEnum(node: IDLEnum) {
         this.print(`declare enum ${node.name} {`)
