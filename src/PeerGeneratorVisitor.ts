@@ -149,6 +149,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
             if (ts.isTypeParameterDeclaration(declaration)) return "any"
         }
+        if (type && ts.isImportTypeNode(type)) {
+            return `/* imported */ ${this.mapType(type.argument)}`
+        }
         return type?.getText(this.sourceFile) ?? "any"
     }
 
@@ -326,6 +329,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     enumMemberConvertor(param: string, value: string): ArgConvertor {
+        // TODO: now we need to ensure that enum is always representable as int!
         return {
             param: param,
             value: value,
@@ -333,9 +337,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             useArray: false,
             isScoped: false,
             nativeType: () => "int32",
-            convertor: (param, value) => this.print(`${value} as int32`),
+            convertor: (param, value) => this.print(`${value} as unknown as int32`),
             convertorToArray: (param, value) => {
-                this.print(`${param}Serializer.writeInt32(${value} as int32)`)
+                this.print(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
             },
             estimateSize: () => 4
         }
@@ -601,7 +605,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 // Important common case.
                 return this.lengthConvertor(param, value)
             }
-            if (ts.isEnumDeclaration(declaration)) {
+            if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
                 return this.enumMemberConvertor(param, value)
             }
             if (ts.isTypeAliasDeclaration(declaration)) {
@@ -624,9 +628,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
             if (ts.isTypeParameterDeclaration(declaration)) {
                 return this.anyConvertor(param, value)
-            }
-            if (ts.isEnumMember(declaration)) {
-                return this.enumMemberConvertor(param, value)
             }
             throw new Error(`Unknown kind: ${declaration.kind}`)
         }
@@ -780,7 +781,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             console.log(`WARNING: ignore seen method: ${methodName}`)
             return
         }
-        if (method.parameters.length > 1) {
+        if (method.parameters.length != 1) {
             // We only convert one argument methods to attributes.
             return
         }

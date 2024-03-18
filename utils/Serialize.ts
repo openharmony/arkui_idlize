@@ -115,7 +115,7 @@ export class Serializer {
         return this.position
     }
     private checkCapacity(value: int32) {
-    } 
+    }
     writeNumber(value: number|undefined) {
         this.checkCapacity(5)
         if (value == undefined) {
@@ -266,4 +266,13 @@ export class Serializer {
     writeNavigationMenuItem(value: NavigationMenuItem) {}
     writeMarkStyle(value: MarkStyle) {}
     writeDataPanelShadowOptions(value: DataPanelShadowOptions) {}
+    writeSpringMotion(value: SpringMotion) {}
+    writeScriptItem(value: ScriptItem) {}
+    writeInputCounterOptions(value: InputCounterOptions) {}
+    writeResizableOptions(value: ResizableOptions) {}
+    writeCurrentDayStyle(value: CurrentDayStyle) {}
+    writeEdgeEffectOptions(value: EdgeEffectOptions) {}
+    writeImageAnalyzerConfig(value: ImageAnalyzerConfig) {}
+    writeChainAnimationOptions(value: ChainAnimationOptions) {}
+    writePointLightStyle(value: PointLightStyle) {}
 }
