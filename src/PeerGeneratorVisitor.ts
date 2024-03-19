@@ -57,11 +57,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     visitWholeFile(): stringOrNone[] {
         let isCommon = this.sourceFile.fileName.endsWith("common.d.ts") ?? false;
         [
-            `import { runtimeType, Serializer, functionToInt32, withLength, withLengthArray } from "../../utils/Serialize"`,
+            `import { runtimeType, Serializer, functionToInt32, withLength, withLengthArray } from "../../utils/ts/Serialize"`,
                 isCommon ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "./common"`,
-                `import { int32 } from "../../utils/types"`,
+                `import { int32 } from "../../utils/ts/types"`,
                 `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode } from "../../utils/Interop"`,
+                `import { PeerNode } from "../../utils/ts/Interop"`,
         ].forEach(it => this.print(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
         return this.output

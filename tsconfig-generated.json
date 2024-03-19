@@ -16,5 +16,5 @@
         "rootDirs": ["src"],
         "module": "CommonJS",
     },
-    "include": ["generated/**/*", "utils/**/*", "ohos-sdk/component/**/*", "ohos-sdk/api/**/*"],
+    "include": ["generated/**/*", "utils/ts/**/*", "ohos-sdk/component/**/*", "ohos-sdk/api/**/*"],
 }

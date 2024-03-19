@@ -23,6 +23,15 @@ export enum RuntimeType {
     UNDEFINED
 }
 
+enum Tags {
+    UNDEFINED = 1,
+    INT32 = 2,
+    FLOAT32 = 3,
+    STRING = 4,
+    LENGTH = 5,
+    RESOURCE = 6,
+}
+
 export function runtimeType(value: any): int32 {
     let type = typeof value
     if (type == "number") return RuntimeType.NUMBER
@@ -33,21 +42,8 @@ export function runtimeType(value: any): int32 {
     throw new Error("bug: " + value)
 }
 
-export function enumToInt32<T>(value: T): int32 {
-    return value as unknown as int32
-}
-
 export function functionToInt32<T>(value: T): int32 {
     return 42
-}
-
-enum Tags {
-    UNDEFINED = 1,
-    INT32 = 2,
-    FLOAT32 = 3,
-    STRING = 4,
-    LENGTH = 5,
-    RESOURCE = 6,
 }
 
 export function withLength(valueLength: Length|undefined, body: (value: float32, unit: int32, resource: int32) => void) {
@@ -100,7 +96,7 @@ export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: 
 
 let textEncoder = new TextEncoder()
 
-export class Serializer {
+export class SerializerBase {
     private position = 0
     private buffer: ArrayBuffer
     private view: DataView
@@ -204,6 +200,13 @@ export class Serializer {
     writePosition(value: Position) {
         this.writeLength(value.x)
         this.writeLength(value.y)
+    }
+}
+
+// TODO: generate it!
+export class Serializer extends SerializerBase {
+    constructor(expectedSize: int32) {
+        super(expectedSize)
     }
     // TODO: two LabelStyle: in tab_content.d.ts and button.d.ts.
     writeLabelStyle(value: LabelStyle) {}
