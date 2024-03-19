@@ -1,3 +1,9 @@
+#include <stdint.h>
+
+typedef int32_t KInt;
+typedef float KFloat;
+typedef void* KPointer;
+
 #define KOALA_INTEROP_0(name, Ret)
 #define KOALA_INTEROP_1(name, Ret, P0)
 #define KOALA_INTEROP_2(name, Ret, P0, P1)

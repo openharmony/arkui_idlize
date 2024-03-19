@@ -15,8 +15,9 @@ import { indentedBy, stringOrNone } from "./util"
 * limitations under the License.
 */
 export class IndentedPrinter {
-    output: string[] = []
+    constructor (public output: string[] = []) {}
     private indent = 0
+
 
     print(value: stringOrNone) {
         if (value) this.output.push(this.indented(value))

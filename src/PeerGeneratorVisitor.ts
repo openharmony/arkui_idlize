@@ -51,10 +51,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         private typeChecker: ts.TypeChecker,
         private interfacesToGenerate: Set<string>,
         private nativeModuleMethods: string[],
-        private outputC: string[]
-    ) { }
-
-    private outputTS: string[] = []
+        outputC: string[]
+    ) {
+        this.printerC = new IndentedPrinter(outputC)
+    }
 
     visitWholeFile(): stringOrNone[] {
         let isCommon = this.sourceFile.fileName.endsWith("common.d.ts") ?? false;
@@ -201,7 +201,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         let cName = `_${componentName}_${methodName}Impl`
         this.printC(`${this.generateCReturnType(retConvertor)} ${cName}(${this.generateCParameters(argConvertors)}) {`)
-
+        this.pushIndentBoth()
         if (isComponent) {
             this.printTS(`if (this.checkPriority("${methodName}")) {`)
             this.pushIndentTS()
@@ -217,7 +217,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.generateNativeBody(componentName, name, argConvertors)
             }
         }
-
+        this.popIndentBoth()
         this.printC(`}`)
         this.printC(`KOALA_INTEROP_${suffix}(${cName}, ${maybeCRetType}${cParameterTypes})`)
         this.printC(` `)
@@ -228,9 +228,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     generateCParameters(argConvertors: ArgConvertor[]): string {
         return argConvertors.map(it => {
             if (it.useArray) {
-                return `${it.param}Array: UInt8Array, ${it.param}Length: int32`
+                return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
-                return `${it.param}: ${it.nativeType()}`
+                return `${it.interopType()} ${it.param}`
             }
         }).join(", ")
     }
@@ -238,7 +238,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     generateCParameterTypes(argConvertors: ArgConvertor[]): string {
         return argConvertors.map(it => {
             if (it.useArray) {
-                return `UInt8Array, int32`
+                return `uint8_t, int32_t`
             } else {
                 return it.nativeType()
             }
@@ -315,7 +315,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
     popIndentBoth() {
         this.printerTS.popIndent()
-        this.printerTS.popIndent()
+        this.printerC.popIndent()
     }
 
     pushIndentTS() {
@@ -339,6 +339,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [],
             estimateSize: () => 0,
             nativeType: () => "Empty",
+            interopType: () => "void*",
             isScoped: false,
             useArray: false,
             convertorTSArg: () => { },
@@ -368,6 +369,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.printC(`${value} = ${param}Deserializer.readString();`)
             },
             nativeType: () => "string",
+            interopType: () => "KStringPtr",
             estimateSize: () => 32
         }
     }
@@ -379,7 +381,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [RuntimeType.BOOLEAN],
             useArray: false,
             isScoped: false,
-            nativeType: () => "int32",
+            nativeType: () => "KBoolean",
+            interopType: () => "KBoolean",
             convertorTSArg: (param, value) => this.printTS(`+${value}`),
             convertorToTSSerial: (param, value) => {
                 this.printTS(`${param}Serializer.writeBoolean(${value})`)
@@ -401,6 +404,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isScoped: false,
             useArray: true,
             nativeType: () => "Any",
+            interopType: () => "KPointer",
             convertorTSArg: (param) => { throw new Error("Not for any") },
             convertorToTSSerial: (param: string, value: string) => {
                 this.printTS(`${param}Serializer.writeAny(${value})`)
@@ -421,6 +425,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isScoped: false,
             useArray: false,
             nativeType: () => "Undefined",
+            interopType: () => "KPointer",
             convertorTSArg: (param) => this.printTS("nullptr"),
             convertorToTSSerial: (param: string, value: string) => {
                 this.printTS(`${param}Serializer.writeUndefined()`)
@@ -441,7 +446,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [RuntimeType.NUMBER], // Enums are integers in runtime.
             useArray: false,
             isScoped: false,
-            nativeType: () => "int32",
+            nativeType: () => "KInt",
+            interopType: () => "KInt",
             convertorTSArg: (param, value) => this.printTS(`${value} as unknown as int32`),
             convertorToTSSerial: (param, value) => {
                 this.printTS(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
@@ -464,6 +470,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             scopeStart: (param) => `withLengthArray(${param}, (${param}Ptr) => {`,
             scopeEnd: () => '})',
             nativeType: () => "Length",
+            interopType: () => "KPointer",
             convertorTSArg: (param, value) => this.printTS(`${value}Ptr`),
             convertorToTSSerial: (param, value) => {
                 this.printTS(`${param}Serializer.writeLength(${value})`)
@@ -485,6 +492,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             value: value,
             runtimeTypes: memberConvertors.flatMap(it => it.runtimeTypes),
             nativeType: () => `Union<${memberConvertors.map(it => it.nativeType()).join(", ")}>`,
+            interopType: () => "KPointer",
             isScoped: false,
             useArray: true,
             convertorTSArg: (param: string) => { throw new Error("Do not use") },
@@ -560,6 +568,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isScoped: false,
             useArray: true,
             nativeType: () => `Compound<${memberConvertors.map(it => it.nativeType()).join(", ")}>`,
+            interopType: () => "KPointer",
             convertorTSArg: (param: string) => { throw new Error("Do not use") },
             convertorToTSSerial: (param: string, value: string) => {
                 let members = type
@@ -602,6 +611,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [RuntimeType.OBJECT],
             estimateSize: () => 32,
             nativeType: () => ifaceName,
+            interopType: () => "KPointer",
             useArray: true,
             isScoped: false,
             convertorTSArg: (param, value) => { throw new Error("Must never be used") },
@@ -632,6 +642,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 return result
             },
             nativeType: () => "Tuple",
+            interopType: () => "KPointer",
             convertorTSArg: (param: string) => { throw new Error("Do not use") },
             convertorToTSSerial: (param: string, value: string) => {
                 memberConvertors.forEach(it => {
@@ -653,7 +664,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isScoped: false,
             useArray: false,
             estimateSize: () => { return 8 },
-            nativeType: () => "int32",
+            nativeType: () => "KInt",
+            interopType: () => "KInt",
             convertorTSArg: (param: string) => { this.printTS(`functionToInt32(${param})`) },
             convertorToTSSerial: (param: string, value: string) => {
                 this.printTS(`${param}Serializer.writeFunction(${value})`)
@@ -673,7 +685,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [RuntimeType.OBJECT],
             isScoped: false,
             useArray: true,
-            nativeType: () => `Array`,
+            nativeType: () => `Array${this.mapCType(elementType)}`,
+            interopType: () => `${this.mapCType(elementType)}*`,
             estimateSize: () => convertor.estimateSize() * 4,
             convertorTSArg: (param: string) => { throw new Error("Do not use") },
             convertorToTSSerial: (param: string, value: string) => {
@@ -707,6 +720,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return "Any"
     }
 
+    mapCInteropType(type: ts.TypeNode): string {
+        if (ts.isTypeReferenceNode(type)) {
+            let name = ts.idText(type.typeName as ts.Identifier)
+            switch (name) {
+                case "number": return "KInt"
+            }
+            return "KPointer"
+        }
+        return "Any"
+    }
+
     numberConvertor(param: string, value: string): ArgConvertor {
         return {
             param: param,
@@ -715,7 +739,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isScoped: false,
             useArray: false,
             estimateSize: () => 8,
-            nativeType: () => "int32",
+            nativeType: () => "KInt32",
+            interopType: () => "KInt32",
             convertorTSArg: (param, value) => {
                 this.printTS(param)
             },
@@ -736,6 +761,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             param: param,
             value: value,
             nativeType: () => name,
+            interopType: () => "KPointer",
             estimateSize: () => 32,
             runtimeTypes: [RuntimeType.OBJECT], // Assume imported are objects, not really always the case..
             isScoped: false,
@@ -879,7 +905,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
         return {
             isVoid: isVoid,
-            nativeType: () => isVoid ? "void" : this.mapCType(typeNode),
+            nativeType: () => isVoid ? "void" : this.mapCInteropType(typeNode),
             macroSuffixPart: () => isVoid ? "V" : ""
         }
     }
@@ -1038,6 +1064,8 @@ interface ArgConvertor {
     convertorCArg: (param: string, value: string) => void
     convertorToCDeserial: (param: string, value: string) => void
     nativeType: () => string
+    interopType: () => string
+
     param: string
     value: string
 }
