@@ -161,7 +161,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
-        return params?.map(param => `${nameOrNull(param.name)}${param.questionToken ? "?" : ""}: ${this.mapType(param.type)}`).join(", ")
+        return params?.map(param =>
+            `${nameOrNull(param.name)}${param.questionToken ? "?" : ""}: ${this.mapType(param.type)}`
+        ).join(", ")
     }
 
     generateValues(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
@@ -182,6 +184,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         let isComponent = false
         let methodName = method.name.getText(this.sourceFile)
         const componentName = ts.idText(clazz.name as ts.Identifier)
+        const argConvertors = method.parameters
+            .map((param) => this.argConvertor(param))
+        const retConvertor = this.retConvertor(method.type)
+        const suffix = this.generateCMacroSuffix(argConvertors, retConvertor)
+        const maybeCRetType = this.maybeCRetType(retConvertor)
+        const cParameterTypes = this.generateCParameterTypes(argConvertors)
+
         console.log(`processing ${componentName}.${methodName}`)
         if (this.seenMethods.has(methodName)) {
             console.log(`WARNING: ignore duplicate method ${methodName}`)
@@ -190,7 +199,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.seenMethods.add(methodName)
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         let cName = `_${componentName}_${methodName}Impl`
-        this.printC(`void ${cName}() {`)
+        this.printC(`${this.generateCReturnType(retConvertor)} ${cName}(${this.generateCParameters(argConvertors)}) {`)
 
         if (isComponent) {
             this.printTS(`if (this.checkPriority("${methodName}")) {`)
@@ -203,22 +212,61 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (isStub) {
                 this.printTS(`throw new Error("${methodName}Attribute() is not implemented")`)
             } else {
-                this.generateNativeCall(clazz, method)
+                let name = `${methodName}Impl`
+                this.generateNativeBody(componentName, name, argConvertors)
             }
         }
 
         this.printC(`}`)
-        this.printC(`KOALA_INTEROP_0(${cName})`)
+        this.printC(`KOALA_INTEROP_${suffix}(${cName}, ${maybeCRetType}${cParameterTypes})`)
         this.printC(` `)
 
         this.printTS(`}`)
     }
 
-    generateNativeCall(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
+    generateCParameters(argConvertors: ArgConvertor[]): string {
+        return argConvertors.map(it => {
+            if (it.useArray) {
+                return `${it.param}Array: UInt8Array, ${it.param}Length: int32`
+            } else {
+                return `${it.param}: ${it.nativeType()}`
+            }
+        }).join(", ")
+    }
+
+    generateCParameterTypes(argConvertors: ArgConvertor[]): string {
+        return argConvertors.map(it => {
+            if (it.useArray) {
+                return `UInt8Array, int32`
+            } else {
+                return it.nativeType()
+            }
+        }).join(", ")
+    }
+
+    generateCReturnType(retConvertor: RetConvertor): string {
+        return retConvertor.nativeType()
+    }
+
+    maybeCRetType(retConvertor: RetConvertor): string {
+        if (retConvertor.isVoid) return ""
+        return `${retConvertor.nativeType()}, `
+    }
+
+    generateCMacroSuffix(argConvertors: ArgConvertor[], retConvertor: RetConvertor) {
+        let counter = 0
+        argConvertors.forEach(it => {
+            if (it.useArray) {
+                counter += 2
+            } else {
+                counter += 1
+            }
+        })
+        return `${retConvertor.macroSuffixPart()}${counter}`
+    }
+
+    generateNativeBody(clazzName: string, name: string, argConvertors: ArgConvertor[] /*clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature*/) {
         this.pushIndentBoth()
-        let argConvertors = method.parameters
-            .map((param) => this.argConvertor(param))
-        let name = `${ts.idText(method.name as ts.Identifier)}Impl`
         let scopes = new Array<ArgConvertor>()
         argConvertors
             .filter(it => it.isScoped)
@@ -237,7 +285,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 it.convertorToCDeserial(it.param, `${it.param}Value`)
             }
         })
-        let clazzName = ts.idText(clazz.name as ts.Identifier)
         this.printTS(`nativeModule()._${clazzName}_${name}(`)
         this.pushIndentTS()
         argConvertors.forEach((it, index) => {
@@ -831,6 +878,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return this.typeConvertor(paramName, paramName, param.questionToken ? typeOrUndefined(param.type) : param.type)
     }
 
+    retConvertor(typeNode?: ts.TypeNode): RetConvertor {
+        const isVoid = (typeNode === undefined) ||
+            (typeNode.kind == ts.SyntaxKind.VoidKeyword)
+
+        return {
+            isVoid: isVoid,
+            nativeType: () => isVoid ? "void" : this.mapCType(typeNode),
+            macroSuffixPart: () => isVoid ? "V" : ""
+        }
+    }
+
     processProperty(property: ts.PropertyDeclaration | ts.PropertySignature) {
         throw new Error(`unexpected property ${property.name.getText(this.sourceFile)}`)
     }
@@ -987,6 +1045,12 @@ interface ArgConvertor {
     nativeType: () => string
     param: string
     value: string
+}
+
+interface RetConvertor {
+    isVoid: boolean
+    nativeType: () => string
+    macroSuffixPart: () => string
 }
 
 export function nativeModuleDeclaration(methods: string[]): string {
