@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 import * as ts from "typescript"
+import * as path from "path"
 import {
     createAnyType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
-    createTypeParameterReference, createUndefinedType, createUnionType, IDLCallable, IDLCallback, IDLConstructor,
+    createTypeParameterReference, createUndefinedType, createUnionType, getExtAttribute, IDLCallable, IDLCallback, IDLConstructor,
     IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType
 } from "./idl"
 import {
@@ -45,7 +46,9 @@ export class CompileContext {
 export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private output: IDLEntry[] = []
     private currentScope:  IDLEntry[] = []
-    scopes:  IDLEntry[][] = []
+    scopes: IDLEntry[][] = []
+    globalScope: IDLMethod[] = []
+
     startScope() {
         this.scopes.push(this.currentScope)
         this.currentScope = []
@@ -65,6 +68,18 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     visitWholeFile(): IDLEntry[] {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
+        if (this.globalScope.length > 0) {
+            this.output.push({
+                kind: IDLKind.Interface,
+                name: `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "")}`,
+                extendedAttributes: [ {name: "GlobalScope" } ],
+                methods: this.globalScope,
+                properties: [],
+                constructors: [],
+                callables: [],
+                inheritance: []
+            } as IDLInterface)
+        }
         return this.output
     }
 
@@ -81,6 +96,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             this.output.push(this.serializeEnum(node))
         } else if (ts.isTypeAliasDeclaration(node)) {
             this.output.push(this.serializeTypeAlias(node))
+        } else if (ts.isFunctionDeclaration(node)) {
+            this.globalScope.push(this.serializeMethod(node))
         }
     }
 
@@ -536,7 +553,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     /** Serialize a signature (call or construct) */
-    serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration): IDLMethod {
+    serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration): IDLMethod {
         if (ts.isIndexSignatureDeclaration(method)) {
             return {
                 kind: IDLKind.Method,
@@ -548,9 +565,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 parameters: method.parameters.map(it => this.serializeParameter(it))
             }
         }
+        let [methodName, escapedName] = escapeMethodName(method.name!.getText(this.sourceFile))
         return {
             kind: IDLKind.Method,
-            name: method.name!.getText(this.sourceFile),
+            name: escapedName,
+            extendedAttributes: (methodName != escapedName) ? [ { name: "DtsName", value: `"${methodName}"`} ] : undefined,
             documentation: getComment(this.sourceFile, method),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),
@@ -592,4 +611,9 @@ function sanitize(type: stringOrNone): stringOrNone {
     } else {
         return type
     }
+}
+
+function escapeMethodName(name: string) : [string, string] {
+    if (name.startsWith("$")) return [name, name.replace("$", "dollar_")]
+    return [name, name]
 }

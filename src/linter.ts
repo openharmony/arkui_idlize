@@ -33,7 +33,9 @@ export enum LinterError {
     DUPLICATE_INTERFACE,
     INDEX_SIGNATURE,
     NAMESPACE,
-    NUMBER_TYPE
+    NUMBER_TYPE,
+    PRIVATE_VISIBILITY,
+    TOP_LEVEL_FUNCTIONS
 }
 
 export interface LinterMessage {
@@ -73,8 +75,6 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             this.visitFunctionDeclaration(node)
         } else if (ts.isTypeAliasDeclaration(node)) {
             this.visitTypeAlias(node)
-        } else if (ts.isModuleDeclaration(node)) {
-
         }
     }
 
@@ -82,7 +82,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (node.name) {
             this.report(node, LinterError.NAMESPACE, `Namespace detected: ${asString(node.name)}`)
         }
-        ts.forEachChild(node, this.visit);
+        ts.forEachChild(node, this.visit)
     }
 
     visitClass(clazz: ts.ClassDeclaration): void {
@@ -123,6 +123,11 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (allInheritCount > 1) {
             this.report(clazz, LinterError.MULTIPLE_INHERITANCE, `Multiple inheritance for interface ${asString(clazz.name)}`)
         }
+        clazz.modifiers?.forEach(it => {
+            if (it.kind == ts.SyntaxKind.PrivateKeyword) {
+                this.report(clazz, LinterError.PRIVATE_VISIBILITY, `Private visibility is useless: ${clazz.getText(this.sourceFile).substring(0, 50)}`)
+            }
+        })
         clazz.members.forEach(child => {
             if (ts.isConstructSignatureDeclaration(child)) {
                 this.visitConstructor(child)
@@ -200,6 +205,11 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
 
     visitMethod(method: ts.MethodDeclaration | ts.MethodSignature): void {
         this.checkType(method.type)
+        method.modifiers?.forEach(it => {
+            if (it.kind == ts.SyntaxKind.PrivateKeyword) {
+                this.report(method, LinterError.PRIVATE_VISIBILITY, `Private visibility is useless: Private visibility is useless: ${method.getText(this.sourceFile).substring(0, 50)}`)
+            }
+        })
         method.parameters.map(param => this.checkType(param.type))
         method.parameters.forEach(it => this.visitParameter(it))
     }
@@ -211,6 +221,11 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     }
 
     visitProperty(property: ts.PropertySignature | ts.PropertyDeclaration): void {
+        property.modifiers?.forEach(it => {
+            if (it.kind == ts.SyntaxKind.PrivateKeyword) {
+                this.report(property, LinterError.PRIVATE_VISIBILITY, `Private visibility is useless: ${property.getText(this.sourceFile)}`)
+            }
+        })
         this.checkType(property.type)
         this.checkName(property.name)
     }
@@ -232,6 +247,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     }
 
     visitFunctionDeclaration(functionDeclaration: ts.FunctionDeclaration): void {
+        this.report(functionDeclaration, LinterError.TOP_LEVEL_FUNCTIONS, `Top level function: ${functionDeclaration.getText(this.sourceFile)}`)
         functionDeclaration.parameters.forEach(it => this.visitParameter(it))
     }
 
