@@ -31,6 +31,60 @@ struct Tagged {
   T value;
 };
 
+template <typename T>
+struct Tagged {
+  Tags tag;
+  T value;
+};
+
+template <typename T0, typename T2>
+struct Union {
+  union {
+    T0 value0;
+    T1 value1;
+  };
+};
+
+template <typename T0, typename T1, typename T2>
+struct Union {
+  union {
+    T0 value0;
+    T1 value1;
+    T2 value2;
+  };
+};
+
+template <typename T0, typename T1, typename T2, typename T3>
+struct Union {
+  union {
+    T0 value0;
+    T1 value1;
+    T2 value2;
+    T3 value3;
+  };
+};
+
+template <typename T0, typename T1>
+struct Compound {
+  T0 value0;
+  T1 value1;
+};
+
+template <typename T0, typename T1, typename T2>
+struct Compound {
+  T0 value0;
+  T1 value1;
+  T2 value2;
+};
+
+template <typename T0, typename T1, typename T2, typename T3>
+struct Compound {
+  T0 value0;
+  T1 value1;
+  T2 value2;
+  T3 value3;
+};
+
 struct Number {
   union {
     float32_t f32;
