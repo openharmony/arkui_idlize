@@ -209,6 +209,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
         this.printC(`}`)
         this.printC(`KOALA_INTEROP_0(${cName})`)
+        this.printC(` `)
 
         this.printTS(`}`)
     }
@@ -322,7 +323,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.printTS(`${value}`)
             },
             convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`${param}Deserializer.readString(${value})`)
+                this.printC(`${value} = ${param}Deserializer.readString();`)
             },
             nativeType: () => "string",
             estimateSize: () => 32
@@ -473,12 +474,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             convertorToCDeserial: (param: string, value: string) => {
                 this.printC(`RuntimeType ${value}_type = ${param}Deserializer.readInt8();`)
                 memberConvertors.forEach((it, index) => {
-                    let typeIt = type.types[index]
-                    let typeName = asString(typeIt)
                     if (it.runtimeTypes.length == 0) {
-                        console.log(`WARNING: branch for ${typeName} was consumed`)
                         return
                     }
+                    let typeName = it.nativeType()
                     let maybeElse = (index > 0 && memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
                     let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
                     let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
@@ -669,7 +668,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.printC(`${value} = ${param};`)
             },
             convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`$value = ${param}Deserializer.readNumber();`)
+                this.printC(`${value} = ${param}Deserializer.readNumber();`)
             }
         }
     }
@@ -693,7 +692,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 throw new Error("Do not use")
             },
             convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`${value} = ${param}Deserializer.readAny();`)
+                this.printC(`${value} = ${param}Deserializer.read${name}();`)
             }
         }
     }
@@ -996,6 +995,8 @@ export interface NativeModule {${methods}
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `
 #include "Serializer.h"
+
+using std;
 
 ${bridgeCc.join("\n")}
 `
