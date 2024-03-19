@@ -25,7 +25,7 @@ import { printHeader, toHeaderString, wrapWithPrologueAndEpilogue } from "./idl2
 import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { nativeModuleDeclaration, PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
+import { bridgeCcDeclaration, nativeModuleDeclaration, PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
 import { isDefined, stringOrNone, toSet } from "./util";
 import { TypeChecker  } from "./typecheck";
 
@@ -216,6 +216,7 @@ if (options.idl2h) {
 
 if (options.dts2peer) {
     const nativeMethods: string[] = []
+    const bridgeCcArray: string[] = []
     generate(
         options.inputDir,
         undefined,
@@ -224,7 +225,8 @@ if (options.dts2peer) {
             sourceFile,
             typeChecker,
             toSet(options.generateInterface),
-            nativeMethods
+            nativeMethods,
+            bridgeCcArray
         ),
         {
             compilerOptions: defaultCompilerOptions,
@@ -243,6 +245,8 @@ if (options.dts2peer) {
             onEnd(outDir: string) {
                 const nativeModule = nativeModuleDeclaration(nativeMethods)
                 fs.writeFileSync(path.join(outDir, 'NativeModule.d.ts'), nativeModule)
+                const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
+                fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
             }
         }
     )

@@ -49,22 +49,27 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         private sourceFile: ts.SourceFile,
         private typeChecker: ts.TypeChecker,
         private interfacesToGenerate: Set<string>,
-        private nativeModuleMethods: string[]
-    ) {}
+        private nativeModuleMethods: string[],
+        private outputC: string[]
+    ) { }
 
-    private output: stringOrNone[] = []
+    private outputTS: string[] = []
 
     visitWholeFile(): stringOrNone[] {
         let isCommon = this.sourceFile.fileName.endsWith("common.d.ts") ?? false;
         [
             `import { runtimeType, Serializer, functionToInt32, withLength, withLengthArray } from "../../utils/ts/Serialize"`,
-                isCommon ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "./common"`,
-                `import { int32 } from "../../utils/ts/types"`,
-                `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode } from "../../utils/ts/Interop"`,
-        ].forEach(it => this.print(it))
+            isCommon ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "./common"`,
+            `import { int32 } from "../../utils/ts/types"`,
+            `import { nativeModule } from "./NativeModule"`,
+            `import { PeerNode } from "../../utils/ts/Interop"`,
+        ].forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
-        return this.output
+        return this.outputTS
+    }
+
+    resultC(): stringOrNone[] {
+        return this.outputC
     }
 
     needsPeer(type: ts.Identifier | undefined): boolean {
@@ -127,10 +132,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         })
         this.processApplyMethod(node)
-        this.popIndent()
+        this.popIndentTS()
         if (false) {
             this.createComponentAttributesDeclaration(node)
-            this.pushIndent()
+            this.pushIndentTS()
             node.members.forEach(child => {
                 if (ts.isMethodSignature(child)) {
                     this.processOptionAttribute(child)
@@ -163,8 +168,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return params?.map(param => `${nameOrNull(param.name)}`).join(", ")
     }
 
-    print(value: stringOrNone) {
-        if (value) this.output.push(this.indented(value))
+    printTS(value: stringOrNone) {
+        if (value) this.outputTS.push(this.indentedTS(value))
+    }
+
+    printC(value: stringOrNone) {
+        if (value) this.outputC.push(this.indentedC(value))
     }
 
     seenMethods = new Set<string>()
@@ -172,32 +181,40 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
         let isComponent = false
         let methodName = method.name.getText(this.sourceFile)
-        console.log("processing", methodName)
+        const componentName = ts.idText(clazz.name as ts.Identifier)
+        console.log(`processing ${componentName}.${methodName}`)
         if (this.seenMethods.has(methodName)) {
             console.log(`WARNING: ignore duplicate method ${methodName}`)
             return
         }
         this.seenMethods.add(methodName)
-        this.print(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
+        this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
+        let cName = `_${componentName}_${methodName}Impl`
+        this.printC(`void ${cName}() {`)
+
         if (isComponent) {
-            this.print(`if (this.checkPriority("${methodName}")) {`)
-            this.pushIndent()
-            this.print(`this.peer?.${methodName}Attribute(${this.generateValues(method.parameters)})`)
-            this.popIndent()
-            this.print(`}`)
+            this.printTS(`if (this.checkPriority("${methodName}")) {`)
+            this.pushIndentTS()
+            this.printTS(`this.peer?.${methodName}Attribute(${this.generateValues(method.parameters)})`)
+            this.popIndentTS()
+            this.printTS(`}`)
         } else {
             let isStub = false
             if (isStub) {
-                this.print(`throw new Error("${methodName}Attribute() is not implemented")`)
+                this.printTS(`throw new Error("${methodName}Attribute() is not implemented")`)
             } else {
                 this.generateNativeCall(clazz, method)
             }
         }
-        this.print(`}`)
+
+        this.printC(`}`)
+        this.printC(`KOALA_INTEROP_0(${cName})`)
+
+        this.printTS(`}`)
     }
 
     generateNativeCall(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
-        this.pushIndent()
+        this.pushIndentBoth()
         let argConvertors = method.parameters
             .map((param) => this.argConvertor(param))
         let name = `${ts.idText(method.name as ts.Identifier)}Impl`
@@ -206,59 +223,85 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             .filter(it => it.isScoped)
             .map(it => scopes.push(it))
         scopes.forEach(it => {
-            this.pushIndent()
-            this.print(it.scopeStart?.(it.param))
+            this.pushIndentTS()
+            this.printTS(it.scopeStart?.(it.param))
         })
         argConvertors.forEach(it => {
             if (it.useArray) {
                 let size = it.estimateSize()
-                this.print(`let ${it.param}Serializer = new Serializer(${size})`)
-                it.convertorToArray(it.param, it.value)
+                this.printTS(`let ${it.param}Serializer = new Serializer(${size})`)
+                it.convertorToTSSerial(it.param, it.value)
+                this.printC(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
+                this.printC(`${it.nativeType()} ${it.param}Value;`)
+                it.convertorToCDeserial(it.param, `${it.param}Value`)
             }
         })
         let clazzName = ts.idText(clazz.name as ts.Identifier)
-        this.print(`nativeModule()._${clazzName}_${name}(`)
-        this.pushIndent()
+        this.printTS(`nativeModule()._${clazzName}_${name}(`)
+        this.pushIndentTS()
         argConvertors.forEach((it, index) => {
             let maybeComma = index == argConvertors.length - 1 ? "" : ","
             if (it.useArray)
-                this.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
+                this.printTS(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
             else
-                it.convertor(it.param, it.value)
-            this.print(maybeComma)
+                it.convertorTSArg(it.param, it.value)
+            this.printTS(maybeComma)
 
         })
-        this.popIndent()
-        this.output.push(this.indented(`)`))
+        this.popIndentTS()
+        this.outputTS.push(this.indentedTS(`)`))
         scopes.reverse().forEach(it => {
-            this.popIndent()
-            this.print(it.scopeEnd!(it.param))
+            this.popIndentTS()
+            this.printTS(it.scopeEnd!(it.param))
         })
-        this.popIndent()
+        this.popIndentBoth()
     }
 
-    private indent = 0
-    indented(input: string): string {
-        return indentedBy(input, this.indent)
+    private indentTS = 0
+    indentedTS(input: string): string {
+        return indentedBy(input, this.indentTS)
     }
-    pushIndent() {
-        this.indent++
+    pushIndentTS() {
+        this.indentTS++
     }
-    popIndent() {
-        this.indent--
+    popIndentTS() {
+        this.indentTS--
+    }
+
+    private indentC = 0
+    indentedC(input: string): string {
+        return indentedBy(input, this.indentC)
+    }
+    pushIndentC() {
+        this.indentC++
+    }
+    popIndentC() {
+        this.indentC--
+    }
+
+    pushIndentBoth() {
+        this.pushIndentC()
+        this.pushIndentTS()
+    }
+    popIndentBoth() {
+        this.popIndentC()
+        this.popIndentTS()
     }
 
     emptyConvertor(param: string, value: string): ArgConvertor {
+        console.log("WARNING: empty convertor")
         return {
             param: param,
             value: value,
             runtimeTypes: [],
             estimateSize: () => 0,
-            nativeType: () => { throw new Error("Called empty convertor") },
+            nativeType: () => "Empty",
             isScoped: false,
             useArray: false,
-            convertor: () => { },
-            convertorToArray: () => { }
+            convertorTSArg: () => { },
+            convertorToTSSerial: () => { },
+            convertorCArg: () => { },
+            convertorToCDeserial: () => { }
         }
     }
 
@@ -269,15 +312,19 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [RuntimeType.STRING],
             isScoped: false,
             useArray: false,
-            //scopeStart: (param) => `withString(${param}, (${param}Ptr: KStringPtr) => {`,
-            //scopeEnd: () => '})',
-            convertor: (param) => {
-                this.print(`${param}`)
+            convertorTSArg: (param, value) => {
+                this.printTS(`${value}`)
+            },
+            convertorToTSSerial: (param: string, value: string) => {
+                this.printTS(`${param}Serializer.writeString(${value})`)
+            },
+            convertorCArg: (param, value) => {
+                this.printTS(`${value}`)
+            },
+            convertorToCDeserial: (param: string, value: string) => {
+                this.printC(`${param}Deserializer.readString(${value})`)
             },
             nativeType: () => "string",
-            convertorToArray: (param: string, value: string) => {
-                this.print(`${param}Serializer.writeString(${value})`)
-            },
             estimateSize: () => 32
         }
     }
@@ -290,9 +337,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             useArray: false,
             isScoped: false,
             nativeType: () => "int32",
-            convertor: (param, value) => this.print(`+${value}`),
-            convertorToArray: (param, value) => {
-                this.print(`${param}Serializer.writeBoolean(${value})`)
+            convertorTSArg: (param, value) => this.printTS(`+${value}`),
+            convertorToTSSerial: (param, value) => {
+                this.printTS(`${param}Serializer.writeBoolean(${value})`)
+            },
+            convertorCArg: (param, value) => this.printTS(value),
+            convertorToCDeserial: (param, value) => {
+                this.printC(`${param}Deserializer.readBoolean(${value})`)
             },
             estimateSize: () => 1
         }
@@ -306,10 +357,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [],
             isScoped: false,
             useArray: true,
-            nativeType: () => { throw new Error("any arg convertor") },
-            convertor: (param) => { throw new Error("Not for any") },
-            convertorToArray: (param: string, value: string) => {
-                this.print(`${param}Serializer.writeAny(${value})`)
+            nativeType: () => "Any",
+            convertorTSArg: (param) => { throw new Error("Not for any") },
+            convertorToTSSerial: (param: string, value: string) => {
+                this.printTS(`${param}Serializer.writeAny(${value})`)
+            },
+            convertorCArg: (param) => { throw new Error("Not for any") },
+            convertorToCDeserial: (param: string, value: string) => {
+                this.printC(`${param}Deserializer.readAny(${value})`)
             },
             estimateSize: () => 32
         }
@@ -319,13 +374,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return {
             param: param,
             value: value,
-            runtimeTypes: [ RuntimeType.UNDEFINED ],
+            runtimeTypes: [RuntimeType.UNDEFINED],
             isScoped: false,
             useArray: false,
-            nativeType: () => { throw new Error("undefined arg convertor") },
-            convertor: (param) => this.print("nullptr"),
-            convertorToArray: (param: string, value: string) => {
-                this.print(`${param}Serializer.writeUndefined()`)
+            nativeType: () => "Undefined",
+            convertorTSArg: (param) => this.printTS("nullptr"),
+            convertorToTSSerial: (param: string, value: string) => {
+                this.printTS(`${param}Serializer.writeUndefined()`)
+            },
+            convertorCArg: (param) => this.printC("nullptr"),
+            convertorToCDeserial: (param: string, value: string) => {
+                this.printC(`${value} = ${param}Deserializer.readUndefined()`)
             },
             estimateSize: () => 8
         }
@@ -340,9 +399,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             useArray: false,
             isScoped: false,
             nativeType: () => "int32",
-            convertor: (param, value) => this.print(`${value} as unknown as int32`),
-            convertorToArray: (param, value) => {
-                this.print(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
+            convertorTSArg: (param, value) => this.printTS(`${value} as unknown as int32`),
+            convertorToTSSerial: (param, value) => {
+                this.printTS(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
+            },
+            convertorCArg: (param, value) => this.printTS(`${value} = ${param};`),
+            convertorToCDeserial: (param, value) => {
+                this.printC(`${value} = ${param}Deserializer.readInt32()`)
             },
             estimateSize: () => 4
         }
@@ -358,9 +421,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             scopeStart: (param) => `withLengthArray(${param}, (${param}Ptr) => {`,
             scopeEnd: () => '})',
             nativeType: () => "Uint32Array",
-            convertor: (param, value) => this.print(`${value}Ptr`),
-            convertorToArray: (param, value) => {
-                this.print(`${param}Serializer.writeLength(${value})`)
+            convertorTSArg: (param, value) => this.printTS(`${value}Ptr`),
+            convertorToTSSerial: (param, value) => {
+                this.printTS(`${param}Serializer.writeLength(${value})`)
+            },
+            convertorCArg: (param, value) => this.printC(`${value} = Length::fromArray(${param});`),
+            convertorToCDeserial: (param, value) => {
+                this.printC(`${value} = ${param}Deserializer.readLength()`)
             },
             estimateSize: () => 4
         }
@@ -374,14 +441,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             param: param,
             value: value,
             runtimeTypes: memberConvertors.flatMap(it => it.runtimeTypes),
-            nativeType: () => { throw new Error("undefined union convertor") },
+            nativeType: () => memberConvertors.map(it => it.nativeType()).join("_Or_"),
             isScoped: false,
             useArray: true,
-            convertor: (param: string) => { throw new Error("Do not use") },
-            convertorToArray: (param: string, value: string) => {
-                this.print(`let ${value}Type = runtimeType(${value})`)
+            convertorTSArg: (param: string) => { throw new Error("Do not use") },
+            convertorToTSSerial: (param: string, value: string) => {
+                this.printTS(`let ${value}Type = runtimeType(${value})`)
                 // Save actual type being passed.
-                this.print(`${param}Serializer.writeInt8(${value}Type)`)
+                this.printTS(`${param}Serializer.writeInt8(${value}Type)`)
                 this.checkUniques(param, memberConvertors)
                 memberConvertors.forEach((it, index) => {
                     let typeIt = type.types[index]
@@ -390,17 +457,39 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                         console.log(`WARNING: branch for ${typeName} was consumed`)
                         return
                     }
-                    let maybeElse = (index > 0 && memberConvertors[index - 1].runtimeTypes.length > 0 ) ? "else " : ""
+                    let maybeElse = (index > 0 && memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
                     let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
                     let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                    this.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
-                    this.pushIndent()
+                    this.printTS(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
+                    this.pushIndentTS()
+                    this.printTS(`let ${value}_${index}: ${typeName} = ${value} as ${typeName}`)
+                    it.convertorToTSSerial(param, `${value}_${index}`)
+                    this.popIndentTS()
+                    this.printTS(`}`)
+                })
+            },
+            convertorCArg: (param: string) => { throw new Error("Do not use union") },
+            convertorToCDeserial: (param: string, value: string) => {
+                this.printC(`RuntimeType ${value}_type = ${param}Deserializer.readInt8();`)
+                memberConvertors.forEach((it, index) => {
+                    let typeIt = type.types[index]
+                    let typeName = asString(typeIt)
+                    if (it.runtimeTypes.length == 0) {
+                        console.log(`WARNING: branch for ${typeName} was consumed`)
+                        return
+                    }
+                    let maybeElse = (index > 0 && memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
+                    let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
+                    let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                    this.print(`let ${value}_${index}: ${typeName} = ${value} as ${typeName}`)
-                    it.convertorToArray(param, `${value}_${index}`)
-                    this.popIndent()
-                    this.print(`}`)
+                    this.printC(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
+                    this.pushIndentC()
+                    this.printC(`${typeName} ${value}_${index};`)
+                    it.convertorToCDeserial(param, `${value}_${index}`)
+                    this.printC(`${value} = ${value}_${index};`)
+                    this.popIndentC()
+                    this.printC(`}`)
                 })
             },
             estimateSize: () => {
@@ -429,17 +518,21 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
             isScoped: false,
             useArray: true,
-            convertor: (param: string) => { throw new Error("Do not use") },
-            nativeType: () => { throw new Error("aggregate arg convertor") },
-            convertorToArray: (param: string, value: string) => {
+            nativeType: () => "Aggregate",
+            convertorTSArg: (param: string) => { throw new Error("Do not use") },
+            convertorToTSSerial: (param: string, value: string) => {
                 let members = type
                     .members
                     .filter(ts.isPropertySignature)
                 memberConvertors.forEach((it, index) => {
                     let memberName = ts.idText(members[index].name as ts.Identifier)
-                    this.print(`let ${it.value} = ${value}${members[index].questionToken ? "?" : ""}.${memberName}`)
-                    it.convertorToArray(it.param, it.value)
+                    this.printTS(`let ${it.value} = ${value}${members[index].questionToken ? "?" : ""}.${memberName}`)
+                    it.convertorToTSSerial(it.param, it.value)
                 })
+            },
+            convertorCArg: (param: string) => { throw new Error("Do not use") },
+            convertorToCDeserial: (param: string, value: string) => {
+                console.log("TODO: convertorToCDeserial in aggregate")
             },
             estimateSize: () => {
                 let result = 0
@@ -454,17 +547,21 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     interfaceConvertor(param: string, value: string, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): ArgConvertor {
         let ifaceName = ts.idText(declaration.name as ts.Identifier)
         return {
-                param: param,
-                value: value,
-                runtimeTypes: [RuntimeType.OBJECT],
-                estimateSize: () => 32,
-                nativeType: () => { throw new Error("interface arg convertor") },
-                useArray: true,
-                isScoped: false,
-                convertor: (param, value) => { throw new Error("Must never be used") },
-                convertorToArray: (param, value) => {
-                    this.print(`${param}Serializer.write${ifaceName}(${value})`)
-                }
+            param: param,
+            value: value,
+            runtimeTypes: [RuntimeType.OBJECT],
+            estimateSize: () => 32,
+            nativeType: () => ifaceName,
+            useArray: true,
+            isScoped: false,
+            convertorTSArg: (param, value) => { throw new Error("Must never be used") },
+            convertorToTSSerial: (param, value) => {
+                this.printTS(`${param}Serializer.write${ifaceName}(${value})`)
+            },
+            convertorCArg: (param, value) => { throw new Error("Must never be used: interface") },
+            convertorToCDeserial: (param, value) => {
+                this.printC(`${value} = ${param}Serializer.read${ifaceName}();`)
+            }
         }
     }
 
@@ -484,12 +581,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 memberConvertors.forEach(it => result += it.estimateSize())
                 return result
             },
-            nativeType: () => { throw new Error("tuple arg convertor") },
-            convertor: (param: string) => { throw new Error("Do not use") },
-            convertorToArray: (param: string, value: string) => {
+            nativeType: () => "Tuple",
+            convertorTSArg: (param: string) => { throw new Error("Do not use") },
+            convertorToTSSerial: (param: string, value: string) => {
                 memberConvertors.forEach(it => {
-                    it.convertorToArray(param, value)
+                    it.convertorToTSSerial(param, value)
                 })
+            },
+            convertorCArg: (param: string) => { throw new Error("Do not use") },
+            convertorToCDeserial: (param: string, value: string) => {
+                console.log("TODO: tuple convertor")
             }
         }
     }
@@ -503,9 +604,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             useArray: false,
             estimateSize: () => { return 8 },
             nativeType: () => "int32",
-            convertor: (param: string) => { this.print(`functionToInt32(${param})`) },
-            convertorToArray: (param: string, value: string) => {
-                this.print(`${param}Serializer.writeFunction(${value})`)
+            convertorTSArg: (param: string) => { this.printTS(`functionToInt32(${param})`) },
+            convertorToTSSerial: (param: string, value: string) => {
+                this.printTS(`${param}Serializer.writeFunction(${value})`)
+            },
+            convertorCArg: (param: string) => { throw new Error("Do not use") },
+            convertorToCDeserial: (param: string, value: string) => {
+                this.printC(`$value = ${param}Deserializer.readFunction();`)
             }
         }
     }
@@ -518,18 +623,29 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             runtimeTypes: [RuntimeType.OBJECT],
             isScoped: false,
             useArray: true,
-            nativeType: () => { throw new Error("array arg convertor") },
+            nativeType: () => "Array",
             estimateSize: () => convertor.estimateSize() * 4,
-            convertor: (param: string) => { throw new Error("Do not use") },
-            convertorToArray: (param: string, value: string) => {
+            convertorTSArg: (param: string) => { throw new Error("Do not use") },
+            convertorToTSSerial: (param: string, value: string) => {
                 // Array length.
-                this.print(`${param}Serializer.writeInt32(${value}.length)`)
-                this.print(`for (let i = 0; i < ${value}.length; i++) {`)
-                this.pushIndent()
-                this.print(`let element = ${value}[i]`)
-                convertor.convertorToArray(param, "element")
-                this.popIndent()
-                this.print(`}`)
+                this.printTS(`${param}Serializer.writeInt32(${value}.length)`)
+                this.printTS(`for (let i = 0; i < ${value}.length; i++) {`)
+                this.pushIndentTS()
+                this.printTS(`let element = ${value}[i]`)
+                convertor.convertorToTSSerial(param, "element")
+                this.popIndentTS()
+                this.printTS(`}`)
+            },
+            convertorCArg: (param: string) => { throw new Error("Do not use") },
+            convertorToCDeserial: (param: string, value: string) => {
+                // Array length.
+                this.printC(`auto ${value}_length = ${param}Serializer.readInt32();`)
+                this.printC(`auto ${value} = new ${asString(elementType)}[${value}_length];`)
+                this.printC(`for (let i = 0; i < ${value}_length ; i++) {`)
+                this.pushIndentC()
+                convertor.convertorToCDeserial(param, `${value}[i]`);
+                this.popIndentC()
+                this.printC(`}`)
             }
         }
     }
@@ -543,11 +659,41 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             useArray: false,
             estimateSize: () => 8,
             nativeType: () => "int32",
-            convertor: (param: string) => {
-                this.print(param)
+            convertorTSArg: (param, value) => {
+                this.printTS(param)
             },
-            convertorToArray: (param: string, value: string) => {
-                this.print(`${param}Serializer.writeNumber(${value})`)
+            convertorToTSSerial: (param: string, value: string) => {
+                this.printTS(`${param}Serializer.writeNumber(${value})`)
+            },
+            convertorCArg: (param, value) => {
+                this.printC(`${value} = ${param};`)
+            },
+            convertorToCDeserial: (param: string, value: string) => {
+                this.printC(`$value = ${param}Deserializer.readNumber();`)
+            }
+        }
+    }
+
+    importTypeConvertor(param: string, value: string, name: string): ArgConvertor {
+        return {
+            param: param,
+            value: value,
+            nativeType: () => name,
+            estimateSize: () => 32,
+            runtimeTypes: [RuntimeType.OBJECT], // Assume imported are objects, not really always the case..
+            isScoped: false,
+            useArray: true,
+            convertorTSArg: (param: string, value: string) => {
+                throw new Error("Do not use")
+            },
+            convertorToTSSerial: (param: string, value: string) => {
+                this.printTS(`${param}Serializer.writeAny(${value})`)
+            },
+            convertorCArg: (param: string, value: string) => {
+                throw new Error("Do not use")
+            },
+            convertorToCDeserial: (param: string, value: string) => {
+                this.printC(`${value} = ${param}Deserializer.readAny();`)
             }
         }
     }
@@ -594,7 +740,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     if (ts.isTypeReferenceNode(type))
                         return this.arrayConvertor(param, value, type.typeArguments![0])
                     else {
-                        console.log("Empty convertor")
                         return this.emptyConvertor(param, value)
                     }
                 }
@@ -637,21 +782,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return this.typeConvertor(param, value, type.type)
         }
         if (ts.isImportTypeNode(type)) {
-            return {
-                param: param,
-                value: value,
-                nativeType: () => { throw new Error("import arg convertor") },
-                estimateSize: () => 32,
-                runtimeTypes: [RuntimeType.OBJECT], // Assume imported are objects, not really always the case..
-                isScoped: false,
-                useArray: true,
-                convertor: (param: string, value: string) => {
-                    throw new Error("Do not use")
-                },
-                convertorToArray: (param: string, value: string) => {
-                    this.print(`${param}Serializer.writeAny(${value})`)
-                }
-            }
+            return this.importTypeConvertor(param, value, asString(type.qualifier))
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return this.stringConvertor(param, value)
@@ -697,14 +828,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             component = "Component"
             isComponent = true
         }
-        this.print(`export class Ark${component}Peer extends ${isComponent ? "PeerNode" : "ArkComponentPeer"} {`)
-        this.pushIndent()
-        this.print(`attributes?: Ark${component}Attributes`)
+        this.printTS(`export class Ark${component}Peer extends ${isComponent ? "PeerNode" : "ArkComponentPeer"} {`)
+        this.pushIndentTS()
+        this.printTS(`attributes?: Ark${component}Attributes`)
     }
 
     epilogue() {
-        this.popIndent()
-        this.print(`}`)
+        this.popIndentTS()
+        this.printTS(`}`)
     }
 
     processApplyMethod(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
@@ -715,11 +846,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             component = "Component"
         }
         const interfaceName = `Ark${component}Attributes`
-        this.print(`applyAttributes${isCommon ? `<T extends ${interfaceName}>` : ``}(attributes: ${isCommon ? `T` : interfaceName}): void {`)
-        this.pushIndent()
-        this.print(isCommon ? undefined : `super.applyAttributes(attributes)`)
-        this.popIndent()
-        this.print(`}`)
+        this.printTS(`applyAttributes${isCommon ? `<T extends ${interfaceName}>` : ``}(attributes: ${isCommon ? `T` : interfaceName}): void {`)
+        this.pushIndentTS()
+        this.printTS(isCommon ? undefined : `super.applyAttributes(attributes)`)
+        this.popIndentTS()
+        this.printTS(`}`)
     }
 
     private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
@@ -730,15 +861,15 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             component = "Component"
             extendsClause = ""
         }
-        this.print(`export interface Ark${component}Attributes ${extendsClause} {`)
-        this.pushIndent()
+        this.printTS(`export interface Ark${component}Attributes ${extendsClause} {`)
+        this.pushIndentTS()
         node.members.forEach(child => {
             if (ts.isMethodDeclaration(child)) {
                 this.processOptionAttribute(child)
             }
         })
-        this.popIndent()
-        this.print("}")
+        this.popIndentTS()
+        this.printTS("}")
     }
 
     private processOptionAttribute(method: ts.MethodDeclaration | ts.MethodSignature): void {
@@ -753,7 +884,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         this.seenAttributes.add(methodName)
         const type = this.argumentType(methodName, method.parameters)
-        this.print(`${methodName}?: ${type}`)
+        this.printTS(`${methodName}?: ${type}`)
     }
 
     private argumentType(methodName: string, parameters: ts.NodeArray<ts.ParameterDeclaration>): string {
@@ -803,11 +934,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     private generateAttributesValuesInterfaces() {
         this.typesToGenerate.forEach((value: string) => {
-            this.print(value)
+            this.printTS(value)
         })
     }
 
     private collectMethod(node: ts.MethodDeclaration, parent: ts.ClassDeclaration): void {
+        // TODO: use alternative in-time emitter, like printC.
         if (parent.name === undefined) throw new Error(`Encountered nameless method ${node}`)
         const component = ts.idText(parent.name)
         const method = node.name.getText()
@@ -833,8 +965,10 @@ interface ArgConvertor {
     estimateSize: () => number,
     scopeStart?: (param: string) => string
     scopeEnd?: (param: string) => string
-    convertor: (param: string, value: string) => void
-    convertorToArray: (param: string, value: string) => void
+    convertorTSArg: (param: string, value: string) => void
+    convertorToTSSerial: (param: string, value: string) => void
+    convertorCArg: (param: string, value: string) => void
+    convertorToCDeserial: (param: string, value: string) => void
     nativeType: () => string
     param: string
     value: string
@@ -856,4 +990,13 @@ export function nativeModule(): NativeModule {
 export interface NativeModule {${methods}
 }
 `.trim()
+}
+
+
+export function bridgeCcDeclaration(bridgeCc: string[]): string {
+    return `
+#include "Serializer.h"
+
+${bridgeCc.join("\n")}
+`
 }

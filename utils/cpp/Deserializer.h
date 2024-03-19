@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include <string>
+#include <cassert>
 
 enum RuntimeType
 {
@@ -41,6 +42,17 @@ struct Length {
   float32_t value;
   int32_t unit;
   int32_t resource;
+  static Length fromArray(int32_t* array) {
+    Length result;
+    result.value = *(float32_t*)array;
+    result.unit = array[1];
+    result.resource = array[2];
+    return result;
+  }
+};
+
+struct Undefined {
+  int8_t bogus;
 };
 
 class ArgDeserializerBase
@@ -54,44 +66,63 @@ public:
   ArgDeserializerBase(uint8_t *data, int32_t length)
       : data(data), length(length), position(0) {}
 
-  int8_t getInt8() {
+  void check(int32_t count) {
+    if (position + count > length) {
+      assert(false);
+    }
+  }
+
+  int8_t readInt8() {
+    check(1);
     auto value = *(data + position);
     position += 1;
     return value;
   }
-  int32_t getInt32() {
+  bool readBoolean() {
+    check(1);
+    auto value = *(data + position);
+    position += 1;
+    return value;
+  }
+  int32_t readInt32() {
+    check(4);
     auto value = *(int32_t *)(data + position);
     position += 4;
     return value;
   }
-  float32_t getFloat32() {
+  float32_t readFloat32() {
+    check(4);
     auto value = *(float32_t *)(data + position);
     position += 4;
     return value;
   }
-
-  Tagged<Number> getNumber() {
+  Tagged<Number> readNumber() {
+    check(5);
     Tagged<Number> result;
-    result.tag = (Tags)getInt8();
+    result.tag = (Tags)readInt8();
     if (result.tag == Tags::INT32) {
-      result.value.i32 = getInt32();
+      result.value.i32 = readInt32();
     } else if (result.tag == Tags::FLOAT32) {
-      result.value.f32 = getFloat32();
+      result.value.f32 = readFloat32();
     }
   }
 
-  Tagged<Length> getLength() {
+  Tagged<Length> readLength() {
     Tagged<Length> result;
-    result.tag = (Tags)getInt8();
+    result.tag = (Tags)readInt8();
     if (result.tag == Tags::LENGTH) {
-      result.value.value = getFloat32();
-      result.value.unit = getInt32();
-      result.value.resource = getInt32();
+      result.value.value = readFloat32();
+      result.value.unit = readInt32();
+      result.value.resource = readInt32();
     }
   }
 
-  std::string getString() {
-    int32_t length = getInt32();
+  Undefined readUndefined() {
+  }
+
+  std::string readString() {
+    int32_t length = readInt32();
+    check(length);
     auto result = std::string((char*)(data + position), length);
     result += length;
     return result;
