@@ -17,6 +17,7 @@ import { IDLEntry, forEachChild, isCallback, isClass, isEnum, isInterface, isTyp
 
 export enum TypeKind {
     Primitive,
+    String,
     Container,
     Interface,
     Class,
@@ -50,8 +51,13 @@ export class TypeTable {
     table = new Map<string, TypeInfo[]>([
         ["undefined", [new TypeInfo(TypeKind.Primitive, undefined, undefined)]],
         ["boolean", [new TypeInfo(TypeKind.Primitive, undefined, undefined)]],
-        ["string", [new TypeInfo(TypeKind.Primitive, undefined, undefined)]],
+        ["DOMString", [new TypeInfo(TypeKind.String, undefined, undefined)]],
         ["number", [new TypeInfo(TypeKind.Primitive, undefined, undefined)]],
+        ["Object", [new TypeInfo(TypeKind.Interface, undefined, undefined)]],
+        ["Promise", [new TypeInfo(TypeKind.Interface, undefined, undefined)]],
+        ["Date", [new TypeInfo(TypeKind.Interface, undefined, undefined)]],
+        ["Function", [new TypeInfo(TypeKind.Interface, undefined, undefined)]],
+        ["this", [new TypeInfo(TypeKind.Interface, undefined, undefined)]],
         ["sequence", [new TypeInfo(TypeKind.Container, undefined, undefined)]],
         ["record", [new TypeInfo(TypeKind.Container, undefined, undefined)]]
     ])
@@ -88,6 +94,10 @@ export class TypeChecker {
             console.log("Trying to record type for an unnamed IDL entry: ", idl)
         }
         this.typeTable.put(idl.name!, new TypeInfo(typeKind, idl, idl.fileName))
+    }
+
+    find(name: string): TypeInfo[] {
+        return this.typeTable.get(name)
     }
 
     recordType(idl: IDLEntry) {

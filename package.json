@@ -1,4 +1,4 @@
-{
+    {
     "name": "@azanat/idlize",
     "version": "1.1.6",
     "description": "",
@@ -38,7 +38,7 @@
         "clean": "rimraf build dist lib",
         "run": "npm run compile && node . --dts2idl --input-dir ./ohos-sdk/component --input-file common.d.ts --verify-idl --common-to-attributes --skip-docs",
         "run:all": "npm run compile && node . --dts2idl --input-dir ./ohos-sdk/component --verify-idl --common-to-attributes --skip-docs",
-        "run2h": "npm run compile && node . --dts2h --input-dir ./ohos-sdk/component --input-file common.d.ts --verbose",
+        "run2h": "npm run compile && node . --idl2h --input-dir ./idl",
         "run2test": "npm run compile && node . --dts2test --input-dir ./ohos-sdk/component --verbose --test-interface ButtonAttribute",
         "run2peer:all": "npm run compile && node . --dts2peer --input-dir ./ohos-sdk/component --output-dir ./generated/peers",
         "run2peer": "npm run compile && node . --dts2peer --input-dir ./ohos-sdk/component --generate-interface CommonMethod,ButtonAttribute --output-dir ./generated/peers",

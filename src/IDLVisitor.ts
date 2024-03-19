@@ -27,6 +27,7 @@ const typeMapper = new Map<string, string>(
     [
         ["null", "undefined"],
         ["void", "undefined"],
+        ["object", "Object"],
         ["Array", "sequence"],
         ["string", "DOMString"],
         ["Map", "record"],

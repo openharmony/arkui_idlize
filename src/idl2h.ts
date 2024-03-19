@@ -20,7 +20,7 @@ import {
     IDLUnionType,
     IDLVariable, hasExtAttribute, isTypeParameterType, printType
 } from "./idl"
-import { TypeChecker } from "./typecheck";
+import { TypeChecker, TypeKind } from "./typecheck";
 import { capitalize, stringOrNone, toSet } from "./util";
 
 /**
@@ -61,9 +61,11 @@ function mapType(typechecker: TypeChecker, type: IDLType|undefined): string {
     if (isTypeParameterType(type) && currentInterface) {
         return mapInterfaceName(currentInterface.name!, true)
     }
-    let declarations = typechecker.typeTable.get(type.name)
+    let declarations = typechecker.find(type.name)
     if (declarations.length > 0) {
-        let declaration = declarations[0].declaration
+        console.log(`Type for ${type.name} is ${TypeKind[declarations[0].kind]}`)
+    } else {
+        // console.log(`No type for ${type.name}`)
     }
     switch (type.kind) {
         case IDLKind.UnionType: return `ArkUI_${(type as IDLUnionType).types.map(it => capitalize(it.name)).join("Or")}`

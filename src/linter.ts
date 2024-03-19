@@ -32,7 +32,8 @@ export enum LinterError {
     PARAMETER_INITIALIZER,
     DUPLICATE_INTERFACE,
     INDEX_SIGNATURE,
-    NAMESPACE
+    NAMESPACE,
+    NUMBER_TYPE
 }
 
 export interface LinterMessage {
@@ -164,6 +165,10 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (this.isTypeParameterReferenceAndNotCommonMethod(type)) {
             this.report(type, LinterError.UNSUPPORTED_TYPE_PARAMETER, `Unsupported type parameter: ${type.getText(this.sourceFile)}`)
         }
+        /*
+        if (type.kind == ts.SyntaxKind.NumberKeyword) {
+            this.report(type, LinterError.NUMBER_TYPE, "Do not use `number`, use `int32`, `float32` or `int64`")
+        } */
     }
 
     isTypeParameterReferenceAndNotCommonMethod(type: ts.TypeNode): boolean {
