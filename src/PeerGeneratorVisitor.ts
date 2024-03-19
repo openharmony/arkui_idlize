@@ -23,6 +23,7 @@ import {
     capitalize
 } from "./util"
 import { GenericVisitor } from "./options"
+import { IndentedPrinter } from "./IndentedPrinter"
 
 enum RuntimeType {
     UNEXPECTED = -1,
@@ -65,11 +66,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             `import { PeerNode } from "../../utils/ts/Interop"`,
         ].forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
-        return this.outputTS
+        return this.printerTS.output
     }
 
-    resultC(): stringOrNone[] {
-        return this.outputC
+    resultC(): string[] {
+        return this.printerC.output
     }
 
     needsPeer(type: ts.Identifier | undefined): boolean {
@@ -171,11 +172,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     printTS(value: stringOrNone) {
-        if (value) this.outputTS.push(this.indentedTS(value))
+        this.printerTS.print(value)
     }
 
     printC(value: stringOrNone) {
-        if (value) this.outputC.push(this.indentedC(value))
+        this.printerC.print(value)
     }
 
     seenMethods = new Set<string>()
@@ -280,7 +281,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 let size = it.estimateSize()
                 this.printTS(`let ${it.param}Serializer = new Serializer(${size})`)
                 it.convertorToTSSerial(it.param, it.value)
-                this.printC(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
+                this.printC(`ArgDeserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
                 this.printC(`${it.nativeType()} ${it.param}Value;`)
                 it.convertorToCDeserial(it.param, `${it.param}Value`)
             }
@@ -297,7 +298,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
         })
         this.popIndentTS()
-        this.outputTS.push(this.indentedTS(`)`))
+        this.printTS(`)`)
         scopes.reverse().forEach(it => {
             this.popIndentTS()
             this.printTS(it.scopeEnd!(it.param))
@@ -305,35 +306,29 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.popIndentBoth()
     }
 
-    private indentTS = 0
-    indentedTS(input: string): string {
-        return indentedBy(input, this.indentTS)
-    }
-    pushIndentTS() {
-        this.indentTS++
-    }
-    popIndentTS() {
-        this.indentTS--
-    }
-
-    private indentC = 0
-    indentedC(input: string): string {
-        return indentedBy(input, this.indentC)
-    }
-    pushIndentC() {
-        this.indentC++
-    }
-    popIndentC() {
-        this.indentC--
-    }
+    private printerTS = new IndentedPrinter()
+    private printerC = new IndentedPrinter()
 
     pushIndentBoth() {
-        this.pushIndentC()
-        this.pushIndentTS()
+        this.printerTS.pushIndent()
+        this.printerC.pushIndent()
     }
     popIndentBoth() {
-        this.popIndentC()
-        this.popIndentTS()
+        this.printerTS.popIndent()
+        this.printerTS.popIndent()
+    }
+
+    pushIndentTS() {
+        this.printerTS.pushIndent()
+    }
+    popIndentTS() {
+        this.printerTS.popIndent()
+    }
+    pushIndentC() {
+        this.printerC.pushIndent()
+    }
+    popIndentC() {
+        this.printerC.popIndent()
     }
 
     emptyConvertor(param: string, value: string): ArgConvertor {
@@ -1021,7 +1016,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             .map(it => {
                 if (it.useArray) {
                     const array = `${it.param}Serializer`
-                    return `${array}: Uint8Array, ${array}Length: int32`
+                    return `${it.param}Array: Uint8Array, ${array}Length: int32`
                 } else {
                     return `${it.param}: ${it.nativeType!()}`
                 }
