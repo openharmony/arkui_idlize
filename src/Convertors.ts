@@ -200,7 +200,7 @@ export class EnumConvertor extends BaseArgConvertor {
         printer.print(`nullptr`)
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${param}Serializer.writeInt32(${value})`)
+        printer.print(`${param}Serializer.writeInt32(${value} as int32)`)
     }
     convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value}`)

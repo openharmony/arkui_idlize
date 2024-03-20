@@ -631,7 +631,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private generateSerializer(name: string, type:  ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
-        this.printerSerializerTS.print(`write${name}(value: ${name}) {`)
+        this.printerSerializerTS.print(`write${name}(value: ${name}|undefined) {`)
         this.printerSerializerTS.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
@@ -639,6 +639,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             let declaration = declarations[0]
             this.printerSerializerTS.print(`const valueSerializer = this`)
             if (ts.isInterfaceDeclaration(declaration)) {
+                this.printerSerializerTS.print(`if (!value) { valueSerializer.writeInt8(${RuntimeType.UNDEFINED}); return }`)
+                this.printerSerializerTS.print(`valueSerializer.writeInt8(${RuntimeType.OBJECT})`)
                 declaration.members
                     .filter(ts.isPropertySignature)
                     .forEach(it => {
@@ -661,6 +663,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
         if (declarations.length > 0) {
             this.printerSerializerC.print(`${name} value;`)
+            this.printerSerializerC.print(`auto tag = this.readInt8();`)
+            this.printerSerializerC.print(`if (tag == ${RuntimeType.UNDEFINED}) throw new Error("Undefined);`)
             this.printerSerializerC.print(`const Deserializer& valueDeserializer = &this;`)
             let declaration = declarations[0]
             if (ts.isInterfaceDeclaration(declaration)) {
@@ -729,7 +733,8 @@ ${bridgeCc.join("\n")}
 
 export function makeTSSerializer(lines: string[]): string {
     return `
-import { SerializerBase, runtimeTypes } from "../../utils/ts/SerializerBase"
+import { SerializerBase, runtimeType } from "../../utils/ts/SerializerBase"
+import { int32 } from "../../utils/ts/Interop"
 
 export class Serializer extends SerializerBase {
 ${lines.join("\n")}
@@ -739,9 +744,14 @@ ${lines.join("\n")}
 
 export function makeCDeserializer(lines: string[]): string {
     return `
-#include "Serializer.h"
+#include "ArgDeserializer.h"
 
-class Deserializer : BaseDeserializer {
+class Deserializer : ArgDeserializerBase
+{
+  public:
+    Deserializer(uint8_t *data, int32_t length)
+          : ArgDeserializerBase(data, length) {}
+
 ${lines.join("\n")}
 }
 `
