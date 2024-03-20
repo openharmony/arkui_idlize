@@ -299,7 +299,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (it.useArray) {
                 let size = it.estimateSize()
                 this.printTS(`let ${it.param}Serializer = new Serializer(${size})`)
-                it.convertorToTSSerial(it.param, it.value, this.printerTS)
+                it.convertorToTSSerial(it.param, it.param, this.printerTS)
                 this.printC(`ArgDeserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
                 this.printC(`${it.nativeType()} ${it.param}Value;`)
                 it.convertorToCDeserial(it.param, `${it.param}Value`, this.printerC)
@@ -312,7 +312,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (it.useArray)
                 this.printTS(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
             else
-                it.convertorTSArg(it.param, it.value, this.printerTS)
+                it.convertorTSArg(it.param, it.param, this.printerTS)
             this.printTS(maybeComma)
 
         })
@@ -350,97 +350,97 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerC.popIndent()
     }
 
-    typeConvertor(param: string, value: string, type: ts.TypeNode): ArgConvertor {
+    typeConvertor(param: string, type: ts.TypeNode): ArgConvertor {
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
-            return new AnyConvertor(param, value)
+            return new AnyConvertor(param)
         }
         if (type.kind == ts.SyntaxKind.UndefinedKeyword || type.kind == ts.SyntaxKind.VoidKeyword) {
-            return new UndefinedConvertor(param, value)
+            return new UndefinedConvertor(param)
         }
         if (type.kind == ts.SyntaxKind.NullKeyword) {
             throw new Error("Unsupported null")
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            return new NumberConvertor(param, value)
+            return new NumberConvertor(param)
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
-            return new StringConvertor(param, value)
+            return new StringConvertor(param)
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-            return new BooleanConvertor(param, value)
+            return new BooleanConvertor(param)
         }
         if (ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
             if (!declaration) {
                 // throw new Error(`Declaration not found: ${asString(type.typeName)}`)
                 console.log(`WARNING: declaration not found: ${asString(type.typeName)}`)
-                return new AnyConvertor(param, value)
+                return new AnyConvertor(param)
             }
             if (asString(type.typeName) == "Length") {
                 // Important common case.
-                return new LengthConvertor(param, value)
+                return new LengthConvertor(param)
             }
             if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
-                return new EnumConvertor(param, value)
+                return new EnumConvertor(param)
             }
             if (ts.isTypeAliasDeclaration(declaration)) {
-                return this.typeConvertor(param, value, declaration.type)
+                return this.typeConvertor(param, declaration.type)
             }
             if (ts.isInterfaceDeclaration(declaration)) {
                 let ifaceName = ts.idText(declaration.name)
                 if (ifaceName == "Array") {
                     if (ts.isTypeReferenceNode(type))
-                        return new ArrayConvertor(param, value, this, type.typeArguments![0])
+                        return new ArrayConvertor(param, this, type.typeArguments![0])
                     else {
-                        return new EmptyConvertor(param, value)
+                        return new EmptyConvertor(param)
                     }
                 }
-                return new InterfaceConvertor(param, value, this, declaration)
+                return new InterfaceConvertor(param, this, declaration)
             }
             if (ts.isClassDeclaration(declaration)) {
-                return new InterfaceConvertor(param, value, this, declaration)
+                return new InterfaceConvertor(param, this, declaration)
             }
             if (ts.isTypeParameterDeclaration(declaration)) {
                 console.log(declaration)
-                return new AnyConvertor(param, value)
+                return new AnyConvertor(param)
             }
             throw new Error(`Unknown kind: ${declaration.kind}`)
         }
         if (ts.isUnionTypeNode(type)) {
-            return new UnionConvertor(param, value, this, type)
+            return new UnionConvertor(param, this, type)
         }
         if (ts.isTypeLiteralNode(type)) {
-            return new AggregateConvertor(param, value, this, type)
+            return new AggregateConvertor(param, this, type)
         }
         if (ts.isArrayTypeNode(type)) {
-            return new ArrayConvertor(param, value, this, type.elementType)
+            return new ArrayConvertor(param, this, type.elementType)
         }
         if (ts.isLiteralTypeNode(type)) {
             if (type.literal.kind == ts.SyntaxKind.NullKeyword) {
-                return new EmptyConvertor(param, value)
+                return new EmptyConvertor(param)
             }
             if (type.literal.kind == ts.SyntaxKind.StringLiteral) {
-                return new StringConvertor(param, value)
+                return new StringConvertor(param)
             }
             throw new Error(`Unsupported literal type: ${type.literal.kind}` + type.getText(this.sourceFile))
         }
         if (ts.isTupleTypeNode(type)) {
-            return new EmptyConvertor(param, value)
+            return new EmptyConvertor(param)
         }
         if (ts.isFunctionTypeNode(type)) {
-            return new FunctionConvertor(param, value, this)
+            return new FunctionConvertor(param, this)
         }
         if (ts.isParenthesizedTypeNode(type)) {
-            return this.typeConvertor(param, value, type.type)
+            return this.typeConvertor(param, type.type)
         }
         if (ts.isImportTypeNode(type)) {
-            return new NamedConvertor(asString(type.qualifier), param, value, this)
+            return new NamedConvertor(asString(type.qualifier), param, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
-            return new StringConvertor(param, value)
+            return new StringConvertor(param)
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
-            return new AnyConvertor(param, value)
+            return new AnyConvertor(param)
         }
         console.log(type)
         throw new Error(`Cannot convert: ${asString(type)} ${type.getText(this.sourceFile)}`)
@@ -449,7 +449,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")
         let paramName = asString(param.name)
-        return this.typeConvertor(paramName, paramName, param.questionToken ? typeOrUndefined(param.type) : param.type)
+        return this.typeConvertor(paramName, param.questionToken ? typeOrUndefined(param.type) : param.type)
     }
 
     retConvertor(typeNode?: ts.TypeNode): RetConvertor {

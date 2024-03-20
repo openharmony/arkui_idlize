@@ -31,7 +31,6 @@ export interface ArgConvertor {
     interopType(): string
     nativeType(): string
     param: string
-    value: string
 }
 
 
@@ -41,8 +40,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         public runtimeTypes: RuntimeType[],
         public isScoped: boolean,
         public useArray: boolean,
-        public param: string,
-        public value: string
+        public param: string
     ) {}
 
     estimateSize(): number {
@@ -61,12 +59,11 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     abstract convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void
     abstract convertorCArg(param: string, value: string, printer: IndentedPrinter): void
     abstract convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void
-
 }
 
 export class EmptyConvertor extends BaseArgConvertor {
-    constructor(param: string, value: string) {
-        super("any", [], false, false, param, value)
+    constructor(param: string) {
+        super("any", [], false, false, param)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {}
@@ -76,8 +73,8 @@ export class EmptyConvertor extends BaseArgConvertor {
 }
 
 export class StringConvertor extends BaseArgConvertor {
-    constructor(param: string, value: string) {
-        super("string", [RuntimeType.STRING], false, false, param, value)
+    constructor(param: string) {
+        super("string", [RuntimeType.STRING], false, false, param)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
@@ -105,8 +102,8 @@ export class StringConvertor extends BaseArgConvertor {
 }
 
 export class BooleanConvertor extends BaseArgConvertor {
-    constructor(param: string, value: string) {
-        super("boolean", [RuntimeType.BOOLEAN, RuntimeType.NUMBER], false, false, param, value)
+    constructor(param: string) {
+        super("boolean", [RuntimeType.BOOLEAN, RuntimeType.NUMBER], false, false, param)
         // TODO: shall NUMBER be here?
     }
 
@@ -135,8 +132,8 @@ export class BooleanConvertor extends BaseArgConvertor {
 }
 
 export class AnyConvertor extends BaseArgConvertor {
-    constructor(param: string, value: string) {
-        super("any", [], false, false, param, value)
+    constructor(param: string) {
+        super("any", [], false, false, param)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
@@ -164,8 +161,8 @@ export class AnyConvertor extends BaseArgConvertor {
 }
 
 export class UndefinedConvertor extends BaseArgConvertor {
-    constructor(param: string, value: string) {
-        super("unknown", [RuntimeType.UNDEFINED], false, false, param, value)
+    constructor(param: string) {
+        super("unknown", [RuntimeType.UNDEFINED], false, false, param)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
@@ -194,9 +191,9 @@ export class UndefinedConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    constructor(param: string, value: string) {
+    constructor(param: string) {
         // Enums are integers in runtime.
-        super("number", [RuntimeType.NUMBER], false, false, param, value)
+        super("number", [RuntimeType.NUMBER], false, false, param)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
@@ -225,8 +222,8 @@ export class EnumConvertor extends BaseArgConvertor {
 }
 
 export class LengthConvertor extends BaseArgConvertor {
-    constructor(param: string, value: string) {
-        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT, RuntimeType.UNDEFINED], true, false, param, value)
+    constructor(param: string) {
+        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT, RuntimeType.UNDEFINED], true, false, param)
     }
 
     scopeStart(param: string): string {
@@ -263,11 +260,11 @@ export class LengthConvertor extends BaseArgConvertor {
 export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
 
-    constructor(param: string, value: string, visitor: PeerGeneratorVisitor, type: ts.UnionTypeNode) {
-        super(`any`, [], false, true, param, value)
+    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.UnionTypeNode) {
+        super(`any`, [], false, true, param)
         this.memberConvertors = type
             .types
-            .map(member => visitor.typeConvertor(param, value, member))
+            .map(member => visitor.typeConvertor(param, member))
         this.checkUniques(param, this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
     }
@@ -332,9 +329,9 @@ export class AggregateConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
     private members: string[][] = []
 
-    constructor(param: string, value: string, visitor: PeerGeneratorVisitor, type: ts.TypeLiteralNode) {
+    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeLiteralNode) {
         // Enums are integers in runtime.
-        super(`${type.getText(type.getSourceFile())}`, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param, value)
+        super(`${type.getText(type.getSourceFile())}`, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
         this.memberConvertors = type
             .members
             .filter(ts.isPropertySignature)
@@ -343,8 +340,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             let memberType = mapCType(member.type!)
             this.members[index] = [memberName, memberType]
             // ${member.questionToken ? "?" : ""}
-            let name = `${param}_${memberName}`
-            return visitor.typeConvertor(param, name, member.type!)
+            return visitor.typeConvertor(param, member.type!)
         })
     }
 
@@ -354,8 +350,6 @@ export class AggregateConvertor extends BaseArgConvertor {
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         this.memberConvertors.forEach((it, index) => {
             let memberName = this.members[index][0]
-            //printer.print(`let ${it.value} = ${value}.${memberName}`)
-            //it.convertorToTSSerial(it.param, it.value, printer)
             printer.print(`let ${value}_${memberName} = ${value}.${memberName}`)
             it.convertorToTSSerial(param, `${value}_${memberName}`, printer)
         })
@@ -369,8 +363,6 @@ export class AggregateConvertor extends BaseArgConvertor {
             let memberType = this.members[index][1]
             let memberLocal = `${value}_${memberName}`
             printer.print(`${memberType} ${memberLocal};`)
-            //it.convertorToCDeserial(it.param, it.value, printer)
-            //printer.print(`${value}.${memberName} = ${it.value};`)
             it.convertorToCDeserial(param, memberLocal, printer)
             printer.print(`${value}.${memberName} = ${memberLocal};`)
         })
@@ -388,8 +380,8 @@ export class AggregateConvertor extends BaseArgConvertor {
 }
 
 export class NamedConvertor extends BaseArgConvertor {
-    constructor(name: string, param: string, value: string, protected visitor: PeerGeneratorVisitor) {
-        super(name, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param, value)
+    constructor(name: string, param: string, protected visitor: PeerGeneratorVisitor) {
+        super(name, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
@@ -416,14 +408,14 @@ export class NamedConvertor extends BaseArgConvertor {
 }
 
 export class InterfaceConvertor extends NamedConvertor {
-    constructor(param: string, value: string,  visitor: PeerGeneratorVisitor, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration) {
-        super(ts.idText(declaration.name as ts.Identifier), param, value, visitor)
+    constructor(param: string, visitor: PeerGeneratorVisitor, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+        super(ts.idText(declaration.name as ts.Identifier), param, visitor)
     }
 }
 
 export class FunctionConvertor extends NamedConvertor {
-    constructor(param: string, value: string, visitor: PeerGeneratorVisitor) {
-        super("Function", param, value, visitor)
+    constructor(param: string, visitor: PeerGeneratorVisitor) {
+        super("Function", param, visitor)
     }
 }
 /*
@@ -461,9 +453,9 @@ tupleConvertor(param: string, value: string, type: ts.TupleTypeNode): ArgConvert
 
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
-    constructor(param: string, value: string, protected visitor: PeerGeneratorVisitor, private elementType: ts.TypeNode) {
-        super(`Array<${mapCType(elementType)}>`, [RuntimeType.OBJECT], false, true, param, value)
-        this.elementConvertor = visitor.typeConvertor(param, "element", elementType)
+    constructor(param: string, protected visitor: PeerGeneratorVisitor, private elementType: ts.TypeNode) {
+        super(`Array<${mapCType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
+        this.elementConvertor = visitor.typeConvertor(param, elementType)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
@@ -503,9 +495,9 @@ export class ArrayConvertor extends BaseArgConvertor {
     }
 }
 export class NumberConvertor extends BaseArgConvertor {
-    constructor(param: string, value: string) {
+    constructor(param: string) {
         // Enums are integers in runtime.
-        super("number", [RuntimeType.NUMBER], false, false, param, value)
+        super("number", [RuntimeType.NUMBER], false, false, param)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
