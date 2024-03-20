@@ -217,6 +217,7 @@ if (options.idl2h) {
 if (options.dts2peer) {
     const nativeMethods: string[] = []
     const bridgeCcArray: string[] = []
+    const serializerNeeds = new Set<string>()
     generate(
         options.inputDir,
         undefined,
@@ -226,7 +227,8 @@ if (options.dts2peer) {
             typeChecker,
             toSet(options.generateInterface),
             nativeMethods,
-            bridgeCcArray
+            bridgeCcArray,
+            serializerNeeds
         ),
         {
             compilerOptions: defaultCompilerOptions,
@@ -247,6 +249,7 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'NativeModule.d.ts'), nativeModule)
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
+                console.log(`need ${Array.from(serializerNeeds)}`)
             }
         }
     )

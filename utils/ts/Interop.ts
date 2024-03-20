@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+export type pointer = bigint
+export type KPointer = pointer
+
+export const nullptr: pointer = BigInt(0)
+
 export class PeerNode {
     constructor() {}
     applyAttributes(attrs: Object) {}

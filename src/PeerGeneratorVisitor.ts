@@ -18,14 +18,18 @@ import {
     nameOrNull,
     getDeclarationsByNode,
     stringOrNone,
-    indentedBy,
     typeOrUndefined,
     capitalize
 } from "./util"
 import { GenericVisitor } from "./options"
 import { IndentedPrinter } from "./IndentedPrinter"
+import {
+    AggregateConvertor,
+    AnyConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, EmptyConvertor, EnumConvertor, FunctionConvertor, InterfaceConvertor, LengthConvertor, NamedConvertor, NumberConvertor,
+    StringConvertor, UndefinedConvertor, UnionConvertor
+} from "./Convertors"
 
-enum RuntimeType {
+export enum RuntimeType {
     UNEXPECTED = -1,
     NUMBER,
     STRING,
@@ -45,15 +49,28 @@ enum RuntimeType {
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
     private seenAttributes = new Set<string>()
+    private printerNativeModule: IndentedPrinter
 
     constructor(
         private sourceFile: ts.SourceFile,
         private typeChecker: ts.TypeChecker,
         private interfacesToGenerate: Set<string>,
-        private nativeModuleMethods: string[],
-        outputC: string[]
+        nativeModuleMethods: string[],
+        outputC: string[],
+        private serializerNeeds: Set<string>
     ) {
         this.printerC = new IndentedPrinter(outputC)
+        this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
+    }
+
+    serializerName(typeName: string): string {
+        this.serializerNeeds.add(typeName)
+        return `write${typeName}`
+    }
+
+    deserializerName(typeName: string): string {
+        this.serializerNeeds.add(typeName)
+        return `read${typeName}`
     }
 
     visitWholeFile(): stringOrNone[] {
@@ -63,7 +80,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isCommon ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "./common"`,
             `import { int32 } from "../../utils/ts/types"`,
             `import { nativeModule } from "./NativeModule"`,
-            `import { PeerNode } from "../../utils/ts/Interop"`,
+            `import { PeerNode, KPointer, nullptr } from "../../utils/ts/Interop"`,
         ].forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
         return this.printerTS.output
@@ -113,11 +130,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.createComponentAttributesDeclaration(node)
         this.generateAttributesValuesInterfaces()
 
+        this.printerNativeModule.pushIndent()
         node.members.forEach(it => {
             if (ts.isMethodDeclaration(it)) {
                 this.collectMethod(it, node)
             }
         })
+        this.printerNativeModule.popIndent()
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
@@ -280,10 +299,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (it.useArray) {
                 let size = it.estimateSize()
                 this.printTS(`let ${it.param}Serializer = new Serializer(${size})`)
-                it.convertorToTSSerial(it.param, it.value)
+                it.convertorToTSSerial(it.param, it.value, this.printerTS)
                 this.printC(`ArgDeserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
                 this.printC(`${it.nativeType()} ${it.param}Value;`)
-                it.convertorToCDeserial(it.param, `${it.param}Value`)
+                it.convertorToCDeserial(it.param, `${it.param}Value`, this.printerC)
             }
         })
         this.printTS(`nativeModule()._${clazzName}_${name}(`)
@@ -293,7 +312,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (it.useArray)
                 this.printTS(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
             else
-                it.convertorTSArg(it.param, it.value)
+                it.convertorTSArg(it.param, it.value, this.printerTS)
             this.printTS(maybeComma)
 
         })
@@ -331,488 +350,38 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerC.popIndent()
     }
 
-    emptyConvertor(param: string, value: string): ArgConvertor {
-        console.log("WARNING: empty convertor")
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [],
-            estimateSize: () => 0,
-            nativeType: () => "Empty",
-            interopType: () => "void*",
-            isScoped: false,
-            useArray: false,
-            convertorTSArg: () => { },
-            convertorToTSSerial: () => { },
-            convertorCArg: () => { },
-            convertorToCDeserial: () => { }
-        }
-    }
-
-    stringConvertor(param: string, value: string): ArgConvertor {
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.STRING],
-            isScoped: false,
-            useArray: false,
-            convertorTSArg: (param, value) => {
-                this.printTS(`${value}`)
-            },
-            convertorToTSSerial: (param: string, value: string) => {
-                this.printTS(`${param}Serializer.writeString(${value})`)
-            },
-            convertorCArg: (param, value) => {
-                this.printTS(`${value}`)
-            },
-            convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`${value} = ${param}Deserializer.readString();`)
-            },
-            nativeType: () => "string",
-            interopType: () => "KStringPtr",
-            estimateSize: () => 32
-        }
-    }
-
-    booleanConvertor(param: string, value: string): ArgConvertor {
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.BOOLEAN],
-            useArray: false,
-            isScoped: false,
-            nativeType: () => "KBoolean",
-            interopType: () => "KBoolean",
-            convertorTSArg: (param, value) => this.printTS(`+${value}`),
-            convertorToTSSerial: (param, value) => {
-                this.printTS(`${param}Serializer.writeBoolean(${value})`)
-            },
-            convertorCArg: (param, value) => this.printTS(value),
-            convertorToCDeserial: (param, value) => {
-                this.printC(`${param}Deserializer.readBoolean(${value})`)
-            },
-            estimateSize: () => 1
-        }
-    }
-
-    anyConvertor(param: string, value: string): ArgConvertor {
-        console.log("WARNING: any type convertor")
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [],
-            isScoped: false,
-            useArray: true,
-            nativeType: () => "Any",
-            interopType: () => "KPointer",
-            convertorTSArg: (param) => { throw new Error("Not for any") },
-            convertorToTSSerial: (param: string, value: string) => {
-                this.printTS(`${param}Serializer.writeAny(${value})`)
-            },
-            convertorCArg: (param) => { throw new Error("Not for any") },
-            convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`${param}Deserializer.readAny(${value})`)
-            },
-            estimateSize: () => 32
-        }
-    }
-
-    undefinedConvertor(param: string, value: string): ArgConvertor {
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.UNDEFINED],
-            isScoped: false,
-            useArray: false,
-            nativeType: () => "Undefined",
-            interopType: () => "KPointer",
-            convertorTSArg: (param) => this.printTS("nullptr"),
-            convertorToTSSerial: (param: string, value: string) => {
-                this.printTS(`${param}Serializer.writeUndefined()`)
-            },
-            convertorCArg: (param) => this.printC("nullptr"),
-            convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`${value} = ${param}Deserializer.readUndefined()`)
-            },
-            estimateSize: () => 8
-        }
-    }
-
-    enumMemberConvertor(param: string, value: string): ArgConvertor {
-        // TODO: now we need to ensure that enum is always representable as int!
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.NUMBER], // Enums are integers in runtime.
-            useArray: false,
-            isScoped: false,
-            nativeType: () => "KInt",
-            interopType: () => "KInt",
-            convertorTSArg: (param, value) => this.printTS(`${value} as unknown as int32`),
-            convertorToTSSerial: (param, value) => {
-                this.printTS(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
-            },
-            convertorCArg: (param, value) => this.printTS(`${value} = ${param};`),
-            convertorToCDeserial: (param, value) => {
-                this.printC(`${value} = ${param}Deserializer.readInt32();`)
-            },
-            estimateSize: () => 4
-        }
-    }
-
-    lengthConvertor(param: string, value: string): ArgConvertor {
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT, RuntimeType.UNDEFINED],
-            useArray: false,
-            isScoped: true,
-            scopeStart: (param) => `withLengthArray(${param}, (${param}Ptr) => {`,
-            scopeEnd: () => '})',
-            nativeType: () => "Length",
-            interopType: () => "KPointer",
-            convertorTSArg: (param, value) => this.printTS(`${value}Ptr`),
-            convertorToTSSerial: (param, value) => {
-                this.printTS(`${param}Serializer.writeLength(${value})`)
-            },
-            convertorCArg: (param, value) => this.printC(`${value} = Length::fromArray(${param});`),
-            convertorToCDeserial: (param, value) => {
-                this.printC(`${value} = ${param}Deserializer.readLength();`)
-            },
-            estimateSize: () => 4
-        }
-    }
-
-    unionConverter(param: string, value: string, type: ts.UnionTypeNode): ArgConvertor {
-        let memberConvertors = type.types.map(member => this.typeConvertor(param, value, member))
-        // Unique by serialization form.
-        memberConvertors = [...new Map(memberConvertors.map(item => [item.runtimeTypes, item])).values()]
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: memberConvertors.flatMap(it => it.runtimeTypes),
-            nativeType: () => `Union<${memberConvertors.map(it => it.nativeType()).join(", ")}>`,
-            interopType: () => "KPointer",
-            isScoped: false,
-            useArray: true,
-            convertorTSArg: (param: string) => { throw new Error("Do not use") },
-            convertorToTSSerial: (param: string, value: string) => {
-                this.printTS(`let ${value}Type = runtimeType(${value})`)
-                // Save actual type being passed.
-                this.printTS(`${param}Serializer.writeInt8(${value}Type)`)
-                this.checkUniques(param, memberConvertors)
-                memberConvertors.forEach((it, index) => {
-                    let typeIt = type.types[index]
-                    let typeName = typeIt.getSourceFile() ? typeIt.getText(typeIt.getSourceFile()) : "any"
-                    if (it.runtimeTypes.length == 0) {
-                        console.log(`WARNING: branch for ${typeName} was consumed`)
-                        return
-                    }
-                    let maybeElse = (index > 0 && memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-                    let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
-                    let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
-
-                    this.printTS(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
-                    this.pushIndentTS()
-                    this.printTS(`let ${value}_${index}: ${typeName} = ${value} as ${typeName}`)
-                    it.convertorToTSSerial(param, `${value}_${index}`)
-                    this.popIndentTS()
-                    this.printTS(`}`)
-                })
-            },
-            convertorCArg: (param: string) => { throw new Error("Do not use union") },
-            convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`RuntimeType ${value}_type = ${param}Deserializer.readInt8();`)
-                memberConvertors.forEach((it, index) => {
-                    if (it.runtimeTypes.length == 0) {
-                        return
-                    }
-                    let typeName = it.nativeType()
-                    let maybeElse = (index > 0 && memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-                    let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
-                    let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
-
-                    this.printC(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
-                    this.pushIndentC()
-                    this.printC(`${typeName} ${value}_${index};`)
-                    it.convertorToCDeserial(param, `${value}_${index}`)
-                    this.printC(`${value}.value${index} = ${value}_${index};`)
-                    this.popIndentC()
-                    this.printC(`}`)
-                })
-            },
-            estimateSize: () => {
-                let result = 0
-                memberConvertors.forEach(it => {
-                    let estimate = it.estimateSize()
-                    if (result < estimate) result = estimate
-                })
-                return result + 4 /* 4 for type tag */
-            }
-        }
-    }
-
-    aggregateConvertor(param: string, value: string, type: ts.TypeLiteralNode): ArgConvertor {
-        let memberConvertors = type
-            .members
-            .filter(ts.isPropertySignature)
-            .map(member => {
-                let memberName = ts.idText(member.name as ts.Identifier)
-                let name = `${param}_${memberName}`
-                return this.typeConvertor(param, name, member.type!)
-            })
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
-            isScoped: false,
-            useArray: true,
-            nativeType: () => `Compound<${memberConvertors.map(it => it.nativeType()).join(", ")}>`,
-            interopType: () => "KPointer",
-            convertorTSArg: (param: string) => { throw new Error("Do not use") },
-            convertorToTSSerial: (param: string, value: string) => {
-                let members = type
-                    .members
-                    .filter(ts.isPropertySignature)
-                memberConvertors.forEach((it, index) => {
-                    let memberName = ts.idText(members[index].name as ts.Identifier)
-                    this.printTS(`let ${it.value} = ${value}${members[index].questionToken ? "?" : ""}.${memberName}`)
-                    it.convertorToTSSerial(it.param, it.value)
-                })
-            },
-            convertorCArg: (param: string) => { throw new Error("Do not use") },
-            convertorToCDeserial: (param: string, value: string) => {
-                let members = type
-                    .members
-                    .filter(ts.isPropertySignature)
-                memberConvertors.forEach((it, index) => {
-                    let memberName = ts.idText(members[index].name as ts.Identifier)
-                    let memberType = this.mapCType(members[index].type!)
-                    this.printC(`${memberType} ${it.value};`)
-                    it.convertorToCDeserial(it.param, it.value)
-                    this.printC(`${value}.${memberName} = ${it.value};`)
-                })
-            },
-            estimateSize: () => {
-                let result = 0
-                memberConvertors.forEach(it => {
-                    result += it.estimateSize()
-                })
-                return result
-            }
-        }
-    }
-
-    interfaceConvertor(param: string, value: string, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): ArgConvertor {
-        let ifaceName = ts.idText(declaration.name as ts.Identifier)
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.OBJECT],
-            estimateSize: () => 32,
-            nativeType: () => ifaceName,
-            interopType: () => "KPointer",
-            useArray: true,
-            isScoped: false,
-            convertorTSArg: (param, value) => { throw new Error("Must never be used") },
-            convertorToTSSerial: (param, value) => {
-                this.printTS(`${param}Serializer.write${ifaceName}(${value})`)
-            },
-            convertorCArg: (param, value) => { throw new Error("Must never be used: interface") },
-            convertorToCDeserial: (param, value) => {
-                this.printC(`${value} = ${param}Deserializer.read${ifaceName}();`)
-            }
-        }
-    }
-
-    tupleConvertor(param: string, value: string, type: ts.TupleTypeNode): ArgConvertor {
-        let memberConvertors = type
-            .elements
-            .filter(ts.isPropertySignature)
-            .map(element => this.typeConvertor(param, value, element))
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
-            isScoped: false,
-            useArray: true,
-            estimateSize: () => {
-                let result = 0
-                memberConvertors.forEach(it => result += it.estimateSize())
-                return result
-            },
-            nativeType: () => "Tuple",
-            interopType: () => "KPointer",
-            convertorTSArg: (param: string) => { throw new Error("Do not use") },
-            convertorToTSSerial: (param: string, value: string) => {
-                memberConvertors.forEach(it => {
-                    it.convertorToTSSerial(param, value)
-                })
-            },
-            convertorCArg: (param: string) => { throw new Error("Do not use") },
-            convertorToCDeserial: (param: string, value: string) => {
-                console.log("TODO: tuple convertor")
-            }
-        }
-    }
-
-    functionConvertor(param: string, value: string, type: ts.FunctionTypeNode): ArgConvertor {
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
-            isScoped: false,
-            useArray: false,
-            estimateSize: () => { return 8 },
-            nativeType: () => "KInt",
-            interopType: () => "KInt",
-            convertorTSArg: (param: string) => { this.printTS(`functionToInt32(${param})`) },
-            convertorToTSSerial: (param: string, value: string) => {
-                this.printTS(`${param}Serializer.writeFunction(${value})`)
-            },
-            convertorCArg: (param: string) => { throw new Error("Do not use") },
-            convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`${value} = ${param}Deserializer.readFunction();`)
-            }
-        }
-    }
-
-    arrayConvertor(param: string, value: string, elementType: ts.TypeNode): ArgConvertor {
-        let convertor = this.typeConvertor(param, "element", elementType)
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.OBJECT],
-            isScoped: false,
-            useArray: true,
-            nativeType: () => `Array${this.mapCType(elementType)}`,
-            interopType: () => `${this.mapCType(elementType)}*`,
-            estimateSize: () => convertor.estimateSize() * 4,
-            convertorTSArg: (param: string) => { throw new Error("Do not use") },
-            convertorToTSSerial: (param: string, value: string) => {
-                // Array length.
-                this.printTS(`${param}Serializer.writeInt32(${value}.length)`)
-                this.printTS(`for (let i = 0; i < ${value}.length; i++) {`)
-                this.pushIndentTS()
-                this.printTS(`let element = ${value}[i]`)
-                convertor.convertorToTSSerial(param, "element")
-                this.popIndentTS()
-                this.printTS(`}`)
-            },
-            convertorCArg: (param: string) => { throw new Error("Do not use") },
-            convertorToCDeserial: (param: string, value: string) => {
-                // Array length.
-                this.printC(`auto ${value}_length = ${param}Serializer.readInt32();`)
-                this.printC(`${this.mapCType(elementType)} ${value}[${value}_length];`)
-                this.printC(`for (int i = 0; i < ${value}_length; i++) {`)
-                this.pushIndentC()
-                convertor.convertorToCDeserial(param, `${value}[i]`);
-                this.popIndentC()
-                this.printC(`}`)
-            }
-        }
-    }
-
-    mapCType(type: ts.TypeNode): string {
-        if (ts.isTypeReferenceNode(type)) {
-            return ts.idText(type.typeName as ts.Identifier)
-        }
-        return "Any"
-    }
-
-    mapCInteropType(type: ts.TypeNode): string {
-        if (ts.isTypeReferenceNode(type)) {
-            let name = ts.idText(type.typeName as ts.Identifier)
-            switch (name) {
-                case "number": return "KInt"
-            }
-            return "KPointer"
-        }
-        return "Any"
-    }
-
-    numberConvertor(param: string, value: string): ArgConvertor {
-        return {
-            param: param,
-            value: value,
-            runtimeTypes: [RuntimeType.NUMBER],
-            isScoped: false,
-            useArray: false,
-            estimateSize: () => 8,
-            nativeType: () => "KInt32",
-            interopType: () => "KInt32",
-            convertorTSArg: (param, value) => {
-                this.printTS(param)
-            },
-            convertorToTSSerial: (param: string, value: string) => {
-                this.printTS(`${param}Serializer.writeNumber(${value})`)
-            },
-            convertorCArg: (param, value) => {
-                this.printC(`${value} = ${param};`)
-            },
-            convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`${value} = ${param}Deserializer.readNumber();`)
-            }
-        }
-    }
-
-    importTypeConvertor(param: string, value: string, name: string): ArgConvertor {
-        return {
-            param: param,
-            value: value,
-            nativeType: () => name,
-            interopType: () => "KPointer",
-            estimateSize: () => 32,
-            runtimeTypes: [RuntimeType.OBJECT], // Assume imported are objects, not really always the case..
-            isScoped: false,
-            useArray: true,
-            convertorTSArg: (param: string, value: string) => {
-                throw new Error("Do not use")
-            },
-            convertorToTSSerial: (param: string, value: string) => {
-                this.printTS(`${param}Serializer.write${name}(${value})`)
-            },
-            convertorCArg: (param: string, value: string) => {
-                throw new Error("Do not use")
-            },
-            convertorToCDeserial: (param: string, value: string) => {
-                this.printC(`${value} = ${param}Deserializer.read${name}();`)
-            }
-        }
-    }
-
     typeConvertor(param: string, value: string, type: ts.TypeNode): ArgConvertor {
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
-            return this.anyConvertor(param, value)
+            return new AnyConvertor(param, value)
         }
         if (type.kind == ts.SyntaxKind.UndefinedKeyword || type.kind == ts.SyntaxKind.VoidKeyword) {
-            return this.undefinedConvertor(param, value)
+            return new UndefinedConvertor(param, value)
         }
         if (type.kind == ts.SyntaxKind.NullKeyword) {
             throw new Error("Unsupported null")
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            return this.numberConvertor(param, value)
+            return new NumberConvertor(param, value)
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
-            return this.stringConvertor(param, value)
+            return new StringConvertor(param, value)
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-            return this.booleanConvertor(param, value)
+            return new BooleanConvertor(param, value)
         }
         if (ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
             if (!declaration) {
                 // throw new Error(`Declaration not found: ${asString(type.typeName)}`)
                 console.log(`WARNING: declaration not found: ${asString(type.typeName)}`)
-                return this.anyConvertor(param, value)
+                return new AnyConvertor(param, value)
             }
             if (asString(type.typeName) == "Length") {
                 // Important common case.
-                return this.lengthConvertor(param, value)
+                return new LengthConvertor(param, value)
             }
             if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
-                return this.enumMemberConvertor(param, value)
+                return new EnumConvertor(param, value)
             }
             if (ts.isTypeAliasDeclaration(declaration)) {
                 return this.typeConvertor(param, value, declaration.type)
@@ -821,76 +390,60 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 let ifaceName = ts.idText(declaration.name)
                 if (ifaceName == "Array") {
                     if (ts.isTypeReferenceNode(type))
-                        return this.arrayConvertor(param, value, type.typeArguments![0])
+                        return new ArrayConvertor(param, value, this, type.typeArguments![0])
                     else {
-                        return this.emptyConvertor(param, value)
+                        return new EmptyConvertor(param, value)
                     }
                 }
-                return this.interfaceConvertor(param, value, declaration)
+                return new InterfaceConvertor(param, value, this, declaration)
             }
             if (ts.isClassDeclaration(declaration)) {
-                return this.interfaceConvertor(param, value, declaration)
+                return new InterfaceConvertor(param, value, this, declaration)
             }
             if (ts.isTypeParameterDeclaration(declaration)) {
                 console.log(declaration)
-                return this.anyConvertor(param, value)
+                return new AnyConvertor(param, value)
             }
             throw new Error(`Unknown kind: ${declaration.kind}`)
         }
         if (ts.isUnionTypeNode(type)) {
-            return this.unionConverter(param, value, type)
+            return new UnionConvertor(param, value, this, type)
         }
         if (ts.isTypeLiteralNode(type)) {
-            return this.aggregateConvertor(param, value, type)
+            return new AggregateConvertor(param, value, this, type)
         }
         if (ts.isArrayTypeNode(type)) {
-            return this.arrayConvertor(param, value, type.elementType)
+            return new ArrayConvertor(param, value, this, type.elementType)
         }
         if (ts.isLiteralTypeNode(type)) {
             if (type.literal.kind == ts.SyntaxKind.NullKeyword) {
-                return this.emptyConvertor(param, value)
+                return new EmptyConvertor(param, value)
             }
             if (type.literal.kind == ts.SyntaxKind.StringLiteral) {
-                return this.stringConvertor(param, value)
+                return new StringConvertor(param, value)
             }
             throw new Error(`Unsupported literal type: ${type.literal.kind}` + type.getText(this.sourceFile))
         }
         if (ts.isTupleTypeNode(type)) {
-            return this.tupleConvertor(param, value, type)
+            return new EmptyConvertor(param, value)
         }
         if (ts.isFunctionTypeNode(type)) {
-            return this.functionConvertor(param, value, type)
+            return new FunctionConvertor(param, value, this)
         }
         if (ts.isParenthesizedTypeNode(type)) {
             return this.typeConvertor(param, value, type.type)
         }
         if (ts.isImportTypeNode(type)) {
-            return this.importTypeConvertor(param, value, asString(type.qualifier))
+            return new NamedConvertor(asString(type.qualifier), param, value, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
-            return this.stringConvertor(param, value)
+            return new StringConvertor(param, value)
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
-            return this.anyConvertor(param, value)
+            return new AnyConvertor(param, value)
         }
         console.log(type)
         throw new Error(`Cannot convert: ${asString(type)} ${type.getText(this.sourceFile)}`)
-    }
-
-    checkUniques(param: string, convertors: ArgConvertor[]): void {
-        for (let i = 0; i < convertors.length; i++) {
-            for (let j = i + 1; j < convertors.length; j++) {
-                let first = convertors[i].runtimeTypes
-                let second = convertors[j].runtimeTypes
-                first.forEach(value => {
-                    let index = second.findIndex(it => it == value)
-                    if (index != -1) {
-                        console.log(`WARNING: Runtime type conflict in ${param}: could be ${RuntimeType[value]}`)
-                        second.splice(index, 1)
-                    }
-                })
-            }
-        }
     }
 
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
@@ -905,7 +458,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
         return {
             isVoid: isVoid,
-            nativeType: () => isVoid ? "void" : this.mapCInteropType(typeNode),
+            nativeType: () => isVoid ? "void" : mapCInteropType(typeNode),
             macroSuffixPart: () => isVoid ? "V" : ""
         }
     }
@@ -1048,26 +601,19 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 }
             })
             .join(", ")
-        this.nativeModuleMethods.push(`_${component}_${method}Impl(${parameters}): void`)
+        this.printerNativeModule.print(`_${component}_${method}Impl(${parameters}): void`)
     }
 }
 
-interface ArgConvertor {
-    isScoped: boolean
-    useArray: boolean
-    runtimeTypes: RuntimeType[]
-    estimateSize: () => number
-    scopeStart?: (param: string) => string
-    scopeEnd?: (param: string) => string
-    convertorTSArg: (param: string, value: string) => void
-    convertorToTSSerial: (param: string, value: string) => void
-    convertorCArg: (param: string, value: string) => void
-    convertorToCDeserial: (param: string, value: string) => void
-    nativeType: () => string
-    interopType: () => string
-
-    param: string
-    value: string
+function mapCInteropType(type: ts.TypeNode): string {
+    if (ts.isTypeReferenceNode(type)) {
+        let name = ts.idText(type.typeName as ts.Identifier)
+        switch (name) {
+            case "number": return "KInt"
+        }
+        return "KPointer"
+    }
+    return "Any"
 }
 
 interface RetConvertor {
@@ -1077,7 +623,6 @@ interface RetConvertor {
 }
 
 export function nativeModuleDeclaration(methods: string[]): string {
-    methods = methods.map(it => `\n  ${it}`)
     return `
 import { int32 } from "../../utils/types"
 
@@ -1089,9 +634,10 @@ export function nativeModule(): NativeModule {
     return theModule
 }
 
-export interface NativeModule {${methods}
+export interface NativeModule {
+${methods.join("\n")}
 }
-`.trim()
+`
 }
 
 
