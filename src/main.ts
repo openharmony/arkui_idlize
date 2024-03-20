@@ -25,7 +25,7 @@ import { printHeader, toHeaderString, wrapWithPrologueAndEpilogue } from "./idl2
 import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { bridgeCcDeclaration, nativeModuleDeclaration, PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
+import { bridgeCcDeclaration, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
 import { isDefined, stringOrNone, toSet } from "./util";
 import { TypeChecker  } from "./typecheck";
 
@@ -217,7 +217,9 @@ if (options.idl2h) {
 if (options.dts2peer) {
     const nativeMethods: string[] = []
     const bridgeCcArray: string[] = []
-    const serializerNeeds = new Set<string>()
+    const deserializerC: string[] = []
+    const serializerTS: string[] = []
+
     generate(
         options.inputDir,
         undefined,
@@ -228,7 +230,8 @@ if (options.dts2peer) {
             toSet(options.generateInterface),
             nativeMethods,
             bridgeCcArray,
-            serializerNeeds
+            serializerTS,
+            deserializerC
         ),
         {
             compilerOptions: defaultCompilerOptions,
@@ -249,7 +252,8 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'NativeModule.d.ts'), nativeModule)
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
-                console.log(`need ${Array.from(serializerNeeds)}`)
+                fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(serializerTS))
+                fs.writeFileSync(path.join(outDir, 'deserializer.cc'), makeCDeserializer(deserializerC))
             }
         }
     )

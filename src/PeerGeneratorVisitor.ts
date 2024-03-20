@@ -25,7 +25,7 @@ import { GenericVisitor } from "./options"
 import { IndentedPrinter } from "./IndentedPrinter"
 import {
     AggregateConvertor,
-    AnyConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, EmptyConvertor, EnumConvertor, FunctionConvertor, InterfaceConvertor, LengthConvertor, NamedConvertor, NumberConvertor,
+    AnyConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, EmptyConvertor, EnumConvertor, FunctionConvertor, InterfaceConvertor, LengthConvertor, TypedConvertor, NumberConvertor,
     StringConvertor, UndefinedConvertor, UnionConvertor
 } from "./Convertors"
 
@@ -46,10 +46,20 @@ export enum RuntimeType {
  * universal finite automata to serialize any value of the given type.
  */
 
+let serializerSeen = new Set<string>()
+
+interface TypeAndName {
+    type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined
+    name: string
+}
+
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
     private seenAttributes = new Set<string>()
     private printerNativeModule: IndentedPrinter
+    private printerSerializerC: IndentedPrinter
+    private printerSerializerTS: IndentedPrinter
+    private serializerRequests: TypeAndName[] = []
 
     constructor(
         private sourceFile: ts.SourceFile,
@@ -57,32 +67,48 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         private interfacesToGenerate: Set<string>,
         nativeModuleMethods: string[],
         outputC: string[],
-        private serializerNeeds: Set<string>
+        outputSerializersTS: string[],
+        outputSerializersC: string[]
     ) {
         this.printerC = new IndentedPrinter(outputC)
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
+        this.printerSerializerC = new IndentedPrinter(outputSerializersC)
+        this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
     }
 
-    serializerName(typeName: string): string {
-        this.serializerNeeds.add(typeName)
-        return `write${typeName}`
+    serializerName(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined): string {
+        if (!serializerSeen.has(name)) {
+            this.serializerRequests.push({ type, name })
+            serializerSeen.add(name)
+        }
+        return `write${name}`
     }
 
-    deserializerName(typeName: string): string {
-        this.serializerNeeds.add(typeName)
-        return `read${typeName}`
+    deserializerName(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined): string {
+        if (!serializerSeen.has(name)) {
+            this.serializerRequests.push({ type, name })
+            serializerSeen.add(name)
+        }
+        return `read${name}`
     }
 
     visitWholeFile(): stringOrNone[] {
         let isCommon = this.sourceFile.fileName.endsWith("common.d.ts") ?? false;
         [
-            `import { runtimeType, Serializer, functionToInt32, withLength, withLengthArray } from "../../utils/ts/Serialize"`,
+            `import { runtimeType, functionToInt32, withLength, withLengthArray } from "../../utils/ts/SerializerBase"`,
+            `import { Serializer } from "./Serializer"`,
             isCommon ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "./common"`,
             `import { int32 } from "../../utils/ts/types"`,
             `import { nativeModule } from "./NativeModule"`,
             `import { PeerNode, KPointer, nullptr } from "../../utils/ts/Interop"`,
         ].forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
+
+        this.serializerRequests.forEach(it => {
+            this.generateSerializer(it.name, it.type)
+            this.generateDeserializer(it.name, it.type)
+        })
+
         return this.printerTS.output
     }
 
@@ -395,10 +421,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                         return new EmptyConvertor(param)
                     }
                 }
-                return new InterfaceConvertor(param, this, declaration)
+                return new InterfaceConvertor(param, this, type)
             }
             if (ts.isClassDeclaration(declaration)) {
-                return new InterfaceConvertor(param, this, declaration)
+                return new InterfaceConvertor(param, this, type)
             }
             if (ts.isTypeParameterDeclaration(declaration)) {
                 console.log(declaration)
@@ -434,7 +460,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return this.typeConvertor(param, type.type)
         }
         if (ts.isImportTypeNode(type)) {
-            return new NamedConvertor(asString(type.qualifier), param, this)
+            return new TypedConvertor(asString(type.qualifier), type, param, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)
@@ -603,6 +629,55 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             .join(", ")
         this.printerNativeModule.print(`_${component}_${method}Impl(${parameters}): void`)
     }
+
+    private generateSerializer(name: string, type:  ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
+        this.printerSerializerTS.print(`write${name}(value: ${name}) {`)
+        this.printerSerializerTS.pushIndent()
+        let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
+        let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
+        if (declarations.length > 0) {
+            let declaration = declarations[0]
+            this.printerSerializerTS.print(`const valueSerializer = this`)
+            if (ts.isInterfaceDeclaration(declaration)) {
+                declaration.members
+                    .filter(ts.isPropertySignature)
+                    .forEach(it => {
+                        let typeConvertor = this.typeConvertor("value", it.type!)
+                        let fieldName = asString(it.name)
+                        this.printerSerializerTS.print(`let value_${fieldName} = value.${fieldName}`)
+                        typeConvertor.convertorToTSSerial(`value`, `value_${fieldName}`, this.printerSerializerTS)
+                    })
+            }
+        } else {
+            this.printerSerializerTS.print(`throw new Error("Implement ${name} manually")`)
+        }
+        this.printerSerializerTS.popIndent()
+        this.printerSerializerTS.print(`}`)
+    }
+    private generateDeserializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
+        this.printerSerializerC.print(`${name} read${name}() {`)
+        this.printerSerializerC.pushIndent()
+        let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
+        let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
+        if (declarations.length > 0) {
+            this.printerSerializerC.print(`${name} value;`)
+            this.printerSerializerC.print(`const Deserializer& valueDeserializer = &this;`)
+            let declaration = declarations[0]
+            if (ts.isInterfaceDeclaration(declaration)) {
+                declaration.members
+                    .filter(ts.isPropertySignature)
+                    .forEach(it => {
+                        let typeConvertor = this.typeConvertor("value", it.type!)
+                        typeConvertor.convertorToCDeserial(`value`, `value.${asString(it.name)}`, this.printerSerializerC)
+                    })
+            }
+            this.printerSerializerC.print(`return value;`)
+        } else {
+            this.printerSerializerC.print(`throw new Error("Implement ${name} manually");`)
+        }
+        this.printerSerializerC.popIndent()
+        this.printerSerializerC.print(`}`)
+    }
 }
 
 function mapCInteropType(type: ts.TypeNode): string {
@@ -649,5 +724,25 @@ export function bridgeCcDeclaration(bridgeCc: string[]): string {
 using std;
 
 ${bridgeCc.join("\n")}
+`
+}
+
+export function makeTSSerializer(lines: string[]): string {
+    return `
+import { SerializerBase, runtimeTypes } from "../../utils/ts/SerializerBase"
+
+export class Serializer extends SerializerBase {
+${lines.join("\n")}
+}
+`
+}
+
+export function makeCDeserializer(lines: string[]): string {
+    return `
+#include "Serializer.h"
+
+class Deserializer : BaseDeserializer {
+${lines.join("\n")}
+}
 `
 }

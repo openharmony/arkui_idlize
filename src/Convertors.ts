@@ -277,7 +277,7 @@ export class UnionConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeInt8(${value}Type)`)
         this.memberConvertors.forEach((it, index) => {
                 if (it.runtimeTypes.length == 0) {
-                    console.log(`WARNING: branch for ${it.nativeType} was consumed`)
+                    console.log(`WARNING: branch for ${it.nativeType()} was consumed`)
                     return
                 }
                 let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
@@ -331,7 +331,7 @@ export class AggregateConvertor extends BaseArgConvertor {
 
     constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeLiteralNode) {
         // Enums are integers in runtime.
-        super(`${type.getText(type.getSourceFile())}`, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
+        super(`any`, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
         this.memberConvertors = type
             .members
             .filter(ts.isPropertySignature)
@@ -379,8 +379,11 @@ export class AggregateConvertor extends BaseArgConvertor {
     }
 }
 
-export class NamedConvertor extends BaseArgConvertor {
-    constructor(name: string, param: string, protected visitor: PeerGeneratorVisitor) {
+export class TypedConvertor extends BaseArgConvertor {
+    constructor(
+        name: string,
+        private type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined,
+        param: string, protected visitor: PeerGeneratorVisitor) {
         super(name, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
     }
 
@@ -388,13 +391,13 @@ export class NamedConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${param}Serializer.${this.visitor.serializerName(this.tsTypeName)}(${value})`)
+        printer.print(`${param}Serializer.${this.visitor.serializerName(this.tsTypeName, this.type)}(${value})`)
     }
     convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
         throw new Error("Must never be used")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = ${param}Deserializer.${this.visitor.deserializerName(this.tsTypeName)}();`)
+        printer.print(`${value} = ${param}Deserializer.${this.visitor.deserializerName(this.tsTypeName, this.type)}();`)
     }
     nativeType(): string {
         return this.tsTypeName
@@ -407,15 +410,15 @@ export class NamedConvertor extends BaseArgConvertor {
     }
 }
 
-export class InterfaceConvertor extends NamedConvertor {
-    constructor(param: string, visitor: PeerGeneratorVisitor, declaration: ts.InterfaceDeclaration | ts.ClassDeclaration) {
-        super(ts.idText(declaration.name as ts.Identifier), param, visitor)
+export class InterfaceConvertor extends TypedConvertor {
+    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeReferenceNode) {
+        super(ts.idText(type.typeName as ts.Identifier), type, param, visitor)
     }
 }
 
-export class FunctionConvertor extends NamedConvertor {
+export class FunctionConvertor extends TypedConvertor {
     constructor(param: string, visitor: PeerGeneratorVisitor) {
-        super("Function", param, visitor)
+        super("Function", undefined, param, visitor)
     }
 }
 /*
