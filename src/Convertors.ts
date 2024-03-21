@@ -350,7 +350,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         this.memberConvertors.forEach((it, index) => {
             let memberName = this.members[index][0]
-            printer.print(`let ${value}_${memberName} = ${value}.${memberName}`)
+            printer.print(`let ${value}_${memberName} = ${value}?.${memberName}`)
             it.convertorToTSSerial(param, `${value}_${memberName}`, printer)
         })
     }
@@ -457,7 +457,7 @@ tupleConvertor(param: string, value: string, type: ts.TupleTypeNode): ArgConvert
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
     constructor(param: string, protected visitor: PeerGeneratorVisitor, private elementType: ts.TypeNode) {
-        super(`Array<${mapCType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(`Array<${mapTsType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = visitor.typeConvertor(param, elementType)
     }
 
@@ -466,11 +466,16 @@ export class ArrayConvertor extends BaseArgConvertor {
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         // Array length.
+        printer.print(`${param}Serializer.writeInt8(runtimeType(${value}))`)
+        printer.print(`if (${value} !== undefined) {`)
+        printer.pushIndent()
         printer.print(`${param}Serializer.writeInt32(${value}.length)`)
         printer.print(`for (let i = 0; i < ${value}.length; i++) {`)
         printer.pushIndent()
         printer.print(`let ${value}_element = ${value}[i]`)
         this.elementConvertor.convertorToTSSerial(param, `${value}_element`, printer)
+        printer.popIndent()
+        printer.print(`}`)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -479,6 +484,9 @@ export class ArrayConvertor extends BaseArgConvertor {
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         // Array length.
+        printer.print(`auto ${value}_tag = ${param}Serializer.readInt8();`)
+        printer.print(`if (${value}_tag != ${RuntimeType.UNDEFINED}) {`) // TODO: `else value = nullptr` ?
+        printer.pushIndent()
         printer.print(`auto ${value}_length = ${param}Serializer.readInt32();`)
         printer.print(`${mapCType(this.elementType)} ${value}[${value}_length];`)
         printer.print(`for (int i = 0; i < ${value}_length; i++) {`)
@@ -486,9 +494,12 @@ export class ArrayConvertor extends BaseArgConvertor {
         this.elementConvertor.convertorToCDeserial(param, `${value}[i]`, printer)
         printer.popIndent()
         printer.print(`}`)
+        printer.popIndent()
+        printer.print(`}`)
+
     }
     nativeType(): string {
-        return this.tsTypeName
+        return mapCType(this.elementType)
     }
     interopType(): string {
         return "KPointer"
@@ -533,4 +544,11 @@ function mapCType(type: ts.TypeNode): string {
         return ts.idText(type.typeName as ts.Identifier)
     }
     return "Any"
+}
+
+function mapTsType(type: ts.TypeNode): string {
+    if (ts.isTypeReferenceNode(type)) {
+        return ts.idText(type.typeName as ts.Identifier)
+    }
+    return "any"
 }

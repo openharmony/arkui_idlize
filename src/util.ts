@@ -202,3 +202,19 @@ export function typeOrUndefined(type: ts.TypeNode): ts.TypeNode {
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
     ])
 }
+
+export function forEachExpanding<T>(array: T[], action: (element: T) => void): void {
+    let i = 0
+    while (true) {
+        if (i === array.length) break
+        action(array[i])
+        i += 1
+    }
+}
+
+export function isTypeParamSuitableType(type: ts.TypeNode): boolean {
+    if (ts.isTypeReferenceNode(type)) {
+        return !['boolean', 'number', 'string', 'undefined', 'any'].includes(type.typeName.getText())
+    }
+    return false
+}
