@@ -59,6 +59,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private seenAttributes = new Set<string>()
     private printerNativeModule: IndentedPrinter
     private printerSerializerC: IndentedPrinter
+    private printerStructsC: IndentedPrinter
+    private printerStructsForwardC: IndentedPrinter
     private printerSerializerTS: IndentedPrinter
     private serializerRequests: TypeAndName[] = []
 
@@ -69,11 +71,15 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         nativeModuleMethods: string[],
         outputC: string[],
         outputSerializersTS: string[],
-        outputSerializersC: string[]
+        outputSerializersC: string[],
+        outputStructsForwardC: string[],
+        outputStructsC: string[]
     ) {
         this.printerC = new IndentedPrinter(outputC)
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
         this.printerSerializerC = new IndentedPrinter(outputSerializersC)
+        this.printerStructsC = new IndentedPrinter(outputStructsC)
+        this.printerStructsForwardC = new IndentedPrinter(outputStructsForwardC)
         this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
     }
 
@@ -700,18 +706,23 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerC.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
+        this.printerStructsForwardC.print(`struct ${name};`)
+        this.printerStructsC.print(`struct ${name} {`)
+        this.printerStructsC.pushIndent()
         if (declarations.length > 0) {
+            this.printerSerializerC.print(`Deserializer& valueDeserializer = *this;`)
+            this.printerSerializerC.print(`auto tag = valueDeserializer.readInt8();`)
+            this.printerSerializerC.print(`if (tag == ${RuntimeType.UNDEFINED}) throw new Error("Undefined");`)
             this.printerSerializerC.print(`${name} value;`)
-            this.printerSerializerC.print(`auto tag = this.readInt8();`)
-            this.printerSerializerC.print(`if (tag == ${RuntimeType.UNDEFINED}) throw new Error("Undefined);`)
-            this.printerSerializerC.print(`const Deserializer& valueDeserializer = &this;`)
             let declaration = declarations[0]
             if (ts.isInterfaceDeclaration(declaration)) {
                 declaration.members
                     .filter(ts.isPropertySignature)
                     .forEach(it => {
                         let typeConvertor = this.typeConvertor("value", it.type!)
-                        typeConvertor.convertorToCDeserial(`value`, `value.${asString(it.name)}`, this.printerSerializerC)
+                        let fieldName = asString(it.name)
+                        this.printerStructsC.print(`${typeConvertor.nativeType()} ${fieldName};`)
+                        typeConvertor.convertorToCDeserial(`value`, `value.${fieldName}`, this.printerSerializerC)
                     })
             }
             this.printerSerializerC.print(`return value;`)
@@ -720,6 +731,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         this.printerSerializerC.popIndent()
         this.printerSerializerC.print(`}`)
+        this.printerStructsC.popIndent()
+        this.printerStructsC.print(`};`)
     }
 }
 
@@ -761,8 +774,8 @@ ${methods.join("\n")}
 
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `
-#include "Serializer.h"
 #include "Interop.h"
+#include "deserializer.cc"
 
 using std;
 
@@ -781,9 +794,16 @@ ${lines.join("\n")}
 `
 }
 
-export function makeCDeserializer(lines: string[]): string {
+export function makeCDeserializer(structsForward: string[], structs: string[], serializers: string[]): string {
     return `
-#include "ArgDeserializer.h"
+#include "Interop.h"
+#include "ArgDeserializerBase.h"
+
+using std::string;
+
+${structsForward.join("\n")}
+
+${structs.join("\n")}
 
 class Deserializer : ArgDeserializerBase
 {
@@ -791,7 +811,7 @@ class Deserializer : ArgDeserializerBase
     Deserializer(uint8_t *data, int32_t length)
           : ArgDeserializerBase(data, length) {}
 
-${lines.join("\n")}
-}
+${serializers.join("\n")}
+};
 `
 }

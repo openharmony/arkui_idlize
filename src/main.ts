@@ -218,6 +218,8 @@ if (options.dts2peer) {
     const nativeMethods: string[] = []
     const bridgeCcArray: string[] = []
     const deserializerC: string[] = []
+    const structsC: string[] = []
+    const structsForwardC: string[] = []
     const serializerTS: string[] = []
 
     generate(
@@ -231,7 +233,9 @@ if (options.dts2peer) {
             nativeMethods,
             bridgeCcArray,
             serializerTS,
-            deserializerC
+            deserializerC,
+            structsForwardC,
+            structsC
         ),
         {
             compilerOptions: defaultCompilerOptions,
@@ -253,7 +257,7 @@ if (options.dts2peer) {
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(serializerTS))
-                fs.writeFileSync(path.join(outDir, 'deserializer.cc'), makeCDeserializer(deserializerC))
+                fs.writeFileSync(path.join(outDir, 'deserializer.cc'), makeCDeserializer(structsForwardC, structsC, deserializerC))
             }
         }
     )

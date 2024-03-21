@@ -91,7 +91,7 @@ export class StringConvertor extends BaseArgConvertor {
     }
 
     nativeType(): string {
-        return "    string"
+        return "string"
     }
     interopType(): string {
         return "KStringPtr"

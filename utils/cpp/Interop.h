@@ -2,6 +2,7 @@
 
 typedef int32_t KInt;
 typedef float KFloat;
+typedef int KBoolean;
 typedef void* KPointer;
 
 #define KOALA_INTEROP_0(name, Ret)
