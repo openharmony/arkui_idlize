@@ -775,7 +775,7 @@ ${methods.join("\n")}
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `
 #include "Interop.h"
-#include "deserializer.cc"
+#include "Deserializer.h"
 
 using std;
 
