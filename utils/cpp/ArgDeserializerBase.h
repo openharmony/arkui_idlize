@@ -55,7 +55,7 @@ struct Union {
 };
 
 
-template <typename T0 = Empty, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty>
+template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty>
 struct Compound {
   T0 value0;
   T1 value1;

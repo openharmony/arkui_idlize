@@ -35,7 +35,8 @@ export enum LinterError {
     NAMESPACE,
     NUMBER_TYPE,
     PRIVATE_VISIBILITY,
-    TOP_LEVEL_FUNCTIONS
+    TOP_LEVEL_FUNCTIONS,
+    ANY_KEYWORD
 }
 
 export interface LinterMessage {
@@ -141,6 +142,13 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
 
     checkType(type: ts.TypeNode | undefined): void {
         if (!type) return
+        if (type.kind == ts.SyntaxKind.AnyKeyword) {
+            let parent = type.parent
+            this.report(type, LinterError.ANY_KEYWORD, `Keyword "any" is disalowed: ${parent.getText(parent.getSourceFile())}`)
+        }
+        if (ts.isArrayTypeNode(type)) {
+            this.checkType(type.elementType)
+        }
         if (ts.isTypeLiteralNode(type)) {
             this.report(type, LinterError.TYPE_LITERAL, `Type literal`)
             type.members.forEach(it => {
@@ -210,7 +218,6 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.report(method, LinterError.PRIVATE_VISIBILITY, `Private visibility is useless: Private visibility is useless: ${method.getText(this.sourceFile).substring(0, 50)}`)
             }
         })
-        method.parameters.map(param => this.checkType(param.type))
         method.parameters.forEach(it => this.visitParameter(it))
     }
 
@@ -218,6 +225,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (parameter.initializer) {
             this.report(parameter, LinterError.PARAMETER_INITIALIZER, "Parameter initializer is forbidden")
         }
+        this.checkType(parameter.type)
     }
 
     visitProperty(property: ts.PropertySignature | ts.PropertyDeclaration): void {
@@ -271,7 +279,6 @@ export function toLinterString(allEntries: Array<LinterMessage[]>,
     }
     const suppressLocationsSet = new Set<string>()
     if (suppressLocations) {
-        console.log(typeof suppressLocations)
         suppressLocations.split(",").forEach(it => suppressLocationsSet.add(it))
     }
     let errors = allEntries
