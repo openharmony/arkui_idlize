@@ -152,6 +152,15 @@ export function capitalize(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
+export function dropLast(text: string, chars: number): string {
+    return text.substring(0, text.length - chars)
+}
+
+export function dropSuffix(text: string, suffix: string): string {
+    if (!text.endsWith(suffix)) return text
+    return dropLast(text, suffix.length)
+}
+
 export type stringOrNone = string | undefined
 
 export function isCommonAttribute(name: string): boolean {

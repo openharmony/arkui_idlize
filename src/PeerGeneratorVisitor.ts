@@ -19,7 +19,8 @@ import {
     getDeclarationsByNode,
     stringOrNone,
     typeOrUndefined,
-    capitalize
+    capitalize,
+    dropSuffix
 } from "./util"
 import { GenericVisitor } from "./options"
 import { IndentedPrinter } from "./IndentedPrinter"
@@ -229,13 +230,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
         let isComponent = false
         let methodName = method.name.getText(this.sourceFile)
+        const hasReceiver = true // TODO: make it false for non-method calls.
         const componentName = ts.idText(clazz.name as ts.Identifier)
         const argConvertors = method.parameters
             .map((param) => this.argConvertor(param))
         const retConvertor = this.retConvertor(method.type)
-        const suffix = this.generateCMacroSuffix(argConvertors, retConvertor)
+        const suffix = this.generateCMacroSuffix(argConvertors, retConvertor, hasReceiver)
         const maybeCRetType = this.maybeCRetType(retConvertor)
-        const cParameterTypes = this.generateCParameterTypes(argConvertors)
+        const cParameterTypes = this.generateCParameterTypes(argConvertors, hasReceiver)
 
         console.log(`processing ${componentName}.${methodName}`)
         if (this.seenMethods.has(methodName)) {
@@ -259,7 +261,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.printTS(`throw new Error("${methodName}Attribute() is not implemented")`)
             } else {
                 let name = `${methodName}Impl`
-                this.generateNativeBody(componentName, name, argConvertors)
+                this.generateNativeBody(componentName, methodName, name, argConvertors, hasReceiver)
             }
         }
         this.popIndentBoth()
@@ -271,7 +273,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     generateCParameters(argConvertors: ArgConvertor[]): string {
-        return argConvertors.map(it => {
+        const receiver = 'KNativePointer nodePtr, ';
+        return receiver + argConvertors.map(it => {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
@@ -280,10 +283,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }).join(", ")
     }
 
-    generateCParameterTypes(argConvertors: ArgConvertor[]): string {
-        return argConvertors.map(it => {
+    generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string {
+        const receiver = hasReceiver ? 'KNativePointer, ' : ''
+        return receiver + argConvertors.map(it => {
             if (it.useArray) {
-                return `uint8_t, int32_t`
+                return `uint8_t*, int32_t`
             } else {
                 return it.nativeType()
             }
@@ -299,8 +303,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return `${retConvertor.nativeType()}, `
     }
 
-    generateCMacroSuffix(argConvertors: ArgConvertor[], retConvertor: RetConvertor) {
-        let counter = 0
+    generateCMacroSuffix(argConvertors: ArgConvertor[], retConvertor: RetConvertor, hasReceiver: boolean) {
+        let counter = hasReceiver ? 1 : 0
         argConvertors.forEach(it => {
             if (it.useArray) {
                 counter += 2
@@ -311,8 +315,42 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return `${retConvertor.macroSuffixPart()}${counter}`
     }
 
-    generateNativeBody(clazzName: string, name: string, argConvertors: ArgConvertor[] /*clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature*/) {
+    apiSection(clazzName: string) {
+        return "GetNodeModifiers()"
+    }
+
+    modifierSection(clazzName: string) {
+        // TODO: may be need some translation tables?
+        let clazz = dropSuffix(dropSuffix(clazzName, "Method"), "Attribute")
+        return `get${capitalize(clazz)}Modifier()`
+    }
+
+    methodSection(methodName: string) {
+        return `set${capitalize(methodName)}`
+    }
+
+    // TODO: may be this is another method of ArgConvertor?
+    apiArgument(argConvertor: ArgConvertor): string {
+        if (argConvertor.useArray) return `${argConvertor.param}Value`
+        return argConvertor.param
+    }
+
+    generateAPICall(clazzName: string, methodName: string, hasReceiver: boolean, argConvertors: ArgConvertor[]) {
+        const api = this.apiSection(clazzName)
+        const modifier = this.modifierSection(clazzName)
+        const method = this.methodSection(methodName)
+        const receiver = hasReceiver ? 'node, ' : ''
+        // TODO: how do we know the real amount of arguments of the API functions?
+        // Do they always match in TS and in C one to one?
+        const args = receiver + argConvertors.map(it => this.apiArgument(it)).join(", ")
+        this.printC(`${api}->${modifier}->${method}(${args});`)
+    }
+
+    generateNativeBody(clazzName: string, originalMethodName: string, methodName: string, argConvertors: ArgConvertor[], hasReceiver: boolean) {
         this.pushIndentBoth()
+        if (hasReceiver) {
+            this.printC("ArkUINodeHandle node = reinterpret_cast<ArkUINodeHandle>(nodePtr);")
+        }
         let scopes = new Array<ArgConvertor>()
         argConvertors
             .filter(it => it.isScoped)
@@ -331,7 +369,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 it.convertorToCDeserial(it.param, `${it.param}Value`, this.printerC)
             }
         })
-        this.printTS(`nativeModule()._${clazzName}_${name}(`)
+        this.printTS(`nativeModule()._${clazzName}_${methodName}(`)
         this.pushIndentTS()
         argConvertors.forEach((it, index) => {
             let maybeComma = index == argConvertors.length - 1 ? "" : ","
@@ -348,6 +386,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.popIndentTS()
             this.printTS(it.scopeEnd!(it.param))
         })
+        this.generateAPICall(clazzName, originalMethodName, hasReceiver, argConvertors)
         this.popIndentBoth()
     }
 
