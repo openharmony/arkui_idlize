@@ -23,7 +23,6 @@ import {
     dropSuffix,
     forEachExpanding,
     isTypeParamSuitableType,
-    getSymbolByNode,
     isDefined
 } from "./util"
 import { GenericVisitor } from "./options"
@@ -45,6 +44,7 @@ import {
     UndefinedConvertor,
     UnionConvertor
 } from "./Convertors"
+import { SortingEmitter } from "./SortingEmitter"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -65,7 +65,7 @@ export enum RuntimeType {
 
 let serializerSeen = new Set<string>()
 
-interface TypeAndName {
+export interface TypeAndName {
     type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined
     name: string
 }
@@ -75,7 +75,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private seenAttributes = new Set<string>()
     private printerNativeModule: IndentedPrinter
     private printerSerializerC: IndentedPrinter
-    private printerStructsC: IndentedPrinter
+    private printerStructsC: SortingEmitter
     private printerStructsForwardC: IndentedPrinter
     private printerSerializerTS: IndentedPrinter
     private serializerRequests: TypeAndName[] = []
@@ -89,12 +89,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         outputSerializersTS: string[],
         outputSerializersC: string[],
         outputStructsForwardC: string[],
-        outputStructsC: string[]
+        outputStructsC: SortingEmitter
     ) {
         this.printerC = new IndentedPrinter(outputC)
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
         this.printerSerializerC = new IndentedPrinter(outputSerializersC)
-        this.printerStructsC = new IndentedPrinter(outputStructsC)
+        this.printerStructsC = outputStructsC
         this.printerStructsForwardC = new IndentedPrinter(outputStructsForwardC)
         this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
     }
@@ -136,11 +136,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             serializerSeen.add(it.name)
         })
 
-        return this.printerTS.output
+        return this.printerTS.getOutput()
     }
 
     resultC(): string[] {
-        return this.printerC.output
+        return this.printerC.getOutput()
     }
 
     needsPeer(type: ts.Identifier | undefined): boolean {
@@ -737,7 +737,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (isEnum) {
             this.printerStructsForwardC.print(`typedef int32_t ${name};`)
         } else {
+            // TODO: support subclasses.
             this.printerStructsForwardC.print(`struct ${name};`)
+            this.printerStructsC.startEmit(this.typeChecker, type!)
             this.printerStructsC.print(`struct ${name} {`)
             this.printerStructsC.pushIndent()
             this.printerStructsC.print(`${name}() {}`)

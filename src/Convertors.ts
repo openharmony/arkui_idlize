@@ -382,7 +382,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             let memberLocal = `${value}_${memberName}`
             printer.print(`${memberType} ${memberLocal};`)
             it.convertorToCDeserial(param, memberLocal, printer)
-            printer.print(`${value}.${memberName} = ${memberLocal};`)
+            printer.print(`${value}.value${index} = ${memberLocal};`)
         })
     }
 

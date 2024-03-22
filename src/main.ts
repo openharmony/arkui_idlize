@@ -28,6 +28,7 @@ import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { bridgeCcDeclaration, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
 import { isDefined, stringOrNone, toSet } from "./util";
 import { TypeChecker  } from "./typecheck";
+import { SortingEmitter } from "./SortingEmitter";
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -218,7 +219,7 @@ if (options.dts2peer) {
     const nativeMethods: string[] = []
     const bridgeCcArray: string[] = []
     const deserializerC: string[] = []
-    const structsC: string[] = []
+    const structsC = new SortingEmitter()
     const structsForwardC: string[] = []
     const serializerTS: string[] = []
 
@@ -257,7 +258,7 @@ if (options.dts2peer) {
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(serializerTS))
-                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(structsForwardC, structsC, deserializerC))
+                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(structsForwardC, structsC.getOutput(), deserializerC))
             }
         }
     )
