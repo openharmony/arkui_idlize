@@ -45,6 +45,11 @@ struct Union {
 struct Empty {
 };
 
+struct Error {
+  std::string message;
+  Error(const std::string& message) : message(message) {}
+};
+
 template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty, typename T4 = Empty, typename T5 = Empty>
 struct Union {
   Union() : selector(-1) {}
@@ -63,7 +68,6 @@ struct Union {
   ~Union() {}
   int32_t selector;
   union {
-    constructor() {}
     T0 value0;
     T1 value1;
     T2 value2;
@@ -116,6 +120,11 @@ struct Number {
 struct Any {
   Any() {}
   ~Any() {}
+};
+
+struct Function {
+  Function() {}
+  ~Function() {}
 };
 
 struct String {

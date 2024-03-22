@@ -42,10 +42,10 @@
         "run2test": "npm run compile && node . --dts2test --input-dir ./ohos-sdk/component --verbose --test-interface ButtonAttribute",
         "run2peer:all": "npm run compile && node . --dts2peer --input-dir ./ohos-sdk/component --output-dir ./generated/peers",
         "run2peer": "npm run compile && node . --dts2peer --input-dir ./ohos-sdk/component --generate-interface CommonMethod,ButtonAttribute --output-dir ./generated/peers",
-        "lint": "npm run compile && node . --linter --input-dir ./ohos-sdk/component --input-file common.d.ts --verbose",
+        "lint": "npm run compile && node . --linter --input-dir ./ohos-sdk/component --input-file common.d.ts --output-dir linter",
         "lint:all": "npm run compile && node . --linter --input-dir ./ohos-sdk/component --verbose --output-dir linter",
         "check:peers": "npm run run2peer:all && tsc -p ./tsconfig-generated.json",
-        "check:peers:native": "npm run run2peer:all && npm run compile:native",
+        "check:peers:native": "npm run run2peer:all && npm run",
         "compile:native": "clang -std=c++11 -fPIC -shared -Wall -I ./utils/cpp/  ./generated/peers/bridge.cc -o libArkoalaNative.so -ferror-limit=100"
     }
 }

@@ -36,7 +36,8 @@ export enum LinterError {
     NUMBER_TYPE,
     PRIVATE_VISIBILITY,
     TOP_LEVEL_FUNCTIONS,
-    ANY_KEYWORD
+    ANY_KEYWORD,
+    TYPE_ELEMENT_TYPE
 }
 
 export interface LinterMessage {
@@ -141,13 +142,16 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     }
 
     checkType(type: ts.TypeNode | undefined): void {
+        console.log(type?.kind)
         if (!type) return
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
             let parent = type.parent
             this.report(type, LinterError.ANY_KEYWORD, `Keyword "any" is disalowed: ${parent.getText(parent.getSourceFile())}`)
+            return
         }
         if (ts.isArrayTypeNode(type)) {
             this.checkType(type.elementType)
+            return
         }
         if (ts.isTypeLiteralNode(type)) {
             this.report(type, LinterError.TYPE_LITERAL, `Type literal`)
@@ -159,6 +163,21 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 }
 
             })
+        }
+        if (ts.isUnionTypeNode(type)) {
+            console.log(type.getText())
+            type.types.forEach(it => {
+                this.checkType(it)
+            })
+        }
+        if (ts.isTypeReferenceNode(type)) {
+            if (ts.isQualifiedName(type.typeName)) {
+                this.report(type, LinterError.TYPE_ELEMENT_TYPE,
+                    `Type element types unsupported, use type "${ts.idText(type.typeName.left as ts.Identifier)}" itself: ${type.getText(this.sourceFile)}`)
+            }
+        }
+        if (ts.isParenthesizedTypeNode(type)) {
+            this.checkType(type.type)
         }
         if (ts.isTupleTypeNode(type)) {
             this.report(type, LinterError.TUPLE_TYPE, `Tuple type: ${type.getText(this.sourceFile)}`)
@@ -178,10 +197,6 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (this.isTypeParameterReferenceAndNotCommonMethod(type)) {
             this.report(type, LinterError.UNSUPPORTED_TYPE_PARAMETER, `Unsupported type parameter: ${type.getText(this.sourceFile)}`)
         }
-        /*
-        if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            this.report(type, LinterError.NUMBER_TYPE, "Do not use `number`, use `int32`, `float32` or `int64`")
-        } */
     }
 
     isTypeParameterReferenceAndNotCommonMethod(type: ts.TypeNode): boolean {
@@ -234,6 +249,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.report(property, LinterError.PRIVATE_VISIBILITY, `Private visibility is useless: ${property.getText(this.sourceFile)}`)
             }
         })
+        console.log(asString(property.name), asString(property.type))
         this.checkType(property.type)
         this.checkName(property.name)
     }

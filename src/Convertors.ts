@@ -191,10 +191,10 @@ export class UndefinedConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    constructor(param: string, type: ts.TypeNode, visitor: PeerGeneratorVisitor) {
+    constructor(param: string, type: ts.TypeReferenceNode, visitor: PeerGeneratorVisitor) {
         // Enums are integers in runtime.
         super("number", [RuntimeType.NUMBER], false, false, param)
-
+        if (type.typeName) visitor.requestType(ts.idText(type.typeName as ts.Identifier), type)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {

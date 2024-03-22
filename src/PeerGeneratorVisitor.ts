@@ -22,7 +22,9 @@ import {
     capitalize,
     dropSuffix,
     forEachExpanding,
-    isTypeParamSuitableType
+    isTypeParamSuitableType,
+    getSymbolByNode,
+    isDefined
 } from "./util"
 import { GenericVisitor } from "./options"
 import { IndentedPrinter } from "./IndentedPrinter"
@@ -97,13 +99,19 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
     }
 
+    requestType(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
+        if (type) {
+            this.serializerRequests.push({ type, name })
+        }
+    }
+
     serializerName(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined): string {
-        this.serializerRequests.push({ type, name })
+        this.requestType(name, type)
         return `write${name}`
     }
 
     deserializerName(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined): string {
-        this.serializerRequests.push({ type, name })
+        this.requestType(name, type)
         return `read${name}`
     }
 
@@ -254,8 +262,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             .map((param) => this.argConvertor(param))
         const retConvertor = this.retConvertor(method.type)
         const suffix = this.generateCMacroSuffix(argConvertors, retConvertor, hasReceiver)
-        const maybeCRetType = this.maybeCRetType(retConvertor)
-        const cParameterTypes = this.generateCParameterTypes(argConvertors, hasReceiver)
 
         console.log(`processing ${componentName}.${methodName}`)
         if (this.seenMethods.has(methodName)) {
@@ -265,7 +271,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.seenMethods.add(methodName)
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         let cName = `_${componentName}_${methodName}Impl`
-        this.printC(`${this.generateCReturnType(retConvertor)} ${cName}(${this.generateCParameters(argConvertors)}) {`)
+        this.printC(`${this.generateCReturnType(retConvertor)} ${cName}(${this.generateCParameters(argConvertors).join(",")}) {`)
         this.pushIndentBoth()
         if (isComponent) {
             this.printTS(`if (this.checkPriority("${methodName}")) {`)
@@ -284,41 +290,43 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         this.popIndentBoth()
         this.printC(`}`)
-        this.printC(`KOALA_INTEROP_${suffix}(${cName}, ${maybeCRetType}${cParameterTypes})`)
+        let macroArgs = [cName, this.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, hasReceiver))
+            .filter(isDefined)
+            .join(", ")
+        this.printC(`KOALA_INTEROP_${suffix}(${macroArgs})`)
         this.printC(` `)
 
         this.printTS(`}`)
     }
 
-    generateCParameters(argConvertors: ArgConvertor[]): string {
-        const receiver = 'KNativePointer nodePtr, ';
-        return receiver + argConvertors.map(it => {
+    generateCParameters(argConvertors: ArgConvertor[]): string[] {
+        return (["KNativePointer nodePtr"].concat(argConvertors.map(it => {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
                 return `${it.interopType(false)} ${it.param}`
             }
-        }).join(", ")
+        })))
     }
 
-    generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string {
-        const receiver = hasReceiver ? 'KNativePointer, ' : ''
-        return receiver + argConvertors.map(it => {
+    generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string[] {
+        const receiver = hasReceiver ? ['KNativePointer'] : []
+        return receiver.concat(argConvertors.map(it => {
             if (it.useArray) {
                 return `uint8_t*, int32_t`
             } else {
                 return it.nativeType()
             }
-        }).join(", ")
+        }))
     }
 
     generateCReturnType(retConvertor: RetConvertor): string {
         return retConvertor.nativeType()
     }
 
-    maybeCRetType(retConvertor: RetConvertor): string {
-        if (retConvertor.isVoid) return ""
-        return `${retConvertor.nativeType()}, `
+    maybeCRetType(retConvertor: RetConvertor): string | undefined {
+        if (retConvertor.isVoid) return undefined
+        return retConvertor.nativeType()
     }
 
     generateCMacroSuffix(argConvertors: ArgConvertor[], retConvertor: RetConvertor, hasReceiver: boolean) {
@@ -357,10 +365,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         const api = this.apiSection(clazzName)
         const modifier = this.modifierSection(clazzName)
         const method = this.methodSection(methodName)
-        const receiver = hasReceiver ? 'node, ' : ''
+        const receiver = hasReceiver ? ['node'] : []
         // TODO: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
-        const args = receiver + argConvertors.map(it => this.apiArgument(it)).join(", ")
+        const args = receiver.concat(argConvertors.map(it => this.apiArgument(it))).join(", ")
         this.printC(`${api}->${modifier}->${method}(${args});`)
     }
 
@@ -463,7 +471,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 // Important common case.
                 return new LengthConvertor(param)
             }
-            if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
+            if (ts.isQualifiedName(type.typeName)) {
+                let typeOuter = ts.factory.createTypeReferenceNode(type.typeName.left)
+                return new EnumConvertor(param, typeOuter as ts.TypeReferenceNode, this)
+            }
+            if (ts.isEnumDeclaration(declaration)) {
                 return new EnumConvertor(param, type, this)
             }
             if (ts.isTypeAliasDeclaration(declaration)) {
@@ -487,6 +499,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 console.log(declaration)
                 return new AnyConvertor(param)
             }
+            console.log(`${declaration.getText()}`)
             throw new Error(`Unknown kind: ${declaration.kind}`)
         }
         if (ts.isUnionTypeNode(type)) {
@@ -697,8 +710,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             let declaration = declarations[0]
             this.printerSerializerTS.print(`const valueSerializer = this`)
             if (ts.isInterfaceDeclaration(declaration)) {
-                this.printerSerializerTS.print(`if (!value) { valueSerializer.writeInt8(${RuntimeType.UNDEFINED}); return }`)
-                this.printerSerializerTS.print(`valueSerializer.writeInt8(${RuntimeType.OBJECT})`)
+                this.printerSerializerTS.print(`if (!value) { valueSerializer.writeInt8(Tags.UNDEFINED); return }`)
+                this.printerSerializerTS.print(`valueSerializer.writeInt8(Tags.OBJECT)`)
                 declaration.members
                     .filter(ts.isPropertySignature)
                     .forEach(it => {
@@ -720,15 +733,20 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerC.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
-        this.printerStructsForwardC.print(`struct ${name};`)
-        this.printerStructsC.print(`struct ${name} {`)
-        this.printerStructsC.pushIndent()
-        this.printerStructsC.print(`${name}() {}`)
-        this.printerStructsC.print(`~${name}() {}`)
+        let isEnum = declarations.length > 0 && ts.isEnumDeclaration(declarations[0])
+        if (isEnum) {
+            this.printerStructsForwardC.print(`typedef int32_t ${name};`)
+        } else {
+            this.printerStructsForwardC.print(`struct ${name};`)
+            this.printerStructsC.print(`struct ${name} {`)
+            this.printerStructsC.pushIndent()
+            this.printerStructsC.print(`${name}() {}`)
+            this.printerStructsC.print(`~${name}() {}`)
+        }
         if (declarations.length > 0) {
             this.printerSerializerC.print(`Deserializer& valueDeserializer = *this;`)
-            this.printerSerializerC.print(`auto tag = valueDeserializer.readInt8();`)
-            this.printerSerializerC.print(`if (tag == ${RuntimeType.UNDEFINED}) throw new Error("Undefined");`)
+            this.printerSerializerC.print(`int32_t tag = valueDeserializer.readInt8();`)
+            this.printerSerializerC.print(`if (tag == Tags::TAG_UNDEFINED) throw new Error("Undefined");`)
             this.printerSerializerC.print(`${name} value;`)
             let declaration = declarations[0]
             if (ts.isInterfaceDeclaration(declaration)) {
@@ -741,21 +759,26 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     .filter(ts.isPropertyDeclaration)
                     .forEach(it => this.processSingleField(it))
             }
+            if (ts.isEnumDeclaration(declaration)) {
+                this.printerSerializerC.print(`value = valueDeserializer.readInt32();`)
+            }
             this.printerSerializerC.print(`return value;`)
         } else {
             this.printerSerializerC.print(`throw new Error("Implement ${name} manually");`)
         }
+        if (!isEnum) {
+            this.printerStructsC.popIndent()
+            this.printerStructsC.print(`};`)
+        }
         this.printerSerializerC.popIndent()
         this.printerSerializerC.print(`}`)
-        this.printerStructsC.popIndent()
-        this.printerStructsC.print(`};`)
     }
 
     private processSingleField(field: ts.PropertyDeclaration | ts.PropertySignature) {
         let typeConvertor = this.typeConvertor("value", field.type!)
         let fieldName = asString(field.name)
         let nativeType = typeConvertor.nativeType()
-        this.printerStructsC.print(`${field.modifiers?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) ? "static " : ""} ${nativeType} ${fieldName};`)
+        this.printerStructsC.print(`${field.modifiers?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) ? "static " : ""}${nativeType} ${fieldName};`)
 
         let fieldValue = `value_${fieldName}`
         this.printerSerializerC.print(`${nativeType} ${fieldValue};`)
@@ -823,7 +846,7 @@ ${bridgeCc.join("\n")}
 
 export function makeTSSerializer(lines: string[]): string {
     return `
-import { SerializerBase, runtimeType } from "../../utils/ts/SerializerBase"
+import { SerializerBase, runtimeType, Tags } from "../../utils/ts/SerializerBase"
 import { int32 } from "../../utils/ts/types"
 import { Callback, ErrorCallback } from "./ohos-sdk/api/@ohos.base"
 
@@ -853,7 +876,7 @@ class Deserializer : ArgDeserializerBase
     Deserializer(uint8_t *data, int32_t length)
           : ArgDeserializerBase(data, length) {}
 
-${serializers.join("\n")}
+${serializers.join("\n  ")}
 };
 `
 }
