@@ -479,6 +479,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 return new EnumConvertor(param, type, this)
             }
             if (ts.isTypeAliasDeclaration(declaration)) {
+                this.requestType(ts.idText(declaration.name), type)
                 return this.typeConvertor(param, declaration.type)
             }
             if (ts.isInterfaceDeclaration(declaration)) {
@@ -729,14 +730,23 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerTS.print(`}`)
     }
     private generateDeserializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
+        if (["Array", "ErrorCallback", "Length"].indexOf(name) != -1) return
         this.printerSerializerC.print(`${name} read${name}() {`)
         this.printerSerializerC.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
         let isEnum = declarations.length > 0 && ts.isEnumDeclaration(declarations[0])
+        let isAlias = declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])
+        let isStruct = !isEnum && !isAlias
         if (isEnum) {
             this.printerStructsForwardC.print(`typedef int32_t ${name};`)
-        } else {
+        }
+        if (isAlias) {
+            let decl = declarations[0] as ts.TypeAliasDeclaration
+            let typeConvertor = this.typeConvertor("XXX", decl.type)
+            this.printerStructsForwardC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
+        }
+        if (isStruct) {
             // TODO: support subclasses.
             this.printerStructsForwardC.print(`struct ${name};`)
             this.printerStructsC.startEmit(this.typeChecker, type!)
@@ -768,7 +778,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         } else {
             this.printerSerializerC.print(`throw new Error("Implement ${name} manually");`)
         }
-        if (!isEnum) {
+        if (isStruct) {
             this.printerStructsC.popIndent()
             this.printerStructsC.print(`};`)
         }
@@ -777,6 +787,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private processSingleField(field: ts.PropertyDeclaration | ts.PropertySignature) {
+        if (ts.isTypeReferenceNode(field.type!)) {
+            this.requestType(ts.idText(field.type!.typeName as ts.Identifier), field.type)
+        }
         let typeConvertor = this.typeConvertor("value", field.type!)
         let fieldName = asString(field.name)
         let nativeType = typeConvertor.nativeType()

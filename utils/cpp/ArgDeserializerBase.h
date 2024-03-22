@@ -148,6 +148,13 @@ struct Length {
   int32_t resource;
   Length() : value(0), unit(0), resource(0) {}
   Length(const Length& other) : value(other.value), unit(other.unit), resource(other.resource) {}
+  Length(const Tagged<Length>& other) {
+    // TODO: check tag
+    this->value = other.value.value;
+    this->value = other.value.unit;
+    this->resource = other.value.resource;
+  }
+
   ~Length() {}
 
   static Length fromArray(int32_t* array) {
@@ -157,6 +164,10 @@ struct Length {
     result.resource = array[2];
     return result;
   }
+};
+
+struct Resource {
+  int32_t id;
 };
 
 struct Undefined {
