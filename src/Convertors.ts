@@ -28,7 +28,7 @@ export interface ArgConvertor {
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void
     convertorCArg(param: string, value: string, printer: IndentedPrinter): void
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void
-    interopType(): string
+    interopType(ts: boolean): string
     nativeType(): string
     param: string
 }
@@ -49,8 +49,8 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     nativeType(): string {
         return "Empty"
     }
-    interopType(): string {
-        return "void*"
+    interopType(ts: boolean): string {
+        return ts ? "object" : "void*"
     }
 
     scopeStart?(param: string): string
@@ -91,9 +91,9 @@ export class StringConvertor extends BaseArgConvertor {
     }
 
     nativeType(): string {
-        return "string"
+        return "String"
     }
-    interopType(): string {
+    interopType(ts: boolean): string {
         return "KStringPtr"
     }
     estimateSize() {
@@ -123,7 +123,7 @@ export class BooleanConvertor extends BaseArgConvertor {
     nativeType(): string {
         return "KBoolean"
     }
-    interopType(): string {
+    interopType(ts: boolean): string {
         return "KBoolean"
     }
     estimateSize() {
@@ -152,7 +152,7 @@ export class AnyConvertor extends BaseArgConvertor {
     nativeType(): string {
         return "Any"
     }
-    interopType(): string {
+    interopType(ts: boolean): string {
         return "KPointer"
     }
     estimateSize() {
@@ -181,7 +181,7 @@ export class UndefinedConvertor extends BaseArgConvertor {
     nativeType(): string {
         return "Undefined"
     }
-    interopType(): string {
+    interopType(ts: boolean): string {
         return "KPointer"
     }
 
@@ -191,9 +191,10 @@ export class UndefinedConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    constructor(param: string) {
+    constructor(param: string, type: ts.TypeNode, visitor: PeerGeneratorVisitor) {
         // Enums are integers in runtime.
         super("number", [RuntimeType.NUMBER], false, false, param)
+
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
@@ -248,9 +249,8 @@ export class LengthConvertor extends BaseArgConvertor {
     nativeType(): string {
         return "Length"
     }
-    interopType(): string {
-        // TODO: is it correct?
-        return "KPointer"
+    interopType(ts: boolean): string {
+        return ts ? "Uint8ArrayPtr" : "uint8_t*"
     }
     estimateSize() {
         return 12
@@ -259,8 +259,9 @@ export class LengthConvertor extends BaseArgConvertor {
 
 export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
+    private typeToName = new Map<ts.TypeNode, string>()
 
-    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.UnionTypeNode) {
+    constructor(param: string, visitor: PeerGeneratorVisitor, private type: ts.UnionTypeNode) {
         super(`any`, [], false, true, param)
         this.memberConvertors = type
             .types
@@ -293,17 +294,34 @@ export class UnionConvertor extends BaseArgConvertor {
             })
     }
     convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = Length::fromArray(${param});`)
+        throw new Error("Do not use for union")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = ${param}Deserializer.readLength();`)
+        // Save actual type being passed.
+        printer.print(`int32_t ${value}_type = ${param}Deserializer.readInt8();`)
+        this.memberConvertors.forEach((it, index) => {
+                if (it.runtimeTypes.length == 0) {
+                    return
+                }
+                let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
+                let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
+                let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
+
+                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
+                printer.pushIndent()
+                let variantValue = `${value}_${index}`
+                printer.print(`${it.nativeType()} ${variantValue};`)
+                it.convertorToCDeserial(param, variantValue, printer)
+                printer.print(`${value}.value${index} = ${variantValue};`)
+                printer.popIndent()
+                printer.print(`}`)
+            })
     }
     nativeType(): string {
-        return "Length"
+        return `Union<${this.memberConvertors.map(it => it.nativeType()).join(", ")}>`
     }
-    interopType(): string {
-        // TODO: is it correct?
-        return "KPointer"
+    interopType(ts: boolean): string {
+        throw new Error("Union")
     }
     estimateSize() {
         return 12
@@ -501,7 +519,7 @@ export class ArrayConvertor extends BaseArgConvertor {
     nativeType(): string {
         return mapCType(this.elementType)
     }
-    interopType(): string {
+    interopType(ts: boolean): string {
         return "KPointer"
     }
     estimateSize() {

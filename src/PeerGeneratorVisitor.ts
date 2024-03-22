@@ -296,7 +296,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
-                return `${it.interopType()} ${it.param}`
+                return `${it.interopType(false)} ${it.param}`
             }
         }).join(", ")
     }
@@ -464,7 +464,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 return new LengthConvertor(param)
             }
             if (ts.isEnumDeclaration(declaration) || ts.isEnumMember(declaration)) {
-                return new EnumConvertor(param)
+                return new EnumConvertor(param, type, this)
             }
             if (ts.isTypeAliasDeclaration(declaration)) {
                 return this.typeConvertor(param, declaration.type)
@@ -680,7 +680,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     const array = `${it.param}Serializer`
                     return `${it.param}Array: Uint8Array, ${array}Length: int32`
                 } else {
-                    return `${it.param}: ${it.nativeType!()}`
+                    return `${it.param}: ${it.interopType(true)}`
                 }
             })
             .join(", ")
@@ -723,6 +723,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerStructsForwardC.print(`struct ${name};`)
         this.printerStructsC.print(`struct ${name} {`)
         this.printerStructsC.pushIndent()
+        this.printerStructsC.print(`${name}() {}`)
+        this.printerStructsC.print(`~${name}() {}`)
         if (declarations.length > 0) {
             this.printerSerializerC.print(`Deserializer& valueDeserializer = *this;`)
             this.printerSerializerC.print(`auto tag = valueDeserializer.readInt8();`)
@@ -732,12 +734,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (ts.isInterfaceDeclaration(declaration)) {
                 declaration.members
                     .filter(ts.isPropertySignature)
-                    .forEach(it => {
-                        let typeConvertor = this.typeConvertor("value", it.type!)
-                        let fieldName = asString(it.name)
-                        this.printerStructsC.print(`${typeConvertor.nativeType()} ${fieldName};`)
-                        typeConvertor.convertorToCDeserial(`value`, `value.${fieldName}`, this.printerSerializerC)
-                    })
+                    .forEach(it => this.processSingleField(it))
+            }
+            if (ts.isClassDeclaration(declaration)) {
+                declaration.members
+                    .filter(ts.isPropertyDeclaration)
+                    .forEach(it => this.processSingleField(it))
             }
             this.printerSerializerC.print(`return value;`)
         } else {
@@ -747,6 +749,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerC.print(`}`)
         this.printerStructsC.popIndent()
         this.printerStructsC.print(`};`)
+    }
+
+    private processSingleField(field: ts.PropertyDeclaration | ts.PropertySignature) {
+        let typeConvertor = this.typeConvertor("value", field.type!)
+        let fieldName = asString(field.name)
+        let nativeType = typeConvertor.nativeType()
+        this.printerStructsC.print(`${field.modifiers?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) ? "static " : ""} ${nativeType} ${fieldName};`)
+
+        let fieldValue = `value_${fieldName}`
+        this.printerSerializerC.print(`${nativeType} ${fieldValue};`)
+        typeConvertor.convertorToCDeserial(`value`, fieldValue, this.printerSerializerC)
+        this.printerSerializerC.print(`value.${fieldName} = ${fieldValue};`);
     }
 
     private typeParamsClause(type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined): string {

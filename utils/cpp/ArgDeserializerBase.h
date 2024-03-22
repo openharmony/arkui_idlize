@@ -45,25 +45,68 @@ struct Union {
 struct Empty {
 };
 
-template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty>
+template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty, typename T4 = Empty, typename T5 = Empty>
 struct Union {
+  Union() : selector(-1) {}
+  Union(int32_t selector): selector(selector) {}
+  Union(const Union<T0, T1, T2, T3, T4, T5>& other) {
+    this->selector = other.selector;
+    switch (selector) {
+      case 0: this->value0 = other.value0; break;
+      case 1: this->value1 = other.value1; break;
+      case 2: this->value2 = other.value2; break;
+      case 3: this->value3 = other.value3; break;
+      case 4: this->value4 = other.value4; break;
+      case 5: this->value5 = other.value5; break;
+    }
+  }
+  ~Union() {}
+  int32_t selector;
   union {
+    constructor() {}
     T0 value0;
     T1 value1;
     T2 value2;
+    T3 value3;
+    T4 value4;
+    T5 value5;
   };
 };
 
 
-template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty>
+template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty, typename T4 = Empty, typename T5 = Empty>
 struct Compound {
+  Compound() {}
+  Compound(const Compound<T0, T1, T2, T3, T4, T5>& other) {
+    this->value0 = other.value0;
+    this->value1 = other.value1;
+    this->value2 = other.value2;
+    this->value3 = other.value3;
+    this->value4 = other.value4;
+    this->value5 = other.value5;
+  }
+
+
+  ~Compound() {}
   T0 value0;
   T1 value1;
   T2 value2;
   T3 value3;
+  T4 value4;
+  T5 value5;
 };
 
 struct Number {
+  Number() {}
+  Number(const Tagged<Number>& other) {
+    // TODO: check tag
+    this->i32 = other.value.i32;
+  }
+  Number(const Number& other) {
+    this->i32 = other.i32;
+  }
+
+  ~Number() {}
   union {
     float32_t f32;
     int32_t i32;
@@ -71,6 +114,18 @@ struct Number {
 };
 
 struct Any {
+  Any() {}
+  ~Any() {}
+};
+
+struct String {
+  String() {}
+  String(const std::string& value): value(value) {}
+  String(const String& other) {
+    this->value = other.value;
+  }
+  ~String() {}
+  std::string value;
 };
 
 template <typename T>
@@ -82,6 +137,10 @@ struct Length {
   float32_t value;
   int32_t unit;
   int32_t resource;
+  Length() : value(0), unit(0), resource(0) {}
+  Length(const Length& other) : value(other.value), unit(other.unit), resource(other.resource) {}
+  ~Length() {}
+
   static Length fromArray(int32_t* array) {
     Length result;
     result.value = *(float32_t*)array;
