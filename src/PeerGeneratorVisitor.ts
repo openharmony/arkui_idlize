@@ -863,7 +863,7 @@ export function makeTSSerializer(lines: string[]): string {
     return `
 import { SerializerBase, runtimeType, Tags } from "../../utils/ts/SerializerBase"
 import { int32 } from "../../utils/ts/types"
-import { Callback, ErrorCallback } from "./ohos-sdk/api/@ohos.base"
+import { Callback, ErrorCallback } from "../../interface_sdk-js/api/@ohos.base"
 
 type Function = object
 type FirstNode = any

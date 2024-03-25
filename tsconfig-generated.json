@@ -16,5 +16,10 @@
         "rootDirs": ["src"],
         "module": "CommonJS",
     },
-    "include": ["generated/**/*", "utils/ts/**/*", "ohos-sdk/component/**/*", "ohos-sdk/api/**/*"],
+    "include": [
+        "generated/**/*",
+        "utils/ts/**/*",
+        "interface_sdk-js/api/@internal/component/ets/**/*",
+        "interface_sdk-js/api/**/*"
+    ]
 }
