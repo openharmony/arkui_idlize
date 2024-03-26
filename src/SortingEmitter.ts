@@ -26,6 +26,14 @@ export class SortingEmitter extends IndentedPrinter {
         super()
     }
 
+    private heritageTypes(clause: ts.HeritageClause): Array<ts.TypeNode> {
+        return clause.types.map(it => {
+            const name = ts.isIdentifier(it.expression) ? ts.idText(it.expression) : undefined
+            if (!name) throw new Error(`NON_IDENTIFIER_HERITAGE ${asString(it)}`)
+            return ts.factory.createTypeReferenceNode(name)
+        })
+    }
+
     private fillDeps(typeChecker: ts.TypeChecker, type: ts.TypeNode|undefined, seen: Set<ts.TypeNode>) {
         if (!type || seen.has(type)) return
         seen.add(type)
@@ -37,11 +45,17 @@ export class SortingEmitter extends IndentedPrinter {
                 decl.members
                     .filter(ts.isPropertySignature)
                     .forEach(it => this.fillDeps(typeChecker, it.type, seen))
+                decl.heritageClauses?.forEach(it => {
+                        this.heritageTypes(it).forEach(it => this.fillDeps(typeChecker, it, seen))
+                 })
             }
             if (ts.isClassDeclaration(decl)) {
                 decl.members
                     .filter(ts.isPropertyDeclaration)
                     .forEach(it => this.fillDeps(typeChecker, it.type, seen))
+                decl.heritageClauses?.forEach(it => {
+                    this.heritageTypes(it).forEach(it => this.fillDeps(typeChecker, it, seen))
+                })
             }
             if (ts.isUnionTypeNode(decl)) {
                 decl.types
@@ -104,7 +118,8 @@ export class SortingEmitter extends IndentedPrinter {
     }
 
     getToposorted(): Array<ts.TypeNode> {
-        let source = new Set(this.emitters.keys())
+        // Not exactly correct for non-named types.
+        let source = new Set(Array.from(this.emitters.keys()))
         //console.log(`SOURCE ${Array.from(source).map(it => this.printType(it)).join(",")}`)
         //let result = Array.from(this.emitters.keys())
         //result.sort((a, b) => a == b ? 0 : (this.deps.get(a)?.has(b) ? -1 : 1))
@@ -116,12 +131,11 @@ export class SortingEmitter extends IndentedPrinter {
                 let deps = this.deps.get(it)!
                 let canAdd = true
                 deps.forEach(dep => {
-                    //console.log(`${this.printType(it)} ${this.printType(dep)} ${source.has(dep)} ${!added.has(dep)}`)
+                    console.log(`CHECK ${this.printType(it)} ${this.printType(dep)} ${source.has(dep)} ${!added.has(dep)}`)
                     if (source.has(dep) && !added.has(dep)) canAdd = false
                 })
-                if (canAdd) {
+                if (canAdd && !added.has(it)) {
                     result.push(it)
-                    source.delete(it)
                     added.add(it)
                 }
                 // console.log(`${this.printType(it)}: ${canAdd} depends on ${Array.from(deps).map(it => this.printType(it)).join(",")}`)
