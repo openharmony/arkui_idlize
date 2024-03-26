@@ -15,7 +15,7 @@
 
 import { IndentedPrinter } from "./IndentedPrinter";
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, stringOrNone } from "./util";
+import { asString, getDeclarationsByNode, heritageTypes, stringOrNone } from "./util";
 
 export class SortingEmitter extends IndentedPrinter {
     currentPrinter?: IndentedPrinter
@@ -24,14 +24,6 @@ export class SortingEmitter extends IndentedPrinter {
 
     constructor() {
         super()
-    }
-
-    private heritageTypes(clause: ts.HeritageClause): Array<ts.TypeNode> {
-        return clause.types.map(it => {
-            const name = ts.isIdentifier(it.expression) ? ts.idText(it.expression) : undefined
-            if (!name) throw new Error(`NON_IDENTIFIER_HERITAGE ${asString(it)}`)
-            return ts.factory.createTypeReferenceNode(name)
-        })
     }
 
     private fillDeps(typeChecker: ts.TypeChecker, type: ts.TypeNode|undefined, seen: Set<ts.TypeNode>) {
@@ -46,7 +38,7 @@ export class SortingEmitter extends IndentedPrinter {
                     .filter(ts.isPropertySignature)
                     .forEach(it => this.fillDeps(typeChecker, it.type, seen))
                 decl.heritageClauses?.forEach(it => {
-                        this.heritageTypes(it).forEach(it => this.fillDeps(typeChecker, it, seen))
+                        heritageTypes(typeChecker, it).forEach(it => this.fillDeps(typeChecker, it, seen))
                  })
             }
             if (ts.isClassDeclaration(decl)) {
@@ -54,7 +46,7 @@ export class SortingEmitter extends IndentedPrinter {
                     .filter(ts.isPropertyDeclaration)
                     .forEach(it => this.fillDeps(typeChecker, it.type, seen))
                 decl.heritageClauses?.forEach(it => {
-                    this.heritageTypes(it).forEach(it => this.fillDeps(typeChecker, it, seen))
+                    heritageTypes(typeChecker, it).forEach(it => this.fillDeps(typeChecker, it, seen))
                 })
             }
             if (ts.isUnionTypeNode(decl)) {
@@ -74,7 +66,6 @@ export class SortingEmitter extends IndentedPrinter {
 
     startEmit(typeChecker: ts.TypeChecker, type: ts.TypeNode) {
         if (this.emitters.has(type)) throw new Error("Already emitted")
-        console.log(this.emitters.size)
         let next = new IndentedPrinter()
         let seen = new Set<ts.TypeNode>()
         this.fillDeps(typeChecker, type, seen)
@@ -131,7 +122,7 @@ export class SortingEmitter extends IndentedPrinter {
                 let deps = this.deps.get(it)!
                 let canAdd = true
                 deps.forEach(dep => {
-                    console.log(`CHECK ${this.printType(it)} ${this.printType(dep)} ${source.has(dep)} ${!added.has(dep)}`)
+                    //console.log(`CHECK ${this.printType(it)} ${this.printType(dep)} ${source.has(dep)} ${!added.has(dep)}`)
                     if (source.has(dep) && !added.has(dep)) canAdd = false
                 })
                 if (canAdd && !added.has(it)) {

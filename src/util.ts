@@ -57,10 +57,10 @@ export function nameOrNull(name: ts.EntityName | ts.DeclarationName | undefined)
 
 
 export function isNamedDeclaration(node: ts.Node): node is ts.NamedDeclaration {
-    return ("name" in node )
+    return ("name" in node)
 }
 
-export function asString(node: ts.Node|undefined): string {
+export function asString(node: ts.Node | undefined): string {
     if (node === undefined) return "undefined node"
     if (ts.isIdentifier(node)) return ts.idText(node)
     if (ts.isStringLiteral(node)) return node.text
@@ -75,7 +75,7 @@ export function asString(node: ts.Node|undefined): string {
     }
 }
 
-export function arrayAt<T>(array: T[] | undefined, index: number): T|undefined {
+export function arrayAt<T>(array: T[] | undefined, index: number): T | undefined {
     return array ? array[index >= 0 ? index : array.length + index] : undefined
 }
 
@@ -92,15 +92,15 @@ export function getComment(sourceFile: ts.SourceFile, node: ts.Node): string {
         .join("\n")
 }
 
-export function getSymbolByNode(typechecker: ts.TypeChecker, node: ts.Node) : ts.Symbol|undefined {
+export function getSymbolByNode(typechecker: ts.TypeChecker, node: ts.Node): ts.Symbol | undefined {
     return typechecker.getSymbolAtLocation(node)
 }
 
-export function getDeclarationsByNode(typechecker: ts.TypeChecker, node: ts.Node) : ts.Declaration[] {
+export function getDeclarationsByNode(typechecker: ts.TypeChecker, node: ts.Node): ts.Declaration[] {
     return getSymbolByNode(typechecker, node)?.getDeclarations() ?? []
 }
 
-export function getExportedDeclarationNameByDecl(declaration: ts.NamedDeclaration) : string|undefined {
+export function getExportedDeclarationNameByDecl(declaration: ts.NamedDeclaration): string | undefined {
     let declName = declaration.name ? ts.idText(declaration.name as ts.Identifier) : undefined
     let current: ts.Node = declaration
     while (current != undefined && !ts.isSourceFile(current)) {
@@ -125,7 +125,7 @@ export function getExportedDeclarationNameByDecl(declaration: ts.NamedDeclaratio
     return exportedName
 }
 
-export function getExportedDeclarationNameByNode(typechecker: ts.TypeChecker, node: ts.Node) : string|undefined {
+export function getExportedDeclarationNameByNode(typechecker: ts.TypeChecker, node: ts.Node): string | undefined {
     let declarations = getDeclarationsByNode(typechecker, node)
     if (declarations.length == 0) return undefined
     return getExportedDeclarationNameByDecl(declarations[0])
@@ -169,7 +169,7 @@ export function isCommonAttribute(name: string): boolean {
         || name == "ScrollableCommonMethod"
 }
 
-export function toSet(option: string|undefined): Set<string> {
+export function toSet(option: string | undefined): Set<string> {
     let set = new Set<string>()
     if (option) {
         option
@@ -217,4 +217,32 @@ export function isTypeParamSuitableType(type: ts.TypeNode): boolean {
         return !['boolean', 'number', 'string', 'undefined', 'any'].includes(type.typeName.getText())
     }
     return false
+}
+
+export function heritageTypes(typechecker: ts.TypeChecker, clause: ts.HeritageClause): (ts.TypeReferenceNode|ts.TypeQueryNode)[] {
+    return clause
+        .types
+        .map(it => {
+            let expr = it.expression
+            let typeAt = typechecker.getTypeAtLocation(expr)
+            if (ts.isExpressionWithTypeArguments(expr)) {
+                typeAt = typechecker.getTypeAtLocation(expr.expression)
+            }
+            if (!typeAt)
+                return undefined
+            let rv = typechecker.typeToTypeNode(typeAt, undefined, ts.NodeBuilderFlags.NoTruncation)
+            console.log("rv", asString(rv))
+            if (rv)  {
+                if (ts.isTypeReferenceNode(rv)) return rv
+                if (ts.isTypeQueryNode(rv)) return rv
+            }
+            return undefined
+        })
+        .filter(it => it != undefined) as (ts.TypeReferenceNode|ts.TypeQueryNode)[]
+}
+
+export function typeName(type: ts.TypeReferenceNode|ts.TypeQueryNode): string {
+    if (ts.isTypeReferenceNode(type)) return ts.idText(type.typeName as ts.Identifier)
+    if (ts.isTypeQueryNode(type)) return ts.idText(type.exprName as ts.Identifier)
+    throw new Error("unsupported")
 }

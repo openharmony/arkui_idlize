@@ -23,7 +23,9 @@ import {
     dropSuffix,
     forEachExpanding,
     isTypeParamSuitableType,
-    isDefined
+    isDefined,
+    heritageTypes,
+    typeName
 } from "./util"
 import { GenericVisitor } from "./options"
 import { IndentedPrinter } from "./IndentedPrinter"
@@ -143,21 +145,37 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return this.printerC.getOutput()
     }
 
-    needsPeer(type: ts.Identifier | undefined): boolean {
-        let name = type?.text
+    static needsPeerRoots = [ "CommonMethod" ]
+
+    needsPeer(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
+        let name = decl.name?.text
         if (!name) return false
         if (this.interfacesToGenerate.size > 0) {
             return this.interfacesToGenerate.has(name)
         }
-        if (name?.endsWith("Attribute") && name != "ComputedBarAttribute") return true
-        if (name === "CommonMethod") return true
-        return false
+        let isCommon = PeerGeneratorVisitor.needsPeerRoots.indexOf(name) >= 0
+        decl.heritageClauses?.forEach(it => {
+            heritageTypes(this.typeChecker, it).forEach(it => {
+                let name = typeName(it)
+                isCommon = isCommon || PeerGeneratorVisitor.needsPeerRoots.indexOf(name) >= 0
+                // TODO: find a way to follow ts.TypeQuery as well.
+                if (!ts.isTypeReferenceNode(it)) return
+                let superDecls = getDeclarationsByNode(this.typeChecker, it.typeName)
+                if (superDecls.length > 0) {
+                    let superDecl = superDecls[0]
+                    if (ts.isClassDeclaration(superDecl) || ts.isInterfaceDeclaration(superDecl))
+                        isCommon = isCommon || this.needsPeer(superDecl)
+                    throw new Error("OK")
+                }
+            })
+        })
+        return isCommon
     }
 
     visit(node: ts.Node) {
-        if (ts.isClassDeclaration(node) && this.needsPeer(node.name)) {
+        if (ts.isClassDeclaration(node) && this.needsPeer(node)) {
             this.processClass(node)
-        } else if (ts.isInterfaceDeclaration(node) && this.needsPeer(node.name)) {
+        } else if (ts.isInterfaceDeclaration(node) && this.needsPeer(node)) {
             this.processInterface(node)
         } else if (ts.isModuleDeclaration(node)) {
             // This is a namespace, visit its children
@@ -166,7 +184,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     processClass(node: ts.ClassDeclaration) {
-        if (!this.needsPeer(node.name)) return
         this.prologue(node)
         node.members.forEach(child => {
             if (ts.isConstructorDeclaration(child)) {
@@ -193,7 +210,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
-        if (!this.needsPeer(node.name)) return
         this.prologue(node)
         node.members.forEach(child => {
             if (ts.isConstructorDeclaration(child)) {
