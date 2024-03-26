@@ -46,7 +46,7 @@
         "lint": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/ --input-file common.d.ts --output-dir linter",
         "lint:all": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/ --verbose --output-dir linter",
         "check:peers": "npm run run2peer:all && tsc -p ./tsconfig-generated.json",
-        "check:peers:native": "npm run run2peer:all && npm run",
+        "check:peers:native": "npm run run2peer:all && npm run compile:native",
         "compile:native": "clang -std=c++11 -fPIC -shared -Wall -I ./utils/cpp/  ./generated/peers/bridge.cc -o libArkoalaNative.so -ferror-limit=100"
     }
 }

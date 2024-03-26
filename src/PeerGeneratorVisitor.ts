@@ -853,8 +853,6 @@ export function bridgeCcDeclaration(bridgeCc: string[]): string {
 #include "Interop.h"
 #include "Deserializer.h"
 
-using std;
-
 ${bridgeCc.join("\n")}
 `
 }
@@ -878,8 +876,7 @@ export function makeCDeserializer(structsForward: string[], structs: string[], s
     return `
 #include "Interop.h"
 #include "ArgDeserializerBase.h"
-
-using std::string;
+#include <string>
 
 ${structsForward.join("\n")}
 

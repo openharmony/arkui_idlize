@@ -105,6 +105,7 @@ export class SortingEmitter extends IndentedPrinter {
 
     getToposorted(): Array<ts.TypeNode> {
         let source = new Set(this.emitters.keys())
+        //console.log(`SOURCE ${Array.from(source).map(it => this.printType(it)).join(",")}`)
         //let result = Array.from(this.emitters.keys())
         //result.sort((a, b) => a == b ? 0 : (this.deps.get(a)?.has(b) ? -1 : 1))
         let result: ts.TypeNode[] = []
@@ -114,13 +115,16 @@ export class SortingEmitter extends IndentedPrinter {
             source.forEach(it => {
                 let deps = this.deps.get(it)!
                 let canAdd = true
-                deps.forEach(dep => { if (source.has(dep) && !added.has(dep)) canAdd = false })
+                deps.forEach(dep => {
+                    //console.log(`${this.printType(it)} ${this.printType(dep)} ${source.has(dep)} ${!added.has(dep)}`)
+                    if (source.has(dep) && !added.has(dep)) canAdd = false
+                })
                 if (canAdd) {
                     result.push(it)
                     source.delete(it)
                     added.add(it)
                 }
-                console.log(`${this.printType(it)}: depends on ${Array.from(deps).map(it => this.printType(it)).join(",")}`)
+                // console.log(`${this.printType(it)}: ${canAdd} depends on ${Array.from(deps).map(it => this.printType(it)).join(",")}`)
                 //console.log(this.printType(it))
             })
         }
