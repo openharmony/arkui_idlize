@@ -17,18 +17,21 @@ import { IndentedPrinter } from "./IndentedPrinter";
 import * as ts from "typescript"
 import { asString, getDeclarationsByNode, heritageDeclarations, heritageTypes, stringOrNone } from "./util";
 
+// Use string for TypeReferenceNode to make them unique, original TypeNodes for everything else
+type TypeRepr = string | ts.TypeNode
+
 export class SortingEmitter extends IndentedPrinter {
     currentPrinter?: IndentedPrinter
-    emitters = new Map<ts.TypeNode, IndentedPrinter>()
-    deps = new Map<ts.TypeNode, Set<ts.TypeNode>>()
+    emitters = new Map<TypeRepr, IndentedPrinter>()
+    deps = new Map<TypeRepr, Set<TypeRepr>>()
 
     constructor() {
         super()
     }
 
-    private fillDeps(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined, seen: Set<ts.TypeNode>) {
-        if (!type || seen.has(type)) return
-        seen.add(type)
+    private fillDeps(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined, seen: Set<TypeRepr>) {
+        if (!type || seen.has(this.repr(type))) return
+        seen.add(this.repr(type))
         if (!ts.isTypeReferenceNode(type)) return
         let decls = getDeclarationsByNode(typeChecker, type.typeName)
         if (decls.length > 0) {
@@ -65,23 +68,27 @@ export class SortingEmitter extends IndentedPrinter {
     }
 
     startEmit(typeChecker: ts.TypeChecker, type: ts.TypeNode) {
-        if (this.emitters.has(type)) throw new Error("Already emitted")
+        const repr = this.repr(type)
+        if (this.emitters.has(repr)) throw new Error("Already emitted")
         let next = new IndentedPrinter()
-        let seen = new Set<ts.TypeNode>()
+        let seen = new Set<TypeRepr>()
         this.fillDeps(typeChecker, type, seen)
-        seen.delete(type)
-        this.deps.set(type, seen)
-        this.emitters.set(type, next)
+        seen.delete(repr)
+        this.deps.set(repr, seen)
+        this.emitters.set(repr, next)
         this.currentPrinter = next
         if (seen.size > 0)
             console.log(`${this.printType(type)}: depends on ${Array.from(seen.keys()).map(it => this.printType(it)).join(",")}`)
     }
 
-    printType(type: ts.TypeNode): string {
-        if (ts.isTypeReferenceNode(type)) {
-            return asString(type.typeName)
-        }
-        return "__other"
+    repr(type: ts.TypeNode): TypeRepr {
+        return ts.isTypeReferenceNode(type) ? asString(type.typeName) : type
+    }
+
+    printType(repr: TypeRepr): string {
+        return typeof repr === 'string'
+            ? repr
+            : `${repr.kind}:${ts.SyntaxKind[repr.kind]}`
     }
 
     print(value: stringOrNone) {
@@ -108,17 +115,18 @@ export class SortingEmitter extends IndentedPrinter {
         return result
     }
 
-    getToposorted(): Array<ts.TypeNode> {
+    getToposorted(): Array<TypeRepr> {
         // Not exactly correct for non-named types.
         let source = new Set(Array.from(this.emitters.keys()))
         //console.log(`SOURCE ${Array.from(source).map(it => this.printType(it)).join(",")}`)
         //let result = Array.from(this.emitters.keys())
         //result.sort((a, b) => a == b ? 0 : (this.deps.get(a)?.has(b) ? -1 : 1))
-        let result: ts.TypeNode[] = []
+        let result: TypeRepr[] = []
         // N^2, but nobody cares
-        let added: Set<ts.TypeNode> = new Set()
+        let added: Set<TypeRepr> = new Set()
         while (source.size > added.size) {
             source.forEach(it => {
+                if (added.has(it)) return
                 let deps = this.deps.get(it)!
                 let canAdd = true
                 deps.forEach(dep => {
