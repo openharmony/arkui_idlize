@@ -740,9 +740,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (declarations.length > 0) {
             let declaration = declarations[0]
             this.printerSerializerTS.print(`const valueSerializer = this`)
+            this.printerSerializerTS.print(`if (!value) { valueSerializer.writeInt8(Tags.UNDEFINED); return }`)
+            let tag = ts.isEnumDeclaration(declaration) ? "Tags.INT32" : "Tags.OBJECT";
+            this.printerSerializerTS.print(`valueSerializer.writeInt8(${tag})`)
             if (ts.isInterfaceDeclaration(declaration)) {
-                this.printerSerializerTS.print(`if (!value) { valueSerializer.writeInt8(Tags.UNDEFINED); return }`)
-                this.printerSerializerTS.print(`valueSerializer.writeInt8(Tags.OBJECT)`)
                 declaration.members
                     .filter(ts.isPropertySignature)
                     .forEach(it => {
@@ -752,6 +753,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                         this.printerSerializerTS.print(`let value_${fieldName} = value.${fieldName}`)
                         typeConvertor.convertorToTSSerial(`value`, `value_${fieldName}`, this.printerSerializerTS)
                     })
+            } else {
+                let typeConvertor = this.typeConvertor("value", type!)
+                typeConvertor.convertorToTSSerial(`value`, `value`, this.printerSerializerTS)
             }
         } else {
             this.printerSerializerTS.print(`throw new Error("Implement ${name} manually")`)
@@ -833,8 +837,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     private typeParamsClause(type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined): string {
         const typeParams = type?.typeArguments
-            ?.filter(isTypeParamSuitableType)
-            ?.map(it => it.getText())
+            ?.map((it, index )=> `T` + index)
             .join(", ")
         return typeParams
             ? `<${typeParams}>`

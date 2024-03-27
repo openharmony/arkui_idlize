@@ -198,7 +198,7 @@ export class EnumConvertor extends BaseArgConvertor {
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`nullptr`)
+        printer.print(`${value} as int32`)
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeInt32(${value} as int32)`)

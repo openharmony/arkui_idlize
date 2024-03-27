@@ -12,14 +12,13 @@
         "strict": true,
         "skipLibCheck": true,
         "removeComments": false,
-        "outDir": "build/peers",
+        "outDir": "build/subset",
         "rootDirs": ["src"],
         "module": "CommonJS",
     },
     "include": [
-        "generated/peers/**/*",
+        "generated/subset/**/*",
         "utils/ts/**/*",
-        "interface_sdk-js/api/@internal/component/ets/**/*",
-        "interface_sdk-js/api/**/*"
+        "tests/subset/**/*"
     ]
 }

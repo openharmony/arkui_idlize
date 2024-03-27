@@ -30,7 +30,7 @@ export enum Tags {
     STRING = 4,
     LENGTH = 5,
     RESOURCE = 6,
-    OBJECT = 6
+    OBJECT = 7,
 }
 
 export function runtimeType(value: any): int32 {
