@@ -219,28 +219,29 @@ export function isTypeParamSuitableType(type: ts.TypeNode): boolean {
     return false
 }
 
-export function heritageTypes(typechecker: ts.TypeChecker, clause: ts.HeritageClause): (ts.TypeReferenceNode|ts.TypeQueryNode)[] {
+export function heritageTypes(typechecker: ts.TypeChecker, clause: ts.HeritageClause): ts.TypeReferenceNode[] {
     return clause
         .types
         .map(it => {
-            let expr = it.expression
-            let typeAt: ts.Type
-            if (ts.isExpressionWithTypeArguments(expr)) {
-                typeAt = typechecker.getTypeAtLocation(expr.expression)
-            } else {
-                typeAt = typechecker.getTypeAtLocation(expr)
-            }
-            if (!typeAt)
-                return undefined
-            let rv = typechecker.typeToTypeNode(typeAt, undefined, ts.NodeBuilderFlags.NoTruncation)
-            if (rv)  {
-                if (ts.isTypeReferenceNode(rv)) return rv
-                // TODO: resolve to actual type node!
-                if (ts.isTypeQueryNode(rv)) return rv
+            let type = typechecker.getTypeAtLocation(it.expression)
+            let typeNode = typechecker.typeToTypeNode(type, undefined, ts.NodeBuilderFlags.NoTruncation)
+            if (typeNode && ts.isTypeReferenceNode(typeNode)) return typeNode
+            return undefined
+        })
+        .filter(it => it != undefined) as ts.TypeReferenceNode[]
+}
+
+export function heritageDeclarations(typechecker: ts.TypeChecker, clause: ts.HeritageClause): ts.NamedDeclaration[] {
+    return clause
+        .types
+        .map(it => {
+            if (ts.isIdentifier(it.expression)) {
+                let decls = getDeclarationsByNode(typechecker, it.expression)
+                return decls.length > 0 ? decls[0] as ts.NamedDeclaration : undefined
             }
             return undefined
         })
-        .filter(it => it != undefined) as (ts.TypeReferenceNode|ts.TypeQueryNode)[]
+        .filter(it => it != undefined) as ts.NamedDeclaration[]
 }
 
 export function typeName(type: ts.TypeReferenceNode|ts.TypeQueryNode): string {

@@ -24,7 +24,7 @@ import {
     forEachExpanding,
     isTypeParamSuitableType,
     isDefined,
-    heritageTypes,
+    heritageDeclarations,
     typeName
 } from "./util"
 import { GenericVisitor } from "./options"
@@ -146,7 +146,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     // Reduce to "CommonMethod" only once will learn how to follow generic class declarations.
-    static needsPeerRoots = [ "CommonMethod", "ScrollableCommonMethod",  "CommonShapeMethod", "CommonAttribute", "BaseSpan" ]
+    static needsPeerRoots = [ "CommonMethod"]
 
     needsPeer(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
         let name = decl.name?.text
@@ -156,8 +156,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         let isCommon = PeerGeneratorVisitor.needsPeerRoots.indexOf(name) >= 0
         decl.heritageClauses?.forEach(it => {
-            heritageTypes(this.typeChecker, it).forEach(it => {
-                let name = typeName(it)
+            heritageDeclarations(this.typeChecker, it).forEach(it => {
+                let name = asString(it.name)
                 isCommon = isCommon || PeerGeneratorVisitor.needsPeerRoots.indexOf(name) >= 0
                 // TODO: find a way to follow ts.TypeQuery as well.
                 if (!ts.isTypeReferenceNode(it)) return

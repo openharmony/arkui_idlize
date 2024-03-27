@@ -15,7 +15,7 @@
 
 import { IndentedPrinter } from "./IndentedPrinter";
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, heritageTypes, stringOrNone } from "./util";
+import { asString, getDeclarationsByNode, heritageDeclarations, heritageTypes, stringOrNone } from "./util";
 
 export class SortingEmitter extends IndentedPrinter {
     currentPrinter?: IndentedPrinter
@@ -26,7 +26,7 @@ export class SortingEmitter extends IndentedPrinter {
         super()
     }
 
-    private fillDeps(typeChecker: ts.TypeChecker, type: ts.TypeNode|undefined, seen: Set<ts.TypeNode>) {
+    private fillDeps(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined, seen: Set<ts.TypeNode>) {
         if (!type || seen.has(type)) return
         seen.add(type)
         if (!ts.isTypeReferenceNode(type)) return
@@ -38,8 +38,8 @@ export class SortingEmitter extends IndentedPrinter {
                     .filter(ts.isPropertySignature)
                     .forEach(it => this.fillDeps(typeChecker, it.type, seen))
                 decl.heritageClauses?.forEach(it => {
-                        heritageTypes(typeChecker, it).forEach(it => this.fillDeps(typeChecker, it, seen))
-                 })
+                    heritageTypes(typeChecker, it).forEach(it => this.fillDeps(typeChecker, it, seen))
+                })
             }
             if (ts.isClassDeclaration(decl)) {
                 decl.members
