@@ -412,7 +412,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 let size = it.estimateSize()
                 this.printTS(`let ${it.param}Serializer = new Serializer(${size})`)
                 it.convertorToTSSerial(it.param, it.param, this.printerTS)
-                this.printC(`ArgDeserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
+                this.printC(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
                 this.printC(`${it.nativeType()} ${it.param}Value;`)
                 it.convertorToCDeserial(it.param, `${it.param}Value`, this.printerC)
             }

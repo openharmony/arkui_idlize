@@ -251,7 +251,7 @@ struct Length
   {
     // TODO: check tag
     this->value = other.value.value;
-    this->value = other.value.unit;
+    this->unit = other.value.unit;
     this->resource = other.value.resource;
   }
 

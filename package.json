@@ -48,6 +48,8 @@
         "check:peers": "npm run run2peer:all && tsc -p ./tsconfig-generated.json",
         "check:subset": "npm run compile && node . --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset && tsc -p ./tsconfig-subset.json",
         "check:peers:native": "npm run run2peer:all && npm run compile:native",
-        "compile:native": "clang -std=c++11 -fPIC -shared -Wall -I ./utils/cpp/  ./generated/peers/bridge.cc -o libArkoalaNative.so -ferror-limit=100"
+        "compile:native": "clang -std=c++11 -fPIC -shared -Wall -I ./utils/cpp/  ./generated/peers/bridge.cc -o libArkoalaNative.so -ferror-limit=100",
+        "configure:native-node-host": "cd native && meson setup build-node-host",
+        "compile:native-node-host": "cd native && meson compile -C build-node-host && meson install -C build-node-host"
     }
 }
