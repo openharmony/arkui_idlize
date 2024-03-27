@@ -126,6 +126,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             `import { int32 } from "../../utils/ts/types"`,
             `import { nativeModule } from "./NativeModule"`,
             `import { PeerNode, KPointer, nullptr } from "../../utils/ts/Interop"`,
+            `type Callback = Function`,
+            `type ErrorCallback = Function`,
         ].forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
 
@@ -245,7 +247,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (declaration.length == 0) return "any"
             let typeName = asString(type.typeName)
             if (typeName == "AttributeModifier") return "AttributeModifier<this>"
-            if (typeName != "Array" && typeName != "Callback") return typeName
+            if (typeName != "Array") return typeName
         }
         if (type && ts.isImportTypeNode(type)) {
             return `/* imported */ ${asString(type.qualifier)}`
@@ -733,7 +735,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
         const typeParams = this.typeParamsClause(type)
-        this.printerSerializerTS.print(`write${name}${typeParams}(value: ${name}${typeParams}|undefined) {`)
+        this.printerSerializerTS.print(`write${name}(value: ${name}|undefined) {`)
         this.printerSerializerTS.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
@@ -894,7 +896,9 @@ export function makeTSSerializer(lines: string[]): string {
     return `
 import { SerializerBase, runtimeType, Tags } from "../../utils/ts/SerializerBase"
 import { int32 } from "../../utils/ts/types"
-import { Callback, ErrorCallback } from "../../interface_sdk-js/api/@ohos.base"
+
+type Callback = Function
+type ErrorCallback = Function
 
 type Function = object
 type FirstNode = any
