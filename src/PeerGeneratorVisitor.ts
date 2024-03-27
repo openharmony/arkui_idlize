@@ -145,7 +145,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return this.printerC.getOutput()
     }
 
-    static needsPeerRoots = [ "CommonMethod" ]
+    // Reduce to "CommonMethod" only once will learn how to follow generic class declarations.
+    static needsPeerRoots = [ "CommonMethod", "ScrollableCommonMethod",  "CommonShapeMethod", "CommonAttribute", "BaseSpan" ]
 
     needsPeer(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
         let name = decl.name?.text
@@ -165,7 +166,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     let superDecl = superDecls[0]
                     if (ts.isClassDeclaration(superDecl) || ts.isInterfaceDeclaration(superDecl))
                         isCommon = isCommon || this.needsPeer(superDecl)
-                    throw new Error("OK")
                 }
             })
         })
@@ -241,12 +241,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     mapType(type: ts.TypeNode | undefined): string {
         if (type && ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
-            if (declaration.length == 0 || ts.isTypeParameterDeclaration(declaration[0])) return "any"
+            // TODO: plain wrong!
+            if (declaration.length == 0) return "any"
+            let typeName = asString(type.typeName)
+            if (typeName == "AttributeModifier") return "AttributeModifier<this>"
+            if (typeName != "Array" && typeName != "Callback") return typeName
         }
         if (type && ts.isImportTypeNode(type)) {
             return `/* imported */ ${asString(type.qualifier)}`
         }
-        return type?.getText(this.sourceFile) ?? "any"
+        let text = type?.getText(this.sourceFile)
+        if (text == "unknown") text = "any"
+        return  text ?? "any"
     }
 
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
@@ -652,8 +658,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (parameters.length === 1 && ts.isTypeLiteralNode(parameters[0].type!)) {
             const typeLiteralStatements = parameters[0].type!.members
                 .map(it => {
+                    // TODO: properly support IndexSignature
+                    if (ts.isIndexSignatureDeclaration(it)) {
+                        return {
+                            name: "indexed",
+                            type: it.type,
+                            questionToken: !!it.questionToken
+                        }
+                    }
                     if (!ts.isPropertySignature(it)) {
-                        throw new Error(`Expected type literal property to be ts.PropertySignature: ${it}`)
+                        throw new Error(`Expected type literal property to be ts.PropertySignature, not ${asString(it)} got "${it.getText()}"`)
                     }
                     return {
                         name: asString(it.name),
@@ -687,7 +701,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         attributes: { name: string, type: ts.TypeNode, questionToken: boolean }[]
     ): string {
         const attributeDeclarations = attributes
-            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${it.type.getText()}`)
+            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${this.mapType(it.type)}`)
             .join('')
         return `export interface ${name} {${attributeDeclarations}\n}`
     }

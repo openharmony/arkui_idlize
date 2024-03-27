@@ -23,13 +23,14 @@ export enum RuntimeType {
     UNDEFINED
 }
 
-enum Tags {
+export enum Tags {
     UNDEFINED = 1,
     INT32 = 2,
     FLOAT32 = 3,
     STRING = 4,
     LENGTH = 5,
     RESOURCE = 6,
+    OBJECT = 6
 }
 
 export function runtimeType(value: any): int32 {

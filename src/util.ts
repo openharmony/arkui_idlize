@@ -224,16 +224,18 @@ export function heritageTypes(typechecker: ts.TypeChecker, clause: ts.HeritageCl
         .types
         .map(it => {
             let expr = it.expression
-            let typeAt = typechecker.getTypeAtLocation(expr)
+            let typeAt: ts.Type
             if (ts.isExpressionWithTypeArguments(expr)) {
                 typeAt = typechecker.getTypeAtLocation(expr.expression)
+            } else {
+                typeAt = typechecker.getTypeAtLocation(expr)
             }
             if (!typeAt)
                 return undefined
             let rv = typechecker.typeToTypeNode(typeAt, undefined, ts.NodeBuilderFlags.NoTruncation)
-            console.log("rv", asString(rv))
             if (rv)  {
                 if (ts.isTypeReferenceNode(rv)) return rv
+                // TODO: resolve to actual type node!
                 if (ts.isTypeQueryNode(rv)) return rv
             }
             return undefined

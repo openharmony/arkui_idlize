@@ -60,7 +60,7 @@ export class SortingEmitter extends IndentedPrinter {
                     .forEach(it => this.fillDeps(typeChecker, i, seen))
             } */
         } else {
-            console.log(`no decl for ${asString(type)}`)
+            console.log(`no decl for ${asString(type.typeName)}`)
         }
     }
 
