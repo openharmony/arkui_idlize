@@ -23,3 +23,7 @@ export class PeerNode {
     applyAttributes(attrs: Object) {}
 }
 
+export class Finalizable {
+    constructor(peer: KPointer) {
+    }
+}

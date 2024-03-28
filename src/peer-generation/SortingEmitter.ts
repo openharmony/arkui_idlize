@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "./IndentedPrinter";
+import { IndentedPrinter } from "../IndentedPrinter";
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, heritageDeclarations, heritageTypes, stringOrNone } from "./util";
+import { asString, getDeclarationsByNode, heritageTypes, stringOrNone } from "../util";
 
 // Use string for TypeReferenceNode to make them unique, original TypeNodes for everything else
 type TypeRepr = string | ts.TypeNode

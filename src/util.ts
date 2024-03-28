@@ -235,13 +235,10 @@ export function heritageDeclarations(typechecker: ts.TypeChecker, clause: ts.Her
     return clause
         .types
         .map(it => {
-            if (ts.isIdentifier(it.expression)) {
-                let decls = getDeclarationsByNode(typechecker, it.expression)
-                return decls.length > 0 ? decls[0] as ts.NamedDeclaration : undefined
-            }
-            return undefined
+            let decls = getDeclarationsByNode(typechecker, it.expression)
+            return decls[0] ?? undefined
         })
-        .filter(it => it != undefined) as ts.NamedDeclaration[]
+        .filter(isDefined)
 }
 
 export function typeName(type: ts.TypeReferenceNode|ts.TypeQueryNode): string {

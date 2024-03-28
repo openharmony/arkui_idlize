@@ -17,18 +17,18 @@ import { program } from "commander"
 import * as fs from "fs"
 import * as ts from "typescript"
 import * as path from "path"
-import { fromIDL, scanIDL } from "./from-idl/common";
-import { idlToString } from "./from-idl/DtsPrinter";
+import { fromIDL, scanIDL } from "./from-idl/common"
+import { idlToString } from "./from-idl/DtsPrinter"
 import { generate } from "./idlize"
 import { IDLEntry, forEachChild, toIDLString } from "./idl"
 import { printHeader, toHeaderString, wrapWithPrologueAndEpilogue } from "./idl2h"
 import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { bridgeCcDeclaration, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./PeerGeneratorVisitor";
-import { isDefined, stringOrNone, toSet } from "./util";
-import { TypeChecker  } from "./typecheck";
-import { SortingEmitter } from "./SortingEmitter";
+import { bridgeCcDeclaration, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./peer-generation/PeerGeneratorVisitor"
+import { isDefined, stringOrNone, toSet } from "./util"
+import { TypeChecker  } from "./typecheck"
+import { SortingEmitter } from "./peer-generation/SortingEmitter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')

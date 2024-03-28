@@ -15,20 +15,18 @@
 import * as ts from "typescript"
 import {
     asString,
-    nameOrNull,
-    getDeclarationsByNode,
-    stringOrNone,
-    typeOrUndefined,
     capitalize,
     dropSuffix,
     forEachExpanding,
-    isTypeParamSuitableType,
-    isDefined,
+    getDeclarationsByNode,
     heritageDeclarations,
-    typeName
-} from "./util"
-import { GenericVisitor } from "./options"
-import { IndentedPrinter } from "./IndentedPrinter"
+    isDefined,
+    nameOrNull,
+    stringOrNone,
+    typeOrUndefined
+} from "../util"
+import { GenericVisitor } from "../options"
+import { IndentedPrinter } from "../IndentedPrinter"
 import {
     AggregateConvertor,
     AnyConvertor,
@@ -40,13 +38,14 @@ import {
     FunctionConvertor,
     InterfaceConvertor,
     LengthConvertor,
-    TypedConvertor,
     NumberConvertor,
     StringConvertor,
+    TypedConvertor,
     UndefinedConvertor,
     UnionConvertor
-} from "./Convertors"
+} from "../Convertors"
 import { SortingEmitter } from "./SortingEmitter"
+import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -81,6 +80,15 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private printerStructsForwardC: IndentedPrinter
     private printerSerializerTS: IndentedPrinter
     private serializerRequests: TypeAndName[] = []
+
+    private static imports = [
+        { file: "common", components: ["Common", "ScrollableCommon", "CommonShape"]},
+        { file: "shape", components: ["Shape"] },
+        { file: "security_component", components: ["SecurityComponent"] },
+        { file: "column", components: ["Column"] },
+        { file: "image", components: ["Image"] },
+        { file: "span", components: ["BaseSpan"] },
+    ]
 
     constructor(
         private sourceFile: ts.SourceFile,
@@ -117,18 +125,28 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return `read${name}`
     }
 
+    private importStatements(currentFileName: string): string[] {
+        return PeerGeneratorVisitor.imports
+            .filter(it => !currentFileName.endsWith(`/${it.file}.d.ts`))
+            .map(it => {
+                const entities = it.components.map(it => [`Ark${it}Peer`, `Ark${it}Attributes`]).join(", ")
+                return `import { ${entities} } from "./${it.file}"`
+            })
+    }
+
     visitWholeFile(): stringOrNone[] {
-        let isCommon = this.sourceFile.fileName.endsWith("common.d.ts") ?? false;
-        [
-            `import { runtimeType, functionToInt32, withLength, withLengthArray } from "../../utils/ts/SerializerBase"`,
-            `import { Serializer } from "./Serializer"`,
-            isCommon ? undefined : `import { ArkComponentPeer, ArkComponentAttributes } from "./common"`,
-            `import { int32 } from "../../utils/ts/types"`,
-            `import { nativeModule } from "./NativeModule"`,
-            `import { PeerNode, KPointer, nullptr } from "../../utils/ts/Interop"`,
-            `type Callback = Function`,
-            `type ErrorCallback = Function`,
-        ].forEach(it => this.printTS(it))
+        this.importStatements(this.sourceFile.fileName)
+            .concat([
+                `import { runtimeType, functionToInt32, withLength, withLengthArray } from "../../utils/ts/SerializerBase"`,
+                `import { Serializer } from "./Serializer"`,
+                `import { int32 } from "../../utils/ts/types"`,
+                `import { nativeModule } from "./NativeModule"`,
+                `import { PeerNode, Finalizable, KPointer, nullptr } from "../../utils/ts/Interop"`,
+                `type Callback = Function`,
+                `type ErrorCallback = Function`,
+                `type Style = any` // Style extends ProgressStyleMap from progress.d.ts
+            ])
+            .forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
 
         forEachExpanding(this.serializerRequests, (it) => {
@@ -147,31 +165,38 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return this.printerC.getOutput()
     }
 
-    // Reduce to "CommonMethod" only once will learn how to follow generic class declarations.
-    static needsPeerRoots = [ "CommonMethod"]
-
-    needsPeer(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
-        let name = decl.name?.text
-        if (!name) return false
-        if (this.interfacesToGenerate.size > 0) {
-            return this.interfacesToGenerate.has(name)
-        }
-        let isCommon = PeerGeneratorVisitor.needsPeerRoots.indexOf(name) >= 0
+    private isRootMethodInheritor(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
+        let isRoot = false
         decl.heritageClauses?.forEach(it => {
             heritageDeclarations(this.typeChecker, it).forEach(it => {
                 let name = asString(it.name)
-                isCommon = isCommon || PeerGeneratorVisitor.needsPeerRoots.indexOf(name) >= 0
+                isRoot = isRoot || PeerGeneratorConfig.rootComponents.includes(name)
                 // TODO: find a way to follow ts.TypeQuery as well.
                 if (!ts.isTypeReferenceNode(it)) return
                 let superDecls = getDeclarationsByNode(this.typeChecker, it.typeName)
                 if (superDecls.length > 0) {
                     let superDecl = superDecls[0]
                     if (ts.isClassDeclaration(superDecl) || ts.isInterfaceDeclaration(superDecl))
-                        isCommon = isCommon || this.needsPeer(superDecl)
+                        isRoot = isRoot || this.isRootMethodInheritor(superDecl)
                 }
             })
         })
-        return isCommon
+        return isRoot
+    }
+
+    needsPeer(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
+        let name = decl.name?.text
+        if (!name) return false
+        if (PeerGeneratorConfig.skipPeerGeneration.includes(name)) return false
+
+        if (this.interfacesToGenerate.size > 0) {
+            return this.interfacesToGenerate.has(name)
+        }
+
+        if (PeerGeneratorConfig.standaloneComponents.includes(name)) return true
+        if (PeerGeneratorConfig.rootComponents.includes(name)) return true
+        if (this.isRootMethodInheritor(decl)) return true
+        return false
     }
 
     visit(node: ts.Node) {
@@ -589,16 +614,54 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     prologue(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        let clazzName = nameOrNull(node.name)!
-        let component = clazzName.replace("Attribute", "")
-        let isComponent = false
-        if (component == "CommonMethod") {
-            component = "Component"
-            isComponent = true
-        }
-        this.printTS(`export class Ark${component}Peer extends ${isComponent ? "PeerNode" : "ArkComponentPeer"} {`)
+        const componentName = this.renameToKoalaComponent(nameOrNull(node.name)!)
+        const peerParentName = this.peerParentName(node)
+
+        const extendsClause =
+            peerParentName
+                ? `extends ${peerParentName} `
+                : ""
+        this.printTS(`export class ${componentName}Peer ${extendsClause} {`)
         this.pushIndentTS()
-        this.printTS(`attributes?: Ark${component}Attributes`)
+    }
+
+    private parentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
+        const heritage = component.heritageClauses
+            ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)
+
+        return heritage?.[0].types[0].expression.getText()
+    }
+
+    private peerParentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
+        const componentName = nameOrNull(component.name)!
+        const parentName = this.parentName(component)
+
+        if (PeerGeneratorConfig.commonMethod.includes(componentName)) return "PeerNode"
+        if (PeerGeneratorConfig.standaloneComponents.includes(componentName)) return "PeerNode" // for now
+        if (PeerGeneratorConfig.rootComponents.includes(componentName)) return "Finalizable"
+
+        return parentName
+            ? this.renameToKoalaComponent(parentName) + "Peer"
+            : "ArkCommonPeer"
+    }
+
+    private attributesParentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
+        const componentName = nameOrNull(component.name)!
+        const parentName = this.parentName(component)
+
+        if (PeerGeneratorConfig.commonMethod.includes(componentName)) return undefined
+        if (PeerGeneratorConfig.rootComponents.includes(componentName)) return undefined
+
+        return parentName
+            ? (this.renameToKoalaComponent(parentName) + "Attributes")
+            : undefined
+    }
+
+    private renameToKoalaComponent(name: string): string {
+        return "Ark"
+            .concat(name)
+            .replace("Attribute", "")
+            .replace("Method", "")
     }
 
     epilogue() {
@@ -607,29 +670,33 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     processApplyMethod(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        let clazzName = nameOrNull(node.name)!
-        let isCommon = clazzName == "CommonMethodAttribute"
-        let component = clazzName.replace("Attribute", "")
-        if (component == "CommonMethod") {
-            component = "Component"
+        const component = nameOrNull(node.name)!.replace("Attribute", "")
+
+        const typeParam = this.renameToKoalaComponent(component) + "Attributes"
+        if (PeerGeneratorConfig.rootComponents.includes(component)) {
+            this.printTS(`applyAttributes(attributes: ${typeParam}): void {`)
+            this.pushIndentTS()
+            this.printTS(`super.constructor(42)`)
+            this.popIndentTS()
+            this.printTS(`}`)
+            return
         }
-        const interfaceName = `Ark${component}Attributes`
-        this.printTS(`applyAttributes${isCommon ? `<T extends ${interfaceName}>` : ``}(attributes: ${isCommon ? `T` : interfaceName}): void {`)
+
+        this.printTS(`applyAttributes<T extends ${typeParam}>(attributes: T): void {`)
         this.pushIndentTS()
-        this.printTS(isCommon ? undefined : `super.applyAttributes(attributes)`)
+        this.printTS(`super.applyAttributes(attributes)`)
         this.popIndentTS()
         this.printTS(`}`)
     }
 
     private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const className = nameOrNull(node.name)!
-        let component = className.replace("Attribute", "")
-        let extendsClause = "extends ArkComponentAttributes"
-        if (component == "CommonMethod") {
-            component = "Component"
-            extendsClause = ""
-        }
-        this.printTS(`export interface Ark${component}Attributes ${extendsClause} {`)
+        const component = nameOrNull(node.name)!.replace("Attribute", "")
+        const parent = this.attributesParentName(node)
+        const extendsClause =
+            parent
+                ? ` extends ${parent} `
+                : ""
+        this.printTS(`export interface ${this.renameToKoalaComponent(component)}Attributes ${extendsClause} {`)
         this.pushIndentTS()
         node.members.forEach(child => {
             if (ts.isMethodDeclaration(child)) {

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { IndentedPrinter } from "./IndentedPrinter"
-import { PeerGeneratorVisitor, RuntimeType } from "./PeerGeneratorVisitor"
+import { PeerGeneratorVisitor, RuntimeType } from "./peer-generation/PeerGeneratorVisitor"
 import * as ts from "typescript"
 
 export interface ArgConvertor {
@@ -198,10 +198,12 @@ export class EnumConvertor extends BaseArgConvertor {
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} as int32`)
+        // as unknown for non-int enums, so it wouldn't clutter compiler diagnostic
+        printer.print(`${value} as unknown as int32`)
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${param}Serializer.writeInt32(${value} as int32)`)
+        // as unknown for non-int enums, so it wouldn't clutter compiler diagnostic
+        printer.print(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
     }
     convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value}`)
