@@ -94,7 +94,7 @@ export class SortingEmitter extends IndentedPrinter {
     print(value: stringOrNone) {
         // console.log("print", this.currentPrinter, value)
         if (!this.currentPrinter) throw new Error("startEmit() first")
-        if (value) this.currentPrinter.print(this.indented(value))
+        if (value) this.currentPrinter.print(value)
     }
 
     pushIndent(): void {

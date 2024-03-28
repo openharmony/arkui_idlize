@@ -734,7 +734,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
-        const typeParams = this.typeParamsClause(type)
+        this.printerSerializerTS.pushIndent()
         this.printerSerializerTS.print(`write${name}(value: ${name}|undefined) {`)
         this.printerSerializerTS.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
@@ -764,6 +764,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         this.printerSerializerTS.popIndent()
         this.printerSerializerTS.print(`}`)
+        this.printerSerializerTS.popIndent()
     }
     private generateDeserializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
         if (["Array", "ErrorCallback", "Length"].indexOf(name) != -1) return

@@ -29,11 +29,46 @@ export class IndentedPrinter {
         this.indent--
     }
 
-    indented(input: string): string {
+    private indented(input: string): string {
         return indentedBy(input, this.indent)
     }
 
     getOutput(): string[] {
         return this.output
+    }
+}
+
+export class IndentedPrinterWithHeader extends IndentedPrinter {
+    header = new IndentedPrinter()
+    body = new IndentedPrinter()
+
+    constructor() {
+        super()
+    }
+
+    print(value: stringOrNone) {
+        this.body.print(value)
+    }
+
+    printHeader(value: stringOrNone) {
+        this.header.print(value)
+    }
+
+    pushIndent() {
+        this.body.pushIndent()
+    }
+    popIndent() {
+        this.body.popIndent()
+    }
+
+    pushIndentHeader() {
+        this.header.pushIndent()
+    }
+    popIndentHeader() {
+        this.header.popIndent()
+    }
+
+    getOutput(): string[] {
+        return this.header.getOutput().concat(this.body.getOutput())
     }
 }
