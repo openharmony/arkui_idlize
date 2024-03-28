@@ -23,6 +23,16 @@ node . --linter --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/comp
 Results are in `./<outputDir>/linter.txt` if  `--output-dir` parameter specified, otherwise printed to stdout.
 If there are no unsuppressed errors - exit code is 1, otherwise it is 0.
 
+Linter support whitelist files in JSON:
+```json
+{
+    "suppressErrors": ["TYPE_ELEMENT_TYPE", "INDEX_SIGNATURE"],
+    "suppressIdentifiers": {
+        "cursorControl": ["NAMESPACE"]
+    }
+}
+```
+can be passed with `--linter-whitelist whitelist.json`.
 
 ### IDL generator
 

@@ -43,7 +43,7 @@ const options = program
     .option('--idl2h', 'Convert IDL to .h definitions')
     .option('--linter', 'Run linter')
     .option('--linter-suppress-errors <suppress>', 'Error codes to suppress, comma separated, no space')
-    .option('--linter-suppress-locations <suppress>', 'Error locations to suppress, comma separated, no space')
+    .option('--linter-whitelist <whitelist.json>', 'Whitelist for linter')
     .option('--verbose', 'Verbose processing')
     .option('--verify-idl', 'Verify produced IDL')
     .option('--skip-docs', 'Emit no docs to idl')
@@ -145,7 +145,7 @@ if (options.linter) {
             onBegin: () => {},
             onEnd: (outputDir) => {
                 const outFile = options.outputDir ? path.join(outputDir, "linter.txt") : undefined
-                let [generated, exitCode] = toLinterString(allEntries, options.linterSuppressErrors, options.linterSuppressLocations)
+                let [generated, exitCode] = toLinterString(allEntries, options.linterSuppressErrors, options.linterWhitelist)
                 if (!outFile || options.verbose) console.log(generated)
                 if (outFile) fs.writeFileSync(outFile, generated)
                 process.exit(exitCode)

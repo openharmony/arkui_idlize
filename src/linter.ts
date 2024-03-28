@@ -17,6 +17,7 @@ import * as ts from "typescript"
 import { GenericVisitor } from "./options"
 import * as path from "path"
 import { asString, getDeclarationsByNode, getLineNumberString, nameOrNullForIdl } from "./util"
+import { LinterWhitelist } from "./LinterWhitelist"
 
 export enum LinterError {
     NONE,
@@ -45,10 +46,11 @@ export interface LinterMessage {
     pos: string
     message: string,
     error: LinterError
+    node: ts.Node
 }
 
 function stringMessage(message: LinterMessage): string {
-    return `${message.pos} - [${message.error}] ${message.message}`
+    return `${message.pos} - [${LinterError[message.error]}] ${message.message}`
 }
 
 let allInterfaces = new Map<string, string>()
@@ -142,7 +144,6 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     }
 
     checkType(type: ts.TypeNode | undefined): void {
-        console.log(type?.kind)
         if (!type) return
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
             let parent = type.parent
@@ -165,7 +166,6 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             })
         }
         if (ts.isUnionTypeNode(type)) {
-            console.log(type.getText())
             type.types.forEach(it => {
                 this.checkType(it)
             })
@@ -249,7 +249,6 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.report(property, LinterError.PRIVATE_VISIBILITY, `Private visibility is useless: ${property.getText(this.sourceFile)}`)
             }
         })
-        console.log(asString(property.name), asString(property.type))
         this.checkType(property.type)
         this.checkName(property.name)
     }
@@ -280,28 +279,29 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             file: this.sourceFile,
             pos: `${path.basename(this.sourceFile.fileName)}:${getLineNumberString(this.sourceFile, node.getStart(this.sourceFile, false))}`,
             message: message,
-            error: error
+            error: error,
+            node: node
         })
     }
 }
 
 export function toLinterString(allEntries: Array<LinterMessage[]>,
     suppressErrors: string | undefined,
-    suppressLocations: string | undefined
+    whitelistFile: string | undefined
 ): [string, number] {
     const suppressedErrorsSet = new Set<LinterError>()
     if (suppressErrors) {
         suppressErrors.split(",").forEach(it => suppressedErrorsSet.add(Number(it) as LinterError))
     }
-    const suppressLocationsSet = new Set<string>()
-    if (suppressLocations) {
-        suppressLocations.split(",").forEach(it => suppressLocationsSet.add(it))
+    let whitelist: LinterWhitelist| undefined = undefined
+    if (whitelistFile) {
+        whitelist = new LinterWhitelist(whitelistFile)
     }
     let errors = allEntries
         .flatMap(entries =>
             entries
                 .filter(it => !suppressedErrorsSet.has(it.error))
-                .filter(it => !suppressLocationsSet.has(it.pos))
+                .filter(it => whitelist ? !whitelist.shallSuppress(it) : true)
                 .map(stringMessage)
         )
         .filter(element => (element?.length ?? 0) > 0)
