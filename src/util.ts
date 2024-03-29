@@ -171,13 +171,8 @@ export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.C
         heritageDeclarations(typeChecker, it).forEach(it => {
             let name = asString(it.name)
             isRoot = isRoot || PeerGeneratorConfig.rootComponents.includes(name)
-            if (!ts.isTypeReferenceNode(it)) return
-            let superDecls = getDeclarationsByNode(typeChecker, it.typeName)
-            if (superDecls.length > 0) {
-                let superDecl = superDecls[0]
-                if (ts.isClassDeclaration(superDecl))
-                    isRoot = isRoot || isCommonMethodOrSubclass(typeChecker, superDecl)
-            }
+            if (!ts.isClassDeclaration(it)) return
+            isRoot = isRoot || isCommonMethodOrSubclass(typeChecker, it)
         })
     })
     return isRoot

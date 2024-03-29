@@ -23,6 +23,7 @@ import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, isCommonMethodOrSubclass, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
+import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 
 const typeMapper = new Map<string, string>(
     [
@@ -142,8 +143,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         let result: IDLExtendedAttribute[] = []
         if (isClass) result.push({name: "Class"})
         let name = asString(node.name)
-        if (name.endsWith("Attribute") && name != "CommonAttribute") {
-            result.push({name: "Component", value: name.substring(0, name.length - 9)})
+        if (ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
+            result.push({name: "Component", value: PeerGeneratorConfig.mapComponentName(name)})
         }
         return result.length > 0 ? result : undefined
     }
