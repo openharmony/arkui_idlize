@@ -15,8 +15,6 @@
 import * as ts from "typescript"
 import {
     asString,
-    getSuperClasses,
-    getDeclarationByTypeNode,
     capitalize,
     dropSuffix,
     forEachExpanding,
@@ -26,8 +24,7 @@ import {
     isDefined,
     nameOrNull,
     stringOrNone,
-    typeOrUndefined,
-    mapCInteropType
+    typeOrUndefined
 } from "../util"
 import { GenericVisitor } from "../options"
 import { IndentedPrinter } from "../IndentedPrinter"
@@ -106,7 +103,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         outputC: string[],
         outputSerializersTS: string[],
         outputSerializersC: string[],
-        outputStructsForwardC: IndentedPrinter,
+        outputStructsForwardC: string[],
         outputStructsC: SortingEmitter,
         apiHeaders: string[],
         apiHeadersList: string[]
@@ -115,7 +112,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
         this.printerSerializerC = new IndentedPrinter(outputSerializersC)
         this.printerStructsC = outputStructsC
-        this.printerTypedefsC = outputStructsForwardC
+        this.printerTypedefsC = new IndentedPrinter(outputStructsForwardC)
         this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
         this.apiPrinter = new IndentedPrinter(apiHeaders)
         this.apiPrinterList = new IndentedPrinter(apiHeadersList)
@@ -878,7 +875,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerTS.print(`}`)
         this.printerSerializerTS.popIndent()
     }
-
     private generateDeserializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
         if (PeerGeneratorConfig.ignoreSerialization.indexOf(name) != -1) return
         this.printerSerializerC.print(`${name} read${name}() {`)
@@ -902,7 +898,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         }
         if (isStruct) {
+            // TODO: support subclasses.
             this.printerStructsC.startEmit(this.typeChecker, type!)
+            this.printerStructsC.print(`struct ${name} {`)
+            this.printerStructsC.pushIndent()
+            this.printerStructsC.print(`${name}() {}`)
+            this.printerStructsC.print(`~${name}() {}`)
         }
         if (declarations.length > 0) {
             this.printerSerializerC.print(`Deserializer& valueDeserializer = *this;`)
@@ -926,6 +927,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.printerSerializerC.print(`return value;`)
         } else {
             this.printerSerializerC.print(`throw new Error("Implement ${name} manually");`)
+        }
+        if (isStruct) {
+            this.printerStructsC.popIndent()
+            this.printerStructsC.print(`};`)
         }
         this.printerSerializerC.popIndent()
         this.printerSerializerC.print(`}`)
@@ -954,6 +959,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             ? `<${typeParams}>`
             : ""
     }
+}
+
+function mapCInteropType(type: ts.TypeNode): string {
+    if (ts.isTypeReferenceNode(type)) {
+        let name = ts.idText(type.typeName as ts.Identifier)
+        switch (name) {
+            case "number": return "KInt"
+        }
+        return "KPointer"
+    }
+    return "Any"
 }
 
 interface RetConvertor {
