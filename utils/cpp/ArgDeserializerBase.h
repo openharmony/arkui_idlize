@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include <cassert>
+#include <cstring>
 #include <string>
 #include <vector>
 

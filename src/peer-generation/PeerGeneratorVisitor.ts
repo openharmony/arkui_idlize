@@ -80,7 +80,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private printerNativeModule: IndentedPrinter
     private printerSerializerC: IndentedPrinter
     private printerStructsC: SortingEmitter
-    private printerStructsForwardC: IndentedPrinter
+    private printerTypedefsC: IndentedPrinter
     private printerSerializerTS: IndentedPrinter
     private serializerRequests: TypeAndName[] = []
     private apiPrinter: IndentedPrinter
@@ -112,7 +112,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
         this.printerSerializerC = new IndentedPrinter(outputSerializersC)
         this.printerStructsC = outputStructsC
-        this.printerStructsForwardC = new IndentedPrinter(outputStructsForwardC)
+        this.printerTypedefsC = new IndentedPrinter(outputStructsForwardC)
         this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
         this.apiPrinter = new IndentedPrinter(apiHeaders)
         this.apiPrinterList = new IndentedPrinter(apiHeadersList)
@@ -885,16 +885,20 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         let isAlias = declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])
         let isStruct = !isEnum && !isAlias
         if (isEnum) {
-            this.printerStructsForwardC.print(`typedef int32_t ${name};`)
+            this.printerTypedefsC.print(`typedef int32_t ${name};`)
         }
         if (isAlias) {
             let decl = declarations[0] as ts.TypeAliasDeclaration
             let typeConvertor = this.typeConvertor("XXX", decl.type)
-            this.printerStructsForwardC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
+            if (ts.isUnionTypeNode(decl.type)) { // TODO: tuples? functions?
+                this.printerStructsC.startEmit(this.typeChecker, decl.type, name)
+                this.printerStructsC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
+            } else {
+                this.printerTypedefsC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
+            }
         }
         if (isStruct) {
             // TODO: support subclasses.
-            this.printerStructsForwardC.print(`struct ${name};`)
             this.printerStructsC.startEmit(this.typeChecker, type!)
             this.printerStructsC.print(`struct ${name} {`)
             this.printerStructsC.pushIndent()
