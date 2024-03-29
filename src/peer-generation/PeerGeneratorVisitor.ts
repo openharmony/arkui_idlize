@@ -42,6 +42,7 @@ import {
     NumberConvertor,
     StringConvertor,
     TypedConvertor,
+    TupleConvertor,
     UndefinedConvertor,
     UnionConvertor
 } from "./Convertors"
@@ -595,13 +596,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             throw new Error(`Unsupported literal type: ${type.literal.kind}` + type.getText(this.sourceFile))
         }
         if (ts.isTupleTypeNode(type)) {
-            return new EmptyConvertor(param)
+            return new TupleConvertor(param, this, type)
         }
         if (ts.isFunctionTypeNode(type)) {
             return new FunctionConvertor(param, this)
         }
         if (ts.isParenthesizedTypeNode(type)) {
             return this.typeConvertor(param, type.type)
+        }
+        if (ts.isOptionalTypeNode(type)) {
+            // TBD: Possible implement OptionalConvertor
         }
         if (ts.isImportTypeNode(type)) {
             return new TypedConvertor(asString(type.qualifier), type, param, this)

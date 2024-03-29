@@ -25,6 +25,16 @@ declare interface UICommonEvent {
     setOnClick(callback: Callback<ClickEvent> | undefined): void;
 }
 
+declare enum SheetSize {
+    MEDIUM,
+    LARGE,
+    FIT_CONTENT = 2,
+}
+
+declare interface ContentCoverOptions extends BindOptions {
+    // detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
+}
+
 declare class CommonMethod<T> {
 
     constructor();
@@ -32,6 +42,8 @@ declare class CommonMethod<T> {
     width(value: Length): T;
 
     height(value: Length): T;
+
+    bindContentCover(isShow: boolean, builder: CustomBuilder, options?: ContentCoverOptions): T;
 }
 
 declare interface Rectangle {
@@ -46,6 +58,11 @@ declare interface Rectangle {
 }
 
 declare class CommonAttribute extends CommonMethod<CommonAttribute> {}
+
+declare class CommonShapeMethod<T> extends CommonMethod<T> {
+
+    constructor();
+}
 
 declare class ScrollableCommonMethod<T> extends CommonMethod<T> {}
 

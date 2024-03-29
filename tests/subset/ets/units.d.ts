@@ -20,6 +20,24 @@ declare type Length = string | number | Resource;
 
 declare type ResourceColor = Color | number | string | Resource;
 
+declare type PX = `${number}px`;
+
+declare type VP = `${number}vp` | number;
+
+declare type FP = `${number}fp`;
+
+declare type LPX = `${number}lpx`;
+
+declare type Dimension = PX | VP | FP | LPX | Percentage | Resource;
+
+
+declare type Offset = {
+
+    dx: Length;
+
+    dy: Length;
+};
+
 declare interface Position {
 
     x?: Length;

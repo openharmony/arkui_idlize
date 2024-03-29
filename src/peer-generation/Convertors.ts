@@ -442,38 +442,63 @@ export class FunctionConvertor extends TypedConvertor {
         super("Function", undefined, param, visitor)
     }
 }
-/*
-tupleConvertor(param: string, value: string, type: ts.TupleTypeNode): ArgConvertor {
-    let memberConvertors = type
-        .elements
-        .filter(ts.isPropertySignature)
-        .map(element => this.typeConvertor(param, value, element))
-    return {
-        param: param,
-        value: value,
-        runtimeTypes: [RuntimeType.OBJECT, RuntimeType.UNDEFINED],
-        isScoped: false,
-        useArray: true,
-        estimateSize: () => {
-            let result = 0
-            memberConvertors.forEach(it => result += it.estimateSize())
-            return result
-        },
-        nativeType: () => "Tuple",
-        interopType: () => "KPointer",
-        convertorTSArg: (param: string) => { throw new Error("Do not use") },
-        convertorToTSSerial: (param: string, value: string) => {
-            memberConvertors.forEach(it => {
-                it.convertorToTSSerial(param, value)
-            })
-        },
-        convertorCArg: (param: string) => { throw new Error("Do not use") },
-        convertorToCDeserial: (param: string, value: string) => {
-            console.log("TODO: tuple convertor")
-        }
+
+export class TupleConvertor extends BaseArgConvertor {
+    memberConvertors: ArgConvertor[]
+
+    constructor(param: string, protected visitor: PeerGeneratorVisitor, private elementType: ts.TupleTypeNode) {
+        super(`[${elementType.elements.map(mapTsType).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
+        this.memberConvertors = elementType
+            .elements
+            .map(element => visitor.typeConvertor(param, element))
+    }
+
+    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+        throw new Error("Must never be used")
+    }
+
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${param}Serializer.writeInt8(runtimeType(${value}))`)
+        printer.print(`if (${value} !== undefined) {`)
+        printer.pushIndent()
+        this.memberConvertors.forEach((it, index) => {
+            printer.print(`let ${value}_${index} = ${value}[${index}]`)
+            it.convertorToTSSerial(param, `${value}_${index}`, printer)
+        })
+        printer.popIndent()
+        printer.print(`}`)
+    }
+
+    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
+        throw new Error("Must never be used")
+    }
+
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`auto ${value}_tag = ${param}Deserializer.readInt8();`)
+        printer.print(`if (${value}_tag != ${RuntimeType.UNDEFINED}) {`) // TODO: `else value = nullptr` ?
+        printer.pushIndent()
+        this.memberConvertors.forEach((it, index) => {
+            let valueName = `${value}_${index}`
+            printer.print(`${it.nativeType()} ${valueName};`)
+            it.convertorToCDeserial(param, valueName, printer)
+            printer.print(`${value}.value${index} = ${valueName};`)
+        })
+        printer.popIndent()
+        printer.print(`}`)
+    }
+    nativeType(): string {
+        return mapCType(this.elementType)
+    }
+    interopType(ts: boolean): string {
+        return "KPointer"
+    }
+
+    estimateSize() {
+        return this.memberConvertors
+            .map(it => it.estimateSize())
+            .reduce((sum, current) => sum + current, 0)
     }
 }
-*/
 
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
@@ -585,6 +610,12 @@ function mapCType(type: ts.TypeNode): string {
     if (ts.isFunctionTypeNode(type)) {
         return "Function"
     }
+
+    if (ts.isParenthesizedTypeNode(type)) {
+        // TBD: Map ParenthesizedType to CType
+        return `${mapCType(type.type)})`
+    }
+
     if (type.kind == ts.SyntaxKind.NumberKeyword) {
         return "KFloat"
     }
