@@ -14,6 +14,7 @@
  */
 
 import * as ts from "typescript"
+import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 
 // Several things stolen from our memo plugin
 // for easier life
@@ -163,10 +164,22 @@ export function dropSuffix(text: string, suffix: string): string {
 
 export type stringOrNone = string | undefined
 
-export function isCommonAttribute(name: string): boolean {
-    return name == "CommonMethod"
-        || name == "CommonShapeMethod"
-        || name == "ScrollableCommonMethod"
+export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
+    let isRoot = false
+    decl.heritageClauses?.forEach(it => {
+        heritageDeclarations(typeChecker, it).forEach(it => {
+            let name = asString(it.name)
+            isRoot = isRoot || PeerGeneratorConfig.rootComponents.includes(name)
+            if (!ts.isTypeReferenceNode(it)) return
+            let superDecls = getDeclarationsByNode(typeChecker, it.typeName)
+            if (superDecls.length > 0) {
+                let superDecl = superDecls[0]
+                if (ts.isClassDeclaration(superDecl))
+                    isRoot = isRoot || isCommonMethodOrSubclass(typeChecker, superDecl)
+            }
+        })
+    })
+    return isRoot
 }
 
 export function toSet(option: string | undefined): Set<string> {
@@ -178,10 +191,6 @@ export function toSet(option: string | undefined): Set<string> {
     }
     return set
 }
-
-/*export function enumElementName<T: EnumType>(element: T): string {
-    return Object.keys(T)[Object.values(T).indexOf(element)]
-}*/
 
 export function indentedBy(input: string, indentedBy: number): string {
     let space = ""

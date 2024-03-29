@@ -20,7 +20,7 @@ import {
     IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType
 } from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, isCommonAttribute, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, isCommonMethodOrSubclass, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
 
@@ -462,8 +462,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (ts.isTypeParameterDeclaration(declaration)) {
             let parent = declaration.parent
             if (ts.isClassDeclaration(parent)) {
-                let declName = asString(parent.name)
-                return isCommonAttribute(declName)
+                return isCommonMethodOrSubclass(this.typeChecker, parent)
             }
         }
         return false
@@ -538,9 +537,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     isCommonAttributeMethod(method: ts.MethodDeclaration|ts.MethodSignature): boolean {
         let parent = method.parent
-        if (ts.isClassDeclaration(parent) || ts.isInterfaceDeclaration(parent)) {
-            let parentName = asString(parent.name)
-            return isCommonAttribute(parentName) || parentName.endsWith("Attribute")
+        if (ts.isClassDeclaration(parent)) {
+            return isCommonMethodOrSubclass(this.typeChecker, parent)
         }
         return false
     }

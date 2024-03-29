@@ -20,6 +20,7 @@ import {
     forEachExpanding,
     getDeclarationsByNode,
     heritageDeclarations,
+    isCommonMethodOrSubclass,
     isDefined,
     nameOrNull,
     stringOrNone,
@@ -166,22 +167,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private isRootMethodInheritor(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
-        let isRoot = false
-        decl.heritageClauses?.forEach(it => {
-            heritageDeclarations(this.typeChecker, it).forEach(it => {
-                let name = asString(it.name)
-                isRoot = isRoot || PeerGeneratorConfig.rootComponents.includes(name)
-                // TODO: find a way to follow ts.TypeQuery as well.
-                if (!ts.isTypeReferenceNode(it)) return
-                let superDecls = getDeclarationsByNode(this.typeChecker, it.typeName)
-                if (superDecls.length > 0) {
-                    let superDecl = superDecls[0]
-                    if (ts.isClassDeclaration(superDecl) || ts.isInterfaceDeclaration(superDecl))
-                        isRoot = isRoot || this.isRootMethodInheritor(superDecl)
-                }
-            })
-        })
-        return isRoot
+        if (ts.isClassDeclaration(decl)) {
+            return isCommonMethodOrSubclass(this.typeChecker, decl)
+        }
+        return false
     }
 
     needsPeer(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {

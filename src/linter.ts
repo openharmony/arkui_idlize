@@ -16,7 +16,7 @@
 import * as ts from "typescript"
 import { GenericVisitor } from "./options"
 import * as path from "path"
-import { asString, getDeclarationsByNode, getLineNumberString, nameOrNullForIdl } from "./util"
+import { asString, getDeclarationsByNode, getLineNumberString, isCommonMethodOrSubclass, nameOrNullForIdl } from "./util"
 import { LinterWhitelist } from "./LinterWhitelist"
 
 export enum LinterError {
@@ -207,9 +207,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (ts.isTypeParameterDeclaration(declaration)) {
             let parent = declaration.parent
             if (ts.isClassDeclaration(parent)) {
-                let declName = asString(parent.name)
-                // TODO: shall we indeed ignore CommonShapeMethod.
-                return declName != "CommonMethod" && declName != "CommonShapeMethod"
+                return isCommonMethodOrSubclass(this.typeChecker, parent)
             }
         }
         return false
