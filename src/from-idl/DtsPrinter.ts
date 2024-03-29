@@ -43,9 +43,23 @@ export class CustomPrintVisitor  {
         }
     }
 
-    printClass(node: IDLInterface) {
+    computeDeclaration(node: IDLInterface): string {
         let keyword = hasExtAttribute(node, "Class") ? "class" : "interface"
-        this.print(`declare ${keyword} ${node.name} {`)
+        let typeOrExtends = ""
+        if (hasExtAttribute(node, "Component")) {
+            if (node.name == "CommonMethod")
+                typeOrExtends = "<T>"
+            else
+            typeOrExtends = ` extends CommonMethod<${getExtAttribute(node, "Component")}Attribute>`
+        }
+        return `${keyword} ${node.name}${typeOrExtends}`
+    }
+
+    currentInterface?: IDLInterface
+
+    printClass(node: IDLInterface) {
+        this.print(`declare ${this.computeDeclaration(node)} {`)
+        this.currentInterface = node
         this.pushIndent()
         node.constructors.map(it => this.visit(it))
         node.properties.map(it => this.visit(it))
@@ -80,7 +94,8 @@ export class CustomPrintVisitor  {
     printProperty(node: IDLProperty) {
         const isCommonMethod = hasExtAttribute(node, "CommonMethod")
         if (isCommonMethod) {
-            this.print(`${node.name}(value: ${printTypeForTS(node.type)}): this;`)
+            let returnType = this.currentInterface!.name == "CommonMethod" ? "T" : this.currentInterface!.name
+            this.print(`${node.name}(value: ${printTypeForTS(node.type)}): ${returnType};`)
         } else {
             this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${node.name}${node.isOptional ? "?" : ""}: ${printTypeForTS(node.type)};`)
 
@@ -141,6 +156,7 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     if (type.name == "undefined" && undefinedToVoid) return "void"
     if (type.name == "int32" || type.name == "float32") return "number"
     if (type.name == "DOMString") return "string"
+    if (type.name == "this") return "T"
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type))
         return `${mapContainerType(type.name)}<${type.elementType.map(it => printTypeForTS(it)).join("\n")}>`
