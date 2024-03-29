@@ -17,7 +17,7 @@ import * as path from "path"
 import {
     createAnyType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
     createTypeParameterReference, createUndefinedType, createUnionType, getExtAttribute, IDLCallable, IDLCallback, IDLConstructor,
-    IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType
+    IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType, IDLTypedef
 } from "./idl"
 import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, isCommonMethodOrSubclass, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
@@ -102,8 +102,17 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
     }
 
-    serializeTypeAlias(node: ts.TypeAliasDeclaration): IDLEntry {
+    serializeTypeAlias(node: ts.TypeAliasDeclaration): IDLTypedef | IDLFunction | IDLInterface {
         const name = nameOrUndefined(node.name) ?? "UNDEFINED_TYPE_NAME"
+        if (ts.isImportTypeNode(node.type)) {
+            let original = node.type.getText()
+            return {
+                kind: IDLKind.Typedef,
+                name: name,
+                extendedAttributes: [ { name: "VerbatimDts", value: `"${original}"` }],
+                type: createReferenceType(`Imported${name}`)
+            }
+        }
         if (ts.isFunctionTypeNode(node.type)) {
             return this.serializeFunctionType(name, node.type)
         }
@@ -436,12 +445,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return createStringType()
         }
         if (ts.isImportTypeNode(type)) {
-            this.warn(`import type: ${type.getText(this.sourceFile)}`)
+            let originalText = `${type.getText(this.sourceFile)}`
+            this.warn(`import type: ${originalText}`)
             let where = type.argument.getText(type.getSourceFile()).split("/").map(it => it.replaceAll("'", ""))
             let what = asString(type.qualifier)
             let typeName = `/* ${type.getText(this.sourceFile)} */ ` + sanitize(what == "default" ? "Imported" + where[where.length - 1] : "Imported" +  what)
             let result = createReferenceType(typeName)
-            result.extendedAttributes = [{ name: "Import", value: type.argument.getText(this.sourceFile)}]
+            result.extendedAttributes = [{ name: "Import", value: originalText}]
             return result
         }
         if (ts.isNamedTupleMember(type)) {

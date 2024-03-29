@@ -452,6 +452,7 @@ export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone
     if (skipInitializers) {
         return [
             idl.documentation,
+            ...printExtendedAttributes(idl, 0),
             `enum ${idl.name!} {`,
             ...idl.elements.map(it => indentedBy(`${it.name} ${(it.initializer ? " /* " + it.initializer + " */" : "")}`, 1)),
             "};"
@@ -459,6 +460,7 @@ export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone
     } else {
         return [
             idl.documentation,
+            ...printExtendedAttributes(idl, 0),
             `dictionary ${idl.name!} {`,
             ...idl.elements.map(printEnumMember) as any,
             "};"
@@ -469,6 +471,7 @@ export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone
 export function printTypedef(idl: IDLTypedef): stringOrNone[] {
     return [
         idl.documentation,
+        ...printExtendedAttributes(idl, 0),
         `typedef ${printType(idl.type)} ${idl.name!};`
     ]
 }
