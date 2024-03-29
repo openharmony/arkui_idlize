@@ -33,7 +33,6 @@ export interface ArgConvertor {
     param: string
 }
 
-
 export abstract class BaseArgConvertor implements ArgConvertor {
     constructor(
         public tsTypeName: string,
@@ -607,15 +606,20 @@ function mapCType(type: ts.TypeNode): string {
             .map(it => mapCType(it))
             .join(", ")}>`
     }
+    if (ts.isOptionalTypeNode(type)) {
+        return `Union<${mapCType(type.type)}, Undefined>`
+    }
     if (ts.isFunctionTypeNode(type)) {
         return "Function"
     }
-
     if (ts.isParenthesizedTypeNode(type)) {
         // TBD: Map ParenthesizedType to CType
         return `${mapCType(type.type)})`
     }
-
+    if (ts.isNamedTupleMember(type)) {
+        // TBD: Map ParenthesizedType to CType
+        return `${mapCType(type.type)})`
+    }
     if (type.kind == ts.SyntaxKind.NumberKeyword) {
         return "KFloat"
     }

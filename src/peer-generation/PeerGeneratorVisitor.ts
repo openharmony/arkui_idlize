@@ -48,6 +48,7 @@ import {
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { createAnyType } from "../idl"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -413,7 +414,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     generateAPIParameters(argConvertors: ArgConvertor[]): string[] {
         return (["ArkUINodeHandle node"].concat(argConvertors.map(it => {
             return `${it.nativeType()} ${it.param}`
-        }))) 
+        })))
     }
 
     // TODO: may be this is another method of ArgConvertor?
@@ -605,13 +606,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return this.typeConvertor(param, type.type)
         }
         if (ts.isOptionalTypeNode(type)) {
-            // TBD: Possible implement OptionalConvertor
+            // TODO: implement OptionalConvertor
+            return new AnyConvertor(param)
         }
         if (ts.isImportTypeNode(type)) {
             return new TypedConvertor(asString(type.qualifier), type, param, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)
+        }
+        if (ts.isNamedTupleMember(type)) {
+            // TODO: implement NamedTupleConvertor
+            return new AnyConvertor(param)
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
             return new AnyConvertor(param)
@@ -989,17 +995,9 @@ ${methods.join("\n")}
 
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `
-#include "arkoala_api.h"
 #include "Interop.h"
 #include "Deserializer.h"
-
-enum ArkUIAPIVariantKind {
-    BASIC = 1,
-    FULL = 2,
-    GRAPHICS = 3,
-    EXTENDED = 4,
-    COUNT = EXTENDED + 1,
-};
+#include "arkoala_api.h"
 
 static ArkUIAnyAPI* impls[ArkUIAPIVariantKind::COUNT] = { 0 };
 
