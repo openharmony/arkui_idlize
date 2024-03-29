@@ -25,7 +25,7 @@ import { printHeader, toHeaderString, wrapWithPrologueAndEpilogue } from "./idl2
 import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { bridgeCcDeclaration, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./peer-generation/PeerGeneratorVisitor"
+import { bridgeCcDeclaration, makeApiHeaders, makeApiModifiers, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./peer-generation/PeerGeneratorVisitor"
 import { isDefined, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
 import { SortingEmitter } from "./peer-generation/SortingEmitter"
@@ -222,6 +222,8 @@ if (options.dts2peer) {
     const structsC = new SortingEmitter()
     const structsForwardC: string[] = []
     const serializerTS: string[] = []
+    const apiHeaders: string[] = []
+    const apiHeadersList: string[] = []
 
     generate(
         options.inputDir,
@@ -236,7 +238,9 @@ if (options.dts2peer) {
             serializerTS,
             deserializerC,
             structsForwardC,
-            structsC
+            structsC,
+            apiHeaders,
+            apiHeadersList
         ),
         {
             compilerOptions: defaultCompilerOptions,
@@ -259,6 +263,7 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(serializerTS))
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(structsForwardC, structsC.getOutput(), deserializerC))
+                fs.writeFileSync(path.join(outDir, 'arkoala-api.h'), makeApiHeaders(apiHeaders) + makeApiModifiers(apiHeadersList))
             }
         }
     )

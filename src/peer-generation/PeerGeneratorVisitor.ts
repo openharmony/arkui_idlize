@@ -81,6 +81,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private printerStructsForwardC: IndentedPrinter
     private printerSerializerTS: IndentedPrinter
     private serializerRequests: TypeAndName[] = []
+    private apiPrinter: IndentedPrinter
+    private apiPrinterList: IndentedPrinter
 
     private static imports = [
         { file: "common", components: ["Common", "ScrollableCommon", "CommonShape"]},
@@ -100,7 +102,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         outputSerializersTS: string[],
         outputSerializersC: string[],
         outputStructsForwardC: string[],
-        outputStructsC: SortingEmitter
+        outputStructsC: SortingEmitter,
+        apiHeaders: string[],
+        apiHeadersList: string[]
     ) {
         this.printerC = new IndentedPrinter(outputC)
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
@@ -108,6 +112,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerStructsC = outputStructsC
         this.printerStructsForwardC = new IndentedPrinter(outputStructsForwardC)
         this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
+        this.apiPrinter = new IndentedPrinter(apiHeaders)
+        this.apiPrinterList = new IndentedPrinter(apiHeadersList)
     }
 
     requestType(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
@@ -289,6 +295,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerC.print(value)
     }
 
+    printAPI(value: stringOrNone) {
+        this.apiPrinter.print(value)
+    }
+
+    printNodeModifier(value: stringOrNone) {
+        this.apiPrinterList.print(`const ArkUI${value}Modifier* (*get${value}Modifier)();`)
+    }
+
     seenMethods = new Set<string>()
 
     processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
@@ -306,6 +320,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             console.log(`WARNING: ignore duplicate method ${methodName}`)
             return
         }
+        let capitalizedMethodName = methodName[0].toUpperCase() + methodName.substring(1)
+        this.printAPI(`void (*set${capitalizedMethodName})(${this.generateAPIParameters(argConvertors).join(", ")});`)
         this.seenMethods.add(methodName)
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         let cName = `_${componentName}_${methodName}Impl`
@@ -393,6 +409,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return `set${capitalize(methodName)}`
     }
 
+    generateAPIParameters(argConvertors: ArgConvertor[]): string[] {
+        return (["ArkUINodeHandle node"].concat(argConvertors.map(it => {
+            return `${it.nativeType()}* ${it.param}`
+        }))) 
+    }
+
     // TODO: may be this is another method of ArgConvertor?
     apiArgument(argConvertor: ArgConvertor): string {
         if (argConvertor.useArray) return `${argConvertor.param}Value`
@@ -477,6 +499,19 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
     popIndentC() {
         this.printerC.popIndent()
+    }
+
+    pushIndentAPI() {
+        this.apiPrinter.pushIndent()
+    }
+    popIndentAPI() {
+        this.apiPrinter.popIndent()
+    }
+    pushIndentAPIList() {
+        this.apiPrinterList.pushIndent()
+    }
+    popIndentAPIList() {
+        this.apiPrinterList.popIndent()
     }
 
     typeConvertor(param: string, type: ts.TypeNode): ArgConvertor {
@@ -612,6 +647,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 : ""
         this.printTS(`export class ${componentName}Peer ${extendsClause} {`)
         this.pushIndentTS()
+        this.printAPI(`struct ArkUI${componentName.substring(3)}Modifier {`)
+        this.pushIndentAPI()
+        this.pushIndentAPIList()
+        this.printNodeModifier(componentName.substring(3))
     }
 
     private parentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
@@ -656,6 +695,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     epilogue() {
         this.popIndentTS()
         this.printTS(`}`)
+        this.popIndentAPI()
+        this.printAPI(`};\n`)
+        this.popIndentAPIList()
     }
 
     processApplyMethod(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
@@ -985,5 +1027,23 @@ class Deserializer : public ArgDeserializerBase
 
 ${serializers.join("\n  ")}
 };
+`
+}
+
+export function makeApiModifiers(lines: string[]): string {
+    return `
+/**
+ * An API to control an implementation. When making changes modifying binary
+ * layout, i.e. adding new events - increase ARKUI_API_VERSION above for binary
+ * layout checks.
+ */
+struct ArkUINodeModifiers {
+${lines.join("\n")}
+}
+`
+}
+
+export function makeApiHeaders(lines: string[]): string {
+    return `${lines.join("\n")}
 `
 }
