@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IndentedPrinter } from "./IndentedPrinter"
-import { PeerGeneratorVisitor, RuntimeType } from "./peer-generation/PeerGeneratorVisitor"
+import { IndentedPrinter } from "../IndentedPrinter"
+import { PeerGeneratorVisitor, RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 
 export interface ArgConvertor {
@@ -315,6 +315,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 printer.print(`${it.nativeType()} ${variantValue};`)
                 it.convertorToCDeserial(param, variantValue, printer)
                 printer.print(`${value}.value${index} = ${variantValue};`)
+                printer.print(`${value}.selector = ${index};`)
                 printer.popIndent()
                 printer.print(`}`)
             })
@@ -504,14 +505,16 @@ export class ArrayConvertor extends BaseArgConvertor {
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         // Array length.
-        printer.print(`auto ${value}_tag = ${param}Serializer.readInt8();`)
+        printer.print(`auto ${value}_tag = ${param}Deserializer.readInt8();`)
         printer.print(`if (${value}_tag != ${RuntimeType.UNDEFINED}) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
-        printer.print(`auto ${value}_length = ${param}Serializer.readInt32();`)
+        printer.print(`auto ${value}_length = ${param}Deserializer.readInt32();`)
         printer.print(`${mapCType(this.elementType)} ${value}[${value}_length];`)
         printer.print(`for (int i = 0; i < ${value}_length; i++) {`)
         printer.pushIndent()
-        this.elementConvertor.convertorToCDeserial(param, `${value}[i]`, printer)
+        printer.print(`${mapCType(this.elementType)} ${value}_element;`)
+        this.elementConvertor.convertorToCDeserial(param, `${value}_element`, printer)
+        printer.print(`${value}[i] = ${value}_element;`);
         printer.popIndent()
         printer.print(`}`)
         printer.popIndent()
@@ -563,7 +566,41 @@ function mapCType(type: ts.TypeNode): string {
     if (ts.isTypeReferenceNode(type)) {
         return ts.idText(type.typeName as ts.Identifier)
     }
-    return "Any"
+    if (ts.isUnionTypeNode(type)) {
+        return `Union<${type.types.map(it => mapCType(it)).join(", ")}>`
+    }
+    if (ts.isTypeLiteralNode(type)) {
+        return `Compound<${type
+            .members
+            .filter(ts.isPropertySignature)
+            .map(it => mapCType(it.type!))
+            .join(", ")}>`
+    }
+    if (ts.isTupleTypeNode(type)) {
+        return `Compound<${type
+            .elements
+            .map(it => mapCType(it))
+            .join(", ")}>`
+    }
+    if (ts.isFunctionTypeNode(type)) {
+        return "Function"
+    }
+    if (type.kind == ts.SyntaxKind.NumberKeyword) {
+        return "KFloat"
+    }
+    if (type.kind == ts.SyntaxKind.StringKeyword) {
+        return "string"
+    }
+    if (type.kind == ts.SyntaxKind.ObjectKeyword) {
+        return "Object"
+    }
+    if (type.kind == ts.SyntaxKind.BooleanKeyword) {
+        return "KBoolean"
+    }
+    if (type.kind == ts.SyntaxKind.AnyKeyword) {
+        return "Any"
+    }
+    throw new Error(`Cannot map ${type.getText()}: ${type.kind}`)
 }
 
 function mapTsType(type: ts.TypeNode): string {

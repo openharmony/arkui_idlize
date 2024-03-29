@@ -153,6 +153,12 @@ export class SerializerBase {
     writeFunction(value: object) {
         throw new Error("Functions not yet supported")
     }
+    writeCallback(value: object) {
+        this.writeFunction(value)
+    }
+    writeErrorCallback(value: object) {
+        this.writeFunction(value)
+    }
     writeString(value: string|undefined) {
         if (value == undefined) {
             this.checkCapacity(1)

@@ -43,7 +43,7 @@ import {
     TypedConvertor,
     UndefinedConvertor,
     UnionConvertor
-} from "../Convertors"
+} from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 
@@ -801,6 +801,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
+        if (PeerGeneratorConfig.ignoreSerialization.indexOf(name) != -1) return
         this.printerSerializerTS.pushIndent()
         this.printerSerializerTS.print(`write${name}(value: ${name}|undefined) {`)
         this.printerSerializerTS.pushIndent()
@@ -834,7 +835,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerTS.popIndent()
     }
     private generateDeserializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
-        if (["Array", "ErrorCallback", "Length"].indexOf(name) != -1) return
+        if (PeerGeneratorConfig.ignoreSerialization.indexOf(name) != -1) return
         this.printerSerializerC.print(`${name} read${name}() {`)
         this.printerSerializerC.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
@@ -987,7 +988,7 @@ ${structsForward.join("\n")}
 
 ${structs.join("\n")}
 
-class Deserializer : ArgDeserializerBase
+class Deserializer : public ArgDeserializerBase
 {
   public:
     Deserializer(uint8_t *data, int32_t length)

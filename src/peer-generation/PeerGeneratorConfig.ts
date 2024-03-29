@@ -1,6 +1,8 @@
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]
 
+    public static ignoreSerialization = ["Array", "Callback", "ErrorCallback", "Length"]
+
     public static readonly rootComponents = [
         "CommonMethod",
         "ScrollableCommonMethod",

@@ -50,6 +50,31 @@ struct Union
 {
   Union() : selector(-1) {}
   Union(int32_t selector) : selector(selector) {}
+  Union& operator=(const Union& other) {
+    this->selector = other.selector;
+    switch (selector)
+    {
+    case 0:
+      this->value0 = other.value0;
+      break;
+    case 1:
+      this->value1 = other.value1;
+      break;
+    case 2:
+      this->value2 = other.value2;
+      break;
+    case 3:
+      this->value3 = other.value3;
+      break;
+    case 4:
+      this->value4 = other.value4;
+      break;
+    case 5:
+      this->value5 = other.value5;
+      break;
+    }
+    return *this;
+  }
   Union(const Union<T0, T1, T2, T3, T4, T5> &other)
   {
     this->selector = other.selector;
@@ -140,9 +165,13 @@ struct Any
 
 struct Function
 {
-  Function() {}
+  int32_t id;
+  Function() : id(0) {}
   ~Function() {}
 };
+
+typedef Function Callback;
+typedef Function ErrorCallback;
 
 struct String
 {
@@ -366,6 +395,22 @@ public:
     result += length;
     return result;
   }
+
+  Function readFunction()
+  {
+    throw std::string("no readFunction");
+  }
+
+  Callback readCallback()
+  {
+    return readFunction();
+  }
+
+  ErrorCallback readErrorCallback()
+  {
+    return readFunction();
+  }
+
 };
 
 // TODO: a stub
