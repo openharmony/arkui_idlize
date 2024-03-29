@@ -28,6 +28,7 @@ import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { bridgeCcDeclaration, makeApiHeaders, makeApiModifiers, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./peer-generation/PeerGeneratorVisitor"
 import { isDefined, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
+import { IndentedPrinter } from "./IndentedPrinter"
 import { SortingEmitter } from "./peer-generation/SortingEmitter"
 
 const options = program
@@ -219,8 +220,9 @@ if (options.dts2peer) {
     const nativeMethods: string[] = []
     const bridgeCcArray: string[] = []
     const deserializerC: string[] = []
-    const structsC = new SortingEmitter()
     const structsForwardC: string[] = []
+    const printerStructsForwardC: IndentedPrinter = new IndentedPrinter(structsForwardC)
+    const structsC = new SortingEmitter(printerStructsForwardC)
     const serializerTS: string[] = []
     const apiHeaders: string[] = []
     const apiHeadersList: string[] = []
@@ -237,7 +239,7 @@ if (options.dts2peer) {
             bridgeCcArray,
             serializerTS,
             deserializerC,
-            structsForwardC,
+            printerStructsForwardC,
             structsC,
             apiHeaders,
             apiHeadersList

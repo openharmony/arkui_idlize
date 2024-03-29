@@ -37,6 +37,24 @@ const keywords = new Map<string, string>(
     ]
 )
 
+
+// TODO: complete the type judgement, such as uniontype...
+export function mapCInteropType(type: ts.TypeNode): string {
+    if (!type) return "Any"
+    if (ts.isTypeReferenceNode(type)) {
+        let name = ts.idText(type.typeName as ts.Identifier)
+        switch (name) {
+            case "number": return "KInt"
+            case "NumberKeyword": return "KInt"
+            case "string": return "std::string"
+            case "boolean": return "KBoolean"
+            default: return `${name}`
+        }
+        return "KPointer"
+    }
+    return "Any"
+}
+
 export function nameOrNullForIdl(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {
     if (name == undefined) return undefined
 
@@ -64,7 +82,7 @@ export function isNamedDeclaration(node: ts.Node): node is ts.NamedDeclaration {
 export function asString(node: ts.Node | undefined): string {
     if (node === undefined) return "undefined node"
     if (ts.isIdentifier(node)) return ts.idText(node)
-    if (ts.isStringLiteral(node)) return node.text
+    if (ts.isStringLiteral(node) || ts.isNumericLiteral(node)) return node.text
     if (isNamedDeclaration(node)) {
         if (node.name === undefined) {
             return `${ts.SyntaxKind[node.kind]}(undefined name)`
@@ -244,6 +262,28 @@ export function heritageDeclarations(typechecker: ts.TypeChecker, clause: ts.Her
             return decls[0] ?? undefined
         })
         .filter(isDefined)
+}
+
+export function getDeclarationByTypeNode(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined): ts.NamedDeclaration | undefined {
+    if (!type) return
+    if (!ts.isTypeReferenceNode(type)) return
+    let decls = getDeclarationsByNode(typeChecker, type.typeName)
+    if (decls.length > 0) {
+        return decls[0]
+    }
+}
+
+export function getSuperClasses(typechecker: ts.TypeChecker, node: ts.Node | undefined): string[] {
+    let superClasses = new Array<string>()
+    if (!node) return superClasses
+    if (ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node)) {
+        node.heritageClauses?.forEach(it => {
+            heritageDeclarations(typechecker, it).map(it => {
+                superClasses.push(asString(it.name))
+            })
+        })
+    }
+    return superClasses
 }
 
 export function typeName(type: ts.TypeReferenceNode|ts.TypeQueryNode): string {

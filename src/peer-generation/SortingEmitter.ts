@@ -15,15 +15,21 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, heritageTypes, stringOrNone } from "../util";
+import {
+    asString, getDeclarationsByNode, heritageTypes, stringOrNone, getDeclarationByTypeNode,
+    getSuperClasses, mapCInteropType, heritageDeclarations
+} from "../util";
 
 export class SortingEmitter extends IndentedPrinter {
     currentPrinter?: IndentedPrinter
     emitters = new Map<string, IndentedPrinter>()
     deps = new Map<string, Set<string>>()
+    private static generatedStructs = new Set<string>()
+    printerStructsForwardC: IndentedPrinter
 
-    constructor() {
+    constructor(printerStructsForwardC: IndentedPrinter) {
         super()
+        this.printerStructsForwardC = printerStructsForwardC
     }
 
     private fillDeps(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined, seen: Set<string>) {
@@ -68,16 +74,86 @@ export class SortingEmitter extends IndentedPrinter {
         }
     }
 
+    printStructsCHead(name: string, parent: string) {
+        this.printerStructsForwardC.print(`struct ${name};`)
+        this.print(`struct ${name}${parent === "" ? "" : " : public " + parent} {`)
+        this.pushIndent()
+        this.print(`${name}() {}`)
+        this.print(`~${name}() {}`)
+    }
+
+    printStructsCProperty(modifier: string, type: string, property: string, initializer: string) {
+        this.print(`${modifier}: ${type} ${property}${initializer === "" ? "" : " = "}${initializer};`)
+    }
+
+    printStructsCMethod(modifier: string, retType: string, methodName: string, params: string, body: string) {
+        // TODO: complete the function params and body
+        this.print(`${modifier}: ${retType} ${methodName}() {}`)
+    }
+
+    printStructsCTail() {
+        this.popIndent()
+        this.print(`};`)
+    }
+
+    printStructs(typeChecker: ts.TypeChecker, declaration: ts.NamedDeclaration | undefined) {
+        if (!declaration) return
+        if (SortingEmitter.generatedStructs.has(asString(declaration.name))) return
+        const ancestors = getSuperClasses(typeChecker, declaration).map(it => it).join(", ")
+        this.printStructsCHead(asString(declaration.name), ancestors)
+        if (ts.isClassDeclaration(declaration) || ts.isInterfaceDeclaration(declaration)) {
+            for (const item of declaration.members) {
+                if (ts.isPropertyDeclaration(item) || ts.isPropertySignature(item)) {
+                    const modifier = item.modifiers ? asString(item.modifiers[0]) : "public"
+                    const property = asString(item.name)
+                    const type = mapCInteropType(item.type!)
+                    const initializer = item.initializer ? asString(item.initializer) : ""
+                    this.printStructsCProperty(modifier, type, property, initializer)
+                    continue
+                }
+                if (ts.isMethodDeclaration(item) || ts.isMethodSignature(item)) {
+                    const modifier = item.modifiers ? asString(item.modifiers[0]) : "public"
+                    const methodName = asString(item.name)
+                    const type = mapCInteropType(item.type!)
+                    this.printStructsCMethod(modifier, type, methodName, "", "")
+                    continue
+                }
+            }
+        }
+        this.printStructsCTail()
+        SortingEmitter.generatedStructs.add(asString(declaration.name))
+    }
+
+    private generateAncestors(typeChecker: ts.TypeChecker, type: ts.TypeNode) {
+        const decl = getDeclarationByTypeNode(typeChecker, type)
+        if (!decl) return
+        if (!ts.isClassDeclaration(decl) && !ts.isInterfaceDeclaration(decl)) return
+        const heritages = decl.heritageClauses
+            ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword || it.token == ts.SyntaxKind.ImplementsKeyword)
+            .forEach(it => {
+                for (const declaration of heritageDeclarations(typeChecker, it)) {
+                    // Recursion, if the parent class also has a parent class
+                    if (ts.isTypeReferenceNode(declaration)) this.generateAncestors(typeChecker, declaration)
+                    this.printStructs(typeChecker, declaration)
+                }
+            })
+    }
+
     startEmit(typeChecker: ts.TypeChecker, type: ts.TypeNode, name: string | undefined = undefined) {
+        let next = new IndentedPrinter()
+        this.currentPrinter = next
+
+        this.generateAncestors(typeChecker, type)
+        const decl = getDeclarationByTypeNode(typeChecker, type)
+        this.printStructs(typeChecker, decl!)
+
         const repr = this.repr(type, name)
         if (this.emitters.has(repr)) throw new Error("Already emitted")
-        let next = new IndentedPrinter()
         let seen = new Set<string>()
         this.fillDeps(typeChecker, type, seen)
         seen.delete(repr)
         this.deps.set(repr, seen)
         this.emitters.set(repr, next)
-        this.currentPrinter = next
         if (seen.size > 0)
             console.log(`${repr}: depends on ${Array.from(seen.keys()).join(",")}`)
     }
