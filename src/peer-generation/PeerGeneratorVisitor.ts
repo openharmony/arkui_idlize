@@ -411,7 +411,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     generateAPIParameters(argConvertors: ArgConvertor[]): string[] {
         return (["ArkUINodeHandle node"].concat(argConvertors.map(it => {
-            return `${it.nativeType()}* ${it.param}`
+            return `${it.nativeType()} ${it.param}`
         }))) 
     }
 
@@ -985,8 +985,31 @@ ${methods.join("\n")}
 
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `
+#include "arkoala_api.h"
 #include "Interop.h"
 #include "Deserializer.h"
+
+enum ArkUIAPIVariantKind {
+    BASIC = 1,
+    FULL = 2,
+    GRAPHICS = 3,
+    EXTENDED = 4,
+    COUNT = EXTENDED + 1,
+};
+
+static ArkUIAnyAPI* impls[ArkUIAPIVariantKind::COUNT] = { 0 };
+
+const ArkUIAnyAPI* GetAnyImpl(ArkUIAPIVariantKind kind, int version, std::string* result) {
+    return impls[kind];
+}
+
+const ArkUIFullNodeAPI* GetFullImpl(std::string* result = nullptr) {
+    return reinterpret_cast<const ArkUIFullNodeAPI*>(GetAnyImpl(ArkUIAPIVariantKind::FULL, ARKUI_FULL_API_VERSION, result));
+}
+
+const ArkUINodeModifiers* GetNodeModifiers() {
+    return GetFullImpl()->getNodeModifiers();
+}
 
 ${bridgeCc.join("\n")}
 `
@@ -1039,11 +1062,32 @@ export function makeApiModifiers(lines: string[]): string {
  */
 struct ArkUINodeModifiers {
 ${lines.join("\n")}
-}
+};
+
+/**
+ * An API to control an implementation. When making changes modifying binary
+ * layout, i.e. adding new events - increase ARKUI_NODE_API_VERSION above for binary
+ * layout checks.
+ */
+struct ArkUIFullNodeAPI {
+    const ArkUINodeModifiers* (*getNodeModifiers)();
+};
+
+struct ArkUIAnyAPI {
+    ArkUI_Int32 version;
+};
 `
 }
 
 export function makeApiHeaders(lines: string[]): string {
-    return `${lines.join("\n")}
+    return `enum ArkUIAPIVariantKind {
+    BASIC = 1,
+    FULL = 2,
+    GRAPHICS = 3,
+    EXTENDED = 4,
+    COUNT = EXTENDED + 1,
+};
+
+${lines.join("\n")}
 `
 }

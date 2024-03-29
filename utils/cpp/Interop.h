@@ -3,9 +3,18 @@
 typedef int32_t KInt;
 typedef float KFloat;
 typedef int KBoolean;
+typedef int ArkUI_Int32;
 typedef void* KPointer;
 typedef void* KNativePointer;
 typedef void* ArkUINodeHandle;
+
+#define ARKUI_FULL_API_VERSION 1
+
+#define ARKUI_BASIC_API_VERSION 1
+#define ARKUI_EXTENDED_API_VERSION 1
+#define ARKUI_NODE_GRAPHICS_API_VERSION 1
+#define ARKUI_NODE_MODIFIERS_API_VERSION 1
+#define ARKUI_AUTO_GENERATE_NODE_ID 1
 
 #define KOALA_INTEROP_0(name, Ret)
 #define KOALA_INTEROP_1(name, Ret, P0)
