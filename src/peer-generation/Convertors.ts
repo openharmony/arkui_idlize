@@ -347,7 +347,7 @@ export class UnionConvertor extends BaseArgConvertor {
 
 export class AggregateConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
-    private members: string[][] = []
+    private members: string[] = []
 
     constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeLiteralNode) {
         // Enums are integers in runtime.
@@ -356,9 +356,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             .members
             .filter(ts.isPropertySignature)
             .map((member, index) => {
-            let memberName = ts.idText(member.name as ts.Identifier)
-            let memberType = mapCType(member.type!)
-            this.members[index] = [memberName, memberType]
+            this.members[index] = ts.idText(member.name as ts.Identifier)
             // ${member.questionToken ? "?" : ""}
             return visitor.typeConvertor(param, member.type!)
         })
@@ -369,7 +367,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         this.memberConvertors.forEach((it, index) => {
-            let memberName = this.members[index][0]
+            let memberName = this.members[index]
             printer.print(`let ${value}_${memberName} = ${value}?.${memberName}`)
             it.convertorToTSSerial(param, `${value}_${memberName}`, printer)
         })
@@ -379,10 +377,9 @@ export class AggregateConvertor extends BaseArgConvertor {
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         this.memberConvertors.forEach((it, index) => {
-            let memberName = this.members[index][0]
-            let memberType = this.members[index][1]
+            let memberName = this.members[index]
             let memberLocal = `${value}_${memberName}`
-            printer.print(`${memberType} ${memberLocal};`)
+            printer.print(`${it.nativeType()} ${memberLocal};`)
             it.convertorToCDeserial(param, memberLocal, printer)
             printer.print(`${value}.value${index} = ${memberLocal};`)
         })
@@ -474,7 +471,7 @@ export class TupleConvertor extends BaseArgConvertor {
 
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`auto ${value}_tag = ${param}Deserializer.readInt8();`)
-        printer.print(`if (${value}_tag != ${RuntimeType.UNDEFINED}) {`) // TODO: `else value = nullptr` ?
+        printer.print(`if (${value}_tag != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         this.memberConvertors.forEach((it, index) => {
             let valueName = `${value}_${index}`
@@ -530,7 +527,7 @@ export class ArrayConvertor extends BaseArgConvertor {
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         // Array length.
         printer.print(`auto ${value}_tag = ${param}Deserializer.readInt8();`)
-        printer.print(`if (${value}_tag != ${RuntimeType.UNDEFINED}) {`) // TODO: `else value = nullptr` ?
+        printer.print(`if (${value}_tag != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         printer.print(`auto ${value}_length = ${param}Deserializer.readInt32();`)
         printer.print(`${mapCType(this.elementType)} ${value}[${value}_length];`)
@@ -546,7 +543,7 @@ export class ArrayConvertor extends BaseArgConvertor {
 
     }
     nativeType(): string {
-        return mapCType(this.elementType)
+        return `Array<${mapCType(this.elementType)}>`
     }
     interopType(ts: boolean): string {
         return "KPointer"
@@ -579,7 +576,7 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 
     interopType(): string {
-        return "KInt"
+        return "Number"
     }
     estimateSize() {
         return 4
@@ -614,17 +611,17 @@ function mapCType(type: ts.TypeNode): string {
     }
     if (ts.isParenthesizedTypeNode(type)) {
         // TBD: Map ParenthesizedType to CType
-        return `${mapCType(type.type)})`
+        return `${mapCType(type.type)}`
     }
     if (ts.isNamedTupleMember(type)) {
         // TBD: Map ParenthesizedType to CType
-        return `${mapCType(type.type)})`
+        return `${mapCType(type.type)}`
     }
     if (type.kind == ts.SyntaxKind.NumberKeyword) {
-        return "KFloat"
+        return "Number"
     }
     if (type.kind == ts.SyntaxKind.StringKeyword) {
-        return "string"
+        return "String"
     }
     if (type.kind == ts.SyntaxKind.ObjectKeyword) {
         return "Object"
