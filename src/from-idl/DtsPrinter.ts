@@ -50,7 +50,10 @@ export class CustomPrintVisitor  {
             if (node.name == "CommonMethod")
                 typeOrExtends = "<T>"
             else
-            typeOrExtends = ` extends CommonMethod<${getExtAttribute(node, "Component")}Attribute>`
+                typeOrExtends = ` extends CommonMethod<${getExtAttribute(node, "Component")}Attribute>`
+        }
+        if (hasExtAttribute(node, "Parametrized")) {
+            typeOrExtends = `<${getExtAttribute(node, "Parametrized")}>`
         }
         return `${keyword} ${node.name}${typeOrExtends}`
     }

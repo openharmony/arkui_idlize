@@ -16,8 +16,7 @@
 import { LinterError, LinterMessage } from "./linter";
 
 import * as fs from "fs"
-import * as ts from "typescript"
-import { asString } from "./util";
+import { identName } from "./util";
 
 export class LinterWhitelist {
     suppressErrors = new Set<LinterError>()
@@ -67,51 +66,3 @@ export class LinterWhitelist {
     }
 }
 
-function identName(node: ts.Node): string | undefined {
-    if (node.kind == ts.SyntaxKind.AnyKeyword) return `any`
-    if (node.kind == ts.SyntaxKind.ObjectKeyword) return `object`
-    if (ts.isTypeReferenceNode(node)) {
-        return identString(node.typeName)
-    }
-    if (ts.isModuleDeclaration(node)) {
-        return identString(node.name)
-    }
-    if (ts.isFunctionDeclaration(node)) {
-        return identString(node.name)
-    }
-    if (ts.isPropertyDeclaration(node)) {
-        // TODO: mention parent's name
-        return identString(node.name)
-    }
-    if (ts.isInterfaceDeclaration(node)) {
-        return identString(node.name)
-    }
-    if (ts.isClassDeclaration(node)) {
-        return identString(node.name)
-    }
-    if (ts.isEnumMember(node)) {
-        return identString(node.name)
-    }
-    if (ts.isComputedPropertyName(node)) {
-        return identString(node)
-    }
-    if (ts.isIdentifier(node)) return identString(node)
-    if (ts.isImportTypeNode(node)) return `imported ${identString(node.qualifier)}`
-    if (ts.isTypeLiteralNode(node)) return `TypeLiteral`
-    if (ts.isTupleTypeNode(node)) return `TupleType`
-    if (ts.isIndexSignatureDeclaration(node)) return `IndexSignature`
-    if (ts.isIndexedAccessTypeNode(node)) return `IndexedAccess`
-    if (ts.isTemplateLiteralTypeNode(node)) return `TemplateLiteral`
-    throw new Error(`Unknown: ${asString(node)} ${node.kind}`)
-}
-
-function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName |  ts.NumericLiteral | ts.ComputedPropertyName  | undefined): string | undefined {
-    if (!node) return undefined
-    if (ts.isStringLiteral(node)) return node.text
-    if (ts.isNumericLiteral(node)) return node.text
-    if (ts.isIdentifier(node)) return ts.idText(node)
-    if (ts.isQualifiedName(node)) return `${identString(node.left)}.${identName(node.right)}`
-    if (ts.isComputedPropertyName(node)) return "<computed property>"
-
-    throw new Error("Unknown")
-}

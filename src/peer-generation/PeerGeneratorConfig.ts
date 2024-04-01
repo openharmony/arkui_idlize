@@ -17,6 +17,8 @@ export class PeerGeneratorConfig {
 
     public static ignoreSerialization = ["Array", "Callback", "ErrorCallback", "Length"]
 
+    private static knownParametrized = [ "Indicator", "AttributeModifier" ]
+
     public static readonly rootComponents = [
         "CommonMethod",
         "SecurityComponentMethod"
@@ -34,5 +36,9 @@ export class PeerGeneratorConfig {
         if (originalName.endsWith("Attribute"))
             return originalName.substring(0, originalName.length - 9)
         return originalName
+    }
+
+    static isKnownParametrized(name: string | undefined) : boolean {
+        return name != undefined && PeerGeneratorConfig.knownParametrized.indexOf(name) != -1
     }
 }

@@ -20,7 +20,7 @@ import {
     IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType, IDLTypedef
 } from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, isCommonMethodOrSubclass, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -151,9 +151,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     computeExtendedAttributes(isClass: boolean, node: ts.ClassDeclaration | ts.InterfaceDeclaration): IDLExtendedAttribute[] | undefined {
         let result: IDLExtendedAttribute[] = []
         if (isClass) result.push({name: "Class"})
-        let name = asString(node.name)
-        if (ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
+        let name = identName(node.name)
+        if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
             result.push({name: "Component", value: PeerGeneratorConfig.mapComponentName(name)})
+        }
+        if (PeerGeneratorConfig.isKnownParametrized(name)) {
+            result.push({name: "Parametrized", value: "T"})
         }
         return result.length > 0 ? result : undefined
     }
@@ -327,8 +330,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     isKnownParametrizedType(type: ts.TypeNode): boolean {
         if (!ts.isTypeReferenceNode(type)) return false
-        const name = asString((type.parent.parent as ts.NamedDeclaration).name)
-        return name == "Indicator"
+        let parent = type.parent
+        while (parent && !ts.isClassDeclaration(parent) && !ts.isInterfaceDeclaration(parent)) {
+            parent = parent.parent
+        }
+        if (!parent) return false
+        const name = identName(parent.name)
+        return PeerGeneratorConfig.isKnownParametrized(name)
     }
 
     warn(message: string) {
