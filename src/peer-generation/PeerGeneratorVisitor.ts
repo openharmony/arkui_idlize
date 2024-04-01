@@ -264,6 +264,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     mapType(type: ts.TypeNode | undefined): string {
         if (type && ts.isTypeReferenceNode(type)) {
+
+            if (ts.isQualifiedName(type.typeName)) {
+                // get the left identifier for the enum qualified name type ref
+                let identifierType = asString(type.typeName.left);
+                return `${identifierType} /* actual type ${type.getText()} */`
+            }
+
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
             // TODO: plain wrong!
             if (declaration.length == 0) return "any"
