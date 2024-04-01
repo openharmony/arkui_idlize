@@ -16,7 +16,14 @@
 import * as ts from "typescript"
 import { GenericVisitor } from "./options"
 import * as path from "path"
-import { asString, getDeclarationsByNode, getLineNumberString, isCommonMethodOrSubclass, nameOrNullForIdl } from "./util"
+import {
+    asString,
+    getDeclarationsByNode,
+    getLineNumberString,
+    isCommonMethodOrSubclass,
+    nameOrNullForIdl,
+    zip
+} from "./util"
 import { LinterWhitelist } from "./LinterWhitelist"
 
 export enum LinterError {
@@ -38,7 +45,8 @@ export enum LinterError {
     PRIVATE_VISIBILITY,
     TOP_LEVEL_FUNCTIONS,
     ANY_KEYWORD,
-    TYPE_ELEMENT_TYPE
+    TYPE_ELEMENT_TYPE,
+    INTERFACE_METHOD_TYPE_INCONSISTENT_WITH_PARENT
 }
 
 export interface LinterMessage {
@@ -107,6 +115,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.visitProperty(child)
             }
         })
+        this.checkClassInheritance(clazz)
     }
 
     checkClassDuplicate(clazz: ts.InterfaceDeclaration | ts.ClassDeclaration) {
@@ -281,9 +290,89 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             node: node
         })
     }
+
+    private checkClassInheritance(node: ts.ClassDeclaration) {
+        const inheritance = node.heritageClauses
+            ?.filter(it => it.token === ts.SyntaxKind.ExtendsKeyword)
+        if (inheritance === undefined || inheritance.length === 0) return
+
+        const parent = inheritance[0].types[0].expression
+        const parentDeclaration = getDeclarationsByNode(this.typeChecker, parent).find(ts.isClassDeclaration)
+        if (parentDeclaration === undefined) return
+
+        const nodeMethods = this.getMethodsTypes(node)
+        const parentMethods = this.getMethodsTypes(parentDeclaration)
+
+        nodeMethods.forEach((nodeMethod: ts.FunctionTypeNode, methodName: string) => {
+            const parentMethod = parentMethods.get(methodName)
+            if (parentMethod === undefined) return
+
+            if (!this.satisfies(nodeMethod, parentMethod)) {
+                this.report(
+                    node,
+                    LinterError.INTERFACE_METHOD_TYPE_INCONSISTENT_WITH_PARENT,
+                    `${node.name!.getText()} - ${methodName}`
+                )
+            }
+        })
+    }
+
+    private getMethodsTypes(node: ts.ClassDeclaration): Map<string, ts.FunctionTypeNode> {
+        const map = new Map()
+        node.members
+            .filter(ts.isMethodDeclaration)
+            .forEach(it =>
+                map.set(
+                    it.name.getText(),
+                    ts.factory.createFunctionTypeNode(
+                        undefined,
+                        it.parameters,
+                        it.type!
+                    )
+                )
+            )
+        return map
+    }
+
+    /*
+        ts.typechecker doesn't provide the functionality to check if type1 satisfies type2,
+        so we'll implement it for functional types, by comparing recursively number of parameters
+
+        currently, this one's needed only to report ScrollAttribute
+     */
+    private satisfies(
+        subtypeFunction: ts.FunctionTypeNode,
+        supertypeFunction: ts.FunctionTypeNode
+    ): boolean {
+        if (subtypeFunction.parameters.length != supertypeFunction.parameters.length) return false
+
+        return zip(subtypeFunction.parameters, supertypeFunction.parameters)
+            .every(([subtypeParam, supertypeParam]) => {
+                const subtype = this.followDeclarationFunctionalType(subtypeParam.type!)
+                if (subtype === undefined) return true
+                const supertype = this.followDeclarationFunctionalType(supertypeParam.type!)
+                if (supertype === undefined) return true
+
+                return this.satisfies(subtype, supertype);
+            })
+    }
+
+    private followDeclarationFunctionalType(node: ts.TypeNode): ts.FunctionTypeNode | undefined {
+        if (ts.isFunctionTypeNode(node)) return node
+        if (!ts.isTypeReferenceNode(node)) return undefined
+
+        const declaredType = getDeclarationsByNode(this.typeChecker, node.typeName)
+            .find(ts.isTypeAliasDeclaration)
+            ?.type
+
+        return declaredType && ts.isFunctionTypeNode(declaredType)
+            ? declaredType
+            : undefined
+    }
 }
 
-export function toLinterString(allEntries: Array<LinterMessage[]>,
+export function toLinterString(
+    allEntries: Array<LinterMessage[]>,
     suppressErrors: string | undefined,
     whitelistFile: string | undefined
 ): [string, number] {

@@ -18,6 +18,7 @@ import * as path from "path"
 import { IDLEntry } from "../idl"
 import * as webidl2 from "webidl2"
 import { toIDLNode } from "./deserialize";
+import { zip } from "../util";
 
 export function fromIDL(
     inputDir: string,
@@ -67,10 +68,6 @@ export function scanIDL(
             let parsed = webidl2.parse(content)
             return parsed.map(it => toIDLNode(file, it))
         })
-}
-
-function zip<A, B>(to: A[], from: B[]): [A, B][] {
-    return to.map((toValue, i) => [toValue, from[i]])
 }
 
 export const licence =
