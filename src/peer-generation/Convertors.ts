@@ -286,7 +286,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
                 let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
+                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
                 printer.pushIndent()
                 printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} as ${this.tsTypeName}`)
                 it.convertorToTSSerial(param, `${value}_${index}`, printer)
@@ -308,7 +308,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
                 let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}${it} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
+                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RUNTIME_${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
                 printer.pushIndent()
                 let variantValue = `${value}_${index}`
                 printer.print(`${it.nativeType()} ${variantValue};`)

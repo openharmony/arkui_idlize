@@ -146,7 +146,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     visitWholeFile(): stringOrNone[] {
         this.importStatements(this.sourceFile.fileName)
             .concat([
-                `import { runtimeType, functionToInt32, withLength, withLengthArray } from "../../utils/ts/SerializerBase"`,
+                `import { runtimeType, functionToInt32, withLength, withLengthArray, RuntimeType } from "../../utils/ts/SerializerBase"`,
                 `import { Serializer } from "./Serializer"`,
                 `import { int32 } from "../../utils/ts/types"`,
                 `import { nativeModule } from "./NativeModule"`,
@@ -1030,7 +1030,7 @@ ${bridgeCc.join("\n")}
 
 export function makeTSSerializer(lines: string[]): string {
     return `
-import { SerializerBase, runtimeType, Tags } from "../../utils/ts/SerializerBase"
+import { SerializerBase, runtimeType, Tags, RuntimeType } from "../../utils/ts/SerializerBase"
 import { int32 } from "../../utils/ts/types"
 
 type Callback = Function
