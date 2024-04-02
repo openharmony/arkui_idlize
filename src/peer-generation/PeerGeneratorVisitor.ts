@@ -858,7 +858,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (declarations.length > 0) {
             let declaration = declarations[0]
             this.printerSerializerTS.print(`const valueSerializer = this`)
-            this.printerSerializerTS.print(`if (!value) { valueSerializer.writeInt8(Tags.UNDEFINED); return }`)
+            this.printerSerializerTS.print(`if (undefined === value) { valueSerializer.writeInt8(Tags.UNDEFINED); return }`)
             let tag = ts.isEnumDeclaration(declaration) ? "Tags.INT32" : "Tags.OBJECT";
             this.printerSerializerTS.print(`valueSerializer.writeInt8(${tag})`)
             if (ts.isInterfaceDeclaration(declaration)) {
