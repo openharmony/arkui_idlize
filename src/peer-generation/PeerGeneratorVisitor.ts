@@ -42,6 +42,7 @@ import {
     InterfaceConvertor,
     LengthConvertor,
     NumberConvertor,
+    OptionConvertor,
     StringConvertor,
     TypedConvertor,
     TupleConvertor,
@@ -610,8 +611,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return this.typeConvertor(param, type.type)
         }
         if (ts.isOptionalTypeNode(type)) {
-            // TODO: implement OptionalConvertor
-            return new AnyConvertor(param)
+            return new OptionConvertor(param, this, type.type)
         }
         if (ts.isImportTypeNode(type)) {
             console.log(`Emit ${type.getText()} as ${getNameWithoutQualifiersRight(type.qualifier)!}`)
@@ -621,8 +621,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return new StringConvertor(param)
         }
         if (ts.isNamedTupleMember(type)) {
-            // TODO: implement NamedTupleConvertor
-            return new AnyConvertor(param)
+            return this.typeConvertor(param, type.type)
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
             return new AnyConvertor(param)

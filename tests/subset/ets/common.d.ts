@@ -33,8 +33,12 @@ declare enum SheetSize {
     FIT_CONTENT = 2,
 }
 
-declare interface ContentCoverOptions extends BindOptions {
-    // detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
+declare interface BindOptions {
+    backgroundColor?: ResourceColor;
+}
+
+declare interface SheetOptions extends BindOptions {
+    detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
 }
 
 declare class CommonMethod<T> {
@@ -45,7 +49,7 @@ declare class CommonMethod<T> {
 
     height(value: Length): T;
 
-    bindContentCover(isShow: boolean, builder: CustomBuilder, options?: ContentCoverOptions): T;
+    bindSheet(isShow: boolean, builder: CustomBuilder, options?: SheetOptions): T;
 }
 
 declare interface Rectangle {

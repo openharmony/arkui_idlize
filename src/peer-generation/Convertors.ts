@@ -345,6 +345,52 @@ export class UnionConvertor extends BaseArgConvertor {
     }
 }
 
+export class OptionConvertor extends BaseArgConvertor {
+    private typeConvertor: ArgConvertor
+
+    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeNode) {
+        let typeConvertor = visitor.typeConvertor(param, type)
+        let runtimeTypes = typeConvertor.runtimeTypes;
+        if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
+            runtimeTypes.push(RuntimeType.UNDEFINED)
+        }
+        super(`(${typeConvertor.tsTypeName})?`, runtimeTypes, typeConvertor.isScoped, true, param)
+        this.typeConvertor = typeConvertor
+    }
+
+    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+        throw new Error("Must never be used")
+    }
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        // It is assumed that all types (primitive and object)
+        // check for undefined value during the serialization
+        this.typeConvertor.convertorToTSSerial(param, value, printer)
+    }
+    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
+        throw new Error("Must never be used")
+    }
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${value}.tag = ${param}Deserializer.readInt8();`)
+        printer.print(`if (${value}.tag != RUNTIME_UNDEFINED) {`)
+        printer.pushIndent()
+        let valueName = `${value}_tagged_value`
+        printer.print(`${this.typeConvertor.nativeType()} ${valueName};`)
+        this.typeConvertor.convertorToCDeserial(param, `${valueName}`, printer)
+        printer.print(`${value}.value = ${valueName}`)
+        printer.popIndent()
+        printer.print(`}`)
+    }
+    nativeType(): string {
+        return `Tagged<${this.typeConvertor.nativeType()}>`
+    }
+    interopType(ts: boolean): string {
+        return "KPointer"
+    }
+    estimateSize() {
+        return this.typeConvertor.estimateSize()
+    }
+}
+
 export class AggregateConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
     private members: string[] = []
@@ -605,7 +651,7 @@ function mapCType(type: ts.TypeNode): string {
             .join(", ")}>`
     }
     if (ts.isOptionalTypeNode(type)) {
-        return `Union<${mapCType(type.type)}, Undefined>`
+        return `Tagged<${mapCType(type.type)}>`
     }
     if (ts.isFunctionTypeNode(type)) {
         return "Function"
