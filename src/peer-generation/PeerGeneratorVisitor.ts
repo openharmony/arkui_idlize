@@ -614,9 +614,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return new AnyConvertor(param)
         }
         if (ts.isImportTypeNode(type)) {
-            console.log(`${type.getText()} ${type.qualifier?.getText()}`)
-
-            return new TypedConvertor(getNameWithoutQualifiers(type.qualifier)!, type, param, this)
+            console.log(`Emit ${type.getText()} as ${getNameWithoutQualifiers(type.qualifier)!}`)
+            return new TypedConvertor(`${getNameWithoutQualifiers(type.qualifier)!}`, type, param, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)

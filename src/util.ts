@@ -167,7 +167,7 @@ export function dropSuffix(text: string, suffix: string): string {
 export type stringOrNone = string | undefined
 
 export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
-    let name = asString(decl.name)
+    let name = identName(decl.name)!
     let isRoot = PeerGeneratorConfig.rootComponents.includes(name)
     decl.heritageClauses?.forEach(it => {
         heritageDeclarations(typeChecker, it).forEach(it => {

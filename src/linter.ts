@@ -20,6 +20,7 @@ import {
     asString,
     getDeclarationsByNode,
     getLineNumberString,
+    identName,
     isCommonMethodOrSubclass,
     nameOrNullForIdl,
     zip
@@ -46,7 +47,8 @@ export enum LinterError {
     TOP_LEVEL_FUNCTIONS,
     ANY_KEYWORD,
     TYPE_ELEMENT_TYPE,
-    INTERFACE_METHOD_TYPE_INCONSISTENT_WITH_PARENT
+    INTERFACE_METHOD_TYPE_INCONSISTENT_WITH_PARENT,
+    USE_COMPONENT_AS_PARAM,
 }
 
 export interface LinterMessage {
@@ -180,6 +182,13 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             })
         }
         if (ts.isTypeReferenceNode(type)) {
+            if (this.inParamCheck) {
+                const declarations = getDeclarationsByNode(this.typeChecker, type.typeName)
+                if (declarations.length > 0 && ts.isClassDeclaration(declarations[0])
+                        && isCommonMethodOrSubclass(this.typeChecker, declarations[0])) {
+                    this.report(type, LinterError.USE_COMPONENT_AS_PARAM, `Component ${identName(declarations[0].name)} used as parameter`)
+                }
+            }
             if (ts.isQualifiedName(type.typeName)) {
                 this.report(type, LinterError.TYPE_ELEMENT_TYPE,
                     `Type element types unsupported, use type "${ts.idText(type.typeName.left as ts.Identifier)}" itself: ${type.getText(this.sourceFile)}`)
@@ -243,11 +252,15 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         method.parameters.forEach(it => this.visitParameter(it))
     }
 
+    private inParamCheck = false
     visitParameter(parameter: ts.ParameterDeclaration): void {
         if (parameter.initializer) {
             this.report(parameter, LinterError.PARAMETER_INITIALIZER, "Parameter initializer is forbidden")
         }
+        this.inParamCheck = true
         this.checkType(parameter.type)
+        this.inParamCheck = false
+
     }
 
     visitProperty(property: ts.PropertySignature | ts.PropertyDeclaration): void {
