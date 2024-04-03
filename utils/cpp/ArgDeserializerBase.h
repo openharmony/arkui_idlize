@@ -393,6 +393,13 @@ public:
     return result;
   }
 
+  Resource readResource()
+  {
+    Resource result;
+    result.id = readInt32();
+    return result;
+  }
+
   Undefined readUndefined()
   {
     return Undefined();
@@ -425,5 +432,4 @@ public:
 };
 
 // TODO: a stub
-struct FirstNode {};
 struct ImageModifier {};

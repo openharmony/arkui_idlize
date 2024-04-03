@@ -336,10 +336,21 @@ export function serializerBaseMethods(): string[] {
     }
 }
 
-export function getNameWithoutQualifiers(node: ts.EntityName | undefined) : string|undefined {
+export function getNameWithoutQualifiersRight(node: ts.EntityName | undefined) : string|undefined {
     if (!node) return undefined
     if (ts.isQualifiedName(node)) {
         return identName(node.right)
+    }
+    if (ts.isIdentifier(node)) {
+        return identName(node)
+    }
+    throw new Error("Impossible")
+}
+
+export function getNameWithoutQualifiersLeft(node: ts.EntityName | undefined) : string|undefined {
+    if (!node) return undefined
+    if (ts.isQualifiedName(node)) {
+        return identName(node.left)
     }
     if (ts.isIdentifier(node)) {
         return identName(node)

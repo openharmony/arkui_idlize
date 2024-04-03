@@ -15,7 +15,7 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, getNameWithoutQualifiers, heritageTypes, stringOrNone } from "../util";
+import { asString, getDeclarationsByNode, getNameWithoutQualifiersRight, heritageTypes, stringOrNone } from "../util";
 
 export class SortingEmitter extends IndentedPrinter {
     currentPrinter?: IndentedPrinter
@@ -83,7 +83,7 @@ export class SortingEmitter extends IndentedPrinter {
     }
 
     repr(type: ts.TypeNode, name: string | undefined = undefined): string {
-        return ts.isTypeReferenceNode(type) ? getNameWithoutQualifiers(type.typeName)! : name!
+        return ts.isTypeReferenceNode(type) ? getNameWithoutQualifiersRight(type.typeName)! : name!
     }
 
     printType(type: ts.TypeNode): string {

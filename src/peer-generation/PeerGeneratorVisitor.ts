@@ -19,7 +19,7 @@ import {
     dropSuffix,
     forEachExpanding,
     getDeclarationsByNode,
-    getNameWithoutQualifiers,
+    getNameWithoutQualifiersRight,
     identName,
     isCommonMethodOrSubclass,
     isDefined,
@@ -546,7 +546,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 console.log(`WARNING: declaration not found: ${asString(type.typeName)}`)
                 return new AnyConvertor(param)
             }
-            if (getNameWithoutQualifiers(type.typeName) == "Length") {
+            if (getNameWithoutQualifiersRight(type.typeName) == "Length") {
                 // Important common case.
                 return new LengthConvertor(param)
             }
@@ -614,8 +614,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return new AnyConvertor(param)
         }
         if (ts.isImportTypeNode(type)) {
-            console.log(`Emit ${type.getText()} as ${getNameWithoutQualifiers(type.qualifier)!}`)
-            return new TypedConvertor(`${getNameWithoutQualifiers(type.qualifier)!}`, type, param, this)
+            console.log(`Emit ${type.getText()} as ${getNameWithoutQualifiersRight(type.qualifier)!}`)
+            return new TypedConvertor(`${getNameWithoutQualifiersRight(type.qualifier)!}`, type, param, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)
@@ -853,17 +853,20 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
         if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return
-        this.printerSerializerTS.pushIndent()
-        this.printerSerializerTS.print(`write${name}(value: ${name}|undefined) {`)
-        this.printerSerializerTS.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
         if (declarations.length > 0) {
             let declaration = declarations[0]
+            // No need for enum serialization methods, we do that in-place.
+            if (ts.isEnumDeclaration(declaration)) return
+
+            this.printerSerializerTS.pushIndent()
+            this.printerSerializerTS.print(`write${name}(value: ${name}|undefined) {`)
+            this.printerSerializerTS.pushIndent()
+
             this.printerSerializerTS.print(`const valueSerializer = this`)
             this.printerSerializerTS.print(`if (undefined === value) { valueSerializer.writeInt8(Tags.UNDEFINED); return }`)
-            let tag = ts.isEnumDeclaration(declaration) ? "Tags.INT32" : "Tags.OBJECT";
-            this.printerSerializerTS.print(`valueSerializer.writeInt8(${tag})`)
+            this.printerSerializerTS.print(`valueSerializer.writeInt8(Tags.OBJECT)`)
             if (ts.isInterfaceDeclaration(declaration)) {
                 declaration.members
                     .filter(ts.isPropertySignature)
@@ -878,26 +881,28 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 let typeConvertor = this.typeConvertor("value", type!)
                 typeConvertor.convertorToTSSerial(`value`, `value`, this.printerSerializerTS)
             }
+            this.printerSerializerTS.popIndent()
+            this.printerSerializerTS.print(`}`)
+            this.printerSerializerTS.popIndent()
         } else {
-            this.printerSerializerTS.print(`throw new Error("Implement ${name} manually")`)
+            throw new Error(`No idea how to serialize ${asString(type)}`)
         }
-        this.printerSerializerTS.popIndent()
-        this.printerSerializerTS.print(`}`)
-        this.printerSerializerTS.popIndent()
     }
 
     private generateDeserializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
         if (PeerGeneratorConfig.ignoreSerialization.indexOf(name) != -1) return
-        this.printerSerializerC.print(`${name} read${name}() {`)
-        this.printerSerializerC.pushIndent()
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
         let isEnum = declarations.length > 0 && ts.isEnumDeclaration(declarations[0])
         let isAlias = declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])
         let isStruct = !isEnum && !isAlias
+
         if (isEnum) {
             this.printerTypedefsC.print(`typedef int32_t ${name};`)
+            return
         }
+        this.printerSerializerC.print(`${name} read${name}() {`)
+        this.printerSerializerC.pushIndent()
         if (isAlias) {
             let decl = declarations[0] as ts.TypeAliasDeclaration
             let typeConvertor = this.typeConvertor("XXX", decl.type)

@@ -19,7 +19,7 @@ export class PeerGeneratorConfig {
     public static ignoreSerialization = ["Array", "Callback", "ErrorCallback", "Length", "AttributeModifier"]
     public static ignorePeerMethod = ["attributeModifier"]
 
-    private static knownParametrized = ["Indicator", "AttributeModifier"]
+    private static knownParametrized = ["Indicator", "AttributeModifier", "AnimationRange"]
 
     public static exports = [
         { file: "common", components: ["Common", "ScrollableCommon", "CommonShape"]},

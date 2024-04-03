@@ -614,7 +614,6 @@ function mapCType(type: ts.TypeNode): string {
         return `${mapCType(type.type)}`
     }
     if (ts.isNamedTupleMember(type)) {
-        // TBD: Map ParenthesizedType to CType
         return `${mapCType(type.type)}`
     }
     if (type.kind == ts.SyntaxKind.NumberKeyword) {

@@ -198,19 +198,8 @@ export class SerializerBase {
             })
         }
     }
-    writeRectangle(value: Rectangle) {
-        this.writeLength(value.x)
-        this.writeLength(value.y)
-        this.writeLength(value.width)
-        this.writeLength(value.height)
-    }
-    writePosition(value: Position) {
-        this.writeLength(value.x)
-        this.writeLength(value.y)
-    }
-
     writeAnimationRange(value: AnimationRange<number>|undefined) {
-        if (!value) {
+       if (!value) {
             this.writeInt8(Tags.UNDEFINED)
             return
         }
