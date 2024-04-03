@@ -305,3 +305,31 @@ function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiter
 
     throw new Error("Unknown")
 }
+
+export const defaultCompilerOptions: ts.CompilerOptions = {
+    target: ts.ScriptTarget.ES5,
+    module: ts.ModuleKind.CommonJS,
+    noLib: true,
+    types: []
+}
+
+export function serializerBaseMethods(): string[] {
+    const program = ts.createProgram([
+        "./utils/ts/SerializerBase.ts",
+        "./utils/ts/types.ts",
+    ], defaultCompilerOptions)
+
+    const serializerDecl = program.getSourceFiles()
+        .find(it => it.fileName.includes("SerializerBase"))
+    if (serializerDecl === undefined) throw new Error("Didn't find SerializerBase")
+
+    const methods: string[] = []
+    visit(serializerDecl)
+    return methods
+
+    function visit(node: ts.Node) {
+        if (ts.isSourceFile(node)) node.statements.forEach(visit)
+        if (ts.isClassDeclaration(node)) node.members.filter(ts.isMethodDeclaration).forEach(visit)
+        if (ts.isMethodDeclaration(node)) methods.push(node.name.getText(serializerDecl))
+    }
+}

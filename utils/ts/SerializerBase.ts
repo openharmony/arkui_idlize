@@ -208,4 +208,14 @@ export class SerializerBase {
         this.writeLength(value.x)
         this.writeLength(value.y)
     }
+
+    writeAnimationRange(value: AnimationRange<number>|undefined) {
+        if (!value) {
+            this.writeInt8(Tags.UNDEFINED)
+            return
+        }
+        this.writeInt8(Tags.OBJECT)
+        this.writeNumber(value[0])
+        this.writeNumber(value[1])
+    }
 }

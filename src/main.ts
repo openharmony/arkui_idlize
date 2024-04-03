@@ -15,7 +15,6 @@
 
 import { program } from "commander"
 import * as fs from "fs"
-import * as ts from "typescript"
 import * as path from "path"
 import { fromIDL, scanIDL } from "./from-idl/common"
 import { idlToString } from "./from-idl/DtsPrinter"
@@ -26,7 +25,7 @@ import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { bridgeCcDeclaration, makeApiHeaders, makeApiModifiers, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./peer-generation/PeerGeneratorVisitor"
-import { isDefined, stringOrNone, toSet } from "./util"
+import { defaultCompilerOptions, isDefined, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
 import { SortingEmitter } from "./peer-generation/SortingEmitter"
 
@@ -56,13 +55,6 @@ const options = program
     .option('--version')
     .parse()
     .opts()
-
-let defaultCompilerOptions: ts.CompilerOptions = {
-    target: ts.ScriptTarget.ES5,
-    module: ts.ModuleKind.CommonJS,
-    noLib: true,
-    types: []
-}
 
 function findVersion() {
     if (process.env.npm_package_version) return process.env.npm_package_version

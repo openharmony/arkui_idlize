@@ -12,12 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]
 
-    public static ignoreSerialization = ["Array", "Callback", "ErrorCallback", "Length"]
+    public static ignoreSerialization = ["Array", "Callback", "ErrorCallback", "Length", "AttributeModifier"]
+    public static ignorePeerMethod = ["attributeModifier"]
 
-    private static knownParametrized = [ "Indicator", "AttributeModifier" ]
+    private static knownParametrized = ["Indicator", "AttributeModifier"]
+
+    public static exports = [
+        { file: "common", components: ["Common", "ScrollableCommon", "CommonShape"]},
+        { file: "shape", components: ["Shape"] },
+        { file: "security_component", components: ["SecurityComponent"] },
+        { file: "column", components: ["Column"] },
+        { file: "image", components: ["Image"] },
+        { file: "span", components: ["BaseSpan"] },
+    ]
+
+    public static invalidAttributes = ["ArkScrollableCommon"]
 
     public static readonly rootComponents = [
         "CommonMethod",
@@ -39,6 +52,7 @@ export class PeerGeneratorConfig {
     }
 
     static isKnownParametrized(name: string | undefined) : boolean {
-        return name != undefined && PeerGeneratorConfig.knownParametrized.indexOf(name) != -1
+        return name != undefined && PeerGeneratorConfig.knownParametrized.includes(name)
     }
 }
+

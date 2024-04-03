@@ -19,10 +19,10 @@ import {
     dropSuffix,
     forEachExpanding,
     getDeclarationsByNode,
-    heritageDeclarations,
     isCommonMethodOrSubclass,
     isDefined,
     nameOrNull,
+    serializerBaseMethods,
     stringOrNone,
     typeOrUndefined
 } from "../util"
@@ -48,7 +48,6 @@ import {
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { createAnyType } from "../idl"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -86,14 +85,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private apiPrinter: IndentedPrinter
     private apiPrinterList: IndentedPrinter
 
-    private static imports = [
-        { file: "common", components: ["Common", "ScrollableCommon", "CommonShape"]},
-        { file: "shape", components: ["Shape"] },
-        { file: "security_component", components: ["SecurityComponent"] },
-        { file: "column", components: ["Column"] },
-        { file: "image", components: ["Image"] },
-        { file: "span", components: ["BaseSpan"] },
-    ]
+    private static readonly serializerBaseMethods = serializerBaseMethods()
 
     constructor(
         private sourceFile: ts.SourceFile,
@@ -119,6 +111,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     requestType(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
+        if (PeerGeneratorVisitor.serializerBaseMethods.includes(`write${name}`)) return
+
         if (type) {
             this.serializerRequests.push({ type, name })
         }
@@ -135,7 +129,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private importStatements(currentFileName: string): string[] {
-        return PeerGeneratorVisitor.imports
+        return PeerGeneratorConfig.exports
             .filter(it => !currentFileName.endsWith(`/${it.file}.d.ts`))
             .map(it => {
                 const entities = it.components.map(it => [`Ark${it}Peer`, `Ark${it}Attributes`]).join(", ")
@@ -317,6 +311,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
         let isComponent = false
         let methodName = method.name.getText(this.sourceFile)
+        if (PeerGeneratorConfig.ignorePeerMethod.includes(methodName)) return
         const hasReceiver = true // TODO: make it false for non-method calls.
         const componentName = ts.idText(clazz.name as ts.Identifier)
         const argConvertors = method.parameters
@@ -737,8 +732,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printTS(`}`)
     }
 
-    private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
+    private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
         const component = nameOrNull(node.name)!.replace("Attribute", "")
+        const koalaComponent = this.renameToKoalaComponent(component)
+        if (PeerGeneratorConfig.invalidAttributes.includes(koalaComponent)) {
+            this.printTS(`export interface ${koalaComponent}Attributes {}`)
+            return
+        }
         const parent = this.attributesParentName(node)
         const extendsClause =
             parent
@@ -849,7 +849,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
-        if (PeerGeneratorConfig.ignoreSerialization.indexOf(name) != -1) return
+        if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return
         this.printerSerializerTS.pushIndent()
         this.printerSerializerTS.print(`write${name}(value: ${name}|undefined) {`)
         this.printerSerializerTS.pushIndent()
@@ -882,6 +882,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerTS.print(`}`)
         this.printerSerializerTS.popIndent()
     }
+
     private generateDeserializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
         if (PeerGeneratorConfig.ignoreSerialization.indexOf(name) != -1) return
         this.printerSerializerC.print(`${name} read${name}() {`)
