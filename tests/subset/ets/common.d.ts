@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+declare type AnimationRange<T> = [from: T, to: T];
+
 declare interface ClickEvent extends BaseEvent {
 
     displayX: number;
