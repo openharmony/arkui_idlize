@@ -26,6 +26,7 @@ import {
     zip
 } from "./util"
 import { LinterWhitelist } from "./LinterWhitelist"
+import { error } from "console"
 
 export enum LinterError {
     NONE,
@@ -384,11 +385,21 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     }
 }
 
+function updateHistorgam(message: LinterMessage, histogram: Map<LinterError, number>): LinterMessage {
+    histogram.set(message.error, (histogram.get(message.error) ?? 0) + 1)
+    return message
+}
+
+function printHistorgam(histogram: Map<LinterError, number>): string {
+    let sorted = Array.from(histogram.entries()).sort((a, b) => b[1] - a[1])
+    return sorted.map(it => `${LinterError[it[0]]}: ${it[1]}`).join("\n")
+}
+
 export function toLinterString(
     allEntries: Array<LinterMessage[]>,
     suppressErrors: string | undefined,
     whitelistFile: string | undefined
-): [string, number] {
+): [string, number, string] {
     const suppressedErrorsSet = new Set<LinterError>()
     if (suppressErrors) {
         suppressErrors.split(",").forEach(it => suppressedErrorsSet.add(Number(it) as LinterError))
@@ -397,13 +408,15 @@ export function toLinterString(
     if (whitelistFile) {
         whitelist = new LinterWhitelist(whitelistFile)
     }
+    let histogram = new Map<LinterError, number>()
     let errors = allEntries
         .flatMap(entries =>
             entries
                 .filter(it => !suppressedErrorsSet.has(it.error))
                 .filter(it => whitelist ? !whitelist.shallSuppress(it) : true)
+                .map(it => updateHistorgam(it, histogram))
                 .map(stringMessage)
         )
         .filter(element => (element?.length ?? 0) > 0)
-    return [errors.join("\n"), errors.length > 0 ? 1 : 0 ]
+    return [errors.join("\n"), errors.length > 0 ? 1 : 0,  printHistorgam(histogram)]
 }

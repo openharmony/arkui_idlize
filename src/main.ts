@@ -137,7 +137,8 @@ if (options.linter) {
             onBegin: () => {},
             onEnd: (outputDir) => {
                 const outFile = options.outputDir ? path.join(outputDir, "linter.txt") : undefined
-                let [generated, exitCode] = toLinterString(allEntries, options.linterSuppressErrors, options.linterWhitelist)
+                let [generated, exitCode, histogram] = toLinterString(allEntries, options.linterSuppressErrors, options.linterWhitelist)
+                console.log(histogram)
                 if (!outFile || options.verbose) console.log(generated)
                 if (outFile) fs.writeFileSync(outFile, generated)
                 process.exit(exitCode)
