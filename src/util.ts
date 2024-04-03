@@ -64,6 +64,7 @@ export function isNamedDeclaration(node: ts.Node): node is ts.NamedDeclaration {
 export function asString(node: ts.Node | undefined): string {
     if (node === undefined) return "undefined node"
     if (ts.isIdentifier(node)) return ts.idText(node)
+    if (ts.isQualifiedName(node)) return `${identName(node.left)}.${identName(node.right)}`
     if (ts.isStringLiteral(node)) return node.text
     if (isNamedDeclaration(node)) {
         if (node.name === undefined) {
@@ -75,6 +76,7 @@ export function asString(node: ts.Node | undefined): string {
         return `${ts.SyntaxKind[node.kind]}`
     }
 }
+
 
 export function arrayAt<T>(array: T[] | undefined, index: number): T | undefined {
     return array ? array[index >= 0 ? index : array.length + index] : undefined
@@ -292,7 +294,7 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isIndexSignatureDeclaration(node)) return `IndexSignature`
     if (ts.isIndexedAccessTypeNode(node)) return `IndexedAccess`
     if (ts.isTemplateLiteralTypeNode(node)) return `TemplateLiteral`
-    throw new Error(`Unknown: ${asString(node)} ${node.kind}`)
+    throw new Error(`Unknown: ${node.kind}`)
 }
 
 function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName |  ts.NumericLiteral | ts.ComputedPropertyName  | undefined): string | undefined {
@@ -332,4 +334,15 @@ export function serializerBaseMethods(): string[] {
         if (ts.isClassDeclaration(node)) node.members.filter(ts.isMethodDeclaration).forEach(visit)
         if (ts.isMethodDeclaration(node)) methods.push(node.name.getText(serializerDecl))
     }
+}
+
+export function getNameWithoutQualifiers(node: ts.EntityName | undefined) : string|undefined {
+    if (!node) return undefined
+    if (ts.isQualifiedName(node)) {
+        return identName(node.right)
+    }
+    if (ts.isIdentifier(node)) {
+        return identName(node)
+    }
+    throw new Error("Impossible")
 }

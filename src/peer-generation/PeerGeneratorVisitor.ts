@@ -19,6 +19,8 @@ import {
     dropSuffix,
     forEachExpanding,
     getDeclarationsByNode,
+    getNameWithoutQualifiers,
+    identName,
     isCommonMethodOrSubclass,
     isDefined,
     nameOrNull,
@@ -544,7 +546,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 console.log(`WARNING: declaration not found: ${asString(type.typeName)}`)
                 return new AnyConvertor(param)
             }
-            if (asString(type.typeName) == "Length") {
+            if (getNameWithoutQualifiers(type.typeName) == "Length") {
                 // Important common case.
                 return new LengthConvertor(param)
             }
@@ -612,7 +614,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return new AnyConvertor(param)
         }
         if (ts.isImportTypeNode(type)) {
-            return new TypedConvertor(asString(type.qualifier), type, param, this)
+            console.log(`${type.getText()} ${type.qualifier?.getText()}`)
+
+            return new TypedConvertor(getNameWithoutQualifiers(type.qualifier)!, type, param, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)
@@ -1038,7 +1042,6 @@ type Callback = Function
 type ErrorCallback = Function
 
 type Function = object
-type FirstNode = any
 
 export class Serializer extends SerializerBase {
 ${lines.join("\n")}
