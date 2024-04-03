@@ -46,7 +46,7 @@ struct Error
   Error(const std::string &message) : message(message) {}
 };
 
-template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty, typename T4 = Empty, typename T5 = Empty>
+template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty, typename T4 = Empty, typename T5 = Empty, typename T6 = Empty>
 struct Union
 {
   Union() : selector(-1) {}
@@ -73,10 +73,13 @@ struct Union
     case 5:
       this->value5 = other.value5;
       break;
+    case 6:
+      this->value6 = other.value6;
+      break;
     }
     return *this;
   }
-  Union(const Union<T0, T1, T2, T3, T4, T5> &other)
+  Union(const Union<T0, T1, T2, T3, T4, T5, T6> &other)
   {
     this->selector = other.selector;
     switch (selector)
@@ -99,6 +102,9 @@ struct Union
     case 5:
       this->value5 = other.value5;
       break;
+    case 6:
+      this->value6 = other.value6;
+      break;
     }
   }
   ~Union() {}
@@ -111,10 +117,11 @@ struct Union
     T3 value3;
     T4 value4;
     T5 value5;
+    T6 value6;
   };
 };
 
-template <typename T0, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty, typename T4 = Empty, typename T5 = Empty>
+template <typename T0 = Empty, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty, typename T4 = Empty, typename T5 = Empty>
 struct Compound
 {
   Compound() {}
@@ -363,6 +370,10 @@ public:
     auto value = *(float32_t *)(data + position);
     position += 4;
     return value;
+  }
+  Any readAny()
+  {
+    throw new Error("Cannot deserialize `any`");
   }
   Tagged<Number> readNumber()
   {

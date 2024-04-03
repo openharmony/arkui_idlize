@@ -402,6 +402,7 @@ export class TypedConvertor extends BaseArgConvertor {
         private type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined,
         param: string, protected visitor: PeerGeneratorVisitor) {
         super(name, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
+        visitor.requestType(name, type)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
