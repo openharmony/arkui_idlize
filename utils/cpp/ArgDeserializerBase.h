@@ -36,9 +36,31 @@ struct Tagged
   T value;
 };
 
+
+template <typename T>
+inline void WriteToString(string* result, const T& value) = delete;
+
+template <typename T>
+inline void addToString(string* result, const T& value, bool needComma = false) {
+  WriteToString(result, value);
+  if (needComma) result->append(", ");
+}
+
+template <>
+inline void WriteToString(string* result, const KBoolean& value) {
+  result->append(std::to_string(value));
+}
+
 struct Empty
 {
 };
+
+inline void WriteToString(string* result, const Empty& value) {
+}
+
+template <>
+inline void addToString(string* result, const Empty& value, bool needComma) {
+}
 
 struct Error
 {
@@ -107,7 +129,32 @@ struct Union
       break;
     }
   }
-  ~Union() {}
+  ~Union() {
+    switch (selector)
+    {
+    case 0:
+      this->value0.~T0();
+      break;
+    case 1:
+      this->value1.~T1();
+      break;
+    case 2:
+      this->value2.~T2();
+      break;
+    case 3:
+      this->value3.~T3();
+      break;
+    case 4:
+      this->value4.~T4();
+      break;
+    case 5:
+      this->value5.~T5();
+      break;
+    case 6:
+      this->value6.~T6();
+      break;
+    }
+  }
   int32_t selector;
   union
   {
@@ -120,6 +167,37 @@ struct Union
     T6 value6;
   };
 };
+
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+inline void WriteToString(string* result, const Union<T0, T1, T2, T3, T4, T5, T6>& value) {
+    result->append("union[");
+    result->append(std::to_string(value.selector) + "] {");
+    switch (value.selector)
+    {
+    case 0:
+      addToString(result, value.value0);
+      break;
+    case 1:
+      addToString(result, value.value1);
+      break;
+    case 2:
+      addToString(result, value.value2);
+      break;
+    case 3:
+      addToString(result, value.value3);
+      break;
+    case 4:
+      addToString(result, value.value4);
+      break;
+    case 5:
+      addToString(result, value.value5);
+      break;
+    case 6:
+      addToString(result, value.value6);
+      break;
+    }
+    result->append("}");
+}
 
 template <typename T0 = Empty, typename T1 = Empty, typename T2 = Empty, typename T3 = Empty, typename T4 = Empty, typename T5 = Empty>
 struct Compound
@@ -144,8 +222,21 @@ struct Compound
   T5 value5;
 };
 
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+inline void WriteToString(string* result, const Compound<T0, T1, T2, T3, T4, T5>& value) {
+  result->append("compound: {");
+  addToString(result, value.value0, true);
+  addToString(result, value.value1, true);
+  addToString(result, value.value2, true);
+  addToString(result, value.value3, true);
+  addToString(result, value.value4, true);
+  addToString(result, value.value5, false);
+  result->append("}");
+}
+
 struct Number
 {
+  // TODO: shall we keep a tag here?
   Number() {}
   Number(const Tagged<Number> &other)
   {
@@ -163,7 +254,13 @@ struct Number
     float32_t f32;
     int32_t i32;
   };
+
 };
+
+template <>
+inline void WriteToString(string* result, const Number& value) {
+  *result += std::to_string(value.i32);
+}
 
 struct Any
 {
@@ -171,12 +268,25 @@ struct Any
   ~Any() {}
 };
 
+template <>
+inline void WriteToString(string* result, const Any& value) {
+  result->append("any");
+}
+
 struct Function
 {
   int32_t id;
   Function() : id(0) {}
   ~Function() {}
+  string toString() {
+    return "function id=" + std::to_string(id);
+  }
 };
+
+template <>
+inline void WriteToString(string* result, const Function& value) {
+  *result += "function id=" + std::to_string(value.id);
+}
 
 typedef Function Callback;
 typedef Function ErrorCallback;
@@ -191,7 +301,17 @@ struct String
   }
   ~String() {}
   std::string value;
+  string toString() {
+    return "\"" + value + "\"";
+  }
 };
+
+template <>
+inline void WriteToString(string* result, const String& value) {
+  *result += "\"";
+  *result += value.value;
+  *result += "\"";
+}
 
 struct KStringPtrImpl
 {
@@ -279,7 +399,18 @@ template <typename T>
 struct Array
 {
   std::vector<T> array;
+  size_t size() const { return array.size(); }
+  const T& operator[](size_t pos ) const { return array[pos]; }
 };
+
+template <typename T>
+inline void WriteToString(string* result, const Array<T>& value) {
+  result->append("[");
+  for (int i = 0; i < value.size(); i++) {
+        addToString(result, value[i], i != value.size() - 1);
+  }
+  result->append("]");
+}
 
 struct Length
 {
@@ -314,15 +445,39 @@ struct Length
   }
 };
 
+template <>
+inline void WriteToString(string* result, const Length& value) {
+  result->append("Length {");
+  result->append("value=");
+  result->append(std::to_string(value.value));
+  result->append("unit=" + std::to_string(value.unit));
+  result->append("resource=" + std::to_string(value.resource));
+  result->append("}");
+}
+
 struct Resource
 {
   int32_t id;
 };
 
+template <>
+inline void WriteToString(string* result, const Resource& value) {
+  *result += "Resource {";
+  *result += "id=" + std::to_string(value.id);
+  *result += "}";
+}
+
 struct Undefined
 {
   int8_t bogus;
+  string toString() {
+    return "undefined";
+  }
 };
+template <>
+inline void WriteToString(string* result, const Undefined& value) {
+  *result += "undefined";
+}
 
 class ArgDeserializerBase
 {

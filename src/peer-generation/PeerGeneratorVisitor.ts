@@ -906,6 +906,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (isAlias) {
             let decl = declarations[0] as ts.TypeAliasDeclaration
             let typeConvertor = this.typeConvertor("XXX", decl.type)
+            // TODO: what's this?
             if (ts.isUnionTypeNode(decl.type)) { // TODO: tuples? functions?
                 this.printerStructsC.startEmit(this.typeChecker, decl.type, name)
                 this.printerStructsC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
@@ -921,6 +922,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.printerStructsC.print(`${name}() {}`)
             this.printerStructsC.print(`~${name}() {}`)
         }
+        let structFields: [ts.PropertyName, ts.TypeNode|undefined, ts.NodeArray<ts.ModifierLike>|undefined][] = []
         if (declarations.length > 0) {
             this.printerSerializerC.print(`Deserializer& valueDeserializer = *this;`)
             this.printerSerializerC.print(`int32_t tag = valueDeserializer.readInt8();`)
@@ -930,36 +932,48 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (ts.isInterfaceDeclaration(declaration)) {
                 declaration.members
                     .filter(ts.isPropertySignature)
-                    .forEach(it => this.processSingleField(it))
+                    .forEach(it => structFields.push([it.name, it.type, it.modifiers]))
             }
             if (ts.isClassDeclaration(declaration)) {
                 declaration.members
                     .filter(ts.isPropertyDeclaration)
-                    .forEach(it => this.processSingleField(it))
+                    .forEach(it => structFields.push([it.name, it.type, it.modifiers]))
             }
+            structFields.forEach(it => this.processSingleField(it[0], it[1], it[2]))
             if (ts.isEnumDeclaration(declaration)) {
                 this.printerSerializerC.print(`value = valueDeserializer.readInt32();`)
             }
             this.printerSerializerC.print(`return value;`)
         } else {
-            this.printerSerializerC.print(`throw new Error("Implement ${name} manually");`)
+            throw new Error(`Implement ${name} manually`)
         }
         if (isStruct) {
             this.printerStructsC.popIndent()
             this.printerStructsC.print(`};`)
+            this.printerStructsC.print(`template <>`)
+            this.printerStructsC.print(`inline void WriteToString(string* result, const ${name}& value) {`)
+            this.printerStructsC.pushIndent()
+            this.printerStructsC.print(`result->append("${name} {");`)
+            structFields.forEach(it => this.printerStructsC.print(`WriteToString(result, value.${identName(it[0])});`))
+            this.printerStructsC.print(`result->append("}");`)
+            this.printerStructsC.popIndent()
+            this.printerStructsC.print(`}`)
         }
         this.printerSerializerC.popIndent()
         this.printerSerializerC.print(`}`)
     }
 
-    private processSingleField(field: ts.PropertyDeclaration | ts.PropertySignature) {
-        if (ts.isTypeReferenceNode(field.type!)) {
-            this.requestType(ts.idText(field.type!.typeName as ts.Identifier), field.type)
+    //private processSingleField(field: ts.PropertyDeclaration | ts.PropertySignature) {
+    private processSingleField(fieldNameTS: ts.PropertyName, fieldType: ts.TypeNode | undefined,
+            modifiers: ts.NodeArray<ts.ModifierLike>|undefined) {
+        if (!fieldType) throw new Error("Untyped field")
+        if (ts.isTypeReferenceNode(fieldType)) {
+            this.requestType(ts.idText(fieldType.typeName as ts.Identifier), fieldType)
         }
-        let typeConvertor = this.typeConvertor("value", field.type!)
-        let fieldName = asString(field.name)
+        let typeConvertor = this.typeConvertor("value", fieldType)
+        let fieldName = identName(fieldNameTS)
         let nativeType = typeConvertor.nativeType()
-        this.printerStructsC.print(`${field.modifiers?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) ? "static " : ""}${nativeType} ${fieldName};`)
+        this.printerStructsC.print(`${modifiers?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) ? "static " : ""}${nativeType} ${fieldName};`)
 
         let fieldValue = `value_${fieldName}`
         this.printerSerializerC.print(`${nativeType} ${fieldValue};`)
