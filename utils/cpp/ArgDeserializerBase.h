@@ -205,6 +205,10 @@ struct KStringPtrImpl
     this->_value = other.release();
   }
   KStringPtrImpl &operator=(KStringPtrImpl &other) = delete;
+  operator String() const
+  {
+    return String(string(this->_value, this->_length));
+  }
 
   ~KStringPtrImpl()
   {
@@ -283,6 +287,12 @@ struct Length
     this->value = other.value.value;
     this->unit = other.value.unit;
     this->resource = other.value.resource;
+  }
+  Length(const int32_t *array)
+  {
+    this->value = *(float32_t *)array;
+    this->unit = array[1];
+    this->resource = array[2];
   }
 
   ~Length() {}

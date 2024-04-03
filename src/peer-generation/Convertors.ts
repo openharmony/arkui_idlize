@@ -251,7 +251,7 @@ export class LengthConvertor extends BaseArgConvertor {
         return "Length"
     }
     interopType(ts: boolean): string {
-        return ts ? "Uint8ArrayPtr" : "uint8_t*"
+        return ts ? "Int32ArrayPtr" : "int32_t*"
     }
     estimateSize() {
         return 12
