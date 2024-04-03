@@ -262,6 +262,7 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (!node) return undefined
     if (node.kind == ts.SyntaxKind.AnyKeyword) return `any`
     if (node.kind == ts.SyntaxKind.ObjectKeyword) return `object`
+    if (node.kind == ts.SyntaxKind.StringKeyword) return `string`
     if (ts.isTypeReferenceNode(node)) {
         return identString(node.typeName)
     }
@@ -286,6 +287,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     }
     if (ts.isComputedPropertyName(node)) {
         return identString(node)
+    }
+    if (ts.isUnionTypeNode(node)) {
+        return `UnionType`
     }
     if (ts.isIdentifier(node)) return identString(node)
     if (ts.isImportTypeNode(node)) return `imported ${identString(node.qualifier)}`
