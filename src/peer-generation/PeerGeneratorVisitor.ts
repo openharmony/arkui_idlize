@@ -963,7 +963,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerC.print(`}`)
     }
 
-    //private processSingleField(field: ts.PropertyDeclaration | ts.PropertySignature) {
     private processSingleField(fieldNameTS: ts.PropertyName, fieldType: ts.TypeNode | undefined,
             modifiers: ts.NodeArray<ts.ModifierLike>|undefined) {
         if (!fieldType) throw new Error("Untyped field")

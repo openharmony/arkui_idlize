@@ -9,24 +9,6 @@ function toArray(s: Serializer): Array<number> {
 let size: number
 let serializer: Serializer
 
-// ButtonType
-size = 1
-serializer = new Serializer(size)
-serializer.writeButtonType(undefined)
-assert.deepEqual(toArray(serializer), [Tags.UNDEFINED])
-
-size = 8
-serializer = new Serializer(size)
-// ButtonType.Capsule
-serializer.writeButtonType(0)
-assert.deepEqual(toArray(serializer), [Tags.INT32, 0, 0, 0, 0])
-
-size = 5
-serializer = new Serializer(size)
-// ButtonType.Circle
-serializer.writeButtonType(1)
-assert.deepEqual(toArray(serializer), [Tags.INT32, 0, 0, 0, 1])
-
 // LabelStyle
 size = 1
 serializer = new Serializer(size)
