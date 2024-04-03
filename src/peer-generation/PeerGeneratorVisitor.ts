@@ -996,7 +996,7 @@ function mapCInteropType(type: ts.TypeNode): string {
         switch (name) {
             case "number": return "KInt"
         }
-        return "KPointer"
+        return "KNativePointer"
     }
     return "Any"
 }

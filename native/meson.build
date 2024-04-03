@@ -3,17 +3,19 @@ project('NativeBridge', 'c', 'cpp',
     default_options: ['cpp_std=c++17', 'buildtype=release']
 )
 
+use_subset = true
+is_node = true
+
 sources = [
+    '../utils/cpp/common-interop.cc'
 ]
 include_dirs = [
     '../utils/cpp'
 ]
 
-use_subset = true
-
 if use_subset
 sources += [
-    '../generated/subset/bridge.cc'
+   '../generated/subset/bridge.cc'
 ]
 include_dirs += [
     '../generated/subset'
@@ -42,8 +44,25 @@ cxx = meson.get_compiler('cpp')
 cflags = []
 ldflags = []
 
-shared_library('NativeBridge-' + os + '-' + arch,
+library_name = 'NativeBridge-' + os + '-' + arch
+
+if is_node
+cflags += ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
+include_dirs += [
+    '../utils/cpp/node',
+    '../node-api-headers/include',
+    '../node-addon-api'
+]
+sources += [
+    '../utils/cpp/node/convertors-node.cc'
+]
+endif
+
+shared_library(library_name,
     sources,
+    override_options: [
+        'b_lundef=false',
+    ],
     install: true,
     include_directories: include_dirs,
     install_dir: meson.current_source_dir(),

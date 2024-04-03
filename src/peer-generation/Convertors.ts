@@ -152,7 +152,7 @@ export class AnyConvertor extends BaseArgConvertor {
         return "Any"
     }
     interopType(ts: boolean): string {
-        return "KPointer"
+        return "KNativePointer"
     }
     estimateSize() {
         return 1
@@ -181,7 +181,7 @@ export class UndefinedConvertor extends BaseArgConvertor {
         return "Undefined"
     }
     interopType(ts: boolean): string {
-        return "KPointer"
+        return "KNativePointer"
     }
 
     estimateSize() {
@@ -389,7 +389,7 @@ export class AggregateConvertor extends BaseArgConvertor {
         return `Compound<${this.memberConvertors.map(it => it.nativeType()).join(", ")}>`
     }
     interopType(): string {
-        return "KPointer"
+        return "KNativePointer"
     }
     estimateSize() {
         return 4
@@ -421,7 +421,7 @@ export class TypedConvertor extends BaseArgConvertor {
         return this.tsTypeName
     }
     interopType(): string {
-        return "KPointer"
+        return "KNativePointer"
     }
     estimateSize() {
         return 12
@@ -487,7 +487,7 @@ export class TupleConvertor extends BaseArgConvertor {
         return mapCType(this.elementType)
     }
     interopType(ts: boolean): string {
-        return "KPointer"
+        return "KNativePointer"
     }
 
     estimateSize() {
@@ -547,7 +547,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         return `Array<${mapCType(this.elementType)}>`
     }
     interopType(ts: boolean): string {
-        return "KPointer"
+        return "KNativePointer"
     }
     estimateSize() {
         return 12

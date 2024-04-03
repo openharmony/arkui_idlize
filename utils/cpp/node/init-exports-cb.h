@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,20 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef _INTEROP_BASE_H
-#define _INTEROP_BASE_H
+#ifndef _INIT_EXPORTS_CB_H_
+#define _INIT_EXPORTS_CB_H_
 
-#include "common-interop.h"
+#include <napi.h>
 
-typedef KInt ArkUI_Int32;
-typedef KNativePointer ArkUINodeHandle;
+typedef void (*InitExportsCallback)(Napi::Env env, Napi::Object exports);
+InitExportsCallback ProvideInitExportsCallback(InitExportsCallback cb);
 
-#define ARKUI_FULL_API_VERSION 1
-
-#define ARKUI_BASIC_API_VERSION 1
-#define ARKUI_EXTENDED_API_VERSION 1
-#define ARKUI_NODE_GRAPHICS_API_VERSION 1
-#define ARKUI_NODE_MODIFIERS_API_VERSION 1
-#define ARKUI_AUTO_GENERATE_NODE_ID 1
-
-#endif  /* _INTEROP_BASE_H */
+#endif // _INIT_EXPORTS_CB_H_
