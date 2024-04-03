@@ -370,13 +370,13 @@ export class OptionConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}.tag = ${param}Deserializer.readInt8();`)
-        printer.print(`if (${value}.tag != RUNTIME_UNDEFINED) {`)
+        printer.print(`${value}.tag = (Tags)${param}Deserializer.readInt8();`)
+        printer.print(`if (${value}.tag != TAG_UNDEFINED) {`)
         printer.pushIndent()
         let valueName = `${value}_tagged_value`
         printer.print(`${this.typeConvertor.nativeType()} ${valueName};`)
         this.typeConvertor.convertorToCDeserial(param, `${valueName}`, printer)
-        printer.print(`${value}.value = ${valueName}`)
+        printer.print(`${value}.value = ${valueName};`)
         printer.popIndent()
         printer.print(`}`)
     }

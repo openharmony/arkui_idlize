@@ -51,6 +51,7 @@ import {
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { TypeChecker } from "../typecheck"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -331,8 +332,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printAPI(`void (*set${capitalizedMethodName})(${this.generateAPIParameters(argConvertors).join(", ")});`)
         this.seenMethods.add(methodName)
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
-        let cName = `_${componentName}_${methodName}Impl`
-        this.printC(`${this.generateCReturnType(retConvertor)} ${cName}(${this.generateCParameters(argConvertors).join(",")}) {`)
+        let cName = `${componentName}_${methodName}`
+        this.printC(`${this.generateCReturnType(retConvertor)} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
         this.pushIndentBoth()
         if (isComponent) {
             this.printTS(`if (this.checkPriority("${methodName}")) {`)
@@ -345,7 +346,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (isStub) {
                 this.printTS(`throw new Error("${methodName}Attribute() is not implemented")`)
             } else {
-                let name = `${methodName}Impl`
+                let name = `${methodName}`
                 this.generateNativeBody(componentName, methodName, name, argConvertors, hasReceiver)
             }
         }
@@ -376,7 +377,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (it.useArray) {
                 return `uint8_t*, int32_t`
             } else {
-                return it.nativeType()
+                return it.interopType(false)
             }
         }))
     }
@@ -639,6 +640,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     retConvertor(typeNode?: ts.TypeNode): RetConvertor {
         const isVoid = (typeNode === undefined) ||
             (typeNode.kind == ts.SyntaxKind.VoidKeyword)
+            || /* HACK, fix */ identName(typeNode)?.endsWith("Attribute") == true
+            || /* ANOTHER HACK, fix */  identName(typeNode) == "T"
 
         return {
             isVoid: isVoid,
@@ -847,7 +850,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 }
             })
             .join(", ")
-        this.printerNativeModule.print(`_${component}_${method}Impl(${parameters}): void`)
+        this.printerNativeModule.print(`_${component}_${method}(${parameters}): void`)
     }
 
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
@@ -995,7 +998,7 @@ function mapCInteropType(type: ts.TypeNode): string {
         switch (name) {
             case "number": return "KInt"
         }
-        return "KNativePointer"
+        return `KNativePointer`
     }
     return "Any"
 }

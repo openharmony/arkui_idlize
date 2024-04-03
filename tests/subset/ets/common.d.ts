@@ -49,7 +49,7 @@ declare class CommonMethod<T> {
 
     height(value: Length): T;
 
-    bindSheet(isShow: boolean, builder: CustomBuilder, options?: SheetOptions): T;
+    //bindSheet(isShow: boolean, builder: CustomBuilder, options?: SheetOptions): T;
 }
 
 declare interface Rectangle {

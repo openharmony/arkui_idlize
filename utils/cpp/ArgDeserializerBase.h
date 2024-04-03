@@ -30,15 +30,24 @@ enum Tags
 typedef float float32_t;
 
 template <typename T>
+inline void WriteToString(string* result, const T& value) = delete;
+
+template <typename T>
 struct Tagged
 {
   Tags tag;
   T value;
 };
 
-
 template <typename T>
-inline void WriteToString(string* result, const T& value) = delete;
+inline void WriteToString(string* result, const Tagged<T>& value) {
+    result->append("tagged {");
+    result->append(std::to_string((int)value.tag));
+    if (value.tag != TAG_UNDEFINED) {
+      WriteToString(result, value.value);
+    }
+    result->append("}");
+}
 
 template <typename T>
 inline void addToString(string* result, const T& value, bool needComma = false) {
@@ -50,6 +59,12 @@ template <>
 inline void WriteToString(string* result, const KBoolean& value) {
   result->append(std::to_string(value));
 }
+
+template <>
+inline void WriteToString(string* result, const KInt& value) {
+  result->append(std::to_string(value));
+}
+
 
 struct Empty
 {
