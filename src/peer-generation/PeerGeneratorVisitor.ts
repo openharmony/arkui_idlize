@@ -217,7 +217,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         })
         this.processApplyMethod(node)
-        this.epilogue()
+        this.epilogue(node)
 
         this.createComponentAttributesDeclaration(node)
         this.generateAttributesValuesInterfaces()
@@ -253,7 +253,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 }
             })
         }
-        this.epilogue()
+        this.epilogue(node)
         this.generateAttributesValuesInterfaces()
     }
 
@@ -281,7 +281,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         let text = type?.getText(this.sourceFile)
         if (text == "unknown") text = "any"
-        return  text ?? "any"
+        return text ?? "any"
     }
 
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
@@ -709,9 +709,23 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             .replace("Method", "")
     }
 
-    epilogue() {
+    epilogue(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
         this.popIndentTS()
         this.printTS(`}`)
+
+        // Temporary code, remove!
+        const className = `${this.renameToKoalaComponent(nameOrNull(node.name)!)}Peer`
+        if (className == "ArkCommonPeer") {
+            this.printTS(`export function checkPeer() {`)
+            this.pushIndentTS()
+            this.printTS(`let peer = new ${className}()`)
+            this.printTS(`peer.width("42px")`)
+            this.popIndentTS()
+            this.printTS(`}`)
+            this.printTS(`checkPeer()`)
+        }
+
+
         this.popIndentAPI()
         this.printAPI(`};\n`)
         this.popIndentAPIList()
@@ -924,7 +938,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.printerStructsC.print(`${name}() {}`)
             this.printerStructsC.print(`~${name}() {}`)
         }
-        let structFields: [ts.PropertyName, ts.TypeNode|undefined, ts.NodeArray<ts.ModifierLike>|undefined][] = []
+        let structFields: [ts.PropertyName, ts.TypeNode | undefined, ts.NodeArray<ts.ModifierLike> | undefined][] = []
         if (declarations.length > 0) {
             this.printerSerializerC.print(`Deserializer& valueDeserializer = *this;`)
             this.printerSerializerC.print(`int32_t tag = valueDeserializer.readInt8();`)
@@ -966,7 +980,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private processSingleField(fieldNameTS: ts.PropertyName, fieldType: ts.TypeNode | undefined,
-            modifiers: ts.NodeArray<ts.ModifierLike>|undefined) {
+        modifiers: ts.NodeArray<ts.ModifierLike> | undefined) {
         if (!fieldType) throw new Error("Untyped field")
         if (ts.isTypeReferenceNode(fieldType)) {
             this.requestType(ts.idText(fieldType.typeName as ts.Identifier), fieldType)
@@ -984,7 +998,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     private typeParamsClause(type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined): string {
         const typeParams = type?.typeArguments
-            ?.map((it, index )=> `T` + index)
+            ?.map((it, index) => `T` + index)
             .join(", ")
         return typeParams
             ? `<${typeParams}>`
@@ -994,7 +1008,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
 function mapCInteropType(type: ts.TypeNode): string {
     if (ts.isTypeReferenceNode(type)) {
-        let name = ts.idText(type.typeName as ts.Identifier)
+        let name = identName(type.typeName)
         switch (name) {
             case "number": return "KInt"
         }
@@ -1017,7 +1031,7 @@ let theModule: NativeModule | undefined = undefined
 
 export function nativeModule(): NativeModule {
     if (theModule) return theModule
-    theModule = require("nativeModule") as NativeModule
+    theModule = require("native/NativeBridge") as NativeModule
     return theModule
 }
 

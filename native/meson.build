@@ -44,7 +44,8 @@ cxx = meson.get_compiler('cpp')
 cflags = []
 ldflags = []
 
-library_name = 'NativeBridge-' + os + '-' + arch
+# library_name = 'NativeBridge-' + os + '-' + arch
+library_name = 'NativeBridge'
 
 if is_node
 cflags += ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
@@ -56,6 +57,8 @@ include_dirs += [
 sources += [
     '../utils/cpp/node/convertors-node.cc'
 ]
+module_prefix = ''
+module_suffix = 'node'
 endif
 
 shared_library(library_name,
@@ -64,6 +67,8 @@ shared_library(library_name,
         'b_lundef=false',
     ],
     install: true,
+    name_prefix: module_prefix,
+    name_suffix: module_suffix,
     include_directories: include_dirs,
     install_dir: meson.current_source_dir(),
     cpp_args: cflags,
