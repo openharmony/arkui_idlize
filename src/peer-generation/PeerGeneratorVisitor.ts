@@ -88,6 +88,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private serializerRequests: TypeAndName[] = []
     private apiPrinter: IndentedPrinter
     private apiPrinterList: IndentedPrinter
+    private dummyImpl: IndentedPrinter
+    private dummyImplModifiers: IndentedPrinter
+    private dummyImplModifierList: IndentedPrinter
 
     private static readonly serializerBaseMethods = serializerBaseMethods()
 
@@ -102,7 +105,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         outputStructsForwardC: string[],
         outputStructsC: SortingEmitter,
         apiHeaders: string[],
-        apiHeadersList: string[]
+        apiHeadersList: string[],
+        dummyImpl: string[],
+        dummyImplModifiers: string[],
+        dummyImplModifierList: string[]
     ) {
         this.printerC = new IndentedPrinter(outputC)
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
@@ -112,6 +118,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
         this.apiPrinter = new IndentedPrinter(apiHeaders)
         this.apiPrinterList = new IndentedPrinter(apiHeadersList)
+        this.dummyImpl = new IndentedPrinter(dummyImpl)
+        this.dummyImplModifiers = new IndentedPrinter(dummyImplModifiers)
+        this.dummyImplModifierList = new IndentedPrinter(dummyImplModifierList)
     }
 
     requestType(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
@@ -217,7 +226,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         })
         this.processApplyMethod(node)
-        this.epilogue()
+        this.epilogue(node)
 
         this.createComponentAttributesDeclaration(node)
         this.generateAttributesValuesInterfaces()
@@ -253,7 +262,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 }
             })
         }
-        this.epilogue()
+        this.epilogue(node)
         this.generateAttributesValuesInterfaces()
     }
 
@@ -306,8 +315,25 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.apiPrinter.print(value)
     }
 
+    printDummy(value: stringOrNone) {
+        this.dummyImpl.print(value)
+    }
+
+    printDummyModifier(value: stringOrNone) {
+        this.dummyImplModifiers.print(value)
+    }
+
+    printDummyModifierList(value: stringOrNone) {
+        this.dummyImplModifierList.print(value)
+    }
+
     printNodeModifier(value: stringOrNone) {
         this.apiPrinterList.print(`const ArkUI${value}Modifier* (*get${value}Modifier)();`)
+        const modifierStructImpl = `ArkUI${value}ModifierImpl`
+        this.dummyImplModifiers.print(`ArkUI${value}Modifier ${modifierStructImpl} {`)
+        this.dummyImplModifierList.pushIndent()
+        this.dummyImplModifierList.print(`Get${value}Modifier,`)
+        this.dummyImplModifierList.popIndent()
     }
 
     seenMethods = new Set<string>()
@@ -329,7 +355,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return
         }
         let capitalizedMethodName = methodName[0].toUpperCase() + methodName.substring(1)
-        this.printAPI(`void (*set${capitalizedMethodName})(${this.generateAPIParameters(argConvertors).join(", ")});`)
+        const apiParameters = this.generateAPIParameters(argConvertors).join(", ")
+        const implName = `Set${capitalizedMethodName}Impl`
+        this.printAPI(`void (*set${capitalizedMethodName})(${apiParameters});`)
+        this.printDummyModifier(`${implName},`)
+        this.printDummy(`void ${implName}(${apiParameters}) { printf("Set${capitalizedMethodName}Impl\\n"); }`)
         this.seenMethods.add(methodName)
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         let cName = `${componentName}_${methodName}`
@@ -522,6 +552,19 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     popIndentAPIList() {
         this.apiPrinterList.popIndent()
     }
+    pushIndentDummyImpl() {
+        this.dummyImpl.pushIndent()
+    }
+    popIndentDummyImpl() {
+        this.dummyImpl.popIndent()
+    }
+    pushIndentDummyModifiers() {
+        this.dummyImplModifiers.pushIndent()
+    }
+    popIndentDummyModifiers() {
+        this.dummyImplModifiers.popIndent()
+    }
+
 
     typeConvertor(param: string, type: ts.TypeNode): ArgConvertor {
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
@@ -656,19 +699,21 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     prologue(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const componentName = this.renameToKoalaComponent(nameOrNull(node.name)!)
+        const koalaComponentName = this.renameToKoalaComponent(nameOrNull(node.name)!)
+        const componentName = this.renameToComponent(nameOrNull(node.name)!)
         const peerParentName = this.peerParentName(node)
 
         const extendsClause =
             peerParentName
                 ? `extends ${peerParentName} `
                 : ""
-        this.printTS(`export class ${componentName}Peer ${extendsClause} {`)
+        this.printTS(`export class ${koalaComponentName}Peer ${extendsClause} {`)
         this.pushIndentTS()
-        this.printAPI(`struct ArkUI${componentName.substring(3)}Modifier {`)
+        this.printAPI(`struct ArkUI${componentName}Modifier {`)
         this.pushIndentAPI()
         this.pushIndentAPIList()
-        this.printNodeModifier(componentName.substring(3))
+        this.printNodeModifier(componentName)
+        this.pushIndentDummyModifiers()
     }
 
     private parentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
@@ -703,19 +748,26 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             : undefined
     }
 
-    private renameToKoalaComponent(name: string): string {
-        return "Ark"
-            .concat(name)
+    private renameToComponent(name: string): string {
+        return name
             .replace("Attribute", "")
             .replace("Method", "")
     }
 
-    epilogue() {
+    private renameToKoalaComponent(name: string): string {
+        return "Ark" + this.renameToComponent(name)
+    }
+
+    epilogue(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         this.popIndentTS()
         this.printTS(`}`)
         this.popIndentAPI()
         this.printAPI(`};\n`)
         this.popIndentAPIList()
+        this.popIndentDummyModifiers()
+        this.printDummyModifier(`};\n`)
+        const name = this.renameToComponent(nameOrNull(node.name)!)
+        this.printDummyModifier(`const ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
     }
 
     processApplyMethod(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
@@ -1054,6 +1106,36 @@ const ArkUINodeModifiers* GetNodeModifiers() {
 ${bridgeCc.join("\n")}
 `
 }
+
+export function dummyImplementations(lines: string[]): string {
+    return `
+#include "arkoala_api.h"
+
+
+${lines.join("\n")}
+
+
+`
+}
+
+export function dummyModifiers(lines: string[]): string {
+    return lines.join("\n")
+}
+
+export function dummyModifierList(lines: string[]): string {
+    return `
+const ArkUINodeModifiers impl = {
+${lines.join("\n")}
+};
+
+const ArkUINodeModifiers* GetArkUINodeModifiers()
+{
+    return &impl;
+}
+
+`
+}
+
 
 export function makeTSSerializer(lines: string[]): string {
     return `

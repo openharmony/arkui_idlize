@@ -24,7 +24,7 @@ import { printHeader, toHeaderString, wrapWithPrologueAndEpilogue } from "./idl2
 import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { bridgeCcDeclaration, makeApiHeaders, makeApiModifiers, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./peer-generation/PeerGeneratorVisitor"
+import { bridgeCcDeclaration, dummyImplementations, dummyModifierList, dummyModifiers, makeApiHeaders, makeApiModifiers, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration, PeerGeneratorVisitor } from "./peer-generation/PeerGeneratorVisitor"
 import { defaultCompilerOptions, isDefined, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
 import { SortingEmitter } from "./peer-generation/SortingEmitter"
@@ -217,6 +217,9 @@ if (options.dts2peer) {
     const serializerTS: string[] = []
     const apiHeaders: string[] = []
     const apiHeadersList: string[] = []
+    const dummyImpl: string[] = []
+    const dummyImplModifiers: string[] = []
+    const dummyImplModifierList: string[] = []
 
     generate(
         options.inputDir,
@@ -233,7 +236,10 @@ if (options.dts2peer) {
             structsForwardC,
             structsC,
             apiHeaders,
-            apiHeadersList
+            apiHeadersList,
+            dummyImpl,
+            dummyImplModifiers,
+            dummyImplModifierList
         ),
         {
             compilerOptions: defaultCompilerOptions,
@@ -257,6 +263,12 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(serializerTS))
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(structsForwardC, structsC.getOutput(), deserializerC))
                 fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeApiHeaders(apiHeaders) + makeApiModifiers(apiHeadersList))
+                const dummyImplCc =
+                    dummyImplementations(dummyImpl) +
+                    dummyModifiers(dummyImplModifiers) +
+                    dummyModifierList(dummyImplModifierList)
+                fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummyImplCc)
+
             }
         }
     )
