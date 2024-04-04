@@ -51,7 +51,6 @@ import {
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { TypeChecker } from "../typecheck"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -1080,7 +1079,7 @@ interface RetConvertor {
 
 export function nativeModuleDeclaration(methods: string[]): string {
     return `
-import { int32, KInt, Int32ArrayPtr, KNativePointer } from "../../utils/ts/types"
+import { int32, KInt, Int32ArrayPtr, KNativePointer, KBoolean, KStringPtr } from "../../utils/ts/types"
 
 let theModule: NativeModule | undefined = undefined
 

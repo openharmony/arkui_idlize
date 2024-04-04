@@ -107,7 +107,7 @@ export class BooleanConvertor extends BaseArgConvertor {
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+        printer.print(`+${value}`)
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeBoolean(${value})`)
@@ -152,7 +152,7 @@ export class AnyConvertor extends BaseArgConvertor {
         return "Any"
     }
     interopType(ts: boolean): string {
-        return "KNativePointer"
+        return ts ? "object" : "KNativePointer"
     }
     estimateSize() {
         return 1
