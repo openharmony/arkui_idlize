@@ -146,9 +146,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             .concat([
                 `import { runtimeType, functionToInt32, withLength, withLengthArray, RuntimeType } from "../../utils/ts/SerializerBase"`,
                 `import { Serializer } from "./Serializer"`,
-                `import { int32 } from "../../utils/ts/types"`,
+                `import { int32, KPointer } from "../../utils/ts/types"`,
                 `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode, Finalizable, KPointer, nullptr } from "../../utils/ts/Interop"`,
+                `import { PeerNode, Finalizable, nullptr } from "../../utils/ts/Interop"`,
                 `type Callback = Function`,
                 `type ErrorCallback = Function`,
                 `type Style = any` // Style extends ProgressStyleMap from progress.d.ts
@@ -217,7 +217,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         })
         this.processApplyMethod(node)
-        this.epilogue(node)
+        this.epilogue()
 
         this.createComponentAttributesDeclaration(node)
         this.generateAttributesValuesInterfaces()
@@ -253,7 +253,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 }
             })
         }
-        this.epilogue(node)
+        this.epilogue()
         this.generateAttributesValuesInterfaces()
     }
 
@@ -437,7 +437,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         // TODO: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
         const args = receiver.concat(argConvertors.map(it => this.apiArgument(it))).join(", ")
-        this.printC(`${api}->${modifier}->${method}(${args});`)
+        // TODO: restore call
+        // this.printC(`${api}->${modifier}->${method}(${args});`)
+        this.printC(`printf("would call %s\\n", \"${api}->${modifier}->${method}(${args})\");`)
     }
 
     generateNativeBody(clazzName: string, originalMethodName: string, methodName: string, argConvertors: ArgConvertor[], hasReceiver: boolean) {
@@ -463,7 +465,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 it.convertorToCDeserial(it.param, `${it.param}Value`, this.printerC)
             }
         })
-        this.printTS(`nativeModule()._${clazzName}_${methodName}(`)
+        this.printTS(`nativeModule()._${clazzName}_${methodName}(this.ptr${argConvertors.length > 0 ? ", " : ""}`)
         this.pushIndentTS()
         argConvertors.forEach((it, index) => {
             let maybeComma = index == argConvertors.length - 1 ? "" : ","
@@ -472,7 +474,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             else
                 it.convertorTSArg(it.param, it.param, this.printerTS)
             this.printTS(maybeComma)
-
         })
         this.popIndentTS()
         this.printTS(`)`)
@@ -709,23 +710,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             .replace("Method", "")
     }
 
-    epilogue(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+    epilogue() {
         this.popIndentTS()
         this.printTS(`}`)
-
-        // Temporary code, remove!
-        const className = `${this.renameToKoalaComponent(nameOrNull(node.name)!)}Peer`
-        if (className == "ArkCommonPeer") {
-            this.printTS(`export function checkPeer() {`)
-            this.pushIndentTS()
-            this.printTS(`let peer = new ${className}()`)
-            this.printTS(`peer.width("42px")`)
-            this.popIndentTS()
-            this.printTS(`}`)
-            this.printTS(`checkPeer()`)
-        }
-
-
         this.popIndentAPI()
         this.printAPI(`};\n`)
         this.popIndentAPIList()
@@ -853,7 +840,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (parent.name === undefined) throw new Error(`Encountered nameless method ${node}`)
         const component = ts.idText(parent.name)
         const method = node.name.getText()
-        const parameters = node.parameters
+        const parameters =
+            ["node: KNativePointer"].concat(
+            node.parameters
             .map(it => this.argConvertor(it))
             .map(it => {
                 if (it.useArray) {
@@ -862,7 +851,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 } else {
                     return `${it.param}: ${it.interopType(true)}`
                 }
-            })
+            }))
             .join(", ")
         this.printerNativeModule.print(`_${component}_${method}(${parameters}): void`)
     }
@@ -1025,13 +1014,13 @@ interface RetConvertor {
 
 export function nativeModuleDeclaration(methods: string[]): string {
     return `
-import { int32 } from "../../utils/types"
+import { int32, KInt, Int32ArrayPtr, KNativePointer } from "../../utils/ts/types"
 
 let theModule: NativeModule | undefined = undefined
 
 export function nativeModule(): NativeModule {
     if (theModule) return theModule
-    theModule = require("native/NativeBridge") as NativeModule
+    theModule = require("../../../../native/build-node-host/NativeBridge") as NativeModule
     return theModule
 }
 

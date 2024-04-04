@@ -15,10 +15,14 @@
         "outDir": "build/subset",
         "rootDirs": ["src"],
         "module": "CommonJS",
+        "paths": {
+            "@arkoala/arkui": ["./generated/subset"],
+            "@arkoala/arkui/*": ["./generated/subset/*"],
+        },
     },
     "include": [
         "generated/subset/**/*",
         "utils/ts/**/*",
         "tests/subset/**/*"
-    ]
+    ],
 }

@@ -15,6 +15,10 @@
         "outDir": "build/peers",
         "rootDirs": ["src"],
         "module": "CommonJS",
+        "paths": {
+            "@arkoala/arkui": ["./generated/peers"],
+            "@arkoala/arkui/*": ["./generated/peers/*"],
+        },
     },
     "include": [
         "generated/peers/**/*",

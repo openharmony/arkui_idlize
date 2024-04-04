@@ -251,7 +251,7 @@ if (options.dts2peer) {
             },
             onEnd(outDir: string) {
                 const nativeModule = nativeModuleDeclaration(nativeMethods)
-                fs.writeFileSync(path.join(outDir, 'NativeModule.d.ts'), nativeModule)
+                fs.writeFileSync(path.join(outDir, 'NativeModule.ts'), nativeModule)
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(serializerTS))

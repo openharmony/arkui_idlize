@@ -12,21 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// Shall be like this import { ArkCommonPeer } from "@arkoala/arkui/common"
+import { ArkButtonPeer } from "../../generated/subset/button"
 
-import { pointer } from "./types"
-
-export const nullptr: pointer = BigInt(0)
-
-export class Finalizable {
-    constructor(public ptr: pointer) {
-    }
+function checkPeer() {
+    let peer = new ArkButtonPeer()
+    peer.type(1)
+    peer.labelStyle({maxLines: 3})
 }
 
-export class PeerNode extends Finalizable {
-    constructor() {
-        // TODO: rework
-        super(BigInt(42))
-    }
-    applyAttributes(attrs: Object) {}
-}
-
+checkPeer()

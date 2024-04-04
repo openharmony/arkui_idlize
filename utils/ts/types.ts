@@ -15,3 +15,8 @@
 
 export type int32 = number
 export type float32 = number
+export type Int32ArrayPtr = Int32Array
+export type KInt = int32
+export type pointer = bigint
+export type KPointer = pointer
+export type KNativePointer = pointer

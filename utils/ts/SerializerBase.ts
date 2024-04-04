@@ -85,9 +85,9 @@ export function withLength(valueLength: Length|undefined, body: (value: float32,
 }
 
 
-export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: Uint32Array) => void) {
+export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: Int32Array) => void) {
     withLength(valueLength, (value, unit, resource) => {
-        let array = new Uint32Array(3)
+        let array = new Int32Array(3)
         array[0] = value
         array[1] = unit
         array[2] = resource
