@@ -3,8 +3,11 @@ project('NativeBridge', 'c', 'cpp',
     default_options: ['cpp_std=c++17', 'buildtype=debug']
 )
 
+if get_option('subset')
 source_set = 'subset'
-# source_set = 'peers'
+else
+source_set = 'peers'
+endif
 use_dummy_libace = true
 is_node = true
 

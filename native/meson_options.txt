@@ -1,0 +1,2 @@
+option('subset', type : 'boolean', value : 'true',
+    description : 'If egenerate a subset')

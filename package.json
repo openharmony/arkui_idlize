@@ -50,11 +50,13 @@
         "lint:all": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir linter --linter-whitelist whitelist.json",
         "check:peers": "npm run run2peer:all && tsc -p ./tsconfig-generated.json",
         "check:subset": "npm run compile && node . --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset && tsc -p ./tsconfig-subset.json && cp utils/package.json.in build/subset/package.json",
-        "check:subset:run": "npm run check:subset && npm run compile:native-node-host && node ./build/subset/utils/ts",
+        "check:subset:run": "npm run check:subset && npm run compile:native-node-host-subset && node ./build/subset/utils/ts",
         "test:subset": "npm run check:subset && mocha ./build/subset/tests/subset/unit/",
         "check:peers:native": "npm run run2peer:all && npm run compile:native",
-        "compile:native": "clang -std=c++11 -DKOALA_USE_NODE_VM -DKOALA_NAPI -fPIC -shared -Wall -I ./utils/cpp/ -I ./utils/cpp/node -I./node-api-headers/include -I./node-addon-api ./generated/peers/bridge.cc -o libArkoalaNative.so -ferror-limit=100",
-        "configure:native-node-host": "npm run download:napi && cd ./native && meson setup build-node-host",
-        "compile:native-node-host": "cd native && meson compile -C build-node-host && meson install -C build-node-host"
+        "configure:native-node-host-subset": "npm run download:napi && npm run check:subset && cd ./native && meson setup -Dsubset=true build-node-host-subset",
+        "compile:native-node-host-subset": "cd native && meson compile -C build-node-host-subset && meson install -C build-node-host-subset",
+        "configure:native-node-host-full": "npm run download:napi && npm run check:peers && cd ./native && meson setup -Dsubset=false build-node-host-full",
+        "compile:native-node-host-full": "cd native && meson compile -C build-node-host-full && meson install -C build-node-host-full"
+
     }
 }
