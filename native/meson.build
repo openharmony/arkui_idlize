@@ -1,9 +1,11 @@
 project('NativeBridge', 'c', 'cpp',
     version: '0.1',
-    default_options: ['cpp_std=c++17', 'buildtype=release']
+    default_options: ['cpp_std=c++17', 'buildtype=debug']
 )
 
-use_subset = true
+source_set = 'subset'
+# source_set = 'peers'
+use_dummy_libace = true
 is_node = true
 
 sources = [
@@ -13,19 +15,15 @@ include_dirs = [
     '../utils/cpp'
 ]
 
-if use_subset
 sources += [
-   '../generated/subset/bridge.cc'
+   '../generated/' + source_set + '/bridge.cc'
 ]
 include_dirs += [
-    '../generated/subset'
+    '../generated/' + source_set
 ]
-else
+if use_dummy_libace
 sources += [
-    '../generated/peers/bridge.cc'
-]
-include_dirs += [
-    '../generated/peers'
+   '../generated/' + source_set + '/dummy_impl.cc'
 ]
 endif
 

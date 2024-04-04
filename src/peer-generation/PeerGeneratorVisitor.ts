@@ -359,7 +359,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         const implName = `Set${capitalizedMethodName}Impl`
         this.printAPI(`void (*set${capitalizedMethodName})(${apiParameters});`)
         this.printDummyModifier(`${implName},`)
-        this.printDummy(`void ${implName}(${apiParameters}) { printf("Set${capitalizedMethodName}Impl\\n"); }`)
+        this.printDummy(`void ${implName}(${apiParameters}) { printf("dummy Set${capitalizedMethodName}Impl\\n"); }`)
         this.seenMethods.add(methodName)
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         let cName = `${componentName}_${methodName}`
@@ -467,9 +467,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         // TODO: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
         const args = receiver.concat(argConvertors.map(it => this.apiArgument(it))).join(", ")
-        // TODO: restore call
-        // this.printC(`${api}->${modifier}->${method}(${args});`)
-        this.printC(`printf("would call %s\\n", \"${api}->${modifier}->${method}(${args})\");`)
+        this.printC(`${api}->${modifier}->${method}(${args});`)
     }
 
     generateNativeBody(clazzName: string, originalMethodName: string, methodName: string, argConvertors: ArgConvertor[], hasReceiver: boolean) {
@@ -1100,7 +1098,10 @@ const ArkUIFullNodeAPI* GetFullImpl(std::string* result = nullptr) {
 }
 
 const ArkUINodeModifiers* GetNodeModifiers() {
-    return GetFullImpl()->getNodeModifiers();
+    // TODO: restore the proper call
+    // return GetFullImpl()->getNodeModifiers();
+    extern const ArkUINodeModifiers* GetArkUINodeModifiers();
+    return GetArkUINodeModifiers();
 }
 
 ${bridgeCc.join("\n")}
@@ -1109,6 +1110,8 @@ ${bridgeCc.join("\n")}
 
 export function dummyImplementations(lines: string[]): string {
     return `
+#include "Interop.h"
+#include "Deserializer.h"
 #include "arkoala_api.h"
 
 
@@ -1128,7 +1131,7 @@ const ArkUINodeModifiers impl = {
 ${lines.join("\n")}
 };
 
-const ArkUINodeModifiers* GetArkUINodeModifiers()
+extern const ArkUINodeModifiers* GetArkUINodeModifiers()
 {
     return &impl;
 }
