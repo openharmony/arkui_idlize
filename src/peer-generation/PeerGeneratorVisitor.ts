@@ -203,17 +203,28 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     visit(node: ts.Node) {
-        if (ts.isClassDeclaration(node) && this.needsPeer(node)) {
+        if (ts.isClassDeclaration(node)) {
             this.processClass(node)
-        } else if (ts.isInterfaceDeclaration(node) && this.needsPeer(node)) {
+        } else if (ts.isInterfaceDeclaration(node))  {
             this.processInterface(node)
         } else if (ts.isModuleDeclaration(node)) {
-            // This is a namespace, visit its children
-            ts.forEachChild(node, (node) => this.visit(node));
+            if (node.body && ts.isModuleBlock(node.body)) {
+                node.body.statements.forEach(it => this.visit(it))
+            }
+        } else if (ts.isVariableStatement(node) ||
+                   ts.isExportDeclaration(node) ||
+                   ts.isEnumDeclaration(node) ||
+                   ts.isTypeAliasDeclaration(node) ||
+                   ts.isFunctionDeclaration(node) ||
+                   node.kind == ts.SyntaxKind.EndOfFileToken) {
+            // Do nothing.
+        } else {
+            throw new Error(`Unknown node: ${node.kind}`)
         }
     }
 
     processClass(node: ts.ClassDeclaration) {
+        if (!this.needsPeer(node)) return
         this.prologue(node)
         node.members.forEach(child => {
             if (ts.isConstructorDeclaration(child)) {
@@ -240,6 +251,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
+        if (!this.needsPeer(node)) return
         this.prologue(node)
         node.members.forEach(child => {
             if (ts.isConstructorDeclaration(child)) {
@@ -252,15 +264,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         })
         this.processApplyMethod(node)
         this.popIndentTS()
-        if (false) {
-            this.createComponentAttributesDeclaration(node)
-            this.pushIndentTS()
-            node.members.forEach(child => {
-                if (ts.isMethodSignature(child)) {
-                    this.processOptionAttribute(child)
-                }
-            })
-        }
         this.epilogue(node)
         this.generateAttributesValuesInterfaces()
     }
@@ -268,15 +271,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     processConstructor(ctor: ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration) {
     }
 
-    mapType(type: ts.TypeNode | undefined): string {
+    private mapType(type: ts.TypeNode | undefined): string {
         if (type && ts.isTypeReferenceNode(type)) {
-
             if (ts.isQualifiedName(type.typeName)) {
                 // get the left identifier for the enum qualified name type ref
                 let identifierType = asString(type.typeName.left);
                 return `${identifierType} /* actual type ${type.getText()} */`
             }
-
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
             // TODO: plain wrong!
             if (declaration.length == 0) return "any"
@@ -335,7 +336,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.dummyImplModifierList.popIndent()
     }
 
-    seenMethods = new Set<string>()
+    private seenMethods = new Set<string>()
 
     processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
         let isComponent = false
@@ -373,7 +374,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.seenMethods.add(methodName)
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         let cName = `${componentName}_${methodName}`
-        this.printC(`${this.generateCReturnType(retConvertor)} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
+        this.printC(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
         this.pushIndentBoth()
         if (isComponent) {
             this.printTS(`if (this.checkPriority("${methodName}")) {`)
@@ -422,10 +423,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }))
     }
 
-    generateCReturnType(retConvertor: RetConvertor): string {
-        return retConvertor.nativeType()
-    }
-
     maybeCRetType(retConvertor: RetConvertor): string | undefined {
         if (retConvertor.isVoid) return undefined
         return retConvertor.nativeType()
@@ -441,10 +438,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         })
         return `${retConvertor.macroSuffixPart()}${counter}`
-    }
-
-    apiSection(clazzName: string) {
-        return "GetNodeModifiers()"
     }
 
     modifierSection(clazzName: string) {
@@ -470,7 +463,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     generateAPICall(clazzName: string, methodName: string, hasReceiver: boolean, argConvertors: ArgConvertor[]) {
-        const api = this.apiSection(clazzName)
+        const api = "GetNodeModifiers()"
         const modifier = this.modifierSection(clazzName)
         const method = this.methodSection(methodName)
         const receiver = hasReceiver ? ['node'] : []
@@ -573,7 +566,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.dummyImplModifiers.popIndent()
     }
 
-
     typeConvertor(param: string, type: ts.TypeNode): ArgConvertor {
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
             return new AnyConvertor(param)
@@ -630,7 +622,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 return new InterfaceConvertor(param, this, type)
             }
             if (ts.isTypeParameterDeclaration(declaration)) {
-                console.log(declaration)
                 return new AnyConvertor(param)
             }
             console.log(`${declaration.getText()}`)
@@ -766,7 +757,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return "Ark" + this.renameToComponent(name)
     }
 
-    epilogue(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
+    private epilogue(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         this.popIndentTS()
         this.printTS(`}`)
         this.popIndentAPI()
@@ -778,7 +769,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printDummyModifier(`const ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
     }
 
-    processApplyMethod(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
+    private processApplyMethod(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         const component = nameOrNull(node.name)!.replace("Attribute", "")
 
         const typeParam = this.renameToKoalaComponent(component) + "Attributes"
@@ -1049,15 +1040,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         typeConvertor.convertorToCDeserial(`value`, fieldValue, this.printerSerializerC)
         this.printerSerializerC.print(`value.${fieldName} = ${fieldValue};`);
     }
-
-    private typeParamsClause(type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined): string {
-        const typeParams = type?.typeArguments
-            ?.map((it, index) => `T` + index)
-            .join(", ")
-        return typeParams
-            ? `<${typeParams}>`
-            : ""
-    }
 }
 
 function mapCInteropType(type: ts.TypeNode): string {
@@ -1075,181 +1057,4 @@ interface RetConvertor {
     isVoid: boolean
     nativeType: () => string
     macroSuffixPart: () => string
-}
-
-export function nativeModuleDeclaration(methods: string[]): string {
-    return `
-import { int32, KInt, Int32ArrayPtr, KNativePointer, KBoolean, KStringPtr } from "../../utils/ts/types"
-
-let theModule: NativeModule | undefined = undefined
-
-export function nativeModule(): NativeModule {
-    if (theModule) return theModule
-    theModule = require("../../../../native/build-node-host/NativeBridge") as NativeModule
-    return theModule
-}
-
-export interface NativeModule {
-${methods.join("\n")}
-}
-`
-}
-
-
-export function bridgeCcDeclaration(bridgeCc: string[]): string {
-    return `#include "Interop.h"
-#include "Deserializer.h"
-#include "arkoala_api.h"
-
-static ArkUIAnyAPI* impls[ArkUIAPIVariantKind::COUNT] = { 0 };
-
-const ArkUIAnyAPI* GetAnyImpl(ArkUIAPIVariantKind kind, int version, std::string* result) {
-    return impls[kind];
-}
-
-const ArkUIFullNodeAPI* GetFullImpl(std::string* result = nullptr) {
-    return reinterpret_cast<const ArkUIFullNodeAPI*>(GetAnyImpl(ArkUIAPIVariantKind::FULL, ARKUI_FULL_API_VERSION, result));
-}
-
-const ArkUINodeModifiers* GetNodeModifiers() {
-    // TODO: restore the proper call
-    // return GetFullImpl()->getNodeModifiers();
-    extern const ArkUINodeModifiers* GetArkUINodeModifiers();
-    return GetArkUINodeModifiers();
-}
-
-${bridgeCc.join("\n")}
-`
-}
-
-export function dummyImplementations(lines: string[]): string {
-    return `
-#include "Interop.h"
-#include "Deserializer.h"
-#include "arkoala_api.h"
-
-
-${lines.join("\n")}
-
-
-`
-}
-
-export function dummyModifiers(lines: string[]): string {
-    return lines.join("\n")
-}
-
-export function dummyModifierList(lines: string[]): string {
-    return `
-const ArkUINodeModifiers impl = {
-    1, // version
-${lines.join("\n")}
-};
-
-extern const ArkUINodeModifiers* GetArkUINodeModifiers()
-{
-    return &impl;
-}
-
-`
-}
-
-
-export function makeTSSerializer(lines: string[]): string {
-    return `
-import { SerializerBase, runtimeType, Tags, RuntimeType } from "../../utils/ts/SerializerBase"
-import { int32 } from "../../utils/ts/types"
-
-type Callback = Function
-type ErrorCallback = Function
-
-type Function = object
-
-export class Serializer extends SerializerBase {
-${lines.join("\n")}
-}
-`
-}
-
-export function makeCDeserializer(structsForward: string[], structs: string[], serializers: string[]): string {
-    return `
-#include "Interop.h"
-#include "ArgDeserializerBase.h"
-#include <string>
-
-${structsForward.join("\n")}
-
-${structs.join("\n")}
-
-class Deserializer : public ArgDeserializerBase
-{
-  public:
-    Deserializer(uint8_t *data, int32_t length)
-          : ArgDeserializerBase(data, length) {}
-
-${serializers.join("\n  ")}
-};
-`
-}
-
-export function makeApiModifiers(lines: string[]): string {
-    return `
-/**
- * An API to control an implementation. When making changes modifying binary
- * layout, i.e. adding new events - increase ARKUI_API_VERSION above for binary
- * layout checks.
- */
-struct ArkUINodeModifiers {
-    KInt version;
-${lines.join("\n")}
-};
-
-struct ArkUIBasicAPI {
-    KInt version;
-};
-
-struct ArkUIAnimation {
-    KInt version;
-};
-
-struct ArkUINavigation {
-    KInt version;
-};
-
-struct ArkUIGraphicsAPI {
-    KInt version;
-};
-
-/**
- * An API to control an implementation. When making changes modifying binary
- * layout, i.e. adding new events - increase ARKUI_NODE_API_VERSION above for binary
- * layout checks.
- */
-struct ArkUIFullNodeAPI {
-    KInt version;
-    const ArkUIBasicAPI* (*getBasicAPI)();
-    const ArkUINodeModifiers* (*getNodeModifiers)();
-    const ArkUIAnimation* (*getAnimation)();
-    const ArkUINavigation* (*getNavigation)();
-    const ArkUIGraphicsAPI* (*getGraphicsAPI)();
-};
-
-struct ArkUIAnyAPI {
-    KInt version;
-};
-`
-}
-
-export function makeApiHeaders(lines: string[]): string {
-    return `
-enum ArkUIAPIVariantKind {
-    BASIC = 1,
-    FULL = 2,
-    GRAPHICS = 3,
-    EXTENDED = 4,
-    COUNT = EXTENDED + 1,
-};
-
-${lines.join("\n")}
-`
 }
