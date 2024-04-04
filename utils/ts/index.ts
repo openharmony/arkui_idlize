@@ -14,11 +14,19 @@
  */
 // Shall be like this import { ArkCommonPeer } from "@arkoala/arkui/common"
 import { ArkButtonPeer } from "@arkoala/arkui/button"
+import { ArkCalendarPickerPeer } from "@arkoala/arkui/calendar_picker"
 
-function checkPeer() {
+function checkButton() {
     let peer = new ArkButtonPeer()
     peer.type(1)
     peer.labelStyle({maxLines: 3})
 }
 
-checkPeer()
+function checkCalendar() {
+    let peer = new ArkCalendarPickerPeer()
+    peer.edgeAlign(2, {dx: 5, dy: 6})
+    peer.edgeAlign(2, undefined)
+}
+
+checkButton()
+checkCalendar()

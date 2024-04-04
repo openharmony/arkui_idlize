@@ -383,8 +383,8 @@ inline void WriteToString(string* result, const Length& value) {
   result->append("Length {");
   result->append("value=");
   result->append(std::to_string(value.value));
-  result->append("unit=" + std::to_string(value.unit));
-  result->append("resource=" + std::to_string(value.resource));
+  result->append(", unit=" + std::to_string(value.unit));
+  result->append(", resource=" + std::to_string(value.resource));
   result->append("}");
 }
 

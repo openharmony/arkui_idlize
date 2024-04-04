@@ -359,7 +359,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         const implName = `Set${capitalizedMethodName}Impl`
         this.printAPI(`void (*set${capitalizedMethodName})(${apiParameters});`)
         this.printDummyModifier(`${implName},`)
-        this.printDummy(`void ${implName}(${apiParameters}) { printf("dummy Set${capitalizedMethodName}Impl\\n"); }`)
+
+        this.printDummy(`void ${implName}(${apiParameters}) {`)
+        this.printDummy(`  string *out = new string("dummy Set${capitalizedMethodName}Impl(");`)
+        method.parameters.forEach((param, index) => {
+            if (index > 0) this.printDummy(`  out->append(", ");`)
+            this.printDummy(`  WriteToString(out, ${identName(param.name)});`)
+        })
+        this.printDummy(`  out->append(")\\n");`)
+        this.printDummy(`  printf("%s", out->c_str());`)
+        this.printDummy(`  delete out;`)
+        this.printDummy(`}`)
+
         this.seenMethods.add(methodName)
         this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
         let cName = `${componentName}_${methodName}`
@@ -1009,7 +1020,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.printerStructsC.print(`inline void WriteToString(string* result, const ${name}& value) {`)
             this.printerStructsC.pushIndent()
             this.printerStructsC.print(`result->append("${name} {");`)
-            structFields.forEach(it => this.printerStructsC.print(`WriteToString(result, value.${identName(it[0])});`))
+            structFields.forEach((field, index) => {
+                const fieldName = identName(field[0])
+                if (index > 0) this.printerStructsC.print(`result->append(", ");`)
+                this.printerStructsC.print(`result->append("${fieldName}=");`)
+                this.printerStructsC.print(`WriteToString(result, value.${fieldName});`)
+            })
             this.printerStructsC.print(`result->append("}");`)
             this.printerStructsC.popIndent()
             this.printerStructsC.print(`}`)
