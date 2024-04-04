@@ -174,6 +174,7 @@ export class SerializerBase {
     writeString(value: string|undefined) {
         if (value == undefined) {
             this.writeUndefined()
+            return
         }
         let encoded = textEncoder.encode(value)
         this.checkCapacity(5 + encoded.length)
