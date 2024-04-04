@@ -55,6 +55,10 @@ include_dirs += [
 sources += [
     '../utils/cpp/node/convertors-node.cc'
 ]
+if os == 'windows'
+cflags += ['-DKOALA_WINDOWS']
+sources += [ '../utils/cpp/node/win-dynamic-node.cc' ]
+endif
 module_prefix = ''
 module_suffix = 'node'
 endif

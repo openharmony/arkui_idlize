@@ -53,7 +53,7 @@
         "check:subset:run": "npm run check:subset && npm run compile:native-node-host && node ./build/subset/utils/ts",
         "check:peers:native": "npm run run2peer:all && npm run compile:native",
         "compile:native": "clang -std=c++11 -DKOALA_USE_NODE_VM -DKOALA_NAPI -fPIC -shared -Wall -I ./utils/cpp/ -I ./utils/cpp/node -I./node-api-headers/include -I./node-addon-api ./generated/peers/bridge.cc -o libArkoalaNative.so -ferror-limit=100",
-        "configure:native-node-host": "cd native && meson setup --reconfigure build-node-host",
-        "compile:native-node-host": "npm run download:napi && cd native && meson compile -C build-node-host && meson install -C build-node-host"
+        "configure:native-node-host": "npm run download:napi && cd native & meson setup build-node-host",
+        "compile:native-node-host": "cd native && meson compile -C build-node-host && meson install -C build-node-host"
     }
 }
