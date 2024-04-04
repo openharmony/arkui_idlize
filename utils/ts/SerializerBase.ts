@@ -112,6 +112,18 @@ export class SerializerBase {
         return this.position
     }
     private checkCapacity(value: int32) {
+        if (value < 1) {
+            throw new Error(`${value} is less than 1`)
+        }
+        let buffSize = this.buffer.byteLength
+        if (this.position > buffSize - value) {
+            const minSize = this.position + value
+            const resizedSize = Math.max(minSize, Math.round(3 * buffSize / 2))
+            let resizedBuffer = new ArrayBuffer(resizedSize)
+            new Uint8Array(resizedBuffer).set(new Uint8Array(this.buffer));
+            this.buffer = resizedBuffer
+            this.view = new DataView(resizedBuffer)
+        }
     }
     writeNumber(value: number|undefined) {
         this.checkCapacity(5)
@@ -161,9 +173,7 @@ export class SerializerBase {
     }
     writeString(value: string|undefined) {
         if (value == undefined) {
-            this.checkCapacity(1)
-            this.view.setInt8(this.position, Tags.UNDEFINED)
-            this.position++
+            this.writeUndefined()
         }
         let encoded = textEncoder.encode(value)
         this.checkCapacity(5 + encoded.length)
@@ -173,6 +183,7 @@ export class SerializerBase {
         this.position += 5 + encoded.length
     }
     writeUndefined() {
+        this.checkCapacity(1)
         this.view.setInt8(this.position, Tags.UNDEFINED)
         this.position++
     }
@@ -200,8 +211,8 @@ export class SerializerBase {
     }
     writeAnimationRange(value: AnimationRange<number>|undefined) {
        if (!value) {
-            this.writeInt8(Tags.UNDEFINED)
-            return
+           this.writeUndefined()
+           return
         }
         this.writeInt8(Tags.OBJECT)
         this.writeNumber(value[0])

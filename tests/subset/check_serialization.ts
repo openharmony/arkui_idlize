@@ -9,6 +9,19 @@ function toArray(s: Serializer): Array<number> {
 let size: number
 let serializer: Serializer
 
+// check buffer resize
+for (size = 0; size < 8; size++) {
+    serializer = new Serializer(size)
+    serializer.writeUndefined()
+    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED])
+    serializer.writeBoolean(true)
+    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED, 1])
+    serializer.writeNumber(7)
+    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED, 1, Tags.INT32, 0, 0, 0, 7])
+    serializer.writeNumber(8)
+    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED, 1, Tags.INT32, 0, 0, 0, 7, Tags.INT32, 0, 0, 0, 8])
+}
+
 // LabelStyle
 size = 1
 serializer = new Serializer(size)
