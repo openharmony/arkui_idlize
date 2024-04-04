@@ -17,6 +17,7 @@ import {
     asString,
     capitalize,
     dropSuffix,
+    findRealDeclarations,
     forEachExpanding,
     getDeclarationsByNode,
     getNameWithoutQualifiersRight,
@@ -26,6 +27,7 @@ import {
     nameOrNull,
     serializerBaseMethods,
     stringOrNone,
+    typeEntityName,
     typeOrUndefined
 } from "../util"
 import { GenericVisitor } from "../options"
@@ -566,6 +568,45 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.dummyImplModifiers.popIndent()
     }
 
+    declarationConvertor(param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode, declaration: ts.NamedDeclaration): ArgConvertor {
+        if (!declaration) {
+            console.log(`WARNING: declaration not found: ${asString(type)}`)
+            return new AnyConvertor(param)
+        }
+        const declarationName = ts.idText(declaration.name as ts.Identifier)
+        const entityName = typeEntityName(type)
+        if (getNameWithoutQualifiersRight(entityName) == "Length") {
+            // Important common case.
+            return new LengthConvertor(param)
+        }
+        if (ts.isTypeReferenceNode(type) && entityName && ts.isQualifiedName(entityName)) {
+            const typeOuter = ts.factory.createTypeReferenceNode(entityName.left)
+            return new EnumConvertor(param, typeOuter, this)
+        }
+        if (ts.isEnumDeclaration(declaration)) {
+            return new EnumConvertor(param, type, this)
+        }
+        if (ts.isTypeAliasDeclaration(declaration)) {
+            this.requestType(declarationName, type)
+            return this.typeConvertor(param, declaration.type)
+        }
+        if (ts.isInterfaceDeclaration(declaration)) {
+            let ifaceName = declarationName
+            if (ifaceName == "Array") {
+                return new ArrayConvertor(param, this, type.typeArguments![0])
+            }
+            return new InterfaceConvertor(ifaceName, param, this, type)
+        }
+        if (ts.isClassDeclaration(declaration)) {
+            return new InterfaceConvertor(declarationName, param, this, type)
+        }
+        if (ts.isTypeParameterDeclaration(declaration)) {
+            return new AnyConvertor(param)
+        }
+        console.log(`${declaration.getText()}`)
+        throw new Error(`Unknown kind: ${declaration.kind}`)
+    }
+
     typeConvertor(param: string, type: ts.TypeNode): ArgConvertor {
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
             return new AnyConvertor(param)
@@ -587,45 +628,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         if (ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
-            if (!declaration) {
-                // throw new Error(`Declaration not found: ${asString(type.typeName)}`)
-                console.log(`WARNING: declaration not found: ${asString(type.typeName)}`)
-                return new AnyConvertor(param)
-            }
-            if (getNameWithoutQualifiersRight(type.typeName) == "Length") {
-                // Important common case.
-                return new LengthConvertor(param)
-            }
-            if (ts.isQualifiedName(type.typeName)) {
-                let typeOuter = ts.factory.createTypeReferenceNode(type.typeName.left)
-                return new EnumConvertor(param, typeOuter as ts.TypeReferenceNode, this)
-            }
-            if (ts.isEnumDeclaration(declaration)) {
-                return new EnumConvertor(param, type, this)
-            }
-            if (ts.isTypeAliasDeclaration(declaration)) {
-                this.requestType(ts.idText(declaration.name), type)
-                return this.typeConvertor(param, declaration.type)
-            }
-            if (ts.isInterfaceDeclaration(declaration)) {
-                let ifaceName = ts.idText(declaration.name)
-                if (ifaceName == "Array") {
-                    if (ts.isTypeReferenceNode(type))
-                        return new ArrayConvertor(param, this, type.typeArguments![0])
-                    else {
-                        return new EmptyConvertor(param)
-                    }
-                }
-                return new InterfaceConvertor(param, this, type)
-            }
-            if (ts.isClassDeclaration(declaration)) {
-                return new InterfaceConvertor(param, this, type)
-            }
-            if (ts.isTypeParameterDeclaration(declaration)) {
-                return new AnyConvertor(param)
-            }
-            console.log(`${declaration.getText()}`)
-            throw new Error(`Unknown kind: ${declaration.kind}`)
+            return this.declarationConvertor(param, type, declaration)
         }
         if (ts.isUnionTypeNode(type)) {
             return new UnionConvertor(param, this, type)
@@ -658,7 +661,25 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return new OptionConvertor(param, this, type.type)
         }
         if (ts.isImportTypeNode(type)) {
-            console.log(`Emit ${type.getText()} as ${getNameWithoutQualifiersRight(type.qualifier)!}`)
+            let importedName = undefined
+            if (type.qualifier && ts.isIdentifier(type.qualifier)) {
+                importedName = type.qualifier
+            } else if (type.qualifier && ts.isQualifiedName(type.qualifier)) {
+                importedName = type.qualifier.right
+            }
+            if (importedName) {
+                let importedDeclaration = getDeclarationsByNode(this.typeChecker, importedName)[0]
+                if (importedDeclaration) {
+                    if (ts.isExportAssignment(importedDeclaration)) {
+                        if (ts.isIdentifier(importedDeclaration.expression)) {
+                            importedDeclaration = getDeclarationsByNode(this.typeChecker, importedDeclaration.expression)[0]
+                        }
+                    }
+                    return this.declarationConvertor(param, type, importedDeclaration)
+                }
+            }
+            console.log("FALLING BACK")
+            // Fallback in case we could not find the declaration
             return new TypedConvertor(`${getNameWithoutQualifiersRight(type.qualifier)!}`, type, param, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
@@ -910,7 +931,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
         if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
-        let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
+        let declarations = typeName ? findRealDeclarations(this.typeChecker, typeName) : []
         if (declarations.length > 0) {
             let declaration = declarations[0]
             // No need for enum serialization methods, we do that in-place.
@@ -1058,3 +1079,4 @@ interface RetConvertor {
     nativeType: () => string
     macroSuffixPart: () => string
 }
+

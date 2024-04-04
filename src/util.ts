@@ -66,6 +66,8 @@ export function asString(node: ts.Node | undefined): string {
     if (ts.isIdentifier(node)) return ts.idText(node)
     if (ts.isQualifiedName(node)) return `${identName(node.left)}.${identName(node.right)}`
     if (ts.isStringLiteral(node)) return node.text
+    if (ts.isTypeReferenceNode(node)) return `${ts.SyntaxKind[node.kind]}(${asString(node.typeName)})`
+    if (ts.isImportTypeNode(node)) return `${ts.SyntaxKind[node.kind]}(${asString(node.qualifier)})`
     if (isNamedDeclaration(node)) {
         if (node.name === undefined) {
             return `${ts.SyntaxKind[node.kind]}(undefined name)`
@@ -101,6 +103,16 @@ export function getSymbolByNode(typechecker: ts.TypeChecker, node: ts.Node): ts.
 
 export function getDeclarationsByNode(typechecker: ts.TypeChecker, node: ts.Node): ts.Declaration[] {
     return getSymbolByNode(typechecker, node)?.getDeclarations() ?? []
+}
+
+export function findRealDeclarations(typechecker: ts.TypeChecker, node: ts.Node): ts.Declaration[] {
+    const declarations = getDeclarationsByNode(typechecker, node)
+    const first = declarations[0]
+    if (first && ts.isExportAssignment(first)) {
+        return findRealDeclarations(typechecker, first.expression)
+    } else {
+        return declarations
+    }
 }
 
 export function getExportedDeclarationNameByDecl(declaration: ts.NamedDeclaration): string | undefined {
@@ -248,11 +260,24 @@ export function heritageDeclarations(typechecker: ts.TypeChecker, clause: ts.Her
         .filter(isDefined)
 }
 
-export function typeName(type: ts.TypeReferenceNode|ts.TypeQueryNode): string {
-    if (ts.isTypeReferenceNode(type)) return ts.idText(type.typeName as ts.Identifier)
-    if (ts.isTypeQueryNode(type)) return ts.idText(type.exprName as ts.Identifier)
+export function typeName(type: ts.TypeReferenceNode | ts.TypeQueryNode | ts.ImportTypeNode): string | undefined {
+    const entityName = typeEntityName(type)
+    if (!entityName) return undefined
+    if (ts.isIdentifier(entityName)) return ts.idText(entityName as ts.Identifier)
+    if (ts.isQualifiedName(entityName)) {
+        // a.b.c is QualifiedName((QualifiedName a, b), c) so the right one is always an Identifier?
+        if (!ts.isIdentifier(entityName.right)) throw new Error(`Unexpected right of QualifiedName ${asString(entityName.right)}`)
+        return ts.idText(entityName.right)
+    }
+}
+
+export function typeEntityName(type: ts.TypeReferenceNode | ts.TypeQueryNode | ts.ImportTypeNode): ts.EntityName|undefined {
+    if (ts.isTypeReferenceNode(type)) return type.typeName
+    if (ts.isTypeQueryNode(type)) return type.exprName
+    if (ts.isImportTypeNode(type)) return type.qualifier
     throw new Error("unsupported")
 }
+
 
 export function zip<A, B>(to: readonly A[], from: readonly B[]): [A, B][] {
     return to.map((toValue, i) => [toValue, from[i]])

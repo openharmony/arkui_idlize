@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 import { IndentedPrinter } from "../IndentedPrinter"
+import { typeName } from "../util"
 import { PeerGeneratorVisitor, RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 
@@ -190,10 +191,11 @@ export class UndefinedConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    constructor(param: string, type: ts.TypeReferenceNode, visitor: PeerGeneratorVisitor) {
+    constructor(param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode, visitor: PeerGeneratorVisitor) {
         // Enums are integers in runtime.
         super("number", [RuntimeType.NUMBER], false, false, param)
-        if (type.typeName) visitor.requestType(ts.idText(type.typeName as ts.Identifier), type)
+        const typeNameString = typeName(type)
+        if (typeNameString) visitor.requestType(typeNameString, type)
     }
 
     convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
@@ -475,8 +477,8 @@ export class TypedConvertor extends BaseArgConvertor {
 }
 
 export class InterfaceConvertor extends TypedConvertor {
-    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeReferenceNode) {
-        super(ts.idText(type.typeName as ts.Identifier), type, param, visitor)
+    constructor(name: string, param: string, visitor: PeerGeneratorVisitor, type: ts.TypeReferenceNode | ts.ImportTypeNode) {
+        super(name, type, param, visitor)
     }
 }
 
