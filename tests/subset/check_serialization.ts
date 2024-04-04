@@ -17,9 +17,9 @@ for (size = 0; size < 8; size++) {
     serializer.writeBoolean(true)
     assert.deepEqual(toArray(serializer), [Tags.UNDEFINED, 1])
     serializer.writeNumber(7)
-    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED, 1, Tags.INT32, 0, 0, 0, 7])
+    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED, 1, Tags.INT32, 7, 0, 0, 0])
     serializer.writeNumber(8)
-    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED, 1, Tags.INT32, 0, 0, 0, 7, Tags.INT32, 0, 0, 0, 8])
+    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED, 1, Tags.INT32, 7, 0, 0, 0, Tags.INT32, 8, 0, 0, 0])
 }
 
 // LabelStyle
@@ -34,7 +34,7 @@ serializer = new Serializer(size)
 //     maxLines?: number;
 // }
 serializer.writeLabelStyle({maxLines: 10})
-assert.deepEqual(toArray(serializer), [Tags.OBJECT, RuntimeType.NUMBER, Tags.INT32, 0, 0, 0, 10])
+assert.deepEqual(toArray(serializer), [Tags.OBJECT, RuntimeType.NUMBER, Tags.INT32, 10, 0, 0, 0])
 
 // TupleInterfaceDTS
 size = 8
@@ -47,7 +47,7 @@ size = 8
 serializer = new Serializer(size)
 serializer.writeTupleInterfaceDTS({tuple: [10, false]})
 assert.deepEqual(toArray(serializer),
-    [Tags.OBJECT, RuntimeType.OBJECT, Tags.INT32, 0, 0, 0, 10, 0])
+    [Tags.OBJECT, RuntimeType.OBJECT, Tags.INT32, 10, 0, 0, 0, 0])
 
 // OptionInterfaceDTS
 const BOOL_UNDEFINED = 2
@@ -68,7 +68,7 @@ size = 8
 serializer = new Serializer(size)
 serializer.writeOptionInterfaceDTS({tuple: [undefined, 11]})
 assert.deepEqual(toArray(serializer),
-    [Tags.OBJECT, RuntimeType.OBJECT, BOOL_UNDEFINED, Tags.INT32, 0, 0, 0, 11])
+    [Tags.OBJECT, RuntimeType.OBJECT, BOOL_UNDEFINED, Tags.INT32, 11, 0, 0, 0])
 
 size = 8
 serializer = new Serializer(size)
@@ -80,4 +80,4 @@ size = 8
 serializer = new Serializer(size)
 serializer.writeOptionInterfaceDTS({tuple: [true, 12]})
 assert.deepEqual(toArray(serializer),
-    [Tags.OBJECT, RuntimeType.OBJECT, 1, Tags.INT32, 0, 0, 0, 12])
+    [Tags.OBJECT, RuntimeType.OBJECT, 1, Tags.INT32, 12, 0, 0, 0])

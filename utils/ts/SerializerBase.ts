@@ -134,12 +134,12 @@ export class SerializerBase {
         }
         if (value == Math.round(value)) {
             this.view.setInt8(this.position, Tags.INT32)
-            this.view.setInt32(this.position + 1, value)
+            this.view.setInt32(this.position + 1, value, true)
             this.position += 5
             return
         }
         this.view.setInt8(this.position, Tags.FLOAT32)
-        this.view.setFloat32(this.position + 1, value)
+        this.view.setFloat32(this.position + 1, value, true)
         this.position += 5
     }
     writeInt8(value: int32) {
@@ -149,12 +149,12 @@ export class SerializerBase {
     }
     writeInt32(value: int32) {
         this.checkCapacity(4)
-        this.view.setInt32(this.position, value)
+        this.view.setInt32(this.position, value, true)
         this.position += 4
     }
     writeFloat32(value: float32) {
         this.checkCapacity(4)
-        this.view.setFloat32(this.position, value)
+        this.view.setFloat32(this.position, value, true)
         this.position += 4
     }
     writeBoolean(value: boolean|undefined) {

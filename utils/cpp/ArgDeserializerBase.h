@@ -25,6 +25,7 @@ enum Tags
   TAG_STRING = 4,
   TAG_LENGTH = 5,
   TAG_RESOURCE = 6,
+  TAG_OBJECT = 7,
 };
 
 typedef float float32_t;

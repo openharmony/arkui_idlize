@@ -615,6 +615,8 @@ export class NumberConvertor extends BaseArgConvertor {
         printer.print(`${value}`)
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`int8_t ${value}_runtimeType = valueDeserializer.readInt8();`)
+        printer.print(`if (${value}_runtimeType != RuntimeType::RUNTIME_NUMBER) throw new Error("Expected a Number");`)
         printer.print(`${value} = ${param}Deserializer.readNumber();`)
     }
 
