@@ -1,0 +1,6 @@
+{
+    "name": "@arkoala/arkui",
+    "exports": {
+        "./*": ["./generated/subset/*.js", "./*.js"]
+    }
+}

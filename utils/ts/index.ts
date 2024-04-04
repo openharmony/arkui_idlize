@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 // Shall be like this import { ArkCommonPeer } from "@arkoala/arkui/common"
-import { ArkButtonPeer } from "../../generated/subset/button"
+import { ArkButtonPeer } from "@arkoala/arkui/button"
 
 function checkPeer() {
     let peer = new ArkButtonPeer()

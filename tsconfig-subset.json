@@ -13,8 +13,9 @@
         "skipLibCheck": true,
         "removeComments": false,
         "outDir": "build/subset",
-        "rootDirs": ["src"],
+        "rootDirs": ["."],
         "module": "CommonJS",
+        "baseUrl": ".",
         "paths": {
             "@arkoala/arkui": ["./generated/subset"],
             "@arkoala/arkui/*": ["./generated/subset/*"],
