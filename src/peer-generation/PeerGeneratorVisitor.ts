@@ -505,7 +505,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (it.useArray)
                 this.printTS(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
             else
-                it.convertorTSArg(it.param, it.param, this.printerTS)
+                this.printTS(it.convertorTSArg(it.param))
             this.printTS(maybeComma)
         })
         this.popIndentTS()

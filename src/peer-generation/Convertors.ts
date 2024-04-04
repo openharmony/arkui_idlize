@@ -25,9 +25,9 @@ export interface ArgConvertor {
     estimateSize(): number
     scopeStart?(param: string): string
     scopeEnd?(param: string): string
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void
+    convertorTSArg(param: string): string
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void
+    convertorCArg(param: string): string
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void
     interopType(ts: boolean): string
     nativeType(): string
@@ -55,9 +55,9 @@ export abstract class BaseArgConvertor implements ArgConvertor {
 
     scopeStart?(param: string): string
     scopeEnd?(param: string): string
-    abstract convertorTSArg(param: string, value: string, printer: IndentedPrinter): void
+    abstract convertorTSArg(param: string): string
     abstract convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void
-    abstract convertorCArg(param: string, value: string, printer: IndentedPrinter): void
+    abstract convertorCArg(param: string): string
     abstract convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void
 }
 
@@ -66,9 +66,9 @@ export class EmptyConvertor extends BaseArgConvertor {
         super("any", [], false, false, param)
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {}
+    convertorTSArg(param: string): string { return ""}
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {}
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {}
+    convertorCArg(param: string): string { return "" }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {}
 }
 
@@ -77,14 +77,14 @@ export class StringConvertor extends BaseArgConvertor {
         super("string", [RuntimeType.STRING], false, false, param)
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+    convertorTSArg(param: string): string {
+        return param
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeString(${value})`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+    convertorCArg(param: string): string {
+        return `String(${param})`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readString();`)
@@ -107,14 +107,14 @@ export class BooleanConvertor extends BaseArgConvertor {
         // TODO: shall NUMBER be here?
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`+${value}`)
+    convertorTSArg(param: string): string {
+        return `+${param}`
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeBoolean(${value})`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+    convertorCArg(param: string): string {
+        return param
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readBoolean();`)
@@ -136,14 +136,14 @@ export class AnyConvertor extends BaseArgConvertor {
         super("any", [], false, false, param)
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+    convertorTSArg(param: string): string {
+        return param
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeAny(${value})`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+    convertorCArg(param: string): string {
+        return param
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readAny();`)
@@ -165,14 +165,14 @@ export class UndefinedConvertor extends BaseArgConvertor {
         super("unknown", [RuntimeType.UNDEFINED], false, false, param)
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`nullptr`)
+    convertorTSArg(param: string): string {
+        return "nullptr"
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeUndefined()`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+    convertorCArg(param: string): string {
+        return param
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readUndefined();`)
@@ -198,16 +198,16 @@ export class EnumConvertor extends BaseArgConvertor {
         if (typeNameString) visitor.requestType(typeNameString, type)
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorTSArg(param: string): string {
         // as unknown for non-int enums, so it wouldn't clutter compiler diagnostic
-        printer.print(`${value} as unknown as int32`)
+    return `${param} as unknown as int32`
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         // as unknown for non-int enums, so it wouldn't clutter compiler diagnostic
         printer.print(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+    convertorCArg(param: string): string {
+        return param
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readInt32();`)
@@ -237,14 +237,14 @@ export class LengthConvertor extends BaseArgConvertor {
         return '})'
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}Ptr`)
+    convertorTSArg(param: string): string {
+        return `${param}Ptr`
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeLength(${value})`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = Length::fromArray(${param});`)
+    convertorCArg(param: string): string {
+        return `Length::fromArray(${param})`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readLength();`)
@@ -272,7 +272,7 @@ export class UnionConvertor extends BaseArgConvertor {
         this.checkUniques(param, this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
     }
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorTSArg(param: string): string {
         throw new Error("Do not use for union")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
@@ -296,7 +296,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 printer.print(`}`)
             })
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorCArg(param: string): string {
         throw new Error("Do not use for union")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
@@ -360,7 +360,7 @@ export class OptionConvertor extends BaseArgConvertor {
         this.typeConvertor = typeConvertor
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorTSArg(param: string): string {
         throw new Error("Must never be used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
@@ -368,7 +368,7 @@ export class OptionConvertor extends BaseArgConvertor {
         // check for undefined value during the serialization
         this.typeConvertor.convertorToTSSerial(param, value, printer)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorCArg(param: string): string {
         throw new Error("Must never be used")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
@@ -410,7 +410,7 @@ export class AggregateConvertor extends BaseArgConvertor {
         })
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorTSArg(param: string): string {
         throw new Error("Do not use for aggregates")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
@@ -420,7 +420,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             it.convertorToTSSerial(param, `${value}_${memberName}`, printer)
         })
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorCArg(param: string): string {
         throw new Error("Do not use")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
@@ -453,13 +453,13 @@ export class TypedConvertor extends BaseArgConvertor {
         visitor.requestType(name, type)
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorTSArg(param: string): string {
         throw new Error("Must never be used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.${this.visitor.serializerName(this.tsTypeName, this.type)}(${value})`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorCArg(param: string): string {
         throw new Error("Must never be used")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
@@ -498,7 +498,7 @@ export class TupleConvertor extends BaseArgConvertor {
             .map(element => visitor.typeConvertor(param, element))
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorTSArg(param: string): string {
         throw new Error("Must never be used")
     }
 
@@ -514,7 +514,7 @@ export class TupleConvertor extends BaseArgConvertor {
         printer.print(`}`)
     }
 
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorCArg(param: string): string {
         throw new Error("Must never be used")
     }
 
@@ -552,7 +552,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         this.elementConvertor = visitor.typeConvertor(param, elementType)
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorTSArg(param: string): string {
         throw new Error("Must never be used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
@@ -570,7 +570,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         printer.popIndent()
         printer.print(`}`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
+    convertorCArg(param: string): string {
         throw new Error("Must never be used")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
@@ -607,17 +607,17 @@ export class NumberConvertor extends BaseArgConvertor {
         super("number", [RuntimeType.NUMBER], false, false, param)
     }
 
-    convertorTSArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(param)
+    convertorTSArg(param: string): string {
+        return param
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeNumber(${value})`)
     }
-    convertorCArg(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}`)
+    convertorCArg(param: string): string {
+        return `Number(${param})`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`int8_t ${value}_runtimeType = valueDeserializer.readInt8();`)
+        printer.print(`int8_t ${value}_runtimeType = ${param}Deserializer.readInt8();`)
         printer.print(`if (${value}_runtimeType != RuntimeType::RUNTIME_NUMBER) throw new Error("Expected a Number");`)
         printer.print(`${value} = ${param}Deserializer.readNumber();`)
     }
@@ -627,7 +627,7 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 
     interopType(): string {
-        return "Number"
+        return "KInt"
     }
     estimateSize() {
         return 4

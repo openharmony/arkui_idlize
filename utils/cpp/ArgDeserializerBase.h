@@ -254,6 +254,8 @@ struct Number
 {
   // TODO: shall we keep a tag here?
   Number() {}
+  Number(KInt value): i32(value) {}
+  Number(KFloat value): f32(value) {}
   Number(const Tagged<Number> &other)
   {
     // TODO: check tag
@@ -311,6 +313,8 @@ struct String
 {
   String() {}
   String(const std::string &value) : value(value) {}
+  String(const KStringPtr& value) : value(value.c_str(), value.length()) {}
+
   String(const String &other)
   {
     this->value = other.value;
