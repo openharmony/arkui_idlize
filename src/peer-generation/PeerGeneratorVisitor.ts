@@ -1098,8 +1098,7 @@ ${methods.join("\n")}
 
 
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
-    return `
-#include "Interop.h"
+    return `#include "Interop.h"
 #include "Deserializer.h"
 #include "arkoala_api.h"
 
@@ -1144,6 +1143,7 @@ export function dummyModifiers(lines: string[]): string {
 export function dummyModifierList(lines: string[]): string {
     return `
 const ArkUINodeModifiers impl = {
+    1, // version
 ${lines.join("\n")}
 };
 
@@ -1201,7 +1201,24 @@ export function makeApiModifiers(lines: string[]): string {
  * layout checks.
  */
 struct ArkUINodeModifiers {
+    KInt version;
 ${lines.join("\n")}
+};
+
+struct ArkUIBasicAPI {
+    KInt version;
+};
+
+struct ArkUIAnimation {
+    KInt version;
+};
+
+struct ArkUINavigation {
+    KInt version;
+};
+
+struct ArkUIGraphicsAPI {
+    KInt version;
 };
 
 /**
@@ -1210,17 +1227,23 @@ ${lines.join("\n")}
  * layout checks.
  */
 struct ArkUIFullNodeAPI {
+    KInt version;
+    const ArkUIBasicAPI* (*getBasicAPI)();
     const ArkUINodeModifiers* (*getNodeModifiers)();
+    const ArkUIAnimation* (*getAnimation)();
+    const ArkUINavigation* (*getNavigation)();
+    const ArkUIGraphicsAPI* (*getGraphicsAPI)();
 };
 
 struct ArkUIAnyAPI {
-    ArkUI_Int32 version;
+    KInt version;
 };
 `
 }
 
 export function makeApiHeaders(lines: string[]): string {
-    return `enum ArkUIAPIVariantKind {
+    return `
+enum ArkUIAPIVariantKind {
     BASIC = 1,
     FULL = 2,
     GRAPHICS = 3,
