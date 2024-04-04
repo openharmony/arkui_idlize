@@ -38,7 +38,6 @@ import {
     ArgConvertor,
     ArrayConvertor,
     BooleanConvertor,
-    EmptyConvertor,
     EnumConvertor,
     FunctionConvertor,
     InterfaceConvertor,
@@ -641,7 +640,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         if (ts.isLiteralTypeNode(type)) {
             if (type.literal.kind == ts.SyntaxKind.NullKeyword) {
-                return new EmptyConvertor(param)
+                return new UndefinedConvertor(param)
             }
             if (type.literal.kind == ts.SyntaxKind.StringLiteral) {
                 return new StringConvertor(param)

@@ -61,16 +61,6 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     abstract convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void
 }
 
-export class EmptyConvertor extends BaseArgConvertor {
-    constructor(param: string) {
-        super("any", [], false, false, param)
-    }
-
-    convertorTSArg(param: string): string { return ""}
-    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {}
-    convertorCArg(param: string): string { return "" }
-    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {}
-}
 
 export class StringConvertor extends BaseArgConvertor {
     constructor(param: string) {
