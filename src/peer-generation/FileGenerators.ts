@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-export function nativeModuleDeclaration(methods: string[]): string {
+export function nativeModuleDeclaration(methods: string[], nativeBridgeDir: string): string {
+    // TODO: better NativeBridge loader
     return `
 import { int32, KInt, Int32ArrayPtr, KNativePointer, KBoolean, KStringPtr } from "../../utils/ts/types"
 
@@ -21,7 +22,7 @@ let theModule: NativeModule | undefined = undefined
 
 export function nativeModule(): NativeModule {
     if (theModule) return theModule
-    theModule = require("../../../../native/build-node-host/NativeBridge") as NativeModule
+    theModule = require("../../../../${nativeBridgeDir}/NativeBridge") as NativeModule
     return theModule
 }
 
