@@ -36,9 +36,30 @@
    op(napi_get_value_uint32) \
    op(napi_get_value_int32) \
    op(napi_throw) \
-   op(napi_get_cb_info)
-
-NAPI_EXTERN napi_status NAPI_CDECL napi_throw(napi_env env, napi_value error);
+   op(napi_get_cb_info) \
+   op(napi_create_error) \
+   op(napi_get_value_string_utf8) \
+   op(napi_define_properties) \
+   op(napi_delete_reference) \
+   op(napi_get_reference_value) \
+   op(napi_open_handle_scope) \
+   op(napi_close_handle_scope) \
+   op(napi_open_escapable_handle_scope) \
+   op(napi_close_escapable_handle_scope) \
+   op(napi_is_exception_pending) \
+   op(napi_create_type_error) \
+   op(napi_escape_handle) \
+   op(napi_get_and_clear_last_exception) \
+   op(napi_fatal_error) \
+   op(napi_create_double) \
+   op(napi_typeof) \
+   op(napi_get_property) \
+   op(napi_get_named_property) \
+   op(napi_create_reference) \
+   op(napi_get_global) \
+   op(napi_has_property) \
+   op(napi_get_undefined) \
+   op(napi_get_value_double)
 
 #define DECL_NAPI_IMPL(fn_name, ...) decltype(&fn_name) p_##fn_name;
 
@@ -177,10 +198,192 @@ NAPI_EXTERN napi_status NAPI_CDECL napi_get_cb_info(
     napi_value* this_arg,
     void** data) {
   LoadNapiFunctions();
-  return napi_get_cb_info(env, cbinfo, argc, argv, this_arg, data);
+  return p_napi_get_cb_info(env, cbinfo, argc, argv, this_arg, data);
 }
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_create_string_utf8(napi_env env,
+                                                           const char* str,
+                                                           size_t length,
+                                                           napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_create_string_utf8(env, str, length, result);
+}
+
 
 NAPI_EXTERN napi_status NAPI_CDECL napi_throw(napi_env env, napi_value error) {
   LoadNapiFunctions();
   return p_napi_throw(env, error);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_create_error(napi_env env,
+                                                     napi_value code,
+                                                     napi_value msg,
+                                                     napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_create_error(env, code, msg, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_value_string_utf8(
+    napi_env env, napi_value value, char* buf, size_t bufsize, size_t* result) {
+  LoadNapiFunctions();
+  return p_napi_get_value_string_utf8(env, value, buf, bufsize, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_define_properties(napi_env env,
+                       napi_value object,
+                       size_t property_count,
+                       const napi_property_descriptor* properties) {
+  LoadNapiFunctions();
+  return p_napi_define_properties(env, object, property_count, properties);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_delete_reference(napi_env env,
+                                                         napi_ref ref) {
+  LoadNapiFunctions();
+  return p_napi_delete_reference(env, ref);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_reference_value(napi_env env,
+                                                            napi_ref ref,
+                                                            napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_get_reference_value(env, ref, result);
+}
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_open_handle_scope(napi_env env, napi_handle_scope* result) {
+  LoadNapiFunctions();
+  return p_napi_open_handle_scope(env, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_close_handle_scope(napi_env env, napi_handle_scope scope) {
+  LoadNapiFunctions();
+  return p_napi_close_handle_scope(env, scope);
+}
+NAPI_EXTERN napi_status NAPI_CDECL napi_open_escapable_handle_scope(
+    napi_env env, napi_escapable_handle_scope* result) {
+  return p_napi_open_escapable_handle_scope(env, result);
+}
+NAPI_EXTERN napi_status NAPI_CDECL napi_close_escapable_handle_scope(
+    napi_env env, napi_escapable_handle_scope scope) {
+  LoadNapiFunctions();
+  return p_napi_close_escapable_handle_scope(env, scope);
+}
+NAPI_EXTERN napi_status NAPI_CDECL napi_is_exception_pending(napi_env env,
+                                                             bool* result) {
+  LoadNapiFunctions();
+  return p_napi_is_exception_pending(env, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_property(napi_env env,
+                                                     napi_value object,
+                                                     napi_value key,
+                                                     napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_get_property(env, object, key, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_value_uint32(napi_env env,
+                                                         napi_value value,
+                                                         uint32_t* result) {
+  LoadNapiFunctions();
+  return p_napi_get_value_uint32(env, value, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_typeof(napi_env env,
+                                               napi_value value,
+                                               napi_valuetype* result) {
+  LoadNapiFunctions();
+  return p_napi_typeof(env, value, result);
+}
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_get_and_clear_last_exception(napi_env env, napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_get_and_clear_last_exception(env, result);
+}
+NAPI_EXTERN NAPI_NO_RETURN void NAPI_CDECL
+napi_fatal_error(const char* location,
+                 size_t location_len,
+                 const char* message,
+                 size_t message_len) {
+  LoadNapiFunctions();
+  p_napi_fatal_error(location, location_len, message, message_len);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_create_double(napi_env env,
+                                                      double value,
+                                                      napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_create_double(env, value, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_create_type_error(napi_env env,
+                                                          napi_value code,
+                                                          napi_value msg,
+                                                          napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_create_type_error(env, code, msg, result);
+}
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_named_property(napi_env env,
+                                                           napi_value object,
+                                                           const char* utf8name,
+                                                           napi_value* result) {
+  return napi_ok;
+}
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_create_reference(napi_env env,
+                      napi_value value,
+                      uint32_t initial_refcount,
+                      napi_ref* result) {
+  LoadNapiFunctions();
+  return p_napi_create_reference(env, value, initial_refcount, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_escape_handle(napi_env env,
+                   napi_escapable_handle_scope scope,
+                   napi_value escapee,
+                   napi_value* result);
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_global(napi_env env,
+                                                   napi_value* result) {
+
+  LoadNapiFunctions();
+  return p_napi_get_global(env, result);
+}
+NAPI_EXTERN napi_status NAPI_CDECL napi_has_property(napi_env env,
+                                                     napi_value object,
+                                                     napi_value key,
+                                                     bool* result) {
+  LoadNapiFunctions();
+  return p_napi_has_property(env, object, key, result);
+}
+NAPI_EXTERN napi_status NAPI_CDECL napi_create_function(napi_env env,
+                                                        const char* utf8name,
+                                                        size_t length,
+                                                        napi_callback cb,
+                                                        void* data,
+                                                        napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_create_function(env, utf8name, length, cb, data, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_escape_handle(napi_env env,
+                   napi_escapable_handle_scope scope,
+                   napi_value escapee,
+                   napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_escape_handle(env, scope, escapee, result);
+}
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_undefined(napi_env env,
+                                                      napi_value* result) {
+  LoadNapiFunctions();
+  return p_napi_get_undefined(env, result);
+}
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_value_double(napi_env env,
+                                                         napi_value value,
+                                                         double* result) {
+  LoadNapiFunctions();
+  return p_napi_get_value_double(env, value, result);
 }
