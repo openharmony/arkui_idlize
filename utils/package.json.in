@@ -1,6 +1,9 @@
 {
     "name": "@arkoala/arkui",
     "exports": {
-        "./*": ["./generated/subset/*.js", "./*.js"]
+        "./package.json": "./package.json",
+        "./utils/*": "./utils/*.js",
+        "./tests/*": "./tests/*.js",
+        "./*": "./generated/subset/*.js"
     }
 }

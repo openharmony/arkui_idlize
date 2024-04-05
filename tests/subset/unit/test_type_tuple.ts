@@ -1,8 +1,8 @@
 import {strict as assert} from 'assert';
 
 import {BOOL_UNDEFINED, toArray, toInt32} from "../unit_utils"
-import {RuntimeType, Tags} from "../../../utils/ts/SerializerBase"
-import {Serializer} from "../../../generated/subset/Serializer"
+import {RuntimeType, Tags} from "@arkoala/arkui/utils/ts/SerializerBase"
+import {Serializer} from "@arkoala/arkui/Serializer"
 
 it('Should write tuple [0, false]', function () {
     let serializer = new Serializer(8)

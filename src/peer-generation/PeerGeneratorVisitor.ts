@@ -165,11 +165,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     visitWholeFile(): stringOrNone[] {
         this.importStatements(this.sourceFile.fileName)
             .concat([
-                `import { runtimeType, functionToInt32, withLength, withLengthArray, RuntimeType } from "../../utils/ts/SerializerBase"`,
+                `import { runtimeType, functionToInt32, withLength, withLengthArray, RuntimeType } from "@arkoala/arkui/utils/ts/SerializerBase"`,
                 `import { Serializer } from "./Serializer"`,
-                `import { int32, KPointer } from "../../utils/ts/types"`,
+                `import { int32, KPointer } from "@arkoala/arkui/utils/ts/types"`,
                 `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode, Finalizable, nullptr } from "../../utils/ts/Interop"`,
+                `import { PeerNode, Finalizable, nullptr } from "@arkoala/arkui/utils/ts/Interop"`,
                 `type Callback = Function`,
                 `type ErrorCallback = Function`,
                 `type Style = any` // Style extends ProgressStyleMap from progress.d.ts

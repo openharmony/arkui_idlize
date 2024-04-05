@@ -13,11 +13,11 @@
         "skipLibCheck": true,
         "removeComments": false,
         "outDir": "build/peers",
-        "rootDirs": ["src"],
         "module": "CommonJS",
+        "baseUrl": ".",
         "paths": {
-            "@arkoala/arkui": ["./generated/peers"],
-            "@arkoala/arkui/*": ["./generated/peers/*"],
+            "@arkoala/arkui": ["./generated/peers", "./"],
+            "@arkoala/arkui/*": ["./generated/peers/*", "./*"],
         },
     },
     "include": [

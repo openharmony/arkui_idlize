@@ -1,4 +1,4 @@
-import {Serializer} from "../../generated/subset/Serializer"
+import {Serializer} from "@arkoala/arkui/Serializer"
 
 export const BOOL_UNDEFINED = 2
 

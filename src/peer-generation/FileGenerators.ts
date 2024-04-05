@@ -24,7 +24,7 @@ import {
     KNativePointer,
     Int32ArrayPtr,
     Uint8ArrayPtr
-} from "../../utils/ts/types"
+} from "@arkoala/arkui/utils/ts/types"
 `.trim()
 
 
@@ -119,8 +119,8 @@ extern const ArkUINodeModifiers* GetArkUINodeModifiers()
 
 export function makeTSSerializer(lines: string[]): string {
     return `
-import { SerializerBase, runtimeType, Tags, RuntimeType } from "../../utils/ts/SerializerBase"
-import { int32 } from "../../utils/ts/types"
+import { SerializerBase, runtimeType, Tags, RuntimeType } from "@arkoala/arkui/utils/ts/SerializerBase"
+import { int32 } from "@arkoala/arkui/utils/ts/types"
 
 type Callback = Function
 type ErrorCallback = Function
