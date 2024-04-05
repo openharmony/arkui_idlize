@@ -174,7 +174,7 @@ export class SerializerBase {
     }
     writeString(value: string|undefined) {
         if (value == undefined) {
-            this.writeUndefined()
+            this.writeInt8(Tags.UNDEFINED)
             return
         }
         let encoded = textEncoder.encode(value)
@@ -183,11 +183,6 @@ export class SerializerBase {
         this.view.setInt32(this.position + 1, encoded.length)
         new Uint8Array(this.view.buffer, this.position + 5).set(encoded)
         this.position += 5 + encoded.length
-    }
-    writeUndefined() {
-        this.checkCapacity(1)
-        this.view.setInt8(this.position, Tags.UNDEFINED)
-        this.position++
     }
     writeAny(value: any) {
         throw new Error("How to write any?")
@@ -212,7 +207,7 @@ export class SerializerBase {
     }
     writeAnimationRange(value: AnimationRange<number>|undefined) {
        if (!value) {
-           this.writeUndefined()
+           this.writeInt8(Tags.UNDEFINED)
            return
         }
         this.writeInt8(Tags.OBJECT)

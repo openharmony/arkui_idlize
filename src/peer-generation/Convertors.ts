@@ -152,7 +152,7 @@ export class AnyConvertor extends BaseArgConvertor {
 
 export class UndefinedConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("unknown", [RuntimeType.UNDEFINED], false, false, param)
+        super("undefined", [RuntimeType.UNDEFINED], false, false, param)
     }
 
     convertorTSArg(param: string): string {
@@ -280,9 +280,12 @@ export class UnionConvertor extends BaseArgConvertor {
 
                 printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
                 printer.pushIndent()
-                // TODO: `as unknown` is temporary to workaround for string enums.
-                printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} as unknown as ${it.tsTypeName}`)
-                it.convertorToTSSerial(param, `${value}_${index}`, printer)
+                if (!(it instanceof UndefinedConvertor)) {
+                    // TODO: `as unknown` is temporary to workaround for string enums.
+                    let maybeAsUnknown = (it instanceof EnumConvertor) ? "as unknown " : ""
+                    printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} ${maybeAsUnknown}as ${it.tsTypeName}`)
+                    it.convertorToTSSerial(param, `${value}_${index}`, printer)
+                }
                 printer.popIndent()
                 printer.print(`}`)
             })
