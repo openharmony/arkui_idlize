@@ -274,7 +274,7 @@ if (options.dts2peer) {
             },
             onEnd(outDir: string) {
                 fs.writeFileSync(
-                    path.join(outDir, 'NativeModule.d.ts'),
+                    path.join(outDir, 'NativeModule.ts'),
                     nativeModuleDeclaration(nativeMethods, options.nativeBridgeDir ?? "native/build-node-host-subset")
                 )
                 fs.writeFileSync(
