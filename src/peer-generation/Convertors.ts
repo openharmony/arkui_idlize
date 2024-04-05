@@ -217,7 +217,7 @@ export class EnumConvertor extends BaseArgConvertor {
 
 export class LengthConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT, RuntimeType.UNDEFINED], true, false, param)
+        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], true, false, param)
     }
 
     scopeStart(param: string): string {
@@ -252,7 +252,6 @@ export class LengthConvertor extends BaseArgConvertor {
 
 export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
-    private typeToName = new Map<ts.TypeNode, string>()
 
     constructor(param: string, visitor: PeerGeneratorVisitor, private type: ts.UnionTypeNode) {
         super(`any`, [], false, true, param)
@@ -389,7 +388,7 @@ export class AggregateConvertor extends BaseArgConvertor {
 
     constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeLiteralNode) {
         // Enums are integers in runtime.
-        super(`any`, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
+        super(`any`, [RuntimeType.OBJECT], false, true, param)
         this.memberConvertors = type
             .members
             .filter(ts.isPropertySignature)

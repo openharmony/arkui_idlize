@@ -7,25 +7,26 @@
 
 using namespace std;
 
+// Must be synced with "enum RuntimeType" in TS.
 enum RuntimeType
 {
   RUNTIME_UNEXPECTED = -1,
-  RUNTIME_NUMBER,
-  RUNTIME_STRING,
-  RUNTIME_OBJECT,
-  RUNTIME_BOOLEAN,
-  RUNTIME_UNDEFINED
+  RUNTIME_NUMBER = 1,
+  RUNTIME_STRING = 2,
+  RUNTIME_OBJECT = 3,
+  RUNTIME_BOOLEAN = 4,
+  RUNTIME_UNDEFINED = 5
 };
 
 enum Tags
 {
-  TAG_UNDEFINED = 1,
-  TAG_INT32 = 2,
-  TAG_FLOAT32 = 3,
-  TAG_STRING = 4,
-  TAG_LENGTH = 5,
-  TAG_RESOURCE = 6,
-  TAG_OBJECT = 7,
+  TAG_UNDEFINED = 101,
+  TAG_INT32 = 102,
+  TAG_FLOAT32 = 103,
+  TAG_STRING = 104,
+  TAG_LENGTH = 105,
+  TAG_RESOURCE = 106,
+  TAG_OBJECT = 107,
 };
 
 typedef float float32_t;

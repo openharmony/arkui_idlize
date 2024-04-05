@@ -14,23 +14,24 @@
  */
 import { float32, int32 } from "./types"
 
+// Must be synced with "enum RuntimeType" in C++.
 export enum RuntimeType {
     UNEXPECTED = -1,
-    NUMBER,
-    STRING,
-    OBJECT,
-    BOOLEAN,
-    UNDEFINED
+    NUMBER = 1,
+    STRING = 2,
+    OBJECT = 3,
+    BOOLEAN = 4,
+    UNDEFINED = 5
 }
 
 export enum Tags {
-    UNDEFINED = 1,
-    INT32 = 2,
-    FLOAT32 = 3,
-    STRING = 4,
-    LENGTH = 5,
-    RESOURCE = 6,
-    OBJECT = 7,
+    UNDEFINED = 101,
+    INT32 = 102,
+    FLOAT32 = 103,
+    STRING = 104,
+    LENGTH = 105,
+    RESOURCE = 106,
+    OBJECT = 107,
 }
 
 export function runtimeType(value: any): int32 {
@@ -200,8 +201,7 @@ export class SerializerBase {
     writeLength(value: Length|undefined) {
         this.checkCapacity(1)
         let valueType = runtimeType(value)
-        this.writeInt8(valueType)
-        this.position++
+        this.writeInt8(valueType == RuntimeType.UNDEFINED ? Tags.UNDEFINED : Tags.LENGTH)
         if (valueType != RuntimeType.UNDEFINED) {
             withLength(value, (value, unit, resource) => {
                 this.writeFloat32(value)

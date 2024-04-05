@@ -497,6 +497,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 it.convertorToCDeserial(it.param, `${it.param}Value`, this.printerC)
             }
         })
+        // Enable to see serialized data.
+        if (false) {
+            argConvertors.forEach((it, index) => {
+                if (it.useArray) {
+                    this.printTS(`console.log("${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+                }
+            })
+        }
         this.printTS(`nativeModule()._${clazzName}_${methodName}(this.ptr${argConvertors.length > 0 ? ", " : ""}`)
         this.pushIndentTS()
         argConvertors.forEach((it, index) => {
