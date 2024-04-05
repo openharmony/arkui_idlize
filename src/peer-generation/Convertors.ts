@@ -573,12 +573,11 @@ export class ArrayConvertor extends BaseArgConvertor {
         printer.print(`if (${value}_tag != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         printer.print(`auto ${value}_length = ${param}Deserializer.readInt32();`)
-        printer.print(`${mapCType(this.elementType)} ${value}[${value}_length];`)
         printer.print(`for (int i = 0; i < ${value}_length; i++) {`)
         printer.pushIndent()
         printer.print(`${mapCType(this.elementType)} ${value}_element;`)
         this.elementConvertor.convertorToCDeserial(param, `${value}_element`, printer)
-        printer.print(`${value}[i] = ${value}_element;`);
+        printer.print(`${value}.push_back(${value}_element);`);
         printer.popIndent()
         printer.print(`}`)
         printer.popIndent()
@@ -611,8 +610,6 @@ export class NumberConvertor extends BaseArgConvertor {
         return `Number(${param})`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`int8_t ${value}_runtimeType = ${param}Deserializer.readInt8();`)
-        printer.print(`if (${value}_runtimeType != RuntimeType::RUNTIME_NUMBER) throw new Error("Expected a Number");`)
         printer.print(`${value} = ${param}Deserializer.readNumber();`)
     }
 

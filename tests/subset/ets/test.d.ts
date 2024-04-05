@@ -13,6 +13,10 @@ declare interface NumberInterfaceDTS {
     valNumber: number
 }
 
+declare interface StringInterfaceDTS {
+    valString: string
+}
+
 declare interface TupleInterfaceDTS {
 
     tuple: [number, boolean]
@@ -29,9 +33,13 @@ declare class ClassDTS extends CommonMethod<ClassDTS> {
 
     testNumber(value: NumberInterfaceDTS)
 
+    testString(value: StringInterfaceDTS)
+
     testEnum(value: EnumDTS)
 
     testTuple(value: TupleInterfaceDTS)
 
     testOption(value: OptionInterfaceDTS)
+
+    testArray(value: Array<number>)
 }

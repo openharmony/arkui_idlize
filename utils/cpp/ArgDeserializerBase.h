@@ -322,16 +322,14 @@ struct String
   }
   ~String() {}
   std::string value;
-  string toString() {
+  std::string toString() const {
     return "\"" + value + "\"";
   }
 };
 
 template <>
 inline void WriteToString(string* result, const String& value) {
-  *result += "\"";
-  *result += value.value;
-  *result += "\"";
+  *result += value.toString();
 }
 
 template <typename T>
@@ -339,6 +337,7 @@ struct Array
 {
   std::vector<T> array;
   size_t size() const { return array.size(); }
+  void push_back(const T& value) { array.push_back(value); }
   const T& operator[](size_t pos ) const { return array[pos]; }
 };
 
@@ -530,10 +529,13 @@ public:
 
   std::string readString()
   {
+    int8_t tag = (Tags)readInt8();
+    if (tag != Tags::TAG_STRING) {
+      throw new Error("Expected String");
+    }
     int32_t length = readInt32();
     check(length);
     auto result = std::string((char *)(data + position), length);
-    result += length;
     return result;
   }
 
