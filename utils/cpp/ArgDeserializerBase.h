@@ -508,6 +508,14 @@ public:
     return result;
   }
 
+  Compound<Number, Number> readAnimationRange()
+  {
+    Compound<Number, Number> result;
+    result.value0 = readNumber();
+    result.value1 = readNumber();
+    return result;
+  }
+
   Resource readResource()
   {
     Resource result;

@@ -48,7 +48,8 @@ import {
     TypedConvertor,
     TupleConvertor,
     UndefinedConvertor,
-    UnionConvertor
+    UnionConvertor,
+    AnimationRangeConvertor
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
@@ -582,9 +583,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
         const declarationName = ts.idText(declaration.name as ts.Identifier)
         const entityName = typeEntityName(type)
-        if (getNameWithoutQualifiersRight(entityName) == "Length") {
-            // Important common case.
-            return new LengthConvertor(param)
+        let customConvertor = this.customConvertor(entityName, param)
+        if (customConvertor) {
+            return customConvertor
         }
         if (ts.isTypeReferenceNode(type) && entityName && ts.isQualifiedName(entityName)) {
             const typeOuter = ts.factory.createTypeReferenceNode(entityName.left)
@@ -685,9 +686,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     return this.declarationConvertor(param, type, importedDeclaration)
                 }
             }
-            console.log("FALLING BACK")
+            let shortName = getNameWithoutQualifiersRight(type.qualifier)!
+            console.log(`FALLING BACK on ${shortName}`)
             // Fallback in case we could not find the declaration
-            return new TypedConvertor(`${getNameWithoutQualifiersRight(type.qualifier)!}`, type, param, this)
+            return new TypedConvertor(shortName, type, param, this)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)
@@ -719,6 +721,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             nativeType: () => isVoid ? "void" : mapCInteropType(typeNode),
             macroSuffixPart: () => isVoid ? "V" : ""
         }
+    }
+
+    customConvertor(typeName: ts.EntityName | undefined, param: string): ArgConvertor | undefined {
+        let name = getNameWithoutQualifiersRight(typeName)
+        if (name === "Length") return new LengthConvertor(param)
+        if (name === "AnimationRange") return new AnimationRangeConvertor(param)
+        return undefined
     }
 
     processProperty(property: ts.PropertyDeclaration | ts.PropertySignature) {

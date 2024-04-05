@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { IndentedPrinter } from "../IndentedPrinter"
-import { typeName } from "../util"
+import { identName, typeName } from "../util"
 import { PeerGeneratorVisitor, RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 
@@ -280,7 +280,7 @@ export class UnionConvertor extends BaseArgConvertor {
 
                 printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
                 printer.pushIndent()
-                printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} as ${this.tsTypeName}`)
+                printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} as ${it.tsTypeName}`)
                 it.convertorToTSSerial(param, `${value}_${index}`, printer)
                 printer.popIndent()
                 printer.print(`}`)
@@ -624,6 +624,34 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 }
 
+export class AnimationRangeConvertor extends BaseArgConvertor {
+    constructor(param: string) {
+        super("AnimationRange", [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
+    }
+
+    convertorTSArg(param: string): string {
+        throw new Error("unused")
+    }
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${param}Serializer.writeAnimationRange(${value});`)
+    }
+    convertorCArg(param: string): string {
+        throw new Error("unused")
+    }
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${value} = ${param}Deserializer.readAnimationRange();`)
+    }
+    nativeType(): string {
+        return "Compound<Number, Number>" // TODO: figure out how to pass real type args
+    }
+    interopType(ts: boolean): string {
+        return ts ? "Int32ArrayPtr" : "int32_t*"
+    }
+    estimateSize() {
+        return 8
+    }
+}
+
 function mapCType(type: ts.TypeNode): string {
     if (ts.isTypeReferenceNode(type)) {
         return ts.idText(type.typeName as ts.Identifier)
@@ -677,7 +705,8 @@ function mapCType(type: ts.TypeNode): string {
 
 function mapTsType(type: ts.TypeNode): string {
     if (ts.isTypeReferenceNode(type)) {
-        return ts.idText(type.typeName as ts.Identifier)
+        let name = identName(type.typeName)!
+        return name
     }
     return "any"
 }
