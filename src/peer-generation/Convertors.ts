@@ -217,7 +217,7 @@ export class EnumConvertor extends BaseArgConvertor {
 
 export class LengthConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], true, false, param)
+        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, true, param)
     }
 
     scopeStart(param: string): string {
@@ -228,7 +228,8 @@ export class LengthConvertor extends BaseArgConvertor {
     }
 
     convertorTSArg(param: string): string {
-        return `${param}Ptr`
+        // return `${param}Ptr`
+        throw new Error("Not used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${param}Serializer.writeLength(${value})`)

@@ -18,6 +18,7 @@ import { ArkCalendarPickerPeer } from "@arkoala/arkui/calendar_picker"
 
 function checkButton() {
     let peer = new ArkButtonPeer()
+    peer.width("42%")
     peer.type(1)
     peer.labelStyle({maxLines: 3})
 }
