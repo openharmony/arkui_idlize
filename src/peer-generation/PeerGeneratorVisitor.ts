@@ -581,9 +581,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             console.log(`WARNING: declaration not found: ${asString(type)}`)
             return new AnyConvertor(param)
         }
-        const declarationName = ts.idText(declaration.name as ts.Identifier)
+        const declarationName = ts.idText(declaration.name as ts.Identifier) // identName(declaration.name)!
+
         const entityName = typeEntityName(type)
-        let customConvertor = this.customConvertor(entityName, param)
+        let customConvertor = this.customConvertor(entityName, param, type)
         if (customConvertor) {
             return customConvertor
         }
@@ -599,11 +600,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return this.typeConvertor(param, declaration.type)
         }
         if (ts.isInterfaceDeclaration(declaration)) {
-            let ifaceName = declarationName
-            if (ifaceName == "Array") {
-                return new ArrayConvertor(param, this, type.typeArguments![0])
-            }
-            return new InterfaceConvertor(ifaceName, param, this, type)
+            return new InterfaceConvertor(declarationName, param, this, type)
         }
         if (ts.isClassDeclaration(declaration)) {
             return new InterfaceConvertor(declarationName, param, this, type)
@@ -723,10 +720,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
     }
 
-    customConvertor(typeName: ts.EntityName | undefined, param: string): ArgConvertor | undefined {
+    customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode): ArgConvertor | undefined {
         let name = getNameWithoutQualifiersRight(typeName)
         if (name === "Length") return new LengthConvertor(param)
         if (name === "AnimationRange") return new AnimationRangeConvertor(param)
+        if (name === "Array") return new ArrayConvertor(param, this, type.typeArguments![0])
         return undefined
     }
 

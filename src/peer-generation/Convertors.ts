@@ -190,7 +190,7 @@ export class EnumConvertor extends BaseArgConvertor {
 
     convertorTSArg(param: string): string {
         // as unknown for non-int enums, so it wouldn't clutter compiler diagnostic
-    return `${param} as unknown as int32`
+        return `${param} as unknown as int32`
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         // as unknown for non-int enums, so it wouldn't clutter compiler diagnostic
@@ -280,7 +280,8 @@ export class UnionConvertor extends BaseArgConvertor {
 
                 printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
                 printer.pushIndent()
-                printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} as ${it.tsTypeName}`)
+                // TODO: `as unknown` is temporary to workaround for string enums.
+                printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} as unknown as ${it.tsTypeName}`)
                 it.convertorToTSSerial(param, `${value}_${index}`, printer)
                 printer.popIndent()
                 printer.print(`}`)
@@ -626,7 +627,7 @@ export class NumberConvertor extends BaseArgConvertor {
 
 export class AnimationRangeConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("AnimationRange", [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
+        super("AnimationRange<number>", [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
     }
 
     convertorTSArg(param: string): string {
