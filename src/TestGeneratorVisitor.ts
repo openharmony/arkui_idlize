@@ -16,6 +16,38 @@ import * as ts from "typescript"
 import { asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode } from "./util"
 import { GenericVisitor } from "./options"
 
+function randInt(max: number, min: number = 0) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function randChar(minChar: string, range: number) {
+    return String.fromCharCode(minChar.charCodeAt(0) + randInt(range))
+}
+
+function randString(max: number): string {
+
+    let array: string[] = []
+    for (let i = 0; i < max; i++) {
+        const range = randInt(3)
+        let c = (range == 0)
+            ? randChar('0', 10)
+            : (range == 1)
+                ? randChar('a', 26)
+                : randChar('A', 26)
+        array.push(c)
+    }
+
+    return array.join('')
+}
+
+function toSnakeCase(str: string) {
+    return str
+        .split('')
+        .map((c, i) =>
+            (c == c.toUpperCase()) ? `${i == 0 ? '' : '_'}${c.toLowerCase()}` : c)
+        .join('')
+}
+
 export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     private interfacesToTest = new Set<string>()
     private methodsToTest = new Set<string>()
@@ -25,7 +57,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
         interfacesToTest: string| undefined,
         methodsToTest: string| undefined,
         propertiesToTest: string| undefined) {
-            interfacesToTest?.split(",")?.map(it => this.interfacesToTest.add(it))
+            interfacesToTest?.split(",")?.map(it => this.interfacesToTest.add(`${it}Attribute`))
             methodsToTest?.split(",")?.map(it => this.methodsToTest.add(it))
             propertiesToTest?.split(",")?.map(it => this.propertiesToTest.add(it))
     }
@@ -60,7 +92,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
                 this.testProperty(child)
             }
         })
-        this.epilogue()
+        this.epilogue(node.name!)
     }
 
     testInterface(node: ts.InterfaceDeclaration) {
@@ -76,7 +108,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
                 this.testProperty(child)
             }
         })
-        this.epilogue()
+        this.epilogue(node.name!)
     }
 
     testConstructor(ctor: ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration) {
@@ -85,7 +117,8 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
 
     testMethod(method: ts.MethodDeclaration | ts.MethodSignature) {
         if (this.methodsToTest.size > 0 && !this.methodsToTest.has(nameOrUndefined(method.name)!)) return
-        this.output.push(`        .${nameOrUndefined(method.name)}(${this.generateArgs(method)})`)
+        this.output.push(`  console.log(\`typescript ${nameOrUndefined(method.name)}(${this.generateArgs(method)})\`)`)
+        this.output.push(`  peer.${nameOrUndefined(method.name)}(${this.generateArgs(method)})`)
     }
 
     generateArgs(method: ts.MethodDeclaration | ts.MethodSignature): string | undefined {
@@ -109,13 +142,13 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
             return "null"
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            return "17"
+            return `${randInt(2048, -1024)}`
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
-            return "\"a string\""
+            return `"${randString(randInt(16))}"`
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-            return "false"
+            return Math.random() < 0.5 ? "false" : "true"
         }
         if (ts.isTypeReferenceNode(type)) {
             let name = type.typeName
@@ -127,7 +160,9 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
             if (decls) {
                 let decl = decls[0]
                 if (decl && ts.isEnumDeclaration(decl)) {
-                    return `${nameOrUndefined(decl.name)}.${nameOrUndefined(decl.members[0].name)!}`
+                    // TBD: Use enum constants
+                    // return `${nameOrUndefined(decl.name)}.${nameOrUndefined(decl.members[0].name)!}`
+                    return `${randInt(decl.members.length)}`
                 }
                 if (decl && ts.isTypeAliasDeclaration(decl)) {
                     return `${this.generateValueOfType(decl.type)}`
@@ -178,20 +213,26 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
         console.log(`test prop ${nameOrUndefined(property.name)!}`)
     }
 
-    prologue(name: ts.Identifier) {
-        let clazzName = nameOrUndefined(name)!
-        if (clazzName.endsWith("Attribute")) clazzName = clazzName.replace("Attribute", "")
-        this.output.push(`
-struct ${clazzName}Test {
-    build() {
-        ${clazzName}()`)
-}
-
-    epilogue() {
-        this.output.push(`
+    getClassName(name: ts.Identifier) : string {
+        const clazzName = nameOrUndefined(name)!
+        return clazzName.endsWith("Attribute") ? clazzName.replace("Attribute", "") : clazzName
     }
-}
-`)
+
+    prologue(name: ts.Identifier) {
+        let clazzName = this.getClassName(name)!
+        this.output.push(`import { Ark${clazzName}Peer } from "@arkoala/arkui/${toSnakeCase(clazzName)}"`)
+        this.output.push(``)
+        this.output.push(`function check${clazzName}() {`)
+        this.output.push(`  console.log("call ${clazzName} peer")`)
+        this.output.push(`  let peer = new Ark${clazzName}Peer()`)
+    }
+
+    epilogue(name: ts.Identifier) {
+        let clazzName = this.getClassName(name)!
+        this.output.push(`  console.log("\\n")`)
+        this.output.push(`}`)
+        this.output.push(`check${clazzName}()`)
+        this.output.push(`\n`)
     }
 
     membersWithFakeOverrides(node: ts.InterfaceDeclaration): ts.TypeElement[] {

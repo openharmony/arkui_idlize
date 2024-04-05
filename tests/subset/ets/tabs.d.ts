@@ -20,5 +20,7 @@ declare enum BarMode {
 
 declare class TabsAttribute extends CommonMethod<TabsAttribute> {
 
-    barMode(value: BarMode.Fixed): TabsAttribute;
+    // TBD: Fix for the TestGeneratorVisitor
+    // barMode(value: BarMode.Fixed): TabsAttribute;
+    barMode(value: BarMode): TabsAttribute;
 }

@@ -164,22 +164,45 @@ if (options.linter) {
 }
 
 if (options.dts2test) {
+
+    let testInterfaces = options.testInterface
+    if (testInterfaces === undefined) {
+        function fileNameToClass(name: string): string {
+            return name
+                .split('_')
+                .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+                .join(``)
+        }
+
+        let inDir = path.resolve(options.inputDir)
+        testInterfaces = fs.readdirSync(inDir)
+            .filter(file => file.endsWith("d.ts"))
+            .map(file => file.substring(0, file.length - 5))
+            .map(fileNameToClass)
+            .join(',')
+    }
+
+    let lines: string[] = []
     generate(
         options.inputDir,
         options.inputFile,
         options.outputDir ?? "./tests",
-        (sourceFile, typeChecker) => new TestGeneratorVisitor(sourceFile, typeChecker, options.testInterface, options.testMethod, options.testProperties),
+        (sourceFile, typeChecker) => new TestGeneratorVisitor(sourceFile, typeChecker, testInterfaces, options.testMethod, options.testProperties),
         {
             compilerOptions: defaultCompilerOptions,
+            onBegin: (outDir: string) => {
+            },
             onSingleFile: (entries: string[], outputDir, sourceFile) => {
-                const outFile = path.join(outputDir,
-                    path.basename(sourceFile.fileName).replace(".d.ts", "_test.ets"))
-                if (entries.length > 0) {
-                    console.log("producing", outFile)
-                    let generated = entries.join("\n")
-                    if (options.verbose) console.log(generated)
-                    fs.writeFileSync(outFile, generated)
+                lines = lines.concat(entries)
+            },
+            onEnd: (outDir: string) => {
+                let generated = lines.join("\n")
+                const outFile = path.join(outDir, "index.ts")
+                if (options.verbose) {
+                    console.log(generated)
                 }
+                console.log(`Write fuzzing peers to file ${outFile}`)
+                fs.writeFileSync(outFile, lines.join("\n"))
             }
         }
     )
