@@ -16,9 +16,6 @@
 import * as ts from "typescript"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 
-// Several things stolen from our memo plugin
-// for easier life
-
 export interface NameWithType {
     name?: ts.DeclarationName
     type?: ts.TypeNode
@@ -385,4 +382,22 @@ export function getNameWithoutQualifiersLeft(node: ts.EntityName | undefined) : 
         return identName(node)
     }
     throw new Error("Impossible")
+}
+
+export function renameDtsToPeer(fileName: string, withFileExtension: boolean = true) {
+    const renamed = "Ark"
+        .concat(snakeCaseToCamelCase(fileName))
+        .replace(".d.ts", "")
+        .concat("Peer")
+    if (withFileExtension) {
+        return renamed.concat(".ts")
+    }
+    return renamed
+
+    function snakeCaseToCamelCase(input: string): string {
+        return input
+            .split("_")
+            .map(capitalize)
+            .join("")
+    }
 }

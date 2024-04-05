@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 // Shall be like this import { ArkCommonPeer } from "@arkoala/arkui/common"
-import { ArkButtonPeer } from "@arkoala/arkui/button"
-import { ArkCalendarPickerPeer } from "@arkoala/arkui/calendar_picker"
-import { ArkFormComponentPeer } from "@arkoala/arkui/form_component"
-import { ArkClassDTSPeer } from "@arkoala/arkui/test"
+
+import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
+import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
+import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
+import { ArkClassDTSPeer } from "@arkoala/arkui/ArkTestPeer"
 
 function checkButton() {
     let peer = new ArkButtonPeer()

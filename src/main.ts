@@ -39,7 +39,7 @@ import {
 import {
     PeerGeneratorVisitor
 } from "./peer-generation/PeerGeneratorVisitor"
-import { defaultCompilerOptions, isDefined, stringOrNone, toSet } from "./util"
+import { defaultCompilerOptions, isDefined, renameDtsToPeer, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
 import { SortingEmitter } from "./peer-generation/SortingEmitter"
 
@@ -284,8 +284,10 @@ if (options.dts2peer) {
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: stringOrNone[], outputDir, sourceFile) => {
-                const outFile = path.join(outputDir,
-                    path.basename(sourceFile.fileName).replace(".d.ts", ".ts"))
+                const outFile = path.join(
+                    outputDir,
+                    renameDtsToPeer(path.basename(sourceFile.fileName))
+                )
                 if (entries.length > 0) {
                     console.log("producing", outFile)
                     let generated = entries

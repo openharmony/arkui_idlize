@@ -25,6 +25,7 @@ import {
     isCommonMethodOrSubclass,
     isDefined,
     nameOrNull,
+    renameDtsToPeer,
     serializerBaseMethods,
     stringOrNone,
     typeEntityName,
@@ -157,8 +158,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return PeerGeneratorConfig.exports
             .filter(it => !currentFileName.endsWith(`/${it.file}.d.ts`))
             .map(it => {
-                const entities = it.components.map(it => [`Ark${it}Peer, Ark${it}Attributes`]).join(", ")
-                return `import { ${entities} } from "./${it.file}"`
+                const entities = it.components
+                    .flatMap(it => [`Ark${it}Peer`, `Ark${it}Attributes`])
+                    .map(it => `  ${it}`)
+                    .join(",\n")
+                return `import {\n${entities}\n} from "./${renameDtsToPeer(it.file, false)}"`
             })
     }
 
