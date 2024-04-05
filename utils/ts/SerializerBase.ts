@@ -180,7 +180,7 @@ export class SerializerBase {
         let encoded = textEncoder.encode(value)
         this.checkCapacity(5 + encoded.length)
         this.view.setInt8(this.position, Tags.STRING)
-        this.view.setInt32(this.position + 1, encoded.length)
+        this.view.setInt32(this.position + 1, encoded.length, true)
         new Uint8Array(this.view.buffer, this.position + 5).set(encoded)
         this.position += 5 + encoded.length
     }

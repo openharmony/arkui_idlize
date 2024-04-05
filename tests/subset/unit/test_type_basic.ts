@@ -32,10 +32,16 @@ it('Should write number undefined', function () {
     assert.deepEqual(toArray(serializer), [Tags.UNDEFINED])
 });
 
-it('Should write number undefined', function () {
+it('Should write number 128', function () {
     let serializer = new Serializer(5)
     serializer.writeNumber(128)
     assert.deepEqual(toArray(serializer), [Tags.INT32, ...toInt32(128)])
+});
+
+it('Should write number 0x89ABCDEF', function () {
+    let serializer = new Serializer(5)
+    serializer.writeNumber(0x89ABCDEF)
+    assert.deepEqual(toArray(serializer), [Tags.INT32, ...toInt32(0x89ABCDEF)])
 });
 
 // String
