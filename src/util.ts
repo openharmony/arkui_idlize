@@ -278,9 +278,9 @@ export function typeEntityName(type: ts.TypeReferenceNode | ts.TypeQueryNode | t
     throw new Error("unsupported")
 }
 
-
-export function zip<A, B>(to: readonly A[], from: readonly B[]): [A, B][] {
-    return to.map((toValue, i) => [toValue, from[i]])
+export function zip<A, B>(left: readonly A[], right: readonly B[]): [A, B][] {
+    if (left.length != right.length) throw new Error("Arrays of different length")
+    return left.map((_, i) => [left[i], right[i]])
 }
 
 export function identName(node: ts.Node | undefined): string | undefined {

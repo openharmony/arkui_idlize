@@ -24,8 +24,21 @@ import { printHeader, toHeaderString, wrapWithPrologueAndEpilogue } from "./idl2
 import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { bridgeCcDeclaration, dummyImplementations, dummyModifierList, dummyModifiers, makeApiHeaders, makeApiModifiers, makeCDeserializer, makeTSSerializer, nativeModuleDeclaration } from "./peer-generation/FileGenerators"
-import { PeerGeneratorVisitor } from "./peer-generation/PeerGeneratorVisitor"
+import {
+    bridgeCcDeclaration,
+    dummyImplementations,
+    dummyModifierList,
+    dummyModifiers,
+    makeApiHeaders,
+    makeApiModifiers,
+    makeCDeserializer,
+    makeTSSerializer,
+    nativeModuleDeclaration,
+    nativeModuleEmptyDeclaration
+} from "./peer-generation/FileGenerators"
+import {
+    PeerGeneratorVisitor
+} from "./peer-generation/PeerGeneratorVisitor"
 import { defaultCompilerOptions, isDefined, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
 import { SortingEmitter } from "./peer-generation/SortingEmitter"
@@ -212,6 +225,7 @@ if (options.idl2h) {
 
 if (options.dts2peer) {
     const nativeMethods: string[] = []
+    const nativeEmptyMethods: string[] = []
     const bridgeCcArray: string[] = []
     const deserializerC: string[] = []
     const structsC = new SortingEmitter()
@@ -232,6 +246,7 @@ if (options.dts2peer) {
             typeChecker,
             toSet(options.generateInterface),
             nativeMethods,
+            nativeEmptyMethods,
             bridgeCcArray,
             serializerTS,
             deserializerC,
@@ -258,8 +273,14 @@ if (options.dts2peer) {
                 }
             },
             onEnd(outDir: string) {
-                const nativeModule = nativeModuleDeclaration(nativeMethods, options.nativeBridgeDir ?? "native/build-node-host-subset")
-                fs.writeFileSync(path.join(outDir, 'NativeModule.ts'), nativeModule)
+                fs.writeFileSync(
+                    path.join(outDir, 'NativeModule.d.ts'),
+                    nativeModuleDeclaration(nativeMethods, options.nativeBridgeDir ?? "native/build-node-host-subset")
+                )
+                fs.writeFileSync(
+                    path.join(outDir, 'NativeModuleEmpty.ts'),
+                    nativeModuleEmptyDeclaration(nativeEmptyMethods)
+                )
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(serializerTS))

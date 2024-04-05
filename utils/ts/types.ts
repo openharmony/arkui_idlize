@@ -16,6 +16,7 @@
 export type int32 = number
 export type float32 = number
 export type Int32ArrayPtr = Int32Array
+export type Uint8ArrayPtr = Uint8Array
 export type KInt = int32
 export type KBoolean = int32
 export type KStringPtr = string

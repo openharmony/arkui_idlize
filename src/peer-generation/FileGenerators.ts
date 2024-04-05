@@ -13,10 +13,25 @@
  * limitations under the License.
  */
 
+const importTsInteropTypes = `
+import { 
+    int32,
+    float32,
+    KInt,
+    KBoolean,
+    KStringPtr,
+    KPointer,
+    KNativePointer,
+    Int32ArrayPtr,
+    Uint8ArrayPtr
+} from "../../utils/ts/types"
+`.trim()
+
+
 export function nativeModuleDeclaration(methods: string[], nativeBridgeDir: string): string {
     // TODO: better NativeBridge loader
     return `
-import { int32, KInt, Int32ArrayPtr, KNativePointer, KBoolean, KStringPtr } from "../../utils/ts/types"
+${importTsInteropTypes}
 
 let theModule: NativeModule | undefined = undefined
 
@@ -32,6 +47,16 @@ ${methods.join("\n")}
 `
 }
 
+export function nativeModuleEmptyDeclaration(methods: string[]): string {
+    return `
+${importTsInteropTypes}
+import { NativeModule } from "./NativeModule"
+
+export class NativeModuleEmpty implements NativeModule {
+${methods.join("\n")}
+}
+`.trim()
+}
 
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `#include "Interop.h"

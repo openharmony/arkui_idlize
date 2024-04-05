@@ -5,3 +5,4 @@ generated
 interface_sdk-js
 lib
 .rollup.cache
+.idea

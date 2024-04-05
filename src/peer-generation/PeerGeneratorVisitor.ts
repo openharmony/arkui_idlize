@@ -78,10 +78,19 @@ export interface TypeAndName {
     name: string
 }
 
+type MaybeCollapsedMethod = {
+    method: ts.MethodDeclaration | ts.MethodSignature,
+    collapsed?: {
+        paramsDecl: string,
+        paramsUsage: string
+    }
+}
+
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
     private seenAttributes = new Set<string>()
     private printerNativeModule: IndentedPrinter
+    private printerNativeModuleEmpty: IndentedPrinter
     private printerSerializerC: IndentedPrinter
     private printerStructsC: SortingEmitter
     private printerTypedefsC: IndentedPrinter
@@ -100,6 +109,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         private typeChecker: ts.TypeChecker,
         private interfacesToGenerate: Set<string>,
         nativeModuleMethods: string[],
+        nativeModuleEmptyMethods: string[],
         outputC: string[],
         outputSerializersTS: string[],
         outputSerializersC: string[],
@@ -113,6 +123,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     ) {
         this.printerC = new IndentedPrinter(outputC)
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
+        this.printerNativeModuleEmpty = new IndentedPrinter(nativeModuleEmptyMethods)
         this.printerSerializerC = new IndentedPrinter(outputSerializersC)
         this.printerStructsC = outputStructsC
         this.printerTypedefsC = new IndentedPrinter(outputStructsForwardC)
@@ -146,7 +157,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return PeerGeneratorConfig.exports
             .filter(it => !currentFileName.endsWith(`/${it.file}.d.ts`))
             .map(it => {
-                const entities = it.components.map(it => [`Ark${it}Peer`, `Ark${it}Attributes`]).join(", ")
+                const entities = it.components.map(it => [`Ark${it}Peer, Ark${it}Attributes`]).join(", ")
                 return `import { ${entities} } from "./${it.file}"`
             })
     }
@@ -225,31 +236,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }
     }
 
-    processClass(node: ts.ClassDeclaration) {
+    private processClass(node: ts.ClassDeclaration): void {
         if (!this.needsPeer(node)) return
+        const collapsedMethods = this.collapseOverloads(node)
+
         this.prologue(node)
-        node.members.forEach(child => {
-            if (ts.isConstructorDeclaration(child)) {
-                this.processConstructor(child)
-            } else if (ts.isMethodDeclaration(child)) {
-                this.processMethod(node, child)
-            } else if (ts.isPropertyDeclaration(child)) {
-                this.processProperty(child)
-            }
-        })
+        collapsedMethods.forEach(it => this.processMethod(node, it))
         this.processApplyMethod(node)
         this.epilogue(node)
 
         this.createComponentAttributesDeclaration(node)
         this.generateAttributesValuesInterfaces()
-
-        this.printerNativeModule.pushIndent()
-        node.members.forEach(it => {
-            if (ts.isMethodDeclaration(it)) {
-                this.collectMethod(it, node)
-            }
-        })
-        this.printerNativeModule.popIndent()
+        this.nativeModulePrint(node, collapsedMethods)
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
@@ -259,7 +257,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (ts.isConstructorDeclaration(child)) {
                 this.processConstructor(child)
             } else if (ts.isMethodSignature(child)) {
-                this.processMethod(node, child)
+                this.processMethod(node, { method: child })
             } else if (ts.isPropertyDeclaration(child)) {
                 this.processProperty(child)
             }
@@ -340,9 +338,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     private seenMethods = new Set<string>()
 
-    processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, method: ts.MethodDeclaration | ts.MethodSignature) {
+    processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, { method, collapsed }: MaybeCollapsedMethod): void {
+        const methodName = ts.idText(method.name as ts.Identifier)
+        const capitalizedMethodName = capitalize(methodName)
+
         let isComponent = false
-        let methodName = method.name.getText(this.sourceFile)
         if (PeerGeneratorConfig.ignorePeerMethod.includes(methodName)) return
         const hasReceiver = true // TODO: make it false for non-method calls.
         const componentName = ts.idText(clazz.name as ts.Identifier)
@@ -352,11 +352,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         const suffix = this.generateCMacroSuffix(argConvertors, retConvertor, hasReceiver)
 
         console.log(`processing ${componentName}.${methodName}`)
-        if (this.seenMethods.has(methodName)) {
-            console.log(`WARNING: ignore duplicate method ${methodName}`)
-            return
-        }
-        let capitalizedMethodName = methodName[0].toUpperCase() + methodName.substring(1)
+
         const apiParameters = this.generateAPIParameters(argConvertors).join(", ")
         const implName = `Set${capitalizedMethodName}Impl`
         this.printAPI(`void (*set${capitalizedMethodName})(${apiParameters});`)
@@ -374,14 +370,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printDummy(`}`)
 
         this.seenMethods.add(methodName)
-        this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${this.generateParams(method.parameters)}) {`)
+        const paramsDecl = collapsed?.paramsDecl ?? this.generateParams(method.parameters)
+        this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${paramsDecl}) {`)
         let cName = `${componentName}_${methodName}`
         this.printC(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
         this.pushIndentBoth()
         if (isComponent) {
             this.printTS(`if (this.checkPriority("${methodName}")) {`)
             this.pushIndentTS()
-            this.printTS(`this.peer?.${methodName}Attribute(${this.generateValues(method.parameters)})`)
+            const paramsUsage = collapsed?.paramsUsage ?? this.generateValues(method.parameters)
+            this.printTS(`this.peer?.${methodName}Attribute(${paramsUsage}`)
             this.popIndentTS()
             this.printTS(`}`)
         } else {
@@ -480,10 +478,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (hasReceiver) {
             this.printC("ArkUINodeHandle node = reinterpret_cast<ArkUINodeHandle>(nodePtr);")
         }
-        let scopes = new Array<ArgConvertor>()
-        argConvertors
-            .filter(it => it.isScoped)
-            .map(it => scopes.push(it))
+        let scopes = argConvertors.filter(it => it.isScoped)
         scopes.forEach(it => {
             this.pushIndentTS()
             this.printTS(it.scopeStart?.(it.param))
@@ -921,25 +916,117 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         })
     }
 
-    private collectMethod(node: ts.MethodDeclaration, parent: ts.ClassDeclaration): void {
-        // TODO: use alternative in-time emitter, like printC.
-        if (parent.name === undefined) throw new Error(`Encountered nameless method ${node}`)
-        const component = ts.idText(parent.name)
-        const method = node.name.getText()
-        const parameters =
-            ["node: KNativePointer"].concat(
-            node.parameters
-            .map(it => this.argConvertor(it))
-            .map(it => {
-                if (it.useArray) {
-                    const array = `${it.param}Serializer`
-                    return `${it.param}Array: Uint8Array, ${array}Length: int32`
-                } else {
-                    return `${it.param}: ${it.interopType(true)}`
+    private collapseOverloads(node: ts.ClassDeclaration): MaybeCollapsedMethod[] {
+        const methods = node.members.filter(ts.isMethodDeclaration)
+        const groupedByName = new Map<string, ts.MethodDeclaration[]>(
+            methods.map(it => [it.name.getText(), []])
+        )
+        methods.forEach(it => {
+            groupedByName.get(it.name.getText())?.push(it)
+        })
+
+        return [...groupedByName.keys()].map(name => {
+            const overloads = groupedByName.get(name)!
+            if (overloads.length == 1) {
+                return {
+                    method: overloads[0]
                 }
-            }))
-            .join(", ")
-        this.printerNativeModule.print(`_${component}_${method}(${parameters}): void`)
+            }
+
+            const maxParamsLength = Math.max(...overloads.map(it => it.parameters.length))
+
+            const paramsCollapsed: { types: ts.TypeNode[], name: string, optional?: ts.QuestionToken }[] =
+                Array.from({ length: maxParamsLength }, (_, i) => {
+                    const typesToUnion = overloads.map(overload =>
+                        overload.parameters[i]?.type ?? ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
+                    )
+                    return {
+                        types: typesToUnion,
+                        name: `arg${i}`,
+                        optional: overloads.some(overload => overload.parameters[i]?.questionToken)
+                            ? ts.factory.createToken(ts.SyntaxKind.QuestionToken)
+                            : undefined
+                    }
+                })
+
+            const params = paramsCollapsed
+                .map(({types, name, optional}) =>
+                    ts.factory.createParameterDeclaration(
+                        undefined,
+                        undefined,
+                        name,
+                        optional,
+                        ts.factory.createUnionTypeNode(types)
+                    )
+                )
+
+            const paramsDecl = paramsCollapsed
+                .map(it => {
+                    const questionToken = it.optional ? "?" : ""
+                    const collapsedType = it.types.map(it => {
+                        if (it.kind == ts.SyntaxKind.UndefinedKeyword) {
+                            return "undefined"
+                        }
+                        if (ts.isFunctionTypeNode(it)) {
+                            return `(${it.getText()})`
+                        }
+                        return it.getText()
+                    }).join(" | ")
+
+                    return `${it.name}${questionToken}: ${collapsedType}`
+                })
+                .join(", ")
+
+            const paramsUsage = paramsCollapsed
+                .map(it =>
+                    it.name
+                )
+                .join(", ")
+
+            return {
+                method: ts.factory.createMethodDeclaration(
+                    undefined,
+                    undefined,
+                    name,
+                    undefined,
+                    undefined,
+                    params,
+                    undefined,
+                    undefined
+                ),
+                collapsed: {
+                    paramsDecl: paramsDecl,
+                    paramsUsage: paramsUsage
+                }
+            }
+        })
+    }
+
+    private nativeModulePrint(parent: ts.ClassDeclaration, methods: MaybeCollapsedMethod[]): void {
+        if (parent.name === undefined) throw new Error(`Encountered nameless method ${parent}`)
+        const component = ts.idText(parent.name)
+
+        methods.forEach(maybeCollapsedMethod => {
+            const basicParameters = maybeCollapsedMethod.method.parameters
+                .map(it => this.argConvertor(it))
+                .map(it => {
+                    if (it.useArray) {
+                        const array = `${it.param}Serializer`
+                        return `${it.param}Array: Uint8Array, ${array}Length: int32`
+                    } else {
+                        return `${it.param}: ${it.interopType(true)}`
+                    }
+                })
+            const parameters = ["node: KNativePointer"]
+                .concat(basicParameters)
+                .join(", ")
+
+            const originalName = ts.idText(maybeCollapsedMethod.method.name as ts.Identifier)
+            const implDecl = `_${component}_${originalName}(${parameters}): void`
+
+            this.printerNativeModule.print(implDecl)
+            this.printerNativeModuleEmpty.print(`${implDecl} { console.log("${originalName}") }`)
+        })
     }
 
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
