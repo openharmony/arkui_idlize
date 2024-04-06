@@ -400,7 +400,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             .map((member, index) => {
             this.members[index] = ts.idText(member.name as ts.Identifier)
             // ${member.questionToken ? "?" : ""}
-            return visitor.typeConvertor(param, member.type!)
+            return visitor.typeConvertor(param, member.type!, member.questionToken != undefined)
         })
     }
 

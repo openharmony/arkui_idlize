@@ -163,13 +163,13 @@ export class SerializerBase {
         this.view.setInt8(this.position, value == undefined ? 2 : +value)
         this.position++
     }
-    writeFunction(value: object) {
+    writeFunction(value: object | undefined) {
         throw new Error("Functions not yet supported")
     }
-    writeCallback(value: object) {
+    writeCallback(value: object| undefined) {
         this.writeFunction(value)
     }
-    writeErrorCallback(value: object) {
+    writeErrorCallback(value: object| undefined) {
         this.writeFunction(value)
     }
     writeString(value: string|undefined) {

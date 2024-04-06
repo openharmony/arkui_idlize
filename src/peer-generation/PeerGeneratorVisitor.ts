@@ -611,7 +611,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         throw new Error(`Unknown kind: ${declaration.kind}`)
     }
 
-    typeConvertor(param: string, type: ts.TypeNode): ArgConvertor {
+    typeConvertor(param: string, type: ts.TypeNode, isOptionalParam = false): ArgConvertor {
+        if (isOptionalParam) {
+            return new OptionConvertor(param, this, type)
+        }
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
             return new AnyConvertor(param)
         }
@@ -703,7 +706,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")
         let paramName = asString(param.name)
-        return this.typeConvertor(paramName, param.questionToken ? typeOrUndefined(param.type) : param.type)
+        return this.typeConvertor(paramName, param.type, param.questionToken != undefined)
     }
 
     retConvertor(typeNode?: ts.TypeNode): RetConvertor {
@@ -1053,8 +1056,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 declaration.members
                     .filter(ts.isPropertySignature)
                     .forEach(it => {
-                        const type = it.questionToken ? typeOrUndefined(it.type!) : it.type!
-                        let typeConvertor = this.typeConvertor("value", type)
+                        let typeConvertor = this.typeConvertor("value", it.type!, it.questionToken != undefined)
                         let fieldName = asString(it.name)
                         this.printerSerializerTS.print(`let value_${fieldName} = value.${fieldName}`)
                         typeConvertor.convertorToTSSerial(`value`, `value_${fieldName}`, this.printerSerializerTS)

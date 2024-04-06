@@ -490,6 +490,8 @@ public:
     else if (result.tag == Tags::TAG_FLOAT32)
     {
       result.value.f32 = readFloat32();
+    } else {
+      throw "Unknown number tag";
     }
     return result;
   }

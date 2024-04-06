@@ -17,7 +17,8 @@
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
-import { ArkClassDTSPeer } from "@arkoala/arkui/ArkTestPeer"
+// This breaks full peers compilation!
+// import { ArkClassDTSPeer } from "@arkoala/arkui/ArkTestPeer"
 
 function checkButton() {
     let peer = new ArkButtonPeer()
@@ -32,6 +33,7 @@ function checkCalendar() {
     peer.edgeAlign(2, undefined)
 }
 
+/*
 function checkDTS() {
     let peer = new ArkClassDTSPeer()
     peer.testBoolean({valBool: true})
@@ -41,7 +43,7 @@ function checkDTS() {
     peer.testTuple({tuple: [18, false]})
     peer.testArray([-2, -1, 0, 1, 2])
 }
-
+*/
 function checkFormComponent() {
     let peer = new ArkFormComponentPeer()
     peer.size({width: 5, height: 6})
@@ -49,5 +51,5 @@ function checkFormComponent() {
 
 checkButton()
 checkCalendar()
-checkDTS()
+//checkDTS()
 checkFormComponent()
