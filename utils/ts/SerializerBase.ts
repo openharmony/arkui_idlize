@@ -98,10 +98,29 @@ export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: 
 
 let textEncoder = new TextEncoder()
 
+/* Serialization extension point */
+export abstract class CustomSerializer {
+    constructor(protected supported: Array<string>) {}
+    supports(kind: string): boolean { return this.supported.includes(kind) }
+    abstract serialize(serializer: SerializerBase, value: object, kind: string): void
+    next: CustomSerializer | undefined = undefined
+}
+
 export class SerializerBase {
     private position = 0
     private buffer: ArrayBuffer
     private view: DataView
+
+    private static customSerializers: CustomSerializer | undefined = undefined
+    static registerCustomSerializer(serializer: CustomSerializer) {
+        if (SerializerBase.customSerializers == undefined) {
+            SerializerBase.customSerializers = serializer
+        } else {
+            let current = SerializerBase.customSerializers
+            while (current.next != undefined) { current = current.next }
+            current.next = serializer
+        }
+    }
     constructor(expectedSize: int32) {
         this.buffer = new ArrayBuffer(expectedSize)
         this.view = new DataView(this.buffer)
@@ -125,6 +144,16 @@ export class SerializerBase {
             this.buffer = resizedBuffer
             this.view = new DataView(resizedBuffer)
         }
+    }
+    writeCustom(kind: string, value: object) {
+        let current = SerializerBase.customSerializers
+        while (current) {
+            if (current.supports(kind)) {
+                current.serialize(this, value, kind)
+                return
+            }
+        }
+        console.log(`Unsupported custom serialization for ${kind}`)
     }
     writeNumber(value: number|undefined) {
         this.checkCapacity(5)

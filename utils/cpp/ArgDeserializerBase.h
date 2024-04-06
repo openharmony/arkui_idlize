@@ -427,6 +427,26 @@ inline void WriteToString(string* result, const Undefined& value) {
   *result += "undefined";
 }
 
+class ArgDeserializerBase;
+
+struct CustomObject {
+  string kind;
+  CustomObject(string kind): kind(kind) {}
+
+  // Data of custom object.
+  int32_t ints[4];
+  float32_t floats[4];
+  void* pointers[4];
+};
+
+struct CustomDeserializer {
+  virtual bool supports(const string& kind) { return false; }
+  virtual CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
+    return CustomObject("error");
+  }
+  CustomDeserializer*  next = nullptr;
+};
+
 class ArgDeserializerBase
 {
 protected:
@@ -434,9 +454,20 @@ protected:
   int32_t length;
   int32_t position;
 
+  static CustomDeserializer* customDeserializers;
 public:
   ArgDeserializerBase(uint8_t *data, int32_t length)
       : data(data), length(length), position(0) {}
+
+  static void registerCustomDeserializer(CustomDeserializer* deserializer) {
+    if (ArgDeserializerBase::customDeserializers == nullptr) {
+      ArgDeserializerBase::customDeserializers = deserializer;
+    } else {
+      auto* current = ArgDeserializerBase::customDeserializers;
+      while (current->next != nullptr) current = current->next;
+      current->next = deserializer;
+    }
+  }
 
   void check(int32_t count)
   {
@@ -444,6 +475,17 @@ public:
     {
       assert(false);
     }
+  }
+
+  CustomObject readCustom(string kind) {
+      auto* current = ArgDeserializerBase::customDeserializers;
+      while (current) {
+        if (current->supports(kind)) {
+          return current->deserialize(this, kind);
+        }
+      }
+      fprintf(stderr, "Unsupported custom deserialization for %s\n", kind.c_str());
+      return CustomObject("error");
   }
 
   int8_t readInt8()

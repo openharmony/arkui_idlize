@@ -16,6 +16,9 @@
 #include <string>
 #include <vector>
 #include "common-interop.h"
+#include "ArgDeserializerBase.h"
+
+CustomDeserializer* ArgDeserializerBase::customDeserializers = nullptr;
 
 #if KOALA_INTEROP_PROFILER
 #include "profiler.h"
