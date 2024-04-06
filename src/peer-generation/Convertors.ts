@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { IndentedPrinter } from "../IndentedPrinter"
-import { identName, typeName } from "../util"
+import { identName, importTypeName, typeName } from "../util"
 import { PeerGeneratorVisitor, RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 
@@ -341,6 +341,37 @@ export class UnionConvertor extends BaseArgConvertor {
     }
 }
 
+export class ImportTypeConvertor extends BaseArgConvertor {
+    private importedName: string
+    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.ImportTypeNode) {
+        super("Object", [RuntimeType.OBJECT], false, true, param)
+        this.importedName = importTypeName(type)
+        visitor.requestType(this.importedName, type)
+    }
+
+    convertorTSArg(param: string): string {
+        throw new Error("Must never be used")
+    }
+    convertorCArg(param: string): string {
+        throw new Error("Must never be used")
+    }
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${param}Serializer.writeCustom("${this.importedName}", ${value})`)
+    }
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${value} = ${param}Deserializer.readCustom("${this.importedName}");`)
+    }
+    nativeType(): string {
+        return this.importedName
+    }
+    interopType(ts: boolean): string {
+        throw new Error("Must never be used")
+    }
+    estimateSize() {
+        return 32
+    }
+}
+
 export class OptionConvertor extends BaseArgConvertor {
     private typeConvertor: ArgConvertor
 
@@ -441,7 +472,7 @@ export class AggregateConvertor extends BaseArgConvertor {
 export class TypedConvertor extends BaseArgConvertor {
     constructor(
         name: string,
-        private type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined,
+        private type: ts.TypeReferenceNode | undefined,
         param: string, protected visitor: PeerGeneratorVisitor) {
         super(name, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
         visitor.requestType(name, type)
@@ -471,7 +502,7 @@ export class TypedConvertor extends BaseArgConvertor {
 }
 
 export class InterfaceConvertor extends TypedConvertor {
-    constructor(name: string, param: string, visitor: PeerGeneratorVisitor, type: ts.TypeReferenceNode | ts.ImportTypeNode) {
+    constructor(name: string, param: string, visitor: PeerGeneratorVisitor, type: ts.TypeReferenceNode) {
         super(name, type, param, visitor)
     }
 }

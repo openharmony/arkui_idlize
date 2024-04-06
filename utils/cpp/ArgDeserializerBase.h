@@ -41,10 +41,24 @@ struct Tagged
   T value;
 };
 
+inline const char* tagName(Tags tag) {
+  switch (tag) {
+    case Tags::TAG_UNDEFINED: return "UNDEFINED";
+    case Tags::TAG_INT32: return "INT32";
+    case Tags::TAG_FLOAT32: return "FLOAT32";
+    case Tags::TAG_LENGTH: return "LENGTH";
+    case Tags::TAG_RESOURCE: return "RESOURCE";
+    case Tags::TAG_STRING: return "STRING";
+    case Tags::TAG_OBJECT: return "OBJECT";
+  }
+  throw "Error";
+}
+
 template <typename T>
 inline void WriteToString(string* result, const Tagged<T>& value) {
-    result->append("tagged {");
-    result->append(std::to_string((int)value.tag));
+    result->append("tagged {[");
+    result->append(tagName(value.tag));
+    result->append("]");
     if (value.tag != TAG_UNDEFINED) {
       WriteToString(result, value.value);
     }
@@ -403,18 +417,6 @@ inline void WriteToString(string* result, const Length& value) {
   result->append("}");
 }
 
-struct Resource
-{
-  int32_t id;
-};
-
-template <>
-inline void WriteToString(string* result, const Resource& value) {
-  *result += "Resource {";
-  *result += "id=" + std::to_string(value.id);
-  *result += "}";
-}
-
 struct Undefined
 {
   int8_t bogus;
@@ -424,20 +426,29 @@ struct Undefined
 };
 template <>
 inline void WriteToString(string* result, const Undefined& value) {
-  *result += "undefined";
+  result->append("undefined");
 }
 
 class ArgDeserializerBase;
 
 struct CustomObject {
   string kind;
-  CustomObject(string kind): kind(kind) {}
+  CustomObject(): id(0) {}
+  CustomObject(string kind): kind(kind), id(0) {}
 
+  int32_t id;
   // Data of custom object.
   int32_t ints[4];
   float32_t floats[4];
   void* pointers[4];
 };
+
+inline void WriteToString(string* result, const CustomObject& value) {
+  result->append("Custom kind=");
+  result->append(value.kind);
+  result->append(" id=");
+  result->append(std::to_string(value.id));
+}
 
 struct CustomDeserializer {
   virtual bool supports(const string& kind) { return false; }
@@ -485,7 +496,7 @@ public:
         }
       }
       fprintf(stderr, "Unsupported custom deserialization for %s\n", kind.c_str());
-      return CustomObject("error");
+      return CustomObject(string("Error for ") + kind);
   }
 
   int8_t readInt8()
@@ -556,13 +567,6 @@ public:
     Compound<Number, Number> result;
     result.value0 = readNumber();
     result.value1 = readNumber();
-    return result;
-  }
-
-  Resource readResource()
-  {
-    Resource result;
-    result.id = readInt32();
     return result;
   }
 

@@ -102,7 +102,7 @@ let textEncoder = new TextEncoder()
 export abstract class CustomSerializer {
     constructor(protected supported: Array<string>) {}
     supports(kind: string): boolean { return this.supported.includes(kind) }
-    abstract serialize(serializer: SerializerBase, value: object, kind: string): void
+    abstract serialize(serializer: SerializerBase, value: object|undefined, kind: string): void
     next: CustomSerializer | undefined = undefined
 }
 
@@ -145,7 +145,7 @@ export class SerializerBase {
             this.view = new DataView(resizedBuffer)
         }
     }
-    writeCustom(kind: string, value: object) {
+    writeCustom(kind: string, value: object|undefined) {
         let current = SerializerBase.customSerializers
         while (current) {
             if (current.supports(kind)) {
@@ -195,12 +195,6 @@ export class SerializerBase {
     writeFunction(value: object | undefined) {
         throw new Error("Functions not yet supported")
     }
-    writeCallback(value: object| undefined) {
-        this.writeFunction(value)
-    }
-    writeErrorCallback(value: object| undefined) {
-        this.writeFunction(value)
-    }
     writeString(value: string|undefined) {
         if (value == undefined) {
             this.writeInt8(Tags.UNDEFINED)
@@ -215,11 +209,6 @@ export class SerializerBase {
     }
     writeAny(value: any) {
         throw new Error("How to write any?")
-    }
-    writeResource(value: Resource) {
-        this.writeInt32(value.id)
-        this.writeString(value.bundleName)
-        this.writeString(value.moduleName)
     }
     // Length is an important common case.
     writeLength(value: Length|undefined) {

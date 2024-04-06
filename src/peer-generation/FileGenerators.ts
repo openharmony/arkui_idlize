@@ -14,7 +14,7 @@
  */
 
 const importTsInteropTypes = `
-import { 
+import {
     int32,
     float32,
     KInt,
@@ -121,9 +121,6 @@ export function makeTSSerializer(lines: string[]): string {
     return `
 import { SerializerBase, runtimeType, Tags, RuntimeType } from "@arkoala/arkui/utils/ts/SerializerBase"
 import { int32 } from "@arkoala/arkui/utils/ts/types"
-
-type Callback = Function
-type ErrorCallback = Function
 
 type Function = object
 

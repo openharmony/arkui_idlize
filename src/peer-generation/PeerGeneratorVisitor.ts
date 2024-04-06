@@ -22,6 +22,7 @@ import {
     getDeclarationsByNode,
     getNameWithoutQualifiersRight,
     identName,
+    importTypeName,
     isCommonMethodOrSubclass,
     isDefined,
     nameOrNull,
@@ -50,7 +51,8 @@ import {
     TupleConvertor,
     UndefinedConvertor,
     UnionConvertor,
-    AnimationRangeConvertor
+    AnimationRangeConvertor,
+    ImportTypeConvertor
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
@@ -138,7 +140,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     requestType(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
         if (PeerGeneratorVisitor.serializerBaseMethods.includes(`write${name}`)) return
-
         if (type) {
             this.serializerRequests.push({ type, name })
         }
@@ -173,10 +174,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 `import { Serializer } from "./Serializer"`,
                 `import { int32, KPointer } from "@arkoala/arkui/utils/ts/types"`,
                 `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode, Finalizable, nullptr } from "@arkoala/arkui/utils/ts/Interop"`,
-                `type Callback = Function`,
-                `type ErrorCallback = Function`,
-                `type Style = any` // Style extends ProgressStyleMap from progress.d.ts
+                `import { PeerNode, Finalizable, nullptr } from "@arkoala/arkui/utils/ts/Interop"`
             ])
             .forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
@@ -287,10 +285,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (declaration.length == 0) return "any"
             let typeName = asString(type.typeName)
             if (typeName == "AttributeModifier") return "AttributeModifier<this>"
+            // TODO: HACK, FIX ME!
+            if (typeName == "Style") return "object"
             if (typeName != "Array") return typeName
         }
         if (type && ts.isImportTypeNode(type)) {
-            return `/* imported */ ${asString(type.qualifier)}`
+            return importTypeName(type, true)
         }
         let text = type?.getText(this.sourceFile)
         if (text == "unknown") text = "any"
@@ -575,7 +575,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.dummyImplModifiers.popIndent()
     }
 
-    declarationConvertor(param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode, declaration: ts.NamedDeclaration): ArgConvertor {
+    declarationConvertor(param: string, type: ts.TypeReferenceNode, declaration: ts.NamedDeclaration): ArgConvertor {
         if (!declaration) {
             console.log(`WARNING: declaration not found: ${asString(type)}`)
             return new AnyConvertor(param)
@@ -667,6 +667,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (ts.isOptionalTypeNode(type)) {
             return new OptionConvertor(param, this, type.type)
         }
+        /*
         if (ts.isImportTypeNode(type)) {
             let importedName = undefined
             if (type.qualifier && ts.isIdentifier(type.qualifier)) {
@@ -689,6 +690,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             console.log(`FALLING BACK on ${shortName}`)
             // Fallback in case we could not find the declaration
             return new TypedConvertor(shortName, type, param, this)
+        } */
+        if (ts.isImportTypeNode(type)) {
+            return new ImportTypeConvertor(param, this, type)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)
@@ -1074,7 +1078,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private generateDeserializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
-        if (PeerGeneratorConfig.ignoreSerialization.indexOf(name) != -1) return
+        if (!type || PeerGeneratorConfig.ignoreSerialization.includes(name)) return
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? getDeclarationsByNode(this.typeChecker, typeName) : []
         let isEnum = declarations.length > 0 && ts.isEnumDeclaration(declarations[0])
@@ -1083,6 +1087,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
         if (isEnum) {
             this.printerTypedefsC.print(`typedef int32_t ${name};`)
+            return
+        }
+        if (ts.isImportTypeNode(type)) {
+            this.printerTypedefsC.print(`typedef CustomObject ${importTypeName(type)};`)
             return
         }
         this.printerSerializerC.print(`${name} read${name}() {`)
@@ -1095,7 +1103,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.printerStructsC.startEmit(this.typeChecker, decl.type, name)
                 this.printerStructsC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
             } else {
-                this.printerTypedefsC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
+                if (ts.isImportTypeNode(decl.type)) {
+                    this.printerTypedefsC.print(`typedef CustomObject ${name};`)
+                } else {
+                    this.printerTypedefsC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
+                }
             }
         }
         if (isStruct) {

@@ -288,6 +288,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isTypeReferenceNode(node)) {
         return identString(node.typeName)
     }
+    if (ts.isQualifiedName(node)) {
+        return identName(node.right)
+    }
     if (ts.isModuleDeclaration(node)) {
         return identString(node.name)
     }
@@ -400,4 +403,8 @@ export function renameDtsToPeer(fileName: string, withFileExtension: boolean = t
             .map(capitalize)
             .join("")
     }
+}
+
+export function importTypeName(type: ts.ImportTypeNode, asType = false): string {
+    return asType ? "object" : identName(type.qualifier)!
 }
