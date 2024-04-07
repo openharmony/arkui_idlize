@@ -497,7 +497,7 @@ export class TypedConvertor extends BaseArgConvertor {
         return this.tsTypeName
     }
     interopType(): string {
-        return "KNativePointer"
+        throw new Error("Must never be used")
     }
     estimateSize() {
         return 12
@@ -674,7 +674,7 @@ export class AnimationRangeConvertor extends BaseArgConvertor {
         throw new Error("unused")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = std::move(${param}Deserializer.readAnimationRange());`)
+        printer.print(`${value} = ${param}Deserializer.readAnimationRange();`)
     }
     nativeType(): string {
         return "Compound<Number, Number>" // TODO: figure out how to pass real type args

@@ -368,10 +368,18 @@ struct String
   {
     this->value = other.value;
   }
+  String(const Tagged<String> &other)
+  {
+    // TODO: check tag
+    this->value = other.value.value;
+  }
   ~String() {}
   std::string value;
   std::string toString() const {
     return "\"" + value + "\"";
+  }
+  const char* c_str() const {
+    return value.c_str();
   }
 };
 
@@ -614,15 +622,20 @@ public:
     return Undefined();
   }
 
-  std::string readString()
+  Tagged<String> readString()
   {
-    int8_t tag = (Tags)readInt8();
-    if (tag != Tags::TAG_STRING) {
-      throw new Error("Expected String");
+    Tagged<String> result;
+    result.tag = (Tags)readInt8();
+    if (result.tag == Tags::TAG_UNDEFINED) {
+      return result;
+    }
+    if (result.tag != Tags::TAG_STRING) {
+      fprintf(stderr, "Unexpected string tag: %d\n", result.tag);
+      throw "Error";
     }
     int32_t length = readInt32();
     check(length);
-    auto result = std::string((char *)(data + position), length);
+    result.value = std::string((char *)(data + position), length);
     return result;
   }
 

@@ -14,16 +14,26 @@
  */
 import { float32, int32 } from "./types"
 
-// Must be synced with "enum RuntimeType" in C++.
+/**
+ * Value representing possible JS runtime object type.
+ * Must be synced with "enum RuntimeType" in C++.
+ */
 export enum RuntimeType {
     UNEXPECTED = -1,
     NUMBER = 1,
     STRING = 2,
     OBJECT = 3,
     BOOLEAN = 4,
-    UNDEFINED = 5
+    UNDEFINED = 5,
+    BIGINT = 6,
+    FUNCTION = 7,
+    SYMBOL = 8
 }
 
+/**
+ * Value representing object type in serialized data.
+ * Must be synced with "enum Tags" in C++.
+ */
 export enum Tags {
     UNDEFINED = 101,
     INT32 = 102,
@@ -41,15 +51,14 @@ export function runtimeType(value: any): int32 {
     if (type == "undefined") return RuntimeType.UNDEFINED
     if (type == "object") return RuntimeType.OBJECT
     if (type == "boolean") return RuntimeType.BOOLEAN
-    throw new Error("bug: " + value)
-}
+    if (type == "bigint") return RuntimeType.BIGINT
+    if (type == "function") return RuntimeType.FUNCTION
+    if (type == "symbol") return RuntimeType.SYMBOL
 
+    throw new Error(`bug: ${value} is ${type}`)
+}
 
 export type Function = object
-
-export function functionToInt32(value: Function): int32 {
-    return 42
-}
 
 export function withLength(valueLength: Length|undefined, body: (value: float32, unit: int32, resource: int32) => void) {
     let type = runtimeType(valueLength)

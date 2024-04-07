@@ -172,7 +172,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     visitWholeFile(): stringOrNone[] {
         this.importStatements(this.sourceFile.fileName)
             .concat([
-                `import { runtimeType, functionToInt32, withLength, withLengthArray, RuntimeType } from "@arkoala/arkui/utils/ts/SerializerBase"`,
+                `import { runtimeType, withLength, withLengthArray, RuntimeType } from "@arkoala/arkui/utils/ts/SerializerBase"`,
                 `import { Serializer } from "./Serializer"`,
                 `import { int32, KPointer } from "@arkoala/arkui/utils/ts/types"`,
                 `import { nativeModule } from "./NativeModule"`,

@@ -63,7 +63,8 @@ class OurCustomSerializer extends CustomSerializer {
         super(["Resource", "Pixmap", "Function"])
     }
     serialize(serializer: SerializerBase, value: any, kind: string): void {
-        console.log(`Custom serialize() for ${kind}: ${value}`)
+        console.log(`Custom serialize() for ${kind}`)
+        serializer.writeString(kind == "Function" ? value.toString(): JSON.stringify(value))
     }
 }
 
