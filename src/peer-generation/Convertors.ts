@@ -283,7 +283,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 if (!(it instanceof UndefinedConvertor)) {
                     // TODO: `as unknown` is temporary to workaround for string enums.
                     let maybeAsUnknown = (it instanceof EnumConvertor) ? "as unknown " : ""
-                    printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} ${maybeAsUnknown}as ${it.tsTypeName}`)
+                    printer.print(`/* ${it.tsTypeName == "Callback" ? (it instanceof InterfaceConvertor) : ""} */ let ${value}_${index}: ${it.tsTypeName} = ${value} ${maybeAsUnknown}as ${it.tsTypeName}`)
                     it.convertorToTSSerial(param, `${value}_${index}`, printer)
                 }
                 printer.popIndent()
@@ -371,6 +371,37 @@ export class ImportTypeConvertor extends BaseArgConvertor {
         return 32
     }
 }
+
+export class CustomTypeConvertor extends BaseArgConvertor {
+    private customName: string
+    constructor(param: string, visitor: PeerGeneratorVisitor, customName: string) {
+        super("Object", [RuntimeType.OBJECT], false, true, param)
+        this.customName = customName
+    }
+
+    convertorTSArg(param: string): string {
+        throw new Error("Must never be used")
+    }
+    convertorCArg(param: string): string {
+        throw new Error("Must never be used")
+    }
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${param}Serializer.writeCustom("${this.customName}", ${value})`)
+    }
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${value} = ${param}Deserializer.readCustom("${this.customName}");`)
+    }
+    nativeType(): string {
+        return "CustomObject"
+    }
+    interopType(ts: boolean): string {
+        throw new Error("Must never be used")
+    }
+    estimateSize() {
+        return 32
+    }
+}
+
 
 export class OptionConvertor extends BaseArgConvertor {
     private typeConvertor: ArgConvertor
@@ -686,7 +717,7 @@ export class AnimationRangeConvertor extends BaseArgConvertor {
 
 function mapCType(type: ts.TypeNode): string {
     if (ts.isTypeReferenceNode(type)) {
-        return ts.idText(type.typeName as ts.Identifier)
+        return identName(type.typeName)!
     }
     if (ts.isUnionTypeNode(type)) {
         return `Union<${type.types.map(it => mapCType(it)).join(", ")}>`
@@ -738,7 +769,7 @@ function mapCType(type: ts.TypeNode): string {
 function mapTsType(type: ts.TypeNode): string {
     if (ts.isTypeReferenceNode(type)) {
         let name = identName(type.typeName)!
-        return name
+        return `${name}`
     }
     return "any"
 }

@@ -119,10 +119,8 @@ extern const ArkUINodeModifiers* GetArkUINodeModifiers()
 
 export function makeTSSerializer(lines: string[]): string {
     return `
-import { SerializerBase, runtimeType, Tags, RuntimeType } from "@arkoala/arkui/utils/ts/SerializerBase"
+import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "@arkoala/arkui/utils/ts/SerializerBase"
 import { int32 } from "@arkoala/arkui/utils/ts/types"
-
-type Function = object
 
 export class Serializer extends SerializerBase {
 ${lines.join("\n")}

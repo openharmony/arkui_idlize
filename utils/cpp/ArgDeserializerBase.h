@@ -306,24 +306,6 @@ inline void WriteToString(string* result, const Any& value) {
   result->append("any");
 }
 
-struct Function
-{
-  int32_t id;
-  Function() : id(0) {}
-  ~Function() {}
-  string toString() {
-    return "function id=" + std::to_string(id);
-  }
-};
-
-template <>
-inline void WriteToString(string* result, const Function& value) {
-  *result += "function id=" + std::to_string(value.id);
-}
-
-typedef Function Callback;
-typedef Function ErrorCallback;
-
 struct String
 {
   String() {}
@@ -442,6 +424,10 @@ struct CustomObject {
   float32_t floats[4];
   void* pointers[4];
 };
+
+typedef CustomObject Function;
+typedef CustomObject Callback;
+typedef CustomObject ErrorCallback;
 
 inline void WriteToString(string* result, const CustomObject& value) {
   result->append("Custom kind=");
@@ -603,6 +589,3 @@ public:
   }
 
 };
-
-// TODO: a stub
-struct ImageModifier {};

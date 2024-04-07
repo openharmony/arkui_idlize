@@ -52,7 +52,8 @@ import {
     UndefinedConvertor,
     UnionConvertor,
     AnimationRangeConvertor,
-    ImportTypeConvertor
+    ImportTypeConvertor,
+    CustomTypeConvertor
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
@@ -286,7 +287,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             let typeName = asString(type.typeName)
             if (typeName == "AttributeModifier") return "AttributeModifier<this>"
             // TODO: HACK, FIX ME!
-            if (typeName == "Style") return "object"
+            if (typeName == "Style") return "Object"
+            if (typeName == "Callback") return "Callback<any>"
             if (typeName != "Array") return typeName
         }
         if (type && ts.isImportTypeNode(type)) {
@@ -343,7 +345,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private seenMethods = new Set<string>()
 
     processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, { method, collapsed }: MaybeCollapsedMethod): void {
-        const methodName = ts.idText(method.name as ts.Identifier)
+        const clazzName = identName(clazz.name)!
+        const methodName = identName(method.name)!
         const capitalizedMethodName = capitalize(methodName)
 
         let isComponent = false
@@ -358,7 +361,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         console.log(`processing ${componentName}.${methodName}`)
 
         const apiParameters = this.generateAPIParameters(argConvertors).join(", ")
-        const implName = `Set${capitalizedMethodName}Impl`
+        const implName = `${capitalize(clazzName)}_Set${capitalizedMethodName}Impl`
         this.printAPI(`void (*set${capitalizedMethodName})(${apiParameters});`)
         this.printDummyModifier(`${implName},`)
 
@@ -633,6 +636,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
             return new BooleanConvertor(param)
         }
+        if (ts.isImportTypeNode(type)) {
+            return new ImportTypeConvertor(param, this, type)
+        }
         if (ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
             return this.declarationConvertor(param, type, declaration)
@@ -691,9 +697,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             // Fallback in case we could not find the declaration
             return new TypedConvertor(shortName, type, param, this)
         } */
-        if (ts.isImportTypeNode(type)) {
-            return new ImportTypeConvertor(param, this, type)
-        }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)
         }
@@ -731,6 +734,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (name === "Length") return new LengthConvertor(param)
         if (name === "AnimationRange") return new AnimationRangeConvertor(param)
         if (name === "Array") return new ArrayConvertor(param, this, type.typeArguments![0])
+        if (name === "Callback") return new CustomTypeConvertor(param, this, "Callback")
         return undefined
     }
 
@@ -1041,7 +1045,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private generateSerializer(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
-        if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return
+        if (!type || PeerGeneratorConfig.ignoreSerialization.includes(name)) return
         let typeName = (type && ts.isTypeReferenceNode(type)) ? type.typeName : type?.qualifier
         let declarations = typeName ? findRealDeclarations(this.typeChecker, typeName) : []
         if (declarations.length > 0) {
@@ -1050,13 +1054,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (ts.isEnumDeclaration(declaration)) return
 
             this.printerSerializerTS.pushIndent()
-            this.printerSerializerTS.print(`write${name}(value: ${name}|undefined) {`)
+            this.printerSerializerTS.print(`write${name}(value: ${this.mapType(type)}|undefined) {`)
             this.printerSerializerTS.pushIndent()
 
             this.printerSerializerTS.print(`const valueSerializer = this`)
             this.printerSerializerTS.print(`if (undefined === value) { valueSerializer.writeInt8(Tags.UNDEFINED); return }`)
             this.printerSerializerTS.print(`valueSerializer.writeInt8(Tags.OBJECT)`)
-            if (ts.isInterfaceDeclaration(declaration)) {
+            if (ts.isImportTypeNode(type)) {
+                let typeConvertor = this.typeConvertor("value", type, false)
+                typeConvertor.convertorToTSSerial(`value`, `value`, this.printerSerializerTS)
+            } else if (ts.isInterfaceDeclaration(declaration)) {
                 declaration.members
                     .filter(ts.isPropertySignature)
                     .forEach(it => {
@@ -1168,7 +1175,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         modifiers: ts.NodeArray<ts.ModifierLike> | undefined) {
         if (!fieldType) throw new Error("Untyped field")
         if (ts.isTypeReferenceNode(fieldType)) {
-            this.requestType(ts.idText(fieldType.typeName as ts.Identifier), fieldType)
+            this.requestType(identName(fieldType.typeName)!, fieldType)
         }
         let typeConvertor = this.typeConvertor("value", fieldType)
         let fieldName = identName(fieldNameTS)

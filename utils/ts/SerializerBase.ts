@@ -44,7 +44,10 @@ export function runtimeType(value: any): int32 {
     throw new Error("bug: " + value)
 }
 
-export function functionToInt32<T>(value: T): int32 {
+
+export type Function = object
+
+export function functionToInt32(value: Function): int32 {
     return 42
 }
 
@@ -102,7 +105,7 @@ let textEncoder = new TextEncoder()
 export abstract class CustomSerializer {
     constructor(protected supported: Array<string>) {}
     supports(kind: string): boolean { return this.supported.includes(kind) }
-    abstract serialize(serializer: SerializerBase, value: object|undefined, kind: string): void
+    abstract serialize(serializer: SerializerBase, value: any, kind: string): void
     next: CustomSerializer | undefined = undefined
 }
 
@@ -145,7 +148,7 @@ export class SerializerBase {
             this.view = new DataView(resizedBuffer)
         }
     }
-    writeCustom(kind: string, value: object|undefined) {
+    writeCustom(kind: string, value: any) {
         let current = SerializerBase.customSerializers
         while (current) {
             if (current.supports(kind)) {
@@ -231,5 +234,9 @@ export class SerializerBase {
         this.writeInt8(Tags.OBJECT)
         this.writeNumber(value[0])
         this.writeNumber(value[1])
+    }
+
+    writeCallback(value: Callback<any>|undefined) {
+        this.writeCustom("Callback", value)
     }
 }
