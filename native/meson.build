@@ -12,7 +12,8 @@ use_dummy_libace = true
 is_node = true
 
 sources = [
-    '../utils/cpp/common-interop.cc'
+    '../utils/cpp/common-interop.cc',
+    '../utils/cpp/custom.cc',
 ]
 include_dirs = [
     '../utils/cpp'

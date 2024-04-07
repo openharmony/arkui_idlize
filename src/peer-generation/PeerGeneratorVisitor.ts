@@ -501,7 +501,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         argConvertors.forEach(it => {
             if (it.useArray) {
                 let size = it.estimateSize()
-                this.printTS(`let ${it.param}Serializer = new Serializer(${size})`)
+                this.printTS(`const ${it.param}Serializer = new Serializer(${size})`)
                 it.convertorToTSSerial(it.param, it.param, this.printerTS)
                 this.printC(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
                 this.printC(`${it.nativeType()} ${it.param}Value;`)
@@ -1052,7 +1052,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                         let typeConvertor = this.typeConvertor("value", it.type!, it.questionToken != undefined)
                         let fieldName = asString(it.name)
                         //console.log(`for ${fieldName} ${typeConvertor instanceof OptionConvertor}`)
-                        this.printerSerializerTS.print(`let value_${fieldName} = value.${fieldName}`)
+                        this.printerSerializerTS.print(`const value_${fieldName} = value.${fieldName}`)
                         typeConvertor.convertorToTSSerial(`value`, `value_${fieldName}`, this.printerSerializerTS)
                     })
             } else {

@@ -237,9 +237,9 @@ export class UnionConvertor extends BaseArgConvertor {
         throw new Error("Do not use for union")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`let ${value}Type = runtimeType(${value})`)
+        printer.print(`const ${value}_type = runtimeType(${value})`)
         // Save actual type being passed.
-        printer.print(`${param}Serializer.writeInt8(${value}Type)`)
+        printer.print(`${param}Serializer.writeInt8(${value}_type)`)
         this.memberConvertors.forEach((it, index) => {
                 if (it.runtimeTypes.length == 0) {
                     console.log(`WARNING: branch for ${it.nativeType()} was consumed`)
@@ -249,12 +249,12 @@ export class UnionConvertor extends BaseArgConvertor {
                 let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
                 let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}Type${maybeComma2}`).join(" || ")}) {`)
+                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
                 printer.pushIndent()
                 if (!(it instanceof UndefinedConvertor)) {
                     // TODO: `as unknown` is temporary to workaround for string enums.
                     let maybeAsUnknown = (it instanceof EnumConvertor) ? "as unknown " : ""
-                    printer.print(`let ${value}_${index}: ${it.tsTypeName} = ${value} ${maybeAsUnknown}as ${it.tsTypeName}`)
+                    printer.print(`const ${value}_${index}: ${it.tsTypeName} = ${value} ${maybeAsUnknown}as ${it.tsTypeName}`)
                     it.convertorToTSSerial(param, `${value}_${index}`, printer)
                 }
                 printer.popIndent()
@@ -373,7 +373,6 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     }
 }
 
-
 export class OptionConvertor extends BaseArgConvertor {
     private typeConvertor: ArgConvertor
 
@@ -391,8 +390,13 @@ export class OptionConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${param}Serializer.writeInt8(runtimeType(${value}))`)
+        printer.print(`const ${value}_type = runtimeType(${value})`)
+        printer.print(`${param}Serializer.writeInt8(${value}_type)`)
+        printer.print(`if (${value}_type != RuntimeType.UNDEFINED) {`)
+        printer.pushIndent()
         this.typeConvertor.convertorToTSSerial(param, value, printer)
+        printer.popIndent()
+        printer.print(`}`)
     }
     convertorCArg(param: string): string {
         throw new Error("Must never be used")
@@ -440,7 +444,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         this.memberConvertors.forEach((it, index) => {
             let memberName = this.members[index]
-            printer.print(`let ${value}_${memberName} = ${value}?.${memberName}`)
+            printer.print(`const ${value}_${memberName} = ${value}?.${memberName}`)
             it.convertorToTSSerial(param, `${value}_${memberName}`, printer)
         })
     }
@@ -531,7 +535,7 @@ export class TupleConvertor extends BaseArgConvertor {
         printer.print(`if (${value} !== undefined) {`)
         printer.pushIndent()
         this.memberConvertors.forEach((it, index) => {
-            printer.print(`let ${value}_${index} = ${value}[${index}]`)
+            printer.print(`const ${value}_${index} = ${value}[${index}]`)
             it.convertorToTSSerial(param, `${value}_${index}`, printer)
         })
         printer.popIndent()
@@ -587,7 +591,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeInt32(${value}.length)`)
         printer.print(`for (let i = 0; i < ${value}.length; i++) {`)
         printer.pushIndent()
-        printer.print(`let ${value}_element = ${value}[i]`)
+        printer.print(`const ${value}_element = ${value}[i]`)
         this.elementConvertor.convertorToTSSerial(param, `${value}_element`, printer)
         printer.popIndent()
         printer.print(`}`)

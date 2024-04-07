@@ -24,8 +24,13 @@ declare interface ClickEvent extends BaseEvent {
     displayY: number;
 }
 
-declare interface UICommonEvent {
 
+declare interface SheetTitleOptions {
+    title: ResourceStr;
+    subtitle?: ResourceStr;
+}
+
+declare interface UICommonEvent {
     setOnClick(callback: Callback<ClickEvent> | undefined): void;
 }
 
@@ -40,6 +45,7 @@ declare interface BindOptions {
 }
 
 declare interface SheetOptions extends BindOptions {
+    title?: SheetTitleOptions;
     detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
 }
 
@@ -51,7 +57,7 @@ declare class CommonMethod<T> {
 
     height(value: Length): T;
 
-    //bindSheet(isShow: boolean, builder: CustomBuilder, options?: SheetOptions): T;
+    bindSheet(isShow: boolean, builder: () => void, options?: SheetOptions): T;
 }
 
 declare interface Rectangle {

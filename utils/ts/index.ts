@@ -17,12 +17,20 @@
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
+import { CustomSerializer, SerializerBase } from "./SerializerBase"
+
 // This breaks full peers compilation!
 // import { ArkClassDTSPeer } from "@arkoala/arkui/ArkTestPeer"
 
 function checkButton() {
     let peer = new ArkButtonPeer()
     peer.width("42%")
+    peer.height({ id: 43, bundleName: "MyApp", moduleName: "MyApp" })
+    peer.bindSheet(false, () => {}, {
+        title: {
+            title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
+        }
+    })
     peer.type(1)
     peer.labelStyle({maxLines: 3})
 }
@@ -48,6 +56,18 @@ function checkFormComponent() {
     let peer = new ArkFormComponentPeer()
     peer.size({width: 5, height: 6})
 }
+
+
+class OurCustomSerializer extends CustomSerializer {
+    constructor() {
+        super(["Resource", "Pixmap", "Function"])
+    }
+    serialize(serializer: SerializerBase, value: any, kind: string): void {
+        console.log(`Custom serialize() for ${kind}: ${value}`)
+    }
+}
+
+SerializerBase.registerCustomSerializer(new OurCustomSerializer())
 
 checkButton()
 checkCalendar()

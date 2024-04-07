@@ -196,7 +196,7 @@ export class SerializerBase {
         this.position++
     }
     writeFunction(value: object | undefined) {
-        throw new Error("Functions not yet supported")
+        this.writeCustom("Function", value)
     }
     writeString(value: string|undefined) {
         if (value == undefined) {

@@ -1,9 +1,25 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <stdint.h>
 
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <vector>
+
+#include "common-interop.h"
 
 using namespace std;
 
@@ -432,7 +448,7 @@ struct CustomDeserializer {
   virtual CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
     return CustomObject("error");
   }
-  CustomDeserializer*  next = nullptr;
+  CustomDeserializer* next = nullptr;
 };
 
 class ArgDeserializerBase
@@ -473,7 +489,7 @@ public:
         }
       }
       fprintf(stderr, "Unsupported custom deserialization for %s\n", kind.c_str());
-      return CustomObject(string("Error for ") + kind);
+      return CustomObject(string("Error") + kind);
   }
 
   int8_t readInt8()
@@ -566,7 +582,7 @@ public:
 
   Function readFunction()
   {
-    throw std::string("no readFunction");
+    return readCustom("Function");
   }
 
   Callback readCallback()

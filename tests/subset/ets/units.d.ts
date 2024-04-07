@@ -32,6 +32,7 @@ declare type Percentage = `${number}%`;
 
 declare type Dimension = PX | VP | FP | LPX | Percentage | Resource;
 
+declare type ResourceStr = string | Resource;
 
 declare type Offset = {
 
