@@ -36,7 +36,6 @@ import { GenericVisitor } from "../options"
 import { IndentedPrinter } from "../IndentedPrinter"
 import {
     AggregateConvertor,
-    AnyConvertor,
     ArgConvertor,
     ArrayConvertor,
     BooleanConvertor,
@@ -47,7 +46,6 @@ import {
     NumberConvertor,
     OptionConvertor,
     StringConvertor,
-    TypedConvertor,
     TupleConvertor,
     UndefinedConvertor,
     UnionConvertor,
@@ -57,6 +55,8 @@ import {
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { isUnionType } from "../idl"
+import { fileURLToPath } from "url"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -123,7 +123,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         apiHeadersList: string[],
         dummyImpl: string[],
         dummyImplModifiers: string[],
-        dummyImplModifierList: string[]
+        dummyImplModifierList: string[],
+        private dumpSerialized: boolean
     ) {
         this.printerC = new IndentedPrinter(outputC)
         this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
@@ -274,8 +275,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     processConstructor(ctor: ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration) {
     }
 
-    private mapType(type: ts.TypeNode | undefined): string {
-        if (type && ts.isTypeReferenceNode(type)) {
+    mapType(type: ts.TypeNode | undefined): string {
+        if (!type) throw new Error("Cannot map empty type")
+        if (ts.isTypeReferenceNode(type)) {
             if (ts.isQualifiedName(type.typeName)) {
                 // get the left identifier for the enum qualified name type ref
                 let identifierType = asString(type.typeName.left);
@@ -291,10 +293,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (typeName == "Callback") return "Callback<any>"
             if (typeName != "Array") return typeName
         }
-        if (type && ts.isImportTypeNode(type)) {
+        if (ts.isImportTypeNode(type)) {
             return importTypeName(type, true)
         }
+        if (ts.isFunctionTypeNode(type)) {
+            return "object"
+        }
         let text = type?.getText(this.sourceFile)
+        // throw new Error(text)
         if (text == "unknown") text = "any"
         return text ?? "any"
     }
@@ -366,14 +372,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printDummyModifier(`${implName},`)
 
         this.printDummy(`void ${implName}(${apiParameters}) {`)
-        this.printDummy(`  string *out = new string("dummy Set${capitalizedMethodName}Impl(");`)
+        this.dummyImpl.pushIndent()
+        this.printDummy(`string *out = new string("dummy Set${capitalizedMethodName}Impl(");`)
         method.parameters.forEach((param, index) => {
-            if (index > 0) this.printDummy(`  out->append(", ");`)
-            this.printDummy(`  WriteToString(out, ${identName(param.name)});`)
+            if (index > 0) this.printDummy(`out->append(", ");`)
+            this.printDummy(`WriteToString(out, ${identName(param.name)});`)
         })
-        this.printDummy(`  out->append(")\\n");`)
-        this.printDummy(`  printf("%s", out->c_str());`)
-        this.printDummy(`  delete out;`)
+        this.printDummy(`out->append(")\\n");`)
+        this.printDummy(`printf("%s", out->c_str());`)
+        this.printDummy(`delete out;`)
+        this.dummyImpl.popIndent()
         this.printDummy(`}`)
 
         this.seenMethods.add(methodName)
@@ -501,7 +509,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             }
         })
         // Enable to see serialized data.
-        if (false) {
+        if (this.dumpSerialized) {
             argConvertors.forEach((it, index) => {
                 if (it.useArray) {
                     this.printTS(`console.log("${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
@@ -580,8 +588,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     declarationConvertor(param: string, type: ts.TypeReferenceNode, declaration: ts.NamedDeclaration): ArgConvertor {
         if (!declaration) {
-            console.log(`WARNING: declaration not found: ${asString(type)}`)
-            return new AnyConvertor(param)
+            throw new Error(`WARNING: declaration not found: ${asString(type)}`)
+            //return new AnyConvertor(param)
         }
         const declarationName = ts.idText(declaration.name as ts.Identifier) // identName(declaration.name)!
 
@@ -608,7 +616,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return new InterfaceConvertor(declarationName, param, this, type)
         }
         if (ts.isTypeParameterDeclaration(declaration)) {
-            return new AnyConvertor(param)
+            console.log(declaration.getText())
+            return new CustomTypeConvertor(param, this, identName(declaration.name)!)
         }
         console.log(`${declaration.getText()}`)
         throw new Error(`Unknown kind: ${declaration.kind}`)
@@ -619,7 +628,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return new OptionConvertor(param, this, type)
         }
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
-            return new AnyConvertor(param)
+            return new CustomTypeConvertor(param, this, "Object")
         }
         if (type.kind == ts.SyntaxKind.UndefinedKeyword || type.kind == ts.SyntaxKind.VoidKeyword) {
             return new UndefinedConvertor(param)
@@ -673,30 +682,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (ts.isOptionalTypeNode(type)) {
             return new OptionConvertor(param, this, type.type)
         }
-        /*
-        if (ts.isImportTypeNode(type)) {
-            let importedName = undefined
-            if (type.qualifier && ts.isIdentifier(type.qualifier)) {
-                importedName = type.qualifier
-            } else if (type.qualifier && ts.isQualifiedName(type.qualifier)) {
-                importedName = type.qualifier.right
-            }
-            if (importedName) {
-                let importedDeclaration = getDeclarationsByNode(this.typeChecker, importedName)[0]
-                if (importedDeclaration) {
-                    if (ts.isExportAssignment(importedDeclaration)) {
-                        if (ts.isIdentifier(importedDeclaration.expression)) {
-                            importedDeclaration = getDeclarationsByNode(this.typeChecker, importedDeclaration.expression)[0]
-                        }
-                    }
-                    return this.declarationConvertor(param, type, importedDeclaration)
-                }
-            }
-            let shortName = getNameWithoutQualifiersRight(type.qualifier)!
-            console.log(`FALLING BACK on ${shortName}`)
-            // Fallback in case we could not find the declaration
-            return new TypedConvertor(shortName, type, param, this)
-        } */
         if (ts.isTemplateLiteralTypeNode(type)) {
             return new StringConvertor(param)
         }
@@ -704,7 +689,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return this.typeConvertor(param, type.type)
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
-            return new AnyConvertor(param)
+            return new CustomTypeConvertor(param, this, "Any")
         }
         console.log(type)
         throw new Error(`Cannot convert: ${asString(type)} ${type.getText(this.sourceFile)}`)
@@ -717,14 +702,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     retConvertor(typeNode?: ts.TypeNode): RetConvertor {
-        const isVoid = (typeNode === undefined) ||
-            (typeNode.kind == ts.SyntaxKind.VoidKeyword)
-            || /* HACK, fix */ identName(typeNode)?.endsWith("Attribute") == true
-            || /* ANOTHER HACK, fix */  identName(typeNode) == "T"
-
+        let nativeType = typeNode ? mapCInteropRetType(typeNode) : "void"
+        let isVoid = nativeType == "void"
         return {
             isVoid: isVoid,
-            nativeType: () => isVoid ? "void" : mapCInteropType(typeNode),
+            nativeType: () => nativeType,
             macroSuffixPart: () => isVoid ? "V" : ""
         }
     }
@@ -1069,6 +1051,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     .forEach(it => {
                         let typeConvertor = this.typeConvertor("value", it.type!, it.questionToken != undefined)
                         let fieldName = asString(it.name)
+                        //console.log(`for ${fieldName} ${typeConvertor instanceof OptionConvertor}`)
                         this.printerSerializerTS.print(`let value_${fieldName} = value.${fieldName}`)
                         typeConvertor.convertorToTSSerial(`value`, `value_${fieldName}`, this.printerSerializerTS)
                     })
@@ -1125,7 +1108,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.printerStructsC.print(`${name}() {}`)
             this.printerStructsC.print(`~${name}() {}`)
         }
-        let structFields: [ts.PropertyName, ts.TypeNode | undefined, ts.NodeArray<ts.ModifierLike> | undefined][] = []
+        let structFields: [ts.PropertyName, ts.TypeNode | undefined, ts.NodeArray<ts.ModifierLike> | undefined, boolean][] = []
         if (declarations.length > 0) {
             this.printerSerializerC.print(`Deserializer& valueDeserializer = *this;`)
             this.printerSerializerC.print(`int32_t tag = valueDeserializer.readInt8();`)
@@ -1135,14 +1118,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (ts.isInterfaceDeclaration(declaration)) {
                 declaration.members
                     .filter(ts.isPropertySignature)
-                    .forEach(it => structFields.push([it.name, it.type, it.modifiers]))
+                    .forEach(it => structFields.push([it.name, it.type, it.modifiers, it.questionToken != undefined]))
             }
             if (ts.isClassDeclaration(declaration)) {
                 declaration.members
                     .filter(ts.isPropertyDeclaration)
-                    .forEach(it => structFields.push([it.name, it.type, it.modifiers]))
+                    .forEach(it => structFields.push([it.name, it.type, it.modifiers, it.questionToken != undefined]))
             }
-            structFields.forEach(it => this.processSingleField(it[0], it[1], it[2]))
+            structFields.forEach(it => this.processSingleField(it[0], it[1], it[2], it[3]))
             if (ts.isEnumDeclaration(declaration)) {
                 this.printerSerializerC.print(`value = valueDeserializer.readInt32();`)
             }
@@ -1160,8 +1143,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             structFields.forEach((field, index) => {
                 const fieldName = identName(field[0])
                 if (index > 0) this.printerStructsC.print(`result->append(", ");`)
-                this.printerStructsC.print(`result->append("${fieldName}=");`)
-                this.printerStructsC.print(`WriteToString(result, value.${fieldName});`)
+                let isStatic = field[2]?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) != undefined
+                if (isStatic) {
+                    this.printerStructsC.print(`/* Ignore static ${fieldName} */`)
+                } else {
+                    this.printerStructsC.print(`result->append("${fieldName}=");`)
+                    this.printerStructsC.print(`WriteToString(result, value.${fieldName});`)
+                }
             })
             this.printerStructsC.print(`result->append("}");`)
             this.printerStructsC.popIndent()
@@ -1172,15 +1160,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private processSingleField(fieldNameTS: ts.PropertyName, fieldType: ts.TypeNode | undefined,
-        modifiers: ts.NodeArray<ts.ModifierLike> | undefined) {
+        modifiers: ts.NodeArray<ts.ModifierLike> | undefined, isOptional: boolean) {
         if (!fieldType) throw new Error("Untyped field")
+        let isStatic = modifiers?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) != undefined
+        if (isStatic) return
         if (ts.isTypeReferenceNode(fieldType)) {
             this.requestType(identName(fieldType.typeName)!, fieldType)
         }
-        let typeConvertor = this.typeConvertor("value", fieldType)
+        let typeConvertor = this.typeConvertor("value", fieldType, isOptional)
         let fieldName = identName(fieldNameTS)
         let nativeType = typeConvertor.nativeType()
-        this.printerStructsC.print(`${modifiers?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) ? "static " : ""}${nativeType} ${fieldName};`)
+        this.printerStructsC.print(`${nativeType} ${fieldName};`)
 
         let fieldValue = `value_${fieldName}`
         this.printerSerializerC.print(`${nativeType} ${fieldValue};`)
@@ -1189,15 +1179,34 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 }
 
-function mapCInteropType(type: ts.TypeNode): string {
+function mapCInteropRetType(type: ts.TypeNode): string {
+    if (type.kind == ts.SyntaxKind.VoidKeyword) {
+        return `void`
+    }
     if (ts.isTypeReferenceNode(type)) {
-        let name = identName(type.typeName)
+        let name = identName(type.typeName)!
+        /* HACK, fix */
+        if (name.endsWith("Attribute")) return "void"
         switch (name) {
             case "number": return "KInt"
+            /* ANOTHER HACK, fix */
+            case "T": return "void"
         }
-        return `KNativePointer`
+        console.log(`WARNING: unhandled return type ${type.getText()}`)
+        return `void`
     }
-    return "Any"
+    if (type.kind == ts.SyntaxKind.StringKeyword) {
+        /* HACK, fix */
+        // return `KStringPtr`
+        return "void"
+    }
+    if (ts.isUnionTypeNode(type)) {
+        console.log(`WARNING: unhandled union type: ${type.getText()}`)
+        // TODO: not really properly supported.
+        if (type.types[0].kind == ts.SyntaxKind.VoidKeyword) return "void"
+        if (type.types.length == 2 && type.types[1].kind == ts.SyntaxKind.UndefinedKeyword) return `void`
+    }
+    throw new Error(type.getText())
 }
 
 interface RetConvertor {

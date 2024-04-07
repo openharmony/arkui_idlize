@@ -28,6 +28,8 @@ declare type FP = `${number}fp`;
 
 declare type LPX = `${number}lpx`;
 
+declare type Percentage = `${number}%`;
+
 declare type Dimension = PX | VP | FP | LPX | Percentage | Resource;
 
 

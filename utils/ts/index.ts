@@ -29,7 +29,7 @@ function checkButton() {
 
 function checkCalendar() {
     let peer = new ArkCalendarPickerPeer()
-    peer.edgeAlign(0, {dx: 5, dy: 6})
+    peer.edgeAlign(0,  {dx: 5, dy: 6})
     peer.edgeAlign(2, undefined)
 }
 

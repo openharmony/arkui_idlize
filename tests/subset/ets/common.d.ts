@@ -15,6 +15,8 @@
 
 declare type AnimationRange<T> = [from: T, to: T];
 
+declare interface Callback<T> {}
+
 declare interface ClickEvent extends BaseEvent {
 
     displayX: number;

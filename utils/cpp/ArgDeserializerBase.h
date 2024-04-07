@@ -51,6 +51,7 @@ inline const char* tagName(Tags tag) {
     case Tags::TAG_STRING: return "STRING";
     case Tags::TAG_OBJECT: return "OBJECT";
   }
+  fprintf(stderr, "tag name %d is wrong\n", tag);
   throw "Error";
 }
 
@@ -295,17 +296,6 @@ inline void WriteToString(string* result, const Number& value) {
   *result += std::to_string(value.i32);
 }
 
-struct Any
-{
-  Any() {}
-  ~Any() {}
-};
-
-template <>
-inline void WriteToString(string* result, const Any& value) {
-  result->append("any");
-}
-
 struct String
 {
   String() {}
@@ -428,6 +418,7 @@ struct CustomObject {
 typedef CustomObject Function;
 typedef CustomObject Callback;
 typedef CustomObject ErrorCallback;
+typedef CustomObject Any;
 
 inline void WriteToString(string* result, const CustomObject& value) {
   result->append("Custom kind=");
@@ -513,10 +504,6 @@ public:
     position += 4;
     return value;
   }
-  Any readAny()
-  {
-    throw new Error("Cannot deserialize `any`");
-  }
   Tagged<Number> readNumber()
   {
     check(5);
@@ -530,6 +517,7 @@ public:
     {
       result.value.f32 = readFloat32();
     } else {
+      fprintf(stderr, "Bad number tag %d\n", result.tag);
       throw "Unknown number tag";
     }
     return result;
@@ -539,11 +527,14 @@ public:
   {
     Tagged<Length> result;
     result.tag = (Tags)readInt8();
-    if (result.tag == Tags::TAG_LENGTH)
-    {
+    if (result.tag == Tags::TAG_LENGTH) {
       result.value.value = readFloat32();
       result.value.unit = readInt32();
       result.value.resource = readInt32();
+    } else if (result.tag == Tags::TAG_UNDEFINED) {
+    } else {
+      fprintf(stderr, "Bad length tag %d\n", result.tag);
+      throw "Error";
     }
     return result;
   }

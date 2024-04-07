@@ -67,6 +67,7 @@ const options = program
     .option('--generate-interface <name>', 'Interfaces to generate (comma separated)')
     .option('--disable-enum-initializers', "Don't include enum member initializers in the interface")
     .option('--native-bridge-dir <name>', "Directory with native bridge")
+    .option('--dump-serialized', "Dump serialized data")
     .option('--version')
     .parse()
     .opts()
@@ -279,7 +280,8 @@ if (options.dts2peer) {
             apiHeadersList,
             dummyImpl,
             dummyImplModifiers,
-            dummyImplModifierList
+            dummyImplModifierList,
+            options.dumpSerialized ?? false
         ),
         {
             compilerOptions: defaultCompilerOptions,
