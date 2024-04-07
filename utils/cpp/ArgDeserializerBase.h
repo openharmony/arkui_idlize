@@ -31,7 +31,10 @@ enum RuntimeType
   RUNTIME_STRING = 2,
   RUNTIME_OBJECT = 3,
   RUNTIME_BOOLEAN = 4,
-  RUNTIME_UNDEFINED = 5
+  RUNTIME_UNDEFINED = 5,
+  RUNTIME_BIGINT = 6,
+  RUNTIME_FUNCTION = 7,
+  RUNTIME_SYMBOL = 8
 };
 
 enum Tags
@@ -177,6 +180,7 @@ struct Union
       break;
     }
   }
+  /*
   Union& operator=(Union&& other)
   {
     this->selector = other.selector;
@@ -205,7 +209,7 @@ struct Union
       break;
     }
     return *this;
-  }
+  } */
   ~Union() {
     switch (selector)
     {
@@ -299,6 +303,7 @@ struct Compound
     this->value5 = other.value5;
     return *this;
   }
+  /*
   Compound& operator=(Compound&& other) {
     this->value0 = std::move(other.value0);
     this->value1 = std::move(other.value1);
@@ -307,7 +312,7 @@ struct Compound
     this->value4 = std::move(other.value4);
     this->value5 = std::move(other.value5);
     return *this;
-  }
+  } */
   T0 value0;
   T1 value1;
   T2 value2;
@@ -475,9 +480,29 @@ class ArgDeserializerBase;
 
 struct CustomObject {
   string kind;
-  CustomObject(): id(0) {}
+  CustomObject(): kind(""), id(0) {}
   CustomObject(string kind): kind(kind), id(0) {}
+  CustomObject(const CustomObject& other) {
+    this->kind = other.kind;
+    this->id = other.id;
 
+    // TODO: copy data.
+  }
+  ~CustomObject() {
+    // fprintf(stderr, "~CustomObject %p\n", this);
+  }
+  CustomObject& operator=(CustomObject&& other) {
+    this->kind = other.kind;
+    this->id = other.id;
+    // TODO: copy data.
+    return *this;
+  }
+  CustomObject& operator=(const CustomObject& other) {
+    this->kind = other.kind;
+    this->id = other.id;
+    // TODO: copy data.
+    return *this;
+  }
   int32_t id;
   // Data of custom object.
   int32_t ints[4];
@@ -526,6 +551,8 @@ public:
       current->next = deserializer;
     }
   }
+
+  int32_t currentPosition() const { return this->position; }
 
   void check(int32_t count)
   {
@@ -636,6 +663,7 @@ public:
     int32_t length = readInt32();
     check(length);
     result.value = std::string((char *)(data + position), length);
+    position += length;
     return result;
   }
 

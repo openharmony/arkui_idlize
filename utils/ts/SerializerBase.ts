@@ -143,6 +143,7 @@ export class SerializerBase {
     length(): int32 {
         return this.position
     }
+    currentPosition(): int32 { return this.position }
     private checkCapacity(value: int32) {
         if (value < 1) {
             throw new Error(`${value} is less than 1`)

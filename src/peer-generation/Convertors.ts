@@ -408,7 +408,7 @@ export class OptionConvertor extends BaseArgConvertor {
         let valueName = `${value}_tagged_value`
         printer.print(`${this.typeConvertor.nativeType()} ${valueName};`)
         this.typeConvertor.convertorToCDeserial(param, `${valueName}`, printer)
-        printer.print(`${value}.value = std::move(${valueName});`)
+        printer.print(`${value}.value = ${valueName};`)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -457,7 +457,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             let memberLocal = `${value}_${memberName}`
             printer.print(`${it.nativeType()} ${memberLocal};`)
             it.convertorToCDeserial(param, memberLocal, printer)
-            printer.print(`${value}.value${index} = std::move(${memberLocal});`)
+            printer.print(`${value}.value${index} = ${memberLocal};`)
         })
     }
 
@@ -477,7 +477,7 @@ export class TypedConvertor extends BaseArgConvertor {
         name: string,
         private type: ts.TypeReferenceNode | undefined,
         param: string, protected visitor: PeerGeneratorVisitor) {
-        super(name, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
+        super(name, [RuntimeType.OBJECT, RuntimeType.FUNCTION, RuntimeType.UNDEFINED], false, true, param)
         visitor.requestType(name, type)
     }
 
@@ -554,7 +554,7 @@ export class TupleConvertor extends BaseArgConvertor {
             let valueName = `${value}_${index}`
             printer.print(`${it.nativeType()} ${valueName};`)
             it.convertorToCDeserial(param, valueName, printer)
-            printer.print(`${value}.value${index} = std::move(${valueName});`)
+            printer.print(`${value}.value${index} = ${valueName};`)
         })
         printer.popIndent()
         printer.print(`}`)
@@ -611,7 +611,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         printer.pushIndent()
         printer.print(`${mapCType(this.elementType)} ${value}_element;`)
         this.elementConvertor.convertorToCDeserial(param, `${value}_element`, printer)
-        printer.print(`${value}.push_back(std::move(${value}_element));`);
+        printer.print(`${value}.push_back(${value}_element);`);
         printer.popIndent()
         printer.print(`}`)
         printer.popIndent()

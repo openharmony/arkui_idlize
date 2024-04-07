@@ -29,8 +29,7 @@ import {
     renameDtsToPeer,
     serializerBaseMethods,
     stringOrNone,
-    typeEntityName,
-    typeOrUndefined
+    typeEntityName
 } from "../util"
 import { GenericVisitor } from "../options"
 import { IndentedPrinter } from "../IndentedPrinter"
@@ -55,16 +54,17 @@ import {
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { isUnionType } from "../idl"
-import { fileURLToPath } from "url"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
-    NUMBER,
-    STRING,
-    OBJECT,
-    BOOLEAN,
-    UNDEFINED
+    NUMBER = 1,
+    STRING = 2,
+    OBJECT = 3,
+    BOOLEAN = 4,
+    UNDEFINED = 5,
+    BIGINT = 6,
+    FUNCTION = 7,
+    SYMBOL = 8
 }
 
 /**
