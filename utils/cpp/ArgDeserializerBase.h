@@ -375,7 +375,7 @@ struct String
   }
   String(const Tagged<String> &other)
   {
-    // TODO: check tag
+    // TODO: check    tag
     this->value = other.value.value;
   }
   ~String() {}
@@ -479,27 +479,28 @@ inline void WriteToString(string* result, const Undefined& value) {
 class ArgDeserializerBase;
 
 struct CustomObject {
-  string kind;
-  CustomObject(): kind(""), id(0) {}
-  CustomObject(string kind): kind(kind), id(0) {}
+  char kind[20];
+  CustomObject(): id(0) {
+    kind[0] = 0;
+  }
+  CustomObject(const string& kind): id(0) {
+    strncpy(this->kind, kind.c_str(), sizeof(this->kind));
+  }
   CustomObject(const CustomObject& other) {
-    this->kind = other.kind;
+    strncpy(this->kind, other.kind, sizeof(this->kind));
     this->id = other.id;
-
     // TODO: copy data.
   }
-  ~CustomObject() {
-    // fprintf(stderr, "~CustomObject %p\n", this);
-  }
+  ~CustomObject() {}
   CustomObject& operator=(CustomObject&& other) {
-    this->kind = other.kind;
     this->id = other.id;
+    strncpy(this->kind, other.kind, sizeof(this->kind));
     // TODO: copy data.
     return *this;
   }
   CustomObject& operator=(const CustomObject& other) {
-    this->kind = other.kind;
     this->id = other.id;
+    strncpy(this->kind, other.kind, sizeof(this->kind));
     // TODO: copy data.
     return *this;
   }
