@@ -177,6 +177,35 @@ struct Union
       break;
     }
   }
+  Union& operator=(Union&& other)
+  {
+    this->selector = other.selector;
+    switch (selector)
+    {
+    case 0:
+      this->value0 = std::move(other.value0);
+      break;
+    case 1:
+      this->value1 = std::move(other.value1);
+      break;
+    case 2:
+      this->value2 = std::move(other.value2);
+      break;
+    case 3:
+      this->value3 = std::move(other.value3);
+      break;
+    case 4:
+      this->value4 = std::move(other.value4);
+      break;
+    case 5:
+      this->value5 = std::move(other.value5);
+      break;
+    case 6:
+      this->value6 = std::move(other.value6);
+      break;
+    }
+    return *this;
+  }
   ~Union() {
     switch (selector)
     {
@@ -260,8 +289,25 @@ struct Compound
     this->value4 = other.value4;
     this->value5 = other.value5;
   }
-
   ~Compound() {}
+  Compound& operator=(const Compound& other) {
+    this->value0 = other.value0;
+    this->value1 = other.value1;
+    this->value2 = other.value2;
+    this->value3 = other.value3;
+    this->value4 = other.value4;
+    this->value5 = other.value5;
+    return *this;
+  }
+  Compound& operator=(Compound&& other) {
+    this->value0 = std::move(other.value0);
+    this->value1 = std::move(other.value1);
+    this->value2 = std::move(other.value2);
+    this->value3 = std::move(other.value3);
+    this->value4 = std::move(other.value4);
+    this->value5 = std::move(other.value5);
+    return *this;
+  }
   T0 value0;
   T1 value1;
   T2 value2;
