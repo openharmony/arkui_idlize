@@ -1,6 +1,6 @@
 import {strict as assert} from 'assert';
 
-import {BOOL_UNDEFINED, toArray, toInt32, toChars} from "../unit_utils"
+import {toArray, toInt32, toChars} from "../unit_utils"
 import {RuntimeType, Tags} from "@arkoala/arkui/utils/ts/SerializerBase"
 import {Serializer} from "@arkoala/arkui/Serializer"
 
@@ -9,7 +9,7 @@ import {Serializer} from "@arkoala/arkui/Serializer"
 it('Should write boolean undefined', function () {
     let serializer = new Serializer(1)
     serializer.writeBoolean(undefined)
-    assert.deepEqual(toArray(serializer), [BOOL_UNDEFINED])
+    assert.deepEqual(toArray(serializer), [RuntimeType.UNDEFINED])
 });
 
 it('Should write boolean false', function () {

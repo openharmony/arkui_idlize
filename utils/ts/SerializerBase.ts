@@ -202,7 +202,7 @@ export class SerializerBase {
     }
     writeBoolean(value: boolean|undefined) {
         this.checkCapacity(1)
-        this.view.setInt8(this.position, value == undefined ? 2 : +value)
+        this.view.setInt8(this.position, value == undefined ? RuntimeType.UNDEFINED : +value)
         this.position++
     }
     writeFunction(value: object | undefined) {

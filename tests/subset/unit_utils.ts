@@ -1,7 +1,5 @@
 import {Serializer} from "@arkoala/arkui/Serializer"
 
-export const BOOL_UNDEFINED = 2
-
 export function toInt32(value: number, littleEndian: boolean = true): number[] {
     const b0 = (value >> 0 & 0xFF)
     const b1 = (value >> 8 & 0xFF)
