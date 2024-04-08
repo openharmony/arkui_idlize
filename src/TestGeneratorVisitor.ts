@@ -117,7 +117,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
 
     testMethod(method: ts.MethodDeclaration | ts.MethodSignature) {
         if (this.methodsToTest.size > 0 && !this.methodsToTest.has(nameOrUndefined(method.name)!)) return
-        this.output.push(`  console.log(\`typescript ${nameOrUndefined(method.name)}(${this.generateArgs(method)})\`)`)
+        this.output.push(`  console.log(\`${nameOrUndefined(method.name)}(${this.generateArgs(method)})\`)`)
         this.output.push(`  peer.${nameOrUndefined(method.name)}(${this.generateArgs(method)})`)
     }
 
