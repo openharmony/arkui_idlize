@@ -400,6 +400,8 @@ struct Array
   size_t size() const { return array.size(); }
   void push_back(const T& value) { array.push_back(value); }
   const T& operator[](size_t pos ) const { return array[pos]; }
+  T& operator[](size_t pos) { return array[pos]; }
+  void resize(size_t size) { array.resize(size); }
 };
 
 template <typename T>

@@ -17,6 +17,8 @@ import { identName, importTypeName, typeName } from "../util"
 import { PeerGeneratorVisitor, RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 
+let uniqueCounter = 0
+
 export interface ArgConvertor {
     tsTypeName: string
     isScoped: boolean
@@ -266,7 +268,8 @@ export class UnionConvertor extends BaseArgConvertor {
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         // Save actual type being passed.
-        printer.print(`int32_t ${value}_type = ${param}Deserializer.readInt8();`)
+        let runtimeType = `runtimeType${uniqueCounter++}`;
+        printer.print(`int32_t ${runtimeType} = ${param}Deserializer.readInt8();`)
         this.memberConvertors.forEach((it, index) => {
                 if (it.runtimeTypes.length == 0) {
                     return
@@ -275,12 +278,9 @@ export class UnionConvertor extends BaseArgConvertor {
                 let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
                 let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RUNTIME_${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
+                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RUNTIME_${RuntimeType[it]} == ${runtimeType}${maybeComma2}`).join(" || ")}) {`)
                 printer.pushIndent()
-                let variantValue = `${value}_${index}`
-                printer.print(`${it.nativeType()} ${variantValue};`)
-                it.convertorToCDeserial(param, variantValue, printer)
-                printer.print(`${value}.value${index} = ${variantValue};`)
+                it.convertorToCDeserial(param, `${value}.value${index}`, printer)
                 printer.print(`${value}.selector = ${index};`)
                 printer.popIndent()
                 printer.print(`}`)
@@ -405,10 +405,7 @@ export class OptionConvertor extends BaseArgConvertor {
         printer.print(`${value}.tag = ${param}Deserializer.readInt8() == RUNTIME_UNDEFINED ? TAG_UNDEFINED : TAG_OBJECT;`)
         printer.print(`if (${value}.tag != TAG_UNDEFINED) {`)
         printer.pushIndent()
-        let valueName = `${value}_tagged_value`
-        printer.print(`${this.typeConvertor.nativeType()} ${valueName};`)
-        this.typeConvertor.convertorToCDeserial(param, `${valueName}`, printer)
-        printer.print(`${value}.value = ${valueName};`)
+        this.typeConvertor.convertorToCDeserial(param, `${value}.value`, printer)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -453,11 +450,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         this.memberConvertors.forEach((it, index) => {
-            let memberName = this.members[index]
-            let memberLocal = `${value}_${memberName}`
-            printer.print(`${it.nativeType()} ${memberLocal};`)
-            it.convertorToCDeserial(param, memberLocal, printer)
-            printer.print(`${value}.value${index} = ${memberLocal};`)
+            it.convertorToCDeserial(param, `${value}.value${index}`, printer)
         })
     }
 
@@ -547,14 +540,10 @@ export class TupleConvertor extends BaseArgConvertor {
     }
 
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`auto ${value}_tag = ${param}Deserializer.readInt8();`)
-        printer.print(`if (${value}_tag != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
+        printer.print(`if ( ${param}Deserializer.readInt8() != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         this.memberConvertors.forEach((it, index) => {
-            let valueName = `${value}_${index}`
-            printer.print(`${it.nativeType()} ${valueName};`)
-            it.convertorToCDeserial(param, valueName, printer)
-            printer.print(`${value}.value${index} = ${valueName};`)
+            it.convertorToCDeserial(param, `${value}.value${index}`, printer)
         })
         printer.popIndent()
         printer.print(`}`)
@@ -603,15 +592,17 @@ export class ArrayConvertor extends BaseArgConvertor {
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         // Array length.
-        printer.print(`auto ${value}_tag = ${param}Deserializer.readInt8();`)
-        printer.print(`if (${value}_tag != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
+        let runtimeType = `runtimeType${uniqueCounter++}`;
+        let arrayLength = `arrayLength${uniqueCounter++}`;
+
+        printer.print(`auto ${runtimeType} = ${param}Deserializer.readInt8();`)
+        printer.print(`if (${runtimeType} != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
-        printer.print(`auto ${value}_length = ${param}Deserializer.readInt32();`)
-        printer.print(`for (int i = 0; i < ${value}_length; i++) {`)
+        printer.print(`auto ${arrayLength} = ${param}Deserializer.readInt32();`)
+        printer.print(`${value}.resize(${arrayLength});`);
+        printer.print(`for (int i = 0; i < ${arrayLength}; i++) {`)
         printer.pushIndent()
-        printer.print(`${mapCType(this.elementType)} ${value}_element;`)
-        this.elementConvertor.convertorToCDeserial(param, `${value}_element`, printer)
-        printer.print(`${value}.push_back(${value}_element);`);
+        this.elementConvertor.convertorToCDeserial(param, `${value}[i]`, printer)
         printer.popIndent()
         printer.print(`}`)
         printer.popIndent()
