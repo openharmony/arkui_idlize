@@ -24,7 +24,7 @@ import {
 import { toString } from "./toString"
 import {
     createContainerType, createNumberType, createUnionType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLInterface, IDLKind,
-    IDLMethod, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
+    IDLMethod, IDLModuleType, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
 } from "../idl"
 import { isDefined, stringOrNone } from "../util"
 
@@ -47,10 +47,17 @@ export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
     if (isDictionary(node)) {
         return toIDLDictionary(file, node)
     }
+    if (isNamespace(node)) {
+        return toIDLNamespcae(file, node)
+    }
+
     throw new Error(`unexpected node type: ${toString(node)}`)
 }
 
 
+function isNamespace(node: webidl2.IDLRootType): node is webidl2.NamespaceType {
+    return node.type === 'namespace'
+}
 function isCallable(node: webidl2.IDLInterfaceMemberType): boolean {
     return node.extAttrs.some(it => it.name == "Invoke")
 }
@@ -180,6 +187,16 @@ function toIDLDictionary(file: string, node: webidl2.DictionaryType): IDLEnum {
         extendedAttributes: toExtendedAttributes(node.extAttrs),
         fileName: file,
         elements: node.members.map(it => toIDLEnumMember(file, it))
+    }
+}
+
+function toIDLNamespcae(file: string, node: webidl2.NamespaceType): IDLModuleType {
+
+    return {
+        kind: IDLKind.ModuleType,
+        name: node.name,
+        extendedAttributes: toExtendedAttributes(node.extAttrs),
+        fileName: file
     }
 }
 

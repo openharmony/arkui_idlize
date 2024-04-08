@@ -17,7 +17,7 @@ import * as path from "path"
 import {
     createAnyType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
     createTypeParameterReference, createUndefinedType, createUnionType, getExtAttribute, IDLCallable, IDLCallback, IDLConstructor,
-    IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType, IDLTypedef
+    IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLType, IDLTypedef
 } from "./idl"
 import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isNodePublic, isReadonly, isStatic, nameOrNullForIdl as nameOrUndefined, stringOrNone
@@ -91,14 +91,28 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         } else if (ts.isInterfaceDeclaration(node)) {
             this.output.push(this.serializeInterface(node))
         } else if (ts.isModuleDeclaration(node)) {
-            // This is a namespace, visit its children
-            ts.forEachChild(node, (node) => this.visit(node));
+            if (this.isKnownAmbientModuleDeclaration(node)) {
+                this.output.push(this.serializeAmbientModuleDeclaration(node))
+            } else {
+                // This is a namespace, visit its children
+                ts.forEachChild(node, (node) => this.visit(node));
+            }
+
         } else if (ts.isEnumDeclaration(node)) {
             this.output.push(this.serializeEnum(node))
         } else if (ts.isTypeAliasDeclaration(node)) {
             this.output.push(this.serializeTypeAlias(node))
         } else if (ts.isFunctionDeclaration(node)) {
             this.globalScope.push(this.serializeMethod(node))
+        }
+    }
+
+    serializeAmbientModuleDeclaration(node: ts.ModuleDeclaration): IDLModuleType {
+        const name = nameOrUndefined(node.name) ?? "UNDEFINED_Module"
+        return {
+            kind: IDLKind.ModuleType,
+            name: name,
+            extendedAttributes: [ {name: "VerbatimDts", value: `"${escapeAmbientModuleContent(this.sourceFile, node)}"`}]
         }
     }
 
@@ -337,6 +351,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (!parent) return false
         const name = identName(parent.name)
         return PeerGeneratorConfig.isKnownParametrized(name)
+    }
+
+    isKnownAmbientModuleDeclaration(type: ts.Node): boolean {
+        if (!ts.isModuleDeclaration(type)) return false
+        const name = identName(type)
+        const ambientModuleNames = this.typeChecker.getAmbientModules().map(it=>it.name.replaceAll('\"',""))
+        return name != undefined && ambientModuleNames.includes(name)
     }
 
     warn(message: string) {
@@ -633,4 +654,10 @@ function sanitize(type: stringOrNone): stringOrNone {
 function escapeMethodName(name: string) : [string, string] {
     if (name.startsWith("$")) return [name, name.replace("$", "dollar_")]
     return [name, name]
+}
+
+function escapeAmbientModuleContent(sourceFile: ts.SourceFile, node: ts.Node) : string {
+    const { pos, end} = node
+    const content = sourceFile.text.substring(pos,end)
+    return content.replaceAll('"', "'")
 }

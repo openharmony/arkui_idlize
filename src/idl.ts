@@ -34,7 +34,8 @@ export enum IDLKind {
     ReferenceType,
     EnumType,
     UnionType,
-    TypeParameterType
+    TypeParameterType,
+    ModuleType
 }
 
 export interface IDLExtendedAttribute {
@@ -90,6 +91,10 @@ export interface IDLUnionType extends IDLType {
 
 export interface IDLTypeParameterType extends IDLType {
     kind: IDLKind.TypeParameterType
+}
+
+export interface IDLModuleType extends IDLType {
+    kind: IDLKind.ModuleType
 }
 
 export interface IDLVariable extends IDLEntry {
@@ -211,6 +216,9 @@ export function forEachChild(node: IDLEntry, cb: (entry: IDLEntry) => void): voi
         case IDLKind.ReferenceType: {
             break
         }
+        case IDLKind.ModuleType: {
+            break
+        }
         default: {
             throw new Error(`Unhandled ${node.kind}`)
         }
@@ -258,6 +266,10 @@ export function isCallback(node: IDLEntry): node is IDLCallback {
 }
 export function isTypedef(node: IDLEntry): node is IDLTypedef {
     return node.kind === IDLKind.Typedef
+}
+
+export function isModuleType(node: IDLEntry): node is IDLModuleType {
+    return node.kind === IDLKind.ModuleType
 }
 
 export function createStringType(): IDLPrimitiveType {
@@ -419,6 +431,14 @@ export function printMethod(idl: IDLMethod): stringOrNone[] {
     ]
 }
 
+export function printModule(idl: IDLModuleType): stringOrNone[] {
+    // may changes later to deal namespace. currently just VerbatimDts
+    return [
+        ...printExtendedAttributes(idl,0),
+        `namespace ${idl.name} {};`
+    ]
+}
+
 export function printCallback(idl: IDLCallback): stringOrNone[] {
     return [`callback ${idl.name} = ${printType(idl.returnType)} (${printParameters(idl.parameters)});`]
 }
@@ -485,6 +505,7 @@ export function printIDL(idl: IDLEntry, options?: Partial<IDLPrintOptions>): str
     if (idl.kind == IDLKind.Enum) return printEnum(idl as IDLEnum, options?.disableEnumInitializers ?? false)
     if (idl.kind == IDLKind.Typedef) return printTypedef(idl as IDLTypedef)
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
+    if (idl.kind == IDLKind.ModuleType) return printModule(idl as IDLModuleType)
     return [`unexpected kind: ${idl.kind}`]
 }
 

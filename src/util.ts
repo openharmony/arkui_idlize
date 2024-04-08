@@ -41,6 +41,9 @@ export function nameOrNullForIdl(name: ts.EntityName | ts.DeclarationName | unde
         let rawName = ts.idText(name)
         return keywords.get(rawName) ?? rawName
     }
+    if (ts.isStringLiteral(name)) {
+        return name.text
+    }
 
     return undefined
 }

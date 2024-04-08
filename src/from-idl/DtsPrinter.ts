@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 import { indentedBy, stringOrNone } from "../util"
-import { IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
+import { IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
     getVerbatimDts,
     hasExtAttribute,
     isCallback,
-    isClass, isConstructor, isContainerType, isEnum, isEnumType, isInterface, isMethod, isPrimitiveType, isProperty, isReferenceType, isTypeParameterType, isTypedef, isUnionType } from "../idl"
+    isClass, isConstructor, isContainerType, isEnum, isEnumType, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isTypeParameterType, isTypedef, isUnionType } from "../idl"
 import * as webidl2 from "webidl2"
 import { toIDLNode } from "./deserialize"
 
@@ -38,6 +38,8 @@ export class CustomPrintVisitor  {
             this.printEnum(node)
         } else if (isCallback(node)) {
             this.printCallback(node)
+        } else if (isModuleType(node)) {
+            this.printModuleType(node)
         } else {
             throw new Error(`Unexpected node kind: ${IDLKind[node.kind!]}`)
         }
@@ -121,6 +123,12 @@ export class CustomPrintVisitor  {
         let text = getVerbatimDts(node) ?? printTypeForTS(node.type)
         this.print(`declare type ${(node.name)} = ${text};`)
     }
+
+    printModuleType(node: IDLModuleType) {
+        let text = getVerbatimDts(node) ?? ""
+        this.print(`${text}`)
+    }
+
     checkVerbatim(node: IDLEntry) {
         let verbatim = getExtAttribute(node, "VerbatimDts")
         if (verbatim) {
