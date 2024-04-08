@@ -58,17 +58,7 @@ function checkFormComponent() {
 }
 
 
-class OurCustomSerializer extends CustomSerializer {
-    constructor() {
-        super(["Resource", "Pixmap", "Function"])
-    }
-    serialize(serializer: SerializerBase, value: any, kind: string): void {
-        console.log(`managed serialize() for ${kind}`)
-        serializer.writeString(kind == "Function" ? value.toString(): JSON.stringify(value))
-    }
-}
 
-SerializerBase.registerCustomSerializer(new OurCustomSerializer())
 
 checkButton()
 checkCalendar()

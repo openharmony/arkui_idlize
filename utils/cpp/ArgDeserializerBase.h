@@ -573,6 +573,9 @@ public:
         }
       }
       fprintf(stderr, "Unsupported custom deserialization for %s\n", kind.c_str());
+      int tag = readInt8();
+      assert(tag == TAG_UNDEFINED);
+      // Skip updefined tag!.
       return CustomObject(string("Error") + kind);
   }
 

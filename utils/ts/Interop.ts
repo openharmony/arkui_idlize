@@ -29,4 +29,3 @@ export class PeerNode extends Finalizable {
     }
     applyAttributes(attrs: Object) {}
 }
-

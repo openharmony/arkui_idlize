@@ -166,7 +166,8 @@ export class SerializerBase {
                 return
             }
         }
-        console.log(`Unsupported custom serialization for ${kind}`)
+        console.log(`Unsupported custom serialization for ${kind}, write undefined`)
+        this.writeInt8(Tags.UNDEFINED)
     }
     writeNumber(value: number|undefined) {
         this.checkCapacity(5)
@@ -250,3 +251,16 @@ export class SerializerBase {
         this.writeCustom("Callback", value)
     }
 }
+
+class OurCustomSerializer extends CustomSerializer {
+    constructor() {
+        super(["Resource", "Pixmap", "Function"])
+    }
+    serialize(serializer: SerializerBase, value: any, kind: string): void {
+        console.log(`managed serialize() for ${kind}`)
+        serializer.writeString(kind == "Function" ? value.toString(): JSON.stringify(value))
+    }
+}
+
+// TODO, remove me!
+SerializerBase.registerCustomSerializer(new OurCustomSerializer())
