@@ -15,38 +15,7 @@
 import * as ts from "typescript"
 import { asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode } from "./util"
 import { GenericVisitor } from "./options"
-
-function randInt(max: number, min: number = 0) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function randChar(minChar: string, range: number) {
-    return String.fromCharCode(minChar.charCodeAt(0) + randInt(range))
-}
-
-function randString(max: number): string {
-
-    let array: string[] = []
-    for (let i = 0; i < max; i++) {
-        const range = randInt(3)
-        let c = (range == 0)
-            ? randChar('0', 10)
-            : (range == 1)
-                ? randChar('a', 26)
-                : randChar('A', 26)
-        array.push(c)
-    }
-
-    return array.join('')
-}
-
-function toSnakeCase(str: string) {
-    return str
-        .split('')
-        .map((c, i) =>
-            (c == c.toUpperCase()) ? `${i == 0 ? '' : '_'}${c.toLowerCase()}` : c)
-        .join('')
-}
+import {randInt, randString} from "./rand_utils";
 
 export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     private interfacesToTest = new Set<string>()
@@ -220,7 +189,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
 
     prologue(name: ts.Identifier) {
         let clazzName = this.getClassName(name)!
-        this.output.push(`import { Ark${clazzName}Peer } from "@arkoala/arkui/${toSnakeCase(clazzName)}"`)
+        this.output.push(`import { Ark${clazzName}Peer } from "@arkoala/arkui/Ark${clazzName}Peer"`)
         this.output.push(``)
         this.output.push(`function check${clazzName}() {`)
         this.output.push(`  console.log("call ${clazzName} peer")`)

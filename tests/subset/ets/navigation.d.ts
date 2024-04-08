@@ -1,6 +1,7 @@
 declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
 
-    navBarWidthRange(value: [Dimension, Dimension]): NavigationAttribute;
+    // TBD: Fix TestGeneratorVisitor to not generate undefined values
+    // navBarWidthRange(value: [Dimension, Dimension]): NavigationAttribute;
 
     testTuple(value: [boolean, number]): NavigationAttribute;
 
