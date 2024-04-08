@@ -59,7 +59,6 @@ const options = program
     .option('--linter-whitelist <whitelist.json>', 'Whitelist for linter')
     .option('--verbose', 'Verbose processing')
     .option('--verify-idl', 'Verify produced IDL')
-    .option('--skip-docs', 'Emit no docs to idl')
     .option('--common-to-attributes', 'Transform common attributes as IDL attributes')
     .option('--test-interface <name>', 'Interfaces to test (comma separated)')
     .option('--test-method <name>', 'Methods to test (comma separated)')
@@ -68,6 +67,7 @@ const options = program
     .option('--disable-enum-initializers', "Don't include enum member initializers in the interface")
     .option('--native-bridge-dir <name>', "Directory with native bridge")
     .option('--dump-serialized', "Dump serialized data")
+    .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
     .option('--version')
     .parse()
     .opts()
@@ -95,7 +95,7 @@ if (options.dts2idl) {
         options.inputDir,
         options.inputFile,
         options.outputDir ?? "./idl",
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options.commonToAttributes ?? true),
+        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: IDLEntry[], outputDir, sourceFile) => {

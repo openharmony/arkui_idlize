@@ -24,6 +24,7 @@ import {
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
+import { OptionValues } from "commander"
 
 const typeMapper = new Map<string, string>(
     [
@@ -65,7 +66,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         private sourceFile: ts.SourceFile,
         private typeChecker: ts.TypeChecker,
         private compileContext: CompileContext,
-        private commonToAttributes: boolean) { }
+        private options: OptionValues) { }
 
     visitWholeFile(): IDLEntry[] {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
@@ -182,7 +183,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             kind: IDLKind.Class,
             extendedAttributes: this.computeExtendedAttributes(true, node),
             name: getExportedDeclarationNameByDecl(node) ?? "UNDEFINED",
-            documentation: getComment(this.sourceFile, node),
+            documentation: getDocumentation(this.sourceFile, node, this.options.docs),
             inheritance: this.serializeInheritance(node.heritageClauses),
             constructors: node.members.filter(ts.isConstructorDeclaration).map(it => this.serializeConstructor(it as ts.ConstructorDeclaration)),
             properties: this.pickProperties(node.members),
@@ -253,7 +254,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             kind: IDLKind.Interface,
             name: getExportedDeclarationNameByDecl(node) ?? "UNDEFINED",
             extendedAttributes: this.computeExtendedAttributes(false, node),
-            documentation: getComment(this.sourceFile, node),
+            documentation: getDocumentation(this.sourceFile, node, this.options.docs),
             inheritance: this.serializeInheritance(node.heritageClauses),
             constructors: this.pickConstructors(node.members),
             properties: this.pickProperties(allMembers),
@@ -280,7 +281,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return {
             kind: IDLKind.Enum,
             name: ts.idText(node.name),
-            documentation: getComment(this.sourceFile, node),
+            documentation: getDocumentation(this.sourceFile, node, this.options.docs),
             elements: node.members.filter(ts.isEnumMember)
                 .map(it => this.serializeEnumMember(it))
         }
@@ -540,7 +541,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 kind: IDLKind.Property,
                 name: name,
                 extendedAttributes: [{ name: "CommonMethod" } ],
-                documentation: getComment(this.sourceFile, property),
+                documentation: getDocumentation(this.sourceFile, property, this.options.docs),
                 type: this.serializeType(property.parameters[0].type),
                 isReadonly: false,
                 isStatic: false,
@@ -553,7 +554,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return {
                 kind: IDLKind.Property,
                 name: name!,
-                documentation: getComment(this.sourceFile, property),
+                documentation: getDocumentation(this.sourceFile, property, this.options.docs),
                 type: this.serializeType(property.type, name),
                 isReadonly: isReadonly(property.modifiers),
                 isStatic: isStatic(property.modifiers),
@@ -584,7 +585,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     isCommonMethodUsedAsProperty(member: ts.ClassElement | ts.TypeElement): member is (ts.MethodDeclaration | ts.MethodSignature) {
-        return this.commonToAttributes &&
+        return (this.options.commonToAttributes ?? true) &&
             (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) &&
             this.isCommonAttributeMethod(member) &&
             member.parameters.length == 1
@@ -596,7 +597,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return {
                 kind: IDLKind.Method,
                 name: "indexSignature",
-                documentation: getComment(this.sourceFile, method),
+                documentation: getDocumentation(this.sourceFile, method, this.options.docs),
                 returnType: this.serializeType(method.type),
                 extendedAttributes: [{name: 'IndexSignature' }],
                 isStatic: false,
@@ -608,7 +609,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             kind: IDLKind.Method,
             name: escapedName,
             extendedAttributes: (methodName != escapedName) ? [ { name: "DtsName", value: `"${methodName}"`} ] : undefined,
-            documentation: getComment(this.sourceFile, method),
+            documentation: getDocumentation(this.sourceFile, method, this.options.docs),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),
             isStatic: isStatic(method.modifiers)
@@ -620,7 +621,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             kind: IDLKind.Callable,
             name: "invoke",
             extendedAttributes: [{name: "CallSignature"}],
-            documentation: getComment(this.sourceFile, method),
+            documentation: getDocumentation(this.sourceFile, method, this.options.docs),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),
             isStatic: false
@@ -660,4 +661,39 @@ function escapeAmbientModuleContent(sourceFile: ts.SourceFile, node: ts.Node) : 
     const { pos, end} = node
     const content = sourceFile.text.substring(pos,end)
     return content.replaceAll('"', "'")
+}
+
+function getDocumentation(sourceFile: ts.SourceFile, node: ts.Node, docsOption: string): string | undefined {
+    switch (docsOption) {
+        case 'all': return getComment(sourceFile, node)
+        case 'opt': return dedupDocumentation(getComment(sourceFile, node))
+        case 'none': return undefined
+        default: throw new Error(`Unknown option docs=${docsOption}`)
+    }
+}
+
+function dedupDocumentation(documentation: string): string {
+    let seen: Set<string> = new Set()
+    let firstLine = false
+    return documentation
+        .split('\n')
+        .filter(it => {
+            let t = it.trim()
+            if (t.startsWith('/*')) {
+                firstLine = true
+                return true
+            }
+            if (t == '' || t === '*') {
+                // skip empty line at start of a comment
+                return !firstLine
+            }
+            if (t.startsWith('*/')) return true
+            if (!seen.has(it)) {
+                seen.add(it)
+                firstLine = false
+                return true
+            }
+            return false
+        })
+        .join('\n')
 }
