@@ -271,7 +271,7 @@ export function typeName(type: ts.TypeReferenceNode | ts.TypeQueryNode | ts.Impo
     }
 }
 
-export function typeEntityName(type: ts.TypeReferenceNode | ts.TypeQueryNode | ts.ImportTypeNode): ts.EntityName|undefined {
+export function typeEntityName(type: ts.TypeReferenceNode | ts.TypeQueryNode | ts.ImportTypeNode): ts.EntityName | undefined {
     if (ts.isTypeReferenceNode(type)) return type.typeName
     if (ts.isTypeQueryNode(type)) return type.exprName
     if (ts.isImportTypeNode(type)) return type.qualifier
@@ -411,4 +411,8 @@ export function renameDtsToPeer(fileName: string, withFileExtension: boolean = t
 
 export function importTypeName(type: ts.ImportTypeNode, asType = false): string {
     return asType ? "object" : identName(type.qualifier)!
+}
+
+export function throwException(message: string): never {
+    throw new Error(message)
 }

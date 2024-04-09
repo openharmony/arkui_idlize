@@ -30,6 +30,7 @@ import {
     renameDtsToPeer,
     serializerBaseMethods,
     stringOrNone,
+    throwException,
     typeEntityName
 } from "../util"
 import { GenericVisitor } from "../options"
@@ -596,14 +597,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.dummyImplModifiers.popIndent()
     }
 
-    declarationConvertor(param: string, type: ts.TypeReferenceNode, declaration: ts.NamedDeclaration): ArgConvertor {
-        if (!declaration) {
-            throw new Error(`WARNING: declaration not found: ${asString(type)}`)
-            //return new AnyConvertor(param)
-        }
-        const declarationName = ts.idText(declaration.name as ts.Identifier) // identName(declaration.name)!
-
+    declarationConvertor(param: string, type: ts.TypeReferenceNode, declaration: ts.NamedDeclaration | undefined): ArgConvertor {
         const entityName = typeEntityName(type)
+        if (!declaration) {
+            return this.customConvertor(entityName, param, type) ?? throwException(`Declaration not found for: ${type.getText()}`)
+        }
+        const declarationName = ts.idText(declaration.name as ts.Identifier)
+
         let customConvertor = this.customConvertor(entityName, param, type)
         if (customConvertor) {
             return customConvertor
@@ -727,6 +727,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (name === "AnimationRange") return new AnimationRangeConvertor(param)
         if (name === "Array") return new ArrayConvertor(param, this, type.typeArguments![0])
         if (name === "Callback") return new CustomTypeConvertor(param, this, "Callback")
+        if (name === "Optional") return new CustomTypeConvertor(param, this, "Optional")
+        if (name === "ContentModifier") return new CustomTypeConvertor(param, this, "ContentModifier")
         return undefined
     }
 
