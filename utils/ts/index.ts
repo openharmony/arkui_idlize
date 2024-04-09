@@ -17,9 +17,7 @@
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
-import { ArkClassDTSPeer } from "@arkoala/arkui/ArkTestPeer"
 import { withStringResult } from "./Interop"
-import { nativeModule } from "../../generated/subset/NativeModule"
 
 function checkButton() {
     let peer = new ArkButtonPeer()
@@ -56,6 +54,7 @@ function checkFormComponent() {
     peer.size({width: 5, height: 6})
 }
 
+/*
 function checkWithString() {
     nativeModule()._AppendResultString("foo")
     nativeModule()._AppendResultString("qoo")
@@ -68,10 +67,10 @@ function checkWithString() {
     console.log(withStringResult(nativeModule()._GetResultString(0)))
     console.log(withStringResult(nativeModule()._GetResultString(2)))
 }
-
+*/
 checkButton()
 checkCalendar()
 //checkDTS()
 checkFormComponent()
 
-checkWithString()
+// checkWithString()

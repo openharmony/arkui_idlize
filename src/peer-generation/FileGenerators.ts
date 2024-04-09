@@ -23,26 +23,60 @@ import {
     KPointer,
     KNativePointer,
     Int32ArrayPtr,
-    Uint8ArrayPtr
+    Uint8ArrayPtr,
 } from "@arkoala/arkui/utils/ts/types"
 `.trim()
 
 
-export function nativeModuleDeclaration(methods: string[], nativeBridgeDir: string): string {
+export function nativeModuleDeclaration(methods: string[], nativeBridgePath: string, useEmpty: boolean): string {
     // TODO: better NativeBridge loader
     return `
 ${importTsInteropTypes}
-import { NativeModuleBase } from "../../utils/ts/NativeModuleBase"
+import { NativeModuleEmpty } from "./NativeModuleEmpty"
 
 let theModule: NativeModule | undefined = undefined
 
 export function nativeModule(): NativeModule {
     if (theModule) return theModule
-    theModule = require("../../../../${nativeBridgeDir}/NativeBridge") as NativeModule
+    if (${useEmpty})
+        theModule = new NativeModuleEmpty()
+    else
+        theModule = require("${nativeBridgePath}") as NativeModule
     return theModule
 }
 
-export interface NativeModule extends NativeModuleBase  {
+class NativeString extends NativeStringBase {
+    constructor(ptr: pointer) {
+        super(ptr)
+    }
+    protected bytesLength(): int32 {
+        return nativeModule()._StringLength(this.ptr)
+    }
+    protected getData(data: Uint8Array): void {
+        withByteArray(data, Access.WRITE, (dataPtr: KUint8ArrayPtr) => {
+            nativeModule()._StringData(this.ptr, dataPtr, data.length)
+        })
+    }
+    close(): void {
+        nativeModule()._InvokeFinalizer(this.ptr, nativeModule()._GetStringFinalizer())
+        this.ptr = nullptr
+    }
+}
+
+providePlatformDefinedData({
+    nativeString(ptr: pointer): NativeStringBase { return new NativeString(ptr) }
+})
+
+export interface NativeModule {
+    _GetResultString(index: KInt): KPointer;
+    _ClearResultString(index: KInt): void;
+    _AppendResultString(string: KStringPtr): void;
+    _GetStringFinalizer(): KPointer;
+    _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void;
+    _StringLength(ptr: KPointer): KInt;
+    _StringData(ptr: KPointer, buffer: Uint8ArrayPtr, length: KInt): void;
+    _StringMake(value: KStringPtr): KPointer;
+
 ${methods.join("\n")}
 }
 `
@@ -51,6 +85,7 @@ ${methods.join("\n")}
 export function nativeModuleEmptyDeclaration(methods: string[]): string {
     return `
 ${importTsInteropTypes}
+import { NativeModuleBase } from "../../utils/ts/NativeModuleBase"
 import { NativeModule } from "./NativeModule"
 
 export class NativeModuleEmpty extends NativeModuleBase implements NativeModule {

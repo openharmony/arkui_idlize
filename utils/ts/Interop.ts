@@ -14,7 +14,6 @@
  */
 
 import { pointer, KUint8ArrayPtr, KPointer, int32, TypedArray } from "./types"
-import { nativeModule } from "../../generated/subset/NativeModule"
 
 export function decodeToString(array: Uint8Array): string {
     return decoder.decode(array)
@@ -164,7 +163,7 @@ export enum Access {
     READ = 1 << 0,
     WRITE = 1 << 1,
     READWRITE = READ | WRITE
-}    
+}
 
 export type ExecWithLength<P, R> = (pointer: P, length: int32) => R
 
@@ -180,25 +179,3 @@ export function withUint8Array<T>(data: Uint8Array | undefined, access: Access, 
 }
 
 export const withByteArray = withUint8Array
-
-class NativeString extends NativeStringBase {
-    constructor(ptr: pointer) {
-        super(ptr)
-    }
-    protected bytesLength(): int32 {
-        return nativeModule()._StringLength(this.ptr)
-    }
-    protected getData(data: Uint8Array): void {
-        withByteArray(data, Access.WRITE, (dataPtr: KUint8ArrayPtr) => {
-            nativeModule()._StringData(this.ptr, dataPtr, data.length)
-        })
-    }
-    close(): void {
-        nativeModule()._InvokeFinalizer(this.ptr, nativeModule()._GetStringFinalizer())
-        this.ptr = nullptr
-    }
-}
-
-providePlatformDefinedData({
-    nativeString(ptr: pointer): NativeStringBase { return new NativeString(ptr) }
-})
