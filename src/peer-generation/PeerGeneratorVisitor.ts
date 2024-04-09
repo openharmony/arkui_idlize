@@ -433,7 +433,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
-                return `${it.interopType(false)} ${it.param}`
+                let type = it.interopType(false)
+                return `${type == "KStringPtr" ? "const KStringPtr&" : type} ${it.param}`
             }
         })))
     }

@@ -75,16 +75,16 @@ providePlatformDefinedData({
 })
 
 export interface NativeModule {
-    _GetResultString(index: KInt): KPointer;
-    _ClearResultString(index: KInt): void;
-    _AppendResultString(string: KStringPtr): void;
-    _GetStringFinalizer(): KPointer;
-    _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void;
-    _StringLength(ptr: KPointer): KInt;
-    _StringData(ptr: KPointer, buffer: KUint8ArrayPtr, length: KInt): void;
-    _StringMake(value: KStringPtr): KPointer;
+  _GetResultString(index: KInt): KPointer;
+  _ClearResultString(index: KInt): void;
+  _AppendResultString(string: KStringPtr): void;
+  _GetStringFinalizer(): KPointer;
+  _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void;
+  _StringLength(ptr: KPointer): KInt;
+  _StringData(ptr: KPointer, buffer: KUint8ArrayPtr, length: KInt): void;
+  _StringMake(value: KStringPtr): KPointer;
 
-${methods.join("\n")}
+${methods.map(it => `  ${it}`).join("\n")}
 }
 `
 }
