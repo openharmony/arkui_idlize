@@ -1196,12 +1196,14 @@ function mapCInteropRetType(type: ts.TypeNode): string {
     if (type.kind == ts.SyntaxKind.VoidKeyword) {
         return `void`
     }
+    if (type.kind == ts.SyntaxKind.NumberKeyword) {
+        return `KInt`
+    }
     if (ts.isTypeReferenceNode(type)) {
         let name = identName(type.typeName)!
         /* HACK, fix */
         if (name.endsWith("Attribute")) return "void"
         switch (name) {
-            case "number": return "KInt"
             /* ANOTHER HACK, fix */
             case "T": return "void"
         }
