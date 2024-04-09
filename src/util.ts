@@ -355,7 +355,8 @@ export function serializerBaseMethods(): string[] {
 
     const serializerDecl = program.getSourceFiles()
         .find(it => it.fileName.includes("SerializerBase"))
-    if (serializerDecl === undefined) throw new Error("Didn't find SerializerBase")
+    // TODO: pack classes with npm package
+    if (serializerDecl === undefined) return []
 
     const methods: string[] = []
     visit(serializerDecl)
