@@ -23,8 +23,15 @@ import {
     KPointer,
     KNativePointer,
     Int32ArrayPtr,
-    Uint8ArrayPtr,
+    KUint8ArrayPtr,
 } from "@arkoala/arkui/utils/ts/types"
+import {
+    NativeStringBase,
+    withByteArray,
+    Access,
+    providePlatformDefinedData,
+    nullptr
+} from "@arkoala/arkui/utils/ts/Interop"
 `.trim()
 
 
@@ -46,7 +53,7 @@ export function nativeModule(): NativeModule {
 }
 
 class NativeString extends NativeStringBase {
-    constructor(ptr: pointer) {
+    constructor(ptr: KPointer) {
         super(ptr)
     }
     protected bytesLength(): int32 {
@@ -64,7 +71,7 @@ class NativeString extends NativeStringBase {
 }
 
 providePlatformDefinedData({
-    nativeString(ptr: pointer): NativeStringBase { return new NativeString(ptr) }
+    nativeString(ptr: KPointer): NativeStringBase { return new NativeString(ptr) }
 })
 
 export interface NativeModule {
@@ -74,7 +81,7 @@ export interface NativeModule {
     _GetStringFinalizer(): KPointer;
     _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void;
     _StringLength(ptr: KPointer): KInt;
-    _StringData(ptr: KPointer, buffer: Uint8ArrayPtr, length: KInt): void;
+    _StringData(ptr: KPointer, buffer: KUint8ArrayPtr, length: KInt): void;
     _StringMake(value: KStringPtr): KPointer;
 
 ${methods.join("\n")}
