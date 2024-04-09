@@ -7,7 +7,8 @@
     "files": [
         "lib/*.js",
         "stdlib.d.ts",
-        "whitelist.json"
+        "whitelist.json",
+        "utils/**/*"
     ],
     "license": "Apache-2.0",
     "keywords": [],

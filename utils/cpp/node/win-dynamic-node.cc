@@ -59,7 +59,9 @@
    op(napi_get_global) \
    op(napi_has_property) \
    op(napi_get_undefined) \
-   op(napi_get_value_double)
+   op(napi_get_value_double) \
+   op(napi_close_callback_scope) \
+   op(napi_async_destroy)
 
 #define DECL_NAPI_IMPL(fn_name, ...) decltype(&fn_name) p_##fn_name;
 
@@ -386,4 +388,14 @@ NAPI_EXTERN napi_status NAPI_CDECL napi_get_value_double(napi_env env,
                                                          double* result) {
   LoadNapiFunctions();
   return p_napi_get_value_double(env, value, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_close_callback_scope(napi_env env, napi_callback_scope scope) {
+  return p_napi_close_callback_scope(env, scope);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL
+napi_async_destroy(napi_env env, napi_async_context async_context) {
+  return p_napi_async_destroy(env, async_context);
 }
