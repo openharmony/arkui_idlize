@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import * as ts from "typescript"
-import { asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode } from "./util"
+import {asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode, renameDtsToPeer, isDefined} from "./util"
 import { GenericVisitor } from "./options"
 import {randInt, randString} from "./rand_utils";
 
@@ -188,12 +188,14 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     }
 
     prologue(name: ts.Identifier) {
-        let clazzName = this.getClassName(name)!
-        this.output.push(`import { Ark${clazzName}Peer } from "@arkoala/arkui/Ark${clazzName}Peer"`)
+        const clazzName = this.getClassName(name)!
+        const peerName = renameDtsToPeer(clazzName)
+
+        this.output.push(`import { ${peerName} } from "@arkoala/arkui/${peerName}"`)
         this.output.push(``)
         this.output.push(`function check${clazzName}() {`)
-        this.output.push(`  console.log("call ${clazzName} peer")`)
-        this.output.push(`  let peer = new Ark${clazzName}Peer()`)
+        this.output.push(`  console.log("call ${peerName}")`)
+        this.output.push(`  let peer = new ${peerName}()`)
     }
 
     epilogue(name: ts.Identifier) {
@@ -233,12 +235,12 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     baseDeclarations(heritage: ts.HeritageClause): ts.Declaration[] {
         return this.heritageIdentifiers(heritage)
             .map(it => getDeclarationsByNode(this.typeChecker, it)[0])
-            .filter(it => !!it)
+            .filter(isDefined)
     }
 
     heritageIdentifiers(heritage: ts.HeritageClause): ts.Identifier[] {
         return heritage.types.map(it => {
             return ts.isIdentifier(it.expression) ? it.expression : undefined
-        }).filter(it => !!it) as ts.Identifier[]
+        }).filter(isDefined)
     }
 }
