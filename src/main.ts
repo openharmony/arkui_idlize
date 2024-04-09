@@ -65,7 +65,7 @@ const options = program
     .option('--test-property <name>', 'Properties to test (comma separated)')
     .option('--generate-interface <name>', 'Interfaces to generate (comma separated)')
     .option('--disable-enum-initializers', "Don't include enum member initializers in the interface")
-    .option('--native-bridge-dir <name>', "Directory with native bridge")
+    .option('--native-bridge-path <name>', "Path to native bridge")
     .option('--dump-serialized', "Dump serialized data")
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
     .option('--version')
@@ -302,7 +302,7 @@ if (options.dts2peer) {
             onEnd(outDir: string) {
                 fs.writeFileSync(
                     path.join(outDir, 'NativeModule.ts'),
-                    nativeModuleDeclaration(nativeMethods, options.nativeBridgeDir ?? "../../../../native/build-node-host-subset/NativeBridge", true)
+                    nativeModuleDeclaration(nativeMethods, options.nativeBridgeDir ?? "../../../../native/build-node-host-subset/NativeBridge", false)
                 )
                 fs.writeFileSync(
                     path.join(outDir, 'NativeModuleEmpty.ts'),

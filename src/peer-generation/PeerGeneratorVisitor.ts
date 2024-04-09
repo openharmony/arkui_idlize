@@ -373,14 +373,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
         this.printDummy(`void ${implName}(${apiParameters}) {`)
         this.dummyImpl.pushIndent()
-        this.printDummy(`string *out = new string("${methodName}(");`)
+        this.printDummy(`string out = string("${methodName}(");`)
         method.parameters.forEach((param, index) => {
-            if (index > 0) this.printDummy(`out->append(", ");`)
-            this.printDummy(`WriteToString(out, ${identName(param.name)});`)
+            if (index > 0) this.printDummy(`out.append(", ");`)
+            this.printDummy(`WriteToString(&out, ${identName(param.name)});`)
         })
-        this.printDummy(`out->append(")\\n");`)
-        this.printDummy(`printf("%s", out->c_str());`)
-        this.printDummy(`delete out;`)
+        this.printDummy(`out.append(")\\n");`)
+        this.printDummy(`printf("%s", out.c_str());`)
         this.dummyImpl.popIndent()
         this.printDummy(`}`)
 
