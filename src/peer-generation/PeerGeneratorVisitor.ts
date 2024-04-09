@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import * as ts from "typescript"
 import {
     asString,
@@ -90,9 +91,31 @@ type MaybeCollapsedMethod = {
     }
 }
 
+export type PeerGeneratorVisitorOptions = {
+    sourceFile: ts.SourceFile,
+    typeChecker: ts.TypeChecker,
+    interfacesToGenerate: Set<string>,
+    nativeModuleMethods: string[],
+    nativeModuleEmptyMethods: string[],
+    outputC: string[],
+    outputSerializersTS: string[],
+    outputSerializersC: string[],
+    outputStructsForwardC: string[],
+    outputStructsC: SortingEmitter,
+    apiHeaders: string[],
+    apiHeadersList: string[],
+    dummyImpl: string[],
+    dummyImplModifiers: string[],
+    dummyImplModifierList: string[],
+    dumpSerialized: boolean
+}
+
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
     private seenAttributes = new Set<string>()
+    private readonly sourceFile: ts.SourceFile
+    private readonly typeChecker: ts.TypeChecker
+    private interfacesToGenerate: Set<string>
     private printerNativeModule: IndentedPrinter
     private printerNativeModuleEmpty: IndentedPrinter
     private printerSerializerC: IndentedPrinter
@@ -105,39 +128,27 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private dummyImpl: IndentedPrinter
     private dummyImplModifiers: IndentedPrinter
     private dummyImplModifierList: IndentedPrinter
+    private dumpSerialized: boolean
 
     private static readonly serializerBaseMethods = serializerBaseMethods()
 
-    constructor(
-        private sourceFile: ts.SourceFile,
-        private typeChecker: ts.TypeChecker,
-        private interfacesToGenerate: Set<string>,
-        nativeModuleMethods: string[],
-        nativeModuleEmptyMethods: string[],
-        outputC: string[],
-        outputSerializersTS: string[],
-        outputSerializersC: string[],
-        outputStructsForwardC: string[],
-        outputStructsC: SortingEmitter,
-        apiHeaders: string[],
-        apiHeadersList: string[],
-        dummyImpl: string[],
-        dummyImplModifiers: string[],
-        dummyImplModifierList: string[],
-        private dumpSerialized: boolean
-    ) {
-        this.printerC = new IndentedPrinter(outputC)
-        this.printerNativeModule = new IndentedPrinter(nativeModuleMethods)
-        this.printerNativeModuleEmpty = new IndentedPrinter(nativeModuleEmptyMethods)
-        this.printerSerializerC = new IndentedPrinter(outputSerializersC)
-        this.printerStructsC = outputStructsC
-        this.printerTypedefsC = new IndentedPrinter(outputStructsForwardC)
-        this.printerSerializerTS = new IndentedPrinter(outputSerializersTS)
-        this.apiPrinter = new IndentedPrinter(apiHeaders)
-        this.apiPrinterList = new IndentedPrinter(apiHeadersList)
-        this.dummyImpl = new IndentedPrinter(dummyImpl)
-        this.dummyImplModifiers = new IndentedPrinter(dummyImplModifiers)
-        this.dummyImplModifierList = new IndentedPrinter(dummyImplModifierList)
+    constructor(options: PeerGeneratorVisitorOptions) {
+        this.sourceFile = options.sourceFile
+        this.typeChecker = options.typeChecker
+        this.interfacesToGenerate = options.interfacesToGenerate
+        this.printerC = new IndentedPrinter(options.outputC)
+        this.printerNativeModule = new IndentedPrinter(options.nativeModuleMethods)
+        this.printerNativeModuleEmpty = new IndentedPrinter(options.nativeModuleEmptyMethods)
+        this.printerSerializerC = new IndentedPrinter(options.outputSerializersC)
+        this.printerStructsC = options.outputStructsC
+        this.printerTypedefsC = new IndentedPrinter(options.outputStructsForwardC)
+        this.printerSerializerTS = new IndentedPrinter(options.outputSerializersTS)
+        this.apiPrinter = new IndentedPrinter(options.apiHeaders)
+        this.apiPrinterList = new IndentedPrinter(options.apiHeadersList)
+        this.dummyImpl = new IndentedPrinter(options.dummyImpl)
+        this.dummyImplModifiers = new IndentedPrinter(options.dummyImplModifiers)
+        this.dummyImplModifierList = new IndentedPrinter(options.dummyImplModifierList)
+        this.dumpSerialized = options.dumpSerialized
     }
 
     requestType(name: string, type: ts.TypeReferenceNode | ts.ImportTypeNode | undefined) {
