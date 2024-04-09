@@ -50,3 +50,27 @@ export function randString(max: number): string {
 
     return array.join('')
 }
+
+export function pick<K, V>(keys: K[], gen: (key: K) => string[], pickedNumbers: number = 3): string[] {
+
+    let values: string[][] = keys.map(it => gen(it))
+    let picked: string[] = []
+
+    if (values.map(it => it.length).some(it => it == 0)) {
+        console.log("Empty arguments!")
+        return []
+    }
+
+    for (let _ = 0; _ < pickedNumbers; _++) {
+        let v = []
+        for (let i = 0; i < values.length; i++) {
+            let len = values[i].length
+            let index = randInt(len)
+            let elem = values[i][index]
+            v.push(elem)
+        }
+        picked.push(v.join(","))
+    }
+
+    return [...new Set(picked)]
+}

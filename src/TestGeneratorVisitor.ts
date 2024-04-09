@@ -15,7 +15,7 @@
 import * as ts from "typescript"
 import { asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode } from "./util"
 import { GenericVisitor } from "./options"
-import {randInt, randString} from "./rand_utils";
+import {randInt, randString, pick} from "./rand_utils";
 
 export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     private interfacesToTest = new Set<string>()
@@ -86,95 +86,104 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
 
     testMethod(method: ts.MethodDeclaration | ts.MethodSignature) {
         if (this.methodsToTest.size > 0 && !this.methodsToTest.has(nameOrUndefined(method.name)!)) return
-        this.output.push(`  console.log(\`${nameOrUndefined(method.name)}(${this.generateArgs(method)})\`)`)
-        this.output.push(`  peer.${nameOrUndefined(method.name)}(${this.generateArgs(method)})`)
+
+        this.generateArgs(method).forEach(args => {
+            this.output.push(`  console.log(\`${nameOrUndefined(method.name)}(${args})\`)`)
+            this.output.push(`  peer.${nameOrUndefined(method.name)}(${args})`)
+        })
     }
 
-    generateArgs(method: ts.MethodDeclaration | ts.MethodSignature): string | undefined {
+    generateArgs(method: ts.MethodDeclaration | ts.MethodSignature): string[] {
         let args = method.parameters.map(it => this.generateArg(it))
         if (args.find(it => it === undefined)) {
             console.log("Cannot map some argument")
-            return undefined
+            return []
         }
-        return args.join(",")
+        return pick(method.parameters.map(it => it), key => this.generateArg(key))
     }
 
-    generateArg(param: ts.ParameterDeclaration): string | undefined {
+    generateArg(param: ts.ParameterDeclaration): string[] {
         return this.generateValueOfType(param.type!)
     }
 
-    generateValueOfType(type: ts.TypeNode): string|undefined {
+    generateValueOfType(type: ts.TypeNode): string[] {
         if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
-            return "undefined"
+            return ["undefined"]
         }
         if (type.kind == ts.SyntaxKind.NullKeyword) {
-            return "null"
+            return ["null"]
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            return `${randInt(2048, -1024)}`
+            return [`0`, `-1`, `${randInt(2048, -1024)}`]
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
-            return `"${randString(randInt(16))}"`
+            return ['""',`"${randString(randInt(16))}"`]
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-            return Math.random() < 0.5 ? "false" : "true"
+            return ["false", "true"]
         }
         if (ts.isTypeReferenceNode(type)) {
             let name = type.typeName
             if (!ts.isIdentifier(name)) {
                 console.log(`${asString(name)} is not identifier`)
-                return undefined
+                return []
             }
             let decls = getDeclarationsByNode(this.typeChecker, name)
             if (decls) {
                 let decl = decls[0]
                 if (decl && ts.isEnumDeclaration(decl)) {
                     // TBD: Use enum constants
-                    // return `${nameOrUndefined(decl.name)}.${nameOrUndefined(decl.members[0].name)!}`
-                    return `${randInt(decl.members.length)}`
+                    // let name = decl.name
+                    // ${nameOrUndefined(name)}.${nameOrUndefined(it.name)!}
+                    return decl.members.map((it, index) => `${index}`)
                 }
                 if (decl && ts.isTypeAliasDeclaration(decl)) {
-                    return `${this.generateValueOfType(decl.type)}`
+                    return this.generateValueOfType(decl.type)
                 }
                 if (decl && ts.isInterfaceDeclaration(decl)) {
-                    return `{${decl.members
-                        .filter(ts.isPropertySignature)
-                        .map(it => nameOrUndefined(it.name) + ":" + this.generateValueOfType(it.type!))
-                        .join(", ")}}`
+                    return pick(decl.members.filter(ts.isPropertySignature), (key) =>
+                        this.generateValueOfType(key.type!)
+                            .map(it => `${nameOrUndefined(key.name)}: ${it}`))
+                        .map(it => `{${it}}`)
                 }
                 if (decl && ts.isClassDeclaration(decl)) {
                     // TODO: logic to find proper way to instantiate class
-                    return `undefined`
+                    return [`undefined`]
                 }
                 console.log(`Cannot create value of type ${asString(type)}`)
-                return undefined
+                return []
             }
         }
+        if (ts.isOptionalTypeNode(type)) {
+            return [`undefined`, ...this.generateValueOfType(type.type)]
+        }
         if (ts.isUnionTypeNode(type)) {
-            return this.generateValueOfType(type.types[0])
+            return type.types.flatMap(it => this.generateValueOfType(it))
         }
         if (ts.isLiteralTypeNode(type)) {
             let literal = type.literal
-            if (ts.isStringLiteral(literal)) return `${literal.getText(this.sourceFile)}`
+            if (ts.isStringLiteral(literal)) return [`${literal.getText(this.sourceFile)}`]
             console.log(`Cannot create value of literal type ${asString(literal)}`)
-            return undefined
+            return []
         }
         if (ts.isTupleTypeNode(type)) {
-            return `[${type.elements.map(it => this.generateValueOfType(it)).join(",")}]`
+            // return [`[${type.elements.map(it => this.generateValueOfType(it)).join(",")}]`]
+            return pick(type.elements.map(it => it), (key) =>
+                this.generateValueOfType(key))
+                .map(it => `[${it}]`)
         }
         if (ts.isFunctionTypeNode(type)) {
             // TODO: be smarter here
-            return "() => {}"
+            return ["() => {}"]
         }
         if (ts.isTypeLiteralNode(type)) {
             // TODO: be smarter here
-            return `{${type.members
-                .filter(ts.isPropertySignature)
-                .map(it => nameOrUndefined(it.name) + ":" + this.generateValueOfType(it.type!))
-                .join(", ")}}`
+            return pick(type.members.filter(ts.isPropertySignature), (key) =>
+                this.generateValueOfType(key.type!).map(it => `${nameOrUndefined(key.name)}: ${it}`))
+                .map(it => `{${it}}`)
         }
         console.log(`Cannot create value of type ${asString(type)}`)
-        return undefined
+        return []
     }
 
     testProperty(property: ts.PropertyDeclaration | ts.PropertySignature) {

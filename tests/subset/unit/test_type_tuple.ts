@@ -42,7 +42,6 @@ it('Should write tuple with optional values [false, undefined]', function () {
 it('Should write tuple with optional values [undefined, 11]', function () {
     let serializer = new Serializer(8)
     serializer.writeOptionInterfaceDTS({tuple: [undefined, 11]})
-    console.log(`result: ${toArray(serializer)}`)
     // console.log(`golden: ${[Tags.OBJECT, RuntimeType.OBJECT, RuntimeType.UNDEFINED, RuntimeType.NUMBER, ...toInt32(11)]}`)
     assert.deepEqual(toArray(serializer),
         [Tags.OBJECT, RuntimeType.OBJECT, RuntimeType.UNDEFINED, RuntimeType.NUMBER, Tags.INT32, ...toInt32(11)])
