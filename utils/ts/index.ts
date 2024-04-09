@@ -17,10 +17,9 @@
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
-import { CustomSerializer, SerializerBase } from "./SerializerBase"
-
-// This breaks full peers compilation!
-// import { ArkClassDTSPeer } from "@arkoala/arkui/ArkTestPeer"
+import { ArkClassDTSPeer } from "@arkoala/arkui/ArkTestPeer"
+import { withStringResult } from "./Interop"
+import { nativeModule } from "../../generated/subset/NativeModule"
 
 function checkButton() {
     let peer = new ArkButtonPeer()
@@ -37,7 +36,7 @@ function checkButton() {
 
 function checkCalendar() {
     let peer = new ArkCalendarPickerPeer()
-    peer.edgeAlign(0,  {dx: 5, dy: 6})
+    peer.edgeAlign(2, {dx: 5, dy: 6})
     peer.edgeAlign(2, undefined)
 }
 
@@ -57,10 +56,22 @@ function checkFormComponent() {
     peer.size({width: 5, height: 6})
 }
 
-
-
+function checkWithString() {
+    nativeModule()._AppendResultString("foo")
+    nativeModule()._AppendResultString("qoo")
+    nativeModule()._AppendResultString("bar")
+    nativeModule()._AppendResultString("zex")
+    console.log(withStringResult(nativeModule()._GetResultString(0)))
+    console.log(withStringResult(nativeModule()._GetResultString(2)))
+    nativeModule()._ClearResultString(1)
+    console.log("")
+    console.log(withStringResult(nativeModule()._GetResultString(0)))
+    console.log(withStringResult(nativeModule()._GetResultString(2)))
+}
 
 checkButton()
 checkCalendar()
 //checkDTS()
 checkFormComponent()
+
+checkWithString()

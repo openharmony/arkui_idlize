@@ -127,3 +127,26 @@ std::vector<KStringPtr> makeStringVector(KNativePointerArray arr, KInt length) {
         return res;
     }
 }
+
+std::vector<std::string> results;
+
+void ClearResultString(KInt index) {
+    if (index >=0 && index < results.size()) {
+        results.erase(results.begin() + index);
+    }
+}
+
+KNativePointer impl_GetResultString(KInt index) {
+    return new std::string(results[index]);
+}
+KOALA_INTEROP_1(GetResultString, KNativePointer, KInt)
+
+void impl_ClearResultString(KInt index) {
+    ClearResultString(index);
+}
+KOALA_INTEROP_V1(ClearResultString, KInt)
+
+void impl_AppendResultString(const KStringPtr& str) {
+    results.push_back(string(str.c_str()));
+}
+KOALA_INTEROP_V1(AppendResultString, KStringPtr)
