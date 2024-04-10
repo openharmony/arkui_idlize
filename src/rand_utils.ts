@@ -1,11 +1,21 @@
 const MASK = 0x7FFFFFFF
-const SEED = 29
-// const SEED = Math.floor(Math.random() * MASK)
+let SEED: number
 
-console.log(`Random seed: ${SEED}`)
-console.log(`Set the custom seed in the file rand_utils.ts`)
-console.log(`  to generate fuzzing tests with different input values:`)
-console.log(`  const SEED = ${SEED}`)
+console.log(`Use  IDLIZE_SEED env variable to set a seed value.`)
+console.log(`Set  IDLIZE_SEED env variable to RANDOM to use a random seed value.`)
+console.log(`IDLIZE_SEED=${process.env.IDLIZE_SEED}`)
+
+if (process.env.IDLIZE_SEED === undefined) {
+    SEED = 29
+    console.log(`Env IDLIZE_SEED variable is not.`)
+    console.log(`Use predefined seed: ${SEED}.`)
+} else if (process.env.IDLIZE_SEED == "RANDOM") {
+    SEED = Math.floor(Math.random() * 4096)
+    console.log(`Use random seed: ${SEED}`)
+} else {
+    SEED = Number(process.env.IDLIZE_SEED)
+    console.log(`Use seed: ${SEED}`)
+}
 
 class XorRand {
 
@@ -70,6 +80,22 @@ export function pick<K, V>(keys: K[], gen: (key: K) => string[], pickedNumbers: 
             v.push(elem)
         }
         picked.push(v.join(","))
+    }
+
+    return [...new Set(picked)]
+}
+
+export function pickArray<T>(values: T[], maxLen: number, pickedNumbers: number = 3): string[] {
+
+    let picked: string[] = ["[]"]
+
+    for (let _ = 0; _ < pickedNumbers; _++) {
+        let len = randInt(maxLen)
+        let p: T[] = []
+        for (let i = 0; i < len; i++) {
+            p.push(values[randInt(values.length)])
+        }
+        picked.push(`[${p.join(",")}]`)
     }
 
     return [...new Set(picked)]

@@ -72,3 +72,19 @@ npm run compile
 node . --idl2dts --input-dir ./test/from-idl/idl
 ```
 By default, results are in `./dts`.
+
+### Tests
+
+Use the `IDLIZE_SEED` environment variable to set a predefined seed for the random generator used in tests.
+Set the `IDLIZE_SEED` environment variable to `RANDOM` to use a random seed.
+
+Configure and run the subset fuzzing tests:
+```bash
+npm run configure:native-node-host-subset
+npm run check:subset:fuzz
+```
+To test a specific test or method in fuzzing tests use `--test-interface` and `--test-method`
+options in the `check:subset:fuzz` task:
+```bash
+node . --dts2test --input-dir ./tests/subset/ets  --output-dir ./generated/fuzz --test-interface Test --test-method testBoolean
+```

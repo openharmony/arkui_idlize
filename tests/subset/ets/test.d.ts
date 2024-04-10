@@ -1,4 +1,3 @@
-
 declare enum EnumDTS {
     ELEM_0 = 0,
     ELEM_1 = 1,
@@ -44,33 +43,95 @@ declare class ClassDTS extends CommonMethod<ClassDTS> {
     testArray(value: Array<number>)
 }
 
+// basic types:
+// - boolean
+// - number
+// - string,
+// - enum
+// - function
+//
+// type | undefined    // undefined
+// type1 | type2       // union
+// type[]              // array
+// [type1, type2]      // tuple
+// [type1?, type2?]    // tuple optional
+// [type1 | type2, (type3 | type 4)?]    // tuple union
 declare class TestAttribute extends CommonMethod<TestAttribute> {
 
+    // basic types
     testBoolean(value: boolean): TestAttribute;
 
     testNumber(value: number): TestAttribute;
 
-    testArray(value: [number]): TestAttribute;
-
     testString(value: string): TestAttribute;
 
-    testUnion(val: boolean | string): TestAttribute
+    testEnum(value: EnumDTS): TestAttribute
 
-    testUnionUndefined(val: number | undefined): TestAttribute
+    testFunction(value: (a: number) => boolean): TestAttribute;
 
-    testTuple(value: [number, string]): TestAttribute;
+    testBasicMix(v1: number, v2: string, v3: number): TestAttribute
 
-    testTupleOptional(value: [number?, string?]): TestAttribute;
+    // undefined
 
-    testMixed(v1: number, v2: boolean, v3: string): TestAttribute;
+    testBooleanUndefined(value: boolean | undefined): TestAttribute;
+
+    testNumberUndefined(value: number | undefined): TestAttribute;
+
+    testStringUndefined(value: string | undefined): TestAttribute;
+
+    testEnumUndefined(value: EnumDTS | undefined): TestAttribute;
+
+    testFunctionUndefined(value: (a: number) => boolean | undefined): TestAttribute;
+
+    // union
+
+    testUnionNumberEnum(val: number | EnumDTS): TestAttribute
+
+    testUnionBooleanString(val: boolean | string): TestAttribute
+
+    testUnionStringNumber(val: string | number): TestAttribute
+
+    testUnionBooleanStringNumberUndefined(val: boolean | string | number | undefined): TestAttribute
+
+    // array
+
+    testBooleanArray(value: boolean[]): TestAttribute;
+
+    testNumberArray(value: number[]): TestAttribute;
+
+    testStringArray(value: string[]): TestAttribute;
+
+    testEnumArray(value: EnumDTS[]): TestAttribute
+
+    // TBD: array of functions
+    // testFunctionArray(value: ((a: number) => boolean)[]): TestAttribute;
+
+    testArrayMix(v1: number[], v2: string[], v3: EnumDTS[]): TestAttribute;
+
+    // TBD: array of functions
+    //testArrayMix(v1: number[], v2: string[], v3: EnumDTS[], v4: ((a: number) => string)[]): TestAttribute;
+
+    // tuple
+
+    testTuple(value: [boolean, number]): TestAttribute;
+
+    testTuple(value: [number, string, EnumDTS]): TestAttribute;
+
+    // tuple optional
+
+    testTupleOptional(value: [number, string?, boolean?, EnumDTS?]): TestAttribute;
+
+    // tuple union
+
+    testTupleUnion(value: [(number | string), (boolean | EnumDTS), (string | EnumDTS | boolean)?]): TestAttribute;
+
+    // interface
 
     testBooleanInterface(value: BooleanInterfaceDTS): Attribute
 
     testNumberInterface(value: NumberInterfaceDTS): Attribute
 
     testStringInterface(value: StringInterfaceDTS)
-
-    testEnum(value: EnumDTS)
 
     testUnionInterface(value: UnionInterfaceDTS)
 

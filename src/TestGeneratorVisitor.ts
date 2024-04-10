@@ -15,7 +15,7 @@
 import * as ts from "typescript"
 import { asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode } from "./util"
 import { GenericVisitor } from "./options"
-import {randInt, randString, pick} from "./rand_utils";
+import {randInt, randString, pick, pickArray} from "./rand_utils";
 
 export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     private interfacesToTest = new Set<string>()
@@ -159,6 +159,9 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
         }
         if (ts.isUnionTypeNode(type)) {
             return type.types.flatMap(it => this.generateValueOfType(it))
+        }
+        if (ts.isArrayTypeNode(type)) {
+            return pickArray(this.generateValueOfType(type.elementType), 7)
         }
         if (ts.isLiteralTypeNode(type)) {
             let literal = type.literal
