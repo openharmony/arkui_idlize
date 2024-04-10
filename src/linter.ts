@@ -26,7 +26,6 @@ import {
     zip
 } from "./util"
 import { LinterWhitelist } from "./LinterWhitelist"
-import { error } from "console"
 
 export enum LinterError {
     NONE,

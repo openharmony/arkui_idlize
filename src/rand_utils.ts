@@ -1,30 +1,50 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+let rand: XorRand|undefined = undefined
+
 const MASK = 0x7FFFFFFF
-let SEED: number
 
-console.log(`Use  IDLIZE_SEED env variable to set a seed value.`)
-console.log(`Set  IDLIZE_SEED env variable to RANDOM to use a random seed value.`)
-console.log(`IDLIZE_SEED=${process.env.IDLIZE_SEED}`)
+export function initRNG() {
+    let seed: number
 
-if (process.env.IDLIZE_SEED === undefined) {
-    SEED = 29
-    console.log(`Env IDLIZE_SEED variable is not.`)
-    console.log(`Use predefined seed: ${SEED}.`)
-} else if (process.env.IDLIZE_SEED == "RANDOM") {
-    SEED = Math.floor(Math.random() * 4096)
-    console.log(`Use random seed: ${SEED}`)
-} else {
-    SEED = Number(process.env.IDLIZE_SEED)
-    console.log(`Use seed: ${SEED}`)
+    console.log(`Use  IDLIZE_SEED env variable to set a seed value.`)
+    console.log(`Set  IDLIZE_SEED env variable to RANDOM to use a random seed value.`)
+    console.log(`IDLIZE_SEED=${process.env.IDLIZE_SEED}`)
+
+    if (process.env.IDLIZE_SEED === undefined) {
+        seed = 29
+        console.log(`Env IDLIZE_SEED variable is not.`)
+        console.log(`Use predefined seed: ${seed}.`)
+    } else if (process.env.IDLIZE_SEED == "RANDOM") {
+        seed = Math.floor(Math.random() * 4096)
+        console.log(`Use random seed: ${seed}`)
+    } else {
+        seed = Number(process.env.IDLIZE_SEED)
+        console.log(`Use seed: ${seed}`)
+    }
+
+    rand = new XorRand(seed)
 }
 
 class XorRand {
-
     private seed
 
     constructor(seed: number) {
         this.seed = seed
     }
-
     random(): number {
         let x = this.seed
         x ^= (x << 13) & MASK;
@@ -35,10 +55,9 @@ class XorRand {
     }
 }
 
-const rand = new XorRand(SEED)
 
 export function randInt(max: number, min: number = 0) {
-    return Math.floor(rand.random() * (max - min)) + min;
+    return Math.floor(rand!.random() * (max - min)) + min;
 }
 
 function randChar(minChar: string, range: number) {

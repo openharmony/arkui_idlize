@@ -44,7 +44,6 @@ export class LinterWhitelist {
                     )
                 })
         }
-        console.log(Array.from(this.suppressIdentifiers))
     }
 
     linterError(str: string | undefined): LinterError | undefined {

@@ -43,6 +43,7 @@ import {
 import { defaultCompilerOptions, isDefined, renameDtsToPeer, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
 import { SortingEmitter } from "./peer-generation/SortingEmitter"
+import { initRNG } from "./rand_utils"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -166,7 +167,7 @@ if (options.linter) {
 }
 
 if (options.dts2test) {
-
+    initRNG()
     let testInterfaces = options.testInterface
     if (testInterfaces === undefined) {
         function fileNameToClass(name: string): string {
