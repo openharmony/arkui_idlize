@@ -16,14 +16,11 @@
 import { KPointer, KStringPtr, KInt, Uint8ArrayPtr } from "./types"
 
 export class NativeModuleBase {
-    _GetResultString(index: KInt): KPointer {
+    _GetGroupedLog(index: KInt): KPointer {
         throw new Error("_GetResultString")
     }
-    _ClearResultString(index: KInt): void  {
+    _ClearGroupedLog(index: KInt): void  {
         throw new Error("_ClearResultString")
-    }
-    _AppendResultString(string: KStringPtr): void  {
-        throw new Error("_AppendResultString")
     }
     _GetStringFinalizer(): KPointer  {
         throw new Error("_GetStringFinalizer")

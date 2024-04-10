@@ -390,8 +390,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (index > 0) this.printDummy(`out.append(", ");`)
             this.printDummy(`WriteToString(&out, ${identName(param.name)});`)
         })
-        this.printDummy(`out.append(")\\n");`)
-        this.printDummy(`printf("%s", out.c_str());`)
+        this.printDummy(`out.append(")");`)
+        // this.printDummy(`printf("%s\\n", out.c_str());`)
+        this.printDummy(`appendGroupedLog(1, out);`)
         this.dummyImpl.popIndent()
         this.printDummy(`}`)
 

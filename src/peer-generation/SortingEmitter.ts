@@ -119,9 +119,6 @@ export class SortingEmitter extends IndentedPrinter {
     getToposorted(): Array<string> {
         // Not exactly correct for non-named types.
         let source = new Set(Array.from(this.emitters.keys()))
-        //console.log(`SOURCE ${Array.from(source).join(",")}`)
-        //let result = Array.from(this.emitters.keys())
-        //result.sort((a, b) => a == b ? 0 : (this.deps.get(a)?.has(b) ? -1 : 1))
         let result: string[] = []
         // N^2, but nobody cares
         let added: Set<string> = new Set()
@@ -141,7 +138,7 @@ export class SortingEmitter extends IndentedPrinter {
                 //console.log(`${it}: ${canAdd} depends on ${Array.from(deps).join(",")}`)
             })
         }
-        console.log(`DEPS [${result.join(", ")}]`)
+        // console.log(`DEPS [${result.join(", ")}]`)
         return result
     }
 }

@@ -75,9 +75,8 @@ providePlatformDefinedData({
 })
 
 export interface NativeModule {
-  _GetResultString(index: KInt): KPointer;
-  _ClearResultString(index: KInt): void;
-  _AppendResultString(string: KStringPtr): void;
+  _GetGroupedLog(index: KInt): KPointer;
+  _ClearGroupedLog(index: KInt): void;
   _GetStringFinalizer(): KPointer;
   _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void;
   _StringLength(ptr: KPointer): KInt;
@@ -132,6 +131,7 @@ export function dummyImplementations(lines: string[]): string {
 #include "Interop.h"
 #include "Deserializer.h"
 #include "arkoala_api.h"
+#include "common-interop.h"
 
 
 ${lines.join("\n")}
