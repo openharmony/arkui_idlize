@@ -49,6 +49,7 @@ export enum LinterError {
     TYPE_ELEMENT_TYPE,
     INTERFACE_METHOD_TYPE_INCONSISTENT_WITH_PARENT,
     USE_COMPONENT_AS_PARAM,
+    METHOD_OVERLOADING
 }
 
 export interface LinterMessage {
@@ -118,6 +119,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             }
         })
         this.checkClassInheritance(clazz)
+        this.checkForOverloads(clazz)
     }
 
     checkClassDuplicate(clazz: ts.InterfaceDeclaration | ts.ClassDeclaration) {
@@ -152,13 +154,14 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.visitProperty(child)
             }
         })
+        this.checkForOverloads(clazz)
     }
 
     checkType(type: ts.TypeNode | undefined): void {
         if (!type) return
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
             let parent = type.parent
-            this.report(type, LinterError.ANY_KEYWORD, `Keyword "any" is disalowed: ${parent.getText(parent.getSourceFile())}`)
+            this.report(type, LinterError.ANY_KEYWORD, `Keyword "any" is disallowed: ${parent.getText(parent.getSourceFile())}`)
             return
         }
         if (ts.isArrayTypeNode(type)) {
@@ -382,14 +385,42 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             ? declaredType
             : undefined
     }
+
+    private checkForOverloads(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+        const set = new Set<string>()
+
+        const perMethod = (it: string) => {
+            if (set.has(it)) {
+                this.report(
+                    node,
+                    LinterError.METHOD_OVERLOADING,
+                    `Method overloaded: ${it}`
+                )
+            }
+            set.add(it)
+        }
+
+        if (ts.isClassDeclaration(node)) {
+            node.members
+                .filter(ts.isMethodDeclaration)
+                .map(it => it.name.getText())
+                .forEach(perMethod)
+        }
+        if (ts.isInterfaceDeclaration(node)) {
+            node.members
+                .filter(ts.isMethodSignature)
+                .map(it => it.name.getText())
+                .forEach(perMethod)
+        }
+    }
 }
 
-function updateHistorgam(message: LinterMessage, histogram: Map<LinterError, number>): LinterMessage {
+function updateHistogram(message: LinterMessage, histogram: Map<LinterError, number>): LinterMessage {
     histogram.set(message.error, (histogram.get(message.error) ?? 0) + 1)
     return message
 }
 
-function printHistorgam(histogram: Map<LinterError, number>): string {
+function printHistogram(histogram: Map<LinterError, number>): string {
     let sorted = Array.from(histogram.entries()).sort((a, b) => b[1] - a[1])
     return sorted.map(it => `${LinterError[it[0]]}: ${it[1]}`).join("\n")
 }
@@ -413,9 +444,9 @@ export function toLinterString(
             entries
                 .filter(it => !suppressedErrorsSet.has(it.error))
                 .filter(it => whitelist ? !whitelist.shallSuppress(it) : true)
-                .map(it => updateHistorgam(it, histogram))
+                .map(it => updateHistogram(it, histogram))
                 .map(stringMessage)
         )
         .filter(element => (element?.length ?? 0) > 0)
-    return [errors.join("\n"), errors.length > 0 ? 1 : 0,  printHistorgam(histogram)]
+    return [errors.join("\n"), errors.length > 0 ? 1 : 0,  printHistogram(histogram)]
 }
