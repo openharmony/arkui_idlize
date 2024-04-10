@@ -57,7 +57,7 @@ sources += [
 ]
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
-    sources += [ gen-dir + '/win-dynamic-node.cc' ]
+    sources += [ gen_dir + '/win-dynamic-node.cc' ]
 endif
 module_prefix = ''
 module_suffix = 'node'

@@ -247,6 +247,22 @@ export class SerializerBase {
         this.writeNumber(value[1])
     }
 
+    writeAttributeModifier(value: AttributeModifier<any>|undefined) {
+        if (!value) {
+            this.writeInt8(Tags.UNDEFINED)
+            return
+         }
+         this.writeInt8(Tags.OBJECT)
+    }
+
+    writeContentModifier(value: ContentModifier<any>|undefined) {
+        if (!value) {
+            this.writeInt8(Tags.UNDEFINED)
+            return
+         }
+         this.writeInt8(Tags.OBJECT)
+    }
+
     writeCallback(value: Callback<any>|undefined) {
         this.writeCustom("Callback", value)
     }

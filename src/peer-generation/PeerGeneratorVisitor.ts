@@ -50,9 +50,9 @@ import {
     TupleConvertor,
     UndefinedConvertor,
     UnionConvertor,
-    AnimationRangeConvertor,
     ImportTypeConvertor,
-    CustomTypeConvertor
+    CustomTypeConvertor,
+    PredefinedConvertor
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
@@ -184,11 +184,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     visitWholeFile(): stringOrNone[] {
         this.importStatements(this.sourceFile.fileName)
             .concat([
-                `import { runtimeType, withLength, withLengthArray, RuntimeType } from "@arkoala/arkui/SerializerBase"`,
+                `import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"`,
                 `import { Serializer } from "./Serializer"`,
-                `import { int32, KPointer } from "@arkoala/arkui/types"`,
+                `import { int32, KPointer } from "./types"`,
                 `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode, Finalizable, nullptr } from "@arkoala/arkui/Interop"`
+                `import { PeerNode, Finalizable, nullptr } from "./Interop"`
             ])
             .forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
@@ -301,6 +301,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             let typeName = asString(type.typeName)
             if (typeName == "AttributeModifier") return "AttributeModifier<this>"
             if (typeName == "AnimationRange") return "AnimationRange<number>"
+            if (typeName == "ContentModifier") return "ContentModifier<any>"
             // TODO: HACK, FIX ME!
             if (typeName == "Style") return "Object"
             if (typeName == "Callback") return "Callback<any>"
@@ -416,7 +417,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.printTS(`throw new Error("${methodName}Attribute() is not implemented")`)
             } else {
                 let name = `${methodName}`
-                this.generateNativeBody(componentName, methodName, name, argConvertors, hasReceiver)
+                this.generateNativeBody(componentName, methodName, name, argConvertors, hasReceiver, retConvertor.isVoid)
             }
         }
         this.popIndentBoth()
@@ -491,7 +492,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return argConvertor.param
     }
 
-    generateAPICall(clazzName: string, methodName: string, hasReceiver: boolean, argConvertors: ArgConvertor[]) {
+    generateAPICall(clazzName: string, methodName: string, hasReceiver: boolean, argConvertors: ArgConvertor[], isVoid: boolean) {
         const api = "GetNodeModifiers()"
         const modifier = this.modifierSection(clazzName)
         const method = this.methodSection(methodName)
@@ -499,10 +500,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         // TODO: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
         const args = receiver.concat(argConvertors.map(it => this.apiArgument(it))).join(", ")
-        this.printC(`${api}->${modifier}->${method}(${args});`)
+        this.printC(`${isVoid ? "" : "return "}${api}->${modifier}->${method}(${args});`)
     }
 
-    generateNativeBody(clazzName: string, originalMethodName: string, methodName: string, argConvertors: ArgConvertor[], hasReceiver: boolean) {
+    generateNativeBody(clazzName: string, originalMethodName: string, methodName: string, argConvertors: ArgConvertor[], hasReceiver: boolean, isVoid: boolean) {
         this.pushIndentBoth()
         if (hasReceiver) {
             this.printC("ArkUINodeHandle node = reinterpret_cast<ArkUINodeHandle>(nodePtr);")
@@ -546,7 +547,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.popIndentTS()
             this.printTS(it.scopeEnd!(it.param))
         })
-        this.generateAPICall(clazzName, originalMethodName, hasReceiver, argConvertors)
+        this.generateAPICall(clazzName, originalMethodName, hasReceiver, argConvertors, isVoid)
         this.popIndentBoth()
     }
 
@@ -727,11 +728,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode): ArgConvertor | undefined {
         let name = getNameWithoutQualifiersRight(typeName)
         if (name === "Length") return new LengthConvertor(param)
-        if (name === "AnimationRange") return new AnimationRangeConvertor(param)
+        if (name === "AnimationRange") return new PredefinedConvertor(param, "AnimationRange<number>", "AnimationRange", "Compound<Number, Number>")
+        if (name === "AttributeModifier") return new PredefinedConvertor(param, "AttributeModifier<any>", "AttributeModifier", "Tagged<CustomObject>")
+        if (name === "ContentModifier") return new PredefinedConvertor(param, "ContentModifier<any>", "ContentModifier", "Tagged<CustomObject>")
         if (name === "Array") return new ArrayConvertor(param, this, type.typeArguments![0])
         if (name === "Callback") return new CustomTypeConvertor(param, this, "Callback")
         if (name === "Optional") return new CustomTypeConvertor(param, this, "Optional")
-        if (name === "ContentModifier") return new CustomTypeConvertor(param, this, "ContentModifier")
         return undefined
     }
 
@@ -1231,4 +1233,3 @@ interface RetConvertor {
     nativeType: () => string
     macroSuffixPart: () => string
 }
-

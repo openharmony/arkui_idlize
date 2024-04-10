@@ -650,25 +650,26 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 }
 
-export class AnimationRangeConvertor extends BaseArgConvertor {
-    constructor(param: string) {
-        super("AnimationRange<number>", [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
+export class PredefinedConvertor extends BaseArgConvertor {
+    constructor(param: string, tsType: string, private convertorName: string, private cType: string) {
+        super(tsType, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
     }
 
     convertorTSArg(param: string): string {
         throw new Error("unused")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${param}Serializer.writeAnimationRange(${value});`)
+        //printer.print(`${param}Serializer.writeAnimationRange(${value});`)
+        printer.print(`${param}Serializer.write${this.convertorName}(${value})`)
     }
     convertorCArg(param: string): string {
         throw new Error("unused")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = ${param}Deserializer.readAnimationRange();`)
+        printer.print(`${value} = ${param}Deserializer.read${this.convertorName}();`)
     }
     nativeType(): string {
-        return "Compound<Number, Number>" // TODO: figure out how to pass real type args
+        return this.cType
     }
     interopType(ts: boolean): string {
         return ts ? "Int32ArrayPtr" : "int32_t*"

@@ -650,6 +650,18 @@ public:
     return result;
   }
 
+  Tagged<CustomObject> readAttributeModifier() {
+    Tagged<CustomObject> result;
+    result.tag = (Tags)readInt8();
+    return result;
+  }
+
+  Tagged<CustomObject> readContentModifier() {
+    Tagged<CustomObject> result;
+    result.tag = (Tags)readInt8();
+    return result;
+  }
+
   Undefined readUndefined()
   {
     return Undefined();
