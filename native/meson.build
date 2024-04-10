@@ -11,23 +11,20 @@ endif
 use_dummy_libace = true
 is_node = true
 
-sources = [
-    '../utils/cpp/common-interop.cc',
-    '../utils/cpp/custom.cc',
-]
+gen_dir = '../generated/' + source_set
+
 include_dirs = [
-    '../utils/cpp'
+   gen_dir
 ]
 
-sources += [
-   '../generated/' + source_set + '/bridge.cc'
-]
-include_dirs += [
-    '../generated/' + source_set
+sources = [
+    gen_dir + '/common-interop.cc',
+    gen_dir + '/custom.cc',
+    gen_dir + '/bridge.cc',
 ]
 if use_dummy_libace
 sources += [
-   '../generated/' + source_set + '/dummy_impl.cc'
+   gen_dir + '/dummy_impl.cc'
 ]
 endif
 
@@ -52,16 +49,15 @@ library_name = 'NativeBridge'
 if is_node
 cflags += ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
 include_dirs += [
-    '../utils/cpp/node',
     '../node-api-headers/include',
     '../node-addon-api'
 ]
 sources += [
-    '../utils/cpp/node/convertors-node.cc'
+    gen_dir + '/convertors-node.cc'
 ]
 if os == 'windows'
-cflags += ['-DKOALA_WINDOWS']
-sources += [ '../utils/cpp/node/win-dynamic-node.cc' ]
+    cflags += ['-DKOALA_WINDOWS']
+    sources += [ gen-dir + '/win-dynamic-node.cc' ]
 endif
 module_prefix = ''
 module_suffix = 'node'

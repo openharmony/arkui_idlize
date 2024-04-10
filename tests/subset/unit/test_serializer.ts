@@ -1,7 +1,7 @@
 import {strict as assert} from 'assert';
 
 import {toArray, toInt32} from "../unit_utils"
-import {Tags} from "@arkoala/arkui/utils/ts/SerializerBase"
+import {Tags} from "@arkoala/arkui/SerializerBase"
 import {Serializer} from "@arkoala/arkui/Serializer"
 
 it('Should resize capacity', function () {

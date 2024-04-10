@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { IndentedPrinter } from "../IndentedPrinter"
-import { identName, importTypeName, typeName } from "../util"
+import { asString, identName, importTypeName, typeName } from "../util"
 import { PeerGeneratorVisitor, RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 

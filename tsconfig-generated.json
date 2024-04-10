@@ -22,7 +22,6 @@
     },
     "include": [
         "generated/peers/**/*",
-        "utils/ts/**/*",
         "interface_sdk-js/api/@internal/component/ets/**/*",
         "interface_sdk-js/api/**/*"
     ]

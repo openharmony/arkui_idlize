@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as fs from "fs"
+import * as path from "path"
 
 const importTsInteropTypes = `
 import {
@@ -24,16 +26,15 @@ import {
     KNativePointer,
     Int32ArrayPtr,
     KUint8ArrayPtr,
-} from "@arkoala/arkui/utils/ts/types"
+} from "./types"
 import {
     NativeStringBase,
     withByteArray,
     Access,
     providePlatformDefinedData,
     nullptr
-} from "@arkoala/arkui/utils/ts/Interop"
+} from "./Interop"
 `.trim()
-
 
 export function nativeModuleDeclaration(methods: string[], nativeBridgePath: string, useEmpty: boolean): string {
     // TODO: better NativeBridge loader
@@ -91,7 +92,7 @@ ${methods.map(it => `  ${it}`).join("\n")}
 export function nativeModuleEmptyDeclaration(methods: string[]): string {
     return `
 ${importTsInteropTypes}
-import { NativeModuleBase } from "../../utils/ts/NativeModuleBase"
+import { NativeModuleBase } from "./NativeModuleBase"
 import { NativeModule } from "./NativeModule"
 
 export class NativeModuleEmpty extends NativeModuleBase implements NativeModule {
@@ -133,10 +134,7 @@ export function dummyImplementations(lines: string[]): string {
 #include "arkoala_api.h"
 #include "common-interop.h"
 
-
 ${lines.join("\n")}
-
-
 `
 }
 
@@ -162,8 +160,8 @@ extern const ArkUINodeModifiers* GetArkUINodeModifiers()
 
 export function makeTSSerializer(lines: string[]): string {
     return `
-import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "@arkoala/arkui/utils/ts/SerializerBase"
-import { int32 } from "@arkoala/arkui/utils/ts/types"
+import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
+import { int32 } from "./types"
 
 export class Serializer extends SerializerBase {
 ${lines.join("\n")}
@@ -252,4 +250,21 @@ enum ArkUIAPIVariantKind {
 
 ${lines.join("\n")}
 `
+}
+
+export function copyPeerLib(from: string, to: string) {
+    const tsBase = path.join(from, 'ts')
+    fs.readdirSync(tsBase).forEach(it => {
+        fs.copyFileSync(path.join(tsBase, it), path.join(to, it))
+    })
+    const cppBase = path.join(from, 'cpp')
+    fs.readdirSync(cppBase).forEach(it => {
+        let input = path.join(cppBase, it)
+        if (fs.lstatSync(input).isFile())
+            fs.copyFileSync(input, path.join(to, it))
+    })
+    const cppBaseNode = path.join(from, 'cpp', 'node')
+    fs.readdirSync(cppBaseNode).forEach(it => {
+        fs.copyFileSync(path.join(cppBaseNode, it), path.join(to, it))
+    })
 }

@@ -24,7 +24,6 @@
     "include": [
         "generated/subset/**/*",
         "generated/fuzz/**/*",
-        "utils/ts/**/*",
         "tests/subset/**/*"
     ],
 }

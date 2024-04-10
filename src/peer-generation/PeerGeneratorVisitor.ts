@@ -184,11 +184,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     visitWholeFile(): stringOrNone[] {
         this.importStatements(this.sourceFile.fileName)
             .concat([
-                `import { runtimeType, withLength, withLengthArray, RuntimeType } from "@arkoala/arkui/utils/ts/SerializerBase"`,
+                `import { runtimeType, withLength, withLengthArray, RuntimeType } from "@arkoala/arkui/SerializerBase"`,
                 `import { Serializer } from "./Serializer"`,
-                `import { int32, KPointer } from "@arkoala/arkui/utils/ts/types"`,
+                `import { int32, KPointer } from "@arkoala/arkui/types"`,
                 `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode, Finalizable, nullptr } from "@arkoala/arkui/utils/ts/Interop"`
+                `import { PeerNode, Finalizable, nullptr } from "@arkoala/arkui/Interop"`
             ])
             .forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
@@ -300,6 +300,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             if (declaration.length == 0) return "any"
             let typeName = asString(type.typeName)
             if (typeName == "AttributeModifier") return "AttributeModifier<this>"
+            if (typeName == "AnimationRange") return "AnimationRange<number>"
             // TODO: HACK, FIX ME!
             if (typeName == "Style") return "Object"
             if (typeName == "Callback") return "Callback<any>"
@@ -1101,7 +1102,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerSerializerC.pushIndent()
         if (isAlias) {
             let decl = declarations[0] as ts.TypeAliasDeclaration
-            let typeConvertor = this.typeConvertor("XXX", decl.type)
+            let typeConvertor = this.typeConvertor("XXX", type)
             // TODO: what's this?
             if (ts.isUnionTypeNode(decl.type)) { // TODO: tuples? functions?
                 this.printerStructsC.startEmit(this.typeChecker, decl.type, name)
@@ -1110,7 +1111,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 if (ts.isImportTypeNode(decl.type)) {
                     this.printerTypedefsC.print(`typedef CustomObject ${name};`)
                 } else {
-                    this.printerTypedefsC.print(`typedef ${typeConvertor.nativeType()} ${name};`)
+                    this.printerTypedefsC.print(`typedef /* ${typeConvertor.constructor.name} */ ${typeConvertor.nativeType()} ${name};`)
                 }
             }
         }

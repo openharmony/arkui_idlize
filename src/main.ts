@@ -26,6 +26,7 @@ import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import {
     bridgeCcDeclaration,
+    copyPeerLib,
     dummyImplementations,
     dummyModifierList,
     dummyModifiers,
@@ -318,7 +319,7 @@ if (options.dts2peer) {
                     dummyModifiers(dummyImplModifiers) +
                     dummyModifierList(dummyImplModifierList)
                 fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummyImplCc)
-
+                copyPeerLib(path.join(__dirname, '..', 'peer_lib'), outDir)
             }
         }
     )
