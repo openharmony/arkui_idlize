@@ -1034,7 +1034,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                         return `${it.param}: ${it.interopType(true)}`
                     }
                 })
-            const parameters = ["node: KNativePointer"]
+            const parameters = ["ptr: NodePointer"]
                 .concat(basicParameters)
                 .join(", ")
 

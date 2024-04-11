@@ -42,6 +42,8 @@ export function nativeModuleDeclaration(methods: string[], nativeBridgePath: str
 ${importTsInteropTypes}
 import { NativeModuleEmpty } from "./NativeModuleEmpty"
 
+export type NodePointer = KNativePointer // the real arkoala uses "pointer" here
+
 let theModule: NativeModule | undefined = undefined
 
 export function nativeModule(): NativeModule {
@@ -93,7 +95,7 @@ export function nativeModuleEmptyDeclaration(methods: string[]): string {
     return `
 ${importTsInteropTypes}
 import { NativeModuleBase } from "./NativeModuleBase"
-import { NativeModule } from "./NativeModule"
+import { NativeModule, NodePointer } from "./NativeModule"
 
 export class NativeModuleEmpty extends NativeModuleBase implements NativeModule {
 ${methods.join("\n")}
