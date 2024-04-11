@@ -367,7 +367,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, { method, collapsed }: MaybeCollapsedMethod): void {
         const clazzName = identName(clazz.name)!
         const methodName = identName(method.name)!
-        const capitalizedMethodName = capitalize(methodName)
+        const fullMethodName = this.peerMethodName(methodName)
 
         let isComponent = false
         if (PeerGeneratorConfig.ignorePeerMethod.includes(methodName)) return
@@ -381,11 +381,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         console.log(`processing ${componentName}.${methodName}`)
 
         const apiParameters = this.generateAPIParameters(argConvertors).join(", ")
-        const implName = `${capitalize(clazzName)}_Set${capitalizedMethodName}Impl`
-        this.printAPI(`void (*set${capitalizedMethodName})(${apiParameters});`)
+        const implName = `${capitalize(clazzName)}_${capitalize(fullMethodName)}Impl`
+        const retType = this.maybeCRetType(retConvertor) ?? "void"
+        this.printAPI(`${retType} (*${fullMethodName})(${apiParameters});`)
         this.printDummyModifier(`${implName},`)
 
-        this.printDummy(`void ${implName}(${apiParameters}) {`)
+        this.printDummy(`${retType} ${implName}(${apiParameters}) {`)
         this.dummyImpl.pushIndent()
         this.printDummy(`string out = string("${methodName}(");`)
         method.parameters.forEach((param, index) => {
@@ -395,6 +396,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printDummy(`out.append(")");`)
         // this.printDummy(`printf("%s\\n", out.c_str());`)
         this.printDummy(`appendGroupedLog(1, out);`)
+        if (retType != "void") this.printDummy(`return 0;`)
         this.dummyImpl.popIndent()
         this.printDummy(`}`)
 
@@ -476,7 +478,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return `get${capitalize(clazz)}Modifier()`
     }
 
-    methodSection(methodName: string) {
+    peerMethodName(methodName: string) {
+        if (methodName.startsWith("set") || methodName.startsWith("get")) return methodName
         return `set${capitalize(methodName)}`
     }
 
@@ -495,7 +498,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     generateAPICall(clazzName: string, methodName: string, hasReceiver: boolean, argConvertors: ArgConvertor[], isVoid: boolean) {
         const api = "GetNodeModifiers()"
         const modifier = this.modifierSection(clazzName)
-        const method = this.methodSection(methodName)
+        const method = this.peerMethodName(methodName)
         const receiver = hasReceiver ? ['node'] : []
         // TODO: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
@@ -1210,6 +1213,7 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         switch (name) {
             /* ANOTHER HACK, fix */
             case "T": return "void"
+            case "UIContext": return "KNativePointer"
         }
         console.log(`WARNING: unhandled return type ${type.getText()}`)
         return `void`

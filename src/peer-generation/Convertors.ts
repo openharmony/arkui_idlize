@@ -711,6 +711,10 @@ function mapCType(type: ts.TypeNode): string {
     if (ts.isNamedTupleMember(type)) {
         return `${mapCType(type.type)}`
     }
+    if (ts.isArrayTypeNode(type)) {
+        return `${mapCType(type.elementType)}[]`
+    }
+
     if (type.kind == ts.SyntaxKind.NumberKeyword) {
         return "Number"
     }

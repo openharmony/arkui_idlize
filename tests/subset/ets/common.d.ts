@@ -25,6 +25,9 @@ declare interface ClickEvent extends BaseEvent {
 }
 
 
+declare interface AttributeModifier<T>{}
+declare interface ContentModifier<T>{}
+
 declare interface SheetTitleOptions {
     title: ResourceStr;
     subtitle?: ResourceStr;
