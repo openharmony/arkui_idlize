@@ -9,4 +9,4 @@ if (fs.existsSync(dir)) {
 }
 
 console.log("Downloading sdk")
-execSync("git clone https://gitee.com/openharmony/interface_sdk-js.git")
+execSync("git clone --depth=1 https://gitee.com/openharmony/interface_sdk-js.git")
