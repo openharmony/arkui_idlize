@@ -17,7 +17,12 @@ import * as ts from "typescript"
 import { asString, getDeclarationsByNode, getNameWithoutQualifiersRight, identName, throwException, typeEntityName } from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
-import { AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, UndefinedConvertor, UnionConvertor } from "./Convertors"
+import {
+    AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CustomTypeConvertor,
+    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor,
+    NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor,
+    UndefinedConvertor, UnionConvertor
+} from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 
 class PrimitiveType {
@@ -29,12 +34,14 @@ class PrimitiveType {
     static Function = new PrimitiveType("Function")
     static Undefined = new PrimitiveType("Undefined")
     static Length = new PrimitiveType("Length")
+    static CustomObject = new PrimitiveType("CustomObject")
 }
 
 export type DeclarationTarget =
     ts.ClassDeclaration | ts.InterfaceDeclaration | ts.EnumDeclaration
     | ts.UnionTypeNode | ts.TypeLiteralNode | ts.ImportTypeNode | ts.FunctionTypeNode | ts.TupleTypeNode
-    | ts.ArrayTypeNode | ts.ParenthesizedTypeNode | ts.OptionalTypeNode
+    | ts.TemplateLiteralTypeNode
+    | ts.ArrayTypeNode | ts.ParenthesizedTypeNode | ts.OptionalTypeNode | ts.LiteralTypeNode
     | PrimitiveType
 
 class DeclarationRecord {
@@ -85,30 +92,40 @@ export class DeclarationTable {
         this.typeMap.set(type, [target, name])
     }
 
+    private isDeclarationTarget(type: ts.TypeNode): boolean {
+        if (ts.isUnionTypeNode(type)) return true
+        if (ts.isTypeLiteralNode(type)) return true
+        if (ts.isLiteralTypeNode(type)) return true
+        if (ts.isImportTypeNode(type)) return true
+        if (ts.isTupleTypeNode(type)) return true
+        if (ts.isArrayTypeNode(type)) return true
+        if (ts.isOptionalTypeNode(type)) return true
+        if (ts.isParenthesizedTypeNode(type)) return true
+        if (ts.isTemplateLiteralTypeNode(type)) return true
+        if (ts.isFunctionTypeNode(type)) return true
+        return false
+    }
+
     findDeclaration(type: ts.TypeNode): DeclarationTarget | undefined {
-        if (ts.isUnionTypeNode(type)) return type
-        if (ts.isTypeLiteralNode(type)) return type
-        if (ts.isImportTypeNode(type)) return type
-        if (ts.isTupleTypeNode(type)) return type
-        if (ts.isArrayTypeNode(type)) return type
-        if (ts.isOptionalTypeNode(type)) return type
-        if (ts.isParenthesizedTypeNode(type)) return type
+        if (this.isDeclarationTarget(type)) return type as DeclarationTarget
         if (ts.isTypeReferenceNode(type)) {
             let declarations = getDeclarationsByNode(this.typeChecker!, type.typeName)
             while (declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])) {
                 type = declarations[0].type
-                declarations = getDeclarationsByNode(this.typeChecker!, declarations[0].type) ?? []
+                declarations = getDeclarationsByNode(this.typeChecker!, declarations[0].type)
+                if (ts.isTypeReferenceNode(type) || ts.isImportTypeNode(type)) return this.findDeclaration(type)
             }
-            if (ts.isUnionTypeNode(type)) return type
-            if (ts.isTypeLiteralNode(type)) return type
-            if (ts.isImportTypeNode(type)) return type
-            if (ts.isFunctionTypeNode(type)) return type
-            if (declarations.length == 0) throw new Error(`Cannot find declaration for ${type.getText()}: ${type.kind}`)
-            let decl = declarations[0]
-            if (ts.isClassDeclaration(decl) ||
-                ts.isInterfaceDeclaration(decl) ||
-                ts.isEnumDeclaration(decl)) return decl
-            throw new Error(`Wrong declaration: ${decl.getText()}`)
+            if (this.isDeclarationTarget(type)) return type as DeclarationTarget
+            if (declarations.length == 0) {
+                throw new Error(`Cannot find declaration for ${type.getText()}: ${type.kind}`)
+            }
+            let declaration = declarations[0]
+            if (ts.isClassDeclaration(declaration) ||
+                ts.isInterfaceDeclaration(declaration) ||
+                ts.isEnumDeclaration(declaration)) return declaration
+            // TODO: rethink!
+            if (ts.isTypeParameterDeclaration(declaration)) return PrimitiveType.CustomObject
+            throw new Error(`Wrong declaration: ${declaration.getText()}: ${declaration.kind}`)
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword)
             return PrimitiveType.Boolean
@@ -116,8 +133,17 @@ export class DeclarationTable {
             return PrimitiveType.Number
         if (type.kind == ts.SyntaxKind.StringKeyword)
             return PrimitiveType.String
+        if (type.kind == ts.SyntaxKind.ObjectKeyword)
+            return PrimitiveType.CustomObject
+        if (type.kind == ts.SyntaxKind.AnyKeyword)
+            return PrimitiveType.CustomObject
+        // Couple stubs.
         if (ts.isFunctionTypeNode(type))
-            return PrimitiveType.Boolean
+            return PrimitiveType.CustomObject
+        if (ts.isTypeParameterDeclaration(type))
+            return PrimitiveType.CustomObject
+        if (ts.isEnumMember(type))
+            return type.parent
         throw new Error(`Unknown type: ${type.getText()} ${asString(type)}`)
     }
 
@@ -138,21 +164,22 @@ export class DeclarationTable {
     }
 
     toTarget(node: ts.TypeNode): DeclarationTarget {
-        if (ts.isUnionTypeNode(node)) return node
-        if (ts.isTypeLiteralNode(node)) return node
-        if (ts.isTupleTypeNode(node)) return node
-        if (ts.isOptionalTypeNode(node)) return node
-        if (ts.isParenthesizedTypeNode(node)) return node
+        if (this.isDeclarationTarget(node)) return node as DeclarationTarget
         if (ts.isTypeReferenceNode(node)) {
             if (identName(node) == "Length") return PrimitiveType.Length
+            let orig = node
             let declarations = getDeclarationsByNode(this.typeChecker!, node.typeName)
             while (declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])) {
                 node = declarations[0].type
-                if (ts.isUnionTypeNode(node) || ts.isTypeLiteralNode(node) || ts.isImportTypeNode(node)) return node
-                declarations = getDeclarationsByNode(this.typeChecker!, declarations[0].type) ?? []
+                if (ts.isUnionTypeNode(node) || ts.isTypeLiteralNode(node) ||
+                    ts.isLiteralTypeNode(node) || ts.isTemplateLiteralTypeNode(node) ||
+                    ts.isTupleTypeNode(node) ||
+                    ts.isImportTypeNode(node)) return node
+                if (ts.isTypeReferenceNode(node)) return this.toTarget(node)
+                declarations = getDeclarationsByNode(this.typeChecker!, node)
             }
             if (declarations.length == 0) {
-                throw new Error(`No declaration for ${node.getText()}`)
+                throw new Error(`No declaration for ${node.getText()} ${asString(orig)}`)
             }
             return declarations[0] as DeclarationTarget
         }
@@ -168,8 +195,17 @@ export class DeclarationTable {
         if (node.kind == ts.SyntaxKind.UndefinedKeyword) {
             return PrimitiveType.Undefined
         }
-
-        throw new Error(`Unknown ${node.getText()}`)
+        if (node.kind == ts.SyntaxKind.VoidKeyword) {
+            // TODO: shall it be distinct type.
+            return PrimitiveType.Undefined
+        }
+        if (node.kind == ts.SyntaxKind.ObjectKeyword) {
+            return PrimitiveType.CustomObject
+        }
+        if (node.kind == ts.SyntaxKind.AnyKeyword) {
+            return PrimitiveType.CustomObject
+        }
+        throw new Error(`Unknown ${node.getText()}: ${node.kind}`)
     }
 
     computeTargetName(target: DeclarationTarget, optional: boolean): string {
@@ -198,6 +234,27 @@ export class DeclarationTable {
                 .filter(it => it != undefined)
                 .join("_")}`
         }
+        if (ts.isLiteralTypeNode(target)) {
+            const literal = target.literal
+            if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
+                return prefix + `String`
+            }
+            if (ts.isNumericLiteral(literal)) {
+                return prefix + `Number`
+            }
+            if (literal.kind == ts.SyntaxKind.NullKeyword) {
+                // TODO: Is it correct to have undefined for null?
+                return `Undefined`
+            }
+        }
+        if (ts.isTemplateLiteralTypeNode(target)) {
+            // TODO: likley incorrect
+            return prefix + `String`
+        }
+        if (ts.isTypeParameterDeclaration(target)) {
+            // TODO: likley incorrect
+            return prefix + `CustomObject`
+        }
         if (ts.isEnumDeclaration(target)) {
             return prefix + identName(target.name)
         }
@@ -213,7 +270,7 @@ export class DeclarationTable {
         if (ts.isTupleTypeNode(target)) {
             return prefix + `Tuple_${target.elements.map(it => {
                 if (ts.isNamedTupleMember(it)) {
-                    return this.computeTargetName(this.toTarget(it), it.questionToken != undefined)
+                    return this.computeTargetName(this.toTarget(it.type), it.questionToken != undefined)
                 } else {
                     return this.computeTargetName(this.toTarget(it), false)
                 }
@@ -232,6 +289,9 @@ export class DeclarationTable {
         }
         if (ts.isParenthesizedTypeNode(target)) {
             return this.computeTargetName(this.toTarget(target.type), optional)
+        }
+        if (ts.isEnumMember(target)) {
+            return this.computeTargetName((target as any).parent as DeclarationTarget, optional)
         }
         throw new Error(`Cannot compute target name: ${(target as any).getText()} ${(target as any).kind}`)
     }
@@ -254,7 +314,14 @@ export class DeclarationTable {
         }
         if (ts.isTupleTypeNode(type)) {
             if (suggestedName) return suggestedName
-            return prefix + `Tuple_${type.elements.map(it => this.computeTypeNameImpl(undefined, it, optional)).join("_")}`
+            return prefix + `Tuple_${type.elements.map(it => {
+                if (ts.isNamedTupleMember(it)) {
+                    return this.computeTypeNameImpl(undefined, it.type, optional)
+                } else {
+                    return this.computeTypeNameImpl(undefined, it, optional)
+                }
+
+            }).join("_")}`
         }
         if (ts.isParenthesizedTypeNode(type)) {
             return this.computeTypeNameImpl(suggestedName, type.type!, optional)
@@ -271,6 +338,22 @@ export class DeclarationTable {
                 .filter(it => it != undefined)
                 .join("_")}`
         }
+        if (ts.isLiteralTypeNode(type)) {
+            const literal = type.literal
+            if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
+                return `String`
+            }
+            if (ts.isNumericLiteral(literal)) {
+                return `Number`
+            }
+            if (literal.kind == ts.SyntaxKind.NullKeyword) {
+                return `Undefined`
+            }
+            throw new Error(`Unknown literal type: ${type.getText()}`)
+        }
+        if (ts.isTemplateLiteralTypeNode(type)) {
+            return prefix + `String`
+        }
         if (ts.isFunctionTypeNode(type)) {
             return prefix + "Function"
         }
@@ -284,13 +367,31 @@ export class DeclarationTable {
         if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
             return `Undefined`
         }
+        if (type.kind == ts.SyntaxKind.NullKeyword) {
+            return `Undefined`
+        }
+        if (type.kind == ts.SyntaxKind.VoidKeyword) {
+            return `Undefined`
+        }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
             return prefix + `String`
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
             return prefix + `Boolean`
         }
-        throw new Error(`Cannot compute type name: ${type.getText()}`)
+        if (type.kind == ts.SyntaxKind.ObjectKeyword) {
+            return prefix + `CustomObject`
+        }
+        if (type.kind == ts.SyntaxKind.AnyKeyword) {
+            return prefix + `CustomObject`
+        }
+        if (ts.isTypeParameterDeclaration(type)) {
+            return prefix + `CustomObject`
+        }
+        if (ts.isEnumMember(type)) {
+            return prefix + identName(type.name)
+        }
+        throw new Error(`Cannot compute type name: ${type.getText()} ${type.kind}`)
     }
 
     serializerName(name: string, type: ts.TypeNode): string {
@@ -448,10 +549,10 @@ export class DeclarationTable {
         printer.popIndent()
         printer.print(`};`)
         seenNames.clear()
-        for (let x of this.declarations.values()) {
-            let nameBasic = x.nameBasic
-            let nameOptional = x.nameOptional
-            let target = x.target
+        for (let declaration of this.declarations.values()) {
+            let nameBasic = declaration.nameBasic
+            let nameOptional = declaration.nameOptional
+            let target = declaration.target
             if (seenNames.has(nameBasic)) continue
             if (nameOptional == nameBasic) continue
             seenNames.add(nameBasic)
@@ -521,13 +622,13 @@ export class DeclarationTable {
             structs.popIndent()
             structs.print(`}`)
         }
-        for (let x of this.typeMap.values()) {
-            let record = this.declarations.get(x[0])!
-            if (seenNames.has(x[1])) continue
-            if (PeerGeneratorConfig.ignoreSerialization.includes(x[1])) continue
-            seenNames.add(x[1])
-            typedefs.print(`typedef ${record.nameBasic} ${x[1]};`)
-            typedefs.print(`typedef ${record.nameOptional} Optional_${x[1]};`)
+        for (let declarationTarget of this.typeMap.values()) {
+            let record = this.declarations.get(declarationTarget[0])!
+            if (seenNames.has(declarationTarget[1])) continue
+            if (PeerGeneratorConfig.ignoreSerialization.includes(declarationTarget[1])) continue
+            seenNames.add(declarationTarget[1])
+            typedefs.print(`typedef ${record.nameBasic} ${declarationTarget[1]};`)
+            typedefs.print(`typedef ${record.nameOptional} Optional_${declarationTarget[1]};`)
 
         }
     }

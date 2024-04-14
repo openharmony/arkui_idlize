@@ -37,3 +37,5 @@ interface Promise<T> {}
 interface ArrayBuffer {}
 interface Map<K, V> {}
 interface Set<T> {}
+// Temporary
+interface Optional<T> {}
