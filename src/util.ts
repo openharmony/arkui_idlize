@@ -436,6 +436,9 @@ export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefin
         // TODO: HACK, FIX ME!
         if (typeName == "Style") return "Object"
         if (typeName == "Callback") return "Callback<any>"
+        if (typeName == "Optional" && type.typeArguments)
+            return mapType(typeChecker, type.typeArguments[0]) + "|undefined"
+
         if (typeName != "Array") return typeName
     }
     if (ts.isImportTypeNode(type)) {

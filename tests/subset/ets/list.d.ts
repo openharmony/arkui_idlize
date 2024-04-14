@@ -21,6 +21,7 @@ declare interface VisibleListContentInfo {
 declare type OnScrollVisibleContentChangeCallback = (start: VisibleListContentInfo, end: VisibleListContentInfo) => void;
 
 declare class ListAttribute extends ScrollableCommonMethod<ListAttribute> {
+    someOptional(param: Optional<boolean>): ListAttribute
 
     onScrollVisibleContentChange(handler: OnScrollVisibleContentChangeCallback): ListAttribute;
 }

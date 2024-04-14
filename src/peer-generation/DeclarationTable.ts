@@ -14,7 +14,7 @@
  */
 
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, getNameWithoutQualifiersRight, identName, throwException, typeEntityName } from "../util"
+import { asString, getDeclarationsByNode, getNameWithoutQualifiersRight, identName, isStatic, mapType, throwException, typeEntityName } from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -171,10 +171,7 @@ export class DeclarationTable {
             let declarations = getDeclarationsByNode(this.typeChecker!, node.typeName)
             while (declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])) {
                 node = declarations[0].type
-                if (ts.isUnionTypeNode(node) || ts.isTypeLiteralNode(node) ||
-                    ts.isLiteralTypeNode(node) || ts.isTemplateLiteralTypeNode(node) ||
-                    ts.isTupleTypeNode(node) ||
-                    ts.isImportTypeNode(node)) return node
+                if (this.isDeclarationTarget(node)) return node as DeclarationTarget
                 if (ts.isTypeReferenceNode(node)) return this.toTarget(node)
                 declarations = getDeclarationsByNode(this.typeChecker!, node)
             }
@@ -489,8 +486,10 @@ export class DeclarationTable {
             return new ArrayConvertor(param, this, type.typeArguments![0])
         if (name === "Callback")
             return new CustomTypeConvertor(param, "Callback")
-        if (name === "Optional")
-            return new CustomTypeConvertor(param, "Optional")
+        if (name === "Optional" && type.typeArguments && type.typeArguments.length == 1) {
+            return new OptionConvertor(param, this, type.typeArguments![0])
+            //throwException(asString(type.typeArguments![0]))
+        }
         return undefined
     }
 
@@ -637,12 +636,12 @@ export class DeclarationTable {
         let seenNames = new Set<string>()
         printer.print(`export class Serializer extends SerializerBase {`)
         printer.pushIndent()
-        for (let x of this.declarations.values()) {
-            if (seenNames.has(x.nameBasic)) continue
-            seenNames.add(x.nameBasic)
-            if (x.target instanceof PrimitiveType) continue
-            if (ts.isInterfaceDeclaration(x.target) || ts.isClassDeclaration(x.target))
-                this.generateSerializer(x.nameBasic, x.target, printer)
+        for (let declaration of this.declarations.values()) {
+            if (seenNames.has(declaration.nameBasic)) continue
+            seenNames.add(declaration.nameBasic)
+            if (declaration.target instanceof PrimitiveType) continue
+            if (ts.isInterfaceDeclaration(declaration.target) || ts.isClassDeclaration(declaration.target))
+                this.generateSerializer(declaration.nameBasic, declaration.target, printer)
         }
         printer.popIndent()
         printer.print(`}`)
@@ -664,6 +663,7 @@ export class DeclarationTable {
             target
                 .members
                 .filter(ts.isPropertySignature)
+                .filter(it => !isStatic(it.modifiers))
                 .forEach(it => {
                     let typeName = this.computeTargetName(this.toTarget(it.type!), it.questionToken != undefined)
                     result.push(new FieldRecord(typeName, it.type!, identName(it.name)!, it.questionToken != undefined))
@@ -673,6 +673,7 @@ export class DeclarationTable {
             target
                 .members
                 .filter(ts.isPropertyDeclaration)
+                .filter(it => !isStatic(it.modifiers))
                 .forEach(it => {
                     let typeName = this.computeTargetName(this.toTarget(it.type!), it.questionToken != undefined)
                     result.push(new FieldRecord(typeName, it.type!, identName(it.name)!, it.questionToken != undefined))
@@ -733,6 +734,7 @@ export class DeclarationTable {
     private generateSerializer(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
         if (this.ignoreTarget(target)) return
         printer.pushIndent()
+        //printer.print(`write${name}(value: ${mapType(this.typeChecker!, target as ts.TypeNode)}) {`)
         printer.print(`write${name}(value: ${name}) {`)
         printer.pushIndent()
         printer.print(`const valueSerializer = this`)
