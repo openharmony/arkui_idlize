@@ -35,9 +35,9 @@ export function generate<T>(
     // Get the checker, we will use it to find more about classes
     if (outputDir && !fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true })
 
-    options.onBegin?.(outputDir)
-
     const typeChecker = program.getTypeChecker()
+    options.onBegin?.(outputDir,typeChecker)
+
     // Visit every sourceFile in the program
     for (const sourceFile of program.getSourceFiles()) {
         if (path.resolve(sourceFile.fileName).indexOf(inputDir) == -1) {

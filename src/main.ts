@@ -44,6 +44,8 @@ import { defaultCompilerOptions, isDefined, renameDtsToPeer, stringOrNone, toSet
 import { TypeChecker  } from "./typecheck"
 import { SortingEmitter } from "./peer-generation/SortingEmitter"
 import { initRNG } from "./rand_utils"
+import { DeclarationTable } from "./peer-generation/DeclarationTable"
+import { table } from "console"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -253,15 +255,12 @@ if (options.dts2peer) {
     const nativeMethods: string[] = []
     const nativeEmptyMethods: string[] = []
     const bridgeCcArray: string[] = []
-    const deserializerC: string[] = []
-    const structsC = new SortingEmitter()
-    const structsForwardC: string[] = []
-    const serializerTS: string[] = []
     const apiHeaders: string[] = []
     const apiHeadersList: string[] = []
     const dummyImpl: string[] = []
     const dummyImplModifiers: string[] = []
     const dummyImplModifierList: string[] = []
+    const declarationTable = new DeclarationTable()
 
     generate(
         options.inputDir,
@@ -274,19 +273,19 @@ if (options.dts2peer) {
             nativeModuleMethods: nativeMethods,
             nativeModuleEmptyMethods: nativeEmptyMethods,
             outputC: bridgeCcArray,
-            outputSerializersTS: serializerTS,
-            outputSerializersC: deserializerC,
-            outputStructsForwardC: structsForwardC,
-            outputStructsC: structsC,
             apiHeaders: apiHeaders,
             apiHeadersList: apiHeadersList,
             dummyImpl: dummyImpl,
             dummyImplModifiers: dummyImplModifiers,
             dummyImplModifierList: dummyImplModifierList,
             dumpSerialized: options.dumpSerialized ?? false,
+            declarationTable,
         }),
         {
             compilerOptions: defaultCompilerOptions,
+            onBegin(outDir, typeChecker) {
+                declarationTable.typeChecker = typeChecker
+            },
             onSingleFile: (entries: stringOrNone[], outputDir, sourceFile) => {
                 const outFile = path.join(
                     outputDir,
@@ -312,8 +311,8 @@ if (options.dts2peer) {
                 )
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
-                fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(serializerTS))
-                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(structsForwardC, structsC.getOutput(), deserializerC))
+                fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(declarationTable))
+                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable))
                 fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeApiHeaders(apiHeaders) + makeApiModifiers(apiHeadersList))
                 const dummyImplCc =
                     dummyImplementations(dummyImpl) +

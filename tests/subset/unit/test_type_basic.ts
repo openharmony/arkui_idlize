@@ -46,12 +46,6 @@ it('Should write number 0x89ABCDEF', function () {
 
 // String
 
-it('Should write string undefined', function () {
-    let serializer = new Serializer(1024)
-    serializer.writeString(undefined)
-    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED])
-});
-
 it('Should write string empty', function () {
     let serializer = new Serializer(1024)
     serializer.writeString("")

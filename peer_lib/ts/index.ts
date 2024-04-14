@@ -39,51 +39,57 @@ if (!reportTestFailures) {
     console.log("WARNING: ignore test result")
 }
 
-function checkResult(test: () => void, expected: string) {
+function checkResult(name: string, test: () => void, expected: string) {
     clearNativeLog()
     test()
     let out = getNativeLog()
-    if (reportTestFailures && out != expected) {
-        failedTestsCount++
-        console.log(`TEST FAIL:\n  EXPECTED "${expected}"\n  ACTUAL   "${out}"`)
+    if (reportTestFailures) {
+        if (out != expected) {
+            failedTestsCount++
+            console.log(`TEST ${name} FAIL:\n  EXPECTED "${expected}"\n  ACTUAL   "${out}"`)
+        } else {
+            console.log(`TEST ${name} PASS`)
+        }
     }
 }
 
 function checkButton() {
     let peer = new ArkButtonPeer()
 
-    checkResult(() => peer.width("42%"),
+    checkResult("width", () => peer.width("42%"),
         "width(Length {value=42.000000, unit=%, resource=0})")
-    checkResult(() => peer.height({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
+    checkResult("height", () => peer.height({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
         "height(Length {value=0.000000, unit=vp, resource=43})")
-    checkResult(() =>
+    checkResult("bindSheet", () =>
         peer.bindSheet(false, () => {}, {
             title: {
                 title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
             }
         }),
-        "bindSheet(0, Custom kind=NativeErrorFunction id=0, tagged {[OBJECT]SheetOptions " +
-        "{title=tagged {[OBJECT]SheetTitleOptions {title=union[1] {Custom kind=NativeErrorResource id=0}, " +
-        "subtitle=tagged {[UNDEFINED]}}}, detents=tagged {[UNDEFINED]}}})")
-    checkResult(() => peer.type(1),
-        "type(1)")
-    checkResult(() => peer.labelStyle({maxLines: 3}),
-        "labelStyle(LabelStyle {maxLines=tagged {[OBJECT]3}})")
+        "bindSheet(false, Custom kind=NativeErrorFunction id=0, Optional_SheetOptions " +
+        "{tag=OBJECT value=SheetOptions {title=Optional_SheetTitleOptions {tag=OBJECT value=SheetTitleOptions " +
+        "{title=Union_String_Resource [variant 1] value1=Custom kind=NativeErrorResource id=0}, " +
+        "subtitle=Optional_Union_String_Resource {tag=UNDEFINED}}}, " +
+        "detents=Optional_Tuple_Union_SheetSize_Length_Optional_Union_SheetSize_Length_Optional_Union_SheetSize_Length {tag=UNDEFINED}}})"
+        )
+    checkResult("type", () => peer.type(1), "type(1)")
+    checkResult("labelStyle", () => peer.labelStyle({maxLines: 3}),
+        "labelStyle(LabelStyle {maxLines=3})")
 }
 
 function checkCalendar() {
     let peer = new ArkCalendarPickerPeer()
-    checkResult(() => peer.edgeAlign(2, {dx: 5, dy: 6}),
-        "edgeAlign(2, tagged {[OBJECT]compound: {Length {value=5.000000, unit=vp, resource=0}, " +
-        "Length {value=6.000000, unit=vp, resource=0}, }})")
-    checkResult(() => peer.edgeAlign(2, undefined),
-        "edgeAlign(2, tagged {[UNDEFINED]})")
+    checkResult("edgeAlign1", () => peer.edgeAlign(2, {dx: 5, dy: 6}),
+       "edgeAlign(2, Optional_Literal_Length_Length {tag=OBJECT " +
+    "value=Literal_Length_Length {dx=Length {value=5.000000, unit=vp, resource=0}, dy=Length {value=6.000000, unit=vp, resource=0}}})")
+    checkResult("edgeAlign2", () => peer.edgeAlign(2, undefined),
+        "edgeAlign(2, Optional_Literal_Length_Length {tag=UNDEFINED})")
 }
 
 function checkFormComponent() {
     let peer = new ArkFormComponentPeer()
-    checkResult(() => peer.size({width: 5, height: 6}),
-        "size(compound: {5, 6, })")
+    checkResult("size", () => peer.size({width: 5, height: 6}),
+        "size(Literal_Number_Number {width=5, height=6})")
 }
 
 

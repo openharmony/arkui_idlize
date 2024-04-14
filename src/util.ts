@@ -107,6 +107,7 @@ export function getDeclarationsByNode(typechecker: ts.TypeChecker, node: ts.Node
 
 export function findRealDeclarations(typechecker: ts.TypeChecker, node: ts.Node): ts.Declaration[] {
     const declarations = getDeclarationsByNode(typechecker, node)
+    console.log(`${asString(node)} gave ${declarations.length}`)
     const first = declarations[0]
     if (first && ts.isExportAssignment(first)) {
         return findRealDeclarations(typechecker, first.expression)
@@ -415,4 +416,36 @@ export function importTypeName(type: ts.ImportTypeNode, asType = false): string 
 
 export function throwException(message: string): never {
     throw new Error(message)
+}
+
+export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined): string {
+    if (!type) throw new Error("Cannot map empty type")
+    if (ts.isTypeReferenceNode(type)) {
+        if (ts.isQualifiedName(type.typeName)) {
+            // get the left identifier for the enum qualified name type ref
+            let identifierType = asString(type.typeName.left);
+            return `${identifierType} /* actual type ${type.getText()} */`
+        }
+        const declaration = getDeclarationsByNode(typeChecker, type.typeName)
+        // TODO: plain wrong!
+        if (declaration.length == 0) return "any"
+        let typeName = asString(type.typeName)
+        if (typeName == "AttributeModifier") return "AttributeModifier<this>"
+        if (typeName == "AnimationRange") return "AnimationRange<number>"
+        if (typeName == "ContentModifier") return "ContentModifier<any>"
+        // TODO: HACK, FIX ME!
+        if (typeName == "Style") return "Object"
+        if (typeName == "Callback") return "Callback<any>"
+        if (typeName != "Array") return typeName
+    }
+    if (ts.isImportTypeNode(type)) {
+        return importTypeName(type, true)
+    }
+    if (ts.isFunctionTypeNode(type)) {
+        return "object"
+    }
+    let text = type?.getText()
+    // throw new Error(text)
+    if (text == "unknown") text = "any"
+    return text ?? "any"
 }

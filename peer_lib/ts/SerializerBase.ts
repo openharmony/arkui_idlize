@@ -209,17 +209,15 @@ export class SerializerBase {
     writeFunction(value: object | undefined) {
         this.writeCustom("Function", value)
     }
-    writeString(value: string|undefined) {
-        if (value == undefined) {
-            this.writeInt8(Tags.UNDEFINED)
-            return
-        }
+    writeString(value: string) {
         let encoded = textEncoder.encode(value)
-        this.checkCapacity(5 + encoded.length)
-        this.view.setInt8(this.position, Tags.STRING)
-        this.view.setInt32(this.position + 1, encoded.length, true)
-        new Uint8Array(this.view.buffer, this.position + 5).set(encoded)
-        this.position += 5 + encoded.length
+        let length = encoded.length + 1 // zero-terminated
+        this.checkCapacity(4 + length) // length, data
+        this.view.setInt32(this.position, length, true)
+        this.position += 4
+        new Uint8Array(this.view.buffer, this.position).set(encoded)
+        //this.view.setInt8(this.position + length  - 1, 0)
+        this.position += length
     }
     writeAny(value: any) {
         throw new Error("How to write any?")

@@ -17,7 +17,7 @@ import * as ts from "typescript"
 
 export interface GenerateOptions<T> {
     compilerOptions: ts.CompilerOptions
-    onBegin?: (outDir: string) => void
+    onBegin?: (outDir: string, typeChecker: ts.TypeChecker) => void
     onSingleFile: (entries: T, outDir: string, inputFile: ts.SourceFile) => void
     onEnd?: (outDir: string) => void
 }

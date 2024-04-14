@@ -14,6 +14,9 @@
  */
 import * as fs from "fs"
 import * as path from "path"
+import { IndentedPrinter } from "../IndentedPrinter"
+import { DeclarationTable } from "./DeclarationTable"
+import { SortingEmitter } from "./SortingEmitter"
 
 const importTsInteropTypes = `
 import {
@@ -159,36 +162,34 @@ extern const ArkUINodeModifiers* GetArkUINodeModifiers()
 `
 }
 
-
-export function makeTSSerializer(lines: string[]): string {
+export function makeTSSerializer(table: DeclarationTable): string {
+    let printer = new IndentedPrinter()
+    table.generateSerializers(printer)
     return `
 import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
 import { int32 } from "./types"
 
-export class Serializer extends SerializerBase {
-${lines.join("\n")}
-}
+${printer.getOutput().join("\n")}
 `
 }
 
-export function makeCDeserializer(structsForward: string[], structs: string[], serializers: string[]): string {
+export function makeCDeserializer(table: DeclarationTable): string {
+    const deserializer = new IndentedPrinter()
+    const structs = new SortingEmitter(table)
+    const typedefs = new IndentedPrinter()
+
+    table.generateDeserializers(deserializer, structs, typedefs)
+
     return `
 #include "Interop.h"
 #include "ArgDeserializerBase.h"
 #include <string>
 
-${structsForward.join("\n")}
+${structs.getOutput().join("\n")}
 
-${structs.join("\n")}
+${typedefs.getOutput().join("\n")}
 
-class Deserializer : public ArgDeserializerBase
-{
-  public:
-    Deserializer(uint8_t *data, int32_t length)
-          : ArgDeserializerBase(data, length) {}
-
-${serializers.join("\n  ")}
-};
+${deserializer.getOutput().join("\n")}
 `
 }
 

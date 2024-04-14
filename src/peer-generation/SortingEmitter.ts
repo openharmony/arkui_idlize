@@ -15,77 +15,46 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, getNameWithoutQualifiersRight, heritageTypes, stringOrNone } from "../util";
+import { asString, stringOrNone } from "../util";
+import { DeclarationTable, DeclarationTarget } from "./DeclarationTable";
 
 export class SortingEmitter extends IndentedPrinter {
     currentPrinter?: IndentedPrinter
     emitters = new Map<string, IndentedPrinter>()
     deps = new Map<string, Set<string>>()
 
-    constructor() {
+    constructor(private table: DeclarationTable) {
         super()
     }
 
-    private fillDeps(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined, seen: Set<string>) {
-        if (!type) return
-        if (ts.isTypeReferenceNode(type)) {
-            if (seen.has(this.repr(type))) return
-            seen.add(this.repr(type))
-            let decls = getDeclarationsByNode(typeChecker, type.typeName)
-            if (decls.length > 0) {
-                let decl = decls[0]
-                if (ts.isInterfaceDeclaration(decl)) {
-                    decl.members
-                        .filter(ts.isPropertySignature)
-                        .forEach(it => this.fillDeps(typeChecker, it.type, seen))
-                    decl.heritageClauses?.forEach(it => {
-                        heritageTypes(typeChecker, it).forEach(it => this.fillDeps(typeChecker, it, seen))
-                    })
-                }
-                if (ts.isClassDeclaration(decl)) {
-                    decl.members
-                        .filter(ts.isPropertyDeclaration)
-                        .forEach(it => this.fillDeps(typeChecker, it.type, seen))
-                    decl.heritageClauses?.forEach(it => {
-                        heritageTypes(typeChecker, it).forEach(it => this.fillDeps(typeChecker, it, seen))
-                    })
-                }
-                if (ts.isUnionTypeNode(decl)) {
-                    decl.types
-                        .forEach(it => this.fillDeps(typeChecker, it, seen))
-                }
-                /*
-                if (ts.isTypeLiteralNode(decl)) {
-                    decl.members
-                        .filter(ts.isPropertyAssignment)
-                        .forEach(it => this.fillDeps(typeChecker, i, seen))
-                } */
-            } else {
-                console.log(`no decl for ${asString(type.typeName)}`)
-            }
-        } else if (ts.isUnionTypeNode(type)) {
-            type.types.forEach(it => this.fillDeps(typeChecker, it, seen))
-        }
+    deoptional(name: string): string {
+        if (name.startsWith("Optional_")) name = name.substring(9)
+        return name
     }
 
-    startEmit(typeChecker: ts.TypeChecker, type: ts.TypeNode, name: string | undefined = undefined) {
-        const repr = this.repr(type, name)
-        if (this.emitters.has(repr)) throw new Error(`Already emitted ${type.getText()}`)
-        let next = new IndentedPrinter()
-        let seen = new Set<string>()
-        this.fillDeps(typeChecker, type, seen)
-        seen.delete(repr)
-        this.deps.set(repr, seen)
-        this.emitters.set(repr, next)
+    private fillDeps(target: DeclarationTarget, seen: Set<string>) {
+        let name = this.deoptional(this.table!.computeTargetName(target, false))
+        if (seen.has(name)) return
+        seen.add(name)
+        let fields = this.table.targetFields(target)
+        fields.forEach(it => {
+            seen.add(this.deoptional(it.typeName))
+        })
+    }
+
+    startEmit(table: DeclarationTable, declaration: DeclarationTarget) {
+        this.table = table
+        let name = this.deoptional(table.computeTargetName(declaration, false))
+        let next = this.emitters.has(name) ? this.emitters.get(name)! : new IndentedPrinter()
+        this.emitters.set(name, next)
         this.currentPrinter = next
-        if (seen.size > 0)
-            console.log(`${repr}: depends on ${Array.from(seen.keys()).join(",")}`)
+        let seen = new Set<string>()
+        this.fillDeps(declaration, seen)
+        seen.delete(name)
+        this.deps.set(name, seen)
+        table.processPendingRequests()
+        // if (seen.size > 0) console.log(`${name}: depends on ${Array.from(seen.keys()).join(",")}`)
     }
-
-    repr(type: ts.TypeNode, name: string | undefined = undefined): string {
-        return ts.isTypeReferenceNode(type) ? getNameWithoutQualifiersRight(type.typeName)! : name!
-    }
-
     printType(type: ts.TypeNode): string {
         return ts.isTypeReferenceNode(type)
             ? asString(type.typeName)

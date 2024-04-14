@@ -30,8 +30,12 @@ struct MyDeserializer : CustomDeserializer {
     }
     virtual CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
         String value = deserializer->readString();
-        fprintf(stderr, "native deserialize() for %s, got %s\n", kind.c_str(), value.c_str());
-        return CustomObject(string("NativeError") + kind);
+        fprintf(stderr, "native deserialize() for %s, got %s\n", kind.c_str(), value.chars);
+        CustomObject result;
+        strcpy(result.kind, "NativeError");
+        result.id = 0;
+        strcat(result.kind, kind.c_str());
+        return result;
     }
 
 };

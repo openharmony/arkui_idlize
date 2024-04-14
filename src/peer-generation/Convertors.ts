@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 import { IndentedPrinter } from "../IndentedPrinter"
-import { asString, identName, importTypeName, typeName } from "../util"
-import { PeerGeneratorVisitor, RuntimeType } from "./PeerGeneratorVisitor"
+import { identName, importTypeName, mapType, typeName } from "../util"
+import { DeclarationTable } from "./DeclarationTable"
+import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 
 let uniqueCounter = 0
@@ -32,7 +33,7 @@ export interface ArgConvertor {
     convertorCArg(param: string): string
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void
     interopType(ts: boolean): string
-    nativeType(): string
+    nativeType(impl: boolean): string
     param: string
 }
 
@@ -48,7 +49,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     estimateSize(): number {
         return 0
     }
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return "Empty"
     }
     interopType(ts: boolean): string {
@@ -82,7 +83,7 @@ export class StringConvertor extends BaseArgConvertor {
         printer.print(`${value} = ${param}Deserializer.readString();`)
     }
 
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return "String"
     }
     interopType(ts: boolean): string {
@@ -112,7 +113,7 @@ export class BooleanConvertor extends BaseArgConvertor {
         printer.print(`${value} = ${param}Deserializer.readBoolean();`)
     }
 
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return "KBoolean"
     }
     interopType(ts: boolean): string {
@@ -141,7 +142,7 @@ export class UndefinedConvertor extends BaseArgConvertor {
         printer.print(`${value} = ${param}Deserializer.readUndefined();`)
     }
 
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return "Undefined"
     }
     interopType(ts: boolean): string {
@@ -154,11 +155,11 @@ export class UndefinedConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    constructor(param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode, visitor: PeerGeneratorVisitor) {
+    constructor(param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode, table: DeclarationTable) {
         // Enums are integers in runtime.
         super("number", [RuntimeType.NUMBER], false, false, param)
         const typeNameString = typeName(type)
-        if (typeNameString) visitor.requestType(typeNameString, type)
+        if (typeNameString) table.requestType(typeNameString, type)
     }
 
     convertorTSArg(param: string): string {
@@ -176,7 +177,7 @@ export class EnumConvertor extends BaseArgConvertor {
         printer.print(`${value} = ${param}Deserializer.readInt32();`)
     }
 
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return "KInt"
     }
     interopType(): string {
@@ -208,12 +209,12 @@ export class LengthConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeLength(${value})`)
     }
     convertorCArg(param: string): string {
-        return `Length::fromArray(${param})`
+        return `Length_from_array(${param})`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readLength();`)
     }
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return "Length"
     }
     interopType(ts: boolean): string {
@@ -227,11 +228,11 @@ export class LengthConvertor extends BaseArgConvertor {
 export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
 
-    constructor(param: string, visitor: PeerGeneratorVisitor, private type: ts.UnionTypeNode) {
+    constructor(param: string, private table: DeclarationTable, private type: ts.UnionTypeNode) {
         super(`any`, [], false, true, param)
         this.memberConvertors = type
             .types
-            .map(member => visitor.typeConvertor(param, member))
+            .map(member => table.typeConvertor(param, member))
         this.checkUniques(param, this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
     }
@@ -244,7 +245,7 @@ export class UnionConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeInt8(${value}_type)`)
         this.memberConvertors.forEach((it, index) => {
                 if (it.runtimeTypes.length == 0) {
-                    console.log(`WARNING: branch for ${it.nativeType()} was consumed`)
+                    console.log(`WARNING: branch for ${it.nativeType(false)} was consumed`)
                     return
                 }
                 let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
@@ -286,8 +287,12 @@ export class UnionConvertor extends BaseArgConvertor {
                 printer.print(`}`)
             })
     }
-    nativeType(): string {
-        return `Union<${this.memberConvertors.map(it => it.nativeType()).join(", ")}>`
+    nativeType(impl: boolean): string {
+        return impl
+            ? `struct { int selector; union { ` +
+            `${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")}` +
+              `}; }`
+            :  this.table.getTypeName(this.type)
     }
     interopType(ts: boolean): string {
         throw new Error("Union")
@@ -314,10 +319,10 @@ export class UnionConvertor extends BaseArgConvertor {
 
 export class ImportTypeConvertor extends BaseArgConvertor {
     private importedName: string
-    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.ImportTypeNode) {
+    constructor(param: string, table: DeclarationTable, type: ts.ImportTypeNode) {
         super("Object", [RuntimeType.OBJECT], false, true, param)
         this.importedName = importTypeName(type)
-        visitor.requestType(this.importedName, type)
+        table.requestType(this.importedName, type)
     }
 
     convertorTSArg(param: string): string {
@@ -332,7 +337,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readCustom("${this.importedName}");`)
     }
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return this.importedName
     }
     interopType(ts: boolean): string {
@@ -345,7 +350,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
 
 export class CustomTypeConvertor extends BaseArgConvertor {
     private customName: string
-    constructor(param: string, visitor: PeerGeneratorVisitor, customName: string) {
+    constructor(param: string, customName: string) {
         super("Object", [RuntimeType.OBJECT], false, true, param)
         this.customName = customName
     }
@@ -362,7 +367,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readCustom("${this.customName}");`)
     }
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return "CustomObject"
     }
     interopType(ts: boolean): string {
@@ -376,8 +381,8 @@ export class CustomTypeConvertor extends BaseArgConvertor {
 export class OptionConvertor extends BaseArgConvertor {
     private typeConvertor: ArgConvertor
 
-    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeNode) {
-        let typeConvertor = visitor.typeConvertor(param, type)
+    constructor(param: string, private table: DeclarationTable, private type: ts.TypeNode) {
+        let typeConvertor = table.typeConvertor(param, type)
         let runtimeTypes = typeConvertor.runtimeTypes;
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
             runtimeTypes.push(RuntimeType.UNDEFINED)
@@ -394,7 +399,8 @@ export class OptionConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeInt8(${value}_type)`)
         printer.print(`if (${value}_type != RuntimeType.UNDEFINED) {`)
         printer.pushIndent()
-        this.typeConvertor.convertorToTSSerial(param, value, printer)
+        printer.print(`const ${value}_value = ${value}!`)
+        this.typeConvertor.convertorToTSSerial(param, `${value}_value`, printer)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -409,8 +415,10 @@ export class OptionConvertor extends BaseArgConvertor {
         printer.popIndent()
         printer.print(`}`)
     }
-    nativeType(): string {
-        return `Tagged<${this.typeConvertor.nativeType()}>`
+    nativeType(impl: boolean): string {
+        return impl
+            ? `struct { int tag; ${this.table.getTypeName(this.type, false)} value; }`
+            : this.table.getTypeName(this.type, true)
     }
     interopType(ts: boolean): string {
         return "KPointer"
@@ -424,14 +432,14 @@ export class AggregateConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
     private members: string[] = []
 
-    constructor(param: string, visitor: PeerGeneratorVisitor, type: ts.TypeLiteralNode) {
+    constructor(param: string, private table: DeclarationTable, private type: ts.TypeLiteralNode) {
         super(`any`, [RuntimeType.OBJECT], false, true, param)
         this.memberConvertors = type
             .members
             .filter(ts.isPropertySignature)
             .map((member, index) => {
             this.members[index] = identName(member.name)!
-            return visitor.typeConvertor(param, member.type!, member.questionToken != undefined)
+            return table.typeConvertor(param, member.type!, member.questionToken != undefined)
         })
     }
 
@@ -449,13 +457,18 @@ export class AggregateConvertor extends BaseArgConvertor {
         throw new Error("Do not use")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        let fields = this.table.targetFields(this.table.toTarget(this.type))
         this.memberConvertors.forEach((it, index) => {
-            it.convertorToCDeserial(param, `${value}.value${index}`, printer)
+            it.convertorToCDeserial(param, `${value}.${fields[index].name}`, printer)
         })
     }
 
-    nativeType(): string {
-        return `Compound<${this.memberConvertors.map(it => it.nativeType()).join(", ")}>`
+    nativeType(impl: boolean): string {
+        return impl
+            ? `struct { ` +
+              `${this.memberConvertors.map((it, index) => `${it.nativeType(true)} value${index};`).join(" ")}` +
+              '} '
+            : this.table.getTypeName(this.type)
     }
     interopType(): string {
         return "KNativePointer"
@@ -468,25 +481,25 @@ export class AggregateConvertor extends BaseArgConvertor {
 export class TypedConvertor extends BaseArgConvertor {
     constructor(
         name: string,
-        private type: ts.TypeReferenceNode | undefined,
-        param: string, protected visitor: PeerGeneratorVisitor) {
+        private type: ts.TypeReferenceNode,
+        param: string, protected table: DeclarationTable) {
         super(name, [RuntimeType.OBJECT, RuntimeType.FUNCTION, RuntimeType.UNDEFINED], false, true, param)
-        visitor.requestType(name, type)
+        table.requestType(name, type)
     }
 
     convertorTSArg(param: string): string {
         throw new Error("Must never be used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${param}Serializer.${this.visitor.serializerName(this.tsTypeName, this.type)}(${value})`)
+        printer.print(`${param}Serializer.${this.table.serializerName(this.tsTypeName, this.type)}(${value})`)
     }
     convertorCArg(param: string): string {
         throw new Error("Must never be used")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = ${param}Deserializer.${this.visitor.deserializerName(this.tsTypeName, this.type)}();`)
+        printer.print(`${value} = ${param}Deserializer.${this.table.deserializerName(this.tsTypeName, this.type)}();`)
     }
-    nativeType(): string {
+    nativeType(impl: boolean): string {
         return this.tsTypeName
     }
     interopType(): string {
@@ -498,25 +511,25 @@ export class TypedConvertor extends BaseArgConvertor {
 }
 
 export class InterfaceConvertor extends TypedConvertor {
-    constructor(name: string, param: string, visitor: PeerGeneratorVisitor, type: ts.TypeReferenceNode) {
-        super(name, type, param, visitor)
+    constructor(name: string, param: string, table: DeclarationTable, type: ts.TypeReferenceNode) {
+        super(name, type, param, table)
     }
 }
 
-export class FunctionConvertor extends TypedConvertor {
-    constructor(param: string, visitor: PeerGeneratorVisitor) {
-        super("Function", undefined, param, visitor)
+export class FunctionConvertor extends CustomTypeConvertor {
+    constructor(param: string, table: DeclarationTable) {
+        super(param, "Function")
     }
 }
 
 export class TupleConvertor extends BaseArgConvertor {
     memberConvertors: ArgConvertor[]
 
-    constructor(param: string, protected visitor: PeerGeneratorVisitor, private elementType: ts.TupleTypeNode) {
-        super(`[${elementType.elements.map(it => visitor.mapType(it)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
+    constructor(param: string, protected table: DeclarationTable, private elementType: ts.TupleTypeNode) {
+        super(`[${elementType.elements.map(it => mapType(table.typeChecker!, it)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
         this.memberConvertors = elementType
             .elements
-            .map(element => visitor.typeConvertor(param, element))
+            .map(element => table.typeConvertor(param, element))
     }
 
     convertorTSArg(param: string): string {
@@ -548,8 +561,12 @@ export class TupleConvertor extends BaseArgConvertor {
         printer.popIndent()
         printer.print(`}`)
     }
-    nativeType(): string {
-        return mapCType(this.elementType)
+    nativeType(impl: boolean): string {
+        return impl
+        ? `struct { ` +
+          `${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")}` +
+          '} '
+        : this.table.getTypeName(this.elementType)
     }
     interopType(ts: boolean): string {
         return "KNativePointer"
@@ -564,9 +581,9 @@ export class TupleConvertor extends BaseArgConvertor {
 
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
-    constructor(param: string, protected visitor: PeerGeneratorVisitor, private elementType: ts.TypeNode) {
-        super(`Array<${visitor.mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
-        this.elementConvertor = visitor.typeConvertor(param, elementType)
+    constructor(param: string, protected table: DeclarationTable, private elementType: ts.TypeNode) {
+        super(`Array<${mapType(table.typeChecker!, elementType)}>`, [RuntimeType.OBJECT], false, true, param)
+        this.elementConvertor = table.typeConvertor(param, elementType)
     }
 
     convertorTSArg(param: string): string {
@@ -594,23 +611,24 @@ export class ArrayConvertor extends BaseArgConvertor {
         // Array length.
         let runtimeType = `runtimeType${uniqueCounter++}`;
         let arrayLength = `arrayLength${uniqueCounter++}`;
+        let elementTypeName = this.table.computeTypeName(undefined, this.elementType, false)
 
         printer.print(`auto ${runtimeType} = ${param}Deserializer.readInt8();`)
         printer.print(`if (${runtimeType} != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         printer.print(`auto ${arrayLength} = ${param}Deserializer.readInt32();`)
-        printer.print(`${value}.resize(${arrayLength});`);
+        printer.print(`${param}Deserializer.resizeArray<Array_${elementTypeName}, ${elementTypeName}>(&${value}, ${arrayLength});`);
         printer.print(`for (int i = 0; i < ${arrayLength}; i++) {`)
         printer.pushIndent()
-        this.elementConvertor.convertorToCDeserial(param, `${value}[i]`, printer)
+        this.elementConvertor.convertorToCDeserial(param, `${value}.array[i]`, printer)
         printer.popIndent()
         printer.print(`}`)
         printer.popIndent()
         printer.print(`}`)
 
     }
-    nativeType(): string {
-        return `Array<${mapCType(this.elementType)}>`
+    nativeType(impl: boolean): string {
+        return `Array_${this.table.computeTypeName(undefined, this.elementType, false)}`
     }
     interopType(ts: boolean): string {
         return "KNativePointer"
@@ -621,8 +639,9 @@ export class ArrayConvertor extends BaseArgConvertor {
 }
 export class NumberConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        // Enums are integers in runtime.
-        super("number", [RuntimeType.NUMBER], false, false, param)
+        // TODO: as we pass tagged values - request serialization to array for now.
+        // Optimize me later!
+        super("number", [RuntimeType.NUMBER], false, true, param)
     }
 
     convertorTSArg(param: string): string {
@@ -642,7 +661,7 @@ export class NumberConvertor extends BaseArgConvertor {
         return "Number"
     }
 
-    interopType(): string {
+    interopType(impl: boolean): string {
         return "KInt"
     }
     estimateSize() {
@@ -668,8 +687,9 @@ export class PredefinedConvertor extends BaseArgConvertor {
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.read${this.convertorName}();`)
     }
-    nativeType(): string {
-        return this.cType
+    nativeType(impl: boolean): string {
+        // TODO: figure out how to pass real type args
+        return impl ? this.cType : this.tsTypeName
     }
     interopType(ts: boolean): string {
         return ts ? "Int32ArrayPtr" : "int32_t*"
@@ -677,58 +697,4 @@ export class PredefinedConvertor extends BaseArgConvertor {
     estimateSize() {
         return 8
     }
-}
-
-function mapCType(type: ts.TypeNode): string {
-    if (ts.isTypeReferenceNode(type)) {
-        return identName(type.typeName)!
-    }
-    if (ts.isUnionTypeNode(type)) {
-        return `Union<${type.types.map(it => mapCType(it)).join(", ")}>`
-    }
-    if (ts.isTypeLiteralNode(type)) {
-        return `Compound<${type
-            .members
-            .filter(ts.isPropertySignature)
-            .map(it => mapCType(it.type!))
-            .join(", ")}>`
-    }
-    if (ts.isTupleTypeNode(type)) {
-        return `Compound<${type
-            .elements
-            .map(it => mapCType(it))
-            .join(", ")}>`
-    }
-    if (ts.isOptionalTypeNode(type)) {
-        return `Tagged<${mapCType(type.type)}>`
-    }
-    if (ts.isFunctionTypeNode(type)) {
-        return "Function"
-    }
-    if (ts.isParenthesizedTypeNode(type)) {
-        return `${mapCType(type.type)}`
-    }
-    if (ts.isNamedTupleMember(type)) {
-        return `${mapCType(type.type)}`
-    }
-    if (ts.isArrayTypeNode(type)) {
-        return `${mapCType(type.elementType)}[]`
-    }
-
-    if (type.kind == ts.SyntaxKind.NumberKeyword) {
-        return "Number"
-    }
-    if (type.kind == ts.SyntaxKind.StringKeyword) {
-        return "String"
-    }
-    if (type.kind == ts.SyntaxKind.ObjectKeyword) {
-        return "Object"
-    }
-    if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-        return "KBoolean"
-    }
-    if (type.kind == ts.SyntaxKind.AnyKeyword) {
-        return "Any"
-    }
-    throw new Error(`Cannot map ${type.getText()}: ${type.kind}`)
 }

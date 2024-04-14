@@ -4,7 +4,7 @@ import { execSync } from "node:child_process"
 const dir = "./interface_sdk-js"
 
 if (fs.existsSync(dir)) {
-    execSync(`cd ${dir} && git pull`)
+    //execSync(`cd ${dir} && git pull`)
     process.exit(0)
 }
 

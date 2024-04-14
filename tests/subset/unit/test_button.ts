@@ -5,12 +5,6 @@ import {RuntimeType, Tags} from "@arkoala/arkui/SerializerBase"
 import {Serializer} from "@arkoala/arkui/Serializer"
 
 
-it('Should write LabelStyle undefined', function () {
-    let serializer = new Serializer(1)
-    serializer.writeLabelStyle(undefined)
-    assert.deepEqual(toArray(serializer), [Tags.UNDEFINED])
-});
-
 it('Should write LabelStyle maxLines: 10', function () {
     let serializer = new Serializer(7)
     let labelStyle: LabelStyle = {maxLines: 10}
