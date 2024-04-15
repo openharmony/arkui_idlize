@@ -89,7 +89,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
 
         this.generateArgs(method).forEach(args => {
             this.output.push(`  console.log(\`${nameOrUndefined(method.name)}(${args})\`)`)
-            this.output.push(`  peer.${nameOrUndefined(method.name)}(${args})`)
+            this.output.push(`  peer.${nameOrUndefined(method.name)}Attribute(${args})`)
         })
     }
 

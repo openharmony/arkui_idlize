@@ -323,7 +323,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.printDummy(`WriteToString(&out, ${identName(param.name)});`)
         })
         this.printDummy(`out.append(")");`)
-        // this.printDummy(`printf("%s\\n", out.c_str());`)
         this.printDummy(`appendGroupedLog(1, out);`)
         if (retType != "void") this.printDummy(`return 0;`)
         this.dummyImpl.popIndent()
@@ -331,7 +330,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
         this.seenMethods.add(methodName)
         const paramsDecl = collapsed?.paramsDecl ?? this.generateParams(method.parameters)
-        this.printTS(`${methodName}${isComponent ? "Attribute" : ""}(${paramsDecl}) {`)
+        this.printTS(`${methodName}Attribute(${paramsDecl}) {`)
         let cName = `${componentName}_${methodName}`
         this.printC(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
         this.pushIndentBoth()
