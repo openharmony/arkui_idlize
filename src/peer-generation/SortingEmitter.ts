@@ -35,11 +35,9 @@ export class SortingEmitter extends IndentedPrinter {
     private fillDeps(target: DeclarationTarget, seen: Set<string>) {
         let name = this.deoptional(this.table!.computeTargetName(target, false))
         if (seen.has(name)) return
-        seen.add(name)
+        seen.add(this.table!.computeTargetName(target, false))
         let fields = this.table.targetFields(target)
-        fields.forEach(it => {
-            seen.add(this.deoptional(it.typeName))
-        })
+        fields.forEach(it => this.fillDeps(it.declaration, seen))
     }
 
     startEmit(table: DeclarationTable, declaration: DeclarationTarget) {

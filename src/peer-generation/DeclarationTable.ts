@@ -30,11 +30,21 @@ class PrimitiveType {
     getText(): string { return this.name }
     static String = new PrimitiveType("String")
     static Number = new PrimitiveType("Number")
+    static Int32 = new PrimitiveType("int32_t")
     static Boolean = new PrimitiveType("Boolean")
     static Function = new PrimitiveType("Function")
     static Undefined = new PrimitiveType("Undefined")
     static Length = new PrimitiveType("Length")
     static CustomObject = new PrimitiveType("CustomObject")
+    static pointerTo(target: string) {
+        return new PointerType(target)
+    }
+}
+
+class PointerType extends PrimitiveType {
+    constructor(public pointed: string) {
+        super(`${pointed}*`)
+    }
 }
 
 export type DeclarationTarget =
@@ -55,7 +65,7 @@ class DeclarationRecord {
 }
 
 class FieldRecord {
-    constructor(public typeName: string, public type: ts.TypeNode | undefined, public name: string, public optional: boolean = false) { }
+    constructor(public declaration: DeclarationTarget, public type: ts.TypeNode | undefined, public name: string, public optional: boolean = false) { }
 }
 
 class PendingTypeRequest {
@@ -567,7 +577,7 @@ export class DeclarationTable {
             if (this.ignoreTarget(target)) continue
             structs.print(`struct ${nameBasic} {`)
             structs.pushIndent()
-            this.targetFields(target).forEach(it => structs.print(`${it.typeName} ${it.name};`))
+            this.targetFields(target).forEach(it => structs.print(`${this.computeTargetName(it.declaration, it.optional)} ${it.name};`))
             structs.popIndent()
             structs.print(`};`)
             structs.print(`struct ${nameOptional} {`)
@@ -651,13 +661,14 @@ export class DeclarationTable {
     targetFields(target: DeclarationTarget): FieldRecord[] {
         let result: FieldRecord[] = []
         if (target instanceof PrimitiveType) {
-            result.push(new FieldRecord(target.name, undefined, "value"))
+            result.push(new FieldRecord(target, undefined, "value"))
             return result
         }
         else if (ts.isArrayTypeNode(target)) {
-            let typeName = this.computeTargetName(this.toTarget(target.elementType), false)
-            result.push(new FieldRecord(typeName + "*", target, "array"))
-            result.push(new FieldRecord("int32_t", undefined, "array_length"))
+            // TODO: delay this computation.
+            let element = this.toTarget(target.elementType)
+            result.push(new FieldRecord(PrimitiveType.pointerTo(this.computeTargetName(element, false)), target, "array"))
+            result.push(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
         }
         else if (ts.isInterfaceDeclaration(target)) {
             target
@@ -665,8 +676,7 @@ export class DeclarationTable {
                 .filter(ts.isPropertySignature)
                 .filter(it => !isStatic(it.modifiers))
                 .forEach(it => {
-                    let typeName = this.computeTargetName(this.toTarget(it.type!), it.questionToken != undefined)
-                    result.push(new FieldRecord(typeName, it.type!, identName(it.name)!, it.questionToken != undefined))
+                    result.push(new FieldRecord(this.toTarget(it.type!), it.type!, identName(it.name)!, it.questionToken != undefined))
                 })
         }
         else if (ts.isClassDeclaration(target)) {
@@ -675,17 +685,15 @@ export class DeclarationTable {
                 .filter(ts.isPropertyDeclaration)
                 .filter(it => !isStatic(it.modifiers))
                 .forEach(it => {
-                    let typeName = this.computeTargetName(this.toTarget(it.type!), it.questionToken != undefined)
-                    result.push(new FieldRecord(typeName, it.type!, identName(it.name)!, it.questionToken != undefined))
+                    result.push(new FieldRecord(this.toTarget(it.type!), it.type!, identName(it.name)!, it.questionToken != undefined))
                 })
         }
         else if (ts.isUnionTypeNode(target)) {
-            result.push(new FieldRecord("int32_t", undefined, `selector`, false))
+            result.push(new FieldRecord(PrimitiveType.Int32, undefined, `selector`, false))
             target
                 .types
                 .forEach((it, index) => {
-                    let typeName = this.computeTargetName(this.toTarget(it), false)
-                    result.push(new FieldRecord(typeName, it, `value${index}`, false))
+                    result.push(new FieldRecord(this.toTarget(it), it, `value${index}`, false))
                 })
         }
         else if (ts.isTypeLiteralNode(target)) {
@@ -693,8 +701,7 @@ export class DeclarationTable {
                 .members
                 .filter(ts.isPropertySignature)
                 .forEach(it => {
-                    let typeName = this.computeTargetName(this.toTarget(it.type!), it.questionToken != undefined)
-                    result.push(new FieldRecord(typeName, it.type, identName(it.name)!, it.questionToken != undefined))
+                    result.push(new FieldRecord(this.toTarget(it.type!), it.type, identName(it.name)!, it.questionToken != undefined))
                 })
         }
         else if (ts.isTupleTypeNode(target)) {
@@ -702,24 +709,22 @@ export class DeclarationTable {
                 .elements
                 .forEach((it, index) => {
                     if (ts.isNamedTupleMember(it)) {
-                        let typeName = this.computeTargetName(this.toTarget(it.type!), it.questionToken != undefined)
-                        result.push(new FieldRecord(typeName, it.type!, identName(it.name)!, it.questionToken != undefined))
+                        result.push(new FieldRecord(this.toTarget(it.type!), it.type!, identName(it.name)!, it.questionToken != undefined))
                     } else {
-                        let typeName = this.computeTargetName(this.toTarget(it), false)
-                        result.push(new FieldRecord(typeName, it, `value${index}`, false))
+                        result.push(new FieldRecord(this.toTarget(it), it, `value${index}`, false))
                     }
                 })
         }
         else if (ts.isOptionalTypeNode(target)) {
-            result.push(new FieldRecord("int32_t", undefined, "tag"))
-            result.push(new FieldRecord(this.computeTargetName(this.toTarget(target.type), false), undefined, "value"))
+            result.push(new FieldRecord(PrimitiveType.Int32, undefined, "tag"))
+            result.push(new FieldRecord(this.toTarget(target.type), undefined, "value"))
         }
         else if (ts.isParenthesizedTypeNode(target)) {
             // TODO: is it correct?
             return this.targetFields(this.toTarget(target.type))
         }
         else if (ts.isEnumDeclaration(target)) {
-            result.push(new FieldRecord("int32_t", undefined, "value"))
+            result.push(new FieldRecord(PrimitiveType.Int32, undefined, "value"))
         }
         else if (ts.isFunctionTypeNode(target)) {
         }
