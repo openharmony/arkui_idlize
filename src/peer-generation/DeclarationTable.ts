@@ -542,8 +542,39 @@ export class DeclarationTable {
         return ["Resource", "Number", "Boolean", "String", "Optional_Number", "Optional_Boolean", "Optional_String"].includes(name)
     }
 
+    private noUniqueNamedFields(declaration: DeclarationTarget): boolean {
+        let fields = this.targetFields(declaration)
+        if (declaration instanceof PrimitiveType) return true
+        if (!ts.isInterfaceDeclaration(declaration) && !ts.isClassDeclaration(declaration) && ts.isLiteralTypeNode(declaration)) return true
+        return fields.length == 0
+    }
+    private assignUniqueNames() {
+        let seenNames = new Map<string, Array<DeclarationTarget>>()
+        for (let declaration of this.declarations.values()) {
+            if (seenNames.has(declaration.nameBasic)) {
+                seenNames.get(declaration.nameBasic)!.push(declaration.target)
+            } else {
+                seenNames.set(declaration.nameBasic, [declaration.target])
+            }
+        }
+        for (let name of seenNames.keys()) {
+            if (seenNames.get(name)!.length > 1) {
+                let declarations = seenNames.get(name)!
+                // If we have no named fields - no need to make unique.
+                if (declarations.every(it => this.noUniqueNamedFields(it))) continue
+                console.log(`for ${name} we have ${declarations.length} decls`)
+                declarations.forEach((declaration, index) => {
+                    let record = this.declarations.get(declaration)!
+                    record.nameBasic = `${record.nameBasic}_${index}`
+                    record.nameOptional = `${record.nameOptional}_${index}`
+                })
+            }
+        }
+    }
+
     generateDeserializers(printer: IndentedPrinter, structs: SortingEmitter, typedefs: IndentedPrinter) {
         this.processPendingRequests()
+        //this.assignUniqueNames()
         let seenNames = new Set<string>()
         printer.print(`class Deserializer : public ArgDeserializerBase {`)
         printer.print(` public:`)
