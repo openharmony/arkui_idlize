@@ -8,8 +8,9 @@ export function toInt32(value: number, littleEndian: boolean = true): number[] {
     return (littleEndian) ? [b0, b1, b2, b3] : [b3, b2, b1, b0]
 }
 
-export function toChars(value: string): number[] {
-    return [...value].map(it => it.charCodeAt(0))
+export function toStr(value: string): number[] {
+    let chars = [...value].map(it => it.charCodeAt(0))
+    return [...toInt32(value.length + 1), ...chars, 0] // zero terminated string
 }
 
 export function toArray(s: Serializer): Array<number> {

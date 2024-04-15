@@ -1,6 +1,6 @@
 import {strict as assert} from 'assert';
 
-import {toArray, toInt32, toChars} from "../unit_utils"
+import {toArray, toInt32, toStr} from "../unit_utils"
 import {RuntimeType, Tags} from "@arkoala/arkui/SerializerBase"
 import {Serializer} from "@arkoala/arkui/Serializer"
 
@@ -47,14 +47,13 @@ it('Should write number 0x89ABCDEF', function () {
 // String
 
 it('Should write string empty', function () {
-    let serializer = new Serializer(1024)
+    let serializer = new Serializer(4)
     serializer.writeString("")
-    assert.deepEqual(toArray(serializer), [Tags.STRING, ...toInt32(0)])
+    assert.deepEqual(toArray(serializer), [...toStr("")])
 });
 
 it('Should write string abc', function () {
-    let serializer = new Serializer(1024)
+    let serializer = new Serializer(7)
     serializer.writeString("abc")
-    assert.deepEqual(toArray(serializer),
-        [Tags.STRING, ...toInt32(3), ...toChars("abc")])
+    assert.deepEqual(toArray(serializer), [...toStr("abc")])
 });
