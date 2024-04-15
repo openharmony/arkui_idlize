@@ -91,10 +91,14 @@ export class CustomPrintVisitor  {
         let isStatic = isMethod(node) && node.isStatic
         let name = isConstructor(node) ? "constructor" : node.name
         if (hasExtAttribute(node, "CallSignature")) name = ""
+        if (hasExtAttribute(node,"DtsName")) {
+            let dtsName = getExtAttribute(node, "DtsName")
+            name = dtsName ? dtsName.replaceAll("\"","") : ""
+        }
         this.print(`${isStatic ? "static " : ""}${name}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
     }
     paramText(param: IDLParameter): string {
-        return `${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
+        return `${param.isVariadic ? "..." : ""}${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
     }
     printProperty(node: IDLProperty) {
         const isCommonMethod = hasExtAttribute(node, "CommonMethod")
@@ -117,7 +121,7 @@ export class CustomPrintVisitor  {
     }
     printCallback(node: IDLCallback) {
         // TODO: is it correct.
-        this.print(`declare type ${(node.name)} = (${node.parameters.map(it => `${it.name}: ${printTypeForTS(it.type)}`).join(", ")}) => ${printTypeForTS(node.returnType)};`)
+        this.print(`declare type ${(node.name)} = (${node.parameters.map(it => `${it.isVariadic ? "..." : ""}${it.name}: ${printTypeForTS(it.type)}`).join(", ")}) => ${printTypeForTS(node.returnType)};`)
     }
     printTypedef(node: IDLTypedef) {
         let text = getVerbatimDts(node) ?? printTypeForTS(node.type)
