@@ -18,7 +18,7 @@ export class PeerGeneratorConfig {
 
     public static ignoreSerialization = [
         "Array", "Callback", "ErrorCallback", "Resource", "Length", "AttributeModifier",
-        "Number", "Object", "String", "Function", "Optional"
+        "Number", "Object", "String", "Function", "Optional", "Undefined"
     ]
     public static ignorePeerMethod = ["attributeModifier"]
 

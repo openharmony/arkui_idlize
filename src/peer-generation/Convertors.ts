@@ -155,11 +155,9 @@ export class UndefinedConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    constructor(param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode, table: DeclarationTable) {
+    constructor(param: string, table: DeclarationTable) {
         // Enums are integers in runtime.
         super("number", [RuntimeType.NUMBER], false, false, param)
-        const typeNameString = typeName(type)
-        if (typeNameString) table.requestType(typeNameString, type)
     }
 
     convertorTSArg(param: string): string {
@@ -235,6 +233,7 @@ export class UnionConvertor extends BaseArgConvertor {
             .map(member => table.typeConvertor(param, member))
         this.checkUniques(param, this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
+        table.requestType(undefined, type)
     }
     convertorTSArg(param: string): string {
         throw new Error("Do not use for union")
@@ -441,6 +440,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             this.members[index] = identName(member.name)!
             return table.typeConvertor(param, member.type!, member.questionToken != undefined)
         })
+        table.requestType(undefined, type)
     }
 
     convertorTSArg(param: string): string {
@@ -525,11 +525,12 @@ export class FunctionConvertor extends CustomTypeConvertor {
 export class TupleConvertor extends BaseArgConvertor {
     memberConvertors: ArgConvertor[]
 
-    constructor(param: string, protected table: DeclarationTable, private elementType: ts.TupleTypeNode) {
-        super(`[${elementType.elements.map(it => mapType(table.typeChecker!, it)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
-        this.memberConvertors = elementType
+    constructor(param: string, protected table: DeclarationTable, private type: ts.TupleTypeNode) {
+        super(`[${type.elements.map(it => mapType(table.typeChecker!, it)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
+        this.memberConvertors = type
             .elements
             .map(element => table.typeConvertor(param, element))
+        table.requestType(undefined, type)
     }
 
     convertorTSArg(param: string): string {
@@ -566,7 +567,7 @@ export class TupleConvertor extends BaseArgConvertor {
         ? `struct { ` +
           `${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")}` +
           '} '
-        : this.table.getTypeName(this.elementType)
+        : this.table.getTypeName(this.type)
     }
     interopType(ts: boolean): string {
         return "KNativePointer"
@@ -584,6 +585,7 @@ export class ArrayConvertor extends BaseArgConvertor {
     constructor(param: string, protected table: DeclarationTable, private elementType: ts.TypeNode) {
         super(`Array<${mapType(table.typeChecker!, elementType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
+        table.requestType(undefined, elementType)
     }
 
     convertorTSArg(param: string): string {

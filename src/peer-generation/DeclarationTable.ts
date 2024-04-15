@@ -14,7 +14,7 @@
  */
 
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, getNameWithoutQualifiersRight, identName, isStatic, mapType, throwException, typeEntityName } from "../util"
+import { asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, identName, isStatic, mapType, throwException, typeEntityName } from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -59,23 +59,19 @@ class FieldRecord {
 }
 
 class PendingTypeRequest {
-    constructor(public name: string, public type: ts.TypeNode|undefined) { }
+    constructor(public name: string, public type: ts.TypeNode | undefined) { }
 }
 
 export class DeclarationTable {
-    declarations = new Set<DeclarationTarget>()
+    private declarations = new Set<DeclarationTarget>()
     typeMap = new Map<ts.TypeNode, [DeclarationTarget, string]>()
     typeChecker: ts.TypeChecker | undefined = undefined
 
     getTypeName(type: ts.TypeNode, optional: boolean = false) {
         let declaration = this.typeMap.get(type)
-        if (!declaration) {
-            this.requestType(undefined, type)
-        }
+        this.requestType(undefined, type)
         declaration = this.typeMap.get(type)!
-
         let prefix = optional ? "Optional_" : ""
-
         return prefix + declaration[1]
     }
 
@@ -121,9 +117,16 @@ export class DeclarationTable {
         }
     }
 
+
+    private addDeclarations(target: DeclarationTarget) {
+        if (this.declarations.has(target)) return
+        this.declarations.add(target)
+        // this.targetFields(target).forEach(it => this.addDeclarations(it.declaration))
+    }
+
     toTarget(node: ts.TypeNode): DeclarationTarget {
         let result = this.toTargetImpl(node)
-        this.declarations.add(result)
+        this.addDeclarations(result)
         return result
     }
 
@@ -395,6 +398,9 @@ export class DeclarationTable {
             const declaration = getDeclarationsByNode(this.typeChecker!, type.typeName)[0]
             return this.declarationConvertor(param, type, declaration)
         }
+        if (ts.isEnumMember(type)) {
+            return new EnumConvertor(param, this)
+        }
         if (ts.isUnionTypeNode(type)) {
             return new UnionConvertor(param, this, type)
         }
@@ -471,10 +477,13 @@ export class DeclarationTable {
         }
         if (ts.isTypeReferenceNode(type) && entityName && ts.isQualifiedName(entityName)) {
             const typeOuter = ts.factory.createTypeReferenceNode(entityName.left)
-            return new EnumConvertor(param, typeOuter, this)
+            return this.declarationConvertor(param, typeOuter, declaration)
         }
         if (ts.isEnumDeclaration(declaration)) {
-            return new EnumConvertor(param, type, this)
+            return new EnumConvertor(param, this)
+        }
+        if (ts.isEnumMember(declaration)) {
+            return new EnumConvertor(param, this)
         }
         if (ts.isTypeAliasDeclaration(declaration)) {
             this.requestType(declarationName, type)
@@ -503,13 +512,28 @@ export class DeclarationTable {
     }
 
     private uniqueNames = new Map<DeclarationTarget, string>()
-    private assignUniqueNames() {
-        for (let declaration of this.declarations) {
-            let name = this.computeTargetName(declaration, false)
-            if (!name) throw new Error(`Cannot compute name for ${declaration}`)
-            this.uniqueNames.set(declaration, name)
-        }
 
+    private dumpFileLineLocation(node: DeclarationTarget, tag: string) {
+        if (node instanceof PrimitiveType) return
+        let sourceFile = node.getSourceFile()
+        let lineNumber = getLineNumberString(sourceFile, node.getStart(sourceFile, false))
+        console.log(`${tag} ${sourceFile.fileName}:${lineNumber}`)
+    }
+
+    private assignUniqueNames() {
+        let before = 0
+        do {
+            before = this.declarations.size
+            for (let declaration of this.declarations) {
+                if (this.uniqueNames.has(declaration)) continue
+                let name = this.computeTargetName(declaration, false)
+                if (!name) throw new Error(`Cannot compute name for ${declaration}`);
+                try {
+                    console.log(`assigned ${name} to ${asString(declaration as ts.Node)}`)
+                } catch (e) { }
+                this.uniqueNames.set(declaration, name)
+            }
+        } while (before != this.declarations.size)
         let seenNames = new Map<string, Array<DeclarationTarget>>()
         for (let pair of this.uniqueNames) {
             if (seenNames.has(pair[1])) {
@@ -528,6 +552,11 @@ export class DeclarationTable {
                 })
             }
         }
+    }
+
+    private uniqueName(target: DeclarationTarget): string {
+        if (target instanceof PrimitiveType) return target.name
+        return this.uniqueNames.get(target)!
     }
 
     generateDeserializers(printer: IndentedPrinter, structs: SortingEmitter, typedefs: IndentedPrinter) {
@@ -549,13 +578,14 @@ export class DeclarationTable {
         printer.print(`};`)
         seenNames.clear()
         for (let target of this.declarations) {
-            let assignedName = this.uniqueNames.get(target)!
-            if (!assignedName) throw new Error(`No assigned name for ${target.getText()}`)
+            let assignedName = this.uniqueNames.get(target)
+            if (!assignedName) {
+                throw new Error(`No assigned name for ${target.getText()} shall be ${this.computeTargetName(target, false)}`)
+            }
             if ("Optional" == assignedName || assignedName.startsWith("Optional_")) continue
             let nameOptional = "Optional_" + assignedName
             if (seenNames.has(assignedName)) continue
             seenNames.add(assignedName)
-            //if (target instanceof PrimitiveType || this.ignoredStruct(nameBasic)) continue
             structs.startEmit(this, target)
             let isEnum = !(target instanceof PrimitiveType) && ts.isEnumDeclaration(target)
             if (isEnum) {
@@ -568,7 +598,7 @@ export class DeclarationTable {
             if (!ignore) {
                 structs.print(`struct ${assignedName} {`)
                 structs.pushIndent()
-                this.targetFields(target).forEach(it => structs.print(`${this.computeTargetName(it.declaration, it.optional)} ${it.name};`))
+                this.targetFields(target).forEach(it => structs.print(`${it.optional ? "Optional_" : ""}${this.uniqueName(it.declaration)} ${it.name};`))
                 structs.popIndent()
                 structs.print(`};`)
             }
@@ -625,29 +655,29 @@ export class DeclarationTable {
         }
     }
 
-    writeOptional(nameOptional: string, structs: IndentedPrinter) {
-        structs.print(`template <>`)
-        structs.print(`inline void WriteToString(string* result, const ${nameOptional}& value) {`)
-        structs.pushIndent()
-        structs.print(`result->append("${nameOptional} {");`)
-        structs.print(`result->append("tag=");`)
-        structs.print(`result->append(tagName((Tags)value.tag));`)
-        structs.print(`if (value.tag != TAG_UNDEFINED) {`)
-        structs.pushIndent()
-        structs.print(`result->append(" value=");`)
-        structs.print(`WriteToString(result, value.value);`)
-        structs.popIndent()
-        structs.print(`}`)
-        structs.print(`result->append("}");`)
-        structs.popIndent()
-        structs.print(`}`)
+    writeOptional(nameOptional: string, printer: IndentedPrinter) {
+        printer.print(`template <>`)
+        printer.print(`inline void WriteToString(string* result, const ${nameOptional}& value) {`)
+        printer.pushIndent()
+        printer.print(`result->append("${nameOptional} {");`)
+        printer.print(`result->append("tag=");`)
+        printer.print(`result->append(tagName((Tags)value.tag));`)
+        printer.print(`if (value.tag != TAG_UNDEFINED) {`)
+        printer.pushIndent()
+        printer.print(`result->append(" value=");`)
+        printer.print(`WriteToString(result, value.value);`)
+        printer.popIndent()
+        printer.print(`}`)
+        printer.print(`result->append("}");`)
+        printer.popIndent()
+        printer.print(`}`)
     }
 
     generateSerializers(printer: IndentedPrinter) {
         let seenNames = new Set<string>()
         printer.print(`export class Serializer extends SerializerBase {`)
         printer.pushIndent()
-        for (let declaration of this.declarations.values()) {
+        for (let declaration of this.declarations) {
             let name = this.computeTargetName(declaration, false)
             if (seenNames.has(name)) continue
             seenNames.add(name)
