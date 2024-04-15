@@ -35,10 +35,14 @@ declare type Dimension = PX | VP | FP | LPX | Percentage | Resource;
 declare type ResourceStr = string | Resource;
 
 declare type Offset = {
-
     dx: Length;
 
     dy: Length;
+};
+
+declare type AltOffset = {
+    dx1: Length;
+    dy2: Length;
 };
 
 declare interface Position {

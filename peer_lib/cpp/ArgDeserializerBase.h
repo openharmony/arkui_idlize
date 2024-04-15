@@ -48,6 +48,30 @@ enum Tags
   TAG_OBJECT = 107,
 };
 
+inline const char* tagName(Tags tag) {
+  switch (tag) {
+    case Tags::TAG_UNDEFINED: return "UNDEFINED";
+    case Tags::TAG_INT32: return "INT32";
+    case Tags::TAG_FLOAT32: return "FLOAT32";
+    case Tags::TAG_LENGTH: return "LENGTH";
+    case Tags::TAG_RESOURCE: return "RESOURCE";
+    case Tags::TAG_STRING: return "STRING";
+    case Tags::TAG_OBJECT: return "OBJECT";
+  }
+  fprintf(stderr, "tag name %d is wrong\n", tag);
+  throw "Error";
+}
+
+inline const char* getUnitName(int value) {
+  switch (value) {
+    case 0: return "px";
+    case 1: return "vp";
+    case 3: return "%";
+    case 4: return "lpx";
+    default: return "<unknown>";
+  }
+}
+
 typedef float float32_t;
 
 template <typename T>
@@ -85,7 +109,6 @@ template <>
 inline void WriteToString(string* result, const KInt& value) {
   result->append(std::to_string(value));
 }
-
 
 struct Empty
 {
@@ -148,25 +171,7 @@ struct Length
   int32_t resource;
 };
 
-inline Length Length_from_array(int32_t *array)
-{
-  Length result;
-  result.value = *(float32_t *)array;
-  result.unit = array[1];
-  result.resource = array[2];
-  return result;
-}
-
-inline const char* getUnitName(int value) {
-  switch (value) {
-    case 0: return "px";
-    case 1: return "vp";
-    case 3: return "%";
-    case 4: return "lpx";
-    default: return "<unknown>";
-  }
-}
-
+// TODO: generate!
 template <>
 inline void WriteToString(string* result, const Length& value) {
   result->append("Length {");
@@ -177,6 +182,16 @@ inline void WriteToString(string* result, const Length& value) {
   result->append("}");
 }
 
+inline Length Length_from_array(int32_t *array)
+{
+  Length result;
+  result.value = *(float32_t *)array;
+  result.unit = array[1];
+  result.resource = array[2];
+  return result;
+}
+
+/*
 struct Undefined
 {
   int8_t bogus;
@@ -188,21 +203,7 @@ struct Undefined
 template <>
 inline void WriteToString(string* result, const Undefined& value) {
 }
-
-inline const char* tagName(Tags tag) {
-  switch (tag) {
-    case Tags::TAG_UNDEFINED: return "UNDEFINED";
-    case Tags::TAG_INT32: return "INT32";
-    case Tags::TAG_FLOAT32: return "FLOAT32";
-    case Tags::TAG_LENGTH: return "LENGTH";
-    case Tags::TAG_RESOURCE: return "RESOURCE";
-    case Tags::TAG_STRING: return "STRING";
-    case Tags::TAG_OBJECT: return "OBJECT";
-  }
-  fprintf(stderr, "tag name %d is wrong\n", tag);
-  throw "Error";
-}
-
+*/
 class ArgDeserializerBase;
 
 struct CustomObject {
@@ -213,6 +214,13 @@ struct CustomObject {
   float32_t floats[4];
   void* pointers[4];
 };
+
+struct Undefined {
+};
+
+inline void WriteToString(string* result, const Undefined& value) {
+  result->append("undefined");
+}
 
 typedef CustomObject Function;
 typedef CustomObject Callback;
@@ -372,11 +380,6 @@ public:
     return result;
   }
 
-  Undefined readUndefined()
-  {
-    return Undefined();
-  }
-
   String readString()
   {
     String result;
@@ -404,29 +407,16 @@ public:
     return readFunction();
   }
 
+  Undefined readUndefined() {
+    return Undefined();
+  }
 };
 
 typedef KBoolean Boolean;
 typedef CustomObject Resource;
-typedef struct { int32_t tag; Number value;} Optional_Number;
-typedef struct { int32_t tag; Boolean value;} Optional_Boolean;
-typedef struct { int32_t tag; String value;} Optional_String;
-typedef struct { int32_t tag; Function value;} Optional_Function;
 
-inline void WriteToString(string* result, const Optional_Number& value) {
-    if (value.tag != TAG_UNDEFINED)
-        WriteToString(result, value.value);
-    else
-        result->append("undefined");
-}
 inline void WriteToString(string* result, const Boolean& value) {
     result->append(value ? "true" : "false");
-}
-inline void WriteToString(string* result, const Optional_Boolean& value) {
-    if (value.tag != TAG_UNDEFINED)
-        WriteToString(result, value.value);
-    else
-        result->append("undefined");
 }
 inline void WriteToString(string* result, const String& value) {
     if (value.chars)
@@ -444,5 +434,3 @@ inline void WriteToString(string* result, int32_t* value) {
     result->append("XXX8");
 }
 inline void WriteToString(string* result, Boolean* value) {}
-inline void WriteToString(string* result, const Optional_String& value) {}
-inline void WriteToString(string* result, const Optional_Function& value) {}

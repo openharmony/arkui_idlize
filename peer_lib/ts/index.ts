@@ -74,16 +74,16 @@ function checkButton() {
         )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
     checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),
-        "labelStyle(LabelStyle {maxLines=3})")
+        "labelStyle(LabelStyle {maxLines=Optional_Number {tag=OBJECT value=3}})")
 }
 
 function checkCalendar() {
     let peer = new ArkCalendarPickerPeer()
     checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, {dx: 5, dy: 6}),
-       "edgeAlign(2, Optional_Literal_Length_Length {tag=OBJECT " +
-    "value=Literal_Length_Length {dx=Length {value=5.000000, unit=vp, resource=0}, dy=Length {value=6.000000, unit=vp, resource=0}}})")
+        "edgeAlign(2, Optional_Literal_Length_Length_0 {tag=OBJECT value=Literal_Length_Length_0 " +
+        "{dx=Length {value=5.000000, unit=vp, resource=0}, dy=Length {value=6.000000, unit=vp, resource=0}}})")
     checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2, undefined),
-        "edgeAlign(2, Optional_Literal_Length_Length {tag=UNDEFINED})")
+        "edgeAlign(2, Optional_Literal_Length_Length_0 {tag=UNDEFINED})")
 }
 
 function checkFormComponent() {
