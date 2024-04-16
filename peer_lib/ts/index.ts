@@ -17,6 +17,7 @@
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
+import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { withStringResult } from "./Interop"
 import { nativeModule } from "@arkoala/arkui/NativeModule"
 
@@ -32,7 +33,7 @@ let failedTestsCount = 0
 
 // TODO: hacky way to detect subset vs full.
 clearNativeLog()
-new ArkButtonPeer().labelStyleAttribute({maxLines: 3})
+new ArkButtonPeer(0).labelStyleAttribute({maxLines: 3})
 let reportTestFailures = getNativeLog().indexOf("heightAdaptivePolicy") == -1
 
 if (!reportTestFailures) {
@@ -54,7 +55,7 @@ function checkResult(name: string, test: () => void, expected: string) {
 }
 
 function checkButton() {
-    let peer = new ArkButtonPeer()
+    let peer = new ArkButtonPeer(ArkUINodeType.Button)
 
     checkResult("width", () => peer.widthAttribute("42%"),
         "width(Length {value=42.000000, unit=%, resource=0})")
@@ -80,7 +81,7 @@ function checkButton() {
 }
 
 function checkCalendar() {
-    let peer = new ArkCalendarPickerPeer()
+    let peer = new ArkCalendarPickerPeer(ArkUINodeType.CalendarPicker)
     checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, {dx: 5, dy: 6}),
         "edgeAlign(2, Optional_Literal_Length_Length_0 {tag=OBJECT value=Literal_Length_Length_0 " +
         "{dx=Length {value=5.000000, unit=vp, resource=0}, dy=Length {value=6.000000, unit=vp, resource=0}}})")
@@ -89,7 +90,7 @@ function checkCalendar() {
 }
 
 function checkFormComponent() {
-    let peer = new ArkFormComponentPeer()
+    let peer = new ArkFormComponentPeer(ArkUINodeType.FormComponent)
     checkResult("size", () => peer.sizeAttribute({width: 5, height: 6}),
         "size(Literal_Number_Number {width=5, height=6})")
 }
