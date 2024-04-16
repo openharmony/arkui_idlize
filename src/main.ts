@@ -33,6 +33,7 @@ import {
     makeApiHeaders,
     makeApiModifiers,
     makeCDeserializer,
+    makeNodeTypes,
     makeTSSerializer,
     nativeModuleDeclaration,
     nativeModuleEmptyDeclaration
@@ -254,6 +255,7 @@ if (options.idl2h) {
 if (options.dts2peer) {
     const nativeMethods: string[] = []
     const nativeEmptyMethods: string[] = []
+    const nodeTypes: string[] = []
     const bridgeCcArray: string[] = []
     const apiHeaders: string[] = []
     const apiHeadersList: string[] = []
@@ -272,6 +274,7 @@ if (options.dts2peer) {
             interfacesToGenerate: toSet(options.generateInterface),
             nativeModuleMethods: nativeMethods,
             nativeModuleEmptyMethods: nativeEmptyMethods,
+            nodeTypes: nodeTypes,
             outputC: bridgeCcArray,
             apiHeaders: apiHeaders,
             apiHeadersList: apiHeadersList,
@@ -308,6 +311,10 @@ if (options.dts2peer) {
                 fs.writeFileSync(
                     path.join(outDir, 'NativeModuleEmpty.ts'),
                     nativeModuleEmptyDeclaration(nativeEmptyMethods.sort())
+                )
+                fs.writeFileSync(
+                    path.join(outDir, 'ArkUINodeType.ts'),
+                    makeNodeTypes(nodeTypes)
                 )
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)

@@ -271,3 +271,12 @@ export function copyPeerLib(from: string, to: string) {
         fs.copyFileSync(path.join(cppBaseNode, it), path.join(to, it))
     })
 }
+
+export function makeNodeTypes(types: string[]): string {
+    const enumValues = types.map(it => `  ${it},`).join("\n")
+    return `
+export enum ArkUINodeType { 
+${enumValues}
+}
+`.trim()
+}

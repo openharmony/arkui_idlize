@@ -15,6 +15,7 @@
 
 import * as ts from "typescript"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
+import { isRoot } from "./peer-generation/inheritance";
 
 export interface NameWithType {
     name?: ts.DeclarationName
@@ -107,7 +108,6 @@ export function getDeclarationsByNode(typechecker: ts.TypeChecker, node: ts.Node
 
 export function findRealDeclarations(typechecker: ts.TypeChecker, node: ts.Node): ts.Declaration[] {
     const declarations = getDeclarationsByNode(typechecker, node)
-    console.log(`${asString(node)} gave ${declarations.length}`)
     const first = declarations[0]
     if (first && ts.isExportAssignment(first)) {
         return findRealDeclarations(typechecker, first.expression)
@@ -181,16 +181,16 @@ export type stringOrNone = string | undefined
 
 export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
     let name = identName(decl.name)!
-    let isRoot = PeerGeneratorConfig.rootComponents.includes(name)
+    let isSubclass = isRoot(name)
     decl.heritageClauses?.forEach(it => {
         heritageDeclarations(typeChecker, it).forEach(it => {
             let name = asString(it.name)
-            isRoot = isRoot || PeerGeneratorConfig.rootComponents.includes(name)
+            isSubclass = isSubclass || isRoot(name)
             if (!ts.isClassDeclaration(it)) return
-            isRoot = isRoot || isCommonMethodOrSubclass(typeChecker, it)
+            isSubclass = isSubclass || isCommonMethodOrSubclass(typeChecker, it)
         })
     })
-    return isRoot
+    return isSubclass
 }
 
 export function toSet(option: string | undefined): Set<string> {
@@ -451,4 +451,8 @@ export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefin
     // throw new Error(text)
     if (text == "unknown") text = "any"
     return text ?? "any"
+}
+
+export function componentName(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
+    return nameOrNull(node.name) ?? throwException(`Nameless component ${asString(node)}`)
 }

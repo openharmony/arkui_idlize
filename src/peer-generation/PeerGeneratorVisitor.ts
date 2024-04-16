@@ -17,8 +17,8 @@ import * as ts from "typescript"
 import {
     asString,
     capitalize,
+    componentName,
     dropSuffix,
-    forEachExpanding,
     identName,
     isCommonMethodOrSubclass,
     isDefined,
@@ -27,6 +27,7 @@ import {
     renameDtsToPeer,
     serializerBaseMethods,
     stringOrNone,
+    throwException
 } from "../util"
 import { GenericVisitor } from "../options"
 import { IndentedPrinter } from "../IndentedPrinter"
@@ -35,6 +36,15 @@ import {
 } from "./Convertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable } from "./DeclarationTable"
+import {
+    determineParentRole,
+    InheritanceRole,
+    isCommonMethod,
+    isHeir,
+    isRoot,
+    isStandalone,
+    parentName
+} from "./inheritance"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -72,17 +82,18 @@ type MaybeCollapsedMethod = {
 }
 
 export type PeerGeneratorVisitorOptions = {
-    sourceFile: ts.SourceFile,
-    typeChecker: ts.TypeChecker,
-    interfacesToGenerate: Set<string>,
-    nativeModuleMethods: string[],
-    nativeModuleEmptyMethods: string[],
-    outputC: string[],
-    apiHeaders: string[],
-    apiHeadersList: string[],
-    dummyImpl: string[],
-    dummyImplModifiers: string[],
-    dummyImplModifierList: string[],
+    sourceFile: ts.SourceFile
+    typeChecker: ts.TypeChecker
+    interfacesToGenerate: Set<string>
+    nativeModuleMethods: string[]
+    nativeModuleEmptyMethods: string[]
+    outputC: string[]
+    nodeTypes: string[]
+    apiHeaders: string[]
+    apiHeadersList: string[]
+    dummyImpl: string[]
+    dummyImplModifiers: string[]
+    dummyImplModifierList: string[]
     dumpSerialized: boolean
     declarationTable: DeclarationTable
 }
@@ -94,6 +105,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private interfacesToGenerate: Set<string>
     private printerNativeModule: IndentedPrinter
     private printerNativeModuleEmpty: IndentedPrinter
+    private printerNodeTypes: IndentedPrinter
     private apiPrinter: IndentedPrinter
     private apiPrinterList: IndentedPrinter
     private dummyImpl: IndentedPrinter
@@ -112,6 +124,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printerC = new IndentedPrinter(options.outputC)
         this.printerNativeModule = new IndentedPrinter(options.nativeModuleMethods)
         this.printerNativeModuleEmpty = new IndentedPrinter(options.nativeModuleEmptyMethods)
+        this.printerNodeTypes = new IndentedPrinter(options.nodeTypes)
         this.apiPrinter = new IndentedPrinter(options.apiHeaders)
         this.apiPrinterList = new IndentedPrinter(options.apiHeadersList)
         this.dummyImpl = new IndentedPrinter(options.dummyImpl)
@@ -154,7 +167,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 `import { Serializer } from "./Serializer"`,
                 `import { int32, KPointer } from "./types"`,
                 `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode, Finalizable, nullptr } from "./Interop"`
+                `import { PeerNode, Finalizable, nullptr } from "./Interop"`,
+                `import { ArkUINodeType } from "./ArkUINodeType"`,
+                `import { ArkComponent } from "@arkoala/arkui/ArkComponent"`
             ])
             .forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
@@ -181,8 +196,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return this.interfacesToGenerate.has(name)
         }
 
-        if (PeerGeneratorConfig.standaloneComponents.includes(name)) return true
-        if (PeerGeneratorConfig.rootComponents.includes(name)) return true
+        if (isStandalone(name)) return true
+        if (isRoot(name)) return true
         if (this.isRootMethodInheritor(decl)) return true
         return false
     }
@@ -213,13 +228,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         const collapsedMethods = this.collapseOverloads(node)
 
         this.prologue(node)
+        this.generateConstructor(node)
         collapsedMethods.forEach(it => this.processMethod(node, it))
-        this.processApplyMethod(node)
+        this.generateApplyMethod(node)
         this.epilogue(node)
 
         this.createComponentAttributesDeclaration(node)
         this.generateAttributesValuesInterfaces()
         this.nativeModulePrint(node, collapsedMethods)
+
+        this.printNodeType(node)
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
@@ -234,7 +252,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 this.processProperty(child)
             }
         })
-        this.processApplyMethod(node)
         this.popIndentTS()
         this.epilogue(node)
         this.generateAttributesValuesInterfaces()
@@ -570,36 +587,22 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.pushIndentDummyModifiers()
     }
 
-    private parentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
-        const heritage = component.heritageClauses
-            ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)
-
-        return heritage?.[0].types[0].expression.getText()
-    }
-
     private peerParentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
-        const componentName = nameOrNull(component.name)!
-        const parentName = this.parentName(component)
+        const name = componentName(component)
+        if (isCommonMethod(name)) return "PeerNode"
+        if (isStandalone(name)) return "PeerNode"
+        if (isRoot(name)) return "Finalizable"
 
-        if (PeerGeneratorConfig.commonMethod.includes(componentName)) return "PeerNode"
-        if (PeerGeneratorConfig.standaloneComponents.includes(componentName)) return "PeerNode" // for now
-        if (PeerGeneratorConfig.rootComponents.includes(componentName)) return "Finalizable"
-
-        return parentName
-            ? this.renameToKoalaComponent(parentName) + "Peer"
-            : "ArkCommonPeer"
+        const parent = parentName(component)
+            ?? throwException(`Expected component to have parent: ${name}`)
+        return `${this.renameToKoalaComponent(parent)}Peer`
     }
 
     private attributesParentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
-        const componentName = nameOrNull(component.name)!
-        const parentName = this.parentName(component)
+        if (!isHeir(componentName(component))) return undefined
 
-        if (PeerGeneratorConfig.commonMethod.includes(componentName)) return undefined
-        if (PeerGeneratorConfig.rootComponents.includes(componentName)) return undefined
-
-        return parentName
-            ? (this.renameToKoalaComponent(parentName) + "Attributes")
-            : undefined
+        const parent = parentName(component) ?? throwException(`Heir component must have parent: ${componentName}`)
+        return `${this.renameToKoalaComponent(parent)}Attributes`
     }
 
     private renameToComponent(name: string): string {
@@ -624,11 +627,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printDummyModifier(`const ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
     }
 
-    private processApplyMethod(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const component = nameOrNull(node.name)!.replace("Attribute", "")
+    private generateApplyMethod(node: ts.ClassDeclaration): void {
+        const name = componentName(node).replace("Attribute", "")
 
-        const typeParam = this.renameToKoalaComponent(component) + "Attributes"
-        if (PeerGeneratorConfig.rootComponents.includes(component)) {
+        const typeParam = this.renameToKoalaComponent(name) + "Attributes"
+        if (isRoot(name)) {
             this.printTS(`applyAttributes(attributes: ${typeParam}): void {`)
             this.pushIndentTS()
             this.printTS(`super.constructor(42)`)
@@ -642,6 +645,39 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printTS(`super.applyAttributes(attributes)`)
         this.popIndentTS()
         this.printTS(`}`)
+    }
+
+    private generateConstructor(node: ts.ClassDeclaration): void {
+        const parentRole = determineParentRole(node)
+
+        if (parentRole === InheritanceRole.Finalizable) {
+            this.printTS(`constructor(type?: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            this.pushIndentTS()
+            this.printTS(`super(BigInt(42)) // for now`)
+            this.popIndentTS()
+            this.printTS(`}`)
+            return
+        }
+        if (parentRole === InheritanceRole.PeerNode) {
+            this.printTS(`constructor(type: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            this.pushIndentTS()
+            this.printTS(`super(type, flags)`)
+            this.printTS(`component?.setPeer(this)`)
+            this.popIndentTS()
+            this.printTS(`}`)
+            return
+        }
+
+        if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
+            this.printTS(`constructor(type: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            this.pushIndentTS()
+            this.printTS(`super(type, component, flags)`)
+            this.popIndentTS()
+            this.printTS(`}`)
+            return
+        }
+
+        throwException(`Unexpected parent inheritance role: ${parentRole}`)
     }
 
     private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
@@ -868,6 +904,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             this.printerNativeModule.print(implDecl)
             this.printerNativeModuleEmpty.print(`${implDecl} { console.log("${originalName}") }`)
         })
+    }
+
+    private printNodeType(node: ts.ClassDeclaration): void {
+        this.printerNodeTypes.print(
+            this.renameToComponent(nameOrNull(node.name)!)
+        )
     }
 }
 
