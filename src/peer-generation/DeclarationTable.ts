@@ -20,7 +20,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
     AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CustomTypeConvertor,
     EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor,
-    NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor,
+    NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor,
     UndefinedConvertor, UnionConvertor
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
@@ -82,6 +82,7 @@ export class DeclarationTable {
             return
         }
         name = this.computeTypeName(name, type, false)
+
         let target = this.toTarget(type)
         if (!target) throw new Error(`Cannot find declaration: ${type.getText()}`)
         this.typeMap.set(type, [target, name])
@@ -487,7 +488,7 @@ export class DeclarationTable {
         }
         if (ts.isTypeAliasDeclaration(declaration)) {
             this.requestType(declarationName, type)
-            return this.typeConvertor(param, declaration.type)
+            return new TypeAliasConvertor(param, this, declaration)
         }
         if (ts.isInterfaceDeclaration(declaration)) {
             return new InterfaceConvertor(declarationName, param, this, type)

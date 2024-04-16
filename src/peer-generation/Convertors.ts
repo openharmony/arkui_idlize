@@ -700,3 +700,42 @@ export class PredefinedConvertor extends BaseArgConvertor {
         return 8
     }
 }
+
+
+class ProxyConvertor extends BaseArgConvertor {
+
+    constructor(private convertor: ArgConvertor) {
+        super(convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
+    }
+
+    convertorCArg(param: string): string {
+        return this.convertor.convertorCArg(param);
+    }
+
+    convertorTSArg(param: string): string {
+        return this.convertor.convertorTSArg(param);
+    }
+
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        this.convertor.convertorToCDeserial(param, value, printer)
+    }
+
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        this.convertor.convertorToTSSerial(param, value, printer)
+    }
+
+
+    nativeType(impl: boolean): string {
+        return this.convertor.nativeType(impl)
+    }
+}
+
+export class TypeAliasConvertor extends ProxyConvertor {
+    constructor(param: string, private table: DeclarationTable, private type: ts.TypeAliasDeclaration) {
+        super(table.typeConvertor(param, type.type))
+    }
+
+    nativeType(impl: boolean): string {
+        return ts.idText(this.type.name)
+    }
+}
