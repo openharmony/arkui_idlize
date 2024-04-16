@@ -27,22 +27,21 @@ export class SortingEmitter extends IndentedPrinter {
         super()
     }
 
-    deoptional(name: string): string {
-        if (name.startsWith("Optional_")) name = name.substring(9)
-        return name
+    private undecorate(name: string): string {
+        return name.replace(/^(Optional_)*(.*?)(\*)*$/, '$2')
     }
 
     private fillDeps(target: DeclarationTarget, seen: Set<string>) {
-        let name = this.deoptional(this.table!.computeTargetName(target, false))
+        let name = this.undecorate(this.table!.computeTargetName(target, false))
         if (seen.has(name)) return
-        seen.add(this.table!.computeTargetName(target, false))
+        seen.add(name)
         let fields = this.table.targetFields(target)
         fields.forEach(it => this.fillDeps(it.declaration, seen))
     }
 
     startEmit(table: DeclarationTable, declaration: DeclarationTarget) {
         this.table = table
-        let name = this.deoptional(table.computeTargetName(declaration, false))
+        let name = this.undecorate(table.computeTargetName(declaration, false))
         let next = this.emitters.has(name) ? this.emitters.get(name)! : new IndentedPrinter()
         this.emitters.set(name, next)
         this.currentPrinter = next

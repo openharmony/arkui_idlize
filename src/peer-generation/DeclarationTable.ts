@@ -268,6 +268,11 @@ export class DeclarationTable {
             return prefix + identName(type.qualifier)!
         }
         if (ts.isTypeReferenceNode(type)) {
+            const typeName = identName(type.typeName)
+            if (typeName === "Array") {
+                const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
+                return `${prefix}Array_${elementTypeName}`
+            }
             return prefix + identName(type.typeName)!
         }
         if (ts.isUnionTypeNode(type)) {
@@ -409,7 +414,7 @@ export class DeclarationTable {
             return new AggregateConvertor(param, this, type)
         }
         if (ts.isArrayTypeNode(type)) {
-            return new ArrayConvertor(param, this, type.elementType)
+            return new ArrayConvertor(param, this, type, type.elementType)
         }
         if (ts.isLiteralTypeNode(type)) {
             if (type.literal.kind == ts.SyntaxKind.NullKeyword) {
@@ -455,7 +460,7 @@ export class DeclarationTable {
         if (name === "ContentModifier")
             return new PredefinedConvertor(param, "ContentModifier<any>", "ContentModifier", "Tagged<CustomObject>")
         if (name === "Array")
-            return new ArrayConvertor(param, this, type.typeArguments![0])
+            return new ArrayConvertor(param, this, type, type.typeArguments![0])
         if (name === "Callback")
             return new CustomTypeConvertor(param, "Callback")
         if (name === "Optional" && type.typeArguments && type.typeArguments.length == 1) {

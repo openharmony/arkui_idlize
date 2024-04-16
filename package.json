@@ -55,9 +55,9 @@
         "test:subset": "npm run check:subset && mocha ./build/subset/tests/subset/unit/",
         "check:subset:fuzz": "npm run compile && node . --dts2test --input-dir ./tests/subset/ets  --output-dir ./generated/fuzz && npm run check:subset && npm run compile:native-node-host-subset && node ./build/subset/generated/fuzz",
         "check:peers:native": "npm run run2peer:all && npm run compile:native-node-host-full",
-        "configure:native-node-host-subset": "npm run download:napi && npm run check:subset && cd ./native && meson setup -Dsubset=true build-node-host-subset",
+        "configure:native-node-host-subset": "npm run download:napi && cd ./native && meson setup -Dsubset=true build-node-host-subset",
         "compile:native-node-host-subset": "npm run configure:native-node-host-subset && cd native && meson compile -C build-node-host-subset && meson install -C build-node-host-subset",
-        "configure:native-node-host-full": "npm run download:napi && npm run check:peers && cd ./native && meson setup -Dsubset=false build-node-host-full",
+        "configure:native-node-host-full": "npm run download:napi && cd ./native && meson setup -Dsubset=false build-node-host-full",
         "compile:native-node-host-full": "npm run configure:native-node-host-full && cd native && meson compile -C build-node-host-full && meson install -C build-node-host-full"
 
     }
