@@ -613,31 +613,7 @@ export class DeclarationTable {
                 structs.print(`template <>`)
                 structs.print(`inline void WriteToString(string* result, const ${assignedName}& value) {`)
                 structs.pushIndent()
-                // TODO: make better
-                let isUnion = !(target instanceof PrimitiveType) &&
-                    (ts.isUnionTypeNode(target) || (ts.isParenthesizedTypeNode(target) && ts.isUnionTypeNode(target.type)))
-                if (isUnion) {
-                    structs.print(`result->append("${assignedName} [variant ");`)
-                    structs.print(`result->append(std::to_string(value.selector));`)
-                    structs.print(`result->append("] ");`)
-                    this.targetFields(target).forEach((field, index) => {
-                        if (index == 0) return
-                        structs.print(`if (value.selector == ${index - 1}) {`)
-                        structs.pushIndent()
-                        structs.print(`result->append("${field.name}=");`)
-                        structs.print(`WriteToString(result, value.${field.name});`)
-                        structs.popIndent()
-                        structs.print(`}`)
-                    })
-                } else {
-                    structs.print(`result->append("${assignedName} {");`)
-                    this.targetFields(target).forEach((field, index) => {
-                        if (index > 0) structs.print(`result->append(", ");`)
-                        structs.print(`result->append("${field.name}=");`)
-                        structs.print(`WriteToString(result, value.${field.name});`)
-                    })
-                }
-                structs.print(`result->append("}");`)
+                this.generateWriteToString(assignedName, target, structs)
                 structs.popIndent()
                 structs.print(`}`)
             }
@@ -689,6 +665,54 @@ export class DeclarationTable {
         printer.print(`}`)
     }
 
+    private isMaybeWrapped(target: DeclarationTarget, predicate: (type: ts.Node) => boolean): boolean {
+        if (target instanceof PrimitiveType) return false
+        return predicate(target) ||
+                ts.isParenthesizedTypeNode(target) &&
+                this.isDeclarationTarget(target.type) &&
+                predicate(target.type)
+    }
+
+    private generateWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
+        if (target instanceof PrimitiveType) return
+        let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
+        let isArray = this.isMaybeWrapped(target, ts.isArrayTypeNode)
+        if (isUnion) {
+            printer.print(`result->append("${name} [variant ");`)
+            printer.print(`result->append(std::to_string(value.selector));`)
+            printer.print(`result->append("] ");`)
+            this.targetFields(target).forEach((field, index) => {
+                if (index == 0) return
+                printer.print(`if (value.selector == ${index - 1}) {`)
+                printer.pushIndent()
+                printer.print(`result->append("${field.name}=");`)
+                printer.print(`WriteToString(result, value.${field.name});`)
+                printer.popIndent()
+                printer.print(`}`)
+            })
+        } else if (isArray) {
+            printer.print(`result->append("${name} {array_length=");`)
+            printer.print(`WriteToString(result, value.array_length);`)
+            printer.print(`result->append(", array=[");`)
+            printer.print(`int32_t count = value.array_length > 5 ? 5 : value.array_length;`)
+            printer.print(`for (int i = 0; i < count; i++) {`)
+            printer.pushIndent()
+            printer.print(`if (i > 0) result->append(", ");`)
+            printer.print(`WriteToString(result, value.array[i]);`)
+            printer.popIndent()
+            printer.print(`}`)
+            printer.print(`if (count < value.array_length) result->append(", ...");`)
+            printer.print(`result->append("]}");`)
+        } else {
+            printer.print(`result->append("${name} {");`)
+            this.targetFields(target).forEach((field, index) => {
+                if (index > 0) printer.print(`result->append(", ");`)
+                printer.print(`result->append("${field.name}=");`)
+                printer.print(`WriteToString(result, value.${field.name});`)
+            })
+            printer.print(`result->append("}");`)
+        }
+    }
 
     targetFields(target: DeclarationTarget): FieldRecord[] {
         let result: FieldRecord[] = []

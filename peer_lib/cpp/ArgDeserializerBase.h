@@ -117,16 +117,6 @@ struct Empty
 inline void WriteToString(string* result, const Empty& value) {
 }
 
-template <typename T>
-inline void addToString(string* result, const T& value, bool needComma = false) {
-  WriteToString(result, value);
-  if (needComma) result->append(", ");
-}
-
-template <>
-inline void addToString(string* result, const Empty& value, bool needComma) {
-}
-
 struct Error
 {
   std::string message;
@@ -279,10 +269,11 @@ public:
   }
 
   template <typename T, typename E>
-  void resizeArray(T* array, int32_t length) {
+  void resizeArray(T& array, int32_t length) {
     void* value = malloc(length * sizeof(T));
     toClean.push_back(value);
-    array->array = reinterpret_cast<E*>(value);
+    array.array_length = length;
+    array.array = reinterpret_cast<E*>(value);
   }
 
   int32_t currentPosition() const { return this->position; }
@@ -424,13 +415,3 @@ inline void WriteToString(string* result, const String& value) {
     else
       result->append("<null>");
 }
-inline void WriteToString(string* result, String* value) {
-    result->append("XXX6");
-}
-inline void WriteToString(string* result, Number* value) {
-    result->append("XXX7");
-}
-inline void WriteToString(string* result, int32_t* value) {
-    result->append("XXX8");
-}
-inline void WriteToString(string* result, Boolean* value) {}
