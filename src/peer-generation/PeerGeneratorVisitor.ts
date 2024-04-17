@@ -582,7 +582,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 : ""
         this.printTS(`export class ${koalaComponentName}Peer ${extendsClause} {`)
         this.pushIndentTS()
-        this.printAPI(`struct ArkUI${componentName}Modifier {`)
+        this.printAPI(`typedef struct ArkUI${componentName}Modifier {`)
         this.pushIndentAPI()
         this.pushIndentAPIList()
         this.printNodeModifier(componentName)
@@ -618,10 +618,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     private epilogue(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
+        const componentName = this.renameToComponent(nameOrNull(node.name)!)
         this.popIndentTS()
         this.printTS(`}`)
         this.popIndentAPI()
-        this.printAPI(`};\n`)
+        this.printAPI(`} ArkUI${componentName}Modifier;\n`)
         this.popIndentAPIList()
         this.popIndentDummyModifiers()
         this.printDummyModifier(`};\n`)

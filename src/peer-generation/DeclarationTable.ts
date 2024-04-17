@@ -570,7 +570,7 @@ export class DeclarationTable {
         return this.uniqueNames.get(target)!
     }
 
-    generateDeserializers(printer: IndentedPrinter, structs: SortingEmitter, typedefs: IndentedPrinter) {
+    generateDeserializers(printer: IndentedPrinter, structs: SortingEmitter, typedefs: IndentedPrinter, writeToString: SortingEmitter) {
         this.processPendingRequests()
         this.assignUniqueNames()
         let seenNames = new Set<string>()
@@ -598,38 +598,39 @@ export class DeclarationTable {
             if (seenNames.has(assignedName)) continue
             seenNames.add(assignedName)
             structs.startEmit(this, target)
+            writeToString.startEmit(this, target)
             let isPointer = this.isPointerDeclaration(target)
             let isEnum = !(target instanceof PrimitiveType) && ts.isEnumDeclaration(target)
             if (isEnum) {
                 structs.print(`typedef int32_t ${assignedName};`)
                 structs.print(`typedef struct { int32_t tag; int32_t value; } ${nameOptional};`)
-                this.writeOptional(nameOptional, structs, isPointer)
+                this.writeOptional(nameOptional, writeToString, isPointer)
                 continue
             }
             let ignore = (target instanceof PrimitiveType) || this.ignoreTarget(target, assignedName)
             if (!ignore) {
-                structs.print(`struct ${assignedName} {`)
+                structs.print(`typedef struct ${assignedName} {`)
                 structs.pushIndent()
                 this.targetFields(target).forEach(it => structs.print(`${it.optional ? "Optional_" : ""}${this.uniqueName(it.declaration)} ${it.name};`))
                 structs.popIndent()
-                structs.print(`};`)
+                structs.print(`} ${assignedName};`)
             }
             if (seenNames.has(nameOptional)) continue
-            structs.print(`struct ${nameOptional} {`)
+            structs.print(`typedef struct ${nameOptional} {`)
             structs.pushIndent()
             structs.print(`int32_t tag;`)
             structs.print(`${assignedName} value;`)
             structs.popIndent()
-            structs.print(`};`)
+            structs.print(`} ${nameOptional};`)
             if (!ignore) {
-                structs.print(`template <>`)
-                structs.print(`inline void WriteToString(string* result, const ${assignedName}${isPointer ? "*" : ""} value) {`)
-                structs.pushIndent()
-                this.generateWriteToString(assignedName, target, structs, isPointer)
-                structs.popIndent()
-                structs.print(`}`)
+                writeToString.print(`template <>`)
+                writeToString.print(`inline void WriteToString(string* result, const ${assignedName}${isPointer ? "*" : ""} value) {`)
+                writeToString.pushIndent()
+                this.generateWriteToString(assignedName, target, writeToString, isPointer)
+                writeToString.popIndent()
+                writeToString.print(`}`)
             }
-            this.writeOptional(nameOptional, structs, isPointer)
+            this.writeOptional(nameOptional, writeToString, isPointer)
         }
         for (let declarationTarget of this.typeMap.values()) {
             let name = this.uniqueNames.get(declarationTarget[0])!

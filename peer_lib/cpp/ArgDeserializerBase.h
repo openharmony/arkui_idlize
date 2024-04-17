@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "common-interop.h"
+#include "arkoala_api.h"
 
 using namespace std;
 
@@ -72,21 +73,8 @@ inline const char* getUnitName(int value) {
   }
 }
 
-typedef float float32_t;
-
 template <typename T>
 inline void WriteToString(string* result, T value) = delete;
-
-// Binary layout must match that of KStringPtrImpl.
-struct String
-{
-  const char* chars;
-  size_t length;
-};
-
-struct Empty
-{
-};
 
 inline void WriteToString(string* result, const Empty& value) {
 }
@@ -97,16 +85,6 @@ struct Error
   Error(const std::string &message) : message(message) {}
 };
 
-struct Number
-{
-  int8_t tag;
-  union
-  {
-    float32_t f32;
-    int32_t i32;
-  };
-};
-
 template <>
 inline void WriteToString(string* result, Number value) {
   if (value.tag == TAG_FLOAT32)
@@ -115,25 +93,12 @@ inline void WriteToString(string* result, Number value) {
     result->append(std::to_string(value.i32));
 }
 
-struct Array
-{
-  void* array;
-  int32_t array_length;
-};
-
 template <>
 inline void WriteToString(string* result, const Array* value) {
   result->append("Array[");
   result->append(std::to_string(value->array_length));
   result->append("]");
 }
-
-struct Length
-{
-  float32_t value;
-  int32_t unit;
-  int32_t resource;
-};
 
 // TODO: generate!
 template <>
@@ -170,26 +135,9 @@ inline void WriteToString(string* result, const Undefined& value) {
 */
 class ArgDeserializerBase;
 
-struct CustomObject {
-  char kind[20];
-  int32_t id;
-  // Data of custom object.
-  int32_t ints[4];
-  float32_t floats[4];
-  void* pointers[4];
-};
-
-struct Undefined {
-};
-
 inline void WriteToString(string* result, Undefined value) {
   result->append("undefined");
 }
-
-typedef CustomObject Function;
-typedef CustomObject Callback;
-typedef CustomObject ErrorCallback;
-typedef CustomObject Any;
 
 inline void WriteToString(string* result, const CustomObject* value) {
   result->append("Custom kind=");
@@ -376,9 +324,6 @@ public:
     return Undefined();
   }
 };
-
-typedef KBoolean Boolean;
-typedef CustomObject Resource;
 
 inline void WriteToString(string* result, Boolean value) {
     result->append(value ? "true" : "false");

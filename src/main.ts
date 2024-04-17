@@ -30,8 +30,7 @@ import {
     dummyImplementations,
     dummyModifierList,
     dummyModifiers,
-    makeApiHeaders,
-    makeApiModifiers,
+    makeAPI,
     makeCDeserializer,
     makeNodeTypes,
     makeTSSerializer,
@@ -47,6 +46,7 @@ import { SortingEmitter } from "./peer-generation/SortingEmitter"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
 import { table } from "console"
+import {IndentedPrinter} from "./IndentedPrinter";
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -319,8 +319,13 @@ if (options.dts2peer) {
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(declarationTable))
-                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable))
-                fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeApiHeaders(apiHeaders) + makeApiModifiers(apiHeadersList))
+
+                const structs = new SortingEmitter(declarationTable)
+                const typedefs = new IndentedPrinter()
+
+                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable, structs, typedefs))
+                fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeAPI(apiHeaders, apiHeadersList, structs, typedefs))
+
                 const dummyImplCc =
                     dummyImplementations(dummyImpl) +
                     dummyModifiers(dummyImplModifiers) +

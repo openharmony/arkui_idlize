@@ -109,8 +109,8 @@ ${methods.join("\n")}
 
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `#include "Interop.h"
-#include "Deserializer.h"
 #include "arkoala_api.h"
+#include "Deserializer.h"
 
 static ArkUIAnyAPI* impls[ArkUIAPIVariantKind::COUNT] = { 0 };
 
@@ -137,7 +137,6 @@ export function dummyImplementations(lines: string[]): string {
     return `
 #include "Interop.h"
 #include "Deserializer.h"
-#include "arkoala_api.h"
 #include "common-interop.h"
 
 ${lines.join("\n")}
@@ -174,21 +173,19 @@ ${printer.getOutput().join("\n")}
 `
 }
 
-export function makeCDeserializer(table: DeclarationTable): string {
-    const deserializer = new IndentedPrinter()
-    const structs = new SortingEmitter(table)
-    const typedefs = new IndentedPrinter()
+export function makeCDeserializer(table: DeclarationTable, structs: SortingEmitter, typedefs: IndentedPrinter): string {
 
-    table.generateDeserializers(deserializer, structs, typedefs)
+    const deserializer = new IndentedPrinter()
+    const writeToString = new SortingEmitter(table)
+    table.generateDeserializers(deserializer, structs, typedefs, writeToString)
 
     return `
 #include "Interop.h"
 #include "ArgDeserializerBase.h"
+#include "arkoala_api.h"
 #include <string>
 
-${structs.getOutput().join("\n")}
-
-${typedefs.getOutput().join("\n")}
+${writeToString.getOutput().join("\n")}
 
 ${deserializer.getOutput().join("\n")}
 `
@@ -201,44 +198,44 @@ export function makeApiModifiers(lines: string[]): string {
  * layout, i.e. adding new events - increase ARKUI_API_VERSION above for binary
  * layout checks.
  */
-struct ArkUINodeModifiers {
+typedef struct ArkUINodeModifiers {
     KInt version;
 ${lines.join("\n")}
-};
+} ArkUINodeModifiers;
 
-struct ArkUIBasicAPI {
+typedef struct ArkUIBasicAPI {
     KInt version;
-};
+} ArkUIBasicAPI;
 
-struct ArkUIAnimation {
+typedef struct ArkUIAnimation {
     KInt version;
-};
+} ArkUIAnimation;
 
-struct ArkUINavigation {
+typedef struct ArkUINavigation {
     KInt version;
-};
+} ArkUINavigation;
 
-struct ArkUIGraphicsAPI {
+typedef struct ArkUIGraphicsAPI {
     KInt version;
-};
+} ArkUIGraphicsAPI;
 
 /**
  * An API to control an implementation. When making changes modifying binary
  * layout, i.e. adding new events - increase ARKUI_NODE_API_VERSION above for binary
  * layout checks.
  */
-struct ArkUIFullNodeAPI {
+typedef struct ArkUIFullNodeAPI {
     KInt version;
     const ArkUIBasicAPI* (*getBasicAPI)();
     const ArkUINodeModifiers* (*getNodeModifiers)();
     const ArkUIAnimation* (*getAnimation)();
     const ArkUINavigation* (*getNavigation)();
     const ArkUIGraphicsAPI* (*getGraphicsAPI)();
-};
+} ArkUIFullNodeAPI;
 
-struct ArkUIAnyAPI {
+typedef struct ArkUIAnyAPI {
     KInt version;
-};
+} ArkUIAnyAPI;
 `
 }
 
@@ -253,6 +250,36 @@ enum ArkUIAPIVariantKind {
 };
 
 ${lines.join("\n")}
+`
+}
+export function makeAPI(headers: string[], modifiers: string[], structs: SortingEmitter, typedefs: IndentedPrinter): string {
+
+    let structsBase = fs.readFileSync('./templates/StructsBase.h','utf8');
+
+    return `
+#ifndef ARKOALA_API_H_
+#define ARKOALA_API_H_
+
+// TBD: Change K to ArkUI types
+#include <stdint.h>
+typedef int32_t KInt;
+typedef int8_t KBoolean;
+
+typedef int8_t Boolean;
+
+typedef void* ArkUINodeHandle;
+
+${structsBase}
+
+${structs.getOutput().join("\n")}
+
+${typedefs.getOutput().join("\n")}
+
+${makeApiHeaders(headers)}
+
+${makeApiModifiers(modifiers)}
+
+#endif // ARKOALA_API_H_
 `
 }
 
