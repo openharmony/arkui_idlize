@@ -34,6 +34,7 @@ export interface ArgConvertor {
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void
     interopType(ts: boolean): string
     nativeType(impl: boolean): string
+    isPointerType(): boolean
     param: string
 }
 
@@ -50,7 +51,10 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         return 0
     }
     nativeType(impl: boolean): string {
-        return "Empty"
+        throw new Error("Define")
+    }
+    isPointerType(): boolean {
+       throw new Error("Define")
     }
     interopType(ts: boolean): string {
         return ts ? "object" : "void*"
@@ -77,7 +81,7 @@ export class StringConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeString(${value})`)
     }
     convertorCArg(param: string): string {
-        return `String(${param})`
+        return `(String*)&${param}`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readString();`)
@@ -91,6 +95,9 @@ export class StringConvertor extends BaseArgConvertor {
     }
     estimateSize() {
         return 32
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 
@@ -122,6 +129,9 @@ export class BooleanConvertor extends BaseArgConvertor {
     estimateSize() {
         return 1
     }
+    isPointerType(): boolean {
+        return false
+    }
 }
 
 export class UndefinedConvertor extends BaseArgConvertor {
@@ -151,6 +161,9 @@ export class UndefinedConvertor extends BaseArgConvertor {
 
     estimateSize() {
         return 1
+    }
+    isPointerType(): boolean {
+        return false
     }
 }
 
@@ -184,6 +197,9 @@ export class EnumConvertor extends BaseArgConvertor {
 
     estimateSize() {
         return 4
+    }
+    isPointerType(): boolean {
+        return false
     }
 }
 
@@ -220,6 +236,9 @@ export class LengthConvertor extends BaseArgConvertor {
     }
     estimateSize() {
         return 12
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 
@@ -314,6 +333,9 @@ export class UnionConvertor extends BaseArgConvertor {
             }
         }
     }
+    isPointerType(): boolean {
+        return true
+    }
 }
 
 export class ImportTypeConvertor extends BaseArgConvertor {
@@ -345,6 +367,9 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     estimateSize() {
         return 32
     }
+    isPointerType(): boolean {
+        return true
+    }
 }
 
 export class CustomTypeConvertor extends BaseArgConvertor {
@@ -374,6 +399,9 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     }
     estimateSize() {
         return 32
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 
@@ -424,6 +452,9 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     estimateSize() {
         return this.typeConvertor.estimateSize()
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 
@@ -476,6 +507,9 @@ export class AggregateConvertor extends BaseArgConvertor {
     estimateSize() {
         return 4
     }
+    isPointerType(): boolean {
+        return true
+    }
 }
 
 export class TypedConvertor extends BaseArgConvertor {
@@ -507,6 +541,9 @@ export class TypedConvertor extends BaseArgConvertor {
     }
     estimateSize() {
         return 12
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 
@@ -578,6 +615,9 @@ export class TupleConvertor extends BaseArgConvertor {
             .map(it => it.estimateSize())
             .reduce((sum, current) => sum + current, 0)
     }
+    isPointerType(): boolean {
+        return true
+    }
 }
 
 export class ArrayConvertor extends BaseArgConvertor {
@@ -639,6 +679,9 @@ export class ArrayConvertor extends BaseArgConvertor {
     estimateSize() {
         return 12
     }
+    isPointerType(): boolean {
+        return true
+    }
 }
 export class NumberConvertor extends BaseArgConvertor {
     constructor(param: string) {
@@ -670,6 +713,9 @@ export class NumberConvertor extends BaseArgConvertor {
     estimateSize() {
         return 4
     }
+    isPointerType(): boolean {
+        return false
+    }
 }
 
 export class PredefinedConvertor extends BaseArgConvertor {
@@ -700,12 +746,15 @@ export class PredefinedConvertor extends BaseArgConvertor {
     estimateSize() {
         return 8
     }
+    isPointerType(): boolean {
+        return true
+    }
 }
 
 
 class ProxyConvertor extends BaseArgConvertor {
 
-    constructor(private convertor: ArgConvertor) {
+    constructor(protected convertor: ArgConvertor) {
         super(convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
     }
 
@@ -729,6 +778,10 @@ class ProxyConvertor extends BaseArgConvertor {
     nativeType(impl: boolean): string {
         return this.convertor.nativeType(impl)
     }
+
+    isPointerType(): boolean {
+        return  this.convertor.isPointerType()
+    }
 }
 
 export class TypeAliasConvertor extends ProxyConvertor {
@@ -738,5 +791,9 @@ export class TypeAliasConvertor extends ProxyConvertor {
 
     nativeType(impl: boolean): string {
         return ts.idText(this.type.name)
+    }
+
+    isPointerType(): boolean {
+        return this.convertor.isPointerType()
     }
 }

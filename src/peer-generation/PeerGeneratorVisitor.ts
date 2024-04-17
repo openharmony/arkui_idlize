@@ -430,14 +430,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
     generateAPIParameters(argConvertors: ArgConvertor[]): string[] {
         return (["ArkUINodeHandle node"].concat(argConvertors.map(it => {
-            return `${it.nativeType(false)} ${it.param}`
+            let isPointer = it.isPointerType()
+            return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
         })))
     }
 
     // TODO: may be this is another method of ArgConvertor?
     apiArgument(argConvertor: ArgConvertor): string {
-        if (argConvertor.useArray) return `${argConvertor.param}Value`
-        return argConvertor.param
+        const prefix = argConvertor.isPointerType() ? "&": "    "
+        if (argConvertor.useArray) return `${prefix}${argConvertor.param}Value`
+        return `${argConvertor.convertorCArg(argConvertor.param)}`
     }
 
     generateAPICall(clazzName: string, methodName: string, hasReceiver: boolean, argConvertors: ArgConvertor[], isVoid: boolean) {

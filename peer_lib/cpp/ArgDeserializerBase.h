@@ -75,40 +75,14 @@ inline const char* getUnitName(int value) {
 typedef float float32_t;
 
 template <typename T>
-inline void WriteToString(string* result, const T& value) = delete;
+inline void WriteToString(string* result, T value) = delete;
 
+// Binary layout must match that of KStringPtrImpl.
 struct String
 {
-  // TODO: rework!
-#ifdef __cplusplus
-  String() : length(0), chars(0) {}
-  String(const KStringPtr& other) {
-    this->length = other.length();
-    this->chars = other.c_str();
-  }
-  void operator=(const KStringPtr& other) {
-    this->length = other.length();
-    this->chars = other.c_str();
-  }
-#endif
-  size_t length;
   const char* chars;
+  size_t length;
 };
-
-template <>
-inline void WriteToString(string* result, const String& value) {
-  result->append(value.chars);
-}
-
-template <>
-inline void WriteToString(string* result, const KBoolean& value) {
-  result->append(std::to_string(value));
-}
-
-template <>
-inline void WriteToString(string* result, const KInt& value) {
-  result->append(std::to_string(value));
-}
 
 struct Empty
 {
@@ -134,7 +108,7 @@ struct Number
 };
 
 template <>
-inline void WriteToString(string* result, const Number& value) {
+inline void WriteToString(string* result, Number value) {
   if (value.tag == TAG_FLOAT32)
     result->append(std::to_string(value.f32));
   else
@@ -148,9 +122,9 @@ struct Array
 };
 
 template <>
-inline void WriteToString(string* result, const Array& value) {
+inline void WriteToString(string* result, const Array* value) {
   result->append("Array[");
-  result->append(std::to_string(value.array_length));
+  result->append(std::to_string(value->array_length));
   result->append("]");
 }
 
@@ -163,12 +137,12 @@ struct Length
 
 // TODO: generate!
 template <>
-inline void WriteToString(string* result, const Length& value) {
+inline void WriteToString(string* result, const Length* value) {
   result->append("Length {");
   result->append("value=");
-  result->append(std::to_string(value.value));
-  result->append(", unit=" + string(getUnitName(value.unit)));
-  result->append(", resource=" + std::to_string(value.resource));
+  result->append(std::to_string(value->value));
+  result->append(", unit=" + string(getUnitName(value->unit)));
+  result->append(", resource=" + std::to_string(value->resource));
   result->append("}");
 }
 
@@ -208,7 +182,7 @@ struct CustomObject {
 struct Undefined {
 };
 
-inline void WriteToString(string* result, const Undefined& value) {
+inline void WriteToString(string* result, Undefined value) {
   result->append("undefined");
 }
 
@@ -217,11 +191,11 @@ typedef CustomObject Callback;
 typedef CustomObject ErrorCallback;
 typedef CustomObject Any;
 
-inline void WriteToString(string* result, const CustomObject& value) {
+inline void WriteToString(string* result, const CustomObject* value) {
   result->append("Custom kind=");
-  result->append(value.kind);
+  result->append(value->kind);
   result->append(" id=");
-  result->append(std::to_string(value.id));
+  result->append(std::to_string(value->id));
 }
 
 struct CustomDeserializer {
@@ -406,12 +380,25 @@ public:
 typedef KBoolean Boolean;
 typedef CustomObject Resource;
 
-inline void WriteToString(string* result, const Boolean& value) {
+inline void WriteToString(string* result, Boolean value) {
     result->append(value ? "true" : "false");
 }
-inline void WriteToString(string* result, const String& value) {
-    if (value.chars)
-      result->append(value.chars);
+
+template <>
+inline void WriteToString(string* result, KInt value) {
+  result->append(std::to_string(value));
+}
+
+inline void WriteToString(string* result, String* value) {
+    if (value->chars)
+      result->append(value->chars);
+    else
+      result->append("<null>");
+}
+
+inline void WriteToString(string* result, const String* value) {
+    if (value->chars)
+      result->append(value->chars);
     else
       result->append("<null>");
 }

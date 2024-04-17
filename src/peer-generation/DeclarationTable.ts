@@ -26,16 +26,16 @@ import {
 import { SortingEmitter } from "./SortingEmitter"
 
 class PrimitiveType {
-    constructor(public name: string) { }
+    constructor(public name: string, public isPointer = false) { }
     getText(): string { return this.name }
-    static String = new PrimitiveType("String")
+    static String = new PrimitiveType("String", true)
     static Number = new PrimitiveType("Number")
     static Int32 = new PrimitiveType("int32_t")
     static Boolean = new PrimitiveType("Boolean")
     static Function = new PrimitiveType("Function")
     static Undefined = new PrimitiveType("Undefined")
-    static Length = new PrimitiveType("Length")
-    static CustomObject = new PrimitiveType("CustomObject")
+    static Length = new PrimitiveType("Length", true)
+    static CustomObject = new PrimitiveType("CustomObject", true)
     static pointerTo(target: string) {
         return new PointerType(target)
     }
@@ -470,6 +470,14 @@ export class DeclarationTable {
         return undefined
     }
 
+    isPointerDeclaration(target: DeclarationTarget, isOptional: boolean = false): boolean {
+        if (isOptional) return true
+        if (target instanceof PrimitiveType) return target.isPointer
+        if (ts.isEnumDeclaration(target)) return false
+        if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) return true
+        return true
+    }
+
     declarationConvertor(param: string, type: ts.TypeReferenceNode, declaration: ts.NamedDeclaration | undefined): ArgConvertor {
         const entityName = typeEntityName(type)
         if (!declaration) {
@@ -533,10 +541,7 @@ export class DeclarationTable {
             for (let declaration of this.declarations) {
                 if (this.uniqueNames.has(declaration)) continue
                 let name = this.computeTargetName(declaration, false)
-                if (!name) throw new Error(`Cannot compute name for ${declaration}`);
-                try {
-                    console.log(`assigned ${name} to ${asString(declaration as ts.Node)}`)
-                } catch (e) { }
+                if (!name) throw new Error(`Cannot compute name for ${declaration}`)
                 this.uniqueNames.set(declaration, name)
             }
         } while (before != this.declarations.size)
@@ -593,11 +598,12 @@ export class DeclarationTable {
             if (seenNames.has(assignedName)) continue
             seenNames.add(assignedName)
             structs.startEmit(this, target)
+            let isPointer = this.isPointerDeclaration(target)
             let isEnum = !(target instanceof PrimitiveType) && ts.isEnumDeclaration(target)
             if (isEnum) {
                 structs.print(`typedef int32_t ${assignedName};`)
                 structs.print(`typedef struct { int32_t tag; int32_t value; } ${nameOptional};`)
-                this.writeOptional(nameOptional, structs)
+                this.writeOptional(nameOptional, structs, isPointer)
                 continue
             }
             let ignore = (target instanceof PrimitiveType) || this.ignoreTarget(target, assignedName)
@@ -617,13 +623,13 @@ export class DeclarationTable {
             structs.print(`};`)
             if (!ignore) {
                 structs.print(`template <>`)
-                structs.print(`inline void WriteToString(string* result, const ${assignedName}& value) {`)
+                structs.print(`inline void WriteToString(string* result, const ${assignedName}${isPointer ? "*" : ""} value) {`)
                 structs.pushIndent()
-                this.generateWriteToString(assignedName, target, structs)
+                this.generateWriteToString(assignedName, target, structs, isPointer)
                 structs.popIndent()
                 structs.print(`}`)
             }
-            this.writeOptional(nameOptional, structs)
+            this.writeOptional(nameOptional, structs, isPointer)
         }
         for (let declarationTarget of this.typeMap.values()) {
             let name = this.uniqueNames.get(declarationTarget[0])!
@@ -637,17 +643,17 @@ export class DeclarationTable {
         }
     }
 
-    writeOptional(nameOptional: string, printer: IndentedPrinter) {
+    writeOptional(nameOptional: string, printer: IndentedPrinter, isPointer: boolean) {
         printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${nameOptional}& value) {`)
+        printer.print(`inline void WriteToString(string* result, const ${nameOptional}* value) {`)
         printer.pushIndent()
         printer.print(`result->append("${nameOptional} {");`)
         printer.print(`result->append("tag=");`)
-        printer.print(`result->append(tagName((Tags)value.tag));`)
-        printer.print(`if (value.tag != TAG_UNDEFINED) {`)
+        printer.print(`result->append(tagName((Tags)value->tag));`)
+        printer.print(`if (value->tag != TAG_UNDEFINED) {`)
         printer.pushIndent()
         printer.print(`result->append(" value=");`)
-        printer.print(`WriteToString(result, value.value);`)
+        printer.print(`WriteToString(result, ${isPointer ? "&" : ""}value->value);`)
         printer.popIndent()
         printer.print(`}`)
         printer.print(`result->append("}");`)
@@ -679,42 +685,46 @@ export class DeclarationTable {
                 predicate(target.type)
     }
 
-    private generateWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
+    private generateWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter, isPointer: boolean) {
         if (target instanceof PrimitiveType) return
         let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
         let isArray = this.isMaybeWrapped(target, ts.isArrayTypeNode)
+        let access = isPointer ? "->" : "."
         if (isUnion) {
             printer.print(`result->append("${name} [variant ");`)
-            printer.print(`result->append(std::to_string(value.selector));`)
+            printer.print(`result->append(std::to_string(value${access}selector));`)
             printer.print(`result->append("] ");`)
             this.targetFields(target).forEach((field, index) => {
                 if (index == 0) return
-                printer.print(`if (value.selector == ${index - 1}) {`)
+                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                printer.print(`if (value${access}selector == ${index - 1}) {`)
                 printer.pushIndent()
                 printer.print(`result->append("${field.name}=");`)
-                printer.print(`WriteToString(result, value.${field.name});`)
+                printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                 printer.popIndent()
                 printer.print(`}`)
             })
         } else if (isArray) {
+            let isPointerField = ts.isArrayTypeNode(target) ? this.typeConvertor("param", target.elementType).isPointerType() : false
             printer.print(`result->append("${name} {array_length=");`)
-            printer.print(`WriteToString(result, value.array_length);`)
+            printer.print(`WriteToString(result, value${access}array_length);`)
             printer.print(`result->append(", array=[");`)
-            printer.print(`int32_t count = value.array_length > 5 ? 5 : value.array_length;`)
+            printer.print(`int32_t count = value${access}array_length > 5 ? 5 : value${access}array_length;`)
             printer.print(`for (int i = 0; i < count; i++) {`)
             printer.pushIndent()
             printer.print(`if (i > 0) result->append(", ");`)
-            printer.print(`WriteToString(result, value.array[i]);`)
+            printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}array[i]);`)
             printer.popIndent()
             printer.print(`}`)
-            printer.print(`if (count < value.array_length) result->append(", ...");`)
+            printer.print(`if (count < value${access}array_length) result->append(", ...");`)
             printer.print(`result->append("]}");`)
         } else {
             printer.print(`result->append("${name} {");`)
             this.targetFields(target).forEach((field, index) => {
                 if (index > 0) printer.print(`result->append(", ");`)
                 printer.print(`result->append("${field.name}=");`)
-                printer.print(`WriteToString(result, value.${field.name});`)
+                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
             })
             printer.print(`result->append("}");`)
         }
