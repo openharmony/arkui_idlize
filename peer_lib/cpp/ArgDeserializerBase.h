@@ -120,22 +120,13 @@ inline Length Length_from_array(int32_t *array)
   return result;
 }
 
-/*
-struct Undefined
-{
-  int8_t bogus;
-  string toString() {
-    return "undefined";
-  }
-};
-
-template <>
-inline void WriteToString(string* result, const Undefined& value) {
-}
-*/
 class ArgDeserializerBase;
 
 inline void WriteToString(string* result, Undefined value) {
+  result->append("undefined");
+}
+
+inline void WriteToString(string* result, const Undefined* value) {
   result->append("undefined");
 }
 

@@ -737,8 +737,7 @@ export class PredefinedConvertor extends BaseArgConvertor {
         printer.print(`${value} = ${param}Deserializer.read${this.convertorName}();`)
     }
     nativeType(impl: boolean): string {
-        // TODO: figure out how to pass real type args
-        return impl ? this.cType : this.tsTypeName
+        return this.cType
     }
     interopType(ts: boolean): string {
         return ts ? "Int32ArrayPtr" : "int32_t*"

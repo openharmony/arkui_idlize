@@ -118,7 +118,6 @@ export class DeclarationTable {
         }
     }
 
-
     private addDeclarations(target: DeclarationTarget) {
         if (this.declarations.has(target)) return
         this.declarations.add(target)
@@ -133,8 +132,6 @@ export class DeclarationTable {
 
     private toTargetImpl(node: ts.TypeNode): DeclarationTarget {
         if (this.isDeclarationTarget(node)) return node as DeclarationTarget
-        if (ts.isEnumMember(node)) return node.parent
-
         if (ts.isTypeReferenceNode(node)) {
             if (identName(node) == "Length") return PrimitiveType.Length
             let orig = node
@@ -148,7 +145,11 @@ export class DeclarationTable {
             if (declarations.length == 0) {
                 throw new Error(`No declaration for ${node.getText()} ${asString(orig)}`)
             }
-            return declarations[0] as DeclarationTarget
+            let declaration = declarations[0]
+            if (ts.isEnumMember(declaration)) {
+                return declaration.parent
+            }
+            return declaration as DeclarationTarget
         }
         if (node.kind == ts.SyntaxKind.StringKeyword) {
             return PrimitiveType.String
@@ -456,9 +457,9 @@ export class DeclarationTable {
         if (name === "AnimationRange")
             return new PredefinedConvertor(param, "AnimationRange<number>", "AnimationRange", "Compound<Number, Number>")
         if (name === "AttributeModifier")
-            return new PredefinedConvertor(param, "AttributeModifier<any>", "AttributeModifier", "Tagged<CustomObject>")
+            return new PredefinedConvertor(param, "AttributeModifier<any>", "AttributeModifier", "CustomObject")
         if (name === "ContentModifier")
-            return new PredefinedConvertor(param, "ContentModifier<any>", "ContentModifier", "Tagged<CustomObject>")
+            return new PredefinedConvertor(param, "ContentModifier<any>", "ContentModifier", "CustomObject")
         if (name === "Array")
             return new ArrayConvertor(param, this, type, type.typeArguments![0])
         if (name === "Callback")
@@ -796,7 +797,7 @@ export class DeclarationTable {
             // TODO: is it correct?
             return this.targetFields(this.toTarget(target.type))
         }
-        else if (ts.isEnumDeclaration(target)) {
+        else if (ts.isEnumDeclaration(target) || ts.isEnumMember(target)) {
             result.push(new FieldRecord(PrimitiveType.Int32, undefined, "value"))
         }
         else if (ts.isFunctionTypeNode(target)) {
@@ -809,24 +810,26 @@ export class DeclarationTable {
         }
         else if (ts.isTypeParameterDeclaration(target)) {
         }
-        else if (ts.isEnumMember(target)) {
-        } else {
+        else {
             throw new Error(`Unsupported field getter: ${asString(target)} ${(target as any).getText()}`)
         }
         return result
     }
 
-    private translateSerializerParam(name: string, target: DeclarationTarget): string {
-        // TODO: hack, fix it!
-        if (name == "ContentModifier") return "ContentModifier<any>"
-        return name
+    private translateSerializerType(name: string, target: DeclarationTarget): string {
+        if (target instanceof PrimitiveType) throw new Error("Unexpected")
+        if (ts.isInterfaceDeclaration(target) && target.typeParameters != undefined) {
+            if (target.typeParameters.length != 1) throw new Error("Unexpected")
+            return `${name}<any>`
+        } else {
+            return name
+        }
     }
 
     private generateSerializer(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
         if (this.ignoreTarget(target, name)) return
         printer.pushIndent()
-        //printer.print(`write${name}(value: ${mapType(this.typeChecker!, target as ts.TypeNode)}) {`)
-        printer.print(`write${name}(value: ${this.translateSerializerParam(name, target)}) {`)
+        printer.print(`write${name}(value: ${this.translateSerializerType(name, target)}) {`)
         printer.pushIndent()
         printer.print(`const valueSerializer = this`)
         if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
