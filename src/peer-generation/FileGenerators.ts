@@ -257,25 +257,30 @@ ${lines.join("\n")}
 
 export function copyPeerLib(from: string, to: string) {
     const tsBase = path.join(from, 'ts')
-    fs.readdirSync(tsBase).forEach(it => {
-        fs.copyFileSync(path.join(tsBase, it), path.join(to, it))
-    })
+    copyDir(tsBase, to)
     const cppBase = path.join(from, 'cpp')
-    fs.readdirSync(cppBase).forEach(it => {
-        let input = path.join(cppBase, it)
-        if (fs.lstatSync(input).isFile())
-            fs.copyFileSync(input, path.join(to, it))
-    })
-    const cppBaseNode = path.join(from, 'cpp', 'node')
-    fs.readdirSync(cppBaseNode).forEach(it => {
-        fs.copyFileSync(path.join(cppBaseNode, it), path.join(to, it))
+    copyDir(cppBase, to)
+    copyDir(cppBase, to)
+    let subdirs = ['node', 'ark']
+    subdirs.forEach(subdir => {
+        const cppBase = path.join(from, 'cpp', subdir)
+        copyDir(cppBase, to)
     })
 }
 
+function copyDir(from: string, to: string) {
+    fs.readdirSync(from).forEach(it => {
+        let file = path.join(from, it)
+        if (fs.statSync(file).isFile()) {
+            fs.copyFileSync(file, path.join(to, it))
+        }
+        // TODO: copy dir
+    })
+}
 export function makeNodeTypes(types: string[]): string {
     const enumValues = types.map(it => `  ${it},`).join("\n")
     return `
-export enum ArkUINodeType { 
+export enum ArkUINodeType {
 ${enumValues}
 }
 `.trim()
