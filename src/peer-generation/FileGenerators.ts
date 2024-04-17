@@ -29,6 +29,7 @@ import {
     KNativePointer,
     Int32ArrayPtr,
     KUint8ArrayPtr,
+    pointer
 } from "./types"
 import {
     NativeStringBase,
@@ -45,7 +46,7 @@ export function nativeModuleDeclaration(methods: string[], nativeBridgePath: str
 ${importTsInteropTypes}
 import { NativeModuleEmpty } from "./NativeModuleEmpty"
 
-export type NodePointer = KNativePointer // the real arkoala uses "pointer" here
+export type NodePointer = pointer
 
 let theModule: NativeModule | undefined = undefined
 
