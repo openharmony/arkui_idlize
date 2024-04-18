@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { componentName } from "../util";
+import { className } from "../util";
 
 export enum InheritanceRole {
     Finalizable,
@@ -19,15 +19,13 @@ const standaloneComponents = [
     "ContainerSpanAttribute"
 ]
 
-function determineInheritanceRole(name: string): InheritanceRole {
+export function determineInheritanceRole(name: string): InheritanceRole {
     if (rootComponents.includes(name)) return InheritanceRole.Root
     if (standaloneComponents.includes(name)) return InheritanceRole.Standalone
     return InheritanceRole.Heir
 }
 
-export function determineParentRole(node: ts.ClassDeclaration | ts.InterfaceDeclaration): InheritanceRole {
-    const name = componentName(node)
-    const parent = parentName(node)
+export function determineParentRole(name: string, parent: string|undefined): InheritanceRole {
     if (parent === undefined) {
         if (isStandalone(name)) return InheritanceRole.PeerNode
         if (isCommonMethod(name)) return InheritanceRole.PeerNode

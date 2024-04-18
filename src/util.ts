@@ -203,6 +203,16 @@ export function toSet(option: string | undefined): Set<string> {
     return set
 }
 
+export function getOrPut<K, V>(map: Map<K, V>, key: K, create: (key: K) => V): V {
+    const gotten = map.get(key)
+    if (gotten) {
+        return gotten
+    }
+    const created = create(key)
+    map.set(key, created)
+    return created
+}
+
 export function indentedBy(input: string, indentedBy: number): string {
     let space = ""
     for (let i = 0; i < indentedBy; i++) space += "  "
@@ -453,6 +463,6 @@ export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefin
     return text ?? "any"
 }
 
-export function componentName(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
+export function className(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
     return nameOrNull(node.name) ?? throwException(`Nameless component ${asString(node)}`)
 }

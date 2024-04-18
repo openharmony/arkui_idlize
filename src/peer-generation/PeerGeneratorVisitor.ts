@@ -17,8 +17,8 @@ import * as ts from "typescript"
 import {
     asString,
     capitalize,
-    componentName,
     dropSuffix,
+    getOrPut,
     identName,
     isCommonMethodOrSubclass,
     isDefined,
@@ -27,7 +27,8 @@ import {
     renameDtsToPeer,
     serializerBaseMethods,
     stringOrNone,
-    throwException
+    throwException,
+    className
 } from "../util"
 import { GenericVisitor } from "../options"
 import { IndentedPrinter } from "../IndentedPrinter"
@@ -37,6 +38,7 @@ import {
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable } from "./DeclarationTable"
 import {
+    determineInheritanceRole,
     determineParentRole,
     InheritanceRole,
     isCommonMethod,
@@ -74,10 +76,395 @@ export interface TypeAndName {
 }
 
 type MaybeCollapsedMethod = {
-    method: ts.MethodDeclaration | ts.MethodSignature,
+    member: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration
     collapsed?: {
         paramsDecl: string,
         paramsUsage: string
+    }
+}
+
+class PeerMethod {
+    public readonly fullMethodName
+    private printers: Printers
+    constructor(
+        public clazz: PeerClass,
+        public originalParentName: string,
+        public methodName: string,
+        public argConvertors: ArgConvertor[],
+        public retConvertor: RetConvertor,
+        public hasReceiver: boolean,
+        public isCallSignature: boolean,
+        public mappedParams: string | undefined,
+        public mappedParamValues: string | undefined,
+        private dumpSerialized: boolean
+    ) {
+        this.fullMethodName = isCallSignature ? methodName : this.peerMethodName()
+        this.printers = clazz.printers
+    }
+
+    peerMethodName() {
+        const name = this.methodName
+        if (name.startsWith("set") ||
+            name.startsWith("get") ||
+            name.startsWith("_set")
+        ) return name
+        return `set${capitalize(name)}`
+    }
+
+    generateCMacroSuffix(): string {
+        let counter = this.hasReceiver ? 1 : 0
+        this.argConvertors.forEach(it => {
+            if (it.useArray) {
+                counter += 2
+            } else {
+                counter += 1
+            }
+        })
+        return `${this.retConvertor.macroSuffixPart()}${counter}`
+    }
+
+    printComponentMethodBody(printer: IndentedPrinter) {
+        printer.print(`if (this.checkPriority("${this.methodName}")) {`)
+        printer.pushIndent()
+        printer.print(`this.peer?.${this.methodName}Attribute(${this.mappedParamValues}`)
+        printer.popIndent()
+        printer.print(`}`)
+    }
+
+    processPeerMethod() {
+        const methodName = this.methodName
+        const retConvertor = this.retConvertor
+        const argConvertors = this.argConvertors
+        const fullMethodName = this.fullMethodName
+
+        const apiParameters = this.generateAPIParameters(argConvertors).join(", ")
+        const implName = `${capitalize(this.originalParentName)}_${capitalize(fullMethodName)}Impl`
+        const retType = this.maybeCRetType(retConvertor) ?? "void"
+
+        this.printers.api.print(`${retType} (*${fullMethodName})(${apiParameters});`)
+        this.printers.dummyImplModifiers.print(`${implName},`)
+        this.printDummyImplFunction(retType, implName, apiParameters)
+
+        this.printers.TS.print(`${methodName}Attribute(${this.mappedParams}) {`)
+        let cName = `${this.originalParentName}_${methodName}`
+        this.printers.C.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
+        this.printers.C.pushIndent()
+        // This is to generate TS component, not TS peer.
+        let isComponent = false
+        if (isComponent) {
+            this.printComponentMethodBody(this.printers.TS)
+        } else {
+            let isStub = false
+            if (isStub) {
+                this.printers.TS.print(`throw new Error("${methodName}Attribute() is not implemented")`)
+            } else {
+                this.generateNativeBody(this)
+            }
+        }
+        this.printers.C.popIndent()
+        this.printers.C.print(`}`)
+        let macroArgs = [cName, this.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, this.hasReceiver))
+            .filter(isDefined)
+            .join(", ")
+        const suffix = this.generateCMacroSuffix()
+        this.printers.C.print(`KOALA_INTEROP_${suffix}(${macroArgs})`)
+        this.printers.C.print(` `)
+
+        this.printers.TS.print(`}`)
+    }
+
+    printDummyImplFunction(retType: string, implName: string, apiParameters: string) {
+        this.printers.dummyImpl.print(`${retType} ${implName}(${apiParameters}) {`)
+        this.printers.dummyImpl.pushIndent()
+        this.printers.dummyImpl.print(`string out("${this.methodName}(");`)
+        this.argConvertors.forEach((argConvertor, index) => {
+            if (index > 0) this.printers.dummyImpl.print(`out.append(", ");`)
+            this.printers.dummyImpl.print(`WriteToString(&out, ${argConvertor.param});`)
+        })
+        this.printers.dummyImpl.print(`out.append(")");`)
+        this.printers.dummyImpl.print(`appendGroupedLog(1, out);`)
+        if (retType != "void") this.printers.dummyImpl.print(`return 0;`)
+        this.printers.dummyImpl.popIndent()
+        this.printers.dummyImpl.print(`}`)
+    }
+
+    generateCParameters(argConvertors: ArgConvertor[]): string[] {
+        return (["KNativePointer nodePtr"].concat(argConvertors.map(it => {
+            if (it.useArray) {
+                return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
+            } else {
+                let type = it.interopType(false)
+                return `${type == "KStringPtr" ? "const KStringPtr&" : type} ${it.param}`
+            }
+        })))
+    }
+
+    generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string[] {
+        const receiver = hasReceiver ? ['KNativePointer'] : []
+        return receiver.concat(argConvertors.map(it => {
+            if (it.useArray) {
+                return `uint8_t*, int32_t`
+            } else {
+                return it.interopType(false)
+            }
+        }))
+    }
+
+    maybeCRetType(retConvertor: RetConvertor): string | undefined {
+        if (retConvertor.isVoid) return undefined
+        return retConvertor.nativeType()
+    }
+
+    modifierSection(clazzName: string) {
+        // TODO: may be need some translation tables?
+        let clazz = dropSuffix(dropSuffix(dropSuffix(clazzName, "Method"), "Attribute"), "Interface")
+        return `get${capitalize(clazz)}Modifier()`
+    }
+
+    generateAPIParameters(argConvertors: ArgConvertor[]): string[] {
+        return (["ArkUINodeHandle node"].concat(argConvertors.map(it => {
+            let isPointer = it.isPointerType()
+            return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
+        })))
+    }
+
+    // TODO: may be this is another method of ArgConvertor?
+    apiArgument(argConvertor: ArgConvertor): string {
+        const prefix = argConvertor.isPointerType() ? "&": "    "
+        if (argConvertor.useArray) return `${prefix}${argConvertor.param}Value`
+        return `${argConvertor.convertorCArg(argConvertor.param)}`
+    }
+
+    generateAPICall(peerMethod: PeerMethod) {
+        const clazzName = peerMethod.originalParentName
+        const hasReceiver = peerMethod.hasReceiver
+        const argConvertors = peerMethod.argConvertors
+        const isVoid = peerMethod.retConvertor.isVoid
+        const api = "GetNodeModifiers()"
+        const modifier = this.modifierSection(clazzName)
+        const method = peerMethod.peerMethodName()
+        const receiver = hasReceiver ? ['node'] : []
+        // TODO: how do we know the real amount of arguments of the API functions?
+        // Do they always match in TS and in C one to one?
+        const args = receiver.concat(argConvertors.map(it => this.apiArgument(it))).join(", ")
+        this.printers.C.print(`${isVoid ? "" : "return "}${api}->${modifier}->${method}(${args});`)
+    }
+
+    generateNativeBody(peerMethod: PeerMethod) {
+        this.printers.C.pushIndent()
+        this.printers.TS.pushIndent()
+        if (peerMethod.hasReceiver) {
+            this.printers.C.print("ArkUINodeHandle node = reinterpret_cast<ArkUINodeHandle>(nodePtr);")
+        }
+        let scopes = peerMethod.argConvertors.filter(it => it.isScoped)
+        scopes.forEach(it => {
+            this.printers.TS.pushIndent()
+            this.printers.TS.print(it.scopeStart?.(it.param))
+        })
+        peerMethod.argConvertors.forEach(it => {
+            if (it.useArray) {
+                let size = it.estimateSize()
+                this.printers.TS.print(`const ${it.param}Serializer = new Serializer(${size})`)
+                it.convertorToTSSerial(it.param, it.param, this.printers.TS)
+                this.printers.C.print(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
+                this.printers.C.print(`${it.nativeType(false)} ${it.param}Value;`)
+                it.convertorToCDeserial(it.param, `${it.param}Value`, this.printers.C)
+            }
+        })
+        // Enable to see serialized data.
+        if (this.dumpSerialized) {
+            peerMethod.argConvertors.forEach((it, index) => {
+                if (it.useArray) {
+                    this.printers.TS.print(`console.log("${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+                }
+            })
+        }
+        this.printers.TS.print(`nativeModule()._${peerMethod.originalParentName}_${peerMethod.methodName}(this.ptr${peerMethod.argConvertors.length > 0 ? ", " : ""}`)
+        this.printers.TS.pushIndent()
+        peerMethod.argConvertors.forEach((it, index) => {
+            let maybeComma = index == peerMethod.argConvertors.length - 1 ? "" : ","
+            if (it.useArray)
+                this.printers.TS.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
+            else
+                this.printers.TS.print(it.convertorTSArg(it.param))
+            this.printers.TS.print(maybeComma)
+        })
+        this.printers.TS.popIndent()
+        this.printers.TS.print(`)`)
+        scopes.reverse().forEach(it => {
+            this.printers.TS.popIndent()
+            this.printers.TS.print(it.scopeEnd!(it.param))
+        })
+        this.generateAPICall(peerMethod)
+        this.printers.C.popIndent()
+        this.printers.TS.popIndent()
+    }
+
+}
+
+class PeerClass {
+    constructor(
+        public componentName: string,
+        public printers: Printers
+    ) { }
+
+    methods: PeerMethod[] = []
+
+    originalClassName: string | undefined = undefined
+    originalParentName: string | undefined = undefined
+    parentComponentName: string | undefined = undefined
+
+    get koalaComponentName(): string {
+        return this.koalaComponentByComponent(this.componentName)
+    }
+
+    private koalaComponentByComponent(name: string): string {
+        return "Ark" + name
+    }
+
+    get peerParentName(): string {
+        const name = this.originalClassName
+            ?? throwException(`By this time the class name should have been provided: ${this.componentName}`)
+
+        if (isCommonMethod(name)) return "PeerNode"
+        if (isStandalone(name)) return "PeerNode"
+        if (isRoot(name)) return "Finalizable"
+
+        const parent = this.parentComponentName
+            ?? throwException(`Expected component to have parent: ${name}`)
+        return `${this.koalaComponentByComponent(parent)}Peer`
+    }
+
+    peerClassHeader() {
+        const peerParentName = this.peerParentName
+        const extendsClause =
+            peerParentName
+                ? `extends ${peerParentName} `
+                : ""
+        return `export class ${this.koalaComponentName}Peer ${extendsClause} {`
+    }
+
+    private componentToAttribute(name: string): string {
+        return "Ark" + name + "Attributes"
+    }
+
+    private parentAttributesName(): string | undefined {
+        console.log("HEIR: ",
+            this.originalClassName,
+            InheritanceRole[determineInheritanceRole(this.originalClassName!)]
+        )
+        if (!isHeir(this.originalClassName!)) return undefined
+        return this.componentToAttribute(this.parentComponentName!)
+    }
+
+    attributeInterfaceHeader() {
+        const parent = this.parentAttributesName()
+        const extendsClause =
+            parent
+                ? ` extends ${parent} `
+                : ""
+        return `export interface ${this.componentToAttribute(this.componentName)} ${extendsClause} {`
+    }
+    apiModifierHeader() {
+        return `typedef struct ArkUI${this.componentName}Modifier {`
+    }
+
+    generateConstructor(printer: IndentedPrinter): void {
+        const parentRole = determineParentRole(this.originalClassName!, this.originalParentName)
+
+        if (parentRole === InheritanceRole.Finalizable) {
+            printer.print(`constructor(type?: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            printer.pushIndent()
+            printer.print(`super(BigInt(42)) // for now`)
+            printer.popIndent()
+            printer.print(`}`)
+            return
+        }
+        if (parentRole === InheritanceRole.PeerNode) {
+            printer.print(`constructor(type: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            printer.pushIndent()
+            printer.print(`super(type, flags)`)
+            printer.print(`component?.setPeer(this)`)
+            printer.popIndent()
+            printer.print(`}`)
+            return
+        }
+
+        if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
+            printer.print(`constructor(type: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            printer.pushIndent()
+            printer.print(`super(type, component, flags)`)
+            printer.popIndent()
+            printer.print(`}`)
+            return
+        }
+
+        throwException(`Unexpected parent inheritance role: ${parentRole}`)
+    }
+
+    private generateApplyMethod(printer: IndentedPrinter): void {
+        const name = this.originalClassName!
+        const typeParam = this.koalaComponentName + "Attributes"
+        if (isRoot(name)) {
+            printer.print(`applyAttributes(attributes: ${typeParam}): void {`)
+            printer.pushIndent()
+            printer.print(`super.constructor(42)`)
+            printer.popIndent()
+            printer.print(`}`)
+            return
+        }
+
+        printer.print(`applyAttributes<T extends ${typeParam}>(attributes: T): void {`)
+        printer.pushIndent()
+        printer.print(`super.applyAttributes(attributes)`)
+        printer.popIndent()
+        printer.print(`}`)
+    }
+
+    printNodeModifier() {
+        const component = this.componentName
+        this.printers.apiList.pushIndent()
+        this.printers.apiList.print(`const ArkUI${component}Modifier* (*get${component}Modifier)();`)
+
+        const modifierStructImpl = `ArkUI${component}ModifierImpl`
+        this.printers.dummyImplModifiers.print(`ArkUI${component}Modifier ${modifierStructImpl} {`)
+        this.printers.dummyImplModifiers.pushIndent()
+
+        this.printers.dummyImplModifierList.pushIndent()
+        this.printers.dummyImplModifierList.print(`Get${component}Modifier,`)
+        this.printers.dummyImplModifierList.popIndent()
+    }
+
+    printProlog() {
+        this.printers.TS.print(this.peerClassHeader())
+        this.printers.TS.pushIndent()
+        this.printers.api.print(this.apiModifierHeader())
+        this.printers.api.pushIndent()
+        this.printNodeModifier()
+    }
+
+    printEpilog() {
+        this.printers.TS.popIndent()
+        this.printers.TS.print(`}`)
+        this.printers.api.popIndent()
+        this.printers.api.print(`} ArkUI${this.componentName}Modifier;\n`)
+        this.printers.apiList.popIndent()
+        this.printers.dummyImplModifiers.popIndent()
+        this.printers.dummyImplModifiers.print(`};\n`)
+        const name = this.componentName
+        this.printers.dummyImplModifiers.print(`const ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
+    }
+
+    printMethods() {
+        this.generateConstructor(this.printers.TS)
+        this.methods.forEach(it => it.processPeerMethod())
+        this.generateApplyMethod(this.printers.TS)
+    }
+
+    print() {
+        this.printProlog()
+        this.printMethods()
+        this.printEpilog()
     }
 }
 
@@ -98,19 +485,27 @@ export type PeerGeneratorVisitorOptions = {
     declarationTable: DeclarationTable
 }
 
+class Printers {
+    constructor(
+        public TS: IndentedPrinter,
+        public C: IndentedPrinter,
+        public nativeModule: IndentedPrinter,
+        public nativeModuleEmpty: IndentedPrinter,
+        public nodeTypes: IndentedPrinter,
+        public api: IndentedPrinter,
+        public apiList: IndentedPrinter,
+        public dummyImpl: IndentedPrinter,
+        public dummyImplModifiers: IndentedPrinter,
+        public dummyImplModifierList: IndentedPrinter,
+    ) { }
+}
+
 export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     private typesToGenerate: string[] = []
     private seenAttributes = new Set<string>()
     private readonly sourceFile: ts.SourceFile
     private interfacesToGenerate: Set<string>
-    private printerNativeModule: IndentedPrinter
-    private printerNativeModuleEmpty: IndentedPrinter
-    private printerNodeTypes: IndentedPrinter
-    private apiPrinter: IndentedPrinter
-    private apiPrinterList: IndentedPrinter
-    private dummyImpl: IndentedPrinter
-    private dummyImplModifiers: IndentedPrinter
-    private dummyImplModifierList: IndentedPrinter
+    private printers: Printers
     private dumpSerialized: boolean
     declarationTable: DeclarationTable
 
@@ -121,15 +516,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.sourceFile = options.sourceFile
         this.typeChecker = options.typeChecker
         this.interfacesToGenerate = options.interfacesToGenerate
-        this.printerC = new IndentedPrinter(options.outputC)
-        this.printerNativeModule = new IndentedPrinter(options.nativeModuleMethods)
-        this.printerNativeModuleEmpty = new IndentedPrinter(options.nativeModuleEmptyMethods)
-        this.printerNodeTypes = new IndentedPrinter(options.nodeTypes)
-        this.apiPrinter = new IndentedPrinter(options.apiHeaders)
-        this.apiPrinterList = new IndentedPrinter(options.apiHeadersList)
-        this.dummyImpl = new IndentedPrinter(options.dummyImpl)
-        this.dummyImplModifiers = new IndentedPrinter(options.dummyImplModifiers)
-        this.dummyImplModifierList = new IndentedPrinter(options.dummyImplModifierList)
+        this.printers = new Printers(
+            new IndentedPrinter(),
+            new IndentedPrinter(options.outputC),
+            new IndentedPrinter(options.nativeModuleMethods),
+            new IndentedPrinter(options.nativeModuleEmptyMethods),
+            new IndentedPrinter(options.nodeTypes),
+            new IndentedPrinter(options.apiHeaders),
+            new IndentedPrinter(options.apiHeadersList),
+            new IndentedPrinter(options.dummyImpl),
+            new IndentedPrinter(options.dummyImplModifiers),
+            new IndentedPrinter(options.dummyImplModifierList)
+        )
         this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
     }
@@ -160,6 +558,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             })
     }
 
+    printAllPeers() {
+        Array.from(this.peers.values()).map(it => {
+            it.print()
+        })
+    }
+
     visitWholeFile(): stringOrNone[] {
         this.importStatements(this.sourceFile.fileName)
             .concat([
@@ -173,11 +577,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             ])
             .forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
-        return this.printerTS.getOutput()
+        this.printAllPeers()
+        return this.printers.TS.getOutput()
     }
 
     resultC(): string[] {
-        return this.printerC.getOutput()
+        return this.printers.C.getOutput()
     }
 
     private isRootMethodInheritor(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
@@ -185,6 +590,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             return isCommonMethodOrSubclass(this.typeChecker, decl)
         }
         return false
+
+    }
+
+    private isCallableSignatureInterface(name: string|undefined): boolean {
+        return !!(name?.endsWith("Interface"))
     }
 
     needsPeer(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
@@ -199,6 +609,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (isStandalone(name)) return true
         if (isRoot(name)) return true
         if (this.isRootMethodInheritor(decl)) return true
+
+        return false
+    }
+
+    isFriendInterface(decl: ts.InterfaceDeclaration): boolean {
+        let name = decl.name?.text
+        if (!name) return false
+        // We don't want constructor signature to be inherited
+        if (PeerGeneratorConfig.uselessConstructorInterfaces.includes(name)) return false
+        if (this.isCallableSignatureInterface(name)) return true
+
         return false
     }
 
@@ -227,13 +648,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         if (!this.needsPeer(node)) return
         const collapsedMethods = this.collapseOverloads(node)
 
-        this.prologue(node)
-        this.generateConstructor(node)
-        collapsedMethods.forEach(it => this.processMethod(node, it))
-        this.generateApplyMethod(node)
-        this.epilogue(node)
+        const componentName = this.renameToComponent(nameOrNull(node.name)!)
+        // We don't know what comes first ButtonAtrtribute or ButtonInterface.
+        // Both will contribute to the peer class.
+        const peer = getOrPut(this.peers, componentName, (_) => new PeerClass(componentName, this.printers))
 
-        this.createComponentAttributesDeclaration(node)
+        this.populatePeer(node, peer)
+        const peerMethods = collapsedMethods
+            .map(it => this.processMethodOrCallable(it, peer))
+            .filter(it => it != undefined) as PeerMethod[]
+        peer.methods.push(...peerMethods)
+
+        this.createComponentAttributesDeclaration(node, peer)
         this.generateAttributesValuesInterfaces()
         this.nativeModulePrint(node, collapsedMethods)
 
@@ -241,20 +667,20 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
-        if (!this.needsPeer(node)) return
-        this.prologue(node)
-        node.members.forEach(child => {
-            if (ts.isConstructorDeclaration(child)) {
-                this.processConstructor(child)
-            } else if (ts.isMethodSignature(child)) {
-                this.processMethod(node, { method: child })
-            } else if (ts.isPropertyDeclaration(child)) {
-                this.processProperty(child)
-            }
-        })
-        this.popIndentTS()
-        this.epilogue(node)
-        this.generateAttributesValuesInterfaces()
+        if (!this.isFriendInterface(node)) return
+
+        const componentName = this.renameToComponent(nameOrNull(node.name)!)
+        // We don't know what comes first ButtonAtrtribute or ButtonInterface.
+        // Both will contribute to the peer class.
+        const peer = getOrPut(this.peers, componentName, (_) => new PeerClass(componentName, this.printers))
+
+        const collapsedMethods = this.collapseOverloads(node)
+        const peerMethods = collapsedMethods
+            .filter(it => ts.isCallSignatureDeclaration(it.member))
+            .map(it => this.processMethodOrCallable(it, peer, identName(node)!))
+            .filter(it => it != undefined) as PeerMethod[]
+        peer.methods.push(...peerMethods)
+        this.nativeModulePrint(node, collapsedMethods)
     }
 
     processConstructor(ctor: ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration) {
@@ -266,288 +692,122 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         ).join(", ")
     }
 
-    generateValues(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
-        return params?.map(param => `${nameOrNull(param.name)}`).join(", ")
+    generateValues(argConvertors: ArgConvertor[]): stringOrNone {
+        return argConvertors?.map(it => `${it.param}`).join(", ")
     }
 
     printTS(value: stringOrNone) {
-        this.printerTS.print(value)
+        this.printers.TS.print(value)
     }
 
     printC(value: stringOrNone) {
-        this.printerC.print(value)
+        this.printers.C.print(value)
     }
 
     printAPI(value: stringOrNone) {
-        this.apiPrinter.print(value)
+        this.printers.api.print(value)
     }
 
     printDummy(value: stringOrNone) {
-        this.dummyImpl.print(value)
+        this.printers.dummyImpl.print(value)
     }
 
     printDummyModifier(value: stringOrNone) {
-        this.dummyImplModifiers.print(value)
+        this.printers.dummyImplModifiers.print(value)
     }
 
     printDummyModifierList(value: stringOrNone) {
-        this.dummyImplModifierList.print(value)
+        this.printers.dummyImplModifierList.print(value)
     }
 
-    printNodeModifier(value: stringOrNone) {
-        this.apiPrinterList.print(`const ArkUI${value}Modifier* (*get${value}Modifier)();`)
-        const modifierStructImpl = `ArkUI${value}ModifierImpl`
-        this.dummyImplModifiers.print(`ArkUI${value}Modifier ${modifierStructImpl} {`)
-        this.dummyImplModifierList.pushIndent()
-        this.dummyImplModifierList.print(`Get${value}Modifier,`)
-        this.dummyImplModifierList.popIndent()
-    }
+    processMethodOrCallable(
+        { member: method, collapsed: collapsed }: MaybeCollapsedMethod,
+        peer: PeerClass,
+        parentName?: string
+    ): PeerMethod|undefined {
+        const isCallSignature = ts.isCallSignatureDeclaration(method)
+        // Some method have other parents as part of their names
+        // Such as the ones coming from thr friend interfaces
+        // E.g. ButtonInterface instead of ButtonAttribute
+        const originalParentName = parentName ?? peer.originalClassName!
+        const methodName = isCallSignature ? `_set${peer.componentName}Options` : identName(method.name)!
 
-    private seenMethods = new Set<string>()
-
-    processMethod(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, { method, collapsed }: MaybeCollapsedMethod): void {
-        const clazzName = identName(clazz.name)!
-        const methodName = identName(method.name)!
-        const fullMethodName = this.peerMethodName(methodName)
-
-        let isComponent = false
         if (PeerGeneratorConfig.ignorePeerMethod.includes(methodName)) return
 
         method.parameters.map((param, index) => {
             if (param.type)
-                this.requestType(`Type_${clazzName}_${methodName}_Arg${index}`, param.type)
+                this.requestType(`Type_${originalParentName}_${methodName}_Arg${index}`, param.type)
         })
         const hasReceiver = true // TODO: make it false for non-method calls.
-        const componentName = ts.idText(clazz.name as ts.Identifier)
         const argConvertors = method.parameters
             .map((param) => this.argConvertor(param))
         const retConvertor = this.retConvertor(method.type)
-        const suffix = this.generateCMacroSuffix(argConvertors, retConvertor, hasReceiver)
 
-        console.log(`processing ${componentName}.${methodName}`)
+        const peerMethod = new PeerMethod(
+            peer,
+            originalParentName,
+            methodName,
+            argConvertors,
+            retConvertor,
+            hasReceiver,
+            isCallSignature,
+            collapsed?.paramsDecl ?? this.generateParams(method.parameters),
+            collapsed?.paramsUsage ?? this.generateValues(argConvertors),
+            this.dumpSerialized
+        )
+        console.log(`processing ${peerMethod.originalParentName}.${peerMethod.fullMethodName}`)
 
-        const apiParameters = this.generateAPIParameters(argConvertors).join(", ")
-        const implName = `${capitalize(clazzName)}_${capitalize(fullMethodName)}Impl`
-        const retType = this.maybeCRetType(retConvertor) ?? "void"
-        this.printAPI(`${retType} (*${fullMethodName})(${apiParameters});`)
-        this.printDummyModifier(`${implName},`)
+        // this.processPeerMethod(peer, peerMethod)
 
-        this.printDummy(`${retType} ${implName}(${apiParameters}) {`)
-        this.dummyImpl.pushIndent()
-        this.printDummy(`string out("${methodName}(");`)
-        method.parameters.forEach((param, index) => {
-            if (index > 0) this.printDummy(`out.append(", ");`)
-            this.printDummy(`WriteToString(&out, ${identName(param.name)});`)
-        })
-        this.printDummy(`out.append(")");`)
-        this.printDummy(`appendGroupedLog(1, out);`)
-        if (retType != "void") this.printDummy(`return 0;`)
-        this.dummyImpl.popIndent()
-        this.printDummy(`}`)
-
-        this.seenMethods.add(methodName)
-        const paramsDecl = collapsed?.paramsDecl ?? this.generateParams(method.parameters)
-        this.printTS(`${methodName}Attribute(${paramsDecl}) {`)
-        let cName = `${componentName}_${methodName}`
-        this.printC(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
-        this.pushIndentBoth()
-        if (isComponent) {
-            this.printTS(`if (this.checkPriority("${methodName}")) {`)
-            this.pushIndentTS()
-            const paramsUsage = collapsed?.paramsUsage ?? this.generateValues(method.parameters)
-            this.printTS(`this.peer?.${methodName}Attribute(${paramsUsage}`)
-            this.popIndentTS()
-            this.printTS(`}`)
-        } else {
-            let isStub = false
-            if (isStub) {
-                this.printTS(`throw new Error("${methodName}Attribute() is not implemented")`)
-            } else {
-                let name = `${methodName}`
-                this.generateNativeBody(componentName, methodName, name, argConvertors, hasReceiver, retConvertor.isVoid)
-            }
-        }
-        this.popIndentBoth()
-        this.printC(`}`)
-        let macroArgs = [cName, this.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, hasReceiver))
-            .filter(isDefined)
-            .join(", ")
-        this.printC(`KOALA_INTEROP_${suffix}(${macroArgs})`)
-        this.printC(` `)
-
-        this.printTS(`}`)
+        return peerMethod
     }
-
-    generateCParameters(argConvertors: ArgConvertor[]): string[] {
-        return (["KNativePointer nodePtr"].concat(argConvertors.map(it => {
-            if (it.useArray) {
-                return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
-            } else {
-                let type = it.interopType(false)
-                return `${type == "KStringPtr" ? "const KStringPtr&" : type} ${it.param}`
-            }
-        })))
-    }
-
-    generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string[] {
-        const receiver = hasReceiver ? ['KNativePointer'] : []
-        return receiver.concat(argConvertors.map(it => {
-            if (it.useArray) {
-                return `uint8_t*, int32_t`
-            } else {
-                return it.interopType(false)
-            }
-        }))
-    }
-
-    maybeCRetType(retConvertor: RetConvertor): string | undefined {
-        if (retConvertor.isVoid) return undefined
-        return retConvertor.nativeType()
-    }
-
-    generateCMacroSuffix(argConvertors: ArgConvertor[], retConvertor: RetConvertor, hasReceiver: boolean) {
-        let counter = hasReceiver ? 1 : 0
-        argConvertors.forEach(it => {
-            if (it.useArray) {
-                counter += 2
-            } else {
-                counter += 1
-            }
-        })
-        return `${retConvertor.macroSuffixPart()}${counter}`
-    }
-
-    modifierSection(clazzName: string) {
-        // TODO: may be need some translation tables?
-        let clazz = dropSuffix(dropSuffix(clazzName, "Method"), "Attribute")
-        return `get${capitalize(clazz)}Modifier()`
-    }
-
-    peerMethodName(methodName: string) {
-        if (methodName.startsWith("set") || methodName.startsWith("get")) return methodName
-        return `set${capitalize(methodName)}`
-    }
-
-    generateAPIParameters(argConvertors: ArgConvertor[]): string[] {
-        return (["ArkUINodeHandle node"].concat(argConvertors.map(it => {
-            let isPointer = it.isPointerType()
-            return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
-        })))
-    }
-
-    // TODO: may be this is another method of ArgConvertor?
-    apiArgument(argConvertor: ArgConvertor): string {
-        const prefix = argConvertor.isPointerType() ? "&": "    "
-        if (argConvertor.useArray) return `${prefix}${argConvertor.param}Value`
-        return `${argConvertor.convertorCArg(argConvertor.param)}`
-    }
-
-    generateAPICall(clazzName: string, methodName: string, hasReceiver: boolean, argConvertors: ArgConvertor[], isVoid: boolean) {
-        const api = "GetNodeModifiers()"
-        const modifier = this.modifierSection(clazzName)
-        const method = this.peerMethodName(methodName)
-        const receiver = hasReceiver ? ['node'] : []
-        // TODO: how do we know the real amount of arguments of the API functions?
-        // Do they always match in TS and in C one to one?
-        const args = receiver.concat(argConvertors.map(it => this.apiArgument(it))).join(", ")
-        this.printC(`${isVoid ? "" : "return "}${api}->${modifier}->${method}(${args});`)
-    }
-
-    generateNativeBody(clazzName: string, originalMethodName: string, methodName: string, argConvertors: ArgConvertor[], hasReceiver: boolean, isVoid: boolean) {
-        this.pushIndentBoth()
-        if (hasReceiver) {
-            this.printC("ArkUINodeHandle node = reinterpret_cast<ArkUINodeHandle>(nodePtr);")
-        }
-        let scopes = argConvertors.filter(it => it.isScoped)
-        scopes.forEach(it => {
-            this.pushIndentTS()
-            this.printTS(it.scopeStart?.(it.param))
-        })
-        argConvertors.forEach(it => {
-            if (it.useArray) {
-                let size = it.estimateSize()
-                this.printTS(`const ${it.param}Serializer = new Serializer(${size})`)
-                it.convertorToTSSerial(it.param, it.param, this.printerTS)
-                this.printC(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
-                this.printC(`${it.nativeType(false)} ${it.param}Value;`)
-                it.convertorToCDeserial(it.param, `${it.param}Value`, this.printerC)
-            }
-        })
-        // Enable to see serialized data.
-        if (this.dumpSerialized) {
-            argConvertors.forEach((it, index) => {
-                if (it.useArray) {
-                    this.printTS(`console.log("${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
-                }
-            })
-        }
-        this.printTS(`nativeModule()._${clazzName}_${methodName}(this.ptr${argConvertors.length > 0 ? ", " : ""}`)
-        this.pushIndentTS()
-        argConvertors.forEach((it, index) => {
-            let maybeComma = index == argConvertors.length - 1 ? "" : ","
-            if (it.useArray)
-                this.printTS(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
-            else
-                this.printTS(it.convertorTSArg(it.param))
-            this.printTS(maybeComma)
-        })
-        this.popIndentTS()
-        this.printTS(`)`)
-        scopes.reverse().forEach(it => {
-            this.popIndentTS()
-            this.printTS(it.scopeEnd!(it.param))
-        })
-        this.generateAPICall(clazzName, originalMethodName, hasReceiver, argConvertors, isVoid)
-        this.popIndentBoth()
-    }
-
-    private printerTS = new IndentedPrinter()
-    private printerC = new IndentedPrinter()
 
     pushIndentBoth() {
-        this.printerTS.pushIndent()
-        this.printerC.pushIndent()
+        this.printers.TS.pushIndent()
+        this.printers.C.pushIndent()
     }
     popIndentBoth() {
-        this.printerTS.popIndent()
-        this.printerC.popIndent()
+        this.printers.TS.popIndent()
+        this.printers.C.popIndent()
     }
     pushIndentTS() {
-        this.printerTS.pushIndent()
+        this.printers.TS.pushIndent()
     }
     popIndentTS() {
-        this.printerTS.popIndent()
+        this.printers.TS.popIndent()
     }
     pushIndentC() {
-        this.printerC.pushIndent()
+        this.printers.C.pushIndent()
     }
     popIndentC() {
-        this.printerC.popIndent()
+        this.printers.C.popIndent()
     }
     pushIndentAPI() {
-        this.apiPrinter.pushIndent()
+        this.printers.api.pushIndent()
     }
     popIndentAPI() {
-        this.apiPrinter.popIndent()
+        this.printers.api.popIndent()
     }
     pushIndentAPIList() {
-        this.apiPrinterList.pushIndent()
+        this.printers.apiList.pushIndent()
     }
     popIndentAPIList() {
-        this.apiPrinterList.popIndent()
+        this.printers.apiList.popIndent()
     }
     pushIndentDummyImpl() {
-        this.dummyImpl.pushIndent()
+        this.printers.dummyImpl.pushIndent()
     }
     popIndentDummyImpl() {
-        this.dummyImpl.popIndent()
+        this.printers.dummyImpl.popIndent()
     }
     pushIndentDummyModifiers() {
-        this.dummyImplModifiers.pushIndent()
+        this.printers.dummyImplModifiers.pushIndent()
     }
     popIndentDummyModifiers() {
-        this.dummyImplModifiers.popIndent()
+        this.printers.dummyImplModifiers.popIndent()
     }
+
+    peers = new Map<string, PeerClass>()
 
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")
@@ -571,131 +831,29 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         throw new Error(`unexpected property ${property.name.getText(this.sourceFile)}`)
     }
 
-    prologue(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const koalaComponentName = this.renameToKoalaComponent(nameOrNull(node.name)!)
-        const componentName = this.renameToComponent(nameOrNull(node.name)!)
-        const peerParentName = this.peerParentName(node)
 
-        const extendsClause =
-            peerParentName
-                ? `extends ${peerParentName} `
-                : ""
-        this.printTS(`export class ${koalaComponentName}Peer ${extendsClause} {`)
-        this.pushIndentTS()
-        this.printAPI(`typedef struct ArkUI${componentName}Modifier {`)
-        this.pushIndentAPI()
-        this.pushIndentAPIList()
-        this.printNodeModifier(componentName)
-        this.pushIndentDummyModifiers()
-    }
-
-    private peerParentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
-        const name = componentName(component)
-        if (isCommonMethod(name)) return "PeerNode"
-        if (isStandalone(name)) return "PeerNode"
-        if (isRoot(name)) return "Finalizable"
-
-        const parent = parentName(component)
-            ?? throwException(`Expected component to have parent: ${name}`)
-        return `${this.renameToKoalaComponent(parent)}Peer`
-    }
-
-    private attributesParentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
-        if (!isHeir(componentName(component))) return undefined
-
-        const parent = parentName(component) ?? throwException(`Heir component must have parent: ${componentName}`)
-        return `${this.renameToKoalaComponent(parent)}Attributes`
+    populatePeer(node: ts.ClassDeclaration, peer: PeerClass) {
+        peer.originalClassName = className(node)
+        peer.originalParentName = parentName(node)
+        peer.parentComponentName = peer.originalParentName ?
+            this.renameToComponent(peer.originalParentName!) :
+            undefined
     }
 
     private renameToComponent(name: string): string {
         return name
             .replace("Attribute", "")
             .replace("Method", "")
+            .replace("Interface", "")
     }
 
-    private renameToKoalaComponent(name: string): string {
-        return "Ark" + this.renameToComponent(name)
-    }
-
-    private epilogue(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const componentName = this.renameToComponent(nameOrNull(node.name)!)
-        this.popIndentTS()
-        this.printTS(`}`)
-        this.popIndentAPI()
-        this.printAPI(`} ArkUI${componentName}Modifier;\n`)
-        this.popIndentAPIList()
-        this.popIndentDummyModifiers()
-        this.printDummyModifier(`};\n`)
-        const name = this.renameToComponent(nameOrNull(node.name)!)
-        this.printDummyModifier(`const ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
-    }
-
-    private generateApplyMethod(node: ts.ClassDeclaration): void {
-        const name = componentName(node).replace("Attribute", "")
-
-        const typeParam = this.renameToKoalaComponent(name) + "Attributes"
-        if (isRoot(name)) {
-            this.printTS(`applyAttributes(attributes: ${typeParam}): void {`)
-            this.pushIndentTS()
-            this.printTS(`super.constructor(42)`)
-            this.popIndentTS()
-            this.printTS(`}`)
-            return
-        }
-
-        this.printTS(`applyAttributes<T extends ${typeParam}>(attributes: T): void {`)
-        this.pushIndentTS()
-        this.printTS(`super.applyAttributes(attributes)`)
-        this.popIndentTS()
-        this.printTS(`}`)
-    }
-
-    private generateConstructor(node: ts.ClassDeclaration): void {
-        const parentRole = determineParentRole(node)
-
-        if (parentRole === InheritanceRole.Finalizable) {
-            this.printTS(`constructor(type?: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
-            this.pushIndentTS()
-            this.printTS(`super(BigInt(42)) // for now`)
-            this.popIndentTS()
-            this.printTS(`}`)
-            return
-        }
-        if (parentRole === InheritanceRole.PeerNode) {
-            this.printTS(`constructor(type: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
-            this.pushIndentTS()
-            this.printTS(`super(type, flags)`)
-            this.printTS(`component?.setPeer(this)`)
-            this.popIndentTS()
-            this.printTS(`}`)
-            return
-        }
-
-        if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
-            this.printTS(`constructor(type: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
-            this.pushIndentTS()
-            this.printTS(`super(type, component, flags)`)
-            this.popIndentTS()
-            this.printTS(`}`)
-            return
-        }
-
-        throwException(`Unexpected parent inheritance role: ${parentRole}`)
-    }
-
-    private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
-        const component = nameOrNull(node.name)!.replace("Attribute", "")
-        const koalaComponent = this.renameToKoalaComponent(component)
+    private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration, peer: PeerClass): void {
+        const koalaComponent = peer.koalaComponentName
         if (PeerGeneratorConfig.invalidAttributes.includes(koalaComponent)) {
             this.printTS(`export interface ${koalaComponent}Attributes {}`)
             return
         }
-        const parent = this.attributesParentName(node)
-        const extendsClause =
-            parent
-                ? ` extends ${parent} `
-                : ""
-        this.printTS(`export interface ${this.renameToKoalaComponent(component)}Attributes ${extendsClause} {`)
+        this.printTS(peer.attributeInterfaceHeader())
         this.pushIndentTS()
         node.members.forEach(child => {
             if (ts.isMethodDeclaration(child)) {
@@ -780,20 +938,28 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         })
     }
 
-    private collapseOverloads(node: ts.ClassDeclaration): MaybeCollapsedMethod[] {
-        const methods = node.members.filter(ts.isMethodDeclaration)
-        const groupedByName = new Map<string, ts.MethodDeclaration[]>(
-            methods.map(it => [it.name.getText(), []])
+    private nameOrEmpty(member: ts.MethodDeclaration | ts.CallSignatureDeclaration): string {
+        if (ts.isMethodDeclaration(member)) return member.name.getText()
+        if (ts.isCallSignatureDeclaration(member)) return ""
+        throw new Error("Unsupported: " + asString(member))
+    }
+    private collapseOverloads(node: ts.ClassDeclaration|ts.InterfaceDeclaration): MaybeCollapsedMethod[] {
+        const methods = (node.members as ts.NodeArray<ts.Node>).filter(
+            it => (ts.isMethodDeclaration(it) || ts.isCallSignatureDeclaration(it))
+        ) as (ts.MethodDeclaration | ts.CallSignatureDeclaration)[]
+
+        const groupedByName = new Map<string, (ts.MethodDeclaration|ts.CallSignatureDeclaration)[]>(
+            methods.map(it => [this.nameOrEmpty(it), []])
         )
         methods.forEach(it => {
-            groupedByName.get(it.name.getText())?.push(it)
+            groupedByName.get(this.nameOrEmpty(it))?.push(it)
         })
 
         return [...groupedByName.keys()].map(name => {
             const overloads = groupedByName.get(name)!
             if (overloads.length == 1) {
                 return {
-                    method: overloads[0]
+                    member: overloads[0]
                 }
             }
 
@@ -848,16 +1014,21 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 .join(", ")
 
             return {
-                method: ts.factory.createMethodDeclaration(
-                    undefined,
-                    undefined,
-                    name,
-                    undefined,
-                    undefined,
-                    params,
-                    undefined,
-                    undefined
-                ),
+                member: (name == "") ?
+                    ts.factory.createCallSignature(
+                        undefined,
+                        params,
+                        undefined,
+                    ) : ts.factory.createMethodDeclaration(
+                        undefined,
+                        undefined,
+                        name,
+                        undefined,
+                        undefined,
+                        params,
+                        undefined,
+                        undefined
+                    ),
                 collapsed: {
                     paramsDecl: paramsDecl,
                     paramsUsage: paramsUsage
@@ -882,12 +1053,27 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         return this.declarationTable.getTypeName(type, optional)
     }
 
-    private nativeModulePrint(parent: ts.ClassDeclaration, methods: MaybeCollapsedMethod[]): void {
-        if (parent.name === undefined) throw new Error(`Encountered nameless method ${parent}`)
-        const component = ts.idText(parent.name)
+    classNameIfInterface(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
+        if (clazz.name === undefined) {
+            throw new Error(`Encountered nameless ${asString(clazz)} in ${asString(clazz.parent)}`)
+        }
+        let name = clazz.name
+        if (ts.isClassDeclaration(clazz)) return ts.idText(name)
+        if (ts.isInterfaceDeclaration(clazz) &&
+            ts.idText(name).endsWith("Interface")) {
+            // Do we want to convert ButtonInterface to ButtonAttribute here?
+            // Most probably yes. Will do it here.
+            // For now we just leave ButtonInterface.
+            return ts.idText(name)
+        }
+        throw new Error(`Expected a class or a friend interface: ${asString(clazz)}`)
+    }
+
+    private nativeModulePrint(parent: ts.ClassDeclaration|ts.InterfaceDeclaration, methods: MaybeCollapsedMethod[]): void {
+        const component = this.classNameIfInterface(parent)
 
         methods.forEach(maybeCollapsedMethod => {
-            const basicParameters = maybeCollapsedMethod.method.parameters
+            const basicParameters = maybeCollapsedMethod.member.parameters
                 .map(it => this.argConvertor(it))
                 .map(it => {
                     if (it.useArray) {
@@ -901,16 +1087,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                 .concat(basicParameters)
                 .join(", ")
 
-            const originalName = ts.idText(maybeCollapsedMethod.method.name as ts.Identifier)
+            const originalName = ts.isCallSignatureDeclaration(maybeCollapsedMethod.member) ?
+                `_set${this.renameToComponent(component)}Options` :
+                ts.idText(maybeCollapsedMethod.member.name as ts.Identifier)
             const implDecl = `_${component}_${originalName}(${parameters}): void`
 
-            this.printerNativeModule.print(implDecl)
-            this.printerNativeModuleEmpty.print(`${implDecl} { console.log("${originalName}") }`)
+            this.printers.nativeModule.print(implDecl)
+            this.printers.nativeModuleEmpty.print(`${implDecl} { console.log("${originalName}") }`)
         })
     }
 
     private printNodeType(node: ts.ClassDeclaration): void {
-        this.printerNodeTypes.print(
+        this.printers.nodeTypes.print(
             this.renameToComponent(nameOrNull(node.name)!)
         )
     }

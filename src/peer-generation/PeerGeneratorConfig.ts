@@ -35,6 +35,23 @@ export class PeerGeneratorConfig {
 
     public static invalidAttributes = ["ArkScrollableCommon"]
 
+    public static readonly uselessConstructorInterfaces = [
+        "CommonInterface",
+        "ForEachInterface",
+        "LazyForEachInterface",
+        "TapGestureInterface",
+        "LongPressGestureInterface",
+        "PanGestureInterface",
+        "SwipeGestureInterface",
+        "PinchGestureInterface",
+        "RotationGestureInterface",
+        "GestureGroupInterface",
+        "PageTransitionEnterInterface",
+        "PageTransitionExitInterface",
+        "ParticleInterface",
+        "ProgressInterface"
+    ]
+
     public static skipPeerGeneration = ["CommonAttribute"]
 
     static mapComponentName(originalName: string): string {

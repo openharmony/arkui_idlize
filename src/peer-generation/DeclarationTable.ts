@@ -134,6 +134,7 @@ export class DeclarationTable {
         if (this.isDeclarationTarget(node)) return node as DeclarationTarget
         if (ts.isTypeReferenceNode(node)) {
             if (identName(node) == "Length") return PrimitiveType.Length
+            if (identName(node) == "ParticleConfigs") return PrimitiveType.CustomObject
             let orig = node
             let declarations = getDeclarationsByNode(this.typeChecker!, node.typeName)
             while (declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])) {
@@ -150,6 +151,9 @@ export class DeclarationTable {
                 return declaration.parent
             }
             return declaration as DeclarationTarget
+        }
+        if (ts.isIndexedAccessTypeNode(node)) {
+            return PrimitiveType.CustomObject
         }
         if (node.kind == ts.SyntaxKind.StringKeyword) {
             return PrimitiveType.String
@@ -173,7 +177,10 @@ export class DeclarationTable {
         if (node.kind == ts.SyntaxKind.AnyKeyword) {
             return PrimitiveType.CustomObject
         }
-        throw new Error(`Unknown ${node.getText()}: ${node.kind}`)
+        if (node.kind == ts.SyntaxKind.UnknownKeyword) {
+            return PrimitiveType.CustomObject
+        }
+        throw new Error(`Unknown ${node.getText()}: ${ts.SyntaxKind[node.kind]} in ${asString(node.parent)}`)
     }
 
     computeTargetName(target: DeclarationTarget, optional: boolean): string {
@@ -362,6 +369,9 @@ export class DeclarationTable {
         if (ts.isTypeParameterDeclaration(type)) {
             return prefix + `CustomObject`
         }
+        if (ts.isIndexedAccessTypeNode(type)) {
+            return prefix + `CustomObject`
+        }
         if (ts.isEnumMember(type)) {
             return prefix + identName(type.name)
         }
@@ -446,7 +456,10 @@ export class DeclarationTable {
         if (ts.isNamedTupleMember(type)) {
             return this.typeConvertor(param, type.type)
         }
-        if (type.kind == ts.SyntaxKind.AnyKeyword) {
+        if (type.kind == ts.SyntaxKind.AnyKeyword ||
+            type.kind == ts.SyntaxKind.UnknownKeyword ||
+            ts.isIndexedAccessTypeNode(type)
+        ) {
             return new CustomTypeConvertor(param, "Any")
         }
         console.log(type)
