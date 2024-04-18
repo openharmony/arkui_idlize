@@ -52,6 +52,55 @@ declare interface SheetOptions extends BindOptions {
     detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
 }
 
+declare enum BlurStyle {
+    Thin = 0,
+}
+
+declare enum ThemeColorMode {
+    SYSTEM = 0,
+    LIGHT = 1,
+    DARK = 2
+}
+
+declare enum AdaptiveColor {
+    DEFAULT = 0,
+}
+
+declare interface BlurOptions {
+    grayscale: [number, number];
+}
+
+declare interface BlurStyleOptions {
+    colorMode?: ThemeColorMode;
+    adaptiveColor?: AdaptiveColor;
+    scale?: number;
+    blurOptions?: BlurOptions;
+}
+
+declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {}
+
+declare interface SizeResult {
+    width: number,
+    height: number,
+}
+
+declare type EdgeWidths = {
+    top?: Length;
+    right?: Length;
+    bottom?: Length;
+    left?: Length;
+};
+
+declare type EdgeWidth = EdgeWidths;
+
+declare type Padding = {
+    top?: Length;
+    right?: Length;
+    bottom?: Length;
+    left?: Length;
+};
+
+
 declare class CommonMethod<T> {
 
     constructor();
@@ -61,6 +110,8 @@ declare class CommonMethod<T> {
     height(value: Length): T;
 
     bindSheet(isShow: boolean, builder: () => void, options?: SheetOptions): T;
+
+    backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): T;
 }
 
 declare interface Rectangle {

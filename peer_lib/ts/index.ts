@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Shall be like this import { ArkCommonPeer } from "@arkoala/arkui/common"
 
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
+import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
@@ -95,11 +95,32 @@ function checkFormComponent() {
         "size(Literal_width_Number_height_Number {width=5, height=6})")
 }
 
+function checkCommon() {
+    let peer = new ArkCommonPeer(ArkUINodeType.Common)
+    // check backgroundBlurStyle and check the heritance by the way
+    let backgroundBlurStyle: BackgroundBlurStyleOptions = {
+        colorMode: 0,
+        adaptiveColor: 0,
+        scale: 1,
+        blurOptions: {
+            grayscale: [1, 1]
+        }
+    }
+    checkResult("Test backgroundBlurStyle for BackgroundBlurStyleOptions",
+        () => peer.backgroundBlurStyleAttribute(0, backgroundBlurStyle),
+        "backgroundBlurStyle(0, Optional_BackgroundBlurStyleOptions {tag=OBJECT value=BackgroundBlurStyleOptions {" +
+        "colorMode=Optional_ThemeColorMode {tag=OBJECT value=0}, adaptiveColor=Optional_AdaptiveColor {" +
+        "tag=OBJECT value=0}, scale=Optional_Number {tag=OBJECT value=1}, blurOptions=Optional_BlurOptions {" +
+        "tag=OBJECT value=BlurOptions {grayscale=Tuple_Number_Number {value0=1, value1=1}}}}})"
+    )
+}
+
 
 checkButton()
 checkCalendar()
 //checkDTS()
 checkFormComponent()
+checkCommon()
 
 // Report in error code.
 if (reportTestFailures && failedTestsCount > 0) process.exit(1)
