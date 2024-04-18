@@ -51,10 +51,6 @@ export class PeerClass {
     }
 
     private parentAttributesName(): string | undefined {
-        console.log("HEIR: ",
-            this.originalClassName,
-            InheritanceRole[determineInheritanceRole(this.originalClassName!)]
-        )
         if (!isHeir(this.originalClassName!)) return undefined
         return this.componentToAttribute(this.parentComponentName!)
     }

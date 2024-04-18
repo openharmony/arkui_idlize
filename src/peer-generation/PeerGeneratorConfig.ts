@@ -35,10 +35,13 @@ export class PeerGeneratorConfig {
 
     public static invalidAttributes = ["ArkScrollableCommon"]
 
+    // TODO: need a better logic to know if the XxxInterface
+    // doesn't have a XxxAttribute class which needs a peer.
     public static readonly uselessConstructorInterfaces = [
         "CommonInterface",
         "ForEachInterface",
         "LazyForEachInterface",
+        "GestureInterface",
         "TapGestureInterface",
         "LongPressGestureInterface",
         "PanGestureInterface",
@@ -49,7 +52,10 @@ export class PeerGeneratorConfig {
         "PageTransitionEnterInterface",
         "PageTransitionExitInterface",
         "ParticleInterface",
-        "ProgressInterface"
+        "ProgressInterface",
+        "TextStyleInterface",
+        "DecorationStyleInterface",
+        "GestureStyleInterface"
     ]
 
     public static skipPeerGeneration = ["CommonAttribute"]
