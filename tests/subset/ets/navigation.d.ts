@@ -1,5 +1,8 @@
 declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
 
+    // backButtonIcon(value: string | PixelMap | Resource): NavigationAttribute;
+    backButtonIcon(value: string | PixelMap ): NavigationAttribute;
+
     // TBD: Fix TestGeneratorVisitor to not generate undefined values
     // navBarWidthRange(value: [Dimension, Dimension]): NavigationAttribute;
 

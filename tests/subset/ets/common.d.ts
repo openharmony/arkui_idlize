@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+declare type PixelMap = import('../resource/image').default.PixelMap;
+
 declare type AnimationRange<T> = [from: T, to: T];
 
 declare interface Callback<T> {}
@@ -24,6 +26,10 @@ declare interface ClickEvent extends BaseEvent {
     displayY: number;
 }
 
+declare interface StateStyles {
+
+    normal?: any;
+}
 
 declare interface AttributeModifier<T>{}
 declare interface ContentModifier<T>{}
@@ -104,6 +110,8 @@ declare type Padding = {
 declare class CommonMethod<T> {
 
     constructor();
+
+    stateStyles(value: StateStyles): T;
 
     width(value: Length): T;
 

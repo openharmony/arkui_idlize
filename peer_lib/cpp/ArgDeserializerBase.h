@@ -137,6 +137,17 @@ inline void WriteToString(string* result, const CustomObject* value) {
   result->append(std::to_string(value->id));
 }
 
+inline void WriteToString(string* result, const Optional_CustomObject* value) {
+  result->append("Optional_CustomObject {");
+  result->append("tag=");
+  result->append(tagName((Tags)value->tag));
+  if (value->tag != TAG_UNDEFINED) {
+    result->append(" value=");
+    WriteToString(result, &value->value);
+  }
+  result->append("}");
+}
+
 struct CustomDeserializer {
   virtual bool supports(const string& kind) { return false; }
   virtual CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {

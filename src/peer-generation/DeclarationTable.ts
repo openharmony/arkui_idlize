@@ -275,7 +275,8 @@ export class DeclarationTable {
             return prefix + `Array_` + this.computeTargetName(this.toTarget(target.elementType), false)
         }
         if (ts.isImportTypeNode(target)) {
-            return prefix + identName(target.qualifier)!
+            // return prefix + identName(target.qualifier)!
+            return PrimitiveType.CustomObject.name
         }
         if (ts.isOptionalTypeNode(target)) {
             let name = this.computeTargetName(this.toTarget(target.type), false)
@@ -642,6 +643,11 @@ export class DeclarationTable {
                 continue
             }
             let ignore = (target instanceof PrimitiveType) || this.ignoreTarget(target, assignedName)
+
+            if (assignedName === PrimitiveType.CustomObject.name) {
+                continue
+            }
+
             if (!ignore) {
                 structs.print(`typedef struct ${assignedName} {`)
                 structs.pushIndent()
@@ -671,6 +677,7 @@ export class DeclarationTable {
             if (seenNames.has(declarationTarget[1])) continue
             if (PeerGeneratorConfig.ignoreSerialization.includes(declarationTarget[1])) continue
             if (name.startsWith("Optional_")) continue
+            if (name === PrimitiveType.CustomObject.name) continue
             seenNames.add(declarationTarget[1])
             typedefs.print(`typedef ${name} ${declarationTarget[1]};`)
             typedefs.print(`typedef Optional_${name} Optional_${declarationTarget[1]};`)

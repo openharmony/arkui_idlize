@@ -17,6 +17,7 @@ import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
+import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { withStringResult } from "./Interop"
 import { nativeModule } from "@arkoala/arkui/NativeModule"
@@ -115,12 +116,18 @@ function checkCommon() {
     )
 }
 
+function checkNavigation() {
+    let peer = new ArkNavigationPeer(ArkUINodeType.Navigation)
+    checkResult("backButtonIcon", () => peer.backButtonIconAttribute("attr"),
+        "backButtonIcon(Union_String_CustomObject [variant 0] value0=attr)")
+}
 
 checkButton()
 checkCalendar()
 //checkDTS()
 checkFormComponent()
 checkCommon()
+checkNavigation()
 
 // Report in error code.
 if (reportTestFailures && failedTestsCount > 0) process.exit(1)

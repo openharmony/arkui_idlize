@@ -14,7 +14,7 @@
  */
 import { IndentedPrinter } from "../IndentedPrinter"
 import { identName, importTypeName, mapType, typeName } from "../util"
-import { DeclarationTable } from "./DeclarationTable"
+import {DeclarationTable, PrimitiveType} from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 
@@ -359,7 +359,9 @@ export class ImportTypeConvertor extends BaseArgConvertor {
         printer.print(`${value} = ${param}Deserializer.readCustom("${this.importedName}");`)
     }
     nativeType(impl: boolean): string {
-        return this.importedName
+        // return this.importedName
+        // treat ImportType as CustomObject
+        return PrimitiveType.CustomObject.name
     }
     interopType(ts: boolean): string {
         throw new Error("Must never be used")
@@ -789,6 +791,10 @@ export class TypeAliasConvertor extends ProxyConvertor {
     }
 
     nativeType(impl: boolean): string {
+        // propagate CustomObject type
+        if (this.convertor.nativeType(impl) === PrimitiveType.CustomObject.name) {
+            return PrimitiveType.CustomObject.name
+        }
         return ts.idText(this.type.name)
     }
 
