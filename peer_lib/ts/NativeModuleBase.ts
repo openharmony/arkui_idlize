@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { KPointer, KStringPtr, KInt, Uint8ArrayPtr } from "./types"
+import { KPointer, KStringPtr, KInt, KUint8ArrayPtr } from "./types"
 
 export class NativeModuleBase {
     _GetGroupedLog(index: KInt): KPointer {
@@ -31,7 +31,7 @@ export class NativeModuleBase {
     _StringLength(ptr: KPointer): KInt  {
         throw new Error("_StringLength")
     }
-    _StringData(ptr: KPointer, buffer: Uint8ArrayPtr, length: KInt): void  {
+    _StringData(ptr: KPointer, buffer: KUint8ArrayPtr, length: KInt): void  {
         throw new Error("_StringLength")
     }
     _StringMake(value: KStringPtr): KPointer {

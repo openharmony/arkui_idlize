@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { pointer, KUint8ArrayPtr, KPointer, int32, TypedArray } from "./types"
+import { int32 } from "@koalaui/common"
+import { pointer, KUint8ArrayPtr, KPointer, TypedArray } from "./types"
 
 export function decodeToString(array: Uint8Array): string {
     return decoder.decode(array)

@@ -19,6 +19,7 @@
         "paths": {
             "@arkoala/arkui": ["./generated/subset", "./"],
             "@arkoala/arkui/*": ["./generated/subset/*", "./*"],
+            "@koalaui/common": ["./generated/subset/koalaui-common"]
         },
     },
     "include": [

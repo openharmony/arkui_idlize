@@ -13,20 +13,23 @@
  * limitations under the License.
  */
 
-export type int32 = number
-export type float32 = number
-export type Int32ArrayPtr = Int32Array
-export type Uint8ArrayPtr = Uint8Array
+import { int32, float32 } from "@koalaui/common"
+
+export type NodePointer = pointer // todo: move to NativeModule
+
+export type KStringPtr = int32 | string | null
+export type KStringPtrArray = int32 | Uint8Array | null
+export type KUint8ArrayPtr = int32 | Uint8Array | null
+export type KInt32ArrayPtr = int32 | Int32Array | null
+export type KFloat32ArrayPtr = int32 | Float32Array | null
 export type KInt = int32
 export type KBoolean = int32
-export type pointer = bigint
-export type KPointer = pointer
-export type KNativePointer = pointer
-export type NodePointer = pointer
-export type KStringPtr = int32 | string | null
-export type KUint8ArrayPtr = int32 | Uint8Array | null
+export type KFloat = float32
+export type KPointer = number | bigint
+export type pointer = KPointer
+export type KNativePointer = KPointer
 
-export type TypedArray =
+export type TypedArray = // todo: move to interop-smth
     Uint8Array
     | Int8Array
     | Uint16Array

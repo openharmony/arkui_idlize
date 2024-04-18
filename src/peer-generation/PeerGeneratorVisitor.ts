@@ -569,7 +569,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             .concat([
                 `import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"`,
                 `import { Serializer } from "./Serializer"`,
-                `import { int32, KPointer } from "./types"`,
+                `import { int32 } from "@koalaui/common"`,
+                `import { KPointer } from "./types"`,
                 `import { nativeModule } from "./NativeModule"`,
                 `import { PeerNode, Finalizable, nullptr } from "./Interop"`,
                 `import { ArkUINodeType } from "./ArkUINodeType"`,

@@ -21,13 +21,15 @@ import { SortingEmitter } from "./SortingEmitter"
 const importTsInteropTypes = `
 import {
     int32,
-    float32,
+    float32
+} from "@koalaui/common"
+import {
     KInt,
     KBoolean,
     KStringPtr,
     KPointer,
     KNativePointer,
-    Int32ArrayPtr,
+    KInt32ArrayPtr,
     KUint8ArrayPtr,
     pointer
 } from "./types"
@@ -167,7 +169,7 @@ export function makeTSSerializer(table: DeclarationTable): string {
     table.generateSerializers(printer)
     return `
 import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
-import { int32 } from "./types"
+import { int32 } from "@koalaui/common"
 
 ${printer.getOutput().join("\n")}
 `
