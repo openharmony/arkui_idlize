@@ -663,7 +663,7 @@ export class DeclarationTable {
                 structs.print(`typedef int32_t ${nameAssigned};`)
                 if (!seenNames.has(nameOptional)) {
                     seenNames.add(nameOptional)
-                    structs.print(`typedef struct { int32_t tag; int32_t value; } ${nameOptional};`)
+                    structs.print(`typedef struct { Tags tag; int32_t value; } ${nameOptional};`)
                     this.writeOptional(nameOptional, writeToString, isPointer)
                 }
                 continue
@@ -690,7 +690,7 @@ export class DeclarationTable {
             if (!(target instanceof PointerType) && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable") {
                 structs.print(`typedef struct ${nameOptional} {`)
                 structs.pushIndent()
-                structs.print(`int32_t tag;`)
+                structs.print(`Tags tag;`)
                 structs.print(`${nameAssigned} value;`)
                 structs.popIndent()
                 structs.print(`} ${nameOptional};`)
@@ -847,13 +847,18 @@ export class DeclarationTable {
 
     targetStruct(target: DeclarationTarget): StructDescriptor {
         let result = new StructDescriptor()
+        if (target instanceof PointerType) {
+            result.deps.add(target.pointed)
+            return result
+        }
+
         if (target instanceof PrimitiveType) {
             return result
         }
         else if (ts.isArrayTypeNode(target)) {
             // TODO: delay this computation.
             let element = this.toTarget(target.elementType)
-            result.deps.add(element)
+            // result.deps.add(element)
             result.addField(new FieldRecord(PrimitiveType.pointerTo(element), target, "array"))
             result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
         }
