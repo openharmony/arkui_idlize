@@ -796,3 +796,9 @@ export class TypeAliasConvertor extends ProxyConvertor {
         return this.convertor.isPointerType()
     }
 }
+
+export interface RetConvertor {
+    isVoid: boolean
+    nativeType: () => string
+    macroSuffixPart: () => string
+}
