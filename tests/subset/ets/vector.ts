@@ -18,4 +18,8 @@ declare class VectorAttribute extends CommonMethod<VectorAttribute> {
     testVector1(value: Vector1): VectorAttribute
 
     testVector2(value: Vector2): VectorAttribute
+
+    testUnionVector1Number(value: Vector1 | number): VectorAttribute
+
+    testUnionVector2Number(value: Vector2 | number): VectorAttribute
 }

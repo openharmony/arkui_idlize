@@ -194,7 +194,9 @@ export class DeclarationTable {
         if (ts.isTypeLiteralNode(target)) {
             return prefix + `Literal_${target.members.map(member => {
                 if (ts.isPropertySignature(member)) {
-                    return this.computeTargetName(this.toTarget(member.type!), member.questionToken != undefined)
+                    let target = this.toTarget(member.type!)
+                    let field = identName(member.name)
+                    return `${field}_${this.computeTargetName(target, member.questionToken != undefined)}`
                 } else {
                     return undefined
                 }
