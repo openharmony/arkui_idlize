@@ -428,6 +428,7 @@ export function throwException(message: string): never {
     throw new Error(message)
 }
 
+// TODO: remove this function!
 export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined): string {
     if (!type) throw new Error("Cannot map empty type")
     if (ts.isTypeReferenceNode(type)) {
@@ -456,6 +457,10 @@ export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefin
     }
     if (ts.isFunctionTypeNode(type)) {
         return "object"
+    }
+    if (ts.isTypeLiteralNode(type)) {
+        // HACK!
+        if (type.members.filter(ts.isPropertySignature).some(it => ts.isImportTypeNode(it.type!))) return "any"
     }
     let text = type?.getText()
     // throw new Error(text)

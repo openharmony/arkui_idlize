@@ -16,7 +16,6 @@ import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable } from "./DeclarationTable"
-import { SortingEmitter } from "./SortingEmitter"
 
 const importTsInteropTypes = `
 import {
@@ -175,10 +174,10 @@ ${printer.getOutput().join("\n")}
 `
 }
 
-export function makeCDeserializer(table: DeclarationTable, structs: SortingEmitter, typedefs: IndentedPrinter): string {
+export function makeCDeserializer(table: DeclarationTable, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
     const deserializer = new IndentedPrinter()
-    const writeToString = new SortingEmitter(table)
+    const writeToString = new IndentedPrinter()
     table.generateDeserializers(deserializer, structs, typedefs, writeToString)
 
     return `
@@ -254,7 +253,7 @@ enum ArkUIAPIVariantKind {
 ${lines.join("\n")}
 `
 }
-export function makeAPI(headers: string[], modifiers: string[], structs: SortingEmitter, typedefs: IndentedPrinter): string {
+export function makeAPI(headers: string[], modifiers: string[], structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
     let structsBase = fs.readFileSync('./templates/StructsBase.h','utf8');
 
@@ -270,6 +269,17 @@ typedef int8_t KBoolean;
 typedef int8_t Boolean;
 
 typedef void* ArkUINodeHandle;
+
+enum Tags
+{
+  TAG_UNDEFINED = 101,
+  TAG_INT32 = 102,
+  TAG_FLOAT32 = 103,
+  TAG_STRING = 104,
+  TAG_LENGTH = 105,
+  TAG_RESOURCE = 106,
+  TAG_OBJECT = 107,
+};
 
 ${structsBase}
 

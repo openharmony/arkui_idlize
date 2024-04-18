@@ -42,10 +42,8 @@ import {
 } from "./peer-generation/PeerGeneratorVisitor"
 import { defaultCompilerOptions, isDefined, renameDtsToPeer, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
-import { SortingEmitter } from "./peer-generation/SortingEmitter"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
-import { table } from "console"
 import {IndentedPrinter} from "./IndentedPrinter";
 
 const options = program
@@ -320,7 +318,7 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(declarationTable))
 
-                const structs = new SortingEmitter(declarationTable)
+                const structs = new IndentedPrinter()
                 const typedefs = new IndentedPrinter()
 
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable, structs, typedefs))

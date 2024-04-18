@@ -291,9 +291,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
-        return params?.map(param =>
-            `${nameOrNull(param.name)}${param.questionToken ? "?" : ""}: ${mapType(this.typeChecker, param.type)}`
-        ).join(", ")
+        return params?.map(param => {
+            let mappedType = mapType(this.typeChecker, param.type)
+            return `${nameOrNull(param.name)}${param.questionToken ? "?" : ""}: ${mappedType}`
+        }).join(", ")
     }
 
     generateValues(argConvertors: ArgConvertor[]): stringOrNone {

@@ -45,11 +45,6 @@ typedef struct CustomObject {
   void* pointers[4];
 } CustomObject;
 
-typedef struct Optional_CustomObject {
-  int32_t tag;
-  CustomObject value;
-} Optional_CustomObject;
-
 typedef struct Undefined {
 } Undefined;
 

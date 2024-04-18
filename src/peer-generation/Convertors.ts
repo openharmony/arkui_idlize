@@ -340,7 +340,7 @@ export class UnionConvertor extends BaseArgConvertor {
 
 export class ImportTypeConvertor extends BaseArgConvertor {
     private importedName: string
-    constructor(param: string, table: DeclarationTable, type: ts.ImportTypeNode) {
+    constructor(param: string, private table: DeclarationTable, type: ts.ImportTypeNode) {
         super("Object", [RuntimeType.OBJECT], false, true, param)
         this.importedName = importTypeName(type)
         table.requestType(this.importedName, type)
@@ -361,7 +361,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     nativeType(impl: boolean): string {
         // return this.importedName
         // treat ImportType as CustomObject
-        return PrimitiveType.CustomObject.name
+        return PrimitiveType.CustomObject.getText(this.table)
     }
     interopType(ts: boolean): string {
         throw new Error("Must never be used")
@@ -792,8 +792,8 @@ export class TypeAliasConvertor extends ProxyConvertor {
 
     nativeType(impl: boolean): string {
         // propagate CustomObject type
-        if (this.convertor.nativeType(impl) === PrimitiveType.CustomObject.name) {
-            return PrimitiveType.CustomObject.name
+        if (this.convertor.nativeType(impl) === PrimitiveType.CustomObject.getText(this.table)) {
+            return PrimitiveType.CustomObject.getText(this.table)
         }
         return ts.idText(this.type.name)
     }

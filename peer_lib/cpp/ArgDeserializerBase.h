@@ -38,17 +38,6 @@ enum RuntimeType
   RUNTIME_SYMBOL = 8
 };
 
-enum Tags
-{
-  TAG_UNDEFINED = 101,
-  TAG_INT32 = 102,
-  TAG_FLOAT32 = 103,
-  TAG_STRING = 104,
-  TAG_LENGTH = 105,
-  TAG_RESOURCE = 106,
-  TAG_OBJECT = 107,
-};
-
 inline const char* tagName(Tags tag) {
   switch (tag) {
     case Tags::TAG_UNDEFINED: return "UNDEFINED";
@@ -91,6 +80,11 @@ inline void WriteToString(string* result, Number value) {
     result->append(std::to_string(value.f32));
   else
     result->append(std::to_string(value.i32));
+}
+
+template <>
+inline void WriteToString(string* result, Tags value) {
+  result->append(tagName(value));
 }
 
 template <>
