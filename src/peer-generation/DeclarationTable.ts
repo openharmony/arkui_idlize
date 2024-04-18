@@ -25,7 +25,7 @@ import {
 } from "./Convertors"
 import { SortingEmitter } from "./SortingEmitter"
 
-class PrimitiveType {
+export class PrimitiveType {
     constructor(public name: string, public isPointer = false) { }
     getText(): string { return this.name }
     static String = new PrimitiveType("String", true)

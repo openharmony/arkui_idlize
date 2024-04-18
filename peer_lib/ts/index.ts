@@ -67,12 +67,12 @@ function checkButton() {
                 title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
             }
         }),
-        "bindSheet(false, Custom kind=NativeErrorFunction id=0, Optional_SheetOptions " +
-        "{tag=OBJECT value=SheetOptions {title=Optional_SheetTitleOptions {tag=OBJECT value=SheetTitleOptions " +
-        "{title=Union_String_Resource [variant 1] value1=Custom kind=NativeErrorResource id=0, " +
-        "subtitle=Optional_Union_String_Resource {tag=UNDEFINED}}}, " +
+        "bindSheet(false, Custom kind=NativeErrorFunction id=0, Optional_SheetOptions {tag=OBJECT value=SheetOptions " +
+        "{backgroundColor=Optional_Union_Color_Number_String_Resource {tag=UNDEFINED}, title=Optional_SheetTitleOptions " +
+        "{tag=OBJECT value=SheetTitleOptions {title=Union_String_Resource [variant 1] value1=Custom kind=NativeErrorResource id=0," +
+        " subtitle=Optional_Union_String_Resource {tag=UNDEFINED}}}, " +
         "detents=Optional_Tuple_Union_SheetSize_Length_Optional_Union_SheetSize_Length_Optional_Union_SheetSize_Length {tag=UNDEFINED}}})"
-        )
+    )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
     checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),
         "labelStyle(LabelStyle {maxLines=Optional_Number {tag=OBJECT value=3}})")

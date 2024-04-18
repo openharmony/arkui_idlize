@@ -16,7 +16,7 @@
 import { IndentedPrinter } from "../IndentedPrinter";
 import * as ts from "typescript"
 import { asString, stringOrNone } from "../util";
-import { DeclarationTable, DeclarationTarget } from "./DeclarationTable";
+import { DeclarationTable, DeclarationTarget, PrimitiveType } from "./DeclarationTable";
 
 export class SortingEmitter extends IndentedPrinter {
     currentPrinter?: IndentedPrinter
@@ -76,35 +76,77 @@ export class SortingEmitter extends IndentedPrinter {
         let result: string[] = []
         let sortedTypes = this.getToposorted()
         sortedTypes.forEach(type => {
-            let next = this.emitters.get(type)!.getOutput()
-            result = result.concat(next)
+            let next = this.emitters.get(type)?.getOutput()
+            if (next) result = result.concat(next)
         })
         return result
     }
 
+    // Kahn's algorithm.
     getToposorted(): Array<string> {
-        // Not exactly correct for non-named types.
-        let source = new Set(Array.from(this.emitters.keys()))
         let result: string[] = []
-        // N^2, but nobody cares
-        let added: Set<string> = new Set()
-        while (source.size > added.size) {
-            source.forEach(it => {
-                if (added.has(it)) return
-                let deps = this.deps.get(it)!
-                let canAdd = true
-                deps.forEach(dep => {
-                    //console.log(`CHECK ${it} ${dep} ${source.has(dep)} ${!added.has(dep)}`)
-                    if (source.has(dep) && !added.has(dep)) canAdd = false
-                })
-                if (canAdd && !added.has(it)) {
-                    result.push(it)
-                    added.add(it)
-                }
-                //console.log(`${it}: ${canAdd} depends on ${Array.from(deps).join(",")}`)
+        let input = Array.from(this.emitters.keys())
+        input.push(PrimitiveType.Int32.getText())
+        let deps = this.deps
+
+        const adjMap = new Map<string, string[]>()
+        let count = 0
+        // Build adj map.
+        let inDegree = new Map<string, number>()
+        for (let k of input) {
+            //console.log("k", k)
+            let array: string[] = []
+            adjMap.set(k, array)
+            inDegree.set(k, 0)
+            deps.get(k)?.forEach(it => {
+                array.push(it)
             })
+            count++
         }
-        // console.log(`DEPS [${result.join(", ")}]`)
+        // Compute in-degrees.
+        for (let k of input) {
+            for (let it of adjMap.get(k)!) {
+                let old = inDegree.get(it)
+                if (old == undefined) {
+                    // throw new Error(`Forgotten type: ${it} of ${k}`)
+                    old = 0
+                }
+                inDegree.set(it, old + 1)
+            }
+        }
+        let queue: string[] = []
+        // Insert elements with in-degree 0
+        for (let k of input) {
+            if (inDegree.get(k)! == 0) {
+                queue.push(k)
+            }
+        }
+        // Add all elements with 0
+        while (queue.length > 0) {
+            let e = queue.shift()!
+            result.unshift(e)
+            let kids = adjMap.get(e)
+            if (kids != undefined) {
+                for (let it of kids) {
+                    let old = inDegree.get(it)! - 1
+                    inDegree.set(it, old)
+                    if (old == 0) {
+                        queue.push(it)
+                    }
+                }
+            }
+        }
+
+        if (result.length < input.length) {
+            let cycle = []
+            for (let it of input) {
+                if (!result.includes(it)) {
+                    cycle.push(it)
+                }
+            }
+            console.log(`Cycle: ${cycle.join(",")}`)
+            throw new Error("cycle detected")
+        }
         return result
     }
 }
