@@ -1,4 +1,4 @@
-    {
+{
     "name": "@azanat/idlize",
     "version": "1.2.0",
     "description": "",
@@ -15,6 +15,7 @@
     "dependencies": {
         "@types/webidl2": "^24.4.1",
         "commander": "^10.0.0",
+        "comment-parser": "^1.4.1",
         "typescript": "^4.9.5",
         "webidl2": "^24.4.1",
         "@types/node": "^18.0.0"
@@ -59,6 +60,5 @@
         "compile:native-node-host-subset": "npm run configure:native-node-host-subset && cd native && meson compile -C build-node-host-subset && meson install -C build-node-host-subset",
         "configure:native-node-host-full": "npm run download:napi && cd ./native && meson setup -Dsubset=false build-node-host-full",
         "compile:native-node-host-full": "npm run configure:native-node-host-full && cd native && meson compile -C build-node-host-full && meson install -C build-node-host-full"
-
     }
 }

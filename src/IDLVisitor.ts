@@ -14,6 +14,7 @@
  */
 import * as ts from "typescript"
 import * as path from "path"
+import { parse } from 'comment-parser'
 import {
     createAnyType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
     createTypeParameterReference, createUndefinedType, createUnionType, getExtAttribute, IDLCallable, IDLCallback, IDLConstructor,
@@ -124,7 +125,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return {
                 kind: IDLKind.Typedef,
                 name: name,
-                extendedAttributes: [ { name: "VerbatimDts", value: `"${original}"` }],
+                extendedAttributes: this.computeDeprecatedExtendAttributes(node, [ { name: "VerbatimDts", value: `"${original}"` }]),
                 type: createReferenceType(`Imported${name}`)
             }
         }
@@ -134,7 +135,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (ts.isTypeLiteralNode(node.type)) {
             return this.serializeObjectType(name, node.type)
         }
-        return createTypedef(name, this.serializeType(node.type))
+        return {
+            kind: IDLKind.Typedef,
+            name: name,
+            extendedAttributes: this.computeDeprecatedExtendAttributes(node),
+            type: this.serializeType(node.type)
+        }
     }
 
     heritageIdentifiers(heritage: ts.HeritageClause): ts.Identifier[] {
@@ -173,8 +179,26 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (PeerGeneratorConfig.isKnownParametrized(name)) {
             result.push({name: "Parametrized", value: "T"})
         }
+        this.computeDeprecatedExtendAttributes(node, result)
+        
         return result.length > 0 ? result : undefined
     }
+
+    computeDeprecatedExtendAttributes(node: ts.Node, attributes: IDLExtendedAttribute[] | undefined = undefined): IDLExtendedAttribute[] | undefined {
+        if (isDeprecatedNode(this.sourceFile,node)) {
+            let deprecated : IDLExtendedAttribute = {
+                name: "Deprecated"
+            }
+            if (attributes) {
+                attributes.push(deprecated)
+            } else {
+                attributes = [deprecated]
+            }
+        }
+        return attributes
+    }
+
+    
 
     /** Serialize a class information */
     serializeClass(node: ts.ClassDeclaration): IDLInterface {
@@ -278,9 +302,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     serializeEnum(node: ts.EnumDeclaration): IDLEnum {
+
         return {
             kind: IDLKind.Enum,
             name: ts.idText(node.name),
+            extendedAttributes: this.computeDeprecatedExtendAttributes(node),
             documentation: getDocumentation(this.sourceFile, node, this.options.docs),
             elements: node.members.filter(ts.isEnumMember)
                 .map(it => this.serializeEnumMember(it))
@@ -314,6 +340,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
         return {
             kind: IDLKind.EnumMember,
+            extendedAttributes: this.computeDeprecatedExtendAttributes(node),
             name: nameOrUndefined(node.name)!,
             type: isString ? createStringType() : createNumberType(),
             initializer: initializer
@@ -540,7 +567,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return {
                 kind: IDLKind.Property,
                 name: name,
-                extendedAttributes: [{ name: "CommonMethod" } ],
+                extendedAttributes: this.computeDeprecatedExtendAttributes(property,[{ name: "CommonMethod" } ]),
                 documentation: getDocumentation(this.sourceFile, property, this.options.docs),
                 type: this.serializeType(property.parameters[0].type),
                 isReadonly: false,
@@ -551,6 +578,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
         if (ts.isPropertyDeclaration(property) || ts.isPropertySignature(property)) {
             const name = this.propertyName(property.name)
+            let extendedAttributes = !!property.questionToken ? [{name: 'Optional'}] : undefined
             return {
                 kind: IDLKind.Property,
                 name: name!,
@@ -559,7 +587,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 isReadonly: isReadonly(property.modifiers),
                 isStatic: isStatic(property.modifiers),
                 isOptional: !!property.questionToken,
-                extendedAttributes: !!property.questionToken ? [{name: 'Optional'}] : undefined,
+                extendedAttributes: this.computeDeprecatedExtendAttributes(property,extendedAttributes),
             }
         }
         throw new Error("Unknown")
@@ -599,16 +627,18 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 name: "indexSignature",
                 documentation: getDocumentation(this.sourceFile, method, this.options.docs),
                 returnType: this.serializeType(method.type),
-                extendedAttributes: [{name: 'IndexSignature' }],
+                extendedAttributes: this.computeDeprecatedExtendAttributes(method,[{name: 'IndexSignature' }]),
                 isStatic: false,
                 parameters: method.parameters.map(it => this.serializeParameter(it))
             }
         }
         let [methodName, escapedName] = escapeMethodName(method.name!.getText(this.sourceFile))
+        let extendedAttributes : IDLExtendedAttribute[] | undefined = (methodName != escapedName) ? [ { name: "DtsName", value: `"${methodName}"`} ] : undefined
+       
         return {
             kind: IDLKind.Method,
             name: escapedName,
-            extendedAttributes: (methodName != escapedName) ? [ { name: "DtsName", value: `"${methodName}"`} ] : undefined,
+            extendedAttributes: this.computeDeprecatedExtendAttributes(method,extendedAttributes),
             documentation: getDocumentation(this.sourceFile, method, this.options.docs),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),
@@ -620,7 +650,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return {
             kind: IDLKind.Callable,
             name: "invoke",
-            extendedAttributes: [{name: "CallSignature"}],
+            extendedAttributes: this.computeDeprecatedExtendAttributes(method,[{name: "CallSignature"}]),
             documentation: getDocumentation(this.sourceFile, method, this.options.docs),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),
@@ -636,6 +666,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return {
             kind: IDLKind.Constructor,
             // documentation: getDocumentationComment(constr),
+            extendedAttributes: this.computeDeprecatedExtendAttributes(constr),
             parameters: constr.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(constr.type),
         };
@@ -672,6 +703,12 @@ function getDocumentation(sourceFile: ts.SourceFile, node: ts.Node, docsOption: 
     }
 }
 
+function isDeprecatedNode(sourceFile: ts.SourceFile, node: ts.Node): boolean {
+    const docs = getComment(sourceFile,node)
+    const comments = parse(docs)
+    return comments.map(it => it.tags).flatMap(it => it.map(i => i.tag)).some(it => it == 'deprecated')
+
+}
 function dedupDocumentation(documentation: string): string {
     let seen: Set<string> = new Set()
     let firstLine = false
