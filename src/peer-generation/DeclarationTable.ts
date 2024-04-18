@@ -68,6 +68,7 @@ class FieldRecord {
 
 class StructDescriptor {
     supers: DeclarationTarget[] = []
+    deps = new Set<DeclarationTarget>()
     private fields: FieldRecord[] = []
     packed: boolean = false
     private seenFields = new Set<string>()
@@ -852,6 +853,7 @@ export class DeclarationTable {
         else if (ts.isArrayTypeNode(target)) {
             // TODO: delay this computation.
             let element = this.toTarget(target.elementType)
+            result.deps.add(element)
             result.addField(new FieldRecord(PrimitiveType.pointerTo(element), target, "array"))
             result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
         }

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { asString } from "../util";
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from "./DeclarationTable";
 
 export class DependencySorter {
@@ -30,6 +29,7 @@ export class DependencySorter {
         let struct = this.table.targetStruct(target)
         struct.supers.forEach(it => this.fillDepsInDepth(it, seen))
         struct.getFields().forEach(it => this.fillDepsInDepth(it.declaration, seen))
+        struct.deps.forEach(dep => this.fillDepsInDepth(dep, seen))
     }
 
     private getDeps(target: DeclarationTarget): DeclarationTarget[] {
@@ -39,6 +39,7 @@ export class DependencySorter {
         struct.getFields().forEach(it => {
             result.push(it.declaration)
         })
+        struct.deps.forEach(it => result.push(it))
         return result
     }
 
