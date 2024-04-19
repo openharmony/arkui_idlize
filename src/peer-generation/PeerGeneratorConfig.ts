@@ -25,15 +25,6 @@ export class PeerGeneratorConfig {
 
     private static knownParametrized = ["Indicator", "AttributeModifier", "AnimationRange", "ContentModifier"]
 
-    public static exports = [
-        { file: "common", components: ["Common", "ScrollableCommon", "CommonShape"]},
-        { file: "shape", components: ["Shape"] },
-        { file: "security_component", components: ["SecurityComponent"] },
-        { file: "column", components: ["Column"] },
-        { file: "image", components: ["Image"] },
-        { file: "span", components: ["BaseSpan"] },
-    ]
-
     public static invalidAttributes = ["ArkScrollableCommon"]
 
     // TODO: need a better logic to know if the XxxInterface

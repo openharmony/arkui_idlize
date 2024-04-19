@@ -17,17 +17,12 @@ import * as ts from "typescript"
 import {
     asString,
     capitalize,
-    dropSuffix,
-    getOrPut,
     identName,
     isCommonMethodOrSubclass,
-    isDefined,
     mapType,
     nameOrNull,
-    renameDtsToPeer,
     serializerBaseMethods,
     stringOrNone,
-    throwException,
     className
 } from "../util"
 import { GenericVisitor } from "../options"
@@ -38,18 +33,14 @@ import {
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable } from "./DeclarationTable"
 import {
-    determineInheritanceRole,
-    determineParentRole,
-    InheritanceRole,
-    isCommonMethod,
-    isHeir,
     isRoot,
     isStandalone,
-    parentName
+    singleParentDeclaration,
 } from "./inheritance"
 import { Printers } from "./Printers"
 import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
+import { PeerFile } from "./PeerFile"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -115,6 +106,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     static readonly serializerBaseMethods = serializerBaseMethods()
     readonly typeChecker: ts.TypeChecker
 
+    readonly peerFile: PeerFile
+
     constructor(options: PeerGeneratorVisitorOptions) {
         this.sourceFile = options.sourceFile
         this.typeChecker = options.typeChecker
@@ -133,6 +126,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         )
         this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
+        this.peerFile = new PeerFile(this.sourceFile.fileName, this.printers)
     }
 
     assignName(type: ts.TypeNode, name: string, optional: boolean) {
@@ -149,39 +143,25 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.declarationTable.requestType(name, type)
     }
 
-    private importStatements(currentFileName: string): string[] {
-        return PeerGeneratorConfig.exports
-            .filter(it => !currentFileName.endsWith(`/${it.file}.d.ts`))
-            .map(it => {
-                const entities = it.components
-                    .flatMap(it => [`Ark${it}Peer`, `Ark${it}Attributes`])
-                    .map(it => `  ${it}`)
-                    .join(",\n")
-                return `import {\n${entities}\n} from "./${renameDtsToPeer(it.file, false)}"`
-            })
-    }
-
-    printAllPeers() {
-        Array.from(this.peers.values()).map(it => {
-            it.print()
-        })
+    defaultImports() {
+        return [
+            `import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"`,
+            `import { Serializer } from "./Serializer"`,
+            `import { int32 } from "@koalaui/common"`,
+            `import { KPointer } from "./types"`,
+            `import { nativeModule } from "./NativeModule"`,
+            `import { PeerNode, Finalizable, nullptr } from "./Interop"`,
+            `import { ArkUINodeType } from "./ArkUINodeType"`,
+            `import { ArkComponent } from "@arkoala/arkui/ArkComponent"`
+        ]
     }
 
     visitWholeFile(): stringOrNone[] {
-        this.importStatements(this.sourceFile.fileName)
-            .concat([
-                `import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"`,
-                `import { Serializer } from "./Serializer"`,
-                `import { int32 } from "@koalaui/common"`,
-                `import { KPointer } from "./types"`,
-                `import { nativeModule } from "./NativeModule"`,
-                `import { PeerNode, Finalizable, nullptr } from "./Interop"`,
-                `import { ArkUINodeType } from "./ArkUINodeType"`,
-                `import { ArkComponent } from "@arkoala/arkui/ArkComponent"`
-            ])
-            .forEach(it => this.printTS(it))
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
-        this.printAllPeers()
+
+        this.defaultImports().forEach(it => this.printTS(it))
+        this.peerFile.print()
+
         return this.printers.TS.getOutput()
     }
 
@@ -255,7 +235,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         const componentName = this.renameToComponent(nameOrNull(node.name)!)
         // We don't know what comes first ButtonAtrtribute or ButtonInterface.
         // Both will contribute to the peer class.
-        const peer = getOrPut(this.peers, componentName, (_) => new PeerClass(componentName, this.printers))
+        const peer = this.peerFile.getOrPutPeer(componentName)
 
         this.populatePeer(node, peer)
         const peerMethods = collapsedMethods
@@ -276,7 +256,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         const componentName = this.renameToComponent(nameOrNull(node.name)!)
         // We don't know what comes first ButtonAtrtribute or ButtonInterface.
         // Both will contribute to the peer class.
-        const peer = getOrPut(this.peers, componentName, (_) => new PeerClass(componentName, this.printers))
+        const peer = this.peerFile.getOrPutPeer(componentName)
 
         const collapsedMethods = this.collapseOverloads(node)
         const peerMethods = collapsedMethods
@@ -412,8 +392,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printers.dummyImplModifiers.popIndent()
     }
 
-    peers = new Map<string, PeerClass>()
-
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")
         let paramName = asString(param.name)
@@ -436,13 +414,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         throw new Error(`unexpected property ${property.name.getText(this.sourceFile)}`)
     }
 
-
     populatePeer(node: ts.ClassDeclaration, peer: PeerClass) {
         peer.originalClassName = className(node)
-        peer.originalParentName = parentName(node)
-        peer.parentComponentName = peer.originalParentName ?
-            this.renameToComponent(peer.originalParentName!) :
-            undefined
+        const parent = singleParentDeclaration(this.typeChecker, node) as ts.ClassDeclaration
+        if (parent) {
+            peer.originalParentName = className(parent)
+            peer.originalParentFilename = parent.getSourceFile().fileName
+            peer.parentComponentName = this.renameToComponent(peer.originalParentName!)
+        }
     }
 
     private renameToComponent(name: string): string {

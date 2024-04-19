@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { className } from "../util";
+import { getDeclarationsByNode } from "../util";
 
 export enum InheritanceRole {
     Finalizable,
@@ -52,9 +52,16 @@ export function isHeir(name: string): boolean {
     return determineInheritanceRole(name) === InheritanceRole.Heir
 }
 
-export function parentName(component: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
-    const heritage = component.heritageClauses
-        ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)
-
-    return heritage?.[0].types[0].expression.getText()
+export function singleParentDeclaration(
+    typeChecker: ts.TypeChecker, 
+    component: ts.ClassDeclaration | ts.InterfaceDeclaration
+): ts.ClassDeclaration | ts.InterfaceDeclaration | undefined {
+    const parentTypeNode = component.heritageClauses
+        ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)[0]?.types[0]?.expression
+    if (parentTypeNode) {
+        const declaration = getDeclarationsByNode(typeChecker, parentTypeNode)
+            .find(it => ts.isClassDeclaration(it) || ts.isInterfaceDeclaration(it))
+        return declaration as (ts.ClassDeclaration | ts.InterfaceDeclaration | undefined)
+    }
+    return undefined
 }
