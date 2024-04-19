@@ -27,7 +27,7 @@ import { DependencySorter } from "./DependencySorter"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
-    getText(table: DeclarationTable): string { return this.name }
+    getText(table?: DeclarationTable): string { return this.name }
     static String = new PrimitiveType("String", true)
     static Number = new PrimitiveType("Number")
     static Int32 = new PrimitiveType("int32_t")
@@ -58,7 +58,7 @@ class PointerType extends PrimitiveType {
 export type DeclarationTarget =
     ts.ClassDeclaration | ts.InterfaceDeclaration | ts.EnumDeclaration
     | ts.UnionTypeNode | ts.TypeLiteralNode | ts.ImportTypeNode | ts.FunctionTypeNode | ts.TupleTypeNode
-    | ts.TemplateLiteralTypeNode
+    | ts.TemplateLiteralTypeNode | ts.TypeReferenceNode
     | ts.ArrayTypeNode | ts.ParenthesizedTypeNode | ts.OptionalTypeNode | ts.LiteralTypeNode
     | PrimitiveType
 
@@ -127,7 +127,6 @@ export class DeclarationTable {
         if (ts.isParenthesizedTypeNode(type)) return true
         if (ts.isTemplateLiteralTypeNode(type)) return true
         if (ts.isFunctionTypeNode(type)) return true
-        if (ts.isTypeParameterDeclaration(type)) return true
         return false
     }
 
@@ -164,9 +163,13 @@ export class DeclarationTable {
     private toTargetImpl(node: ts.TypeNode): DeclarationTarget {
         if (this.isDeclarationTarget(node)) return node as DeclarationTarget
         if (ts.isTypeReferenceNode(node)) {
-            if (identName(node) == "Length") return PrimitiveType.Length
-            if (identName(node) == "ParticleConfigs") return PrimitiveType.CustomObject
-            let orig = node
+            let name = identName(node)
+            if (name == "Length") return PrimitiveType.Length
+            // Types with type arguments are declarations!
+            if (node.typeArguments) {
+               return node
+            }
+            const original = node
             let declarations = getDeclarationsByNode(this.typeChecker!, node.typeName)
             while (declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])) {
                 node = declarations[0].type
@@ -175,7 +178,7 @@ export class DeclarationTable {
                 declarations = getDeclarationsByNode(this.typeChecker!, node)
             }
             if (declarations.length == 0) {
-                throw new Error(`No declaration for ${node.getText()} ${asString(orig)}`)
+                throw new Error(`No declaration for ${node.getText()} ${asString(original)}`)
             }
             let declaration = declarations[0]
             if (ts.isEnumMember(declaration)) {
@@ -184,6 +187,10 @@ export class DeclarationTable {
             return declaration as DeclarationTarget
         }
         if (ts.isIndexedAccessTypeNode(node)) {
+            return PrimitiveType.CustomObject
+        }
+        if (ts.isTypeParameterDeclaration(node)) {
+            // Not really correct
             return PrimitiveType.CustomObject
         }
         if (node.kind == ts.SyntaxKind.StringKeyword) {
@@ -211,7 +218,7 @@ export class DeclarationTable {
         if (node.kind == ts.SyntaxKind.UnknownKeyword) {
             return PrimitiveType.CustomObject
         }
-        throw new Error(`Unknown ${node.getText()}: ${ts.SyntaxKind[node.kind]} in ${asString(node.parent)}`)
+        throw new Error(`Unknown target ${node.getText()}: ${ts.SyntaxKind[node.kind]} in ${asString(node.parent)}`)
     }
 
     computeTargetName(target: DeclarationTarget, optional: boolean): string {
@@ -290,7 +297,7 @@ export class DeclarationTable {
         }
         if (ts.isImportTypeNode(target)) {
             // return prefix + identName(target.qualifier)!
-            return PrimitiveType.CustomObject.getText(this)
+            return PrimitiveType.CustomObject.getText()
         }
         if (ts.isOptionalTypeNode(target)) {
             let name = this.computeTargetName(this.toTarget(target.type), false)
@@ -301,6 +308,18 @@ export class DeclarationTable {
         }
         if (ts.isEnumMember(target)) {
             return this.computeTargetName((target as any).parent as DeclarationTarget, optional)
+        }
+        if (ts.isTypeReferenceNode(target)) {
+            let name = identName(target.typeName)
+            if (!target.typeArguments) throw new Error("Only type references with type arhuments allowed here: " + name)
+            if (name == "Optional")
+                return this.computeTargetName(this.toTarget(target.typeArguments[0]), true)
+            if (name == "Array")
+                return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), optional)
+            if (name == "ContentModifier" || name == "Callback")
+                return prefix + PrimitiveType.CustomObject.getText()
+            if (name == "AnimationRange")
+                return prefix + "AnimationRange"
         }
         throw new Error(`Cannot compute target name: ${(target as any).getText()} ${(target as any).kind}`)
     }
@@ -506,8 +525,6 @@ export class DeclarationTable {
     customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode): ArgConvertor | undefined {
         let name = getNameWithoutQualifiersRight(typeName)
         if (name === "Length") return new LengthConvertor(param)
-        if (name === "AnimationRange")
-            return new PredefinedConvertor(param, "AnimationRange<number>", "AnimationRange", "Compound<Number, Number>")
         if (name === "AttributeModifier")
             return new PredefinedConvertor(param, "AttributeModifier<any>", "AttributeModifier", "CustomObject")
         if (name === "ContentModifier")
@@ -518,7 +535,6 @@ export class DeclarationTable {
             return new CustomTypeConvertor(param, "Callback")
         if (name === "Optional" && type.typeArguments && type.typeArguments.length == 1) {
             return new OptionConvertor(param, this, type.typeArguments![0])
-            //throwException(asString(type.typeArguments![0]))
         }
         return undefined
     }
@@ -882,7 +898,8 @@ export class DeclarationTable {
     targetStruct(target: DeclarationTarget): StructDescriptor {
         let result = new StructDescriptor()
         if (target instanceof PointerType) {
-            result.deps.add(target.pointed)
+            // Break the dependency cycle.
+            // result.deps.add(target.pointed)
             return result
         }
 
@@ -892,7 +909,6 @@ export class DeclarationTable {
         else if (ts.isArrayTypeNode(target)) {
             // TODO: delay this computation.
             let element = this.toTarget(target.elementType)
-            // result.deps.add(element)
             result.addField(new FieldRecord(PrimitiveType.pointerTo(element), target, "array"))
             result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
         }
@@ -949,6 +965,31 @@ export class DeclarationTable {
         else if (ts.isLiteralTypeNode(target)) {
         }
         else if (ts.isTypeParameterDeclaration(target)) {
+            // TODO: is it really corect
+        }
+        else if (ts.isTypeReferenceNode(target)) {
+            if (!target.typeArguments) throw new Error("Only type references with type arguments allowed")
+            let name = identName(target.typeName)
+            if (name == "Optional") {
+                let type = target.typeArguments[0]
+                result.addField(new FieldRecord(PrimitiveType.Tag, undefined, "tag"))
+                result.addField(new FieldRecord(this.toTarget(type), type, "value"))
+            } else if (name == "Array") {
+                let type = target.typeArguments[0]
+                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "array"))
+                result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
+            } else if (name == "ContentModifier") {
+                let type = target.typeArguments[0]
+                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "config"))
+            } else if (name == "Callback") {
+                result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "id"))
+            } else if (name == "AnimationRange") {
+                let type = target.typeArguments[0]
+                result.addField(new FieldRecord(this.toTarget(type), undefined, "from"))
+                result.addField(new FieldRecord(this.toTarget(type), undefined, "to"))
+            } else {
+                throw new Error(`Parametrized type unknown: ${name} ${(target as any).getText()}`)
+            }
         }
         else {
             throw new Error(`Unsupported field getter: ${asString(target)} ${(target as any).getText()}`)
