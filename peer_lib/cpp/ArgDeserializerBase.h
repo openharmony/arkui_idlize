@@ -138,6 +138,7 @@ inline void WriteToString(string* result, const Optional_CustomObject* value) {
 }
 
 struct CustomDeserializer {
+  virtual ~CustomDeserializer() {}
   virtual bool supports(const string& kind) { return false; }
   virtual CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
     CustomObject result;

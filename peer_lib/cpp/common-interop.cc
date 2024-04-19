@@ -131,21 +131,21 @@ std::vector<KStringPtr> makeStringVector(KNativePointerArray arr, KInt length) {
 std::vector<std::string> groupedLogs;
 
 void clearGroupedLog(KInt index) {
-    if (index >=0 && index < groupedLogs.size()) {
+    if (index >=0 && index < (int)groupedLogs.size()) {
         groupedLogs[index] = std::string();
     }
 }
 
 void appendGroupedLog(KInt index, const std::string& str) {
     if (index < 0) return;
-    if (index >= groupedLogs.size()) {
+    if (index >= (int)groupedLogs.size()) {
         groupedLogs.resize(index + 1);
     }
     groupedLogs[index].append(str);
 }
 
 std::string getGroupedLog(int32_t index) {
-    if (index >=0 && index < groupedLogs.size()) {
+    if (index >=0 && index < (int)groupedLogs.size()) {
         return groupedLogs[index];
     }
     return std::string();
