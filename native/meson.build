@@ -29,6 +29,7 @@ sources += [
 endif
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
+is_clang = not is_msvc
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
 archs = { 'x86_64': 'x64', 'aarch64': 'arm64', 'wasm32': 'wasm' }
@@ -45,6 +46,10 @@ ldflags = []
 
 # library_name = 'NativeBridge-' + os + '-' + arch
 library_name = 'NativeBridge'
+
+if is_clang
+cflags += ['-Wno-address-of-packed-member', '-Wall', '-Werror']
+endif
 
 if is_node
 cflags += ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
@@ -78,4 +83,7 @@ shared_library(library_name,
     dependencies: []
 )
 
-executable('test_arkoala_api', gen_dir / 'api_test.c')
+executable('test_arkoala_api',
+    gen_dir / 'api_test.c',
+    c_args: cflags
+)
