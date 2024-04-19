@@ -263,6 +263,8 @@ export function makeAPI(headers: string[], modifiers: string[], structs: Indente
 
 // TBD: Change K to ArkUI types
 #include <stdint.h>
+#include <stddef.h>
+
 typedef int32_t KInt;
 typedef int8_t KBoolean;
 

@@ -77,3 +77,5 @@ shared_library(library_name,
     link_args: ldflags,
     dependencies: []
 )
+
+executable('test_arkoala_api', gen_dir / 'api_test.c')

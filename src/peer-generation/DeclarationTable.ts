@@ -692,6 +692,9 @@ export class DeclarationTable {
         for (let target of order) {
             let noBasicDecl = (target instanceof PrimitiveType && noDeclaration.includes(target))
             let nameAssigned = this.uniqueNames.get(target)
+            if (nameAssigned === PrimitiveType.Tag.getText(this)) {
+                continue
+            }
             if (!nameAssigned) {
                 throw new Error(`No assigned name for ${(target as ts.TypeNode).getText()} shall be ${this.computeTargetName(target, false)}`)
             }
@@ -704,7 +707,7 @@ export class DeclarationTable {
                 structs.print(`typedef int32_t ${nameAssigned};`)
                 if (!seenNames.has(nameOptional)) {
                     seenNames.add(nameOptional)
-                    structs.print(`typedef struct { Tags tag; int32_t value; } ${nameOptional};`)
+                    structs.print(`typedef struct { enum Tags tag; int32_t value; } ${nameOptional};`)
                     this.writeOptional(nameOptional, writeToString, isPointer)
                 }
                 continue
@@ -730,7 +733,7 @@ export class DeclarationTable {
             if (!(target instanceof PointerType) && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable") {
                 const structDescriptor = this.targetStruct(target)
                 this.printStructsCHead(nameOptional, structDescriptor.packed, structs)
-                structs.print(`Tags tag;`)
+                structs.print(`enum Tags tag;`)
                 structs.print(`${nameAssigned} value;`)
                 this.printStructsCTail(nameOptional, structDescriptor.packed, structs)
                 this.writeOptional(nameOptional, writeToString, isPointer)
