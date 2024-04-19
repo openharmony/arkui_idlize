@@ -68,8 +68,7 @@ inline void WriteToString(string* result, T value) = delete;
 inline void WriteToString(string* result, const Empty& value) {
 }
 
-struct Error
-{
+struct Error {
   std::string message;
   Error(const std::string &message) : message(message) {}
 };
@@ -87,13 +86,6 @@ inline void WriteToString(string* result, Tags value) {
   result->append(tagName(value));
 }
 
-template <>
-inline void WriteToString(string* result, const Array* value) {
-  result->append("Array[");
-  result->append(std::to_string(value->array_length));
-  result->append("]");
-}
-
 // TODO: generate!
 template <>
 inline void WriteToString(string* result, const Length* value) {
@@ -105,8 +97,7 @@ inline void WriteToString(string* result, const Length* value) {
   result->append("}");
 }
 
-inline Length Length_from_array(int32_t *array)
-{
+inline Length Length_from_array(int32_t *array) {
   Length result;
   result.value = *(float32_t *)array;
   result.unit = array[1];
@@ -125,12 +116,10 @@ inline void WriteToString(string* result, const Undefined* value) {
 }
 
 inline void WriteToString(string* result, const CustomObject* value) {
-
   if (strcmp(value->kind, "NativeErrorFunction") == 0) {
     result->append("() => {} /* TBD: Function*/");
     return;
   }
-
   result->append("Custom kind=");
   result->append(value->kind);
   result->append(" id=");

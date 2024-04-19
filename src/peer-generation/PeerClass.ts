@@ -142,8 +142,12 @@ export class PeerClass {
     }
 
     printEpilog() {
+
         this.printers.TS.popIndent()
         this.printers.TS.print(`}`)
+        if (this.methods.length == 0) {
+            this.printers.api.print("int dummy;")
+        }
         this.printers.api.popIndent()
         this.printers.api.print(`} ArkUI${this.componentName}Modifier;\n`)
         this.printers.apiList.popIndent()

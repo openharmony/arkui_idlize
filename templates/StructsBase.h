@@ -1,20 +1,16 @@
-
 typedef float float32_t;
 
-// Binary layout must match that of KStringPtrImpl.
-
-typedef struct String
-{
+// Binary layout os String must match that of KStringPtrImpl.
+typedef struct String {
   const char* chars;
   size_t length;
 } String;
 
-typedef struct Empty
-{
+typedef struct Empty {
+  int dummy; // Empty structs are forbidden in C.
 } Empty;
 
-typedef struct Number
-{
+typedef struct Number {
   int8_t tag;
   union
   {
@@ -22,12 +18,6 @@ typedef struct Number
     int32_t i32;
   };
 } Number;
-
-typedef struct Array
-{
-  void* array;
-  int32_t array_length;
-} Array;
 
 typedef struct Length
 {
@@ -46,6 +36,7 @@ typedef struct CustomObject {
 } CustomObject;
 
 typedef struct Undefined {
+  int dummy; // Empty structs are forbidden in C.
 } Undefined;
 
 typedef CustomObject Function;
@@ -54,4 +45,3 @@ typedef CustomObject ErrorCallback;
 typedef CustomObject Any;
 
 typedef CustomObject Resource;
-

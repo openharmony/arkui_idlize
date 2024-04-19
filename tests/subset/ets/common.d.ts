@@ -133,14 +133,18 @@ declare interface Rectangle {
     height?: Length;
 }
 
-declare class CommonAttribute extends CommonMethod<CommonAttribute> {}
-
-declare class CommonShapeMethod<T> extends CommonMethod<T> {
-
-    constructor();
+declare class CommonAttribute extends CommonMethod<CommonAttribute> {
 }
 
-declare class ScrollableCommonMethod<T> extends CommonMethod<T> {}
+declare class CommonShapeMethod<T> extends CommonMethod<T> {
+    constructor();
+
+    stroke(value: ResourceColor): T;
+}
+
+declare class ScrollableCommonMethod<T> extends CommonMethod<T> {
+    scrollBarWidth(value: number | string): T;
+}
 
 declare module 'commonEvent' {
     module 'commonEvent' {

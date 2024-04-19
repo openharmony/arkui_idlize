@@ -720,7 +720,7 @@ export class DeclarationTable {
             }
             if (!noBasicDecl && nameAssigned != "Length" && nameAssigned != "Function"  && nameAssigned != "Resource"
                 && nameAssigned != "Array" && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable"
-                && nameAssigned != "CustomObject") {
+                && nameAssigned != "CustomObject" && nameAssigned != "Undefined") {
                 writeToString.print(`template <>`)
                 writeToString.print(`inline void WriteToString(string* result, const ${nameAssigned}${isPointer ? "*" : ""} value) {`)
                 writeToString.pushIndent()
@@ -762,8 +762,10 @@ export class DeclarationTable {
         printer.print(`WriteToString(result, ${isPointer ? "&" : ""}value->value);`)
         printer.popIndent()
         printer.print(`} else {`)
-        printer.print(`Undefined undefined;`)
+        printer.pushIndent()
+        printer.print(`Undefined undefined = { 0 };`)
         printer.print(`WriteToString(result, undefined);`)
+        printer.popIndent()
         printer.print(`}`)
         printer.print(`result->append(" /* ${nameOptional} { tag=");`)
         printer.print(`result->append(tagName((Tags)(value->tag)));`)
