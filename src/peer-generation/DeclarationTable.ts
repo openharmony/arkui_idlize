@@ -624,6 +624,31 @@ export class DeclarationTable {
         return this.uniqueNames.get(target)!
     }
 
+    private printStructsCHead(name: string, needPacked: boolean, structs: IndentedPrinter) {
+        if (needPacked) {
+            structs.print(`#ifdef _MSC_VER`)
+            structs.print(`#pragma pack(push, 1)`)
+            structs.print(`#endif`)
+        }
+        structs.print(`typedef struct ${name} {`)
+        structs.pushIndent()
+    }
+
+
+    private printStructsCTail(name: string, needPacked: boolean, structs: IndentedPrinter) {
+        structs.popIndent()
+        if (needPacked) {
+            structs.print(`#ifdef _MSC_VER`)
+            structs.print(`} ${name};`)
+            structs.print(`#pragma pack(pop)`)
+            structs.print(`#else`)
+            structs.print(`} __attribute__((packed)) ${name};`)
+            structs.print(`#endif`)
+        } else {
+            structs.print(`} ${name};`)
+        }
+    }
+
     generateDeserializers(printer: IndentedPrinter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: IndentedPrinter) {
         this.processPendingRequests()
         let orderer = new DependencySorter(this)
@@ -669,11 +694,10 @@ export class DeclarationTable {
                 continue
             }
             if (!noBasicDecl && !this.ignoreTarget(target, nameAssigned)) {
-                structs.print(`typedef struct ${nameAssigned} {`)
-                structs.pushIndent()
-                this.targetStruct(target).getFields().forEach(it => structs.print(`${it.optional ? "Optional_" : ""}${this.uniqueName(it.declaration)} ${it.name};`))
-                structs.popIndent()
-                structs.print(`} ${nameAssigned};`)
+                const structDescriptor = this.targetStruct(target)
+                this.printStructsCHead(nameAssigned, structDescriptor.packed, structs)
+                structDescriptor.getFields().forEach(it => structs.print(`${it.optional ? "Optional_" : ""}${this.uniqueName(it.declaration)} ${it.name};`))
+                this.printStructsCTail(nameAssigned, structDescriptor.packed, structs)
             }
             if (!noBasicDecl && nameAssigned != "Length" && nameAssigned != "Function"  && nameAssigned != "Resource"
                 && nameAssigned != "Array" && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable"
@@ -688,12 +712,11 @@ export class DeclarationTable {
             if (seenNames.has(nameOptional)) continue
             seenNames.add(nameOptional)
             if (!(target instanceof PointerType) && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable") {
-                structs.print(`typedef struct ${nameOptional} {`)
-                structs.pushIndent()
+                const structDescriptor = this.targetStruct(target)
+                this.printStructsCHead(nameOptional, structDescriptor.packed, structs)
                 structs.print(`Tags tag;`)
                 structs.print(`${nameAssigned} value;`)
-                structs.popIndent()
-                structs.print(`} ${nameOptional};`)
+                this.printStructsCTail(nameOptional, structDescriptor.packed, structs)
                 this.writeOptional(nameOptional, writeToString, isPointer)
             }
         }

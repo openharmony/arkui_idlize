@@ -69,9 +69,9 @@ function checkButton() {
             }
         }),
         "bindSheet(false, Custom kind=NativeErrorFunction id=0, Optional_SheetOptions {tag=OBJECT, value=SheetOptions " +
-        "{backgroundColor=Optional_Union_Color_Number_String_Resource {tag=UNDEFINED}, title=Optional_SheetTitleOptions " +
-        "{tag=OBJECT, value=SheetTitleOptions {title=Union_String_Resource [variant 1] value1=Custom kind=NativeErrorResource id=0," +
-        " subtitle=Optional_Union_String_Resource {tag=UNDEFINED}}}, " +
+        "{backgroundColor=Optional_Union_Color_Number_String_CustomObject {tag=UNDEFINED}, title=Optional_SheetTitleOptions " +
+        "{tag=OBJECT, value=SheetTitleOptions {title=Union_String_CustomObject [variant 1] value1=Custom kind=NativeErrorResource id=0," +
+        " subtitle=Optional_Union_String_CustomObject {tag=UNDEFINED}}}, " +
         "detents=Optional_Tuple_Union_SheetSize_Length_Optional_Union_SheetSize_Length_Optional_Union_SheetSize_Length {tag=UNDEFINED}}})"
     )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
