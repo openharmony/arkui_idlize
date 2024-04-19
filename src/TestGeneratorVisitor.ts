@@ -88,8 +88,9 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
         if (this.methodsToTest.size > 0 && !this.methodsToTest.has(nameOrUndefined(method.name)!)) return
 
         this.generateArgs(method).forEach(args => {
-            this.output.push(`  console.log(\`${nameOrUndefined(method.name)}(${args})\`)`)
-            this.output.push(`  peer.${nameOrUndefined(method.name)}Attribute(${args})`)
+            let methodName = nameOrUndefined(method.name)
+            let golden = `${methodName}(${args})`
+            this.output.push(`  checkResult("${methodName}", () => peer.${methodName}Attribute(${args}), \`${golden}\`)`)
         })
     }
 
@@ -141,6 +142,19 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
                     return this.generateValueOfType(decl.type)
                 }
                 if (decl && ts.isInterfaceDeclaration(decl)) {
+
+                    let interfaceName = asString(name)
+                    // Optional from stdlib.d.ts
+                    if (interfaceName === "Optional") {
+                        if (type.typeArguments) {
+                            let argType = type.typeArguments[0]
+                            if (ts.isTypeNode(argType)) {
+                                return [`undefined`, ...this.generateValueOfType(argType)]
+                            }
+                        }
+                        return [`undefined`]
+                    }
+
                     return pick(decl.members.filter(ts.isPropertySignature), (key) =>
                         this.generateValueOfType(key.type!)
                             .map(it => `${nameOrUndefined(key.name)}: ${it}`))
@@ -204,13 +218,11 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
         this.output.push(`import { Ark${clazzName}Peer } from "@arkoala/arkui/Ark${clazzName}Peer"`)
         this.output.push(``)
         this.output.push(`function check${clazzName}() {`)
-        this.output.push(`  console.log("call ${clazzName} peer")`)
-        this.output.push(`  let peer = new Ark${clazzName}Peer()`)
+        this.output.push(`  let peer = new Ark${clazzName}Peer(ArkUINodeType.${clazzName})`)
     }
 
     epilogue(name: ts.Identifier) {
         let clazzName = this.getClassName(name)!
-        this.output.push(`  console.log("\\n")`)
         this.output.push(`}`)
         this.output.push(`check${clazzName}()`)
         this.output.push(`\n`)

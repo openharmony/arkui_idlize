@@ -125,6 +125,12 @@ inline void WriteToString(string* result, const Undefined* value) {
 }
 
 inline void WriteToString(string* result, const CustomObject* value) {
+
+  if (strcmp(value->kind, "NativeErrorFunction") == 0) {
+    result->append("() => {} /* TBD: Function*/");
+    return;
+  }
+
   result->append("Custom kind=");
   result->append(value->kind);
   result->append(" id=");
@@ -331,15 +337,19 @@ inline void WriteToString(string* result, KInt value) {
 }
 
 inline void WriteToString(string* result, String* value) {
+    result->append("\"");
     if (value->chars)
       result->append(value->chars);
     else
       result->append("<null>");
+    result->append("\"");
 }
 
 inline void WriteToString(string* result, const String* value) {
+    result->append("\"");
     if (value->chars)
       result->append(value->chars);
     else
       result->append("<null>");
+    result->append("\"");
 }

@@ -738,16 +738,17 @@ export class DeclarationTable {
         printer.print(`template <>`)
         printer.print(`inline void WriteToString(string* result, const ${nameOptional}* value) {`)
         printer.pushIndent()
-        printer.print(`result->append("${nameOptional} {");`)
-        printer.print(`result->append("tag=");`)
-        printer.print(`result->append(tagName((Tags)(value->tag)));`)
         printer.print(`if (value->tag != TAG_UNDEFINED) {`)
         printer.pushIndent()
-        printer.print(`result->append(", value=");`)
         printer.print(`WriteToString(result, ${isPointer ? "&" : ""}value->value);`)
         printer.popIndent()
+        printer.print(`} else {`)
+        printer.print(`Undefined undefined;`)
+        printer.print(`WriteToString(result, undefined);`)
         printer.print(`}`)
-        printer.print(`result->append("}");`)
+        printer.print(`result->append(" /* ${nameOptional} { tag=");`)
+        printer.print(`result->append(tagName((Tags)(value->tag)));`)
+        printer.print(`result->append(" } */");`)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -781,40 +782,50 @@ export class DeclarationTable {
         let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
         let isArray = this.isMaybeWrapped(target, ts.isArrayTypeNode)
         let isOptional = this.isMaybeWrapped(target, ts.isOptionalTypeNode)
+        let isTuple = this.isMaybeWrapped(target, ts.isTupleTypeNode)
         let access = isPointer ? "->" : "."
         if (isUnion) {
-            printer.print(`result->append("${name} [variant ");`)
-            printer.print(`result->append(std::to_string(value${access}selector));`)
-            printer.print(`result->append("] ");`)
             this.targetStruct(target).getFields().forEach((field, index) => {
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                 printer.print(`if (value${access}selector == ${index - 1}) {`)
                 printer.pushIndent()
-                printer.print(`result->append("${field.name}=");`)
                 printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                 printer.popIndent()
                 printer.print(`}`)
             })
+            printer.print(`result->append(" /* ${name} [variant ");`)
+            printer.print(`result->append(std::to_string(value${access}selector));`)
+            printer.print(`result->append("]*/");`)
         } else if (isArray) {
             let isPointerField = ts.isArrayTypeNode(target) ? this.typeConvertor("param", target.elementType).isPointerType() : false
-            printer.print(`result->append("${name} {array_length=");`)
-            printer.print(`WriteToString(result, value${access}array_length);`)
-            printer.print(`result->append(", array=[");`)
-            printer.print(`int32_t count = value${access}array_length > 5 ? 5 : value${access}array_length;`)
+            printer.print(`result->append("[");`)
+            printer.print(`int32_t count = value${access}array_length > 7 ? 7 : value${access}array_length;`)
             printer.print(`for (int i = 0; i < count; i++) {`)
             printer.pushIndent()
             printer.print(`if (i > 0) result->append(", ");`)
             printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}array[i]);`)
             printer.popIndent()
             printer.print(`}`)
-            printer.print(`if (count < value${access}array_length) result->append(", ...");`)
-            printer.print(`result->append("]}");`)
+            printer.print(`result->append("] /* ${name} {array_length=");`)
+            printer.print(`WriteToString(result, value${access}array_length);`)
+            printer.print(`result->append("} */");`)
+        } else if (isTuple) {
+            printer.print(`result->append("[");`)
+            const fields = this.targetStruct(target).getFields()
+            fields.forEach((field, index) => {
+                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                if (index > 0) {
+                    printer.print(`result->append(", ");`)
+                }
+                printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+            })
+            printer.print(`result->append("] /*${name} {tuple_length=${fields.length}}*/");`)
         } else if (isOptional) {
-            printer.print(`result->append("${name} {");`)
+            printer.print(`result->append("{");`)
             const fields = this.targetStruct(target).getFields()
             fields.forEach((field, index) => {
                 if (index > 0) printer.print(`result->append(", ");`)
-                printer.print(`result->append("${field.name}=");`)
+                printer.print(`result->append("${field.name}: ");`)
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                 printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                 if (index == 0) {
@@ -826,16 +837,16 @@ export class DeclarationTable {
                     printer.print("}")
                 }
             })
-            printer.print(`result->append("}");`)
+            printer.print(`result->append("} /* ${name} */");`)
         } else {
-            printer.print(`result->append("${name} {");`)
+            printer.print(`result->append("{");`)
             this.targetStruct(target).getFields().forEach((field, index) => {
                 if (index > 0) printer.print(`result->append(", ");`)
-                printer.print(`result->append("${field.name}=");`)
+                printer.print(`result->append("${field.name}: ");`)
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                 printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
             })
-            printer.print(`result->append("}");`)
+            printer.print(`result->append("} /* ${name} */");`)
         }
     }
 

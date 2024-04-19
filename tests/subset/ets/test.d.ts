@@ -36,13 +36,6 @@ declare interface OptionInterfaceDTS {
     tuple: [boolean?, number?]
 }
 
-declare class ClassDTS extends CommonMethod<ClassDTS> {
-
-    testUnionOptional(value: UnionOptionalInterfaceDTS)
-
-    testArray(value: Array<number>)
-}
-
 // basic types:
 // - boolean
 // - number
@@ -113,9 +106,9 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     // tuple
 
-    testTuple(value: [boolean, number]): TestAttribute;
+    testTupleBooleanNumber(value: [boolean, number]): TestAttribute;
 
-    testTuple(value: [number, string, EnumDTS]): TestAttribute;
+    testTupleNumberStringEnum(value: [number, string, EnumDTS]): TestAttribute;
 
     // tuple optional
 

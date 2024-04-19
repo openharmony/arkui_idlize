@@ -195,11 +195,17 @@ if (options.dts2test) {
         {
             compilerOptions: defaultCompilerOptions,
             onBegin: (outDir: string) => {
+                lines.push(`import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"`)
+                lines.push(`import {checkResult, checkTestFailures} from "../subset/test_utils"`)
+                lines.push(``)
             },
             onSingleFile: (entries: string[], outputDir, sourceFile) => {
                 lines = lines.concat(entries)
             },
             onEnd: (outDir: string) => {
+                lines.push(``)
+                lines.push(`checkTestFailures()`)
+
                 let generated = lines.join("\n")
                 const outFile = path.join(outDir, "index.ts")
                 if (options.verbose) {

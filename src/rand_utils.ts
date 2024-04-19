@@ -98,7 +98,7 @@ export function pick<K, V>(keys: K[], gen: (key: K) => string[], pickedNumbers: 
             let elem = values[i][index]
             v.push(elem)
         }
-        picked.push(v.join(","))
+        picked.push(v.join(", "))
     }
 
     return [...new Set(picked)]
@@ -114,7 +114,7 @@ export function pickArray<T>(values: T[], maxLen: number, pickedNumbers: number 
         for (let i = 0; i < len; i++) {
             p.push(values[randInt(values.length)])
         }
-        picked.push(`[${p.join(",")}]`)
+        picked.push(`[${p.join(", ")}]`)
     }
 
     return [...new Set(picked)]
