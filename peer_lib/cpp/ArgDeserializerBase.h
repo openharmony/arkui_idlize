@@ -148,10 +148,6 @@ struct CustomDeserializer {
   CustomDeserializer* next = nullptr;
 };
 
-struct AnimationRange {
-  Number value0;
-  Number value1;
-};
 
 class ArgDeserializerBase
 {
@@ -275,13 +271,6 @@ public:
       fprintf(stderr, "Bad length tag %d\n", tag);
       throw "Error";
     }
-    return result;
-  }
-  AnimationRange readAnimationRange()
-  {
-    AnimationRange result;
-    result.value0 = readNumber();
-    result.value1 = readNumber();
     return result;
   }
 

@@ -69,12 +69,15 @@ class FieldRecord {
 class StructDescriptor {
     supers: DeclarationTarget[] = []
     deps = new Set<DeclarationTarget>()
+    isPacked: boolean = false
+    isArray: boolean = false
     private fields: FieldRecord[] = []
-    packed: boolean = false
     private seenFields = new Set<string>()
     addField(field: FieldRecord) {
         if (!this.seenFields.has(field.name)) {
             this.seenFields.add(field.name)
+            // TODO: kind of wrong
+            if (field.name == `template`) field.name = `template_`
             this.fields.push(field)
         }
     }
@@ -264,11 +267,11 @@ export class DeclarationTable {
             }
         }
         if (ts.isTemplateLiteralTypeNode(target)) {
-            // TODO: likley incorrect
+            // TODO: likeley incorrect
             return prefix + `String`
         }
         if (ts.isTypeParameterDeclaration(target)) {
-            // TODO: likley incorrect
+            // TODO: likeley incorrect
             return prefix + `CustomObject`
         }
         if (ts.isEnumDeclaration(target)) {
@@ -640,8 +643,23 @@ export class DeclarationTable {
         return this.uniqueNames.get(target)!
     }
 
-    private printStructsCHead(name: string, needPacked: boolean, structs: IndentedPrinter) {
-        if (needPacked) {
+    private printStructsCHead(name: string, descriptor: StructDescriptor, structs: IndentedPrinter) {
+        if (descriptor.isArray) {
+            // Forward declaration of element type.
+            let elementTypePointer = descriptor.getFields()[0].declaration
+            if (!(elementTypePointer instanceof PointerType))
+                throw new Error(`Unexpected ${this.computeTargetName(elementTypePointer, false)}`)
+            let elementType = elementTypePointer.pointed
+            if (!(elementType instanceof PrimitiveType)) {
+                let name = this.computeTargetName(elementType, false)
+                if (ts.isEnumDeclaration(elementType)) {
+                    structs.print(`typedef int32_t ${name};`)
+                } else {
+                    structs.print(`struct ${this.computeTargetName(elementType, false)};`)
+                }
+            }
+        }
+        if (descriptor.isPacked) {
             structs.print(`#ifdef _MSC_VER`)
             structs.print(`#pragma pack(push, 1)`)
             structs.print(`#endif`)
@@ -655,11 +673,11 @@ export class DeclarationTable {
         structs.popIndent()
         if (needPacked) {
             structs.print(`#ifdef _MSC_VER`)
-            structs.print(`} ${name};`)
-            structs.print(`#pragma pack(pop)`)
+            structs.print(`} #pragma pack(pop)`)
             structs.print(`#else`)
-            structs.print(`} __attribute__((packed)) ${name};`)
+            structs.print(`} __attribute__((packed))`)
             structs.print(`#endif`)
+            structs.print(`${name};`)
         } else {
             structs.print(`} ${name};`)
         }
@@ -714,9 +732,9 @@ export class DeclarationTable {
             }
             if (!noBasicDecl && !this.ignoreTarget(target, nameAssigned)) {
                 const structDescriptor = this.targetStruct(target)
-                this.printStructsCHead(nameAssigned, structDescriptor.packed, structs)
+                this.printStructsCHead(nameAssigned, structDescriptor, structs)
                 structDescriptor.getFields().forEach(it => structs.print(`${it.optional ? "Optional_" : ""}${this.uniqueName(it.declaration)} ${it.name};`))
-                this.printStructsCTail(nameAssigned, structDescriptor.packed, structs)
+                this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
             }
             if (!noBasicDecl && nameAssigned != "Length" && nameAssigned != "Function"  && nameAssigned != "Resource"
                 && nameAssigned != "Array" && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable"
@@ -732,10 +750,10 @@ export class DeclarationTable {
             seenNames.add(nameOptional)
             if (!(target instanceof PointerType) && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable") {
                 const structDescriptor = this.targetStruct(target)
-                this.printStructsCHead(nameOptional, structDescriptor.packed, structs)
+                this.printStructsCHead(nameOptional, structDescriptor, structs)
                 structs.print(`enum Tags tag;`)
                 structs.print(`${nameAssigned} value;`)
-                this.printStructsCTail(nameOptional, structDescriptor.packed, structs)
+                this.printStructsCTail(nameOptional, structDescriptor.isPacked, structs)
                 this.writeOptional(nameOptional, writeToString, isPointer)
             }
         }
@@ -876,7 +894,7 @@ export class DeclarationTable {
             heritageDeclarations(this.typeChecker!, it).forEach(it => {
                 if (ts.isClassDeclaration(it) || ts.isInterfaceDeclaration(it)) {
                     result.supers.push(it)
-                    result.packed = true
+                    result.isPacked = true
                     this.fieldsForClass(it, result)
                 }
             })
@@ -912,7 +930,7 @@ export class DeclarationTable {
             return result
         }
         else if (ts.isArrayTypeNode(target)) {
-            // TODO: delay this computation.
+            result.isArray = true
             let element = this.toTarget(target.elementType)
             result.addField(new FieldRecord(PrimitiveType.pointerTo(element), target, "array"))
             result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
@@ -981,6 +999,7 @@ export class DeclarationTable {
                 result.addField(new FieldRecord(this.toTarget(type), type, "value"))
             } else if (name == "Array") {
                 let type = target.typeArguments[0]
+                result.isArray = true
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "array"))
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
             } else if (name == "ContentModifier") {

@@ -1,4 +1,5 @@
 typedef float float32_t;
+typedef void* KNativePointer;
 
 // Binary layout os String must match that of KStringPtrImpl.
 typedef struct String {
@@ -43,5 +44,10 @@ typedef CustomObject Function;
 typedef CustomObject Callback;
 typedef CustomObject ErrorCallback;
 typedef CustomObject Any;
-
 typedef CustomObject Resource;
+
+// TODO: generate!
+typedef struct Optional_Callback {
+  enum Tags tag;
+  int32_t value;
+} Optional_Callback;
