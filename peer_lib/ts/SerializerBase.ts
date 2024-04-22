@@ -158,7 +158,7 @@ export class SerializerBase {
             this.view = new DataView(resizedBuffer)
         }
     }
-    writeCustom(kind: string, value: any) {
+    writeCustomObject(kind: string, value: any) {
         let current = SerializerBase.customSerializers
         while (current) {
             if (current.supports(kind)) {
@@ -207,7 +207,7 @@ export class SerializerBase {
         this.position++
     }
     writeFunction(value: object | undefined) {
-        this.writeCustom("Function", value)
+        this.writeCustomObject("Function", value)
     }
     writeString(value: string) {
         let encoded = textEncoder.encode(value)
@@ -262,7 +262,7 @@ export class SerializerBase {
     }
 
     writeCallback(value: Callback<any>|undefined) {
-        this.writeCustom("Callback", value)
+        this.writeCustomObject("Callback", value)
     }
 }
 

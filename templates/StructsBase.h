@@ -49,5 +49,5 @@ typedef CustomObject Resource;
 // TODO: generate!
 typedef struct Optional_Callback {
   enum Tags tag;
-  int32_t value;
+  CustomObject value;
 } Optional_Callback;

@@ -353,10 +353,10 @@ export class ImportTypeConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${param}Serializer.writeCustom("${this.importedName}", ${value})`)
+        printer.print(`${param}Serializer.writeCustomObject("${this.importedName}", ${value})`)
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = ${param}Deserializer.readCustom("${this.importedName}");`)
+        printer.print(`${value} = ${param}Deserializer.readCustomObject("${this.importedName}");`)
     }
     nativeType(impl: boolean): string {
         // return this.importedName
@@ -376,8 +376,8 @@ export class ImportTypeConvertor extends BaseArgConvertor {
 
 export class CustomTypeConvertor extends BaseArgConvertor {
     private customName: string
-    constructor(param: string, customName: string) {
-        super("Object", [RuntimeType.OBJECT], false, true, param)
+    constructor(param: string, customName: string, tsType?: string) {
+        super(tsType ?? "Object", [RuntimeType.OBJECT], false, true, param)
         this.customName = customName
     }
 
@@ -388,10 +388,10 @@ export class CustomTypeConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${param}Serializer.writeCustom("${this.customName}", ${value})`)
+        printer.print(`${param}Serializer.writeCustomObject("${this.customName}", ${value})`)
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value} = ${param}Deserializer.readCustom("${this.customName}");`)
+        printer.print(`${value} = ${param}Deserializer.readCustomObject("${this.customName}");`)
     }
     nativeType(impl: boolean): string {
         return "CustomObject"
@@ -593,7 +593,7 @@ export class TupleConvertor extends BaseArgConvertor {
     }
 
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`if ( ${param}Deserializer.readInt8() != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
+        printer.print(`if (${param}Deserializer.readInt8() != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         this.memberConvertors.forEach((it, index) => {
             it.convertorToCDeserial(param, `${value}.value${index}`, printer)
@@ -656,8 +656,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         // Array length.
         let runtimeType = `runtimeType${uniqueCounter++}`;
         let arrayLength = `arrayLength${uniqueCounter++}`;
-        let elementTypeName = this.table.computeTypeName(undefined, this.elementType, false)
-
+        let elementTypeName = this.table.computeTargetName(this.table.toTarget(this.elementType), false)
         printer.print(`auto ${runtimeType} = ${param}Deserializer.readInt8();`)
         printer.print(`if (${runtimeType} != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
@@ -786,16 +785,17 @@ class ProxyConvertor extends BaseArgConvertor {
 }
 
 export class TypeAliasConvertor extends ProxyConvertor {
-    constructor(param: string, private table: DeclarationTable, private type: ts.TypeAliasDeclaration) {
-        super(table.typeConvertor(param, type.type))
+    constructor(param: string, private table: DeclarationTable, private declaration: ts.TypeAliasDeclaration,
+        private typeArguments?: ts.NodeArray<ts.TypeNode>) {
+        super(table.typeConvertor(param, declaration.type))
     }
 
     nativeType(impl: boolean): string {
         // propagate CustomObject type
-        if (this.convertor.nativeType(impl) === PrimitiveType.CustomObject.getText(this.table)) {
-            return PrimitiveType.CustomObject.getText(this.table)
+        if (this.convertor.nativeType(impl) === PrimitiveType.CustomObject.getText()) {
+            return PrimitiveType.CustomObject.getText()
         }
-        return ts.idText(this.type.name)
+        return ts.idText(this.declaration.name)
     }
 
     isPointerType(): boolean {

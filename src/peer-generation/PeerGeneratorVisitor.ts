@@ -221,6 +221,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             ts.isEnumDeclaration(node) ||
             ts.isTypeAliasDeclaration(node) ||
             ts.isFunctionDeclaration(node) ||
+            ts.isEmptyStatement(node) ||
             node.kind == ts.SyntaxKind.EndOfFileToken) {
             // Do nothing.
         } else {

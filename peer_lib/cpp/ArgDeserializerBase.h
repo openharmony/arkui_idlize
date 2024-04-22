@@ -63,7 +63,7 @@ inline const char* getUnitName(int value) {
 }
 
 template <typename T>
-inline void WriteToString(string* result, T value) = delete;
+inline void WriteToString(string* result, T value) {} // = delete;
 
 inline void WriteToString(string* result, const Empty& value) {
 }
@@ -196,7 +196,7 @@ public:
     }
   }
 
-  CustomObject readCustom(string kind) {
+  CustomObject readCustomObject(string kind) {
       auto* current = ArgDeserializerBase::customDeserializers;
       while (current) {
         if (current->supports(kind)) {
@@ -288,7 +288,7 @@ public:
 
   Function readFunction()
   {
-    return readCustom("Function");
+    return readCustomObject("Function");
   }
 
   Callback readCallback()
