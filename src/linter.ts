@@ -49,7 +49,8 @@ export enum LinterError {
     TYPE_ELEMENT_TYPE,
     INTERFACE_METHOD_TYPE_INCONSISTENT_WITH_PARENT,
     USE_COMPONENT_AS_PARAM,
-    METHOD_OVERLOADING
+    METHOD_OVERLOADING,
+    CPP_KEYWORDS
 }
 
 export interface LinterMessage {
@@ -152,6 +153,8 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.visitMethod(child)
             } else if (ts.isPropertySignature(child)) {
                 this.visitProperty(child)
+            } else if (ts.isCallSignatureDeclaration(child)) {
+                this.visitMethod(child)
             }
         })
         this.checkForOverloads(clazz)
@@ -188,7 +191,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             if (this.inParamCheck) {
                 const declarations = getDeclarationsByNode(this.typeChecker, type.typeName)
                 if (declarations.length > 0 && ts.isClassDeclaration(declarations[0])
-                        && isCommonMethodOrSubclass(this.typeChecker, declarations[0])) {
+                    && isCommonMethodOrSubclass(this.typeChecker, declarations[0])) {
                     this.report(type, LinterError.USE_COMPONENT_AS_PARAM, `Component ${identName(declarations[0].name)} used as parameter`)
                 }
             }
@@ -238,14 +241,47 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (!name) return
         if (ts.isComputedPropertyName(name)) {
             this.report(name, LinterError.COMPUTED_PROPERTY_NAME, `Computed property name ${name.getText(this.sourceFile)}`)
+        } else {
+            let nameString = identName(name)!
+            if (LinterVisitor.cppKeywords.has(nameString)) {
+                this.report(
+                    name,
+                    LinterError.CPP_KEYWORDS,
+                    `Use C/C++ keyword as the field name: ${nameString}`
+                )
+            }
         }
     }
+
+    // See https://en.cppreference.com/w/cpp/keyword.
+    private static cppKeywords = new Set([
+        `alignas`, `alignof`, `and`,
+        `and_eq`, `asm`, `atomic_cancel`, `atomic_commit`,
+        `atomic_noexcept`, `auto`, `bitand`, `bitor`, `bool`,
+        `break`, `case`, `catch`, `char`, `char8_t`, `char16_t`,
+        `char32_t`, `class`, `compl`, `concept`, `const`, `consteval`,
+        `constexpr`, `constinit`, `const_cast`, `continue`, `co_await`,
+        `co_return`, `co_yield`, `decltype`, `default`, `delete`, `do`,
+        `double`, `dynamic_cast`, `else`, `enum`, `explicit`, `export`,
+        `extern`, `false`, `float`, `for`, `friend`, `goto`, `if`,
+        `inline`, `int`, `long`, `mutable`, `namespace`, `new`, `noexcept`,
+        `not`, `not_eq`, `nullptr`, `operator`, `or`, `or_eq`, `private`,
+        `protected`, `public`, `reflexpr`, `register`, `reinterpret_cast`,
+        `requires`, `return`, `short`, `signed`,
+        `sizeof`, `static`, `static_assert`, `static_cast`,
+        `struct`, `switch`, `synchronized`, `template`,
+        `this`, `thread_local`, `throw`, `true`, `try`,
+        `typedef`, `typeid`, `typename`, `union`,
+        `unsigned`, `using`, `virtual`, `void`,
+        `volatile`, `wchar_t`, `while`, `xor`,
+        `xor_eq`
+    ])
 
     visitConstructor(ctor: ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration): void {
         ctor.parameters.map(param => this.checkType(param.type))
     }
 
-    visitMethod(method: ts.MethodDeclaration | ts.MethodSignature): void {
+    visitMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): void {
         this.checkType(method.type)
         method.modifiers?.forEach(it => {
             if (it.kind == ts.SyntaxKind.PrivateKeyword) {
@@ -434,7 +470,7 @@ export function toLinterString(
     if (suppressErrors) {
         suppressErrors.split(",").forEach(it => suppressedErrorsSet.add(Number(it) as LinterError))
     }
-    let whitelist: LinterWhitelist| undefined = undefined
+    let whitelist: LinterWhitelist | undefined = undefined
     if (whitelistFile) {
         whitelist = new LinterWhitelist(whitelistFile)
     }
@@ -448,5 +484,5 @@ export function toLinterString(
                 .map(stringMessage)
         )
         .filter(element => (element?.length ?? 0) > 0)
-    return [errors.join("\n"), errors.length > 0 ? 1 : 0,  printHistogram(histogram)]
+    return [errors.join("\n"), errors.length > 0 ? 1 : 0, printHistogram(histogram)]
 }

@@ -246,7 +246,6 @@ export class DeclarationTable {
     computeTargetName(target: DeclarationTarget, optional: boolean): string {
         let name = this.computeTargetNameImpl(target, optional)
         this.addDeclaration(target)
-        if (name == "OnScrollVisibleContentChangeCallback") throw new Error("OK")
         if (!(target instanceof PrimitiveType) && (
             !ts.isInterfaceDeclaration(target) && !ts.isClassDeclaration(target) && !ts.isEnumDeclaration(target))
         ) {
@@ -697,8 +696,6 @@ export class DeclarationTable {
                 let name = this.computeTargetName(elementType, false)
                 if (ts.isEnumDeclaration(elementType)) {
                     structs.print(`typedef int32_t ${name};`)
-                } else {
-                    structs.print(`struct ${this.computeTargetName(elementType, false)};`)
                 }
             }
         }
