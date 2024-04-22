@@ -713,7 +713,8 @@ export class DeclarationTable {
         structs.popIndent()
         if (needPacked) {
             structs.print(`#ifdef _MSC_VER`)
-            structs.print(`} #pragma pack(pop)`)
+            structs.print(`}`)
+            structs.print(`#pragma pack(pop)`)
             structs.print(`#else`)
             structs.print(`} __attribute__((packed))`)
             structs.print(`#endif`)
