@@ -144,6 +144,10 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
                 if (decl && ts.isInterfaceDeclaration(decl)) {
 
                     let interfaceName = asString(name)
+                    // Array from built-in
+                    if (interfaceName === "Array") {
+                        return type.typeArguments ? pickArray(this.generateValueOfType(type.typeArguments[0])) : []
+                    }
                     // Optional from stdlib.d.ts
                     if (interfaceName === "Optional") {
                         if (type.typeArguments) {
@@ -175,7 +179,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
             return type.types.flatMap(it => this.generateValueOfType(it))
         }
         if (ts.isArrayTypeNode(type)) {
-            return pickArray(this.generateValueOfType(type.elementType), 7)
+            return pickArray(this.generateValueOfType(type.elementType))
         }
         if (ts.isLiteralTypeNode(type)) {
             let literal = type.literal

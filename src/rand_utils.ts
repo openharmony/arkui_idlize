@@ -104,7 +104,7 @@ export function pick<K, V>(keys: K[], gen: (key: K) => string[], pickedNumbers: 
     return [...new Set(picked)]
 }
 
-export function pickArray<T>(values: T[], maxLen: number, pickedNumbers: number = 3): string[] {
+export function pickArray<T>(values: T[], maxLen: number = 7, pickedNumbers: number = 3): string[] {
 
     let picked: string[] = ["[]"]
 

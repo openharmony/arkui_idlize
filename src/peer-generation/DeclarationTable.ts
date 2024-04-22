@@ -890,6 +890,12 @@ export class DeclarationTable {
         let isOptional = this.isMaybeWrapped(target, ts.isOptionalTypeNode)
         let isTuple = this.isMaybeWrapped(target, ts.isTupleTypeNode)
         let access = isPointer ? "->" : "."
+
+        // treat Array<T> as array
+        if (!isArray && ts.isTypeReferenceNode(target)) {
+            isArray = identName(target.typeName) === "Array"
+        }
+
         if (isUnion) {
             this.targetStruct(target).getFields().forEach((field, index) => {
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
@@ -905,7 +911,14 @@ export class DeclarationTable {
                 printer.print(`result->append("]*/");`)
             }
         } else if (isArray) {
-            let isPointerField = ts.isArrayTypeNode(target) ? this.typeConvertor("param", target.elementType).isPointerType() : false
+            let elementType = ts.isArrayTypeNode(target)
+                ? target.elementType
+                : ts.isTypeReferenceNode(target) && target.typeArguments
+                    ? target.typeArguments[0]
+                    : undefined
+            let isPointerField = elementType === undefined
+                ? false
+                : this.typeConvertor("param", elementType).isPointerType()
             printer.print(`result->append("[");`)
             printer.print(`int32_t count = value${access}array_length > 7 ? 7 : value${access}array_length;`)
             printer.print(`for (int i = 0; i < count; i++) {`)

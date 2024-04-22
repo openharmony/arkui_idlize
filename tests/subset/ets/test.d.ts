@@ -36,6 +36,16 @@ declare interface OptionInterfaceDTS {
     tuple: [boolean?, number?]
 }
 
+declare interface ArrayRefNumberInterfaceDTS {
+
+    tuple: Array<number>
+}
+
+declare interface ArrayRefTuplesInterfaceDTS {
+
+    tuple: Array<[boolean, number]>
+}
+
 // basic types:
 // - boolean
 // - number
@@ -49,6 +59,8 @@ declare interface OptionInterfaceDTS {
 // [type1, type2]      // tuple
 // [type1?, type2?]    // tuple optional
 // [type1 | type2, (type3 | type 4)?]    // tuple union
+// Array<type> // ArrayRef type
+// Array<[type1, type2]> // ArrayRef tuple
 declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     // basic types
@@ -118,6 +130,14 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testTupleUnion(value: [(number | string), (boolean | EnumDTS), (string | EnumDTS | boolean)?]): TestAttribute;
 
+    // Array<Type>
+
+    testArrayRefBoolean(value: Array<boolean>): TestAttribute
+
+    testArrayRefNumber(value: Array<number>): TestAttribute
+
+    // testArrayTuple(value: Array<[number, boolean]>): TestAttribute
+
     // interface
 
     testBooleanInterface(value: BooleanInterfaceDTS): Attribute
@@ -133,6 +153,10 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
     testTupleInterface(value: TupleInterfaceDTS)
 
     testOptionInterface(value: OptionInterfaceDTS)
+
+    testArrayRefNumberInterface(value: ArrayRefNumberInterfaceDTS)
+
+    // testArrayRefTupleInterface(value: ArrayRefTuplesInterfaceDTS)
 
     testInterfaceMixed(v1: UnionInterfaceDTS, v2: number, v3: TupleInterfaceDTS)
 }
