@@ -81,14 +81,14 @@ export class StringConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeString(${value})`)
     }
     convertorCArg(param: string): string {
-        return `(String*)&${param}`
+        return `(${PrimitiveType.String.getText()}*)&${param}`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readString();`)
     }
 
     nativeType(impl: boolean): string {
-        return "String"
+        return PrimitiveType.String.getText()
     }
     interopType(ts: boolean): string {
         return "KStringPtr"
@@ -121,10 +121,10 @@ export class BooleanConvertor extends BaseArgConvertor {
     }
 
     nativeType(impl: boolean): string {
-        return "KBoolean"
+        return PrimitiveType.Boolean.getText()
     }
     interopType(ts: boolean): string {
-        return "KBoolean"
+        return ts ? "KInt" : PrimitiveType.Boolean.getText()
     }
     estimateSize() {
         return 1
@@ -156,7 +156,7 @@ export class UndefinedConvertor extends BaseArgConvertor {
         return "Undefined"
     }
     interopType(ts: boolean): string {
-        return "KNativePointer"
+        return PrimitiveType.NativePointer.getText()
     }
 
     estimateSize() {
@@ -189,10 +189,10 @@ export class EnumConvertor extends BaseArgConvertor {
     }
 
     nativeType(impl: boolean): string {
-        return "KInt"
+        return PrimitiveType.Int32.getText()
     }
-    interopType(): string {
-        return "KInt"
+    interopType(ts: boolean): string {
+        return ts ? "KInt" : PrimitiveType.Int32.getText()
     }
 
     estimateSize() {
@@ -229,10 +229,10 @@ export class LengthConvertor extends BaseArgConvertor {
         printer.print(`${value} = ${param}Deserializer.readLength();`)
     }
     nativeType(impl: boolean): string {
-        return "Length"
+        return PrimitiveType.Length.getText()
     }
     interopType(ts: boolean): string {
-        return ts ? "Int32ArrayPtr" : "int32_t*"
+        return ts ? "Int32ArrayPtr" : `${PrimitiveType.Int32.getText()}*`
     }
     estimateSize() {
         return 12
@@ -297,7 +297,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
                 let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RUNTIME_${RuntimeType[it]} == ${runtimeType}${maybeComma2}`).join(" || ")}) {`)
+                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}ARK_RUNTIME_${RuntimeType[it]} == ${runtimeType}${maybeComma2}`).join(" || ")}) {`)
                 printer.pushIndent()
                 it.convertorToCDeserial(param, `${value}.value${index}`, printer)
                 printer.print(`${value}.selector = ${index};`)
@@ -307,7 +307,7 @@ export class UnionConvertor extends BaseArgConvertor {
     }
     nativeType(impl: boolean): string {
         return impl
-            ? `struct { int selector; union { ` +
+            ? `struct { ${PrimitiveType.Int32.getText()} selector; union { ` +
             `${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")}` +
               `}; }`
             :  this.table.getTypeName(this.type)
@@ -361,7 +361,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     nativeType(impl: boolean): string {
         // return this.importedName
         // treat ImportType as CustomObject
-        return PrimitiveType.CustomObject.getText(this.table)
+        return PrimitiveType.CustomObject.getText()
     }
     interopType(ts: boolean): string {
         throw new Error("Must never be used")
@@ -394,7 +394,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
         printer.print(`${value} = ${param}Deserializer.readCustomObject("${this.customName}");`)
     }
     nativeType(impl: boolean): string {
-        return "CustomObject"
+        return PrimitiveType.CustomObject.getText()
     }
     interopType(ts: boolean): string {
         throw new Error("Must never be used")
@@ -437,8 +437,8 @@ export class OptionConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`${value}.tag = ${param}Deserializer.readInt8() == RUNTIME_UNDEFINED ? TAG_UNDEFINED : TAG_OBJECT;`)
-        printer.print(`if (${value}.tag != TAG_UNDEFINED) {`)
+        printer.print(`${value}.tag = ${param}Deserializer.readInt8() == ARK_RUNTIME_UNDEFINED ? ARK_TAG_UNDEFINED : ARK_TAG_OBJECT;`)
+        printer.print(`if (${value}.tag != ARK_TAG_UNDEFINED) {`)
         printer.pushIndent()
         this.typeConvertor.convertorToCDeserial(param, `${value}.value`, printer)
         printer.popIndent()
@@ -446,11 +446,11 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     nativeType(impl: boolean): string {
         return impl
-            ? `struct { int tag; ${this.table.getTypeName(this.type, false)} value; }`
+            ? `struct { Ark_Tag tag; ${this.table.getTypeName(this.type, false)} value; }`
             : this.table.getTypeName(this.type, true)
     }
     interopType(ts: boolean): string {
-        return "KPointer"
+        return ts ? "KNativePointer" : PrimitiveType.NativePointer.getText()
     }
     estimateSize() {
         return this.typeConvertor.estimateSize()
@@ -503,8 +503,8 @@ export class AggregateConvertor extends BaseArgConvertor {
               '} '
             : this.table.getTypeName(this.type)
     }
-    interopType(): string {
-        return "KNativePointer"
+    interopType(ts: boolean): string {
+        throw new Error("Must never be used")
     }
     estimateSize() {
         return 4
@@ -593,7 +593,7 @@ export class TupleConvertor extends BaseArgConvertor {
     }
 
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
-        printer.print(`if (${param}Deserializer.readInt8() != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
+        printer.print(`if (${param}Deserializer.readInt8() != ${PrimitiveType.UndefinedRuntime}) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         this.memberConvertors.forEach((it, index) => {
             it.convertorToCDeserial(param, `${value}.value${index}`, printer)
@@ -609,7 +609,7 @@ export class TupleConvertor extends BaseArgConvertor {
         : this.table.getTypeName(this.type)
     }
     interopType(ts: boolean): string {
-        return "KNativePointer"
+        throw new Error("Must never be used")
     }
 
     estimateSize() {
@@ -658,7 +658,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         let arrayLength = `arrayLength${uniqueCounter++}`;
         let elementTypeName = this.table.computeTargetName(this.table.toTarget(this.elementType), false)
         printer.print(`auto ${runtimeType} = ${param}Deserializer.readInt8();`)
-        printer.print(`if (${runtimeType} != RUNTIME_UNDEFINED) {`) // TODO: `else value = nullptr` ?
+        printer.print(`if (${runtimeType} != ${PrimitiveType.UndefinedRuntime}) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         printer.print(`auto ${arrayLength} = ${param}Deserializer.readInt32();`)
         printer.print(`${param}Deserializer.resizeArray<Array_${elementTypeName}, ${elementTypeName}>(${value}, ${arrayLength});`);
@@ -705,11 +705,11 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 
     nativeType(): string {
-        return "Number"
+        return PrimitiveType.Number.getText()
     }
 
-    interopType(impl: boolean): string {
-        return "KInt"
+    interopType(ts: boolean): string {
+        return ts ? "KInt" : PrimitiveType.Number.getText()
     }
     estimateSize() {
         return 4
@@ -741,7 +741,7 @@ export class PredefinedConvertor extends BaseArgConvertor {
         return this.cType
     }
     interopType(ts: boolean): string {
-        return ts ? "Int32ArrayPtr" : "int32_t*"
+        return ts ? "Int32ArrayPtr" : PrimitiveType.Int32.getText() + "*"
     }
     estimateSize() {
         return 8
@@ -773,7 +773,6 @@ class ProxyConvertor extends BaseArgConvertor {
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
         this.convertor.convertorToTSSerial(param, value, printer)
     }
-
 
     nativeType(impl: boolean): string {
         return this.convertor.nativeType(impl)

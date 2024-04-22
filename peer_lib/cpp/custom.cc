@@ -28,10 +28,10 @@ struct MyDeserializer : CustomDeserializer {
     virtual bool supports(const string& kind) {
         return std::find(supported.begin(), supported.end(), kind) != supported.end();
     }
-    virtual CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
-        String value = deserializer->readString();
+    virtual Ark_CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
+        Ark_String value = deserializer->readString();
         fprintf(stderr, "native deserialize() for %s, got %s\n", kind.c_str(), value.chars);
-        CustomObject result;
+        Ark_CustomObject result;
         strcpy(result.kind, "NativeError");
         result.id = 0;
         strcat(result.kind, kind.c_str());

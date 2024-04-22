@@ -24,29 +24,16 @@
 
 using namespace std;
 
-// Must be synced with "enum RuntimeType" in TS.
-enum RuntimeType
-{
-  RUNTIME_UNEXPECTED = -1,
-  RUNTIME_NUMBER = 1,
-  RUNTIME_STRING = 2,
-  RUNTIME_OBJECT = 3,
-  RUNTIME_BOOLEAN = 4,
-  RUNTIME_UNDEFINED = 5,
-  RUNTIME_BIGINT = 6,
-  RUNTIME_FUNCTION = 7,
-  RUNTIME_SYMBOL = 8
-};
 
-inline const char* tagName(Tags tag) {
+inline const char* tagName(Ark_Tag tag) {
   switch (tag) {
-    case Tags::TAG_UNDEFINED: return "UNDEFINED";
-    case Tags::TAG_INT32: return "INT32";
-    case Tags::TAG_FLOAT32: return "FLOAT32";
-    case Tags::TAG_LENGTH: return "LENGTH";
-    case Tags::TAG_RESOURCE: return "RESOURCE";
-    case Tags::TAG_STRING: return "STRING";
-    case Tags::TAG_OBJECT: return "OBJECT";
+    case Ark_Tag::ARK_TAG_UNDEFINED: return "UNDEFINED";
+    case Ark_Tag::ARK_TAG_INT32: return "INT32";
+    case Ark_Tag::ARK_TAG_FLOAT32: return "FLOAT32";
+    case Ark_Tag::ARK_TAG_LENGTH: return "LENGTH";
+    case Ark_Tag::ARK_TAG_RESOURCE: return "RESOURCE";
+    case Ark_Tag::ARK_TAG_STRING: return "STRING";
+    case Ark_Tag::ARK_TAG_OBJECT: return "OBJECT";
   }
   fprintf(stderr, "tag name %d is wrong\n", tag);
   throw "Error";
@@ -65,7 +52,7 @@ inline const char* getUnitName(int value) {
 template <typename T>
 inline void WriteToString(string* result, T value) {} // = delete;
 
-inline void WriteToString(string* result, const Empty& value) {
+inline void WriteToString(string* result, const Ark_Empty& value) {
 }
 
 struct Error {
@@ -74,21 +61,21 @@ struct Error {
 };
 
 template <>
-inline void WriteToString(string* result, Number value) {
-  if (value.tag == TAG_FLOAT32)
+inline void WriteToString(string* result, Ark_Number value) {
+  if (value.tag == ARK_TAG_FLOAT32)
     result->append(std::to_string(value.f32));
   else
     result->append(std::to_string(value.i32));
 }
 
 template <>
-inline void WriteToString(string* result, Tags value) {
+inline void WriteToString(string* result, Ark_Tag value) {
   result->append(tagName(value));
 }
 
 // TODO: generate!
 template <>
-inline void WriteToString(string* result, const Length* value) {
+inline void WriteToString(string* result, const Ark_Length* value) {
   result->append("Length {");
   result->append("value=");
   result->append(std::to_string(value->value));
@@ -97,9 +84,9 @@ inline void WriteToString(string* result, const Length* value) {
   result->append("}");
 }
 
-inline Length Length_from_array(int32_t *array) {
-  Length result;
-  result.value = *(float32_t *)array;
+inline Ark_Length Length_from_array(Ark_Int32* array) {
+  Ark_Length result;
+  result.value = *(Ark_Float32*)array;
   result.unit = array[1];
   result.resource = array[2];
   return result;
@@ -107,15 +94,15 @@ inline Length Length_from_array(int32_t *array) {
 
 class ArgDeserializerBase;
 
-inline void WriteToString(string* result, Undefined value) {
+inline void WriteToString(string* result, Ark_Undefined value) {
   result->append("undefined");
 }
 
-inline void WriteToString(string* result, const Undefined* value) {
+inline void WriteToString(string* result, const Ark_Undefined* value) {
   result->append("undefined");
 }
 
-inline void WriteToString(string* result, const CustomObject* value) {
+inline void WriteToString(string* result, const Ark_CustomObject* value) {
   if (strcmp(value->kind, "NativeErrorFunction") == 0) {
     result->append("() => {} /* TBD: Function*/");
     return;
@@ -126,22 +113,11 @@ inline void WriteToString(string* result, const CustomObject* value) {
   result->append(std::to_string(value->id));
 }
 
-inline void WriteToString(string* result, const Optional_CustomObject* value) {
-  result->append("Optional_CustomObject {");
-  result->append("tag=");
-  result->append(tagName((Tags)value->tag));
-  if (value->tag != TAG_UNDEFINED) {
-    result->append(" value=");
-    WriteToString(result, &value->value);
-  }
-  result->append("}");
-}
-
 struct CustomDeserializer {
   virtual ~CustomDeserializer() {}
   virtual bool supports(const string& kind) { return false; }
-  virtual CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
-    CustomObject result;
+  virtual Ark_CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
+    Ark_CustomObject result;
     strcpy(result.kind, "error");
     return result;
   }
@@ -196,7 +172,7 @@ public:
     }
   }
 
-  CustomObject readCustomObject(string kind) {
+  Ark_CustomObject readCustomObject(string kind) {
       auto* current = ArgDeserializerBase::customDeserializers;
       while (current) {
         if (current->supports(kind)) {
@@ -204,10 +180,10 @@ public:
         }
       }
       fprintf(stderr, "Unsupported custom deserialization for %s\n", kind.c_str());
-      int tag = readInt8();
-      assert(tag == TAG_UNDEFINED);
+      auto tag = readTag();
+      assert(tag == ARK_TAG_UNDEFINED);
       // Skip updefined tag!.
-      CustomObject result;
+      Ark_CustomObject result;
       strcpy(result.kind, "Error");
       strcat(result.kind, kind.c_str());
       return result;
@@ -219,37 +195,40 @@ public:
     position += 1;
     return value;
   }
-  bool readBoolean()
+  Ark_Tag readTag() {
+    return (Ark_Tag)readInt8();
+  }
+  Ark_Boolean readBoolean()
   {
     check(1);
     int8_t value = *(data + position);
     position += 1;
     return value;
   }
-  int32_t readInt32()
+  Ark_Int32 readInt32()
   {
     check(4);
-    auto value = *(int32_t *)(data + position);
+    auto value = *(Ark_Int32 *)(data + position);
     position += 4;
     return value;
   }
-  float32_t readFloat32()
+  Ark_Float32 readFloat32()
   {
     check(4);
-    auto value = *(float32_t *)(data + position);
+    auto value = *(Ark_Float32 *)(data + position);
     position += 4;
     return value;
   }
-  Number readNumber()
+  Ark_Number readNumber()
   {
     check(5);
-    Number result;
-    result.tag = (Tags)readInt8();
-    if (result.tag == Tags::TAG_INT32)
+    Ark_Number result;
+    result.tag = readTag();
+    if (result.tag == Ark_Tag::ARK_TAG_INT32)
     {
       result.i32 = readInt32();
     }
-    else if (result.tag == Tags::TAG_FLOAT32)
+    else if (result.tag == Ark_Tag::ARK_TAG_FLOAT32)
     {
       result.f32 = readFloat32();
     } else {
@@ -259,11 +238,11 @@ public:
     return result;
   }
 
-  Length readLength()
+  Ark_Length readLength()
   {
-    Length result;
-    Tags tag = (Tags)readInt8();
-    if (tag == Tags::TAG_LENGTH) {
+    Ark_Length result;
+    Ark_Tag tag = readTag();
+    if (tag == Ark_Tag::ARK_TAG_LENGTH) {
       result.value = readFloat32();
       result.unit = readInt32();
       result.resource = readInt32();
@@ -274,10 +253,10 @@ public:
     return result;
   }
 
-  String readString()
+  Ark_String readString()
   {
-    String result;
-    int32_t length = readInt32();
+    Ark_String result;
+    Ark_Int32 length = readInt32();
     check(length);
     // We refer to string data in-place.
     result.chars = (const char*)(data + position);
@@ -286,36 +265,33 @@ public:
     return result;
   }
 
-  Function readFunction()
-  {
+  Ark_Function readFunction() {
     return readCustomObject("Function");
   }
 
-  Callback readCallback()
-  {
+  Ark_Callback readCallback() {
     return readFunction();
   }
 
-  ErrorCallback readErrorCallback()
-  {
+  Ark_ErrorCallback readErrorCallback() {
     return readFunction();
   }
 
-  Undefined readUndefined() {
-    return Undefined();
+  Ark_Undefined readUndefined() {
+    return Ark_Undefined();
   }
 };
 
-inline void WriteToString(string* result, Boolean value) {
+inline void WriteToString(string* result, bool value) {
     result->append(value ? "true" : "false");
 }
 
 template <>
-inline void WriteToString(string* result, KInt value) {
+inline void WriteToString(string* result, Ark_Int32 value) {
   result->append(std::to_string(value));
 }
 
-inline void WriteToString(string* result, String* value) {
+inline void WriteToString(string* result, Ark_String* value) {
     result->append("\"");
     if (value->chars)
       result->append(value->chars);
@@ -324,7 +300,7 @@ inline void WriteToString(string* result, String* value) {
     result->append("\"");
 }
 
-inline void WriteToString(string* result, const String* value) {
+inline void WriteToString(string* result, const Ark_String* value) {
     result->append("\"");
     if (value->chars)
       result->append(value->chars);

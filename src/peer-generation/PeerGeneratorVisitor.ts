@@ -31,7 +31,7 @@ import {
     ArgConvertor, RetConvertor,
 } from "./Convertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { DeclarationTable } from "./DeclarationTable"
+import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import {
     isRoot,
     isStandalone,
@@ -127,16 +127,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
         this.peerFile = new PeerFile(this.sourceFile.fileName, this.printers)
-    }
-
-    assignName(type: ts.TypeNode, name: string, optional: boolean) {
-        let current = this.namedTypes.get(type)
-        if (!current) {
-            current = [optional ? "" : name, optional ? name : `Optional_${name}`]
-        } else {
-            current[optional ? 1 : 0] = name
-        }
-        this.namedTypes.set(type, current)
     }
 
     requestType(name: string|undefined, type: ts.TypeNode) {
@@ -622,22 +612,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         })
     }
 
-    namedTypes = new Map<ts.TypeNode, [string, string]>()
-    getTypeName(type: ts.TypeNode, optional: boolean = false): string {
-        let result = this.namedTypes.get(type)
-        let index = optional ? 1 : 0
-        if (!result || result[index] == "") {
-            let name = this.computeTypeName(type, optional)
-            this.requestType(name, type)
-            return name
-        }
-        return result[index]
-    }
-
-    computeTypeName(type: ts.TypeNode, optional: boolean = false): string {
-        return this.declarationTable.getTypeName(type, optional)
-    }
-
     classNameIfInterface(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
         if (clazz.name === undefined) {
             throw new Error(`Encountered nameless ${asString(clazz)} in ${asString(clazz.parent)}`)
@@ -694,7 +668,7 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         return `void`
     }
     if (type.kind == ts.SyntaxKind.NumberKeyword) {
-        return `KInt`
+        return PrimitiveType.Int32.getText()
     }
     if (ts.isTypeReferenceNode(type)) {
         let name = identName(type.typeName)!
@@ -703,7 +677,7 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         switch (name) {
             /* ANOTHER HACK, fix */
             case "T": return "void"
-            case "UIContext": return "KNativePointer"
+            case "UIContext": return PrimitiveType.NativePointer.getText()
         }
         console.log(`WARNING: unhandled return type ${type.getText()}`)
         return `void`

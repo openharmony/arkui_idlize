@@ -28,15 +28,16 @@ import { DependencySorter } from "./DependencySorter"
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
     getText(table?: DeclarationTable): string { return this.name }
-    static String = new PrimitiveType("String", true)
-    static Number = new PrimitiveType("Number")
-    static Int32 = new PrimitiveType("int32_t")
-    static Tag = new PrimitiveType("Tags")
-    static Boolean = new PrimitiveType("Boolean")
-    static Function = new PrimitiveType("Function")
-    static Undefined = new PrimitiveType("Undefined")
-    static Length = new PrimitiveType("Length", true)
-    static CustomObject = new PrimitiveType("CustomObject", true)
+    static String = new PrimitiveType("Ark_String", true)
+    static Number = new PrimitiveType("Ark_Number")
+    static Int32 = new PrimitiveType("Ark_Int32")
+    static Tag = new PrimitiveType("Ark_Tag")
+    static Boolean = new PrimitiveType("Ark_Boolean")
+    static Function = new PrimitiveType("Ark_Function")
+    static Undefined = new PrimitiveType("Ark_Undefined")
+    static NativePointer = new PrimitiveType("Ark_NativePointer")
+    static Length = new PrimitiveType("Ark_Length", true)
+    static CustomObject = new PrimitiveType("Ark_CustomObject", true)
     private static pointersMap = new Map<DeclarationTarget, PointerType>()
     static pointerTo(target: DeclarationTarget) {
         if (PrimitiveType.pointersMap.has(target)) return PrimitiveType.pointersMap.get(target)!
@@ -44,6 +45,9 @@ export class PrimitiveType {
         PrimitiveType.pointersMap.set(target, result)
         return result
     }
+    static UndefinedTag = "ARK_TAG_UNDEFINED"
+    static UndefinedRuntime = "ARK_RUNTIME_UNDEFINED"
+    static OptionalPrefix = "Opt_"
 }
 
 class PointerType extends PrimitiveType {
@@ -98,11 +102,11 @@ export class DeclarationTable {
     typeMap = new Map<ts.TypeNode, [DeclarationTarget, string]>()
     typeChecker: ts.TypeChecker | undefined = undefined
 
-    getTypeName(type: ts.TypeNode, optional: boolean = false) {
+    getTypeName(type: ts.TypeNode, optional: boolean = false): string {
         let declaration = this.typeMap.get(type)
         this.requestType(undefined, type)
         declaration = this.typeMap.get(type)!
-        let prefix = optional ? "Optional_" : ""
+        let prefix = optional ? PrimitiveType.OptionalPrefix : ""
         return prefix + declaration[1]
     }
 
@@ -113,7 +117,6 @@ export class DeclarationTable {
             return
         }
         name = this.computeTypeName(name, type, false)
-
         let target = this.toTarget(type)
         if (!target) throw new Error(`Cannot find declaration: ${type.getText()}`)
         this.typeMap.set(type, [target, name])
@@ -242,7 +245,7 @@ export class DeclarationTable {
     }
 
     computeTargetNameImpl(target: DeclarationTarget, optional: boolean): string {
-        const prefix = optional ? "Optional_" : ""
+        const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (target instanceof PrimitiveType) {
             return prefix + target.getText(this)
         }
@@ -262,23 +265,23 @@ export class DeclarationTable {
         if (ts.isLiteralTypeNode(target)) {
             const literal = target.literal
             if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
-                return prefix + `String`
+                return prefix + PrimitiveType.String.getText()
             }
             if (ts.isNumericLiteral(literal)) {
-                return prefix + `Number`
+                return prefix + PrimitiveType.Number.getText()
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
                 // TODO: Is it correct to have undefined for null?
-                return `Undefined`
+                return PrimitiveType.Undefined.getText()
             }
         }
         if (ts.isTemplateLiteralTypeNode(target)) {
             // TODO: likeley incorrect
-            return prefix + `String`
+            return prefix + PrimitiveType.String.getText()
         }
         if (ts.isTypeParameterDeclaration(target)) {
             // TODO: likeley incorrect
-            return prefix + `CustomObject`
+            return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumDeclaration(target)) {
             return prefix + identName(target.name)
@@ -290,7 +293,7 @@ export class DeclarationTable {
             return prefix + identName(target.name)
         }
         if (ts.isFunctionTypeNode(target)) {
-            return prefix + "Function"
+            return prefix + PrimitiveType.Function.getText()
         }
         if (ts.isTupleTypeNode(target)) {
             return prefix + `Tuple_${target.elements.map(it => {
@@ -310,7 +313,7 @@ export class DeclarationTable {
         }
         if (ts.isOptionalTypeNode(target)) {
             let name = this.computeTargetName(this.toTarget(target.type), false)
-            return `Optional_${name}`
+            return `${PrimitiveType.OptionalPrefix}${name}`
         }
         if (ts.isParenthesizedTypeNode(target)) {
             return this.computeTargetName(this.toTarget(target.type), optional)
@@ -320,7 +323,7 @@ export class DeclarationTable {
         }
         if (ts.isTypeReferenceNode(target)) {
             let name = identName(target.typeName)
-            if (!target.typeArguments) throw new Error("Only type references with type arhuments allowed here: " + name)
+            if (!target.typeArguments) throw new Error("Only type references with type arguments allowed here: " + name)
             if (name == "Optional")
                 return this.computeTargetName(this.toTarget(target.typeArguments[0]), true)
             if (name == "Array")
@@ -332,7 +335,7 @@ export class DeclarationTable {
     }
 
     private computeTypeNameImpl(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean): string {
-        const prefix = optional ? "Optional_" : ""
+        const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (ts.isImportTypeNode(type)) {
             return prefix + identName(type.qualifier)!
         }
@@ -350,7 +353,7 @@ export class DeclarationTable {
         }
         if (ts.isOptionalTypeNode(type)) {
             if (suggestedName) return suggestedName
-            return "Optional_" + this.computeTypeNameImpl(undefined, type.type, false)
+            return PrimitiveType.OptionalPrefix + this.computeTypeNameImpl(undefined, type.type, false)
         }
         if (ts.isTupleTypeNode(type)) {
             if (suggestedName) return suggestedName
@@ -381,55 +384,51 @@ export class DeclarationTable {
         if (ts.isLiteralTypeNode(type)) {
             const literal = type.literal
             if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
-                return `String`
+                return PrimitiveType.String.getText()
             }
             if (ts.isNumericLiteral(literal)) {
-                return `Number`
+                return PrimitiveType.Number.getText()
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
-                return `Undefined`
+                return PrimitiveType.Undefined.getText()
             }
             throw new Error(`Unknown literal type: ${type.getText()}`)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
-            return prefix + `String`
+            return prefix + PrimitiveType.String.getText()
         }
         if (ts.isFunctionTypeNode(type)) {
-            return prefix + "Function"
+            return prefix + PrimitiveType.Function.getText()
         }
         if (ts.isArrayTypeNode(type)) {
             if (suggestedName) return suggestedName
             return prefix + `Array_` + this.computeTypeNameImpl(undefined, type.elementType, false)
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            return prefix + `Number`
+            return prefix + PrimitiveType.Number.getText()
         }
-        if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
-            return `Undefined`
-        }
-        if (type.kind == ts.SyntaxKind.NullKeyword) {
-            return `Undefined`
-        }
-        if (type.kind == ts.SyntaxKind.VoidKeyword) {
-            return `Undefined`
+        if (type.kind == ts.SyntaxKind.UndefinedKeyword ||
+            type.kind == ts.SyntaxKind.NullKeyword ||
+            type.kind == ts.SyntaxKind.VoidKeyword) {
+            return PrimitiveType.Number.getText()
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
-            return prefix + `String`
+            return prefix + PrimitiveType.String.getText()
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-            return prefix + `Boolean`
+            return prefix + PrimitiveType.Boolean.getText()
         }
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
-            return prefix + `CustomObject`
+            return prefix + PrimitiveType.CustomObject.getText()
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
-            return prefix + `CustomObject`
+            return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isTypeParameterDeclaration(type)) {
-            return prefix + `CustomObject`
+            return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isIndexedAccessTypeNode(type)) {
-            return prefix + `CustomObject`
+            return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumMember(type)) {
             return prefix + identName(type.name)
@@ -743,20 +742,21 @@ export class DeclarationTable {
             seenNames.add(nameAssigned)
             let isPointer = this.isPointerDeclaration(target)
             let isEnum = !(target instanceof PrimitiveType) && ts.isEnumDeclaration(target)
-            let nameOptional = "Optional_" + nameAssigned
+            let nameOptional = PrimitiveType.OptionalPrefix + nameAssigned
             if (isEnum) {
-                structs.print(`typedef int32_t ${nameAssigned};`)
+                structs.print(`typedef ${PrimitiveType.Int32.getText()} ${nameAssigned};`)
                 if (!seenNames.has(nameOptional)) {
                     seenNames.add(nameOptional)
-                    structs.print(`typedef struct { enum Tags tag; int32_t value; } ${nameOptional};`)
+                    structs.print(`typedef struct ${nameOptional}{ enum ${PrimitiveType.Tag.getText()} tag; ${nameAssigned} value; } ${nameOptional};`)
                     this.writeOptional(nameOptional, writeToString, isPointer)
                 }
                 continue
             }
             if (!noBasicDecl && !this.ignoreTarget(target, nameAssigned)) {
+                if (nameAssigned == "ArkUI_CustomObject") throw new Error("OK" + asString(target))
                 const structDescriptor = this.targetStruct(target)
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
-                structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? "Optional_" : ""}${this.uniqueName(it.declaration)} ${it.name};`))
+                structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.uniqueName(it.declaration)} ${it.name};`))
                 this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
             }
             let skipWriteToString = (target instanceof PrimitiveType) || ts.isEnumDeclaration(target)
@@ -775,7 +775,7 @@ export class DeclarationTable {
             if (!(target instanceof PointerType) && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable") {
                 const structDescriptor = this.targetStruct(target)
                 this.printStructsCHead(nameOptional, structDescriptor, structs)
-                structs.print(`enum Tags tag;`)
+                structs.print(`enum ${PrimitiveType.Tag.getText()} tag;`)
                 structs.print(`${nameAssigned} value;`)
                 this.printStructsCTail(nameOptional, structDescriptor.isPacked, structs)
                 this.writeOptional(nameOptional, writeToString, isPointer)
@@ -784,14 +784,18 @@ export class DeclarationTable {
         for (let declarationTarget of this.typeMap.values()) {
             let name = this.uniqueNames.get(declarationTarget[0])!
             if (seenNames.has(declarationTarget[1])) continue
-            if (PeerGeneratorConfig.ignoreSerialization.includes(declarationTarget[1])) continue
-            if (name.startsWith("Optional_")) continue
-            if (name === PrimitiveType.CustomObject.getText(this)) continue
+            if (this.ignoreTarget(declarationTarget[0], declarationTarget[1])) continue
+            if (name.startsWith(PrimitiveType.OptionalPrefix)) continue
+            if (name === PrimitiveType.CustomObject.getText()) continue
             seenNames.add(declarationTarget[1])
             typedefs.print(`typedef ${name} ${declarationTarget[1]};`)
-            if (seenNames.has(`Optional_${name}`)) {
-                typedefs.print(`typedef Optional_${name} Optional_${declarationTarget[1]};`)
+            if (seenNames.has(`${PrimitiveType.OptionalPrefix}${name}`)) {
+                typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}${name} ${PrimitiveType.OptionalPrefix}${declarationTarget[1]};`)
             }
+        }
+        // TODO: hack, remove me!
+        for (let typeName of [`Length`, `Callback`]) {
+            typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Ark_${typeName} ${PrimitiveType.OptionalPrefix}${typeName};`)
         }
     }
 
@@ -806,18 +810,18 @@ export class DeclarationTable {
         printer.print(`template <>`)
         printer.print(`inline void WriteToString(string* result, const ${nameOptional}* value) {`)
         printer.pushIndent()
-        printer.print(`if (value->tag != TAG_UNDEFINED) {`)
+        printer.print(`if (value->tag != ${PrimitiveType.UndefinedTag}) {`)
         printer.pushIndent()
         printer.print(`WriteToString(result, ${isPointer ? "&" : ""}value->value);`)
         printer.popIndent()
         printer.print(`} else {`)
         printer.pushIndent()
-        printer.print(`Undefined undefined = { 0 };`)
+        printer.print(`${PrimitiveType.Undefined.getText()} undefined = { 0 };`)
         printer.print(`WriteToString(result, undefined);`)
         printer.popIndent()
         printer.print(`}`)
         printer.print(`result->append(" /* ${nameOptional} { tag=");`)
-        printer.print(`result->append(tagName((Tags)(value->tag)));`)
+        printer.print(`result->append(tagName((${PrimitiveType.Tag.getText()})(value->tag)));`)
         printer.print(`result->append(" } */");`)
         printer.popIndent()
         printer.print(`}`)
@@ -899,7 +903,7 @@ export class DeclarationTable {
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                 printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                 if (index == 0) {
-                    printer.print(`if (value${access}${field.name} != TAG_UNDEFINED) {`)
+                    printer.print(`if (value${access}${field.name} != ${PrimitiveType.UndefinedTag}) {`)
                     printer.pushIndent()
                 }
                 if (index == fields.length - 1) {
@@ -1090,6 +1094,8 @@ export class DeclarationTable {
         if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return true
         if (target instanceof PrimitiveType) return true
         if (ts.isEnumDeclaration(target)) return true
+        // No need to generate declarations for imported types.
+        if (ts.isImportTypeNode(target)) return true
         return false
     }
 

@@ -15,7 +15,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
-import { DeclarationTable } from "./DeclarationTable"
+import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 
 const importTsInteropTypes = `
 import {
@@ -200,24 +200,24 @@ export function makeApiModifiers(lines: string[]): string {
  * layout checks.
  */
 typedef struct ArkUINodeModifiers {
-    KInt version;
+    ${PrimitiveType.Int32.getText()} version;
 ${lines.join("\n")}
 } ArkUINodeModifiers;
 
 typedef struct ArkUIBasicAPI {
-    KInt version;
+    ${PrimitiveType.Int32.getText()} version;
 } ArkUIBasicAPI;
 
 typedef struct ArkUIAnimation {
-    KInt version;
+    ${PrimitiveType.Int32.getText()} version;
 } ArkUIAnimation;
 
 typedef struct ArkUINavigation {
-    KInt version;
+    ${PrimitiveType.Int32.getText()} version;
 } ArkUINavigation;
 
 typedef struct ArkUIGraphicsAPI {
-    KInt version;
+    ${PrimitiveType.Int32.getText()} version;
 } ArkUIGraphicsAPI;
 
 /**
@@ -226,7 +226,7 @@ typedef struct ArkUIGraphicsAPI {
  * layout checks.
  */
 typedef struct ArkUIFullNodeAPI {
-    KInt version;
+    ${PrimitiveType.Int32.getText()} version;
     const ArkUIBasicAPI* (*getBasicAPI)();
     const ArkUINodeModifiers* (*getNodeModifiers)();
     const ArkUIAnimation* (*getAnimation)();
@@ -235,7 +235,7 @@ typedef struct ArkUIFullNodeAPI {
 } ArkUIFullNodeAPI;
 
 typedef struct ArkUIAnyAPI {
-    KInt version;
+    ${PrimitiveType.Int32.getText()} version;
 } ArkUIAnyAPI;
 `
 }
@@ -264,24 +264,6 @@ export function makeAPI(headers: string[], modifiers: string[], structs: Indente
 // TBD: Change K to ArkUI types
 #include <stdint.h>
 #include <stddef.h>
-
-typedef int32_t KInt;
-typedef int8_t KBoolean;
-
-typedef int8_t Boolean;
-
-typedef void* ArkUINodeHandle;
-
-enum Tags
-{
-  TAG_UNDEFINED = 101,
-  TAG_INT32 = 102,
-  TAG_FLOAT32 = 103,
-  TAG_STRING = 104,
-  TAG_LENGTH = 105,
-  TAG_RESOURCE = 106,
-  TAG_OBJECT = 107,
-};
 
 ${structsBase}
 
