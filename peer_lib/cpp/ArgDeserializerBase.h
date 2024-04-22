@@ -74,6 +74,12 @@ inline void WriteToString(string* result, Ark_Tag value) {
   result->append(tagName(value));
 }
 
+template <>
+inline void WriteToString(string* result, const Ark_Function* value) {
+  result->append("Function ");
+   result->append(std::to_string(value->id));
+}
+
 // TODO: generate!
 template <>
 inline void WriteToString(string* result, const Ark_Length* value) {
@@ -267,7 +273,9 @@ public:
   }
 
   Ark_Function readFunction() {
-    return readCustomObject("Function");
+    Ark_Function result;
+    result.id = readInt32();
+    return result;
   }
 
   Ark_Callback readCallback() {

@@ -51,7 +51,7 @@ function checkButton() {
                 title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
             }
         }),
-        "bindSheet(false, () => {}, {backgroundColor: undefined, title: {title: Custom kind=NativeErrorResource id=0, subtitle: undefined}, detents: undefined})"
+        "bindSheet(false, Function 42, {backgroundColor: undefined, title: {title: Custom kind=NativeErrorResource id=0, subtitle: undefined}, detents: undefined})"
     )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
     checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),

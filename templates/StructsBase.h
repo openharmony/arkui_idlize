@@ -40,8 +40,7 @@ typedef struct Ark_Empty {
 
 typedef struct Ark_Number {
   enum Ark_Tag tag;
-  union
-  {
+  union {
     Ark_Float32 f32;
     Ark_Int32 i32;
   };
@@ -69,9 +68,12 @@ typedef struct Ark_Undefined {
   Ark_Int32 dummy; // Empty structs are forbidden in C.
 } Ark_Undefined;
 
-typedef Ark_CustomObject Ark_Function;
-typedef Ark_CustomObject Ark_Callback;
-typedef Ark_CustomObject Ark_ErrorCallback;
+typedef struct Ark_Function {
+  Ark_Int32 id;
+} Ark_Function;
+typedef Ark_Function Ark_Callback;
+typedef Ark_Function Ark_ErrorCallback;
+
 typedef Ark_CustomObject Ark_Resource;
 
 // TODO: generate!

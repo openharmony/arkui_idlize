@@ -555,9 +555,37 @@ export class InterfaceConvertor extends TypedConvertor {
     }
 }
 
-export class FunctionConvertor extends CustomTypeConvertor {
-    constructor(param: string, table: DeclarationTable) {
-        super(param, "Function")
+export class FunctionConvertor extends BaseArgConvertor {
+    constructor(
+        param: string,
+        protected table: DeclarationTable
+    ) {
+        super("Function", [RuntimeType.OBJECT, RuntimeType.FUNCTION, RuntimeType.UNDEFINED], false, true, param)
+    }
+
+    convertorTSArg(param: string): string {
+        throw new Error("Must never be used")
+    }
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${param}Serializer.writeFunction(${value})`)
+    }
+    convertorCArg(param: string): string {
+        throw new Error("Must never be used")
+    }
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${value} = ${param}Deserializer.readFunction();`)
+    }
+    nativeType(impl: boolean): string {
+        return PrimitiveType.Function.getText()
+    }
+    interopType(): string {
+        throw new Error("Must never be used")
+    }
+    estimateSize() {
+        return 12
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 
@@ -790,11 +818,7 @@ export class TypeAliasConvertor extends ProxyConvertor {
     }
 
     nativeType(impl: boolean): string {
-        // propagate CustomObject type
-        if (this.convertor.nativeType(impl) === PrimitiveType.CustomObject.getText()) {
-            return PrimitiveType.CustomObject.getText()
-        }
-        return ts.idText(this.declaration.name)
+        return this.convertor.nativeType(impl)
     }
 
     isPointerType(): boolean {

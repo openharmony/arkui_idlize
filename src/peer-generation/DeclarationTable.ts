@@ -37,6 +37,7 @@ export class PrimitiveType {
     static Undefined = new PrimitiveType("Ark_Undefined")
     static NativePointer = new PrimitiveType("Ark_NativePointer")
     static Length = new PrimitiveType("Ark_Length", true)
+    static Resource = new PrimitiveType("Ark_Resource", true)
     static CustomObject = new PrimitiveType("Ark_CustomObject", true)
     private static pointersMap = new Map<DeclarationTarget, PointerType>()
     static pointerTo(target: DeclarationTarget) {
@@ -99,7 +100,7 @@ class PendingTypeRequest {
 
 export class DeclarationTable {
     private declarations = new Set<DeclarationTarget>()
-    typeMap = new Map<ts.TypeNode, [DeclarationTarget, string]>()
+    private typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[]]>()
     typeChecker: ts.TypeChecker | undefined = undefined
 
     getTypeName(type: ts.TypeNode, optional: boolean = false): string {
@@ -107,26 +108,28 @@ export class DeclarationTable {
         this.requestType(undefined, type)
         declaration = this.typeMap.get(type)!
         let prefix = optional ? PrimitiveType.OptionalPrefix : ""
-        return prefix + declaration[1]
+        return prefix + declaration[1][0]
     }
 
     requestType(name: string | undefined, type: ts.TypeNode) {
         let declaration = this.typeMap.get(type)
         if (declaration) {
-            //if (name && name != declaration[1]) throw new Error(`Mismatch of names${optional ? "[optional]" : ""}: ${name} ${declaration[1]}`)
+            if (name && !declaration[1].includes(name)) {
+                declaration[1].push(name)
+            }
             return
         }
         name = this.computeTypeName(name, type, false)
         let target = this.toTarget(type)
         if (!target) throw new Error(`Cannot find declaration: ${type.getText()}`)
-        this.typeMap.set(type, [target, name])
+        this.typeMap.set(type, [target, [name]])
     }
 
     private isDeclarationTarget(type: ts.TypeNode): boolean {
         if (ts.isUnionTypeNode(type)) return true
         if (ts.isTypeLiteralNode(type)) return true
         if (ts.isLiteralTypeNode(type)) return true
-        if (ts.isImportTypeNode(type)) return true
+        //if (ts.isImportTypeNode(type)) return true
         if (ts.isTupleTypeNode(type)) return true
         if (ts.isArrayTypeNode(type)) return true
         if (ts.isOptionalTypeNode(type)) return true
@@ -167,23 +170,30 @@ export class DeclarationTable {
 
     private toTargetImpl(node: ts.TypeNode): DeclarationTarget {
         if (this.isDeclarationTarget(node)) return node as DeclarationTarget
+        if (ts.isImportTypeNode(node)) {
+            return this.mapImportType(node)
+        }
         if (ts.isFunctionTypeNode(node)) {
             return PrimitiveType.Function
         }
         if (ts.isTypeReferenceNode(node)) {
             let name = identName(node)
             if (name == "Length") return PrimitiveType.Length
+            // TODO: rethink that!
+            if (name == "AnimationRange") return PrimitiveType.CustomObject
             // Types with type arguments are declarations!
             if (node.typeArguments) {
-               return node
+                return node
             }
             const original = node
             let declarations = getDeclarationsByNode(this.typeChecker!, node.typeName)
             while (declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])) {
                 node = declarations[0].type
+                this.requestType(identName(declarations[0].name), node)
                 if (this.isDeclarationTarget(node)) return node as DeclarationTarget
                 if (ts.isTypeReferenceNode(node)) return this.toTarget(node)
                 if (ts.isFunctionTypeNode(node)) return this.toTarget(node)
+                if (ts.isImportTypeNode(node)) return this.toTarget(node)
                 declarations = getDeclarationsByNode(this.typeChecker!, node)
             }
             if (declarations.length == 0) {
@@ -236,9 +246,11 @@ export class DeclarationTable {
     computeTargetName(target: DeclarationTarget, optional: boolean): string {
         let name = this.computeTargetNameImpl(target, optional)
         this.addDeclaration(target)
+        if (name == "OnScrollVisibleContentChangeCallback") throw new Error("OK")
         if (!(target instanceof PrimitiveType) && (
             !ts.isInterfaceDeclaration(target) && !ts.isClassDeclaration(target) && !ts.isEnumDeclaration(target))
         ) {
+            // TODO: get rid of this queue.
             this.pendingRequests.push(new PendingTypeRequest(name, target))
         }
         return name
@@ -308,8 +320,7 @@ export class DeclarationTable {
             return prefix + `Array_` + this.computeTargetName(this.toTarget(target.elementType), false)
         }
         if (ts.isImportTypeNode(target)) {
-            // return prefix + identName(target.qualifier)!
-            return PrimitiveType.CustomObject.getText()
+            return prefix + this.mapImportType(target).getText()
         }
         if (ts.isOptionalTypeNode(target)) {
             let name = this.computeTargetName(this.toTarget(target.type), false)
@@ -328,16 +339,27 @@ export class DeclarationTable {
                 return this.computeTargetName(this.toTarget(target.typeArguments[0]), true)
             if (name == "Array")
                 return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), optional)
-            if (name == "ContentModifier" || name == "Callback" || name ==  "AnimationRange")
+            if (name == "ContentModifier" || name == "AnimationRange")
                 return prefix + PrimitiveType.CustomObject.getText()
+            if (name == "Callback")
+                return prefix + PrimitiveType.Function.getText()
         }
         throw new Error(`Cannot compute target name: ${(target as any).getText()} ${(target as any).kind}`)
+    }
+
+    private mapImportType(type: ts.ImportTypeNode): DeclarationTarget {
+        let name = identName(type.qualifier)!
+        switch (name) {
+            case "Resource": return PrimitiveType.Resource
+            case "Callback": return PrimitiveType.Function
+            default: return PrimitiveType.CustomObject
+        }
     }
 
     private computeTypeNameImpl(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean): string {
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (ts.isImportTypeNode(type)) {
-            return prefix + identName(type.qualifier)!
+            return prefix + this.mapImportType(type).getText()
         }
         if (ts.isTypeReferenceNode(type)) {
             const typeName = identName(type.typeName)
@@ -447,7 +469,7 @@ export class DeclarationTable {
     }
 
     declTargetConvertor(param: string, target: DeclarationTarget, isOptionalParam = false): ArgConvertor {
-       if (target instanceof PrimitiveType) {
+        if (target instanceof PrimitiveType) {
             if (target == PrimitiveType.Number || target == PrimitiveType.Int32) {
                 return new NumberConvertor(param)
             }
@@ -455,8 +477,8 @@ export class DeclarationTable {
                 return new BooleanConvertor(param)
             }
             throw new Error("Unsupported primitive type: " + target.getText())
-       }
-       throw new Error("Unsupported type: " + target.getText())
+        }
+        throw new Error("Unsupported type: " + target.getText())
     }
 
     typeConvertor(param: string, type: ts.TypeNode, isOptionalParam = false): ArgConvertor {
@@ -554,7 +576,7 @@ export class DeclarationTable {
         if (name === "Array")
             return new ArrayConvertor(param, this, type, type.typeArguments![0])
         if (name === "Callback")
-            return new CustomTypeConvertor(param, "Callback")
+            return new FunctionConvertor(param, this)
         if (name === "Optional" && type.typeArguments && type.typeArguments.length == 1) {
             return new OptionConvertor(param, this, type.typeArguments![0])
         }
@@ -592,7 +614,6 @@ export class DeclarationTable {
             return new EnumConvertor(param, this)
         }
         if (ts.isTypeAliasDeclaration(declaration)) {
-            if (declarationName == "AnimationRange") throw new Error("OK 4" + asString(type.typeArguments![0]))
             this.requestType(declarationName, type)
             return new TypeAliasConvertor(param, this, declaration, type.typeArguments)
         }
@@ -753,15 +774,16 @@ export class DeclarationTable {
                 continue
             }
             if (!noBasicDecl && !this.ignoreTarget(target, nameAssigned)) {
+                if (nameAssigned == "Ark_CustomObject") throw new Error(asString(target))
                 const structDescriptor = this.targetStruct(target)
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
                 structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.uniqueName(it.declaration)} ${it.name};`))
                 this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
             }
             let skipWriteToString = (target instanceof PrimitiveType) || ts.isEnumDeclaration(target)
-            if (!noBasicDecl && nameAssigned != "Resource"
+            if (!noBasicDecl && nameAssigned != PrimitiveType.Resource.getText()
                 && nameAssigned != "Array" && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable"
-                && nameAssigned != "CustomObject" && nameAssigned != "Undefined" && !skipWriteToString) {
+                && !skipWriteToString) {
                 writeToString.print(`template <>`)
                 writeToString.print(`inline void WriteToString(string* result, const ${nameAssigned}${isPointer ? "*" : ""} value) {`)
                 writeToString.pushIndent()
@@ -781,20 +803,28 @@ export class DeclarationTable {
             }
         }
         for (let declarationTarget of this.typeMap.values()) {
-            let name = this.uniqueNames.get(declarationTarget[0])!
-            if (seenNames.has(declarationTarget[1])) continue
-            if (this.ignoreTarget(declarationTarget[0], declarationTarget[1])) continue
-            if (name.startsWith(PrimitiveType.OptionalPrefix)) continue
-            if (name === PrimitiveType.CustomObject.getText()) continue
-            seenNames.add(declarationTarget[1])
-            typedefs.print(`typedef ${name} ${declarationTarget[1]};`)
-            if (seenNames.has(`${PrimitiveType.OptionalPrefix}${name}`)) {
-                typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}${name} ${PrimitiveType.OptionalPrefix}${declarationTarget[1]};`)
-            }
+            let target = declarationTarget[0]
+            let aliasNames = declarationTarget[1]
+            let declarationName = this.uniqueNames.get(target)!
+            aliasNames.forEach(aliasName => this.addNameAlias(target, declarationName, aliasName, seenNames, typedefs))
         }
         // TODO: hack, remove me!
-        for (let typeName of [`Length`, `Callback`]) {
+        for (let typeName of [`Length`]) {
             typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Ark_${typeName} ${PrimitiveType.OptionalPrefix}${typeName};`)
+        }
+    }
+
+    private addNameAlias(target: DeclarationTarget, declarationName: string, aliasName: string,
+        seenNames: Set<string>, typedefs: IndentedPrinter): void {
+        if (seenNames.has(aliasName)) return
+        if (this.ignoreTarget(target, declarationName)) return
+        seenNames.add(aliasName)
+        typedefs.print(`typedef ${declarationName} ${aliasName};`)
+        // TODO: hacky
+        let optAliasName = `${PrimitiveType.OptionalPrefix}${aliasName}`
+        if (!declarationName.startsWith(PrimitiveType.OptionalPrefix) && !seenNames.has(optAliasName)) {
+            seenNames.add(optAliasName)
+            typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}${declarationName} ${optAliasName};`)
         }
     }
 
@@ -802,6 +832,7 @@ export class DeclarationTable {
         if (declaration instanceof PointerType) return this.cFieldKind(declaration.pointed)
         if (declaration instanceof PrimitiveType) return ""
         if (ts.isEnumDeclaration(declaration)) return ""
+        if (ts.isImportTypeNode(declaration)) return ""
         return `struct `
     }
 
@@ -819,9 +850,11 @@ export class DeclarationTable {
         printer.print(`WriteToString(result, undefined);`)
         printer.popIndent()
         printer.print(`}`)
-        printer.print(`result->append(" /* ${nameOptional} { tag=");`)
-        printer.print(`result->append(tagName((${PrimitiveType.Tag.getText()})(value->tag)));`)
-        printer.print(`result->append(" } */");`)
+        if (false) {
+            printer.print(`result->append(" /* ${nameOptional} { tag=");`)
+            printer.print(`result->append(tagName((${PrimitiveType.Tag.getText()})(value->tag)));`)
+            printer.print(`result->append(" } */");`)
+        }
         printer.popIndent()
         printer.print(`}`)
     }
@@ -866,9 +899,11 @@ export class DeclarationTable {
                 printer.popIndent()
                 printer.print(`}`)
             })
-            printer.print(`result->append(" /* ${name} [variant ");`)
-            printer.print(`result->append(std::to_string(value${access}selector));`)
-            printer.print(`result->append("]*/");`)
+            if (false) {
+                printer.print(`result->append(" /* ${name} [variant ");`)
+                printer.print(`result->append(std::to_string(value${access}selector));`)
+                printer.print(`result->append("]*/");`)
+            }
         } else if (isArray) {
             let isPointerField = ts.isArrayTypeNode(target) ? this.typeConvertor("param", target.elementType).isPointerType() : false
             printer.print(`result->append("[");`)
@@ -879,9 +914,11 @@ export class DeclarationTable {
             printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}array[i]);`)
             printer.popIndent()
             printer.print(`}`)
-            printer.print(`result->append("] /* ${name} {array_length=");`)
-            printer.print(`WriteToString(result, value${access}array_length);`)
-            printer.print(`result->append("} */");`)
+            if (false) {
+                printer.print(`result->append("] /* ${name} {array_length=");`)
+                printer.print(`WriteToString(result, value${access}array_length);`)
+                printer.print(`result->append("} */");`)
+            }
         } else if (isTuple) {
             printer.print(`result->append("[");`)
             const fields = this.targetStruct(target).getFields()
@@ -892,7 +929,7 @@ export class DeclarationTable {
                 }
                 printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
             })
-            printer.print(`result->append("] /*${name} {tuple_length=${fields.length}}*/");`)
+            printer.print(`result->append("]");`)
         } else if (isOptional) {
             printer.print(`result->append("{");`)
             const fields = this.targetStruct(target).getFields()
@@ -910,7 +947,7 @@ export class DeclarationTable {
                     printer.print("}")
                 }
             })
-            printer.print(`result->append("} /* ${name} */");`)
+            printer.print(`result->append("}");`)
         } else {
             printer.print(`result->append("{");`)
             this.targetStruct(target).getFields().forEach((field, index) => {
@@ -919,7 +956,7 @@ export class DeclarationTable {
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                 printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
             })
-            printer.print(`result->append("} /* ${name} */");`)
+            printer.print(`result->append("}");`)
         }
     }
 
@@ -1022,7 +1059,7 @@ export class DeclarationTable {
         else if (ts.isLiteralTypeNode(target)) {
         }
         else if (ts.isTypeParameterDeclaration(target)) {
-            // TODO: is it really corect
+            // TODO: is it really correct
         }
         else if (ts.isTypeReferenceNode(target)) {
             if (!target.typeArguments) throw new Error("Only type references with type arguments allowed")
@@ -1093,7 +1130,6 @@ export class DeclarationTable {
         if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return true
         if (target instanceof PrimitiveType) return true
         if (ts.isEnumDeclaration(target)) return true
-        // No need to generate declarations for imported types.
         if (ts.isImportTypeNode(target)) return true
         return false
     }

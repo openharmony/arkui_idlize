@@ -108,6 +108,11 @@ export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: 
     })
 }
 
+function registerCallback(value: object|undefined): number {
+    // TODO: fix me!
+    return 42
+}
+
 let textEncoder = new TextEncoder()
 
 /* Serialization extension point */
@@ -207,7 +212,7 @@ export class SerializerBase {
         this.position++
     }
     writeFunction(value: object | undefined) {
-        this.writeCustomObject("Function", value)
+        this.writeInt32(registerCallback(value))
     }
     writeString(value: string) {
         let encoded = textEncoder.encode(value)
@@ -268,11 +273,11 @@ export class SerializerBase {
 
 class OurCustomSerializer extends CustomSerializer {
     constructor() {
-        super(["Resource", "Pixmap", "Function"])
+        super(["Resource", "Pixmap"])
     }
     serialize(serializer: SerializerBase, value: any, kind: string): void {
         console.log(`managed serialize() for ${kind}`)
-        serializer.writeString(kind == "Function" ? value.toString(): JSON.stringify(value))
+        serializer.writeString(JSON.stringify(value))
     }
 }
 
