@@ -33,7 +33,7 @@ export class PrimitiveType {
     static Int32 = new PrimitiveType("Ark_Int32")
     static Tag = new PrimitiveType("Ark_Tag")
     static Boolean = new PrimitiveType("Ark_Boolean")
-    static Function = new PrimitiveType("Ark_Function")
+    static Function = new PrimitiveType("Ark_Function", true)
     static Undefined = new PrimitiveType("Ark_Undefined")
     static NativePointer = new PrimitiveType("Ark_NativePointer")
     static Length = new PrimitiveType("Ark_Length", true)
@@ -753,7 +753,6 @@ export class DeclarationTable {
                 continue
             }
             if (!noBasicDecl && !this.ignoreTarget(target, nameAssigned)) {
-                if (nameAssigned == "ArkUI_CustomObject") throw new Error("OK" + asString(target))
                 const structDescriptor = this.targetStruct(target)
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
                 structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.uniqueName(it.declaration)} ${it.name};`))
