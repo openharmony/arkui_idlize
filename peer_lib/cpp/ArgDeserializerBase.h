@@ -283,7 +283,7 @@ public:
   }
 };
 
-inline void WriteToString(string* result, bool value) {
+inline void WriteToString(string* result, Ark_Boolean value) {
     result->append(value ? "true" : "false");
 }
 

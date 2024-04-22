@@ -24,15 +24,14 @@ enum Ark_RuntimeType
 
 typedef float Ark_Float32;
 typedef int32_t Ark_Int32;
-typedef int32_t Ark_Boolean;
+typedef int8_t Ark_Boolean;
 typedef void* Ark_NativePointer;
 typedef void* ArkUINodeHandle;
 
-
-// Binary layout os String must match that of KStringPtrImpl.
+// Binary layout of Ark_String must match that of KStringPtrImpl.
 typedef struct Ark_String {
   const char* chars;
-  size_t length;
+  Ark_Int32 length;
 } Ark_String;
 
 typedef struct Ark_Empty {
@@ -40,7 +39,7 @@ typedef struct Ark_Empty {
 } Ark_Empty;
 
 typedef struct Ark_Number {
-  int8_t tag;
+  enum Ark_Tag tag;
   union
   {
     Ark_Float32 f32;
@@ -73,7 +72,6 @@ typedef struct Ark_Undefined {
 typedef Ark_CustomObject Ark_Function;
 typedef Ark_CustomObject Ark_Callback;
 typedef Ark_CustomObject Ark_ErrorCallback;
-//typedef Ark_CustomObject Ark_Any;
 typedef Ark_CustomObject Ark_Resource;
 
 // TODO: generate!
