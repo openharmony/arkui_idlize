@@ -402,6 +402,13 @@ export function getNameWithoutQualifiersLeft(node: ts.EntityName | undefined) : 
     throw new Error("Impossible")
 }
 
+function snakeCaseToCamelCase(input: string): string {
+    return input
+        .split("_")
+        .map(capitalize)
+        .join("")
+}
+
 export function renameDtsToPeer(fileName: string, withFileExtension: boolean = true) {
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))
@@ -411,13 +418,13 @@ export function renameDtsToPeer(fileName: string, withFileExtension: boolean = t
         return renamed.concat(".ts")
     }
     return renamed
+}
 
-    function snakeCaseToCamelCase(input: string): string {
-        return input
-            .split("_")
-            .map(capitalize)
-            .join("")
-    }
+export function renameDtsToComponent(fileName: string) {
+    return "Ark"
+        .concat(snakeCaseToCamelCase(fileName))
+        .replace(".d.ts", "")
+        .concat(".ts")
 }
 
 export function importTypeName(type: ts.ImportTypeNode, asType = false): string {

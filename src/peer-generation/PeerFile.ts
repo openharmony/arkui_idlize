@@ -14,10 +14,10 @@
  */
 
 import * as path from "path"
-import { IndentedPrinter } from "../IndentedPrinter"
-import { getOrPut, renameDtsToPeer } from "../util"
+import { getOrPut, renameDtsToPeer, renameDtsToComponent } from "../util"
 import { PeerClass } from "./PeerClass"
 import { Printers } from "./Printers"
+import { ImportsCollector } from "./ImportsCollector"
 
 export class PeerFile {
     private readonly peers: Map<string, PeerClass> = new Map()
@@ -27,30 +27,24 @@ export class PeerFile {
     ) {}
 
     getOrPutPeer(componentName: string) {
-        return getOrPut(this.peers, componentName, () => new PeerClass(componentName, this.printers))
+        return getOrPut(this.peers, componentName, () => new PeerClass(componentName, this.originalFilename, this.printers))
     }
 
-    private printTSImports(printer: IndentedPrinter): void {
-        const filenameToImports = new Map<string, Set<String>>()
+    private printImports(): void {
+        const peerImports = new ImportsCollector()
+        peerImports.addFilterByBasename(renameDtsToPeer(path.basename(this.originalFilename)))
+        const componentImports = new ImportsCollector()
+        componentImports.addFilterByBasename(renameDtsToComponent(path.basename(this.originalFilename)))
         this.peers.forEach(peer => {
-            if (!peer.originalParentFilename) return
-            if (peer.originalParentFilename == this.originalFilename) return
-            const filename = renameDtsToPeer(path.basename(peer.originalParentFilename))
-            const imports = getOrPut(filenameToImports, filename, () => new Set())
-            imports.add(peer.peerParentName)
-            if (peer.attributesParentName)
-                imports.add(peer.attributesParentName)
+            peer.collectPeerImports(peerImports)
+            peer.collectComponentImports(componentImports)
         })
-
-        filenameToImports.forEach((imports, filename) => {
-            const filenameNoExt = filename.replaceAll(path.extname(filename), '')
-            const uniqImports = Array.from(imports)
-            printer.print(`import { ${uniqImports.join(', ')} } from "./${filenameNoExt}"`)
-        })
+        peerImports.print(this.printers.TSPeer)
+        componentImports.print(this.printers.TSComponent)
     }
 
     print(): void {
-        this.printTSImports(this.printers.TS)
+        this.printImports()
         this.peers.forEach(it => it.print())
     }
 }

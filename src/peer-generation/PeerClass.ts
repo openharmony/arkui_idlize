@@ -1,5 +1,7 @@
+import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
-import { throwException } from "../util"
+import { indentedBy, renameDtsToPeer, throwException } from "../util"
+import { ImportsCollector } from "./ImportsCollector"
 import { determineParentRole, InheritanceRole, isCommonMethod, isHeir, isRoot, isStandalone } from "./inheritance"
 import { PeerMethod } from "./PeerMethod"
 import { Printers } from "./Printers"
@@ -7,10 +9,14 @@ import { Printers } from "./Printers"
 export class PeerClass {
     constructor(
         public readonly componentName: string,
+        public readonly originalFilename: string,
         public readonly printers: Printers,
     ) { }
 
     methods: PeerMethod[] = []
+    get callableMethod(): PeerMethod | undefined {
+        return this.methods.find(method => method.isCallSignature)
+    }
 
     originalClassName: string | undefined = undefined
     originalParentName: string | undefined = undefined
@@ -134,18 +140,101 @@ export class PeerClass {
         this.printers.modifierList.popIndent()
     }
 
+    collectPeerImports(imports: ImportsCollector) {
+        if (!this.originalParentFilename) return
+        const parentBasename = renameDtsToPeer(path.basename(this.originalParentFilename))
+        imports.addFeatureByBasename(this.peerParentName, parentBasename)
+        if (this.attributesParentName)
+            imports.addFeatureByBasename(this.attributesParentName, parentBasename)
+    }
+
+    collectComponentImports(imports: ImportsCollector) {
+        imports.addFeature(`${this.koalaComponentName}Attribute`, "@koalaui/arkui-common")
+        imports.addFeature("NodeAttach", "@koalaui/runtime")
+        const structPostfix = (this.callableMethod?.mappedParamsTypes?.length ?? 0) + 1
+        imports.addFeature(`ArkCommonStruct${structPostfix}`, "./ArkStructCommon")
+        imports.addFeatureByBasename(`${this.koalaComponentName}Peer`, renameDtsToPeer(path.basename(this.originalFilename)))
+        imports.addFeature("ArkUINodeType", "@koalaui/arkoala")
+    }
+
+    printComponent() {
+        const printer = this.printers.TSComponent
+        const method = this.callableMethod
+        const componentClassName = `${this.koalaComponentName}Component`
+        const componentFunctionName = this.koalaComponentName
+        const peerClassName = `${this.koalaComponentName}Peer`
+        const attributeClassName = `${this.koalaComponentName}Attribute`
+        const parentStructClass = {
+            name: `ArkCommonStruct${(method?.mappedParamsTypes?.length ?? 0) + 1}`,
+            typesLines: [
+                `${componentClassName},`,
+                `/** @memo */`,
+                `() => void${method?.mappedParamsTypes?.length ? "," : ""}`,
+                (method?.mappedParamsTypes ?? []).join(", ")
+            ]
+        }
+        printer.print(`
+export class ${componentClassName} extends ${parentStructClass.name}<
+${parentStructClass.typesLines.map(it => indentedBy(it, 1)).join("\n")}
+> implements ${attributeClassName} {
+
+  protected peer?: ${peerClassName}
+`)
+        printer.pushIndent()
+        for (const method of this.methods)
+            method.printComponentMethod(printer)
+        printer.popIndent()
+
+        printer.print(`
+  /** @memo */
+  _build(
+    /** @memo */
+    style?: (attributes: ${componentClassName}) => void,
+    /** @memo */
+    content?: () => void,
+    ${method?.mappedParams ?? ""} 
+  ) {
+    NodeAttach(() => new ${peerClassName}(ArkUINodeType.${this.componentName}, this), () => {
+      style?.(this)
+      ${method ? `this.${method?.methodName}(${method?.mappedParamValues})` : ""}
+      content?.()
+      this.applyAttributesFinish()
+    })
+  }
+}`)
+
+        printer.print(`
+/** @memo */
+export function ${componentFunctionName}(
+  /** @memo */
+  style?: (attributes: ${componentClassName}) => void,
+  /** @memo */
+  content?: () => void,
+  ${method?.mappedParams ?? ""}
+) {
+  ${componentClassName}._instantiate<
+${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
+  >(
+    style,
+    () => new ${componentClassName}(),
+    content,
+    ${method?.mappedParamValues ?? ""}
+  )
+}
+`)
+    }
+
     printProlog() {
-        this.printers.TS.print(this.peerClassHeader())
-        this.printers.TS.pushIndent()
+        this.printers.TSPeer.print(this.peerClassHeader())
+        this.printers.TSPeer.pushIndent()
         this.printers.api.print(this.apiModifierHeader())
         this.printers.api.pushIndent()
         this.printNodeModifier()
     }
 
     printEpilog() {
-
-        this.printers.TS.popIndent()
-        this.printers.TS.print(`}`)
+        this.printers.TSPeer.popIndent()
+        this.printers.TSPeer.print(`}`)
         if (this.methods.length == 0) {
             this.printers.api.print("int dummy;")
         }
@@ -159,14 +248,15 @@ export class PeerClass {
     }
 
     printMethods() {
-        this.generateConstructor(this.printers.TS)
+        this.generateConstructor(this.printers.TSPeer)
         this.methods.forEach(it => it.processPeerMethod())
-        this.generateApplyMethod(this.printers.TS)
+        this.generateApplyMethod(this.printers.TSPeer)
     }
 
     print() {
         this.printProlog()
         this.printMethods()
         this.printEpilog()
+        this.printComponent()
     }
 }

@@ -40,9 +40,10 @@ import {
 
 } from "./peer-generation/FileGenerators"
 import {
-    PeerGeneratorVisitor
+    PeerGeneratorVisitor,
+    PeerGeneratorVisitorOutput
 } from "./peer-generation/PeerGeneratorVisitor"
-import { defaultCompilerOptions, isDefined, renameDtsToPeer, stringOrNone, toSet } from "./util"
+import { defaultCompilerOptions, isDefined, renameDtsToPeer, renameDtsToComponent as renameDtsToComponent, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
@@ -297,18 +298,33 @@ if (options.dts2peer) {
             onBegin(outDir, typeChecker) {
                 declarationTable.typeChecker = typeChecker
             },
-            onSingleFile: (entries: stringOrNone[], outputDir, sourceFile) => {
-                const outFile = path.join(
-                    outputDir,
-                    renameDtsToPeer(path.basename(sourceFile.fileName))
-                )
-                if (entries.length > 0) {
-                    console.log("producing", outFile)
-                    let generated = entries
+            onSingleFile: (output: PeerGeneratorVisitorOutput, outputDir, sourceFile) => {
+                const skipComponentGenerationDueToCompileProblems = true
+
+                if (output.peer.length > 0) {
+                    const outPeerFile = path.join(
+                        outputDir,
+                        renameDtsToPeer(path.basename(sourceFile.fileName))
+                    )
+                    console.log("producing", outPeerFile)
+                    let generated = output.peer
                         .filter(element => (element?.length ?? 0) > 0)
                         .join("\n")
                     if (options.verbose) console.log(generated)
-                    fs.writeFileSync(outFile, generated)
+                    fs.writeFileSync(outPeerFile, generated)
+                }
+
+                if (!skipComponentGenerationDueToCompileProblems && output.component.length > 0) {
+                    const outComponentFile = path.join(
+                        outputDir,
+                        renameDtsToComponent(path.basename(sourceFile.fileName))
+                    )
+                    console.log("producing", outComponentFile)
+                    let generated = output.component
+                        .filter(element => (element?.length ?? 0) > 0)
+                        .join("\n")
+                    if (options.verbose) console.log(generated)
+                    fs.writeFileSync(outComponentFile, generated)
                 }
             },
             onEnd(outDir: string) {

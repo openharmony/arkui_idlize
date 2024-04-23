@@ -17,6 +17,7 @@ export class PeerMethod {
         public isCallSignature: boolean,
         public mappedParams: string | undefined,
         public mappedParamValues: string | undefined,
+        public mappedParamsTypes: string[] | undefined,
         private dumpSerialized: boolean
     ) {
         this.fullMethodName = isCallSignature ? methodName : this.peerMethodName()
@@ -44,12 +45,18 @@ export class PeerMethod {
         return `${this.retConvertor.macroSuffixPart()}${counter}`
     }
 
-    printComponentMethodBody(printer: IndentedPrinter) {
+    printComponentMethod(printer: IndentedPrinter) {
+        printer.print(`/** @memo */`)
+        printer.print(`${this.methodName}(${this.mappedParams}): this {`)
+        printer.pushIndent()
         printer.print(`if (this.checkPriority("${this.methodName}")) {`)
         printer.pushIndent()
-        printer.print(`this.peer?.${this.methodName}Attribute(${this.mappedParamValues}`)
+        printer.print(`this.peer?.${this.methodName}Attribute(${this.mappedParamValues})`)
         printer.popIndent()
         printer.print(`}`)
+        printer.print("return this")
+        printer.popIndent()
+        printer.print(`}\n`)
     }
 
     processPeerMethod() {
@@ -67,22 +74,11 @@ export class PeerMethod {
         this.printImplFunction(retType, implName, apiParameters, true) // dummy
         this.printImplFunction(retType, implName, apiParameters, false) // real
 
-        this.printers.TS.print(`${methodName}Attribute(${this.mappedParams}) {`)
+        this.printers.TSPeer.print(`${methodName}Attribute(${this.mappedParams}) {`)
         let cName = `${this.originalParentName}_${methodName}`
         this.printers.C.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
         this.printers.C.pushIndent()
-        // This is to generate TS component, not TS peer.
-        let isComponent = false
-        if (isComponent) {
-            this.printComponentMethodBody(this.printers.TS)
-        } else {
-            let isStub = false
-            if (isStub) {
-                this.printers.TS.print(`throw new Error("${methodName}Attribute() is not implemented")`)
-            } else {
-                this.generateNativeBody(this)
-            }
-        }
+        this.generateNativeBody(this)
         this.printers.C.popIndent()
         this.printers.C.print(`}`)
         let macroArgs = [cName, this.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, this.hasReceiver))
@@ -92,7 +88,7 @@ export class PeerMethod {
         this.printers.C.print(`KOALA_INTEROP_${suffix}(${macroArgs})`)
         this.printers.C.print(` `)
 
-        this.printers.TS.print(`}`)
+        this.printers.TSPeer.print(`}`)
     }
 
 
@@ -190,20 +186,20 @@ export class PeerMethod {
 
     generateNativeBody(peerMethod: PeerMethod) {
         this.printers.C.pushIndent()
-        this.printers.TS.pushIndent()
+        this.printers.TSPeer.pushIndent()
         if (peerMethod.hasReceiver) {
             this.printers.C.print("ArkUINodeHandle node = reinterpret_cast<ArkUINodeHandle>(nodePtr);")
         }
         let scopes = peerMethod.argConvertors.filter(it => it.isScoped)
         scopes.forEach(it => {
-            this.printers.TS.pushIndent()
-            this.printers.TS.print(it.scopeStart?.(it.param))
+            this.printers.TSPeer.pushIndent()
+            this.printers.TSPeer.print(it.scopeStart?.(it.param))
         })
         peerMethod.argConvertors.forEach(it => {
             if (it.useArray) {
                 let size = it.estimateSize()
-                this.printers.TS.print(`const ${it.param}Serializer = new Serializer(${size})`)
-                it.convertorToTSSerial(it.param, it.param, this.printers.TS)
+                this.printers.TSPeer.print(`const ${it.param}Serializer = new Serializer(${size})`)
+                it.convertorToTSSerial(it.param, it.param, this.printers.TSPeer)
                 this.printers.C.print(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
                 this.printers.C.print(`${it.nativeType(false)} ${it.param}Value;`)
                 it.convertorToCDeserial(it.param, `${it.param}Value`, this.printers.C)
@@ -213,29 +209,29 @@ export class PeerMethod {
         if (this.dumpSerialized) {
             peerMethod.argConvertors.forEach((it, index) => {
                 if (it.useArray) {
-                    this.printers.TS.print(`console.log("${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+                    this.printers.TSPeer.print(`console.log("${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
                 }
             })
         }
-        this.printers.TS.print(`nativeModule()._${peerMethod.originalParentName}_${peerMethod.methodName}(this.ptr${peerMethod.argConvertors.length > 0 ? ", " : ""}`)
-        this.printers.TS.pushIndent()
+        this.printers.TSPeer.print(`nativeModule()._${peerMethod.originalParentName}_${peerMethod.methodName}(this.ptr${peerMethod.argConvertors.length > 0 ? ", " : ""}`)
+        this.printers.TSPeer.pushIndent()
         peerMethod.argConvertors.forEach((it, index) => {
             let maybeComma = index == peerMethod.argConvertors.length - 1 ? "" : ","
             if (it.useArray)
-                this.printers.TS.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
+                this.printers.TSPeer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
             else
-                this.printers.TS.print(it.convertorTSArg(it.param))
-            this.printers.TS.print(maybeComma)
+                this.printers.TSPeer.print(it.convertorTSArg(it.param))
+            this.printers.TSPeer.print(maybeComma)
         })
-        this.printers.TS.popIndent()
-        this.printers.TS.print(`)`)
+        this.printers.TSPeer.popIndent()
+        this.printers.TSPeer.print(`)`)
         scopes.reverse().forEach(it => {
-            this.printers.TS.popIndent()
-            this.printers.TS.print(it.scopeEnd!(it.param))
+            this.printers.TSPeer.popIndent()
+            this.printers.TSPeer.print(it.scopeEnd!(it.param))
         })
         this.generateAPICall(peerMethod)
         this.printers.C.popIndent()
-        this.printers.TS.popIndent()
+        this.printers.TSPeer.popIndent()
     }
 
 }

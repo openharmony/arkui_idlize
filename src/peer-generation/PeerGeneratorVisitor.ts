@@ -73,6 +73,7 @@ type MaybeCollapsedMethod = {
     member: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration
     collapsed?: {
         paramsDecl: string,
+        paramsTypes: string[],
         paramsUsage: string
     }
 }
@@ -95,7 +96,12 @@ export type PeerGeneratorVisitorOptions = {
     declarationTable: DeclarationTable
 }
 
-export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
+export type PeerGeneratorVisitorOutput = {
+    peer: stringOrNone[],
+    component: stringOrNone[],
+}
+
+export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitorOutput> {
     private typesToGenerate: string[] = []
     private seenAttributes = new Set<string>()
     private readonly sourceFile: ts.SourceFile
@@ -114,6 +120,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.typeChecker = options.typeChecker
         this.interfacesToGenerate = options.interfacesToGenerate
         this.printers = new Printers(
+            new IndentedPrinter(),
             new IndentedPrinter(),
             new IndentedPrinter(options.outputC),
             new IndentedPrinter(options.nativeModuleMethods),
@@ -148,13 +155,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         ]
     }
 
-    visitWholeFile(): stringOrNone[] {
+    visitWholeFile(): PeerGeneratorVisitorOutput {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
 
         this.defaultImports().forEach(it => this.printTS(it))
         this.peerFile.print()
 
-        return this.printers.TS.getOutput()
+        return {
+            peer: this.printers.TSPeer.getOutput(),
+            component: this.printers.TSComponent.getOutput(),
+        }
     }
 
     private isRootMethodInheritor(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
@@ -266,12 +276,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         }).join(", ")
     }
 
+    generateParamsTypes(params: ts.NodeArray<ts.ParameterDeclaration>): string[] {
+        return params?.map(param =>mapType(this.typeChecker, param.type))
+    }
+
     generateValues(argConvertors: ArgConvertor[]): stringOrNone {
         return argConvertors?.map(it => `${it.param}`).join(", ")
     }
 
     printTS(value: stringOrNone) {
-        this.printers.TS.print(value)
+        this.printers.TSPeer.print(value)
     }
 
     printC(value: stringOrNone) {
@@ -317,6 +331,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             isCallSignature,
             collapsed?.paramsDecl ?? this.generateParams(method.parameters),
             collapsed?.paramsUsage ?? this.generateValues(argConvertors),
+            collapsed?.paramsTypes ?? this.generateParamsTypes(method.parameters),
             this.dumpSerialized
         )
         console.log(`processing ${peerMethod.originalParentName}.${peerMethod.fullMethodName}`)
@@ -328,18 +343,18 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     }
 
     pushIndentBoth() {
-        this.printers.TS.pushIndent()
+        this.printers.TSPeer.pushIndent()
         this.printers.C.pushIndent()
     }
     popIndentBoth() {
-        this.printers.TS.popIndent()
+        this.printers.TSPeer.popIndent()
         this.printers.C.popIndent()
     }
     pushIndentTS() {
-        this.printers.TS.pushIndent()
+        this.printers.TSPeer.pushIndent()
     }
     popIndentTS() {
-        this.printers.TS.popIndent()
+        this.printers.TSPeer.popIndent()
     }
     pushIndentC() {
         this.printers.C.pushIndent()
@@ -525,7 +540,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     return {
                         types: typesToUnion,
                         name: `arg${i}`,
-                        optional: overloads.some(overload => overload.parameters[i]?.questionToken)
+                        optional: overloads.some(overload => overload.parameters[i]?.questionToken ?? true)
                             ? ts.factory.createToken(ts.SyntaxKind.QuestionToken)
                             : undefined
                     }
@@ -542,22 +557,23 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                     )
                 )
 
-            const paramsDecl = paramsCollapsed
-                .map(it => {
-                    const questionToken = it.optional ? "?" : ""
-                    const collapsedType = it.types.map(it => {
-                        if (it.kind == ts.SyntaxKind.UndefinedKeyword) {
-                            return "undefined"
-                        }
-                        if (ts.isFunctionTypeNode(it)) {
-                            return `(${it.getText()})`
-                        }
-                        return it.getText()
-                    }).join(" | ")
+            const paramsTypesList: string[] = []
+            const paramsDeclList: string[] = []
+            paramsCollapsed.forEach(it => {
+                const questionToken = it.optional ? "?" : ""
+                const collapsedType = it.types.map(it => {
+                    if (it.kind == ts.SyntaxKind.UndefinedKeyword) {
+                        return "undefined"
+                    }
+                    if (ts.isFunctionTypeNode(it)) {
+                        return `(${it.getText()})`
+                    }
+                    return it.getText()
+                }).join(" | ")
 
-                    return `${it.name}${questionToken}: ${collapsedType}`
-                })
-                .join(", ")
+                paramsTypesList.push(collapsedType)
+                paramsDeclList.push(`${it.name}${questionToken}: ${collapsedType}`)
+            })
 
             const paramsUsage = paramsCollapsed
                 .map(it =>
@@ -582,7 +598,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
                         undefined
                     ),
                 collapsed: {
-                    paramsDecl: paramsDecl,
+                    paramsDecl: paramsDeclList.join(", "),
+                    paramsTypes: paramsTypesList,
                     paramsUsage: paramsUsage
                 }
             }

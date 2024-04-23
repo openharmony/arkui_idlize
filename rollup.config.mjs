@@ -17,7 +17,7 @@ import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import * as path from "path";
 
-const ENABLE_SOURCE_MAPS = false;  // Enable for debugging
+const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 
 /** @type {import("rollup").RollupOptions} */
 export default {
