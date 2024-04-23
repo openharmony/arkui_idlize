@@ -563,6 +563,14 @@ export class DeclarationTable {
         throw new Error(`Cannot convert: ${asString(type)} ${type.getText()} ${type.kind}`)
     }
 
+    private _currentContext: string|undefined = undefined
+    getCurrentContext(): string | undefined {
+        return this._currentContext
+    }
+    setCurrentContext(context: string | undefined) {
+        this._currentContext = context
+    }
+
     private customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode): ArgConvertor | undefined {
         let name = getNameWithoutQualifiersRight(typeName)
         if (name === "Length") return new LengthConvertor(param)
@@ -883,6 +891,7 @@ export class DeclarationTable {
 
     private generateWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter, isPointer: boolean) {
         if (target instanceof PrimitiveType) throw new Error("Impossible")
+        this.setCurrentContext(`writeToString(${name})`)
         let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
         let isArray = this.isMaybeWrapped(target, ts.isArrayTypeNode)
         let isOptional = this.isMaybeWrapped(target, ts.isOptionalTypeNode)
@@ -973,6 +982,7 @@ export class DeclarationTable {
             })
             printer.print(`result->append("}");`)
         }
+        this.setCurrentContext(undefined)
     }
 
     private fieldsForClass(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, result: StructDescriptor) {
@@ -1120,6 +1130,9 @@ export class DeclarationTable {
 
     private generateSerializer(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
         if (this.ignoreTarget(target, name)) return
+
+        this.setCurrentContext(`write${name}()`)
+
         printer.pushIndent()
         printer.print(`write${name}(value: ${this.translateSerializerType(name, target)}) {`)
         printer.pushIndent()
@@ -1139,6 +1152,8 @@ export class DeclarationTable {
         printer.popIndent()
         printer.print(`}`)
         printer.popIndent()
+
+        this.setCurrentContext(undefined)
     }
 
     private ignoreTarget(target: DeclarationTarget, name: string): target is PrimitiveType | ts.EnumDeclaration {
@@ -1151,6 +1166,7 @@ export class DeclarationTable {
 
     private generateDeserializer(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
         if (this.ignoreTarget(target, name)) return
+        this.setCurrentContext(`read${name}()`)
         printer.print(`${name} read${name}() {`)
         printer.pushIndent()
         printer.print(`Deserializer& valueDeserializer = *this;`)
@@ -1168,5 +1184,6 @@ export class DeclarationTable {
         printer.print(`return value;`)
         printer.popIndent()
         printer.print(`}`)
+        this.setCurrentContext(undefined)
     }
 }

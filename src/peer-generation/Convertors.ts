@@ -325,7 +325,12 @@ export class UnionConvertor extends BaseArgConvertor {
                 first.forEach(value => {
                     let index = second.findIndex(it => it == value)
                     if (index != -1) {
-                        console.log(`WARNING: Runtime type conflict in ${param}: could be ${RuntimeType[value]}`)
+                        let current = this.table.getCurrentContext()
+                        if (!current) throw new Error("Used in undefined context, do setCurrentContext()")
+                        if (!UnionConvertor.reportedConflicts.has(current)) {
+                            if (current) UnionConvertor.reportedConflicts.add(current)
+                            console.log(`WARNING: runtime type conflict in "${current ?? "<unknown>"} ${param}": could be ${RuntimeType[value]} in both ${convertors[i].constructor.name} and ${convertors[j].constructor.name}`)
+                        }
                         second.splice(index, 1)
                     }
                 })
@@ -335,6 +340,8 @@ export class UnionConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
+
+    private static reportedConflicts = new Set<string>()
 }
 
 export class ImportTypeConvertor extends BaseArgConvertor {

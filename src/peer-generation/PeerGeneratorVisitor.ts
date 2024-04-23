@@ -296,6 +296,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
         if (PeerGeneratorConfig.ignorePeerMethod.includes(methodName)) return
 
+        this.declarationTable.setCurrentContext(`${methodName}()`)
+
         method.parameters.map((param, index) => {
             if (param.type)
                 this.requestType(`Type_${originalParentName}_${methodName}_Arg${index}`, param.type)
@@ -320,6 +322,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         console.log(`processing ${peerMethod.originalParentName}.${peerMethod.fullMethodName}`)
 
         // this.processPeerMethod(peer, peerMethod)
+        this.declarationTable.setCurrentContext(undefined)
 
         return peerMethod
     }
@@ -356,7 +359,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     popIndentAPIList() {
         this.printers.apiList.popIndent()
     }
-    
+
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")
         let paramName = asString(param.name)
@@ -606,6 +609,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         const component = this.classNameIfInterface(parent)
 
         methods.forEach(maybeCollapsedMethod => {
+            this.declarationTable.setCurrentContext(`${identName(maybeCollapsedMethod.member.name)}()`)
             const basicParameters = maybeCollapsedMethod.member.parameters
                 .map(it => this.argConvertor(it))
                 .map(it => {
@@ -627,6 +631,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
 
             this.printers.nativeModule.print(implDecl)
             this.printers.nativeModuleEmpty.print(`${implDecl} { console.log("${originalName}") }`)
+            this.declarationTable.setCurrentContext(undefined)
         })
     }
 

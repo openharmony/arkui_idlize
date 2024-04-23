@@ -45,7 +45,7 @@
         "run:all": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/@internal/component/ets/ --verify-idl --common-to-attributes --docs=opt",
         "run2h": "npm run compile && node . --idl2h --input-dir ./idl",
         "run2dts": "npm run compile && node . --idl2dts --input-dir ./idl",
-        "run2peer:all": "npm run compile && node . --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir ./generated/peers",
+        "run2peer:all": "npm run compile && node --stack_trace_limit=200  . --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir ./generated/peers",
         "run2peer": "npm run compile && node . --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/ --generate-interface CommonMethod,ButtonAttribute --output-dir ./generated/peers",
         "lint": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/ --input-file common.d.ts --output-dir linter --linter-whitelist whitelist.json",
         "lint:all": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir linter --linter-whitelist whitelist.json",
