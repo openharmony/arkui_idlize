@@ -17,6 +17,8 @@ import { asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode } 
 import { GenericVisitor } from "./options"
 import {randInt, randString, pick, pickArray} from "./rand_utils";
 
+const LAMBDA = "LAMBDA"
+
 export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     private interfacesToTest = new Set<string>()
     private methodsToTest = new Set<string>()
@@ -89,8 +91,13 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
 
         this.generateArgs(method).forEach(args => {
             let methodName = nameOrUndefined(method.name)
-            let golden = `${methodName}(${args})`
-            this.output.push(`  checkResult("${methodName}", () => peer.${methodName}Attribute(${args}), \`${golden}\`)`)
+
+            // Handle Lambda
+            let passedArgs = args.replaceAll(LAMBDA, `() => {}`)
+            let expectedArgs = args.replaceAll(LAMBDA, `"Function 42"`)
+
+            let golden = `${methodName}(${expectedArgs})`
+            this.output.push(`  checkResult("${methodName}", () => peer.${methodName}Attribute(${passedArgs}), \`${golden}\`)`)
         })
     }
 
@@ -115,7 +122,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
             return ["null"]
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            return [`0`, `-1`, `${randInt(2048, -1024)}`]
+            return [`0`, `-1`, `${randInt(2048, -1024)}`, `-0.59`, `93.54`]
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
             return ['""',`"${randString(randInt(16))}"`]
@@ -195,7 +202,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
         }
         if (ts.isFunctionTypeNode(type)) {
             // TODO: be smarter here
-            return ["() => {}"]
+            return [`${LAMBDA}`]
         }
         if (ts.isTypeLiteralNode(type)) {
             // TODO: be smarter here

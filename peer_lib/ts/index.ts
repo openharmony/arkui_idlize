@@ -51,7 +51,7 @@ function checkButton() {
                 title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
             }
         }),
-        "bindSheet(false, Function 42, {backgroundColor: undefined, title: {title: Custom kind=NativeErrorResource id=0, subtitle: undefined}, detents: undefined})"
+        `bindSheet(false, "Function 42", {backgroundColor: undefined, title: {title: Custom kind=NativeErrorResource id=0, subtitle: undefined}, detents: undefined})`
     )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
     checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),
@@ -70,8 +70,12 @@ function checkCalendar() {
 
 function checkFormComponent() {
     let peer = new ArkFormComponentPeer(ArkUINodeType.FormComponent)
-    checkResult("size", () => peer.sizeAttribute({width: 5, height: 6}),
+    checkResult("size int", () => peer.sizeAttribute({width: 5, height: 6}),
         `size({width: 5, height: 6})`)
+    checkResult("size float", () => peer.sizeAttribute({width: 5.5, height: 6.789}),
+        `size({width: 5.50, height: 6.78})`)
+    checkResult("size zero", () => peer.sizeAttribute({width: 0.0, height: 0.0}),
+        `size({width: 0, height: 0})`)
 }
 
 function checkCommon() {

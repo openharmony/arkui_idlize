@@ -63,9 +63,13 @@ struct Error {
 
 template <>
 inline void WriteToString(string* result, Ark_Number value) {
-  if (value.tag == ARK_TAG_FLOAT32)
-    result->append(std::to_string(value.f32));
-  else
+  if (value.tag == ARK_TAG_FLOAT32) {
+    // print with precision 2 digits after dot
+    std::string fv = std::to_string(value.f32);
+    size_t i = fv.find(".");
+    fv = (i != std::string::npos && (i + 3) < fv.length()) ? fv.substr(0, i + 3) : fv;
+    result->append(fv);
+  } else
     result->append(std::to_string(value.i32));
 }
 
@@ -76,8 +80,10 @@ inline void WriteToString(string* result, Ark_Tag value) {
 
 template <>
 inline void WriteToString(string* result, const Ark_Function* value) {
-  result->append("Function ");
+   result->append("\"");
+   result->append("Function ");
    result->append(std::to_string(value->id));
+   result->append("\"");
 }
 
 // TODO: generate!

@@ -935,8 +935,9 @@ export class DeclarationTable {
             printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}array[i]);`)
             printer.popIndent()
             printer.print(`}`)
+            printer.print(`result->append("]");`)
             if (false) {
-                printer.print(`result->append("] /* ${name} {array_length=");`)
+                printer.print(`result->append(" /* ${name} {array_length=");`)
                 printer.print(`WriteToString(result, value${access}array_length);`)
                 printer.print(`result->append("} */");`)
             }
