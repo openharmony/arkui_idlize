@@ -16,7 +16,7 @@ import * as ts from "typescript"
 import * as path from "path"
 import { parse } from 'comment-parser'
 import {
-    createAnyType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
+    createAnyType, createBooleanType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
     createTypeParameterReference, createUndefinedType, createUnionType, getExtAttribute, IDLCallable, IDLCallback, IDLConstructor,
     IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLType, IDLTypedef
 } from "./idl"
@@ -180,7 +180,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             result.push({name: "Parametrized", value: "T"})
         }
         this.computeDeprecatedExtendAttributes(node, result)
-        
+
         return result.length > 0 ? result : undefined
     }
 
@@ -198,7 +198,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return attributes
     }
 
-    
+
 
     /** Serialize a class information */
     serializeClass(node: ts.ClassDeclaration): IDLInterface {
@@ -400,12 +400,20 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             type.kind == ts.SyntaxKind.VoidKeyword) {
             return createUndefinedType()
         }
-        if (type.kind == ts.SyntaxKind.Unknown) {
+        if (type.kind == ts.SyntaxKind.UnknownKeyword) {
             return createReferenceType("unknown")
         }
-
+        if (type.kind == ts.SyntaxKind.AnyKeyword) {
+            return createReferenceType("any")
+        }
+        if (type.kind == ts.SyntaxKind.ObjectKeyword) {
+            return createReferenceType("object")
+        }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
             return createNumberType()
+        }
+        if (type.kind == ts.SyntaxKind.BooleanKeyword) {
+            return createBooleanType()
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
             return createStringType()
@@ -514,12 +522,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (ts.isNamedTupleMember(type)) {
             return this.serializeType(type.type)
         }
-        // Falling back to original TS text
-        // TODO: this doesn't work when the node is in another source file.
-        // Such types can come from fake overrides.
-        let rawType = type.getText(this.sourceFile)
-        const transformedType = typeMapper.get(rawType) ?? rawType
-        return createReferenceType(transformedType)
+        throw new Error(`Unsupported ${type.getText()} ${type.kind}`)
     }
 
     isTypeParameterReferenceOfCommonMethod(type: ts.TypeNode): boolean {
@@ -634,7 +637,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
         let [methodName, escapedName] = escapeMethodName(method.name!.getText(this.sourceFile))
         let extendedAttributes : IDLExtendedAttribute[] | undefined = (methodName != escapedName) ? [ { name: "DtsName", value: `"${methodName}"`} ] : undefined
-       
+
         return {
             kind: IDLKind.Method,
             name: escapedName,

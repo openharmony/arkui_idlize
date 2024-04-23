@@ -286,6 +286,13 @@ export function createNumberType(): IDLPrimitiveType {
     }
 }
 
+export function createBooleanType(): IDLPrimitiveType {
+    return {
+        kind: IDLKind.PrimitiveType,
+        name: "boolean"
+    }
+}
+
 export function createUndefinedType(): IDLPrimitiveType {
     return {
         kind: IDLKind.PrimitiveType,
