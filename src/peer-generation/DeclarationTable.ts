@@ -897,6 +897,7 @@ export class DeclarationTable {
         if (isUnion) {
             this.targetStruct(target).getFields().forEach((field, index) => {
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                if (index != 0) printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
                 printer.print(`if (value${access}selector == ${index - 1}) {`)
                 printer.pushIndent()
                 printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
@@ -934,6 +935,7 @@ export class DeclarationTable {
             printer.print(`result->append("[");`)
             const fields = this.targetStruct(target).getFields()
             fields.forEach((field, index) => {
+                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                 if (index > 0) {
                     printer.print(`result->append(", ");`)
@@ -945,6 +947,7 @@ export class DeclarationTable {
             printer.print(`result->append("{");`)
             const fields = this.targetStruct(target).getFields()
             fields.forEach((field, index) => {
+                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
                 if (index > 0) printer.print(`result->append(", ");`)
                 printer.print(`result->append("${field.name}: ");`)
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
@@ -962,6 +965,7 @@ export class DeclarationTable {
         } else {
             printer.print(`result->append("{");`)
             this.targetStruct(target).getFields().forEach((field, index) => {
+                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
                 if (index > 0) printer.print(`result->append(", ");`)
                 printer.print(`result->append("${field.name}: ");`)
                 let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
