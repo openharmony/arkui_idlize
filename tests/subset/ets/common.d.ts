@@ -106,6 +106,16 @@ declare type Padding = {
     left?: Length;
 };
 
+declare interface DragPreviewOptions {
+    numberBadge?: boolean | number;
+}
+
+declare interface DragInteractionOptions {
+
+    isMultiSelectionEnabled?: boolean;
+
+    defaultAnimationBeforeLifting?: boolean;
+}
 
 declare class CommonMethod<T> {
 
@@ -120,6 +130,8 @@ declare class CommonMethod<T> {
     bindSheet(isShow: boolean, builder: () => void, options?: SheetOptions): T;
 
     backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): T;
+
+    dragPreviewOptions(value: DragPreviewOptions, options?: DragInteractionOptions): T;
 }
 
 declare interface Rectangle {

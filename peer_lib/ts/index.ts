@@ -89,6 +89,16 @@ function checkCommon() {
         () => peer.backgroundBlurStyleAttribute(0, backgroundBlurStyle),
         `backgroundBlurStyle(0, {colorMode: 0, adaptiveColor: 0, scale: 1, blurOptions: {grayscale: [1, 1]}})`
     )
+
+    checkResult("Test dragPreviewOptions numberBadge with number",
+        () => peer.dragPreviewOptionsAttribute({numberBadge: 10}, {isMultiSelectionEnabled: true}),
+        `dragPreviewOptions({numberBadge: 10}, {isMultiSelectionEnabled: true, defaultAnimationBeforeLifting: undefined})`
+    )
+
+    checkResult("Test dragPreviewOptions numberBadge with boolean",
+        () => peer.dragPreviewOptionsAttribute({numberBadge: true}, {defaultAnimationBeforeLifting: false}),
+        `dragPreviewOptions({numberBadge: true}, {isMultiSelectionEnabled: undefined, defaultAnimationBeforeLifting: false})`
+    )
 }
 
 function checkNavigation() {

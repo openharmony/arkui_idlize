@@ -103,8 +103,7 @@ export class StringConvertor extends BaseArgConvertor {
 
 export class BooleanConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("boolean", [RuntimeType.BOOLEAN, RuntimeType.NUMBER], false, false, param)
-        // TODO: shall NUMBER be here?
+        super("boolean", [RuntimeType.BOOLEAN], false, false, param)
     }
 
     convertorTSArg(param: string): string {
