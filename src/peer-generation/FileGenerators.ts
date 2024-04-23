@@ -271,9 +271,7 @@ export function makeAPI(headers: string[], modifiers: string[], structs: Indente
 #ifndef ARKOALA_API_H_
 #define ARKOALA_API_H_
 
-// TBD: Change K to ArkUI types
 #include <stdint.h>
-#include <stddef.h>
 
 ${structsBase}
 

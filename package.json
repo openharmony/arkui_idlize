@@ -8,7 +8,8 @@
         "lib/*.js",
         "stdlib.d.ts",
         "whitelist.json",
-        "peer_lib/**/*"
+        "peer_lib/**/*",
+        "templates/**/*"
     ],
     "license": "Apache-2.0",
     "keywords": [],
