@@ -265,7 +265,7 @@ ${lines.join("\n")}
 }
 export function makeAPI(headers: string[], modifiers: string[], structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
-    let structsBase = fs.readFileSync('./templates/StructsBase.h','utf8');
+    let structsBase = fs.readFileSync(path.join(__dirname, '../templates/StructsBase.h'),'utf8');
 
     return `
 #ifndef ARKOALA_API_H_
