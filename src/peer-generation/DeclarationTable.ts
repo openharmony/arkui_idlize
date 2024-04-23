@@ -338,10 +338,10 @@ export class DeclarationTable {
                 return this.computeTargetName(this.toTarget(target.typeArguments[0]), true)
             if (name == "Array")
                 return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), optional)
-            if (name == "ContentModifier" || name == "AnimationRange")
-                return prefix + PrimitiveType.CustomObject.getText()
             if (name == "Callback")
                 return prefix + PrimitiveType.Function.getText()
+            if (PeerGeneratorConfig.isKnownParametrized(name))
+                return prefix + PrimitiveType.CustomObject.getText()
         }
         throw new Error(`Cannot compute target name: ${(target as any).getText()} ${(target as any).kind}`)
     }
@@ -1089,8 +1089,8 @@ export class DeclarationTable {
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "config"))
             } else if (name == "Callback") {
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "id"))
-            } else if (name == "AnimationRange") {
-                // TODO: not yet :(
+            } else if (PeerGeneratorConfig.isKnownParametrized(name)) {
+                // TODO: not this way yet!
                 // let type = target.typeArguments[0]
                 // result.addField(new FieldRecord(this.toTarget(type), type, "value0"))
                 // result.addField(new FieldRecord(this.toTarget(type), type, "value1"))
