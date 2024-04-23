@@ -88,8 +88,9 @@ export type PeerGeneratorVisitorOptions = {
     apiHeaders: string[]
     apiHeadersList: string[]
     dummyImpl: string[]
-    dummyImplModifiers: string[]
-    dummyImplModifierList: string[]
+    modifiers: string[]
+    modifierList: string[]
+    modifierImpl: string[]
     dumpSerialized: boolean
     declarationTable: DeclarationTable
 }
@@ -121,8 +122,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
             new IndentedPrinter(options.apiHeaders),
             new IndentedPrinter(options.apiHeadersList),
             new IndentedPrinter(options.dummyImpl),
-            new IndentedPrinter(options.dummyImplModifiers),
-            new IndentedPrinter(options.dummyImplModifierList)
+            new IndentedPrinter(options.modifiers),
+            new IndentedPrinter(options.modifierList),
+            new IndentedPrinter(options.modifierImpl)
         )
         this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
@@ -153,10 +155,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.peerFile.print()
 
         return this.printers.TS.getOutput()
-    }
-
-    resultC(): string[] {
-        return this.printers.C.getOutput()
     }
 
     private isRootMethodInheritor(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
@@ -284,18 +282,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
         this.printers.api.print(value)
     }
 
-    printDummy(value: stringOrNone) {
-        this.printers.dummyImpl.print(value)
-    }
-
-    printDummyModifier(value: stringOrNone) {
-        this.printers.dummyImplModifiers.print(value)
-    }
-
-    printDummyModifierList(value: stringOrNone) {
-        this.printers.dummyImplModifierList.print(value)
-    }
-
     processMethodOrCallable(
         { member: method, collapsed: collapsed }: MaybeCollapsedMethod,
         peer: PeerClass,
@@ -370,19 +356,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<stringOrNone[]> {
     popIndentAPIList() {
         this.printers.apiList.popIndent()
     }
-    pushIndentDummyImpl() {
-        this.printers.dummyImpl.pushIndent()
-    }
-    popIndentDummyImpl() {
-        this.printers.dummyImpl.popIndent()
-    }
-    pushIndentDummyModifiers() {
-        this.printers.dummyImplModifiers.pushIndent()
-    }
-    popIndentDummyModifiers() {
-        this.printers.dummyImplModifiers.popIndent()
-    }
-
+    
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")
         let paramName = asString(param.name)

@@ -26,16 +26,18 @@ import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import {
     bridgeCcDeclaration,
+    completeImplementations,
     copyPeerLib,
     dummyImplementations,
-    dummyModifierList,
-    dummyModifiers,
+    modifierStructList,
+    modifierStructs,
     makeAPI,
     makeCDeserializer,
     makeNodeTypes,
     makeTSSerializer,
     nativeModuleDeclaration,
-    nativeModuleEmptyDeclaration
+    nativeModuleEmptyDeclaration,
+
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor
@@ -264,8 +266,9 @@ if (options.dts2peer) {
     const apiHeaders: string[] = []
     const apiHeadersList: string[] = []
     const dummyImpl: string[] = []
-    const dummyImplModifiers: string[] = []
-    const dummyImplModifierList: string[] = []
+    const modifiers: string[] = []
+    const modifierList: string[] = []
+    const completeImpl: string[] = []
     const declarationTable = new DeclarationTable()
 
     generate(
@@ -283,8 +286,9 @@ if (options.dts2peer) {
             apiHeaders: apiHeaders,
             apiHeadersList: apiHeadersList,
             dummyImpl: dummyImpl,
-            dummyImplModifiers: dummyImplModifiers,
-            dummyImplModifierList: dummyImplModifierList,
+            modifiers: modifiers,
+            modifierList: modifierList,
+            modifierImpl: completeImpl,
             dumpSerialized: options.dumpSerialized ?? false,
             declarationTable,
         }),
@@ -332,9 +336,16 @@ if (options.dts2peer) {
 
                 const dummyImplCc =
                     dummyImplementations(dummyImpl) +
-                    dummyModifiers(dummyImplModifiers) +
-                    dummyModifierList(dummyImplModifierList)
+                    modifierStructs(modifiers) +
+                    modifierStructList(modifierList)
                 fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummyImplCc)
+
+                const completeImplCc =
+                    completeImplementations(completeImpl) +
+                    modifierStructs(modifiers) +
+                    modifierStructList(modifierList)
+                fs.writeFileSync(path.join(outDir, 'all_modifiers.cc'), completeImplCc)
+
                 copyPeerLib(path.join(__dirname, '..', 'peer_lib'), outDir)
             }
         }

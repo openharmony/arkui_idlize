@@ -10,7 +10,8 @@ export class Printers {
         public api: IndentedPrinter,
         public apiList: IndentedPrinter,
         public dummyImpl: IndentedPrinter,
-        public dummyImplModifiers: IndentedPrinter,
-        public dummyImplModifierList: IndentedPrinter,
+        public modifiers: IndentedPrinter,
+        public modifierList: IndentedPrinter,
+        public modifierImpl: IndentedPrinter
     ) { }
 }

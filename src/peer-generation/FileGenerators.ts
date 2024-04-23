@@ -134,6 +134,16 @@ ${bridgeCc.join("\n")}
 `
 }
 
+export function completeImplementations(lines: string[]): string {
+    return `
+#include "Interop.h"
+#include "Deserializer.h"
+#include "common-interop.h"
+
+${lines.join("\n")}
+`
+}
+
 export function dummyImplementations(lines: string[]): string {
     return `
 #include "Interop.h"
@@ -144,11 +154,11 @@ ${lines.join("\n")}
 `
 }
 
-export function dummyModifiers(lines: string[]): string {
+export function modifierStructs(lines: string[]): string {
     return lines.join("\n")
 }
 
-export function dummyModifierList(lines: string[]): string {
+export function modifierStructList(lines: string[]): string {
     return `
 const ArkUINodeModifiers impl = {
     1, // version

@@ -126,12 +126,12 @@ export class PeerClass {
         this.printers.apiList.print(`const ArkUI${component}Modifier* (*get${component}Modifier)();`)
 
         const modifierStructImpl = `ArkUI${component}ModifierImpl`
-        this.printers.dummyImplModifiers.print(`ArkUI${component}Modifier ${modifierStructImpl} {`)
-        this.printers.dummyImplModifiers.pushIndent()
+        this.printers.modifiers.print(`ArkUI${component}Modifier ${modifierStructImpl} {`)
+        this.printers.modifiers.pushIndent()
 
-        this.printers.dummyImplModifierList.pushIndent()
-        this.printers.dummyImplModifierList.print(`Get${component}Modifier,`)
-        this.printers.dummyImplModifierList.popIndent()
+        this.printers.modifierList.pushIndent()
+        this.printers.modifierList.print(`Get${component}Modifier,`)
+        this.printers.modifierList.popIndent()
     }
 
     printProlog() {
@@ -152,10 +152,10 @@ export class PeerClass {
         this.printers.api.popIndent()
         this.printers.api.print(`} ArkUI${this.componentName}Modifier;\n`)
         this.printers.apiList.popIndent()
-        this.printers.dummyImplModifiers.popIndent()
-        this.printers.dummyImplModifiers.print(`};\n`)
+        this.printers.modifiers.popIndent()
+        this.printers.modifiers.print(`};\n`)
         const name = this.componentName
-        this.printers.dummyImplModifiers.print(`const ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
+        this.printers.modifiers.print(`const ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
     }
 
     printMethods() {

@@ -63,8 +63,9 @@ export class PeerMethod {
         const retType = this.maybeCRetType(retConvertor) ?? "void"
 
         this.printers.api.print(`${retType} (*${fullMethodName})(${apiParameters});`)
-        this.printers.dummyImplModifiers.print(`${implName},`)
-        this.printDummyImplFunction(retType, implName, apiParameters)
+        this.printers.modifiers.print(`${implName},`)
+        this.printImplFunction(retType, implName, apiParameters, true) // dummy
+        this.printImplFunction(retType, implName, apiParameters, false) // real
 
         this.printers.TS.print(`${methodName}Attribute(${this.mappedParams}) {`)
         let cName = `${this.originalParentName}_${methodName}`
@@ -94,19 +95,35 @@ export class PeerMethod {
         this.printers.TS.print(`}`)
     }
 
-    printDummyImplFunction(retType: string, implName: string, apiParameters: string) {
-        this.printers.dummyImpl.print(`${retType} ${implName}(${apiParameters}) {`)
-        this.printers.dummyImpl.pushIndent()
-        this.printers.dummyImpl.print(`string out("${this.methodName}(");`)
+
+    printDummyImplFunctionBody(retType: string, implName: string, apiParameters: string, printer: IndentedPrinter) {
+        printer.print(`string out("${this.methodName}(");`)
         this.argConvertors.forEach((argConvertor, index) => {
             if (index > 0) this.printers.dummyImpl.print(`out.append(", ");`)
-            this.printers.dummyImpl.print(`WriteToString(&out, ${argConvertor.param});`)
+            printer.print(`WriteToString(&out, ${argConvertor.param});`)
         })
-        this.printers.dummyImpl.print(`out.append(")");`)
-        this.printers.dummyImpl.print(`appendGroupedLog(1, out);`)
-        if (retType != "void") this.printers.dummyImpl.print(`return 0;`)
-        this.printers.dummyImpl.popIndent()
-        this.printers.dummyImpl.print(`}`)
+        printer.print(`out.append(")");`)
+        printer.print(`appendGroupedLog(1, out);`)
+        if (retType != "void") printer.print(`return 0;`)
+    }
+
+    printModifierImplFunctionBody(retType: string, implName: string, apiParameters: string, printer: IndentedPrinter) {
+        printer.print(`// ${implName} `)
+        if (retType != "void") printer.print(`return 0;`)
+    }
+
+    printImplFunction(retType: string, implName: string, apiParameters: string, dummy: boolean) {
+        const printer = dummy ? this.printers.dummyImpl : this.printers.modifierImpl
+
+        printer.print(`${retType} ${implName}(${apiParameters}) {`)
+        printer.pushIndent()
+        if (dummy) {
+            this.printDummyImplFunctionBody(retType, implName, apiParameters, printer)
+        } else {
+            this.printModifierImplFunctionBody(retType, implName, apiParameters, printer)
+        }
+        printer.popIndent()
+        printer.print(`}`)
     }
 
     generateCParameters(argConvertors: ArgConvertor[]): string[] {
