@@ -695,7 +695,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         printer.print(`if (${runtimeType} != ${PrimitiveType.UndefinedRuntime}) {`) // TODO: `else value = nullptr` ?
         printer.pushIndent()
         printer.print(`auto ${arrayLength} = ${param}Deserializer.readInt32();`)
-        printer.print(`${param}Deserializer.resizeArray<Array_${elementTypeName}, ${elementTypeName}>(${value}, ${arrayLength});`);
+        printer.print(`${param}Deserializer.resizeArray<Array_${elementTypeName}, ${elementTypeName}>(&${value}, ${arrayLength});`);
         printer.print(`for (int i = 0; i < ${arrayLength}; i++) {`)
         printer.pushIndent()
         this.elementConvertor.convertorToCDeserial(param, `${value}.array[i]`, printer)
