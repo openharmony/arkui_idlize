@@ -147,6 +147,7 @@ export interface IDLMethod extends IDLFunction {
     name: string
     returnType: IDLType
     isStatic: boolean
+    isOptional: boolean
 }
 
 export interface IDLCallable extends IDLFunction {

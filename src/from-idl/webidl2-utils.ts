@@ -76,7 +76,7 @@ export function isRecordTypeDescription(node: webidl2.IDLTypeDescription): node 
     return node.generic === "record"
 }
 
-export function isOptional(node: webidl2.AttributeMemberType): boolean {
+export function isOptional(node: webidl2.AttributeMemberType | webidl2.OperationMemberType): boolean {
     return node.extAttrs
         .map((it: ExtendedAttribute) => it.name)
         .map((it) => it.toLowerCase())

@@ -632,12 +632,19 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 returnType: this.serializeType(method.type),
                 extendedAttributes: this.computeDeprecatedExtendAttributes(method,[{name: 'IndexSignature' }]),
                 isStatic: false,
+                isOptional: false,
                 parameters: method.parameters.map(it => this.serializeParameter(it))
             }
         }
         let [methodName, escapedName] = escapeMethodName(method.name!.getText(this.sourceFile))
         let extendedAttributes : IDLExtendedAttribute[] | undefined = (methodName != escapedName) ? [ { name: "DtsName", value: `"${methodName}"`} ] : undefined
-
+        if (!!method.questionToken) {
+            if (extendedAttributes) {
+                extendedAttributes.push({name: 'Optional'})
+            } else {
+                extendedAttributes = [{name: 'Optional'}]
+            }
+        }
         return {
             kind: IDLKind.Method,
             name: escapedName,
@@ -645,7 +652,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             documentation: getDocumentation(this.sourceFile, method, this.options.docs),
             parameters: method.parameters.map(it => this.serializeParameter(it)),
             returnType: this.serializeType(method.type),
-            isStatic: isStatic(method.modifiers)
+            isStatic: isStatic(method.modifiers),
+            isOptional: !!method.questionToken
         };
     }
 

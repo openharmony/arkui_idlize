@@ -133,7 +133,8 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): IDLMethod
         documentation: makeDocs(node),
         returnType: toIDLType(file, node.idlType),
         extendedAttributes: toExtendedAttributes(node.extAttrs),
-        kind: IDLKind.Method
+        kind: IDLKind.Method,
+        isOptional: isOptional(node)
     }
 }
 

@@ -95,12 +95,13 @@ export class CustomPrintVisitor  {
         let returnType = node.returnType ? `: ${printTypeForTS(node.returnType, true)}` : ""
         let isStatic = isMethod(node) && node.isStatic
         let name = isConstructor(node) ? "constructor" : node.name
+        let isOptional = isMethod(node) && node.isOptional
         if (hasExtAttribute(node, "CallSignature")) name = ""
         if (hasExtAttribute(node,"DtsName")) {
             let dtsName = getExtAttribute(node, "DtsName")
             name = dtsName ? dtsName.replaceAll("\"","") : ""
         }
-        this.print(`${isGlobal ? "declare function ": ""}${isStatic ? "static " : ""}${name}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
+        this.print(`${isGlobal ? "declare function ": ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
     }
     paramText(param: IDLParameter): string {
         return `${param.isVariadic ? "..." : ""}${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
