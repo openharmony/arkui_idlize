@@ -20,13 +20,19 @@ const dir = "./interface_sdk-js"
 
 if (fs.existsSync(dir)) {
     //execSync(`cd ${dir} && git pull`)
-    process.exit(0)
+} else {
+    console.log("Downloading sdk")
+    execSync("git clone --depth=1 https://gitee.com/openharmony/interface_sdk-js.git")
 }
 
-console.log("Downloading sdk")
-execSync("git clone --depth=1 https://gitee.com/openharmony/interface_sdk-js.git")
-
-if (!fs.existsSync("./sdk")) {
-    fs.mkdirSync("./sdk")
-    fs.symlinkSync("../interface_sdk-js/api/\@internal/component/ets", "./sdk/component")
+let sdk = "./sdk"
+let components = "./interface_sdk-js/api/\@internal/component/ets"
+if (!fs.existsSync(sdk)) {
+    fs.mkdirSync(sdk)
+    try {
+      fs.symlinkSync("." + components, sdk + "/component")
+    } catch (e) {
+      console.log("Symlink failed, try to copy")
+      fs.cpSync(components, sdk + "/component", { recursive: true })
+    }
 }
