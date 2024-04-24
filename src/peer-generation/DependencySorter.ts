@@ -114,7 +114,7 @@ export class DependencySorter {
             console.log(`CYCLE:\n${cycle.map(it => `${this.table.computeTargetName(it, false)}: ${adjMap.get(it)?.map(it => this.table.computeTargetName(it, false)).join(",")}`).join("\n")}`)
             throw new Error("cycle detected")
         }
-        console.log("DEPS", result.map(it => this.table.computeTargetName(it, false)).join(","))
+        // console.log("DEPS", result.map(it => this.table.computeTargetName(it, false)).join(","))
         return result
     }
 }

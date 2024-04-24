@@ -16,7 +16,9 @@ const rootComponents = [
 
 const standaloneComponents = [
     "CalendarAttribute",
-    "ContainerSpanAttribute"
+    "ContainerSpanAttribute",
+    "TextPickerDialog",
+    "TimePickerDialog"
 ]
 
 export function determineInheritanceRole(name: string): InheritanceRole {
@@ -53,7 +55,7 @@ export function isHeir(name: string): boolean {
 }
 
 export function singleParentDeclaration(
-    typeChecker: ts.TypeChecker, 
+    typeChecker: ts.TypeChecker,
     component: ts.ClassDeclaration | ts.InterfaceDeclaration
 ): ts.ClassDeclaration | ts.InterfaceDeclaration | undefined {
     const parentTypeNode = component.heritageClauses

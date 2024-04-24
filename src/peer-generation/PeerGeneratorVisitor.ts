@@ -23,7 +23,8 @@ import {
     nameOrNull,
     serializerBaseMethods,
     stringOrNone,
-    className
+    className,
+    isStatic
 } from "../util"
 import { GenericVisitor } from "../options"
 import { IndentedPrinter } from "../IndentedPrinter"
@@ -316,7 +317,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
             if (param.type)
                 this.requestType(`Type_${originalParentName}_${methodName}_Arg${index}`, param.type)
         })
-        const hasReceiver = true // TODO: make it false for non-method calls.
+        const hasReceiver = !isStatic(method.modifiers)
         const argConvertors = method.parameters
             .map((param) => this.argConvertor(param))
         const retConvertor = this.retConvertor(method.type)
@@ -637,7 +638,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
                         return `${it.param}: ${it.interopType(true)}`
                     }
                 })
-            const parameters = ["ptr: NodePointer"]
+            let maybeReceiver = isStatic(maybeCollapsedMethod.member.modifiers) ? [] :  [`ptr: KPointer`]
+            const parameters = maybeReceiver
                 .concat(basicParameters)
                 .join(", ")
 

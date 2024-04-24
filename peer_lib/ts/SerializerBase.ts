@@ -251,19 +251,11 @@ export class SerializerBase {
     }
 
     writeAttributeModifier(value: AttributeModifier<any>|undefined) {
-        if (!value) {
-            this.writeInt8(Tags.UNDEFINED)
-            return
-         }
-         this.writeInt8(Tags.OBJECT)
+        this.writeCustomObject("AttributeModifier", value)
     }
 
     writeContentModifier(value: ContentModifier<any>|undefined) {
-        if (!value) {
-            this.writeInt8(Tags.UNDEFINED)
-            return
-         }
-         this.writeInt8(Tags.OBJECT)
+        this.writeCustomObject("ContentModifier", value)
     }
 
     writeCallback(value: Callback<any>|undefined) {

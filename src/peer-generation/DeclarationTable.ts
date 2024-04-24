@@ -129,12 +129,11 @@ export class DeclarationTable {
         if (ts.isUnionTypeNode(type)) return true
         if (ts.isTypeLiteralNode(type)) return true
         if (ts.isLiteralTypeNode(type)) return true
-        //if (ts.isImportTypeNode(type)) return true
         if (ts.isTupleTypeNode(type)) return true
         if (ts.isArrayTypeNode(type)) return true
         if (ts.isOptionalTypeNode(type)) return true
+        // TODO: shall we map it to string type here or later?
         if (ts.isTemplateLiteralTypeNode(type)) return true
-        //if (ts.isFunctionTypeNode(type)) return true
         return false
     }
 
@@ -755,7 +754,7 @@ export class DeclarationTable {
         printer.popIndent()
         printer.print(`};`)
         seenNames.clear()
-        let noDeclaration = [PrimitiveType.Int32, PrimitiveType.Tag, PrimitiveType.Number, PrimitiveType.Boolean]
+        let noDeclaration = [PrimitiveType.Int32, PrimitiveType.Tag, PrimitiveType.Number, PrimitiveType.Boolean, PrimitiveType.String]
         for (let target of order) {
             let noBasicDecl = (target instanceof PrimitiveType && noDeclaration.includes(target))
             let nameAssigned = this.uniqueNames.get(target)
@@ -780,16 +779,13 @@ export class DeclarationTable {
                 continue
             }
             if (!noBasicDecl && !this.ignoreTarget(target, nameAssigned)) {
-                if (nameAssigned == "Ark_CustomObject") throw new Error(asString(target))
                 const structDescriptor = this.targetStruct(target)
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
                 structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.uniqueName(it.declaration)} ${it.name};`))
                 this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
             }
             let skipWriteToString = (target instanceof PrimitiveType) || ts.isEnumDeclaration(target)
-            if (!noBasicDecl && nameAssigned != PrimitiveType.Resource.getText()
-                && nameAssigned != "Array" && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable"
-                && !skipWriteToString) {
+            if (!noBasicDecl && !skipWriteToString) {
                 writeToString.print(`template <>`)
                 writeToString.print(`inline void WriteToString(string* result, const ${nameAssigned}${isPointer ? "*" : ""} value) {`)
                 writeToString.pushIndent()
@@ -815,9 +811,7 @@ export class DeclarationTable {
             aliasNames.forEach(aliasName => this.addNameAlias(target, declarationName, aliasName, seenNames, typedefs))
         }
         // TODO: hack, remove me!
-        for (let typeName of [`Length`]) {
-            typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Ark_${typeName} ${PrimitiveType.OptionalPrefix}${typeName};`)
-        }
+        typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Ark_Length ${PrimitiveType.OptionalPrefix}Length;`)
     }
 
     private addNameAlias(target: DeclarationTarget, declarationName: string, aliasName: string,
@@ -1162,6 +1156,7 @@ export class DeclarationTable {
         if (target instanceof PrimitiveType) return true
         if (ts.isEnumDeclaration(target)) return true
         if (ts.isImportTypeNode(target)) return true
+        if (ts.isTemplateLiteralTypeNode(target)) return true
         return false
     }
 

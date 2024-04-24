@@ -1,6 +1,7 @@
 import { IndentedPrinter } from "../IndentedPrinter"
 import { capitalize, dropSuffix, isDefined } from "../util"
 import { ArgConvertor, RetConvertor } from "./Convertors"
+import { PrimitiveType } from "./DeclarationTable"
 import { PeerClass } from "./PeerClass"
 import { Printers } from "./Printers"
 
@@ -26,6 +27,7 @@ export class PeerMethod {
 
     peerMethodName() {
         const name = this.methodName
+        if (!this.hasReceiver) return name
         if (name.startsWith("set") ||
             name.startsWith("get") ||
             name.startsWith("_set")
@@ -74,7 +76,9 @@ export class PeerMethod {
         this.printImplFunction(retType, implName, apiParameters, true) // dummy
         this.printImplFunction(retType, implName, apiParameters, false) // real
 
-        this.printers.TSPeer.print(`${methodName}Attribute(${this.mappedParams}) {`)
+        let maybeStatic = this.hasReceiver ? "" : `static `
+        let genMethodName = this.hasReceiver ? `${methodName}Attribute` : methodName
+        this.printers.TSPeer.print(`${maybeStatic}${genMethodName}(${this.mappedParams}) {`)
         let cName = `${this.originalParentName}_${methodName}`
         this.printers.C.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(argConvertors).join(", ")}) {`)
         this.printers.C.pushIndent()
@@ -123,7 +127,8 @@ export class PeerMethod {
     }
 
     generateCParameters(argConvertors: ArgConvertor[]): string[] {
-        return (["KNativePointer nodePtr"].concat(argConvertors.map(it => {
+        let maybeReceiver = this.hasReceiver ? [`${PrimitiveType.NativePointer.getText()} nodePtr`] : []
+        return (maybeReceiver.concat(argConvertors.map(it => {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
@@ -134,7 +139,7 @@ export class PeerMethod {
     }
 
     generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string[] {
-        const receiver = hasReceiver ? ['KNativePointer'] : []
+        const receiver = hasReceiver ? [PrimitiveType.NativePointer.getText()] : []
         return receiver.concat(argConvertors.map(it => {
             if (it.useArray) {
                 return `uint8_t*, int32_t`
@@ -156,7 +161,8 @@ export class PeerMethod {
     }
 
     generateAPIParameters(argConvertors: ArgConvertor[]): string[] {
-        return (["ArkUINodeHandle node"].concat(argConvertors.map(it => {
+        let maybeReceiver = this.hasReceiver ? [`${PrimitiveType.NativePointer.getText()} node`] : []
+        return (maybeReceiver.concat(argConvertors.map(it => {
             let isPointer = it.isPointerType()
             return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
         })))
@@ -213,7 +219,8 @@ export class PeerMethod {
                 }
             })
         }
-        this.printers.TSPeer.print(`nativeModule()._${peerMethod.originalParentName}_${peerMethod.methodName}(this.ptr${peerMethod.argConvertors.length > 0 ? ", " : ""}`)
+        let maybeThis = this.hasReceiver ? `this.ptr${peerMethod.argConvertors.length > 0 ? ", " : ""}` : ``
+        this.printers.TSPeer.print(`nativeModule()._${peerMethod.originalParentName}_${peerMethod.methodName}(${maybeThis}`)
         this.printers.TSPeer.pushIndent()
         peerMethod.argConvertors.forEach((it, index) => {
             let maybeComma = index == peerMethod.argConvertors.length - 1 ? "" : ","
