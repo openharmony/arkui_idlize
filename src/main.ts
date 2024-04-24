@@ -32,6 +32,7 @@ import {
     modifierStructList,
     modifierStructs,
     makeAPI,
+    makeArkuiModule,
     makeCDeserializer,
     makeNodeTypes,
     makeTSSerializer,
@@ -271,6 +272,7 @@ if (options.dts2peer) {
     const modifierList: string[] = []
     const completeImpl: string[] = []
     const declarationTable = new DeclarationTable()
+    const arkuiComponentsFiles: string[] = []
 
     generate(
         options.inputDir,
@@ -325,6 +327,7 @@ if (options.dts2peer) {
                         .join("\n")
                     if (options.verbose) console.log(generated)
                     fs.writeFileSync(outComponentFile, generated)
+                    arkuiComponentsFiles.push(outComponentFile)
                 }
             },
             onEnd(outDir: string) {
@@ -339,6 +342,10 @@ if (options.dts2peer) {
                 fs.writeFileSync(
                     path.join(outDir, 'ArkUINodeType.ts'),
                     makeNodeTypes(nodeTypes)
+                )
+                fs.writeFileSync(
+                    path.join(outDir, 'index.ts'),
+                    makeArkuiModule(arkuiComponentsFiles),
                 )
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)

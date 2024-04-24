@@ -1,5 +1,6 @@
 {
     "name": "@arkoala/arkui",
+    "main": "generated/peers/main.js",
     "exports": {
         "./package.json": "./package.json",
         "./tests/*": "./tests/*.js",
