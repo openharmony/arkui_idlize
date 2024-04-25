@@ -171,7 +171,7 @@ export class PeerMethod {
     // TODO: may be this is another method of ArgConvertor?
     apiArgument(argConvertor: ArgConvertor): string {
         const prefix = argConvertor.isPointerType() ? "&": "    "
-        if (argConvertor.useArray) return `${prefix}${argConvertor.param}Value`
+        if (argConvertor.useArray) return `${prefix}${argConvertor.param}_value`
         return `${argConvertor.convertorCArg(argConvertor.param)}`
     }
 
@@ -207,8 +207,9 @@ export class PeerMethod {
                 this.printers.TSPeer.print(`const ${it.param}Serializer = new Serializer(${size})`)
                 it.convertorToTSSerial(it.param, it.param, this.printers.TSPeer)
                 this.printers.C.print(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
-                this.printers.C.print(`${it.nativeType(false)} ${it.param}Value;`)
-                it.convertorToCDeserial(it.param, `${it.param}Value`, this.printers.C)
+                let result = `${it.param}_value`
+                this.printers.C.print(`${it.nativeType(false)} ${result};`)
+                it.convertorToCDeserial(it.param, result, this.printers.C)
             }
         })
         // Enable to see serialized data.

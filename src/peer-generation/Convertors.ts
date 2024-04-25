@@ -14,7 +14,7 @@
  */
 import { IndentedPrinter } from "../IndentedPrinter"
 import { identName, importTypeName, mapType, typeName } from "../util"
-import {DeclarationTable, PrimitiveType} from "./DeclarationTable"
+import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 
@@ -45,7 +45,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         public isScoped: boolean,
         public useArray: boolean,
         public param: string
-    ) {}
+    ) { }
 
     estimateSize(): number {
         return 0
@@ -54,10 +54,10 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         throw new Error("Define")
     }
     isPointerType(): boolean {
-       throw new Error("Define")
+        throw new Error("Define")
     }
     interopType(ts: boolean): string {
-        return ts ? "object" : "void*"
+        throw new Error("Define")
     }
 
     scopeStart?(param: string): string
@@ -81,7 +81,7 @@ export class StringConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeString(${value})`)
     }
     convertorCArg(param: string): string {
-        return `(${PrimitiveType.String.getText()}*)&${param}`
+        return `(const ${PrimitiveType.String.getText()}*)&${param}`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readString();`)
@@ -173,11 +173,11 @@ export class EnumConvertor extends BaseArgConvertor {
     }
 
     convertorTSArg(param: string): string {
-        // as unknown for non-int enums, so it wouldn't clutter compiler diagnostic
+        // `as unknown` for non-int enums, so it wouldn't clutter compiler diagnostic
         return `${param} as unknown as int32`
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        // as unknown for non-int enums, so it wouldn't clutter compiler diagnostic
+        // `as unknown` for non-int enums, so it wouldn't clutter compiler diagnostic
         printer.print(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
     }
     convertorCArg(param: string): string {
@@ -215,7 +215,6 @@ export class LengthConvertor extends BaseArgConvertor {
     }
 
     convertorTSArg(param: string): string {
-        // return `${param}Ptr`
         throw new Error("Not used")
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
@@ -265,25 +264,25 @@ export class UnionConvertor extends BaseArgConvertor {
         // Save actual type being passed.
         printer.print(`${param}Serializer.writeInt8(${value}_type)`)
         this.memberConvertors.forEach((it, index) => {
-                if (it.runtimeTypes.length == 0) {
-                    console.log(`WARNING: branch for ${it.nativeType(false)} was consumed`)
-                    return
-                }
-                let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-                let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
-                let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
+            if (it.runtimeTypes.length == 0) {
+                console.log(`WARNING: branch for ${it.nativeType(false)} was consumed`)
+                return
+            }
+            let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
+            let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
+            let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
-                printer.pushIndent()
-                if (!(it instanceof UndefinedConvertor)) {
-                    // TODO: `as unknown` is temporary to workaround for string enums.
-                    let maybeAsUnknown = (it instanceof EnumConvertor) ? "as unknown " : ""
-                    printer.print(`const ${value}_${index}: ${it.tsTypeName} = ${value} ${maybeAsUnknown}as ${it.tsTypeName}`)
-                    it.convertorToTSSerial(param, `${value}_${index}`, printer)
-                }
-                printer.popIndent()
-                printer.print(`}`)
-            })
+            printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
+            printer.pushIndent()
+            if (!(it instanceof UndefinedConvertor)) {
+                // TODO: `as unknown` is temporary to workaround for string enums.
+                let maybeAsUnknown = (it instanceof EnumConvertor) ? "as unknown " : ""
+                printer.print(`const ${value}_${index}: ${it.tsTypeName} = ${value} ${maybeAsUnknown}as ${it.tsTypeName}`)
+                it.convertorToTSSerial(param, `${value}_${index}`, printer)
+            }
+            printer.popIndent()
+            printer.print(`}`)
+        })
     }
     convertorCArg(param: string): string {
         throw new Error("Do not use for union")
@@ -293,27 +292,27 @@ export class UnionConvertor extends BaseArgConvertor {
         let runtimeType = `runtimeType${uniqueCounter++}`;
         printer.print(`int32_t ${runtimeType} = ${param}Deserializer.readInt8();`)
         this.memberConvertors.forEach((it, index) => {
-                if (it.runtimeTypes.length == 0) {
-                    return
-                }
-                let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-                let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
-                let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
+            if (it.runtimeTypes.length == 0) {
+                return
+            }
+            let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
+            let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
+            let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
 
-                printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}ARK_RUNTIME_${RuntimeType[it]} == ${runtimeType}${maybeComma2}`).join(" || ")}) {`)
-                printer.pushIndent()
-                it.convertorToCDeserial(param, `${value}.value${index}`, printer)
-                printer.print(`${value}.selector = ${index};`)
-                printer.popIndent()
-                printer.print(`}`)
-            })
+            printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}ARK_RUNTIME_${RuntimeType[it]} == ${runtimeType}${maybeComma2}`).join(" || ")}) {`)
+            printer.pushIndent()
+            it.convertorToCDeserial(param, `${value}.value${index}`, printer)
+            printer.print(`${value}.selector = ${index};`)
+            printer.popIndent()
+            printer.print(`}`)
+        })
     }
     nativeType(impl: boolean): string {
         return impl
             ? `struct { ${PrimitiveType.Int32.getText()} selector; union { ` +
             `${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")}` +
-              `}; }`
-            :  this.table.getTypeName(this.type)
+            `}; }`
+            : this.table.getTypeName(this.type)
     }
     interopType(ts: boolean): string {
         throw new Error("Union")
@@ -456,7 +455,7 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     nativeType(impl: boolean): string {
         return impl
-            ? `struct { Ark_Tag tag; ${this.table.getTypeName(this.type, false)} value; }`
+            ? `struct { ${PrimitiveType.Tag.getText()} tag; ${this.table.getTypeName(this.type, false)} value; }`
             : this.table.getTypeName(this.type, true)
     }
     interopType(ts: boolean): string {
@@ -480,9 +479,9 @@ export class AggregateConvertor extends BaseArgConvertor {
             .members
             .filter(ts.isPropertySignature)
             .map((member, index) => {
-            this.members[index] = identName(member.name)!
-            return table.typeConvertor(param, member.type!, member.questionToken != undefined)
-        })
+                this.members[index] = identName(member.name)!
+                return table.typeConvertor(param, member.type!, member.questionToken != undefined)
+            })
         table.requestType(undefined, type)
     }
 
@@ -509,8 +508,8 @@ export class AggregateConvertor extends BaseArgConvertor {
     nativeType(impl: boolean): string {
         return impl
             ? `struct { ` +
-              `${this.memberConvertors.map((it, index) => `${it.nativeType(true)} value${index};`).join(" ")}` +
-              '} '
+            `${this.memberConvertors.map((it, index) => `${it.nativeType(true)} value${index};`).join(" ")}` +
+            '} '
             : this.table.getTypeName(this.type)
     }
     interopType(ts: boolean): string {
@@ -570,6 +569,7 @@ export class FunctionConvertor extends BaseArgConvertor {
         param: string,
         protected table: DeclarationTable
     ) {
+        // TODO: pass functions as integers to native side.
         super("Function", [RuntimeType.FUNCTION], false, true, param)
     }
 
@@ -641,10 +641,10 @@ export class TupleConvertor extends BaseArgConvertor {
     }
     nativeType(impl: boolean): string {
         return impl
-        ? `struct { ` +
-          `${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")}` +
-          '} '
-        : this.table.getTypeName(this.type)
+            ? `struct { ` +
+            `${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")}` +
+            '} '
+            : this.table.getTypeName(this.type)
     }
     interopType(ts: boolean): string {
         throw new Error("Must never be used")
@@ -713,10 +713,10 @@ export class ArrayConvertor extends BaseArgConvertor {
         return `Array_${this.table.computeTypeName(undefined, this.elementType, false)}`
     }
     interopType(ts: boolean): string {
-        return "KNativePointer"
+        throw new Error("Must never be used")
     }
     estimateSize() {
-        return 12
+        return 32
     }
     isPointerType(): boolean {
         return true
@@ -736,7 +736,7 @@ export class NumberConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeNumber(${value})`)
     }
     convertorCArg(param: string): string {
-        return `Number(${param})`
+        throw new Error("Not used now")
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readNumber();`)
@@ -747,10 +747,10 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 
     interopType(ts: boolean): string {
-        return ts ? "KInt" : PrimitiveType.Number.getText()
+        throw new Error("Not used now") // return ts ? "KInt" : PrimitiveType.Number.getText()
     }
     estimateSize() {
-        return 4
+        return 5
     }
     isPointerType(): boolean {
         return false
@@ -789,9 +789,7 @@ export class PredefinedConvertor extends BaseArgConvertor {
     }
 }
 
-
 class ProxyConvertor extends BaseArgConvertor {
-
     constructor(protected convertor: ArgConvertor) {
         super(convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
     }
@@ -817,22 +815,18 @@ class ProxyConvertor extends BaseArgConvertor {
     }
 
     isPointerType(): boolean {
-        return  this.convertor.isPointerType()
+        return this.convertor.isPointerType()
     }
 }
 
 export class TypeAliasConvertor extends ProxyConvertor {
-    constructor(param: string, private table: DeclarationTable, private declaration: ts.TypeAliasDeclaration,
-        private typeArguments?: ts.NodeArray<ts.TypeNode>) {
+    constructor(
+        param: string,
+        private table: DeclarationTable,
+        declaration: ts.TypeAliasDeclaration,
+        private typeArguments?: ts.NodeArray<ts.TypeNode>
+    ) {
         super(table.typeConvertor(param, declaration.type))
-    }
-
-    nativeType(impl: boolean): string {
-        return this.convertor.nativeType(impl)
-    }
-
-    isPointerType(): boolean {
-        return this.convertor.isPointerType()
     }
 }
 

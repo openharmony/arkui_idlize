@@ -285,16 +285,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         return argConvertors?.map(it => `${it.param}`).join(", ")
     }
 
-    printTS(value: stringOrNone) {
+    private printTS(value: stringOrNone) {
         this.printers.TSPeer.print(value)
-    }
-
-    printC(value: stringOrNone) {
-        this.printers.C.print(value)
-    }
-
-    printAPI(value: stringOrNone) {
-        this.printers.api.print(value)
     }
 
     processMethodOrCallable(
@@ -611,14 +603,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         if (clazz.name === undefined) {
             throw new Error(`Encountered nameless ${asString(clazz)} in ${asString(clazz.parent)}`)
         }
-        let name = clazz.name
-        if (ts.isClassDeclaration(clazz)) return ts.idText(name)
-        if (ts.isInterfaceDeclaration(clazz) &&
-            ts.idText(name).endsWith("Interface")) {
+        let name = identName(clazz.name)!
+        if (ts.isClassDeclaration(clazz)) return name
+        if (ts.isInterfaceDeclaration(clazz) && name.endsWith("Interface")) {
             // Do we want to convert ButtonInterface to ButtonAttribute here?
             // Most probably yes. Will do it here.
             // For now we just leave ButtonInterface.
-            return ts.idText(name)
+            return name
         }
         throw new Error(`Expected a class or a friend interface: ${asString(clazz)}`)
     }

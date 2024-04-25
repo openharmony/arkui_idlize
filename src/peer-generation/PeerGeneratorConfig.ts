@@ -63,7 +63,8 @@ export class PeerGeneratorConfig {
         "ContainerSpanAttribute",
         "TextPickerDialog",
         "TimePickerDialog",
-        "AlertDialog"
+        "AlertDialog",
+        "CanvasPattern"
     ]
 
     static mapComponentName(originalName: string): string {
