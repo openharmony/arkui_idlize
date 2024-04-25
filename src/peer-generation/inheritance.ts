@@ -1,5 +1,6 @@
 import * as ts from "typescript";
 import { getDeclarationsByNode } from "../util";
+import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 
 export enum InheritanceRole {
     Finalizable,
@@ -9,21 +10,9 @@ export enum InheritanceRole {
     Standalone,
 }
 
-const rootComponents = [
-    "CommonMethod",
-    "SecurityComponentMethod"
-]
-
-const standaloneComponents = [
-    "CalendarAttribute",
-    "ContainerSpanAttribute",
-    "TextPickerDialog",
-    "TimePickerDialog"
-]
-
 export function determineInheritanceRole(name: string): InheritanceRole {
-    if (rootComponents.includes(name)) return InheritanceRole.Root
-    if (standaloneComponents.includes(name)) return InheritanceRole.Standalone
+    if (PeerGeneratorConfig.rootComponents.includes(name)) return InheritanceRole.Root
+    if (PeerGeneratorConfig.standaloneComponents.includes(name)) return InheritanceRole.Standalone
     return InheritanceRole.Heir
 }
 

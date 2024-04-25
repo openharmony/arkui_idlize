@@ -249,6 +249,10 @@ export class UnionConvertor extends BaseArgConvertor {
         this.memberConvertors = type
             .types
             .map(member => table.typeConvertor(param, member))
+        // TODO: simplify convertors.
+        if (false && this.memberConvertors.every(it => it.constructor == this.memberConvertors[0].constructor)) {
+            this.memberConvertors = [this.memberConvertors[0]]
+        }
         this.checkUniques(param, this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
         table.requestType(undefined, type)
@@ -525,7 +529,7 @@ export class TypedConvertor extends BaseArgConvertor {
         name: string,
         private type: ts.TypeReferenceNode,
         param: string, protected table: DeclarationTable) {
-        super(name, [RuntimeType.OBJECT, RuntimeType.FUNCTION, RuntimeType.UNDEFINED], false, true, param)
+        super(name, [RuntimeType.OBJECT], false, true, param)
         table.requestType(name, type)
     }
 
@@ -566,7 +570,7 @@ export class FunctionConvertor extends BaseArgConvertor {
         param: string,
         protected table: DeclarationTable
     ) {
-        super("Function", [RuntimeType.OBJECT, RuntimeType.FUNCTION, RuntimeType.UNDEFINED], false, true, param)
+        super("Function", [RuntimeType.FUNCTION], false, true, param)
     }
 
     convertorTSArg(param: string): string {

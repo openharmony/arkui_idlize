@@ -53,6 +53,19 @@ export class PeerGeneratorConfig {
 
     public static skipPeerGeneration = ["CommonAttribute"]
 
+    public static rootComponents = [
+        "CommonMethod",
+        "SecurityComponentMethod"
+    ]
+
+    public static standaloneComponents = [
+        "CalendarAttribute",
+        "ContainerSpanAttribute",
+        "TextPickerDialog",
+        "TimePickerDialog",
+        "AlertDialog"
+    ]
+
     static mapComponentName(originalName: string): string {
         if (originalName.endsWith("Attribute"))
             return originalName.substring(0, originalName.length - 9)
