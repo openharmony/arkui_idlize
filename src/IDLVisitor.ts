@@ -705,11 +705,11 @@ function escapeAmbientModuleContent(sourceFile: ts.SourceFile, node: ts.Node) : 
     return content.replaceAll('"', "'")
 }
 
-function getDocumentation(sourceFile: ts.SourceFile, node: ts.Node, docsOption: string): string | undefined {
+function getDocumentation(sourceFile: ts.SourceFile, node: ts.Node, docsOption: string|undefined): string | undefined {
     switch (docsOption) {
         case 'all': return getComment(sourceFile, node)
         case 'opt': return dedupDocumentation(getComment(sourceFile, node))
-        case 'none': return undefined
+        case 'none': case undefined:  return undefined
         default: throw new Error(`Unknown option docs=${docsOption}`)
     }
 }
