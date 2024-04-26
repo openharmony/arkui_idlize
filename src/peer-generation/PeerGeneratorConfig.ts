@@ -67,6 +67,12 @@ export class PeerGeneratorConfig {
         "CanvasPattern"
     ]
 
+    public static readonly notCompilableComponents: string[] = [
+        "ArkCircle", "ArkCommon", "ArkEllipse", "ArkGrid", "ArkImageSpan", 
+        "ArkLine", "ArkList", "ArkLocationButton", "ArkMediaCachedImage", "ArkPasteButton", "ArkPath", "ArkPolygon",
+        "ArkPolyline", "ArkRect", "ArkSaveButton", "ArkScroll", "ArkSpan", "ArkWaterFlow",
+    ]
+
     static mapComponentName(originalName: string): string {
         if (originalName.endsWith("Attribute"))
             return originalName.substring(0, originalName.length - 9)

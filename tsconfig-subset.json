@@ -19,7 +19,9 @@
         "paths": {
             "@arkoala/arkui": ["./generated/subset", "./"],
             "@arkoala/arkui/*": ["./generated/subset/*", "./*"],
-            "@koalaui/common": ["./generated/subset/koalaui-common"]
+            "@koalaui/common": ["./generated/subset/koalaui-common"],
+            "@koalaui/arkui-common": ["./generated/subset/koalaui-arkui-common"],
+            "@koalaui/runtime": ["./generated/subset/koalaui-runtime"],
         },
     },
     "include": [

@@ -19,6 +19,8 @@
             "@arkoala/arkui": ["./generated/peers", "./"],
             "@arkoala/arkui/*": ["./generated/peers/*", "./*"],
             "@koalaui/common": ["./generated/peers/koalaui-common"],
+            "@koalaui/arkui-common": ["./generated/peers/koalaui-arkui-common"],
+            "@koalaui/runtime": ["./generated/peers/koalaui-runtime"],
         },
     },
     "include": [
