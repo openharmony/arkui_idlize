@@ -18,16 +18,18 @@ import { getOrPut, renameDtsToPeer, renameDtsToComponent } from "../util"
 import { PeerClass } from "./PeerClass"
 import { Printers } from "./Printers"
 import { ImportsCollector } from "./ImportsCollector"
+import { DeclarationTable } from "./DeclarationTable"
 
 export class PeerFile {
-    private readonly peers: Map<string, PeerClass> = new Map()
+    readonly peers: Map<string, PeerClass> = new Map()
     constructor(
         public readonly originalFilename: string,
+        public readonly declarationTable: DeclarationTable,
         private readonly printers: Printers,
     ) {}
 
     getOrPutPeer(componentName: string) {
-        return getOrPut(this.peers, componentName, () => new PeerClass(componentName, this.originalFilename, this.printers))
+        return getOrPut(this.peers, componentName, () => new PeerClass(this, componentName, this.originalFilename, this.printers))
     }
 
     private printImports(): void {

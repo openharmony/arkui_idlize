@@ -1,7 +1,7 @@
 import { IndentedPrinter } from "../IndentedPrinter"
 import { capitalize, dropSuffix, isDefined } from "../util"
 import { ArgConvertor, RetConvertor } from "./Convertors"
-import { PrimitiveType } from "./DeclarationTable"
+import { DeclarationTarget, PrimitiveType } from "./DeclarationTable"
 import { PeerClass } from "./PeerClass"
 import { Printers } from "./Printers"
 
@@ -12,6 +12,7 @@ export class PeerMethod {
         public clazz: PeerClass,
         public originalParentName: string,
         public methodName: string,
+        public declarationTargets: DeclarationTarget[],
         public argConvertors: ArgConvertor[],
         public retConvertor: RetConvertor,
         public hasReceiver: boolean,
@@ -33,6 +34,14 @@ export class PeerMethod {
             name.startsWith("_set")
         ) return name
         return `set${capitalize(name)}`
+    }
+
+    get implName(): string {
+        return `${capitalize(this.originalParentName)}_${capitalize(this.fullMethodName)}Impl`
+    }
+
+    get retType(): string {
+        return this.maybeCRetType(this.retConvertor) ?? "void"
     }
 
     generateCMacroSuffix(): string {
@@ -65,16 +74,9 @@ export class PeerMethod {
         const methodName = this.methodName
         const retConvertor = this.retConvertor
         const argConvertors = this.argConvertors
-        const fullMethodName = this.fullMethodName
-
         const apiParameters = this.generateAPIParameters(argConvertors).join(", ")
-        const implName = `${capitalize(this.originalParentName)}_${capitalize(fullMethodName)}Impl`
-        const retType = this.maybeCRetType(retConvertor) ?? "void"
 
-        this.printers.api.print(`${retType} (*${fullMethodName})(${apiParameters});`)
-        this.printers.modifiers.print(`${implName},`)
-        this.printImplFunction(retType, implName, apiParameters, true) // dummy
-        this.printImplFunction(retType, implName, apiParameters, false) // real
+        this.printers.api.print(`${this.retType} (*${this.fullMethodName})(${apiParameters});`)
 
         let maybeStatic = this.hasReceiver ? "" : `static `
         let genMethodName = this.hasReceiver ? `${methodName}Attribute` : methodName
@@ -93,37 +95,6 @@ export class PeerMethod {
         this.printers.C.print(` `)
 
         this.printers.TSPeer.print(`}`)
-    }
-
-
-    printDummyImplFunctionBody(retType: string, implName: string, apiParameters: string, printer: IndentedPrinter) {
-        printer.print(`string out("${this.methodName}(");`)
-        this.argConvertors.forEach((argConvertor, index) => {
-            if (index > 0) this.printers.dummyImpl.print(`out.append(", ");`)
-            printer.print(`WriteToString(&out, ${argConvertor.param});`)
-        })
-        printer.print(`out.append(")");`)
-        printer.print(`appendGroupedLog(1, out);`)
-        if (retType != "void") printer.print(`return 0;`)
-    }
-
-    printModifierImplFunctionBody(retType: string, implName: string, apiParameters: string, printer: IndentedPrinter) {
-        printer.print(`// ${implName} `)
-        if (retType != "void") printer.print(`return 0;`)
-    }
-
-    printImplFunction(retType: string, implName: string, apiParameters: string, dummy: boolean) {
-        const printer = dummy ? this.printers.dummyImpl : this.printers.modifierImpl
-
-        printer.print(`${retType} ${implName}(${apiParameters}) {`)
-        printer.pushIndent()
-        if (dummy) {
-            this.printDummyImplFunctionBody(retType, implName, apiParameters, printer)
-        } else {
-            this.printModifierImplFunctionBody(retType, implName, apiParameters, printer)
-        }
-        printer.popIndent()
-        printer.print(`}`)
     }
 
     generateCParameters(argConvertors: ArgConvertor[]): string[] {

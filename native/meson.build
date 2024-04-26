@@ -26,6 +26,10 @@ if use_dummy_libace
 sources += [
    gen_dir + '/dummy_impl.cc'
 ]
+else
+sources += [
+   gen_dir + '/all_modifiers.cc'
+]
 endif
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'

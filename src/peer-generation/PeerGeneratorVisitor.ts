@@ -24,7 +24,8 @@ import {
     serializerBaseMethods,
     stringOrNone,
     className,
-    isStatic
+    isStatic,
+    throwException
 } from "../util"
 import { GenericVisitor } from "../options"
 import { IndentedPrinter } from "../IndentedPrinter"
@@ -42,6 +43,7 @@ import { Printers } from "./Printers"
 import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
+import { PeerLibrary } from "./PeerLibrary"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -89,12 +91,9 @@ export type PeerGeneratorVisitorOptions = {
     nodeTypes: string[]
     apiHeaders: string[]
     apiHeadersList: string[]
-    dummyImpl: string[]
-    modifiers: string[]
-    modifierList: string[]
-    modifierImpl: string[]
     dumpSerialized: boolean
-    declarationTable: DeclarationTable
+    declarationTable: DeclarationTable,
+    peerLibrary: PeerLibrary
 }
 
 export type PeerGeneratorVisitorOutput = {
@@ -129,14 +128,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
             new IndentedPrinter(options.nodeTypes),
             new IndentedPrinter(options.apiHeaders),
             new IndentedPrinter(options.apiHeadersList),
-            new IndentedPrinter(options.dummyImpl),
-            new IndentedPrinter(options.modifiers),
-            new IndentedPrinter(options.modifierList),
-            new IndentedPrinter(options.modifierImpl)
         )
         this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
-        this.peerFile = new PeerFile(this.sourceFile.fileName, this.printers)
+        this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable, this.printers)
+        options.peerLibrary.files.push(this.peerFile)
     }
 
     requestType(name: string|undefined, type: ts.TypeNode) {
@@ -312,12 +308,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         const hasReceiver = !isStatic(method.modifiers)
         const argConvertors = method.parameters
             .map((param) => this.argConvertor(param))
+        const declarationTargets = method.parameters
+            .map((param) => this.declarationTable.toTarget(param.type ??
+                throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
         const retConvertor = this.retConvertor(method.type)
 
         const peerMethod = new PeerMethod(
             peer,
             originalParentName,
             methodName,
+            declarationTargets,
             argConvertors,
             retConvertor,
             hasReceiver,

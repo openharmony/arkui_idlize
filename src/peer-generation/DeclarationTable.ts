@@ -870,6 +870,73 @@ export class DeclarationTable {
         printer.print(`}`)
     }
 
+    generateFirstArgDestruct(convertor: ArgConvertor, target: DeclarationTarget, printer: IndentedPrinter, isPointer: boolean) {
+        if (target instanceof PrimitiveType) return // Just don't emit anything
+        if (convertor instanceof OptionConvertor) return // TODO: handle optionals
+
+        const name = convertor.param
+        this.setCurrentContext(`modifier(${name})`)
+        let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
+        let isArray = this.isMaybeWrapped(target, ts.isArrayTypeNode)
+        let isOptional = this.isMaybeWrapped(target, ts.isOptionalTypeNode)
+        let isTuple = this.isMaybeWrapped(target, ts.isTupleTypeNode)
+        let access = isPointer ? "->" : "."
+
+        // treat Array<T> as array
+        if (!isArray && ts.isTypeReferenceNode(target)) {
+            isArray = identName(target.typeName) === "Array"
+        }
+
+        if (isUnion) {
+            this.targetStruct(target).getFields().forEach((field, index) => {
+                if (index > 0) {
+                    printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    printer.print(`if (${name}${access}selector == ${index - 1}) {`)
+                    printer.print(`}`)
+                }
+            })
+        } else if (isArray) {
+            let elementType = ts.isArrayTypeNode(target)
+                ? target.elementType
+                : ts.isTypeReferenceNode(target) && target.typeArguments
+                    ? target.typeArguments[0]
+                    : undefined
+            let isPointerField = elementType === undefined
+                ? false
+                : this.typeConvertor("param", elementType).isPointerType()
+            printer.print(`int32_t count = ${name}${access}array_length ;`)
+            printer.print(`for (int i = 0; i < count; i++) {`)
+            printer.print(`}`)
+        } else if (isTuple) {
+            const fields = this.targetStruct(target).getFields()
+            fields.forEach((field, index) => {
+                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+            })
+        } else if (isOptional) {
+            const fields = this.targetStruct(target).getFields()
+            fields.forEach((field, index) => {
+                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                if (index == 0) {
+                    printer.print(`if (${name}${access}${field.name} != ${PrimitiveType.UndefinedTag}) {`)
+                    printer.pushIndent()
+                }
+                if (index == fields.length - 1) {
+                    printer.popIndent()
+                    printer.print("}")
+                }
+            })
+        } else {
+            /*
+            this.targetStruct(target).getFields().forEach((field, index) => {
+                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                printer.print(`${isPointerField ? "&" : ""}${name}${access}${field.name};`)
+            })
+            */
+        }
+        this.setCurrentContext(undefined)
+    }
+
     private isMaybeWrapped(target: DeclarationTarget, predicate: (type: ts.Node) => boolean): boolean {
         if (target instanceof PrimitiveType) return false
         return predicate(target) ||

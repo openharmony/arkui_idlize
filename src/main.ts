@@ -49,6 +49,8 @@ import { TypeChecker  } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
 import {IndentedPrinter} from "./IndentedPrinter";
+import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
+import { PeerLibrary } from "./peer-generation/PeerLibrary"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -267,11 +269,8 @@ if (options.dts2peer) {
     const bridgeCcArray: string[] = []
     const apiHeaders: string[] = []
     const apiHeadersList: string[] = []
-    const dummyImpl: string[] = []
-    const modifiers: string[] = []
-    const modifierList: string[] = []
-    const completeImpl: string[] = []
     const declarationTable = new DeclarationTable()
+    const peerLibrary = new PeerLibrary(declarationTable)
     const arkuiComponentsFiles: string[] = []
 
     generate(
@@ -288,12 +287,9 @@ if (options.dts2peer) {
             outputC: bridgeCcArray,
             apiHeaders: apiHeaders,
             apiHeadersList: apiHeadersList,
-            dummyImpl: dummyImpl,
-            modifiers: modifiers,
-            modifierList: modifierList,
-            modifierImpl: completeImpl,
             dumpSerialized: options.dumpSerialized ?? false,
             declarationTable,
+            peerLibrary
         }),
         {
             compilerOptions: defaultCompilerOptions,
@@ -357,17 +353,9 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable, structs, typedefs))
                 fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeAPI(apiHeaders, apiHeadersList, structs, typedefs))
 
-                const dummyImplCc =
-                    dummyImplementations(dummyImpl) +
-                    modifierStructs(modifiers) +
-                    modifierStructList(modifierList)
-                fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummyImplCc)
-
-                const completeImplCc =
-                    completeImplementations(completeImpl) +
-                    modifierStructs(modifiers) +
-                    modifierStructList(modifierList)
-                fs.writeFileSync(path.join(outDir, 'all_modifiers.cc'), completeImplCc)
+                const {dummy, real} = printRealAndDummyModifiers(peerLibrary)
+                fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummy)
+                fs.writeFileSync(path.join(outDir, 'all_modifiers.cc'), real)
 
                 copyPeerLib(path.join(__dirname, '..', 'peer_lib'), outDir)
             }

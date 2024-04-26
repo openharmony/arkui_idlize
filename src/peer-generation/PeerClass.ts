@@ -3,11 +3,13 @@ import { IndentedPrinter } from "../IndentedPrinter"
 import { indentedBy, renameDtsToPeer, throwException } from "../util"
 import { ImportsCollector } from "./ImportsCollector"
 import { determineParentRole, InheritanceRole, isCommonMethod, isHeir, isRoot, isStandalone } from "./inheritance"
+import { PeerFile } from "./PeerFile"
 import { PeerMethod } from "./PeerMethod"
 import { Printers } from "./Printers"
 
 export class PeerClass {
     constructor(
+        public readonly file: PeerFile,
         public readonly componentName: string,
         public readonly originalFilename: string,
         public readonly printers: Printers,
@@ -130,14 +132,6 @@ export class PeerClass {
         const component = this.componentName
         this.printers.apiList.pushIndent()
         this.printers.apiList.print(`const ArkUI${component}Modifier* (*get${component}Modifier)();`)
-
-        const modifierStructImpl = `ArkUI${component}ModifierImpl`
-        this.printers.modifiers.print(`ArkUI${component}Modifier ${modifierStructImpl} {`)
-        this.printers.modifiers.pushIndent()
-
-        this.printers.modifierList.pushIndent()
-        this.printers.modifierList.print(`Get${component}Modifier,`)
-        this.printers.modifierList.popIndent()
     }
 
     collectPeerImports(imports: ImportsCollector) {
@@ -192,7 +186,7 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 1)).join("\n")}
     style?: (attributes: ${componentClassName}) => void,
     /** @memo */
     content?: () => void,
-    ${method?.mappedParams ?? ""} 
+    ${method?.mappedParams ?? ""}
   ) {
     NodeAttach(() => new ${peerClassName}(ArkUINodeType.${this.componentName}, this), () => {
       style?.(this)
@@ -241,10 +235,6 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
         this.printers.api.popIndent()
         this.printers.api.print(`} ArkUI${this.componentName}Modifier;\n`)
         this.printers.apiList.popIndent()
-        this.printers.modifiers.popIndent()
-        this.printers.modifiers.print(`};\n`)
-        const name = this.componentName
-        this.printers.modifiers.print(`const ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
     }
 
     printMethods() {
