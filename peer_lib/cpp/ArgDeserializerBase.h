@@ -171,7 +171,7 @@ public:
   void resizeArray(T* array, int32_t length) {
     void* value = nullptr;
     if (length > 0) {
-      value = malloc(length * sizeof(T));
+      value = malloc(length * sizeof(E));
       memset(value, 0, length * sizeof(E));
       toClean.push_back(value);
     }
