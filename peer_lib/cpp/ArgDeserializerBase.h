@@ -51,7 +51,7 @@ inline const char* getUnitName(int value) {
 
 // TODO: restore full printing!
 template <typename T>
-inline void WriteToString(string* result, T value) {} // = delete;
+inline void WriteToString(string* result, T value) = delete;
 
 inline void WriteToString(string* result, const Ark_Empty& value) {
 }

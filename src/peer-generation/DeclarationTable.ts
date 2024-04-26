@@ -562,7 +562,7 @@ export class DeclarationTable {
         throw new Error(`Cannot convert: ${asString(type)} ${type.getText()} ${type.kind}`)
     }
 
-    private _currentContext: string|undefined = undefined
+    private _currentContext: string | undefined = undefined
     getCurrentContext(): string | undefined {
         return this._currentContext
     }
@@ -786,12 +786,7 @@ export class DeclarationTable {
             }
             let skipWriteToString = (target instanceof PrimitiveType) || ts.isEnumDeclaration(target)
             if (!noBasicDecl && !skipWriteToString) {
-                writeToString.print(`template <>`)
-                writeToString.print(`inline void WriteToString(string* result, const ${nameAssigned}${isPointer ? "*" : ""} value) {`)
-                writeToString.pushIndent()
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
-                writeToString.popIndent()
-                writeToString.print(`}`)
             }
             if (seenNames.has(nameOptional)) continue
             seenNames.add(nameOptional)
@@ -883,8 +878,44 @@ export class DeclarationTable {
             predicate(target.type)
     }
 
+    private generateArrayWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
+        if (target instanceof PrimitiveType) throw new Error("Impossible")
+        let elementType = ts.isArrayTypeNode(target)
+            ? target.elementType
+            : ts.isTypeReferenceNode(target) && target.typeArguments
+                ? target.typeArguments[0]
+                : undefined
+
+        if (!elementType) throw new Error("Impossible")
+        let convertor = this.typeConvertor("param", elementType)
+        let isPointerField = convertor.isPointerType()
+        let elementNativeType = convertor.nativeType(false)
+        let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
+
+        // Provide prototype of element printer.
+        printer.print(`template <>`)
+        printer.print(`inline void WriteToString(string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);`)
+
+        // Printer.
+        printer.print(`template <>`)
+        printer.print(`inline void WriteToString(string* result, const ${name}* value) {`)
+        printer.pushIndent()
+        printer.print(`result->append("[");`)
+        printer.print(`int32_t count = value->array_length > 7 ? 7 : value->array_length;`)
+        printer.print(`for (int i = 0; i < count; i++) {`)
+        printer.pushIndent()
+        printer.print(`if (i > 0) result->append(", ");`)
+        printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&": ""}value->array[i]);`)
+        printer.popIndent()
+        printer.print(`}`)
+        printer.print(`result->append("]");`)
+        printer.popIndent()
+        printer.print(`}`)
+    }
+
     private generateWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter, isPointer: boolean) {
         if (target instanceof PrimitiveType) throw new Error("Impossible")
+
         this.setCurrentContext(`writeToString(${name})`)
         let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
         let isArray = this.isMaybeWrapped(target, ts.isArrayTypeNode)
@@ -896,86 +927,72 @@ export class DeclarationTable {
         if (!isArray && ts.isTypeReferenceNode(target)) {
             isArray = identName(target.typeName) === "Array"
         }
-
-        if (isUnion) {
-            this.targetStruct(target).getFields().forEach((field, index) => {
-                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                if (index != 0) printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
-                printer.print(`if (value${access}selector == ${index - 1}) {`)
-                printer.pushIndent()
-                printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
-                printer.popIndent()
-                printer.print(`}`)
-            })
-            if (false) {
-                printer.print(`result->append(" /* ${name} [variant ");`)
-                printer.print(`result->append(std::to_string(value${access}selector));`)
-                printer.print(`result->append("]*/");`)
-            }
-        } else if (isArray) {
-            let elementType = ts.isArrayTypeNode(target)
-                ? target.elementType
-                : ts.isTypeReferenceNode(target) && target.typeArguments
-                    ? target.typeArguments[0]
-                    : undefined
-            let isPointerField = elementType === undefined
-                ? false
-                : this.typeConvertor("param", elementType).isPointerType()
-            printer.print(`result->append("[");`)
-            printer.print(`int32_t count = value${access}array_length > 7 ? 7 : value${access}array_length;`)
-            printer.print(`for (int i = 0; i < count; i++) {`)
+        if (isArray) {
+            this.generateArrayWriteToString(name, target, printer)
+        } else {
+            printer.print(`template <>`)
+            printer.print(`inline void WriteToString(string* result, const ${name}${isPointer ? "*" : ""} value) {`)
             printer.pushIndent()
-            printer.print(`if (i > 0) result->append(", ");`)
-            printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}array[i]);`)
+
+            if (isUnion) {
+                this.targetStruct(target).getFields().forEach((field, index) => {
+                    let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                    if (index != 0) printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    printer.print(`if (value${access}selector == ${index - 1}) {`)
+                    printer.pushIndent()
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.popIndent()
+                    printer.print(`}`)
+                })
+                if (false) {
+                    printer.print(`result->append(" /* ${name} [variant ");`)
+                    printer.print(`result->append(std::to_string(value${access}selector));`)
+                    printer.print(`result->append("]*/");`)
+                }
+            } else if (isTuple) {
+                printer.print(`result->append("[");`)
+                const fields = this.targetStruct(target).getFields()
+                fields.forEach((field, index) => {
+                    printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                    if (index > 0) {
+                        printer.print(`result->append(", ");`)
+                    }
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                })
+                printer.print(`result->append("]");`)
+            } else if (isOptional) {
+                printer.print(`result->append("{");`)
+                const fields = this.targetStruct(target).getFields()
+                fields.forEach((field, index) => {
+                    printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    if (index > 0) printer.print(`result->append(", ");`)
+                    printer.print(`result->append("${field.name}: ");`)
+                    let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    if (index == 0) {
+                        printer.print(`if (value${access}${field.name} != ${PrimitiveType.UndefinedTag}) {`)
+                        printer.pushIndent()
+                    }
+                    if (index == fields.length - 1) {
+                        printer.popIndent()
+                        printer.print("}")
+                    }
+                })
+                printer.print(`result->append("}");`)
+            } else {
+                printer.print(`result->append("{");`)
+                this.targetStruct(target).getFields().forEach((field, index) => {
+                    printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    if (index > 0) printer.print(`result->append(", ");`)
+                    printer.print(`result->append("${field.name}: ");`)
+                    let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                })
+                printer.print(`result->append("}");`)
+            }
             printer.popIndent()
             printer.print(`}`)
-            printer.print(`result->append("]");`)
-            if (false) {
-                printer.print(`result->append(" /* ${name} {array_length=");`)
-                printer.print(`WriteToString(result, value${access}array_length);`)
-                printer.print(`result->append("} */");`)
-            }
-        } else if (isTuple) {
-            printer.print(`result->append("[");`)
-            const fields = this.targetStruct(target).getFields()
-            fields.forEach((field, index) => {
-                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
-                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                if (index > 0) {
-                    printer.print(`result->append(", ");`)
-                }
-                printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
-            })
-            printer.print(`result->append("]");`)
-        } else if (isOptional) {
-            printer.print(`result->append("{");`)
-            const fields = this.targetStruct(target).getFields()
-            fields.forEach((field, index) => {
-                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
-                if (index > 0) printer.print(`result->append(", ");`)
-                printer.print(`result->append("${field.name}: ");`)
-                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
-                if (index == 0) {
-                    printer.print(`if (value${access}${field.name} != ${PrimitiveType.UndefinedTag}) {`)
-                    printer.pushIndent()
-                }
-                if (index == fields.length - 1) {
-                    printer.popIndent()
-                    printer.print("}")
-                }
-            })
-            printer.print(`result->append("}");`)
-        } else {
-            printer.print(`result->append("{");`)
-            this.targetStruct(target).getFields().forEach((field, index) => {
-                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
-                if (index > 0) printer.print(`result->append(", ");`)
-                printer.print(`result->append("${field.name}: ");`)
-                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
-            })
-            printer.print(`result->append("}");`)
         }
         this.setCurrentContext(undefined)
     }

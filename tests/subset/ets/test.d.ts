@@ -158,5 +158,16 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     // testArrayRefTupleInterface(value: ArrayRefTuplesInterfaceDTS)
 
+
+    // Boolean Interface
+
+    testBooleanInterfaceOption(value?: BooleanInterfaceDTS): TestAttribute
+
+    testBooleanInterfaceTuple(value: [BooleanInterfaceDTS]): TestAttribute
+
+    testBooleanInterfaceArray(value: BooleanInterfaceDTS[]): TestAttribute
+
+    testBooleanInterfaceArrayRef(value: Array<BooleanInterfaceDTS>): TestAttribute
+
     testInterfaceMixed(v1: UnionInterfaceDTS, v2: number, v3: TupleInterfaceDTS)
 }

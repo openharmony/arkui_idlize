@@ -18,6 +18,7 @@ import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
 import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
+import { ArkParticlePeer } from "@arkoala/arkui/ArkParticlePeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 
 import {
@@ -111,12 +112,20 @@ function checkNavigation() {
         `backButtonIcon("attr")`)
 }
 
+function checkParticle() {
+    let peer = new ArkParticlePeer(ArkUINodeType.Particle)
+    checkResult("emitter", () => peer.emitterAttribute([]), `emitter([])`)
+    checkResult("emitter", () => peer.emitterAttribute([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}]),
+        `emitter([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}])`)
+}
+
 checkButton()
 checkCalendar()
 //checkDTS()
 checkFormComponent()
 checkCommon()
 checkNavigation()
+checkParticle()
 
 // Report in error code.
 checkTestFailures()
