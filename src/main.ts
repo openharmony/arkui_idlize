@@ -49,7 +49,6 @@ import { TypeChecker  } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
 import {IndentedPrinter} from "./IndentedPrinter";
-import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -302,6 +301,8 @@ if (options.dts2peer) {
                 declarationTable.typeChecker = typeChecker
             },
             onSingleFile: (output: PeerGeneratorVisitorOutput, outputDir, sourceFile) => {
+                const skipComponentGenerationDueToCompileProblems = true
+
                 if (output.peer.length > 0) {
                     const outPeerFile = path.join(
                         outputDir,
@@ -315,20 +316,18 @@ if (options.dts2peer) {
                     fs.writeFileSync(outPeerFile, generated)
                 }
 
-                if (output.component.length > 0) {
+                if (!skipComponentGenerationDueToCompileProblems && output.component.length > 0) {
                     const outComponentFile = path.join(
                         outputDir,
                         renameDtsToComponent(path.basename(sourceFile.fileName))
                     )
-                    if (!PeerGeneratorConfig.notCompilableComponents.some(it => outComponentFile.includes(it))) {
-                        console.log("producing", outComponentFile)
-                        let generated = output.component
-                            .filter(element => (element?.length ?? 0) > 0)
-                            .join("\n")
-                        if (options.verbose) console.log(generated)
-                        fs.writeFileSync(outComponentFile, generated)
-                        arkuiComponentsFiles.push(outComponentFile)
-                    }
+                    console.log("producing", outComponentFile)
+                    let generated = output.component
+                        .filter(element => (element?.length ?? 0) > 0)
+                        .join("\n")
+                    if (options.verbose) console.log(generated)
+                    fs.writeFileSync(outComponentFile, generated)
+                    arkuiComponentsFiles.push(outComponentFile)
                 }
             },
             onEnd(outDir: string) {
