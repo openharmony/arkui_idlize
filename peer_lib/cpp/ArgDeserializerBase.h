@@ -24,7 +24,6 @@
 
 using namespace std;
 
-
 inline const char* tagName(Ark_Tag tag) {
   switch (tag) {
     case Ark_Tag::ARK_TAG_UNDEFINED: return "UNDEFINED";
@@ -236,6 +235,13 @@ public:
     position += 4;
     return value;
   }
+  Ark_NativePointer readPointer()
+  {
+    check(8);
+    int64_t value = *(int64_t*)(data + position);
+    position += 8;
+    return reinterpret_cast<Ark_NativePointer>(value);
+  }
   Ark_Number readNumber()
   {
     check(5);
@@ -288,14 +294,6 @@ public:
     return result;
   }
 
-  Ark_Callback readCallback() {
-    return readFunction();
-  }
-
-  Ark_ErrorCallback readErrorCallback() {
-    return readFunction();
-  }
-
   Ark_Undefined readUndefined() {
     return Ark_Undefined();
   }
@@ -308,15 +306,6 @@ inline void WriteToString(string* result, Ark_Boolean value) {
 template <>
 inline void WriteToString(string* result, Ark_Int32 value) {
   result->append(std::to_string(value));
-}
-
-inline void WriteToString(string* result, Ark_String* value) {
-    result->append("\"");
-    if (value->chars)
-      result->append(value->chars);
-    else
-      result->append("<null>");
-    result->append("\"");
 }
 
 inline void WriteToString(string* result, const Ark_String* value) {
