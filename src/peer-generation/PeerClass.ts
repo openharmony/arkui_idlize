@@ -2,10 +2,11 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { indentedBy, renameDtsToPeer, throwException } from "../util"
 import { ImportsCollector } from "./ImportsCollector"
-import { determineParentRole, InheritanceRole, isCommonMethod, isHeir, isRoot, isStandalone } from "./inheritance"
+import { determineInheritanceRole, determineParentRole, InheritanceRole, isCommonMethod, isHeir, isRoot, isStandalone } from "./inheritance"
 import { PeerFile } from "./PeerFile"
 import { PeerMethod } from "./PeerMethod"
 import { Printers } from "./Printers"
+import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 
 export class PeerClass {
     constructor(
@@ -139,12 +140,11 @@ export class PeerClass {
     }
 
     collectComponentImports(imports: ImportsCollector) {
-        imports.addFeature(`${this.koalaComponentName}Attribute`, "@koalaui/arkui-common")
         imports.addFeature("NodeAttach", "@koalaui/runtime")
         const structPostfix = (this.callableMethod?.mappedParamsTypes?.length ?? 0) + 1
         imports.addFeature(`ArkCommonStruct${structPostfix}`, "./ArkStructCommon")
         imports.addFeatureByBasename(`${this.koalaComponentName}Peer`, renameDtsToPeer(path.basename(this.originalFilename)))
-        imports.addFeature("ArkUINodeType", "@koalaui/arkoala")
+        imports.addFeature("ArkUINodeType", "./ArkUINodeType")
     }
 
     printComponent() {
@@ -153,7 +153,7 @@ export class PeerClass {
         const componentClassName = `${this.koalaComponentName}Component`
         const componentFunctionName = this.koalaComponentName
         const peerClassName = `${this.koalaComponentName}Peer`
-        const attributeClassName = `${this.koalaComponentName}Attribute`
+        const attributeClassName = `${this.componentName}Attribute`
         const parentStructClass = {
             name: `ArkCommonStruct${(method?.mappedParamsTypes?.length ?? 0) + 1}`,
             typesLines: [
@@ -179,15 +179,15 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 1)).join("\n")}
   /** @memo */
   _build(
     /** @memo */
-    style?: (attributes: ${componentClassName}) => void,
+    style: ((attributes: ${componentClassName}) => void) | undefined,
     /** @memo */
-    content?: () => void,
-    ${method?.mappedParams ?? ""}
+    content_: (() => void) | undefined,
+    ${method?.mappedParams ?? ""} 
   ) {
     NodeAttach(() => new ${peerClassName}(ArkUINodeType.${this.componentName}, this), () => {
       style?.(this)
       ${method ? `this.${method?.methodName}(${method?.mappedParamValues})` : ""}
-      content?.()
+      content_?.()
       this.applyAttributesFinish()
     })
   }
@@ -197,9 +197,9 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 1)).join("\n")}
 /** @memo */
 export function ${componentFunctionName}(
   /** @memo */
-  style?: (attributes: ${componentClassName}) => void,
+  style: ((attributes: ${componentClassName}) => void) | undefined,
   /** @memo */
-  content?: () => void,
+  content_: (() => void) | undefined,
   ${method?.mappedParams ?? ""}
 ) {
   ${componentClassName}._instantiate<
@@ -207,7 +207,7 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
   >(
     style,
     () => new ${componentClassName}(),
-    content,
+    content_,
     ${method?.mappedParamValues ?? ""}
   )
 }
@@ -239,10 +239,16 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
         this.generateApplyMethod(this.printers.TSPeer)
     }
 
+    private canGenerateComponent(): boolean {
+        return !PeerGeneratorConfig.skipComponentGeneration.includes(this.originalClassName!)
+            && determineInheritanceRole(this.originalClassName!) == InheritanceRole.Heir
+    }
+
     print() {
         this.printProlog()
         this.printMethods()
         this.printEpilog()
-        this.printComponent()
+        if (this.canGenerateComponent()) 
+            this.printComponent()
     }
 }

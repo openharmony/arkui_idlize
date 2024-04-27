@@ -15,6 +15,7 @@
 
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]
+    public static customComponent = ["CustomComponent"]
 
     public static ignoreSerialization = [
         "Array", "Callback", "ErrorCallback", "Resource", "Length", "AttributeModifier",
@@ -52,6 +53,7 @@ export class PeerGeneratorConfig {
     ]
 
     public static skipPeerGeneration = ["CommonAttribute"]
+    public static skipComponentGeneration = ["CommonShapeMethod", "ScrollableCommonMethod"]
 
     public static rootComponents = [
         "CommonMethod",
@@ -65,6 +67,12 @@ export class PeerGeneratorConfig {
         "TimePickerDialog",
         "AlertDialog",
         "CanvasPattern"
+    ]
+
+    public static readonly notCompilableComponents: string[] = [
+        "ArkCircle", "ArkEllipse", "ArkGrid", "ArkImageSpan", 
+        "ArkLine", "ArkList", "ArkLocationButton", "ArkMediaCachedImage", "ArkPasteButton", "ArkPath", "ArkPolygon",
+        "ArkPolyline", "ArkRect", "ArkSaveButton", "ArkScroll", "ArkSpan", "ArkWaterFlow",
     ]
 
     static mapComponentName(originalName: string): string {

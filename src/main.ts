@@ -38,6 +38,7 @@ import {
     makeTSSerializer,
     nativeModuleDeclaration,
     nativeModuleEmptyDeclaration,
+    makeStructCommon,
 
 } from "./peer-generation/FileGenerators"
 import {
@@ -51,6 +52,7 @@ import { DeclarationTable } from "./peer-generation/DeclarationTable"
 import {IndentedPrinter} from "./IndentedPrinter";
 import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
+import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -298,8 +300,6 @@ if (options.dts2peer) {
                 declarationTable.typeChecker = typeChecker
             },
             onSingleFile: (output: PeerGeneratorVisitorOutput, outputDir, sourceFile) => {
-                const skipComponentGenerationDueToCompileProblems = true
-
                 if (output.peer.length > 0) {
                     const outPeerFile = path.join(
                         outputDir,
@@ -312,18 +312,20 @@ if (options.dts2peer) {
                     fs.writeFileSync(outPeerFile, generated)
                 }
 
-                if (!skipComponentGenerationDueToCompileProblems && output.component.length > 0) {
+                if (output.component.length > 0) {
                     const outComponentFile = path.join(
                         outputDir,
                         renameDtsToComponent(path.basename(sourceFile.fileName))
                     )
-                    console.log("producing", outComponentFile)
-                    let generated = output.component
-                        .filter(element => (element?.length ?? 0) > 0)
-                        .join("\n")
-                    if (options.verbose) console.log(generated)
-                    fs.writeFileSync(outComponentFile, generated)
-                    arkuiComponentsFiles.push(outComponentFile)
+                    if (!PeerGeneratorConfig.notCompilableComponents.some(it => outComponentFile.includes(it))) {
+                        console.log("producing", outComponentFile)
+                        let generated = output.component
+                            .filter(element => (element?.length ?? 0) > 0)
+                            .join("\n")
+                        if (options.verbose) console.log(generated)
+                        fs.writeFileSync(outComponentFile, generated)
+                        arkuiComponentsFiles.push(outComponentFile)
+                    }
                 }
             },
             onEnd(outDir: string) {
@@ -342,6 +344,10 @@ if (options.dts2peer) {
                 fs.writeFileSync(
                     path.join(outDir, 'index.ts'),
                     makeArkuiModule(arkuiComponentsFiles),
+                )
+                fs.writeFileSync(
+                    path.join(outDir, 'ArkCommon.ts'),
+                    makeStructCommon(peerLibrary.commonMethods, peerLibrary.customComponentMethods),
                 )
                 const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)

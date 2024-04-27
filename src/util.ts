@@ -193,6 +193,10 @@ export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.C
     return isSubclass
 }
 
+export function isCustomComponentClass(decl: ts.ClassDeclaration) {
+    return PeerGeneratorConfig.customComponent.includes(identName(decl.name)!)
+}
+
 export function toSet(option: string | undefined): Set<string> {
     let set = new Set<string>()
     if (option) {

@@ -16,6 +16,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
+import { indentedBy } from "../util"
 
 const importTsInteropTypes = `
 import {
@@ -321,4 +322,27 @@ export function makeArkuiModule(componentsFiles: string[]): string {
         const basenameNoExt = basename.replaceAll(path.extname(basename), "")
         return `export * from "./${basenameNoExt}"`
     }).join("\n")
+}
+
+export function makeStructCommon(commonMethods: string[], customComponentMethods: string[]): string {
+    return `
+import { NativePeerNode } from "@koalaui/arkoala"
+
+export class ArkCommon implements CommonMethod<CommonAttribute> {
+  protected peer?: NativePeerNode
+  setPeer(peer: NativePeerNode) {
+  }
+  /** @memo:intrinsic */
+  protected checkPriority(
+      name: string
+  ): boolean { throw new Error("not implemented") }
+  protected applyAttributesFinish(): void { throw new Error("not implemented") }
+
+  ${commonMethods.join('\n  ')}
+}
+
+export class ArkStructCommon extends ArkCommon implements CustomComponent {
+  ${customComponentMethods.join('\n  ')}
+}
+`
 }

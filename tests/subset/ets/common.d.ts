@@ -148,6 +148,14 @@ declare interface Rectangle {
 declare class CommonAttribute extends CommonMethod<CommonAttribute> {
 }
 
+declare class CustomComponent extends CommonAttribute {
+    build(): void;
+    aboutToAppear?(): void;
+    aboutToDisappear?(): void;
+    aboutToReuse?(params: { [key: string]: unknown }): void;
+    aboutToRecycle?(): void;
+}
+
 declare class CommonShapeMethod<T> extends CommonMethod<T> {
     constructor();
 

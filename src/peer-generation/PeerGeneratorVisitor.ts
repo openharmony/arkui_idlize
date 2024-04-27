@@ -26,7 +26,8 @@ import {
     className,
     isDefined,
     isStatic,
-    throwException
+    throwException,
+    isCustomComponentClass,
 } from "../util"
 import { GenericVisitor } from "../options"
 import { IndentedPrinter } from "../IndentedPrinter"
@@ -36,9 +37,7 @@ import {
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import {
-    determineParentRole,
-    InheritanceRole,
-    isHeir,
+    isCommonMethod,
     isRoot,
     isStandalone,
     singleParentDeclaration,
@@ -117,6 +116,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
     static readonly serializerBaseMethods = serializerBaseMethods()
     readonly typeChecker: ts.TypeChecker
 
+    readonly peerLibrary: PeerLibrary
     readonly peerFile: PeerFile
 
     constructor(options: PeerGeneratorVisitorOptions) {
@@ -136,7 +136,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
         this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable, this.printers)
-        options.peerLibrary.files.push(this.peerFile)
+        this.peerLibrary = options.peerLibrary
+        this.peerLibrary.files.push(this.peerFile)
     }
 
     requestType(name: string|undefined, type: ts.TypeNode) {
@@ -231,6 +232,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
 
     private processClass(node: ts.ClassDeclaration): void {
         if (!this.needsPeer(node)) return
+        if (isCustomComponentClass(node))
+            return this.processCustomComponent(node)
+        if (isCommonMethod(nameOrNull(node.name)!)) {
+            this.processCommonComponent(node)
+        }
         const collapsedMethods = this.collapseOverloads(node)
 
         const componentName = this.renameToComponent(nameOrNull(node.name)!)
@@ -249,6 +255,29 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         this.nativeModulePrint(node, collapsedMethods)
 
         this.printNodeType(node)
+    }
+
+    private processCustomComponent(node: ts.ClassDeclaration) {
+        const methods = node.members
+            .filter(it => ts.isMethodDeclaration(it) || ts.isMethodSignature(it))
+            .map(it => it.getText().replace(/;\s*$/g, ''))
+            .map(it => `${it} { throw new Error("not implemented"); }`)
+        this.peerLibrary.customComponentMethods.push(...methods)
+    }
+
+    private processCommonComponent(node: ts.ClassDeclaration) {
+        const collapsedMethods = this.collapseOverloads(node)
+
+        const methods = collapsedMethods
+            .filter(it => !ts.isCallSignatureDeclaration(it.member))
+            .map(it => {
+                if (it.collapsed)
+                    return `${identName(it.member.name)}(${it.collapsed.paramsDecl}) : this`
+                return it.member.getText().replace(/:[^S:]*$/g, ': this')
+            })
+            .map(it => it.replace('<T>', '<this>'))
+            .map(it => `${it} { throw new Error("not implemented"); }`)
+        this.peerLibrary.commonMethods.push(...methods)
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
