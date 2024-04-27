@@ -17,7 +17,7 @@ export function determineInheritanceRole(name: string): InheritanceRole {
 }
 
 export function determineParentRole(name: string|undefined, parent: string | undefined): InheritanceRole {
-    if (!name) return InheritanceRole.Heir
+    if (!name) throw new Error("name must be known")
     if (parent === undefined) {
         if (isStandalone(name)) return InheritanceRole.PeerNode
         if (isCommonMethod(name)) return InheritanceRole.PeerNode
