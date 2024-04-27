@@ -1,2 +1,5 @@
 option('subset', type : 'boolean', value : 'true',
-    description : 'If egenerate a subset')
+    description : 'If generate a subset')
+option('arkts', type : 'boolean', value : 'true',
+    description : 'If generate ArkTS target')
+

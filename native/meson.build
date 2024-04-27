@@ -9,7 +9,14 @@ else
 source_set = 'peers'
 endif
 use_dummy_libace = true
+if get_option('arkts')
+is_arkts = true
+else
+is_arkts = false
+endif
+
 is_node = true
+is_arkts = true
 
 gen_dir = '../generated/' + source_set
 
@@ -48,45 +55,66 @@ cxx = meson.get_compiler('cpp')
 cflags = []
 ldflags = []
 
-# library_name = 'NativeBridge-' + os + '-' + arch
-library_name = 'NativeBridge'
+node_library_name = 'NativeBridgeNapi'
+arkts_library_name = 'NativeBridgeArk'
 
 if is_clang
 # TODO: remove all -Wno-* when generation is fixed.
-cflags += ['-Wno-address-of-packed-member', '-Wall', '-Werror', '-Wno-unused-variable']
+cflags += ['-Wno-address-of-packed-member', '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-extern-c-compat']
 endif
 
-if is_node
-cflags += ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
-include_dirs += [
+node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + node_library_name]
+node_include_dirs = [
     '../node-api-headers/include',
     '../node-addon-api'
 ]
-sources += [
+node_sources = [
     gen_dir + '/convertors-node.cc'
 ]
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
-    sources += [ gen_dir + '/win-dynamic-node.cc' ]
+    node_sources += [ gen_dir + '/win-dynamic-node.cc' ]
 endif
-module_prefix = ''
-module_suffix = 'node'
-endif
+node_module_prefix = ''
+node_module_suffix = 'node'
 
-shared_library(library_name,
-    sources,
+arkts_cflags = ['-DKOALA_USE_ARK_VM', '-DKOALA_USE_ARK_VM_WITH_ETS']
+arkts_include_dirs = []
+arkts_sources = [
+    gen_dir + '/convertors-ark.cc'
+]
+
+if is_node
+shared_library(node_library_name,
+    sources + node_sources,
     override_options: [
         'b_lundef=false',
     ],
     install: true,
-    name_prefix: module_prefix,
-    name_suffix: module_suffix,
-    include_directories: include_dirs,
+    name_prefix: node_module_prefix,
+    name_suffix: node_module_suffix,
+    include_directories: include_dirs + node_include_dirs,
     install_dir: meson.current_source_dir(),
-    cpp_args: cflags,
+    cpp_args: cflags + node_cflags,
     link_args: ldflags,
     dependencies: []
 )
+endif
+
+if is_arkts
+shared_library(arkts_library_name,
+    sources + arkts_sources,
+    override_options: [
+        'b_lundef=false',
+    ],
+    install: true,
+    include_directories: include_dirs + arkts_include_dirs,
+    install_dir: meson.current_source_dir(),
+    cpp_args: cflags + arkts_cflags,
+    link_args: ldflags,
+    dependencies: []
+)
+endif
 
 executable('test_arkoala_api',
     gen_dir / 'api_test.c',

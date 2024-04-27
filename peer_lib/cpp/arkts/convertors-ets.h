@@ -24,7 +24,7 @@
 
 #include "interop-types.h"
 
-#include "ets/vm/etsapi/etsapi.h"
+#include "etsapi.h"
 
 #ifndef LOG
 #ifdef KOALA_USE_ARK_VM

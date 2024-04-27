@@ -291,7 +291,7 @@ export function copyPeerLib(from: string, to: string) {
     const cppBase = path.join(from, 'cpp')
     copyDir(cppBase, to)
     copyDir(cppBase, to)
-    let subdirs = ['node', 'ark']
+    let subdirs = ['node', 'arkts']
     subdirs.forEach(subdir => {
         const cppBase = path.join(from, 'cpp', subdir)
         copyDir(cppBase, to)

@@ -1,0 +1,9 @@
+{
+    "name": "panda-installer",
+    "private": true,
+    "scripts": {
+        "panda:sdk:install": "npm install --prefix . --no-save @panda/sdk@next",
+        "panda:sdk:clean": "rimraf ./node_modules"
+    }
+
+}

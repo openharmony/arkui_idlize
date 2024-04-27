@@ -331,7 +331,7 @@ if (options.dts2peer) {
             onEnd(outDir: string) {
                 fs.writeFileSync(
                     path.join(outDir, 'NativeModule.ts'),
-                    nativeModuleDeclaration(nativeMethods.sort(), options.nativeBridgeDir ?? "../../../../native/NativeBridge", false)
+                    nativeModuleDeclaration(nativeMethods.sort(), options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi", false)
                 )
                 fs.writeFileSync(
                     path.join(outDir, 'NativeModuleEmpty.ts'),

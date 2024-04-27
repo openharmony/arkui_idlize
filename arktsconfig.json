@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "outDir": "abc_code/build",
+        "rootDir": "./abc_code",
+        "paths": {
+            "@arkoala/arkui": ["./generated/subset", "./"],
+            "@arkoala/arkui/*": ["./generated/subset/*", "./*"],
+            "@koalaui/common": ["./generated/subset/koalaui-common"],
+            "@types": ["./generated/subset/types"]
+        }
+    },
+    "include": ["./abc_code/**/*"]
+}
