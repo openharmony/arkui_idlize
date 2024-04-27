@@ -50,7 +50,8 @@ export enum LinterError {
     INTERFACE_METHOD_TYPE_INCONSISTENT_WITH_PARENT,
     USE_COMPONENT_AS_PARAM,
     METHOD_OVERLOADING,
-    CPP_KEYWORDS
+    CPP_KEYWORDS,
+    INCORRECT_DATA_CLASS
 }
 
 export interface LinterMessage {
@@ -109,6 +110,9 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             ?.length ?? 0
         if (allInheritCount > 1) {
             this.report(clazz, LinterError.MULTIPLE_INHERITANCE, `Multiple inheritance for class ${asString(clazz.name)}`)
+        }
+        if (clazz.members.every(ts.isConstructorDeclaration) && allInheritCount == 0) {
+            this.report(clazz, LinterError.INCORRECT_DATA_CLASS, `Data class ${identName(clazz.name)} declared wrong way: use class/interface with fields`)
         }
         clazz.members.forEach(child => {
             if (ts.isConstructorDeclaration(child)) {
