@@ -78,10 +78,11 @@ endif
 node_module_prefix = ''
 node_module_suffix = 'node'
 
-arkts_cflags = ['-DKOALA_USE_ARK_VM', '-DKOALA_USE_ARK_VM_WITH_ETS']
+arkts_cflags = ['-DKOALA_USE_ARK_VM', '-DKOALA_USE_ARK_VM_WITH_ETS', '-DKOALA_ETS_NAPI']
 arkts_include_dirs = []
 arkts_sources = [
-    gen_dir + '/convertors-ark.cc'
+    gen_dir + '/convertors-ark.cc',
+    gen_dir + '/convertors-ets.cc',
 ]
 
 if is_node

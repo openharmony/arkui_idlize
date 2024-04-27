@@ -12,8 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "arkoala_api.h"
 
-int main(int argc, const char** argv) {
-    return 0;
+export class NativeModule {
+    static {
+        loadLibrary("NativeBridgeArk");
+    }
+
+    public native static hello(): String;
+
+    public run(): void {
+        console.log("Native gave us " + NativeModule.hello())
+    }
+} 
+
+export function main(): void {
+    console.log('hello')
+    let module = new NativeModule()
+    try {
+        module.run()
+    } catch (e) {
+        console.log("Thrown " + e)
+    }
 }

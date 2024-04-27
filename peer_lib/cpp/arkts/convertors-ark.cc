@@ -14,40 +14,18 @@
  */
 
 #include "convertors-ark.h"
-
-/*
-export class PandaNativeModule {
-    static {
-        loadLibrary("PandaModule");
-    }
-
-    public native static hello(): String;
-
-    public run(): void throws {
-        if (!("Hello" == PandaNativeModule.hello())) {
-            throw new Exception("ERROR: error return value from ETSNAPI");
-        }
-    }
-}
-
-export function main(): void {
-    let a = new PandaNativeModule
-    // console.log(PandaNativeModule.hello())c
-    console.log('hello')
-}
-*/
 extern "C"
 {
-    ETS_EXPORT ets_string ETS_CALL ETS_EtsnapiVersionHookTest_hello(EtsEnv *env, [[maybe_unused]] ets_class)
+    ETS_EXPORT ets_string ETS_CALL ETS_NativeModule_hello(EtsEnv *env, [[maybe_unused]] ets_class)
     {
         return env->NewStringUTF("Hello");
     }
 
     static EtsNativeMethod gMethods[] = {
-        {"hello", ":Lstd/core/String;", (void *)ETS_EtsnapiVersionHookTest_hello},
+        {"hello", ":Lstd/core/String;", (void *)ETS_NativeModule_hello},
     };
 
-    static int registerNativeMethods(EtsEnv *env, const char *classname, EtsNativeMethod *methods, int countMethods)
+    static int registerNativeMethods(EtsEnv* env, const char *classname, EtsNativeMethod *methods, int countMethods)
     {
         ets_class clazz = env->FindClass(classname);
         if (clazz == nullptr)
@@ -63,21 +41,20 @@ extern "C"
 
     static bool registerNatives(EtsEnv *env)
     {
-        /*
-        size_t numMethods = 0;
+        EtsExports* exports = EtsExports::getInstance();
+        auto& impls = exports->getImpls();
+        size_t numMethods = impls.size();
         EtsNativeMethod* methods = new EtsNativeMethod[numMethods];
         for (size_t i = 0; i < numMethods; i++) {
             // Fill in native methods table!
-        } */
-        return registerNativeMethods(env, "EtsnapiVersionHookTest", gMethods, sizeof(gMethods) / sizeof(gMethods[0]));
+            fprintf(stderr, "Adding %s typed %s\n", std::get<0>(impls[i]).c_str(), std::get<1>(impls[i]).c_str());
+        }
+        return registerNativeMethods(env, "NativeModule", gMethods, sizeof(gMethods) / sizeof(gMethods[0]));
     }
 
     ETS_EXPORT ets_int ETS_CALL EtsNapiOnLoad(EtsEnv *env)
     {
-        if (!registerNatives(env))
-        {
-            return -1;
-        }
+        if (!registerNatives(env)) return -1;
         return ETS_NAPI_VERSION_1_0;
     }
 

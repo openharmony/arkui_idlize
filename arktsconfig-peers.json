@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "abc_code/build/peers",
+        "outDir": "build/abc/peers",
         "rootDir": "./generated/peers",
         "paths": {
             "@arkoala/arkui": ["./generated/subset", "./"],
@@ -8,5 +8,5 @@
             "@koalaui/common": ["./generated/subset/koalaui-common"]
         }
     },
-    "include": ["./generated/peers/**/*"]
+    "include": ["./generated/peers/**/*.ets"]
 }

@@ -296,6 +296,7 @@ export function copyPeerLib(from: string, to: string) {
         const cppBase = path.join(from, 'cpp', subdir)
         copyDir(cppBase, to)
     })
+    copyDir(path.join(from, 'arkts'), to)
 }
 
 function copyDir(from: string, to: string) {

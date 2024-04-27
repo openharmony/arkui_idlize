@@ -39,7 +39,7 @@ export class PeerClass {
     }
 
     get peerParentName(): string {
-        const parentRole = determineParentRole(this.originalClassName!, this.parentComponentName)
+        const parentRole = determineParentRole(this.originalClassName, this.parentComponentName)
         if ([InheritanceRole.Finalizable, InheritanceRole.PeerNode].includes(parentRole)) {
             return InheritanceRole[parentRole]
         }
@@ -78,7 +78,7 @@ export class PeerClass {
     }
 
     private generateConstructor(printer: IndentedPrinter): void {
-        const parentRole = determineParentRole(this.originalClassName!, this.originalParentName)
+        const parentRole = determineParentRole(this.originalClassName, this.originalParentName)
 
         if (parentRole === InheritanceRole.Finalizable) {
             printer.print(`constructor(type?: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
