@@ -258,6 +258,10 @@ export class DeclarationTable {
             return prefix + target.getText(this)
         }
         if (ts.isTypeLiteralNode(target)) {
+            if (target.members.some(ts.isIndexSignatureDeclaration)) {
+                // For indexed access we just replace the whole type to a custom accessor.
+                return prefix + `CustomMap`
+            }
             return prefix + `Literal_${target.members.map(member => {
                 if (ts.isPropertySignature(member)) {
                     let target = this.toTarget(member.type!)
@@ -425,10 +429,12 @@ export class DeclarationTable {
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
             return prefix + PrimitiveType.Number.getText()
         }
-        if (type.kind == ts.SyntaxKind.UndefinedKeyword ||
+        if (
+            type.kind == ts.SyntaxKind.UndefinedKeyword ||
             type.kind == ts.SyntaxKind.NullKeyword ||
-            type.kind == ts.SyntaxKind.VoidKeyword) {
-            return PrimitiveType.Number.getText()
+            type.kind == ts.SyntaxKind.VoidKeyword
+        ) {
+            return PrimitiveType.Undefined.getText()
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
             return prefix + PrimitiveType.String.getText()
@@ -436,7 +442,8 @@ export class DeclarationTable {
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
             return prefix + PrimitiveType.Boolean.getText()
         }
-        if (type.kind == ts.SyntaxKind.ObjectKeyword) {
+        if (type.kind == ts.SyntaxKind.ObjectKeyword ||
+            type.kind == ts.SyntaxKind.UnknownKeyword) {
             return prefix + PrimitiveType.CustomObject.getText()
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
@@ -986,7 +993,7 @@ export class DeclarationTable {
         printer.print(`for (int i = 0; i < count; i++) {`)
         printer.pushIndent()
         printer.print(`if (i > 0) result->append(", ");`)
-        printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&": ""}value->array[i]);`)
+        printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);`)
         printer.popIndent()
         printer.print(`}`)
         printer.print(`result->append("]");`)
@@ -1139,12 +1146,17 @@ export class DeclarationTable {
                 })
         }
         else if (ts.isTypeLiteralNode(target)) {
-            target
-                .members
-                .filter(ts.isPropertySignature)
-                .forEach(it => {
-                    result.addField(new FieldRecord(this.toTarget(it.type!), it.type, identName(it.name)!, it.questionToken != undefined))
-                })
+            if (target.members.some(ts.isIndexSignatureDeclaration)) {
+                // For indexed access we just replace the whole type to a custom accessor.
+                result.addField(new FieldRecord(PrimitiveType.CustomObject, undefined, "keyAccessor", false))
+            } else {
+                target
+                    .members
+                    .forEach(it => {
+                        if (ts.isPropertySignature(it))
+                            result.addField(new FieldRecord(this.toTarget(it.type!), it.type, identName(it.name)!, it.questionToken != undefined))
+                    })
+            }
         }
         else if (ts.isTupleTypeNode(target)) {
             target
