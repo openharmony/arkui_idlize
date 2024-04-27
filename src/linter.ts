@@ -51,7 +51,8 @@ export enum LinterError {
     USE_COMPONENT_AS_PARAM,
     METHOD_OVERLOADING,
     CPP_KEYWORDS,
-    INCORRECT_DATA_CLASS
+    INCORRECT_DATA_CLASS,
+    EMPTY_DECLARATION,
 }
 
 export interface LinterMessage {
@@ -124,7 +125,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             }
         })
         this.checkClassInheritance(clazz)
-        this.checkForOverloads(clazz)
+        this.interfaceOrClassChecks(clazz)
     }
 
     checkClassDuplicate(clazz: ts.InterfaceDeclaration | ts.ClassDeclaration) {
@@ -161,7 +162,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.visitMethod(child)
             }
         })
-        this.checkForOverloads(clazz)
+        this.interfaceOrClassChecks(clazz)
     }
 
     checkType(type: ts.TypeNode | undefined): void {
@@ -426,7 +427,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             : undefined
     }
 
-    private checkForOverloads(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+    private checkOverloads(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
         const set = new Set<string>()
 
         const perMethod = (it: string) => {
@@ -452,6 +453,21 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 .map(it => it.name.getText())
                 .forEach(perMethod)
         }
+    }
+
+    private checkEmpty(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+        if (node.heritageClauses === undefined && node.members.length === 0) {
+            this.report(
+                node,
+                LinterError.EMPTY_DECLARATION,
+                `Empty class or interface declaration ${node.name?.getText() ?? ""}`
+            )
+        }
+    }
+
+    private interfaceOrClassChecks(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+        this.checkEmpty(node)
+        this.checkOverloads(node)
     }
 }
 
