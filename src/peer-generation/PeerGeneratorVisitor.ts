@@ -217,6 +217,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
             ts.isTypeAliasDeclaration(node) ||
             ts.isFunctionDeclaration(node) ||
             ts.isEmptyStatement(node) ||
+            ts.isImportDeclaration(node) ||
             node.kind == ts.SyntaxKind.EndOfFileToken) {
             // Do nothing.
         } else {

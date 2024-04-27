@@ -435,14 +435,19 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 let declaration = getDeclarationsByNode(this.typeChecker, left)
                 if (declaration.length > 0) {
                     if (ts.isEnumDeclaration(declaration[0])) {
-                        return createEnumType(left.getText(left.getSourceFile()))
+                        return createEnumType(left.getText())
                     }
                     if (ts.isModuleDeclaration(declaration[0])) {
-                        let rightName = type.typeName.right.getText(left.getSourceFile())
-                        // TODO: is it right?
-                        return createEnumType(`${rightName}`)
+                        let declaration = getDeclarationsByNode(this.typeChecker, type.typeName.right)
+                        if (ts.isEnumDeclaration(declaration[0])) {
+                            return createEnumType(identName(declaration[0].name)!)
+                        }
+                        throw new Error(`Unsupported module declaration: ${declaration[0].getText()}`)
                     }
-                    throw new Error(`Not supported for now: ${type.getText(this.sourceFile)}`)
+                    if (ts.isClassDeclaration(declaration[0])) {
+                        return createReferenceType(`${left.getText()}_${type.typeName.right.getText()}`)
+                    }
+                    throw new Error(`Not supported for now: ${type.getText(this.sourceFile)} ${asString(declaration[0])}`)
                 }
             }
             let declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
@@ -463,6 +468,9 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             }
             return isEnum ? createEnumType(transformedType) : createReferenceType(transformedType)
         }
+        if (ts.isThisTypeNode(type)) {
+            return createReferenceType("this")
+        }
         if (ts.isArrayTypeNode(type)) {
             return createContainerType("sequence", [this.serializeType(type.elementType)])
         }
@@ -473,7 +481,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (ts.isParenthesizedTypeNode(type)) {
             return this.serializeType(type.type)
         }
-        if (ts.isFunctionTypeNode(type)) {
+        if (ts.isFunctionTypeNode(type) || ts.isConstructorTypeNode(type)) {
             const counter = this.compileContext.functionCounter++
             const name = `${nameSuggestion??"callback"}__${counter}`
             const callback = this.serializeFunctionType(name, type)
@@ -504,7 +512,6 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 return createUndefinedType()
             }
             throw new Error(`Non-representable type: ${asString(type)}`)
-            return createAnyType("/* Non-representable literal type */ ")
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return createStringType()
