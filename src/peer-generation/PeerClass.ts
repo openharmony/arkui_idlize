@@ -13,7 +13,6 @@ export class PeerClass {
         public readonly file: PeerFile,
         public readonly componentName: string,
         public readonly originalFilename: string,
-        public readonly printers: Printers,
     ) { }
 
     methods: PeerMethod[] = []
@@ -25,6 +24,8 @@ export class PeerClass {
     originalParentName: string | undefined = undefined
     originalParentFilename: string | undefined = undefined
     parentComponentName: string | undefined = undefined
+    attributesFields: string[] = []
+    attributesTypes: string[] = []
 
     get koalaComponentName(): string {
         return this.koalaComponentByComponent(this.componentName)
@@ -43,7 +44,7 @@ export class PeerClass {
         return `${this.koalaComponentByComponent(parent)}Peer`
     }
 
-    peerClassHeader() {
+    private peerClassHeader() {
         const peerParentName = this.peerParentName
         const extendsClause =
             peerParentName
@@ -56,12 +57,12 @@ export class PeerClass {
         return "Ark" + name + "Attributes"
     }
 
-    get attributesParentName(): string | undefined {
+    private get attributesParentName(): string | undefined {
         if (!isHeir(this.originalClassName!)) return undefined
         return this.componentToAttribute(this.parentComponentName!)
     }
 
-    attributeInterfaceHeader() {
+    private attributeInterfaceHeader() {
         const parent = this.attributesParentName
         const extendsClause =
             parent
@@ -69,11 +70,11 @@ export class PeerClass {
                 : ""
         return `export interface ${this.componentToAttribute(this.componentName)} ${extendsClause} {`
     }
-    apiModifierHeader() {
+    private apiModifierHeader() {
         return `typedef struct ArkUI${this.componentName}Modifier {`
     }
 
-    generateConstructor(printer: IndentedPrinter): void {
+    private generateConstructor(printer: IndentedPrinter): void {
         const parentRole = determineParentRole(this.originalClassName!, this.originalParentName)
 
         if (parentRole === InheritanceRole.Finalizable) {
@@ -125,12 +126,6 @@ export class PeerClass {
         printer.print(`}`)
     }
 
-    printNodeModifier() {
-        const component = this.componentName
-        this.printers.apiList.pushIndent()
-        this.printers.apiList.print(`const ArkUI${component}Modifier* (*get${component}Modifier)();`)
-    }
-
     collectPeerImports(imports: ImportsCollector) {
         if (!this.originalParentFilename) return
         const parentBasename = renameDtsToPeer(path.basename(this.originalParentFilename))
@@ -140,6 +135,7 @@ export class PeerClass {
     }
 
     collectComponentImports(imports: ImportsCollector) {
+        if (!this.canGenerateComponent()) return
         imports.addFeature("NodeAttach", "@koalaui/runtime")
         const structPostfix = (this.callableMethod?.mappedParamsTypes?.length ?? 0) + 1
         imports.addFeature(`ArkCommonStruct${structPostfix}`, "./ArkStructCommon")
@@ -147,8 +143,8 @@ export class PeerClass {
         imports.addFeature("ArkUINodeType", "./ArkUINodeType")
     }
 
-    printComponent() {
-        const printer = this.printers.TSComponent
+    printComponent(printer: IndentedPrinter) {
+        if (!this.canGenerateComponent()) return
         const method = this.callableMethod
         const componentClassName = `${this.koalaComponentName}Component`
         const componentFunctionName = this.koalaComponentName
@@ -214,29 +210,48 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
 `)
     }
 
-    printProlog() {
-        this.printers.TSPeer.print(this.peerClassHeader())
-        this.printers.TSPeer.pushIndent()
-        this.printers.api.print(this.apiModifierHeader())
-        this.printers.api.pushIndent()
-        this.printNodeModifier()
-    }
+    private printPeerAttributes(printer: IndentedPrinter) {
+        for (const attributeType of this.attributesTypes)
+            printer.print(attributeType)
 
-    printEpilog() {
-        this.printers.TSPeer.popIndent()
-        this.printers.TSPeer.print(`}`)
-        if (this.methods.length == 0) {
-            this.printers.api.print("int dummy;")
+        printer.print(this.attributeInterfaceHeader())
+        if (this.attributesFields.length === 0) {
+            printer.print('}')
+            return
         }
-        this.printers.api.popIndent()
-        this.printers.api.print(`} ArkUI${this.componentName}Modifier;\n`)
-        this.printers.apiList.popIndent()
+        printer.pushIndent()
+        for (const field of this.attributesFields)
+            printer.print(field)
+        printer.popIndent()
+        printer.print('}')
     }
 
-    printMethods() {
-        this.generateConstructor(this.printers.TSPeer)
-        this.methods.forEach(it => it.processPeerMethod())
-        this.generateApplyMethod(this.printers.TSPeer)
+    printPeer(printer: IndentedPrinter) {
+        printer.print(this.peerClassHeader())
+        printer.pushIndent()
+        this.generateConstructor(printer)
+        for (const method of this.methods)
+            method.printPeerMethod(printer)
+        this.generateApplyMethod(printer)
+        printer.popIndent()
+        printer.print(`}`)
+        this.printPeerAttributes(printer)
+    }
+
+    private printGlobalProlog(printers: Printers) {
+        printers.api.print(this.apiModifierHeader())
+        printers.api.pushIndent()
+        printers.apiList.pushIndent()
+        printers.apiList.print(`const ArkUI${this.componentName}Modifier* (*get${this.componentName}Modifier)();`)
+    }
+
+    private printGlobalEpilog(printers: Printers) {
+        if (this.methods.length == 0) {
+            printers.api.print("int dummy;")
+        }
+        printers.api.popIndent()
+        printers.api.print(`} ArkUI${this.componentName}Modifier;\n`)
+        printers.apiList.popIndent()
     }
 
     private canGenerateComponent(): boolean {
@@ -244,11 +259,9 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
             && determineInheritanceRole(this.originalClassName!) == InheritanceRole.Heir
     }
 
-    print() {
-        this.printProlog()
-        this.printMethods()
-        this.printEpilog()
-        if (this.canGenerateComponent()) 
-            this.printComponent()
+    printGlobal(printers: Printers) {
+        this.printGlobalProlog(printers)
+        this.methods.forEach(it => it.printGlobal(printers))
+        this.printGlobalEpilog(printers)
     }
 }

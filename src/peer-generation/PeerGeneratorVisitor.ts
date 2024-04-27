@@ -105,7 +105,6 @@ export type PeerGeneratorVisitorOutput = {
 }
 
 export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitorOutput> {
-    private typesToGenerate: string[] = []
     private seenAttributes = new Set<string>()
     private readonly sourceFile: ts.SourceFile
     private interfacesToGenerate: Set<string>
@@ -124,8 +123,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         this.typeChecker = options.typeChecker
         this.interfacesToGenerate = options.interfacesToGenerate
         this.printers = new Printers(
-            new IndentedPrinter(),
-            new IndentedPrinter(),
             new IndentedPrinter(options.outputC),
             new IndentedPrinter(options.nativeModuleMethods),
             new IndentedPrinter(options.nativeModuleEmptyMethods),
@@ -135,7 +132,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         )
         this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
-        this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable, this.printers)
+        this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable)
         this.peerLibrary = options.peerLibrary
         this.peerLibrary.files.push(this.peerFile)
     }
@@ -144,28 +141,14 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         this.declarationTable.requestType(name, type)
     }
 
-    defaultImports() {
-        return [
-            `import { int32 } from "@koalaui/common"`,
-            `import { PeerNode } from "@koalaui/arkoala"`,
-            `import { nullptr, KPointer } from "@koalaui/interop"`,
-            `import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"`,
-            `import { Serializer } from "./Serializer"`,
-            `import { nativeModule } from "./NativeModule"`,
-            `import { ArkUINodeType } from "./ArkUINodeType"`,
-            `import { ArkCommon } from "./ArkCommon"`,
-        ]
-    }
-
     visitWholeFile(): PeerGeneratorVisitorOutput {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
 
-        this.defaultImports().forEach(it => this.printTS(it))
-        this.peerFile.print()
+        this.peerFile.printGlobal(this.printers)
 
         return {
-            peer: this.printers.TSPeer.getOutput(),
-            component: this.printers.TSComponent.getOutput(),
+            peer: this.peerFile.generatePeer(),
+            component: this.peerFile.generateComponent(),
         }
     }
 
@@ -251,7 +234,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         peer.methods.push(...peerMethods)
 
         this.createComponentAttributesDeclaration(node, peer)
-        this.generateAttributesValuesInterfaces()
         this.nativeModulePrint(node, collapsedMethods)
 
         this.printNodeType(node)
@@ -315,10 +297,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         return argConvertors?.map(it => `${it.param}`).join(", ")
     }
 
-    private printTS(value: stringOrNone) {
-        this.printers.TSPeer.print(value)
-    }
-
     processMethodOrCallable(
         { member: method, collapsed: collapsed }: MaybeCollapsedMethod,
         peer: PeerClass,
@@ -348,7 +326,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         const retConvertor = this.retConvertor(method.type)
 
         const peerMethod = new PeerMethod(
-            peer,
             originalParentName,
             methodName,
             declarationTargets,
@@ -367,39 +344,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         this.declarationTable.setCurrentContext(undefined)
 
         return peerMethod
-    }
-
-    pushIndentBoth() {
-        this.printers.TSPeer.pushIndent()
-        this.printers.C.pushIndent()
-    }
-    popIndentBoth() {
-        this.printers.TSPeer.popIndent()
-        this.printers.C.popIndent()
-    }
-    pushIndentTS() {
-        this.printers.TSPeer.pushIndent()
-    }
-    popIndentTS() {
-        this.printers.TSPeer.popIndent()
-    }
-    pushIndentC() {
-        this.printers.C.pushIndent()
-    }
-    popIndentC() {
-        this.printers.C.popIndent()
-    }
-    pushIndentAPI() {
-        this.printers.api.pushIndent()
-    }
-    popIndentAPI() {
-        this.printers.api.popIndent()
-    }
-    pushIndentAPIList() {
-        this.printers.apiList.pushIndent()
-    }
-    popIndentAPIList() {
-        this.printers.apiList.popIndent()
     }
 
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
@@ -442,23 +386,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
     }
 
     private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration, peer: PeerClass): void {
-        const koalaComponent = peer.koalaComponentName
-        if (PeerGeneratorConfig.invalidAttributes.includes(koalaComponent)) {
-            this.printTS(`export interface ${koalaComponent}Attributes {}`)
+        if (PeerGeneratorConfig.invalidAttributes.includes(peer.koalaComponentName)) {
             return
         }
-        this.printTS(peer.attributeInterfaceHeader())
-        this.pushIndentTS()
         node.members.forEach(child => {
             if (ts.isMethodDeclaration(child)) {
-                this.processOptionAttribute(child)
+                this.processOptionAttribute(child, peer)
             }
         })
-        this.popIndentTS()
-        this.printTS("}")
     }
 
-    private processOptionAttribute(method: ts.MethodDeclaration | ts.MethodSignature): void {
+    private processOptionAttribute(method: ts.MethodDeclaration | ts.MethodSignature, peer: PeerClass): void {
         const methodName = method.name.getText(this.sourceFile)
         if (this.seenAttributes.has(methodName)) {
             console.log(`WARNING: ignore seen method: ${methodName}`)
@@ -469,11 +407,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
             return
         }
         this.seenAttributes.add(methodName)
-        const type = this.argumentType(methodName, method.parameters)
-        this.printTS(`${methodName}?: ${type}`)
+        const type = this.argumentType(methodName, method.parameters, peer)
+        peer.attributesFields.push(`${methodName}?: ${type}`)
     }
 
-    private argumentType(methodName: string, parameters: ts.NodeArray<ts.ParameterDeclaration>): string {
+    private argumentType(methodName: string, parameters: ts.NodeArray<ts.ParameterDeclaration>, peer: PeerClass): string {
         const argumentTypeName = capitalize(methodName) + "ValuesType"
         if (parameters.length === 1 && ts.isTypeLiteralNode(parameters[0].type!)) {
             const typeLiteralStatements = parameters[0].type!.members
@@ -496,7 +434,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
                     }
                 })
 
-            this.typesToGenerate.push(
+            peer.attributesTypes.push(
                 this.createParameterType(argumentTypeName, typeLiteralStatements)
             )
             return argumentTypeName
@@ -507,7 +445,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
                 type: it.type!,
                 questionToken: !!it.questionToken
             }))
-            this.typesToGenerate.push(
+            peer.attributesTypes.push(
                 this.createParameterType(argumentTypeName, attributeInterfaceStatements)
             )
             return argumentTypeName
@@ -524,12 +462,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
             .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${mapType(this.typeChecker, it.type)}`)
             .join('')
         return `export interface ${name} {${attributeDeclarations}\n}`
-    }
-
-    private generateAttributesValuesInterfaces() {
-        this.typesToGenerate.forEach((value: string) => {
-            this.printTS(value)
-        })
     }
 
     private nameOrEmpty(member: ts.MethodDeclaration | ts.CallSignatureDeclaration): string {
