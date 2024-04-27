@@ -52,7 +52,7 @@ export function generate<T>(
         const visitor = visitorFactory(sourceFile, typeChecker)
         const output = visitor.visitWholeFile()
 
-        options.onSingleFile(output, outputDir, sourceFile)
+        options.onSingleFile?.(output, outputDir, sourceFile)
     }
 
     options.onEnd?.(outputDir)

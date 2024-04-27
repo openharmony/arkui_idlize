@@ -88,27 +88,15 @@ export type PeerGeneratorVisitorOptions = {
     sourceFile: ts.SourceFile
     typeChecker: ts.TypeChecker
     interfacesToGenerate: Set<string>
-    nativeModuleMethods: string[]
-    nativeModuleEmptyMethods: string[]
-    outputC: string[]
-    nodeTypes: string[]
-    apiHeaders: string[]
-    apiHeadersList: string[]
     dumpSerialized: boolean
     declarationTable: DeclarationTable,
     peerLibrary: PeerLibrary
 }
 
-export type PeerGeneratorVisitorOutput = {
-    peer: stringOrNone[],
-    component: stringOrNone[],
-}
-
-export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitorOutput> {
+export class PeerGeneratorVisitor implements GenericVisitor<void> {
     private seenAttributes = new Set<string>()
     private readonly sourceFile: ts.SourceFile
     private interfacesToGenerate: Set<string>
-    private printers: Printers
     private dumpSerialized: boolean
     declarationTable: DeclarationTable
 
@@ -122,14 +110,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         this.sourceFile = options.sourceFile
         this.typeChecker = options.typeChecker
         this.interfacesToGenerate = options.interfacesToGenerate
-        this.printers = new Printers(
-            new IndentedPrinter(options.outputC),
-            new IndentedPrinter(options.nativeModuleMethods),
-            new IndentedPrinter(options.nativeModuleEmptyMethods),
-            new IndentedPrinter(options.nodeTypes),
-            new IndentedPrinter(options.apiHeaders),
-            new IndentedPrinter(options.apiHeadersList),
-        )
         this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
         this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable)
@@ -141,15 +121,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         this.declarationTable.requestType(name, type)
     }
 
-    visitWholeFile(): PeerGeneratorVisitorOutput {
+    visitWholeFile(): void {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
-
-        this.peerFile.printGlobal(this.printers)
-
-        return {
-            peer: this.peerFile.generatePeer(),
-            component: this.peerFile.generateComponent(),
-        }
     }
 
     private isRootMethodInheritor(decl: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
@@ -234,9 +207,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         peer.methods.push(...peerMethods)
 
         this.createComponentAttributesDeclaration(node, peer)
-        this.nativeModulePrint(node, collapsedMethods)
-
-        this.printNodeType(node)
     }
 
     private processCustomComponent(node: ts.ClassDeclaration) {
@@ -244,7 +214,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
             .filter(it => ts.isMethodDeclaration(it) || ts.isMethodSignature(it))
             .map(it => it.getText().replace(/;\s*$/g, ''))
             .map(it => `${it} { throw new Error("not implemented"); }`)
-        this.peerLibrary.customComponentMethods.push(...methods)
+        this.peerLibrary.pushCustomComponentMethods(...methods)
     }
 
     private processCommonComponent(node: ts.ClassDeclaration) {
@@ -259,7 +229,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
             })
             .map(it => it.replace('<T>', '<this>'))
             .map(it => `${it} { throw new Error("not implemented"); }`)
-        this.peerLibrary.commonMethods.push(...methods)
+        this.peerLibrary.pushCommonMethods(...methods)
     }
 
     processInterface(node: ts.InterfaceDeclaration) {
@@ -269,17 +239,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
         // We don't know what comes first ButtonAttribute or ButtonInterface.
         // Both will contribute to the peer class.
         const peer = this.peerFile.getOrPutPeer(componentName)
-
+        peer.originalInterfaceName = this.classNameIfInterface(node)
         const collapsedMethods = this.collapseOverloads(node)
         const peerMethods = collapsedMethods
             .filter(it => ts.isCallSignatureDeclaration(it.member))
             .map(it => this.processMethodOrCallable(it, peer, identName(node)!))
             .filter(isDefined)
         peer.methods.push(...peerMethods)
-        this.nativeModulePrint(node, collapsedMethods)
-    }
-
-    processConstructor(ctor: ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration) {
     }
 
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
@@ -578,43 +544,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<PeerGeneratorVisitor
             return name
         }
         throw new Error(`Expected a class or a friend interface: ${asString(clazz)}`)
-    }
-
-    private nativeModulePrint(parent: ts.ClassDeclaration|ts.InterfaceDeclaration, methods: MaybeCollapsedMethod[]): void {
-        const component = this.classNameIfInterface(parent)
-
-        methods.forEach(maybeCollapsedMethod => {
-            this.declarationTable.setCurrentContext(`${identName(maybeCollapsedMethod.member.name)}()`)
-            const basicParameters = maybeCollapsedMethod.member.parameters
-                .map(it => this.argConvertor(it))
-                .map(it => {
-                    if (it.useArray) {
-                        const array = `${it.param}Serializer`
-                        return `${it.param}Array: Uint8Array, ${array}Length: int32`
-                    } else {
-                        return `${it.param}: ${it.interopType(true)}`
-                    }
-                })
-            let maybeReceiver = isStatic(maybeCollapsedMethod.member.modifiers) ? [] :  [`ptr: KPointer`]
-            const parameters = maybeReceiver
-                .concat(basicParameters)
-                .join(", ")
-
-            const originalName = ts.isCallSignatureDeclaration(maybeCollapsedMethod.member) ?
-                `_set${this.renameToComponent(component)}Options` :
-                ts.idText(maybeCollapsedMethod.member.name as ts.Identifier)
-            const implDecl = `_${component}_${originalName}(${parameters}): void`
-
-            this.printers.nativeModule.print(implDecl)
-            this.printers.nativeModuleEmpty.print(`${implDecl} { console.log("${originalName}") }`)
-            this.declarationTable.setCurrentContext(undefined)
-        })
-    }
-
-    private printNodeType(node: ts.ClassDeclaration): void {
-        this.printers.nodeTypes.print(
-            this.renameToComponent(nameOrNull(node.name)!)
-        )
     }
 }
 

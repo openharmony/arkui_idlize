@@ -43,7 +43,6 @@ import {
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
-    PeerGeneratorVisitorOutput
 } from "./peer-generation/PeerGeneratorVisitor"
 import { defaultCompilerOptions, isDefined, renameDtsToPeer, renameDtsToComponent as renameDtsToComponent, stringOrNone, toSet } from "./util"
 import { TypeChecker  } from "./typecheck"
@@ -266,12 +265,6 @@ if (options.idl2h) {
 }
 
 if (options.dts2peer) {
-    const nativeMethods: string[] = []
-    const nativeEmptyMethods: string[] = []
-    const nodeTypes: string[] = []
-    const bridgeCcArray: string[] = []
-    const apiHeaders: string[] = []
-    const apiHeadersList: string[] = []
     const declarationTable = new DeclarationTable()
     const peerLibrary = new PeerLibrary(declarationTable)
     const arkuiComponentsFiles: string[] = []
@@ -284,12 +277,6 @@ if (options.dts2peer) {
             sourceFile: sourceFile,
             typeChecker: typeChecker,
             interfacesToGenerate: toSet(options.generateInterface),
-            nativeModuleMethods: nativeMethods,
-            nativeModuleEmptyMethods: nativeEmptyMethods,
-            nodeTypes: nodeTypes,
-            outputC: bridgeCcArray,
-            apiHeaders: apiHeaders,
-            apiHeadersList: apiHeadersList,
             dumpSerialized: options.dumpSerialized ?? false,
             declarationTable,
             peerLibrary
@@ -299,27 +286,31 @@ if (options.dts2peer) {
             onBegin(outDir, typeChecker) {
                 declarationTable.typeChecker = typeChecker
             },
-            onSingleFile: (output: PeerGeneratorVisitorOutput, outputDir, sourceFile) => {
-                if (output.peer.length > 0) {
+            onEnd(outDir: string) {
+                const output = peerLibrary.generate()
+
+                for (const [originalFilename, peer] of output.peers) {
+                    if (peer.length === 0) continue
                     const outPeerFile = path.join(
-                        outputDir,
-                        renameDtsToPeer(path.basename(sourceFile.fileName))
+                        outDir,
+                        renameDtsToPeer(path.basename(originalFilename))
                     )
                     console.log("producing", outPeerFile)
-                    let generated = output.peer
+                    let generated = peer
                         .filter(element => (element?.length ?? 0) > 0)
                         .join("\n")
                     fs.writeFileSync(outPeerFile, generated)
                 }
 
-                if (output.component.length > 0) {
+                for (const [originalFilename, component] of output.components) {
+                    if (component.length === 0) continue
                     const outComponentFile = path.join(
-                        outputDir,
-                        renameDtsToComponent(path.basename(sourceFile.fileName))
+                        outDir,
+                        renameDtsToComponent(path.basename(originalFilename))
                     )
                     if (!PeerGeneratorConfig.notCompilableComponents.some(it => outComponentFile.includes(it))) {
                         console.log("producing", outComponentFile)
-                        let generated = output.component
+                        let generated = component
                             .filter(element => (element?.length ?? 0) > 0)
                             .join("\n")
                         if (options.verbose) console.log(generated)
@@ -327,19 +318,18 @@ if (options.dts2peer) {
                         arkuiComponentsFiles.push(outComponentFile)
                     }
                 }
-            },
-            onEnd(outDir: string) {
+
                 fs.writeFileSync(
                     path.join(outDir, 'NativeModule.ts'),
-                    nativeModuleDeclaration(nativeMethods.sort(), options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi", false)
+                    nativeModuleDeclaration(output.nativeModuleMethods.sort(), options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi", false)
                 )
                 fs.writeFileSync(
                     path.join(outDir, 'NativeModuleEmpty.ts'),
-                    nativeModuleEmptyDeclaration(nativeEmptyMethods.sort())
+                    nativeModuleEmptyDeclaration(output.nativeModuleEmptyMethods.sort())
                 )
                 fs.writeFileSync(
                     path.join(outDir, 'ArkUINodeType.ts'),
-                    makeNodeTypes(nodeTypes)
+                    makeNodeTypes(output.nodeTypes)
                 )
                 fs.writeFileSync(
                     path.join(outDir, 'index.ts'),
@@ -347,9 +337,9 @@ if (options.dts2peer) {
                 )
                 fs.writeFileSync(
                     path.join(outDir, 'ArkCommon.ts'),
-                    makeStructCommon(peerLibrary.commonMethods, peerLibrary.customComponentMethods),
+                    makeStructCommon(output.commonMethods, output.customComponentMethods),
                 )
-                const bridgeCc = bridgeCcDeclaration(bridgeCcArray)
+                const bridgeCc = bridgeCcDeclaration(output.outputC)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
                 fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(declarationTable))
 
@@ -357,7 +347,7 @@ if (options.dts2peer) {
                 const typedefs = new IndentedPrinter()
 
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable, structs, typedefs))
-                fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeAPI(options.apiVersion ?? "0", apiHeaders, apiHeadersList, structs, typedefs))
+                fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeAPI(options.apiVersion ?? "0", output.apiHeaders, output.apiHeadersList, structs, typedefs))
 
                 const {dummy, real} = printRealAndDummyModifiers(peerLibrary)
                 fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummy)

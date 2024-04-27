@@ -7,12 +7,14 @@ import { PeerFile } from "./PeerFile"
 import { PeerMethod } from "./PeerMethod"
 import { Printers } from "./Printers"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
+import { DeclarationTable } from "./DeclarationTable"
 
 export class PeerClass {
     constructor(
         public readonly file: PeerFile,
         public readonly componentName: string,
         public readonly originalFilename: string,
+        public readonly declarationTable: DeclarationTable
     ) { }
 
     methods: PeerMethod[] = []
@@ -21,6 +23,7 @@ export class PeerClass {
     }
 
     originalClassName: string | undefined = undefined
+    originalInterfaceName: string | undefined = undefined
     originalParentName: string | undefined = undefined
     originalParentFilename: string | undefined = undefined
     parentComponentName: string | undefined = undefined
@@ -254,6 +257,33 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
         printers.apiList.popIndent()
     }
 
+    private printGlobalNativeModule(printers: Printers) {
+        printers.nodeTypes.print(this.componentName)
+        this.methods.forEach(method => {
+            const component = method.isCallSignature ? this.originalInterfaceName : this.originalClassName
+            this.declarationTable.setCurrentContext(`${method.isCallSignature ? "" : method.methodName}()`)
+            const basicParameters = method.argConvertors
+                .map(it => {
+                    if (it.useArray) {
+                        const array = `${it.param}Serializer`
+                        return `${it.param}Array: Uint8Array, ${array}Length: int32`
+                    } else {
+                        return `${it.param}: ${it.interopType(true)}`
+                    }
+                })
+            let maybeReceiver = method.hasReceiver ? [`ptr: KPointer`] : []
+            const parameters = maybeReceiver
+                .concat(basicParameters)
+                .join(", ")
+
+            const implDecl = `_${component}_${method.methodName}(${parameters}): void`
+
+            printers.nativeModule.print(implDecl)
+            printers.nativeModuleEmpty.print(`${implDecl} { console.log("${method.methodName}") }`)
+            this.declarationTable.setCurrentContext(undefined)
+        })
+    }
+
     private canGenerateComponent(): boolean {
         return !PeerGeneratorConfig.skipComponentGeneration.includes(this.originalClassName!)
             && determineInheritanceRole(this.originalClassName!) == InheritanceRole.Heir
@@ -263,5 +293,6 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
         this.printGlobalProlog(printers)
         this.methods.forEach(it => it.printGlobal(printers))
         this.printGlobalEpilog(printers)
+        this.printGlobalNativeModule(printers)
     }
 }

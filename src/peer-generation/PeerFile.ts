@@ -29,7 +29,7 @@ export class PeerFile {
     ) {}
 
     getOrPutPeer(componentName: string) {
-        return getOrPut(this.peers, componentName, () => new PeerClass(this, componentName, this.originalFilename))
+        return getOrPut(this.peers, componentName, () => new PeerClass(this, componentName, this.originalFilename, this.declarationTable))
     }
 
     generateComponent(): string[] {
