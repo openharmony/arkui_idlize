@@ -101,6 +101,38 @@ export class StringConvertor extends BaseArgConvertor {
     }
 }
 
+export class ToStringConvertor extends BaseArgConvertor {
+    constructor(param: string) {
+        super("string", [RuntimeType.OBJECT], false, false, param)
+    }
+
+    convertorTSArg(param: string): string {
+        return `(${param}).toString()`
+    }
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${param}Serializer.writeString((${value}).toString())`)
+    }
+    convertorCArg(param: string): string {
+        return `(const ${PrimitiveType.String.getText()}*)&${param}`
+    }
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${value} = ${param}Deserializer.readString();`)
+    }
+
+    nativeType(impl: boolean): string {
+        return PrimitiveType.String.getText()
+    }
+    interopType(ts: boolean): string {
+        return "KStringPtr"
+    }
+    estimateSize() {
+        return 32
+    }
+    isPointerType(): boolean {
+        return true
+    }
+}
+
 export class BooleanConvertor extends BaseArgConvertor {
     constructor(param: string) {
         super("boolean", [RuntimeType.BOOLEAN], false, false, param)

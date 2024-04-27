@@ -20,7 +20,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
     AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CustomTypeConvertor,
     EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor,
-    NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor,
+    NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, ToStringConvertor, TupleConvertor, TypeAliasConvertor,
     UndefinedConvertor, UnionConvertor
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
@@ -176,10 +176,8 @@ export class DeclarationTable {
             return PrimitiveType.Function
         }
         if (ts.isTypeReferenceNode(node)) {
-            let name = identName(node)
-            if (name == "Length") return PrimitiveType.Length
-            // TODO: rethink that!
-            if (name == "AnimationRange") return PrimitiveType.CustomObject
+            let result = this.customToTarget(node)
+            if (result) return result
             // Types with type arguments are declarations!
             if (node.typeArguments) {
                 return node
@@ -570,21 +568,37 @@ export class DeclarationTable {
         this._currentContext = context
     }
 
+    private customToTarget(type: ts.TypeReferenceNode): DeclarationTarget | undefined {
+        let name = identName(type)
+        switch (name) {
+            case `Length`: return PrimitiveType.Length
+            case `AnimationRange`: return PrimitiveType.CustomObject
+            case `ContentModifier`: return PrimitiveType.CustomObject
+            case `Date`: return PrimitiveType.String
+            default: return undefined
+        }
+    }
+
     private customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode): ArgConvertor | undefined {
         let name = getNameWithoutQualifiersRight(typeName)
-        if (name === "Length") return new LengthConvertor(param)
-        if (name === "AttributeModifier")
-            return new PredefinedConvertor(param, "AttributeModifier<any>", "AttributeModifier", "CustomObject")
-        if (name === "AnimationRange")
-            return new CustomTypeConvertor(param, "AnimationRange", "AnimationRange<number>")
-        if (name === "ContentModifier")
-            return new CustomTypeConvertor(param, "ContentModifier", "ContentModifier<any>")
-        if (name === "Array")
-            return new ArrayConvertor(param, this, type, type.typeArguments![0])
-        if (name === "Callback")
-            return new FunctionConvertor(param, this)
-        if (name === "Optional" && type.typeArguments && type.typeArguments.length == 1) {
-            return new OptionConvertor(param, this, type.typeArguments![0])
+        switch (name) {
+            case `Length`:
+                return new LengthConvertor(param)
+            case `Date`:
+                return new ToStringConvertor(param)
+            case `AttributeModifier`:
+                return new PredefinedConvertor(param, "AttributeModifier<any>", "AttributeModifier", "CustomObject")
+            case `AnimationRange`:
+                return new CustomTypeConvertor(param, "AnimationRange", "AnimationRange<number>")
+            case `ContentModifier`:
+                return new CustomTypeConvertor(param, "ContentModifier", "ContentModifier<any>")
+            case `Array`:
+                return new ArrayConvertor(param, this, type, type.typeArguments![0])
+            case `Callback`:
+                return new FunctionConvertor(param, this)
+            case `Optional`:
+                if (type.typeArguments && type.typeArguments.length == 1)
+                    return new OptionConvertor(param, this, type.typeArguments![0])
         }
         return undefined
     }
