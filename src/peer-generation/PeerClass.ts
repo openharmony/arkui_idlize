@@ -34,15 +34,11 @@ export class PeerClass {
     }
 
     get peerParentName(): string {
-        const name = this.originalClassName
-            ?? throwException(`By this time the class name should have been provided: ${this.componentName}`)
-
-        if (isCommonMethod(name)) return "PeerNode"
-        if (isStandalone(name)) return "PeerNode"
-        if (isRoot(name)) return "Finalizable"
-
-        const parent = this.parentComponentName
-            ?? throwException(`Expected component to have parent: ${name}`)
+        const parentRole = determineParentRole(this.originalClassName!, this.parentComponentName)
+        if ([InheritanceRole.Finalizable, InheritanceRole.PeerNode].includes(parentRole)) {
+            return InheritanceRole[parentRole]
+        }
+        const parent = this.parentComponentName ?? throwException(`Expected component to have parent`)
         return `${this.koalaComponentByComponent(parent)}Peer`
     }
 
@@ -80,7 +76,7 @@ export class PeerClass {
         const parentRole = determineParentRole(this.originalClassName!, this.originalParentName)
 
         if (parentRole === InheritanceRole.Finalizable) {
-            printer.print(`constructor(type?: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            printer.print(`constructor(type?: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
             printer.pushIndent()
             printer.print(`super(BigInt(42)) // for now`)
             printer.popIndent()
@@ -88,17 +84,17 @@ export class PeerClass {
             return
         }
         if (parentRole === InheritanceRole.PeerNode) {
-            printer.print(`constructor(type: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            printer.print(`constructor(type: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
             printer.pushIndent()
             printer.print(`super(type, flags)`)
-            printer.print(`component?.setPeer(this)`)
+            printer.print(`component?.setPeer(this.peer)`)
             printer.popIndent()
             printer.print(`}`)
             return
         }
 
         if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
-            printer.print(`constructor(type: ArkUINodeType, component?: ArkComponent, flags: int32 = 0) {`)
+            printer.print(`constructor(type: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
             printer.pushIndent()
             printer.print(`super(type, component, flags)`)
             printer.popIndent()

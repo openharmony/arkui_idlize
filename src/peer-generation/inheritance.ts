@@ -16,12 +16,12 @@ export function determineInheritanceRole(name: string): InheritanceRole {
     return InheritanceRole.Heir
 }
 
-export function determineParentRole(name: string, parent: string|undefined): InheritanceRole {
+export function determineParentRole(name: string, parent: string | undefined): InheritanceRole {
     if (parent === undefined) {
         if (isStandalone(name)) return InheritanceRole.PeerNode
         if (isCommonMethod(name)) return InheritanceRole.PeerNode
-        if (isRoot(name)) return InheritanceRole.Finalizable
-        throw new Error(`Expected check to be exhaustive`)
+        if (isRoot(name)) return InheritanceRole.PeerNode
+        throw new Error(`Expected check to be exhaustive. node: ${name}`)
     }
     if (isRoot(parent)) return InheritanceRole.Root
     return InheritanceRole.Heir

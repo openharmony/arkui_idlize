@@ -1,6 +1,6 @@
-import { NativePeerNode } from "./Interop";
+import { NativePeerNode } from "@koalaui/arkoala"
 
-export class ArkComponent {
+export class ArkCommon {
     protected peer?: NativePeerNode
     setPeer(peer: NativePeerNode) {
     }

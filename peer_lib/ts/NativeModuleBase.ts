@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { KPointer, KStringPtr, KInt, KUint8ArrayPtr } from "./types"
+import { KPointer, KStringPtr, KInt, KUint8ArrayPtr } from "@koalaui/interop"
 
 export class NativeModuleBase {
     _GetGroupedLog(index: KInt): KPointer {

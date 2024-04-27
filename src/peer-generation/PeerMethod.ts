@@ -191,7 +191,7 @@ export class PeerMethod {
                 }
             })
         }
-        let maybeThis = this.hasReceiver ? `this.ptr${peerMethod.argConvertors.length > 0 ? ", " : ""}` : ``
+        let maybeThis = this.hasReceiver ? `this.peer.ptr${peerMethod.argConvertors.length > 0 ? ", " : ""}` : ``
         this.printers.TSPeer.print(`nativeModule()._${peerMethod.originalParentName}_${peerMethod.methodName}(${maybeThis}`)
         this.printers.TSPeer.pushIndent()
         peerMethod.argConvertors.forEach((it, index) => {

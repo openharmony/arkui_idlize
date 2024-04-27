@@ -1,0 +1,9 @@
+{
+  "name": "@koalaui/arkoala",
+  "version": "1.4.1+devel",
+  "description": "",
+  "main": "./index.js",
+  "scripts": {
+    "compile": "tsc index.ts"
+  }
+}

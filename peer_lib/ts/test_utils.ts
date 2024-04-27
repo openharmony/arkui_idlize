@@ -1,5 +1,5 @@
-import {nativeModule} from "./NativeModule"
-import { withStringResult } from "./Interop"
+import { nativeModule } from "./NativeModule"
+import { withStringResult } from "@koalaui/interop"
 
 const TEST_GROUP_LOG = 1
 
