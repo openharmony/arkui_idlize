@@ -75,6 +75,7 @@ const options = program
     .option('--generate-interface <name>', 'Interfaces to generate (comma separated)')
     .option('--disable-enum-initializers', "Don't include enum member initializers in the interface")
     .option('--native-bridge-path <name>', "Path to native bridge")
+    .option('--api-version <version>', "API version for generated peers")
     .option('--dump-serialized', "Dump serialized data")
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
     .option('--version')
@@ -196,7 +197,7 @@ if (options.dts2test) {
     generate(
         options.inputDir,
         options.inputFile,
-        options.outputDir ?? "./tests",
+        options.outputDir ?? "./generated/tests",
         (sourceFile, typeChecker) => new TestGeneratorVisitor(sourceFile, typeChecker, testInterfaces, options.testMethod, options.testProperties),
         {
             compilerOptions: defaultCompilerOptions,
@@ -229,7 +230,7 @@ if (options.idl2dts) {
     fromIDL(
         options.inputDir,
         options.inputFile,
-        options.outputDir ?? "./dts/",
+        options.outputDir ?? "./generated/dts/",
         ".d.ts",
         options.verbose ?? false,
         idlToString,
@@ -252,7 +253,7 @@ if (options.idl2h) {
     if (options.verbose) {
         console.log(body)
     }
-    const outputDir = options.outputDir ?? "./headers"
+    const outputDir = options.outputDir ?? "./generated/headers"
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true })
     }
@@ -276,7 +277,7 @@ if (options.dts2peer) {
     generate(
         options.inputDir,
         undefined,
-        options.outputDir ?? "./peers",
+        options.outputDir ?? "./generated/peers",
         (sourceFile, typeChecker) => new PeerGeneratorVisitor({
             sourceFile: sourceFile,
             typeChecker: typeChecker,
@@ -308,7 +309,6 @@ if (options.dts2peer) {
                     let generated = output.peer
                         .filter(element => (element?.length ?? 0) > 0)
                         .join("\n")
-                    if (options.verbose) console.log(generated)
                     fs.writeFileSync(outPeerFile, generated)
                 }
 
@@ -351,7 +351,7 @@ if (options.dts2peer) {
                 const typedefs = new IndentedPrinter()
 
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable, structs, typedefs))
-                fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeAPI(apiHeaders, apiHeadersList, structs, typedefs))
+                fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeAPI(options.apiVersion ?? "0", apiHeaders, apiHeadersList, structs, typedefs))
 
                 const {dummy, real} = printRealAndDummyModifiers(peerLibrary)
                 fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummy)

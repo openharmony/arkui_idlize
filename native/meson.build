@@ -52,7 +52,8 @@ ldflags = []
 library_name = 'NativeBridge'
 
 if is_clang
-cflags += ['-Wno-address-of-packed-member', '-Wall', '-Werror', '-Wno-unused-variable']
+# TODO: remove all -Wno-* when generation is fixed.
+cflags += ['-Wno-address-of-packed-member', '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-extern-c-compat']
 endif
 
 if is_node

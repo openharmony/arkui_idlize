@@ -113,14 +113,14 @@ export function bridgeCcDeclaration(bridgeCc: string[]): string {
 #include "arkoala_api.h"
 #include "Deserializer.h"
 
-static ArkUIAnyAPI* impls[ArkUIAPIVariantKind::COUNT] = { 0 };
+static ArkUIAnyAPI* impls[Ark_APIVariantKind::COUNT] = { 0 };
 
-const ArkUIAnyAPI* GetAnyImpl(ArkUIAPIVariantKind kind, int version, std::string* result) {
+const ArkUIAnyAPI* GetAnyImpl(Ark_APIVariantKind kind, int version, std::string* result) {
     return impls[kind];
 }
 
 const ArkUIFullNodeAPI* GetFullImpl(std::string* result = nullptr) {
-    return reinterpret_cast<const ArkUIFullNodeAPI*>(GetAnyImpl(ArkUIAPIVariantKind::FULL, ARKUI_FULL_API_VERSION, result));
+    return reinterpret_cast<const ArkUIFullNodeAPI*>(GetAnyImpl(Ark_APIVariantKind::FULL, ARKUI_FULL_API_VERSION, result));
 }
 
 const ArkUINodeModifiers* GetNodeModifiers() {
@@ -252,28 +252,28 @@ typedef struct ArkUIAnyAPI {
 
 export function makeApiHeaders(lines: string[]): string {
     return `
-enum ArkUIAPIVariantKind {
-    BASIC = 1,
-    FULL = 2,
-    GRAPHICS = 3,
-    EXTENDED = 4,
-    COUNT = EXTENDED + 1,
-};
 
 ${lines.join("\n")}
 `
 }
-export function makeAPI(headers: string[], modifiers: string[], structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
-    let structsBase = fs.readFileSync(path.join(__dirname, '../templates/StructsBase.h'),'utf8');
+function readTemplate(name: string): string {
+    return fs.readFileSync(path.join(__dirname, `../templates/${name}`), 'utf8')
+}
+
+export function makeAPI(
+    apiVersion: string,
+    headers: string[], modifiers: string[],
+    structs: IndentedPrinter, typedefs: IndentedPrinter
+): string {
+
+    let prologue = readTemplate('arkoala_api_prologue.h')
+    let epilogue = readTemplate('arkoala_api_epilogue.h')
+
+    prologue = prologue.replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
 
     return `
-#ifndef ARKOALA_API_H_
-#define ARKOALA_API_H_
-
-#include <stdint.h>
-
-${structsBase}
+${prologue}
 
 ${structs.getOutput().join("\n")}
 
@@ -283,7 +283,7 @@ ${makeApiHeaders(headers)}
 
 ${makeApiModifiers(modifiers)}
 
-#endif // ARKOALA_API_H_
+${epilogue}
 `
 }
 

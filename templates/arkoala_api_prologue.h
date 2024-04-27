@@ -1,3 +1,39 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#ifndef GENERATED_FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
+#define GENERATED_FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
+
+/**
+ * THIS FILE IS GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
+ */
+
+// The only include allowed in this file! Do not add anything else ever.
+#include <stdint.h>
+
+#define GENERATED_ARKUI_FULL_API_VERSION %ARKUI_FULL_API_VERSION_VALUE%
+#define GENERATED_ARKUI_NODE_API_VERSION GENERATED_ARKUI_FULL_API_VERSION
+
+#define GENERATED_ARKUI_BASIC_API_VERSION 6
+#define GENERATED_ARKUI_EXTENDED_API_VERSION 6
+#define GENERATED_ARKUI_NODE_GRAPHICS_API_VERSION 5
+#define GENERATED_ARKUI_NODE_MODIFIERS_API_VERSION 6
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum Ark_Tag
 {
   ARK_TAG_UNDEFINED = 101,
@@ -81,3 +117,11 @@ typedef struct Opt_Ark_Callback {
   enum Ark_Tag tag;
   Ark_CustomObject value;
 } Opt_Ark_Callback;
+
+enum Ark_APIVariantKind {
+    BASIC = 1,
+    FULL = 2,
+    GRAPHICS = 3,
+    EXTENDED = 4,
+    COUNT = EXTENDED + 1,
+};
