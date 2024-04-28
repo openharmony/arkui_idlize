@@ -69,6 +69,8 @@
         "panda:sdk:install": "cd panda && npm run panda:sdk:install",
         "compile:arkts:subset": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json",
         "compile:arkts:peers": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-peers.json --ets-module",
-        "run:panda": "LD_LIBRARY_PATH=./native bash ./panda/arkts/ark ./build/abc/subset/index.abc"
+        "run:panda": "LD_LIBRARY_PATH=./native bash ./panda/arkts/ark ./build/abc/subset/index.abc",
+        "run:dummy-panda": "npm run compile:native-node-host-subset && ./native/build-node-host-subset/dummy-panda"
+
     }
 }

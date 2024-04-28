@@ -249,10 +249,7 @@ class EtsExports {
 public:
     static EtsExports* getInstance();
 
-    void addImpl(const char* name, const char* type, void* impl) {
-        implementations.push_back(std::make_tuple(name, type, impl));
-    }
-
+    void addImpl(const char* name, const char* type, void* impl);
     const std::vector<std::tuple<std::string, std::string, void*>>& getImpls() {
         return implementations;
     }
@@ -289,7 +286,7 @@ public:
       P0 p0 = getArgument<P0>(env, a0); \
       return makeResult<Ret>(env, impl_##name(p0)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0)
 
 #define ETS_API_2(name, Ret, P0, P1) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1) { \
@@ -298,7 +295,7 @@ public:
       P1 p1 = getArgument<P1>(env, a1); \
       return makeResult<Ret>(env, impl_##name(p0, p1)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
 
 #define ETS_API_3(name, Ret, P0, P1, P2) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2) { \
@@ -308,7 +305,7 @@ public:
       P2 p2 = getArgument<P2>(env, a2); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2)
 
 #define ETS_API_4(name, Ret, P0, P1, P2, P3) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3) { \
@@ -319,7 +316,7 @@ public:
       P3 p3 = getArgument<P3>(env, a3); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3)
 
 #define ETS_API_5(name, Ret, P0, P1, P2, P3, P4) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4) { \
@@ -331,7 +328,7 @@ public:
       P4 p4 = getArgument<P4>(env, a4); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4)
 
 #define ETS_API_6(name, Ret, P0, P1, P2, P3, P4, P5) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5) { \
@@ -344,7 +341,7 @@ public:
       P5 p5 = getArgument<P5>(env, a5); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
 
 #define ETS_API_7(name, Ret, P0, P1, P2, P3, P4, P5, P6) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6) { \
@@ -358,7 +355,7 @@ public:
       P6 p6 = getArgument<P6>(env, a6); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6)
 
 #define ETS_API_8(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7) { \
@@ -373,7 +370,7 @@ public:
       P7 p7 = getArgument<P7>(env, a7); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7)
 
 #define ETS_API_9(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8) { \
@@ -389,7 +386,7 @@ public:
       P8 p8 = getArgument<P8>(env, a8); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8)
 
 #define ETS_API_10(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9) { \
@@ -406,7 +403,7 @@ public:
       P9 p9 = getArgument<P9>(env, a9); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9)
 
 #define ETS_API_11(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9, T<P10> a10) { \
@@ -424,7 +421,7 @@ public:
       P10 p10 = getArgument<P10>(env, a10); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9 "_" #P10)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10)
 
 #define ETS_API_12(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9, T<P10> a10, T<P11> a11) { \
@@ -443,7 +440,7 @@ public:
       P11 p11 = getArgument<P11>(env, a11); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9 "_" #P10 "_" #P11)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11)
 
 #define ETS_API_13(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9, T<P10> a10, T<P11> a11, T<P12> a12) { \
@@ -463,7 +460,7 @@ public:
       P12 p12 = getArgument<P12>(env, a12); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9 "_" #P10 "_" #P11 "_" #P12)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12)
 
 #define ETS_API_14(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13) \
   T<Ret> Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9, T<P10> a10, T<P11> a11, T<P12> a12, T<P13> a13) { \
@@ -484,7 +481,7 @@ public:
       P13 p13 = getArgument<P13>(env, a13); \
       return makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13)); \
   } \
-  MAKE_ETS_EXPORT(name, #Ret "_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9 "_" #P10 "_" #P11 "_" #P12 "_" #P13)
+  MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12 "|" #P13)
 
 #define ETS_API_V0(name) \
   void Ark_##name(EtsEnv *env) { \
@@ -499,7 +496,7 @@ public:
       P0 p0 = getArgument<P0>(env, a0); \
       impl_##name(p0); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0)
+  MAKE_ETS_EXPORT(name, "void|" #P0)
 
 #define ETS_API_V2(name, P0, P1) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1) { \
@@ -508,7 +505,7 @@ public:
       P1 p1 = getArgument<P1>(env, a1); \
       impl_##name(p0, p1); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1)
 
 #define ETS_API_V3(name, P0, P1, P2) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2) { \
@@ -518,7 +515,7 @@ public:
       P2 p2 = getArgument<P2>(env, a2); \
       impl_##name(p0, p1, p2); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2)
 
 #define ETS_API_V4(name, P0, P1, P2, P3) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3) { \
@@ -529,7 +526,7 @@ public:
       P3 p3 = getArgument<P3>(env, a3); \
       impl_##name(p0, p1, p2, p3); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3)
 
 #define ETS_API_V5(name, P0, P1, P2, P3, P4) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4) { \
@@ -541,7 +538,7 @@ public:
       P4 p4 = getArgument<P4>(env, a4); \
       impl_##name(p0, p1, p2, p3, p4); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4)
 
 #define ETS_API_V6(name, P0, P1, P2, P3, P4, P5) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5) { \
@@ -554,7 +551,7 @@ public:
       P5 p5 = getArgument<P5>(env, a5); \
       impl_##name(p0, p1, p2, p3, p4, p5); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_ " #P5)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
 
 #define ETS_API_V7(name, P0, P1, P2, P3, P4, P5, P6) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6) { \
@@ -568,7 +565,7 @@ public:
       P6 p6 = getArgument<P6>(env, a6); \
       impl_##name(p0, p1, p2, p3, p4, p5, p6); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6)
 
 #define ETS_API_V8(name, P0, P1, P2, P3, P4, P5, P6, P7) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7) { \
@@ -583,7 +580,7 @@ public:
       P7 p7 = getArgument<P7>(env, a7); \
       impl_##name(p0, p1, p2, p3, p4, p5, p6, p7); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7)
 
 #define ETS_API_V9(name, P0, P1, P2, P3, P4, P5, P6, P7, P8) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8) { \
@@ -599,7 +596,7 @@ public:
       P8 p8 = getArgument<P8>(env, a8); \
       impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8)
 
 #define ETS_API_V10(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9) { \
@@ -616,7 +613,7 @@ public:
       P9 p9 = getArgument<P9>(env, a9); \
       impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9)
 
 #define ETS_API_V11(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9, T<P10> a10) { \
@@ -634,7 +631,7 @@ public:
       P10 p10 = getArgument<P10>(env, a10); \
       impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9 "_" #P10)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10)
 
 #define ETS_API_V12(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9, T<P10> a10, T<P11> a11) { \
@@ -653,7 +650,7 @@ public:
       P11 p11 = getArgument<P11>(env, a11); \
       impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9 "_" #P10 "_" #P11)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11)
 
 #define ETS_API_V13(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9, T<P10> a10, T<P11> a11, T<P12> a12) { \
@@ -673,7 +670,7 @@ public:
       P12 p12 = getArgument<P12>(env, a12); \
       impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9 "_" #P10 "_" #P11 "_" #P12)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12)
 
 #define ETS_API_V14(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13) \
   void Ark_##name(EtsEnv *env, T<P0> a0, T<P1> a1, T<P2> a2, T<P3> a3, T<P4> a4, T<P5> a5, T<P6> a6, T<P7> a7, T<P8> a8, T<P9> a9, T<P10> a10, T<P11> a11, T<P12> a12, T<P13> a13) { \
@@ -694,7 +691,7 @@ public:
       P13 p13 = getArgument<P13>(env, a13); \
       impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13); \
   } \
-  MAKE_ETS_EXPORT(name, "void_" #P0 "_" #P1 "_" #P2 "_" #P3 "_" #P4 "_" #P5 "_" #P6 "_" #P7 "_" #P8 "_" #P9 "_" #P10 "_" #P11 "_" #P12 "_" #P13)
+  MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12 "|" #P13)
 
 #else
 #define ETS_API_0(name, Ret)

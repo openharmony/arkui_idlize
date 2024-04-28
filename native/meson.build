@@ -115,6 +115,12 @@ shared_library(arkts_library_name,
     link_args: ldflags,
     dependencies: []
 )
+executable('dummy-panda',
+    gen_dir / 'dummy-panda.cc',
+    c_args: cflags,
+    install_dir: meson.current_source_dir()
+)
+
 endif
 
 executable('test_arkoala_api',

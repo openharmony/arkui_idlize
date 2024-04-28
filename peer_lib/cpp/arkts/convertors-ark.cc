@@ -47,9 +47,11 @@ extern "C"
         EtsNativeMethod* methods = new EtsNativeMethod[numMethods];
         for (size_t i = 0; i < numMethods; i++) {
             // Fill in native methods table!
-            fprintf(stderr, "Adding %s typed %s\n", std::get<0>(impls[i]).c_str(), std::get<1>(impls[i]).c_str());
+            methods[i].name = std::get<0>(impls[i]).c_str();
+            methods[i].signature = std::get<1>(impls[i]).c_str();
+            methods[i].func = std::get<2>(impls[i]);
         }
-        return registerNativeMethods(env, "NativeModule", gMethods, sizeof(gMethods) / sizeof(gMethods[0]));
+        return registerNativeMethods(env, "NativeModule", methods, numMethods);
     }
 
     ETS_EXPORT ets_int ETS_CALL EtsNapiOnLoad(EtsEnv *env)

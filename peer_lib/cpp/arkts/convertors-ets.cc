@@ -79,3 +79,37 @@ EtsExports* EtsExports::getInstance() {
     }
     return instance;
 }
+
+void addType(const std::string& type, std::string* result) {
+    if (type == "void")
+        result->append("V");
+    else if (type == "KInt" || type == "Ark_Int32" || type == "Ark_Boolean" || type == "int32_t")
+        result->append("I");
+    else if (type == "Ark_NativePointer" || type == "KNativePointer")
+        result->append("J");
+    else if (type == "KByte*" || type == "uint8_t*")
+        result->append("[B");
+    else if (type == "KStringPtr")
+        result->append("Lstd/core/String;");
+    else {
+        fprintf(stderr, "Unhandled type: %s\n", type.c_str());
+        throw "Error";
+    }
+}
+
+std::string convertType(const char* koalaType) {
+    std::string result;
+    size_t current = 0, last = 0;
+    std::string token;
+    std::string input(koalaType);
+    while ((current = input.find('|', last)) != std::string::npos) {
+        auto token = input.substr(last, current - last);
+        addType(token, &result);
+        last = current + 1;
+    }
+    return result;
+}
+
+void EtsExports:: addImpl(const char* name, const char* type, void* impl) {
+    implementations.push_back(std::make_tuple(name, convertType(type), impl));
+}
