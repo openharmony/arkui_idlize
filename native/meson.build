@@ -15,8 +15,11 @@ else
 is_arkts = false
 endif
 
+java_home = run_command('node', '-e', 'console.log(process.env.JAVA_HOME)').stdout().strip()
+
 is_node = true
 is_arkts = true
+is_jni = java_home != 'undefined'
 
 gen_dir = '../generated/' + source_set
 
@@ -57,6 +60,7 @@ ldflags = []
 
 node_library_name = 'NativeBridgeNapi'
 arkts_library_name = 'NativeBridgeArk'
+jni_library_name = 'NativeBridgeJni'
 
 if is_clang
 # TODO: remove all -Wno-* when generation is fixed.
@@ -81,9 +85,17 @@ node_module_suffix = 'node'
 arkts_cflags = ['-DKOALA_USE_ARK_VM', '-DKOALA_USE_ARK_VM_WITH_ETS', '-DKOALA_ETS_NAPI']
 arkts_include_dirs = []
 arkts_sources = [
-    gen_dir + '/convertors-ark.cc',
-    gen_dir + '/convertors-ets.cc',
+    gen_dir / 'convertors-ark.cc',
+    gen_dir / 'convertors-ets.cc',
 ]
+
+if is_jni
+jni_cflags = ['-DKOALA_USE_JAVA_VM', '-DKOALA_JNI']
+jni_include_dirs = [ java_home / 'include', java_home / 'include' / 'darwin']
+jni_sources = [
+    gen_dir / 'convertors-jni.cc',
+]
+endif
 
 if is_node
 shared_library(node_library_name,
@@ -122,6 +134,22 @@ executable('dummy-panda',
 )
 
 endif
+
+if is_jni
+shared_library(jni_library_name,
+    sources + jni_sources,
+    override_options: [
+        'b_lundef=false',
+    ],
+    install: true,
+    include_directories: include_dirs + jni_include_dirs,
+    install_dir: meson.current_source_dir(),
+    cpp_args: cflags + jni_cflags,
+    link_args: ldflags,
+    dependencies: []
+)
+endif
+
 
 executable('test_arkoala_api',
     gen_dir / 'api_test.c',

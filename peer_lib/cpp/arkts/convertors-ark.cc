@@ -16,15 +16,6 @@
 #include "convertors-ark.h"
 extern "C"
 {
-    ETS_EXPORT ets_string ETS_CALL ETS_NativeModule_hello(EtsEnv *env, [[maybe_unused]] ets_class)
-    {
-        return env->NewStringUTF("Hello");
-    }
-
-    static EtsNativeMethod gMethods[] = {
-        {"hello", ":Lstd/core/String;", (void *)ETS_NativeModule_hello},
-    };
-
     static int registerNativeMethods(EtsEnv* env, const char *classname, EtsNativeMethod *methods, int countMethods)
     {
         ets_class clazz = env->FindClass(classname);
