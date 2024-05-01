@@ -62,7 +62,6 @@ struct InteropTypeConverter<KNativePointer> {
     static void release(EtsEnv* env, InteropType value, KNativePointer converted) {}
 };
 
-
 template<>
 struct InteropTypeConverter<KInt*> {
     using InteropType = ets_intArray;
