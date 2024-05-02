@@ -106,15 +106,51 @@ export class NativeModule {
     static native _VectorAttribute_testUnionVector1Number(arg1: long, arg2: byte[], arg3: int): void;
     static native _VectorAttribute_testUnionVector2Number(arg1: long, arg2: byte[], arg3: int): void;
 
-    public static run(): void {
+    public static run0(): void {
         let string = "HELLO"
         let value = NativeModule._StringMake(string)
         console.log("NativeModule._StringMake gave " + value + " for " + string)
         console.log("NativeModule._StringLength gave " + NativeModule._StringLength(value))
     }
+    public static run(): void {
+        checkPerf(10 * 1000 * 1000)
+    }
 }
 
+function checkPerf(count: number) {
+    let start = Date.now()
+    for (let i = 0; i < count; i++) {
+        NativeModule._TestPerfNumber(i)
+    }
+    let passed = Date.now() - start
+    console.log(`NUMBER: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
+
+    start = Date.now()
+    for (let i = 0; i < count; i++) {
+        let data = new byte[5]
+        data[0] = 1
+        data[1] = (i >> 24) as byte
+        data[2] = (i >> 16) as byte
+        data[3] = (i >> 8) as byte
+        data[4] = (i >> 0) as byte
+        NativeModule._TestPerfNumberWithArray(data, data.length)
+    }
+    passed = Date.now() - start
+    console.log(`ARRAY: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
+}
+/*
+V8:
+NUMBER: 111.8373319990933ms for 1000000 iteration, 112ms per 1M iterations
+ARRAY: 955.3288690000772ms for 1000000 iteration, 955ms per 1M iterations
+
+PANDA:
+"NUMBER: 1317ms for 10000000 iteration, 132ms per 1M iterations"
+"ARRAY: 4264ms for 10000000 iteration, 426ms per 1M iterations"
+
+JVM:
+NUMBER: 162ms for 10000000 iteration, 16ms per 1M iterations
+ARRAY: 241ms for 10000000 iteration, 24ms per 1M iterations
+*/
 export function main(): void {
-    console.log("in main()")
     NativeModule.run()
 }
