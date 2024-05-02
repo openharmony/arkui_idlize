@@ -15,47 +15,42 @@
 
 #include "convertors-jni.h"
 
-extern "C"
+static bool registerNativeMethods(JNIEnv *env, const char *classname, JNINativeMethod *methods, int countMethods)
 {
-    static bool registerNativeMethods(JNIEnv *env, const char *classname, JNINativeMethod *methods, int countMethods)
-    {
-        jclass clazz = env->FindClass(classname);
-        if (clazz == nullptr)
-            return false;
-        if (env->RegisterNatives(clazz, methods, countMethods) < 0)
-            return false;
-        return true;
-    }
+    jclass clazz = env->FindClass(classname);
+    if (clazz == nullptr)
+        return false;
+    if (env->RegisterNatives(clazz, methods, countMethods) < 0)
+        return false;
+    return true;
+}
 
-    static bool registerNatives(JNIEnv *env)
+static bool registerNatives(JNIEnv *env)
+{
+    JniExports *exports = JniExports::getInstance();
+    auto &impls = exports->getImpls();
+    size_t numMethods = impls.size();
+    JNINativeMethod *methods = new JNINativeMethod[numMethods];
+    for (size_t i = 0; i < numMethods; i++)
     {
-        JniExports *exports = JniExports::getInstance();
-        auto &impls = exports->getImpls();
-        size_t numMethods = impls.size();
-        JNINativeMethod *methods = new JNINativeMethod[numMethods];
-        for (size_t i = 0; i < numMethods; i++)
-        {
-            methods[i].name = (char *)std::get<0>(impls[i]).c_str();
-            methods[i].signature = (char *)std::get<1>(impls[i]).c_str();
-            methods[i].fnPtr = std::get<2>(impls[i]);
-            // fprintf(stderr, "%s %s()\n", methods[i].name,  methods[i].signature);
-        }
-        return registerNativeMethods(env, "NativeModule", methods, numMethods);
+        methods[i].name = (char *)std::get<0>(impls[i]).c_str();
+        methods[i].signature = (char *)std::get<1>(impls[i]).c_str();
+        methods[i].fnPtr = std::get<2>(impls[i]);
+        // fprintf(stderr, "%s %s()\n", methods[i].name,  methods[i].signature);
     }
+    return registerNativeMethods(env, "NativeModule", methods, numMethods);
+}
 
-    JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    JNIEnv *env;
+    if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_8) != JNI_OK)
     {
-        JNIEnv *env;
-        if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_8) != JNI_OK)
-        {
-            return JNI_ERR;
-        }
-        if (!registerNatives(env))
-            return JNI_ERR;
-        return JNI_VERSION_1_8;
+        return JNI_ERR;
     }
+    if (!registerNatives(env)) return JNI_ERR;
+    return JNI_VERSION_1_8;
+}
 
-} // extern "C"
 
 JniExports *JniExports::getInstance()
 {
@@ -81,8 +76,7 @@ void addType(const std::string &type, std::string *result)
         result->append("[B");
     else if (type == "KStringPtr")
         result->append("Ljava/lang/String;");
-    else
-    {
+    else {
         fprintf(stderr, "Unhandled type: %s\n", type.c_str());
         throw "Error";
     }
@@ -100,8 +94,7 @@ std::string javaType(const std::string &type)
         return "byte[]";
     else if (type == "KStringPtr")
         return "String";
-    else
-    {
+    else {
         fprintf(stderr, "Unhandled type: %s\n", type.c_str());
         throw "Error";
     }

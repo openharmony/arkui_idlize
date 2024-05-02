@@ -40,25 +40,63 @@ void addType(const std::string& type, std::string* result) {
     }
 }
 
-std::string convertType(const char* koalaType) {
+std::string etsType(const std::string &type)
+{
+    if (type == "void")
+        return type;
+    else if (type == "KInt" || type == "Ark_Int32" || type == "Ark_Boolean" || type == "int32_t" || type == "KUInt")
+        return "int";
+    else if (type == "Ark_NativePointer" || type == "KNativePointer")
+        return "long";
+    else if (type == "KByte*" || type == "uint8_t*")
+        return "byte[]";
+    else if (type == "KStringPtr")
+        return "String";
+    else {
+        fprintf(stderr, "Unhandled type: %s\n", type.c_str());
+        throw "Error";
+    }
+}
+
+std::string convertType(const char* name, const char* koalaType) {
     std::string result;
     size_t current = 0, last = 0;
     std::string input(koalaType);
-    bool seenReturn = false;
-    while ((current = input.find('|', last)) != std::string::npos) {
+
+    std::vector<std::string> tokens;
+    while ((current = input.find('|', last)) != std::string::npos)
+    {
         auto token = input.substr(last, current - last);
-        addType(token, &result);
-        if (!seenReturn) {
-            result.append(":");
-            seenReturn = true;
-        }
+        tokens.push_back(token);
         last = current + 1;
     }
-    auto token = input.substr(last, input.length() - last);
-    addType(token, &result);
+    tokens.push_back(input.substr(last, input.length() - last));
+
+    addType(tokens[0], &result);
+    result.append(":");
+    for (int i = 1; i < (int)tokens.size(); i++)
+    {
+        addType(tokens[i], &result);
+    }
+
+    if (false)
+    {
+        std::string params;
+        for (int i = 1; i < (int)tokens.size(); i++)
+        {
+            params.append("arg");
+            params.append(std::to_string(i));            
+            params.append(": ");
+            params.append(etsType(tokens[i]));
+            if (i < (int)(tokens.size() - 1))
+                params.append(", ");
+        }
+        fprintf(stderr, "static native %s(%s): %s;\n", name, params.c_str(), etsType(tokens[0]).c_str());
+    }
+
     return result;
 }
 
-void EtsExports:: addImpl(const char* name, const char* type, void* impl) {
-    implementations.push_back(std::make_tuple(name, convertType(type), impl));
+void EtsExports::addImpl(const char* name, const char* type, void* impl) {
+    implementations.push_back(std::make_tuple(name, convertType(name, type), impl));
 }

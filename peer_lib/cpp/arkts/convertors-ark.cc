@@ -14,41 +14,32 @@
  */
 
 #include "convertors-ark.h"
-extern "C"
+
+static int registerNativeMethods(EtsEnv *env, const char *classname, EtsNativeMethod *methods, int countMethods) {
+    ets_class clazz = env->FindClass(classname);
+    if (clazz == nullptr) return ETS_FALSE;
+    if (env->RegisterNatives(clazz, methods, countMethods) < 0) return ETS_FALSE;
+    return ETS_TRUE;
+}
+
+static bool registerNatives(EtsEnv *env)
 {
-    static int registerNativeMethods(EtsEnv* env, const char *classname, EtsNativeMethod *methods, int countMethods)
+    EtsExports *exports = EtsExports::getInstance();
+    auto &impls = exports->getImpls();
+    size_t numMethods = impls.size();
+    EtsNativeMethod *methods = new EtsNativeMethod[numMethods];
+    for (size_t i = 0; i < numMethods; i++)
     {
-        ets_class clazz = env->FindClass(classname);
-        if (clazz == nullptr)
-        {
-            return ETS_FALSE;
-        }
-        if (env->RegisterNatives(clazz, methods, countMethods) < 0)
-        {
-            return ETS_FALSE;
-        }
-        return ETS_TRUE;
+        // Fill in native methods table!
+        methods[i].name = std::get<0>(impls[i]).c_str();
+        // TODO: convert signatures properly.
+        methods[i].signature = nullptr; // std::get<1>(impls[i]).c_str();
+        methods[i].func = std::get<2>(impls[i]);
     }
+    return registerNativeMethods(env, "NativeModule", methods, numMethods);
+}
 
-    static bool registerNatives(EtsEnv *env)
-    {
-        EtsExports* exports = EtsExports::getInstance();
-        auto& impls = exports->getImpls();
-        size_t numMethods = impls.size();
-        EtsNativeMethod* methods = new EtsNativeMethod[numMethods];
-        for (size_t i = 0; i < numMethods; i++) {
-            // Fill in native methods table!
-            methods[i].name = std::get<0>(impls[i]).c_str();
-            methods[i].signature = std::get<1>(impls[i]).c_str();
-            methods[i].func = std::get<2>(impls[i]);
-        }
-        return registerNativeMethods(env, "NativeModule", methods, numMethods);
-    }
-
-    ETS_EXPORT ets_int ETS_CALL EtsNapiOnLoad(EtsEnv *env)
-    {
-        if (!registerNatives(env)) return -1;
-        return ETS_NAPI_VERSION_1_0;
-    }
-
-} // extern "C"
+extern "C" ETS_EXPORT ets_int ETS_CALL EtsNapiOnLoad(EtsEnv *env) {
+    if (!registerNatives(env)) return -1;
+    return ETS_NAPI_VERSION_1_0;
+}
