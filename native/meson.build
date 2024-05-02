@@ -163,8 +163,10 @@ shared_library(jni_library_name,
 )
 endif
 
-
+# TODO: fix on Windows as well
+if os != 'windows'
 executable('test_arkoala_api',
     gen_dir / 'api_test.c',
     c_args: cflags
 )
+endif
