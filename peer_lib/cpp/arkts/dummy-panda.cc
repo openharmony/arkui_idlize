@@ -30,6 +30,10 @@ void* findSymbol(void* library, const char* name) {
     return (void*)GetProcAddress(reinterpret_cast<HMODULE>(library), name);
 }
 
+std::string libName(const char* lib) {
+    return std::string(lib) + ".dll";
+}
+
 #else
 #include <dlfcn.h>
 
@@ -43,6 +47,19 @@ const char* libraryError() {
 
 void* findSymbol(void* library, const char* name) {
     return dlsym(library, name);
+}
+
+std::string libName(const char* lib) {
+    std::string result;
+    std::string prefix =
+#ifdef KOALA_MACOS
+    ".dylib"
+#else
+    ".so"
+#endif
+    ;
+    result = "lib" + std::string(lib) + suffix;
+    return result;
 }
 
 #endif
