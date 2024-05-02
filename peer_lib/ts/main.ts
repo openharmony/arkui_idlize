@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { SerializerBase } from "@arkoala/arkui/SerializerBase"
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
@@ -29,6 +29,7 @@ import {
     checkResult,
     checkTestFailures
 } from "./test_utils"
+import { nativeModule } from "../../generated/subset/NativeModule"
 
 // TODO: hacky way to detect subset vs full.
 clearNativeLog()
@@ -118,6 +119,28 @@ function checkParticle() {
     checkResult("emitter", () => peer.emitterAttribute([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}]),
         `emitter([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}])`)
 }
+
+function checkPerf(count: number) {
+    let module = nativeModule()
+    let start = performance.now()
+    for (let i = 0; i < count; i++) {
+        module._TestPerfNumber(i)
+    }
+    let passed = performance.now() - start
+    console.log(`NUMBER: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M interations`)
+
+    start = performance.now()
+    for (let i = 0; i < count; i++) {
+        let serializer = new SerializerBase(5)
+        serializer.writeNumber(0)
+        let data = serializer.asArray()
+        module._TestPerfNumberWithArray(data, data.length)
+    }
+    passed = performance.now() - start
+    console.log(`BOOLEAN: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M interations`)
+}
+
+checkPerf(10 * 1000 * 1000)
 
 checkButton()
 checkCalendar()

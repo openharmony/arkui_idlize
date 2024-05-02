@@ -40,11 +40,23 @@ public:
     }
 };
 
+#ifdef _MSC_VER
+#define MAKE_JNI_EXPORT(name, type)                             \
+    static void __init_##name() {                               \
+        JniExports::getInstance()->addImpl("_"#name, type, reinterpret_cast<void *>(Java_org_##name)); \
+    }                                                           \
+    namespace {                                                 \
+      struct __Init_##name {                                    \
+        __Init_##name() {  __init_##name(); }                   \
+      } __Init_##name##_v;                                      \
+    }
+#else
 #define MAKE_JNI_EXPORT(name, type) \
     __attribute__((constructor)) \
     static void __init_jni_##name() { \
         JniExports::getInstance()->addImpl("_"#name, type, reinterpret_cast<void *>(Java_org_##name)); \
     }
+#endif
 
 template<class T>
 struct InteropTypeConverter {

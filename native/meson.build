@@ -47,11 +47,13 @@ is_clang = not is_msvc
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
 archs = { 'x86_64': 'x64', 'aarch64': 'arm64', 'wasm32': 'wasm' }
-
+jni_oses = { 'windows': 'win32' }
 os = target_machine.system()
 os = oses.get(os, os)
 arch = target_machine.cpu()
 arch = archs.get(arch, arch)
+jni_os = target_machine.system()
+jni_os = jni_oses.get(jni_os, jni_os)
 
 cxx = meson.get_compiler('cpp')
 
@@ -78,6 +80,9 @@ node_sources = [
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
     node_sources += [ gen_dir + '/win-dynamic-node.cc' ]
+    panda_ldflags = []
+else
+    panda_ldflags = ['-ldl']
 endif
 node_module_prefix = ''
 node_module_suffix = 'node'
@@ -91,7 +96,7 @@ arkts_sources = [
 
 if is_jni
 jni_cflags = ['-DKOALA_USE_JAVA_VM', '-DKOALA_JNI']
-jni_include_dirs = [ java_home / 'include', java_home / 'include' / 'darwin']
+jni_include_dirs = [ java_home / 'include', java_home / 'include' / jni_os ]
 jni_sources = [
     gen_dir / 'convertors-jni.cc',
 ]
@@ -129,8 +134,8 @@ shared_library(arkts_library_name,
 )
 executable('dummy-panda',
     gen_dir / 'dummy-panda.cc',
-    c_args: cflags,
-    link_args: ['-ldl'],
+    cpp_args: cflags,
+    link_args: panda_ldflags,
     install_dir: meson.current_source_dir()
 )
 

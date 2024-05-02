@@ -12,8 +12,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <string>
 
+#ifdef KOALA_WINDOWS
+#include <windows.h>
+// Here we need to find module where GetArkUINodeAPI()
+// function is implemented.
+void* loadLibrary(const std::string& libPath) {
+    return GetModuleHandle(libPath.c_str());
+}
+
+const char* libraryError() {
+    return "";
+}
+
+void* findSymbol(void* library, const char* name) {
+    return (void*)GetProcAddress(reinterpret_cast<HMODULE>(library), name);
+}
+
+#else
 #include <dlfcn.h>
+
+void* loadLibrary(const std::string& libPath) {
+    return dlopen(libPath.c_str(), RTLD_LOCAL | RTLD_NOW);
+}
+
+const char* libraryError() {
+    return dlerror();
+}
+
+void* findSymbol(void* library, const char* name) {
+    return dlsym(library, name);
+}
+
+#endif
 #include <stdio.h>
 
 #include <string>
@@ -47,12 +79,12 @@ ets_class findClass(EtsEnv *env, const char *name) {
 
 int main(int argc, const char** argv) {
     std::string libPath = std::string("./native/") + libName("NativeBridgeArk");
-    void* lib = dlopen(libPath.c_str(), RTLD_LOCAL | RTLD_NOW);
+    void* lib = loadLibrary(libPath);
     if (!lib) {
-        fprintf(stderr, "Cannot load library %s: %s\n", libPath.c_str(), dlerror());
+        fprintf(stderr, "Cannot load library %s: %s\n", libPath.c_str(), libraryError());
         return 1;
     }
-    EtsNapiOnLoad_t onLoad = reinterpret_cast<EtsNapiOnLoad_t>(dlsym(lib, "EtsNapiOnLoad"));
+    EtsNapiOnLoad_t onLoad = reinterpret_cast<EtsNapiOnLoad_t>(findSymbol(lib, "EtsNapiOnLoad"));
     if (!onLoad) {
         fprintf(stderr, "Cannot find entry point\n");
         return 1;

@@ -160,3 +160,12 @@ void impl_ClearGroupedLog(KInt index) {
     clearGroupedLog(index);
 }
 KOALA_INTEROP_V1(ClearGroupedLog, KInt)
+
+KInt impl_TestPerfNumber(KInt value) {
+    return value + 1;
+}
+KOALA_INTEROP_1(TestPerfNumber, KInt, KInt)
+
+void impl_TestPerfNumberWithArray(KByte* data, KInt length) {
+}
+KOALA_INTEROP_V2(TestPerfNumberWithArray, KByte*, KInt)

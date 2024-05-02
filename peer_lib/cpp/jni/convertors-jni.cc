@@ -75,6 +75,8 @@ void addType(const std::string &type, std::string *result)
         result->append("I");
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         result->append("J");
+    else if (type == "KBoolean")
+        result->append("Z");
     else if (type == "KByte*" || type == "uint8_t*")
         result->append("[B");
     else if (type == "KStringPtr")

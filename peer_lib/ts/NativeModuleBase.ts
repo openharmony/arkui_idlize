@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { KPointer, KStringPtr, KInt, KUint8ArrayPtr } from "@koalaui/interop"
+import { KPointer, KStringPtr, KInt, KUint8ArrayPtr, KInt32ArrayPtr } from "@koalaui/interop"
 
 export class NativeModuleBase {
     _GetGroupedLog(index: KInt): KPointer {
@@ -37,4 +37,6 @@ export class NativeModuleBase {
     _StringMake(value: KStringPtr): KPointer {
         throw new Error("_StringMake")
     }
+    _TestPerfNumber(value: KInt): KInt { return 0 }
+    _TestPerfNumberWithArray(value: KUint8ArrayPtr, length: KInt): void {}
 }

@@ -768,7 +768,7 @@ export class NumberConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeNumber(${value})`)
     }
     convertorCArg(param: string): string {
-        throw new Error("Not used now")
+        return param
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readNumber();`)
@@ -779,7 +779,7 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 
     interopType(ts: boolean): string {
-        throw new Error("Not used now") // return ts ? "KInt" : PrimitiveType.Number.getText()
+        return ts ? "KInt" : "InteropNumber"
     }
     estimateSize() {
         return 5
