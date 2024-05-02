@@ -51,7 +51,7 @@ void* findSymbol(void* library, const char* name) {
 
 std::string libName(const char* lib) {
     std::string result;
-    std::string prefix =
+    std::string suffix =
 #ifdef KOALA_MACOS
     ".dylib"
 #else
