@@ -130,6 +130,7 @@ shared_library(arkts_library_name,
 executable('dummy-panda',
     gen_dir / 'dummy-panda.cc',
     c_args: cflags,
+    link_args: ['-ldl'],
     install_dir: meson.current_source_dir()
 )
 
