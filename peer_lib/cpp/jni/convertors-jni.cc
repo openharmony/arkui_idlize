@@ -122,7 +122,7 @@ std::string convertType(const char *name, const char *koalaType)
     tokens.push_back(input.substr(last, input.length() - last));
 
     result.append("(");
-    for (int i = 1; i < tokens.size(); i++)
+    for (int i = 1; i < (int)tokens.size(); i++)
     {
         addType(tokens[i], &result);
     }
@@ -132,12 +132,12 @@ std::string convertType(const char *name, const char *koalaType)
     if (false)
     {
         std::string params;
-        for (int i = 1; i < tokens.size(); i++)
+        for (int i = 1; i < (int)tokens.size(); i++)
         {
             params.append(javaType(tokens[i]));
             params.append(" arg");
             params.append(std::to_string(i));
-            if (i < tokens.size() - 1)
+            if (i < (int)(tokens.size() - 1))
                 params.append(", ");
         }
         fprintf(stderr, "static native %s %s(%s);\n", javaType(tokens[0]).c_str(), name, params.c_str());

@@ -137,7 +137,7 @@ function checkPerf(count: number) {
         module._TestPerfNumberWithArray(data, data.length)
     }
     passed = performance.now() - start
-    console.log(`BOOLEAN: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M interations`)
+    console.log(`ARRAY: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M interations`)
 }
 
 checkPerf(10 * 1000 * 1000)
