@@ -32,41 +32,7 @@ export class PeerFile {
         return getOrPut(this.peers, componentName, () => new PeerClass(this, componentName, this.originalFilename, this.declarationTable))
     }
 
-    generateComponent(): string[] {
-        const componentImports = new ImportsCollector()
-        componentImports.addFilterByBasename(renameDtsToComponent(path.basename(this.originalFilename), this.declarationTable.language))
-        this.peers.forEach(peer => peer.collectComponentImports(componentImports))
-
-        const printer = new IndentedPrinter()
-        componentImports.print(printer)
-        this.peers.forEach(peer => peer.printComponent(printer))
-        return printer.getOutput()
-    }
-
-    generatePeer(): string[] {
-        const peerImports = new ImportsCollector()
-        peerImports.addFilterByBasename(renameDtsToPeer(path.basename(this.originalFilename), this.declarationTable.language))
-        this.peers.forEach(peer => peer.collectPeerImports(peerImports))
-
-        const printer = new IndentedPrinter()
-        peerImports.print(printer)
-        PeerFile._defaultPeerImports.forEach(it => printer.print(it))
-        this.peers.forEach(peer => peer.printPeer(printer))
-        return printer.getOutput()
-    }
-
     printGlobal(printers: Printers): void {
         this.peers.forEach(it => it.printGlobal(printers))
     }
-
-    private static readonly _defaultPeerImports = [
-        `import { int32 } from "@koalaui/common"`,
-        `import { PeerNode } from "@koalaui/arkoala"`,
-        `import { nullptr, KPointer } from "@koalaui/interop"`,
-        `import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"`,
-        `import { Serializer } from "./Serializer"`,
-        `import { nativeModule } from "./NativeModule"`,
-        `import { ArkUINodeType } from "./ArkUINodeType"`,
-        `import { ArkCommon } from "./ArkCommon"`,
-    ]
 }

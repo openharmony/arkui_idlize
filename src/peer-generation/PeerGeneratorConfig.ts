@@ -25,7 +25,7 @@ export class PeerGeneratorConfig {
 
     private static knownParametrized = ["Indicator", "AttributeModifier", "AnimationRange", "ContentModifier", "SizeT", "PositionT"]
 
-    public static invalidAttributes = ["ArkScrollableCommon"]
+    public static invalidAttributes = ["ScrollableCommon"]
 
     // TODO: need a better logic to know if the XxxInterface
     // doesn't have a XxxAttribute class which needs a peer.

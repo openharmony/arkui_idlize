@@ -30,7 +30,6 @@ import {
     isCustomComponentClass,
 } from "../util"
 import { GenericVisitor } from "../options"
-import { IndentedPrinter } from "../IndentedPrinter"
 import {
     ArgConvertor, RetConvertor,
 } from "./Convertors"
@@ -88,7 +87,6 @@ export type PeerGeneratorVisitorOptions = {
     sourceFile: ts.SourceFile
     typeChecker: ts.TypeChecker
     interfacesToGenerate: Set<string>
-    dumpSerialized: boolean
     declarationTable: DeclarationTable,
     peerLibrary: PeerLibrary
 }
@@ -97,7 +95,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
     private seenAttributes = new Set<string>()
     private readonly sourceFile: ts.SourceFile
     private interfacesToGenerate: Set<string>
-    private dumpSerialized: boolean
     declarationTable: DeclarationTable
 
     static readonly serializerBaseMethods = serializerBaseMethods()
@@ -110,7 +107,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         this.sourceFile = options.sourceFile
         this.typeChecker = options.typeChecker
         this.interfacesToGenerate = options.interfacesToGenerate
-        this.dumpSerialized = options.dumpSerialized
         this.declarationTable = options.declarationTable
         this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable)
         this.peerLibrary = options.peerLibrary
@@ -302,7 +298,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             collapsed?.paramsDecl ?? this.generateParams(method.parameters),
             collapsed?.paramsUsage ?? this.generateValues(argConvertors),
             collapsed?.paramsTypes ?? this.generateParamsTypes(method.parameters),
-            this.dumpSerialized
         )
         console.log(`processing ${peerMethod.originalParentName}.${peerMethod.fullMethodName}`)
 
@@ -352,7 +347,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
     }
 
     private createComponentAttributesDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration, peer: PeerClass): void {
-        if (PeerGeneratorConfig.invalidAttributes.includes(peer.koalaComponentName)) {
+        if (PeerGeneratorConfig.invalidAttributes.includes(peer.componentName)) {
             return
         }
         node.members.forEach(child => {

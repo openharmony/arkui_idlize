@@ -23,8 +23,6 @@ export type PeerLibraryOutput = {
     nativeModuleMethods: string[]
     nativeModuleEmptyMethods: string[]
     nodeTypes: string[]
-    components: Map<string, string[]>
-    peers: Map<string, string[]>
     commonMethods: string[]
     customComponentMethods: string[]
 }
@@ -48,20 +46,14 @@ export class PeerLibrary {
 
     generate(): PeerLibraryOutput {
         const printers = new Printers()
-        const components = new Map<string, string[]>()
-        const peers = new Map<string, string[]>()
         for (const file of this.files) {
             file.printGlobal(printers)
-            components.set(file.originalFilename, file.generateComponent())
-            peers.set(file.originalFilename, file.generatePeer())
         }
         return {
             outputC: printers.C.getOutput(),
             nativeModuleMethods: printers.nativeModule.getOutput(),
             nativeModuleEmptyMethods: printers.nativeModuleEmpty.getOutput(),
             nodeTypes: printers.nodeTypes.getOutput(),
-            components: components,
-            peers: peers,
             commonMethods: this.commonMethods,
             customComponentMethods: this.customComponentMethods,
         }

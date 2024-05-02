@@ -34,7 +34,6 @@ export class PeerMethod {
         public mappedParams: string | undefined,
         public mappedParamValues: string | undefined,
         public mappedParamsTypes: string[] | undefined,
-        private dumpSerialized: boolean
     ) {
         this.fullMethodName = isCallSignature ? methodName : this.peerMethodName()
     }
@@ -67,68 +66,6 @@ export class PeerMethod {
             }
         })
         return `${this.retConvertor.macroSuffixPart()}${counter}`
-    }
-
-    printComponentMethod(printer: IndentedPrinter) {
-        printer.print(`/** @memo */`)
-        printer.print(`${this.methodName}(${this.mappedParams}): this {`)
-        printer.pushIndent()
-        printer.print(`if (this.checkPriority("${this.methodName}")) {`)
-        printer.pushIndent()
-        printer.print(`this.peer?.${this.methodName}Attribute(${this.mappedParamValues})`)
-        printer.popIndent()
-        printer.print(`}`)
-        printer.print("return this")
-        printer.popIndent()
-        printer.print(`}\n`)
-    }
-
-    printPeerMethod(printer: IndentedPrinter) {
-        let maybeStatic = this.hasReceiver ? "" : `static `
-        let genMethodName = this.hasReceiver ? `${this.methodName}Attribute` : this.methodName
-        printer.print(`${maybeStatic}${genMethodName}(${this.mappedParams}) {`)
-
-        printer.pushIndent()
-        let scopes = this.argConvertors.filter(it => it.isScoped)
-        scopes.forEach(it => {
-            printer.pushIndent()
-            printer.print(it.scopeStart?.(it.param))
-        })
-        this.argConvertors.forEach(it => {
-            if (it.useArray) {
-                let size = it.estimateSize()
-                printer.print(`const ${it.param}Serializer = new Serializer(${size})`)
-                it.convertorToTSSerial(it.param, it.param, printer)
-            }
-        })
-        // Enable to see serialized data.
-        if (this.dumpSerialized) {
-            this.argConvertors.forEach((it, index) => {
-                if (it.useArray) {
-                    printer.print(`console.log("${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
-                }
-            })
-        }
-        let maybeThis = this.hasReceiver ? `this.peer.ptr${this.argConvertors.length > 0 ? ", " : ""}` : ``
-        printer.print(`nativeModule()._${this.originalParentName}_${this.methodName}(${maybeThis}`)
-        printer.pushIndent()
-        this.argConvertors.forEach((it, index) => {
-            let maybeComma = index == this.argConvertors.length - 1 ? "" : ","
-            if (it.useArray)
-                printer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
-            else
-            printer.print(it.convertorTSArg(it.param))
-            printer.print(maybeComma)
-        })
-        printer.popIndent()
-        printer.print(`)`)
-        scopes.reverse().forEach(it => {
-            printer.popIndent()
-            printer.print(it.scopeEnd!(it.param))
-        })
-        printer.popIndent()
-
-        printer.print(`}`)
     }
 
     printGlobal(printers: Printers) {

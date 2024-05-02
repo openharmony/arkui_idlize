@@ -40,7 +40,7 @@ import {
 import {
     PeerGeneratorVisitor,
 } from "./peer-generation/PeerGeneratorVisitor"
-import { defaultCompilerOptions, isDefined, renameDtsToPeer, renameDtsToComponent as renameDtsToComponent, stringOrNone, toSet, langSuffix, Language } from "./util"
+import { defaultCompilerOptions, isDefined, toSet, langSuffix, Language } from "./util"
 import { TypeChecker } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
@@ -48,7 +48,8 @@ import { IndentedPrinter } from "./IndentedPrinter";
 import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
-import { table } from "console"
+import { printComponents } from "./peer-generation/ComponentsPrinter"
+import { printPeers } from "./peer-generation/PeersPrinter"
 import { printApiAndDeserializer } from "./peer-generation/HeaderPrinter"
 
 const options = program
@@ -276,7 +277,6 @@ if (options.dts2peer) {
             sourceFile: sourceFile,
             typeChecker: typeChecker,
             interfacesToGenerate: toSet(options.generateInterface),
-            dumpSerialized: options.dumpSerialized ?? false,
             declarationTable,
             peerLibrary
         }),
@@ -289,36 +289,20 @@ if (options.dts2peer) {
                 const output = peerLibrary.generate()
                 let lang = declarationTable.language
 
-                for (const [originalFilename, peer] of output.peers) {
-                    if (peer.length === 0) continue
-                    // TODO: support other output languages
-                    if (lang != Language.TS) continue
-                    const outPeerFile = path.join(
-                        outDir,
-                        renameDtsToPeer(path.basename(originalFilename), lang)
-                    )
+                const peers = printPeers(peerLibrary, options.dumpSerialized ?? false)
+                for (const [targetBasename, peer] of peers) {
+                    const outPeerFile = path.join(outDir,targetBasename)
                     console.log("producing", outPeerFile)
-                    let generated = peer
-                        .filter(element => (element?.length ?? 0) > 0)
-                        .join("\n")
-                    fs.writeFileSync(outPeerFile, generated)
+                    fs.writeFileSync(outPeerFile, peer)
                 }
 
-                for (const [originalFilename, component] of output.components) {
-                    if (component.length === 0) continue
-                    // TODO: support other output languages
-                    if (lang != Language.TS) continue
-                    const outComponentFile = path.join(
-                        outDir,
-                        renameDtsToComponent(path.basename(originalFilename), lang)
-                    )
+                const components = printComponents(peerLibrary)
+                for (const [targetBasename, component] of components) {
+                    const outComponentFile = path.join(outDir, targetBasename)
                     if (!PeerGeneratorConfig.notCompilableComponents.some(it => outComponentFile.includes(it))) {
                         console.log("producing", outComponentFile)
-                        let generated = component
-                            .filter(element => (element?.length ?? 0) > 0)
-                            .join("\n")
-                        if (options.verbose) console.log(generated)
-                        fs.writeFileSync(outComponentFile, generated)
+                        if (options.verbose) console.log(component)
+                        fs.writeFileSync(outComponentFile, component)
                         arkuiComponentsFiles.push(outComponentFile)
                     }
                 }
