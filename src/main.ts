@@ -44,13 +44,16 @@ import { defaultCompilerOptions, isDefined, toSet, langSuffix, Language } from "
 import { TypeChecker } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
-import { IndentedPrinter } from "./IndentedPrinter";
 import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { printComponents } from "./peer-generation/ComponentsPrinter"
 import { printPeers } from "./peer-generation/PeersPrinter"
 import { printApiAndDeserializer } from "./peer-generation/HeaderPrinter"
+import { printNodeTypes } from "./peer-generation/NodeTypesPrinter"
+import { printStructCommon } from "./peer-generation/StructCommonPrinter"
+import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/NativeModulePrinter"
+import { printBridgeCc } from "./peer-generation/BridgeCcPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -286,7 +289,6 @@ if (options.dts2peer) {
                 declarationTable.typeChecker = typeChecker
             },
             onEnd(outDir: string) {
-                const output = peerLibrary.generate()
                 let lang = declarationTable.language
 
                 const peers = printPeers(peerLibrary, options.dumpSerialized ?? false)
@@ -309,16 +311,16 @@ if (options.dts2peer) {
 
                 fs.writeFileSync(
                     path.join(outDir, 'NativeModule' + langSuffix(lang)),
-                    nativeModuleDeclaration(output.nativeModuleMethods.sort(), options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi", false, lang)
+                    printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi")
                 )
                 if (lang == Language.TS) {
                     fs.writeFileSync(
                         path.join(outDir, 'NativeModuleEmpty' + langSuffix(lang)),
-                        nativeModuleEmptyDeclaration(output.nativeModuleEmptyMethods.sort())
+                        printNativeModuleEmpty(peerLibrary)
                     )
                     fs.writeFileSync(
                         path.join(outDir, 'ArkUINodeType' + langSuffix(lang)),
-                        makeNodeTypes(output.nodeTypes)
+                        printNodeTypes(peerLibrary),
                     )
                     fs.writeFileSync(
                         path.join(outDir, 'index.ts'),
@@ -326,14 +328,13 @@ if (options.dts2peer) {
                     )
                     fs.writeFileSync(
                         path.join(outDir, 'ArkCommon' + langSuffix(lang)),
-                        makeStructCommon(output.commonMethods, output.customComponentMethods),
+                        printStructCommon(peerLibrary),
                     )
                     fs.writeFileSync(path.join(outDir, 'Serializer' + langSuffix(lang)),
                         makeTSSerializer(declarationTable)
                     )
                 }
-                const bridgeCc = bridgeCcDeclaration(output.outputC)
-                fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
+                fs.writeFileSync(path.join(outDir, 'bridge.cc'), printBridgeCc(peerLibrary))
 
                 const {api, deserializer} = printApiAndDeserializer(options.apiVersion, peerLibrary)
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), deserializer)

@@ -41,7 +41,6 @@ import {
     isStandalone,
     singleParentDeclaration,
 } from "./inheritance"
-import { Printers } from "./Printers"
 import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
@@ -210,7 +209,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             .filter(it => ts.isMethodDeclaration(it) || ts.isMethodSignature(it))
             .map(it => it.getText().replace(/;\s*$/g, ''))
             .map(it => `${it} { throw new Error("not implemented"); }`)
-        this.peerLibrary.pushCustomComponentMethods(...methods)
+        this.peerLibrary.customComponentMethods.push(...methods)
     }
 
     private processCommonComponent(node: ts.ClassDeclaration) {
@@ -225,7 +224,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             })
             .map(it => it.replace('<T>', '<this>'))
             .map(it => `${it} { throw new Error("not implemented"); }`)
-        this.peerLibrary.pushCommonMethods(...methods)
+        this.peerLibrary.commonMethods.push(...methods)
     }
 
     processInterface(node: ts.InterfaceDeclaration) {

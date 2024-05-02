@@ -15,7 +15,6 @@
 
 import { PeerFile } from "./PeerFile"
 import { PeerMethod } from "./PeerMethod"
-import { Printers } from "./Printers"
 import { DeclarationTable } from "./DeclarationTable"
 
 export class PeerClass {
@@ -38,36 +37,4 @@ export class PeerClass {
     parentComponentName: string | undefined = undefined
     attributesFields: string[] = []
     attributesTypes: string[] = []
-
-    private printGlobalNativeModule(printers: Printers) {
-        printers.nodeTypes.print(this.componentName)
-        this.methods.forEach(method => {
-            const component = method.isCallSignature ? this.originalInterfaceName : this.originalClassName
-            this.declarationTable.setCurrentContext(`${method.isCallSignature ? "" : method.methodName}()`)
-            const basicParameters = method.argConvertors
-                .map(it => {
-                    if (it.useArray) {
-                        const array = `${it.param}Serializer`
-                        return `${it.param}Array: Uint8Array, ${array}Length: int32`
-                    } else {
-                        return `${it.param}: ${it.interopType(true)}`
-                    }
-                })
-            let maybeReceiver = method.hasReceiver ? [`ptr: KPointer`] : []
-            const parameters = maybeReceiver
-                .concat(basicParameters)
-                .join(", ")
-
-            const implDecl = `_${component}_${method.methodName}(${parameters}): void`
-
-            printers.nativeModule.print(implDecl)
-            printers.nativeModuleEmpty.print(`${implDecl} { console.log("${method.methodName}") }`)
-            this.declarationTable.setCurrentContext(undefined)
-        })
-    }
-
-    printGlobal(printers: Printers) {
-        this.methods.forEach(it => it.printGlobal(printers))
-        this.printGlobalNativeModule(printers)
-    }
 }

@@ -16,15 +16,9 @@
 
 import { DeclarationTable } from "./DeclarationTable";
 import { PeerFile } from "./PeerFile";
-import { Printers } from "./Printers";
 
 export type PeerLibraryOutput = {
     outputC: string[]
-    nativeModuleMethods: string[]
-    nativeModuleEmptyMethods: string[]
-    nodeTypes: string[]
-    commonMethods: string[]
-    customComponentMethods: string[]
 }
 
 export class PeerLibrary {
@@ -34,28 +28,6 @@ export class PeerLibrary {
         public declarationTable: DeclarationTable
     ) {}
 
-    private readonly commonMethods: string[] = []
-    pushCommonMethods(...methods: string[]) {
-        this.commonMethods.push(...methods)
-    }
-
-    private readonly customComponentMethods: string[] = []
-    pushCustomComponentMethods(...methods: string[]) {
-        this.customComponentMethods.push(...methods)
-    }
-
-    generate(): PeerLibraryOutput {
-        const printers = new Printers()
-        for (const file of this.files) {
-            file.printGlobal(printers)
-        }
-        return {
-            outputC: printers.C.getOutput(),
-            nativeModuleMethods: printers.nativeModule.getOutput(),
-            nativeModuleEmptyMethods: printers.nativeModuleEmpty.getOutput(),
-            nodeTypes: printers.nodeTypes.getOutput(),
-            commonMethods: this.commonMethods,
-            customComponentMethods: this.customComponentMethods,
-        }
-    }
+    readonly commonMethods: string[] = []
+    readonly customComponentMethods: string[] = []
 }

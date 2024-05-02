@@ -13,14 +13,28 @@
  * limitations under the License.
  */
 
-
 import { IndentedPrinter } from "../IndentedPrinter";
+import { makeNodeTypes } from "./FileGenerators";
+import { PeerLibrary } from "./PeerLibrary";
 
-export class Printers {
+class NodeTypesVisitor {
+    readonly nodeTypes: IndentedPrinter = new IndentedPrinter()
+
     constructor(
-        public C: IndentedPrinter = new IndentedPrinter(),
-        public nativeModule: IndentedPrinter = new IndentedPrinter(),
-        public nativeModuleEmpty: IndentedPrinter = new IndentedPrinter(),
-        public nodeTypes: IndentedPrinter = new IndentedPrinter()
-    ) { }
+        private library: PeerLibrary,
+    ) {}
+
+    print(): void {
+        for (const file of this.library.files) {
+            for (const peer of file.peers.values()) {
+                this.nodeTypes.print(peer.componentName)
+            }
+        }
+    }
+}
+
+export function printNodeTypes(peerLibrary: PeerLibrary): string {
+    const visitor = new NodeTypesVisitor(peerLibrary)
+    visitor.print()
+    return makeNodeTypes(visitor.nodeTypes.getOutput())
 }

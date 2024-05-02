@@ -13,18 +13,12 @@
  * limitations under the License.
  */
 
-import { getOrPut } from "../util"
-import { PeerClass } from "./PeerClass"
-import { DeclarationTable } from "./DeclarationTable"
+import { makeStructCommon } from "./FileGenerators";
+import { PeerLibrary } from "./PeerLibrary";
 
-export class PeerFile {
-    readonly peers: Map<string, PeerClass> = new Map()
-    constructor(
-        public readonly originalFilename: string,
-        public readonly declarationTable: DeclarationTable,
-    ) {}
-
-    getOrPutPeer(componentName: string) {
-        return getOrPut(this.peers, componentName, () => new PeerClass(this, componentName, this.originalFilename, this.declarationTable))
-    }
+export function printStructCommon(peerLibrary: PeerLibrary): string {
+    return makeStructCommon(
+        peerLibrary.commonMethods,
+        peerLibrary.customComponentMethods,
+    )
 }
