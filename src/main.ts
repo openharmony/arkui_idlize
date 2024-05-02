@@ -49,6 +49,7 @@ import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { table } from "console"
+import { printApiAndDeserializer } from "./peer-generation/HeaderPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -349,11 +350,10 @@ if (options.dts2peer) {
                 }
                 const bridgeCc = bridgeCcDeclaration(output.outputC)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
-                const structs = new IndentedPrinter()
-                const typedefs = new IndentedPrinter()
 
-                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable, structs, typedefs))
-                fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeAPI(options.apiVersion ?? "0", output.apiHeaders, output.apiHeadersList, structs, typedefs))
+                const {api, deserializer} = printApiAndDeserializer(options.apiVersion, peerLibrary)
+                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), deserializer)
+                fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), api)
 
                 const { dummy, real } = printRealAndDummyModifiers(peerLibrary)
                 fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummy)
