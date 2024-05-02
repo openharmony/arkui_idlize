@@ -127,7 +127,7 @@ function checkPerf(count: number) {
         module._TestPerfNumber(i)
     }
     let passed = performance.now() - start
-    console.log(`NUMBER: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M interations`)
+    console.log(`NUMBER: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 
     start = performance.now()
     for (let i = 0; i < count; i++) {
@@ -137,10 +137,10 @@ function checkPerf(count: number) {
         module._TestPerfNumberWithArray(data, data.length)
     }
     passed = performance.now() - start
-    console.log(`ARRAY: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M interations`)
+    console.log(`ARRAY: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
-checkPerf(10 * 1000 * 1000)
+checkPerf(1 * 1000 * 1000)
 
 checkButton()
 checkCalendar()

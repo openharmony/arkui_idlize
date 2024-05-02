@@ -26,7 +26,7 @@ public class Main {
             NativeModule._TestPerfNumber(i);
         }
         long passed = System.currentTimeMillis() - start;
-        System.out.println("NUMBER: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M interations");
+        System.out.println("NUMBER: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
 
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
@@ -39,7 +39,7 @@ public class Main {
             NativeModule._TestPerfNumberWithArray(data, data.length);
         }
         passed = System.currentTimeMillis() - start;
-        System.out.println("ARRAY: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M interations");
+        System.out.println("ARRAY: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
     }
 }
 
