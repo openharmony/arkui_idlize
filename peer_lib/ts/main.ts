@@ -29,7 +29,7 @@ import {
     checkResult,
     checkTestFailures
 } from "./test_utils"
-import { nativeModule } from "../../generated/subset/NativeModule"
+import { nativeModule } from "@arkoala/arkui//NativeModule"
 
 // TODO: hacky way to detect subset vs full.
 clearNativeLog()
