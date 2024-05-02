@@ -81,9 +81,16 @@ if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
     node_sources += [ gen_dir + '/win-dynamic-node.cc' ]
     panda_ldflags = []
-else
+endif
+if os == 'linux'
+    cflags += ['-DKOALA_LINUX']
     panda_ldflags = ['-ldl']
 endif
+if os == 'macos'
+    cflags += ['-DKOALA_MACOS']
+    panda_ldflags = ['-ldl']
+endif
+
 node_module_prefix = ''
 node_module_suffix = 'node'
 

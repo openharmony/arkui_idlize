@@ -56,12 +56,6 @@ void* findSymbol(void* library, const char* name) {
 
 typedef ets_int ETS_CALL (*EtsNapiOnLoad_t)(EtsEnv *env);
 
-std::string libName(const char* lib) {
-    std::string result;
-    result = "lib" + std::string(lib) + ".dylib";
-    return result;
-}
-
 ets_int registerNatives(EtsEnv *env, ets_class cls, const EtsNativeMethod *methods, ets_int nMethods) {
     fprintf(stderr, "registerNatives: %d\n", nMethods);
     for (int i = 0; i < nMethods; i++) {
