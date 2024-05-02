@@ -8,6 +8,7 @@ import { PeerMethod } from "./PeerMethod"
 import { Printers } from "./Printers"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { DeclarationTable } from "./DeclarationTable"
+import { table } from "console"
 
 export class PeerClass {
     constructor(
@@ -131,7 +132,7 @@ export class PeerClass {
 
     collectPeerImports(imports: ImportsCollector) {
         if (!this.originalParentFilename) return
-        const parentBasename = renameDtsToPeer(path.basename(this.originalParentFilename))
+        const parentBasename = renameDtsToPeer(path.basename(this.originalParentFilename), this.declarationTable.language)
         imports.addFeatureByBasename(this.peerParentName, parentBasename)
         if (this.attributesParentName)
             imports.addFeatureByBasename(this.attributesParentName, parentBasename)
@@ -142,7 +143,8 @@ export class PeerClass {
         imports.addFeature("NodeAttach", "@koalaui/runtime")
         const structPostfix = (this.callableMethod?.mappedParamsTypes?.length ?? 0) + 1
         imports.addFeature(`ArkCommonStruct${structPostfix}`, "./ArkStructCommon")
-        imports.addFeatureByBasename(`${this.koalaComponentName}Peer`, renameDtsToPeer(path.basename(this.originalFilename)))
+        imports.addFeatureByBasename(`${this.koalaComponentName}Peer`,
+            renameDtsToPeer(path.basename(this.originalFilename), this.declarationTable.language))
         imports.addFeature("ArkUINodeType", "./ArkUINodeType")
     }
 
@@ -181,7 +183,7 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 1)).join("\n")}
     style: ((attributes: ${componentClassName}) => void) | undefined,
     /** @memo */
     content_: (() => void) | undefined,
-    ${method?.mappedParams ?? ""} 
+    ${method?.mappedParams ?? ""}
   ) {
     NodeAttach(() => new ${peerClassName}(ArkUINodeType.${this.componentName}, this), () => {
       style?.(this)

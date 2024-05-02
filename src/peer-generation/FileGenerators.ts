@@ -16,7 +16,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
-import { indentedBy } from "../util"
+import { Language, indentedBy } from "../util"
 
 const importTsInteropTypes = `
 import {
@@ -35,7 +35,12 @@ import {
 } from "@koalaui/interop"
 `.trim()
 
-export function nativeModuleDeclaration(methods: string[], nativeBridgePath: string, useEmpty: boolean): string {
+export function nativeModuleDeclaration(methods: string[], nativeBridgePath: string, useEmpty: boolean, language: Language): string {
+    if (language == Language.JAVA) {
+        // NativeModule will be taken from peer_lib.
+        return ``
+    }
+
     // TODO: better NativeBridge loader
     return `
 ${importTsInteropTypes}

@@ -26,11 +26,7 @@ import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import {
     bridgeCcDeclaration,
-    completeImplementations,
     copyPeerLib,
-    dummyImplementations,
-    modifierStructList,
-    modifierStructs,
     makeAPI,
     makeArkuiModule,
     makeCDeserializer,
@@ -44,14 +40,15 @@ import {
 import {
     PeerGeneratorVisitor,
 } from "./peer-generation/PeerGeneratorVisitor"
-import { defaultCompilerOptions, isDefined, renameDtsToPeer, renameDtsToComponent as renameDtsToComponent, stringOrNone, toSet } from "./util"
-import { TypeChecker  } from "./typecheck"
+import { defaultCompilerOptions, isDefined, renameDtsToPeer, renameDtsToComponent as renameDtsToComponent, stringOrNone, toSet, langSuffix, Language } from "./util"
+import { TypeChecker } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
-import {IndentedPrinter} from "./IndentedPrinter";
+import { IndentedPrinter } from "./IndentedPrinter";
 import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
+import { table } from "console"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -79,6 +76,7 @@ const options = program
     .option('--api-version <version>', "API version for generated peers")
     .option('--dump-serialized', "Dump serialized data")
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
+    .option('--language [ts|sts|java]', 'Output language')
     .option('--version')
     .parse()
     .opts()
@@ -89,7 +87,7 @@ function findVersion() {
     try {
         let json = fs.readFileSync(packageJson).toString()
         return json ? JSON.parse(json).version : undefined
-    } catch(e) {
+    } catch (e) {
         return undefined
     }
 }
@@ -161,7 +159,7 @@ if (options.linter) {
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: LinterMessage[]) => allEntries.push(entries),
-            onBegin: () => {},
+            onBegin: () => { },
             onEnd: (outputDir) => {
                 const outFile = options.outputDir ? path.join(outputDir, "linter.txt") : undefined
                 let [generated, exitCode, histogram] = toLinterString(allEntries, options.linterSuppressErrors, options.linterWhitelist)
@@ -265,7 +263,7 @@ if (options.idl2h) {
 }
 
 if (options.dts2peer) {
-    const declarationTable = new DeclarationTable()
+    const declarationTable = new DeclarationTable(options.language ?? "ts")
     const peerLibrary = new PeerLibrary(declarationTable)
     const arkuiComponentsFiles: string[] = []
 
@@ -288,12 +286,15 @@ if (options.dts2peer) {
             },
             onEnd(outDir: string) {
                 const output = peerLibrary.generate()
+                let lang = declarationTable.language
 
                 for (const [originalFilename, peer] of output.peers) {
                     if (peer.length === 0) continue
+                    // TODO: support other output languages
+                    if (lang != Language.TS) continue
                     const outPeerFile = path.join(
                         outDir,
-                        renameDtsToPeer(path.basename(originalFilename))
+                        renameDtsToPeer(path.basename(originalFilename), lang)
                     )
                     console.log("producing", outPeerFile)
                     let generated = peer
@@ -304,9 +305,11 @@ if (options.dts2peer) {
 
                 for (const [originalFilename, component] of output.components) {
                     if (component.length === 0) continue
+                    // TODO: support other output languages
+                    if (lang != Language.TS) continue
                     const outComponentFile = path.join(
                         outDir,
-                        renameDtsToComponent(path.basename(originalFilename))
+                        renameDtsToComponent(path.basename(originalFilename), lang)
                     )
                     if (!PeerGeneratorConfig.notCompilableComponents.some(it => outComponentFile.includes(it))) {
                         console.log("producing", outComponentFile)
@@ -320,36 +323,39 @@ if (options.dts2peer) {
                 }
 
                 fs.writeFileSync(
-                    path.join(outDir, 'NativeModule.ts'),
-                    nativeModuleDeclaration(output.nativeModuleMethods.sort(), options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi", false)
+                    path.join(outDir, 'NativeModule' + langSuffix(lang)),
+                    nativeModuleDeclaration(output.nativeModuleMethods.sort(), options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi", false, lang)
                 )
-                fs.writeFileSync(
-                    path.join(outDir, 'NativeModuleEmpty.ts'),
-                    nativeModuleEmptyDeclaration(output.nativeModuleEmptyMethods.sort())
-                )
-                fs.writeFileSync(
-                    path.join(outDir, 'ArkUINodeType.ts'),
-                    makeNodeTypes(output.nodeTypes)
-                )
-                fs.writeFileSync(
-                    path.join(outDir, 'index.ts'),
-                    makeArkuiModule(arkuiComponentsFiles),
-                )
-                fs.writeFileSync(
-                    path.join(outDir, 'ArkCommon.ts'),
-                    makeStructCommon(output.commonMethods, output.customComponentMethods),
-                )
+                if (lang == Language.TS) {
+                    fs.writeFileSync(
+                        path.join(outDir, 'NativeModuleEmpty' + langSuffix(lang)),
+                        nativeModuleEmptyDeclaration(output.nativeModuleEmptyMethods.sort())
+                    )
+                    fs.writeFileSync(
+                        path.join(outDir, 'ArkUINodeType' + langSuffix(lang)),
+                        makeNodeTypes(output.nodeTypes)
+                    )
+                    fs.writeFileSync(
+                        path.join(outDir, 'index.ts'),
+                        makeArkuiModule(arkuiComponentsFiles),
+                    )
+                    fs.writeFileSync(
+                        path.join(outDir, 'ArkCommon' + langSuffix(lang)),
+                        makeStructCommon(output.commonMethods, output.customComponentMethods),
+                    )
+                    fs.writeFileSync(path.join(outDir, 'Serializer' + langSuffix(lang)),
+                        makeTSSerializer(declarationTable)
+                    )
+                }
                 const bridgeCc = bridgeCcDeclaration(output.outputC)
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), bridgeCc)
-                fs.writeFileSync(path.join(outDir, 'Serializer.ts'), makeTSSerializer(declarationTable))
-
                 const structs = new IndentedPrinter()
                 const typedefs = new IndentedPrinter()
 
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), makeCDeserializer(declarationTable, structs, typedefs))
                 fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), makeAPI(options.apiVersion ?? "0", output.apiHeaders, output.apiHeadersList, structs, typedefs))
 
-                const {dummy, real} = printRealAndDummyModifiers(peerLibrary)
+                const { dummy, real } = printRealAndDummyModifiers(peerLibrary)
                 fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummy)
                 fs.writeFileSync(path.join(outDir, 'all_modifiers.cc'), real)
 

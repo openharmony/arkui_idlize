@@ -34,7 +34,7 @@ export class PeerFile {
 
     generateComponent(): string[] {
         const componentImports = new ImportsCollector()
-        componentImports.addFilterByBasename(renameDtsToComponent(path.basename(this.originalFilename)))
+        componentImports.addFilterByBasename(renameDtsToComponent(path.basename(this.originalFilename), this.declarationTable.language))
         this.peers.forEach(peer => peer.collectComponentImports(componentImports))
 
         const printer = new IndentedPrinter()
@@ -45,7 +45,7 @@ export class PeerFile {
 
     generatePeer(): string[] {
         const peerImports = new ImportsCollector()
-        peerImports.addFilterByBasename(renameDtsToPeer(path.basename(this.originalFilename)))
+        peerImports.addFilterByBasename(renameDtsToPeer(path.basename(this.originalFilename), this.declarationTable.language))
         this.peers.forEach(peer => peer.collectPeerImports(peerImports))
 
         const printer = new IndentedPrinter()

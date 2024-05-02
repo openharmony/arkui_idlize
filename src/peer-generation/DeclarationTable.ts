@@ -14,7 +14,7 @@
  */
 
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations, identName, isStatic, throwException, typeEntityName } from "../util"
+import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations, identName, isStatic, throwException, typeEntityName } from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -102,6 +102,16 @@ export class DeclarationTable {
     private declarations = new Set<DeclarationTarget>()
     private typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[]]>()
     typeChecker: ts.TypeChecker | undefined = undefined
+    public language: Language
+
+    constructor(language: string) {
+        switch (language) {
+            case "sts": this.language = Language.ETS; break
+            case "java": this.language = Language.JAVA; break
+            case "ts": default: this.language = Language.TS; break
+        }
+        console.log(`Emit for ${Language[this.language]}`)
+    }
 
     getTypeName(type: ts.TypeNode, optional: boolean = false): string {
         let declaration = this.typeMap.get(type)

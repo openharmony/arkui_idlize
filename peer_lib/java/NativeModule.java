@@ -26,6 +26,9 @@ public class NativeModule {
     static native void _InvokeFinalizer(long func, long obj);
     static native void _ClearGroupedLog(int index);
 
+    static native void _AbilityComponentInterface__setAbilityComponentOptions(long arg1, byte[] arg2, int arg3);
+    static native void _AbilityComponentAttribute_onConnect(long arg1, byte[] arg2, int arg3);
+    static native void _AbilityComponentAttribute_onDisconnect(long arg1, byte[] arg2, int arg3);
     static native void _BlankInterface__setBlankOptions(long arg1, byte[] arg2, int arg3);
     static native void _BlankAttribute_color(long arg1, byte[] arg2, int arg3);
     static native void _ButtonInterface__setButtonOptions(long arg1);

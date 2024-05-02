@@ -17,6 +17,12 @@ import * as ts from "typescript"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { isRoot } from "./peer-generation/inheritance";
 
+export enum Language {
+    TS,
+    ETS,
+    JAVA
+}
+
 export interface NameWithType {
     name?: ts.DeclarationName
     type?: ts.TypeNode
@@ -413,22 +419,30 @@ function snakeCaseToCamelCase(input: string): string {
         .join("")
 }
 
-export function renameDtsToPeer(fileName: string, withFileExtension: boolean = true) {
+export function langSuffix(language: Language) {
+    switch (language) {
+        case Language.JAVA: return ".java"
+        case Language.ETS: return ".ets"
+        case Language.TS: return ".ts"
+    }
+}
+
+export function renameDtsToPeer(fileName: string, language: Language, withFileExtension: boolean = true) {
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))
         .replace(".d.ts", "")
         .concat("Peer")
     if (withFileExtension) {
-        return renamed.concat(".ts")
+        return renamed.concat(langSuffix(language))
     }
     return renamed
 }
 
-export function renameDtsToComponent(fileName: string) {
+export function renameDtsToComponent(fileName: string, language: Language) {
     return "Ark"
         .concat(snakeCaseToCamelCase(fileName))
         .replace(".d.ts", "")
-        .concat(".ts")
+        .concat(langSuffix(language))
 }
 
 export function importTypeName(type: ts.ImportTypeNode, asType = false): string {
