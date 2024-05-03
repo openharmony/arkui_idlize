@@ -116,6 +116,35 @@ function registerCallback(value: object|undefined): number {
 
 let textEncoder = new TextEncoder()
 
+class ArrayBufferCache {
+    currentUsed = 0
+    cache: Array<ArrayBuffer|undefined> = []
+    constructor(public maxCapacity: number) {}
+
+    get(size: number): ArrayBuffer {
+        for (let i = 0; i < this.cache.length; i++) {
+            let buffer = this.cache[i]
+            if (buffer && buffer.byteLength >= size) {
+                this.cache[i] = undefined
+                this.currentUsed += buffer.byteLength
+                return buffer
+            }
+        }
+        this.currentUsed += size
+        return new ArrayBuffer(size)
+    }
+    release(buffer: ArrayBuffer) {
+        this.currentUsed -= buffer.byteLength
+        for (let i = 0; i < this.cache.length; i++) {
+            if (!this.cache[i]) {
+                this.cache[i] = buffer
+                return
+            }
+        }
+        this.cache.push(buffer)
+    }
+}
+
 /* Serialization extension point */
 export abstract class CustomSerializer {
     constructor(protected supported: Array<string>) {}
@@ -125,6 +154,8 @@ export abstract class CustomSerializer {
 }
 
 export class SerializerBase {
+    private static bufferCache = new ArrayBufferCache(4096)
+
     private position = 0
     private buffer: ArrayBuffer
     private view: DataView
@@ -140,8 +171,11 @@ export class SerializerBase {
         }
     }
     constructor(expectedSize: int32) {
-        this.buffer = new ArrayBuffer(expectedSize)
+        this.buffer = SerializerBase.bufferCache.get(expectedSize)
         this.view = new DataView(this.buffer)
+    }
+    close() {
+        SerializerBase.bufferCache.release(this.buffer)
     }
     asArray(): Uint8Array {
         return new Uint8Array(this.buffer)
@@ -158,8 +192,10 @@ export class SerializerBase {
         if (this.position > buffSize - value) {
             const minSize = this.position + value
             const resizedSize = Math.max(minSize, Math.round(3 * buffSize / 2))
-            let resizedBuffer = new ArrayBuffer(resizedSize)
-            new Uint8Array(resizedBuffer).set(new Uint8Array(this.buffer));
+            let resizedBuffer = SerializerBase.bufferCache.get(resizedSize)
+            // TODO: can we grow without new?
+            new Uint8Array(resizedBuffer).set(new Uint8Array(this.buffer))
+            SerializerBase.bufferCache.release(this.buffer)
             this.buffer = resizedBuffer
             this.view = new DataView(resizedBuffer)
         }
@@ -250,7 +286,7 @@ class OurCustomSerializer extends CustomSerializer {
         super(["Resource", "Pixmap"])
     }
     serialize(serializer: SerializerBase, value: any, kind: string): void {
-        console.log(`managed serialize() for ${kind}`)
+        // console.log(`managed serialize() for ${kind}`)
         serializer.writeString(JSON.stringify(value))
     }
 }

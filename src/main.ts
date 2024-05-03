@@ -25,17 +25,9 @@ import { LinterMessage, LinterVisitor, toLinterString } from "./linter"
 import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import {
-    bridgeCcDeclaration,
     copyPeerLib,
-    makeAPI,
     makeArkuiModule,
-    makeCDeserializer,
-    makeNodeTypes,
     makeTSSerializer,
-    nativeModuleDeclaration,
-    nativeModuleEmptyDeclaration,
-    makeStructCommon,
-
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,

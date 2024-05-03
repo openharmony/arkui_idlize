@@ -758,7 +758,7 @@ export class NumberConvertor extends BaseArgConvertor {
     constructor(param: string) {
         // TODO: as we pass tagged values - request serialization to array for now.
         // Optimize me later!
-        super("number", [RuntimeType.NUMBER], false, true, param)
+        super("number", [RuntimeType.NUMBER], false, false, param)
     }
 
     convertorTSArg(param: string): string {
@@ -768,7 +768,7 @@ export class NumberConvertor extends BaseArgConvertor {
         printer.print(`${param}Serializer.writeNumber(${value})`)
     }
     convertorCArg(param: string): string {
-        return param
+        return `(const ${PrimitiveType.Number.getText()}*)&${param}`
     }
     convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
         printer.print(`${value} = ${param}Deserializer.readNumber();`)
@@ -779,13 +779,13 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 
     interopType(ts: boolean): string {
-        return ts ? "KInt" : "InteropNumber"
+        return ts ? "KInt" : "KInteropNumber"
     }
     estimateSize() {
         return 5
     }
     isPointerType(): boolean {
-        return false
+        return true
     }
 }
 

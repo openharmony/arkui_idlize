@@ -61,15 +61,15 @@ struct Error {
 };
 
 template <>
-inline void WriteToString(string* result, Ark_Number value) {
-  if (value.tag == ARK_TAG_FLOAT32) {
+inline void WriteToString(string* result, const Ark_Number* value) {
+  if (value->tag == ARK_TAG_FLOAT32) {
     // print with precision 2 digits after dot
-    std::string fv = std::to_string(value.f32);
+    std::string fv = std::to_string(value->f32);
     size_t i = fv.find(".");
     fv = (i != std::string::npos && (i + 3) < fv.length()) ? fv.substr(0, i + 3) : fv;
     result->append(fv);
   } else
-    result->append(std::to_string(value.i32));
+    result->append(std::to_string(value->i32));
 }
 
 template <>

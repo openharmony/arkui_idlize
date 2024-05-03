@@ -29,7 +29,7 @@ export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
     getText(table?: DeclarationTable): string { return this.name }
     static String = new PrimitiveType("Ark_String", true)
-    static Number = new PrimitiveType("Ark_Number")
+    static Number = new PrimitiveType("Ark_Number", true)
     static Int32 = new PrimitiveType("Ark_Int32")
     static Tag = new PrimitiveType("Ark_Tag")
     static Boolean = new PrimitiveType("Ark_Boolean")

@@ -45,6 +45,8 @@ class PeerFileVisitor {
     }
 
     private generatePeerParentName(peer: PeerClass): string {
+        if (!peer.originalClassName) 
+            throw new Error(`${peer.componentName} is not supported, use 'uselessConstructorInterfaces' for now`)
         const parentRole = determineParentRole(peer.originalClassName, peer.parentComponentName)
         if ([InheritanceRole.Finalizable, InheritanceRole.PeerNode].includes(parentRole)) {
             return InheritanceRole[parentRole]
@@ -182,8 +184,10 @@ class PeerFileVisitor {
             printer.popIndent()
             printer.print(it.scopeEnd!(it.param))
         })
+        method.argConvertors.forEach(it => {
+            if (it.useArray) printer.print(`${it.param}Serializer.close()`)
+        })
         printer.popIndent()
-
         printer.print(`}`)
     }
 

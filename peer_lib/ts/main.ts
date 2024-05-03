@@ -121,12 +121,7 @@ function checkParticle() {
         `emitter([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}])`)
 }
 
-// function checkTabContent() {
-//   let peer = new ArkTabContentPeer(ArkUINodeType.TabContent)
-//   checkResult("tabBar", () => peer.tabBarAttribute(new SubTabBarStyle("abc")), `tabBar(new SubTabBarStyle("abc"))`)
-// }
-
-function checkPerf(count: number) {
+function checkPerf1(count: number) {
     let module = nativeModule()
     let start = performance.now()
     for (let i = 0; i < count; i++) {
@@ -146,7 +141,17 @@ function checkPerf(count: number) {
     console.log(`ARRAY: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
-checkPerf(1 * 1000 * 1000)
+function checkPerf2(count: number) {
+    let peer = new ArkButtonPeer(ArkUINodeType.Button)
+    let start = performance.now()
+    for (let i = 0; i < count; i++) {
+        peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : {grayscale: [1, 2]})
+    }
+    let passed = performance.now() - start
+    console.log(`backdropBlur: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
+}
+
+checkPerf2(100 * 1000)
 
 checkButton()
 checkCalendar()

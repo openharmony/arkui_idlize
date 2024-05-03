@@ -49,7 +49,8 @@ export class PeerGeneratorConfig {
         "DecorationStyleInterface",
         "GestureStyleInterface",
         "ImageAttachmentInterface",
-        "ContentSlotInterface"
+        "ContentSlotInterface",
+        "ParagraphStyleInterface",
     ]
 
     public static skipPeerGeneration = ["CommonAttribute"]

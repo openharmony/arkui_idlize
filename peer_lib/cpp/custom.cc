@@ -30,7 +30,7 @@ struct MyDeserializer : CustomDeserializer {
     }
     virtual Ark_CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
         Ark_String value = deserializer->readString();
-        fprintf(stderr, "native deserialize() for %s, got %s\n", kind.c_str(), value.chars);
+        //fprintf(stderr, "native deserialize() for %s, got %s\n", kind.c_str(), value.chars);
         Ark_CustomObject result;
         strcpy(result.kind, "NativeError");
         result.id = 0;

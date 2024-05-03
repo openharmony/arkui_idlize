@@ -64,4 +64,3 @@ export class LinterWhitelist {
         return false
     }
 }
-

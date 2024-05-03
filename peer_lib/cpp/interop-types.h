@@ -78,6 +78,14 @@ struct KStringPtrImpl {
     int _length;
 };
 
+struct KInteropNumber {
+    int8_t tag;
+    union {
+        int32_t i32;
+        float f32;
+    };
+};
+
 typedef int8_t KBoolean;
 typedef uint8_t KByte;
 typedef int16_t KChar;

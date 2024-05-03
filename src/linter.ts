@@ -169,7 +169,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (!type) return
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
             let parent = type.parent
-            this.report(type, LinterError.ANY_KEYWORD, `Keyword "any" is disallowed: ${parent.getText(parent.getSourceFile())}`)
+            this.report(type, LinterError.ANY_KEYWORD, `Keyword "any" is disallowed: ${parent.getText()}`)
             return
         }
         if (ts.isArrayTypeNode(type)) {
@@ -181,7 +181,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             type.members.forEach(it => {
                 if (ts.isPropertySignature(it)) this.visitProperty(it)
                 if (ts.isIndexSignatureDeclaration(it)) {
-                    this.report(it, LinterError.INDEX_SIGNATURE, `Index signature type: ${type.getText(this.sourceFile)}`)
+                    this.report(it, LinterError.INDEX_SIGNATURE, `Index signature type: ${type.getText()}`)
                     it.parameters.forEach(it => this.checkType(it.type))
                 }
 

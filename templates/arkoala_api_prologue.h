@@ -60,6 +60,7 @@ enum Ark_RuntimeType
 
 typedef float Ark_Float32;
 typedef int32_t Ark_Int32;
+typedef int8_t Ark_Int8;
 typedef int8_t Ark_Boolean;
 typedef void* Ark_NativePointer;
 typedef void* ArkUINodeHandle;
@@ -75,7 +76,7 @@ typedef struct Ark_Empty {
 } Ark_Empty;
 
 typedef struct Ark_Number {
-  enum Ark_Tag tag;
+  Ark_Int8 tag;
   union {
     Ark_Float32 f32;
     Ark_Int32 i32;

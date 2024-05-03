@@ -117,11 +117,14 @@ declare interface DragInteractionOptions {
     defaultAnimationBeforeLifting?: boolean;
 }
 
+
 declare class CommonMethod<T> {
 
     constructor();
 
     stateStyles(value: StateStyles): T;
+
+    backdropBlur(value: number, options?: BlurOptions): T;
 
     width(value: Length): T;
 
