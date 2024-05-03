@@ -19,7 +19,7 @@ import { isRoot } from "./peer-generation/inheritance";
 
 export enum Language {
     TS,
-    ETS,
+    ARKTS,
     JAVA,
     CPP
 }
@@ -425,7 +425,7 @@ function snakeCaseToCamelCase(input: string): string {
 export function langSuffix(language: Language): string {
     switch (language) {
         case Language.JAVA: return ".java"
-        case Language.ETS: return ".ets"
+        case Language.ARKTS: return ".ets"
         case Language.TS: return ".ts"
         case Language.CPP: return ".cc"
     }

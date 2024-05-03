@@ -98,11 +98,21 @@ export class TSLanguageWriter extends LanguageWriter {
 
 export class ETSLanguageWriter extends TSLanguageWriter {
     constructor(printer: IndentedPrinter) {
-        super(printer, Language.ETS)
+        super(printer, Language.ARKTS)
     }
 
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, "static native ")
+    }
+
+    mapType(type: Type): string {
+        switch (type.name) {
+            case 'KPointer': return 'long'
+            case 'Uint8Array': return 'byte[]'
+            case 'int32': case 'KInt': return 'int'
+            case 'KStringPtr': return 'String'
+        }
+        return super.mapType(type)
     }
 }
 
@@ -143,7 +153,7 @@ export class JavaLanguageWriter extends LanguageWriter {
 export function createLanguageWriter(printer: IndentedPrinter, language: Language): LanguageWriter {
     switch (language) {
         case Language.TS: return new TSLanguageWriter(printer)
-        case Language.ETS: return new ETSLanguageWriter(printer)
+        case Language.ARKTS: return new ETSLanguageWriter(printer)
         case Language.JAVA: return new JavaLanguageWriter(printer)
         default: throw new Error(`Language ${Language[language]} is not supported`)
     }

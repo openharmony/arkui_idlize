@@ -126,7 +126,7 @@ export class DeclarationTable {
 
     constructor(language: string) {
         switch (language) {
-            case "sts": this.language = Language.ETS; break
+            case "arkts": this.language = Language.ARKTS; break
             case "java": this.language = Language.JAVA; break
             case "ts": default: this.language = Language.TS; break
         }
