@@ -1,0 +1,98 @@
+export class NativeModule {
+    static {
+        loadLibrary("NativeBridgeArk")
+        NativeModule.init()
+    }
+    // TODO: shall be done in static initializer
+    static native init(): void;
+
+    static native _StringLength(arg1: long): int;
+    static native _StringData(arg1: long, arg2: byte[], arg3: int): void;
+    static native _StringMake(arg1: String): long;
+    static native _GetStringFinalizer(): long;
+    static native _InvokeFinalizer(arg1: long, arg2: long): void;
+    static native _GetPtrVectorSize(arg1: long): int;
+    static native _GetPtrVectorElement(arg1: long, arg2: int): long;
+    static native _GetGroupedLog(arg1: int): long;
+    static native _ClearGroupedLog(arg1: int): void;
+    static native _TestPerfNumber(arg1: int): int;
+    static native _TestPerfNumberWithArray(arg1: byte[], arg2: int): void;
+    static native _BlankInterface__setBlankOptions(arg1: long, arg2: byte[], arg3: int): void;
+    static native _BlankAttribute_color(arg1: long, arg2: byte[], arg3: int): void;
+    static native _ButtonInterface__setButtonOptions(arg1: long): void;
+    static native _ButtonAttribute_type(arg1: long, arg2: int): void;
+    static native _ButtonAttribute_labelStyle(arg1: long, arg2: byte[], arg3: int): void;
+    static native _CalendarPickerAttribute_edgeAlign(arg1: long, arg2: int, arg3: byte[], arg4: int): void;
+    static native _CalendarPickerAttribute_altEdgeAlign(arg1: long, arg2: int, arg3: byte[], arg4: int): void;
+    static native _ColumnAttribute_alignItems(arg1: long, arg2: int): void;
+    static native _CommonMethod_stateStyles(arg1: long, arg2: byte[], arg3: int): void;
+    static native _CommonMethod_backdropBlur(arg1: long, arg2: byte[], arg3: int): void;
+    static native _CommonMethod_width(arg1: long, arg2: byte[], arg3: int): void;
+    static native _CommonMethod_height(arg1: long, arg2: byte[], arg3: int): void;
+    static native _CommonMethod_bindSheet(arg1: long, arg2: int, arg3: byte[], arg4: int, arg5: byte[], arg6: int): void;
+    static native _CommonMethod_backgroundBlurStyle(arg1: long, arg2: int, arg3: byte[], arg4: int): void;
+    static native _CommonMethod_dragPreviewOptions(arg1: long, arg2: byte[], arg3: int, arg4: byte[], arg5: int): void;
+    static native _CommonShapeMethod_stroke(arg1: long, arg2: byte[], arg3: int): void;
+    static native _ScrollableCommonMethod_scrollBarWidth(arg1: long, arg2: byte[], arg3: int): void;
+    static native _FormComponentAttribute_size(arg1: long, arg2: byte[], arg3: int): void;
+    static native _ListAttribute_someOptional(arg1: long, arg2: byte[], arg3: int): void;
+    static native _ListAttribute_onScrollVisibleContentChange(arg1: long, arg2: byte[], arg3: int): void;
+    static native _NavigationAttribute_backButtonIcon(arg1: long, arg2: byte[], arg3: int): void;
+    static native _NavigationAttribute_testTuple(arg1: long, arg2: byte[], arg3: int): void;
+    static native _ParticleAttribute_emitter(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TabsAttribute_barMode(arg1: long, arg2: int): void;
+    static native _TestAttribute_testBoolean(arg1: long, arg2: int): void;
+    static native _TestAttribute_testNumber(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testString(arg1: long, arg2: String): void;
+    static native _TestAttribute_testEnum(arg1: long, arg2: int): void;
+    static native _TestAttribute_testClass(arg1: long, arg2: long): void;
+    static native _TestAttribute_testFunction(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testBasicMix(arg1: long, arg2: byte[], arg3: int, arg4: String, arg5: byte[], arg6: int): void;
+    static native _TestAttribute_testBooleanUndefined(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testNumberUndefined(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testStringUndefined(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testEnumUndefined(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testFunctionUndefined(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testUnionNumberEnum(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testUnionBooleanString(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testUnionStringNumber(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testUnionBooleanStringNumberUndefined(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testBooleanArray(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testNumberArray(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testStringArray(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testEnumArray(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testArrayMix(arg1: long, arg2: byte[], arg3: int, arg4: byte[], arg5: int, arg6: byte[], arg7: int): void;
+    static native _TestAttribute_testTupleBooleanNumber(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testTupleNumberStringEnum(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testTupleOptional(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testTupleUnion(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testArrayRefBoolean(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testArrayRefNumber(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testBooleanInterface(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testNumberInterface(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testStringInterface(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testUnionInterface(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testUnionOptional(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testTupleInterface(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testOptionInterface(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testArrayRefNumberInterface(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testBooleanInterfaceOption(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testBooleanInterfaceTuple(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testBooleanInterfaceArray(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testBooleanInterfaceArrayRef(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TestAttribute_testInterfaceMixed(arg1: long, arg2: byte[], arg3: int, arg4: byte[], arg5: int, arg6: byte[], arg7: int): void;
+    static native _TextPickerInterface__setTextPickerOptions(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TextPickerAttribute_defaultPickerItemHeight(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TextPickerAttribute_canLoop(arg1: long, arg2: int): void;
+    static native _TextPickerAttribute_onAccept(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TextPickerAttribute_onCancel(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TextPickerAttribute_onChange(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TextPickerAttribute_selectedIndex(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TextPickerAttribute_divider(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TextPickerAttribute_gradientHeight(arg1: long, arg2: byte[], arg3: int): void;
+    static native _TextPickerDialog_show(arg1: byte[], arg2: int): void;
+    static native _VectorAttribute_testVector1(arg1: long, arg2: byte[], arg3: int): void;
+    static native _VectorAttribute_testVector2(arg1: long, arg2: byte[], arg3: int): void;
+    static native _VectorAttribute_testUnionVector1Number(arg1: long, arg2: byte[], arg3: int): void;
+    static native _VectorAttribute_testUnionVector2Number(arg1: long, arg2: byte[], arg3: int): void;
+}

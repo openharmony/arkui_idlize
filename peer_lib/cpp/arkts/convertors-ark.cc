@@ -15,14 +15,16 @@
 
 #include "convertors-ark.h"
 
-static int registerNativeMethods(EtsEnv *env, const char *classname, EtsNativeMethod *methods, int countMethods) {
-    ets_class clazz = env->FindClass(classname);
-    if (clazz == nullptr) return ETS_FALSE;
+static int registerNativeMethods(EtsEnv *env, ets_class clazz, EtsNativeMethod *methods, int countMethods) {
+    if (clazz == nullptr) {
+        fprintf(stderr, "null class\n");
+        return ETS_FALSE;
+    }
     if (env->RegisterNatives(clazz, methods, countMethods) < 0) return ETS_FALSE;
     return ETS_TRUE;
 }
 
-static bool registerNatives(EtsEnv *env)
+static bool registerNatives(EtsEnv *env, ets_class clazz)
 {
     EtsExports *exports = EtsExports::getInstance();
     auto &impls = exports->getImpls();
@@ -36,10 +38,17 @@ static bool registerNatives(EtsEnv *env)
         methods[i].signature = nullptr; // std::get<1>(impls[i]).c_str();
         methods[i].func = std::get<2>(impls[i]);
     }
-    return registerNativeMethods(env, "NativeModule", methods, numMethods);
+    return registerNativeMethods(env, clazz, methods, numMethods);
 }
 
-extern "C" ETS_EXPORT ets_int ETS_CALL EtsNapiOnLoad(EtsEnv *env) {
-    if (!registerNatives(env)) return -1;
-    return ETS_NAPI_VERSION_1_0;
+// TODO: EtsNapiOnLoad() hook shall be used to register native, but unfortunately, env->FindClass("NativeModule.NativeModule")
+// returns null.
+extern "C" ETS_EXPORT void ETS_NativeModule_NativeModule_init__(EtsEnv *env, ets_class clazz) {
+    registerNatives(env, clazz);
 }
+
+/*
+extern "C" ETS_EXPORT ets_int ETS_CALL EtsNapiOnLoad(EtsEnv *env) {
+    if (!registerNatives(env, env->FindClass("NativeModule.NativeModule"))) return -1;
+    return ETS_NAPI_VERSION_1_0;
+} */
