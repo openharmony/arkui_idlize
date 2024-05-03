@@ -16,7 +16,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
-import { Language, indentedBy } from "../util"
+import { Language, indentedBy, langSuffix } from "../util"
 
 const importTsInteropTypes = `
 import {
@@ -36,66 +36,14 @@ import {
 `.trim()
 
 export function nativeModuleDeclaration(methods: string[], nativeBridgePath: string, useEmpty: boolean, language: Language): string {
-    if (language == Language.JAVA) {
-        // NativeModule will be taken from peer_lib.
-        return ``
-    }
-
-    // TODO: better NativeBridge loader
     return `
-${importTsInteropTypes}
-import { NativeModuleEmpty } from "./NativeModuleEmpty"
-import { NativeModuleBase } from "./NativeModuleBase"
-import {
-  NativeStringBase,
-  providePlatformDefinedData,
-  nullptr,
-  Access,
-  withByteArray,
-  CallbackRegistry,
-  ArrayDecoder
-} from "@koalaui/interop"
+  ${language == Language.TS ? importTsInteropTypes : ""}
+  ${readLangTemplate("NativeModule_prologue", language)
+    .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
+    .replace("%USE_EMPTY%", useEmpty.toString())}
 
-export type NodePointer = pointer
-
-let theModule: NativeModule | undefined = undefined
-
-export function nativeModule(): NativeModule {
-    if (theModule) return theModule
-    if (${useEmpty})
-        theModule = new NativeModuleEmpty()
-    else
-        theModule = require("${nativeBridgePath}") as NativeModule
-    return theModule
-}
-
-class NativeString extends NativeStringBase {
-    constructor(ptr: KPointer) {
-        super(ptr)
-    }
-    protected bytesLength(): int32 {
-        return nativeModule()._StringLength(this.ptr)
-    }
-    protected getData(data: Uint8Array): void {
-        withByteArray(data, Access.WRITE, (dataPtr: KUint8ArrayPtr) => {
-            nativeModule()._StringData(this.ptr, dataPtr, data.length)
-        })
-    }
-    close(): void {
-        nativeModule()._InvokeFinalizer(this.ptr, nativeModule()._GetStringFinalizer())
-        this.ptr = nullptr
-    }
-}
-
-providePlatformDefinedData({
-    nativeString(ptr: KPointer): NativeStringBase { return new NativeString(ptr) },
-    nativeStringArrayDecoder(): ArrayDecoder<NativeStringBase> { throw new Error("Not implemented") },
-    callbackRegistry(): CallbackRegistry | undefined { return undefined }
-})
-
-export interface NativeModule extends NativeModuleBase {
-${methods.map(it => `  ${it}`).join("\n")}
-}
+  ${methods.join("\n  ")}
+${readLangTemplate("NativeModule_epilogue", language)}
 `
 }
 
@@ -263,6 +211,11 @@ ${lines.join("\n")}
 function readTemplate(name: string): string {
     return fs.readFileSync(path.join(__dirname, `../templates/${name}`), 'utf8')
 }
+
+function readLangTemplate(name: string, lang: Language): string {
+    return fs.readFileSync(path.join(__dirname, `../templates/${name + langSuffix(lang)}`), 'utf8')
+}
+
 
 export function makeAPI(
     apiVersion: string,

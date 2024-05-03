@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 import { IndentedPrinter } from "../IndentedPrinter";
 import { PrimitiveType } from "./DeclarationTable";
 import { completeImplementations, dummyImplementations, modifierStructList, modifierStructs } from "./FileGenerators";

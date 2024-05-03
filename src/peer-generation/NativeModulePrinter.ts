@@ -15,39 +15,43 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "./FileGenerators";
+import { LanguageWriter, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 
 class NativeModuleVisitor {
-    readonly nativeModule = new IndentedPrinter()
-    readonly nativeModuleEmpty = new IndentedPrinter()
+    readonly nativeModule: LanguageWriter
+    readonly nativeModuleEmpty: LanguageWriter
 
     constructor(
         private readonly library: PeerLibrary,
-    ) {}
+    ) {
+        this.nativeModule = createLanguageWriter(new IndentedPrinter(), library.declarationTable.language)
+        this.nativeModuleEmpty = createLanguageWriter(new IndentedPrinter(), library.declarationTable.language)
+    }
 
     private printPeerMethods(peer: PeerClass) {
         peer.methods.forEach(method => {
             const component = method.isCallSignature ? peer.originalInterfaceName : peer.originalClassName
             peer.declarationTable.setCurrentContext(`${method.isCallSignature ? "" : method.methodName}()`)
-            const basicParameters = method.argConvertors
-                .map(it => {
+            const args = method.argConvertors
+                .flatMap(it => {
                     if (it.useArray) {
                         const array = `${it.param}Serializer`
-                        return `${it.param}Array: Uint8Array, ${array}Length: int32`
+                        return [{name: `${it.param}Array`, type: 'Uint8Array'},
+                                {name: `${array}Length`, type: 'int32'}]
                     } else {
-                        return `${it.param}: ${it.interopType(true)}`
+                        // TODO: use language as argument of interop type.
+                        return [{name: `${it.param}`, type: it.interopType(true)}]
                     }
                 })
-            let maybeReceiver = method.hasReceiver ? [`ptr: KPointer`] : []
-            const parameters = maybeReceiver
-                .concat(basicParameters)
-                .join(", ")
-
-            const implDecl = `_${component}_${method.methodName}(${parameters}): void`
-
-            this.nativeModule.print(implDecl)
-            this.nativeModuleEmpty.print(`${implDecl} { console.log("${method.methodName}") }`)
+            let maybeReceiver = method.hasReceiver ? [{name: 'ptr', type: 'KPointer'}] : []
+            const parameters = NamedMethodSignature.make('void', maybeReceiver.concat(args))
+            let name = `_${component}_${method.methodName}`
+            this.nativeModule.writeNativeMethodDeclaration(name, parameters)
+            this.nativeModuleEmpty.writeMethodImplementation(name, parameters, (printer) => {
+                printer.printLog(name)
+            })
             peer.declarationTable.setCurrentContext(undefined)
         })
     }
