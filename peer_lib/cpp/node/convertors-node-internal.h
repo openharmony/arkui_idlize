@@ -18,6 +18,8 @@
 
 #ifdef KOALA_NAPI
 
+#include <math.h>
+
 #include "napi.h"
 
 #include "interop-types.h"

@@ -34,6 +34,8 @@ void addType(const std::string& type, std::string* result) {
         result->append("[B");
     else if (type == "KStringPtr")
         result->append("Lstd/core/String;");
+    else if (type == "KInteropNumber")
+        result->append("J");
     else {
         fprintf(stderr, "Unhandled type: %s\n", type.c_str());
         throw "Error";
@@ -52,6 +54,8 @@ std::string etsType(const std::string &type)
         return "byte[]";
     else if (type == "KStringPtr")
         return "String";
+    else if (type == "KInteropNumber")
+        return "long";
     else {
         fprintf(stderr, "Unhandled type: %s\n", type.c_str());
         throw "Error";

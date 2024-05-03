@@ -84,11 +84,11 @@ if os == 'windows'
 endif
 if os == 'linux'
     cflags += ['-DKOALA_LINUX']
-    panda_ldflags = ['-ldl']
+    panda_ldflags = ['-ldl', '-lm']
 endif
 if os == 'macos'
     cflags += ['-DKOALA_MACOS']
-    panda_ldflags = ['-ldl']
+    panda_ldflags = ['-ldl', '-lm']
 endif
 
 node_module_prefix = ''
