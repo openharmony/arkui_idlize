@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { DeclarationTable, DeclarationTarget, PrimitiveType } from "./DeclarationTable";
+import { DeclarationTable, DeclarationTarget } from "./DeclarationTable";
 
 export class DependencySorter {
     deps = new Set<DeclarationTarget>()
