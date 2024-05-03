@@ -47,6 +47,7 @@ import { printNodeTypes } from "./peer-generation/NodeTypesPrinter"
 import { printStructCommon } from "./peer-generation/StructCommonPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/NativeModulePrinter"
 import { printBridgeCc } from "./peer-generation/BridgeCcPrinter"
+import { printImportsStubs } from "./peer-generation/ImportsStubsPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -315,6 +316,10 @@ if (options.dts2peer) {
                     printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi")
                 )
                 if (lang == Language.TS) {
+                    fs.writeFileSync(
+                        path.join(outDir, 'ImportsStubs' + langSuffix(lang)),
+                        printImportsStubs(peerLibrary),
+                    )
                     fs.writeFileSync(
                         path.join(outDir, 'NativeModuleEmpty' + langSuffix(lang)),
                         printNativeModuleEmpty(peerLibrary)

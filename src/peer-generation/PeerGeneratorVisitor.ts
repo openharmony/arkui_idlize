@@ -77,10 +77,11 @@ export interface TypeAndName {
 
 type MaybeCollapsedMethod = {
     member: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration
-    collapsed?: {
+    collapsed: {
         paramsDecl: string,
         paramsTypes: string[],
-        paramsUsage: string
+        paramsUsage: string,
+        generatedImportTypes: string[],
     }
 }
 
@@ -203,6 +204,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             .map(it => this.processMethodOrCallable(it, peer))
             .filter(isDefined)
         peer.methods.push(...peerMethods)
+        collapsedMethods.forEach(it => {
+            peer.usedImportTypesStubs.push(...it.collapsed.generatedImportTypes)
+            this.peerLibrary.importTypesStubs.push(...it.collapsed.generatedImportTypes)
+        })
 
         this.createComponentAttributesDeclaration(node, peer)
     }
@@ -244,6 +249,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             .map(it => this.processMethodOrCallable(it, peer, identName(node)!))
             .filter(isDefined)
         peer.methods.push(...peerMethods)
+        collapsedMethods.forEach(it => {
+            peer.usedImportTypesStubs.push(...it.collapsed.generatedImportTypes)
+            this.peerLibrary.importTypesStubs.push(...it.collapsed.generatedImportTypes)
+        })
     }
 
     processEnum(node: ts.EnumDeclaration) {
@@ -516,23 +525,22 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
         return [...groupedByName.keys()].map(name => {
             const overloads = groupedByName.get(name)!
-            if (overloads.length == 1) {
-                return {
-                    member: overloads[0]
-                }
-            }
 
             const maxParamsLength = Math.max(...overloads.map(it => it.parameters.length))
-
+            
             const paramsCollapsed: { types: ts.TypeNode[], name: string, optional?: ts.QuestionToken }[] =
                 Array.from({ length: maxParamsLength }, (_, i) => {
                     const typesToUnion = overloads.map(overload =>
                         overload.parameters[i]?.type ?? ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
                     )
+                    const isParameterOptional = (parameter?: ts.ParameterDeclaration): boolean => {
+                        if (parameter == undefined) return true
+                        return parameter.questionToken !== undefined
+                    }
                     return {
                         types: typesToUnion,
                         name: `arg${i}`,
-                        optional: overloads.some(overload => overload.parameters[i]?.questionToken ?? true)
+                        optional: overloads.some(overload => isParameterOptional(overload.parameters[i]))
                             ? ts.factory.createToken(ts.SyntaxKind.QuestionToken)
                             : undefined
                     }
@@ -545,26 +553,43 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
                         undefined,
                         name,
                         optional,
-                        ts.factory.createUnionTypeNode(types)
+                        types.length === 1 ? types[0] : ts.factory.createUnionTypeNode(types)
                     )
                 )
 
             const paramsTypesList: string[] = []
             const paramsDeclList: string[] = []
-            paramsCollapsed.forEach(it => {
-                const questionToken = it.optional ? "?" : ""
-                const collapsedType = it.types.map(it => {
-                    if (it.kind == ts.SyntaxKind.UndefinedKeyword) {
-                        return "undefined"
-                    }
-                    if (ts.isFunctionTypeNode(it)) {
-                        return `(${it.getText()})`
-                    }
-                    return it.getText()
-                }).join(" | ")
+            const generatedImportTypes: string[] = []
+            const mapParamType = (type: ts.TypeNode): string => {
+                if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
+                    return "undefined"
+                }
+                if (ts.isFunctionTypeNode(type)) {
+                    return `(${type.getText()})`
+                }
+                if (ts.isImportTypeNode(type)) {
+                    const importType = type.getText().match(/[a-zA-Z]+/g)!.join('_')
+                    generatedImportTypes.push(importType)
+                    return importType
+                }
+                if (ts.isTypeLiteralNode(type)) {
+                    const members = type.members
+                        .filter(ts.isPropertySignature)
+                        .map(it => {
+                            const type = mapParamType(it.type!)
+                            return `${asString(it.name)}: ${type}`
+                        })
+                    return `{ ${members.join(', ')} }`
+                }
+                return mapType(this.typeChecker, type)
+            }
+
+            paramsCollapsed.forEach(param => {
+                const questionToken = param.optional ? "?" : ""
+                const collapsedType = param.types.map(mapParamType).join(" | ")
 
                 paramsTypesList.push(collapsedType)
-                paramsDeclList.push(`${it.name}${questionToken}: ${collapsedType}`)
+                paramsDeclList.push(`${param.name}${questionToken}: ${collapsedType}`)
             })
 
             const paramsUsage = paramsCollapsed
@@ -592,7 +617,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
                 collapsed: {
                     paramsDecl: paramsDeclList.join(", "),
                     paramsTypes: paramsTypesList,
-                    paramsUsage: paramsUsage
+                    paramsUsage: paramsUsage,
+                    generatedImportTypes: generatedImportTypes,
                 }
             }
         })

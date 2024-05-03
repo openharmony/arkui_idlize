@@ -37,4 +37,5 @@ export class PeerClass {
     parentComponentName: string | undefined = undefined
     attributesFields: string[] = []
     attributesTypes: string[] = []
+    usedImportTypesStubs: string[] = []
 }

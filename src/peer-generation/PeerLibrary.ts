@@ -30,4 +30,5 @@ export class PeerLibrary {
 
     readonly commonMethods: string[] = []
     readonly customComponentMethods: string[] = []
+    readonly importTypesStubs: string[] = []
 }

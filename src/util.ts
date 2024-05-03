@@ -492,11 +492,7 @@ export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefin
         return importTypeName(type, true)
     }
     if (ts.isFunctionTypeNode(type)) {
-        return "object"
-    }
-    if (ts.isTypeLiteralNode(type)) {
-        // HACK!
-        if (type.members.filter(ts.isPropertySignature).some(it => ts.isImportTypeNode(it.type!))) return "any"
+        return type!.getText()
     }
     let text = type?.getText()
     // throw new Error(text)

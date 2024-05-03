@@ -64,6 +64,8 @@ class PeerFileVisitor {
         const imports = new ImportsCollector()
         imports.addFilterByBasename(this.targetBasename)
         this.file.peers.forEach(peer => {
+            for (const importType of peer.usedImportTypesStubs)
+                imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
             if (!peer.originalParentFilename) return
             const parentBasename = renameDtsToPeer(path.basename(peer.originalParentFilename), this.file.declarationTable.language)
             imports.addFeatureByBasename(this.generatePeerParentName(peer), parentBasename)
@@ -121,7 +123,7 @@ class PeerFileVisitor {
         if (parentRole === InheritanceRole.PeerNode) {
             printer.print(`constructor(type: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
             printer.pushIndent()
-            printer.print(`super(type, flags)`)
+            printer.print(`super(type, flags, ArkUINodeType[type])`)
             printer.print(`component?.setPeer(this.peer)`)
             printer.popIndent()
             printer.print(`}`)

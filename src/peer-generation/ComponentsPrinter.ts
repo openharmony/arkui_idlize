@@ -46,6 +46,8 @@ class ComponentFileVisitor {
         imports.addFilterByBasename(this.targetBasename)
         this.file.peers.forEach(peer => {
             if (!this.canGenerateComponent(peer)) return
+            for (const importType of peer.usedImportTypesStubs)
+                imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             const structPostfix = (peer.callableMethod?.mappedParamsTypes?.length ?? 0) + 1
             imports.addFeature(`ArkCommonStruct${structPostfix}`, "./ArkStructCommon")
