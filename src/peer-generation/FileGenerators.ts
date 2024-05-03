@@ -111,14 +111,29 @@ export function modifierStructs(lines: string[]): string {
 
 export function modifierStructList(lines: string[]): string {
     return `
-const ArkUINodeModifiers impl = {
+const ArkUINodeModifiers modifiersImpl = {
     1, // version
 ${lines.join("\n")}
 };
 
 extern const ArkUINodeModifiers* GetArkUINodeModifiers()
 {
-    return &impl;
+    return &modifiersImpl;
+}
+
+`
+}
+
+export function accessorStructList(lines: string[]): string {
+    return `
+const ArkUIAccessors accessorsImpl = {
+    1, // version
+${lines.join("\n")}
+};
+
+extern const ArkUIAccessors* GetArkUIAccessors()
+{
+    return &accessorsImpl;
 }
 
 `
@@ -153,7 +168,7 @@ ${deserializer.getOutput().join("\n")}
 `
 }
 
-export function makeApiModifiers(lines: string[]): string {
+export function makeApiModifiers(modifiers: string[], accessors: string[]): string {
     return `
 /**
  * An API to control an implementation. When making changes modifying binary
@@ -162,8 +177,13 @@ export function makeApiModifiers(lines: string[]): string {
  */
 typedef struct ArkUINodeModifiers {
     ${PrimitiveType.Int32.getText()} version;
-${lines.join("\n")}
+${modifiers.join("\n")}
 } ArkUINodeModifiers;
+
+typedef struct ArkUIAccessors {
+    ${PrimitiveType.Int32.getText()} version;
+${accessors.join("\n")}
+} ArkUIAccessors;
 
 typedef struct ArkUIBasicAPI {
     ${PrimitiveType.Int32.getText()} version;
@@ -190,6 +210,7 @@ typedef struct ArkUIFullNodeAPI {
     ${PrimitiveType.Int32.getText()} version;
     const ArkUIBasicAPI* (*getBasicAPI)();
     const ArkUINodeModifiers* (*getNodeModifiers)();
+    const ArkUIAccessors* (*getAccessors)();
     const ArkUIAnimation* (*getAnimation)();
     const ArkUINavigation* (*getNavigation)();
     const ArkUIGraphicsAPI* (*getGraphicsAPI)();
@@ -219,7 +240,7 @@ function readLangTemplate(name: string, lang: Language): string {
 
 export function makeAPI(
     apiVersion: string,
-    headers: string[], modifiers: string[],
+    headers: string[], modifiers: string[], accessors: string[],
     structs: IndentedPrinter, typedefs: IndentedPrinter
 ): string {
 
@@ -237,7 +258,7 @@ ${typedefs.getOutput().join("\n")}
 
 ${makeApiHeaders(headers)}
 
-${makeApiModifiers(modifiers)}
+${makeApiModifiers(modifiers, accessors)}
 
 ${epilogue}
 `

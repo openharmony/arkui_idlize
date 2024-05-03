@@ -447,6 +447,13 @@ export function renameDtsToComponent(fileName: string, language: Language) {
         .concat(langSuffix(language))
 }
 
+export function renameClassToMaterialized(fileName: string, language: Language) {
+    return "Ark"
+        .concat(snakeCaseToCamelCase(fileName))
+        .concat("Materialized")
+        .concat(langSuffix(language))
+}
+
 export function importTypeName(type: ts.ImportTypeNode, asType = false): string {
     return asType ? "object" : identName(type.qualifier)!
 }

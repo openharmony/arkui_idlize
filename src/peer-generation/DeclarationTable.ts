@@ -19,7 +19,7 @@ import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
     AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CustomTypeConvertor,
-    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor,
+    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MaterializedClassConvertor,
     NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, ToStringConvertor, TupleConvertor, TypeAliasConvertor,
     UndefinedConvertor, UnionConvertor
 } from "./Convertors"
@@ -71,9 +71,23 @@ class FieldRecord {
     constructor(public declaration: DeclarationTarget, public type: ts.TypeNode | undefined, public name: string, public optional: boolean = false) { }
 }
 
+class ParamRecord {
+    constructor(public declaration: DeclarationTarget, public type: ts.TypeNode, public name: string) {}
+}
+
+class MethodRecord {
+    constructor(
+        public name: string,
+        public isStatic: boolean,
+        public returnType: ts.TypeNode | undefined,
+        public params: ParamRecord[]) {}
+}
+
 class StructDescriptor {
     supers: DeclarationTarget[] = []
     deps = new Set<DeclarationTarget>()
+    cons: MethodRecord | undefined = undefined
+    methods: MethodRecord[] = []
     isPacked: boolean = false
     isArray: boolean = false
     private fields: FieldRecord[] = []
@@ -85,6 +99,12 @@ class StructDescriptor {
             if (field.name == `template`) field.name = `template_`
             this.fields.push(field)
         }
+    }
+    getConstructor(): MethodRecord | undefined {
+        return this.cons
+    }
+    getMethods(): readonly MethodRecord[] {
+        return this.methods
     }
     getFields(): readonly FieldRecord[] {
         return this.fields
@@ -658,6 +678,10 @@ export class DeclarationTable {
             return new InterfaceConvertor(declarationName, param, this, type)
         }
         if (ts.isClassDeclaration(declaration)) {
+            let isMaterialized = declaration.members.find(ts.isConstructorDeclaration)
+            if (isMaterialized !== undefined) {
+                return new MaterializedClassConvertor(declarationName, param, this, type)
+            }
             return new InterfaceConvertor(declarationName, param, this, type)
         }
         if (ts.isTypeParameterDeclaration(declaration)) {
@@ -762,6 +786,38 @@ export class DeclarationTable {
         }
     }
 
+    private printStructsAccessor(name: string, structDescriptor: StructDescriptor, structs: IndentedPrinter) {
+        let constructor = structDescriptor.getConstructor()
+        if (constructor !== undefined) {
+            let peerName = `${name}Peer`
+            let accessorName = `ArkUI${name}Accessor`
+            structs.print(`typedef struct ${peerName} ${peerName} ;`)
+            structs.print(`typedef struct ${accessorName} {`)
+            structs.pushIndent()
+                let params = constructor.params
+                    .map(it => `${this.uniqueName(it.declaration)}* ${it.name}`)
+                    .join(`,`)
+                structs.print(`${peerName}* (*constructor) (${params});`)
+
+            structs.print(`void (* destruct) (${peerName}* peer);`)
+
+            structDescriptor.getMethods()
+                .forEach(method => {
+                    let returnNode = method.returnType
+                    let returnType = returnNode === undefined
+                     ? "void"
+                     : this.uniqueNames.get(this.toTarget(returnNode))
+                     let receiver = method.isStatic ? `` : `${peerName} *peer, `
+                     let params = method.params
+                     .map(it => `${this.uniqueName(it.declaration)}* ${it.name}`)
+                     .join(`,`)
+                     structs.print(`${returnType} (*${method.name})(${receiver}${params});`)
+                })
+            structs.popIndent()
+            structs.print(`} ${accessorName};`)
+        }
+    }
+
     generateDeserializers(printer: IndentedPrinter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: IndentedPrinter) {
         this.processPendingRequests()
         let orderer = new DependencySorter(this)
@@ -814,6 +870,7 @@ export class DeclarationTable {
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
                 structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.uniqueName(it.declaration)} ${it.name};`))
                 this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
+                this.printStructsAccessor(nameAssigned, structDescriptor, structs)
             }
             let skipWriteToString = (target instanceof PrimitiveType) || ts.isEnumDeclaration(target)
             if (!noBasicDecl && !skipWriteToString) {
@@ -1095,6 +1152,28 @@ export class DeclarationTable {
         this.setCurrentContext(undefined)
     }
 
+    private methodsForAccessorClass(clazz: ts.ClassDeclaration, result: StructDescriptor) {
+        // typescript class has only one constructor
+        let constructor = clazz.members.find(ts.isConstructorDeclaration)
+        if (constructor === undefined) {
+            return
+        }
+
+        result.cons = new MethodRecord("", false, undefined, constructor.parameters
+            .map(it => new ParamRecord(this.toTarget(it.type!), it.type!, identName(it.name)!)))
+
+        clazz.members
+        .filter(ts.isMethodDeclaration)
+        .forEach(method => {
+            let params = method.parameters.map(it => new ParamRecord(this.toTarget(it.type!), it.type!, identName(it.name)!))
+            result.methods.push(
+                new MethodRecord(identName(method.name)!,
+                isStatic(method.modifiers),
+                method.type,
+                params))
+        })
+    }
+
     private fieldsForClass(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration, result: StructDescriptor) {
         clazz.heritageClauses?.forEach(it => {
             heritageDeclarations(this.typeChecker!, it).forEach(it => {
@@ -1145,6 +1224,7 @@ export class DeclarationTable {
             this.fieldsForClass(target, result)
         }
         else if (ts.isClassDeclaration(target)) {
+            this.methodsForAccessorClass(target, result)
             this.fieldsForClass(target, result)
         }
         else if (ts.isUnionTypeNode(target)) {

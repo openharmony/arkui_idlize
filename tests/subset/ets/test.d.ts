@@ -46,6 +46,18 @@ declare interface ArrayRefTuplesInterfaceDTS {
     tuple: Array<[boolean, number]>
 }
 
+declare class ClassDTS {
+
+    valBoolean: boolean
+}
+
+declare class ClassWithConstructorDTS {
+
+    constructor(valNumber: number, valString: string)
+
+//     method(valBoolean: boolean, valString: string)
+}
+
 // basic types:
 // - boolean
 // - number
@@ -170,4 +182,12 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
     testBooleanInterfaceArrayRef(value: Array<BooleanInterfaceDTS>): TestAttribute
 
     testInterfaceMixed(v1: UnionInterfaceDTS, v2: number, v3: TupleInterfaceDTS)
+
+    // Class
+
+    testClass(value: ClassDTS): TestAttribute
+
+    testClassWithConstructor1(value: ClassWithConstructorDTS): TestAttribute
+
+    testClassWithConstructor2(valString: string, value: ClassWithConstructorDTS): TestAttribute
 }

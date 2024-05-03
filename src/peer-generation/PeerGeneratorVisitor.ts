@@ -35,7 +35,7 @@ import {
     ArgConvertor, RetConvertor,
 } from "./Convertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTable, DeclarationTarget, PrimitiveType } from "./DeclarationTable"
 import {
     isCommonMethod,
     isRoot,
@@ -46,6 +46,7 @@ import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
+import { Materialized, MaterializedClass, MaterializedMethod} from "./Materialized"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -319,7 +320,63 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         // this.processPeerMethod(peer, peerMethod)
         this.declarationTable.setCurrentContext(undefined)
 
+        this.processMaterializedClasses(peer, method)
+
         return peerMethod
+    }
+
+    processMaterializedClasses(peer: PeerClass, method: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration) {
+        method
+        .parameters
+        .map(it => it.type!)
+        .forEach(decl => {
+            if (ts.isTypeReferenceNode(decl)) {
+                let target = this.declarationTable.toTarget(decl)
+                if (target instanceof PrimitiveType) {
+                } else if (ts.isClassDeclaration(target)){ // TBD Union and other types
+                    this.processMaterializedClass(peer, target)
+                }
+            }
+        })
+    }
+
+    processMaterializedClass(peer: PeerClass, target: ts.ClassDeclaration) {
+        let structDescriptor = this.declarationTable.targetStruct(target)
+        let constructor = structDescriptor.getConstructor()
+        if (constructor === undefined) {
+            return
+        }
+
+        let className = nameOrNull(target.name)!
+
+        let exists = Materialized.Instance.materializedClasses
+            .map(it => it.className)
+            .find(it => it === className)
+
+        if (exists) {
+            return
+        }
+
+        let processed = Materialized.Instance.materializedClasses
+            .map(it => it.className)
+            .find(it => it === className)
+
+        if (processed !== undefined) {
+            return
+        }
+
+        let mConstructor = new MaterializedMethod("", false, undefined,
+            constructor.params.map(it => [it.name, mapType(this.typeChecker, it.type)]))
+
+        let mMethods = structDescriptor
+        .getMethods()
+        .map(method => new MaterializedMethod(method.name, method.isStatic,
+            method.returnType == undefined ? undefined : mapType(this.typeChecker, method.returnType),
+            method.params.map(it =>[it.name, mapType(this.typeChecker, it.type)]
+        )))
+
+        Materialized.Instance.materializedClasses.push(
+            new MaterializedClass(className, mConstructor, mMethods))
     }
 
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {

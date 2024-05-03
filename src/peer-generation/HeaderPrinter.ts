@@ -19,13 +19,14 @@ import { makeAPI, makeCDeserializer } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
+import { Materialized } from "./Materialized";
 
 class HeaderVisitor {
     constructor(
         private library: PeerLibrary,
         private api: IndentedPrinter,
-        private apiList: IndentedPrinter
-
+        private modifiersList: IndentedPrinter,
+        private accessorsList: IndentedPrinter
     ) { }
 
     private apiModifierHeader(clazz: PeerClass) {
@@ -35,8 +36,8 @@ class HeaderVisitor {
     private printClassProlog(clazz: PeerClass) {
         this.api.print(this.apiModifierHeader(clazz))
         this.api.pushIndent()
-        this.apiList.pushIndent()
-        this.apiList.print(`const ArkUI${clazz.componentName}Modifier* (*get${clazz.componentName}Modifier)();`)
+        this.modifiersList.pushIndent()
+        this.modifiersList.print(`const ArkUI${clazz.componentName}Modifier* (*get${clazz.componentName}Modifier)();`)
     }
 
     private printMethod(method: PeerMethod) {
@@ -50,7 +51,15 @@ class HeaderVisitor {
         }
         this.api.popIndent()
         this.api.print(`} ArkUI${clazz.componentName}Modifier;\n`)
-        this.apiList.popIndent()
+        this.modifiersList.popIndent()
+    }
+
+    printAccessors(peerClass: PeerClass) {
+        this.accessorsList.pushIndent()
+        Materialized.Instance.materializedClasses.forEach(c =>
+            this.accessorsList.print(`// TBD: remove duplicates // const ArkUI${c.className}Accessor* (*get${c.className}Accessor)();`)
+        )
+        this.accessorsList.popIndent()
     }
 
     // TODO: have a proper Peer module visitor
@@ -62,6 +71,7 @@ class HeaderVisitor {
                     this.printMethod(method)
                 })
                 this.printClassEpilog(clazz)
+                this.printAccessors(clazz)
             })
         })
     }
@@ -69,16 +79,17 @@ class HeaderVisitor {
 
 export function printApiAndDeserializer(apiVersion: string|undefined, peerLibrary: PeerLibrary): {api: string, deserializer: string} {
     const apiHeader = new IndentedPrinter()
-    const apiList = new IndentedPrinter()
+    const modifierList = new IndentedPrinter()
+    const accessorList = new IndentedPrinter()
 
-    const visitor = new HeaderVisitor(peerLibrary, apiHeader, apiList)
+    const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList)
     visitor.printApiAndDeserializer()
 
     const structs = new IndentedPrinter()
     const typedefs = new IndentedPrinter()
 
     const deserializer = makeCDeserializer(peerLibrary.declarationTable, structs, typedefs)
-    const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), apiList.getOutput(), structs, typedefs)
+    const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), structs, typedefs)
 
     return {api, deserializer}
 }

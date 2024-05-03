@@ -172,8 +172,33 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
                         .map(it => `{${it}}`)
                 }
                 if (decl && ts.isClassDeclaration(decl)) {
-                    // TODO: logic to find proper way to instantiate class
-                    return [`undefined`]
+
+                    let className = nameOrUndefined(decl.name)
+                    console.log(`class: ${nameOrUndefined(decl.name)}`)
+                    decl.members.forEach(it => console.log(`class member: ${nameOrUndefined(it.name)}`))
+
+                    let consturctors = decl.members.filter(ts.isConstructorDeclaration)
+                    if (consturctors.length > 0) {
+                        let constructor = consturctors[randInt(consturctors.length)]
+                        constructor.parameters.forEach(it => {console.log(`constructor param: ${nameOrUndefined(it.name)}`)})
+
+                        // TBD: add imports for classes with constructors
+                        /*
+                        return pick(constructor.parameters.map (it => it), (key) =>
+                            this.generateValueOfType(key.type!)
+                                .map(it => `${it}`)) // TBD: Use generated class
+                                // .map(it => `${nameOrUndefined(key.name)}: ${it}`))
+                            .map(it => `new ${className}(${it})`) // TBD: Use generated class
+                            // .map(it => `{${it}}`)
+                        */
+                       return []
+                    }
+
+
+                    return pick(decl.members.filter(ts.isPropertyDeclaration), (key) =>
+                        this.generateValueOfType(key.type!)
+                            .map(it => `${nameOrUndefined(key.name)}: ${it}`))
+                        .map(it => `{${it}}`)
                 }
                 console.log(`Cannot create value of type ${asString(type)}`)
                 return []

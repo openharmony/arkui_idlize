@@ -789,6 +789,15 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 }
 
+export class MaterializedClassConvertor extends NumberConvertor {
+    constructor(name: string, param: string, table: DeclarationTable, type: ts.TypeReferenceNode) {
+        super(param)
+    }
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${param}Serializer.writeNumber(42) // TBD: pass materialized class`)
+    }
+}
+
 export class PredefinedConvertor extends BaseArgConvertor {
     constructor(param: string, tsType: string, private convertorName: string, private cType: string) {
         super(tsType, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)

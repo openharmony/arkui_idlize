@@ -18,6 +18,7 @@ import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "./FileGen
 import { LanguageWriter, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
+import { MaterializedClass, printGlobalMaterialized } from "./Materialized";
 
 class NativeModuleVisitor {
     readonly nativeModule: LanguageWriter
@@ -62,6 +63,7 @@ class NativeModuleVisitor {
                 this.printPeerMethods(peer)
             }
         }
+        printGlobalMaterialized(this.nativeModule, this.nativeModuleEmpty)
     }
 }
 

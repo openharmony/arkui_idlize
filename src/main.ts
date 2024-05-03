@@ -49,6 +49,7 @@ import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { printComponents } from "./peer-generation/ComponentsPrinter"
 import { printPeers } from "./peer-generation/PeersPrinter"
+import { printMaterialized } from "./peer-generation/MaterializedPrinter"
 import { printApiAndDeserializer } from "./peer-generation/HeaderPrinter"
 import { printNodeTypes } from "./peer-generation/NodeTypesPrinter"
 import { printStructCommon } from "./peer-generation/StructCommonPrinter"
@@ -307,6 +308,14 @@ if (options.dts2peer) {
                         fs.writeFileSync(outComponentFile, component)
                         arkuiComponentsFiles.push(outComponentFile)
                     }
+                }
+
+                const materialized = printMaterialized(peerLibrary, options.dumpSerialized ?? false)
+                for (const [targetBasename, materializedClass] of materialized) {
+                    console.log(`Print materialized class: ${materializedClass}`)
+                    const outMaterilizedFile = path.join(outDir,targetBasename)
+                    console.log("producing", outMaterilizedFile)
+                    fs.writeFileSync(outMaterilizedFile, materializedClass)
                 }
 
                 fs.writeFileSync(

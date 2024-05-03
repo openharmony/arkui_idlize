@@ -22,6 +22,7 @@ import { ImportsCollector } from "./ImportsCollector";
 import { PeerClass } from "./PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
+// import { MaterializedClass, printMaterializedClasses } from "./MaterializedClass"
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`

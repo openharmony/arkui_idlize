@@ -52,6 +52,10 @@ class ComponentFileVisitor {
             imports.addFeatureByBasename(componentToPeerClass(peer.componentName),
                 renameDtsToPeer(path.basename(peer.originalFilename), peer.declarationTable.language))
             imports.addFeature("ArkUINodeType", "./ArkUINodeType")
+            // TBD
+            // peer.materializedClasses.forEach(it => {
+            //     imports.addFeature(it.className, `./Ark${peer.componentName}Peer`)
+            // })
         })
         imports.print(this.printer)
     }

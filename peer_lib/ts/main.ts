@@ -19,6 +19,7 @@ import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
 import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkParticlePeer } from "@arkoala/arkui/ArkParticlePeer"
+// import { ArkTabContentPeer, SubTabBarStyle } from "@arkoala/arkui/ArkTabContentPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 
 import {
@@ -120,6 +121,11 @@ function checkParticle() {
         `emitter([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}])`)
 }
 
+// function checkTabContent() {
+//   let peer = new ArkTabContentPeer(ArkUINodeType.TabContent)
+//   checkResult("tabBar", () => peer.tabBarAttribute(new SubTabBarStyle("abc")), `tabBar(new SubTabBarStyle("abc"))`)
+// }
+
 function checkPerf(count: number) {
     let module = nativeModule()
     let start = performance.now()
@@ -149,6 +155,7 @@ checkFormComponent()
 checkCommon()
 checkNavigation()
 checkParticle()
+// checkTabContent()
 
 // Report in error code.
 checkTestFailures()
