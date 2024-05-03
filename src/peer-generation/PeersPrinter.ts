@@ -15,7 +15,7 @@
 
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter";
-import { PeerFile } from "./PeerFile";
+import { EnumEntity, PeerFile } from "./PeerFile";
 import { PeerLibrary } from "./PeerLibrary";
 import { Language, renameDtsToPeer, throwException } from "../util";
 import { ImportsCollector } from "./ImportsCollector";
@@ -216,8 +216,41 @@ class PeerFileVisitor {
         this.printer.print(`}`)
     }
 
+    private printEnum(enumEntity: EnumEntity) {
+        this.printer.print(enumEntity.comment)
+        this.printer.print(`enum ${enumEntity.name} {`)
+        this.printer.pushIndent()
+        for (const member of enumEntity.members) {
+            this.printer.print(member.comment)
+            if (member.initializerText != undefined) {
+                this.printer.print(`${member.name} = ${member.initializerText},`)
+            } else {
+                this.printer.print(`${member.name},`)
+            }
+        }
+        this.printer.popIndent()
+        this.printer.print(`}`)
+    }
+
+    private printEnums(peerFile: PeerFile) {
+        peerFile.enums.forEach(it => this.printEnum(it))
+    }
+
+    private printAssignEnumsToGlobalScope(peerFile: PeerFile) {
+        this.printer.print(`Object.assign(globalThis, {`)
+        this.printer.pushIndent()
+        for (const enumEntity of peerFile.enums) {
+            this.printer.print(`${enumEntity.name}: Ark${enumEntity.name},`)
+        }
+        this.printer.popIndent()
+        this.printer.print(`)}`)
+    }
+
     printFile(): void {
         this.printImports()
+        // TODO: fix check:subset and uncomment
+        // this.printEnums(this.file)
+        // this.printAssignEnumsToGlobalScope(this.file)
         this.file.peers.forEach(peer => {
             this.printPeer(peer)
             this.printAttributes(peer)

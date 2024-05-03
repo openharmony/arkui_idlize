@@ -17,8 +17,28 @@ import { getOrPut } from "../util"
 import { PeerClass } from "./PeerClass"
 import { DeclarationTable } from "./DeclarationTable"
 
+export class EnumEntity {
+    constructor(
+        public readonly name: string,
+        public readonly comment: string,
+        public readonly members: EnumMember[] = [],
+    ) {}
+    pushMember(name: string, comment: string, initializerText: string | undefined) {
+        this.members.push(new EnumMember(name, comment, initializerText))
+    }
+}
+
+class EnumMember {
+    constructor(
+        public readonly name: string,
+        public readonly comment: string,
+        public readonly initializerText: string | undefined,
+    ) {}
+}
+
 export class PeerFile {
     readonly peers: Map<string, PeerClass> = new Map()
+    readonly enums: EnumEntity[] = []
     constructor(
         public readonly originalFilename: string,
         public readonly declarationTable: DeclarationTable,
@@ -26,5 +46,9 @@ export class PeerFile {
 
     getOrPutPeer(componentName: string) {
         return getOrPut(this.peers, componentName, () => new PeerClass(this, componentName, this.originalFilename, this.declarationTable))
+    }
+
+    pushEnum(enumEntity: EnumEntity) {
+        this.enums.push(enumEntity)
     }
 }

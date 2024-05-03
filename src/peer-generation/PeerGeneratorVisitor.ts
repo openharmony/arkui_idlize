@@ -28,6 +28,7 @@ import {
     isStatic,
     throwException,
     isCustomComponentClass,
+    getComment,
 } from "../util"
 import { GenericVisitor } from "../options"
 import {
@@ -43,7 +44,7 @@ import {
 } from "./inheritance"
 import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
-import { PeerFile } from "./PeerFile"
+import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
 
 export enum RuntimeType {
@@ -167,9 +168,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             if (node.body && ts.isModuleBlock(node.body)) {
                 node.body.statements.forEach(it => this.visit(it))
             }
+        } else if (ts.isEnumDeclaration(node)) {
+            this.processEnum(node)
         } else if (ts.isVariableStatement(node) ||
             ts.isExportDeclaration(node) ||
-            ts.isEnumDeclaration(node) ||
             ts.isTypeAliasDeclaration(node) ||
             ts.isFunctionDeclaration(node) ||
             ts.isEmptyStatement(node) ||
@@ -241,6 +243,20 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             .map(it => this.processMethodOrCallable(it, peer, identName(node)!))
             .filter(isDefined)
         peer.methods.push(...peerMethods)
+    }
+
+    processEnum(node: ts.EnumDeclaration) {
+        let name = node.name.getText()
+        let comment = getComment(this.sourceFile, node)
+        let enumEntity = new EnumEntity(name, comment)
+        node.forEachChild(child => {
+            if (ts.isEnumMember(child)) {
+                let name = child.name.getText()
+                let comment = getComment(this.sourceFile, child)
+                enumEntity.pushMember(name, comment, child.initializer?.getText())
+            }
+        })
+        this.peerFile.pushEnum(enumEntity)
     }
 
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
