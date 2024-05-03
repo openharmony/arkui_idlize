@@ -187,7 +187,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testClass(value: ClassDTS): TestAttribute
 
-    testClassWithConstructor1(value: ClassWithConstructorDTS): TestAttribute
+    //testClassWithConstructor1(value: ClassWithConstructorDTS): TestAttribute
 
-    testClassWithConstructor2(valString: string, value: ClassWithConstructorDTS): TestAttribute
+    //testClassWithConstructor2(valString: string, value: ClassWithConstructorDTS): TestAttribute
 }

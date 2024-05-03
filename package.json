@@ -67,9 +67,9 @@
         "postinstall": "npm run install:peer:deps",
         "sanity": "npm run check:peers:run && npm run run:all && npm run lint:all",
         "panda:sdk:install": "cd panda && npm run panda:sdk:install",
-        "compile:arkts:subset": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json",
+        "compile:arkts:subset": "npm run check:subset && bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json",
         "compile:arkts:peers": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-peers.json --ets-module",
-        "run:panda": "LD_LIBRARY_PATH=./native bash ./panda/arkts/ark ./build/abc/subset/index.abc",
+        "run:panda": "npm run compile:arkts:subset && LD_LIBRARY_PATH=./native bash ./panda/arkts/ark ./build/abc/subset/index.abc",
         "run:dummy-panda": "npm run compile:native-node-host-subset && ./native/build-node-host-subset/dummy-panda",
         "compile:java": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset --language java && npm run compile:native-node-host-subset && javac ./generated/subset/*.java -d ./generated/subset",
         "run:java": "npm run compile:java && java -Djava.library.path=./native -cp ./generated/subset Main"

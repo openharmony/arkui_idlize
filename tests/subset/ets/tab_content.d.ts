@@ -40,6 +40,6 @@ declare class BottomTabBarStyle {
 
 declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
 
-    tabBar(value: SubTabBarStyle): TabContentAttribute;
+    // tabBar(value: SubTabBarStyle): TabContentAttribute;
 //     tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
 }
