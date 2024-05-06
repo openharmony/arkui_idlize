@@ -45,7 +45,7 @@ class PeerFileVisitor {
     }
 
     private generatePeerParentName(peer: PeerClass): string {
-        if (!peer.originalClassName) 
+        if (!peer.originalClassName)
             throw new Error(`${peer.componentName} is not supported, use 'uselessConstructorInterfaces' for now`)
         const parentRole = determineParentRole(peer.originalClassName, peer.parentComponentName)
         if ([InheritanceRole.Finalizable, InheritanceRole.PeerNode].includes(parentRole)) {
@@ -123,7 +123,7 @@ class PeerFileVisitor {
         if (parentRole === InheritanceRole.PeerNode) {
             printer.print(`constructor(type: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
             printer.pushIndent()
-            printer.print(`super(type, flags, ArkUINodeType[type])`)
+            printer.print(`super(type, flags)`)
             printer.print(`component?.setPeer(this.peer)`)
             printer.popIndent()
             printer.print(`}`)

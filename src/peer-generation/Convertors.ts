@@ -779,7 +779,7 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 
     interopType(ts: boolean): string {
-        return ts ? "KInt" : "KInteropNumber"
+        return ts ? "number" : "KInteropNumber"
     }
     estimateSize() {
         return 5

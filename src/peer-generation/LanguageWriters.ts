@@ -45,6 +45,8 @@ export class NamedMethodSignature extends MethodSignature {
 export abstract class LanguageWriter {
     constructor(protected printer: IndentedPrinter, public language: Language) {}
 
+    abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void
+
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string): void
 
     abstract writeMethodImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void
@@ -68,7 +70,6 @@ export abstract class LanguageWriter {
     getOutput(): string[] {
         return this.printer.getOutput()
     }
-
     mapType(type: Type): string {
         return type.name
     }
@@ -77,6 +78,15 @@ export abstract class LanguageWriter {
 export class TSLanguageWriter extends LanguageWriter {
     constructor(printer: IndentedPrinter, language: Language = Language.TS) {
         super(printer, language)
+    }
+    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
+        let extendsClause = superClass ? ` extends ${superClass}` : ''
+        let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
+        this.printer.print(`class ${name}${extendsClause}${implementsClause} {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
     }
 
     writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string): void {
@@ -111,6 +121,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             case 'Uint8Array': return 'byte[]'
             case 'int32': case 'KInt': return 'int'
             case 'KStringPtr': return 'String'
+            case 'number': return 'double'
         }
         return super.mapType(type)
     }
@@ -120,6 +131,16 @@ export class JavaLanguageWriter extends LanguageWriter {
     constructor(printer: IndentedPrinter, language: Language = Language.TS) {
         super(printer, language)
     }
+    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
+        let extendsClause = superClass ? ` extends ${superClass}` : ''
+        let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
+        this.printer.print(`class ${name}${extendsClause}${implementsClause} {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
+    }
+
     writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string): void {
         this.printer.print(`${prefix ?? ""}${this.mapType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")});`)
     }
@@ -145,6 +166,7 @@ export class JavaLanguageWriter extends LanguageWriter {
             case 'Uint8Array': return 'byte[]'
             case 'int32': case 'KInt': return 'int'
             case 'KStringPtr': return 'String'
+            case 'number': return 'double'
         }
         return super.mapType(type)
     }

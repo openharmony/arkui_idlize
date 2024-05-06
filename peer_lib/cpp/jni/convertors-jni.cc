@@ -70,6 +70,8 @@ void addType(const std::string &type, std::string *result)
         result->append("I");
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         result->append("J");
+    else if (type == "KInteropNumber")
+        result->append("D");
     else if (type == "KBoolean")
         result->append("Z");
     else if (type == "KByte*" || type == "uint8_t*")
@@ -88,6 +90,8 @@ std::string javaType(const std::string &type)
         return type;
     else if (type == "KInt" || type == "Ark_Int32" || type == "Ark_Boolean" || type == "int32_t" || type == "KUInt")
         return "int";
+    else if (type == "KInteropNumber")
+        return "double";
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         return "long";
     else if (type == "KByte*" || type == "uint8_t*")
