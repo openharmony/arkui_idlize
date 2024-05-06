@@ -26,6 +26,8 @@ import { CompileContext, IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import {
     copyPeerLib,
+    completeImplementations,
+    dummyImplementations,
     makeArkuiModule,
     makeTSSerializer,
 } from "./peer-generation/FileGenerators"
@@ -36,6 +38,7 @@ import { defaultCompilerOptions, isDefined, toSet, langSuffix, Language } from "
 import { TypeChecker } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
+import { printRealAndDummyAccessors } from "./peer-generation/AccessorPrinter"
 import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -346,9 +349,10 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), deserializer)
                 fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), api)
 
-                const { dummy, real } = printRealAndDummyModifiers(peerLibrary)
-                fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummy)
-                fs.writeFileSync(path.join(outDir, 'all_modifiers.cc'), real)
+                const modifiers = printRealAndDummyModifiers(peerLibrary)
+                const accessors = printRealAndDummyAccessors(peerLibrary)
+                fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummyImplementations(modifiers.dummy + accessors.dummy))
+                fs.writeFileSync(path.join(outDir, 'all_modifiers.cc'), completeImplementations(modifiers.real + accessors.real))
 
                 copyPeerLib(path.join(__dirname, '..', 'peer_lib'), outDir)
             }

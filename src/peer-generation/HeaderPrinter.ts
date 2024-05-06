@@ -41,7 +41,7 @@ class HeaderVisitor {
     }
 
     private printMethod(method: PeerMethod) {
-        const apiParameters = method.generateAPIParameters(method.argConvertors).join(", ")
+        const apiParameters = method.generateAPIParameters().join(", ")
         this.api.print(`${method.retType} (*${method.fullMethodName})(${apiParameters});`)
     }
 
@@ -54,10 +54,10 @@ class HeaderVisitor {
         this.modifiersList.popIndent()
     }
 
-    printAccessors(peerClass: PeerClass) {
+    private printAccessors() {
         this.accessorsList.pushIndent()
         Materialized.Instance.materializedClasses.forEach(c =>
-            this.accessorsList.print(`// TBD: remove duplicates // const ArkUI${c.className}Accessor* (*get${c.className}Accessor)();`)
+            this.accessorsList.print(`const ArkUI${c.className}Accessor* (*get${c.className}Accessor)();`)
         )
         this.accessorsList.popIndent()
     }
@@ -71,9 +71,9 @@ class HeaderVisitor {
                     this.printMethod(method)
                 })
                 this.printClassEpilog(clazz)
-                this.printAccessors(clazz)
             })
         })
+        this.printAccessors()
     }
 }
 

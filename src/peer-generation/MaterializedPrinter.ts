@@ -15,30 +15,30 @@ class MaterializedFileVisitor {
     ) {}
 
     private printMaterializedClass(printer: IndentedPrinter, clazz: MaterializedClass) {
-            printer.print(`import { Finalizable } from "@koalaui/arkoala"`)
-            printer.print(`export class ${clazz.className} extends Finalizable {`)
+        printer.print(`import { Finalizable } from "@koalaui/arkoala"`)
+        printer.print(`export class ${clazz.className} extends Finalizable {`)
+        printer.pushIndent()
+        let consParams = clazz.ctor.argConvertors.map(it => `${it.param}: ${it.tsTypeName}`).join(", ")
+        // constructor
+        printer.print(`constructor(${consParams}) {`)
+        printer.pushIndent()
+        printer.print(`super(BigInt(42)) // TBD`)
+        printer.popIndent()
+        printer.print(`}`)
+        // methods
+        clazz.methods.forEach(method => {
+            let staticModifier = method.hasReceiver ? "" : "static "
+            let returnType = method.tsRetType === undefined ? "" : `: ${method.tsRetType} `
+            let params = method.argConvertors.map(it => `${it.param}: ${it.tsTypeName}`).join(", ")
+            printer.print(`${staticModifier}${method.methodName}(${params})${returnType} {`)
             printer.pushIndent()
-            let consParams = clazz.cons.params.map(it => `${it[0]}: ${it[1]}`).join(", ")
-            // constructor
-            printer.print(`constructor(${consParams}) {`)
-            printer.pushIndent()
-            printer.print(`super(BigInt(42)) // TBD`)
+            printer.print(`// TBD nativeModule()...`)
+            printer.print(`return this`)
             printer.popIndent()
             printer.print(`}`)
-            // methods
-            clazz.methods.forEach(method => {
-                let staticModifier = method.isStatic ? "static " : ""
-                let returnType = method.returnType === undefined ? "" : `: ${method.returnType} `
-                let params = method.params.map(it => `${it[0]}: ${it[1]}`).join(", ")
-                printer.print(`${staticModifier}${method.methodName}(${params})${returnType} {`)
-                printer.pushIndent()
-                printer.print(`// TBD nativeModule()...`)
-                printer.print(`return this`)
-                printer.popIndent()
-                printer.print(`}`)
-            })
-            printer.popIndent()
-            printer.print(`}`)
+        })
+        printer.popIndent()
+        printer.print(`}`)
     }
 
     printFile(): void {
@@ -55,7 +55,7 @@ class MaterializedVisitor {
     ) {}
 
     printMaterialized(): void {
-        for(const clazz of Materialized.Instance.materializedClasses) {
+        for (const clazz of Materialized.Instance.materializedClasses.values()) {
             const visitor = new MaterializedFileVisitor(clazz, this.dumpSerialized)
             visitor.printFile()
             renameClassToMaterialized

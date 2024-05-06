@@ -85,23 +85,23 @@ ${bridgeCc.join("\n")}
 `
 }
 
-export function completeImplementations(lines: string[]): string {
+export function completeImplementations(lines: string): string {
     return `
 #include "Interop.h"
 #include "Deserializer.h"
 #include "common-interop.h"
 
-${lines.join("\n")}
+${lines}
 `
 }
 
-export function dummyImplementations(lines: string[]): string {
+export function dummyImplementations(lines: string): string {
     return `
 #include "Interop.h"
 #include "Deserializer.h"
 #include "common-interop.h"
 
-${lines.join("\n")}
+${lines}
 `
 }
 

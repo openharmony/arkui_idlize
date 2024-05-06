@@ -75,7 +75,7 @@ class ParamRecord {
     constructor(public declaration: DeclarationTarget, public type: ts.TypeNode, public name: string) {}
 }
 
-class MethodRecord {
+export class MethodRecord {
     constructor(
         public name: string,
         public isStatic: boolean,
@@ -799,7 +799,7 @@ export class DeclarationTable {
                     .join(`,`)
                 structs.print(`${peerName}* (*constructor) (${params});`)
 
-            structs.print(`void (* destruct) (${peerName}* peer);`)
+            structs.print(`void (*destructor) (${peerName}* peer);`)
 
             structDescriptor.getMethods()
                 .forEach(method => {
@@ -1159,7 +1159,7 @@ export class DeclarationTable {
             return
         }
 
-        result.cons = new MethodRecord("", false, undefined, constructor.parameters
+        result.cons = new MethodRecord("constructor", true, undefined, constructor.parameters
             .map(it => new ParamRecord(this.toTarget(it.type!), it.type!, identName(it.name)!)))
 
         clazz.members
