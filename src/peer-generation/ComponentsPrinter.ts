@@ -24,14 +24,15 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { InheritanceRole, determineInheritanceRole } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
+import { Type, createLanguageWriter } from "./LanguageWriters";
 
 class ComponentFileVisitor {
-    readonly printer: IndentedPrinter = new IndentedPrinter()
+    readonly printer = createLanguageWriter(new IndentedPrinter(), this.file.declarationTable.language)
 
     constructor(
         private file: PeerFile,
-    ) { } 
-    
+    ) { }
+
     get targetBasename() {
         return renameDtsToComponent(path.basename(this.file.originalFilename), this.file.declarationTable.language)
     }
@@ -92,19 +93,11 @@ class ComponentFileVisitor {
                 (method?.mappedParamsTypes ?? []).join(", ")
             ]
         }
-        this.printer.print(`
-export class ${componentClassName} extends ${parentStructClass.name}<
-${parentStructClass.typesLines.map(it => indentedBy(it, 1)).join("\n")}
-> implements ${attributeClassName} {
-
-  protected peer?: ${peerClassName}
-`)
-        this.printer.pushIndent()
-        for (const method of peer.methods)
-            this.printComponentMethod(method)
-        this.printer.popIndent()
-
-        this.printer.print(`
+        this.printer.writeClass(componentClassName, (writer) => {
+            writer.writeFieldDeclaration('peer', new Type(peerClassName), ['protected'], true)
+            for (const method of peer.methods)
+                this.printComponentMethod(method)
+            writer.print(`
   /** @memo */
   _build(
     /** @memo */
@@ -113,16 +106,18 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 1)).join("\n")}
     content_: (() => void) | undefined,
     ${method?.mappedParams ?? ""}
   ) {
-    NodeAttach(() => new ${peerClassName}(ArkUINodeType.${peer.componentName}, this), () => {
-      style?.(this)
-      ${method ? `this.${method?.methodName}(${method?.mappedParamValues})` : ""}
-      content_?.()
-      this.applyAttributesFinish()
-    })
-  }
-}`)
+        NodeAttach(() => new ${peerClassName}(ArkUINodeType.${peer.componentName}, this), () => {
+            style?.(this)
+            ${method ? `this.${method?.methodName}(${method?.mappedParamValues})` : ""}
+            content_?.()
+                this.applyAttributesFinish()
+              })
+  }`)
+    }, `${parentStructClass.name}<${parentStructClass.typesLines.map(it => indentedBy(it, 1)).join("\n")}>`,
+            [attributeClassName])
 
-    this.printer.print(`
+
+        this.printer.print(`
 /** @memo */
 export function ${componentFunctionName}(
   /** @memo */
@@ -142,7 +137,6 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
 }
 `)
     }
-
     printFile(): void {
         this.printImports()
         this.file.peers.forEach(peer => this.printComponent(peer))
@@ -154,7 +148,7 @@ class ComponentsVisitor {
 
     constructor(
         private readonly peerLibrary: PeerLibrary
-    ) {}
+    ) { }
 
     printComponents(): void {
         for (const file of this.peerLibrary.files.values()) {

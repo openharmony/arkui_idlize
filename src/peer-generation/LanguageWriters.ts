@@ -17,20 +17,24 @@ import { IndentedPrinter } from "../IndentedPrinter";
 import { Language, stringOrNone } from "../util";
 
 export class Type {
-    constructor(public name: string) {}
+    constructor(public name: string, public nullable = false) {}
+    static Void = new Type('void')
 }
 
 export class MethodSignature {
-    constructor(public returnType: Type, public args: Type[]) {}
+    constructor(public returnType: Type, public args: Type[], public defaults: stringOrNone[]|undefined = undefined) {}
 
     argName(index: number): string {
         return `arg${index}`
     }
+    argDefault(index: number): string|undefined {
+        return this.defaults?.[index]
+    }
 }
 
 export class NamedMethodSignature extends MethodSignature {
-    constructor(returnType: Type, args: Type[], public argsNames: string[]) {
-        super(returnType, args)
+    constructor(returnType: Type, args: Type[], public argsNames: string[], public defaults: stringOrNone[]|undefined = undefined) {
+        super(returnType, args, defaults)
     }
 
     static make(returnType: string, args: {name: string, type: string}[]): NamedMethodSignature {
@@ -43,15 +47,23 @@ export class NamedMethodSignature extends MethodSignature {
 }
 
 export abstract class LanguageWriter {
-    constructor(protected printer: IndentedPrinter, public language: Language) {}
+    constructor(public printer: IndentedPrinter, public language: Language) {}
 
     abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void
+    abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void
+
+    abstract writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void
 
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string): void
 
+    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void
     abstract writeMethodImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void
 
-    abstract printLog(message: string): void
+    writeSuperCall(params: string[]): void {
+        this.printer.print(`super(${params.join(", ")})`)
+    }
+
+    abstract writePrintLog(message: string): void
 
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature)
@@ -82,27 +94,57 @@ export class TSLanguageWriter extends LanguageWriter {
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        this.printer.print(`class ${name}${extendsClause}${implementsClause} {`)
+        this.printer.print(`export class ${name}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
+    }
+
+    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
+        let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
+        this.printer.print(`export interface ${name}${extendsClause} {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
+    }
+
+    writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void {
+        this.printer.print(`${modifiers?.join(' ') ?? ""} ${name}${optional ? "?"  : ""}: ${type.name}`)
     }
 
     writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string): void {
-        this.printer.print(`${prefix ?? ""}${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.mapType(it)}`).join(", ")}): ${this.mapType(signature.returnType)}`)
+        this.writeDeclaration(name, signature, true, false, prefix)
+    }
+
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
+        this.writeDeclaration('constructor', signature, false, true)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
+
     }
 
     writeMethodImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
-        this.printer.print(`${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.mapType(it)}`).join(", ")}): ${this.mapType(signature.returnType)} {`)
+        this.writeDeclaration(name, signature, true, true)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
     }
 
-    printLog(message: string): void {
+    private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, prefix?: string) {
+        this.printer.print(`${prefix ?? ""}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
+    }
+
+    writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)
+    }
+
+    mapType(type: Type): string {
+        return `${type.name}`
     }
 }
 
@@ -128,17 +170,30 @@ export class ETSLanguageWriter extends TSLanguageWriter {
 }
 
 export class JavaLanguageWriter extends LanguageWriter {
-    constructor(printer: IndentedPrinter, language: Language = Language.TS) {
-        super(printer, language)
+    constructor(printer: IndentedPrinter) {
+        super(printer, Language.JAVA)
     }
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        this.printer.print(`class ${name}${extendsClause}${implementsClause} {`)
+        this.printer.print(`public class ${name}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
+    }
+
+    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
+        let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
+        this.printer.print(`public interface ${name}${extendsClause} {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
+    }
+
+    writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void {
+        this.printer.print(`${modifiers?.join(' ') ?? ""}  ${type.name} ${name}${optional ? " = null"  : ""};`)
     }
 
     writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string): void {
@@ -146,6 +201,14 @@ export class JavaLanguageWriter extends LanguageWriter {
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, "static native ")
+    }
+
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
+        this.printer.print(`${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.mapType(it)}`).join(", ")}): ${this.mapType(signature.returnType)} {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
     }
 
     writeMethodImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
@@ -156,7 +219,7 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
 
-    printLog(message: string): void {
+    writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
     }
 

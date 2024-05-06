@@ -16,6 +16,7 @@
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter";
 import { getOrPut } from "../util";
+import { LanguageWriter } from "./LanguageWriters";
 
 export type ImportsCollectorFilter = (feature: string, module: string) => boolean
 
@@ -43,7 +44,7 @@ export class ImportsCollector {
         this.addFilter((_, m) => m !== module)
     }
 
-    print(printer: IndentedPrinter) {
+    print(printer: LanguageWriter) {
         this.moduleToFeatures.forEach((features, module) => {
             const filteredFeatures = Array.from(features).filter(feature => {
                 return this.filters.every(it => it(feature, module))

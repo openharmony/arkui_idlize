@@ -22,6 +22,7 @@ import { ImportsCollector } from "./ImportsCollector";
 import { PeerClass } from "./PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
+import { LanguageWriter, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
 // import { MaterializedClass, printMaterializedClasses } from "./MaterializedClass"
 
 export function componentToPeerClass(component: string) {
@@ -33,7 +34,7 @@ function componentToAttributesClass(component: string) {
 }
 
 class PeerFileVisitor {
-    readonly printer: IndentedPrinter = new IndentedPrinter()
+    readonly printer: LanguageWriter = createLanguageWriter(new IndentedPrinter(), this.file.declarationTable.language)
 
     constructor(
         private readonly file: PeerFile,
@@ -82,64 +83,35 @@ class PeerFileVisitor {
             this.printer.print(attributeType)
 
         const parent = this.generateAttributesParentClass(peer)
-        const extendsClause =
-            parent
-                ? ` extends ${parent} `
-                : ""
-        this.printer.print(`export interface ${componentToAttributesClass(peer.componentName)} ${extendsClause} {`)
-
-        if (peer.attributesFields.length === 0) {
-            this.printer.print('}')
-            return
-        }
-        this.printer.pushIndent()
-        for (const field of peer.attributesFields)
-            this.printer.print(field)
-        this.printer.popIndent()
-        this.printer.print('}')
-    }
-
-    private printPeerClassHeader(peer: PeerClass) {
-        const peerParentName = this.generatePeerParentName(peer)
-        const extendsClause =
-            peerParentName
-                ? `extends ${peerParentName} `
-                : ""
-        this.printer.print(`export class ${componentToPeerClass(peer.componentName)} ${extendsClause} {`)
+        this.printer.writeInterface(componentToAttributesClass(peer.componentName), (writer) => {
+            for (const field of peer.attributesFields)
+                writer.print(field)
+        }, parent ? [parent] : undefined)
     }
 
     private printPeerConstructor(peer: PeerClass): void {
+        // TODO: fully switch to writer!
         const printer = this.printer
         const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
+        const isNode = parentRole !== InheritanceRole.Finalizable
+        const signature = new NamedMethodSignature(
+            Type.Void,
+            [new Type('ArkUINodeType', !isNode), new Type('ArkCommon', true), new Type('int32')],
+            ['type', 'component', 'flags'],
+            [undefined, undefined, '0'])
 
-        if (parentRole === InheritanceRole.Finalizable) {
-            printer.print(`constructor(type?: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
-            printer.pushIndent()
-            printer.print(`super(BigInt(42)) // for now`)
-            printer.popIndent()
-            printer.print(`}`)
-            return
-        }
-        if (parentRole === InheritanceRole.PeerNode) {
-            printer.print(`constructor(type: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
-            printer.pushIndent()
-            printer.print(`super(type, flags)`)
-            printer.print(`component?.setPeer(this.peer)`)
-            printer.popIndent()
-            printer.print(`}`)
-            return
-        }
-
-        if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
-            printer.print(`constructor(type: ArkUINodeType, component?: ArkCommon, flags: int32 = 0) {`)
-            printer.pushIndent()
-            printer.print(`super(type, component, flags)`)
-            printer.popIndent()
-            printer.print(`}`)
-            return
-        }
-
-        throwException(`Unexpected parent inheritance role: ${parentRole}`)
+        printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => {
+            if (parentRole === InheritanceRole.Finalizable) {
+                writer.writeSuperCall(['BigInt(42)']) // for now
+            } else if (parentRole === InheritanceRole.PeerNode) {
+                writer.writeSuperCall([`type`, 'flags'])
+                writer.print(`component?.setPeer(this.peer)`)
+            } else if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
+                writer.writeSuperCall([`type`, 'component', 'flags'])
+            } else {
+                throwException(`Unexpected parent inheritance role: ${parentRole}`)
+            }
+        })
     }
 
     private printPeerMethod(method: PeerMethod) {
@@ -158,7 +130,8 @@ class PeerFileVisitor {
             if (it.useArray) {
                 let size = it.estimateSize()
                 printer.print(`const ${it.param}Serializer = new Serializer(${size})`)
-                it.convertorToTSSerial(it.param, it.param, printer)
+                // TODO: pass writer to convertors!
+                it.convertorToTSSerial(it.param, it.param, printer.printer)
             }
         })
         // Enable to see serialized data.
@@ -213,14 +186,12 @@ class PeerFileVisitor {
     }
 
     private printPeer(peer: PeerClass) {
-        this.printPeerClassHeader(peer)
-        this.printer.pushIndent()
-        this.printPeerConstructor(peer)
-        for (const method of peer.methods)
-            this.printPeerMethod(method)
-        this.printApplyMethod(peer)
-        this.printer.popIndent()
-        this.printer.print(`}`)
+        this.printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
+            this.printPeerConstructor(peer)
+            for (const method of peer.methods)
+                this.printPeerMethod(method)
+            this.printApplyMethod(peer)
+        }, this.generatePeerParentName(peer))
     }
 
     private printEnum(enumEntity: EnumEntity) {

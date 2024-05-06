@@ -51,7 +51,7 @@ class NativeModuleVisitor {
             let name = `_${component}_${method.methodName}`
             this.nativeModule.writeNativeMethodDeclaration(name, parameters)
             this.nativeModuleEmpty.writeMethodImplementation(name, parameters, (printer) => {
-                printer.printLog(name)
+                printer.writePrintLog(name)
             })
             peer.declarationTable.setCurrentContext(undefined)
         })
