@@ -21,7 +21,7 @@ import { PeerClass } from "./PeerClass";
 import { PeerFile } from "./PeerFile";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { InheritanceRole, determineInheritanceRole } from "./inheritance";
+import { InheritanceRole, determineInheritanceRole, isCommonMethod } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
 import { Type, createLanguageWriter } from "./LanguageWriters";
@@ -30,6 +30,7 @@ class ComponentFileVisitor {
     readonly printer = createLanguageWriter(new IndentedPrinter(), this.file.declarationTable.language)
 
     constructor(
+        private library: PeerLibrary,
         private file: PeerFile,
     ) { }
 
@@ -97,6 +98,15 @@ class ComponentFileVisitor {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), ['protected'], true)
             for (const method of peer.methods)
                 this.printComponentMethod(method)
+            if (peer.originalParentName && !isCommonMethod(peer.originalParentName!)) {
+                const parentPeer = this.library.findPeerByComponentName(peer.parentComponentName!)!
+                const parentMethods = parentPeer.methods.filter(parentMethod => {
+                    // excluding overridden methods
+                    return !peer.methods.some(method => parentMethod.methodName == method.methodName)
+                })
+                for (const method of parentMethods)
+                    this.printComponentMethod(method)
+            }
             writer.print(`
   /** @memo */
   _build(
@@ -139,7 +149,11 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
     }
     printFile(): void {
         this.printImports()
-        this.file.peers.forEach(peer => this.printComponent(peer))
+        this.file.peers.forEach(peer => {
+            if (peer.hasTransitiveGenericType)
+                return
+            this.printComponent(peer)
+        })
     }
 }
 
@@ -152,7 +166,7 @@ class ComponentsVisitor {
 
     printComponents(): void {
         for (const file of this.peerLibrary.files.values()) {
-            const visitor = new ComponentFileVisitor(file)
+            const visitor = new ComponentFileVisitor(this.peerLibrary, file)
             visitor.printFile()
             this.components.set(visitor.targetBasename, visitor.printer.getOutput())
         }

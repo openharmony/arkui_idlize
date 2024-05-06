@@ -15,6 +15,7 @@
 
 
 import { DeclarationTable } from "./DeclarationTable";
+import { PeerClass } from "./PeerClass";
 import { PeerFile } from "./PeerFile";
 
 export type PeerLibraryOutput = {
@@ -31,4 +32,12 @@ export class PeerLibrary {
     readonly commonMethods: string[] = []
     readonly customComponentMethods: string[] = []
     readonly importTypesStubs: string[] = []
+
+    findPeerByComponentName(componentName: string): PeerClass | undefined {
+        for (const file of this.files)
+            for (const peer of file.peers.values())
+                if (peer.componentName == componentName) 
+                    return peer
+        return undefined
+    }
 }

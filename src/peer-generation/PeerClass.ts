@@ -38,4 +38,5 @@ export class PeerClass {
     attributesFields: string[] = []
     attributesTypes: string[] = []
     usedImportTypesStubs: string[] = []
+    hasTransitiveGenericType: boolean = false
 }

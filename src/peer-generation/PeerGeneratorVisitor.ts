@@ -37,6 +37,7 @@ import {
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable, MethodRecord, PrimitiveType } from "./DeclarationTable"
 import {
+    hasTransitiveHeritageGenericType,
     isCommonMethod,
     isRoot,
     isStandalone,
@@ -410,6 +411,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             peer.originalParentName = className(parent)
             peer.originalParentFilename = parent.getSourceFile().fileName
             peer.parentComponentName = this.renameToComponent(peer.originalParentName!)
+            peer.hasTransitiveGenericType = hasTransitiveHeritageGenericType(node)
         }
     }
 

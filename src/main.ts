@@ -298,12 +298,10 @@ if (options.dts2peer) {
                 const components = printComponents(peerLibrary)
                 for (const [targetBasename, component] of components) {
                     const outComponentFile = path.join(outDir, targetBasename)
-                    if (!PeerGeneratorConfig.notCompilableComponents.some(it => outComponentFile.includes(it))) {
-                        console.log("producing", outComponentFile)
-                        if (options.verbose) console.log(component)
-                        fs.writeFileSync(outComponentFile, component)
-                        arkuiComponentsFiles.push(outComponentFile)
-                    }
+                    console.log("producing", outComponentFile)
+                    if (options.verbose) console.log(component)
+                    fs.writeFileSync(outComponentFile, component)
+                    arkuiComponentsFiles.push(outComponentFile)
                 }
 
                 const materialized = printMaterialized(peerLibrary, options.dumpSerialized ?? false)
