@@ -29,6 +29,10 @@ export class IndentedPrinter {
         this.indent--
     }
 
+    append(printer: IndentedPrinter) {
+        this.output = [...this.output, ...printer.output]
+    }
+
     private indented(input: string): string {
         return indentedBy(input, this.indent)
     }

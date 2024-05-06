@@ -24,6 +24,7 @@ import {
     UndefinedConvertor, UnionConvertor
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
+import { isMaterialized } from "./Materialized"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -230,6 +231,13 @@ export class DeclarationTable {
             if (ts.isEnumMember(declaration)) {
                 return declaration.parent
             }
+
+            if (ts.isClassDeclaration(declaration)) {
+                if (isMaterialized(declaration)) {
+                    return PrimitiveType.CustomObject
+                }
+            }
+
             return declaration as DeclarationTarget
         }
         if (ts.isParenthesizedTypeNode(node)) {
@@ -678,8 +686,7 @@ export class DeclarationTable {
             return new InterfaceConvertor(declarationName, param, this, type)
         }
         if (ts.isClassDeclaration(declaration)) {
-            let isMaterialized = declaration.members.find(ts.isConstructorDeclaration)
-            if (isMaterialized !== undefined) {
+            if (isMaterialized(declaration)) {
                 return new MaterializedClassConvertor(declarationName, param, this, type)
             }
             return new InterfaceConvertor(declarationName, param, this, type)
@@ -801,17 +808,26 @@ export class DeclarationTable {
 
             structs.print(`void (*destructor) (${peerName}* peer);`)
 
+            let names = new Set<string>()
             structDescriptor.getMethods()
                 .forEach(method => {
+                    // TBD: handle methods with the same name like SubTabBarStyle
+                    // of(content: ResourceStr) and
+                    // of(content: ResourceStr | ComponentContent)
+                    if (names.has(method.name)) {
+                        return
+                    }
+                    names.add(method.name)
                     let returnNode = method.returnType
                     let returnType = returnNode === undefined
                      ? "void"
                      : this.uniqueNames.get(this.toTarget(returnNode))
-                     let receiver = method.isStatic ? `` : `${peerName} *peer, `
+                     returnType = returnType ?? "void"
+                     let paramsList = method.isStatic ? [] : [`${peerName} *peer`]
                      let params = method.params
                      .map(it => `${this.uniqueName(it.declaration)}* ${it.name}`)
-                     .join(`,`)
-                     structs.print(`${returnType} (*${method.name})(${receiver}${params});`)
+                     paramsList = paramsList.concat(params)
+                     structs.print(`${returnType} (*${method.name})(${paramsList.join(`,`)});`)
                 })
             structs.popIndent()
             structs.print(`} ${accessorName};`)
@@ -832,6 +848,7 @@ export class DeclarationTable {
         printer.pushIndent()
         printer.print(`Deserializer(uint8_t *data, int32_t length) : ArgDeserializerBase(data, length) {}`)
 
+        let accessors = new IndentedPrinter()
         for (let declaration of order) {
             let name = this.uniqueNames.get(declaration)!
             if (seenNames.has(name)) continue
@@ -870,7 +887,7 @@ export class DeclarationTable {
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
                 structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.uniqueName(it.declaration)} ${it.name};`))
                 this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
-                this.printStructsAccessor(nameAssigned, structDescriptor, structs)
+                this.printStructsAccessor(nameAssigned, structDescriptor, accessors)
             }
             let skipWriteToString = (target instanceof PrimitiveType) || ts.isEnumDeclaration(target)
             if (!noBasicDecl && !skipWriteToString) {
@@ -887,6 +904,7 @@ export class DeclarationTable {
                 this.writeOptional(nameOptional, writeToString, isPointer)
             }
         }
+        structs.append(accessors)
         for (let declarationTarget of this.typeMap.values()) {
             let target = declarationTarget[0]
             let aliasNames = declarationTarget[1]

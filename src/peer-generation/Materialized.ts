@@ -13,9 +13,15 @@
  * limitations under the License.
  */
 
+import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./Convertors"
 import { LanguageWriter } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
+
+export function isMaterialized(declaration: ts.ClassDeclaration): boolean {
+    // TBD: check the class has zero fields
+    return declaration.members.find(ts.isConstructorDeclaration) !== undefined
+}
 
 export class MaterializedMethod extends PeerMethod {
     constructor(
@@ -67,6 +73,10 @@ export function printGlobalMaterialized(nativeModule: LanguageWriter, nativeModu
     Materialized.Instance.materializedClasses.forEach(clazz => {
         clazz.methods.forEach(method => {
             console.log(`Materialized class: ${clazz.className}, method: ${method.methodName}\n\n`)
+            if (clazz.className === "Scroller" && method.methodName === "scrollPage") {
+                console.log(`  TBD: generate method for "{ property: type}" types`)
+                return
+            }
             const implDecl = `_${clazz.className}_${method.methodName}(): void`
             nativeModule.print(implDecl)
             nativeModuleEmpty.print(`${implDecl} { console.log("${method.methodName}") }`)

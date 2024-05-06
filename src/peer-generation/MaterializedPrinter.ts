@@ -28,12 +28,29 @@ class MaterializedFileVisitor {
         // methods
         clazz.methods.forEach(method => {
             let staticModifier = method.hasReceiver ? "" : "static "
-            let returnType = method.tsRetType === undefined ? "" : `: ${method.tsRetType} `
+            let tsRetType = method.tsRetType
+            let returnType = tsRetType === undefined ? "" : `: ${tsRetType} `
             let params = method.argConvertors.map(it => `${it.param}: ${it.tsTypeName}`).join(", ")
+
+            if (params.includes("any")) {
+                // TBD: Handle "{ property: type }" types
+                return
+            }
+
+            let retValue = this.getReturnValue(clazz.className, tsRetType)
+            if (retValue === undefined) {
+                // TBD: Handle return values
+                return
+            }
+
             printer.print(`${staticModifier}${method.methodName}(${params})${returnType} {`)
             printer.pushIndent()
-            printer.print(`// TBD nativeModule()...`)
-            printer.print(`return this`)
+
+            //printer.print(`// TBD nativeModule()...`)
+            if (retValue !== "") {
+                printer.print(`return ${retValue}`)
+            }
+
             printer.popIndent()
             printer.print(`}`)
         })
@@ -43,6 +60,18 @@ class MaterializedFileVisitor {
 
     printFile(): void {
         this.printMaterializedClass(this.printer, this.clazz)
+    }
+
+    private getReturnValue(className: string, retType: string| undefined): string| undefined {
+        if (retType === undefined || retType === "void") {
+            return ""
+        } else if(retType === className) {
+            return (`this`)
+        } else if (retType === "boolean") {
+            return `true`
+        } else {
+            return undefined
+        }
     }
 }
 
