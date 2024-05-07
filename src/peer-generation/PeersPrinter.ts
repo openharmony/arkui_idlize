@@ -36,6 +36,9 @@ function componentToAttributesClass(component: string) {
 class PeerFileVisitor {
     readonly printer: LanguageWriter = createLanguageWriter(new IndentedPrinter(), this.file.declarationTable.language)
 
+    // Temporary, until other languages supported.
+    private isTs = this.file.declarationTable.language == Language.TS
+
     constructor(
         private readonly file: PeerFile,
         private readonly dumpSerialized: boolean,
@@ -62,6 +65,10 @@ class PeerFileVisitor {
     }
 
     private printImports(): void {
+        if (this.file.declarationTable.language == Language.JAVA) {
+            this.printer.print("import org.koalaui.arkoala.*;")
+        }
+        if (!this.isTs) return
         const imports = new ImportsCollector()
         imports.addFilterByBasename(this.targetBasename)
         this.file.peers.forEach(peer => {
@@ -79,6 +86,7 @@ class PeerFileVisitor {
     }
 
     private printAttributes(peer: PeerClass) {
+        if (!this.isTs) return
         for (const attributeType of peer.attributesTypes)
             this.printer.print(attributeType)
 
@@ -105,7 +113,7 @@ class PeerFileVisitor {
                 writer.writeSuperCall(['BigInt(42)']) // for now
             } else if (parentRole === InheritanceRole.PeerNode) {
                 writer.writeSuperCall([`type`, 'flags'])
-                writer.print(`component?.setPeer(this.peer)`)
+                writer.writeMemberCall('component', 'setPeer', ['this.peer'], true)
             } else if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
                 writer.writeSuperCall([`type`, 'component', 'flags'])
             } else {
@@ -115,6 +123,7 @@ class PeerFileVisitor {
     }
 
     private printPeerMethod(method: PeerMethod) {
+        if (!this.isTs) return
         const printer = this.printer
         let maybeStatic = method.hasReceiver ? "" : `static `
         let genMethodName = method.hasReceiver ? `${method.methodName}Attribute` : method.methodName
@@ -167,6 +176,7 @@ class PeerFileVisitor {
     }
 
     private printApplyMethod(peer: PeerClass) {
+        if (!this.isTs) return
         const name = peer.originalClassName!
         const typeParam = componentToAttributesClass(peer.componentName)
         if (isRoot(name)) {
@@ -211,10 +221,12 @@ class PeerFileVisitor {
     }
 
     private printEnums(peerFile: PeerFile) {
+        if (!this.isTs) return
         peerFile.enums.forEach(it => this.printEnum(it))
     }
 
     private printAssignEnumsToGlobalScope(peerFile: PeerFile) {
+        if (!this.isTs) return
         if (peerFile.enums.length != 0) {
             this.printer.print(`Object.assign(globalThis, {`)
             this.printer.pushIndent()
@@ -266,10 +278,6 @@ class PeersVisitor {
 }
 
 export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): Map<string, string> {
-    // TODO: support other output languages
-    if (peerLibrary.declarationTable.language != Language.TS)
-        return new Map()
-
     const visitor = new PeersVisitor(peerLibrary, dumpSerialized)
     visitor.printPeers()
     const result = new Map<string, string>()

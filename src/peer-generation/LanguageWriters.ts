@@ -60,7 +60,11 @@ export abstract class LanguageWriter {
     abstract writeMethodImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void
 
     writeSuperCall(params: string[]): void {
-        this.printer.print(`super(${params.join(", ")})`)
+        this.printer.print(`super(${params.join(", ")});`)
+    }
+
+    writeMemberCall(receiver: string, method: string, params: string[], nullable = false): void {
+        this.printer.print(`${receiver}${nullable ? "?" : ""}.${method}(${params.join(", ")})`)
     }
 
     abstract writePrintLog(message: string): void
@@ -176,7 +180,7 @@ export class JavaLanguageWriter extends LanguageWriter {
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        this.printer.print(`public class ${name}${extendsClause}${implementsClause} {`)
+        this.printer.print(`class ${name}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -185,11 +189,19 @@ export class JavaLanguageWriter extends LanguageWriter {
 
     writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
         let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
-        this.printer.print(`public interface ${name}${extendsClause} {`)
+        this.printer.print(`interface ${name}${extendsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
+    }
+
+    writeMemberCall(receiver: string, method: string, params: string[], nullable = false): void {
+        if (nullable) {
+            this.printer.print(`if (${receiver} != null) ${receiver}.${method}(${params.join(", ")});`)
+        } else {
+            this.printer.print(`${receiver}.${method}(${params.join(", ")});`)
+        }
     }
 
     writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void {
@@ -204,7 +216,7 @@ export class JavaLanguageWriter extends LanguageWriter {
     }
 
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
-        this.printer.print(`${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.mapType(it)}`).join(", ")}): ${this.mapType(signature.returnType)} {`)
+        this.printer.print(`${className}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -212,7 +224,7 @@ export class JavaLanguageWriter extends LanguageWriter {
     }
 
     writeMethodImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
-        this.printer.print(`${this.mapType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")});`)
+        this.printer.print(`${this.mapType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
         op(this)
         this.popIndent()
