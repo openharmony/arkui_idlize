@@ -87,8 +87,6 @@ class MaterializedVisitor {
         for (const clazz of Materialized.Instance.materializedClasses.values()) {
             const visitor = new MaterializedFileVisitor(clazz, this.dumpSerialized)
             visitor.printFile()
-            renameClassToMaterialized
-            //this.materialized.set(`Ark${clazz.className}Materialized.ts`, visitor.printer.getOutput())
             const fileName = renameClassToMaterialized(clazz.className, this.library.declarationTable.language)
             this.materialized.set(fileName, visitor.printer.getOutput())
         }

@@ -1171,6 +1171,11 @@ export class DeclarationTable {
     }
 
     private methodsForAccessorClass(clazz: ts.ClassDeclaration, result: StructDescriptor) {
+
+        if (!isMaterialized(clazz)) {
+            return
+        }
+
         // typescript class has only one constructor
         let constructor = clazz.members.find(ts.isConstructorDeclaration)
         if (constructor === undefined) {

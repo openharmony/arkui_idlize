@@ -20,7 +20,9 @@ import { PeerMethod } from "./PeerMethod"
 
 export function isMaterialized(declaration: ts.ClassDeclaration): boolean {
     // TBD: check the class has zero fields
-    return declaration.members.find(ts.isConstructorDeclaration) !== undefined
+    // return declaration.members.find(ts.isConstructorDeclaration) !== undefined
+    // Temporally disable materialized classes generation
+    return false
 }
 
 export class MaterializedMethod extends PeerMethod {
