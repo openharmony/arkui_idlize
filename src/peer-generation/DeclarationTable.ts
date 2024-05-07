@@ -24,7 +24,7 @@ import {
     UndefinedConvertor, UnionConvertor
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
-import { isMaterialized } from "./Materialized"
+import { Materialized, isMaterialized } from "./Materialized"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -794,10 +794,10 @@ export class DeclarationTable {
     }
 
     private printStructsAccessor(name: string, structDescriptor: StructDescriptor, structs: IndentedPrinter) {
-        let constructor = structDescriptor.getConstructor()
-        if (constructor !== undefined) {
+        if (Materialized.Instance.materializedClasses.has(name)) {
             let peerName = `${name}Peer`
             let accessorName = `ArkUI${name}Accessor`
+            let constructor = structDescriptor.getConstructor()!
             structs.print(`typedef struct ${peerName} ${peerName} ;`)
             structs.print(`typedef struct ${accessorName} {`)
             structs.pushIndent()
