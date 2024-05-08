@@ -404,6 +404,8 @@ export class DeclarationTable {
             if (typeName === "Array") {
                 const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 return `${prefix}Array_${elementTypeName}`
+            } else if (typeName === "Resource") {
+                return `${prefix}${PrimitiveType.Resource.getText()}`
             }
             return prefix + identName(type.typeName)!
         }
