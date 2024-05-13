@@ -55,11 +55,39 @@ class HeaderVisitor {
     }
 
     private printAccessors() {
+        this.api.print("// Accessors\n")
         this.accessorsList.pushIndent()
-        Materialized.Instance.materializedClasses.forEach(c =>
+        Materialized.Instance.materializedClasses.forEach(c => {
+            this.printAccessor(c.className)
             this.accessorsList.print(`const ArkUI${c.className}Accessor* (*get${c.className}Accessor)();`)
-        )
+        })
         this.accessorsList.popIndent()
+    }
+
+    private printAccessor(name: string) {
+        const clazz = Materialized.Instance.materializedClasses.get(name)
+        if (clazz) {
+            let peerName = `${name}Peer`
+            let accessorName = `ArkUI${name}Accessor`
+            this.api.print(`typedef struct ${peerName} ${peerName};`)
+            this.api.print(`typedef struct ${accessorName} {`)
+            this.api.pushIndent()
+
+            let names = new Set<string>();
+            [clazz.ctor, clazz.dtor].concat(clazz.methods)
+                .forEach(method => {
+                    // TBD: handle methods with the same name like SubTabBarStyle
+                    // of(content: ResourceStr) and
+                    // of(content: ResourceStr | ComponentContent)
+                    if (names.has(method.methodName)) {
+                        return
+                    }
+                    names.add(method.methodName)
+                    this.api.print(`${method.retType} (*${method.methodName})(${method.generateAPIParameters().join(", ")});`)
+                })
+            this.api.popIndent()
+            this.api.print(`} ${accessorName};\n`)
+        }
     }
 
     // TODO: have a proper Peer module visitor

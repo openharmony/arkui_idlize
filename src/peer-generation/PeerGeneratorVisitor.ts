@@ -35,7 +35,7 @@ import {
     ArgConvertor, RetConvertor,
 } from "./Convertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { DeclarationTable, MethodRecord, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTable, DeclarationTarget, MethodRecord, PrimitiveType } from "./DeclarationTable"
 import {
     hasTransitiveHeritageGenericType,
     isCommonMethod,
@@ -47,7 +47,7 @@ import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
-import { Materialized, MaterializedClass, MaterializedMethod} from "./Materialized"
+import { Materialized, MaterializedClass, MaterializedMethod, isMaterialized} from "./Materialized"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -58,7 +58,8 @@ export enum RuntimeType {
     UNDEFINED = 5,
     BIGINT = 6,
     FUNCTION = 7,
-    SYMBOL = 8
+    SYMBOL = 8,
+    MATERIALIZED = 9,
 }
 
 /**
@@ -301,9 +302,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
         this.declarationTable.setCurrentContext(`${methodName}()`)
 
-        method.parameters.map((param, index) => {
-            if (param.type)
+        method.parameters.forEach((param, index) => {
+            if (param.type) {
                 this.requestType(`Type_${originalParentName}_${methodName}_Arg${index}`, param.type)
+                this.collectMaterializedClasses(param.type)
+            }
         })
         const hasReceiver = !isStatic(method.modifiers)
         const argConvertors = method.parameters
@@ -325,62 +328,54 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             collapsed?.paramsUsage ?? this.generateValues(argConvertors),
             collapsed?.paramsTypes ?? this.generateParamsTypes(method.parameters),
         )
-        console.log(`processing ${peerMethod.originalParentName}.${peerMethod.fullMethodName}`)
-
-        // this.processPeerMethod(peer, peerMethod)
         this.declarationTable.setCurrentContext(undefined)
-
-        this.processMaterializedClasses(peer, method)
-
         return peerMethod
     }
 
-    processMaterializedClasses(peer: PeerClass, method: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration) {
-        method
-        .parameters
-        .map(it => it.type!)
-        .forEach(decl => {
-            if (ts.isTypeReferenceNode(decl)) {
-                let target = this.declarationTable.toTarget(decl)
-                if (target instanceof PrimitiveType) {
-                } else if (ts.isClassDeclaration(target)){ // TBD Union and other types
-                    this.processMaterializedClass(peer, target)
-                }
+    private collectMaterializedClasses(type: ts.TypeNode) {
+        if (ts.isTypeReferenceNode(type)) {
+            let target = this.declarationTable.toTarget(type)
+            if (!(target instanceof PrimitiveType) && ts.isClassDeclaration(target)) {
+                this.processMaterializedClass(target)
             }
-        })
+        } else if (ts.isOptionalTypeNode(type) || ts.isParenthesizedTypeNode(type)) {
+            this.collectMaterializedClasses(type.type)
+        } else if (ts.isUnionTypeNode(type)) {
+            type.types.forEach(it => this.collectMaterializedClasses(it))
+        }
     }
 
-    private makeMaterializedMethod(method: MethodRecord, parentName: string): MaterializedMethod {
+    processMaterializedClass(target: ts.ClassDeclaration) {
+        if (!isMaterialized(target)) {
+            return
+        }
+        let structDescriptor = this.declarationTable.targetStruct(target)
+        let constructor = structDescriptor.getConstructor()
+        let className = nameOrNull(target.name)!
+        if (Materialized.Instance.materializedClasses.has(className)) {
+            return
+        }
+
+        let mConstructor = this.makeMaterializedMethod(className, constructor!, true)
+        let mDestructor = this.makeMaterializedMethod(className,
+            {name: "destructor", isStatic: false, returnType: undefined, params: []})
+        let mMethods = structDescriptor.getMethods()
+            .map(method => this.makeMaterializedMethod(className, method))
+        Materialized.Instance.materializedClasses.set(className,
+            new MaterializedClass(className, mConstructor, mDestructor, mMethods))
+    }
+
+    private makeMaterializedMethod(parentName: string, method: MethodRecord, isConstructor = false): MaterializedMethod {
         const argConvertors = method.params
             .map((param) => this.declarationTable.typeConvertor(param.name, param.type, false))
-        const retConvertor = method.name === "constructor" ///better?
-            ? { isVoid: false, nativeType: () => parentName + "Peer*", macroSuffixPart: () => "" }
+        const retConvertor = isConstructor
+            ? { isVoid: false, isStruct: false, nativeType: () => parentName + "Peer*", macroSuffixPart: () => "" }
             : this.retConvertor(method.returnType)
         const tsRetType = method.returnType == undefined ? undefined : mapType(this.typeChecker, method.returnType)
         return new MaterializedMethod(parentName, method.name, argConvertors, retConvertor,
             tsRetType, !method.isStatic, false)
     }
 
-    processMaterializedClass(peer: PeerClass, target: ts.ClassDeclaration) {
-        let structDescriptor = this.declarationTable.targetStruct(target)
-        let constructor = structDescriptor.getConstructor()
-        if (constructor === undefined) {
-            return
-        }
-
-        let className = nameOrNull(target.name)!
-        if (Materialized.Instance.materializedClasses.has(className)) {
-            return
-        }
-
-        let mConstructor = this.makeMaterializedMethod(constructor, className)
-        let mDestructor = this.makeMaterializedMethod(
-            {name: "destructor", isStatic: false, returnType: undefined, params: []}, className)
-        let mMethods = structDescriptor.getMethods()
-            .map(method => this.makeMaterializedMethod(method, className))
-        Materialized.Instance.materializedClasses.set(className,
-            new MaterializedClass(className, mConstructor, mDestructor, mMethods))
-    }
 
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")
@@ -395,6 +390,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         let isVoid = nativeType == "void"
         return {
             isVoid: isVoid,
+            isStruct: typeNode !== undefined && ts.isTypeReferenceNode(typeNode),
             nativeType: () => nativeType,
             macroSuffixPart: () => isVoid ? "V" : ""
         }
@@ -666,7 +662,13 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         console.log(`WARNING: unhandled union type: ${type.getText()}`)
         // TODO: not really properly supported.
         if (type.types[0].kind == ts.SyntaxKind.VoidKeyword) return "void"
-        if (type.types.length == 2 && type.types[1].kind == ts.SyntaxKind.UndefinedKeyword) return `void`
+        if (type.types.length == 2) {
+            if (type.types[1].kind == ts.SyntaxKind.UndefinedKeyword) return `void`
+            if (ts.isLiteralTypeNode(type.types[1]) && type.types[1].literal.kind == ts.SyntaxKind.NullKeyword) {
+                // NavPathStack | null
+                return mapCInteropRetType(type.types[0])
+            }
+        }
     }
     throw new Error(type.getText())
 }

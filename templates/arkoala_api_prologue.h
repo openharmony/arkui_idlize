@@ -55,7 +55,8 @@ enum Ark_RuntimeType
   ARK_RUNTIME_UNDEFINED = 5,
   ARK_RUNTIME_BIGINT = 6,
   ARK_RUNTIME_FUNCTION = 7,
-  ARK_RUNTIME_SYMBOL = 8
+  ARK_RUNTIME_SYMBOL = 8,
+  ARK_RUNTIME_MATERIALIZED = 9,
 };
 
 typedef float Ark_Float32;
@@ -110,6 +111,10 @@ typedef struct Ark_Function {
 } Ark_Function;
 typedef Ark_Function Ark_Callback;
 typedef Ark_Function Ark_ErrorCallback;
+
+typedef struct Ark_Materialized {
+  Ark_NativePointer ptr;
+} Ark_Materialized;
 
 typedef Ark_CustomObject Ark_Resource;
 

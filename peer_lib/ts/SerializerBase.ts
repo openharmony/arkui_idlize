@@ -28,7 +28,8 @@ export enum RuntimeType {
     UNDEFINED = 5,
     BIGINT = 6,
     FUNCTION = 7,
-    SYMBOL = 8
+    SYMBOL = 8,
+    MATERIALIZED = 9,
 }
 
 /**
@@ -110,6 +111,11 @@ export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: 
 }
 
 function registerCallback(value: object|undefined): number {
+    // TODO: fix me!
+    return 42
+}
+
+function registerMaterialized(value: object|undefined): number {
     // TODO: fix me!
     return 42
 }
@@ -255,6 +261,9 @@ export class SerializerBase {
     }
     writeFunction(value: object | undefined) {
         this.writeInt32(registerCallback(value))
+    }
+    writeMaterialized(value: object | undefined) {
+        this.writeInt32(registerMaterialized(value))
     }
     writeString(value: string) {
         let encoded = textEncoder.encode(value)

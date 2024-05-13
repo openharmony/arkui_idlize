@@ -15,12 +15,12 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { PrimitiveType } from "./DeclarationTable";
-import { completeImplementations, dummyImplementations, modifierStructList, modifierStructs } from "./FileGenerators";
+import { modifierStructList, modifierStructs } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
 
-class ModifierVisitor {
+export class ModifierVisitor {
     dummy = new IndentedPrinter()
     real = new IndentedPrinter()
     modifiers = new IndentedPrinter()
@@ -28,7 +28,7 @@ class ModifierVisitor {
     accessorList = new IndentedPrinter()
 
     constructor(
-        private library: PeerLibrary,
+        protected library: PeerLibrary,
     ) { }
 
     printDummyImplFunctionBody(method: PeerMethod) {
@@ -39,7 +39,7 @@ class ModifierVisitor {
         })
         this.dummy.print(`out.append(")");`)
         this.dummy.print(`appendGroupedLog(1, out);`)
-        if (method.retType != "void") this.dummy.print(`return 0;`)
+        this.printReturnStatement(this.dummy, method)
     }
 
     printModifierImplFunctionBody(method: PeerMethod) {
@@ -49,7 +49,14 @@ class ModifierVisitor {
             const declarationTable = this.library.declarationTable
             declarationTable.generateFirstArgDestruct(firstArgConvertor, firstDeclarationTarget, this.real, firstArgConvertor.isPointerType())
         }
-        if (method.retType != "void") this.real.print(`return 0;`)
+        this.printReturnStatement(this.real, method)
+    }
+
+    private printReturnStatement(printer: IndentedPrinter, method: PeerMethod) {
+        if (!method.retConvertor.isVoid) {
+            const retValue = method.retConvertor.isStruct ? "{}" : "0"
+            printer.print(`return ${retValue};`)
+        }
     }
 
     printMethodProlog(printer: IndentedPrinter, method: PeerMethod) {

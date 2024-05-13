@@ -18,19 +18,19 @@ interface IndicatorStyle {
     color?: ResourceColor;
 }
 
-declare class SubTabBarStyle {
+declare class MySubTabBarStyle {
 
     constructor(content: ResourceStr);
 
     // constructor(content: ResourceStr | ComponentContent);
 
-    // static of(content: ResourceStr): SubTabBarStyle;
+    // static of(content: ResourceStr): MySubTabBarStyle;
 
-    // static of(content: ResourceStr | ComponentContent): SubTabBarStyle;
+    // static of(content: ResourceStr | ComponentContent): MySubTabBarStyle;
 
-    indicator(value: IndicatorStyle): SubTabBarStyle;
+    indicator(value: IndicatorStyle): MySubTabBarStyle;
 
-    id(value: string): SubTabBarStyle;
+    id(value: string): MySubTabBarStyle;
 }
 
 declare class BottomTabBarStyle {
@@ -40,6 +40,6 @@ declare class BottomTabBarStyle {
 
 declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
 
-    // tabBar(value: SubTabBarStyle): TabContentAttribute;
-//     tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
+    tabBar(value: MySubTabBarStyle): TabContentAttribute;
+//     tabBar(value: MySubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
 }

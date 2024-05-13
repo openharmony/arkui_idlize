@@ -17,6 +17,7 @@ import { identName, importTypeName, mapType, typeName } from "../util"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
+import { isMaterialized } from "./Materialized"
 
 let uniqueCounter = 0
 
@@ -789,9 +790,39 @@ export class NumberConvertor extends BaseArgConvertor {
     }
 }
 
-export class MaterializedClassConvertor extends CustomTypeConvertor {
-    constructor(name: string, param: string, table: DeclarationTable, type: ts.TypeReferenceNode) {
-        super(param, name, "any")
+export class MaterializedClassConvertor extends BaseArgConvertor {
+    constructor(
+        name: string,
+        param: string,
+        protected table: DeclarationTable,
+        type: ts.TypeReferenceNode
+    ) {
+        super(name, [RuntimeType.MATERIALIZED], false, true, param)
+    }
+
+    convertorTSArg(param: string): string {
+        throw new Error("Must never be used")
+    }
+    convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${param}Serializer.writeMaterialized(${value})`)
+    }
+    convertorCArg(param: string): string {
+        throw new Error("Must never be used")
+    }
+    convertorToCDeserial(param: string, value: string, printer: IndentedPrinter): void {
+        printer.print(`${value} = ${param}Deserializer.readMaterialized();`)
+    }
+    nativeType(impl: boolean): string {
+        return PrimitiveType.Materialized.getText()
+    }
+    interopType(): string {
+        throw new Error("Must never be used")
+    }
+    estimateSize() {
+        return 12
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 
@@ -870,6 +901,7 @@ export class TypeAliasConvertor extends ProxyConvertor {
 
 export interface RetConvertor {
     isVoid: boolean
+    isStruct: boolean
     nativeType: () => string
     macroSuffixPart: () => string
 }

@@ -17,12 +17,20 @@ import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./Convertors"
 import { LanguageWriter } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
+import { identName } from "../util"
+
+const ignoredMaterializedClasses = [
+    "CanvasRenderingContext2D", // has data
+    "NavPathStack",             // duplicate overloaded functions
+    "Scroller",                 // duplicate scrollPage()
+    "SubTabBarStyle",           // duplicate of()
+    "TransitionEffect",         // Type 'typeof TransitionEffect' is not assignable to type 'TransitionEffect' ??
+]
 
 export function isMaterialized(declaration: ts.ClassDeclaration): boolean {
     // TBD: check the class has zero fields
-    // return declaration.members.find(ts.isConstructorDeclaration) !== undefined
-    // Temporally disable materialized classes generation
-    return false
+    if (ignoredMaterializedClasses.includes(identName(declaration)!)) return false
+    return declaration.members.find(ts.isConstructorDeclaration) !== undefined
 }
 
 export class MaterializedMethod extends PeerMethod {
