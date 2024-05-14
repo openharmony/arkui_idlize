@@ -206,12 +206,10 @@ export class EnumConvertor extends BaseArgConvertor {
     }
 
     convertorTSArg(param: string): string {
-        // `as unknown` for non-int enums, so it wouldn't clutter compiler diagnostic
-        return `${param} as unknown as int32`
+        return `unsafeCast<int32>(${param})`
     }
     convertorToTSSerial(param: string, value: string, printer: IndentedPrinter): void {
-        // `as unknown` for non-int enums, so it wouldn't clutter compiler diagnostic
-        printer.print(`${param}Serializer.writeInt32(${value} as unknown as int32)`)
+        printer.print(`${param}Serializer.writeInt32(unsafeCast<int32>(${value}))`)
     }
     convertorCArg(param: string): string {
         return param
@@ -308,9 +306,7 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
             printer.pushIndent()
             if (!(it instanceof UndefinedConvertor)) {
-                // TODO: `as unknown` is temporary to workaround for string enums.
-                let maybeAsUnknown = (it instanceof EnumConvertor) ? "as unknown " : ""
-                printer.print(`const ${value}_${index}: ${it.tsTypeName} = ${value} ${maybeAsUnknown}as ${it.tsTypeName}`)
+                printer.print(`const ${value}_${index} = unsafeCast<${it.tsTypeName}>(${value})`)
                 it.convertorToTSSerial(param, `${value}_${index}`, printer)
             }
             printer.popIndent()

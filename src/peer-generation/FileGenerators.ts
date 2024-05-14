@@ -145,6 +145,7 @@ export function makeTSSerializer(table: DeclarationTable): string {
     return `
 import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
+import { unsafeCast } from "./generated-utils"
 
 ${printer.getOutput().join("\n")}
 `

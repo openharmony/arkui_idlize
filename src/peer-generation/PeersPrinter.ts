@@ -80,6 +80,7 @@ class PeerFileVisitor {
             if (parentAttributesClass)
                 imports.addFeatureByBasename(parentAttributesClass, parentBasename)
         })
+        imports.addFeature("unsafeCast", "./generated-utils")
         imports.print(this.printer)
         PeerFileVisitor._defaultPeerImports.forEach(it => this.printer.print(it))
     }
