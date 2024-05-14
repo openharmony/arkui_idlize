@@ -17,12 +17,12 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter";
 import { EnumEntity, PeerFile } from "./PeerFile";
 import { PeerLibrary } from "./PeerLibrary";
-import { Language, renameDtsToPeer, throwException } from "../util";
+import { Language, isStatic, renameDtsToPeer, throwException } from "../util";
 import { ImportsCollector } from "./ImportsCollector";
 import { PeerClass } from "./PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
-import { LanguageWriter, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
+import { LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -41,7 +41,7 @@ class PeerFileVisitor {
     constructor(
         private readonly file: PeerFile,
         private readonly dumpSerialized: boolean,
-    ) {}
+    ) { }
 
     get targetBasename() {
         return renameDtsToPeer(path.basename(this.file.originalFilename), this.file.declarationTable.language)
@@ -124,55 +124,51 @@ class PeerFileVisitor {
 
     private printPeerMethod(method: PeerMethod) {
         if (!this.isTs) return
-        const printer = this.printer
-        let maybeStatic = method.hasReceiver ? "" : `static `
-        let genMethodName = method.hasReceiver ? `${method.methodName}Attribute` : method.methodName
-        printer.print(`${maybeStatic}${genMethodName}(${method.mappedParams}) {`)
-
-        printer.pushIndent()
-        let scopes = method.argConvertors.filter(it => it.isScoped)
-        scopes.forEach(it => {
-            printer.pushIndent()
-            printer.print(it.scopeStart?.(it.param))
-        })
-        method.argConvertors.forEach(it => {
-            if (it.useArray) {
-                let size = it.estimateSize()
-                printer.print(`const ${it.param}Serializer = new Serializer(${size})`)
-                // TODO: pass writer to convertors!
-                it.convertorToTSSerial(it.param, it.param, printer.printer)
-            }
-        })
-        // Enable to see serialized data.
-        if (this.dumpSerialized) {
-            method.argConvertors.forEach((it, index) => {
+        let peerMethod = new Method(method.hasReceiver() ? `${method.method.name}Attribute` : method.method.name,
+            new NamedMethodSignature(Type.Void, method.method.signature.args, (method.method.signature as NamedMethodSignature).argsNames))
+        this.printer.writeMethodImplementation(peerMethod, (writer) => {
+            let scopes = method.argConvertors.filter(it => it.isScoped)
+            scopes.forEach(it => {
+                writer.pushIndent()
+                writer.print(it.scopeStart?.(it.param))
+            })
+            method.argConvertors.forEach(it => {
                 if (it.useArray) {
-                    printer.print(`console.log("${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+                    let size = it.estimateSize()
+                    writer.print(`const ${it.param}Serializer = new Serializer(${size})`)
+                    // TODO: pass writer to convertors!
+                    it.convertorToTSSerial(it.param, it.param, writer.printer)
                 }
             })
-        }
-        let maybeThis = method.hasReceiver ? `this.peer.ptr${method.argConvertors.length > 0 ? ", " : ""}` : ``
-        printer.print(`nativeModule()._${method.originalParentName}_${method.methodName}(${maybeThis}`)
-        printer.pushIndent()
-        method.argConvertors.forEach((it, index) => {
-            let maybeComma = index == method.argConvertors.length - 1 ? "" : ","
-            if (it.useArray)
-                printer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
-            else
-            printer.print(it.convertorTSArg(it.param))
-            printer.print(maybeComma)
+            // Enable to see serialized data.
+            if (this.dumpSerialized) {
+                method.argConvertors.forEach((it, index) => {
+                    if (it.useArray) {
+                        writer.writePrintLog(`"${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+                    }
+                })
+            }
+            let maybeThis = method.hasReceiver() ? `this.peer.ptr${method.argConvertors.length > 0 ? ", " : ""}` : ``
+            writer.print(`nativeModule()._${method.originalParentName}_${method.method.name}(${maybeThis}`)
+            writer.pushIndent()
+            method.argConvertors.forEach((it, index) => {
+                let maybeComma = index == method.argConvertors.length - 1 ? "" : ","
+                if (it.useArray)
+                    writer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
+                else
+                    writer.print(it.convertorTSArg(it.param))
+                writer.print(maybeComma)
+            })
+            writer.popIndent()
+            writer.print(`)`)
+            scopes.reverse().forEach(it => {
+                writer.popIndent()
+                writer.print(it.scopeEnd!(it.param))
+            })
+            method.argConvertors.forEach(it => {
+                if (it.useArray) writer.print(`${it.param}Serializer.close()`)
+            })
         })
-        printer.popIndent()
-        printer.print(`)`)
-        scopes.reverse().forEach(it => {
-            printer.popIndent()
-            printer.print(it.scopeEnd!(it.param))
-        })
-        method.argConvertors.forEach(it => {
-            if (it.useArray) printer.print(`${it.param}Serializer.close()`)
-        })
-        printer.popIndent()
-        printer.print(`}`)
     }
 
     private printApplyMethod(peer: PeerClass) {
@@ -266,7 +262,7 @@ class PeersVisitor {
     constructor(
         private readonly library: PeerLibrary,
         private readonly dumpSerialized: boolean,
-    ) {}
+    ) { }
 
     printPeers(): void {
         for (const file of this.library.files.values()) {

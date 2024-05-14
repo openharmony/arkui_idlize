@@ -15,10 +15,11 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "./FileGenerators";
-import { LanguageWriter, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
-import { PeerClass } from "./PeerClass";
+import { LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
+import { PeerClass, PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
-import { MaterializedClass, printGlobalMaterialized } from "./Materialized";
+import { printGlobalMaterialized } from "./Materialized";
+import { PeerMethod } from "./PeerMethod";
 
 class NativeModuleVisitor {
     readonly nativeModule: LanguageWriter
@@ -32,29 +33,7 @@ class NativeModuleVisitor {
     }
 
     private printPeerMethods(peer: PeerClass) {
-        peer.methods.forEach(method => {
-            const component = method.isCallSignature ? peer.originalInterfaceName : peer.originalClassName
-            peer.declarationTable.setCurrentContext(`${method.isCallSignature ? "" : method.methodName}()`)
-            const args = method.argConvertors
-                .flatMap(it => {
-                    if (it.useArray) {
-                        const array = `${it.param}Serializer`
-                        return [{name: `${it.param}Array`, type: 'Uint8Array'},
-                                {name: `${array}Length`, type: 'int32'}]
-                    } else {
-                        // TODO: use language as argument of interop type.
-                        return [{name: `${it.param}`, type: it.interopType(true)}]
-                    }
-                })
-            let maybeReceiver = method.hasReceiver ? [{name: 'ptr', type: 'KPointer'}] : []
-            const parameters = NamedMethodSignature.make('void', maybeReceiver.concat(args))
-            let name = `_${component}_${method.methodName}`
-            this.nativeModule.writeNativeMethodDeclaration(name, parameters)
-            this.nativeModuleEmpty.writeMethodImplementation(name, parameters, (printer) => {
-                printer.writePrintLog(name)
-            })
-            peer.declarationTable.setCurrentContext(undefined)
-        })
+        peer.methods.forEach(it => printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty))
     }
 
     print(): void {
@@ -65,6 +44,30 @@ class NativeModuleVisitor {
         }
         printGlobalMaterialized(this.nativeModule, this.nativeModuleEmpty)
     }
+}
+
+export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
+    const component = clazz.generatedName(method.isCallSignature)
+    clazz.setGenerationContext(`${method.isCallSignature ? "" : method.method.name}()`)
+    const args = method.argConvertors
+        .flatMap(it => {
+            if (it.useArray) {
+                const array = `${it.param}Serializer`
+                return [{ name: `${it.param}Array`, type: 'Uint8Array' },
+                { name: `${array}Length`, type: 'int32' }]
+            } else {
+                // TODO: use language as argument of interop type.
+                return [{ name: `${it.param}`, type: it.interopType(true) }]
+            }
+        })
+    let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: 'KPointer' }] : []
+    const parameters = NamedMethodSignature.make('void', maybeReceiver.concat(args))
+    let name = `_${component}_${method.method.name}`
+    nativeModule.writeNativeMethodDeclaration(name, parameters)
+    nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
+        printer.writePrintLog(name)
+    })
+    clazz.setGenerationContext(undefined)
 }
 
 export function printNativeModule(peerLibrary: PeerLibrary, nativeBridgePath: string): string {

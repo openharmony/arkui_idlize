@@ -51,7 +51,7 @@ class ComponentFileVisitor {
             for (const importType of peer.usedImportTypesStubs)
                 imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
             imports.addFeature("NodeAttach", "@koalaui/runtime")
-            const structPostfix = (peer.callableMethod?.mappedParamsTypes?.length ?? 0) + 1
+            const structPostfix = (peer.callableMethod?.mappedParamsTypes(Language.TS)?.length ?? 0) + 1
             imports.addFeature(`ArkCommonStruct${structPostfix}`, "./ArkStructCommon")
             imports.addFeatureByBasename(componentToPeerClass(peer.componentName),
                 renameDtsToPeer(path.basename(peer.originalFilename), peer.declarationTable.language))
@@ -66,16 +66,14 @@ class ComponentFileVisitor {
 
     private printComponentMethod(method: PeerMethod) {
         this.printer.print(`/** @memo */`)
-        this.printer.print(`${method.methodName}(${method.mappedParams}): this {`)
-        this.printer.pushIndent()
-        this.printer.print(`if (this.checkPriority("${method.methodName}")) {`)
-        this.printer.pushIndent()
-        this.printer.print(`this.peer?.${method.methodName}Attribute(${method.mappedParamValues})`)
-        this.printer.popIndent()
-        this.printer.print(`}`)
-        this.printer.print("return this")
-        this.printer.popIndent()
-        this.printer.print(`}\n`)
+        this.printer.writeMethodImplementation(method.method, (writer) => {
+            writer.print(`if (this.checkPriority("${method.method.name}")) {`)
+            this.printer.pushIndent()
+            this.printer.writeMemberCall(`this.peer`, `${method.method.name}Attribute`, method.mappedParamValues(Language.TS), true)
+            this.printer.popIndent()
+            this.printer.print(`}`)
+            this.printer.print("return this")
+        })
     }
 
     private printComponent(peer: PeerClass) {
@@ -85,13 +83,14 @@ class ComponentFileVisitor {
         const componentFunctionName = `Ark${peer.componentName}`
         const peerClassName = componentToPeerClass(peer.componentName)
         const attributeClassName = `${peer.componentName}Attribute`
+        let types = method?.mappedParamsTypes(Language.TS)
         const parentStructClass = {
-            name: `ArkCommonStruct${(method?.mappedParamsTypes?.length ?? 0) + 1}`,
+            name: `ArkCommonStruct${(types?.length ?? 0) + 1}`,
             typesLines: [
                 `${componentClassName},`,
                 `/** @memo */`,
-                `() => void${method?.mappedParamsTypes?.length ? "," : ""}`,
-                (method?.mappedParamsTypes ?? []).join(", ")
+                `() => void${types?.length ? "," : ""}`,
+                (types ?? []).join(", ")
             ]
         }
         this.printer.writeClass(componentClassName, (writer) => {
@@ -102,7 +101,7 @@ class ComponentFileVisitor {
                 const parentPeer = this.library.findPeerByComponentName(peer.parentComponentName!)!
                 const parentMethods = parentPeer.methods.filter(parentMethod => {
                     // excluding overridden methods
-                    return !peer.methods.some(method => parentMethod.methodName == method.methodName)
+                    return !peer.methods.some(method => parentMethod.method.name == method.method.name)
                 })
                 for (const method of parentMethods)
                     this.printComponentMethod(method)
@@ -114,11 +113,11 @@ class ComponentFileVisitor {
     style: ((attributes: ${componentClassName}) => void) | undefined,
     /** @memo */
     content_: (() => void) | undefined,
-    ${method?.mappedParams ?? ""}
+    ${method?.mappedParams(Language.TS)?.join(", ") ?? ""}
   ) {
         NodeAttach(() => new ${peerClassName}(ArkUINodeType.${peer.componentName}, this), () => {
             style?.(this)
-            ${method ? `this.${method?.methodName}(${method?.mappedParamValues})` : ""}
+            ${method ? `this.${method?.method?.name}(${method?.mappedParamValues(Language.TS)})` : ""}
             content_?.()
                 this.applyAttributesFinish()
               })
@@ -134,7 +133,7 @@ export function ${componentFunctionName}(
   style: ((attributes: ${componentClassName}) => void) | undefined,
   /** @memo */
   content_: (() => void) | undefined,
-  ${method?.mappedParams ?? ""}
+  ${method?.mappedParams(Language.TS)?.join(", ") ?? ""}
 ) {
   ${componentClassName}._instantiate<
 ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
@@ -142,7 +141,7 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
     style,
     () => new ${componentClassName}(),
     content_,
-    ${method?.mappedParamValues ?? ""}
+    ${method?.mappedParamValues(Language.TS) ?? ""}
   )
 }
 `)

@@ -14,7 +14,7 @@
  */
 
 import * as ts from "typescript"
-import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations, identName, isStatic, throwException, typeEntityName } from "../util"
+import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations, identName, isStatic, mapType, mapTypeOrVoid, throwException, typeEntityName } from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -25,6 +25,7 @@ import {
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
+import { Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -73,16 +74,25 @@ class FieldRecord {
     constructor(public declaration: DeclarationTarget, public type: ts.TypeNode | undefined, public name: string, public optional: boolean = false) { }
 }
 
+// TODO: commonize with Signature, avoid TS types!
 class ParamRecord {
-    constructor(public declaration: DeclarationTarget, public type: ts.TypeNode, public name: string) {}
+    constructor(public declaration: DeclarationTarget, public type: ts.TypeNode, public name: string, public nullable: boolean) {}
 }
 
+// TODO: commonize with Method, avoid TS types!
 export class MethodRecord {
     constructor(
         public name: string,
         public isStatic: boolean,
         public returnType: ts.TypeNode | undefined,
         public params: ParamRecord[]) {}
+
+    toMethod(typeChecker: ts.TypeChecker): Method {
+        const types = this.params.map(it => new Type(mapTypeOrVoid(typeChecker, it.type), it.nullable))
+        const names = this.params.map(it => it.name)
+        const signature = new NamedMethodSignature(new Type(mapTypeOrVoid(typeChecker, this.returnType)), types, names)
+        return new Method(this.name, signature, this.isStatic ? [MethodModifier.STATIC] : undefined)
+    }
 }
 
 class StructDescriptor {
@@ -1177,12 +1187,12 @@ export class DeclarationTable {
         }
 
         result.cons = new MethodRecord("constructor", true, undefined, constructor.parameters
-            .map(it => new ParamRecord(this.toTarget(it.type!), it.type!, identName(it.name)!)))
+            .map(it => new ParamRecord(this.toTarget(it.type!), it.type!, identName(it.name)!, it.questionToken != undefined)))
 
         clazz.members
         .filter(ts.isMethodDeclaration)
         .forEach(method => {
-            let params = method.parameters.map(it => new ParamRecord(this.toTarget(it.type!), it.type!, identName(it.name)!))
+            let params = method.parameters.map(it => new ParamRecord(this.toTarget(it.type!), it.type!, identName(it.name)!, it.questionToken != undefined))
             result.methods.push(
                 new MethodRecord(identName(method.name)!,
                 isStatic(method.modifiers),

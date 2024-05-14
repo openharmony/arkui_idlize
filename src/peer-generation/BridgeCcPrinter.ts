@@ -43,7 +43,7 @@ class BridgeCcVisitor {
 
     private printAPICall(method: PeerMethod) {
         const clazzName = method.originalParentName
-        const hasReceiver = method.hasReceiver
+        const hasReceiver = method.hasReceiver()
         const argConvertors = method.argConvertors
         const isVoid = method.retConvertor.isVoid
         const api = "GetNodeModifiers()"
@@ -58,7 +58,7 @@ class BridgeCcVisitor {
 
     private printNativeBody(method: PeerMethod) {
         this.C.pushIndent()
-        if (method.hasReceiver) {
+        if (method.hasReceiver()) {
             this.C.print("ArkUINodeHandle node = reinterpret_cast<ArkUINodeHandle>(nodePtr);")
         }
         method.argConvertors.forEach(it => {
@@ -85,7 +85,7 @@ class BridgeCcVisitor {
     }
 
     private generateCMacroSuffix(method: PeerMethod): string {
-        let counter = method.hasReceiver ? 1 : 0
+        let counter = method.hasReceiver() ? 1 : 0
         method.argConvertors.forEach(it => {
             if (it.useArray) {
                 counter += 2
@@ -97,7 +97,7 @@ class BridgeCcVisitor {
     }
 
     private generateCParameters(method: PeerMethod, argConvertors: ArgConvertor[]): string[] {
-        let maybeReceiver = method.hasReceiver ? [`${PrimitiveType.NativePointer.getText()} nodePtr`] : []
+        let maybeReceiver = method.hasReceiver() ? [`${PrimitiveType.NativePointer.getText()} nodePtr`] : []
         return (maybeReceiver.concat(argConvertors.map(it => {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
@@ -112,13 +112,13 @@ class BridgeCcVisitor {
         const retConvertor = method.retConvertor
         const argConvertors = method.argConvertors
 
-        let cName = `${method.originalParentName}_${method.methodName}`
+        let cName = `${method.originalParentName}_${method.method.name}`
         this.C.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(method, argConvertors).join(", ")}) {`)
         this.C.pushIndent()
         this.printNativeBody(method)
         this.C.popIndent()
         this.C.print(`}`)
-        let macroArgs = [cName, method.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, method.hasReceiver))
+        let macroArgs = [cName, method.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, method.hasReceiver()))
             .filter(isDefined)
             .join(", ")
         const suffix = this.generateCMacroSuffix(method)

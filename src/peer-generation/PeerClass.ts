@@ -17,13 +17,26 @@ import { PeerFile } from "./PeerFile"
 import { PeerMethod } from "./PeerMethod"
 import { DeclarationTable } from "./DeclarationTable"
 
-export class PeerClass {
+export interface PeerClassBase {
+    setGenerationContext(context: string| undefined): void
+    generatedName(isCallSignature: boolean): string
+}
+
+export class PeerClass implements PeerClassBase {
     constructor(
         public readonly file: PeerFile,
         public readonly componentName: string,
         public readonly originalFilename: string,
         public readonly declarationTable: DeclarationTable
     ) { }
+
+    setGenerationContext(context: string| undefined): void {
+        this.declarationTable.setCurrentContext(context)
+    }
+
+    generatedName(isCallSignature: boolean): string{
+        return isCallSignature ? this.originalInterfaceName! : this.originalClassName!
+    }
 
     methods: PeerMethod[] = []
     get callableMethod(): PeerMethod {

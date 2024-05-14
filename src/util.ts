@@ -465,6 +465,12 @@ export function throwException(message: string): never {
 }
 
 // TODO: remove this function!
+export function mapTypeOrVoid(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined): string {
+    if (!type) return "void"
+    return mapType(typeChecker, type)
+}
+
+// TODO: remove this function!
 export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined): string {
     if (!type) throw new Error("Cannot map empty type")
     if (ts.isTypeReferenceNode(type)) {

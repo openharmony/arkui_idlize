@@ -15,9 +15,11 @@
 
 import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./Convertors"
-import { LanguageWriter } from "./LanguageWriters"
+import { LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
-import { identName } from "../util"
+import { Language, identName } from "../util"
+import { printPeerMethod } from "./NativeModulePrinter"
+import { PeerClassBase } from "./PeerClass"
 
 const ignoredMaterializedClasses = [
     "CanvasRenderingContext2D", // has data
@@ -36,19 +38,17 @@ export function isMaterialized(declaration: ts.ClassDeclaration): boolean {
 export class MaterializedMethod extends PeerMethod {
     constructor(
         originalParentName: string,
-        methodName: string,
         argConvertors: ArgConvertor[],
         retConvertor: RetConvertor,
         public tsRetType: string | undefined,
-        hasReceiver: boolean,
-        isCallSignature: boolean
+        isCallSignature: boolean,
+        method: Method
     ) {
-        super(originalParentName, methodName, [], argConvertors, retConvertor, hasReceiver, isCallSignature,
-            undefined, undefined, undefined)
+        super(originalParentName, [], argConvertors, retConvertor, isCallSignature, method)
      }
 
      override generateAPIParameters(): string[] {
-        let maybeReceiver = this.hasReceiver ? [`${this.originalParentName}Peer* peer`] : []
+        let maybeReceiver = this.hasReceiver() ? [`${this.originalParentName}Peer* peer`] : []
         return (maybeReceiver.concat(this.argConvertors.map(it => {
             let isPointer = it.isPointerType()
             return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
@@ -56,13 +56,22 @@ export class MaterializedMethod extends PeerMethod {
     }
 }
 
-export class MaterializedClass {
+export class MaterializedClass implements PeerClassBase {
     constructor(
         public readonly className: string,
         public readonly ctor: MaterializedMethod,
         public readonly dtor: MaterializedMethod,
         public readonly methods: MaterializedMethod[],
     ) {}
+
+    setGenerationContext(context: string| undefined): void {
+       // TODO: set generation context!
+    }
+
+    generatedName(isCallSignature: boolean): string{
+        return this.className
+    }
+
 }
 
 export class Materialized {
@@ -80,16 +89,6 @@ export class Materialized {
 
 export function printGlobalMaterialized(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
     console.log(`Materialized classes: ${Materialized.Instance.materializedClasses.size}`)
-    Materialized.Instance.materializedClasses.forEach(clazz => {
-        clazz.methods.forEach(method => {
-            console.log(`Materialized class: ${clazz.className}, method: ${method.methodName}\n\n`)
-            if (clazz.className === "Scroller" && method.methodName === "scrollPage") {
-                console.log(`  TBD: generate method for "{ property: type}" types`)
-                return
-            }
-            const implDecl = `_${clazz.className}_${method.methodName}(): void`
-            nativeModule.print(implDecl)
-            nativeModuleEmpty.print(`${implDecl} { console.log("${method.methodName}") }`)
-        })
-    })
+    Materialized.Instance.materializedClasses.forEach(clazz =>
+        clazz.methods.forEach(method => printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty)))
 }

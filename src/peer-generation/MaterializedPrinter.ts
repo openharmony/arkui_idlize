@@ -27,7 +27,7 @@ class MaterializedFileVisitor {
         printer.print(`}`)
         // methods
         clazz.methods.forEach(method => {
-            let staticModifier = method.hasReceiver ? "" : "static "
+            let staticModifier = method.hasReceiver() ? "" : "static "
             let tsRetType = method.tsRetType
             let returnType = tsRetType === undefined ? "" : `: ${tsRetType} `
             let params = method.argConvertors.map(it => `${it.param}: ${it.tsTypeName}`).join(", ")
@@ -43,7 +43,7 @@ class MaterializedFileVisitor {
                 return
             }
 
-            printer.print(`${staticModifier}${method.methodName}(${params})${returnType} {`)
+            printer.print(`${staticModifier}${method.method.name}(${params})${returnType} {`)
             printer.pushIndent()
 
             //printer.print(`// TBD nativeModule()...`)
@@ -98,7 +98,7 @@ export function printMaterialized(peerLibrary: PeerLibrary, dumpSerialized: bool
     // TODO: support other output languages
     if (peerLibrary.declarationTable.language != Language.TS)
         return new Map()
- 
+
     const visitor = new MaterializedVisitor(peerLibrary, dumpSerialized)
     visitor.printMaterialized()
     const result = new Map<string, string>()

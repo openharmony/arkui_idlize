@@ -29,6 +29,7 @@ import {
     throwException,
     isCustomComponentClass,
     getComment,
+    mapTypeOrVoid,
 } from "../util"
 import { GenericVisitor } from "../options"
 import {
@@ -47,7 +48,8 @@ import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
-import { Materialized, MaterializedClass, MaterializedMethod, isMaterialized} from "./Materialized"
+import { Materialized, MaterializedClass, MaterializedMethod, isMaterialized } from "./Materialized"
+import { Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -79,10 +81,8 @@ export interface TypeAndName {
 
 type MaybeCollapsedMethod = {
     member: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration
-    collapsed: {
-        paramsDecl: string,
-        paramsTypes: string[],
-        paramsUsage: string,
+    collapsed?: {
+        method: Method,
         generatedImportTypes: string[],
     }
 }
@@ -117,7 +117,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         this.peerLibrary.files.push(this.peerFile)
     }
 
-    requestType(name: string|undefined, type: ts.TypeNode) {
+    requestType(name: string | undefined, type: ts.TypeNode) {
         this.declarationTable.requestType(name, type)
     }
 
@@ -133,7 +133,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
     }
 
-    private isCallableSignatureInterface(name: string|undefined): boolean {
+    private isCallableSignatureInterface(name: string | undefined): boolean {
         return !!(name?.endsWith("Interface"))
     }
 
@@ -207,8 +207,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             .filter(isDefined)
         peer.methods.push(...peerMethods)
         collapsedMethods.forEach(it => {
-            peer.usedImportTypesStubs.push(...it.collapsed.generatedImportTypes)
-            this.peerLibrary.importTypesStubs.push(...it.collapsed.generatedImportTypes)
+            // peer.usedImportTypesStubs.push(...it.collapsed.generatedImportTypes)
+            // this.peerLibrary.importTypesStubs.push(...it.collapsed.generatedImportTypes)
         })
 
         this.createComponentAttributesDeclaration(node, peer)
@@ -228,8 +228,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         const methods = collapsedMethods
             .filter(it => !ts.isCallSignatureDeclaration(it.member))
             .map(it => {
-                if (it.collapsed)
-                    return `${identName(it.member.name)}(${it.collapsed.paramsDecl}) : this`
+                // TODO: restore collapse logic
+                //if (it.collapsed) return `${identName(it.member.name)}(${it.collapsed.paramsDecl}) : this`
                 return it.member.getText().replace(/:[^S:]*$/g, ': this')
             })
             .map(it => it.replace('<T>', '<this>'))
@@ -252,8 +252,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             .filter(isDefined)
         peer.methods.push(...peerMethods)
         collapsedMethods.forEach(it => {
-            peer.usedImportTypesStubs.push(...it.collapsed.generatedImportTypes)
-            this.peerLibrary.importTypesStubs.push(...it.collapsed.generatedImportTypes)
+            //peer.usedImportTypesStubs.push(...it.collapsed.generatedImportTypes)
+            //this.peerLibrary.importTypesStubs.push(...it.collapsed.generatedImportTypes)
         })
     }
 
@@ -271,6 +271,15 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         this.peerFile.pushEnum(enumEntity)
     }
 
+    generateSignature(method: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
+        return new NamedMethodSignature(Type.This,
+            method.parameters
+                .map(it => new Type(mapTypeOrVoid(this.typeChecker, it.type), it.questionToken != undefined)),
+            method.parameters
+                .map(it => identName(it.name)!),
+        )
+    }
+
     generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
         return params?.map(param => {
             let mappedType = mapType(this.typeChecker, param.type)
@@ -279,7 +288,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
     }
 
     generateParamsTypes(params: ts.NodeArray<ts.ParameterDeclaration>): string[] {
-        return params?.map(param =>mapType(this.typeChecker, param.type))
+        return params?.map(param => mapType(this.typeChecker, param.type))
     }
 
     generateValues(argConvertors: ArgConvertor[]): stringOrNone {
@@ -308,7 +317,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
                 this.collectMaterializedClasses(param.type)
             }
         })
-        const hasReceiver = !isStatic(method.modifiers)
         const argConvertors = method.parameters
             .map((param) => this.argConvertor(param))
         const declarationTargets = method.parameters
@@ -316,17 +324,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
         const retConvertor = this.retConvertor(method.type)
 
+        // TODO: restore collapsing logic!
+        const signature = /* collapsed?.signature ?? */ this.generateSignature(method)
+
         const peerMethod = new PeerMethod(
             originalParentName,
-            methodName,
             declarationTargets,
             argConvertors,
             retConvertor,
-            hasReceiver,
             isCallSignature,
-            collapsed?.paramsDecl ?? this.generateParams(method.parameters),
-            collapsed?.paramsUsage ?? this.generateValues(argConvertors),
-            collapsed?.paramsTypes ?? this.generateParamsTypes(method.parameters),
+            new Method(methodName, signature, isStatic(method.modifiers) ? [MethodModifier.STATIC] : []),
         )
         this.declarationTable.setCurrentContext(undefined)
         return peerMethod
@@ -357,8 +364,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         }
 
         let mConstructor = this.makeMaterializedMethod(className, constructor!, true)
-        let mDestructor = this.makeMaterializedMethod(className,
-            {name: "destructor", isStatic: false, returnType: undefined, params: []})
+        let mDestructor = this.makeMaterializedMethod(className, new MethodRecord("destructor", false, undefined, []))
         let mMethods = structDescriptor.getMethods()
             .map(method => this.makeMaterializedMethod(className, method))
         Materialized.Instance.materializedClasses.set(className,
@@ -372,8 +378,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             ? { isVoid: false, isStruct: false, nativeType: () => parentName + "Peer*", macroSuffixPart: () => "" }
             : this.retConvertor(method.returnType)
         const tsRetType = method.returnType == undefined ? undefined : mapType(this.typeChecker, method.returnType)
-        return new MaterializedMethod(parentName, method.name, argConvertors, retConvertor,
-            tsRetType, !method.isStatic, false)
+        return new MaterializedMethod(parentName, argConvertors, retConvertor, tsRetType, false, method.toMethod(this.typeChecker))
     }
 
 
@@ -502,117 +507,128 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         if (ts.isCallSignatureDeclaration(member)) return ""
         throw new Error("Unsupported: " + asString(member))
     }
-    private collapseOverloads(node: ts.ClassDeclaration|ts.InterfaceDeclaration): MaybeCollapsedMethod[] {
+    private collapseOverloads(node: ts.ClassDeclaration | ts.InterfaceDeclaration): MaybeCollapsedMethod[] {
         const methods = (node.members as ts.NodeArray<ts.Node>).filter(
             it => (ts.isMethodDeclaration(it) || ts.isCallSignatureDeclaration(it))
         ) as (ts.MethodDeclaration | ts.CallSignatureDeclaration)[]
 
-        const groupedByName = new Map<string, (ts.MethodDeclaration|ts.CallSignatureDeclaration)[]>(
-            methods.map(it => [this.nameOrEmpty(it), []])
-        )
-        methods.forEach(it => {
-            groupedByName.get(this.nameOrEmpty(it))?.push(it)
-        })
-
-        return [...groupedByName.keys()].map(name => {
-            const overloads = groupedByName.get(name)!
-
-            const maxParamsLength = Math.max(...overloads.map(it => it.parameters.length))
-            
-            const paramsCollapsed: { types: ts.TypeNode[], name: string, optional?: ts.QuestionToken }[] =
-                Array.from({ length: maxParamsLength }, (_, i) => {
-                    const typesToUnion = overloads.map(overload =>
-                        overload.parameters[i]?.type ?? ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
-                    )
-                    const isParameterOptional = (parameter?: ts.ParameterDeclaration): boolean => {
-                        if (parameter == undefined) return true
-                        return parameter.questionToken !== undefined
-                    }
-                    return {
-                        types: typesToUnion,
-                        name: `arg${i}`,
-                        optional: overloads.some(overload => isParameterOptional(overload.parameters[i]))
-                            ? ts.factory.createToken(ts.SyntaxKind.QuestionToken)
-                            : undefined
-                    }
-                })
-
-            const params = paramsCollapsed
-                .map(({ types, name, optional }) =>
-                    ts.factory.createParameterDeclaration(
-                        undefined,
-                        undefined,
-                        name,
-                        optional,
-                        types.length === 1 ? types[0] : ts.factory.createUnionTypeNode(types)
-                    )
-                )
-
-            const paramsTypesList: string[] = []
-            const paramsDeclList: string[] = []
-            const generatedImportTypes: string[] = []
-            const mapParamType = (type: ts.TypeNode): string => {
-                if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
-                    return "undefined"
-                }
-                if (ts.isFunctionTypeNode(type)) {
-                    return `(${type.getText()})`
-                }
-                if (ts.isImportTypeNode(type)) {
-                    const importType = type.getText().match(/[a-zA-Z]+/g)!.join('_')
-                    generatedImportTypes.push(importType)
-                    return importType
-                }
-                if (ts.isTypeLiteralNode(type)) {
-                    const members = type.members
-                        .filter(ts.isPropertySignature)
-                        .map(it => {
-                            const type = mapParamType(it.type!)
-                            return `${asString(it.name)}: ${type}`
-                        })
-                    return `{ ${members.join(', ')} }`
-                }
-                return mapType(this.typeChecker, type)
-            }
-
-            paramsCollapsed.forEach(param => {
-                const questionToken = param.optional ? "?" : ""
-                const collapsedType = param.types.map(mapParamType).join(" | ")
-
-                paramsTypesList.push(collapsedType)
-                paramsDeclList.push(`${param.name}${questionToken}: ${collapsedType}`)
+        // TODO: collapsing logic doesn't belong here, for some languages name overload is OK.
+        if (true) {
+            return methods.map(it => ({ member: it }))
+        } else {
+            const groupedByName = new Map<string, (ts.MethodDeclaration | ts.CallSignatureDeclaration)[]>(
+                methods.map(it => [this.nameOrEmpty(it), []])
+            )
+            methods.forEach(it => {
+                groupedByName.get(this.nameOrEmpty(it))?.push(it)
             })
+            return [...groupedByName.keys()].map(name => {
+                let implementations = groupedByName.get(name)!
+                // No need to collapse!
+                if (implementations.length == 1) return { member: groupedByName.get(name)![0] }
+                throw new Error(`Collapse ${implementations.map(it => it.getText()).join(', ')}`)
+            })
+        }
+        /*
+                return [...groupedByName.keys()].map(name => {
+                    const overloads = groupedByName.get(name)!
 
-            const paramsUsage = paramsCollapsed
-                .map(it =>
-                    it.name
-                )
-                .join(", ")
+                    const maxParamsLength = Math.max(...overloads.map(it => it.parameters.length))
 
-            return {
-                member: (name == "") ?
-                    ts.factory.createCallSignature(
-                        undefined,
-                        params,
-                        undefined,
-                    ) : ts.factory.createMethodDeclaration(
-                        undefined,
-                        undefined,
-                        name,
-                        undefined,
-                        undefined,
-                        params,
-                        undefined,
-                        undefined
-                    ),
-                collapsed: {
-                    paramsDecl: paramsDeclList.join(", "),
-                    paramsTypes: paramsTypesList,
-                    paramsUsage: paramsUsage,
-                    generatedImportTypes: generatedImportTypes,
-                }
-            }
-        })
+                    const paramsCollapsed: { types: ts.TypeNode[], name: string, optional?: ts.QuestionToken }[] =
+                        Array.from({ length: maxParamsLength }, (_, i) => {
+                            const typesToUnion = overloads.map(overload =>
+                                overload.parameters[i]?.type ?? ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
+                            )
+                            const isParameterOptional = (parameter?: ts.ParameterDeclaration): boolean => {
+                                if (parameter == undefined) return true
+                                return parameter.questionToken !== undefined
+                            }
+                            return {
+                                types: typesToUnion,
+                                name: `arg${i}`,
+                                optional: overloads.some(overload => isParameterOptional(overload.parameters[i]))
+                                    ? ts.factory.createToken(ts.SyntaxKind.QuestionToken)
+                                    : undefined
+                            }
+                        })
+
+                    const params = paramsCollapsed
+                        .map(({ types, name, optional }) =>
+                            ts.factory.createParameterDeclaration(
+                                undefined,
+                                undefined,
+                                name,
+                                optional,
+                                types.length === 1 ? types[0] : ts.factory.createUnionTypeNode(types)
+                            )
+                        )
+
+                    const paramsTypesList: string[] = []
+                    const paramsDeclList: string[] = []
+                    const generatedImportTypes: string[] = []
+                    const mapParamType = (type: ts.TypeNode): string => {
+                        if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
+                            return "undefined"
+                        }
+                        if (ts.isFunctionTypeNode(type)) {
+                            return `(${type.getText()})`
+                        }
+                        if (ts.isImportTypeNode(type)) {
+                            const importType = type.getText().match(/[a-zA-Z]+/g)!.join('_')
+                            generatedImportTypes.push(importType)
+                            return importType
+                        }
+                        if (ts.isTypeLiteralNode(type)) {
+                            const members = type.members
+                                .filter(ts.isPropertySignature)
+                                .map(it => {
+                                    const type = mapParamType(it.type!)
+                                    return `${asString(it.name)}: ${type}`
+                                })
+                            return `{ ${members.join(', ')} }`
+                        }
+                        return mapType(this.typeChecker, type)
+                    }
+
+                    paramsCollapsed.forEach(param => {
+                        const questionToken = param.optional ? "?" : ""
+                        const collapsedType = param.types.map(mapParamType).join(" | ")
+
+                        paramsTypesList.push(collapsedType)
+                        paramsDeclList.push(`${param.name}${questionToken}: ${collapsedType}`)
+                    })
+
+                    const paramsUsage = paramsCollapsed
+                        .map(it =>
+                            it.name
+                        )
+                        .join(", ")
+
+                    return {
+                        member: (name == "") ?
+                            ts.factory.createCallSignature(
+                                undefined,
+                                params,
+                                undefined,
+                            ) : ts.factory.createMethodDeclaration(
+                                undefined,
+                                undefined,
+                                name,
+                                undefined,
+                                undefined,
+                                params,
+                                undefined,
+                                undefined
+                            ),
+                        collapsed: {
+                            paramsDecl: paramsDeclList.join(", "),
+                            paramsTypes: paramsTypesList,
+                            paramsUsage: paramsUsage,
+                            generatedImportTypes: generatedImportTypes,
+                        }
+                    }
+                }) */
     }
 
     classNameIfInterface(clazz: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
