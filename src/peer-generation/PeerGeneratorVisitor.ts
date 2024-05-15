@@ -349,6 +349,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             this.collectMaterializedClasses(type.type)
         } else if (ts.isUnionTypeNode(type)) {
             type.types.forEach(it => this.collectMaterializedClasses(it))
+        } else if (ts.isFunctionTypeNode(type)) {
+            // TODO: incorrect, follow declaration and do in-depth operation.
+            type.parameters.forEach(param => {
+                this.requestType(undefined, param.type!)
+            })
         }
     }
 

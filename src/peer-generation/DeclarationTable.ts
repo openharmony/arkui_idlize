@@ -387,6 +387,8 @@ export class DeclarationTable {
                 return this.computeTargetName(this.toTarget(target.typeArguments[0]), true)
             if (name == "Array")
                 return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), optional)
+            if (name == "Map")
+                return prefix + `Map_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false) + '_' + this.computeTargetName(this.toTarget(target.typeArguments[1]), false)
             if (name == "Callback")
                 return prefix + PrimitiveType.Function.getText()
             if (PeerGeneratorConfig.isKnownParametrized(name))
