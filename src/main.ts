@@ -51,7 +51,7 @@ import { printStructCommon } from "./peer-generation/StructCommonPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/NativeModulePrinter"
 import { printBridgeCc } from "./peer-generation/BridgeCcPrinter"
 import { printImportsStubs } from "./peer-generation/ImportsStubsPrinter"
-import { printDelegationsHeaders, printDelegationsImplementation } from "./peer-generation/DelegationPrinter"
+import { printDelegatesHeaders, printDelegatesImplementation } from "./peer-generation/DelegatePrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -347,8 +347,8 @@ if (options.dts2peer) {
                 const {api, deserializer} = printApiAndDeserializer(options.apiVersion, peerLibrary)
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), deserializer)
                 fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), api)
-                fs.writeFileSync(path.join(outDir, 'delegations.h'), printDelegationsHeaders(peerLibrary))
-                fs.writeFileSync(path.join(outDir, 'delegations.cc'), printDelegationsImplementation(peerLibrary))
+                fs.writeFileSync(path.join(outDir, 'delegates.h'), printDelegatesHeaders(peerLibrary))
+                fs.writeFileSync(path.join(outDir, 'delegates.cc'), printDelegatesImplementation(peerLibrary))
 
                 const modifiers = printRealAndDummyModifiers(peerLibrary)
                 const accessors = printRealAndDummyAccessors(peerLibrary)

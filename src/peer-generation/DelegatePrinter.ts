@@ -1,11 +1,11 @@
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, FieldRecord } from "./DeclarationTable";
-import { completeDelegationsImpl } from "./FileGenerators";
+import { completeDelegatesImpl } from "./FileGenerators";
 import { Materialized } from "./Materialized";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
 
-export class DelegationSignatureBuilder {
+export class DelegateSignatureBuilder {
     constructor(
         private readonly declarationTable: DeclarationTable,
         private readonly method: PeerMethod
@@ -61,30 +61,30 @@ export class DelegationSignatureBuilder {
     }
 }
 
-class MethodDelegationsPrinter extends MethodSeparatorVisitor {
+class MethodDelegatePrinter extends MethodSeparatorVisitor {
     public readonly declPrinter = new IndentedPrinter()
     public readonly implPrinter = new IndentedPrinter()
-    private delegationSignatureBuilder: DelegationSignatureBuilder
+    private delegateSignatureBuilder: DelegateSignatureBuilder
     constructor(
         declarationTable: DeclarationTable,
         method: PeerMethod,
     ) {
         super(declarationTable, method)
-        this.delegationSignatureBuilder = new DelegationSignatureBuilder(declarationTable, method)
+        this.delegateSignatureBuilder = new DelegateSignatureBuilder(declarationTable, method)
     }
 
     onPushUnionScope(argIndex: number, field: FieldRecord, selectorValue: number): void {
         super.onPushUnionScope(argIndex, field, selectorValue)
-        this.delegationSignatureBuilder!.pushUnionScope(argIndex, field)        
+        this.delegateSignatureBuilder!.pushUnionScope(argIndex, field)
     }
 
     onPopUnionScope(argIndex: number): void {
         super.onPopUnionScope(argIndex)
-        this.delegationSignatureBuilder.popScope(argIndex)
+        this.delegateSignatureBuilder.popScope(argIndex)
     }
 
     onVisitInseparable(): void {
-        const signature = this.delegationSignatureBuilder.buildSignature()
+        const signature = this.delegateSignatureBuilder.buildSignature()
         this.declPrinter.print(`${signature};`) 
 
         let retStatement = ""
@@ -96,7 +96,7 @@ class MethodDelegationsPrinter extends MethodSeparatorVisitor {
     }
 }
 
-class DelegationVisitor {
+class DelegateVisitor {
     readonly api: IndentedPrinter = new IndentedPrinter()
     readonly impl: IndentedPrinter = new IndentedPrinter()
 
@@ -105,7 +105,7 @@ class DelegationVisitor {
     ) {}
 
     private printMethod(method: PeerMethod) {
-        const visitor = new MethodDelegationsPrinter(
+        const visitor = new MethodDelegatePrinter(
             this.library.declarationTable,
             method,
         )
@@ -132,18 +132,18 @@ class DelegationVisitor {
     }
 }
 
-export function printDelegationsHeaders(library: PeerLibrary): string {
-    const visitor = new DelegationVisitor(library)
+export function printDelegatesHeaders(library: PeerLibrary): string {
+    const visitor = new DelegateVisitor(library)
     visitor.print()
     // TODO here can be conflicts between different union filds with same types
     const uniqueDeclarations = Array.from(new Set(visitor.api.getOutput()))
     return uniqueDeclarations.join('\n')
 }
 
-export function printDelegationsImplementation(library: PeerLibrary): string {
-    const visitor = new DelegationVisitor(library)
+export function printDelegatesImplementation(library: PeerLibrary): string {
+    const visitor = new DelegateVisitor(library)
     visitor.print()
     // TODO here can be conflicts between different union filds with same types
     const uniqueDeclarations = Array.from(new Set(visitor.impl.getOutput()))
-    return completeDelegationsImpl(uniqueDeclarations.join('\n'))
+    return completeDelegatesImpl(uniqueDeclarations.join('\n'))
 }

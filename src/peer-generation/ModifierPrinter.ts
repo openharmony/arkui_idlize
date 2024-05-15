@@ -19,7 +19,7 @@ import { modifierStructList, modifierStructs } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
-import { DelegationSignatureBuilder } from "./DelegationPrinter";
+import { DelegateSignatureBuilder } from "./DelegatePrinter";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     public readonly printer = new IndentedPrinter()
@@ -28,14 +28,14 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
         method: PeerMethod,
     ) {
         super(declarationTable, method)
-        this.delegationSignatureBuilder = new DelegationSignatureBuilder(declarationTable, method)
+        this.delegateSignatureBuilder = new DelegateSignatureBuilder(declarationTable, method)
         this.accessChain = method.argConvertors.map(convertor => [{
             name: convertor.param,
             access: convertor.isPointerType() ? '->' : '.'
         }])
     }
 
-    private readonly delegationSignatureBuilder: DelegationSignatureBuilder
+    private readonly delegateSignatureBuilder: DelegateSignatureBuilder
     private readonly accessChain: {name: string, access: string}[][]
     private generateAccessTo(argIndex: number, fieldName?: string) {
         const argAccessChain = this.accessChain[argIndex]
@@ -55,7 +55,7 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
             name: field.name,
             access: '.'
         })
-        this.delegationSignatureBuilder.pushUnionScope(argIndex, field)
+        this.delegateSignatureBuilder.pushUnionScope(argIndex, field)
     }
 
     onPopUnionScope(argIndex: number): void {
@@ -63,7 +63,7 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
         this.accessChain[argIndex].pop()
         this.printer.popIndent()
         this.printer.print('}')
-        this.delegationSignatureBuilder.popScope(argIndex)
+        this.delegateSignatureBuilder.popScope(argIndex)
     }
 
     protected generateInseparableFieldName(argIndex: number) {
@@ -77,13 +77,13 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
 
     onVisitInseparable(): void {
         super.onVisitInseparable()
-        const delegationIdentifier = this.delegationSignatureBuilder.buildIdentifier()
-        let delegationArgs = Array.from({length: this.method.argConvertors.length}, (_, argIndex) => {
+        const delegateIdentifier = this.delegateSignatureBuilder.buildIdentifier()
+        let delegateArgs = Array.from({length: this.method.argConvertors.length}, (_, argIndex) => {
             return this.generateInseparableFieldName(argIndex)
         })
         if (this.method.hasReceiver())
-            delegationArgs = [this.method.generateReceiver()!.argName, ...delegationArgs]
-        this.printer.print(`${delegationIdentifier}(${delegationArgs.join(', ')});`)        
+            delegateArgs = [this.method.generateReceiver()!.argName, ...delegateArgs]
+        this.printer.print(`${delegateIdentifier}(${delegateArgs.join(', ')});`)        
     }
 }
 
