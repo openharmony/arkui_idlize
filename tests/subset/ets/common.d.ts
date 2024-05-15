@@ -49,12 +49,14 @@ declare enum SheetSize {
     FIT_CONTENT = 2,
 }
 
+declare type CustomBuilder = (() => any) | void;
+
 declare interface BindOptions {
     backgroundColor?: ResourceColor;
 }
 
 declare interface SheetOptions extends BindOptions {
-    title?: SheetTitleOptions;
+    title?: SheetTitleOptions | CustomBuilder;
     detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
 }
 
@@ -129,6 +131,8 @@ declare class CommonMethod<T> {
     width(value: Length): T;
 
     height(value: Length): T;
+
+    padding(value: Padding | Dimension): T;
 
     bindSheet(isShow: boolean, builder: () => void, options?: SheetOptions): T;
 

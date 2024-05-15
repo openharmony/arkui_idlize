@@ -312,6 +312,8 @@ napi_fatal_error(const char* location,
                  size_t message_len) {
   LoadNapiFunctions();
   p_napi_fatal_error(location, location_len, message, message_len);
+  // Not reachable, but not represented in type signature.
+  exit(0);
 }
 
 NAPI_EXTERN napi_status NAPI_CDECL napi_create_double(napi_env env,

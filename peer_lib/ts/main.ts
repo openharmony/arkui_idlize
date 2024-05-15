@@ -138,7 +138,7 @@ function checkPerf1(count: number) {
         module._TestPerfNumberWithArray(data, data.length)
     }
     passed = performance.now() - start
-    console.log(`ARRAY: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
+    console.log(`ARRAY: ${passed}ms for ${Math.round(count)} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
 function checkPerf2(count: number) {
@@ -148,10 +148,23 @@ function checkPerf2(count: number) {
         peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : {grayscale: [1, 2]})
     }
     let passed = performance.now() - start
-    console.log(`backdropBlur: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
+    console.log(`backdropBlur: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
-checkPerf2(100 * 1000)
+export const testString1000: string = "Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand"
+
+function checkPerf3(count: number) {
+    let peer = new ArkButtonPeer(ArkUINodeType.Button)
+    let start = performance.now()
+    for (let i = 0; i < count; i++) {
+        peer.widthAttribute(testString1000)
+    }
+    let passed = performance.now() - start
+    console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
+}
+
+checkPerf2(200 * 1000)
+checkPerf3(200 * 1000)
 
 checkButton()
 checkCalendar()
