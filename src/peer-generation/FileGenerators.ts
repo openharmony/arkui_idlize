@@ -17,6 +17,7 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { Language, indentedBy, langSuffix } from "../util"
+import { createLanguageWriter } from "./LanguageWriters"
 
 const importTsInteropTypes = `
 import {
@@ -140,7 +141,7 @@ extern const ArkUIAccessors* GetArkUIAccessors()
 }
 
 export function makeTSSerializer(table: DeclarationTable): string {
-    let printer = new IndentedPrinter()
+    let printer = createLanguageWriter(new IndentedPrinter(), Language.TS)
     table.generateSerializers(printer)
     return `
 import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
@@ -153,7 +154,7 @@ ${printer.getOutput().join("\n")}
 
 export function makeCDeserializer(table: DeclarationTable, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
-    const deserializer = new IndentedPrinter()
+    const deserializer = createLanguageWriter(new IndentedPrinter(), Language.CPP)
     const writeToString = new IndentedPrinter()
     table.generateDeserializers(deserializer, structs, typedefs, writeToString)
 

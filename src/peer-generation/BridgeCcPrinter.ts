@@ -14,15 +14,16 @@
  */
 
 import { IndentedPrinter } from "../IndentedPrinter";
-import { capitalize, dropSuffix, isDefined } from "../util";
+import { Language, capitalize, dropSuffix, isDefined } from "../util";
 import { ArgConvertor } from "./Convertors";
 import { PrimitiveType } from "./DeclarationTable";
 import { bridgeCcDeclaration } from "./FileGenerators";
+import { createLanguageWriter } from "./LanguageWriters";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
 
 class BridgeCcVisitor {
-    readonly C = new IndentedPrinter()
+    readonly C = createLanguageWriter(new IndentedPrinter(), Language.CPP)
 
     constructor(
         private readonly library: PeerLibrary,
@@ -38,7 +39,7 @@ class BridgeCcVisitor {
     private generateApiArgument(argConvertor: ArgConvertor): string {
         const prefix = argConvertor.isPointerType() ? "&": "    "
         if (argConvertor.useArray) return `${prefix}${argConvertor.param}_value`
-        return `${argConvertor.convertorCArg(argConvertor.param)}`
+        return `${argConvertor.convertorArg(argConvertor.param, this.C.language)}`
     }
 
     private printAPICall(method: PeerMethod) {
@@ -66,7 +67,7 @@ class BridgeCcVisitor {
                 this.C.print(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
                 let result = `${it.param}_value`
                 this.C.print(`${it.nativeType(false)} ${result};`)
-                it.convertorToCDeserial(it.param, result, this.C)
+                it.convertorDeserialize(it.param, result, this.C)
             }
         })
         this.printAPICall(method)
@@ -79,7 +80,7 @@ class BridgeCcVisitor {
             if (it.useArray) {
                 return `uint8_t*, int32_t`
             } else {
-                return it.interopType(false)
+                return it.interopType(this.C.language)
             }
         }))
     }
@@ -102,7 +103,7 @@ class BridgeCcVisitor {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
-                let type = it.interopType(false)
+                let type = it.interopType(this.C.language)
                 return `${type == "KStringPtr" ? "const KStringPtr&" : type} ${it.param}`
             }
         })))

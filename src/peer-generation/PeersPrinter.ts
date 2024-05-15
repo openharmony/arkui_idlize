@@ -130,14 +130,14 @@ class PeerFileVisitor {
             let scopes = method.argConvertors.filter(it => it.isScoped)
             scopes.forEach(it => {
                 writer.pushIndent()
-                writer.print(it.scopeStart?.(it.param))
+                writer.print(it.scopeStart?.(it.param, this.printer.language))
             })
             method.argConvertors.forEach(it => {
                 if (it.useArray) {
                     let size = it.estimateSize()
                     writer.print(`const ${it.param}Serializer = new Serializer(${size})`)
                     // TODO: pass writer to convertors!
-                    it.convertorToTSSerial(it.param, it.param, writer.printer)
+                    it.convertorSerialize(it.param, it.param, writer)
                 }
             })
             // Enable to see serialized data.
@@ -156,14 +156,14 @@ class PeerFileVisitor {
                 if (it.useArray)
                     writer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
                 else
-                    writer.print(it.convertorTSArg(it.param))
+                    writer.print(it.convertorArg(it.param, writer.language))
                 writer.print(maybeComma)
             })
             writer.popIndent()
             writer.print(`)`)
             scopes.reverse().forEach(it => {
                 writer.popIndent()
-                writer.print(it.scopeEnd!(it.param))
+                writer.print(it.scopeEnd!(it.param, writer.language))
             })
             method.argConvertors.forEach(it => {
                 if (it.useArray) writer.print(`${it.param}Serializer.close()`)

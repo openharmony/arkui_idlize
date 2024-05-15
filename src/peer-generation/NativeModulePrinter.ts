@@ -57,7 +57,7 @@ export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, native
                 { name: `${array}Length`, type: 'int32' }]
             } else {
                 // TODO: use language as argument of interop type.
-                return [{ name: `${it.param}`, type: it.interopType(true) }]
+                return [{ name: `${it.param}`, type: it.interopType(nativeModule.language) }]
             }
         })
     let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: 'KPointer' }] : []

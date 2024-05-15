@@ -25,7 +25,7 @@ import {
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
-import { Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
+import { LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -802,7 +802,7 @@ export class DeclarationTable {
         }
     }
 
-    generateDeserializers(printer: IndentedPrinter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: IndentedPrinter) {
+    generateDeserializers(printer: LanguageWriter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: IndentedPrinter) {
         this.processPendingRequests()
         let orderer = new DependencySorter(this)
         for (let declaration of this.declarations) {
@@ -931,7 +931,7 @@ export class DeclarationTable {
         printer.print(`}`)
     }
 
-    generateSerializers(printer: IndentedPrinter) {
+    generateSerializers(printer: LanguageWriter) {
         let seenNames = new Set<string>()
         printer.print(`export class Serializer extends SerializerBase {`)
         printer.pushIndent()
@@ -1350,7 +1350,7 @@ export class DeclarationTable {
         }
     }
 
-    private generateSerializer(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
+    private generateSerializer(name: string, target: DeclarationTarget, printer: LanguageWriter) {
         if (this.ignoreTarget(target, name)) return
 
         this.setCurrentContext(`write${name}()`)
@@ -1365,11 +1365,11 @@ export class DeclarationTable {
                 let field = `value_${it.name}`
                 printer.print(`let ${field} = value.${it.name}`)
                 let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
-                typeConvertor.convertorToTSSerial(`value`, field, printer)
+                typeConvertor.convertorSerialize(`value`, field, printer)
             })
         } else {
             let typeConvertor = this.typeConvertor("value", target, false)
-            typeConvertor.convertorToTSSerial(`value`, `value`, printer)
+            typeConvertor.convertorSerialize(`value`, `value`, printer)
         }
         printer.popIndent()
         printer.print(`}`)
@@ -1387,7 +1387,7 @@ export class DeclarationTable {
         return false
     }
 
-    private generateDeserializer(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
+    private generateDeserializer(name: string, target: DeclarationTarget, printer: LanguageWriter) {
         if (this.ignoreTarget(target, name)) return
         this.setCurrentContext(`read${name}()`)
         printer.print(`${name} read${name}() {`)
@@ -1398,11 +1398,11 @@ export class DeclarationTable {
             let struct = this.targetStruct(target)
             struct.getFields().forEach(it => {
                 let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
-                typeConvertor.convertorToCDeserial(`value`, `value.${it.name}`, printer)
+                typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, printer)
             })
         } else {
             let typeConvertor = this.typeConvertor("value", target, false)
-            typeConvertor.convertorToCDeserial(`value`, `value`, printer)
+            typeConvertor.convertorDeserialize(`value`, `value`, printer)
         }
         printer.print(`return value;`)
         printer.popIndent()

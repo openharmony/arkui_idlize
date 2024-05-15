@@ -258,11 +258,40 @@ export class JavaLanguageWriter extends LanguageWriter {
     }
 }
 
+export class CppLanguageWriter extends LanguageWriter {
+    constructor(printer: IndentedPrinter) {
+        super(printer, Language.CPP)
+    }
+    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string | undefined, interfaces?: string[] | undefined): void {
+        throw new Error("Method not implemented.");
+    }
+    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[] | undefined): void {
+        throw new Error("Method not implemented.");
+    }
+    writeFieldDeclaration(name: string, type: Type, modifiers: string[] | undefined, optional: boolean): void {
+        throw new Error("Method not implemented.");
+    }
+    writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string | undefined): void {
+        throw new Error("Method not implemented.");
+    }
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
+        throw new Error("Method not implemented.");
+    }
+    writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
+        throw new Error("Method not implemented.");
+    }
+    writePrintLog(message: string): void {
+        throw new Error("Method not implemented.");
+    }
+
+}
+
 export function createLanguageWriter(printer: IndentedPrinter, language: Language): LanguageWriter {
     switch (language) {
         case Language.TS: return new TSLanguageWriter(printer)
         case Language.ARKTS: return new ETSLanguageWriter(printer)
         case Language.JAVA: return new JavaLanguageWriter(printer)
+        case Language.CPP: return new CppLanguageWriter(printer)
         default: throw new Error(`Language ${Language[language]} is not supported`)
     }
 }
