@@ -236,7 +236,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (ts.isTypeParameterDeclaration(declaration)) {
             let parent = declaration.parent
             if (ts.isClassDeclaration(parent)) {
-                return isCommonMethodOrSubclass(this.typeChecker, parent)
+                return !isCommonMethodOrSubclass(this.typeChecker, parent)
             }
         }
         return false

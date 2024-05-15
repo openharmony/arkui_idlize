@@ -193,7 +193,7 @@ export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.C
         heritageDeclarations(typeChecker, it).forEach(it => {
             let name = asString(it.name)
             isSubclass = isSubclass || isRoot(name)
-            if (!ts.isClassDeclaration(it)) return
+            if (!ts.isClassDeclaration(it)) return isSubclass
             isSubclass = isSubclass || isCommonMethodOrSubclass(typeChecker, it)
         })
     })

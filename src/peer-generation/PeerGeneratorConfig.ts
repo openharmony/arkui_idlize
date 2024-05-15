@@ -58,7 +58,8 @@ export class PeerGeneratorConfig {
 
     public static rootComponents = [
         "CommonMethod",
-        "SecurityComponentMethod"
+        "SecurityComponentMethod",
+        "CommonTransition"
     ]
 
     public static standaloneComponents = [
