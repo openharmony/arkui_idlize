@@ -54,16 +54,9 @@ class AccessorVisitor extends ModifierVisitor {
     }
 
     printMaterializedMethod(printer: IndentedPrinter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void) {
-        this.printMaterializedMethodProlog(printer, method)
+        this.printMethodProlog(printer, method)
         printBody(method)
         this.printMethodEpilog(printer)
-    }
-
-    printMaterializedMethodProlog(printer: IndentedPrinter, method: MaterializedMethod) {
-        const apiParameters = method.generateAPIParameters().join(", ")
-        const signature = `${method.retType} ${method.originalParentName}_${method.method.name}(${apiParameters}) {`
-        printer.print(signature)
-        printer.pushIndent()
     }
 }
 

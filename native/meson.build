@@ -38,7 +38,8 @@ sources += [
 ]
 else
 sources += [
-   gen_dir + '/all_modifiers.cc'
+   gen_dir + '/all_modifiers.cc',
+   gen_dir + '/delegations.cc',
 ]
 endif
 

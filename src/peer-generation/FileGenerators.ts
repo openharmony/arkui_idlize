@@ -91,6 +91,16 @@ export function completeImplementations(lines: string): string {
 #include "Interop.h"
 #include "Deserializer.h"
 #include "common-interop.h"
+#include "delegations.h"
+
+${lines}
+`
+}
+
+export function completeDelegationsImpl(lines: string): string {
+    return `
+#include "Deserializer.h"
+#include "delegations.h"
 
 ${lines}
 `

@@ -20,6 +20,7 @@ import { PeerMethod } from "./PeerMethod"
 import { Language, identName } from "../util"
 import { printPeerMethod } from "./NativeModulePrinter"
 import { PeerClassBase } from "./PeerClass"
+import { DeclarationTarget } from "./DeclarationTable"
 
 const ignoredMaterializedClasses = [
     "CanvasRenderingContext2D", // has data
@@ -38,21 +39,26 @@ export function isMaterialized(declaration: ts.ClassDeclaration): boolean {
 export class MaterializedMethod extends PeerMethod {
     constructor(
         originalParentName: string,
+        declarationTargets: DeclarationTarget[],
         argConvertors: ArgConvertor[],
         retConvertor: RetConvertor,
         public tsRetType: string | undefined,
         isCallSignature: boolean,
         method: Method
     ) {
-        super(originalParentName, [], argConvertors, retConvertor, isCallSignature, method)
-     }
+        super(originalParentName, declarationTargets, argConvertors, retConvertor, isCallSignature, method)
+    }
 
-     override generateAPIParameters(): string[] {
-        let maybeReceiver = this.hasReceiver() ? [`${this.originalParentName}Peer* peer`] : []
-        return (maybeReceiver.concat(this.argConvertors.map(it => {
-            let isPointer = it.isPointerType()
-            return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
-        })))
+    override get implName(): string {
+        return `${this.originalParentName}_${this.method.name}`
+    }
+
+    override generateReceiver(): { argName: string; argType: string } | undefined {
+        if (!this.hasReceiver()) return undefined
+        return {
+            argName: 'peer',
+            argType: `${this.originalParentName}Peer*`
+        }
     }
 }
 

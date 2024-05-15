@@ -70,7 +70,7 @@ export type DeclarationTarget =
     | ts.ArrayTypeNode | ts.ParenthesizedTypeNode | ts.OptionalTypeNode | ts.LiteralTypeNode
     | PrimitiveType
 
-class FieldRecord {
+export class FieldRecord {
     constructor(public declaration: DeclarationTarget, public type: ts.TypeNode | undefined, public name: string, public optional: boolean = false) { }
 }
 
@@ -93,6 +93,12 @@ export class MethodRecord {
         const signature = new NamedMethodSignature(new Type(mapTypeOrVoid(typeChecker, this.returnType)), types, names)
         return new Method(this.name, signature, this.isStatic ? [MethodModifier.STATIC] : undefined)
     }
+}
+
+export interface StructVisitor {
+    visitUnionField(field: FieldRecord, selectorValue: number): void
+    // visitOptionalField(field?: FieldRecord): void;
+    visitInseparable(): void
 }
 
 class StructDescriptor {
@@ -712,8 +718,7 @@ export class DeclarationTable {
         let struct = this.targetStruct(declaration)
         if (declaration instanceof PrimitiveType) return true
         if (!ts.isInterfaceDeclaration(declaration)
-            && !ts.isClassDeclaration(declaration)
-            && !ts.isTypeLiteralNode(declaration)) return true
+            && !ts.isClassDeclaration(declaration)) return true
         return struct.isEmpty()
     }
 
@@ -758,7 +763,7 @@ export class DeclarationTable {
         }
     }
 
-    private uniqueName(target: DeclarationTarget): string {
+    uniqueName(target: DeclarationTarget): string {
         if (target instanceof PrimitiveType) return target.getText(this)
         return this.uniqueNames.get(target)!
     }
@@ -947,104 +952,18 @@ export class DeclarationTable {
         printer.print(`}`)
     }
 
-    genIdNameFromType(typeName: string): string {
-        return typeName.charAt(0).toLowerCase()
-            + typeName.replaceAll("_", "").slice(1)
-    }
-
-    processUnion(fieldName: string,
-                 target: DeclarationTarget,
-                 printer: IndentedPrinter,
-                 isPointer: boolean) {
-        const access = isPointer ? "->" : "."
-        this.targetStruct(target).getFields().forEach((field, index) => {
-            // skip selector field
-            if (index == 0) {
-                return
-            }
-
-            const ifElseOp = `${index == 1 ? "if" : "else if"}`
-            printer.print(`${ifElseOp} (${fieldName}${access}selector == ${index - 1}) {`)
-            printer.pushIndent()
-            const isUnion = this.isMaybeWrapped(field.declaration, ts.isUnionTypeNode)
-            const structFieldName = `${fieldName}${access}${field.name}`
-            const fieldTypeName = this.uniqueNames.get(field.declaration)
-            if (isUnion) {
-                this.processUnion(structFieldName, field.declaration, printer, false);
-            } else {
-                let structFieldAlias = fieldTypeName ? this.genIdNameFromType(fieldTypeName) : field.name
-                const maxIdNameLength = 30
-                if (structFieldAlias.length > maxIdNameLength) {
-                    structFieldAlias = field.name
-                }
-                printer.print(`[[maybe_unused]] const auto &${structFieldAlias} = ${structFieldName};`)
-                printer.print(`// processing '${structFieldAlias}:${fieldTypeName}'`)
-            }
-            printer.popIndent()
-            printer.print(`}`)
-
-        })
-    }
-
-    generateFirstArgDestruct(convertor: ArgConvertor, target: DeclarationTarget, printer: IndentedPrinter, isPointer: boolean) {
-        if (target instanceof PrimitiveType) return // Just don't emit anything
-        if (convertor instanceof OptionConvertor) return // TODO: handle optionals
-
-        const firstArgName = convertor.param
-        this.setCurrentContext(`modifier(${firstArgName})`)
-        let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
-        let isArray = this.isMaybeWrapped(target, ts.isArrayTypeNode)
-        let isOptional = this.isMaybeWrapped(target, ts.isOptionalTypeNode)
-        let isTuple = this.isMaybeWrapped(target, ts.isTupleTypeNode)
-        let access = isPointer ? "->" : "."
-
-        // treat Array<T> as array
-        if (!isArray && ts.isTypeReferenceNode(target)) {
-            isArray = identName(target.typeName) === "Array"
-        }
-
-        if (isUnion) {
-            this.processUnion(firstArgName, target, printer, isPointer)
-        } else if (isArray) {
-            let elementType = ts.isArrayTypeNode(target)
-                ? target.elementType
-                : ts.isTypeReferenceNode(target) && target.typeArguments
-                    ? target.typeArguments[0]
-                    : undefined
-            let isPointerField = elementType === undefined
-                ? false
-                : this.typeConvertor("param", elementType).isPointerType()
-            printer.print(`int32_t count = ${firstArgName}${access}array_length ;`)
-            printer.print(`for (int i = 0; i < count; i++) {`)
-            printer.print(`}`)
-        } else if (isTuple) {
-            const fields = this.targetStruct(target).getFields()
-            fields.forEach((field, index) => {
-                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
-            })
-        } else if (isOptional) {
-            const fields = this.targetStruct(target).getFields()
-            fields.forEach((field, index) => {
-                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
-                if (index == 0) {
-                    printer.print(`if (${firstArgName}${access}${field.name} != ${PrimitiveType.UndefinedTag}) {`)
-                    printer.pushIndent()
-                }
-                if (index == fields.length - 1) {
-                    printer.popIndent()
-                    printer.print("}")
-                }
+    visitDeclaration(
+        target: DeclarationTarget,
+        visitor: StructVisitor,
+    ): void {
+        if (this.isMaybeWrapped(target, ts.isUnionTypeNode)) {
+            this.targetStruct(target).getFields().forEach((field, index) => {
+                if (index === 0) return
+                visitor.visitUnionField(field, index - 1)
             })
         } else {
-            /*
-            this.targetStruct(target).getFields().forEach((field, index) => {
-                printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
-                let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                printer.print(`${isPointerField ? "&" : ""}${name}${access}${field.name};`)
-            })
-            */
+            visitor.visitInseparable()
         }
-        this.setCurrentContext(undefined)
     }
 
     private isMaybeWrapped(target: DeclarationTarget, predicate: (type: ts.Node) => boolean): boolean {
