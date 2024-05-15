@@ -123,52 +123,7 @@ class PeerFileVisitor {
     }
 
     private printPeerMethod(method: PeerMethod) {
-        if (!this.isTs) return
-        let peerMethod = new Method(method.hasReceiver() ? `${method.method.name}Attribute` : method.method.name,
-            new NamedMethodSignature(Type.Void, method.method.signature.args, (method.method.signature as NamedMethodSignature).argsNames))
-        this.printer.writeMethodImplementation(peerMethod, (writer) => {
-            let scopes = method.argConvertors.filter(it => it.isScoped)
-            scopes.forEach(it => {
-                writer.pushIndent()
-                writer.print(it.scopeStart?.(it.param, this.printer.language))
-            })
-            method.argConvertors.forEach(it => {
-                if (it.useArray) {
-                    let size = it.estimateSize()
-                    writer.print(`const ${it.param}Serializer = new Serializer(${size})`)
-                    // TODO: pass writer to convertors!
-                    it.convertorSerialize(it.param, it.param, writer)
-                }
-            })
-            // Enable to see serialized data.
-            if (this.dumpSerialized) {
-                method.argConvertors.forEach((it, index) => {
-                    if (it.useArray) {
-                        writer.writePrintLog(`"${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
-                    }
-                })
-            }
-            let maybeThis = method.hasReceiver() ? `this.peer.ptr${method.argConvertors.length > 0 ? ", " : ""}` : ``
-            writer.print(`nativeModule()._${method.originalParentName}_${method.method.name}(${maybeThis}`)
-            writer.pushIndent()
-            method.argConvertors.forEach((it, index) => {
-                let maybeComma = index == method.argConvertors.length - 1 ? "" : ","
-                if (it.useArray)
-                    writer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
-                else
-                    writer.print(it.convertorArg(it.param, writer.language))
-                writer.print(maybeComma)
-            })
-            writer.popIndent()
-            writer.print(`)`)
-            scopes.reverse().forEach(it => {
-                writer.popIndent()
-                writer.print(it.scopeEnd!(it.param, writer.language))
-            })
-            method.argConvertors.forEach(it => {
-                if (it.useArray) writer.print(`${it.param}Serializer.close()`)
-            })
-        })
+        writePeerMethod(this.printer, method, this.dumpSerialized, "Attribute", "this.peer.ptr")
     }
 
     private printApplyMethod(peer: PeerClass) {
@@ -282,4 +237,56 @@ export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): M
         result.set(key, content.join('\n'))
     }
     return result
+}
+
+export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
+    methodPostfix: string, ptr: string) {
+    if (printer.language != Language.TS) return
+    const signature = method.method.signature as NamedMethodSignature
+    let peerMethod = new Method(method.hasReceiver() ? `${method.method.name}${methodPostfix}` : method.method.name,
+    new NamedMethodSignature(Type.Void, signature.args, signature.argsNames), method.method.modifiers)
+    printer.writeMethodImplementation(peerMethod, (writer) => {
+    let scopes = method.argConvertors.filter(it => it.isScoped)
+    scopes.forEach(it => {
+        writer.pushIndent()
+        writer.print(it.scopeStart?.(it.param, printer.language))
+    })
+    method.argConvertors.forEach(it => {
+        if (it.useArray) {
+            let size = it.estimateSize()
+            writer.print(`const ${it.param}Serializer = new Serializer(${size})`)
+            // TODO: pass writer to convertors!
+            it.convertorSerialize(it.param, it.param, writer)
+        }
+    })
+    // Enable to see serialized data.
+    if (dumpSerialized) {
+        method.argConvertors.forEach((it, index) => {
+            if (it.useArray) {
+                writer.writePrintLog(`"${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+            }
+        })
+    }
+    //let maybeThis = method.hasReceiver() ? `this.peer.ptr${method.argConvertors.length > 0 ? ", " : ""}` : ``
+    let maybeThis = method.hasReceiver() ? `${ptr}${method.argConvertors.length > 0 ? ", " : ""}` : ``
+    writer.print(`nativeModule()._${method.originalParentName}_${method.method.name}(${maybeThis}`)
+    writer.pushIndent()
+    method.argConvertors.forEach((it, index) => {
+        let maybeComma = index == method.argConvertors.length - 1 ? "" : ","
+        if (it.useArray)
+            writer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
+        else
+            writer.print(it.convertorArg(it.param, writer.language))
+        writer.print(maybeComma)
+    })
+    writer.popIndent()
+    writer.print(`)`)
+    scopes.reverse().forEach(it => {
+        writer.popIndent()
+        writer.print(it.scopeEnd!(it.param, writer.language))
+    })
+    method.argConvertors.forEach(it => {
+        if (it.useArray) writer.print(`${it.param}Serializer.close()`)
+    })
+})
 }

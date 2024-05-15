@@ -1107,7 +1107,7 @@ export class DeclarationTable {
             return
         }
 
-        result.cons = new MethodRecord("constructor", true, undefined, constructor.parameters
+        result.cons = new MethodRecord("ctor", true, undefined, constructor.parameters
             .map(it => new ParamRecord(this.toTarget(it.type!), it.type!, identName(it.name)!, it.questionToken != undefined)))
 
         clazz.members
