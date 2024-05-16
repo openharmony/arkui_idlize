@@ -9,3 +9,4 @@ lib
 linter
 NativeBridge.node
 /idl/
+panda/node_modules
