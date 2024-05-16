@@ -192,7 +192,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
       P0 p0 = getArgument<P0>(env, _p0); \
       P1 p1 = getArgument<P1>(env, _p1); \
       P2 p2 = getArgument<P2>(env, _p2); \
-      P3 p3 = getArgument<P3>(env, _p2); \
+      P3 p3 = getArgument<P3>(env, _p3); \
       auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \

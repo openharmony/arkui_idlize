@@ -19,6 +19,7 @@ import { ArgConvertor } from "./Convertors";
 import { PrimitiveType } from "./DeclarationTable";
 import { bridgeCcDeclaration } from "./FileGenerators";
 import { createLanguageWriter } from "./LanguageWriters";
+import { Materialized, MaterializedMethod } from "./Materialized";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
 
@@ -29,10 +30,10 @@ class BridgeCcVisitor {
         private readonly library: PeerLibrary,
     ) {}
 
-    private generateModifierSection(clazzName: string): string {
+    private generateApiCall(method: PeerMethod): string {
         // TODO: may be need some translation tables?
-        let clazz = dropSuffix(dropSuffix(dropSuffix(clazzName, "Method"), "Attribute"), "Interface")
-        return `get${capitalize(clazz)}Modifier()`
+        let clazz = dropSuffix(dropSuffix(dropSuffix(method.originalParentName, "Method"), "Attribute"), "Interface")
+        return `get${capitalize(clazz)}${method.apiKind}()`
     }
 
     // TODO: may be this is another method of ArgConvertor?
@@ -43,24 +44,22 @@ class BridgeCcVisitor {
     }
 
     private printAPICall(method: PeerMethod) {
-        const clazzName = method.originalParentName
         const hasReceiver = method.hasReceiver()
         const argConvertors = method.argConvertors
         const isVoid = method.retConvertor.isVoid
-        const api = "GetNodeModifiers()"
-        const modifier = this.generateModifierSection(clazzName)
+        const modifier = this.generateApiCall(method)
         const peerMethod = method.peerMethodName
-        const receiver = hasReceiver ? ['node'] : []
+        const receiver = hasReceiver ? ['self'] : []
         // TODO: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
         const args = receiver.concat(argConvertors.map(it => this.generateApiArgument(it))).join(", ")
-        this.C.print(`${isVoid ? "" : "return "}${api}->${modifier}->${peerMethod}(${args});`)
+        this.C.print(`${isVoid ? "" : "return "}${method.apiCall}->${modifier}->${peerMethod}(${args});`)
     }
 
     private printNativeBody(method: PeerMethod) {
         this.C.pushIndent()
         if (method.hasReceiver()) {
-            this.C.print("ArkUINodeHandle node = reinterpret_cast<ArkUINodeHandle>(nodePtr);")
+            this.C.print(`${method.receiverType} self = reinterpret_cast<${method.receiverType}>(thisPtr);`)
         }
         method.argConvertors.forEach(it => {
             if (it.useArray) {
@@ -98,7 +97,7 @@ class BridgeCcVisitor {
     }
 
     private generateCParameters(method: PeerMethod, argConvertors: ArgConvertor[]): string[] {
-        let maybeReceiver = method.hasReceiver() ? [`${PrimitiveType.NativePointer.getText()} nodePtr`] : []
+        let maybeReceiver = method.hasReceiver() ? [`${PrimitiveType.NativePointer.getText()} thisPtr`] : []
         return (maybeReceiver.concat(argConvertors.map(it => {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
@@ -133,6 +132,13 @@ class BridgeCcVisitor {
                 for (const method of peer.methods) {
                     this.printMethod(method)
                 }
+            }
+        }
+
+        this.C.print("\n// Accessors\n")
+        for (const clazz of Materialized.Instance.materializedClasses.values()) {
+            for (const method of [clazz.ctor, clazz.dtor].concat(clazz.methods)) {
+                this.printMethod(method)
             }
         }
     }

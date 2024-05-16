@@ -82,6 +82,13 @@ const ArkUINodeModifiers* GetNodeModifiers() {
     return GetArkUINodeModifiers();
 }
 
+const ArkUIAccessors* GetAccessors() {
+    // TODO: restore the proper call
+    // return GetFullImpl()->getAccessors();
+    extern const ArkUIAccessors* GetArkUIAccessors();
+    return GetArkUIAccessors();
+}
+
 ${bridgeCc.join("\n")}
 `
 }

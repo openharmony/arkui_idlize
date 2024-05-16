@@ -49,8 +49,24 @@ export class MaterializedMethod extends PeerMethod {
         super(originalParentName, declarationTargets, argConvertors, retConvertor, isCallSignature, false, method)
     }
 
+    override get peerMethodName() {
+        return this.method.name
+    }
+
     override get implName(): string {
         return `${this.originalParentName}_${this.overloadedName}`
+    }
+
+    override get receiverType(): string {
+        return `${this.originalParentName}Peer*`
+    }
+
+    override get apiCall(): string {
+        return "GetAccessors()"
+    }
+
+    override get apiKind(): string {
+        return "Accessor"
     }
 
     override generateReceiver(): { argName: string; argType: string } | undefined {

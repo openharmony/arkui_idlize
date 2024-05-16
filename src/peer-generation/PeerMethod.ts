@@ -73,6 +73,18 @@ export class PeerMethod {
         return this.maybeCRetType(this.retConvertor) ?? "void"
     }
 
+    get receiverType(): string {
+        return "ArkUINodeHandle"
+    }
+
+    get apiCall(): string {
+        return "GetNodeModifiers()"
+    }
+
+    get apiKind(): string {
+        return "Modifier"
+    }
+
     maybeCRetType(retConvertor: RetConvertor): string | undefined {
         if (retConvertor.isVoid) return undefined
         return retConvertor.nativeType()
