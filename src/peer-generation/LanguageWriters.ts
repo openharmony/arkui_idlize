@@ -27,6 +27,62 @@ export enum MethodModifier {
     STATIC
 }
 
+export interface LanguageStatement {
+    asString(): string;
+}
+
+export class AssignStatement implements LanguageStatement {
+    constructor(public variableName: string, public type: Type, public statement: LanguageStatement) { }
+    asString(): string {
+        return `const ${this.variableName}: ${this.type.name} = ${this.statement.asString()}`
+    }
+}
+
+export class JavaAssignStatement extends AssignStatement {
+    constructor(public variableName: string, public type: Type, public statement: LanguageStatement) {
+        super(variableName, type, statement)
+     }
+    asString(): string {
+        return `${super.asString()};`
+    }
+}
+
+export class MemberCallStatement implements LanguageStatement {
+    constructor(
+        public receiver: string,
+        public method: string,
+        public params: string[],
+        public nullable = false) { }
+    asString(): string {
+        return `${this.receiver}${this.nullable ? "?" : ""}.${this.method}(${this.params.join(", ")})`
+    }
+}
+
+export class ReturnStatement implements LanguageStatement {
+    constructor(public statement: LanguageStatement) { }
+    asString(): string {
+        return `return ${this.statement.asString()}`
+    }
+}
+
+export class TSReturnStatement extends ReturnStatement {
+    constructor(public statement: LanguageStatement) { super(statement) }
+}
+
+export class JavaReturnStatement extends ReturnStatement {
+    constructor(public statement: LanguageStatement) { super(statement) }
+    asString(): string {
+        return `${super.asString()};`
+    }
+}
+
+export class StringStatement implements LanguageStatement {
+    constructor(public value: string) { }
+    asString(): string {
+        return this.value
+    }
+}
+
 export class MethodSignature {
     constructor(public returnType: Type, public args: Type[], public defaults: stringOrNone[]|undefined = undefined) {}
 
@@ -76,6 +132,19 @@ export abstract class LanguageWriter {
     writeMemberCall(receiver: string, method: string, params: string[], nullable = false): void {
         this.printer.print(`${receiver}${nullable ? "?" : ""}.${method}(${params.join(", ")})`)
     }
+
+    writeStatement(stmt: LanguageStatement) {
+        this.printer.print(stmt.asString())
+    }
+
+    makeMemberCall(receiver: string, method: string, params: string[], nullable?: boolean): LanguageStatement {
+        return new MemberCallStatement(receiver, method, params, nullable)
+    }
+    abstract makeAssign(variableName: string, type: Type, statement: LanguageStatement): LanguageStatement;
+    abstract makeReturn(stmt: LanguageStatement): LanguageStatement;
+    makeString(value: string): LanguageStatement {
+        return new StringStatement(value)
+    };
 
     abstract writePrintLog(message: string): void
 
@@ -151,6 +220,14 @@ export class TSLanguageWriter extends LanguageWriter {
 
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, prefix?: string) {
         this.printer.print(`${prefix ?? ""}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
+    }
+
+    makeAssign(variableName: string, type: Type, statement: LanguageStatement): LanguageStatement {
+        return new AssignStatement(variableName, type, statement)
+    }
+
+    makeReturn(stmt: LanguageStatement): LanguageStatement {
+        return new TSReturnStatement(stmt)
     }
 
     writePrintLog(message: string): void {
@@ -241,6 +318,14 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
 
+    makeAssign(variableName: string, type: Type, statement: LanguageStatement): LanguageStatement {
+        return new JavaAssignStatement(variableName, type, statement)
+    }
+
+    makeReturn(stmt: LanguageStatement): LanguageStatement {
+        return new JavaReturnStatement(stmt)
+    }
+
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
     }
@@ -278,6 +363,12 @@ export class CppLanguageWriter extends LanguageWriter {
         throw new Error("Method not implemented.");
     }
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
+        throw new Error("Method not implemented.");
+    }
+    makeAssign(variableName: string, type: Type, statement: LanguageStatement): LanguageStatement {
+        throw new Error("Method not implemented.");
+    }
+    makeReturn(stmt: LanguageStatement): LanguageStatement {
         throw new Error("Method not implemented.");
     }
     writePrintLog(message: string): void {

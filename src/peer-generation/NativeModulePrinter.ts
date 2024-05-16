@@ -15,7 +15,7 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "./FileGenerators";
-import { LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
+import { LanguageWriter, Method, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
 import { PeerClass, PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { printGlobalMaterialized } from "./Materialized";
@@ -46,7 +46,9 @@ class NativeModuleVisitor {
     }
 }
 
-export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
+export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
+    returnType?: Type
+) {
     const component = clazz.generatedName(method.isCallSignature)
     clazz.setGenerationContext(`${method.isCallSignature ? "" : method.method.name}()`)
     const args = method.argConvertors
@@ -61,11 +63,14 @@ export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, native
             }
         })
     let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: 'KPointer' }] : []
-    const parameters = NamedMethodSignature.make('void', maybeReceiver.concat(args))
+    const parameters = NamedMethodSignature.make(returnType?.name ?? 'void', maybeReceiver.concat(args))
     let name = `_${component}_${method.method.name}`
     nativeModule.writeNativeMethodDeclaration(name, parameters)
     nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
         printer.writePrintLog(name)
+        if (returnType !== undefined) {
+            printer.writeStatement(printer.makeReturn(printer.makeString(`-1`)))
+        }
     })
     clazz.setGenerationContext(undefined)
 }

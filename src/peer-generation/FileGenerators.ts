@@ -341,8 +341,8 @@ export class ArkStructCommon extends ArkCommon implements CustomComponent {
 `
 }
 
-export function makeMaterializedPrologue(): string {
-    let prologue = readTemplate('materialized_class_prologue.ts')
+export function makeMaterializedPrologue(lang: Language): string {
+    let prologue = readLangTemplate('materialized_class_prologue', lang)
     return `
 ${prologue}
 

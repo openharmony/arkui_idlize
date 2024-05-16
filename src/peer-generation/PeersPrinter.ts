@@ -22,7 +22,13 @@ import { ImportsCollector } from "./ImportsCollector";
 import { PeerClass } from "./PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
-import { LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
+import {
+    LanguageWriter,
+    Method,
+    NamedMethodSignature,
+    Type,
+    createLanguageWriter
+} from "./LanguageWriters";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -240,11 +246,11 @@ export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): M
 }
 
 export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
-    methodPostfix: string, ptr: string) {
+    methodPostfix: string, ptr: string, returnType: Type = Type.Void) {
     if (printer.language != Language.TS) return
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(method.hasReceiver() ? `${method.method.name}${methodPostfix}` : method.method.name,
-    new NamedMethodSignature(Type.Void, signature.args, signature.argsNames), method.method.modifiers)
+    new NamedMethodSignature(returnType, signature.args, signature.argsNames), method.method.modifiers)
     printer.writeMethodImplementation(peerMethod, (writer) => {
     let scopes = method.argConvertors.filter(it => it.isScoped)
     scopes.forEach(it => {
@@ -269,7 +275,8 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     }
     //let maybeThis = method.hasReceiver() ? `this.peer.ptr${method.argConvertors.length > 0 ? ", " : ""}` : ``
     let maybeThis = method.hasReceiver() ? `${ptr}${method.argConvertors.length > 0 ? ", " : ""}` : ``
-    writer.print(`nativeModule()._${method.originalParentName}_${method.method.name}(${maybeThis}`)
+    const result = returnType == Type.Void ? "" : "const result = "
+    writer.print(`${result}nativeModule()._${method.originalParentName}_${method.method.name}(${maybeThis}`)
     writer.pushIndent()
     method.argConvertors.forEach((it, index) => {
         let maybeComma = index == method.argConvertors.length - 1 ? "" : ","
@@ -288,5 +295,9 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     method.argConvertors.forEach(it => {
         if (it.useArray) writer.print(`${it.param}Serializer.close()`)
     })
+
+    if (returnType != Type.Void) {
+        writer.writeStatement(writer.makeReturn(writer.makeString(`result`)))
+    }
 })
 }
