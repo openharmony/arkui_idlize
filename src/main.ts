@@ -41,7 +41,6 @@ import { DeclarationTable } from "./peer-generation/DeclarationTable"
 import { printRealAndDummyAccessors } from "./peer-generation/AccessorPrinter"
 import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
-import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { printComponents } from "./peer-generation/ComponentsPrinter"
 import { printPeers } from "./peer-generation/PeersPrinter"
 import { printMaterialized } from "./peer-generation/MaterializedPrinter"
@@ -78,6 +77,7 @@ const options = program
     .option('--native-bridge-path <name>', "Path to native bridge")
     .option('--api-version <version>', "API version for generated peers")
     .option('--dump-serialized', "Dump serialized data")
+    .option('--call-log', "Call log")
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
     .option('--language [ts|sts|java]', 'Output language')
     .option('--version')
@@ -342,21 +342,7 @@ if (options.dts2peer) {
                         makeTSSerializer(declarationTable)
                     )
                 }
-                if(lang == Language.ARKTS) {
-                    fs.writeFileSync(
-                        path.join(outDir, 'ArkUINodeType' + langSuffix(lang)),
-                        printNodeTypes(peerLibrary),
-                    )
-                    fs.writeFileSync(path.join(outDir, 'Serializer' + langSuffix(lang)),
-                        makeTSSerializer(declarationTable)
-                    )
-                    fs.writeFileSync(
-                        path.join(outDir, 'ArkCommon' + langSuffix(lang)),
-                        printStructCommon(peerLibrary),
-                    )
-                }
-                
-                fs.writeFileSync(path.join(outDir, 'bridge.cc'), printBridgeCc(peerLibrary))
+                fs.writeFileSync(path.join(outDir, 'bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
 
                 const {api, deserializer} = printApiAndDeserializer(options.apiVersion, peerLibrary)
                 fs.writeFileSync(path.join(outDir, 'Deserializer.h'), deserializer)

@@ -169,7 +169,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
-    InteropTypeConverter<P1>::InteropType _p2) { \
+    InteropTypeConverter<P2>::InteropType _p2) { \
       KOALA_MAYBE_LOG(name)                   \
       P0 p0 = getArgument<P0>(env, _p0); \
       P1 p1 = getArgument<P1>(env, _p1); \
@@ -186,8 +186,8 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
-    InteropTypeConverter<P1>::InteropType _p2, \
-    InteropTypeConverter<P1>::InteropType _p3) { \
+    InteropTypeConverter<P2>::InteropType _p2, \
+    InteropTypeConverter<P3>::InteropType _p3) { \
       KOALA_MAYBE_LOG(name)                   \
       P0 p0 = getArgument<P0>(env, _p0); \
       P1 p1 = getArgument<P1>(env, _p1); \

@@ -78,6 +78,12 @@ inline void WriteToString(string* result, Ark_Tag value) {
 }
 
 template <>
+inline void WriteToString(string* result, ArkUINodeHandle value) {
+  result->append("0x");
+  result->append(std::to_string((int64_t)value));
+}
+
+template <>
 inline void WriteToString(string* result, const Ark_Function* value) {
    result->append("\"");
    result->append("Function ");

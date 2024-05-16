@@ -1,7 +1,8 @@
 import { nativeModule } from "./NativeModule"
 import { withStringResult } from "@koalaui/interop"
 
-const TEST_GROUP_LOG = 1
+export const TEST_GROUP_LOG = 1
+export const CALL_GROUP_LOG = 2
 
 export let reportTestFailures: boolean = true
 
@@ -18,17 +19,22 @@ export function checkTestFailures() {
     }
 }
 
-export function clearNativeLog() {
-    nativeModule()._ClearGroupedLog(TEST_GROUP_LOG)
+export function startNativeLog(group: number) {
+    nativeModule()._StartGroupedLog(group)
 }
 
-export function getNativeLog(): string {
-    return withStringResult(nativeModule()._GetGroupedLog(TEST_GROUP_LOG))!
+export function stopNativeLog(group: number) {
+    nativeModule()._StopGroupedLog(group)
+}
+
+export function getNativeLog(group: number = TEST_GROUP_LOG): string {
+    return withStringResult(nativeModule()._GetGroupedLog(group))!
 }
 
 export function checkResult(name: string, test: () => void, expected: string) {
-    clearNativeLog()
+    startNativeLog(TEST_GROUP_LOG)
     test()
+    stopNativeLog(TEST_GROUP_LOG)
     const out = getNativeLog()
     // remove out comments like /* some text */
     const actual =  out.replace(/\s?\/\*.*?\*\//g, "");

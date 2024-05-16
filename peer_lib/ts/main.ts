@@ -25,19 +25,23 @@ import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 
 import {
-    clearNativeLog,
     getNativeLog,
     reportTestFailures,
     setReportTestFailures,
     checkResult,
-    checkTestFailures
+    checkTestFailures,
+    startNativeLog,
+    CALL_GROUP_LOG,
+    stopNativeLog,
+    TEST_GROUP_LOG
 } from "./test_utils"
 import { nativeModule } from "@arkoala/arkui//NativeModule"
 
 // TODO: hacky way to detect subset vs full.
-clearNativeLog()
+startNativeLog(TEST_GROUP_LOG)
 new ArkButtonPeer(0).labelStyleAttribute({maxLines: 3})
 setReportTestFailures(getNativeLog().indexOf("heightAdaptivePolicy") == -1)
+stopNativeLog(TEST_GROUP_LOG)
 
 if (!reportTestFailures) {
     console.log("WARNING: ignore test result")
@@ -192,6 +196,7 @@ function checkPerf3(count: number) {
 checkPerf2(200 * 1000)
 checkPerf3(200 * 1000)
 
+startNativeLog(CALL_GROUP_LOG)
 checkButton()
 checkCalendar()
 //checkDTS()
@@ -200,6 +205,18 @@ checkCommon()
 checkOverloads()
 checkNavigation()
 checkParticle()
+stopNativeLog(CALL_GROUP_LOG)
+
+const callLog = getNativeLog(CALL_GROUP_LOG)
+if (callLog.length > 0) {
+    console.log(`
+#include "arkoala_api.h"
+
+int main(int argc, const char** argv) {
+${callLog}
+  return 0;
+}`)
+}
 // checkTabContent()
 
 // Report in error code.

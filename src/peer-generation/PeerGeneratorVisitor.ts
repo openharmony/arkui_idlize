@@ -423,7 +423,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         const argConvertors = method.params
             .map((param) => this.declarationTable.typeConvertor(param.name, param.type, param.nullable))
         const retConvertor = isConstructor
-            ? { isVoid: false, isStruct: false, nativeType: () => parentName + "Peer*", macroSuffixPart: () => "" }
+            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
             : this.retConvertor(method.returnType)
         const tsRetType = method.returnType == undefined ? undefined : mapType(this.typeChecker, method.returnType)
         return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, tsRetType, false, method.toMethod(this.typeChecker))
@@ -590,9 +590,8 @@ function mapCInteropRetType(type: ts.TypeNode): string {
             /* ANOTHER HACK, fix */
             case "T": return "void"
             case "UIContext": return PrimitiveType.NativePointer.getText()
+            default: return PrimitiveType.NativePointer.getText()
         }
-        console.log(`WARNING: unhandled return type ${type.getText()}`)
-        return name
     }
     if (type.kind == ts.SyntaxKind.StringKeyword) {
         /* HACK, fix */

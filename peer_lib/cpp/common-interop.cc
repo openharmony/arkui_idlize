@@ -128,27 +128,40 @@ std::vector<KStringPtr> makeStringVector(KNativePointerArray arr, KInt length) {
     }
 }
 
-std::vector<std::string> groupedLogs;
+std::vector<std::pair<std::string, bool>> groupedLogs;
 
-void clearGroupedLog(KInt index) {
-    if (index >=0 && index < (int)groupedLogs.size()) {
-        groupedLogs[index] = std::string();
-    }
-}
-
-void appendGroupedLog(KInt index, const std::string& str) {
+void startGroupedLog(KInt index) {
     if (index < 0) return;
     if (index >= (int)groupedLogs.size()) {
         groupedLogs.resize(index + 1);
     }
-    groupedLogs[index].append(str);
+    groupedLogs[index] = std::make_pair(std::string(), true);
 }
 
-std::string getGroupedLog(int32_t index) {
+void stopGroupedLog(KInt index) {
     if (index >=0 && index < (int)groupedLogs.size()) {
-        return groupedLogs[index];
+        groupedLogs[index].second = false;
     }
-    return std::string();
+}
+
+void appendGroupedLog(KInt index, const std::string& str) {
+    groupedLogs[index].first.append(str);
+}
+
+std::string emptyString;
+
+const std::string& getGroupedLog(int32_t index) {
+    if (index >=0 && index < (int)groupedLogs.size()) {
+        return groupedLogs[index].first;
+    }
+    return emptyString;
+}
+
+const bool needGroupedLog(int32_t index) {
+    if (index >=0 && index < (int)groupedLogs.size()) {
+        return groupedLogs[index].second;
+    }
+    return false;
 }
 
 KNativePointer impl_GetGroupedLog(KInt index) {
@@ -156,10 +169,15 @@ KNativePointer impl_GetGroupedLog(KInt index) {
 }
 KOALA_INTEROP_1(GetGroupedLog, KNativePointer, KInt)
 
-void impl_ClearGroupedLog(KInt index) {
-    clearGroupedLog(index);
+void impl_StartGroupedLog(KInt index) {
+    startGroupedLog(index);
 }
-KOALA_INTEROP_V1(ClearGroupedLog, KInt)
+KOALA_INTEROP_V1(StartGroupedLog, KInt)
+
+void impl_StopGroupedLog(KInt index) {
+    stopGroupedLog(index);
+}
+KOALA_INTEROP_V1(StopGroupedLog, KInt)
 
 KInt impl_TestPerfNumber(KInt value) {
     return value + 1;

@@ -19,8 +19,11 @@ export class NativeModuleBase {
     _GetGroupedLog(index: KInt): KPointer {
         throw new Error("_GetResultString")
     }
-    _ClearGroupedLog(index: KInt): void  {
-        throw new Error("_ClearResultString")
+    _StartGroupedLog(index: KInt): void  {
+        throw new Error("_StartGroupedLog")
+    }
+    _StopGroupedLog(index: KInt): void  {
+        throw new Error("_StopGroupedLog")
     }
     _GetStringFinalizer(): KPointer  {
         throw new Error("_GetStringFinalizer")

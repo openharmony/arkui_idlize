@@ -83,7 +83,7 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
         })
         if (this.method.hasReceiver())
             delegateArgs = [this.method.generateReceiver()!.argName, ...delegateArgs]
-        this.printer.print(`${delegateIdentifier}(${delegateArgs.join(', ')});`)        
+        this.printer.print(`${delegateIdentifier}(${delegateArgs.join(', ')});`)
     }
 }
 

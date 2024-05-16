@@ -166,7 +166,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0)
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1)
 
 #define KOALA_INTEROP_3(name, Ret, P0, P1, P2) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
   InteropTypeConverter<P2>::InteropType _p2) { \
@@ -174,7 +174,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1)
       P0 p0 = getArgument<P0>(env, _p0); \
       P1 p1 = getArgument<P1>(env, _p1); \
       P2 p2 = getArgument<P2>(env, _p2); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -183,7 +183,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1)
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2)
 
 #define KOALA_INTEROP_4(name, Ret, P0, P1, P2, P3) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
   InteropTypeConverter<P2>::InteropType _p2, \
@@ -193,7 +193,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2)
       P1 p1 = getArgument<P1>(env, _p1); \
       P2 p2 = getArgument<P2>(env, _p2); \
       P3 p3 = getArgument<P3>(env, _p3); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -203,7 +203,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2)
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3)
 
 #define KOALA_INTEROP_5(name, Ret, P0, P1, P2, P3, P4) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
     InteropTypeConverter<P2>::InteropType _p2, \
@@ -226,7 +226,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3)
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4)
 
 #define KOALA_INTEROP_6(name, Ret, P0, P1, P2, P3, P4, P5) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
   InteropTypeConverter<P2>::InteropType _p2, \
@@ -240,7 +240,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4)
       P3 p3 = getArgument<P3>(env, _p3); \
       P4 p4 = getArgument<P4>(env, _p4); \
       P5 p5 = getArgument<P5>(env, _p5); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -252,7 +252,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4)
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
 
 #define KOALA_INTEROP_7(name, Ret, P0, P1, P2, P3, P4, P5, P6) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
     InteropTypeConverter<P2>::InteropType _p2, \
@@ -268,7 +268,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
       P4 p4 = getArgument<P4>(env, _p4); \
       P5 p5 = getArgument<P5>(env, _p5); \
       P6 p6 = getArgument<P6>(env, _p6); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -281,7 +281,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6)
 
 #define KOALA_INTEROP_8(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
   InteropTypeConverter<P2>::InteropType _p2, \
@@ -299,7 +299,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
       P5 p5 = getArgument<P5>(env, _p5); \
       P6 p6 = getArgument<P6>(env, _p6); \
       P7 p7 = getArgument<P7>(env, _p7); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -313,7 +313,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7)
 
 #define KOALA_INTEROP_9(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
   InteropTypeConverter<P2>::InteropType _p2, \
@@ -333,7 +333,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
       P6 p6 = getArgument<P6>(env, _p6); \
       P7 p7 = getArgument<P7>(env, _p7); \
       P8 p8 = getArgument<P8>(env, _p8); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -348,7 +348,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8)
 
 #define KOALA_INTEROP_10(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
   InteropTypeConverter<P2>::InteropType _p2, \
@@ -370,7 +370,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
       P7 p7 = getArgument<P7>(env, _p7); \
       P8 p8 = getArgument<P8>(env, _p8); \
       P9 p9 = getArgument<P9>(env, _p9); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -386,7 +386,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9)
 
 #define KOALA_INTEROP_11(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
   InteropTypeConverter<P2>::InteropType _p2, \
@@ -426,7 +426,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
 }
 
 #define KOALA_INTEROP_12(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
     InteropTypeConverter<P2>::InteropType _p2, \
@@ -469,7 +469,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
 }
 
 #define KOALA_INTEROP_13(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
     InteropTypeConverter<P2>::InteropType _p2, \
@@ -515,7 +515,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
 }
 
 #define KOALA_INTEROP_14(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13) \
-  KOALA_JNI_CALL(Ret) Java_org_##name(JNIEnv* env, jclass instance, \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
     InteropTypeConverter<P2>::InteropType _p2, \
