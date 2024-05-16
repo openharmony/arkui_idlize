@@ -5,6 +5,6 @@
 /**
  * Only to workaround non-int enums
  */
-export function unsafeCast<T>(value: unknown): T {
-    return value as unknown as T
+export function unsafeCast<T>(value: object): T {
+    return value as T
 }
