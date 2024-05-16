@@ -19,6 +19,8 @@ import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
 import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkParticlePeer } from "@arkoala/arkui/ArkParticlePeer"
+import { ArkSideBarContainerPeer } from "@arkoala/arkui/ArkSidebarPeer"
+import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
 // import { ArkTabContentPeer, SubTabBarStyle } from "@arkoala/arkui/ArkTabContentPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 
@@ -108,6 +110,30 @@ function checkCommon() {
     )
 }
 
+class ArkSideBarContainerComponentTest extends ArkSideBarContainerComponent {
+    constructor(peer: ArkSideBarContainerPeer) {
+        super()
+        this.peer = peer
+    }
+
+    override checkPriority(name: string) {
+        return true
+    }
+}
+
+function checkOverloads() {
+    const peer = new ArkSideBarContainerPeer(ArkUINodeType.SideBarContainer)
+    const component = new ArkSideBarContainerComponentTest(peer)
+    checkResult("Test number implementation for SideBarContainer.minSideBarWidth",
+        () => component.minSideBarWidth(11),
+        `minSideBarWidth(11)`
+    )
+    checkResult("Test string implementation for SideBarContainer.minSideBarWidth",
+        () => component.minSideBarWidth("42%"),
+        `minSideBarWidth("42%")`
+    )
+}
+
 function checkNavigation() {
     let peer = new ArkNavigationPeer(ArkUINodeType.Navigation)
     checkResult("backButtonIcon", () => peer.backButtonIconAttribute("attr"),
@@ -171,6 +197,7 @@ checkCalendar()
 //checkDTS()
 checkFormComponent()
 checkCommon()
+checkOverloads()
 checkNavigation()
 checkParticle()
 // checkTabContent()

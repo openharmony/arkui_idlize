@@ -16,7 +16,7 @@
 
 import { Language, capitalize } from "../util"
 import { ArgConvertor, OptionConvertor, RetConvertor } from "./Convertors"
-import { Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
+import { Method, MethodModifier, mangleMethodName } from "./LanguageWriters"
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType, StructVisitor } from "./DeclarationTable"
 
 export class PeerMethod {
@@ -26,6 +26,7 @@ export class PeerMethod {
         public argConvertors: ArgConvertor[],
         public retConvertor: RetConvertor,
         public isCallSignature: boolean,
+        public isOverloaded: boolean,
         public method: Method
     ) { }
 
@@ -46,12 +47,16 @@ export class PeerMethod {
         return this.method.signature.args.map(it => `${it.name}`)
     }
 
+    get overloadedName(): string {
+        return this.isOverloaded ? mangleMethodName(this.method) : this.method.name
+    }
+
     get fullMethodName(): string {
-        return this.isCallSignature ? this.method.name : this.peerMethodName
+        return this.isCallSignature ? this.overloadedName : this.peerMethodName
     }
 
     get peerMethodName() {
-        const name = this.method.name
+        const name = this.overloadedName
         if (!this.hasReceiver()) return name
         if (name.startsWith("set") ||
             name.startsWith("get") ||
@@ -61,7 +66,7 @@ export class PeerMethod {
     }
 
     get implName(): string {
-        return `${capitalize(this.originalParentName)}_${capitalize(this.fullMethodName)}Impl`
+        return `${capitalize(this.originalParentName)}_${capitalize(this.overloadedName)}Impl`
     }
 
     get retType(): string {
@@ -88,6 +93,18 @@ export class PeerMethod {
         return {
             argName: "node",
             argType: PrimitiveType.NativePointer.getText()
+        }
+    }
+
+    static markOverloads(methods: PeerMethod[]): void {
+        for (const peerMethod of methods)
+            peerMethod.isOverloaded = false
+        
+        for (const peerMethod of methods) {
+            if (peerMethod.isOverloaded) continue
+            const sameNamedMethods = methods.filter(it => it.method.name === peerMethod.method.name)
+            if (sameNamedMethods.length <= 1) continue
+            sameNamedMethods.forEach((method) => method.isOverloaded = true)
         }
     }
 }

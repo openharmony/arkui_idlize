@@ -46,11 +46,11 @@ export class MaterializedMethod extends PeerMethod {
         isCallSignature: boolean,
         method: Method
     ) {
-        super(originalParentName, declarationTargets, argConvertors, retConvertor, isCallSignature, method)
+        super(originalParentName, declarationTargets, argConvertors, retConvertor, isCallSignature, false, method)
     }
 
     override get implName(): string {
-        return `${this.originalParentName}_${this.method.name}`
+        return `${this.originalParentName}_${this.overloadedName}`
     }
 
     override generateReceiver(): { argName: string; argType: string } | undefined {

@@ -113,7 +113,7 @@ class BridgeCcVisitor {
         const retConvertor = method.retConvertor
         const argConvertors = method.argConvertors
 
-        let cName = `${method.originalParentName}_${method.method.name}`
+        let cName = `${method.originalParentName}_${method.overloadedName}`
         this.C.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(method, argConvertors).join(", ")}) {`)
         this.C.pushIndent()
         this.printNativeBody(method)

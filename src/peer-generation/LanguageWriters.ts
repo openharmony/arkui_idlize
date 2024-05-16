@@ -112,6 +112,13 @@ export class Method {
     constructor(public name: string, public signature: MethodSignature, public modifiers: MethodModifier[]|undefined = undefined) {}
 }
 
+export function mangleMethodName(method: Method): string {
+    const argsPostfix = method.signature.args.map(it => {
+        return Array.from(it.name).filter(it => it.match(/[a-zA-Z]/)).join("")
+    }).join("_")
+    return `${method.name}_${argsPostfix}`
+}
+
 export abstract class LanguageWriter {
     constructor(public printer: IndentedPrinter, public language: Language) {}
 

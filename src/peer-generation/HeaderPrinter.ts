@@ -79,11 +79,11 @@ class HeaderVisitor {
                     // TBD: handle methods with the same name like SubTabBarStyle
                     // of(content: ResourceStr) and
                     // of(content: ResourceStr | ComponentContent)
-                    if (names.has(method.method.name)) {
+                    if (names.has(method.overloadedName)) {
                         return
                     }
-                    names.add(method.method.name)
-                    this.api.print(`${method.retType} (*${method.method.name})(${method.generateAPIParameters().join(", ")});`)
+                    names.add(method.overloadedName)
+                    this.api.print(`${method.retType} (*${method.overloadedName})(${method.generateAPIParameters().join(", ")});`)
                 })
             this.api.popIndent()
             this.api.print(`} ${accessorName};\n`)

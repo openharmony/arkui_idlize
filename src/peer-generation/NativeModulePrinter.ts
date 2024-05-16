@@ -50,7 +50,7 @@ export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, native
     returnType?: Type
 ) {
     const component = clazz.generatedName(method.isCallSignature)
-    clazz.setGenerationContext(`${method.isCallSignature ? "" : method.method.name}()`)
+    clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
     const args = method.argConvertors
         .flatMap(it => {
             if (it.useArray) {
@@ -64,7 +64,7 @@ export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, native
         })
     let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: 'KPointer' }] : []
     const parameters = NamedMethodSignature.make(returnType?.name ?? 'void', maybeReceiver.concat(args))
-    let name = `_${component}_${method.method.name}`
+    let name = `_${component}_${method.overloadedName}`
     nativeModule.writeNativeMethodDeclaration(name, parameters)
     nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
         printer.writePrintLog(name)

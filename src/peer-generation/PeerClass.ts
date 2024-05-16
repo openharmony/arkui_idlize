@@ -39,9 +39,6 @@ export class PeerClass implements PeerClassBase {
     }
 
     methods: PeerMethod[] = []
-    get callableMethod(): PeerMethod {
-        return this.methods.find(method => method.isCallSignature)!
-    }
 
     originalClassName: string | undefined = undefined
     originalInterfaceName: string | undefined = undefined
@@ -50,6 +47,5 @@ export class PeerClass implements PeerClassBase {
     parentComponentName: string | undefined = undefined
     attributesFields: string[] = []
     attributesTypes: string[] = []
-    usedImportTypesStubs: string[] = []
     hasTransitiveGenericType: boolean = false
 }

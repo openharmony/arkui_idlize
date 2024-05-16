@@ -109,7 +109,7 @@ export class ToStringConvertor extends BaseArgConvertor {
         return language == Language.CPP ? this.convertorCArg(param) : `(${param}).toString()`
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
-        writer.writeMemberCall(`${param}Serializer`, `writeString`, [`${value}).toString()`])
+        writer.writeMemberCall(`${param}Serializer`, `writeString`, [`${value}.toString()`])
     }
     convertorCArg(param: string): string {
         return `(const ${PrimitiveType.String.getText()}*)&${param}`

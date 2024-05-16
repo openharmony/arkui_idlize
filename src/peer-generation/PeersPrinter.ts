@@ -45,6 +45,7 @@ class PeerFileVisitor {
     private isTs = this.file.declarationTable.language == Language.TS
 
     constructor(
+        private readonly library: PeerLibrary,
         private readonly file: PeerFile,
         private readonly dumpSerialized: boolean,
     ) { }
@@ -76,9 +77,9 @@ class PeerFileVisitor {
         if (!this.isTs) return
         const imports = new ImportsCollector()
         imports.addFilterByBasename(this.targetBasename)
+        for (const importType of this.library.importTypesStubs)
+            imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
         this.file.peers.forEach(peer => {
-            for (const importType of peer.usedImportTypesStubs)
-                imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
             if (!peer.originalParentFilename) return
             const parentBasename = renameDtsToPeer(path.basename(peer.originalParentFilename), this.file.declarationTable.language)
             imports.addFeatureByBasename(this.generatePeerParentName(peer), parentBasename)
@@ -227,7 +228,7 @@ class PeersVisitor {
 
     printPeers(): void {
         for (const file of this.library.files.values()) {
-            const visitor = new PeerFileVisitor(file, this.dumpSerialized)
+            const visitor = new PeerFileVisitor(this.library, file, this.dumpSerialized)
             visitor.printFile()
             this.peers.set(visitor.targetBasename, visitor.printer.getOutput())
         }
@@ -249,7 +250,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     methodPostfix: string, ptr: string, returnType: Type = Type.Void) {
     if (printer.language != Language.TS) return
     const signature = method.method.signature as NamedMethodSignature
-    let peerMethod = new Method(method.hasReceiver() ? `${method.method.name}${methodPostfix}` : method.method.name,
+    let peerMethod = new Method(method.hasReceiver() ? `${method.overloadedName}${methodPostfix}` : method.overloadedName,
     new NamedMethodSignature(returnType, signature.args, signature.argsNames), method.method.modifiers)
     printer.writeMethodImplementation(peerMethod, (writer) => {
     let scopes = method.argConvertors.filter(it => it.isScoped)
@@ -276,7 +277,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     //let maybeThis = method.hasReceiver() ? `this.peer.ptr${method.argConvertors.length > 0 ? ", " : ""}` : ``
     let maybeThis = method.hasReceiver() ? `${ptr}${method.argConvertors.length > 0 ? ", " : ""}` : ``
     const result = returnType == Type.Void ? "" : "const result = "
-    writer.print(`${result}nativeModule()._${method.originalParentName}_${method.method.name}(${maybeThis}`)
+    writer.print(`${result}nativeModule()._${method.originalParentName}_${method.overloadedName}(${maybeThis}`)
     writer.pushIndent()
     method.argConvertors.forEach((it, index) => {
         let maybeComma = index == method.argConvertors.length - 1 ? "" : ","
