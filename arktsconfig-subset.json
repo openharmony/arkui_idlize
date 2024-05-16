@@ -1,15 +1,12 @@
 {
     "compilerOptions": {
-        "outDir": "build/abc/arkts-subset",
-        "rootDir": "./generated/arkts-subset",
+        "outDir": "build/abc/subset",
+        "rootDir": "./generated/subset",
         "paths": {
-            "@arkoala/arkui": ["./generated/arkts-subset", "./"],
-            "@arkoala/arkui/*": ["./generated/arkts-subset/*", "./*"],
-            "@koalaui/arkoala": ["generated/arkts-subset/arkoala"],
-            "@koalaui/common": ["generated/arkts-subset/common"],
-            "@koalaui/interop": ["generated/arkts-subset/interop"],
-            "@koalaui/runtime": ["generated/arkts-subset/runtime"]
+            "@arkoala/arkui": ["./generated/subset", "./"],
+            "@arkoala/arkui/*": ["./generated/subset/*", "./*"],
+            "@koalaui/common": ["./generated/subset/koalaui-common"]
         }
     },
-    "include": ["./generated/arkts-subset/**/*.ets"]
+    "include": ["./generated/subset/**/*.ets"]
 }
