@@ -72,8 +72,8 @@ class ComponentFileVisitor {
             if (!this.canGenerateComponent(peer)) return
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
-            const callableMethodArgs = callableMethods.length > 0 
-                ? collapseSameNamedMethods(callableMethods).signature.args.length 
+            const callableMethodArgs = callableMethods.length > 0
+                ? collapseSameNamedMethods(callableMethods).signature.args.length
                 : 0
             imports.addFeature(`ArkCommonStruct${callableMethodArgs + 1}`, "./ArkStructCommon")
             imports.addFeatureByBasename(componentToPeerClass(peer.componentName),
@@ -175,6 +175,7 @@ class ComponentFileVisitor {
                 (types ?? []).join(", ")
             ]
         }
+
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), ['protected'], true)
             for (const grouped of this.groupOverloads(peer.methods))

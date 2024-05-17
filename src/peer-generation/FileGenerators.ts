@@ -356,6 +356,9 @@ export function makeStructCommon(commonMethods: string[], customComponentMethods
     return `
 import { NativePeerNode } from "@koalaui/arkoala"
 
+// TODO: temporary, remove!
+interface Theme {}
+
 export class ArkCommon implements CommonMethod<CommonAttribute> {
   protected peer?: NativePeerNode
   setPeer(peer: NativePeerNode) {
