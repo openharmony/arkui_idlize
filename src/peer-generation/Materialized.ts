@@ -112,7 +112,12 @@ export class Materialized {
 export function printGlobalMaterialized(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
     console.log(`Materialized classes: ${Materialized.Instance.materializedClasses.size}`)
     Materialized.Instance.materializedClasses.forEach(clazz => {
-        printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, new Type("pointer"))
-        clazz.methods.forEach(method => printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty))
+        printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, Type.Pointer)
+        printPeerMethod(clazz, clazz.dtor, nativeModule, nativeModuleEmpty)
+        clazz.methods.forEach(method => {
+            const signatureType = method.method.signature.returnType
+            const returnType = signatureType.name === clazz.className ? Type.Pointer : undefined
+            printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty, returnType)
+        })
     })
 }

@@ -28,3 +28,6 @@ public class NativeModule {
   static native void _StopGroupedLog(int index);
   static native int _TestPerfNumber(int value);
   static native void _TestPerfNumberWithArray(byte[] data, int length);
+  static native void _StartPerf(String traceName);
+  static native void _EndPerf(String traceName);
+  static native long _DumpPerf(int options);

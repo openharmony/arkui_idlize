@@ -27,7 +27,7 @@ class MaterializedFileVisitor {
 
         printer.writeClass(clazz.className, writer => {
 
-            const pointerType = new Type("pointer")
+            const pointerType = Type.Pointer
             writePeerMethod(writer, clazz.ctor, this.dumpSerialized, "", "", pointerType)
 
             writer.writeConstructorImplementation(clazz.className, clazz.ctor.method.signature, writer => {
