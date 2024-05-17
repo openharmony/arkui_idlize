@@ -350,7 +350,10 @@ export class DeclarationTable {
             return prefix + `Union_${target.types.map(it => this.computeTargetName(this.toTarget(it), false)).join("_")}`
         }
         if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
-            return prefix + identName(target.name)
+            let name = identName(target.name)
+            if (name == "Function")
+                return prefix + PrimitiveType.Function.getText()
+            return prefix + name
         }
         if (ts.isFunctionTypeNode(target)) {
             return prefix + PrimitiveType.Function.getText()
@@ -416,7 +419,7 @@ export class DeclarationTable {
             if (typeName === "Array") {
                 const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 return `${prefix}Array_${elementTypeName}`
-            } else if (typeName === "Map") { 
+            } else if (typeName === "Map") {
                 const keyTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 const valueTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![1], false)
                 return `${prefix}Map_${keyTypeName}_${valueTypeName}`
@@ -1083,7 +1086,7 @@ constructor(expectedSize: int32) {
         }
         if (isArray) {
             this.generateArrayWriteToString(name, target, printer)
-        } else if (isMap) { 
+        } else if (isMap) {
             this.generateMapWriteToString(name, target, printer)
         } else {
             printer.print(`template <>`)
@@ -1299,7 +1302,7 @@ constructor(expectedSize: int32) {
                 result.isArray = true
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "array"))
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
-            } else if (name == "Map") { 
+            } else if (name == "Map") {
                 let keyType = target.typeArguments[0]
                 let valueType = target.typeArguments[1]
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "map_length"))
