@@ -272,7 +272,7 @@ export class SerializerBase {
         this.view.setInt32(this.position, length, true)
         this.position += 4
         new Uint8Array(this.view.buffer, this.position).set(encoded)
-        //this.view.setInt8(this.position + length  - 1, 0)
+        this.view.setInt8(this.position + length  - 1, 0)
         this.position += length
     }
     // Length is an important common case.

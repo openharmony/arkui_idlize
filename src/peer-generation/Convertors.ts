@@ -721,6 +721,74 @@ export class ArrayConvertor extends BaseArgConvertor {
         return true
     }
 }
+
+export class MapConvertor extends BaseArgConvertor {
+    private keyConvertor: ArgConvertor
+    private valueConvertor: ArgConvertor
+    constructor(param: string, protected table: DeclarationTable, type: ts.TypeNode, private keyType: ts.TypeNode, private valueType: ts.TypeNode) {
+        super(`Map<${mapType(table.typeChecker!, keyType)}, ${mapType(table.typeChecker!, valueType)}>`, [RuntimeType.OBJECT], false, true, param)
+        this.keyConvertor = table.typeConvertor(param, keyType)
+        this.valueConvertor = table.typeConvertor(param, valueType)
+        table.requestType(undefined, type)
+        table.requestType(undefined, keyType)
+        table.requestType(undefined, valueType)
+    }
+
+    convertorArg(param: string, language: Language): string {
+        throw new Error("Must never be used")
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        // Map size.
+        printer.print(`${param}Serializer.writeInt8(runtimeType(${value}))`)
+        printer.print(`if (${value} !== undefined) {`)
+        printer.pushIndent()
+        printer.print(`${param}Serializer.writeInt32(${value}.size)`)
+        printer.print(`for (const [${value}_key, ${value}_value] of ${value}) {`)
+        printer.pushIndent()
+        this.keyConvertor.convertorSerialize(param, `${value}_key`, printer)
+        this.valueConvertor.convertorSerialize(param, `${value}_value`, printer)
+        printer.popIndent()
+        printer.print(`}`)
+        printer.popIndent()
+        printer.print(`}`)
+    }
+    convertorDeserialize(param: string, value: string, printer: LanguageWriter): void {
+        // Map size.
+        let runtimeType = `runtimeType${uniqueCounter++}`;
+        let mapSize = `mapSize${uniqueCounter++}`;
+        let keyTypeName = this.table.computeTargetName(this.table.toTarget(this.keyType), false)
+        let valueTypeName = this.table.computeTargetName(this.table.toTarget(this.valueType), false)
+        printer.print(`auto ${runtimeType} = ${param}Deserializer.readInt8();`)
+        printer.print(`if (${runtimeType} != ${PrimitiveType.UndefinedRuntime}) {`) // TODO: `else value = nullptr` ?
+        printer.pushIndent()
+        printer.print(`auto ${mapSize} = ${param}Deserializer.readInt32();`)
+        printer.print(`${param}Deserializer.resizeMap<Map_${keyTypeName}_${valueTypeName}, ${keyTypeName}, ${valueTypeName}>(&${value}, ${mapSize});`);
+        printer.print(`for (int i = 0; i < ${mapSize}; i++) {`)
+        printer.pushIndent()
+        this.keyConvertor.convertorDeserialize(param, `${value}.keys[i]`, printer)
+        this.valueConvertor.convertorDeserialize(param, `${value}.values[i]`, printer)
+        printer.popIndent()
+        printer.print(`}`)
+        printer.popIndent()
+        printer.print(`}`)
+
+    }
+    nativeType(impl: boolean): string {
+        const keyTypeName = this.table.computeTypeName(undefined, this.keyType, false)
+        const valueTypeName = this.table.computeTypeName(undefined, this.valueType, false)
+        return `Map_${keyTypeName}_${valueTypeName}`
+    }
+    interopType(language: Language): string {
+        throw new Error("Must never be used")
+    }
+    estimateSize() {
+        return 64
+    }
+    isPointerType(): boolean {
+        return true
+    }
+}
+
 export class NumberConvertor extends BaseArgConvertor {
     constructor(param: string) {
         // TODO: as we pass tagged values - request serialization to array for now.

@@ -19,7 +19,7 @@ import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
     AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CustomTypeConvertor,
-    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MaterializedClassConvertor,
+    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor,
     NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, ToStringConvertor, TupleConvertor, TypeAliasConvertor,
     UndefinedConvertor, UnionConvertor
 } from "./Convertors"
@@ -416,6 +416,10 @@ export class DeclarationTable {
             if (typeName === "Array") {
                 const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 return `${prefix}Array_${elementTypeName}`
+            } else if (typeName === "Map") { 
+                const keyTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
+                const valueTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![1], false)
+                return `${prefix}Map_${keyTypeName}_${valueTypeName}`
             } else if (typeName === "Resource") {
                 return `${prefix}${PrimitiveType.Resource.getText()}`
             }
@@ -656,6 +660,8 @@ export class DeclarationTable {
                 return new CustomTypeConvertor(param, "ContentModifier", "ContentModifier<any>")
             case `Array`:
                 return new ArrayConvertor(param, this, type, type.typeArguments![0])
+            case `Map`:
+                return new MapConvertor(param, this, type, type.typeArguments![0], type.typeArguments![1])
             case `Callback`:
                 return new FunctionConvertor(param, this)
             case `Optional`:
@@ -1017,12 +1023,56 @@ constructor(expectedSize: int32) {
         printer.print(`}`)
     }
 
+    private generateMapWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
+        if (target instanceof PrimitiveType)
+            throw new Error("Impossible")
+        const [keyType, valueType] = ts.isTypeReferenceNode(target) && target.typeArguments
+            ? target.typeArguments
+            : [undefined, undefined]
+        if (!keyType || !valueType)
+            throw new Error("Impossible")
+        const keyConvertor = this.typeConvertor("_", keyType)
+        const valueConvertor = this.typeConvertor("_", valueType)
+        let isPointerKeyField = keyConvertor.isPointerType()
+        let isPointerValueField = valueConvertor.isPointerType()
+        let keyNativeType = keyConvertor.nativeType(false)
+        let valueNativeType = valueConvertor.nativeType(false)
+        let keyConstCast = isPointerKeyField ? `(const ${keyNativeType}*)` : ``
+        let valueConstCast = isPointerValueField ? `(const ${valueNativeType}*)` : ``
+
+        // Provide prototype of keys printer.
+        printer.print(`template <>`)
+        printer.print(`inline void WriteToString(string* result, const ${keyNativeType}${isPointerKeyField ? "*" : ""} value);`)
+        // Provide prototype of values printer.
+        printer.print(`template <>`)
+        printer.print(`inline void WriteToString(string* result, const ${valueNativeType}${isPointerValueField ? "*" : ""} value);`)
+
+        // Printer.
+        printer.print(`template <>`)
+        printer.print(`inline void WriteToString(string* result, const ${name}* value) {`)
+        printer.pushIndent()
+        printer.print(`result->append("[");`)
+        printer.print(`int32_t count = value->map_length > 7 ? 7 : value->map_length;`)
+        printer.print(`for (int i = 0; i < count; i++) {`)
+        printer.pushIndent()
+        printer.print(`if (i > 0) result->append(", ");`)
+        printer.print(`WriteToString(result, ${keyConstCast}${isPointerKeyField ? "&" : ""}value->keys[i]);`)
+        printer.print(`result->append(": ");`)
+        printer.print(`WriteToString(result, ${valueConstCast}${isPointerValueField ? "&" : ""}value->values[i]);`)
+        printer.popIndent()
+        printer.print(`}`)
+        printer.print(`result->append("]");`)
+        printer.popIndent()
+        printer.print(`}`)
+    }
+
     private generateWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter, isPointer: boolean) {
         if (target instanceof PrimitiveType) throw new Error("Impossible")
 
         this.setCurrentContext(`writeToString(${name})`)
         let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
         let isArray = this.isMaybeWrapped(target, ts.isArrayTypeNode)
+        let isMap = ts.isTypeReferenceNode(target) && identName(target.typeName) === "Map"
         let isOptional = this.isMaybeWrapped(target, ts.isOptionalTypeNode)
         let isTuple = this.isMaybeWrapped(target, ts.isTupleTypeNode)
         let access = isPointer ? "->" : "."
@@ -1033,6 +1083,8 @@ constructor(expectedSize: int32) {
         }
         if (isArray) {
             this.generateArrayWriteToString(name, target, printer)
+        } else if (isMap) { 
+            this.generateMapWriteToString(name, target, printer)
         } else {
             printer.print(`template <>`)
             printer.print(`inline void WriteToString(string* result, const ${name}${isPointer ? "*" : ""} value) {`)
@@ -1247,6 +1299,12 @@ constructor(expectedSize: int32) {
                 result.isArray = true
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "array"))
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
+            } else if (name == "Map") { 
+                let keyType = target.typeArguments[0]
+                let valueType = target.typeArguments[1]
+                result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "map_length"))
+                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(keyType)), undefined, "keys"))
+                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(valueType)), undefined, "values"))
             } else if (name == "ContentModifier") {
                 let type = target.typeArguments[0]
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "config"))

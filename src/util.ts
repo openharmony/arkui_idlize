@@ -492,7 +492,7 @@ export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefin
         if (typeName == "Optional" && type.typeArguments)
             return mapType(typeChecker, type.typeArguments[0]) + "|undefined"
 
-        if (typeName != "Array") return typeName
+        if (typeName != "Array" && typeName != "Map") return typeName
     }
     if (ts.isImportTypeNode(type)) {
         return importTypeName(type, true)

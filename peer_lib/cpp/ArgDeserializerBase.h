@@ -194,6 +194,24 @@ public:
     array->array = reinterpret_cast<E*>(value);
   }
 
+  template <typename T, typename K, typename V>
+  void resizeMap(T* map, int32_t length) {
+    void* keys = nullptr;
+    void* values = nullptr;
+    if (length > 0) {
+      keys = malloc(length * sizeof(K));
+      memset(keys, 0, length * sizeof(K));
+      toClean.push_back(keys);
+
+      values = malloc(length * sizeof(V));
+      memset(values, 0, length * sizeof(V));
+      toClean.push_back(values);
+    }
+    map->map_length = length;
+    map->keys = reinterpret_cast<K*>(keys);
+    map->values = reinterpret_cast<V*>(values);
+  }
+
   int32_t currentPosition() const { return this->position; }
 
   void check(int32_t count)
