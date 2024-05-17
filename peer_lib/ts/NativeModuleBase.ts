@@ -42,4 +42,7 @@ export class NativeModuleBase {
     }
     _TestPerfNumber(value: KInt): KInt { return 0 }
     _TestPerfNumberWithArray(value: KUint8ArrayPtr, length: KInt): void {}
+    _StartPerf(traceName: KStringPtr): void {}
+    _EndPerf(traceName: KStringPtr): void {}
+    _DumpPerf(options: KInt): KPointer { return 0 }
 }

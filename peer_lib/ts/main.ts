@@ -23,6 +23,7 @@ import { ArkSideBarContainerPeer } from "@arkoala/arkui/ArkSidebarPeer"
 import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
 // import { ArkTabContentPeer, SubTabBarStyle } from "@arkoala/arkui/ArkTabContentPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
+import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 
 import {
     getNativeLog,
@@ -195,6 +196,8 @@ function checkPerf3(count: number) {
 
 checkPerf2(200 * 1000)
 checkPerf3(200 * 1000)
+
+startPerformanceTest()
 
 startNativeLog(CALL_GROUP_LOG)
 checkButton()

@@ -16,7 +16,9 @@
 #ifndef COMMON_INTEROP_BASE_H
 #define COMMON_INTEROP_BASE_H
 
+#include <unordered_map>
 #include <vector>
+#include <sstream>
 #include <string>
 
 #include "interop-types.h"
@@ -59,6 +61,33 @@ void endGroupedLog(int32_t kind);
 void appendGroupedLog(int32_t kind, const std::string& str);
 const std::string& getGroupedLog(int32_t kind);
 const bool needGroupedLog(int32_t kind);
+
+void impl_StartPerf(KStringPtr traceName);
+void impl_EndPerf(KStringPtr traceName);
+void impl_DumpPerf();
+
+typedef struct PerfInfo {
+    long long int start;
+    long long int end;
+    long long int cost;
+    std::string perf_name;
+    void Print(std::stringstream& result);
+} PerfInfo;
+
+class Performace {
+public:
+    void PrintAvgs(std::stringstream& result);
+    void PrintTotals(std::stringstream& result);
+    void PrintPeak(std::stringstream& result);
+    void PrintDetails(std::stringstream& result);
+    void FinishOne();
+    void Clean();
+    PerfInfo& GetCurrent();
+    static Performace* GetInstance();
+private:
+    std::unordered_map<std::string, std::vector<PerfInfo>> perfs_;
+    PerfInfo current_;
+};
 
 #if defined KOALA_USE_NODE_VM
 #include "convertors-node.h"
