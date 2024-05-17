@@ -14,13 +14,14 @@
     "license": "Apache-2.0",
     "keywords": [],
     "dependencies": {
+        "@types/node": "^18.0.0",
         "@types/webidl2": "^24.4.1",
         "commander": "^10.0.0",
         "comment-parser": "^1.4.1",
+        "node-addon-api": "^8.0.0",
+        "node-api-headers": "^1.1.0",
         "typescript": "^4.9.5",
-        "webidl2": "^24.4.1",
-        "@types/node": "^18.0.0",
-        "node-addon-api": "^8.0.0"
+        "webidl2": "^24.4.1"
     },
     "devDependencies": {
         "@rollup/plugin-node-resolve": "^15.2.3",
@@ -40,7 +41,6 @@
     },
     "scripts": {
         "download:sdk": "node ./download-sdk.mjs",
-        "download:napi": "node ./download-napi.mjs",
         "compile": "npm run download:sdk && rollup -c",
         "clean": "rimraf build dist lib generated native/build*",
         "run": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/@internal/component/ets/ --input-file common.d.ts --verify-idl --common-to-attributes --docs=opt",
@@ -58,9 +58,9 @@
         "test:subset": "npm run check:subset && mocha ./build/subset/tests/subset/unit/",
         "check:subset:fuzz": "npm run compile && node . --dts2test --input-dir ./tests/subset/ets  --output-dir ./generated/fuzz && npm run check:subset && npm run compile:native-node-host-subset && node ./build/subset/generated/fuzz",
         "check:peers:native": "npm run run2peer:all && npm run compile:native-node-host-full",
-        "configure:native-node-host-subset": "npm run download:napi && cd ./native && meson setup -Dsubset=true build-node-host-subset",
+        "configure:native-node-host-subset": "cd ./native && meson setup -Dsubset=true build-node-host-subset",
         "compile:native-node-host-subset": "npm run configure:native-node-host-subset && cd native && meson compile -C build-node-host-subset && meson install -C build-node-host-subset",
-        "configure:native-node-host-full": "npm run download:napi && cd ./native && meson setup -Dsubset=false build-node-host-full",
+        "configure:native-node-host-full": "cd ./native && meson setup -Dsubset=false build-node-host-full",
         "compile:native-node-host-full": "npm run configure:native-node-host-full && cd native && meson compile -C build-node-host-full && meson install -C build-node-host-full",
         "compile:stub:deps": "cd ./peer_lib/ts && tsc -p ./tsconfig.json",
         "copy:peer:deps": "cp -r ./peer_lib/ts/@koalaui ./node_modules",

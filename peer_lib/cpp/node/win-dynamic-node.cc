@@ -144,7 +144,7 @@ NAPI_EXTERN napi_status NAPI_CDECL
 napi_add_finalizer(napi_env env,
                    napi_value js_object,
                    void* finalize_data,
-                   node_api_nogc_finalize finalize_cb,
+                   napi_finalize finalize_cb,
                    void* finalize_hint,
                    napi_ref* result) {
   LoadNapiFunctions();
