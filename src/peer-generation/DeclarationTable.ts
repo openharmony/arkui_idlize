@@ -1188,7 +1188,7 @@ constructor(expectedSize: int32) {
             heritageDeclarations(this.typeChecker!, it).forEach(it => {
                 if (ts.isClassDeclaration(it) || ts.isInterfaceDeclaration(it)) {
                     result.supers.push(it)
-                    result.isPacked = true
+                    result.isPacked = false
                     this.fieldsForClass(it, result)
                 }
             })

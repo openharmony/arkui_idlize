@@ -66,13 +66,8 @@ arkts_library_name = 'NativeBridgeArk'
 jni_library_name = 'NativeBridgeJni'
 
 if is_clang
-cflags += ['-Wall', '-Werror']
 # TODO: remove all -Wno-* when generation is fixed.
-if cxx.version().version_compare('>=12.2.0')
-    cflags += ['-Wno-address-of-packed-member', '-Wno-unused-variable', '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations']
-else
-    message('Warning: Low version toolchain may make something wrong, please update your toolchain >= 12.2.0 .')
-endif
+cflags += cflags += ['-Wall', '-Werror', '-Wno-unused-variable', '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations']
 endif
 
 node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + node_library_name]
