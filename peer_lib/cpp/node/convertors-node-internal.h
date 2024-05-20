@@ -40,7 +40,6 @@ struct InteropTypeConverter {
     static void release(Napi::Env env, InteropType value, T converted) {}
 };
 
-
 template <typename Type>
 inline typename InteropTypeConverter<Type>::InteropType makeResult(Napi::Env env, Type value) {
   return InteropTypeConverter<Type>::convertTo(env, value);
@@ -136,6 +135,43 @@ inline ElemType* getTypedElements(const Napi::CallbackInfo& info, int index) {
     NAPI_ASSERT_INDEX(info, index, nullptr);
     return getTypedElements<ElemType>(info.Env(), info[index]);
 }
+
+inline uint8_t* getUInt8Elements(const Napi::CallbackInfo& info, int index) {
+  return getTypedElements<uint8_t>(info, index);
+}
+
+inline int8_t* getInt8Elements(const Napi::CallbackInfo& info, int index) {
+  return getTypedElements<int8_t>(info, index);
+}
+
+inline uint16_t* getUInt16Elements(const Napi::CallbackInfo& info, int index) {
+  return getTypedElements<uint16_t>(info, index);
+}
+
+inline int16_t* getInt16Elements(const Napi::CallbackInfo& info, int index) {
+  return getTypedElements<int16_t>(info, index);
+}
+
+inline uint32_t* getUInt32Elements(const Napi::CallbackInfo& info, int index) {
+  return getTypedElements<uint32_t>(info, index);
+}
+
+inline uint32_t* getUInt32Elements(Napi::Env env, Napi::Value value) {
+    return getTypedElements<uint32_t>(env, value);
+}
+
+inline int32_t* getInt32Elements(const Napi::CallbackInfo& info, int index) {
+  return getTypedElements<int32_t>(info, index);
+}
+
+inline float* getFloat32Elements(const Napi::CallbackInfo& info, int index) {
+  return getTypedElements<float>(info, index);
+}
+
+inline KNativePointer* getPointerElements(const Napi::CallbackInfo& info, int index) {
+  return getTypedElements<KNativePointer>(info, index);
+}
+
 KInt getInt32(Napi::Env env, Napi::Value value);
 inline int32_t getInt32(const Napi::CallbackInfo& info, int index) {
   NAPI_ASSERT_INDEX(info, index, 0);
@@ -177,16 +213,6 @@ inline Napi::Object getObject(const Napi::CallbackInfo& info, int index) {
   return getObject(info.Env(), info[index]);
 }
 
-uint8_t* getUInt8Elements(const Napi::CallbackInfo& info, int index);
-int8_t* getInt8Elements(const Napi::CallbackInfo& info, int index);
-uint16_t* getUInt16Elements(const Napi::CallbackInfo& info, int index);
-int16_t* getInt16Elements(const Napi::CallbackInfo& info, int index);
-uint32_t* getUInt32Elements(const Napi::CallbackInfo& info, int index);
-uint32_t* getUInt32Elements(Napi::Env env, Napi::Value value);
-KNativePointer* getPointerElements(const Napi::CallbackInfo& info, int index);
-int32_t* getInt32Elements(const Napi::CallbackInfo& info, int index);
-float* getFloat32Elements(const Napi::CallbackInfo& info, int index);
-
 template <typename Type>
 inline Type getArgument(const Napi::CallbackInfo& info, int index) = delete;
 
@@ -221,12 +247,12 @@ inline KInteropNumber getArgument<KInteropNumber>(const Napi::CallbackInfo& info
 }
 
 template <>
-inline KFloat getArgument<float>(const Napi::CallbackInfo& info, int index) {
+inline KFloat getArgument<KFloat>(const Napi::CallbackInfo& info, int index) {
   return getFloat32(info, index);
 }
 
 template <>
-inline KDouble getArgument<double>(const Napi::CallbackInfo& info, int index) {
+inline KDouble getArgument<KDouble>(const Napi::CallbackInfo& info, int index) {
   return getFloat64(info, index);
 }
 

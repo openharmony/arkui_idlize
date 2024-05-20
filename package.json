@@ -58,9 +58,9 @@
         "test:subset": "npm run check:subset && mocha ./build/subset/tests/subset/unit/",
         "check:subset:fuzz": "npm run compile && node . --dts2test --input-dir ./tests/subset/ets  --output-dir ./generated/fuzz && npm run check:subset && npm run compile:native-node-host-subset && node ./build/subset/generated/fuzz",
         "check:peers:native": "npm run run2peer:all && npm run compile:native-node-host-full",
-        "configure:native-node-host-subset": "cd ./native && meson setup -Dsubset=true build-node-host-subset",
+        "configure:native-node-host-subset": "cd ./native && meson setup -Dsource_set=subset build-node-host-subset",
         "compile:native-node-host-subset": "npm run configure:native-node-host-subset && cd native && meson compile -C build-node-host-subset && meson install -C build-node-host-subset",
-        "configure:native-node-host-full": "cd ./native && meson setup -Dsubset=false build-node-host-full",
+        "configure:native-node-host-full": "cd ./native && meson setup build-node-host-full",
         "compile:native-node-host-full": "npm run configure:native-node-host-full && cd native && meson compile -C build-node-host-full && meson install -C build-node-host-full",
         "compile:stub:deps": "cd ./peer_lib/ts && tsc -p ./tsconfig.json",
         "copy:peer:deps": "cp -r ./peer_lib/ts/@koalaui ./node_modules",
@@ -75,6 +75,9 @@
         "compile:java": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset --language java && npm run compile:native-node-host-subset && javac ./generated/subset/*.java -d ./generated/subset",
         "run:java": "npm run compile:java && java -Djava.library.path=./native -cp ./generated/subset Main",
         "make:arkts": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/arkts-subset/ --output-dir ./generated/arkts-subset --language arkts",
-        "compile:arkts": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module"
+        "compile:arkts": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module",
+        "compile:native-ohos-subset-arm32": "npm run check:subset && node ./native/nativeBuild.mjs subset arm32",
+        "compile:native-ohos-subset-arm64": "npm run check:subset && node ./native/nativeBuild.mjs subset arm64",
+        "run:ohos-subset-arm64": "npm run compile:native-ohos-subset-arm64 && node ./ohos-app/getDependencies4ohos.mjs subset arm64 && node ./ohos-app/runPerf.mjs subset arm64"
     }
 }

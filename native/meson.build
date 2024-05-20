@@ -1,10 +1,10 @@
 project('NativeBridge', 'c', 'cpp',
     version: '0.1',
-    default_options: ['cpp_std=c++17', 'buildtype=debug']
+    default_options: ['cpp_std=c++17', 'buildtype=release']
 )
 
-if get_option('subset')
-source_set = 'subset'
+if get_option('source_set') != ''
+source_set = get_option('source_set')
 else
 source_set = 'peers'
 endif
@@ -32,16 +32,6 @@ sources = [
     gen_dir + '/custom.cc',
     gen_dir + '/bridge.cc',
 ]
-if use_dummy_libace
-sources += [
-   gen_dir + '/dummy_impl.cc'
-]
-else
-sources += [
-   gen_dir + '/all_modifiers.cc',
-   gen_dir + '/delegates.cc',
-]
-endif
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
 is_clang = not is_msvc
@@ -55,6 +45,24 @@ arch = target_machine.cpu()
 arch = archs.get(arch, arch)
 jni_os = target_machine.system()
 jni_os = jni_oses.get(jni_os, jni_os)
+is_ohos = os == 'ohos'
+
+if is_ohos
+use_dummy_libace = false
+is_node = false
+is_arkts = false
+endif
+
+if use_dummy_libace
+sources += [
+   gen_dir + '/dummy_impl.cc'
+]
+else
+sources += [
+   gen_dir + '/all_modifiers.cc',
+   gen_dir + '/delegates.cc'
+]
+endif
 
 cxx = meson.get_compiler('cpp')
 
@@ -64,6 +72,7 @@ ldflags = []
 node_library_name = 'NativeBridgeNapi'
 arkts_library_name = 'NativeBridgeArk'
 jni_library_name = 'NativeBridgeJni'
+ohos_library_name = 'NativeBridge_ohos'
 
 if is_clang
 # TODO: remove all -Wno-* when generation is fixed.
@@ -149,7 +158,7 @@ executable('dummy-panda',
 
 endif
 
-if is_jni
+if is_jni and not is_ohos
 shared_library(jni_library_name,
     sources + jni_sources,
     override_options: [
@@ -161,6 +170,52 @@ shared_library(jni_library_name,
     cpp_args: cflags + jni_cflags,
     link_args: ldflags,
     dependencies: []
+)
+endif
+
+if is_ohos
+ohos_library_name = ohos_library_name + '_' + arch
+module_prefix = 'lib'
+module_suffix = 'so'
+ohos_cflags = [ '-DINTEROP_LIBRARY_NAME=' + ohos_library_name ]
+ohos_cflags += [
+    '-DKOALA_NAPI',
+    '-DKOALA_USE_ARK_VM=1',
+    '-DKOALA_USE_ARK_VM_WITH_JS=1',
+    '-DKOALA_OHOS',
+    '-D__MUSL__'
+]
+
+ohos_ldflags = [
+    '-lEGL',
+    '-lGLESv3',
+    '-lhilog_ndk.z',
+    '-lace_ndk.z',
+    '-lace_napi.z',
+    '-luv',
+    '-static-libstdc++'
+]
+
+ohos_include_dirs = [
+    '../node_modules/node-addon-api'
+]
+
+ohos_sources = [
+    gen_dir + '/convertors-node.cc',
+]
+
+shared_library(ohos_library_name,
+    sources + ohos_sources,
+    override_options: [
+        'b_lundef=false',
+    ],
+    install: true,
+    name_prefix: module_prefix,
+    name_suffix: module_suffix,
+    include_directories: include_dirs + ohos_include_dirs,
+    install_dir: meson.current_source_dir(),
+    cpp_args: cflags + ohos_cflags,
+    link_args: ldflags + ohos_ldflags
 )
 endif
 

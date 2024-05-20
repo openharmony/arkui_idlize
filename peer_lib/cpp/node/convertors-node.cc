@@ -17,41 +17,12 @@
 #include "init-exports-cb.h"
 #include <cstring>
 
-uint8_t* getUInt8Elements(const Napi::CallbackInfo& info, int index) {
-  return getTypedElements<uint8_t>(info, index);
-}
-
-int8_t* getInt8Elements(const Napi::CallbackInfo& info, int index) {
-  return getTypedElements<int8_t>(info, index);
-}
-
-uint16_t* getUInt16Elements(const Napi::CallbackInfo& info, int index) {
-  return getTypedElements<uint16_t>(info, index);
-}
-
-int16_t* getInt16Elements(const Napi::CallbackInfo& info, int index) {
-  return getTypedElements<int16_t>(info, index);
-}
-
-uint32_t* getUInt32Elements(const Napi::CallbackInfo& info, int index) {
-  return getTypedElements<uint32_t>(info, index);
-}
-
-uint32_t* getUInt32Elements(Napi::Env env, Napi::Value value) {
-    return getTypedElements<uint32_t>(env, value);
-}
-
-int32_t* getInt32Elements(const Napi::CallbackInfo& info, int index) {
-  return getTypedElements<int32_t>(info, index);
-}
-
-float* getFloat32Elements(const Napi::CallbackInfo& info, int index) {
-  return getTypedElements<float>(info, index);
-}
-
-KNativePointer* getPointerElements(const Napi::CallbackInfo& info, int index) {
-  return getTypedElements<KNativePointer>(info, index);
-}
+// Adapter for NAPI_MODULE
+#define NODE_API_MODULE_ADAPTER(modname, regfunc)                                      \
+  static napi_value __napi_##regfunc(napi_env env, napi_value exports) {       \
+    return Napi::RegisterModule(env, exports, regfunc);                        \
+  }                                                                            \
+  NAPI_MODULE(modname, __napi_##regfunc)
 
 KBoolean getBoolean(Napi::Env env, Napi::Value value) {
     if (value.IsBoolean()) {
@@ -213,4 +184,4 @@ static Napi::Object InitModule(Napi::Env env, Napi::Object exports) {
     return ProvideModuleRegisterCallback()(env, exports);
 }
 
-NODE_API_MODULE(INTEROP_LIBRARY_NAME, InitModule)
+NODE_API_MODULE_ADAPTER(INTEROP_LIBRARY_NAME, InitModule)
