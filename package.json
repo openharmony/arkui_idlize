@@ -73,7 +73,7 @@
         "run:panda": "npm run compile:arkts:subset && LD_LIBRARY_PATH=./native PANDA_LIB_FILES=./build/abc/subset/NativeModule.abc bash ./panda/arkts/ark ./build/abc/subset/index.abc",
         "run:dummy-panda": "npm run compile:native-node-host-subset && ./native/build-node-host-subset/dummy-panda",
         "compile:java": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset --language java && npm run compile:native-node-host-subset && javac ./generated/subset/*.java -d ./generated/subset",
-        "run:java": "npm run compile:java && java -Djava.library.path=./native -cp ./generated/subset Main",
+        "run:java": "npm run compile:java && npm run compile:native-node-host-subset && java -Djava.library.path=./native -cp ./generated/subset Main",
         "make:arkts": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/arkts-subset/ --output-dir ./generated/arkts-subset --language arkts",
         "compile:arkts": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module",
         "compile:native-ohos-subset-arm32": "npm run check:subset && node ./native/nativeBuild.mjs subset arm32",
