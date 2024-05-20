@@ -26,23 +26,50 @@ class MaterializedFileVisitor {
 
         printer.writeClass(clazz.className, writer => {
 
+            const finalizableType = new Type("Finalizable")
+            writer.writeFieldDeclaration("peer", finalizableType, undefined, true)
+
             const pointerType = Type.Pointer
             writePeerMethod(writer, clazz.ctor, this.dumpSerialized, "", "", pointerType)
 
-            writer.writeConstructorImplementation(clazz.className, clazz.ctor.method.signature, writer => {
-                const ctorSig = clazz.ctor.method.signature as NamedMethodSignature
-                writer.writeStatement(writer.makeAssign("ctorPtr", pointerType,
-                    writer.makeMemberCall(clazz.className, "ctor", ctorSig.argsNames)
-                ))
+            const ctorSig = clazz.ctor.method.signature as NamedMethodSignature
+            const sigWithPointer = new NamedMethodSignature(
+                ctorSig.returnType,
+                ctorSig.args.map(it => new Type(it.name, true)),
+                ctorSig.argsNames,
+                ctorSig.defaults)
 
-                writer.writeSuperCall([`ctorPtr`])
+            const allUnedfined = ctorSig.argsNames.map(it => `${it} === undefined`).join(` && `)
+
+            writer.writeConstructorImplementation(clazz.className, sigWithPointer, writer => {
+
+                writer.writeStatement(
+                    writer.makeCondition(
+                        writer.makeString(ctorSig.args.length === 0 ? "true" : allUnedfined),
+                        writer.makeString(`return`),
+                        undefined
+                    )
+                )
+
+                const args = ctorSig.args.map((it, index) => `${ctorSig.argsNames[index]}${it.nullable ? "" : "!"}`)
+                writer.writeStatement(
+                    writer.makeAssign("ctorPtr", Type.Pointer,
+                        writer.makeMemberCall(clazz.className, "ctor", args),
+                        true))
+
+                writer.writeStatement(writer.makeAssign(
+                    "this.peer",
+                    finalizableType,
+                    writer.makeString("new Finalizable(ctorPtr)"),
+                    false
+                ))
             })
 
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
-                writePeerMethod(writer, method, this.dumpSerialized, "", "this.ptr", returnType)
+                writePeerMethod(writer, method, this.dumpSerialized, "", "this.peer!.ptr", returnType)
             })
-        }, "Finalizable")
+        })
     }
 
     printFile(): void {

@@ -42,7 +42,7 @@ class NativeModuleVisitor {
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
                 printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
-                    returnType === Type.This ? Type.Pointer : returnType)
+                    returnType === Type.This || method.originalParentName === returnType?.name? Type.Pointer : returnType)
             })
         })
     }

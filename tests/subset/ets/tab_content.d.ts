@@ -24,7 +24,7 @@ declare class MySubTabBarStyle {
 
     // constructor(content: ResourceStr | ComponentContent);
 
-    // static of(content: ResourceStr): MySubTabBarStyle;
+    static of(content: ResourceStr): MySubTabBarStyle;
 
     // static of(content: ResourceStr | ComponentContent): MySubTabBarStyle;
 

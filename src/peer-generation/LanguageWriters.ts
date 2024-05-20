@@ -33,14 +33,18 @@ export interface LanguageStatement {
 }
 
 export class AssignStatement implements LanguageStatement {
-    constructor(public variableName: string, public type: Type, public statement: LanguageStatement) { }
+    constructor(public variableName: string, public type: Type, public statement: LanguageStatement, public isDeclared: boolean = true) { }
     asString(): string {
-        return `const ${this.variableName}: ${this.type.name} = ${this.statement.asString()}`
+        if (this.isDeclared) {
+            return `const ${this.variableName}: ${this.type.name} = ${this.statement.asString()}`
+        } else {
+            return `${this.variableName} = ${this.statement.asString()}`
+        }
     }
 }
 
 export class JavaAssignStatement extends AssignStatement {
-    constructor(public variableName: string, public type: Type, public statement: LanguageStatement) {
+    constructor(public variableName: string, public type: Type, public statement: LanguageStatement, public isDeclared: boolean = true) {
         super(variableName, type, statement)
      }
     asString(): string {
@@ -74,6 +78,20 @@ export class JavaReturnStatement extends ReturnStatement {
     constructor(public statement: LanguageStatement) { super(statement) }
     asString(): string {
         return `${super.asString()};`
+    }
+}
+
+export class ConditionStatement implements LanguageStatement {
+    constructor(public condition: LanguageStatement,
+        public trueStatement: LanguageStatement,
+        public falseStatement: LanguageStatement | undefined,
+        public ternary = false) { }
+    asString(): string {
+        if (this.ternary) {
+            return `(${this.condition.asString()}) ? ${this.trueStatement.asString()} : ${this.falseStatement?.asString()}`
+        }
+        const elseStatement = this.falseStatement === undefined ? "" : ` else { ${this.falseStatement.asString()} }`
+        return `if (${this.condition.asString()}) ${this.trueStatement.asString()}${elseStatement}`
     }
 }
 
@@ -148,8 +166,11 @@ export abstract class LanguageWriter {
     makeMemberCall(receiver: string, method: string, params: string[], nullable?: boolean): LanguageStatement {
         return new MemberCallStatement(receiver, method, params, nullable)
     }
-    abstract makeAssign(variableName: string, type: Type, statement: LanguageStatement): LanguageStatement;
+    abstract makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean): LanguageStatement;
     abstract makeReturn(stmt: LanguageStatement): LanguageStatement;
+    makeCondition(condition: LanguageStatement, trueStatement: LanguageStatement, falseStatement: LanguageStatement|undefined, ternary: boolean = false): LanguageStatement {
+        return new ConditionStatement(condition, trueStatement, falseStatement, ternary)
+    };
     makeString(value: string): LanguageStatement {
         return new StringStatement(value)
     };
@@ -230,8 +251,8 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print(`${prefix ?? ""}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
 
-    makeAssign(variableName: string, type: Type, statement: LanguageStatement): LanguageStatement {
-        return new AssignStatement(variableName, type, statement)
+    makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
+        return new AssignStatement(variableName, type, statement, isDeclared)
     }
 
     makeReturn(stmt: LanguageStatement): LanguageStatement {
@@ -326,8 +347,8 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
 
-    makeAssign(variableName: string, type: Type, statement: LanguageStatement): LanguageStatement {
-        return new JavaAssignStatement(variableName, type, statement)
+    makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
+        return new JavaAssignStatement(variableName, type, statement, isDeclared)
     }
 
     makeReturn(stmt: LanguageStatement): LanguageStatement {
@@ -373,7 +394,7 @@ export class CppLanguageWriter extends LanguageWriter {
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
         throw new Error("Method not implemented.");
     }
-    makeAssign(variableName: string, type: Type, statement: LanguageStatement): LanguageStatement {
+    makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
         throw new Error("Method not implemented.");
     }
     makeReturn(stmt: LanguageStatement): LanguageStatement {

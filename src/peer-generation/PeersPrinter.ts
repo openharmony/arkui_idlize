@@ -29,6 +29,7 @@ import {
     Type,
     createLanguageWriter
 } from "./LanguageWriters";
+import { MaterializedMethod } from "./Materialized";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -323,7 +324,16 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     })
 
     if (returnType != Type.Void) {
-        const result = returnType === Type.This ? `this` : `result`
+        let result = "result"
+        if (method.hasReceiver()) {
+            result = returnType === Type.This ? `this` : `result`
+        } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor"){
+            const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(",")})`
+            const objType = new Type(method.originalParentName)
+            writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
+            writer.writeStatement(writer.makeAssign("obj.peer", new Type("Finalizable"), writer.makeString("new Finalizable(result)"), false))
+            result = "obj"
+        }
         writer.writeStatement(writer.makeReturn(writer.makeString(result)))
     }
 })

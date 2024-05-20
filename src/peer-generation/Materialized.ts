@@ -85,8 +85,11 @@ export class MaterializedMethod extends PeerMethod {
     }
 
     tsReturnType(): Type | undefined {
-        return this.hasReceiver() && this.method.signature.returnType.name === this.originalParentName
-            ? Type.This : undefined
+        if (this.hasReceiver()) {
+            return this.method.signature.returnType.name === this.originalParentName ? Type.This : undefined
+        } else {
+            return this.method.signature.returnType
+        }
     }
 }
 
