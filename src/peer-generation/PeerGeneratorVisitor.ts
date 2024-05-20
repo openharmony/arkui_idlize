@@ -342,7 +342,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             /**
              * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
              * ScrollAttribute extends ScrollableCommonMethod and overrides this method as
-             * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not 
+             * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
              * valid and cannot be correctly processed and we want to stub this for now.
              */
             return [{
@@ -378,10 +378,22 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
         this.declarationTable.setCurrentContext(`${methodName}()`)
 
+        // TODO: fix this ugly code to prevent method args aliases name collisions.
+        let methodIndex = 0, index = 0
+        let clazz = method.parent
+        if (ts.isClassDeclaration(clazz) || ts.isInterfaceDeclaration(clazz)) {
+            clazz.members.forEach(it => {
+                if (((ts.isMethodDeclaration(it) && identName(it.name) == methodName) || ts.isCallSignatureDeclaration(it))) {
+                    if (method == it) methodIndex = index
+                    index++
+                }
+            })
+        }
+
         const parameters = this.tempExtractParameters(method)
         parameters.forEach((param, index) => {
             if (param.type) {
-                this.requestType(`Type_${originalParentName}_${methodName}_Arg${index}`, param.type)
+                this.requestType(`Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`, param.type)
                 this.collectMaterializedClasses(param.type)
             }
         })

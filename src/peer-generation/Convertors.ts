@@ -828,7 +828,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         protected table: DeclarationTable,
         type: ts.TypeReferenceNode
     ) {
-        super(name, [RuntimeType.MATERIALIZED], false, true, param)
+        super(name, [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, language: Language): string {
