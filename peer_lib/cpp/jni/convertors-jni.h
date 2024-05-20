@@ -215,7 +215,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3)
       P2 p2 = getArgument<P2>(env, _p2); \
       P3 p3 = getArgument<P3>(env, _p3); \
       P4 p4 = getArgument<P4>(env, _p4); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -410,7 +410,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
       P8 p8 = getArgument<P8>(env, _p8); \
       P9 p9 = getArgument<P9>(env, _p9); \
       P10 p10 = getArgument<P10>(env, _p10); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -452,7 +452,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
       P9 p9 = getArgument<P9>(env, _p9); \
       P10 p10 = getArgument<P10>(env, _p10); \
       P11 p11 = getArgument<P11>(env, _p11); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -497,7 +497,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
       P10 p10 = getArgument<P10>(env, _p10); \
       P11 p11 = getArgument<P11>(env, _p11); \
       P12 p12 = getArgument<P12>(env, _p12); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
@@ -545,7 +545,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
       P11 p11 = getArgument<P11>(env, _p11); \
       P12 p12 = getArgument<P12>(env, _p12); \
       P13 p13 = getArgument<P13>(env, _p13); \
-      Ret rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13)); \
+      auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
       releaseArgument(env, _p2, p2); \
