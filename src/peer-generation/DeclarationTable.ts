@@ -14,7 +14,7 @@
  */
 
 import * as ts from "typescript"
-import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations, identName, isStatic, mapType, mapTypeOrVoid, throwException, typeEntityName } from "../util"
+import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations, identName, isStatic, mapType, mapTypeOrVoid, throwException, typeEntityName, identNameWithNamespace } from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -343,7 +343,9 @@ export class DeclarationTable {
             return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumDeclaration(target)) {
-            return prefix + identName(target.name)
+            // TODO: support namespaces in other declarations.
+            let name = identNameWithNamespace(target.name)
+            return prefix + name
         }
         if (ts.isUnionTypeNode(target)) {
             return prefix + `Union_${target.types.map(it => this.computeTargetName(this.toTarget(it), false)).join("_")}`
