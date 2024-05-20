@@ -19,7 +19,6 @@ import { makeAPI, makeCDeserializer } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
-import { Materialized } from "./Materialized";
 
 class HeaderVisitor {
     constructor(
@@ -57,7 +56,7 @@ class HeaderVisitor {
     private printAccessors() {
         this.api.print("// Accessors\n")
         this.accessorsList.pushIndent()
-        Materialized.Instance.materializedClasses.forEach(c => {
+        this.library.materializedClasses.forEach(c => {
             this.printAccessor(c.className)
             this.accessorsList.print(`const ArkUI${c.className}Accessor* (*get${c.className}Accessor)();`)
         })
@@ -65,7 +64,7 @@ class HeaderVisitor {
     }
 
     private printAccessor(name: string) {
-        const clazz = Materialized.Instance.materializedClasses.get(name)
+        const clazz = this.library.materializedClasses.get(name)
         if (clazz) {
             let peerName = `${name}Peer`
             let accessorName = `ArkUI${name}Accessor`

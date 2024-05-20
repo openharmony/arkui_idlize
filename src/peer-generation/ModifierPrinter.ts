@@ -99,7 +99,7 @@ export class ModifierVisitor {
     ) { }
 
     printDummyImplFunctionBody(method: PeerMethod) {
-        this.dummy.print(`string out("${method.method.name}(");`)
+        this.dummy.print(`string out("${method.toStringName}(");`)
         method.argConvertors.forEach((argConvertor, index) => {
             if (index > 0) this.dummy.print(`out.append(", ");`)
             this.dummy.print(`WriteToString(&out, ${argConvertor.param});`)

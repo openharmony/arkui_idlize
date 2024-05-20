@@ -1,7 +1,6 @@
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, FieldRecord } from "./DeclarationTable";
 import { completeDelegatesImpl } from "./FileGenerators";
-import { Materialized } from "./Materialized";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
 
@@ -122,7 +121,7 @@ class DelegateVisitor {
                 }
             }
         }
-        for (const materialized of Materialized.Instance.materializedClasses.values()) {
+        for (const materialized of this.library.materializedClasses.values()) {
             this.printMethod(materialized.ctor)
             this.printMethod(materialized.dtor)
             for (const method of materialized.methods) {

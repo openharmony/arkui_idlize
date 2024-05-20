@@ -18,7 +18,6 @@ import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "./FileGen
 import { LanguageWriter, Method, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
 import { PeerClass, PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
-import { printGlobalMaterialized } from "./Materialized";
 import { PeerMethod } from "./PeerMethod";
 
 class NativeModuleVisitor {
@@ -36,13 +35,26 @@ class NativeModuleVisitor {
         peer.methods.forEach(it => printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty))
     }
 
+    private printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
+        this.library.materializedClasses.forEach(clazz => {
+            printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, Type.Pointer)
+            printPeerMethod(clazz, clazz.dtor, nativeModule, nativeModuleEmpty)
+            clazz.methods.forEach(method => {
+                const returnType = method.tsReturnType()
+                printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
+                    returnType === Type.This ? Type.Pointer : returnType)
+            })
+        })
+    }
+
     print(): void {
+        console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
         for (const file of this.library.files) {
             for (const peer of file.peers.values()) {
                 this.printPeerMethods(peer)
             }
         }
-        printGlobalMaterialized(this.nativeModule, this.nativeModuleEmpty)
+        this.printMaterializedMethods(this.nativeModule, this.nativeModuleEmpty)
     }
 }
 

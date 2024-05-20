@@ -48,7 +48,7 @@ import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
-import { Materialized, MaterializedClass, MaterializedMethod, isMaterialized } from "./Materialized"
+import { MaterializedClass, MaterializedMethod, isMaterialized } from "./Materialized"
 import { Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
 import { collapseSameNamedMethods } from "./ComponentsPrinter";
 
@@ -406,7 +406,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         let structDescriptor = this.declarationTable.targetStruct(target)
         let constructor = structDescriptor.getConstructor()
         let className = nameOrNull(target.name)!
-        if (Materialized.Instance.materializedClasses.has(className)) {
+        if (this.peerLibrary.materializedClasses.has(className)) {
             return
         }
 
@@ -414,7 +414,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         let mDestructor = this.makeMaterializedMethod(className, new MethodRecord("destructor", false, undefined, []))
         let mMethods = structDescriptor.getMethods()
             .map(method => this.makeMaterializedMethod(className, method))
-        Materialized.Instance.materializedClasses.set(className,
+        this.peerLibrary.materializedClasses.set(className,
             new MaterializedClass(className, mConstructor, mDestructor, mMethods))
     }
 

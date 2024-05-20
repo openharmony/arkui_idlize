@@ -15,6 +15,7 @@
 
 
 import { DeclarationTable } from "./DeclarationTable";
+import { MaterializedClass } from "./Materialized";
 import { PeerClass } from "./PeerClass";
 import { PeerFile } from "./PeerFile";
 
@@ -24,6 +25,7 @@ export type PeerLibraryOutput = {
 
 export class PeerLibrary {
     public readonly files: PeerFile[] = []
+    public readonly materializedClasses: Map<string, MaterializedClass> = new Map()
 
     constructor(
         public declarationTable: DeclarationTable

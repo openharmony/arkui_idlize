@@ -273,8 +273,10 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     methodPostfix: string, ptr: string, returnType: Type = Type.Void) {
     if (printer.language != Language.TS) return
     const signature = method.method.signature as NamedMethodSignature
-    let peerMethod = new Method(method.hasReceiver() ? `${method.overloadedName}${methodPostfix}` : method.overloadedName,
-    new NamedMethodSignature(returnType, signature.args, signature.argsNames), method.method.modifiers)
+    let peerMethod = new Method(
+        method.hasReceiver() ? `${method.overloadedName}${methodPostfix}` : method.overloadedName,
+        new NamedMethodSignature(returnType, signature.args, signature.argsNames),
+        method.method.modifiers)
     printer.writeMethodImplementation(peerMethod, (writer) => {
     let scopes = method.argConvertors.filter(it => it.isScoped)
     scopes.forEach(it => {
@@ -321,7 +323,8 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     })
 
     if (returnType != Type.Void) {
-        writer.writeStatement(writer.makeReturn(writer.makeString(`result`)))
+        const result = returnType === Type.This ? `this` : `result`
+        writer.writeStatement(writer.makeReturn(writer.makeString(result)))
     }
 })
 }

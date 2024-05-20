@@ -15,10 +15,9 @@
 
 import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./Convertors"
-import { LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type } from "./LanguageWriters"
+import { Method, Type } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
-import { Language, identName } from "../util"
-import { printPeerMethod } from "./NativeModulePrinter"
+import { identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
 import { DeclarationTarget } from "./DeclarationTable"
 
@@ -57,6 +56,14 @@ export class MaterializedMethod extends PeerMethod {
         return `${this.originalParentName}_${this.overloadedName}`
     }
 
+    override get toStringName(): string {
+        switch (this.method.name) {
+            case "ctor": return `new ${this.originalParentName}`
+            case "destructor": return `delete ${this.originalParentName}`
+            default: return super.toStringName
+        }
+    }
+
     override get receiverType(): string {
         return `${this.originalParentName}Peer*`
     }
@@ -76,6 +83,11 @@ export class MaterializedMethod extends PeerMethod {
             argType: `${this.originalParentName}Peer*`
         }
     }
+
+    tsReturnType(): Type | undefined {
+        return this.hasReceiver() && this.method.signature.returnType.name === this.originalParentName
+            ? Type.This : undefined
+    }
 }
 
 export class MaterializedClass implements PeerClassBase {
@@ -94,30 +106,4 @@ export class MaterializedClass implements PeerClassBase {
         return this.className
     }
 
-}
-
-export class Materialized {
-    private static _instance: Materialized = new Materialized()
-
-    public materializedClasses: Map<string, MaterializedClass> = new Map()
-
-    private constructor() {
-    }
-
-    public static get Instance(): Materialized {
-        return this._instance
-    }
-}
-
-export function printGlobalMaterialized(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
-    console.log(`Materialized classes: ${Materialized.Instance.materializedClasses.size}`)
-    Materialized.Instance.materializedClasses.forEach(clazz => {
-        printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, Type.Pointer)
-        printPeerMethod(clazz, clazz.dtor, nativeModule, nativeModuleEmpty)
-        clazz.methods.forEach(method => {
-            const signatureType = method.method.signature.returnType
-            const returnType = signatureType.name === clazz.className ? Type.Pointer : undefined
-            printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty, returnType)
-        })
-    })
 }

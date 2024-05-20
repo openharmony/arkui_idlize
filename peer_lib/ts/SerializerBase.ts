@@ -263,7 +263,7 @@ export class SerializerBase {
         this.writeInt32(registerCallback(value))
     }
     writeMaterialized(value: object | undefined) {
-        this.writeInt32(registerMaterialized(value))
+        this.writePointer(registerMaterialized(value))
     }
     writeString(value: string) {
         let encoded = textEncoder.encode(value)

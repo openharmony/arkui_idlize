@@ -14,7 +14,7 @@
  */
 
 
-import { Language, capitalize } from "../util"
+import { capitalize } from "../util"
 import { ArgConvertor, OptionConvertor, RetConvertor } from "./Convertors"
 import { Method, MethodModifier, mangleMethodName } from "./LanguageWriters"
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType, StructVisitor } from "./DeclarationTable"
@@ -32,19 +32,6 @@ export class PeerMethod {
 
     public hasReceiver(): boolean {
         return !this.method.modifiers?.includes(MethodModifier.STATIC)
-    }
-
-    // TODO: remove these 3 methods
-    public mappedParams(language: Language): string[] {
-        return this.method.signature.args.map((it, index) => `${this.method.signature.argName(index)}${it.nullable ? "?" : ""}: ${it.name}`)
-    }
-
-    public mappedParamValues(language: Language): string[] {
-        return this.method.signature.args.map((it, index) => this.method.signature.argName(index))
-    }
-
-    public mappedParamsTypes(language: Language): string[] {
-        return this.method.signature.args.map(it => `${it.name}`)
     }
 
     get overloadedName(): string {
@@ -67,6 +54,10 @@ export class PeerMethod {
 
     get implName(): string {
         return `${capitalize(this.originalParentName)}_${capitalize(this.overloadedName)}Impl`
+    }
+
+    get toStringName(): string {
+        return this.method.name
     }
 
     get retType(): string {

@@ -19,7 +19,6 @@ import { ArgConvertor } from "./Convertors";
 import { PrimitiveType } from "./DeclarationTable";
 import { bridgeCcDeclaration } from "./FileGenerators";
 import { createLanguageWriter } from "./LanguageWriters";
-import { Materialized, MaterializedMethod } from "./Materialized";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
 
@@ -161,7 +160,7 @@ class BridgeCcVisitor {
         }
 
         this.C.print("\n// Accessors\n")
-        for (const clazz of Materialized.Instance.materializedClasses.values()) {
+        for (const clazz of this.library.materializedClasses.values()) {
             for (const method of [clazz.ctor, clazz.dtor].concat(clazz.methods)) {
                 this.printMethod(method)
             }
