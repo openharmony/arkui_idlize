@@ -37,7 +37,7 @@ uint32_t* getUInt32Elements(const Napi::CallbackInfo& info, int index) {
   return getTypedElements<uint32_t>(info, index);
 }
 
-uint32_t* getUInt32Elements(const Napi::Env env, Napi::Value value) {
+uint32_t* getUInt32Elements(Napi::Env env, Napi::Value value) {
     return getTypedElements<uint32_t>(env, value);
 }
 
@@ -53,19 +53,14 @@ KNativePointer* getPointerElements(const Napi::CallbackInfo& info, int index) {
   return getTypedElements<KNativePointer>(info, index);
 }
 
-KBoolean getBoolean(const Napi::Env env, Napi::Value value) {
+KBoolean getBoolean(Napi::Env env, Napi::Value value) {
     if (value.IsBoolean()) {
         return static_cast<KBoolean>(value.As<Napi::Boolean>().Value());
     }
     return static_cast<KBoolean>(getInt32(env, value) != 0);
 }
 
-KBoolean getBoolean(const Napi::CallbackInfo& info, int index) {
-    NAPI_ASSERT_INDEX(info, index, false);
-    return getBoolean(info.Env(), info[index]);
-}
-
-KInt getInt32(const Napi::Env env, Napi::Value value) {
+KInt getInt32(Napi::Env env, Napi::Value value) {
   if (!value.IsNumber()) {
     Napi::Error::New(env, "Expected Number")
         .ThrowAsJavaScriptException();
@@ -74,72 +69,56 @@ KInt getInt32(const Napi::Env env, Napi::Value value) {
 
   return value.As<Napi::Number>().Int32Value();
 }
-KInt getInt32(const Napi::CallbackInfo& info, int index) {
-  NAPI_ASSERT_INDEX(info, index, 0);
-  return getInt32(info.Env(), info[index]);
-}
 
-KUInt getUInt32(const Napi::CallbackInfo& info, int index) {
-  NAPI_ASSERT_INDEX(info, index, 0);
-
-  if (!info[index].IsNumber()) {
-    Napi::Error::New(info.Env(), "Expected Number")
+KUInt getUInt32(Napi::Env env, Napi::Value value) {
+  if (!value.IsNumber()) {
+    Napi::Error::New(env, "Expected Number")
         .ThrowAsJavaScriptException();
     return 0;
   }
 
-  return info[index].As<Napi::Number>().Uint32Value();
+  return value.As<Napi::Number>().Uint32Value();
 }
 
-KFloat getFloat32(const Napi::CallbackInfo& info, int index) {
-  NAPI_ASSERT_INDEX(info, index, 0);
-
-  if (!info[index].IsNumber()) {
+KFloat getFloat32(const Napi::CallbackInfo& info, Napi::Value value) {
+  if (!value.IsNumber()) {
     Napi::Error::New(info.Env(), "Expected Number")
         .ThrowAsJavaScriptException();
-    return 0;
+    return 0.0f;
   }
-
-  return info[index].As<Napi::Number>().FloatValue();
+  return value.As<Napi::Number>().FloatValue();
 }
 
-KDouble getFloat64(const Napi::CallbackInfo& info, int index) {
-  NAPI_ASSERT_INDEX(info, index, 0);
-
-  if (!info[index].IsNumber()) {
+KDouble getFloat64(const Napi::CallbackInfo& info, Napi::Value value) {
+  if (!value.IsNumber()) {
     Napi::Error::New(info.Env(), "Expected Number")
         .ThrowAsJavaScriptException();
-    return 0;
+    return 0.0;
   }
-
-  return info[index].As<Napi::Number>().DoubleValue();
+  return value.As<Napi::Number>().DoubleValue();
 }
 
-KStringPtr getString(const Napi::CallbackInfo& info, int index) {
-  NAPI_ASSERT_INDEX(info, index, KStringPtr());
-
-  auto arg = info[index];
-  if (arg.IsNull() || arg.IsUndefined()) {
+KStringPtr getString(Napi::Env env, Napi::Value value) {
+  if (value.IsNull() || value.IsUndefined()) {
       return KStringPtr();
   }
 
-  if (!info[index].IsString()) {
-    Napi::Error::New(info.Env(), "Expected String")
+  if (!value.IsString()) {
+    Napi::Error::New(env, "Expected String")
         .ThrowAsJavaScriptException();
     return KStringPtr();
   }
 
-  auto string = arg.As<Napi::String>().ToString().Utf8Value();
+  auto string = value.As<Napi::String>().ToString().Utf8Value();
   return KStringPtr(string.c_str());
 }
 
-KNativePointer getPointer(const Napi::Env env, Napi::Value value) {
+KNativePointer getPointer(Napi::Env env, Napi::Value value) {
     if (!value.IsBigInt()) {
         Napi::Error::New(env, "cannot be coerced to pointer")
             .ThrowAsJavaScriptException();
         return nullptr;
     }
-
     bool isWithinRange = true;
     uint64_t ptrU64 = value.As<Napi::BigInt>().Uint64Value(&isWithinRange);
     if (!isWithinRange) {
@@ -150,20 +129,14 @@ KNativePointer getPointer(const Napi::Env env, Napi::Value value) {
     return reinterpret_cast<KNativePointer>(ptrU64);
 }
 
-KNativePointer getPointer(const Napi::CallbackInfo& info, int index) {
-    NAPI_ASSERT_INDEX(info, index, nullptr);
-    return getPointer(info.Env(), info[index]);
-}
-
-Napi::Object getObject(const Napi::CallbackInfo& info, int index) {
-    NAPI_ASSERT_INDEX(info, index, info.Env().Global());
-    if (!info[index].IsObject()) {
-        Napi::Error::New(info.Env(), "Expected Object")
+Napi::Object getObject(Napi::Env env, Napi::Value value) {
+    if (!value.IsObject()) {
+        Napi::Error::New(env, "Expected Object")
           .ThrowAsJavaScriptException();
-        return info.Env().Global();
+        return env.Global();
     }
 
-    return info[index].As<Napi::Object>();
+    return value.As<Napi::Object>();
 }
 
 Napi::Value makeString(const Napi::CallbackInfo& info, const KStringPtr& value) {

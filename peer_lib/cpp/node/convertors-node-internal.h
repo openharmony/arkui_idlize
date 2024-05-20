@@ -31,6 +31,31 @@
 #define LOG(msg) fprintf(stderr, msg);
 #endif
 
+// TODO: switch to more generic convertors eventually.
+template<class T>
+struct InteropTypeConverter {
+    using InteropType = T;
+    static T convertFrom(Napi::Env env, InteropType value) { return value; }
+    static InteropType convertTo(Napi::Env env, T value) { return value; }
+    static void release(Napi::Env env, InteropType value, T converted) {}
+};
+
+
+template <typename Type>
+inline typename InteropTypeConverter<Type>::InteropType makeResult(Napi::Env env, Type value) {
+  return InteropTypeConverter<Type>::convertTo(env, value);
+}
+
+template <typename Type>
+inline Type getArgument(Napi::Env env, typename InteropTypeConverter<Type>::InteropType arg) {
+  return InteropTypeConverter<Type>::convertFrom(env, arg);
+}
+
+template <typename Type>
+inline void releaseArgument(Napi::Env env, typename InteropTypeConverter<Type>::InteropType arg, Type data) {
+  InteropTypeConverter<Type>::release(env, arg, data);
+}
+
 #define NAPI_ASSERT_INDEX(info, index, result)              \
     do {                                                    \
         if (static_cast<size_t>(index) >= info.Length()) {  \
@@ -84,7 +109,7 @@ inline napi_typedarray_type getNapiType<KNativePointer>() {
 }
 
 template <typename ElemType>
-inline ElemType* getTypedElements(const Napi::Env env, Napi::Value value) {
+inline ElemType* getTypedElements(Napi::Env env, Napi::Value value) {
   if (value.IsNull()) {
     return nullptr;
   }
@@ -111,25 +136,53 @@ inline ElemType* getTypedElements(const Napi::CallbackInfo& info, int index) {
     NAPI_ASSERT_INDEX(info, index, nullptr);
     return getTypedElements<ElemType>(info.Env(), info[index]);
 }
-
-int32_t getInt32(const Napi::CallbackInfo& info, int index);
-int32_t getInt32(const Napi::Env env, Napi::Value value);
-uint32_t getUInt32(const Napi::CallbackInfo& info, int index);
-float getFloat32(const Napi::CallbackInfo& info, int index);
-double getFloat64(const Napi::CallbackInfo& info, int index);
-KStringPtr getString(const Napi::CallbackInfo& info, int index);
-void* getPointer(const Napi::CallbackInfo& info, int index);
-void* getPointer(const Napi::Env env, Napi::Value value);
-KBoolean getBoolean(const Napi::CallbackInfo& info, int index);
-KBoolean getBoolean(const Napi::Env env, Napi::Value value);
-Napi::Object getObject(const Napi::CallbackInfo& info, int index);
+KInt getInt32(Napi::Env env, Napi::Value value);
+inline int32_t getInt32(const Napi::CallbackInfo& info, int index) {
+  NAPI_ASSERT_INDEX(info, index, 0);
+  return getInt32(info.Env(), info[index]);
+}
+KUInt getUInt32(Napi::Env env, Napi::Value value);
+inline uint32_t getUInt32(const Napi::CallbackInfo& info, int index) {
+  NAPI_ASSERT_INDEX(info, index, 0);
+  return getUInt32(info.Env(), info[index]);
+}
+KFloat getFloat32(Napi::Env env, Napi::Value value);
+inline float getFloat32(const Napi::CallbackInfo& info, int index) {
+  NAPI_ASSERT_INDEX(info, index, 0.0f);
+  return getFloat32(info.Env(), info[index]);
+}
+KDouble getFloat64(Napi::Env env, Napi::Value value);
+inline KDouble getFloat64(const Napi::CallbackInfo& info, int index) {
+  NAPI_ASSERT_INDEX(info, index, 0.0);
+  return getFloat64(info.Env(), info[index]);
+}
+KStringPtr getString(Napi::Env env, Napi::Value value);
+inline KStringPtr getString(const Napi::CallbackInfo& info, int index) {
+  NAPI_ASSERT_INDEX(info, index, KStringPtr());
+  return getString(info.Env(), info[index]);
+}
+void* getPointer(Napi::Env env, Napi::Value value);
+inline void* getPointer(const Napi::CallbackInfo& info, int index) {
+    NAPI_ASSERT_INDEX(info, index, nullptr);
+    return getPointer(info.Env(), info[index]);
+}
+KBoolean getBoolean(Napi::Env env, Napi::Value value);
+inline KBoolean getBoolean(const Napi::CallbackInfo& info, int index) {
+  NAPI_ASSERT_INDEX(info, index, false);
+  return getBoolean(info.Env(), info[index]);
+}
+Napi::Object getObject(Napi::Env env, Napi::Value value);
+inline Napi::Object getObject(const Napi::CallbackInfo& info, int index) {
+  NAPI_ASSERT_INDEX(info, index, info.Env().Global());
+  return getObject(info.Env(), info[index]);
+}
 
 uint8_t* getUInt8Elements(const Napi::CallbackInfo& info, int index);
 int8_t* getInt8Elements(const Napi::CallbackInfo& info, int index);
 uint16_t* getUInt16Elements(const Napi::CallbackInfo& info, int index);
 int16_t* getInt16Elements(const Napi::CallbackInfo& info, int index);
 uint32_t* getUInt32Elements(const Napi::CallbackInfo& info, int index);
-uint32_t* getUInt32Elements(const Napi::Env env, Napi::Value value);
+uint32_t* getUInt32Elements(Napi::Env env, Napi::Value value);
 KNativePointer* getPointerElements(const Napi::CallbackInfo& info, int index);
 int32_t* getInt32Elements(const Napi::CallbackInfo& info, int index);
 float* getFloat32Elements(const Napi::CallbackInfo& info, int index);
