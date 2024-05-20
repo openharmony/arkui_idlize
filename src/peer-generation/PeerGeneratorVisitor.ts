@@ -313,10 +313,11 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
     }
 
     generateSignature(method: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
+        const parameters = this.tempExtractParameters(method)
         return new NamedMethodSignature(Type.This,
-            method.parameters
+            parameters
                 .map(it => new Type(this.mapType(it.type), it.questionToken != undefined)),
-            method.parameters
+            parameters
                 .map(it => identName(it.name)!),
         )
     }
@@ -336,6 +337,31 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         return argConvertors?.map(it => `${it.param}`).join(", ")
     }
 
+    private tempExtractParameters(method: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): ts.ParameterDeclaration[] {
+        if (!ts.isCallSignatureDeclaration(method) && identName(method.name) === "onWillScroll") {
+            /**
+             * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
+             * ScrollAttribute extends ScrollableCommonMethod and overrides this method as
+             * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not 
+             * valid and cannot be correctly processed and we want to stub this for now.
+             */
+            return [{
+                ...ts.factory.createParameterDeclaration(
+                    undefined,
+                    undefined,
+                    "stub_for_onWillScroll",
+                    undefined,
+                    {
+                        ...ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+                        getText: () => "any"
+                    },
+                ),
+                getText: () => "stub_for_onWillScroll: any",
+            }]
+        }
+        return Array.from(method.parameters)
+    }
+
     processMethodOrCallable(
         method: ts.MethodDeclaration | ts.CallSignatureDeclaration,
         peer: PeerClass,
@@ -352,15 +378,16 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
         this.declarationTable.setCurrentContext(`${methodName}()`)
 
-        method.parameters.forEach((param, index) => {
+        const parameters = this.tempExtractParameters(method)
+        parameters.forEach((param, index) => {
             if (param.type) {
                 this.requestType(`Type_${originalParentName}_${methodName}_Arg${index}`, param.type)
                 this.collectMaterializedClasses(param.type)
             }
         })
-        const argConvertors = method.parameters
+        const argConvertors = parameters
             .map((param) => this.argConvertor(param))
-        const declarationTargets = method.parameters
+        const declarationTargets = parameters
             .map((param) => this.declarationTable.toTarget(param.type ??
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
         const retConvertor = this.retConvertor(method.type)
@@ -488,16 +515,17 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             console.log(`WARNING: ignore seen method: ${methodName}`)
             return
         }
-        if (method.parameters.length != 1) {
+        const parameters = this.tempExtractParameters(method)
+        if (parameters.length != 1) {
             // We only convert one argument methods to attributes.
             return
         }
         this.seenAttributes.add(methodName)
-        const type = this.argumentType(methodName, method.parameters, peer)
+        const type = this.argumentType(methodName, parameters, peer)
         peer.attributesFields.push(`${methodName}?: ${type}`)
     }
 
-    private argumentType(methodName: string, parameters: ts.NodeArray<ts.ParameterDeclaration>, peer: PeerClass): string {
+    private argumentType(methodName: string, parameters: ts.ParameterDeclaration[], peer: PeerClass): string {
         const argumentTypeName = capitalize(methodName) + "ValuesType"
         if (parameters.length === 1 && ts.isTypeLiteralNode(parameters[0].type!)) {
             const typeLiteralStatements = parameters[0].type!.members
