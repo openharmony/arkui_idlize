@@ -370,7 +370,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     constructor(param: string, private table: DeclarationTable, type: ts.ImportTypeNode) {
         super("Object", [RuntimeType.OBJECT], false, true, param)
         this.importedName = importTypeName(type)
-        table.requestType(this.importedName, type)
+        table.requestType(this.importedName === "default" ? undefined : this.importedName, type)
     }
 
     convertorArg(param: string, language: Language): string {
@@ -474,7 +474,7 @@ export class OptionConvertor extends BaseArgConvertor {
         return language == Language.CPP ? PrimitiveType.NativePointer.getText() : "KNativePointer"
     }
     estimateSize() {
-        return this.typeConvertor.estimateSize()
+        return this.typeConvertor.estimateSize() + 1
     }
     isPointerType(): boolean {
         return true

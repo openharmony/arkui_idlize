@@ -152,9 +152,8 @@ export class DeclarationTable {
     }
 
     getTypeName(type: ts.TypeNode, optional: boolean = false): string {
-        let declaration = this.typeMap.get(type)
         this.requestType(undefined, type)
-        declaration = this.typeMap.get(type)!
+        let declaration = this.typeMap.get(type)!
         let prefix = optional ? PrimitiveType.OptionalPrefix : ""
         return prefix + declaration[1][0]
     }
@@ -426,7 +425,7 @@ export class DeclarationTable {
             } else if (typeName === "Resource") {
                 return `${prefix}${PrimitiveType.Resource.getText()}`
             }
-            return prefix + identName(type.typeName)!
+            return prefix + typeName
         }
         if (ts.isUnionTypeNode(type)) {
             if (suggestedName) return suggestedName
@@ -904,7 +903,7 @@ export class DeclarationTable {
     private addNameAlias(target: DeclarationTarget, declarationName: string, aliasName: string,
         seenNames: Set<string>, typedefs: IndentedPrinter): void {
         if (seenNames.has(aliasName)) return
-        if (this.ignoreTarget(target, declarationName)) return
+        if (this.ignoreTarget(target, declarationName) && target != PrimitiveType.CustomObject) return
         seenNames.add(aliasName)
         typedefs.print(`typedef ${declarationName} ${aliasName};`)
         // TODO: hacky
