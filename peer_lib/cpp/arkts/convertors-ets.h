@@ -133,14 +133,14 @@ public:
     }
 #endif
 
-#define ETS_API_0(name, Ret) \
+#define KOALA_INTEROP_0(name, Ret) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz) { \
       KOALA_MAYBE_LOG(name)                       \
       return makeResult<Ret>(env, impl_##name()); \
   } \
 MAKE_ETS_EXPORT(name, #Ret)
 
-#define ETS_API_1(name, Ret, P0) \
+#define KOALA_INTEROP_1(name, Ret, P0) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
    InteropTypeConverter<P0>::InteropType _p0) { \
       KOALA_MAYBE_LOG(name)                   \
@@ -151,7 +151,7 @@ MAKE_ETS_EXPORT(name, #Ret)
   } \
 MAKE_ETS_EXPORT(name, #Ret "|" #P0)
 
-#define ETS_API_2(name, Ret, P0, P1) \
+#define KOALA_INTEROP_2(name, Ret, P0, P1) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1) { \
@@ -165,7 +165,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0)
   } \
 MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
 
-#define ETS_API_3(name, Ret, P0, P1, P2) \
+#define KOALA_INTEROP_3(name, Ret, P0, P1, P2) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -182,7 +182,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
   } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2)
 
-#define ETS_API_4(name, Ret, P0, P1, P2, P3) \
+#define KOALA_INTEROP_4(name, Ret, P0, P1, P2, P3) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -202,7 +202,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
   } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3)
 
-#define ETS_API_5(name, Ret, P0, P1, P2, P3, P4) \
+#define KOALA_INTEROP_5(name, Ret, P0, P1, P2, P3, P4) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -225,7 +225,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
   } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4)
 
-#define ETS_API_6(name, Ret, P0, P1, P2, P3, P4, P5) \
+#define KOALA_INTEROP_6(name, Ret, P0, P1, P2, P3, P4, P5) \
 InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
@@ -251,7 +251,7 @@ InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, 
   } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
 
-#define ETS_API_7(name, Ret, P0, P1, P2, P3, P4, P5, P6) \
+#define KOALA_INTEROP_7(name, Ret, P0, P1, P2, P3, P4, P5, P6) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -280,7 +280,7 @@ InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, 
   } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6)
 
-#define ETS_API_8(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7) \
+#define KOALA_INTEROP_8(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -312,7 +312,7 @@ InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, 
   } \
 MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7)
 
-#define ETS_API_9(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8) \
+#define KOALA_INTEROP_9(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -347,7 +347,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
   } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8)
 
-#define ETS_API_10(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9) \
+#define KOALA_INTEROP_10(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -385,7 +385,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
    } \
 MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9)
 
-#define ETS_API_11(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) \
+#define KOALA_INTEROP_11(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -426,7 +426,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
   } \
 }MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10)
 
-#define ETS_API_12(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11) \
+#define KOALA_INTEROP_12(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -470,7 +470,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
   } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11)
 
-#define ETS_API_13(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12) \
+#define KOALA_INTEROP_13(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -517,7 +517,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
   } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12)
 
-#define ETS_API_14(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13) \
+#define KOALA_INTEROP_14(name, Ret, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -567,14 +567,14 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
     } \
   MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12 "|" #P13)
 
-#define ETS_API_V0(name) \
+#define KOALA_INTEROP_V0(name) \
   void Ark_##name(EtsEnv *env) { \
       KOALA_MAYBE_LOG(name)                   \
       impl_##name(); \
   } \
 MAKE_ETS_EXPORT(name, "void")
 
-#define ETS_API_V1(name, P0) \
+#define KOALA_INTEROP_V1(name, P0) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
   InteropTypeConverter<P0>::InteropType _p0) { \
     KOALA_MAYBE_LOG(name)              \
@@ -584,7 +584,7 @@ MAKE_ETS_EXPORT(name, "void")
   } \
 MAKE_ETS_EXPORT(name, "void|" #P0)
 
-#define ETS_API_V2(name, P0, P1) \
+#define KOALA_INTEROP_V2(name, P0, P1) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1) { \
@@ -597,7 +597,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0)
    } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1)
 
-#define ETS_API_V3(name, P0, P1, P2) \
+#define KOALA_INTEROP_V3(name, P0, P1, P2) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -613,7 +613,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1)
   } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2)
 
-#define ETS_API_V4(name, P0, P1, P2, P3) \
+#define KOALA_INTEROP_V4(name, P0, P1, P2, P3) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -632,7 +632,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2)
 } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3)
 
-#define ETS_API_V5(name, P0, P1, P2, P3, P4) \
+#define KOALA_INTEROP_V5(name, P0, P1, P2, P3, P4) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -654,7 +654,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3)
 } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4)
 
-#define ETS_API_V6(name, P0, P1, P2, P3, P4, P5) \
+#define KOALA_INTEROP_V6(name, P0, P1, P2, P3, P4, P5) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -679,7 +679,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4)
   } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
 
-#define ETS_API_V7(name, P0, P1, P2, P3, P4, P5, P6) \
+#define KOALA_INTEROP_V7(name, P0, P1, P2, P3, P4, P5, P6) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -707,7 +707,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
   } \
   MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6)
 
-#define ETS_API_V8(name, P0, P1, P2, P3, P4, P5, P6, P7) \
+#define KOALA_INTEROP_V8(name, P0, P1, P2, P3, P4, P5, P6, P7) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -738,7 +738,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
   } \
   MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7)
 
-#define ETS_API_V9(name, P0, P1, P2, P3, P4, P5, P6, P7, P8) \
+#define KOALA_INTEROP_V9(name, P0, P1, P2, P3, P4, P5, P6, P7, P8) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -772,7 +772,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5)
   } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8)
 
-#define ETS_API_V10(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9) \
+#define KOALA_INTEROP_V10(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -809,7 +809,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P
 } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9)
 
-#define ETS_API_V11(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) \
+#define KOALA_INTEROP_V11(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -849,7 +849,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P
   } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10)
 
-#define ETS_API_V12(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11) \
+#define KOALA_INTEROP_V12(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -892,7 +892,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P
 } \
   MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11)
 
-#define ETS_API_V13(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12) \
+#define KOALA_INTEROP_V13(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \
     InteropTypeConverter<P1>::InteropType _p1, \
@@ -938,7 +938,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P
 } \
   MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12)
 
-#define ETS_API_V14(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13) \
+#define KOALA_INTEROP_V14(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
   InteropTypeConverter<P0>::InteropType _p0, \
   InteropTypeConverter<P1>::InteropType _p1, \
