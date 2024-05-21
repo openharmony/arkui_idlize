@@ -71,6 +71,13 @@ KNativePointer impl_StringMake(const KStringPtr& str) {
 }
 KOALA_INTEROP_1(StringMake, KNativePointer, KStringPtr)
 
+// For slow runtimes w/o fast encoders.
+KInt impl_ManagedStringWrite(const KStringPtr& string, KByte* buffer, KInt offset) {
+    memcpy(buffer + offset, string.c_str(), string.length() + 1);
+    return string.length() + 1;
+}
+KOALA_INTEROP_3(ManagedStringWrite, KInt, KStringPtr, KByte*, KInt)
+
 void stringFinalizer(string* ptr) {
     delete ptr;
 }

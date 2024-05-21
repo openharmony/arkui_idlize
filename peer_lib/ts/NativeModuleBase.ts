@@ -40,6 +40,9 @@ export class NativeModuleBase {
     _StringMake(value: KStringPtr): KPointer {
         throw new Error("_StringMake")
     }
+    _ManagedStringWrite(value: KStringPtr, buffer: KUint8ArrayPtr, offset: KInt): KInt {
+        throw new Error("_ManagedStringWrite")
+    }
     _TestPerfNumber(value: KInt): KInt { return 0 }
     _TestPerfNumberWithArray(value: KUint8ArrayPtr, length: KInt): void {}
     _StartPerf(traceName: KStringPtr): void {}

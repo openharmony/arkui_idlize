@@ -70,18 +70,22 @@ KDouble getFloat64(const Napi::CallbackInfo& info, Napi::Value value) {
 }
 
 KStringPtr getString(Napi::Env env, Napi::Value value) {
+  KStringPtr result;
   if (value.IsNull() || value.IsUndefined()) {
-      return KStringPtr();
+    return result;
   }
 
   if (!value.IsString()) {
     Napi::Error::New(env, "Expected String")
         .ThrowAsJavaScriptException();
-    return KStringPtr();
+    return result;
   }
-
-  auto string = value.As<Napi::String>().ToString().Utf8Value();
-  return KStringPtr(string.c_str());
+  size_t length = 0;
+  napi_status status = napi_get_value_string_utf8(env, value, nullptr, 0, &length);
+  if (status != 0) return result;
+  result.resize(length);
+  status = napi_get_value_string_utf8(env, value, result.data(), length + 1, nullptr);
+  return result;
 }
 
 KNativePointer getPointer(Napi::Env env, Napi::Value value) {

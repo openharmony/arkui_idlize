@@ -14,7 +14,7 @@
  */
 import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
-
+import { nativeModule } from "@arkoala/arkui/NativeModule"
 /**
  * Value representing possible JS runtime object type.
  * Must be synced with "enum RuntimeType" in C++.
@@ -265,7 +265,7 @@ export class SerializerBase {
     writeMaterialized(value: object | undefined) {
         this.writePointer(registerMaterialized(value))
     }
-    writeString(value: string) {
+    writeStringEncoder(value: string) {
         let encoded = textEncoder.encode(value)
         let length = encoded.length + 1 // zero-terminated
         this.checkCapacity(4 + length) // length, data
@@ -274,6 +274,13 @@ export class SerializerBase {
         new Uint8Array(this.view.buffer, this.position).set(encoded)
         this.view.setInt8(this.position + length  - 1, 0)
         this.position += length
+    }
+    writeString(value: string) {
+        this.checkCapacity(4 + value.length * 4) // length, data
+        let encodedLength =
+            nativeModule()._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
+        this.view.setInt32(this.position, encodedLength, true)
+        this.position += encodedLength + 4
     }
     // Length is an important common case.
     writeLength(value: Length|undefined) {
