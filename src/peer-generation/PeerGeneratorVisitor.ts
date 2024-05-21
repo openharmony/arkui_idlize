@@ -464,8 +464,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         const retConvertor = isConstructor
             ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
             : this.retConvertor(method.returnType)
-        const tsRetType = method.returnType == undefined ? undefined : mapType(this.typeChecker, method.returnType)
-        return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, tsRetType, false, method.toMethod(this.typeChecker))
+        return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false, method.toMethod(this.typeChecker))
     }
 
 

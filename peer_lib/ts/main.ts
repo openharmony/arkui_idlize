@@ -21,7 +21,8 @@ import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkParticlePeer } from "@arkoala/arkui/ArkParticlePeer"
 import { ArkSideBarContainerPeer } from "@arkoala/arkui/ArkSidebarPeer"
 import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
-// import { ArkTabContentPeer, SubTabBarStyle } from "@arkoala/arkui/ArkTabContentPeer"
+import { ArkTabContentPeer } from "@arkoala/arkui/ArkTabContentPeer"
+import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleMaterialized"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 
@@ -150,6 +151,13 @@ function checkParticle() {
     checkResult("emitter", () => peer.emitterAttribute([]), `emitter([])`)
     checkResult("emitter", () => peer.emitterAttribute([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}]),
         `emitter([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}])`)
+}
+
+function checkTabContent() {
+    let peer = new ArkTabContentPeer(ArkUINodeType.TabContent)
+    checkResult("tabBar",
+        () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(new SubTabBarStyle("abc")),
+        `new SubTabBarStyle("abc")tabBar(??)`)
 }
 
 function checkPerf1(count: number) {

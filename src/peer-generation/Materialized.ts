@@ -23,10 +23,8 @@ import { DeclarationTarget } from "./DeclarationTable"
 
 const ignoredMaterializedClasses = [
     "CanvasRenderingContext2D", // has data
-    "NavPathStack",             // duplicate overloaded functions
-    "Scroller",                 // duplicate scrollPage()
-    "SubTabBarStyle",           // duplicate of()
-    "TransitionEffect",         // Type 'typeof TransitionEffect' is not assignable to type 'TransitionEffect' ??
+    "NavPathStack",             // has data
+    "TransitionEffect",         // unknown types `Type` and `Effect`
 ]
 
 export function isMaterialized(declaration: ts.ClassDeclaration): boolean {
@@ -41,7 +39,6 @@ export class MaterializedMethod extends PeerMethod {
         declarationTargets: DeclarationTarget[],
         argConvertors: ArgConvertor[],
         retConvertor: RetConvertor,
-        public tsRetType: string | undefined,
         isCallSignature: boolean,
         method: Method
     ) {
@@ -49,7 +46,7 @@ export class MaterializedMethod extends PeerMethod {
     }
 
     override get peerMethodName() {
-        return this.method.name
+        return this.overloadedName
     }
 
     override get implName(): string {
@@ -99,7 +96,9 @@ export class MaterializedClass implements PeerClassBase {
         public readonly ctor: MaterializedMethod,
         public readonly dtor: MaterializedMethod,
         public readonly methods: MaterializedMethod[],
-    ) {}
+    ) {
+        PeerMethod.markOverloads(methods)
+    }
 
     setGenerationContext(context: string| undefined): void {
        // TODO: set generation context!
