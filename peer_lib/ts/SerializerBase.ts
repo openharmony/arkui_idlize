@@ -62,7 +62,7 @@ export function runtimeType(value: any): int32 {
 
 export type Function = object
 
-export function withLength(valueLength: Length|undefined, body: (value: float32, unit: int32, resource: int32) => void) {
+export function withLength(valueLength: Length|undefined, body: (type: int32, value: float32, unit: int32, resource: int32) => void) {
     let type = runtimeType(valueLength)
     let value = 0
     let unit = 1 // vp
@@ -96,16 +96,17 @@ export function withLength(valueLength: Length|undefined, body: (value: float32,
             resource = (valueLength as Resource).id
             break
     }
-    body(value, unit, resource)
+    body(type, value, unit, resource)
 }
 
 
 export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: Int32Array) => void) {
-    withLength(valueLength, (value, unit, resource) => {
-        let array = new Int32Array(3)
-        array[0] = value
-        array[1] = unit
-        array[2] = resource
+    withLength(valueLength, (type: int32, value, unit, resource) => {
+        let array = new Int32Array(4)
+        array[0] = type
+        array[1] = value
+        array[2] = unit
+        array[3] = resource
         body(array)
     })
 }
@@ -288,7 +289,8 @@ export class SerializerBase {
         let valueType = runtimeType(value)
         this.writeInt8(valueType == RuntimeType.UNDEFINED ? Tags.UNDEFINED : Tags.LENGTH)
         if (valueType != RuntimeType.UNDEFINED) {
-            withLength(value, (value, unit, resource) => {
+            withLength(value, (type, value, unit, resource) => {
+                this.writeInt8(type)
                 this.writeFloat32(value)
                 this.writeInt32(unit)
                 this.writeInt32(resource)

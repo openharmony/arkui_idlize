@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 import { SerializerBase } from "@arkoala/arkui/SerializerBase"
+import { DeserializerBase } from "@arkoala/arkui/DeserializerBase"
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
@@ -47,6 +48,65 @@ stopNativeLog(TEST_GROUP_LOG)
 
 if (!reportTestFailures) {
     console.log("WARNING: ignore test result")
+}
+
+function checkSerdeResult(name: string, value: any, expected: any) {
+    if (value !== expected) {
+        console.log(`TEST ${name} FAILURE`)
+    } else {
+        console.log(`TEST ${name} PASS`)
+    }
+}
+
+function checkSerdeBaseLength() {
+    const ser = new SerializerBase(12)
+    ser.writeLength("10px")
+    ser.writeLength("11vp")
+    ser.writeLength("12%")
+    ser.writeLength("13lpx")
+    ser.writeLength(14)
+    const des = new DeserializerBase(ser.asArray().buffer, ser.length())
+    checkSerdeResult("DeserializerBase.readLength, unit px", des.readLength(), "10px")
+    checkSerdeResult("DeserializerBase.readLength, unit vp", des.readLength(), "11vp")
+    checkSerdeResult("DeserializerBase.readLength, unit %", des.readLength(), "12%")
+    checkSerdeResult("DeserializerBase.readLength, unit lpx", des.readLength(), "13lpx")
+    checkSerdeResult("DeserializerBase.readLength, number", des.readLength(), 14)
+    ser.close()
+}
+
+function checkSerdeBaseText() {
+    const ser = new SerializerBase(12)
+    const text = "test text serialization/deserialization"
+    ser.writeString(text)
+    const des = new DeserializerBase(ser.asArray().buffer, ser.length())
+    checkSerdeResult("DeserializerBase.readString", des.readString(), text)
+    ser.close()
+}
+
+function checkSerdeBasePrimitive() {
+    const ser = new SerializerBase(12)
+    ser.writeNumber(10)
+    ser.writeNumber(10.5)
+    ser.writeNumber(undefined)
+    const des = new DeserializerBase(ser.asArray().buffer, ser.length())
+    checkSerdeResult("DeserializerBase.readNumber, int", des.readNumber(), 10)
+    checkSerdeResult("DeserializerBase.readNumber, float", des.readNumber(), 10.5)
+    checkSerdeResult("DeserializerBase.readNumber, undefined", des.readNumber(), undefined)
+    ser.close()
+}
+
+function checkSerdeBaseCustomObject() {
+    const ser = new SerializerBase(12)
+    const resource: Resource = {
+        bundleName: "bundle name",
+        moduleName: "module name",
+        id: 1,
+    }
+    ser.writeCustomObject("Resource", resource)
+    const des = new DeserializerBase(ser.asArray().buffer, ser.length())
+    checkSerdeResult("DeserializerBase.readCustomObject, Resource",
+        JSON.stringify(resource),
+        JSON.stringify(des.readCustomObject("Resource") as Resource))
 }
 
 function checkButton() {
@@ -201,6 +261,11 @@ function checkPerf3(count: number) {
     let passed = performance.now() - start
     console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
+
+checkSerdeBaseLength()
+checkSerdeBaseText()
+checkSerdeBasePrimitive()
+checkSerdeBaseCustomObject()
 
 checkPerf2(200 * 1000)
 checkPerf3(200 * 1000)

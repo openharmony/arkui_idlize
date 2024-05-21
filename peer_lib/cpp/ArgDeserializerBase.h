@@ -300,6 +300,7 @@ public:
     Ark_Length result;
     Ark_Tag tag = readTag();
     if (tag == Ark_Tag::ARK_TAG_LENGTH) {
+      result.type = readInt8();
       result.value = readFloat32();
       result.unit = readInt32();
       result.resource = readInt32();

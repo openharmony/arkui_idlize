@@ -86,6 +86,7 @@ typedef struct Ark_Number {
 
 typedef struct ArkUILength
 {
+  Ark_Int8 type;
   Ark_Float32 value;
   Ark_Int32 unit;
   Ark_Int32 resource;
