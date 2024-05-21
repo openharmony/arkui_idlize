@@ -106,7 +106,7 @@ public class SerializerBase {
                 var minSize = buffPosition + value;
                 var resizedSize = Math.max(minSize, Math.round((float) (3 * buffPosition) / 2));
                 var resizedBuffer = SerializerBase.bufferCache.get(resizedSize);
-                resizedBuffer.put(0, buffer, 0, buffPosition);
+                resizedBuffer.put(0, buffer.array(), 0, buffPosition);
                 resizedBuffer.position(buffPosition);
                 SerializerBase.bufferCache.release(buffer);
                 buffer = resizedBuffer;
