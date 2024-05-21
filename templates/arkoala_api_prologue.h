@@ -124,10 +124,10 @@ typedef struct Opt_Ark_Callback {
   Ark_CustomObject value;
 } Opt_Ark_Callback;
 
-enum Ark_APIVariantKind {
-    BASIC = 1,
-    FULL = 2,
-    GRAPHICS = 3,
-    EXTENDED = 4,
-    COUNT = EXTENDED + 1,
+enum %CPP_PREFIX%Ark_APIVariantKind {
+    %CPP_PREFIX%BASIC = 1,
+    %CPP_PREFIX%FULL = 2,
+    %CPP_PREFIX%GRAPHICS = 3,
+    %CPP_PREFIX%EXTENDED = 4,
+    %CPP_PREFIX%COUNT = %CPP_PREFIX%EXTENDED + 1,
 };

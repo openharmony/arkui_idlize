@@ -18,6 +18,7 @@ import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { Language, indentedBy, langSuffix } from "../util"
 import { createLanguageWriter } from "./LanguageWriters"
+import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 
 const importTsInteropTypes = `
 import {
@@ -65,27 +66,27 @@ export function bridgeCcDeclaration(bridgeCc: string[]): string {
 #include "arkoala_api.h"
 #include "Deserializer.h"
 
-static ArkUIAnyAPI* impls[Ark_APIVariantKind::COUNT] = { 0 };
+static ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* impls[${PeerGeneratorConfig.cppPrefix}Ark_APIVariantKind::${PeerGeneratorConfig.cppPrefix}COUNT] = { 0 };
 
-const ArkUIAnyAPI* GetAnyImpl(Ark_APIVariantKind kind, int version, std::string* result) {
+const ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* GetAnyImpl(${PeerGeneratorConfig.cppPrefix}Ark_APIVariantKind kind, int version, std::string* result) {
     return impls[kind];
 }
 
-const ArkUIFullNodeAPI* GetFullImpl(std::string* result = nullptr) {
-    return reinterpret_cast<const ArkUIFullNodeAPI*>(GetAnyImpl(Ark_APIVariantKind::FULL, ARKUI_FULL_API_VERSION, result));
+const ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI* GetFullImpl(std::string* result = nullptr) {
+    return reinterpret_cast<const ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI*>(GetAnyImpl(${PeerGeneratorConfig.cppPrefix}Ark_APIVariantKind::${PeerGeneratorConfig.cppPrefix}FULL, ARKUI_FULL_API_VERSION, result));
 }
 
-const ArkUINodeModifiers* GetNodeModifiers() {
+const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* GetNodeModifiers() {
     // TODO: restore the proper call
     // return GetFullImpl()->getNodeModifiers();
-    extern const ArkUINodeModifiers* GetArkUINodeModifiers();
+    extern const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* GetArkUINodeModifiers();
     return GetArkUINodeModifiers();
 }
 
-const ArkUIAccessors* GetAccessors() {
+const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetAccessors() {
     // TODO: restore the proper call
     // return GetFullImpl()->getAccessors();
-    extern const ArkUIAccessors* GetArkUIAccessors();
+    extern const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetArkUIAccessors();
     return GetArkUIAccessors();
 }
 
@@ -129,12 +130,12 @@ export function modifierStructs(lines: string[]): string {
 
 export function modifierStructList(lines: string[]): string {
     return `
-const ArkUINodeModifiers modifiersImpl = {
+const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {
     1, // version
 ${lines.join("\n")}
 };
 
-extern const ArkUINodeModifiers* GetArkUINodeModifiers()
+extern const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* GetArkUINodeModifiers()
 {
     return &modifiersImpl;
 }
@@ -144,12 +145,12 @@ extern const ArkUINodeModifiers* GetArkUINodeModifiers()
 
 export function accessorStructList(lines: string[]): string {
     return `
-const ArkUIAccessors accessorsImpl = {
+const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {
     1, // version
 ${lines.join("\n")}
 };
 
-extern const ArkUIAccessors* GetArkUIAccessors()
+extern const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetArkUIAccessors()
 {
     return &accessorsImpl;
 }
@@ -221,50 +222,50 @@ export function makeApiModifiers(modifiers: string[], accessors: string[]): stri
  * layout, i.e. adding new events - increase ARKUI_API_VERSION above for binary
  * layout checks.
  */
-typedef struct ArkUINodeModifiers {
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers {
     ${PrimitiveType.Int32.getText()} version;
 ${modifiers.join("\n")}
-} ArkUINodeModifiers;
+} ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers;
 
-typedef struct ArkUIAccessors {
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors {
     ${PrimitiveType.Int32.getText()} version;
 ${accessors.join("\n")}
-} ArkUIAccessors;
+} ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors;
 
-typedef struct ArkUIBasicAPI {
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIBasicAPI {
     ${PrimitiveType.Int32.getText()} version;
-} ArkUIBasicAPI;
+} ${PeerGeneratorConfig.cppPrefix}ArkUIBasicAPI;
 
-typedef struct ArkUIAnimation {
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation {
     ${PrimitiveType.Int32.getText()} version;
-} ArkUIAnimation;
+} ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation;
 
-typedef struct ArkUINavigation {
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUINavigation {
     ${PrimitiveType.Int32.getText()} version;
-} ArkUINavigation;
+} ${PeerGeneratorConfig.cppPrefix}ArkUINavigation;
 
-typedef struct ArkUIGraphicsAPI {
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
     ${PrimitiveType.Int32.getText()} version;
-} ArkUIGraphicsAPI;
+} ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI;
 
 /**
  * An API to control an implementation. When making changes modifying binary
  * layout, i.e. adding new events - increase ARKUI_NODE_API_VERSION above for binary
  * layout checks.
  */
-typedef struct ArkUIFullNodeAPI {
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
     ${PrimitiveType.Int32.getText()} version;
-    const ArkUIBasicAPI* (*getBasicAPI)();
-    const ArkUINodeModifiers* (*getNodeModifiers)();
-    const ArkUIAccessors* (*getAccessors)();
-    const ArkUIAnimation* (*getAnimation)();
-    const ArkUINavigation* (*getNavigation)();
-    const ArkUIGraphicsAPI* (*getGraphicsAPI)();
-} ArkUIFullNodeAPI;
+    const ${PeerGeneratorConfig.cppPrefix}ArkUIBasicAPI* (*getBasicAPI)();
+    const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* (*getNodeModifiers)();
+    const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* (*getAccessors)();
+    const ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation* (*getAnimation)();
+    const ${PeerGeneratorConfig.cppPrefix}ArkUINavigation* (*getNavigation)();
+    const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
+} ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
 
-typedef struct ArkUIAnyAPI {
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {
     ${PrimitiveType.Int32.getText()} version;
-} ArkUIAnyAPI;
+} ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI;
 `
 }
 
@@ -293,7 +294,9 @@ export function makeAPI(
     let prologue = readTemplate('arkoala_api_prologue.h')
     let epilogue = readTemplate('arkoala_api_epilogue.h')
 
-    prologue = prologue.replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
+    prologue = prologue
+        .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
+        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
 
     return `
 ${prologue}
