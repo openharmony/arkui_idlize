@@ -21,6 +21,5 @@
 #elif KOALA_USE_ARK_VM_WITH_ETS // !KOALA_USE_ARK_VM_WITH_JS
 
 #include "convertors-ets.h"
-#include "etsapi.h"
 
 #endif  // KOALA_USE_ARK_VM_WITH_ETS
