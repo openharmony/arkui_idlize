@@ -84,7 +84,7 @@ export class JavaReturnStatement extends ReturnStatement {
 export class TSCastStatement implements LanguageStatement {
     constructor(public value: LanguageStatement, public type: string) {}
     asString(): string {
-        return `(${this.value.asString()}) as ${this.type} `
+        return `(${this.value.asString()} as ${this.type})`
     }
 }
 
@@ -109,12 +109,10 @@ export class ConditionStatement implements LanguageStatement {
     }
 }
 
-export class BinaryOpStatement implements LanguageStatement {
-    constructor(public op: string,
-        public arg1: LanguageStatement,
-        public arg2: LanguageStatement) { }
+export class NaryOpStatement implements LanguageStatement {
+    constructor(public op: string, public args: LanguageStatement[]) { }
     asString(): string {
-        return `((${this.arg1.asString()}) ${this.op} (${this.arg2.asString()}))`
+        return `(${this.args.map(arg => arg.asString()).join(` ${this.op} `)})`
     }
 }
 
@@ -197,8 +195,8 @@ export abstract class LanguageWriter {
     makeString(value: string): LanguageStatement {
         return new StringStatement(value)
     }
-    makeBinaryOp(op: string, arg1: LanguageStatement, arg2: LanguageStatement): LanguageStatement {
-        return new BinaryOpStatement(op, arg1, arg2)
+    makeNaryOp(op: string, args: LanguageStatement[]): LanguageStatement {
+        return new NaryOpStatement(op, args)
     }
     abstract makeCast(value: LanguageStatement, type: string): LanguageStatement
     abstract writePrintLog(message: string): void

@@ -220,10 +220,10 @@ export class EnumConvertor extends BaseArgConvertor {
     }
     // TODO: bit clumsy.
     customDiscriminator(value: string, writer: LanguageWriter): LanguageStatement | undefined {
-        return
-            writer.makeBinaryOp("&&",
-                writer.makeBinaryOp(">=", writer.makeCast(writer.makeString(value), "number"), writer.makeString("0")),
-                writer.makeBinaryOp("<", writer.makeCast(writer.makeString(value), "number"), writer.makeString(this.enumType.members.length.toString())))
+        return writer.makeNaryOp("&&", [
+            writer.makeNaryOp(">=", [writer.makeCast(writer.makeString(value), "number"), writer.makeString("0")]),
+            writer.makeNaryOp("<",  [writer.makeCast(writer.makeString(value), "number"), writer.makeString(this.enumType.members.length.toString())])
+        ])
     }
     hasCustomDiscriminator(): boolean {
         return true
@@ -291,10 +291,12 @@ export class UnionConvertor extends BaseArgConvertor {
                 return
             }
             let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-            let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
-            let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
+            let conditions = printer.makeNaryOp("||",
+                it.runtimeTypes.map(it => printer.makeNaryOp("==", [ printer.makeString(`RuntimeType.${RuntimeType[it]}`), printer.makeString(`${value}_type`)])))
             let customDiscriminator = it.customDiscriminator(value, printer)
-            printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")}) {`)
+            if (customDiscriminator)
+                conditions = printer.makeNaryOp("&&", [customDiscriminator, conditions])
+            printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
             if (!(it instanceof UndefinedConvertor)) {
                 printer.print(`const ${value}_${index} = unsafeCast<${it.tsTypeName}>(${value})`)
