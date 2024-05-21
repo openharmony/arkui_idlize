@@ -81,6 +81,20 @@ export class JavaReturnStatement extends ReturnStatement {
     }
 }
 
+export class TSCastStatement implements LanguageStatement {
+    constructor(public value: LanguageStatement, public type: string) {}
+    asString(): string {
+        return `(${this.value.asString()}) as ${this.type} `
+    }
+}
+
+export class JavaCastStatement implements LanguageStatement {
+    constructor(public value: LanguageStatement, public type: string) {}
+    asString(): string {
+        return `(${this.type})(${this.value.asString()})`
+    }
+}
+
 export class ConditionStatement implements LanguageStatement {
     constructor(public condition: LanguageStatement,
         public trueStatement: LanguageStatement,
@@ -92,6 +106,15 @@ export class ConditionStatement implements LanguageStatement {
         }
         const elseStatement = this.falseStatement === undefined ? "" : ` else { ${this.falseStatement.asString()} }`
         return `if (${this.condition.asString()}) ${this.trueStatement.asString()}${elseStatement}`
+    }
+}
+
+export class BinaryOpStatement implements LanguageStatement {
+    constructor(public op: string,
+        public arg1: LanguageStatement,
+        public arg2: LanguageStatement) { }
+    asString(): string {
+        return `((${this.arg1.asString()}) ${this.op} (${this.arg2.asString()}))`
     }
 }
 
@@ -170,13 +193,15 @@ export abstract class LanguageWriter {
     abstract makeReturn(stmt: LanguageStatement): LanguageStatement;
     makeCondition(condition: LanguageStatement, trueStatement: LanguageStatement, falseStatement: LanguageStatement|undefined, ternary: boolean = false): LanguageStatement {
         return new ConditionStatement(condition, trueStatement, falseStatement, ternary)
-    };
+    }
     makeString(value: string): LanguageStatement {
         return new StringStatement(value)
-    };
-
+    }
+    makeBinaryOp(op: string, arg1: LanguageStatement, arg2: LanguageStatement): LanguageStatement {
+        return new BinaryOpStatement(op, arg1, arg2)
+    }
+    abstract makeCast(value: LanguageStatement, type: string): LanguageStatement
     abstract writePrintLog(message: string): void
-
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature)
     }
@@ -212,7 +237,6 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-
     writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
         let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
         this.printer.print(`export interface ${name}${extendsClause} {`)
@@ -221,15 +245,12 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-
     writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void {
         this.printer.print(`${modifiers?.join(' ') ?? ""} ${name}${optional ? "?"  : ""}: ${type.name}`)
     }
-
     writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string): void {
         this.writeDeclaration(name, signature, true, false, prefix)
     }
-
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
         this.writeDeclaration('constructor', signature, false, true)
         this.pushIndent()
@@ -238,7 +259,6 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
 
     }
-
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
         this.writeDeclaration(method.name, method.signature, true, true, method.modifiers?.includes(MethodModifier.STATIC) ? "static " : "")
         this.pushIndent()
@@ -246,23 +266,21 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, prefix?: string) {
         this.printer.print(`${prefix ?? ""}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
-
     makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
         return new AssignStatement(variableName, type, statement, isDeclared)
     }
-
     makeReturn(stmt: LanguageStatement): LanguageStatement {
         return new TSReturnStatement(stmt)
     }
-
     writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)
     }
-
+    makeCast(value: LanguageStatement, type: string): LanguageStatement {
+        return new TSCastStatement(value, type)
+    }
     mapType(type: Type): string {
         return `${type.name}`
     }
@@ -302,7 +320,6 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-
     writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
         let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
         this.printer.print(`interface ${name}${extendsClause} {`)
@@ -311,7 +328,6 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-
     writeMemberCall(receiver: string, method: string, params: string[], nullable = false): void {
         if (nullable) {
             this.printer.print(`if (${receiver} != null) ${receiver}.${method}(${params.join(", ")});`)
@@ -319,18 +335,15 @@ export class JavaLanguageWriter extends LanguageWriter {
             this.printer.print(`${receiver}.${method}(${params.join(", ")});`)
         }
     }
-
     writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void {
         this.printer.print(`${modifiers?.join(' ') ?? ""}  ${type.name} ${name}${optional ? " = null"  : ""};`)
     }
-
     writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string): void {
         this.printer.print(`${prefix ?? ""}${this.mapType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")});`)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, "static native ")
     }
-
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
         this.printer.print(`${className}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
@@ -338,7 +351,6 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
         this.printer.print(`${this.mapType(method.signature.returnType)} ${method.name}(${method.signature.args.map((it, index) => `${this.mapType(it)} ${method.signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
@@ -346,19 +358,18 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-
     makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
         return new JavaAssignStatement(variableName, type, statement, isDeclared)
     }
-
     makeReturn(stmt: LanguageStatement): LanguageStatement {
         return new JavaReturnStatement(stmt)
     }
-
+    makeCast(value: LanguageStatement, type: string): LanguageStatement {
+        return new JavaCastStatement(value, type)
+    }
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
     }
-
     mapType(type: Type): string {
         switch (type.name) {
             case 'KPointer': return 'long'
@@ -377,33 +388,35 @@ export class CppLanguageWriter extends LanguageWriter {
         super(printer, Language.CPP)
     }
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string | undefined, interfaces?: string[] | undefined): void {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
     }
     writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[] | undefined): void {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
     }
     writeFieldDeclaration(name: string, type: Type, modifiers: string[] | undefined, optional: boolean): void {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, prefix?: string | undefined): void {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
     }
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
     }
     makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
     }
     makeReturn(stmt: LanguageStatement): LanguageStatement {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
+    }
+    makeCast(value: LanguageStatement, type: string): LanguageStatement {
+        throw new Error("Method not implemented.")
     }
     writePrintLog(message: string): void {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.")
     }
-
 }
 
 export function createLanguageWriter(printer: IndentedPrinter, language: Language): LanguageWriter {

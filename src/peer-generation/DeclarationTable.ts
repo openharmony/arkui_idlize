@@ -578,7 +578,7 @@ export class DeclarationTable {
             return this.declarationConvertor(param, type, declaration)
         }
         if (ts.isEnumMember(type)) {
-            return new EnumConvertor(param, this)
+            return new EnumConvertor(param, this, type.parent)
         }
         if (ts.isUnionTypeNode(type)) {
             return new UnionConvertor(param, this, type)
@@ -689,8 +689,6 @@ export class DeclarationTable {
             return this.customConvertor(entityName, param, type) ?? throwException(`Declaration not found for: ${type.getText()}`)
         }
         const declarationName = identName(declaration.name)!
-
-
         let customConvertor = this.customConvertor(entityName, param, type)
         if (customConvertor) {
             return customConvertor
@@ -700,10 +698,10 @@ export class DeclarationTable {
             return this.declarationConvertor(param, typeOuter, declaration)
         }
         if (ts.isEnumDeclaration(declaration)) {
-            return new EnumConvertor(param, this)
+            return new EnumConvertor(param, this, declaration)
         }
         if (ts.isEnumMember(declaration)) {
-            return new EnumConvertor(param, this)
+            return new EnumConvertor(param, this, declaration.parent)
         }
         if (ts.isTypeAliasDeclaration(declaration)) {
             this.requestType(declarationName, type)

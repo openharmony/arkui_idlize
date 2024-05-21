@@ -119,7 +119,6 @@ export function printMaterialized(peerLibrary: PeerLibrary, dumpSerialized: bool
     const result = new Map<string, string>()
     for (const [key, content] of visitor.materialized) {
         if (content.length === 0) continue
-        console.log(`  key: ${key}, content: ${content.join(`|`)}`)
         result.set(key, content.join('\n'))
     }
     return result
