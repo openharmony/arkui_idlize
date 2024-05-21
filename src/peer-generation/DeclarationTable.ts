@@ -1382,7 +1382,8 @@ constructor(expectedSize: int32) {
         printer.print(`${name} read${name}() {`)
         printer.pushIndent()
         printer.print(`Deserializer& valueDeserializer = *this;`)
-        printer.print(`${name} value;`)
+        // using list initialization to prevent uninitialized value errors
+        printer.print(`${name} value = {};`)
         if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
             let struct = this.targetStruct(target)
             struct.getFields().forEach(it => {
