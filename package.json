@@ -78,6 +78,6 @@
         "compile:arkts": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module",
         "compile:native-ohos-subset-arm32": "npm run check:subset && node ./native/nativeBuild.mjs subset arm32",
         "compile:native-ohos-subset-arm64": "npm run check:subset && node ./native/nativeBuild.mjs subset arm64",
-        "run:ohos-subset-arm64": "npm run compile:native-ohos-subset-arm64 && node ./ohos-app/getDependencies4ohos.mjs subset arm64 && node ./ohos-app/runPerf.mjs subset arm64"
+        "run:ohos-subset-arm64:perf": "npm run compile:native-ohos-subset-arm64 && node ./ohos-app/runPerf.mjs subset arm64"
     }
 }

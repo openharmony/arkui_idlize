@@ -132,6 +132,10 @@ declare class CommonMethod<T> {
 
     height(value: Length): T;
 
+    key(value: string): T;
+
+    restoreId(value: number): T;
+
     padding(value: Padding | Dimension): T;
 
     bindSheet(isShow: boolean, builder: () => void, options?: SheetOptions): T;

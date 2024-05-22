@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
 #include <unordered_map>
 #include <vector>
 #include "common-interop.h"
@@ -210,11 +211,25 @@ void Performace::FinishOne() {
     perfs_[current_.perf_name].emplace_back(current_);
 }
 
+void Performace::CalcSelfCost() {
+    float totalCost = 0.0;
+    auto it = perfs_.find("perf_counter_self_cost");
+    if (it == perfs_.end()) {
+        self_cost_ = totalCost;
+        return;
+    }
+
+    for (const auto& perf : it->second) {
+        totalCost += perf.cost / 1000.0;
+    }
+    self_cost_ = totalCost / it->second.size();
+}
+
 void Performace::PrintTotals(std::stringstream& result) {
     for (const auto& [name, perfs] : perfs_) {
         float totalCost = 0;
         for (const auto& perf : perfs) {
-            totalCost += perf.cost / 1000.0;
+            totalCost += perf.cost / 1000.0 - self_cost_;
         }
         result << "Perf trace_name(" << name << ") " << perfs.size() << " call total cost " << totalCost << " us.";
     }
@@ -222,12 +237,13 @@ void Performace::PrintTotals(std::stringstream& result) {
 
 void Performace::PrintAvgs(std::stringstream& result) {
     for (const auto& [name, perfs] : perfs_) {
+        if (name == "perf_counter_self_cost") continue;
         float totalCost = 0;
         for (const auto& perf : perfs) {
-            totalCost += perf.cost / 1000.0;
+            totalCost += perf.cost / 1000.0 - self_cost_;
         }
         auto avg = totalCost / perfs.size();
-        result << "Perf trace_name(" << name << ") " << perfs.size() << " call avg cost " << avg << " us.";
+        result << "Perf trace_name(" << name << ") " << perfs.size() << " call avg cost " << avg << " us.\n";
     }
 }
 
@@ -236,8 +252,8 @@ void Performace::PrintPeak(std::stringstream& result) {
         std::sort(kv.second.begin(), kv.second.end(), [](const PerfInfo &perf1, const PerfInfo &perf2) {
             return perf1.cost > perf2.cost;
         });
-        auto maxCost = kv.second.front().cost / 1000.0;
-        auto minCost = kv.second.back().cost / 1000.0;
+        auto maxCost = kv.second.front().cost / 1000.0 - self_cost_;
+        auto minCost = kv.second.back().cost / 1000.0 - self_cost_;
         result << "Perf trace_name(" << kv.first << ") " << " maxCost = " << maxCost << " us, ";
         result << "minCost = " << minCost << " us.";
     }
@@ -255,8 +271,8 @@ void Performace::Clean() {
     perfs_.clear();
 }
 
-void PerfInfo::Print(std::stringstream& result) {
-    result << "Perf trace_name(" << perf_name <<  ") cost " << cost / 1000.0 << " us." << std::endl;
+void PerfInfo::Print(std::stringstream& result, float counterSelf) {
+    result << "Perf trace_name(" << perf_name <<  ") cost " << (cost / 1000.0 - counterSelf) << " us." << std::endl;
 }
 
 void impl_StartPerf(KStringPtr traceName) {
@@ -286,6 +302,8 @@ enum DumpOptions {
 
 KNativePointer impl_DumpPerf(KInt options) {
     std::stringstream result;
+    result << std::fixed << std::setprecision(3);
+    Performace::GetInstance()->CalcSelfCost();
     switch (options) {
         case TOTAL:
             Performace::GetInstance()->PrintTotals(result);

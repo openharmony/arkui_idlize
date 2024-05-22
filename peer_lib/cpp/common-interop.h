@@ -71,7 +71,7 @@ typedef struct PerfInfo {
     long long int end;
     long long int cost;
     std::string perf_name;
-    void Print(std::stringstream& result);
+    void Print(std::stringstream& result, float counterSelf = 0.0);
 } PerfInfo;
 
 class Performace {
@@ -81,12 +81,14 @@ public:
     void PrintPeak(std::stringstream& result);
     void PrintDetails(std::stringstream& result);
     void FinishOne();
+    void CalcSelfCost();
     void Clean();
     PerfInfo& GetCurrent();
     static Performace* GetInstance();
 private:
     std::unordered_map<std::string, std::vector<PerfInfo>> perfs_;
     PerfInfo current_;
+    float self_cost_;
 };
 
 #if defined KOALA_USE_NODE_VM

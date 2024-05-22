@@ -61,7 +61,7 @@ let mode = isFull ? `full` : `subset`
 let crossFile = `cross-compilation-ohos-${arch}.txt`
 let outDir = `build-${mode}-ohos-${arch}`
 let ohosSdkRoot = process.env.OHOS_SDK ?? '../koala-ui/ohos-sdk/ohos-sdk'
-let ohosSdkVersion = 'HarmonyOS-NEXT-DP1'
+let ohosSdkVersion = process.env.OHOS_SDK_VERSION ?? 'HarmonyOS-NEXT-DP1'
 
 const sysrootDir = crossPathResolve(`${ohosSdkRoot}/${ohosSdkVersion}/base/native/sysroot`)
 let builtInArgs = `${isArm64 ? '\'--target=aarch64-linux-ohos\'' : '\'--target=arm-linux-ohos\', \'-m32\''}`

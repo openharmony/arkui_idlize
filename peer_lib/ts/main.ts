@@ -26,6 +26,7 @@ import { ArkTabContentPeer } from "@arkoala/arkui/ArkTabContentPeer"
 import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleMaterialized"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
+import { testString1000 } from "@arkoala/arkui/test_data"
 
 import {
     getNativeLog,
@@ -258,8 +259,6 @@ function checkPerf2(count: number) {
     let passed = performance.now() - start
     console.log(`backdropBlur: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
-
-export const testString1000: string = "Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand words Ten Thousand"
 
 function checkPerf3(count: number) {
     let peer = new ArkButtonPeer(ArkUINodeType.Button)
