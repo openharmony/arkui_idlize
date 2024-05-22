@@ -36,7 +36,8 @@ import {
     startNativeLog,
     CALL_GROUP_LOG,
     stopNativeLog,
-    TEST_GROUP_LOG
+    TEST_GROUP_LOG,
+    assertEquals
 } from "./test_utils"
 import { nativeModule } from "@arkoala/arkui//NativeModule"
 
@@ -215,9 +216,17 @@ function checkParticle() {
 
 function checkTabContent() {
     let peer = new ArkTabContentPeer(ArkUINodeType.TabContent)
-    checkResult("tabBar",
-        () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(new SubTabBarStyle("abc")),
-        `new SubTabBarStyle("abc")tabBar(??)`)
+    let subTabBarStyle: SubTabBarStyle| undefined = undefined
+
+    checkResult("new SubTabBarStyle()",
+        () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = new SubTabBarStyle("abc")),
+        `new SubTabBarStyle("abc")[return (void*) 100]tabBar("Materialized 0x2a")`)
+    assertEquals("new SubTabBarStyle() ptr", 100, subTabBarStyle!.peer!.ptr) // constructor ptr is 100
+
+    checkResult("new SubTabBarStyle()",
+        () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = SubTabBarStyle.of_ResourceStr("ABC")),
+        `of("ABC")[return (void*) 200]tabBar("Materialized 0x2a")`)
+    assertEquals("SubTabBarStyle.of_ResourceStr() ptr", 200, subTabBarStyle!.peer!.ptr) // static method ptr is 200
 }
 
 function checkPerf1(count: number) {
@@ -293,7 +302,7 @@ ${callLog}
   return 0;
 }`)
 }
-// checkTabContent()
+checkTabContent()
 
 // Report in error code.
 checkTestFailures()

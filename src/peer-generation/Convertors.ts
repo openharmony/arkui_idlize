@@ -903,7 +903,6 @@ export class TypeAliasConvertor extends ProxyConvertor {
 
 export interface RetConvertor {
     isVoid: boolean
-    isStruct: boolean
     nativeType: () => string
     macroSuffixPart: () => string
 }

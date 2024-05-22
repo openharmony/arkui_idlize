@@ -481,7 +481,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         let isVoid = nativeType == "void"
         return {
             isVoid: isVoid,
-            isStruct: typeNode !== undefined && ts.isTypeReferenceNode(typeNode),
             nativeType: () => nativeType,
             macroSuffixPart: () => isVoid ? "V" : ""
         }

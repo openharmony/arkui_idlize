@@ -106,8 +106,12 @@ export class ModifierVisitor {
             this.dummy.print(`WriteToString(&out, ${argConvertor.param});`)
         })
         this.dummy.print(`out.append(")");`)
+        const retVal = method.dummyReturnValue
+        if (retVal  !== undefined) {
+            this.dummy.print(`out.append("[return ${retVal}]");`)
+        }
         this.dummy.print(`appendGroupedLog(1, out);`)
-        this.printReturnStatement(this.dummy, method)
+        this.printReturnStatement(this.dummy, method, retVal)
     }
 
     printModifierImplFunctionBody(method: PeerMethod) {
@@ -120,10 +124,9 @@ export class ModifierVisitor {
         this.printReturnStatement(this.real, method)
     }
 
-    private printReturnStatement(printer: IndentedPrinter, method: PeerMethod) {
+    private printReturnStatement(printer: IndentedPrinter, method: PeerMethod, returnValue: string | undefined = undefined) {
         if (!method.retConvertor.isVoid) {
-            const retValue = method.retConvertor.isStruct ? "{}" : "0"
-            printer.print(`return ${retValue};`)
+            printer.print(`return ${returnValue?? "0"};`)
         }
     }
 

@@ -60,6 +60,10 @@ export class PeerMethod {
         return this.method.name
     }
 
+    get dummyReturnValue(): string | undefined {
+        return undefined
+    }
+
     get retType(): string {
         return this.maybeCRetType(this.retConvertor) ?? "void"
     }

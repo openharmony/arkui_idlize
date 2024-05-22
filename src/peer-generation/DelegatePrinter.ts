@@ -85,12 +85,7 @@ class MethodDelegatePrinter extends MethodSeparatorVisitor {
     onVisitInseparable(): void {
         const signature = this.delegateSignatureBuilder.buildSignature()
         this.declPrinter.print(`${signature};`) 
-
-        let retStatement = ""
-        if (!this.method.retConvertor.isVoid) {
-            const retValue = this.method.retConvertor.isStruct ? "{}" : "0"
-            retStatement = `return ${retValue};`
-        }
+        const retStatement = this.method.retConvertor.isVoid ? "" :`return 0;`
         this.implPrinter.print(`${signature} { ${retStatement} }`)
     }
 }

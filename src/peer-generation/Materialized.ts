@@ -15,7 +15,7 @@
 
 import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./Convertors"
-import { Method, Type } from "./LanguageWriters"
+import { Method, MethodModifier, Type } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
 import { identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
@@ -59,6 +59,12 @@ export class MaterializedMethod extends PeerMethod {
             case "destructor": return `delete ${this.originalParentName}`
             default: return super.toStringName
         }
+    }
+
+    override get dummyReturnValue(): string | undefined {
+        if (this.method.name === "ctor") return `(void*) 100`
+        if (this.method.modifiers?.includes(MethodModifier.STATIC)) return `(void*) 200`
+        return undefined;
     }
 
     override get receiverType(): string {
