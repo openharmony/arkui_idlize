@@ -36,7 +36,7 @@ import {
     ArgConvertor, RetConvertor,
 } from "./Convertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { DeclarationTable, DeclarationTarget, MethodRecord, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import {
     hasTransitiveHeritageGenericType,
     isCommonMethod,
@@ -312,9 +312,10 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         return mapTypeOrVoid(this.typeChecker, type)
     }
 
-    generateSignature(method: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
+    generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
         const parameters = this.tempExtractParameters(method)
-        return new NamedMethodSignature(Type.This,
+        const returnType = isStatic(method.modifiers) ? new Type(identName(method.type)!) : Type.This
+        return new NamedMethodSignature(returnType,
             parameters
                 .map(it => new Type(this.mapType(it.type), it.questionToken != undefined)),
             parameters
@@ -337,7 +338,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         return argConvertors?.map(it => `${it.param}`).join(", ")
     }
 
-    private tempExtractParameters(method: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): ts.ParameterDeclaration[] {
+    private tempExtractParameters(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): ts.ParameterDeclaration[] {
         if (!ts.isCallSignatureDeclaration(method) && identName(method.name) === "onWillScroll") {
             /**
              * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
@@ -431,9 +432,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         } else if (ts.isUnionTypeNode(type)) {
             type.types.forEach(it => this.collectMaterializedClasses(it))
         } else if (ts.isFunctionTypeNode(type)) {
-            // TODO: incorrect, follow declaration and do in-depth operation.
             type.parameters.forEach(param => {
-                this.requestType(undefined, param.type!)
+                this.collectMaterializedClasses(param.type!)
             })
         }
     }
@@ -442,31 +442,36 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         if (!isMaterialized(target)) {
             return
         }
-        let structDescriptor = this.declarationTable.targetStruct(target)
-        let constructor = structDescriptor.getConstructor()
         let className = nameOrNull(target.name)!
         if (this.peerLibrary.materializedClasses.has(className)) {
             return
         }
 
-        let mConstructor = this.makeMaterializedMethod(className, constructor!, true)
-        let mDestructor = this.makeMaterializedMethod(className, new MethodRecord("destructor", false, undefined, []))
-        let mMethods = structDescriptor.getMethods()
+        let constructor = target.members.find(ts.isConstructorDeclaration)!
+        let mConstructor = this.makeMaterializedMethod(className, constructor)
+        let mDestructor = new MaterializedMethod(className, [], [], this.retConvertor(undefined), false,
+            new Method("destructor", new NamedMethodSignature(Type.Void, [], [], []), []))
+        let mMethods = target.members
+            .filter(ts.isMethodDeclaration)
             .map(method => this.makeMaterializedMethod(className, method))
         this.peerLibrary.materializedClasses.set(className,
             new MaterializedClass(className, mConstructor, mDestructor, mMethods))
     }
 
-    private makeMaterializedMethod(parentName: string, method: MethodRecord, isConstructor = false): MaterializedMethod {
-        const declarationTargets = method.params.map(it => it.declaration)
-        const argConvertors = method.params
-            .map((param) => this.declarationTable.typeConvertor(param.name, param.type, param.nullable))
-        const retConvertor = isConstructor
+    private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration) {
+        const declarationTargets = method.parameters.map(param =>
+            this.declarationTable.toTarget(param.type ??
+                throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
+        const argConvertors = method.parameters.map(param => this.argConvertor(param))
+        const retConvertor = ts.isConstructorDeclaration(method)
             ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
-            : this.retConvertor(method.returnType)
-        return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false, method.toMethod(this.typeChecker))
+            : this.retConvertor(method.type)
+        const signature = this.generateSignature(method)
+        const methodName = ts.isConstructorDeclaration(method) ? "ctor" : identName(method.name)!
+        const modifiers = ts.isConstructorDeclaration(method) || isStatic(method.modifiers) ? [MethodModifier.STATIC] : []
+        return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false,
+            new Method(methodName, signature, modifiers))
     }
-
 
     argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
         if (!param.type) throw new Error("Type is needed")

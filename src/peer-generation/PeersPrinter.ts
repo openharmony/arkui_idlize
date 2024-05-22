@@ -259,6 +259,8 @@ class PeersVisitor {
     }
 }
 
+const returnValName = "retval"  // make sure this doesn't collide with parameter names!
+
 export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): Map<string, string> {
     const visitor = new PeersVisitor(peerLibrary, dumpSerialized)
     visitor.printPeers()
@@ -302,7 +304,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     }
     //let maybeThis = method.hasReceiver() ? `this.peer.ptr${method.argConvertors.length > 0 ? ", " : ""}` : ``
     let maybeThis = method.hasReceiver() ? `${ptr}${method.argConvertors.length > 0 ? ", " : ""}` : ``
-    const result = returnType == Type.Void ? "" : "const result = "
+    const result = returnType == Type.Void ? "" : `const ${returnValName} = `
     writer.print(`${result}nativeModule()._${method.originalParentName}_${method.overloadedName}(${maybeThis}`)
     writer.pushIndent()
     method.argConvertors.forEach((it, index) => {
@@ -324,14 +326,14 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     })
 
     if (returnType != Type.Void) {
-        let result = "result"
-        if (method.hasReceiver()) {
-            result = returnType === Type.This ? `this` : `result`
+        let result = returnValName
+        if (method.hasReceiver() && returnType === Type.This) {
+            result = `this`
         } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor"){
             const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(",")})`
             const objType = new Type(method.originalParentName)
             writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
-            writer.writeStatement(writer.makeAssign("obj.peer", new Type("Finalizable"), writer.makeString("new Finalizable(result)"), false))
+            writer.writeStatement(writer.makeAssign("obj.peer", new Type("Finalizable"), writer.makeString(`new Finalizable(${returnValName})`), false))
             result = "obj"
         }
         writer.writeStatement(writer.makeReturn(writer.makeString(result)))
