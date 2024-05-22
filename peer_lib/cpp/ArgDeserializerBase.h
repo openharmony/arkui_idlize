@@ -24,86 +24,153 @@
 
 using namespace std;
 
-inline const char* tagName(Ark_Tag tag) {
-  switch (tag) {
-    case Ark_Tag::ARK_TAG_UNDEFINED: return "UNDEFINED";
-    case Ark_Tag::ARK_TAG_INT32: return "INT32";
-    case Ark_Tag::ARK_TAG_FLOAT32: return "FLOAT32";
-    case Ark_Tag::ARK_TAG_LENGTH: return "LENGTH";
-    case Ark_Tag::ARK_TAG_RESOURCE: return "RESOURCE";
-    case Ark_Tag::ARK_TAG_STRING: return "STRING";
-    case Ark_Tag::ARK_TAG_OBJECT: return "OBJECT";
+inline const char *tagName(Ark_Tag tag)
+{
+  switch (tag)
+  {
+  case Ark_Tag::ARK_TAG_UNDEFINED:
+    return "UNDEFINED";
+  case Ark_Tag::ARK_TAG_INT32:
+    return "INT32";
+  case Ark_Tag::ARK_TAG_FLOAT32:
+    return "FLOAT32";
+  case Ark_Tag::ARK_TAG_LENGTH:
+    return "LENGTH";
+  case Ark_Tag::ARK_TAG_RESOURCE:
+    return "RESOURCE";
+  case Ark_Tag::ARK_TAG_STRING:
+    return "STRING";
+  case Ark_Tag::ARK_TAG_OBJECT:
+    return "OBJECT";
   }
   fprintf(stderr, "tag name %d is wrong\n", tag);
   throw "Error";
 }
 
-inline const char* getUnitName(int value) {
-  switch (value) {
-    case 0: return "px";
-    case 1: return "vp";
-    case 3: return "%";
-    case 4: return "lpx";
-    default: return "<unknown>";
+inline const char *getUnitName(int value)
+{
+  switch (value)
+  {
+  case 0:
+    return "px";
+  case 1:
+    return "vp";
+  case 2:
+    return "fp";
+  case 3:
+    return "%";
+  case 4:
+    return "lpx";
+  default:
+    return "<unknown>";
   }
 }
 
-// TODO: restore full printing!
-template <typename T>
-inline void WriteToString(string* result, T value) = delete;
+inline void parseDimension(const Ark_String &string, Ark_Length *result)
+{
+  char *suffixPtr = nullptr;
+  float value = std::strtof(string.chars, &suffixPtr);
 
-inline void WriteToString(string* result, const Ark_Empty& value) {
+  if (!suffixPtr || suffixPtr == string.chars)
+  {
+    // not a numeric value
+    result->unit = -1;
+    return;
+  }
+  result->value = value;
+  if (suffixPtr[0] == '\0' || (suffixPtr[0] == 'v' && suffixPtr[1] == 'p'))
+  {
+    result->unit = 1;
+  }
+  else if (suffixPtr[0] == '%')
+  {
+    result->unit = 3;
+  }
+  else if (suffixPtr[0] == 'p' && suffixPtr[1] == 'x')
+  {
+    result->unit = 0;
+  }
+  else if (suffixPtr[0] == 'l' && suffixPtr[1] == 'p' && suffixPtr[2] == 'x')
+  {
+    result->unit = 4;
+  }
+  else if (suffixPtr[0] == 'f' && suffixPtr[1] == 'p')
+  {
+    result->unit = 2;
+  }
+  else
+  {
+    result->unit = -1;
+  }
 }
 
-struct Error {
+
+// TODO: restore full printing!
+template <typename T>
+inline void WriteToString(string *result, T value) = delete;
+
+inline void WriteToString(string *result, const Ark_Empty &value)
+{
+}
+
+struct Error
+{
   std::string message;
   Error(const std::string &message) : message(message) {}
 };
 
 template <>
-inline void WriteToString(string* result, const Ark_Number* value) {
-  if (value->tag == ARK_TAG_FLOAT32) {
+inline void WriteToString(string *result, const Ark_Number *value)
+{
+  if (value->tag == ARK_TAG_FLOAT32)
+  {
     // print with precision 2 digits after dot
     std::string fv = std::to_string(value->f32);
     size_t i = fv.find(".");
     fv = (i != std::string::npos && (i + 3) < fv.length()) ? fv.substr(0, i + 3) : fv;
     result->append(fv);
-  } else
+  }
+  else
     result->append(std::to_string(value->i32));
 }
 
 template <>
-inline void WriteToString(string* result, Ark_Tag value) {
+inline void WriteToString(string *result, Ark_Tag value)
+{
   result->append(tagName(value));
 }
 
 template <>
-inline void WriteToString(string* result, ArkUINodeHandle value) {
+inline void WriteToString(string *result, ArkUINodeHandle value)
+{
   result->append("0x");
   result->append(std::to_string((int64_t)value));
 }
 
 template <>
-inline void WriteToString(string* result, const Ark_Function* value) {
-   result->append("\"");
-   result->append("Function ");
-   result->append(std::to_string(value->id));
-   result->append("\"");
+inline void WriteToString(string *result, const Ark_Function *value)
+{
+  result->append("\"");
+  result->append("Function ");
+  result->append(std::to_string(value->id));
+  result->append("\"");
 }
 
 template <>
-inline void WriteToString(string* result, const Ark_Materialized* value) {
+inline void WriteToString(string *result, const Ark_Materialized *value)
+{
   char hex[20];
   std::snprintf(hex, sizeof(hex), "%p", value->ptr);
-   result->append("\"");
-   result->append("Materialized ");
-   result->append(hex);
-   result->append("\"");
+  result->append("\"");
+  result->append("Materialized ");
+  result->append(hex);
+  result->append("\"");
 }
 
 // TODO: generate!
 template <>
-inline void WriteToString(string* result, const Ark_Length* value) {
+inline void WriteToString(string *result, const Ark_Length *value)
+{
   result->append("Length {");
   result->append("value=");
   result->append(std::to_string(value->value));
@@ -112,9 +179,10 @@ inline void WriteToString(string* result, const Ark_Length* value) {
   result->append("}");
 }
 
-inline Ark_Length Length_from_array(Ark_Int32* array) {
+inline Ark_Length Length_from_array(Ark_Int32 *array)
+{
   Ark_Length result;
-  result.value = *(Ark_Float32*)array;
+  result.value = *(Ark_Float32 *)array;
   result.unit = array[1];
   result.resource = array[2];
   return result;
@@ -122,16 +190,20 @@ inline Ark_Length Length_from_array(Ark_Int32* array) {
 
 class ArgDeserializerBase;
 
-inline void WriteToString(string* result, Ark_Undefined value) {
+inline void WriteToString(string *result, Ark_Undefined value)
+{
   result->append("undefined");
 }
 
-inline void WriteToString(string* result, const Ark_Undefined* value) {
+inline void WriteToString(string *result, const Ark_Undefined *value)
+{
   result->append("undefined");
 }
 
-inline void WriteToString(string* result, const Ark_CustomObject* value) {
-  if (strcmp(value->kind, "NativeErrorFunction") == 0) {
+inline void WriteToString(string *result, const Ark_CustomObject *value)
+{
+  if (strcmp(value->kind, "NativeErrorFunction") == 0)
+  {
     result->append("() => {} /* TBD: Function*/");
     return;
   }
@@ -141,17 +213,18 @@ inline void WriteToString(string* result, const Ark_CustomObject* value) {
   result->append(std::to_string(value->id));
 }
 
-struct CustomDeserializer {
+struct CustomDeserializer
+{
   virtual ~CustomDeserializer() {}
-  virtual bool supports(const string& kind) { return false; }
-  virtual Ark_CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
+  virtual bool supports(const string &kind) { return false; }
+  virtual Ark_CustomObject deserialize(ArgDeserializerBase *deserializer, const string &kind)
+  {
     Ark_CustomObject result;
     strcpy(result.kind, "error");
     return result;
   }
-  CustomDeserializer* next = nullptr;
+  CustomDeserializer *next = nullptr;
 };
-
 
 class ArgDeserializerBase
 {
@@ -159,46 +232,58 @@ protected:
   uint8_t *data;
   int32_t length;
   int32_t position;
-  std::vector<void*> toClean;
+  std::vector<void *> toClean;
 
-  static CustomDeserializer* customDeserializers;
+  static CustomDeserializer *customDeserializers;
+
 public:
   ArgDeserializerBase(uint8_t *data, int32_t length)
       : data(data), length(length), position(0) {}
 
-  ~ArgDeserializerBase() {
-    for (auto data: toClean) {
+  ~ArgDeserializerBase()
+  {
+    for (auto data : toClean)
+    {
       free(data);
     }
   }
 
-  static void registerCustomDeserializer(CustomDeserializer* deserializer) {
-    if (ArgDeserializerBase::customDeserializers == nullptr) {
+  static void registerCustomDeserializer(CustomDeserializer *deserializer)
+  {
+    if (ArgDeserializerBase::customDeserializers == nullptr)
+    {
       ArgDeserializerBase::customDeserializers = deserializer;
-    } else {
-      auto* current = ArgDeserializerBase::customDeserializers;
-      while (current->next != nullptr) current = current->next;
+    }
+    else
+    {
+      auto *current = ArgDeserializerBase::customDeserializers;
+      while (current->next != nullptr)
+        current = current->next;
       current->next = deserializer;
     }
   }
 
   template <typename T, typename E>
-  void resizeArray(T* array, int32_t length) {
-    void* value = nullptr;
-    if (length > 0) {
+  void resizeArray(T *array, int32_t length)
+  {
+    void *value = nullptr;
+    if (length > 0)
+    {
       value = malloc(length * sizeof(E));
       memset(value, 0, length * sizeof(E));
       toClean.push_back(value);
     }
     array->array_length = length;
-    array->array = reinterpret_cast<E*>(value);
+    array->array = reinterpret_cast<E *>(value);
   }
 
   template <typename T, typename K, typename V>
-  void resizeMap(T* map, int32_t length) {
-    void* keys = nullptr;
-    void* values = nullptr;
-    if (length > 0) {
+  void resizeMap(T *map, int32_t length)
+  {
+    void *keys = nullptr;
+    void *values = nullptr;
+    if (length > 0)
+    {
       keys = malloc(length * sizeof(K));
       memset(keys, 0, length * sizeof(K));
       toClean.push_back(keys);
@@ -208,8 +293,8 @@ public:
       toClean.push_back(values);
     }
     map->map_length = length;
-    map->keys = reinterpret_cast<K*>(keys);
-    map->values = reinterpret_cast<V*>(values);
+    map->keys = reinterpret_cast<K *>(keys);
+    map->values = reinterpret_cast<V *>(values);
   }
 
   int32_t currentPosition() const { return this->position; }
@@ -222,30 +307,35 @@ public:
     }
   }
 
-  Ark_CustomObject readCustomObject(string kind) {
-      auto* current = ArgDeserializerBase::customDeserializers;
-      while (current) {
-        if (current->supports(kind)) {
-          return current->deserialize(this, kind);
-        }
+  Ark_CustomObject readCustomObject(string kind)
+  {
+    auto *current = ArgDeserializerBase::customDeserializers;
+    while (current)
+    {
+      if (current->supports(kind))
+      {
+        return current->deserialize(this, kind);
       }
-      fprintf(stderr, "Unsupported custom deserialization for %s\n", kind.c_str());
-      auto tag = readTag();
-      assert(tag == ARK_TAG_UNDEFINED);
-      // Skip updefined tag!.
-      Ark_CustomObject result;
-      strcpy(result.kind, "Error");
-      strcat(result.kind, kind.c_str());
-      return result;
+    }
+    fprintf(stderr, "Unsupported custom deserialization for %s\n", kind.c_str());
+    auto tag = readTag();
+    assert(tag == ARK_TAG_UNDEFINED);
+    // Skip updefined tag!.
+    Ark_CustomObject result;
+    strcpy(result.kind, "Error");
+    strcat(result.kind, kind.c_str());
+    return result;
   }
 
-  int8_t readInt8() {
+  int8_t readInt8()
+  {
     check(1);
     int8_t value = *(data + position);
     position += 1;
     return value;
   }
-  Ark_Tag readTag() {
+  Ark_Tag readTag()
+  {
     return (Ark_Tag)readInt8();
   }
   Ark_Boolean readBoolean()
@@ -272,7 +362,7 @@ public:
   Ark_NativePointer readPointer()
   {
     check(8);
-    int64_t value = *(int64_t*)(data + position);
+    int64_t value = *(int64_t *)(data + position);
     position += 8;
     return reinterpret_cast<Ark_NativePointer>(value);
   }
@@ -288,7 +378,9 @@ public:
     else if (result.tag == Ark_Tag::ARK_TAG_FLOAT32)
     {
       result.f32 = readFloat32();
-    } else {
+    }
+    else
+    {
       fprintf(stderr, "Bad number tag %d\n", result.tag);
       throw "Unknown number tag";
     }
@@ -297,16 +389,32 @@ public:
 
   Ark_Length readLength()
   {
-    Ark_Length result;
+    Ark_Length result = {};
+    result.unit = 1;
     Ark_Tag tag = readTag();
-    if (tag == Ark_Tag::ARK_TAG_LENGTH) {
-      result.type = readInt8();
-      result.value = readFloat32();
-      result.unit = readInt32();
+    switch (tag)
+    {
+    case ARK_RUNTIME_OBJECT:
+    {
       result.resource = readInt32();
-    } else {
+      break;
+    }
+    case ARK_RUNTIME_STRING:
+    {
+      Ark_String string = readString();
+      parseDimension(string, &result);
+      break;
+    }
+    case ARK_RUNTIME_NUMBER:
+    {
+      result.value = readFloat32();
+      break;
+    }
+    default:
+    {
       fprintf(stderr, "Bad length tag %d\n", tag);
       throw "Error";
+    }
     }
     return result;
   }
@@ -317,43 +425,49 @@ public:
     Ark_Int32 length = readInt32();
     check(length);
     // We refer to string data in-place.
-    result.chars = (const char*)(data + position);
+    result.chars = (const char *)(data + position);
     result.length = length;
     this->position += length;
     return result;
   }
 
-  Ark_Function readFunction() {
+  Ark_Function readFunction()
+  {
     Ark_Function result;
     result.id = readInt32();
     return result;
   }
 
-  Ark_Materialized readMaterialized() {
+  Ark_Materialized readMaterialized()
+  {
     Ark_Materialized result;
     result.ptr = readPointer();
     return result;
   }
 
-  Ark_Undefined readUndefined() {
+  Ark_Undefined readUndefined()
+  {
     return Ark_Undefined();
   }
 };
 
-inline void WriteToString(string* result, Ark_Boolean value) {
-    result->append(value ? "true" : "false");
+inline void WriteToString(string *result, Ark_Boolean value)
+{
+  result->append(value ? "true" : "false");
 }
 
 template <>
-inline void WriteToString(string* result, Ark_Int32 value) {
+inline void WriteToString(string *result, Ark_Int32 value)
+{
   result->append(std::to_string(value));
 }
 
-inline void WriteToString(string* result, const Ark_String* value) {
-    result->append("\"");
-    if (value->chars)
-      result->append(value->chars);
-    else
-      result->append("<null>");
-    result->append("\"");
+inline void WriteToString(string *result, const Ark_String *value)
+{
+  result->append("\"");
+  if (value->chars)
+    result->append(value->chars);
+  else
+    result->append("<null>");
+  result->append("\"");
 }

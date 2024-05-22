@@ -287,14 +287,13 @@ export class SerializerBase {
     writeLength(value: Length|undefined) {
         this.checkCapacity(1)
         let valueType = runtimeType(value)
-        this.writeInt8(valueType == RuntimeType.UNDEFINED ? Tags.UNDEFINED : Tags.LENGTH)
-        if (valueType != RuntimeType.UNDEFINED) {
-            withLength(value, (type, value, unit, resource) => {
-                this.writeInt8(type)
-                this.writeFloat32(value)
-                this.writeInt32(unit)
-                this.writeInt32(resource)
-            })
+        this.writeInt8(valueType)
+        if (valueType == RuntimeType.NUMBER) {
+            this.writeFloat32(value as number)
+        } else if (valueType == RuntimeType.STRING) {
+            this.writeString(value as string)
+        } else if (valueType == RuntimeType.OBJECT) {
+            this.writeInt32((value as Resource).id)
         }
     }
 }

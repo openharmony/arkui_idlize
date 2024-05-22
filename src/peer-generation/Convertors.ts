@@ -230,7 +230,7 @@ export class EnumConvertor extends BaseArgConvertor {
     }
 }
 
-export class LengthConvertor extends BaseArgConvertor {
+export class LengthConvertorScoped extends BaseArgConvertor {
     constructor(param: string) {
         super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, true, param)
     }
@@ -250,8 +250,36 @@ export class LengthConvertor extends BaseArgConvertor {
             )
         )
     }
-    convertorCArg(param: string): string {
-        return `Length_from_array(${param})`
+    convertorDeserialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.print(`${value} = ${param}Deserializer.readLength();`)
+    }
+    nativeType(impl: boolean): string {
+        return PrimitiveType.Length.getText()
+    }
+    interopType(language: Language): string {
+        return language == Language.CPP ? `${PrimitiveType.Int32.getText()}*` : "Int32ArrayPtr"
+    }
+    estimateSize() {
+        return 12
+    }
+    isPointerType(): boolean {
+        return true
+    }
+}
+
+export class LengthConvertor extends BaseArgConvertor {
+    constructor(param: string) {
+        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, true, param)
+    }
+    convertorArg(param: string, language: Language): string {
+        throw new Error("Not used")
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.writeStatement(
+            printer.makeStatement(
+                printer.makeMemberCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
+            )
+        )
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): void {
         printer.print(`${value} = ${param}Deserializer.readLength();`)
