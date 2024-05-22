@@ -144,7 +144,7 @@ template <>
 inline void WriteToString(string *result, ArkUINodeHandle value)
 {
   result->append("0x");
-  result->append(std::to_string((int64_t)value));
+  result->append(std::to_string((uint64_t)value));
 }
 
 template <>
@@ -160,7 +160,7 @@ template <>
 inline void WriteToString(string *result, const Ark_Materialized *value)
 {
   char hex[20];
-  std::snprintf(hex, sizeof(hex), "%p", value->ptr);
+  std::snprintf(hex, sizeof(hex), "0x%llx", (long long)value->ptr);
   result->append("\"");
   result->append("Materialized ");
   result->append(hex);

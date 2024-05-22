@@ -141,24 +141,17 @@ export class DeserializerBase {
     readLength(): Length | undefined {
         this.checkCapacity(1)
         const valueType = this.readInt8()
-        if (valueType == Tags.LENGTH) {
-            const type = this.readInt8()
-            const value = this.readFloat32()
-            const unitId = this.readInt32()
-            const resourceId = this.readInt32()
-
-            if (type == RuntimeType.NUMBER) {
-                return value
-            } else if (type == RuntimeType.STRING) {
-                return `${value}${DeserializerBase.lengthUnitFromInt(unitId)}`
-            } else if (type == RuntimeType.OBJECT) {
+        switch (valueType) {
+            case RuntimeType.OBJECT:
                 return {
-                    id: resourceId,
+                    id: this.readInt32(),
                     bundleName: "",
                     moduleName: ""
                 }
-            }
-            return value
+            case RuntimeType.STRING:
+                return this.readString()
+            case RuntimeType.NUMBER:
+                return this.readFloat32()
         }
         return undefined
     }

@@ -1,7 +1,6 @@
 import { nativeModule } from "@arkoala/arkui/NativeModule"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
-import { ArkTestPeer } from "@arkoala/arkui/ArkTestPeer"
 import {
     testString10, testString100, testString1000, testString5000, testString10000, testLength_10_percent,
     testLength_number100, testNumber100

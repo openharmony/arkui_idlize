@@ -54,7 +54,7 @@ if (!reportTestFailures) {
 
 function checkSerdeResult(name: string, value: any, expected: any) {
     if (value !== expected) {
-        console.log(`TEST ${name} FAILURE`)
+        console.log(`TEST ${name} FAILURE: ${value} != ${expected}`)
     } else {
         console.log(`TEST ${name} PASS`)
     }
