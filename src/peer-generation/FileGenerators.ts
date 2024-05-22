@@ -19,6 +19,7 @@ import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { Language, indentedBy, langSuffix } from "../util"
 import { createLanguageWriter } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { PeerEventKind } from "./EventsPrinter"
 
 const importTsInteropTypes = `
 import {
@@ -100,6 +101,16 @@ export function completeImplementations(lines: string): string {
 #include "Deserializer.h"
 #include "common-interop.h"
 #include "delegates.h"
+
+${lines}
+`
+}
+
+export function completeEventsImplementations(lines: string): string {
+    return `
+#include "arkoala_api.h"
+#include "events.h"
+#include "ArgSerializerBase.h"
 
 ${lines}
 `
@@ -215,7 +226,7 @@ ${deserializer.getOutput().join("\n")}
 `
 }
 
-export function makeApiModifiers(modifiers: string[], accessors: string[]): string {
+export function makeApiModifiers(modifiers: string[], accessors: string[], events: string[]): string {
     return `
 /**
  * An API to control an implementation. When making changes modifying binary
@@ -248,6 +259,11 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
     ${PrimitiveType.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI;
 
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
+    ${PrimitiveType.Int32.getText()} version;
+${events.join("\n")}
+} ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI;
+
 /**
  * An API to control an implementation. When making changes modifying binary
  * layout, i.e. adding new events - increase ARKUI_NODE_API_VERSION above for binary
@@ -261,6 +277,7 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
     const ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation* (*getAnimation)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUINavigation* (*getNavigation)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
+    const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* (*getEventsAPI)();
 } ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {
@@ -287,7 +304,7 @@ function readLangTemplate(name: string, lang: Language): string {
 
 export function makeAPI(
     apiVersion: string,
-    headers: string[], modifiers: string[], accessors: string[],
+    headers: string[], modifiers: string[], accessors: string[], events: string[],
     structs: IndentedPrinter, typedefs: IndentedPrinter
 ): string {
 
@@ -307,7 +324,7 @@ ${typedefs.getOutput().join("\n")}
 
 ${makeApiHeaders(headers)}
 
-${makeApiModifiers(modifiers, accessors)}
+${makeApiModifiers(modifiers, accessors, events)}
 
 ${epilogue}
 `
@@ -388,5 +405,36 @@ ${prologue}
 
 ${importTsInteropTypes}
 
+`
+}
+
+export function makePeerEvents(data: string): string {
+    return `
+import { DeserializerBase } from './DeserializerBase'
+
+class PeerEvent {
+    constructor(
+        public readonly kind: ${PeerEventKind},
+        public readonly nodeId: number,
+    ) {}
+}
+
+${data}
+`
+}
+
+export function makeCEventsImpl(implData: string, receiversList: string): string {
+    return `
+${implData}
+
+const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {
+  1, // version
+${receiversList}
+};
+
+extern const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* GetArkUiEventsAPI()
+{
+    return &eventsImpl;
+}
 `
 }

@@ -150,6 +150,7 @@ export class DeclarationTable {
         if (ts.isTupleTypeNode(type)) return true
         if (ts.isArrayTypeNode(type)) return true
         if (ts.isOptionalTypeNode(type)) return true
+        if (ts.isFunctionTypeNode(type)) return true
         // TODO: shall we map it to string type here or later?
         if (ts.isTemplateLiteralTypeNode(type)) return true
         return false
@@ -189,9 +190,6 @@ export class DeclarationTable {
         if (this.isDeclarationTarget(node)) return node as DeclarationTarget
         if (ts.isImportTypeNode(node)) {
             return this.mapImportType(node)
-        }
-        if (ts.isFunctionTypeNode(node)) {
-            return PrimitiveType.Function
         }
         if (ts.isTypeReferenceNode(node)) {
             let result = this.customToTarget(node)

@@ -30,6 +30,7 @@ import {
     dummyImplementations,
     makeArkuiModule,
     makeTSSerializer,
+    completeEventsImplementations,
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
@@ -52,6 +53,7 @@ import { printBridgeCc } from "./peer-generation/BridgeCcPrinter"
 import { printImportsStubs } from "./peer-generation/ImportsStubsPrinter"
 import { printDelegatesHeaders, printDelegatesImplementation } from "./peer-generation/DelegatePrinter"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
+import { printEvents, printEventsCImpl } from "./peer-generation/EventsPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -344,6 +346,10 @@ if (options.dts2peer) {
                     fs.writeFileSync(path.join(outDir, 'Serializer' + langSuffix(lang)),
                         makeTSSerializer(declarationTable)
                     )
+                    fs.writeFileSync(
+                        path.join(outDir, "peer_events" + langSuffix(lang)),
+                        printEvents(peerLibrary)
+                    )
                 }
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
 
@@ -357,6 +363,7 @@ if (options.dts2peer) {
                 const accessors = printRealAndDummyAccessors(peerLibrary)
                 fs.writeFileSync(path.join(outDir, 'dummy_impl.cc'), dummyImplementations(modifiers.dummy + accessors.dummy))
                 fs.writeFileSync(path.join(outDir, 'all_modifiers.cc'), completeImplementations(modifiers.real + accessors.real))
+                fs.writeFileSync(path.join(outDir, 'all_events.cc'), completeEventsImplementations(printEventsCImpl(peerLibrary)))
 
                 copyPeerLib(path.join(__dirname, '..', 'peer_lib'), outDir)
             }

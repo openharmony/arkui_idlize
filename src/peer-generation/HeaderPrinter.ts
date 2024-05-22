@@ -20,14 +20,35 @@ import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { CallbackInfo, collectCallbacks, groupCallbacks } from "./EventsPrinter";
+import { DeclarationTable, PrimitiveType } from "./DeclarationTable";
+import { NamedMethodSignature, Type } from "./LanguageWriters";
+
+export function generateEventReceiverName(componentName: string) {
+    return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
+}
+
+export function generateEventSignature(table: DeclarationTable, event: CallbackInfo): NamedMethodSignature {
+    const nodeType = new Type(table.uniqueName(PrimitiveType.Int32))
+    const argsTypes = event.args.map(it => new Type(
+        'const ' + table.typeConvertor(it.name, it.type, it.nullable).nativeType(false),
+        it.nullable,
+    ))
+    return new NamedMethodSignature(
+        new Type('void'),
+        [nodeType, ...argsTypes],
+        ['nodeId', ...event.args.map(it => it.name)]
+    )
+}
 
 class HeaderVisitor {
     constructor(
         private library: PeerLibrary,
         private api: IndentedPrinter,
         private modifiersList: IndentedPrinter,
-        private accessorsList: IndentedPrinter
-    ) { }
+        private accessorsList: IndentedPrinter,
+        private eventsList: IndentedPrinter,
+    ) {}
 
     private apiModifierHeader(clazz: PeerClass) {
         return `typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUI${clazz.componentName}Modifier {`
@@ -90,6 +111,34 @@ class HeaderVisitor {
         }
     }
 
+    private printEventsReceiver(componentName: string, callbacks: CallbackInfo[]) {
+        const receiver = generateEventReceiverName(componentName)
+        this.api.print(`typedef struct ${receiver} {`)
+        this.api.pushIndent()
+        for (const callback of callbacks) {
+            const signature = generateEventSignature(this.library.declarationTable, callback)
+            const args = signature.args.map((type, index) => {
+                return `${type.name} ${signature.argName(index)}`
+            })
+            this.api.print(`${signature.returnType.name} (*${callback.methodName})(${args.join(',')});`)
+        }
+        this.api.popIndent()
+        this.api.print(`} ${receiver};\n`)
+    }
+
+    private printEvents() {
+        const callbacks = groupCallbacks(collectCallbacks(this.library))
+        for (const [receiver, events] of callbacks) {
+            this.printEventsReceiver(receiver, events)
+        }
+
+        this.eventsList.pushIndent()
+        for (const [receiver, _] of callbacks) {
+            this.eventsList.print(`const ${generateEventReceiverName(receiver)}* (*get${receiver}EventsReceiver)();`)
+        }
+        this.eventsList.popIndent()
+    }
+
     // TODO: have a proper Peer module visitor
     printApiAndDeserializer() {
         this.library.files.forEach(file => {
@@ -102,6 +151,7 @@ class HeaderVisitor {
             })
         })
         this.printAccessors()
+        this.printEvents()
     }
 }
 
@@ -109,15 +159,16 @@ export function printApiAndDeserializer(apiVersion: string|undefined, peerLibrar
     const apiHeader = new IndentedPrinter()
     const modifierList = new IndentedPrinter()
     const accessorList = new IndentedPrinter()
+    const eventsList = new IndentedPrinter()
 
-    const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList)
+    const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList)
     visitor.printApiAndDeserializer()
 
     const structs = new IndentedPrinter()
     const typedefs = new IndentedPrinter()
 
     const deserializer = makeCDeserializer(peerLibrary.declarationTable, structs, typedefs)
-    const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), structs, typedefs)
+    const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), structs, typedefs)
 
     return {api, deserializer}
 }
