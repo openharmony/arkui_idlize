@@ -16,7 +16,7 @@ import { Language, identName, importTypeName, mapType, typeName } from "../util"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
-import { LanguageExpression, LanguageStatement, LanguageWriter } from "./LanguageWriters"
+import { LanguageExpression, LanguageStatement, LanguageWriter, Type } from "./LanguageWriters"
 
 let uniqueCounter = 0
 
@@ -221,8 +221,8 @@ export class EnumConvertor extends BaseArgConvertor {
     // TODO: bit clumsy.
     customDiscriminator(value: string, writer: LanguageWriter): LanguageExpression | undefined {
         return writer.makeNaryOp("&&", [
-            writer.makeNaryOp(">=", [writer.makeCast(writer.makeString(value), "number"), writer.makeString("0")]),
-            writer.makeNaryOp("<",  [writer.makeCast(writer.makeString(value), "number"), writer.makeString(this.enumType.members.length.toString())])
+            writer.makeNaryOp(">=", [writer.makeCast(writer.makeString(value), Type.Number), writer.makeString("0")]),
+            writer.makeNaryOp("<",  [writer.makeCast(writer.makeString(value), Type.Number), writer.makeString(this.enumType.members.length.toString())])
         ])
     }
     hasCustomDiscriminator(): boolean {
@@ -246,7 +246,7 @@ export class LengthConvertorScoped extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(
             printer.makeStatement(
-                printer.makeMemberCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
+                printer.makeMethodCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
             )
         )
     }
@@ -277,7 +277,7 @@ export class LengthConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(
             printer.makeStatement(
-                printer.makeMemberCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
+                printer.makeMethodCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
             )
         )
     }
@@ -314,9 +314,11 @@ export class UnionConvertor extends BaseArgConvertor {
         throw new Error("Do not use for union")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.print(`const ${value}_type = runtimeType(${value})`)
+        printer.writeStatement(
+            printer.makeAssign(`${value}_type`, Type.Int32,
+                printer.makeFunctionCall("runtimeType", [printer.makeString(value)]), true))
         // Save actual type being passed.
-        printer.print(`${param}Serializer.writeInt8(${value}_type)`)
+        printer.writeMemberCall(`${param}Serializer`, "writeInt8", [`${value}_type`])
         this.memberConvertors.forEach((it, index) => {
             if (it.runtimeTypes.length == 0) {
                 console.log(`WARNING: branch for ${it.nativeType(false)} was consumed`)
@@ -331,7 +333,10 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
             if (!(it instanceof UndefinedConvertor)) {
-                printer.print(`const ${value}_${index} = unsafeCast<${it.tsTypeName}>(${value})`)
+                const valueType = new Type(it.tsTypeName)
+                printer.writeStatement(
+                    printer.makeAssign(`${value}_${index}`, valueType,
+                        printer.makeCast(printer.makeString(value), valueType, true), true))
                 it.convertorSerialize(param, `${value}_${index}`, printer)
             }
             printer.popIndent()
@@ -341,19 +346,21 @@ export class UnionConvertor extends BaseArgConvertor {
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): void {
         // Save actual type being passed.
         let runtimeType = `runtimeType${uniqueCounter++}`;
-        printer.print(`int32_t ${runtimeType} = ${param}Deserializer.readInt8();`)
+        printer.writeStatement(
+            printer.makeAssign(runtimeType, Type.Int32,
+                printer.makeMethodCall(`${param}Deserializer`, "readInt8", []), true))
         this.memberConvertors.forEach((it, index) => {
             if (it.runtimeTypes.length == 0) {
                 return
             }
             let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-            let maybeComma1 = (it.runtimeTypes.length > 1) ? "(" : ""
-            let maybeComma2 = (it.runtimeTypes.length > 1) ? ")" : ""
-
-            printer.print(`${maybeElse}if (${it.runtimeTypes.map(it => `${maybeComma1}ARK_RUNTIME_${RuntimeType[it]} == ${runtimeType}${maybeComma2}`).join(" || ")}) {`)
+            const conditions = printer.makeNaryOp("||",
+                it.runtimeTypes.map(rt => printer.makeNaryOp("==", [ printer.makeString(`ARK_RUNTIME_${RuntimeType[rt]}`), printer.makeString(runtimeType)])))
+            printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
             it.convertorDeserialize(param, `${value}.value${index}`, printer)
-            printer.print(`${value}.selector = ${index};`)
+            printer.writeStatement(
+                printer.makeAssign(`${value}.selector`, Type.Int32, printer.makeString(`${index}`), false))
             printer.popIndent()
             printer.print(`}`)
         })

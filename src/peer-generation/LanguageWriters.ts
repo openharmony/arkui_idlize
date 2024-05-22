@@ -18,9 +18,11 @@ import { Language, stringOrNone } from "../util";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}
-    static Void = new Type('void')
-    static This = new Type('this')
+    static Int32 = new Type('int32')
+    static Number = new Type('number')
     static Pointer = new Type('KPointer')
+    static This = new Type('this')
+    static Void = new Type('void')
 }
 
 export enum MethodModifier {
@@ -40,34 +42,46 @@ export class AssignStatement implements LanguageStatement {
     constructor(public variableName: string, public type: Type, public expression: LanguageExpression, public isDeclared: boolean = true) { }
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
-            writer.print(`const ${this.variableName}: ${this.type.name} = ${this.expression.asString()}`)
+            writer.print(`const ${this.variableName}: ${writer.mapType(this.type)} = ${this.expression.asString()}`)
         } else {
             writer.print(`${this.variableName} = ${this.expression.asString()}`)
         }
     }
 }
 
-export class JavaAssignStatement extends AssignStatement {
+export class CLikeAssignStatement extends AssignStatement {
     constructor(public variableName: string, public type: Type, public expression: LanguageExpression, public isDeclared: boolean = true) {
         super(variableName, type, expression)
      }
      write(writer: LanguageWriter): void{
         if (this.isDeclared) {
-            writer.print(`${this.type.name} ${this.variableName} = ${this.expression.asString()};`)
+            writer.print(`${writer.mapType(this.type)} ${this.variableName} = ${this.expression.asString()};`)
         } else {
-            writer.print(`${this.variableName} = ${this.expression.asString()}`)
+            writer.print(`${this.variableName} = ${this.expression.asString()};`)
         }
     }
 }
 
-export class MemberCallExpression implements LanguageExpression {
+export class FunctionCallExpression implements LanguageExpression {
+    constructor(
+        private name: string,
+        private params: LanguageExpression[]) { }
+    asString(): string {
+        return `${this.name}(${this.params.map(it => it.asString()).join(", ")})`
+    }
+}
+
+export class MethodCallExpression extends FunctionCallExpression {
     constructor(
         public receiver: string,
-        public method: string,
-        public params: LanguageExpression[],
-        public nullable = false) { }
+        method: string,
+        params: LanguageExpression[],
+        public nullable = false)
+    {
+        super(method, params)
+    }
     asString(): string {
-        return `${this.receiver}${this.nullable ? "?" : ""}.${this.method}(${this.params.map(it => it.asString()).join(", ")})`
+        return `${this.receiver}${this.nullable ? "?" : ""}.${super.asString()}`
     }
 }
 
@@ -97,16 +111,27 @@ export class JavaReturnStatement extends ReturnStatement {
 }
 
 export class TSCastExpression implements LanguageExpression {
-    constructor(public value: LanguageExpression, public type: string) {}
+    constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
     asString(): string {
-        return `(${this.value.asString()} as ${this.type})`
+        return this.unsafe
+            ? `unsafeCast<${this.type.name}>(${this.value.asString()})`
+            : `(${this.value.asString()} as ${this.type.name})`
     }
 }
 
 export class JavaCastExpression implements LanguageExpression {
-    constructor(public value: LanguageExpression, public type: string) {}
+    constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
     asString(): string {
-        return `(${this.type})(${this.value.asString()})`
+        return `(${this.type.name})(${this.value.asString()})`
+    }
+}
+
+export class CppCastExpression implements LanguageExpression {
+    constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
+    asString(): string {
+        return this.unsafe
+            ? `reinterpret_cast<${this.type.name}>(${this.value.asString()})`
+            : `(${this.type.name})(${this.value.asString()})`
     }
 }
 
@@ -163,7 +188,7 @@ export class TernaryExpression implements LanguageExpression {
 export class NaryOpExpression implements LanguageExpression {
     constructor(public op: string, public args: LanguageExpression[]) { }
     asString(): string {
-        return `(${this.args.map(arg => arg.asString()).join(` ${this.op} `)})`
+        return `${this.args.map(arg => arg.asString()).join(` ${this.op} `)}`
     }
 }
 
@@ -236,8 +261,11 @@ export abstract class LanguageWriter {
         stmt.write(this)
     }
 
-    makeMemberCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
-        return new MemberCallExpression(receiver, method, params, nullable)
+    makeFunctionCall(name: string, params: LanguageExpression[]): LanguageExpression {
+        return new FunctionCallExpression(name, params)
+    }
+    makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
+        return new MethodCallExpression(receiver, method, params, nullable)
     }
     abstract makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean): LanguageStatement;
     abstract makeReturn(expr?: LanguageExpression): LanguageStatement;
@@ -256,7 +284,8 @@ export abstract class LanguageWriter {
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }
-    abstract makeCast(value: LanguageExpression, type: string): LanguageExpression
+    abstract makeCast(value: LanguageExpression, type: Type): LanguageExpression
+    abstract makeCast(value: LanguageExpression, type: Type, unsafe: boolean): LanguageExpression
     abstract writePrintLog(message: string): void
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature)
@@ -334,8 +363,8 @@ export class TSLanguageWriter extends LanguageWriter {
     writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)
     }
-    makeCast(value: LanguageExpression, type: string): LanguageExpression {
-        return new TSCastExpression(value, type)
+    makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
+        return new TSCastExpression(value, type, unsafe)
     }
     mapType(type: Type): string {
         return `${type.name}`
@@ -415,13 +444,13 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
-        return new JavaAssignStatement(variableName, type, expr, isDeclared)
+        return new CLikeAssignStatement(variableName, type, expr, isDeclared)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new JavaReturnStatement(expr)
     }
-    makeCast(value: LanguageExpression, type: string): LanguageExpression {
-        return new JavaCastExpression(value, type)
+    makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
+        return new JavaCastExpression(value, type, unsafe)
     }
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
@@ -462,16 +491,28 @@ export class CppLanguageWriter extends LanguageWriter {
         throw new Error("Method not implemented.")
     }
     makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
-        throw new Error("Method not implemented.")
+        return new CLikeAssignStatement(variableName, type, expr, isDeclared)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         throw new Error("Method not implemented.")
     }
-    makeCast(expr: LanguageExpression, type: string): LanguageExpression {
-        throw new Error("Method not implemented.")
+    makeCast(expr: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
+        return new CppCastExpression(expr, type, unsafe)
     }
     writePrintLog(message: string): void {
         throw new Error("Method not implemented.")
+    }
+    mapType(type: Type): string {
+        switch (type.name) {
+            case 'KPointer': return 'void*'
+            case 'Uint8Array': return 'byte[]'
+            case 'int32':
+            case 'KInt': return 'int32_t'
+            case 'string':
+            case 'KStringPtr': return 'Ark_String'
+            case 'number': return 'Ark_Number'
+        }
+        return super.mapType(type)
     }
 }
 

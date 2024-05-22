@@ -53,7 +53,7 @@ class MaterializedFileVisitor {
                 const args = ctorSig.args.map((it, index) => writer.makeString(`${ctorSig.argsNames[index]}${it.nullable ? "" : "!"}`))
                 writer.writeStatement(
                     writer.makeAssign("ctorPtr", Type.Pointer,
-                        writer.makeMemberCall(clazz.className, "ctor", args),
+                        writer.makeMethodCall(clazz.className, "ctor", args),
                         true))
 
                 writer.writeStatement(writer.makeAssign(
