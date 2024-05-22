@@ -391,7 +391,7 @@ public:
   {
     Ark_Length result = {};
     result.unit = 1;
-    Ark_Tag tag = readTag();
+    Ark_RuntimeType tag = (Ark_RuntimeType)readInt8();
     switch (tag)
     {
     case ARK_RUNTIME_OBJECT:

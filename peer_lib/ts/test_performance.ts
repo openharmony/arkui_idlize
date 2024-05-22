@@ -27,7 +27,7 @@ export function RunPerformanceTest(testName: string, testCnt: number, callCnt: n
         }
     }
     console.log(withStringResult(nativeModule()._DumpPerf(DumpOptions.AVERAGE)))
-    console.log(withStringResult(nativeModule()._DumpPerf(DumpOptions.CLEAR)))
+    nativeModule()._DumpPerf(DumpOptions.CLEAR)
 }
 
 export function startPerformanceTest() {

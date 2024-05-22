@@ -243,7 +243,7 @@ void Performace::PrintAvgs(std::stringstream& result) {
             totalCost += perf.cost / 1000.0 - self_cost_;
         }
         auto avg = totalCost / perfs.size();
-        result << "Perf trace_name(" << name << ") " << perfs.size() << " call avg cost " << avg << " us.\n";
+        result << "Perf trace_name(" << name << ") " << perfs.size() << " call avg cost " << avg << " us.";
     }
 }
 
@@ -272,7 +272,7 @@ void Performace::Clean() {
 }
 
 void PerfInfo::Print(std::stringstream& result, float counterSelf) {
-    result << "Perf trace_name(" << perf_name <<  ") cost " << (cost / 1000.0 - counterSelf) << " us." << std::endl;
+    result << "Perf trace_name(" << perf_name <<  ") cost " << (cost / 1000.0 - counterSelf) << " us.";
 }
 
 void impl_StartPerf(KStringPtr traceName) {
