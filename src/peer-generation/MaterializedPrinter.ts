@@ -39,19 +39,18 @@ class MaterializedFileVisitor {
                 ctorSig.argsNames,
                 ctorSig.defaults)
 
-            const allUnedfined = ctorSig.argsNames.map(it => `${it} === undefined`).join(` && `)
+            const allUndefined = ctorSig.argsNames.map(it => `${it} === undefined`).join(` && `)
 
             writer.writeConstructorImplementation(clazz.className, sigWithPointer, writer => {
 
                 writer.writeStatement(
                     writer.makeCondition(
-                        writer.makeString(ctorSig.args.length === 0 ? "true" : allUnedfined),
-                        writer.makeString(`return`),
-                        undefined
+                        writer.makeString(ctorSig.args.length === 0 ? "true" : allUndefined),
+                        writer.makeReturn()
                     )
                 )
 
-                const args = ctorSig.args.map((it, index) => `${ctorSig.argsNames[index]}${it.nullable ? "" : "!"}`)
+                const args = ctorSig.args.map((it, index) => writer.makeString(`${ctorSig.argsNames[index]}${it.nullable ? "" : "!"}`))
                 writer.writeStatement(
                     writer.makeAssign("ctorPtr", Type.Pointer,
                         writer.makeMemberCall(clazz.className, "ctor", args),

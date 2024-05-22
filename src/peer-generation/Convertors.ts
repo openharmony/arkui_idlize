@@ -16,7 +16,7 @@ import { Language, identName, importTypeName, mapType, typeName } from "../util"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
-import { LanguageStatement, LanguageWriter } from "./LanguageWriters"
+import { LanguageExpression, LanguageStatement, LanguageWriter } from "./LanguageWriters"
 
 let uniqueCounter = 0
 
@@ -36,7 +36,7 @@ export interface ArgConvertor {
     interopType(language: Language): string
     nativeType(impl: boolean): string
     isPointerType(): boolean
-    customDiscriminator(value: string, writer: LanguageWriter): LanguageStatement|undefined
+    customDiscriminator(value: string, writer: LanguageWriter): LanguageExpression|undefined
     hasCustomDiscriminator(): boolean
 }
 
@@ -69,7 +69,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     hasCustomDiscriminator(): boolean {
         return false
     }
-    customDiscriminator(value: string, writer: LanguageWriter): LanguageStatement|undefined {
+    customDiscriminator(value: string, writer: LanguageWriter): LanguageExpression|undefined {
         return undefined
     }
 }
@@ -219,7 +219,7 @@ export class EnumConvertor extends BaseArgConvertor {
         return false
     }
     // TODO: bit clumsy.
-    customDiscriminator(value: string, writer: LanguageWriter): LanguageStatement | undefined {
+    customDiscriminator(value: string, writer: LanguageWriter): LanguageExpression | undefined {
         return writer.makeNaryOp("&&", [
             writer.makeNaryOp(">=", [writer.makeCast(writer.makeString(value), "number"), writer.makeString("0")]),
             writer.makeNaryOp("<",  [writer.makeCast(writer.makeString(value), "number"), writer.makeString(this.enumType.members.length.toString())])
@@ -244,7 +244,11 @@ export class LengthConvertor extends BaseArgConvertor {
         throw new Error("Not used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.print(`${param}Serializer.writeLength(${value})`)
+        printer.writeStatement(
+            printer.makeStatement(
+                printer.makeMemberCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
+            )
+        )
     }
     convertorCArg(param: string): string {
         return `Length_from_array(${param})`

@@ -29,73 +29,89 @@ export enum MethodModifier {
 }
 
 export interface LanguageStatement {
-    asString(): string;
+    write(writer: LanguageWriter): void
+}
+
+export interface LanguageExpression {
+    asString(): string
 }
 
 export class AssignStatement implements LanguageStatement {
-    constructor(public variableName: string, public type: Type, public statement: LanguageStatement, public isDeclared: boolean = true) { }
-    asString(): string {
+    constructor(public variableName: string, public type: Type, public expression: LanguageExpression, public isDeclared: boolean = true) { }
+    write(writer: LanguageWriter): void {
         if (this.isDeclared) {
-            return `const ${this.variableName}: ${this.type.name} = ${this.statement.asString()}`
+            writer.print(`const ${this.variableName}: ${this.type.name} = ${this.expression.asString()}`)
         } else {
-            return `${this.variableName} = ${this.statement.asString()}`
+            writer.print(`${this.variableName} = ${this.expression.asString()}`)
         }
     }
 }
 
 export class JavaAssignStatement extends AssignStatement {
-    constructor(public variableName: string, public type: Type, public statement: LanguageStatement, public isDeclared: boolean = true) {
-        super(variableName, type, statement)
+    constructor(public variableName: string, public type: Type, public expression: LanguageExpression, public isDeclared: boolean = true) {
+        super(variableName, type, expression)
      }
-    asString(): string {
-        return `${super.asString()};`
+     write(writer: LanguageWriter): void{
+        if (this.isDeclared) {
+            writer.print(`${this.type.name} ${this.variableName} = ${this.expression.asString()};`)
+        } else {
+            writer.print(`${this.variableName} = ${this.expression.asString()}`)
+        }
     }
 }
 
-export class MemberCallStatement implements LanguageStatement {
+export class MemberCallExpression implements LanguageExpression {
     constructor(
         public receiver: string,
         public method: string,
-        public params: string[],
+        public params: LanguageExpression[],
         public nullable = false) { }
     asString(): string {
-        return `${this.receiver}${this.nullable ? "?" : ""}.${this.method}(${this.params.join(", ")})`
+        return `${this.receiver}${this.nullable ? "?" : ""}.${this.method}(${this.params.map(it => it.asString()).join(", ")})`
+    }
+}
+
+export class ExpressionStatement implements LanguageStatement {
+    constructor(public expression: LanguageExpression) { }
+    write(writer: LanguageWriter): void {
+        writer.print(`${this.expression.asString()};`)
     }
 }
 
 export class ReturnStatement implements LanguageStatement {
-    constructor(public statement: LanguageStatement) { }
-    asString(): string {
-        return `return ${this.statement.asString()}`
+    constructor(public expression?: LanguageExpression) { }
+    write(writer: LanguageWriter): void {
+        writer.print(this.expression ? `return ${this.expression.asString()}` : "return")
     }
 }
 
 export class TSReturnStatement extends ReturnStatement {
-    constructor(public statement: LanguageStatement) { super(statement) }
+    constructor(public expression: LanguageExpression) { super(expression) }
 }
 
 export class JavaReturnStatement extends ReturnStatement {
-    constructor(public statement: LanguageStatement) { super(statement) }
-    asString(): string {
-        return `${super.asString()};`
+    constructor(public expression: LanguageExpression) { super(expression) }
+    write(writer: LanguageWriter): void {
+        writer.print(this.expression ? `return ${this.expression.asString()};` : "return;")
     }
 }
 
-export class TSCastStatement implements LanguageStatement {
-    constructor(public value: LanguageStatement, public type: string) {}
+export class TSCastExpression implements LanguageExpression {
+    constructor(public value: LanguageExpression, public type: string) {}
     asString(): string {
         return `(${this.value.asString()} as ${this.type})`
     }
 }
 
-export class JavaCastStatement implements LanguageStatement {
-    constructor(public value: LanguageStatement, public type: string) {}
+export class JavaCastExpression implements LanguageExpression {
+    constructor(public value: LanguageExpression, public type: string) {}
     asString(): string {
         return `(${this.type})(${this.value.asString()})`
     }
 }
 
-export class ConditionStatement implements LanguageStatement {
+/*
+export class ConditionStatement implements LanguageExpression {
     constructor(public condition: LanguageStatement,
         public trueStatement: LanguageStatement,
         public falseStatement: LanguageStatement | undefined,
@@ -108,15 +124,50 @@ export class ConditionStatement implements LanguageStatement {
         return `if (${this.condition.asString()}) ${this.trueStatement.asString()}${elseStatement}`
     }
 }
+*/
 
-export class NaryOpStatement implements LanguageStatement {
-    constructor(public op: string, public args: LanguageStatement[]) { }
+export class BlockStatement implements LanguageStatement {
+    constructor(public statements: LanguageStatement[]) { }
+    write(writer: LanguageWriter): void {
+        writer.print("{")
+        writer.pushIndent()
+        this.statements.forEach(s => s.write(writer))
+        writer.popIndent()
+        writer.print("}")
+    }
+}
+
+export class IfStatement implements LanguageStatement {
+    constructor(public condition: LanguageExpression,
+        public thenStatement: LanguageStatement,
+        public elseStatement: LanguageStatement | undefined) { }
+    write(writer: LanguageWriter): void {
+        writer.print(`if (${this.condition.asString()})`)
+        this.thenStatement.write(writer)
+        if (this.elseStatement!== undefined) {
+            writer.print(" else ")
+            this.elseStatement.write(writer)
+        }
+    }
+}
+
+export class TernaryExpression implements LanguageExpression {
+    constructor(public condition: LanguageExpression,
+        public trueExpression: LanguageExpression,
+        public falseExpression: LanguageExpression) {}
+    asString(): string {
+        return `(${this.condition.asString()}) ? (${this.trueExpression.asString()}) : (${this.falseExpression.asString()})`
+    }
+}
+
+export class NaryOpExpression implements LanguageExpression {
+    constructor(public op: string, public args: LanguageExpression[]) { }
     asString(): string {
         return `(${this.args.map(arg => arg.asString()).join(` ${this.op} `)})`
     }
 }
 
-export class StringStatement implements LanguageStatement {
+export class StringExpression implements LanguageExpression {
     constructor(public value: string) { }
     asString(): string {
         return this.value
@@ -181,24 +232,31 @@ export abstract class LanguageWriter {
     }
 
     writeStatement(stmt: LanguageStatement) {
-        this.printer.print(stmt.asString())
+        //this.printer.print(stmt.asString())
+        stmt.write(this)
     }
 
-    makeMemberCall(receiver: string, method: string, params: string[], nullable?: boolean): LanguageStatement {
-        return new MemberCallStatement(receiver, method, params, nullable)
+    makeMemberCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
+        return new MemberCallExpression(receiver, method, params, nullable)
     }
-    abstract makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean): LanguageStatement;
-    abstract makeReturn(stmt: LanguageStatement): LanguageStatement;
-    makeCondition(condition: LanguageStatement, trueStatement: LanguageStatement, falseStatement: LanguageStatement|undefined, ternary: boolean = false): LanguageStatement {
-        return new ConditionStatement(condition, trueStatement, falseStatement, ternary)
+    abstract makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean): LanguageStatement;
+    abstract makeReturn(expr?: LanguageExpression): LanguageStatement;
+    makeCondition(condition: LanguageExpression, thenStatement: LanguageStatement, elseStatement?: LanguageStatement): LanguageStatement {
+        return new IfStatement(condition, thenStatement, elseStatement)
     }
-    makeString(value: string): LanguageStatement {
-        return new StringStatement(value)
+    makeTernary(condition: LanguageExpression, trueExpression: LanguageExpression, falseExpression: LanguageExpression): LanguageExpression {
+        return new TernaryExpression(condition, trueExpression, falseExpression)
     }
-    makeNaryOp(op: string, args: LanguageStatement[]): LanguageStatement {
-        return new NaryOpStatement(op, args)
+    makeString(value: string): LanguageExpression {
+        return new StringExpression(value)
     }
-    abstract makeCast(value: LanguageStatement, type: string): LanguageStatement
+    makeNaryOp(op: string, args: LanguageExpression[]): LanguageExpression {
+        return new NaryOpExpression(op, args)
+    }
+    makeStatement(expr: LanguageExpression): LanguageStatement {
+        return new ExpressionStatement(expr)
+    }
+    abstract makeCast(value: LanguageExpression, type: string): LanguageExpression
     abstract writePrintLog(message: string): void
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature)
@@ -267,17 +325,17 @@ export class TSLanguageWriter extends LanguageWriter {
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, prefix?: string) {
         this.printer.print(`${prefix ?? ""}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
-    makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
-        return new AssignStatement(variableName, type, statement, isDeclared)
+    makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
+        return new AssignStatement(variableName, type, expr, isDeclared)
     }
-    makeReturn(stmt: LanguageStatement): LanguageStatement {
-        return new TSReturnStatement(stmt)
+    makeReturn(expr: LanguageExpression): LanguageStatement {
+        return new TSReturnStatement(expr)
     }
     writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)
     }
-    makeCast(value: LanguageStatement, type: string): LanguageStatement {
-        return new TSCastStatement(value, type)
+    makeCast(value: LanguageExpression, type: string): LanguageExpression {
+        return new TSCastExpression(value, type)
     }
     mapType(type: Type): string {
         return `${type.name}`
@@ -356,14 +414,14 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
-        return new JavaAssignStatement(variableName, type, statement, isDeclared)
+    makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
+        return new JavaAssignStatement(variableName, type, expr, isDeclared)
     }
-    makeReturn(stmt: LanguageStatement): LanguageStatement {
-        return new JavaReturnStatement(stmt)
+    makeReturn(expr: LanguageExpression): LanguageStatement {
+        return new JavaReturnStatement(expr)
     }
-    makeCast(value: LanguageStatement, type: string): LanguageStatement {
-        return new JavaCastStatement(value, type)
+    makeCast(value: LanguageExpression, type: string): LanguageExpression {
+        return new JavaCastExpression(value, type)
     }
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
@@ -403,13 +461,13 @@ export class CppLanguageWriter extends LanguageWriter {
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
         throw new Error("Method not implemented.")
     }
-    makeAssign(variableName: string, type: Type, statement: LanguageStatement, isDeclared: boolean = true): LanguageStatement {
+    makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
         throw new Error("Method not implemented.")
     }
-    makeReturn(stmt: LanguageStatement): LanguageStatement {
+    makeReturn(expr: LanguageExpression): LanguageStatement {
         throw new Error("Method not implemented.")
     }
-    makeCast(value: LanguageStatement, type: string): LanguageStatement {
+    makeCast(expr: LanguageExpression, type: string): LanguageExpression {
         throw new Error("Method not implemented.")
     }
     writePrintLog(message: string): void {
