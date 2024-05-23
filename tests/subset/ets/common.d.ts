@@ -15,6 +15,8 @@
 
 declare type PixelMap = import('../resource/image').default.PixelMap;
 
+declare type SymbolGlyphModifier = import('../../resource/symbol').SymbolGlyphModifier;
+
 declare type AnimationRange<T> = [from: T, to: T];
 
 declare interface Callback<T> {}

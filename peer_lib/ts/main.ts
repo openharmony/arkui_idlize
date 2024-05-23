@@ -225,7 +225,7 @@ function checkTabContent() {
     assertEquals("new SubTabBarStyle() ptr", 100, subTabBarStyle!.peer!.ptr) // constructor ptr is 100
 
     checkResult("new SubTabBarStyle()",
-        () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = SubTabBarStyle.of_ResourceStr("ABC")),
+        () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = SubTabBarStyle.of("ABC")),
         `of("ABC")[return (void*) 200]tabBar("Materialized 0x2a")`)
     assertEquals("SubTabBarStyle.of_ResourceStr() ptr", 200, subTabBarStyle!.peer!.ptr) // static method ptr is 200
 }

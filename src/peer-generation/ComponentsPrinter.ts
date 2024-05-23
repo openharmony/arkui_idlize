@@ -15,7 +15,7 @@
 
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter";
-import { Language, indentedBy, isDefined, renameDtsToComponent, renameDtsToPeer } from "../util";
+import { Language, indentedBy, renameDtsToComponent, renameDtsToPeer } from "../util";
 import { ImportsCollector } from "./ImportsCollector";
 import { PeerClass } from "./PeerClass";
 import { PeerFile } from "./PeerFile";
@@ -24,31 +24,12 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { InheritanceRole, determineInheritanceRole, isCommonMethod } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
-import { ExpressionStatement, Method, MethodSignature, StringExpression, Type, createLanguageWriter } from "./LanguageWriters";
-import { RuntimeType } from "./PeerGeneratorVisitor";
-import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
-
-export function collapseSameNamedMethods(methods: Method[]): Method {
-    if (methods.some(it => it.signature.defaults?.length))
-        throw "Can not process defaults in collapsed method"
-    const maxArgLength = Math.max(...methods.map(it => it.signature.args.length))
-    const collapsedArgs: Type[] = Array.from({length: maxArgLength}, (_, argIndex) => {
-        const name = methods.map(it => it.signature.args[argIndex]?.name).filter(isDefined).join(' | ')
-        const optional = methods.some(it => it.signature.args[argIndex]?.nullable ?? true)
-        return new Type(name, optional)
-    })
-    return new Method(
-        methods[0].name,
-        new MethodSignature(
-            methods[0].signature.returnType,
-            collapsedArgs,
-        ),
-        methods[0].modifiers
-    )
-}
+import { OverloadsPrinter, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter";
+import { Type, createLanguageWriter } from "./LanguageWriters";
 
 class ComponentFileVisitor {
     readonly printer = createLanguageWriter(new IndentedPrinter(), this.file.declarationTable.language)
+    private overloadsPrinter = new OverloadsPrinter(this.printer, this.library)
 
     constructor(
         private library: PeerLibrary,
@@ -103,67 +84,6 @@ class ComponentFileVisitor {
         return groups
     }
 
-    private printGroupedComponentOverloads(peer: PeerClass, peerMethods: PeerMethod[]) {
-        const orderedMethods = Array.from(peerMethods)
-            .sort((a, b) => b.argConvertors.length - a.argConvertors.length)
-        const collapsedMethod = collapseSameNamedMethods(orderedMethods.map(it => it.method))
-        this.printer.print(`/** @memo */`)
-        this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
-            writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
-            this.printer.pushIndent()
-            const argsNames = collapsedMethod.signature.args.map((_, index) => collapsedMethod.signature.argName(index))
-            for (let i = 0; i < collapsedMethod.signature.args.length; i++) {
-                this.printer.print(`const ${argsNames[i]}_type = runtimeType(${argsNames[i]})`)
-            }
-            if (orderedMethods.length > 1) {
-                for (const peerMethod of orderedMethods)
-                    this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod)
-                writer.print(`throw "Can not select appropriate overload"`)
-            } else {
-                this.printPeerCall(peer, collapsedMethod, orderedMethods[0])
-            }
-            this.printer.popIndent()
-            this.printer.print(`}`)
-            this.printer.print("return this")
-        })
-    }
-
-    private printComponentOverloadSelector(peer: PeerClass, collapsedMethod: Method, peerMethod: PeerMethod) {
-        const argsConditions = collapsedMethod.signature.args.map((_, argIndex) => {
-            const runtimeTypes = peerMethod.argConvertors[argIndex]?.runtimeTypes ?? [RuntimeType.UNDEFINED]
-            const value = collapsedMethod.signature.argName(argIndex)
-            let maybeComma1 = (runtimeTypes.length > 1) ? "(" : ""
-            let maybeComma2 = (runtimeTypes.length > 1) ? ")" : ""
-            return `(${runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")})`
-        })
-        this.printer.print(`if (${argsConditions.join(" && ")}) {`)
-        this.printer.pushIndent()
-        this.printPeerCall(peer, collapsedMethod, peerMethod)
-        this.printer.print(`return this`)
-        this.printer.popIndent()
-        this.printer.print('}')
-    }
-
-    private printPeerCall(peer: PeerClass, collapsedMethod: Method, peerMethod: PeerMethod) {
-        const argsNames = peerMethod.argConvertors.map((conv, index) => {
-            const argName = collapsedMethod.signature.argName(index)
-            const castedArgName = `${argName}_casted`
-            const castedType = peerMethod.method.signature.args[index].name
-            this.printer.print(`const ${castedArgName} = ${argName} as (${castedType})`)
-            return castedArgName
-        })
-        peerMethod.declarationTargets.map((target, index) => {
-            const callback = convertToCallback(peer, peerMethod, target)
-            if (!callback || !canProcessCallback(this.library.declarationTable, callback))
-                return
-            const argName = argsNames[index]
-            this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseProperties`,[
-                new StringExpression(`{${callbackIdByInfo(callback)}: ${argName}}`)
-            ])))
-        })
-        this.printer.writeMethodCall(`this.peer`, `${peerMethod.overloadedName}Attribute`, argsNames, true)
-    }
-
     private printComponent(peer: PeerClass) {
         if (!this.canGenerateComponent(peer))
             return
@@ -189,7 +109,7 @@ class ComponentFileVisitor {
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), ['protected'], true)
             for (const grouped of this.groupOverloads(peer.methods))
-                this.printGroupedComponentOverloads(peer, grouped)
+                this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             if (peer.originalParentName && !isCommonMethod(peer.originalParentName!)) {
                 const parentPeer = this.library.findPeerByComponentName(peer.parentComponentName!)!
                 const parentMethods = parentPeer.methods.filter(parentMethod => {
@@ -197,7 +117,7 @@ class ComponentFileVisitor {
                     return !peer.methods.some(method => parentMethod.method.name == method.method.name)
                 })
                 for (const grouped of this.groupOverloads(parentMethods))
-                    this.printGroupedComponentOverloads(parentPeer, grouped)
+                    this.overloadsPrinter.printGroupedComponentOverloads(parentPeer, grouped)
             }
             writer.print(`
   /** @memo */

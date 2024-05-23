@@ -18,6 +18,24 @@ interface IndicatorStyle {
     color?: ResourceColor;
 }
 
+declare class TabBarSymbol {
+
+    normal: SymbolGlyphModifier;
+
+    selected?: SymbolGlyphModifier;
+}
+
+declare class BottomTabBarStyle {
+
+    constructor(icon: ResourceStr | TabBarSymbol, text: ResourceStr);
+
+    static of(icon: ResourceStr | TabBarSymbol, text: ResourceStr): BottomTabBarStyle;
+
+    labelStyle(value: LabelStyle): BottomTabBarStyle;
+
+    padding(value: Padding | Dimension | LocalizedPadding): BottomTabBarStyle;
+}
+
 declare class SubTabBarStyle {
 
     constructor(content: ResourceStr);

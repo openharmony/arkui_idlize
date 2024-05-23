@@ -20,6 +20,9 @@ import { DeclarationTable } from "./DeclarationTable"
 export interface PeerClassBase {
     setGenerationContext(context: string| undefined): void
     generatedName(isCallSignature: boolean): string
+
+    // TBD: update
+    getComponentName(): string
 }
 
 export class PeerClass implements PeerClassBase {
@@ -36,6 +39,10 @@ export class PeerClass implements PeerClassBase {
 
     generatedName(isCallSignature: boolean): string{
         return isCallSignature ? this.originalInterfaceName! : this.originalClassName!
+    }
+
+    getComponentName(): string {
+        return this.componentName
     }
 
     methods: PeerMethod[] = []

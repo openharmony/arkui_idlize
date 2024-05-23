@@ -279,7 +279,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     if (printer.language != Language.TS) return
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
-        method.hasReceiver() ? `${method.overloadedName}${methodPostfix}` : method.overloadedName,
+        `${method.overloadedName}${methodPostfix}`,
         new NamedMethodSignature(returnType, signature.args, signature.argsNames),
         method.method.modifiers)
     printer.writeMethodImplementation(peerMethod, (writer) => {

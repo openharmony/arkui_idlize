@@ -107,6 +107,10 @@ export class MaterializedClass implements PeerClassBase {
         PeerMethod.markOverloads(methods)
     }
 
+    getComponentName(): string {
+        return this.className
+    }
+
     setGenerationContext(context: string| undefined): void {
        // TODO: set generation context!
     }
@@ -114,5 +118,4 @@ export class MaterializedClass implements PeerClassBase {
     generatedName(isCallSignature: boolean): string{
         return this.className
     }
-
 }

@@ -50,7 +50,7 @@ import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
 import { MaterializedClass, MaterializedMethod, isMaterialized } from "./Materialized"
 import { Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
-import { collapseSameNamedMethods } from "./ComponentsPrinter";
+import { collapseSameNamedMethods } from "./OverloadsPrinter";
 
 export enum RuntimeType {
     UNEXPECTED = -1,

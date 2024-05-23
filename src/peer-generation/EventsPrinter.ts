@@ -17,7 +17,7 @@ import * as ts from "typescript"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from "./DeclarationTable"
 import { CppLanguageWriter, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, TSLanguageWriter, Type } from "./LanguageWriters"
-import { PeerClass } from "./PeerClass"
+import { PeerClass, PeerClassBase } from "./PeerClass"
 import { PeerLibrary } from "./PeerLibrary"
 import { PeerMethod } from "./PeerMethod"
 import { makeCEventsImpl, makePeerEvents } from "./FileGenerators"
@@ -122,12 +122,12 @@ export function canProcessCallback(declarationTable: DeclarationTable, callback:
     })
 }
 
-export function convertToCallback(peer: PeerClass, method: PeerMethod, target: DeclarationTarget): CallbackInfo | undefined {
+export function convertToCallback(peer: PeerClassBase, method: PeerMethod, target: DeclarationTarget): CallbackInfo | undefined {
     if (target instanceof PrimitiveType)
         return undefined
     if (ts.isFunctionTypeNode(target))
         return {
-            componentName: peer.componentName,
+            componentName: peer.getComponentName(),
             methodName: method.method.name,
             args: target.parameters.map(it => {return {
                 name: asString(it.name),
@@ -138,7 +138,7 @@ export function convertToCallback(peer: PeerClass, method: PeerMethod, target: D
         }
     if (ts.isTypeReferenceNode(target) && identName(target.typeName) === "Callback")
         return {
-            componentName: peer.componentName,
+            componentName: peer.getComponentName(),
             methodName: method.method.name,
             args: [{name: 'data', type: target.typeArguments![0], nullable: false}],
             returnType: target.typeArguments![1] ?? ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
