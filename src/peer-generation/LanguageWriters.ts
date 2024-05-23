@@ -64,6 +64,18 @@ export class JavaAssignStatement extends AssignStatement {
     }
 }
 
+export class EtsAssignStatement implements LanguageStatement {
+    constructor(public variableName: string, public type: Type | undefined, public expression: LanguageExpression, public isDeclared: boolean = true) { }
+    write(writer: LanguageWriter): void {
+        if (this.isDeclared) {
+            const typeSpec = ""
+            writer.print(`const ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
+        } else {
+            writer.print(`${this.variableName} = ${this.expression.asString()}`)
+        }
+    }
+}
+
 export class CppAssignStatement extends AssignStatement {
     constructor(public variableName: string, public type: Type | undefined, public expression: LanguageExpression, public isDeclared: boolean = true) {
         super(variableName, type, expression)
@@ -482,6 +494,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
 
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, "static native ")
+    }
+    makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
+        return new EtsAssignStatement(variableName, type, expr, isDeclared)
     }
 
     mapType(type: Type): string {
