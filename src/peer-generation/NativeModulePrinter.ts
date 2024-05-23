@@ -14,8 +14,9 @@
  */
 
 import { IndentedPrinter } from "../IndentedPrinter";
+import { generateEventsBridgeSignature } from "./EventsPrinter";
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "./FileGenerators";
-import { LanguageWriter, Method, NamedMethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
+import { LanguageWriter, Method, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from "./LanguageWriters";
 import { PeerClass, PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
@@ -47,6 +48,16 @@ class NativeModuleVisitor {
         })
     }
 
+    private printEventMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
+        let method = generateEventsBridgeSignature(nativeModule.language)
+        method = new Method(`_${method.name}`, method.signature, method.modifiers)
+        nativeModule.writeMethodDeclaration(method.name, method.signature)
+        nativeModuleEmpty.writeMethodImplementation(method, writer => {
+            writer.writePrintLog(method.name)
+            writer.writeStatement(writer.makeReturn(new StringExpression(`0`)))
+        })
+    }
+
     print(): void {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
         for (const file of this.library.files) {
@@ -55,6 +66,7 @@ class NativeModuleVisitor {
             }
         }
         this.printMaterializedMethods(this.nativeModule, this.nativeModuleEmpty)
+        this.printEventMethods(this.nativeModule, this.nativeModuleEmpty)
     }
 }
 

@@ -24,8 +24,9 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { InheritanceRole, determineInheritanceRole, isCommonMethod } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
-import { Method, MethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
+import { ExpressionStatement, Method, MethodSignature, StringExpression, Type, createLanguageWriter } from "./LanguageWriters";
 import { RuntimeType } from "./PeerGeneratorVisitor";
+import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
 
 export function collapseSameNamedMethods(methods: Method[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
@@ -81,6 +82,7 @@ class ComponentFileVisitor {
             imports.addFeature("ArkUINodeType", "./ArkUINodeType")
             imports.addFeature("runtimeType", "./SerializerBase")
             imports.addFeature("RuntimeType", "./SerializerBase")
+            imports.addFeature("UseProperties", './use_properties')
             // TBD
             // peer.materializedClasses.forEach(it => {
             //     imports.addFeature(it.className, `./Ark${peer.componentName}Peer`)
@@ -101,7 +103,7 @@ class ComponentFileVisitor {
         return groups
     }
 
-    private printGroupedComponentOverloads(peerMethods: PeerMethod[]) {
+    private printGroupedComponentOverloads(peer: PeerClass, peerMethods: PeerMethod[]) {
         const orderedMethods = Array.from(peerMethods)
             .sort((a, b) => b.argConvertors.length - a.argConvertors.length)
         const collapsedMethod = collapseSameNamedMethods(orderedMethods.map(it => it.method))
@@ -115,10 +117,10 @@ class ComponentFileVisitor {
             }
             if (orderedMethods.length > 1) {
                 for (const peerMethod of orderedMethods)
-                    this.printComponentOverloadSelector(collapsedMethod, peerMethod)
+                    this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod)
                 writer.print(`throw "Can not select appropriate overload"`)
             } else {
-                this.printPeerCall(collapsedMethod, orderedMethods[0])
+                this.printPeerCall(peer, collapsedMethod, orderedMethods[0])
             }
             this.printer.popIndent()
             this.printer.print(`}`)
@@ -126,7 +128,7 @@ class ComponentFileVisitor {
         })
     }
 
-    private printComponentOverloadSelector(collapsedMethod: Method, peerMethod: PeerMethod) {
+    private printComponentOverloadSelector(peer: PeerClass, collapsedMethod: Method, peerMethod: PeerMethod) {
         const argsConditions = collapsedMethod.signature.args.map((_, argIndex) => {
             const runtimeTypes = peerMethod.argConvertors[argIndex]?.runtimeTypes ?? [RuntimeType.UNDEFINED]
             const value = collapsedMethod.signature.argName(argIndex)
@@ -136,13 +138,13 @@ class ComponentFileVisitor {
         })
         this.printer.print(`if (${argsConditions.join(" && ")}) {`)
         this.printer.pushIndent()
-        this.printPeerCall(collapsedMethod, peerMethod)
+        this.printPeerCall(peer, collapsedMethod, peerMethod)
         this.printer.print(`return this`)
         this.printer.popIndent()
         this.printer.print('}')
     }
 
-    private printPeerCall(collapsedMethod: Method, peerMethod: PeerMethod) {
+    private printPeerCall(peer: PeerClass, collapsedMethod: Method, peerMethod: PeerMethod) {
         const argsNames = peerMethod.argConvertors.map((conv, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${argName}_casted`
@@ -150,9 +152,17 @@ class ComponentFileVisitor {
             this.printer.print(`const ${castedArgName} = ${argName} as (${castedType})`)
             return castedArgName
         })
+        peerMethod.declarationTargets.map((target, index) => {
+            const callback = convertToCallback(peer, peerMethod, target)
+            if (!callback || !canProcessCallback(this.library.declarationTable, callback))
+                return
+            const argName = argsNames[index]
+            this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseProperties`,[
+                new StringExpression(`{${callbackIdByInfo(callback)}: ${argName}}`)
+            ])))
+        })
         this.printer.writeMethodCall(`this.peer`, `${peerMethod.overloadedName}Attribute`, argsNames, true)
     }
-
 
     private printComponent(peer: PeerClass) {
         if (!this.canGenerateComponent(peer))
@@ -179,7 +189,7 @@ class ComponentFileVisitor {
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), ['protected'], true)
             for (const grouped of this.groupOverloads(peer.methods))
-                this.printGroupedComponentOverloads(grouped)
+                this.printGroupedComponentOverloads(peer, grouped)
             if (peer.originalParentName && !isCommonMethod(peer.originalParentName!)) {
                 const parentPeer = this.library.findPeerByComponentName(peer.parentComponentName!)!
                 const parentMethods = parentPeer.methods.filter(parentMethod => {
@@ -187,7 +197,7 @@ class ComponentFileVisitor {
                     return !peer.methods.some(method => parentMethod.method.name == method.method.name)
                 })
                 for (const grouped of this.groupOverloads(parentMethods))
-                    this.printGroupedComponentOverloads(grouped)
+                    this.printGroupedComponentOverloads(parentPeer, grouped)
             }
             writer.print(`
   /** @memo */

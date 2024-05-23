@@ -50,6 +50,10 @@ export class DeserializerBase {
         return this.position
     }
 
+    resetCurrentPosition(): void {
+        this.position = 0
+    }
+
     private checkCapacity(value: int32) {
         if (value > this.length) {
             throw new Error(`${value} is less than remaining buffer length`)

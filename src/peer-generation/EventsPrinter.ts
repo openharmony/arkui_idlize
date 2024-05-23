@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as ts from "typescript"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from "./DeclarationTable"
@@ -7,8 +22,9 @@ import { PeerLibrary } from "./PeerLibrary"
 import { PeerMethod } from "./PeerMethod"
 import { makeCEventsImpl, makePeerEvents } from "./FileGenerators"
 import { generateEventReceiverName, generateEventSignature } from "./HeaderPrinter"
-import { asString, identName } from "../util"
+import { Language, asString, identName } from "../util"
 
+export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
 const PeerNodeType = new Type('number')
 const BufferType = new Type('DeserializerBase')
@@ -45,6 +61,31 @@ export type CallbackInfo = {
     methodName: string,
     args: {name: string, type: ts.TypeNode, nullable: boolean}[],
     returnType: ts.TypeNode,
+}
+
+export function generateEventsBridgeSignature(language: Language): Method {
+    let signature: NamedMethodSignature
+    switch (language) {
+        case Language.JAVA:
+        case Language.ARKTS:
+        case Language.TS:
+            signature = new NamedMethodSignature(
+                new Type(`KInt`),
+                [new Type(`KUint8ArrayPtr`), new Type(`KInt`)],
+                [`result`, `size`],
+            )
+            break;
+        case Language.CPP:
+            signature = new NamedMethodSignature(
+                new Type(`KInt`),
+                [new Type(`KUint*`), new Type(`KInt`)],
+                [`result`, `size`],
+            )
+            break;
+        default:
+            throw new Error("Not implemented")
+    }
+    return new Method(`CheckArkoalaEvents`, signature)
 }
 
 export function groupCallbacks(callbacks: CallbackInfo[]): Map<string, CallbackInfo[]> {
@@ -252,7 +293,7 @@ class TSEventsVisitor {
         this.printer.print(`switch (kind) {`)
         this.printer.pushIndent()
         for (const info of infos) {
-            this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(info)}: return "${info.methodName}"`)
+            this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(info)}: return "${callbackIdByInfo(info)}"`)
         }
         this.printer.popIndent()
         this.printer.print('}')
@@ -275,6 +316,7 @@ class TSEventsVisitor {
         for (const info of infos) {
             this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(info)}: return ${callbackEventNameByInfo(info)}.deserialize(buffer)`)
         }
+        this.printer.print(`default: throw \`Unknown kind \${kind}\``)
         this.printer.popIndent()
         this.printer.print('}')
 
@@ -288,14 +330,14 @@ class TSEventsVisitor {
                 return 'void'
             return type.getText()
         }
-        this.printer.writeInterface('PeerEventsProperties', writer => {
+        this.printer.writeInterface(PeerEventsProperties, writer => {
             for (const info of infos) {
                 const signature = new NamedMethodSignature(
                     new Type('void'),
                     info.args.map(it => new Type(getTextOrVoid(it.type))),
                     info.args.map(it => it.name),
                 )
-                writer.writeMethodDeclaration(info.methodName, signature)
+                writer.writeMethodDeclaration(callbackIdByInfo(info), signature)
             }
         })
     }

@@ -31,6 +31,7 @@ sources = [
     gen_dir + '/common-interop.cc',
     gen_dir + '/custom.cc',
     gen_dir + '/bridge.cc',
+    gen_dir + '/events.cc',
 ]
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
