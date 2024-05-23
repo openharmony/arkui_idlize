@@ -71,7 +71,7 @@ export function generateEventsBridgeSignature(language: Language): Method {
         case Language.TS:
             signature = new NamedMethodSignature(
                 new Type(`KInt`),
-                [new Type(`KUint8ArrayPtr`), new Type(`KInt`)],
+                [new Type(`Uint8Array`), new Type(`KInt`)],
                 [`result`, `size`],
             )
             break;

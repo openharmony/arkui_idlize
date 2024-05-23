@@ -51,7 +51,7 @@ class NativeModuleVisitor {
     private printEventMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
         let method = generateEventsBridgeSignature(nativeModule.language)
         method = new Method(`_${method.name}`, method.signature, method.modifiers)
-        nativeModule.writeMethodDeclaration(method.name, method.signature)
+        nativeModule.writeNativeMethodDeclaration(method.name, method.signature)
         nativeModuleEmpty.writeMethodImplementation(method, writer => {
             writer.writePrintLog(method.name)
             writer.writeStatement(writer.makeReturn(new StringExpression(`0`)))
