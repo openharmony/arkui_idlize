@@ -312,7 +312,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
         if (it.useArray)
             writer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
         else
-            writer.print(it.convertorArg(it.param, writer.language))
+            writer.print(it.convertorArg(it.param, writer))
         writer.print(maybeComma)
     })
     writer.popIndent()

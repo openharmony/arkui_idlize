@@ -40,7 +40,7 @@ class BridgeCcVisitor {
     private generateApiArgument(argConvertor: ArgConvertor): string {
         const prefix = argConvertor.isPointerType() ? `(const ${argConvertor.nativeType(false)}*)&`: "    "
         if (argConvertor.useArray) return `${prefix}${argConvertor.param}_value`
-        return `${argConvertor.convertorArg(argConvertor.param, this.C.language)}`
+        return `${argConvertor.convertorArg(argConvertor.param, this.C)}`
     }
 
     private printAPICall(method: PeerMethod) {
