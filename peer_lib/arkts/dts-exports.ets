@@ -28,6 +28,14 @@
  * limitations under the License.
  */
 
+export interface CustomComponent extends CommonAttribute {
+    build(): void;
+    aboutToAppear(): void;
+    aboutToDisappear(): void;
+    aboutToReuse(params: object): void;
+    aboutToRecycle(): void;
+}
+
 export interface Resource {
 
   bundleName: string;
@@ -171,22 +179,20 @@ export interface DragInteractionOptions {
 }
 
 export interface CommonMethod<T> {
-/*
-    stateStyles(value: StateStyles): T;
+    stateStyles(value: StateStyles): this;
 
-    backdropBlur(value: number, options?: BlurOptions): T;
+    backdropBlur(value: number, options?: BlurOptions): this;
 
-    width(value: Length): T;
+    width(value: Length): this;
 
-    height(value: Length): T;
+    height(value: Length): this;
 
-    bindSheet(isShow: boolean, builder: () => void, options?: SheetOptions): T;
+    bindSheet(isShow: boolean, builder: () => void, options?: SheetOptions): this;
 
-    backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): T;
+    backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): this;
 
-    dragPreviewOptions(value: DragPreviewOptions, options?: DragInteractionOptions): T;
-*/
+    dragPreviewOptions(value: DragPreviewOptions, options?: DragInteractionOptions): this;
 }
 
-export class CommonAttribute {
+export interface CommonAttribute extends CommonMethod<CommonAttribute> {
 }

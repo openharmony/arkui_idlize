@@ -16,7 +16,7 @@ export class NativePeerNode extends Finalizable {
 
 export class PeerNode extends Finalizable {
     peer: NativePeerNode
-    constructor(type: number, flags: int32) {
+    constructor(type: int32, flags: int32) {
         super(42)
         this.peer = new NativePeerNode(42)
     }

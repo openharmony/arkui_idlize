@@ -20,6 +20,7 @@ import { Language, indentedBy, langSuffix } from "../util"
 import { createLanguageWriter } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./EventsPrinter"
+import { collectDtsImports } from "./DtsImportsGenerator"
 
 const importTsInteropTypes = `
 import {
@@ -172,31 +173,7 @@ extern const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetArkUIAccessors()
 export function makeTSSerializer(table: DeclarationTable): string {
     let printer = createLanguageWriter(new IndentedPrinter(), table.language)
     if(table.language == Language.ARKTS) {
-        printer.print(`
-import {
-    AltOffset,
-    BackgroundBlurStyleOptions,
-    BlurOptions,
-    BlurStyle,
-    Color,
-    CommonAttribute,
-    CommonMethod,
-    DragInteractionOptions,
-    DragPreviewOptions,
-    Length,
-    Offset,
-    Padding,
-    Position,
-    Resource,
-    ResourceStr,
-    ResourceColor,
-    SheetOptions,
-    SheetSize,
-    StateStyles,
-    SheetTitleOptions
-} from "./dts-exports"
-`.trim()
-        )
+        printer.print(collectDtsImports().trim())
     }
     table.generateSerializers(printer)
     return `

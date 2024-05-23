@@ -919,13 +919,12 @@ export class DeclarationTable {
     generateSerializers(printer: LanguageWriter) {
         let seenNames = new Set<string>()
         printer.print(`export class Serializer extends SerializerBase {`)
-        if(printer.language == Language.ARKTS) {
-            printer.print(`
-constructor(expectedSize: int32) {
-    super(expectedSize)
-}`)
-        }
         printer.pushIndent()
+        if(printer.language == Language.ARKTS) {
+            printer.pushIndent()
+            printer.print(`constructor(expectedSize: int32) { super(expectedSize) }`)
+            printer.popIndent()
+        }
         for (let declaration of this.declarations) {
             let name = this.computeTargetName(declaration, false)
             if (seenNames.has(name)) continue

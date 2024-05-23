@@ -30,6 +30,7 @@ import {
     createLanguageWriter
 } from "./LanguageWriters";
 import { MaterializedMethod } from "./Materialized";
+import { collectDtsImports } from "./DtsImportsGenerator";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -44,6 +45,7 @@ class PeerFileVisitor {
 
     // Temporary, until other languages supported.
     private isTs = this.file.declarationTable.language == Language.TS
+    private isArkTs = this.file.declarationTable.language == Language.ARKTS
 
     constructor(
         private readonly library: PeerLibrary,
@@ -94,7 +96,7 @@ class PeerFileVisitor {
     }
 
     private printAttributes(peer: PeerClass) {
-        if (!this.isTs) return
+        if (!(this.isTs||this.isArkTs)) return
         for (const attributeType of peer.attributesTypes)
             this.printer.print(attributeType)
 
@@ -112,7 +114,7 @@ class PeerFileVisitor {
         const isNode = parentRole !== InheritanceRole.Finalizable
         const signature = new NamedMethodSignature(
             Type.Void,
-            [new Type('ArkUINodeType', !isNode), new Type('ArkCommon', true), new Type('int32')],
+            [new Type(this.isArkTs ? 'int' : 'ArkUINodeType', !isNode), new Type('ArkCommon', true), new Type('int32')],
             ['type', 'component', 'flags'],
             [undefined, undefined, '0'])
 
@@ -135,7 +137,7 @@ class PeerFileVisitor {
     }
 
     private printApplyMethod(peer: PeerClass) {
-        if (!this.isTs) return
+        if (!(this.isTs||this.isArkTs)) return
         const name = peer.originalClassName!
         const typeParam = componentToAttributesClass(peer.componentName)
         if (isRoot(name)) {
@@ -180,12 +182,12 @@ class PeerFileVisitor {
     }
 
     private printEnums(peerFile: PeerFile) {
-        if (!this.isTs) return
+        if (!(this.isTs||this.isArkTs)) return
         peerFile.enums.forEach(it => this.printEnum(it))
     }
 
     private printAssignEnumsToGlobalScope(peerFile: PeerFile) {
-        if (!this.isTs) return
+        if (!(this.isTs||this.isArkTs)) return
         if (peerFile.enums.length != 0) {
             this.printer.print(`Object.assign(globalThis, {`)
             this.printer.pushIndent()
@@ -214,7 +216,7 @@ class PeerFileVisitor {
                     `import { int32 } from "@koalaui/common"`,
                     `import { PeerNode } from "@koalaui/arkoala"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"`,
+                    `import { runtimeType, RuntimeType } from "./SerializerBase"`,
                     `import { Serializer } from "./Serializer"`,
                     `import { nativeModule } from "./NativeModule"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
@@ -226,11 +228,11 @@ class PeerFileVisitor {
                     `import { int32 } from "@koalaui/common"`,
                     `import { PeerNode } from "@koalaui/arkoala"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"`,
+                    `import { runtimeType, RuntimeType } from "./SerializerBase"`,
                     `import { Serializer } from "./Serializer"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ArkCommon } from "./ArkCommon"`,
-                    `import { BackgroundBlurStyleOptions, BlurOptions, BlurStyle, CommonAttribute, CommonMethod, DragInteractionOptions, DragPreviewOptions, Length, ResourceColor, SheetOptions, StateStyles } from "./dts-exports"`
+                    `${collectDtsImports().trim()}`
                 ]
             }
             case Language.JAVA: {

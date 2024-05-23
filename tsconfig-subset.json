@@ -25,5 +25,5 @@
         "generated/subset/**/*",
         "generated/fuzz/**/*",
         "tests/subset/**/*"
-    ],
+    ]
 }
