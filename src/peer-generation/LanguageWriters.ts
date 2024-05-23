@@ -39,26 +39,56 @@ export interface LanguageExpression {
 }
 
 export class AssignStatement implements LanguageStatement {
-    constructor(public variableName: string, public type: Type, public expression: LanguageExpression, public isDeclared: boolean = true) { }
+    constructor(public variableName: string, public type: Type | undefined, public expression: LanguageExpression, public isDeclared: boolean = true) { }
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
-            writer.print(`const ${this.variableName}: ${writer.mapType(this.type)} = ${this.expression.asString()}`)
+            const typeSpec = this.type ? `: ${writer.mapType(this.type)}` : ""
+            writer.print(`const ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
         } else {
             writer.print(`${this.variableName} = ${this.expression.asString()}`)
         }
     }
 }
 
-export class CLikeAssignStatement extends AssignStatement {
-    constructor(public variableName: string, public type: Type, public expression: LanguageExpression, public isDeclared: boolean = true) {
+export class JavaAssignStatement extends AssignStatement {
+    constructor(public variableName: string, public type: Type | undefined, public expression: LanguageExpression, public isDeclared: boolean = true) {
         super(variableName, type, expression)
      }
      write(writer: LanguageWriter): void{
         if (this.isDeclared) {
-            writer.print(`${writer.mapType(this.type)} ${this.variableName} = ${this.expression.asString()};`)
+            const typeSpec = this.type ? writer.mapType(this.type) : "var"
+            writer.print(`${typeSpec} ${this.variableName} = ${this.expression.asString()};`)
         } else {
             writer.print(`${this.variableName} = ${this.expression.asString()};`)
         }
+    }
+}
+
+export class CppAssignStatement extends AssignStatement {
+    constructor(public variableName: string, public type: Type | undefined, public expression: LanguageExpression, public isDeclared: boolean = true) {
+        super(variableName, type, expression)
+     }
+     write(writer: LanguageWriter): void{
+        if (this.isDeclared) {
+            const typeSpec = this.type ? writer.mapType(this.type) : "auto"
+            writer.print(`${typeSpec} ${this.variableName} = ${this.expression.asString()};`)
+        } else {
+            writer.print(`${this.variableName} = ${this.expression.asString()};`)
+        }
+    }
+}
+
+export class CheckDefinedExpression implements LanguageExpression {
+    constructor(private value: string) { }
+    asString(): string {
+        return this.value
+    }
+}
+
+export class JavaCheckDefinedExpression implements LanguageExpression {
+    constructor(private value: string) { }
+    asString(): string {
+        return `${this.value} != null`
     }
 }
 
@@ -150,6 +180,60 @@ export class ConditionStatement implements LanguageExpression {
     }
 }
 */
+
+class TSLoopStatement implements LanguageStatement {
+    constructor(private counter: string, private limit: string) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`for (let ${this.counter} = 0; ${this.counter} < ${this.limit}; ${this.counter}++) {`)
+    }
+}
+
+class CLikeLoopStatement implements LanguageStatement {
+    constructor(private counter: string, private limit: string) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`for (int ${this.counter} = 0; ${this.counter} < ${this.limit}; ${this.counter}++) {`)
+    }
+}
+
+class TSMapForEachStatement implements LanguageStatement {
+    constructor(private map: string, private key: string, private value: string) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`for (const [${this.key}, ${this.value}] of ${this.map}) {`)
+    }
+}
+
+class JavaMapForEachStatement implements LanguageStatement {
+    constructor(private map: string, private key: string, private value: string) {}
+    write(writer: LanguageWriter): void {
+        const entryVar = `${this.map}Entry`
+        writer.print(`for (Map.Entry<?, ?> ${entryVar}: ${this.map}.entrySet()) {`)
+        writer.pushIndent()
+        writer.print(`var ${this.key} = ${entryVar}.getKey();`)
+        writer.print(`var ${this.value} = ${entryVar}.getValue();`)
+        writer.popIndent()
+    }
+}
+
+class CppMapForEachStatement implements LanguageStatement {
+    constructor(private map: string, private key: string, private value: string) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`for (auto const& [${this.key}, ${this.value}] : ${this.map}) {`)
+    }
+}
+
+class CppArrayResizeStatement implements LanguageStatement {
+    constructor(private elementType: string, private array: string, private length: string, private deserializer: string) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`${this.deserializer}.resizeArray<Array_${this.elementType}, ${this.elementType}>(&${this.array}, ${this.length});`)
+    }
+}
+
+class CppMapResizeStatement implements LanguageStatement {
+    constructor(private keyType: string, private valueType: string, private map: string, private size: string, private deserializer: string) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType}_${this.valueType}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
+    }
+}
 
 export class BlockStatement implements LanguageStatement {
     constructor(public statements: LanguageStatement[]) { }
@@ -252,7 +336,7 @@ export abstract class LanguageWriter {
         this.printer.print(`super(${params.join(", ")});`)
     }
 
-    writeMemberCall(receiver: string, method: string, params: string[], nullable = false): void {
+    writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         this.printer.print(`${receiver}${nullable ? "?" : ""}.${method}(${params.join(", ")})`)
     }
 
@@ -267,13 +351,27 @@ export abstract class LanguageWriter {
     makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(receiver, method, params, nullable)
     }
-    abstract makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean): LanguageStatement;
+    abstract makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean): LanguageStatement;
     abstract makeReturn(expr?: LanguageExpression): LanguageStatement;
+    makeDefinedCheck(value: string): LanguageExpression {
+        return new CheckDefinedExpression(value)
+    }
     makeCondition(condition: LanguageExpression, thenStatement: LanguageStatement, elseStatement?: LanguageStatement): LanguageStatement {
         return new IfStatement(condition, thenStatement, elseStatement)
     }
     makeTernary(condition: LanguageExpression, trueExpression: LanguageExpression, falseExpression: LanguageExpression): LanguageExpression {
         return new TernaryExpression(condition, trueExpression, falseExpression)
+    }
+    makeArrayLength(array: string, length?: string): LanguageExpression {
+        return new StringExpression(`${array}.length`)
+    }
+    abstract makeLoop(counter: string, limit: string): LanguageStatement
+    abstract makeMapForEach(map: string, key: string, value: string): LanguageStatement
+    makeArrayResize(elementType: string, array: string, length: string, deserializer: string): LanguageStatement {
+        throw new Error("Method not implemented.")
+    }
+    makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
+        throw new Error("Method not implemented.")
     }
     makeString(value: string): LanguageExpression {
         return new StringExpression(value)
@@ -354,11 +452,17 @@ export class TSLanguageWriter extends LanguageWriter {
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, prefix?: string) {
         this.printer.print(`${prefix ?? ""}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
-    makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
+    makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
         return new AssignStatement(variableName, type, expr, isDeclared)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new TSReturnStatement(expr)
+    }
+    makeLoop(counter: string, limit: string): LanguageStatement {
+        return new TSLoopStatement(counter, limit)
+    }
+    makeMapForEach(map: string, key: string, value: string): LanguageStatement {
+        return new TSMapForEachStatement(map, key, value)
     }
     writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)
@@ -413,7 +517,7 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeMemberCall(receiver: string, method: string, params: string[], nullable = false): void {
+    writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         if (nullable) {
             this.printer.print(`if (${receiver} != null) ${receiver}.${method}(${params.join(", ")});`)
         } else {
@@ -444,10 +548,19 @@ export class JavaLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
-        return new CLikeAssignStatement(variableName, type, expr, isDeclared)
+        return new JavaAssignStatement(variableName, type, expr, isDeclared)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new JavaReturnStatement(expr)
+    }
+    makeDefinedCheck(value: string): LanguageExpression {
+        return new JavaCheckDefinedExpression(value)
+    }
+    makeLoop(counter: string, limit: string): LanguageStatement {
+        return new CLikeLoopStatement(counter, limit)
+    }
+    makeMapForEach(map: string, key: string, value: string): LanguageStatement {
+        return new JavaMapForEachStatement(map, key, value)
     }
     makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
         return new JavaCastExpression(value, type, unsafe)
@@ -491,10 +604,25 @@ export class CppLanguageWriter extends LanguageWriter {
         throw new Error("Method not implemented.")
     }
     makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
-        return new CLikeAssignStatement(variableName, type, expr, isDeclared)
+        return new CppAssignStatement(variableName, type, expr, isDeclared)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         throw new Error("Method not implemented.")
+    }
+    makeArrayLength(array: string, length: string): LanguageExpression {
+        return new StringExpression(length)
+    }
+    makeLoop(counter: string, limit: string): LanguageStatement {
+        return new CLikeLoopStatement(counter, limit)
+    }
+    makeMapForEach(map: string, key: string, value: string): LanguageStatement {
+        return new CppMapForEachStatement(map, key, value)
+    }
+    makeArrayResize(elementType: string, array: string, length: string, deserializer: string): LanguageStatement {
+        return new CppArrayResizeStatement(elementType, array, length, deserializer)
+    }
+    makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
+        return new CppMapResizeStatement(keyType, valueType, map, size, deserializer)
     }
     makeCast(expr: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
         return new CppCastExpression(expr, type, unsafe)

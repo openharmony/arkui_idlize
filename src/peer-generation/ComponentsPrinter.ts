@@ -150,7 +150,7 @@ class ComponentFileVisitor {
             this.printer.print(`const ${castedArgName} = ${argName} as (${castedType})`)
             return castedArgName
         })
-        this.printer.writeMemberCall(`this.peer`, `${peerMethod.overloadedName}Attribute`, argsNames, true)
+        this.printer.writeMethodCall(`this.peer`, `${peerMethod.overloadedName}Attribute`, argsNames, true)
     }
 
 

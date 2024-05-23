@@ -123,7 +123,7 @@ class PeerFileVisitor {
                 writer.writeSuperCall(['BigInt(42)']) // for now
             } else if (parentRole === InheritanceRole.PeerNode) {
                 writer.writeSuperCall([`type`, 'flags'])
-                writer.writeMemberCall('component', 'setPeer', ['this.peer'], true)
+                writer.writeMethodCall('component', 'setPeer', ['this.peer'], true)
             } else if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
                 writer.writeSuperCall([`type`, 'component', 'flags'])
             } else {
