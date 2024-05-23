@@ -14,7 +14,8 @@
  */
 
 import * as ts from "typescript"
-import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations, identName, isStatic, mapType, mapTypeOrVoid, throwException, typeEntityName, identNameWithNamespace } from "../util"
+import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations,
+     identName, isStatic, throwException, typeEntityName, identNameWithNamespace } from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -25,7 +26,7 @@ import {
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
-import { LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
+import { LanguageWriter } from "./LanguageWriters"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -844,7 +845,7 @@ export class DeclarationTable {
             if (isAccessor) {
                 structs.print(`typedef Ark_Materialized ${nameAssigned};`)
             }
-            let skipWriteToString = (target instanceof PrimitiveType) || ts.isEnumDeclaration(target)
+            let skipWriteToString = (target instanceof PrimitiveType) || ts.isEnumDeclaration(target) || ts.isFunctionTypeNode(target)
             if (!noBasicDecl && !skipWriteToString) {
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
             }
@@ -1310,6 +1311,7 @@ constructor(expectedSize: int32) {
         if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return true
         if (target instanceof PrimitiveType) return true
         if (ts.isEnumDeclaration(target)) return true
+        if (ts.isFunctionTypeNode(target)) return true
         if (ts.isImportTypeNode(target)) return true
         if (ts.isTemplateLiteralTypeNode(target)) return true
         return false

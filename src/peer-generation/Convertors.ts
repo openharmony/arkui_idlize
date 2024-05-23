@@ -220,9 +220,23 @@ export class EnumConvertor extends BaseArgConvertor {
     }
     // TODO: bit clumsy.
     customDiscriminator(value: string, writer: LanguageWriter): LanguageExpression | undefined {
+        let low: number|undefined = undefined
+        let high: number|undefined = undefined
+        // TODO: proper enum value computation.
+        this.enumType.members.forEach((member, index) => {
+            let value = index
+            if (member.initializer) {
+                let tsValue = member.initializer
+                if (ts.isLiteralExpression(tsValue)) value = parseInt(tsValue.text) ?? index
+            }
+            if (low == undefined) low = value
+            if (high == undefined) high = value
+            if (value < low) low = value
+            if (value > high) high = value
+        })
         return writer.makeNaryOp("&&", [
-            writer.makeNaryOp(">=", [writer.makeCast(writer.makeString(value), Type.Number), writer.makeString("0")]),
-            writer.makeNaryOp("<",  [writer.makeCast(writer.makeString(value), Type.Number), writer.makeString(this.enumType.members.length.toString())])
+            writer.makeNaryOp(">=", [writer.makeCast(writer.makeString(value), Type.Number), writer.makeString(low!.toString())]),
+            writer.makeNaryOp("<=",  [writer.makeCast(writer.makeString(value), Type.Number), writer.makeString(high!.toString())])
         ])
     }
     hasCustomDiscriminator(): boolean {
@@ -329,7 +343,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 it.runtimeTypes.map(it => printer.makeNaryOp("==", [ printer.makeString(`RuntimeType.${RuntimeType[it]}`), printer.makeString(`${value}_type`)])))
             let customDiscriminator = it.customDiscriminator(value, printer)
             if (customDiscriminator)
-                conditions = printer.makeNaryOp("&&", [customDiscriminator, conditions])
+                conditions = printer.makeNaryOp("&&", [conditions, customDiscriminator])
             printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
             if (!(it instanceof UndefinedConvertor)) {
