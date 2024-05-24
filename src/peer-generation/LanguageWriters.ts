@@ -345,7 +345,10 @@ export abstract class LanguageWriter {
 
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void
     abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
-
+    writeDeserializerClassPrologue(): void {///abstract
+        this.print(`export class Deserializer { // extends SerializerBase {`)
+        this.pushIndent()
+    }
     writeSuperCall(params: string[]): void {
         this.printer.print(`super(${params.join(", ")});`)
     }
@@ -358,7 +361,12 @@ export abstract class LanguageWriter {
         //this.printer.print(stmt.asString())
         stmt.write(this)
     }
-
+    makeRef(varName: string): string {
+        return varName
+    }
+    makeThis(): LanguageExpression {
+        return new StringExpression("this")
+    }
     makeFunctionCall(name: string, params: LanguageExpression[]): LanguageExpression {
         return new FunctionCallExpression(name, params)
     }
@@ -382,10 +390,10 @@ export abstract class LanguageWriter {
     abstract makeLoop(counter: string, limit: string): LanguageStatement
     abstract makeMapForEach(map: string, key: string, value: string): LanguageStatement
     makeArrayResize(elementType: string, array: string, length: string, deserializer: string): LanguageStatement {
-        throw new Error("Method not implemented.")
+        return new ExpressionStatement(new StringExpression("// TODO: TS array resize"))
     }
     makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
-        throw new Error("Method not implemented.")
+        return new ExpressionStatement(new StringExpression("// TODO: TS map resize"))
     }
     makeString(value: string): LanguageExpression {
         return new StringExpression(value)
@@ -645,6 +653,18 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.printer.pushIndent()
         this.printer.print(`${type.name} ${name};`)
         this.printer.popIndent()
+    }
+    writeDeserializerClassPrologue(): void {
+        this.print(`class Deserializer : public ArgDeserializerBase {`)
+        this.print(` public:`)
+        this.pushIndent()
+        this.print(`Deserializer(uint8_t *data, int32_t length) : ArgDeserializerBase(data, length) {}`)
+    }
+    override makeRef(varName: string): string {
+        return `${varName}&`
+    }
+    override makeThis(): LanguageExpression {
+        return new StringExpression("*this")
     }
     makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true): LanguageStatement {
         return new CppAssignStatement(variableName, type, expr, isDeclared)

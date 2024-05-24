@@ -26,7 +26,7 @@ import {
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
-import { LanguageWriter } from "./LanguageWriters"
+import { LanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -788,6 +788,8 @@ export class DeclarationTable {
     }
 
     generateDeserializers(printer: LanguageWriter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: IndentedPrinter) {
+        printer.writeDeserializerClassPrologue()
+
         this.processPendingRequests()
         let orderer = new DependencySorter(this)
         for (let declaration of this.declarations) {
@@ -796,12 +798,6 @@ export class DeclarationTable {
         let order = orderer.getToposorted()
         this.assignUniqueNames()
         let seenNames = new Set<string>()
-        printer.print(`class Deserializer : public ArgDeserializerBase {`)
-        printer.print(` public:`)
-        printer.pushIndent()
-        printer.print(`Deserializer(uint8_t *data, int32_t length) : ArgDeserializerBase(data, length) {}`)
-
-        let accessors = new IndentedPrinter()
         for (let declaration of order) {
             let name = this.uniqueNames.get(declaration)!
             if (seenNames.has(name)) continue
@@ -859,7 +855,6 @@ export class DeclarationTable {
                 this.writeOptional(nameOptional, writeToString, isPointer)
             }
         }
-        structs.append(accessors)
         for (let declarationTarget of this.typeMap.values()) {
             let target = declarationTarget[0]
             let aliasNames = declarationTarget[1]
@@ -1284,25 +1279,25 @@ export class DeclarationTable {
         this.setCurrentContext(`write${name}()`)
 
         printer.pushIndent()
-        printer.print(`write${name}(value: ${this.translateSerializerType(name, target)}) {`)
-        printer.pushIndent()
-        printer.print(`const valueSerializer = this`)
-        if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
-            let struct = this.targetStruct(target)
-            struct.getFields().forEach(it => {
-                let field = `value_${it.name}`
-                printer.print(`let ${field} = value.${it.name}`)
-                let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
-                typeConvertor.convertorSerialize(`value`, field, printer)
+        printer.writeMethodImplementation(
+            new Method(`write${name}`,
+                new NamedMethodSignature(Type.Void, [new Type(this.translateSerializerType(name, target))], ["value"])),
+            writer => {
+                writer.writeStatement(writer.makeAssign("valueSerializer", undefined, writer.makeThis(), true))
+                if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
+                    let struct = this.targetStruct(target)
+                    struct.getFields().forEach(it => {
+                        let field = `value_${it.name}`
+                        writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${it.name}`), true))
+                        let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
+                        typeConvertor.convertorSerialize(`value`, field, writer)
+                    })
+                } else {
+                    let typeConvertor = this.typeConvertor("value", target, false)
+                    typeConvertor.convertorSerialize(`value`, `value`, writer)
+                }
             })
-        } else {
-            let typeConvertor = this.typeConvertor("value", target, false)
-            typeConvertor.convertorSerialize(`value`, `value`, printer)
-        }
         printer.popIndent()
-        printer.print(`}`)
-        printer.popIndent()
-
         this.setCurrentContext(undefined)
     }
 
@@ -1319,24 +1314,24 @@ export class DeclarationTable {
     private generateDeserializer(name: string, target: DeclarationTarget, printer: LanguageWriter) {
         if (this.ignoreTarget(target, name)) return
         this.setCurrentContext(`read${name}()`)
-        printer.print(`${name} read${name}() {`)
-        printer.pushIndent()
-        printer.print(`Deserializer& valueDeserializer = *this;`)
-        // using list initialization to prevent uninitialized value errors
-        printer.print(`${name} value = {};`)
-        if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
-            let struct = this.targetStruct(target)
-            struct.getFields().forEach(it => {
-                let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
-                typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, printer)
-            })
-        } else {
-            let typeConvertor = this.typeConvertor("value", target, false)
-            typeConvertor.convertorDeserialize(`value`, `value`, printer)
-        }
-        printer.print(`return value;`)
-        printer.popIndent()
-        printer.print(`}`)
+        const type = new Type(name)
+        printer.writeMethodImplementation(new Method(`read${name}`, new NamedMethodSignature(type, [], [])), writer => {
+            writer.writeStatement(
+                writer.makeAssign("valueDeserializer", new Type(writer.makeRef("Deserializer")), writer.makeThis(), true))
+            // using list initialization to prevent uninitialized value errors
+            writer.writeStatement(writer.makeAssign("value", type, writer.makeString("{}"), true))
+            if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
+                let struct = this.targetStruct(target)
+                struct.getFields().forEach(it => {
+                    let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
+                    typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, writer)
+                })
+            } else {
+                let typeConvertor = this.typeConvertor("value", target, false)
+                typeConvertor.convertorDeserialize(`value`, `value`, writer)
+            }
+            writer.writeStatement(writer.makeReturn(writer.makeString("value")))
+        })
         this.setCurrentContext(undefined)
     }
 }
