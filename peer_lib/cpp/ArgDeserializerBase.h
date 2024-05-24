@@ -426,7 +426,7 @@ public:
     check(length);
     // We refer to string data in-place.
     result.chars = (const char *)(data + position);
-    result.length = length;
+    result.length = length - 1;
     this->position += length;
     return result;
   }

@@ -32,6 +32,8 @@ sources = [
     gen_dir + '/custom.cc',
     gen_dir + '/bridge.cc',
     gen_dir + '/events.cc',
+    gen_dir + '/all_events.cc',
+    gen_dir + '/events_test.cc',
 ]
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
@@ -56,13 +58,12 @@ endif
 
 if use_dummy_libace
 sources += [
-   gen_dir + '/dummy_impl.cc'
+   gen_dir + '/dummy_impl.cc',
 ]
 else
 sources += [
    gen_dir + '/all_modifiers.cc',
    gen_dir + '/delegates.cc',
-   gen_dir + '/all_events.cc',
 ]
 endif
 

@@ -27,6 +27,7 @@ import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleMaterialized"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testString1000 } from "@arkoala/arkui/test_data"
+import { deserializePeerEvent, PeerEventKind, TextPicker_onAccept_event } from "./peer_events"
 
 import {
     getNativeLog,
@@ -270,6 +271,31 @@ function checkPerf3(count: number) {
     console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
+function checkEvents() {
+    const BufferSize = 60 * 4
+    const serializer = new SerializerBase(BufferSize)
+    serializer.writeInt32(1) //nodeId
+    serializer.writeString("testString") //arg1
+    serializer.writeNumber(22) //arg2
+    nativeModule()._Test_TextPicker_OnAccept(serializer.asArray(), serializer.length())
+    serializer.close();
+
+    const buffer = new Uint8Array(BufferSize)
+    const checkResult = nativeModule()._CheckArkoalaEvents(buffer, BufferSize)
+    const event = deserializePeerEvent(new DeserializerBase(buffer.buffer, BufferSize))
+    assertEquals("Event: read event from native", 1, checkResult)
+    if (checkResult !== 1)
+        return
+
+    assertEquals("Event: valid kind", PeerEventKind.TextPicker_onAccept, event.kind)
+    if (event.kind !== PeerEventKind.TextPicker_onAccept)
+        return
+
+    const convertedEvent = event as TextPicker_onAccept_event
+    assertEquals("Event: string argument", "testString", convertedEvent.value)
+    assertEquals("Event: number argument", 22, convertedEvent.index)
+}
+
 checkSerdeBaseLength()
 checkSerdeBaseText()
 checkSerdeBasePrimitive()
@@ -289,6 +315,7 @@ checkCommon()
 checkOverloads()
 checkNavigation()
 checkParticle()
+checkEvents()
 stopNativeLog(CALL_GROUP_LOG)
 
 const callLog = getNativeLog(CALL_GROUP_LOG)

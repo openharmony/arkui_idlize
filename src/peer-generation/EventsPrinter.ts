@@ -276,7 +276,7 @@ class TSEventsVisitor {
     }
 
     private printEventsEnum(infos: CallbackInfo[]) {
-        this.printer.print(`enum ${PeerEventKind} {`)
+        this.printer.print(`export enum ${PeerEventKind} {`)
         this.printer.pushIndent()
 
         infos.forEach((value, index) => {

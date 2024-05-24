@@ -43,6 +43,9 @@ export class NativeModuleBase {
     _ManagedStringWrite(value: KStringPtr, buffer: KUint8ArrayPtr, offset: KInt): KInt {
         throw new Error("_ManagedStringWrite")
     }
+    _Test_TextPicker_OnAccept(valueArray: Uint8Array, valueSerializerLength: KInt): void {
+        throw new Error("_Test_TextPicker_OnAccept")
+    }
     _TestPerfNumber(value: KInt): KInt { return 0 }
     _TestPerfNumberWithArray(value: KUint8ArrayPtr, length: KInt): void {}
     _StartPerf(traceName: KStringPtr): void {}
