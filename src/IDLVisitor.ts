@@ -44,6 +44,7 @@ const typeMapper = new Map<string, string>(
 export class CompileContext {
     functionCounter = 0
     objectCounter = 0
+    tupleCounter = 0
 }
 
 export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
@@ -134,6 +135,14 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
         if (ts.isTypeLiteralNode(node.type)) {
             return this.serializeObjectType(name, node.type)
+        }
+        if (ts.isTupleTypeNode(node.type)) {
+            return this.serializeTupleType(name, node.type)
+        }
+        if (ts.isTypeOperatorNode(node.type)) {
+            if (ts.isTupleTypeNode(node.type.type)) {
+                return this.serializeTupleType(name, node.type.type, true)
+            }
         }
         return {
             kind: IDLKind.Typedef,
@@ -298,6 +307,20 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             properties: this.pickProperties(node.members),
             methods: this.pickMethods(node.members),
             callables: this.pickCallables(node.members)
+        }
+    }
+
+    serializeTupleType(name: string, node: ts.TupleTypeNode, withOperator: boolean = false): IDLInterface {
+        const isNamedTuple = node.elements.some(it => ts.isNamedTupleMember(it))
+        return {
+            kind: IDLKind.TupleInterface,
+            name: name,
+            inheritance: [],
+            constructors: [],
+            properties: node.elements.map((it, index) => this.serializeTupleProperty(it, `value${index}`, withOperator)),
+            methods: [],
+            callables: [],
+            extendedAttributes: [{ name: isNamedTuple ? "NamedTuple" : "Tuple" }]
         }
     }
 
@@ -475,8 +498,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return createContainerType("sequence", [this.serializeType(type.elementType)])
         }
         if (ts.isTupleTypeNode(type)) {
-            // TODO: handle heterogeneous types.
-            return createContainerType("sequence", [this.serializeType(type.elements[0])])
+            //TODO: template tuple not include
+            const counter = this.compileContext.tupleCounter++
+            const name = `${nameSuggestion ?? "anonymous_tuple_interface"}__${counter}`
+            const literal = this.serializeTupleType(name,type)
+            this.addToScope(literal)
+            return createReferenceType(name)
         }
         if (ts.isParenthesizedTypeNode(type)) {
             return this.serializeType(type.type)
@@ -601,6 +628,34 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             }
         }
         throw new Error("Unknown")
+    }
+
+    serializeTupleProperty(property: ts.NamedTupleMember | ts.TypeNode, anonymousName: string = "", isReadonly: boolean = false): IDLProperty {
+        if (ts.isNamedTupleMember(property)) {
+            const name = this.propertyName(property.name)
+            return {
+                kind: IDLKind.Property,
+                name: name!,
+                documentation: undefined,
+                type: this.serializeType(property.type),
+                isReadonly: isReadonly,
+                isStatic: false,
+                isOptional: !!property.questionToken,
+                extendedAttributes: undefined,
+            }
+        }
+        const isOptional = ts.isOptionalTypeNode(property)
+
+        return {
+            kind: IDLKind.Property,
+            name: anonymousName,
+            documentation: undefined,
+            type: this.serializeType(isOptional ? property.type : property),
+            isReadonly: isReadonly,
+            isStatic: false,
+            isOptional: isOptional,
+            extendedAttributes: undefined,
+        }
     }
 
     serializeParameter(parameter: ts.ParameterDeclaration): IDLParameter {

@@ -35,7 +35,8 @@ export enum IDLKind {
     EnumType,
     UnionType,
     TypeParameterType,
-    ModuleType
+    ModuleType,
+    TupleInterface
 }
 
 export interface IDLExtendedAttribute {
@@ -161,7 +162,7 @@ export interface IDLConstructor extends IDLSignature {
 
 export interface IDLInterface extends IDLEntry {
     name: string
-    kind: IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface
+    kind: IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface | IDLKind.TupleInterface
     inheritance: IDLType[]
     constructors: IDLConstructor[]
     properties: IDLProperty[]
@@ -180,6 +181,7 @@ export function forEachChild(node: IDLEntry, cb: (entry: IDLEntry) => void): voi
     switch (node.kind) {
         case IDLKind.Interface:
         case IDLKind.Class:
+        case IDLKind.TupleInterface:
         case IDLKind.AnonymousInterface: {
             let iface = node as IDLInterface
             iface.inheritance.forEach((value) => forEachChild(value, cb))
@@ -454,6 +456,7 @@ export function printCallback(idl: IDLCallback): stringOrNone[] {
 export function printScoped(idl: IDLEntry): stringOrNone[] {
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
     if (idl.kind == IDLKind.AnonymousInterface) return printInterface(idl as IDLInterface)
+    if (idl.kind == IDLKind.TupleInterface) return printInterface(idl as IDLInterface)
     return [`/* Unexpected scoped: ${idl.kind} ${idl.name} */`]
 }
 
@@ -509,6 +512,7 @@ export function printIDL(idl: IDLEntry, options?: Partial<IDLPrintOptions>): str
     if (idl.kind == IDLKind.Class
         || idl.kind == IDLKind.Interface
         || idl.kind == IDLKind.AnonymousInterface
+        || idl.kind == IDLKind.TupleInterface
     ) return printInterface(idl as IDLInterface)
     if (idl.kind == IDLKind.Enum) return printEnum(idl as IDLEnum, options?.disableEnumInitializers ?? false)
     if (idl.kind == IDLKind.Typedef) return printTypedef(idl as IDLTypedef)
