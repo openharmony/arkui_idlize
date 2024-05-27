@@ -123,32 +123,20 @@ function registerMaterialized(value: object|undefined): number {
 
 let textEncoder = new TextEncoder()
 
-class ArrayBufferCache {
-    currentUsed = 0
-    cache: Array<ArrayBuffer|undefined> = []
-    constructor(public maxCapacity: number) {}
-
-    get(size: number): ArrayBuffer {
-        for (let i = 0; i < this.cache.length; i++) {
-            let buffer = this.cache[i]
-            if (buffer && buffer.byteLength >= size) {
-                this.cache[i] = undefined
-                this.currentUsed += buffer.byteLength
-                return buffer
-            }
-        }
-        this.currentUsed += size
-        return new ArrayBuffer(size)
+class SerializersCache {
+    cache: Array<SerializerBase|undefined>
+    constructor(maxCount: number) {
+        this.cache = new Array<SerializerBase|undefined>(maxCount)
     }
-    release(buffer: ArrayBuffer) {
-        this.currentUsed -= buffer.byteLength
-        for (let i = 0; i < this.cache.length; i++) {
-            if (!this.cache[i]) {
-                this.cache[i] = buffer
-                return
-            }
+    get<T extends SerializerBase>(factory: () => T, index: int32): T {
+        let result = this.cache[index]
+        if (result) {
+            result.resetCurrentPosition()
+            return result as T
         }
-        this.cache.push(buffer)
+        result = factory()
+        this.cache[index] = result
+        return result as T
     }
 }
 
@@ -161,7 +149,7 @@ export abstract class CustomSerializer {
 }
 
 export class SerializerBase {
-    private static bufferCache = new ArrayBufferCache(4096)
+    private static cache = new SerializersCache(22)
 
     private position = 0
     private buffer: ArrayBuffer
@@ -177,12 +165,13 @@ export class SerializerBase {
             current.next = serializer
         }
     }
-    constructor(expectedSize: int32) {
-        this.buffer = SerializerBase.bufferCache.get(expectedSize)
+    constructor(expectedSize: int32 = 16) {
+        this.buffer = new ArrayBuffer(expectedSize)
         this.view = new DataView(this.buffer)
     }
-    close() {
-        SerializerBase.bufferCache.release(this.buffer)
+
+    static get<T extends SerializerBase>(factory: () => T, index: int32): T {
+        return SerializerBase.cache.get<T>(factory, index)
     }
     asArray(): Uint8Array {
         return new Uint8Array(this.buffer)
@@ -191,6 +180,8 @@ export class SerializerBase {
         return this.position
     }
     currentPosition(): int32 { return this.position }
+    resetCurrentPosition(): void { this.position = 0 }
+
     private checkCapacity(value: int32) {
         if (value < 1) {
             throw new Error(`${value} is less than 1`)
@@ -199,10 +190,9 @@ export class SerializerBase {
         if (this.position > buffSize - value) {
             const minSize = this.position + value
             const resizedSize = Math.max(minSize, Math.round(3 * buffSize / 2))
-            let resizedBuffer = SerializerBase.bufferCache.get(resizedSize)
+            let resizedBuffer = new ArrayBuffer(resizedSize)
             // TODO: can we grow without new?
             new Uint8Array(resizedBuffer).set(new Uint8Array(this.buffer))
-            SerializerBase.bufferCache.release(this.buffer)
             this.buffer = resizedBuffer
             this.view = new DataView(resizedBuffer)
         }

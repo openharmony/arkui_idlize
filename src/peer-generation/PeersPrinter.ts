@@ -216,8 +216,8 @@ class PeerFileVisitor {
                     `import { int32 } from "@koalaui/common"`,
                     `import { PeerNode } from "@koalaui/arkoala"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { runtimeType, RuntimeType } from "./SerializerBase"`,
-                    `import { Serializer } from "./Serializer"`,
+                    `import { runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
+                    `import { createSerializer } from "./Serializer"`,
                     `import { nativeModule } from "./NativeModule"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ArkCommon } from "./ArkCommon"`,
@@ -228,8 +228,8 @@ class PeerFileVisitor {
                     `import { int32 } from "@koalaui/common"`,
                     `import { PeerNode } from "@koalaui/arkoala"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { runtimeType, RuntimeType } from "./SerializerBase"`,
-                    `import { Serializer } from "./Serializer"`,
+                    `import { runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
+                    `import { createSerializer } from "./Serializer"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ArkCommon } from "./ArkCommon"`,
                     `${collectDtsImports().trim()}`
@@ -288,10 +288,10 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
         writer.pushIndent()
         writer.print(it.scopeStart?.(it.param, printer.language))
     })
-    method.argConvertors.forEach(it => {
+    method.argConvertors.forEach((it, index) => {
         if (it.useArray) {
             let size = it.estimateSize()
-            writer.print(`const ${it.param}Serializer = new Serializer(${size})`)
+            writer.print(`const ${it.param}Serializer = SerializerBase.get(createSerializer, ${index})`)
             // TODO: pass writer to convertors!
             it.convertorSerialize(it.param, it.param, writer)
         }
@@ -323,10 +323,6 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
         writer.popIndent()
         writer.print(it.scopeEnd!(it.param, writer.language))
     })
-    method.argConvertors.forEach(it => {
-        if (it.useArray) writer.print(`${it.param}Serializer.close()`)
-    })
-
     if (returnType != Type.Void) {
         let result = returnValName
         if (method.hasReceiver() && returnType === Type.This) {

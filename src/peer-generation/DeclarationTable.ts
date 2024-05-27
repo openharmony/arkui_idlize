@@ -930,6 +930,7 @@ export class DeclarationTable {
 
     generateSerializers(printer: LanguageWriter) {
         let seenNames = new Set<string>()
+        printer.print(`export function createSerializer() { return new Serializer() }`)
         printer.print(`export class Serializer extends SerializerBase {`)
         printer.pushIndent()
         if(printer.language == Language.ARKTS) {

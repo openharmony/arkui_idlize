@@ -108,28 +108,6 @@ inline napi_typedarray_type getNapiType<KNativePointer>() {
 }
 
 template <typename ElemType>
-inline ElemType* getTypedElements0(Napi::Env env, Napi::Value value) {
-  if (value.IsNull()) {
-    return nullptr;
-  }
-  if (!value.IsTypedArray()) {
-    Napi::Error::New(env, "Expected TypedArray")
-        .ThrowAsJavaScriptException();
-    return nullptr;
-  }
-  Napi::TypedArray array = value.As<Napi::TypedArray>();
-  if (array.TypedArrayType() != getNapiType<ElemType>()) {
-    printf("Array type mismatch. Expected %d got %d\n", getNapiType<ElemType>(), array.TypedArrayType());
-    Napi::Error::New(env, "Array type mismatch")
-        .ThrowAsJavaScriptException();
-    return nullptr;
-  }
-  Napi::ArrayBuffer buffer = array.ArrayBuffer();
-
-  return reinterpret_cast<ElemType*>(buffer.Data());
-}
-
-template <typename ElemType>
 inline ElemType* getTypedElements(Napi::Env env, Napi::Value value) {
   if (value.IsNull()) {
     return nullptr;

@@ -74,7 +74,6 @@ function checkSerdeBaseLength() {
     checkSerdeResult("DeserializerBase.readLength, unit %", des.readLength(), "12%")
     checkSerdeResult("DeserializerBase.readLength, unit lpx", des.readLength(), "13lpx")
     checkSerdeResult("DeserializerBase.readLength, number", des.readLength(), 14)
-    ser.close()
 }
 
 function checkSerdeBaseText() {
@@ -83,7 +82,6 @@ function checkSerdeBaseText() {
     ser.writeString(text)
     const des = new DeserializerBase(ser.asArray().buffer, ser.length())
     checkSerdeResult("DeserializerBase.readString", des.readString(), text)
-    ser.close()
 }
 
 function checkSerdeBasePrimitive() {
@@ -95,7 +93,6 @@ function checkSerdeBasePrimitive() {
     checkSerdeResult("DeserializerBase.readNumber, int", des.readNumber(), 10)
     checkSerdeResult("DeserializerBase.readNumber, float", des.readNumber(), 10.5)
     checkSerdeResult("DeserializerBase.readNumber, undefined", des.readNumber(), undefined)
-    ser.close()
 }
 
 function checkSerdeBaseCustomObject() {
@@ -278,7 +275,6 @@ function checkEvents() {
     serializer.writeString("testString") //arg1
     serializer.writeNumber(22) //arg2
     nativeModule()._Test_TextPicker_OnAccept(serializer.asArray(), serializer.length())
-    serializer.close();
 
     const buffer = new Uint8Array(BufferSize)
     const checkResult = nativeModule()._CheckArkoalaEvents(buffer, BufferSize)
