@@ -19,12 +19,14 @@ import { EnumEntity, PeerFile } from "./PeerFile";
 import { PeerLibrary } from "./PeerLibrary";
 import { Language, isStatic, renameDtsToPeer, throwException } from "../util";
 import { ImportsCollector } from "./ImportsCollector";
-import { PeerClass } from "./PeerClass";
+import { PeerClass, PeerClassBase } from "./PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import {
     LanguageWriter,
     Method,
+    MethodModifier,
+    MethodSignature,
     NamedMethodSignature,
     Type,
     createLanguageWriter
@@ -214,7 +216,7 @@ class PeerFileVisitor {
             case Language.TS: {
                 return [
                     `import { int32 } from "@koalaui/common"`,
-                    `import { PeerNode } from "@koalaui/arkoala"`,
+                    `import { PeerNode } from "./PeerNode"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
                     `import { runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
                     `import { createSerializer } from "./Serializer"`,
@@ -226,7 +228,7 @@ class PeerFileVisitor {
             case Language.ARKTS: {
                 return [
                     `import { int32 } from "@koalaui/common"`,
-                    `import { PeerNode } from "@koalaui/arkoala"`,
+                    `import { PeerNode } from "Finalizable"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
                     `import { runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
                     `import { createSerializer } from "./Serializer"`,
@@ -272,6 +274,19 @@ export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): M
         result.set(key, content.join('\n'))
     }
     return result
+}
+
+export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: LanguageWriter): void {
+    const className = peerClassBase.getComponentName()
+    const finalizer = new Method(
+        "getFinalizer",
+        new MethodSignature(Type.Pointer, []),
+        [MethodModifier.PRIVATE, MethodModifier.STATIC])
+    writer.writeMethodImplementation(finalizer, writer => {
+        writer.writeStatement(
+            writer.makeReturn(
+                writer.makeMethodCall("nativeModule()", `_${className}_getFinalizer`, [])))
+    })
 }
 
 export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
@@ -331,7 +346,9 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
             const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(",")})`
             const objType = new Type(method.originalParentName)
             writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
-            writer.writeStatement(writer.makeAssign("obj.peer", new Type("Finalizable"), writer.makeString(`new Finalizable(${returnValName})`), false))
+            writer.writeStatement(
+                writer.makeAssign("obj.peer", new Type("Finalizable"),
+                    writer.makeString(`new Finalizable(${returnValName}, ${method.originalParentName}.getFinalizer())`), false))
             result = "obj"
         }
         writer.writeStatement(writer.makeReturn(writer.makeString(result)))

@@ -63,7 +63,8 @@ export class MaterializedMethod extends PeerMethod {
 
     override get dummyReturnValue(): string | undefined {
         if (this.method.name === "ctor") return `(void*) 100`
-        if (this.method.modifiers?.includes(MethodModifier.STATIC)) return `(void*) 200`
+        if (this.method.name === "getFinalizer") return `(void*) 200`
+        if (this.method.modifiers?.includes(MethodModifier.STATIC)) return `(void*) 300`
         return undefined;
     }
 
@@ -101,7 +102,7 @@ export class MaterializedClass implements PeerClassBase {
     constructor(
         public readonly className: string,
         public readonly ctor: MaterializedMethod,
-        public readonly dtor: MaterializedMethod,
+        public readonly finalizer: MaterializedMethod,
         public readonly methods: MaterializedMethod[],
     ) {
         PeerMethod.markOverloads(methods)

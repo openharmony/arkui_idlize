@@ -449,13 +449,13 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
         let constructor = target.members.find(ts.isConstructorDeclaration)!
         let mConstructor = this.makeMaterializedMethod(className, constructor)
-        let mDestructor = new MaterializedMethod(className, [], [], this.retConvertor(undefined), false,
-            new Method("destructor", new NamedMethodSignature(Type.Void, [], [], []), []))
+        let mFinalizer = new MaterializedMethod(className, [], [], this.retConvertor(undefined), false,
+            new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]))
         let mMethods = target.members
             .filter(ts.isMethodDeclaration)
             .map(method => this.makeMaterializedMethod(className, method))
         this.peerLibrary.materializedClasses.set(className,
-            new MaterializedClass(className, mConstructor, mDestructor, mMethods))
+            new MaterializedClass(className, mConstructor, mFinalizer, mMethods))
     }
 
     private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration) {

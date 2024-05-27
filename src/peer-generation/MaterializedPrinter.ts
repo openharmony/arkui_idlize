@@ -7,6 +7,8 @@ import { MaterializedClass } from "./Materialized"
 import { makeMaterializedPrologue } from "./FileGenerators";
 import { OverloadsPrinter, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter";
 
+import { printPeerFinalizer } from "./PeersPrinter"
+
 class MaterializedFileVisitor {
 
     readonly printer: LanguageWriter = createLanguageWriter(new IndentedPrinter(), this.language)
@@ -59,10 +61,12 @@ class MaterializedFileVisitor {
                 writer.writeStatement(writer.makeAssign(
                     "this.peer",
                     finalizableType,
-                    writer.makeString("new Finalizable(ctorPtr)"),
+                    writer.makeString(`new Finalizable(ctorPtr, ${clazz.className}.getFinalizer())`),
                     false
                 ))
             })
+
+            printPeerFinalizer(clazz, writer)
 
             for (const grouped of groupOverloads(clazz.methods)) {
                 this.overloadsPrinter.printGroupedComponentOverloads(clazz, grouped)

@@ -95,7 +95,7 @@ class HeaderVisitor {
             this.api.pushIndent()
 
             let names = new Set<string>();
-            [clazz.ctor, clazz.dtor].concat(clazz.methods)
+            [clazz.ctor, clazz.finalizer].concat(clazz.methods)
                 .forEach(method => {
                     // TBD: handle methods with the same name like SubTabBarStyle
                     // of(content: ResourceStr) and

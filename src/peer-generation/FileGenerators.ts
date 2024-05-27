@@ -364,7 +364,7 @@ export function makeArkuiModule(componentsFiles: string[]): string {
 
 export function makeStructCommon(commonMethods: string[], customComponentMethods: string[]): string {
     return `
-import { NativePeerNode } from "@koalaui/arkoala"
+import { NativePeerNode } from "./PeerNode"
 
 // TODO: temporary, remove!
 interface Theme {}

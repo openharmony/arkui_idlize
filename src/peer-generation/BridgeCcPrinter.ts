@@ -161,7 +161,7 @@ class BridgeCcVisitor {
 
         this.C.print("\n// Accessors\n")
         for (const clazz of this.library.materializedClasses.values()) {
-            for (const method of [clazz.ctor, clazz.dtor].concat(clazz.methods)) {
+            for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
                 this.printMethod(method)
             }
         }

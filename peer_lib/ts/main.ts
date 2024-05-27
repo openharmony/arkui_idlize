@@ -219,13 +219,13 @@ function checkTabContent() {
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = new SubTabBarStyle("abc")),
-        `new SubTabBarStyle("abc")[return (void*) 100]tabBar("Materialized 0x2a")`)
+        `new SubTabBarStyle("abc")[return (void*) 100]getFinalizer()[return (void*) 200]tabBar("Materialized 0x2a")`)
     assertEquals("new SubTabBarStyle() ptr", 100, subTabBarStyle!.peer!.ptr) // constructor ptr is 100
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = SubTabBarStyle.of("ABC")),
-        `of("ABC")[return (void*) 200]tabBar("Materialized 0x2a")`)
-    assertEquals("SubTabBarStyle.of_ResourceStr() ptr", 200, subTabBarStyle!.peer!.ptr) // static method ptr is 200
+        `of("ABC")[return (void*) 300]getFinalizer()[return (void*) 200]tabBar("Materialized 0x2a")`)
+    assertEquals("SubTabBarStyle.of() ptr", 300, subTabBarStyle!.peer!.ptr) // static method ptr is 300
 }
 
 function checkPerf1(count: number) {

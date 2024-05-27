@@ -39,7 +39,7 @@ class NativeModuleVisitor {
     private printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
         this.library.materializedClasses.forEach(clazz => {
             printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, Type.Pointer)
-            printPeerMethod(clazz, clazz.dtor, nativeModule, nativeModuleEmpty)
+            printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, Type.Pointer)
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
                 printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,

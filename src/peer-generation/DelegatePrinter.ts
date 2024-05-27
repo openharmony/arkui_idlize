@@ -84,7 +84,7 @@ class MethodDelegatePrinter extends MethodSeparatorVisitor {
 
     onVisitInseparable(): void {
         const signature = this.delegateSignatureBuilder.buildSignature()
-        this.declPrinter.print(`${signature};`) 
+        this.declPrinter.print(`${signature};`)
         const retStatement = this.method.retConvertor.isVoid ? "" :`return 0;`
         this.implPrinter.print(`${signature} { ${retStatement} }`)
     }
@@ -118,7 +118,7 @@ class DelegateVisitor {
         }
         for (const materialized of this.library.materializedClasses.values()) {
             this.printMethod(materialized.ctor)
-            this.printMethod(materialized.dtor)
+            this.printMethod(materialized.finalizer)
             for (const method of materialized.methods) {
                 this.printMethod(method)
             }
