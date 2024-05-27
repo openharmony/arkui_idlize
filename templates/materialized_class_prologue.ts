@@ -1,5 +1,5 @@
 import { Finalizable, NativePeerNode } from "@koalaui/arkoala"
 import { nativeModule } from "./NativeModule"
-import { Serializer } from "./Serializer"
-import { runtimeType, withLength, withLengthArray, RuntimeType } from "./SerializerBase"
+import { createSerializer } from "./Serializer"
+import { runtimeType, withLength, withLengthArray, RuntimeType, SerializerBase } from "./SerializerBase"
 import { unsafeCast } from "./generated-utils"
