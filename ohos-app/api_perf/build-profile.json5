@@ -1,0 +1,50 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\liyou\\.ohos\\config\\default_api_perf_bZewzDL4oBKR3X_qqGhxjFg0vaM7quGUne_ixmGk37E=.cer",
+          "storePassword": "0000001B6133D1D56F5478DC2F707E68E36345C559D908BA0CE66D40233553DF1EFE9EDF3C8B90FE7CFD9A",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B99113ADC02EBD291F037AFE3A483FFD33DA849DB48E12EEEAECC557B23CC90E57A34C24C75FEE3",
+          "profile": "C:\\Users\\liyou\\.ohos\\config\\default_api_perf_bZewzDL4oBKR3X_qqGhxjFg0vaM7quGUne_ixmGk37E=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\liyou\\.ohos\\config\\default_api_perf_bZewzDL4oBKR3X_qqGhxjFg0vaM7quGUne_ixmGk37E=.p12"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compileSdkVersion": "4.1.0(11)",
+        "compatibleSdkVersion": "4.1.0(11)",
+        "runtimeOS": "HarmonyOS",
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

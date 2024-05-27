@@ -2,7 +2,7 @@ import { nativeModule } from "@arkoala/arkui/NativeModule"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import {
-    testString10, testString100, testString1000, testString5000, testString10000, testLength_10_percent,
+    TEST_COUNT, CALL_COUNT, testString1000, testLength_10_percent,
     testLength_number100, testNumber100
 } from "@arkoala/arkui/test_data"
 import { withStringResult } from "@koalaui/interop"
@@ -32,25 +32,25 @@ export function RunPerformanceTest(testName: string, testCnt: number, callCnt: n
 
 export function startPerformanceTest() {
     let peer = new ArkCommonPeer(ArkUINodeType.Common);
-    RunPerformanceTest("idlize_restoreIdAttribute_testNumber100", 1, 10000, () => {
+    RunPerformanceTest("idlize_restoreIdAttribute_testNumber100", TEST_COUNT, CALL_COUNT, () => {
         peer.restoreIdAttribute(testNumber100)
     });
-    RunPerformanceTest("idlize_keyAttribute_testString1000", 1, 10000, () => {
+    RunPerformanceTest("idlize_keyAttribute_testString1000", TEST_COUNT, CALL_COUNT, () => {
         peer.keyAttribute(testString1000)
     });
-    RunPerformanceTest("idlize_widthAttribute_testLength_10_percent", 1, 10000, () => {
+    RunPerformanceTest("idlize_widthAttribute_testLength_10_percent", TEST_COUNT, CALL_COUNT, () => {
         peer.widthAttribute(testLength_10_percent)
     });
-    RunPerformanceTest("idlize_widthAttribute_testLength_number100", 1, 10000, () => {
+    RunPerformanceTest("idlize_widthAttribute_testLength_number100", TEST_COUNT, CALL_COUNT, () => {
         peer.widthAttribute(testLength_number100)
     });
-    RunPerformanceTest("idlize_paddingAttribute", 1, 10000, () => {
+    RunPerformanceTest("idlize_paddingAttribute", TEST_COUNT, CALL_COUNT, () => {
         peer.paddingAttribute({
             top: testLength_10_percent, right: testLength_10_percent,
             bottom: testLength_10_percent, left: testLength_10_percent
         })
     });
-    RunPerformanceTest("idlize_backgroundBlurStyleAttribute", 1, 10000, () => {
+    RunPerformanceTest("idlize_backgroundBlurStyleAttribute", TEST_COUNT, CALL_COUNT, () => {
         peer.backgroundBlurStyleAttribute(0, {
             colorMode: 0,
             adaptiveColor: 0,

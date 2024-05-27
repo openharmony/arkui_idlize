@@ -40,7 +40,7 @@ is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
 is_clang = not is_msvc
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
-archs = { 'x86_64': 'x64', 'aarch64': 'arm64', 'wasm32': 'wasm' }
+archs = { 'x86_64': 'x64', 'aarch64': 'arm64', 'wasm32': 'wasm', 'armv7a': 'arm' }
 jni_oses = { 'windows': 'win32' }
 os = target_machine.system()
 os = oses.get(os, os)
@@ -186,17 +186,12 @@ ohos_cflags += [
     '-DKOALA_USE_ARK_VM=1',
     '-DKOALA_USE_ARK_VM_WITH_JS=1',
     '-DKOALA_OHOS',
-    '-D__MUSL__'
+    '-D__MUSL__',
 ]
 
 ohos_ldflags = [
-    '-lEGL',
-    '-lGLESv3',
     '-lhilog_ndk.z',
-    '-lace_ndk.z',
     '-lace_napi.z',
-    '-luv',
-    '-static-libstdc++'
 ]
 
 ohos_include_dirs = [

@@ -1,3 +1,6 @@
+export const TEST_COUNT = 1
+export const CALL_COUNT = 2000
+
 export const testNumber100 = 100
 export const testLength_number100 = 100
 export const testLength_10_percent = "10%"

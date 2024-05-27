@@ -1,0 +1,18 @@
+{
+  "apiType": "stageMode",
+  "buildOption": {
+    arkOptions: {
+      "types": [
+        "./src/main/ets/idlize/test",
+      ]
+    }
+  },
+  "targets": [
+    {
+      "name": "default"
+    },
+    {
+      "name": "ohosTest",
+    }
+  ]
+}

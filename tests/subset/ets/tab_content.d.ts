@@ -29,6 +29,8 @@ declare class BottomTabBarStyle {
 
     constructor(icon: ResourceStr | TabBarSymbol, text: ResourceStr);
 
+    id(value: string): BottomTabBarStyle;
+
     static of(icon: ResourceStr | TabBarSymbol, text: ResourceStr): BottomTabBarStyle;
 
     labelStyle(value: LabelStyle): BottomTabBarStyle;
@@ -49,11 +51,6 @@ declare class SubTabBarStyle {
     indicator(value: IndicatorStyle): SubTabBarStyle;
 
     id(value: string): SubTabBarStyle;
-}
-
-declare class BottomTabBarStyle {
-
-    id(value: string): BottomTabBarStyle;
 }
 
 declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
