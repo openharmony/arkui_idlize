@@ -26,7 +26,7 @@ import {
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
-import { LanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters"
+import {DeclareStatement, LanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -865,6 +865,23 @@ export class DeclarationTable {
         typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Ark_Length ${PrimitiveType.OptionalPrefix}Length;`)
     }
 
+    generateTSDeserializers(printer: LanguageWriter) {
+        printer.writeClass("Deserializer", (writer)=> {
+            let seenNames = new Set<string>()
+            for (const declaration of this.declarations) {
+                if (declaration instanceof PrimitiveType) continue
+                const name = this.computeTargetName(declaration, false)
+                if (seenNames.has(name)) continue
+                seenNames.add(name)
+                if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) {
+                    writer.pushIndent()
+                    this.generateTSDeserializer(name, declaration, writer)
+                    writer.popIndent()
+                }
+            }
+        }, "DeserializerBase");
+    }
+
     private addNameAlias(target: DeclarationTarget, declarationName: string, aliasName: string,
         seenNames: Set<string>, typedefs: IndentedPrinter): void {
         if (seenNames.has(aliasName)) return
@@ -1324,14 +1341,55 @@ export class DeclarationTable {
                 let struct = this.targetStruct(target)
                 struct.getFields().forEach(it => {
                     let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
-                    typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, writer)
+                    writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, writer))
                 })
             } else {
                 let typeConvertor = this.typeConvertor("value", target, false)
-                typeConvertor.convertorDeserialize(`value`, `value`, writer)
+                writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value`, writer))
             }
             writer.writeStatement(writer.makeReturn(writer.makeString("value")))
         })
+        this.setCurrentContext(undefined)
+    }
+
+    private createValueFieldName(fieldName: string): string {
+        return `value_${fieldName}`
+    }
+
+    private generateTSDeserializer(name: string, target: DeclarationTarget, writer: LanguageWriter) {
+        if (this.ignoreTarget(target, name)) return
+        this.setCurrentContext(`read${name}()`)
+        const body = (writer: LanguageWriter) => {
+            const resultVarName = "value"
+            if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
+                let struct = this.targetStruct(target)
+                writer.writeStatement(
+                    writer.makeAssign("valueDeserializer",
+                        new Type("Deserializer"),
+                        writer.makeString("this"), true)
+                )
+                let resultObjArgs: string[] = []
+                struct.getFields().forEach((it) => {
+                    resultObjArgs.push(`${it.name}: undefined`)
+                })
+                writer.writeStatement(writer.makeAssign(resultVarName,
+                    Type.Any,
+                    writer.makeString(`{${resultObjArgs.join(",")}}`),
+                    true))
+                struct.getFields().forEach(it => {
+                    let typeConvertor = this.typeConvertor(resultVarName, it.type!, it.optional)
+                    writer.writeStatement(typeConvertor.convertorDeserialize(resultVarName, `${it.name}`, writer))
+                })
+            } else {
+                let typeConvertor = this.typeConvertor(resultVarName, target, false)
+                writer.writeStatement(typeConvertor.convertorDeserialize(resultVarName, resultVarName, writer))
+            }
+            writer.print(`return ${resultVarName}`)
+        }
+        writer.writeMethodImplementation(new Method(
+            `read${name}`,
+            new NamedMethodSignature(new Type(name))),
+            body)
         this.setCurrentContext(undefined)
     }
 }

@@ -31,6 +31,7 @@ import {
     makeArkuiModule,
     makeTSSerializer,
     completeEventsImplementations,
+    makeTSDeserializer
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
@@ -350,6 +351,9 @@ if (options.dts2peer) {
                     fs.writeFileSync(
                         path.join(outDir, "peer_events" + langSuffix(lang)),
                         printEvents(peerLibrary)
+                    )
+                    fs.writeFileSync(path.join(outDir, 'Deserializer' + langSuffix(lang)),
+                        makeTSDeserializer(declarationTable)
                     )
                 }
                 if(lang == Language.ARKTS) {
