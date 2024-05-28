@@ -172,16 +172,14 @@ extern const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetArkUIAccessors()
 
 export function makeTSSerializer(table: DeclarationTable): string {
     let printer = createLanguageWriter(new IndentedPrinter(), table.language)
-    if(table.language == Language.ARKTS) {
-        printer.print(collectDtsImports().trim())
-    }
     table.generateSerializers(printer)
     return `
 import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"
+${table.language == Language.ARKTS ? collectDtsImports().trim() : ""}
 
-export function createSerializer() { return new Serializer() }
+export function createSerializer() { return new Serializer(16) }
 
 ${printer.getOutput().join("\n")}
 `

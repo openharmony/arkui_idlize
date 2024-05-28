@@ -143,11 +143,7 @@ class PeerFileVisitor {
         const name = peer.originalClassName!
         const typeParam = componentToAttributesClass(peer.componentName)
         if (isRoot(name)) {
-            this.printer.print(`applyAttributes(attributes: ${typeParam}): void {`)
-            this.printer.pushIndent()
-            this.printer.print(`super.constructor(42)`)
-            this.printer.popIndent()
-            this.printer.print(`}`)
+            this.printer.print(`applyAttributes(attributes: ${typeParam}): void {}`)
             return
         }
 
@@ -228,7 +224,7 @@ class PeerFileVisitor {
             case Language.ARKTS: {
                 return [
                     `import { int32 } from "@koalaui/common"`,
-                    `import { PeerNode } from "Finalizable"`,
+                    `import { PeerNode } from "./PeerNode"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
                     `import { runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
                     `import { createSerializer } from "./Serializer"`,
