@@ -19,9 +19,9 @@
 #include <unordered_map>
 #include <vector>
 #include "common-interop.h"
-#include "ArgDeserializerBase.h"
+#include "DeserializerBase.h"
 
-CustomDeserializer* ArgDeserializerBase::customDeserializers = nullptr;
+CustomDeserializer* DeserializerBase::customDeserializers = nullptr;
 
 #if KOALA_INTEROP_PROFILER
 #include "profiler.h"

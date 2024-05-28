@@ -111,7 +111,7 @@ export function completeEventsImplementations(lines: string): string {
     return `
 #include "arkoala_api.h"
 #include "events.h"
-#include "ArgSerializerBase.h"
+#include "SerializerBase.h"
 
 ${lines}
 `
@@ -193,7 +193,7 @@ export function makeCDeserializer(table: DeclarationTable, structs: IndentedPrin
 
     return `
 #include "Interop.h"
-#include "ArgDeserializerBase.h"
+#include "DeserializerBase.h"
 #include "arkoala_api.h"
 #include <string>
 

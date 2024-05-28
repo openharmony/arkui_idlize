@@ -21,12 +21,12 @@
 #include "common-interop.h"
 #include "arkoala_api.h"
 
-class ArgSerializerBase {
+class SerializerBase {
 private:
     uint8_t* data;
     int position;
 public:
-    ArgSerializerBase(uint8_t* data): data(data), position(0) {}
+    SerializerBase(uint8_t* data): data(data), position(0) {}
 
     void writeInt8(Ark_Int8 value) {
         *((Ark_Int8*)(data + position)) = value;

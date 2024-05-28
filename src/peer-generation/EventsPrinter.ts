@@ -179,7 +179,7 @@ class CEventsVisitor {
         this.impl.print(`${signature.returnType.name} ${callbackIdByInfo(event)}Impl(${args.join(',')}) {`)
         this.impl.pushIndent()
         this.impl.print(`EventBuffer event;`)
-        this.impl.print(`ArgSerializerBase serializer(event.buffer);`)
+        this.impl.print(`SerializerBase serializer(event.buffer);`)
         this.impl.print(`serializer.writeInt32(Kind${callbackIdByInfo(event)});`)
         this.impl.print(`serializer.writeInt32(nodeId);`)
         for (const arg of event.args) {
@@ -244,7 +244,7 @@ class TSEventsVisitor {
                 )
                 info.args.forEach(arg => {
                     writer.writeFieldDeclaration(
-                        arg.name, 
+                        arg.name,
                         new Type(arg.type.getText(), arg.nullable),
                         ["public", "readonly"],
                         arg.nullable,
@@ -305,8 +305,8 @@ class TSEventsVisitor {
         this.printer.print(`export function deserializePeerEvent(buffer: DeserializerBase): PeerEvent {`)
         this.printer.pushIndent()
         this.printer.writeStatement(this.printer.makeAssign(
-            'kind', 
-            new Type(PeerEventKind), 
+            'kind',
+            new Type(PeerEventKind),
             new StringExpression(`buffer.readInt32()`),
             true,
         ))
@@ -362,7 +362,7 @@ export function printEventsCImpl(library: PeerLibrary): string {
     const visitor = new CEventsVisitor(library)
     visitor.print()
     return makeCEventsImpl(
-        visitor.impl.getOutput().join('\n'), 
+        visitor.impl.getOutput().join('\n'),
         visitor.receiversList.getOutput().join('\n')
     )
 }

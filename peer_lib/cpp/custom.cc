@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ArgDeserializerBase.h"
+#include "DeserializerBase.h"
 
 #include <algorithm>
 #include <vector>
@@ -23,12 +23,12 @@ struct MyDeserializer : CustomDeserializer {
     MyDeserializer() {
         supported.push_back("Function");
         supported.push_back("Resource");
-        ArgDeserializerBase::registerCustomDeserializer(this);
+        DeserializerBase::registerCustomDeserializer(this);
     }
     virtual bool supports(const string& kind) {
         return std::find(supported.begin(), supported.end(), kind) != supported.end();
     }
-    virtual Ark_CustomObject deserialize(ArgDeserializerBase* deserializer, const string& kind) {
+    virtual Ark_CustomObject deserialize(DeserializerBase* deserializer, const string& kind) {
         Ark_String value = deserializer->readString();
         (void)value;
         //fprintf(stderr, "native deserialize() for %s, got %s\n", kind.c_str(), value.chars);

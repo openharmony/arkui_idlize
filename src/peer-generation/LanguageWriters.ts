@@ -782,10 +782,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.printer.popIndent()
     }
     writeDeserializerClassPrologue(): void {
-        this.print(`class Deserializer : public ArgDeserializerBase {`)
+        this.print(`class Deserializer : public DeserializerBase {`)
         this.print(` public:`)
         this.pushIndent()
-        this.print(`Deserializer(uint8_t *data, int32_t length) : ArgDeserializerBase(data, length) {}`)
+        this.print(`Deserializer(uint8_t *data, int32_t length) : DeserializerBase(data, length) {}`)
     }
     override makeRef(varName: string): string {
         return `${varName}&`
