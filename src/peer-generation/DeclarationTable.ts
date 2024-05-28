@@ -1310,10 +1310,8 @@ export class DeclarationTable {
 
     private generateSerializer(name: string, target: DeclarationTarget, printer: LanguageWriter) {
         if (this.ignoreTarget(target, name)) return
-
         this.setCurrentContext(`write${name}()`)
 
-        printer.pushIndent()
         printer.writeMethodImplementation(
             new Method(`write${name}`,
                 new NamedMethodSignature(Type.Void, [new Type(this.translateSerializerType(name, target))], ["value"])),
@@ -1332,7 +1330,6 @@ export class DeclarationTable {
                     typeConvertor.convertorSerialize(`value`, `value`, writer)
                 }
             })
-        printer.popIndent()
         this.setCurrentContext(undefined)
     }
 

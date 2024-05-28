@@ -71,11 +71,42 @@ public:
     }
 
     void writeLength(Ark_Length value) {
-        // TODO implement
+        Ark_RuntimeType tag = (Ark_RuntimeType) value.type;
+        writeInt8(tag);
+        switch (tag) {
+            case ARK_RUNTIME_NUMBER:
+                writeFloat32(value.value);
+                break;
+            case ARK_RUNTIME_OBJECT:
+                writeInt32(value.resource);
+                break;
+            case ARK_RUNTIME_STRING: {
+                char buf[64];
+                std::string suffix;
+                switch (value.unit) {
+                    case 0: suffix = "px"; break;
+                    case 1: suffix = "vp"; break;
+                    case 2: suffix = "fp"; break;
+                    case 3: suffix = "%"; break;
+                    case 4: suffix = "lpx"; break;
+                }
+                snprintf(buf, 64, "%.8f%s", value.value, suffix.c_str());
+                Ark_String str =  { .chars = buf, .length = (Ark_Int32) strlen(buf) };
+                writeString(str);
+                break;
+            }
+            default:
+                break;
+        }
     }
 
-    void writeFunction(Ark_Function function) {
-        // TODO implement
+    void writeFunction(Ark_Function value) {
+        writeInt32(registerCallback(value));
+    }
+
+    Ark_Int32 registerCallback(Ark_Function callback) {
+        // TODO: fix me!
+        return 42;
     }
 
     void writeCustomObject(std::string type, Ark_CustomObject value) {
@@ -83,7 +114,7 @@ public:
     }
 
     void writeMaterialized(Ark_Materialized value) {
-        // TODO implement
+        // There should be no need to pass accessors back from native code
     }
 };
 
