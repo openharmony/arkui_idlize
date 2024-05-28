@@ -1,7 +1,7 @@
 import * as ts from 'typescript'
 import { TypeNodeConvertor, convertTypeNode } from './TypeNodeConvertor'
 
-export class TSTypeNodeNameConvertor implements 
+export class TSTypeNodeNameConvertor implements
     TypeNodeConvertor<string>
 {
     convertUnion(node: ts.UnionTypeNode): string {
@@ -23,7 +23,7 @@ export class TSTypeNodeNameConvertor implements
         if (node.literal.kind === ts.SyntaxKind.TrueKeyword) return `true`
         if (node.literal.kind === ts.SyntaxKind.FalseKeyword) return `false`
         if (node.literal.kind === ts.SyntaxKind.NullKeyword) return `null`
-        if (node.literal.kind === ts.SyntaxKind.StringLiteral) return `"${node.literal.text}"` 
+        if (node.literal.kind === ts.SyntaxKind.StringLiteral) return `"${node.literal.text}"`
         throw new Error(`Unknown LiteralTypeNode ${ts.SyntaxKind[node.literal.kind]}`)
     }
     convertTuple(node: ts.TupleTypeNode): string {
@@ -72,6 +72,8 @@ export class TSTypeNodeNameConvertor implements
             types = [`this`]
         if (name === `ContentModifier`)
             types = [this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
+        if (name === `Optional`)
+            return `${types} | undefined`
         const maybeTypeArguments = !types?.length ? '' : `<${types.join(', ')}>`
         return `${name}${maybeTypeArguments}`
     }
@@ -113,7 +115,7 @@ export class TSTypeNodeNameConvertor implements
     convertUnknownKeyword(node: ts.TypeNode): string {
         return `unknown`
     }
-    
+
     // identifier
     convertQualifiedName(node: ts.QualifiedName): string {
         return `${this.convert(node.left)}.${this.convert(node.right)}`

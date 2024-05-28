@@ -91,7 +91,7 @@ public:
                     case 4: suffix = "lpx"; break;
                 }
                 snprintf(buf, 64, "%.8f%s", value.value, suffix.c_str());
-                Ark_String str =  { .chars = buf, .length = (Ark_Int32) strlen(buf) };
+                Ark_String str =  { buf, (Ark_Int32) strlen(buf) };
                 writeString(str);
                 break;
             }
