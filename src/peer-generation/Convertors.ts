@@ -375,9 +375,10 @@ export class UnionConvertor extends BaseArgConvertor {
                 return
             }
             const expr = printer.makeNaryOp("||",
-                it.runtimeTypes.map(rt => printer.makeNaryOp("==", [ printer.makeString(`ARK_RUNTIME_${RuntimeType[rt]}`), printer.makeString(runtimeType)])))
+                it.runtimeTypes.map(rt => printer.makeNaryOp("==", [ printer.makeRuntimeType(rt), printer.makeString(runtimeType)])))
+            const accessor = printer.getObjectAccessor(this, param, value, {index: `${index}`})
             branches.push({expr: expr, stmt: new BlockStatement([
-                    it.convertorDeserialize(param, `${value}.value${index}`, printer),
+                    it.convertorDeserialize(param, accessor, printer),
                     printer.makeSetUnionSelector(value, `${index}`)
                 ], false)})
         })
@@ -518,7 +519,6 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const runtimeType = `runtimeType${uniqueCounter++}`
-        const tag = `tag${uniqueCounter++}`
         const accessor = printer.getObjectAccessor(this, param, value)
         const thenStatement = new BlockStatement([
             this.typeConvertor.convertorDeserialize(param, accessor, printer)
@@ -526,10 +526,8 @@ export class OptionConvertor extends BaseArgConvertor {
         return new BlockStatement([
             printer.makeAssign(runtimeType, undefined,
                 printer.makeString(`${param}Deserializer.readInt8()`), true),
-            printer.makeAssign(tag, undefined,
-                printer.convertRuntimeTypeToTag(runtimeType), true),
-            printer.makeSetOptionTag(value, tag),
-            printer.makeCondition(printer.makeDefinedCheck(tag), thenStatement!)
+            printer.makeSetOptionTag(value, printer.makeCast(printer.makeString(runtimeType), printer.getTagType())),
+            printer.makeCondition(printer.makeDefinedCheck(runtimeType, true), thenStatement)
         ], false)
     }
     nativeType(impl: boolean): string {
@@ -576,7 +574,8 @@ export class AggregateConvertor extends BaseArgConvertor {
         })
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const statements: LanguageStatement[] = []
+        const structAccessor = printer.getObjectAccessor(this, param, value)
+        const statements = [printer.makeObjectAlloc(structAccessor)]
         let struct = this.table.targetStruct(this.table.toTarget(this.type))
         this.memberConvertors.forEach((it, index) => {
             statements.push(it.convertorDeserialize(param, `${value}.${struct.getFields()[index].name}`, printer))
@@ -694,14 +693,17 @@ export class TupleConvertor extends BaseArgConvertor {
         })
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const statements: LanguageStatement[] = []
+        const accessor = printer.getObjectAccessor(this, param, value)
+        const statements: LanguageStatement[] = [
+            printer.makeTupleAlloc(accessor)
+        ]
         this.memberConvertors.forEach((it, index) => {
             const accessor = printer.getObjectAccessor(this, param, value, {index: `${index}`})
             statements.push(it.convertorDeserialize(param, accessor, printer))
         })
-       let thenStatement = new BlockStatement(statements)
-       return printer.makeCondition(
-            printer.makeDefinedCheck(`${param}Deserializer.readInt8()`),
+        let thenStatement = new BlockStatement(statements)
+        return printer.makeCondition(
+            printer.makeDefinedCheck(`${param}Deserializer.readInt8()`, true),
             thenStatement)
     }
     nativeType(impl: boolean): string {
@@ -756,11 +758,12 @@ export class ArrayConvertor extends BaseArgConvertor {
         const arrayLength = `arrayLength${uniqueCounter++}`;
         const forCounterName = `i${uniqueCounter++}`
         const accessor = printer.getObjectAccessor(this, param, value, {index: `[${forCounterName}]`})
+        const arrayAccessor = printer.getObjectAccessor(this, param, value)
         const thenStatement = new BlockStatement([
             // read length
             printer.makeAssign(arrayLength, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
             // prepare object
-            printer.makeArrayResize(value, arrayLength, `${param}Deserializer`),
+            printer.makeArrayResize(arrayAccessor, arrayLength, `${param}Deserializer`),
             // store
             printer.makeLoop(forCounterName, arrayLength),
             this.elementConvertor.convertorDeserialize(param, accessor, printer),
@@ -770,7 +773,7 @@ export class ArrayConvertor extends BaseArgConvertor {
             printer.makeAssign(runtimeType,
                 undefined,
                 printer.makeString(`${param}Deserializer.readInt8()`), true),
-            printer.makeCondition(printer.makeDefinedCheck(runtimeType), thenStatement)
+            printer.makeCondition(printer.makeDefinedCheck(runtimeType, true), thenStatement)
         ]
         return new BlockStatement(statements, false)
     }
@@ -790,9 +793,9 @@ export class ArrayConvertor extends BaseArgConvertor {
 }
 
 export class MapConvertor extends BaseArgConvertor {
-    private keyConvertor: ArgConvertor
-    private valueConvertor: ArgConvertor
-    constructor(param: string, protected table: DeclarationTable, type: ts.TypeNode, private keyType: ts.TypeNode, private valueType: ts.TypeNode) {
+    keyConvertor: ArgConvertor
+    valueConvertor: ArgConvertor
+    constructor(param: string, public table: DeclarationTable, type: ts.TypeNode, public keyType: ts.TypeNode, public valueType: ts.TypeNode) {
         super(`Map<${mapType(keyType)}, ${mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.keyConvertor = table.typeConvertor(param, keyType)
         this.valueConvertor = table.typeConvertor(param, valueType)
@@ -819,20 +822,27 @@ export class MapConvertor extends BaseArgConvertor {
         // Map size.
         const runtimeType = `runtimeType${uniqueCounter++}`;
         const mapSize = `mapSize${uniqueCounter++}`;
-        const keyTypeName = this.table.computeTargetName(this.table.toTarget(this.keyType), false)
-        const valueTypeName = this.table.computeTargetName(this.table.toTarget(this.valueType), false)
+        const keyTypeName = printer.makeMapKeyTypeName(this)
+        const valueTypeName = printer.makeMapValueTypeName(this)
         const counterVar = `i${uniqueCounter++}`
         const keyAccessor = printer.getObjectAccessor(this, param, value, {index: counterVar, field: "keys"})
         const valueAccessor = printer.getObjectAccessor(this, param, value, {index: counterVar, field: "values"})
+        const tmpKey = `tmpKey${uniqueCounter++}`
+        const tmpValue = `tmpValue${uniqueCounter++}`
         const statements = [
             printer.makeAssign(runtimeType, undefined,
                 printer.makeString(`${param}Deserializer.readInt8()`), true),
-            printer.makeAssign(mapSize, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
-            printer.makeMapResize(keyTypeName, valueTypeName, value, mapSize, `${param}Deserializer`),
-            printer.makeLoop(counterVar, mapSize),
-            this.keyConvertor.convertorDeserialize(param, keyAccessor, printer),
-            this.valueConvertor.convertorDeserialize(param, valueAccessor, printer),
-            printer.makeStatement(printer.makeString("}"))
+            printer.makeCondition(printer.makeDefinedCheck(runtimeType, true), new BlockStatement([
+                printer.makeAssign(mapSize, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
+                printer.makeMapResize(keyTypeName, valueTypeName, value, mapSize, `${param}Deserializer`),
+                printer.makeLoop(counterVar, mapSize),
+                printer.makeAssign(tmpKey, new Type(keyTypeName), undefined, true),
+                this.keyConvertor.convertorDeserialize(param, tmpKey, printer),
+                printer.makeAssign(tmpValue, new Type(keyTypeName), undefined, true),
+                this.valueConvertor.convertorDeserialize(param, tmpValue, printer),
+                printer.makeMapInsert(keyAccessor, tmpKey, valueAccessor, tmpValue),
+                printer.makeStatement(printer.makeString("}"))
+            ])),
         ]
         return new BlockStatement(statements, false)
     }
