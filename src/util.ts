@@ -474,48 +474,6 @@ export function throwException(message: string): never {
     throw new Error(message)
 }
 
-// TODO: remove this function!
-export function mapTypeOrVoid(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined): string {
-    if (!type) return "void"
-    return mapType(typeChecker, type)
-}
-
-// TODO: remove this function!
-export function mapType(typeChecker: ts.TypeChecker, type: ts.TypeNode | undefined): string {
-    if (!type) throw new Error("Cannot map empty type")
-    if (ts.isTypeReferenceNode(type)) {
-        if (ts.isQualifiedName(type.typeName)) {
-            // get the left identifier for the enum qualified name type ref
-            let identifierType = asString(type.typeName.left);
-            return `${identifierType} /* actual type ${type.getText()} */`
-        }
-        const declaration = getDeclarationsByNode(typeChecker, type.typeName)
-        // TODO: plain wrong!
-        if (declaration.length == 0) return "any"
-        let typeName = asString(type.typeName)
-        if (typeName == "AttributeModifier") return "AttributeModifier<this>"
-        if (typeName == "AnimationRange") return "AnimationRange<number>"
-        if (typeName == "ContentModifier") return "ContentModifier<any>"
-        // TODO: HACK, FIX ME!
-        if (typeName == "Style") return "Object"
-        if (typeName == "Callback") return "Callback<any>"
-        if (typeName == "Optional" && type.typeArguments)
-            return mapType(typeChecker, type.typeArguments[0]) + "|undefined"
-
-        if (typeName != "Array" && typeName != "Map") return typeName
-    }
-    if (ts.isImportTypeNode(type)) {
-        return importTypeName(type, true)
-    }
-    if (ts.isFunctionTypeNode(type)) {
-        return type!.getText()
-    }
-    let text = type?.getText()
-    // throw new Error(text)
-    if (text == "unknown") text = "any"
-    return text ?? "any"
-}
-
 export function className(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
     return nameOrNull(node.name) ?? throwException(`Nameless component ${asString(node)}`)
 }

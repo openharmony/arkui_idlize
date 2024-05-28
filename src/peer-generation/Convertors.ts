@@ -12,11 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Language, identName, importTypeName, mapType, typeName } from "../util"
+import { Language, identName, importTypeName } from "../util"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, Type } from "./LanguageWriters"
+import { mapType } from "./TypeNodeNameConvertor"
 
 let uniqueCounter = 0
 
@@ -673,7 +674,7 @@ export class FunctionConvertor extends BaseArgConvertor {
 
 export class TupleConvertor extends BaseArgConvertor {
     constructor(param: string, protected table: DeclarationTable, private type: ts.TupleTypeNode) {
-        super(`[${type.elements.map(it => mapType(table.typeChecker!, it)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
+        super(`[${type.elements.map(it => mapType(it)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
         this.memberConvertors = type
             .elements
             .map(element => table.typeConvertor(param, element))
@@ -726,7 +727,7 @@ export class TupleConvertor extends BaseArgConvertor {
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
     constructor(param: string, public table: DeclarationTable, type: ts.TypeNode, public elementType: ts.TypeNode) {
-        super(`Array<${mapType(table.typeChecker!, elementType)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
         table.requestType(undefined, type)
         table.requestType(undefined, elementType)
@@ -792,7 +793,7 @@ export class MapConvertor extends BaseArgConvertor {
     private keyConvertor: ArgConvertor
     private valueConvertor: ArgConvertor
     constructor(param: string, protected table: DeclarationTable, type: ts.TypeNode, private keyType: ts.TypeNode, private valueType: ts.TypeNode) {
-        super(`Map<${mapType(table.typeChecker!, keyType)}, ${mapType(table.typeChecker!, valueType)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(`Map<${mapType(keyType)}, ${mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.keyConvertor = table.typeConvertor(param, keyType)
         this.valueConvertor = table.typeConvertor(param, valueType)
         table.requestType(undefined, type)

@@ -19,7 +19,6 @@ import {
     capitalize,
     identName,
     isCommonMethodOrSubclass,
-    mapType,
     nameOrNull,
     serializerBaseMethods,
     stringOrNone,
@@ -29,7 +28,6 @@ import {
     throwException,
     isCustomComponentClass,
     getComment,
-    mapTypeOrVoid,
 } from "../util"
 import { GenericVisitor } from "../options"
 import {
@@ -51,6 +49,7 @@ import { PeerLibrary } from "./PeerLibrary"
 import { MaterializedClass, MaterializedMethod, isMaterialized } from "./Materialized"
 import { Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
+import { TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -96,6 +95,26 @@ export type PeerGeneratorVisitorOptions = {
     peerLibrary: PeerLibrary
 }
 
+class ImportsAggregatorNameConvertor extends TSTypeNodeNameConvertor {
+    constructor(
+        private readonly peerLibrary: PeerLibrary,
+    ) {
+        super()
+    }
+
+    override convertImport(node: ts.ImportTypeNode): string {
+        const generatedName = super.convertImport(node)
+        if (!this.peerLibrary.importTypesStubs.includes(generatedName))
+            this.peerLibrary.importTypesStubs.push(generatedName)
+        return generatedName
+    }
+
+    override convert(node: ts.Node | undefined): string {
+        node ??= ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
+        return super.convert(node)
+    }
+}
+
 export class PeerGeneratorVisitor implements GenericVisitor<void> {
     private seenAttributes = new Set<string>()
     private readonly sourceFile: ts.SourceFile
@@ -104,6 +123,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
     static readonly serializerBaseMethods = serializerBaseMethods()
     readonly typeChecker: ts.TypeChecker
+    readonly nameConvertor: ImportsAggregatorNameConvertor
 
     readonly peerLibrary: PeerLibrary
     readonly peerFile: PeerFile
@@ -116,6 +136,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable)
         this.peerLibrary = options.peerLibrary
         this.peerLibrary.files.push(this.peerFile)
+        this.nameConvertor = new ImportsAggregatorNameConvertor(this.peerLibrary)
     }
 
     requestType(name: string | undefined, type: ts.TypeNode) {
@@ -286,52 +307,15 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         this.peerFile.pushEnum(enumEntity)
     }
 
-    private mapType(type: ts.TypeNode | undefined): string {
-        if (!type)
-            return mapTypeOrVoid(this.typeChecker, type)
-        if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
-            return "undefined"
-        }
-        if (ts.isFunctionTypeNode(type)) {
-            return `(${type.getText()})`
-        }
-        if (ts.isImportTypeNode(type)) {
-            const importType = type.getText().match(/[a-zA-Z]+/g)!.join('_')
-            this.peerLibrary.importTypesStubs.push(importType)
-            return importType
-        }
-        if (ts.isTypeLiteralNode(type)) {
-            const members = type.members
-                .filter(ts.isPropertySignature)
-                .map(it => {
-                    const type = this.mapType(it.type!)
-                    return `${asString(it.name)}: ${type}`
-                })
-            return `{ ${members.join(', ')} }`
-        }
-        return mapTypeOrVoid(this.typeChecker, type)
-    }
-
     generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
         const parameters = this.tempExtractParameters(method)
         const returnType = isStatic(method.modifiers) ? new Type(identName(method.type)!) : Type.This
         return new NamedMethodSignature(returnType,
             parameters
-                .map(it => new Type(this.mapType(it.type), it.questionToken != undefined)),
+                .map(it => new Type(this.nameConvertor.convert(it.type), it.questionToken != undefined)),
             parameters
                 .map(it => identName(it.name)!),
         )
-    }
-
-    generateParams(params: ts.NodeArray<ts.ParameterDeclaration>): stringOrNone {
-        return params?.map(param => {
-            let mappedType = mapType(this.typeChecker, param.type)
-            return `${nameOrNull(param.name)}${param.questionToken ? "?" : ""}: ${mappedType}`
-        }).join(", ")
-    }
-
-    generateParamsTypes(params: ts.NodeArray<ts.ParameterDeclaration>): string[] {
-        return params?.map(param => mapType(this.typeChecker, param.type))
     }
 
     generateValues(argConvertors: ArgConvertor[]): stringOrNone {
@@ -581,7 +565,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             return argumentTypeName
         }
 
-        return parameters.map(it => mapType(this.typeChecker, it.type)).join(', ')
+        return parameters.map(it => this.nameConvertor.convert(it.type)).join(', ')
     }
 
     private createParameterType(
@@ -589,7 +573,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         attributes: { name: string, type: ts.TypeNode, questionToken: boolean }[]
     ): string {
         const attributeDeclarations = attributes
-            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${mapType(this.typeChecker, it.type)}`)
+            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${this.nameConvertor.convert(it.type)}`)
             .join('')
         return `export interface ${name} {${attributeDeclarations}\n}`
     }
