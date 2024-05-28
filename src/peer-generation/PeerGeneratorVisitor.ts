@@ -449,7 +449,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
         let constructor = target.members.find(ts.isConstructorDeclaration)!
         let mConstructor = this.makeMaterializedMethod(className, constructor)
-        let mFinalizer = new MaterializedMethod(className, [], [], this.retConvertor(undefined), false,
+        const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
+        let mFinalizer = new MaterializedMethod(className, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]))
         let mMethods = target.members
             .filter(ts.isMethodDeclaration)
