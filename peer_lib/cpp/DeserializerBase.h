@@ -273,7 +273,7 @@ public:
       memset(value, 0, length * sizeof(E));
       toClean.push_back(value);
     }
-    array->array_length = length;
+    array->length = length;
     array->array = reinterpret_cast<E *>(value);
   }
 
@@ -292,7 +292,7 @@ public:
       memset(values, 0, length * sizeof(V));
       toClean.push_back(values);
     }
-    map->map_length = length;
+    map->size = length;
     map->keys = reinterpret_cast<K *>(keys);
     map->values = reinterpret_cast<V *>(values);
   }

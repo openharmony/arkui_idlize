@@ -66,7 +66,7 @@ ${methods.join("\n")}
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `#include "Interop.h"
 #include "arkoala_api.h"
-#include "Deserializer.h"
+#include "Serializers.h"
 
 static ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* impls[${PeerGeneratorConfig.cppPrefix}Ark_APIVariantKind::${PeerGeneratorConfig.cppPrefix}COUNT] = { 0 };
 
@@ -99,7 +99,7 @@ ${bridgeCc.join("\n")}
 export function completeImplementations(lines: string): string {
     return `
 #include "Interop.h"
-#include "Deserializer.h"
+#include "Serializers.h"
 #include "common-interop.h"
 #include "delegates.h"
 
@@ -119,7 +119,7 @@ ${lines}
 
 export function completeDelegatesImpl(lines: string): string {
     return `
-#include "Deserializer.h"
+#include "Serializers.h"
 #include "delegates.h"
 
 ${lines}
@@ -129,7 +129,7 @@ ${lines}
 export function dummyImplementations(lines: string): string {
     return `
 #include "Interop.h"
-#include "Deserializer.h"
+#include "Serializers.h"
 #include "common-interop.h"
 
 ${lines}
@@ -181,25 +181,31 @@ import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "./Seri
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"
 
+export function createSerializer() { return new Serializer() }
+
 ${printer.getOutput().join("\n")}
 `
 }
 
-export function makeCDeserializer(table: DeclarationTable, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
+export function makeCSerializers(table: DeclarationTable, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
-    const deserializer = createLanguageWriter(new IndentedPrinter(), Language.CPP)
+    const serializers = createLanguageWriter(new IndentedPrinter(), Language.CPP)
     const writeToString = new IndentedPrinter()
-    table.generateDeserializers(deserializer, structs, typedefs, writeToString)
+    serializers.print("\n// Serializers\n")
+    table.generateSerializers(serializers)
+    serializers.print("\n// Deserializers\n")
+    table.generateDeserializers(serializers, structs, typedefs, writeToString)
 
     return `
 #include "Interop.h"
+#include "SerializerBase.h"
 #include "DeserializerBase.h"
 #include "arkoala_api.h"
 #include <string>
 
 ${writeToString.getOutput().join("\n")}
 
-${deserializer.getOutput().join("\n")}
+${serializers.getOutput().join("\n")}
 `
 }
 
@@ -208,7 +214,7 @@ export function makeTSDeserializer(table: DeclarationTable): string {
     // table.generateTSDeserializers(deserializer)
     return `
 import { runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
-import { DeserializerBase} from "./DeserializerBase"
+import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"
 

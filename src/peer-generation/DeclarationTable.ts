@@ -788,8 +788,6 @@ export class DeclarationTable {
     }
 
     generateDeserializers(printer: LanguageWriter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: IndentedPrinter) {
-        printer.writeDeserializerClassPrologue()
-
         this.processPendingRequests()
         let orderer = new DependencySorter(this)
         for (let declaration of this.declarations) {
@@ -797,15 +795,27 @@ export class DeclarationTable {
         }
         let order = orderer.getToposorted()
         this.assignUniqueNames()
-        let seenNames = new Set<string>()
-        for (let declaration of order) {
-            let name = this.uniqueNames.get(declaration)!
-            if (seenNames.has(name)) continue
-            seenNames.add(name)
-            this.generateDeserializer(name, declaration, printer)
-        }
-        printer.popIndent()
-        printer.print(`};`)
+
+        const className = "Deserializer"
+        const superName = `${className}Base`
+        let ctorSignature = printer.language == Language.CPP
+            ? new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
+            : undefined
+        printer.writeClass(className, writer => {
+            if (ctorSignature) {
+                const ctorMethod = new Method(`${className}Base`, ctorSignature)
+                writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
+            }
+            const seenNames = new Set<string>()
+            for (let declaration of order) {
+                let name = this.uniqueNames.get(declaration)!
+                if (seenNames.has(name)) continue
+                seenNames.add(name)
+                this.generateDeserializer(name, declaration, printer)
+            }
+        }, superName)
+
+        const seenNames = new Set<string>()
         seenNames.clear()
         let noDeclaration = [PrimitiveType.Int32, PrimitiveType.Tag, PrimitiveType.Number, PrimitiveType.Boolean, PrimitiveType.String]
         for (let target of order) {
@@ -929,25 +939,32 @@ export class DeclarationTable {
     }
 
     generateSerializers(printer: LanguageWriter) {
+        const className = "Serializer"
+        const superName = `${className}Base`
+        let ctorSignature: NamedMethodSignature | undefined = undefined
+        switch (printer.language) {
+            case Language.ARKTS:
+                ctorSignature = new NamedMethodSignature(Type.Void, [Type.Int32], ["expectedSize"])
+                break;
+            case Language.CPP:
+                ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
+                break;
+        }
         let seenNames = new Set<string>()
-        printer.print(`export function createSerializer() { return new Serializer() }`)
-        printer.print(`export class Serializer extends SerializerBase {`)
-        printer.pushIndent()
-        if(printer.language == Language.ARKTS) {
-            printer.pushIndent()
-            printer.print(`constructor(expectedSize: int32) { super(expectedSize) }`)
-            printer.popIndent()
-        }
-        for (let declaration of this.declarations) {
-            let name = this.computeTargetName(declaration, false)
-            if (seenNames.has(name)) continue
-            seenNames.add(name)
-            if (declaration instanceof PrimitiveType) continue
-            if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration))
-                this.generateSerializer(name, declaration, printer)
-        }
-        printer.popIndent()
-        printer.print(`}`)
+        printer.writeClass(className, writer => {
+            if (ctorSignature) {
+                const ctorMethod = new Method(superName, ctorSignature)
+                writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
+            }
+            for (let declaration of this.declarations) {
+                let name = this.computeTargetName(declaration, false)
+                if (seenNames.has(name)) continue
+                seenNames.add(name)
+                if (declaration instanceof PrimitiveType) continue
+                if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration))
+                    this.generateSerializer(name, declaration, writer)
+            }
+        }, superName)
     }
 
     visitDeclaration(
@@ -995,7 +1012,7 @@ export class DeclarationTable {
         printer.print(`inline void WriteToString(string* result, const ${name}* value) {`)
         printer.pushIndent()
         printer.print(`result->append("[");`)
-        printer.print(`int32_t count = value->array_length > 7 ? 7 : value->array_length;`)
+        printer.print(`int32_t count = value->length > 7 ? 7 : value->length;`)
         printer.print(`for (int i = 0; i < count; i++) {`)
         printer.pushIndent()
         printer.print(`if (i > 0) result->append(", ");`)
@@ -1036,7 +1053,7 @@ export class DeclarationTable {
         printer.print(`inline void WriteToString(string* result, const ${name}* value) {`)
         printer.pushIndent()
         printer.print(`result->append("[");`)
-        printer.print(`int32_t count = value->map_length > 7 ? 7 : value->map_length;`)
+        printer.print(`int32_t count = value->size > 7 ? 7 : value->size;`)
         printer.print(`for (int i = 0; i < count; i++) {`)
         printer.pushIndent()
         printer.print(`if (i > 0) result->append(", ");`)
@@ -1181,7 +1198,7 @@ export class DeclarationTable {
             result.isArray = true
             let element = this.toTarget(target.elementType)
             result.addField(new FieldRecord(PrimitiveType.pointerTo(element), target, "array"))
-            result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
+            result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "length"))
         }
         else if (ts.isInterfaceDeclaration(target)) {
             this.fieldsForClass(target, result)
@@ -1254,11 +1271,11 @@ export class DeclarationTable {
                 let type = target.typeArguments[0]
                 result.isArray = true
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "array"))
-                result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "array_length"))
+                result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "length"))
             } else if (name == "Map") {
                 let keyType = target.typeArguments[0]
                 let valueType = target.typeArguments[1]
-                result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "map_length"))
+                result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "size"))
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(keyType)), undefined, "keys"))
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(valueType)), undefined, "values"))
             } else if (name == "ContentModifier") {

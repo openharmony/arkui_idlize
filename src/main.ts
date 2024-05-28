@@ -46,7 +46,7 @@ import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { printComponents } from "./peer-generation/ComponentsPrinter"
 import { printPeers } from "./peer-generation/PeersPrinter"
 import { printMaterialized } from "./peer-generation/MaterializedPrinter"
-import { printApiAndDeserializer } from "./peer-generation/HeaderPrinter"
+import { printApiAndSerializers } from "./peer-generation/HeaderPrinter"
 import { printNodeTypes } from "./peer-generation/NodeTypesPrinter"
 import { printStructCommon } from "./peer-generation/StructCommonPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/NativeModulePrinter"
@@ -371,8 +371,8 @@ if (options.dts2peer) {
                 }
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
 
-                const {api, deserializer} = printApiAndDeserializer(options.apiVersion, peerLibrary)
-                fs.writeFileSync(path.join(outDir, 'Deserializer.h'), deserializer)
+                const {api, serializers} = printApiAndSerializers(options.apiVersion, peerLibrary)
+                fs.writeFileSync(path.join(outDir, 'Serializers.h'), serializers)
                 fs.writeFileSync(path.join(outDir, 'arkoala_api.h'), api)
                 fs.writeFileSync(path.join(outDir, 'delegates.h'), printDelegatesHeaders(peerLibrary))
                 fs.writeFileSync(path.join(outDir, 'delegates.cc'), printDelegatesImplementation(peerLibrary))

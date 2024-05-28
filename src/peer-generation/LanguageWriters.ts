@@ -15,7 +15,7 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { Language, stringOrNone } from "../util";
-import { ArrayConvertor, BaseArgConvertor, EnumConvertor, FunctionConvertor, InterfaceConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "./Convertors";
+import { ArrayConvertor, BaseArgConvertor, EnumConvertor, FunctionConvertor, InterfaceConvertor, MapConvertor, OptionConvertor, ToStringConvertor, TupleConvertor, UnionConvertor } from "./Convertors";
 import { PrimitiveType } from "./DeclarationTable";
 
 export class Type {
@@ -235,28 +235,37 @@ class CLikeLoopStatement implements LanguageStatement {
 }
 
 class TSMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string) {}
+    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
     write(writer: LanguageWriter): void {
         writer.print(`for (const [${this.key}, ${this.value}] of ${this.map}) {`)
+        writer.pushIndent()
+        this.op()
+        writer.popIndent()
     }
 }
 
 class JavaMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string) {}
+    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
     write(writer: LanguageWriter): void {
         const entryVar = `${this.map}Entry`
         writer.print(`for (Map.Entry<?, ?> ${entryVar}: ${this.map}.entrySet()) {`)
         writer.pushIndent()
         writer.print(`var ${this.key} = ${entryVar}.getKey();`)
         writer.print(`var ${this.value} = ${entryVar}.getValue();`)
+        this.op()
         writer.popIndent()
     }
 }
 
 class CppMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string) {}
+    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
     write(writer: LanguageWriter): void {
-        writer.print(`for (auto const& [${this.key}, ${this.value}] : ${this.map}) {`)
+        writer.print(`for (int32_t i = 0; i < ${this.map}.size; i++) {`)
+        writer.pushIndent()
+        writer.print(`auto ${this.key} = ${this.map}.keys[i];`)
+        writer.print(`auto ${this.value} = ${this.map}.values[i];`)
+        this.op()
+        writer.popIndent()
     }
 }
 
@@ -406,12 +415,8 @@ export abstract class LanguageWriter {
 
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
 
-    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void
+    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method): void
     abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
-    writeDeserializerClassPrologue(): void {///abstract
-        this.print(`export class Deserializer { // extends SerializerBase {`)
-        this.pushIndent()
-    }
     writeSuperCall(params: string[]): void {
         this.printer.print(`super(${params.join(", ")});`)
     }
@@ -424,11 +429,27 @@ export abstract class LanguageWriter {
         //this.printer.print(stmt.asString())
         stmt.write(this)
     }
+    makeRuntimeType(runtimeType: string): string {///rm?
+        return "RuntimeType." + runtimeType
+    }
+    makeTag(tag: string): string {
+        return "Tag." + tag
+    }
     makeRef(varName: string): string {
         return varName
     }
     makeThis(): LanguageExpression {
         return new StringExpression("this")
+    }
+    makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: string, typeIndex?: number): LanguageExpression {
+        const op = equals ? "==" : "!="
+        return this.makeString(`${typeVarName} ${op} RuntimeType.${type}`)
+    }
+    makeRuntimeTypeCast(varName: string, type: Type, typeIndex: number): LanguageExpression {///need this?
+        return this.makeCast(this.makeString(varName), type)
+    }
+    makeValueFromOption(value: string): LanguageExpression {
+        return this.makeString(`${value}!`)
     }
     makeFunctionCall(name: string, params: LanguageExpression[]): LanguageExpression {
         return new FunctionCallExpression(name, params)
@@ -451,10 +472,25 @@ export abstract class LanguageWriter {
         return new TernaryExpression(condition, trueExpression, falseExpression)
     }
     makeArrayLength(array: string, length?: string): LanguageExpression {
-        return new StringExpression(`${array}.length`)
+        return this.makeString(`${array}.length`)
+    }
+    makeArrayAccess(value: string, indexVar: string) {
+        return this.makeString(`${value}[${indexVar}]`)
+    }
+    makeTupleAccess(value: string, index: number): LanguageExpression {
+        return this.makeString(`${value}[${index}]`)
+    }
+    makeUnionSelector(value: string): LanguageExpression {
+        return this.makeString(`runtimeType(${value})`)
+    }
+    makeUnionVariantCondition(value: string, type: string, index?: number): LanguageExpression {
+        return this.makeString(`RuntimeType.${type.toUpperCase()} == ${value}`)
+    }
+    makeUnionVariantCast(value: string, type: string, index?: number): LanguageExpression {
+        return this.makeString(`unsafeCast<${type}>(${value})`)
     }
     abstract makeLoop(counter: string, limit: string): LanguageStatement
-    abstract makeMapForEach(map: string, key: string, value: string): LanguageStatement
+    abstract makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement
     makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression("// TODO: TS array resize"))
     }
@@ -485,7 +521,6 @@ export abstract class LanguageWriter {
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature)
     }
-
     pushIndent() {
         this.printer.pushIndent()
     }
@@ -534,9 +569,12 @@ export class TSLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method) {
         this.writeDeclaration('constructor', signature, false, true)
         this.pushIndent()
+        if (superCall) {
+            this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`)
+        }
         op(this)
         this.popIndent()
         this.printer.print(`}`)
@@ -563,8 +601,8 @@ export class TSLanguageWriter extends LanguageWriter {
     makeLoop(counter: string, limit: string): LanguageStatement {
         return new TSLoopStatement(counter, limit)
     }
-    makeMapForEach(map: string, key: string, value: string): LanguageStatement {
-        return new TSMapForEachStatement(map, key, value)
+    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
+        return new TSMapForEachStatement(map, key, value, op)
     }
     writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)
@@ -621,7 +659,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     constructor(printer: IndentedPrinter) {
         super(printer, Language.ARKTS)
     }
-
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
@@ -653,7 +690,7 @@ abstract class CLikeLanguageWriter extends LanguageWriter {
         prefix = prefix ? prefix + " " : ""
         this.printer.print(`${prefix}${this.mapType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")});`)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method) {
         this.printer.print(`${className}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
         op(this)
@@ -715,8 +752,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeLoop(counter: string, limit: string): LanguageStatement {
         return new CLikeLoopStatement(counter, limit)
     }
-    makeMapForEach(map: string, key: string, value: string): LanguageStatement {
-        return new JavaMapForEachStatement(map, key, value)
+    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
+        return new JavaMapForEachStatement(map, key, value, op)
     }
     makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
         return new JavaCastExpression(value, type, unsafe)
@@ -760,7 +797,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.pushIndent()
         op(this)
         this.popIndent()
-        this.printer.print(`}`)
+        this.printer.print(`};`)
     }
     writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
         throw new Error("Method not implemented.")
@@ -781,11 +818,23 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.printer.print(`${type.name} ${name};`)
         this.printer.popIndent()
     }
-    writeDeserializerClassPrologue(): void {
-        this.print(`class Deserializer : public DeserializerBase {`)
-        this.print(` public:`)
+    override writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method) {
+        const superInvocation = superCall
+            ? ` : ${superCall.name}(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`
+            : ""
+        const argList = signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ");
+        this.print("public:")
+        this.print(`${className}(${argList})${superInvocation} {`)
         this.pushIndent()
-        this.print(`Deserializer(uint8_t *data, int32_t length) : DeserializerBase(data, length) {}`)
+        op(this)
+        this.popIndent()
+        this.print(`}`)
+    }
+    override makeRuntimeType(runtimeType: string): string {
+        return "ARK_RUNTIME_" + runtimeType
+    }
+    override makeTag(tag: string): string {
+        return "ARK_TAG_" + tag
     }
     override makeRef(varName: string): string {
         return `${varName}&`
@@ -793,20 +842,42 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override makeThis(): LanguageExpression {
         return new StringExpression("*this")
     }
+    override makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: string): LanguageExpression {
+        const op = equals ? "==" : "!="
+        return new StringExpression(`${typeVarName} ${op} ARK_RUNTIME_${type.toUpperCase()}`)
+    }
+    override makeRuntimeTypeCast(varName: string, type: Type, typeIndex: number): LanguageExpression {
+        return this.makeCast(new StringExpression(varName), type)
+    }
+    override makeValueFromOption(value: string): LanguageExpression {
+        return this.makeString(`${value}.value`)
+    }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true): LanguageStatement {
         return new CppAssignStatement(variableName, type, expr, isDeclared)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)
     }
-    makeArrayLength(array: string, length: string): LanguageExpression {
-        return new StringExpression(length)
+    override makeArrayAccess(value: string, indexVar: string) {
+        return this.makeString(`${value}.array[${indexVar}]`)
+    }
+    override makeTupleAccess(value: string, index: number): LanguageExpression {
+        return this.makeString(`${value}.value${index}`)
+    }
+    override makeUnionSelector(value: string): LanguageExpression {
+        return this.makeString(`${value}.selector`)
+    }
+    override makeUnionVariantCondition(value: string, type: string, index: number) {
+        return this.makeString(`${value} == ${index}`)
+    }
+    override makeUnionVariantCast(value: string, type: string, index: number) {
+        return this.makeString(`${value}.value${index}`)
     }
     makeLoop(counter: string, limit: string): LanguageStatement {
         return new CLikeLoopStatement(counter, limit)
     }
-    makeMapForEach(map: string, key: string, value: string): LanguageStatement {
-        return new CppMapForEachStatement(map, key, value)
+    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
+        return new CppMapForEachStatement(map, key, value, op)
     }
     makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
         return new CppArrayResizeStatement(array, length, deserializer)
@@ -832,6 +903,19 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             case 'string':
             case 'KStringPtr': return 'Ark_String'
             case 'number': return 'Ark_Number'
+            case 'boolean': return 'Ark_Boolean'
+            case 'Function': return 'Ark_Function'
+            case 'Length': return 'Ark_Length'
+            // TODO: oh no
+            case 'Array<string[]>' : return 'Array_Array_Ark_String'
+        }
+        if (type.name.startsWith("Array<")) {
+            const typeSpec = type.name.match(/<(.*)>/)!
+            const elementType = this.mapType(new Type(typeSpec[1]))
+            return `Array_${elementType}`
+        }
+        if (type.name.includes("<")) {
+            return type.name.replace(/<(.*)>/, "")
         }
         return super.mapType(type)
     }
@@ -841,7 +925,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeSetOptionTag(value: string, tag: string): LanguageStatement {
         return this.makeAssign(`${value}.tag`, undefined, this.makeString(tag), false)
     }
-    getObjectAccessor(convertor: BaseArgConvertor, param: string, value: string, args?: ObjectArgs): string {
+    getObjectAccessor(convertor: BaseArgConvertor, param: string, value: string, args?: ObjectArgs): string {///mv to ArgConvertor
         if (convertor instanceof OptionConvertor) {
             return `${value}.value`
         }

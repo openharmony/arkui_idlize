@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef _ARG_SERIALIZER_BASE_H
-#define _ARG_SERIALIZER_BASE_H
+#ifndef _SERIALIZER_BASE_H
+#define _SERIALIZER_BASE_H
 
 #include <stdint.h>
 
@@ -27,6 +27,11 @@ private:
     int position;
 public:
     SerializerBase(uint8_t* data): data(data), position(0) {}
+
+    template <typename T>
+    Ark_RuntimeType runtimeType(T value) {
+        return ARK_RUNTIME_OBJECT; /// add string, number, ?
+    }
 
     void writeInt8(Ark_Int8 value) {
         *((Ark_Int8*)(data + position)) = value;
@@ -60,6 +65,26 @@ public:
         strcpy((char*)(data + position), value.chars);
         position += value.length + 1;
     }
+
+    void writeBoolean(Ark_Boolean value) {
+        writeInt8(value);
+    }
+
+    void writeLength(Ark_Length value) {
+        // TODO implement
+    }
+
+    void writeFunction(Ark_Function function) {
+        // TODO implement
+    }
+
+    void writeCustomObject(std::string type, Ark_CustomObject value) {
+        // TODO implement
+    }
+
+    void writeMaterialized(Ark_Materialized value) {
+        // TODO implement
+    }
 };
 
-#endif
+#endif // _SERIALIZER_BASE_H

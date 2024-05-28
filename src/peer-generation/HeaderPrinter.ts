@@ -15,7 +15,7 @@
 
 
 import { IndentedPrinter } from "../IndentedPrinter";
-import { makeAPI, makeCDeserializer } from "./FileGenerators";
+import { makeAPI, makeCSerializers } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
@@ -155,7 +155,7 @@ class HeaderVisitor {
     }
 }
 
-export function printApiAndDeserializer(apiVersion: string|undefined, peerLibrary: PeerLibrary): {api: string, deserializer: string} {
+export function printApiAndSerializers(apiVersion: string|undefined, peerLibrary: PeerLibrary): {api: string, serializers: string} {
     const apiHeader = new IndentedPrinter()
     const modifierList = new IndentedPrinter()
     const accessorList = new IndentedPrinter()
@@ -167,8 +167,8 @@ export function printApiAndDeserializer(apiVersion: string|undefined, peerLibrar
     const structs = new IndentedPrinter()
     const typedefs = new IndentedPrinter()
 
-    const deserializer = makeCDeserializer(peerLibrary.declarationTable, structs, typedefs)
+    const serializers = makeCSerializers(peerLibrary.declarationTable, structs, typedefs)
     const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), structs, typedefs)
 
-    return {api, deserializer}
+    return {api, serializers}
 }
