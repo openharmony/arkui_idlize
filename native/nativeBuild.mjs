@@ -33,6 +33,7 @@ function crossPathResolve(inPath) {
 const nativeDir = 'native'
 let isFull = true
 let isArm64 = true
+let isV8 = false
 let exeSuffix = isWindows ? '.exe' : ''
 
 for (let i = 2; i < argv.length; ++i) {
@@ -50,6 +51,9 @@ for (let i = 2; i < argv.length; ++i) {
         case "arm":
             isArm64 = false
             break
+        case "v8":
+            isV8 = true
+            break;
     }
 }
 
@@ -64,9 +68,9 @@ let ohosSdkRoot = process.env.OHOS_SDK ?? '../koala-ui/ohos-sdk/ohos-sdk'
 let ohosSdkVersion = process.env.OHOS_SDK_VERSION ?? 'HarmonyOS-NEXT-DP1'
 
 const sysrootDir = crossPathResolve(`${ohosSdkRoot}/${ohosSdkVersion}/base/native/sysroot`)
-// let builtInArgs = `${isArm64 ? '\'--target=aarch64-linux-ohos\'' : '\'--target=arm-linux-ohos\', \'-m32\', \'-march=armv7-a\''}`
+let target = `${isArm64 ? 'aarch64-linux-ohos' : 'arm-linux-ohos'}`
 let builtInArgs = (
-    isArm64 ? ["'--target=aarch64-linux-ohos'"] : ["'--target=arm-linux-ohos'", "'-m32'", "'-march=armv7-a'"]
+    isArm64 ? [`'--target=${target}'`] : [`'--target=${target}'`, "'-m32'", "'-march=armv7-a'"]
 ).join(',')
 
 let crossFileContent = `
@@ -97,12 +101,26 @@ fs.writeFileSync(`${nativeDir}/${crossFile}`, crossFileContent, 'utf8', (error) 
     console.log(`Init ${crossFile} successfully`);
 });
 
+function resolveV8Deps() {
+    let nodeLibPath = `${sysrootDir}/usr/lib/${target}/libnode.so`
+    const nodeLibSrc = `ohos-v8/3rdtools/${target}/libnode.so.108`
+    if (!fs.existsSync(nodeLibSrc)) {
+        let downloadCmd = `node ./ohos-v8/download-3rdtools.mjs ${arch}`
+        execSync(downloadCmd, { cwd: './', stdio: 'inherit' })
+    }
+    if (!fs.existsSync(nodeLibPath)) {
+        console.log(`copy ${nodeLibSrc} ${nodeLibPath}`)
+        fs.copyFileSync(nodeLibSrc, nodeLibPath)
+    }
+}
+
 let cleanCmd = `npx rimraf ${outDir}`
-let configCmd = `meson setup -Dstrip=true ${isFull ? "" : '-Dsource_set="subset"'} ${outDir} --cross-file ${crossFile}`
+let configCmd = `meson setup -Dstrip=true ${isFull ? "" : '-Dsource_set="subset"'} ${isV8 ? '-Dis_ohos_v8=true' : ''} ${outDir} --cross-file ${crossFile}`
 let compileCmd = `meson compile -C ${outDir}`
 let installCmd = `meson install -C ${outDir}`
 
 execSync(cleanCmd, { cwd: nativeDir, stdio: 'inherit' })
+if (isV8) resolveV8Deps()
 execSync(configCmd, { cwd: nativeDir, stdio: 'inherit' })
 execSync(compileCmd, { cwd: nativeDir, stdio: 'inherit' })
 execSync(installCmd, { cwd: nativeDir, stdio: 'inherit' })

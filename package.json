@@ -79,6 +79,8 @@
         "compile:native-ohos-subset-arm32": "npm run check:subset && node ./native/nativeBuild.mjs subset arm32",
         "compile:native-ohos-subset-arm64": "npm run check:subset && node ./native/nativeBuild.mjs subset arm64",
         "run:ohos-subset-arm32:perf": "npm run compile:native-ohos-subset-arm32 && node ./ohos-app/runPerf.mjs subset arm32",
-        "run:ohos-subset-arm64:perf": "npm run compile:native-ohos-subset-arm64 && node ./ohos-app/runPerf.mjs subset arm64"
+        "run:ohos-subset-arm64:perf": "npm run compile:native-ohos-subset-arm64 && node ./ohos-app/runPerf.mjs subset arm64",
+        "compile:native-ohos-subset-arm64:v8": "npm run check:subset && node ./native/nativeBuild.mjs subset arm64 v8",
+        "run:ohos-subset-arm64:perf:v8": "npm run compile:native-ohos-subset-arm64:v8 && node ohos-v8/runPerfOnV8.mjs subset"
     }
 }

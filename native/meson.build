@@ -52,7 +52,6 @@ is_ohos = os == 'ohos'
 
 if is_ohos
 use_dummy_libace = false
-is_node = false
 is_arkts = false
 endif
 
@@ -123,6 +122,13 @@ jni_sources = [
 endif
 
 if is_node
+node_ldflags = []
+# TODO: support v8 on arm32 board.
+if get_option('is_ohos_v8') and arch == 'arm64'
+node_ldflags += [
+    '-lnode'
+]
+endif
 shared_library(node_library_name,
     sources + node_sources,
     override_options: [
@@ -134,7 +140,7 @@ shared_library(node_library_name,
     include_directories: include_dirs + node_include_dirs,
     install_dir: meson.current_source_dir(),
     cpp_args: cflags + node_cflags,
-    link_args: ldflags,
+    link_args: ldflags + node_ldflags,
     dependencies: []
 )
 endif

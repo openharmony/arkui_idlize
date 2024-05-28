@@ -2,3 +2,5 @@ option('source_set', type : 'string', value : '',
     description : 'Which source set to compile')
 option('arkts', type : 'boolean', value : 'true',
     description : 'If generate ArkTS target')
+option('is_ohos_v8', type : 'boolean', value : 'false',
+    description : 'If is ohos v8')
