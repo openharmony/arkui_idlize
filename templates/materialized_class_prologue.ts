@@ -1,6 +1,6 @@
 import { Finalizable } from "./Finalizable"
 import { NativePeerNode } from "./PeerNode"
 import { nativeModule } from "./NativeModule"
-import { createSerializer } from "./Serializer"
+import { createSerializer, Serializer } from "./Serializer"
 import { runtimeType, withLength, withLengthArray, RuntimeType, SerializerBase } from "./SerializerBase"
 import { unsafeCast } from "./generated-utils"

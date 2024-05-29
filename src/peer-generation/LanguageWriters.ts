@@ -160,6 +160,16 @@ export class ExpressionStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         const text = this.expression.asString()
         if (text.length > 0) {
+            writer.print(`${this.expression.asString()}`)
+        }
+    }
+}
+
+export class CLikeExpressionStatement extends ExpressionStatement {
+    constructor(public expression: LanguageExpression) { super(expression) }
+    write(writer: LanguageWriter): void {
+        const text = this.expression.asString()
+        if (text.length > 0) {
             writer.print(`${this.expression.asString()};`)
         }
     }
@@ -210,22 +220,6 @@ export class CppCastExpression implements LanguageExpression {
             : `(${this.type.name})(${this.value.asString()})`
     }
 }
-
-/*
-export class ConditionStatement implements LanguageExpression {
-    constructor(public condition: LanguageStatement,
-        public trueStatement: LanguageStatement,
-        public falseStatement: LanguageStatement | undefined,
-        public ternary = false) { }
-    asString(): string {
-        if (this.ternary) {
-            return `(${this.condition.asString()}) ? ${this.trueStatement.asString()} : ${this.falseStatement?.asString()}`
-        }
-        const elseStatement = this.falseStatement === undefined ? "" : ` else { ${this.falseStatement.asString()} }`
-        return `if (${this.condition.asString()}) ${this.trueStatement.asString()}${elseStatement}`
-    }
-}
-*/
 
 class TSLoopStatement implements LanguageStatement {
     constructor(private counter: string, private limit: string) {}
@@ -540,9 +534,7 @@ export abstract class LanguageWriter {
     makeNaryOp(op: string, args: LanguageExpression[]): LanguageExpression {
         return new NaryOpExpression(op, args)
     }
-    makeStatement(expr: LanguageExpression): LanguageStatement {
-        return new ExpressionStatement(expr)
-    }
+    abstract makeStatement(expr: LanguageExpression): LanguageStatement
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature)
     }
@@ -625,6 +617,9 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new TSReturnStatement(expr)
+    }
+    makeStatement(expr: LanguageExpression): LanguageStatement {
+        return new ExpressionStatement(expr)
     }
     makeLoop(counter: string, limit: string): LanguageStatement {
         return new TSLoopStatement(counter, limit)
@@ -798,6 +793,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
         return new JavaCastExpression(value, type, unsafe)
     }
+    makeStatement(expr: LanguageExpression): LanguageStatement {
+        return new CLikeExpressionStatement(expr)
+    }
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
     }
@@ -903,6 +901,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)
+    }
+    makeStatement(expr: LanguageExpression): LanguageStatement {
+        return new CLikeExpressionStatement(expr)
     }
     override makeArrayAccess(value: string, indexVar: string) {
         return this.makeString(`${value}.array[${indexVar}]`)

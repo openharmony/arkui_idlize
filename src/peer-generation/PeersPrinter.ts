@@ -23,6 +23,7 @@ import { PeerClass, PeerClassBase } from "./PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import {
+    LanguageExpression,
     LanguageWriter,
     Method,
     MethodModifier,
@@ -215,7 +216,7 @@ class PeerFileVisitor {
                     `import { PeerNode } from "./PeerNode"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
                     `import { runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
-                    `import { createSerializer } from "./Serializer"`,
+                    `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { nativeModule } from "./NativeModule"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ArkCommon } from "./ArkCommon"`,
@@ -227,7 +228,7 @@ class PeerFileVisitor {
                     `import { PeerNode } from "./PeerNode"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
                     `import { runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
-                    `import { createSerializer } from "./Serializer"`,
+                    `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ArkCommon } from "./ArkCommon"`,
                     `${collectDtsImports().trim()}`
@@ -301,9 +302,12 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
     })
     method.argConvertors.forEach((it, index) => {
         if (it.useArray) {
-            let size = it.estimateSize()
-            writer.print(`const ${it.param}Serializer = SerializerBase.get(createSerializer, ${index})`)
-            // TODO: pass writer to convertors!
+            writer.writeStatement(
+                writer.makeAssign(`${it.param}Serializer`, new Type('Serializer'),
+                    writer.makeMethodCall('SerializerBase', 'get', [
+                        writer.makeString('createSerializer'), writer.makeString(index.toString())
+                    ]), true)
+                )
             it.convertorSerialize(it.param, it.param, writer)
         }
     })
@@ -315,25 +319,32 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
             }
         })
     }
-    //let maybeThis = method.hasReceiver() ? `this.peer.ptr${method.argConvertors.length > 0 ? ", " : ""}` : ``
-    let maybeThis = method.hasReceiver() ? `${ptr}${method.argConvertors.length > 0 ? ", " : ""}` : ``
-    const result = returnType == Type.Void ? "" : `const ${returnValName} = `
-    writer.print(`${result}nativeModule()._${method.originalParentName}_${method.overloadedName}(${maybeThis}`)
-    writer.pushIndent()
-    method.argConvertors.forEach((it, index) => {
-        let maybeComma = index == method.argConvertors.length - 1 ? "" : ","
-        if (it.useArray)
-            writer.print(`${it.param}Serializer.asArray(), ${it.param}Serializer.length()`)
-        else
-            writer.print(it.convertorArg(it.param, writer))
-        writer.print(maybeComma)
+    let params: LanguageExpression[] = []
+    if (method.hasReceiver()) {
+        params.push(writer.makeString(ptr))
+    }
+    method.argConvertors.forEach(it => {
+        if (it.useArray) {
+            params.push(writer.makeMethodCall(`${it.param}Serializer`, `asArray`, []))
+            params.push(writer.makeMethodCall(`${it.param}Serializer`, `length`, []))
+        } else {
+            params.push(writer.makeString(it.convertorArg(it.param, writer)))
+        }
     })
-    writer.popIndent()
-    writer.print(`)`)
+    let call = writer.makeMethodCall(
+        `nativeModule()`,
+        `_${method.originalParentName}_${method.overloadedName}`,
+        params)
+    if (returnType != Type.Void) {
+        writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
+    } else {
+        writer.writeStatement(writer.makeStatement(call))
+    }
     scopes.reverse().forEach(it => {
         writer.popIndent()
         writer.print(it.scopeEnd!(it.param, writer.language))
     })
+    // TODO: refactor
     if (returnType != Type.Void) {
         let result = returnValName
         if (method.hasReceiver() && returnType === Type.This) {
