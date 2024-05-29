@@ -186,7 +186,7 @@ export class DeclarationTable {
     }
 
     toTarget(node: ts.TypeNode): DeclarationTarget {
-        let result = this.toTargetConvertor.convert(node)
+        let result = convertTypeNode(this.toTargetConvertor, node)
         this.addDeclaration(result)
         return result
     }
@@ -1361,15 +1361,22 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
         if (ts.isTypeAliasDeclaration(declaration)) {
             const node = declaration.type
             this.table.requestType(identName(declaration.name), node)
-            return this.convert(node)
+            return convertTypeNode(this, node)
         }
         if (ts.isEnumMember(declaration)) {
             return declaration.parent
         }
-        return declaration as DeclarationTarget
+        if (ts.isTypeParameterDeclaration(declaration)) {
+            return PrimitiveType.CustomObject
+        }
+        if (ts.isClassDeclaration(declaration) ||
+            ts.isInterfaceDeclaration(declaration) ||
+            ts.isEnumDeclaration(declaration))
+            return declaration
+        throw new Error(`Unknown declaration type ${ts.SyntaxKind[declaration.kind]}`)
     }
     convertParenthesized(node: ts.ParenthesizedTypeNode): DeclarationTarget {
-        return this.convert(node.type)
+        return convertTypeNode(this, node.type)
     }
     convertIndexedAccess(node: ts.IndexedAccessTypeNode): DeclarationTarget {
         return PrimitiveType.CustomObject
@@ -1398,16 +1405,5 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
     }
     convertUnknownKeyword(node: ts.TypeNode): DeclarationTarget {
         return PrimitiveType.CustomObject
-    }
-
-    convertTypeParameterDeclaration(node: ts.TypeParameterDeclaration): DeclarationTarget {
-        // Not really correct
-        return PrimitiveType.CustomObject
-    }
-
-    convert(node: ts.Node): DeclarationTarget {
-        if (ts.isTypeParameterDeclaration(node)) return this.convertTypeParameterDeclaration(node)
-        if (ts.isTypeNode(node)) return convertTypeNode(this, node)
-        throw new Error(`Unknown node ${ts.SyntaxKind[node.kind]}`)
     }
 }
