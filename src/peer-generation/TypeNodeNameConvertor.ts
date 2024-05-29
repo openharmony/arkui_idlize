@@ -77,11 +77,6 @@ export class TSTypeNodeNameConvertor implements
         const maybeTypeArguments = !types?.length ? '' : `<${types.join(', ')}>`
         return `${name}${maybeTypeArguments}`
     }
-    convertTypeAlias(node: ts.TypeAliasDeclaration): string {
-        const types = node.typeParameters?.map(it => this.convert(it.name))
-        const maybeTypeArguments = !types?.length ? '' : `<${types.join(', ')}>`
-        return `${this.convert(node.name)}${maybeTypeArguments}`
-    }
     convertParenthesized(node: ts.ParenthesizedTypeNode): string {
         return `(${this.convert(node.type)})`
     }

@@ -11,7 +11,6 @@ export interface TypeNodeConvertor<T> {
     convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): T
     convertImport(node: ts.ImportTypeNode): T
     convertTypeReference(node: ts.TypeReferenceNode): T
-    convertTypeAlias(node: ts.TypeAliasDeclaration): T
     convertParenthesized(node: ts.ParenthesizedTypeNode): T
     convertIndexedAccess(node: ts.IndexedAccessTypeNode): T
     convertStringKeyword(node: ts.TypeNode): T
@@ -35,7 +34,6 @@ export function convertTypeNode<T>(convertor: TypeNodeConvertor<T>, node: ts.Typ
     if (ts.isTemplateLiteralTypeNode(node)) return convertor.convertTemplateLiteral(node)
     if (ts.isImportTypeNode(node)) return convertor.convertImport(node)
     if (ts.isTypeReferenceNode(node)) return convertor.convertTypeReference(node)
-    if (ts.isTypeAliasDeclaration(node)) return convertor.convertTypeAlias(node)
     if (ts.isParenthesizedTypeNode(node)) return convertor.convertParenthesized(node)
     if (ts.isIndexedAccessTypeNode(node)) return convertor.convertIndexedAccess(node)
     if (node.kind == ts.SyntaxKind.StringKeyword) return convertor.convertStringKeyword(node)

@@ -26,7 +26,8 @@ import {
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
-import {DeclareStatement, LanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters"
+import { LanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters"
+import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -112,6 +113,7 @@ class PendingTypeRequest {
 export class DeclarationTable {
     private declarations = new Set<DeclarationTarget>()
     private typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[]]>()
+    private toTargetConvertor: ToDeclarationTargetConvertor
     typeChecker: ts.TypeChecker | undefined = undefined
     public language: Language
 
@@ -122,6 +124,7 @@ export class DeclarationTable {
             case "ts": default: this.language = Language.TS; break
         }
         console.log(`Emit for ${Language[this.language]}`)
+        this.toTargetConvertor = new ToDeclarationTargetConvertor(this)
     }
 
     getTypeName(type: ts.TypeNode, optional: boolean = false): string {
@@ -183,79 +186,9 @@ export class DeclarationTable {
     }
 
     toTarget(node: ts.TypeNode): DeclarationTarget {
-        let result = this.toTargetImpl(node)
+        let result = this.toTargetConvertor.convert(node)
         this.addDeclaration(result)
         return result
-    }
-
-    private toTargetImpl(node: ts.TypeNode): DeclarationTarget {
-        if (this.isDeclarationTarget(node)) return node as DeclarationTarget
-        if (ts.isImportTypeNode(node)) {
-            return this.mapImportType(node)
-        }
-        if (ts.isTypeReferenceNode(node)) {
-            let result = this.customToTarget(node)
-            if (result) return result
-            // Types with type arguments are declarations!
-            if (node.typeArguments) {
-                return node
-            }
-            const original = node
-            let declarations = getDeclarationsByNode(this.typeChecker!, node.typeName)
-            while (declarations.length > 0 && ts.isTypeAliasDeclaration(declarations[0])) {
-                node = declarations[0].type
-                this.requestType(identName(declarations[0].name), node)
-                if (this.isDeclarationTarget(node)) return node as DeclarationTarget
-                if (ts.isTypeReferenceNode(node)) return this.toTarget(node)
-                if (ts.isFunctionTypeNode(node)) return this.toTarget(node)
-                if (ts.isImportTypeNode(node)) return this.toTarget(node)
-                declarations = getDeclarationsByNode(this.typeChecker!, node)
-            }
-            if (declarations.length == 0) {
-                throw new Error(`No declaration for ${node.getText()} ${asString(original)}`)
-            }
-            let declaration = declarations[0]
-            if (ts.isEnumMember(declaration)) {
-                return declaration.parent
-            }
-            return declaration as DeclarationTarget
-        }
-        if (ts.isParenthesizedTypeNode(node)) {
-            return this.toTargetImpl(node.type)
-        }
-        if (ts.isIndexedAccessTypeNode(node)) {
-            return PrimitiveType.CustomObject
-        }
-        if (ts.isTypeParameterDeclaration(node)) {
-            // Not really correct
-            return PrimitiveType.CustomObject
-        }
-        if (node.kind == ts.SyntaxKind.StringKeyword) {
-            return PrimitiveType.String
-        }
-        if (node.kind == ts.SyntaxKind.NumberKeyword) {
-            return PrimitiveType.Number
-        }
-        if (node.kind == ts.SyntaxKind.BooleanKeyword) {
-            return PrimitiveType.Boolean
-        }
-        if (node.kind == ts.SyntaxKind.UndefinedKeyword) {
-            return PrimitiveType.Undefined
-        }
-        if (node.kind == ts.SyntaxKind.VoidKeyword) {
-            // TODO: shall it be distinct type.
-            return PrimitiveType.Undefined
-        }
-        if (node.kind == ts.SyntaxKind.ObjectKeyword) {
-            return PrimitiveType.CustomObject
-        }
-        if (node.kind == ts.SyntaxKind.AnyKeyword) {
-            return PrimitiveType.CustomObject
-        }
-        if (node.kind == ts.SyntaxKind.UnknownKeyword) {
-            return PrimitiveType.CustomObject
-        }
-        throw new Error(`Unknown target ${node.getText()}: ${ts.SyntaxKind[node.kind]} in ${asString(node.parent)}`)
     }
 
     computeTargetName(target: DeclarationTarget, optional: boolean): string {
@@ -1367,5 +1300,114 @@ export class DeclarationTable {
             writer.writeStatement(writer.makeReturn(writer.makeString("value")))
         })
         this.setCurrentContext(undefined)
+    }
+}
+
+class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarget> {
+    constructor(
+        private readonly table: DeclarationTable,
+    ) {}
+
+    convertUnion(node: ts.UnionTypeNode): DeclarationTarget {
+        return node
+    }
+    convertTypeLiteral(node: ts.TypeLiteralNode): DeclarationTarget {
+        return node
+    }
+    convertLiteralType(node: ts.LiteralTypeNode): DeclarationTarget {
+        return node
+    }
+    convertTuple(node: ts.TupleTypeNode): DeclarationTarget {
+        return node
+    }
+    convertArray(node: ts.ArrayTypeNode): DeclarationTarget {
+        return node
+    }
+    convertOptional(node: ts.OptionalTypeNode): DeclarationTarget {
+        return node
+    }
+    convertFunction(node: ts.FunctionTypeNode): DeclarationTarget {
+        return node
+    }
+    convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): DeclarationTarget {
+        return node
+    }
+    convertImport(node: ts.ImportTypeNode): DeclarationTarget {
+        let name = identName(node.qualifier)!
+        switch (name) {
+            case "Resource": return PrimitiveType.Resource
+            case "Callback": return PrimitiveType.Function
+            default: return PrimitiveType.CustomObject
+        }
+    }
+    convertTypeReference(node: ts.TypeReferenceNode): DeclarationTarget {
+        let name = identName(node)
+        switch (name) {
+            case `Length`: return PrimitiveType.Length
+            case `AnimationRange`: return PrimitiveType.CustomObject
+            case `ContentModifier`: return PrimitiveType.CustomObject
+            case `Date`: return PrimitiveType.String
+        }
+        // Types with type arguments are declarations!
+        if (node.typeArguments) {
+            return node
+        }
+
+        let declarations = getDeclarationsByNode(this.table.typeChecker!, node.typeName)
+        if (declarations.length == 0) {
+            throw new Error(`No declaration for ${node.getText()} ${asString(node)}`)
+        }
+        let declaration = declarations[0]
+        if (ts.isTypeAliasDeclaration(declaration)) {
+            const node = declaration.type
+            this.table.requestType(identName(declaration.name), node)
+            return this.convert(node)
+        }
+        if (ts.isEnumMember(declaration)) {
+            return declaration.parent
+        }
+        return declaration as DeclarationTarget
+    }
+    convertParenthesized(node: ts.ParenthesizedTypeNode): DeclarationTarget {
+        return this.convert(node.type)
+    }
+    convertIndexedAccess(node: ts.IndexedAccessTypeNode): DeclarationTarget {
+        return PrimitiveType.CustomObject
+    }
+    convertStringKeyword(node: ts.TypeNode): DeclarationTarget {
+        return PrimitiveType.String
+    }
+    convertNumberKeyword(node: ts.TypeNode): DeclarationTarget {
+        return PrimitiveType.Number
+    }
+    convertBooleanKeyword(node: ts.TypeNode): DeclarationTarget {
+        return PrimitiveType.Boolean
+    }
+    convertUndefinedKeyword(node: ts.TypeNode): DeclarationTarget {
+        return PrimitiveType.Undefined
+    }
+    convertVoidKeyword(node: ts.TypeNode): DeclarationTarget {
+        // TODO: shall it be distinct type.
+        return PrimitiveType.Undefined
+    }
+    convertObjectKeyword(node: ts.TypeNode): DeclarationTarget {
+        return PrimitiveType.CustomObject
+    }
+    convertAnyKeyword(node: ts.TypeNode): DeclarationTarget {
+        return PrimitiveType.CustomObject
+    }
+    convertUnknownKeyword(node: ts.TypeNode): DeclarationTarget {
+        return PrimitiveType.CustomObject
+    }
+
+    convertTypeParameterDeclaration(node: ts.TypeParameterDeclaration): DeclarationTarget {
+        // Not really correct
+        return PrimitiveType.CustomObject
+    }
+
+    convert(node: ts.Node): DeclarationTarget {
+        if (ts.isTypeParameterDeclaration(node)) return this.convertTypeParameterDeclaration(node)
+        if (ts.isTypeNode(node)) return convertTypeNode(this, node)
+        throw new Error(`Unknown node ${ts.SyntaxKind[node.kind]}`)
     }
 }
