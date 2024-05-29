@@ -27,6 +27,8 @@ export class PeerGeneratorConfig {
 
     public static invalidAttributes = ["ScrollableCommon"]
 
+    public static invalidEvents = ["onRenderExited"]
+
     // TODO: need a better logic to know if the XxxInterface
     // doesn't have a XxxAttribute class which needs a peer.
     public static readonly uselessConstructorInterfaces = [

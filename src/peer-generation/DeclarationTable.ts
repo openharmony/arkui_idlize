@@ -425,7 +425,8 @@ export class DeclarationTable {
             if (suggestedName) return suggestedName
             return prefix + `Literal_${type.members.map(member => {
                 if (ts.isPropertySignature(member)) {
-                    return this.computeTypeNameImpl(undefined, member.type!, member.questionToken != undefined)
+                    let field = identName(member.name)
+                    return `${field}_${this.computeTypeNameImpl(undefined, member.type!, member.questionToken != undefined)}`
                 } else {
                     return undefined
                 }

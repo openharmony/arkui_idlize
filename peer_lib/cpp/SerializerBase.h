@@ -21,17 +21,17 @@
 #include "common-interop.h"
 #include "arkoala_api.h"
 
+template <typename T>
+Ark_RuntimeType runtimeType(T value) {
+    return ARK_RUNTIME_OBJECT; /// add string, number, ?
+}
+
 class SerializerBase {
 private:
     uint8_t* data;
     int position;
 public:
     SerializerBase(uint8_t* data): data(data), position(0) {}
-
-    template <typename T>
-    Ark_RuntimeType runtimeType(T value) {
-        return ARK_RUNTIME_OBJECT; /// add string, number, ?
-    }
 
     void writeInt8(Ark_Int8 value) {
         *((Ark_Int8*)(data + position)) = value;

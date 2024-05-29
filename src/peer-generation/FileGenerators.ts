@@ -111,7 +111,7 @@ export function completeEventsImplementations(lines: string): string {
     return `
 #include "arkoala_api.h"
 #include "events.h"
-#include "SerializerBase.h"
+#include "Serializers.h"
 
 ${lines}
 `
@@ -406,11 +406,9 @@ export function makePeerEvents(data: string): string {
     return `
 import { DeserializerBase } from './DeserializerBase'
 
-class PeerEvent {
-    constructor(
-        public readonly kind: ${PeerEventKind},
-        public readonly nodeId: number,
-    ) {}
+interface PeerEvent {
+    readonly kind: ${PeerEventKind}
+    readonly nodeId: number
 }
 
 ${data}
