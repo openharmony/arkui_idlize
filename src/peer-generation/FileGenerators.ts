@@ -404,7 +404,8 @@ ${importTsInteropTypes}
 
 export function makePeerEvents(data: string): string {
     return `
-import { DeserializerBase } from './DeserializerBase'
+import { Deserializer } from './Deserializer'
+import { RuntimeType } from "./SerializerBase"
 
 interface PeerEvent {
     readonly kind: ${PeerEventKind}

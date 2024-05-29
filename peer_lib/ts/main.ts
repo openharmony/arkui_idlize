@@ -14,6 +14,7 @@
  */
 import { SerializerBase } from "@arkoala/arkui/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/DeserializerBase"
+import { Deserializer } from "@arkoala/arkui/Deserializer"
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
@@ -278,7 +279,7 @@ function checkEvents() {
 
     const buffer = new Uint8Array(BufferSize)
     const checkResult = nativeModule()._CheckArkoalaEvents(buffer, BufferSize)
-    const event = deserializePeerEvent(new DeserializerBase(buffer.buffer, BufferSize))
+    const event = deserializePeerEvent(new Deserializer(buffer.buffer, BufferSize))
     assertEquals("Event: read event from native", 1, checkResult)
     if (checkResult !== 1)
         return

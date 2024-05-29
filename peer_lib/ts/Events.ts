@@ -1,10 +1,10 @@
-import { DeserializerBase } from "./DeserializerBase";
+import { Deserializer } from "./Deserializer";
 import { nativeModule } from "./NativeModule";
 import { deserializePeerEvent } from "./peer_events"
 
 const BufferSize = 60 * 4;
 const buffer = new Uint8Array(BufferSize)
-const deserializer = new DeserializerBase(buffer.buffer, BufferSize)
+const deserializer = new Deserializer(buffer.buffer, BufferSize)
 
 export function checkEvents() {
     while (nativeModule()._CheckArkoalaEvents(buffer, BufferSize)) {

@@ -258,7 +258,7 @@ class TSEventsVisitor {
     }
 
     private printParseFunction(infos: CallbackInfo[]) {
-        this.printer.print(`export function deserializePeerEvent(eventDeserializer: DeserializerBase): PeerEvent {`)
+        this.printer.print(`export function deserializePeerEvent(eventDeserializer: Deserializer): PeerEvent {`)
         this.printer.pushIndent()
         this.printer.writeStatement(this.printer.makeAssign(
             'kind',
