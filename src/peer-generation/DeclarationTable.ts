@@ -35,6 +35,7 @@ export class PrimitiveType {
     static Number = new PrimitiveType("Ark_Number", true)
     static Int32 = new PrimitiveType("Ark_Int32")
     static Tag = new PrimitiveType("Ark_Tag")
+    static RuntimeType = new PrimitiveType("Ark_RuntimeType")
     static Boolean = new PrimitiveType("Ark_Boolean")
     static Function = new PrimitiveType("Ark_Function", true)
     static Materialized = new PrimitiveType("Ark_Materialized", true)
@@ -1317,7 +1318,7 @@ export class DeclarationTable {
             new Method(`write${name}`,
                 new NamedMethodSignature(Type.Void, [new Type(this.translateSerializerType(name, target))], ["value"])),
             writer => {
-                writer.writeStatement(writer.makeAssign("valueSerializer", undefined, writer.makeThis(), true))
+                writer.writeStatement(writer.makeAssign("valueSerializer", undefined, writer.makeThis(), true, false))
                 if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
                     let struct = this.targetStruct(target)
                     struct.getFields().forEach(it => {
@@ -1350,7 +1351,7 @@ export class DeclarationTable {
         const type = new Type(name)
         printer.writeMethodImplementation(new Method(`read${name}`, new NamedMethodSignature(type, [], [])), writer => {
             writer.writeStatement(
-                writer.makeAssign("valueDeserializer", new Type(writer.makeRef("Deserializer")), writer.makeThis(), true))
+                writer.makeAssign("valueDeserializer", new Type(writer.makeRef("Deserializer")), writer.makeThis(), true, false))
             // using list initialization to prevent uninitialized value errors
             writer.writeStatement(writer.makeObjectDeclare("value", type, this.targetStruct(target).getFields()))
             if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
