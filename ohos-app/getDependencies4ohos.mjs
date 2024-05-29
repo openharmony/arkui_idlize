@@ -56,6 +56,10 @@ const libsDir = `ohos-app/api_perf/entry/libs/`
 const libTargetDir = `${libsDir}/${archPath}`
 const libTarget = `${libTargetDir}/${libName}`
 const codesTargetDir = 'ohos-app/api_perf/entry/src/main/ets/idlize'
+const koalauiModulesDir = 'peer_lib/ts/@koalaui'
+const generatedDir = `generated/${isFull ? 'peers' : 'subset'}`
+const peerNodePath = `${generatedDir}/PeerNode.ts`
+const testDtsDir = `tests/subset/ets`
 const commonFilePath = path.join(codesTargetDir, 'common.ts')
 const testDtsPath = path.join(codesTargetDir, 'test.d.ts')
 let ohosSdkRoot = process.env.OHOS_SDK ?? '../koala-ui/ohos-sdk/ohos-sdk'
@@ -93,6 +97,8 @@ const blackList = [
     "main.ts"
 ]
 
+const testDtsWhiteList = []
+
 function getCommonFilePath() {
     return commonFilePath
 }
@@ -101,15 +107,15 @@ function getTestDtsPath() {
     return testDtsPath
 }
 
-function copyTestDts(sourceDir) {
-    fs.readdirSync(sourceDir).forEach(file => {
-        const sourceFile = path.join(sourceDir, file);
+function copyTestDts(sourceDir, specificFile = undefined) {
+    let resolveTestDts = file => {
+        const sourceFile = path.join(sourceDir, specificFile ?? file)
         if (fs.lstatSync(sourceFile).isDirectory()) {
             copyTestDts(sourceFile)
             return
         }
         console.log(`sourceFile : ${sourceFile}`)
-        if (file.endsWith('.d.ts')) {
+        if (file.endsWith('.d.ts') || testDtsWhiteList.includes(file)) {
             console.log(`sourceFile endsWith : ${sourceFile}`)
             let data = fs.readFileSync(sourceFile, 'utf8')
             let expectedData = data
@@ -118,15 +124,20 @@ function copyTestDts(sourceDir) {
                   console.error(`appendFile ${getTestDtsPath()} error :`, error)
                   return
                 }
-                console.log(`appendFile ${getTestDtsPath()} successfully`);
+                console.log(`appendFile ${getTestDtsPath()} successfully`)
             });
         }
-    });
+    }
+    if (!specificFile) {
+        fs.readdirSync(sourceDir).forEach(resolveTestDts)
+    } else {
+        resolveTestDts(sourceDir)
+    }
 }
 
 function copyAndFixPeerFiles(sourceDir, codesTargetDir, isCommon) {
     const importUtil = 'import util from \'@ohos.util\'\n'
-    const initString = `${importUtil}
+    let initString = `${importUtil}
 
 export class ArkComponent {
     protected peer?: NativePeerNode
@@ -136,13 +147,20 @@ export class ArkComponent {
 }`
 
     if (isCommon) {
-        fs.writeFile(getCommonFilePath(), initString, 'utf8', (error) => {
+        fs.readFile(peerNodePath, 'utf8', (error, data) => {
             if (error) {
-              console.error(`Init ${getCommonFilePath()} error : `, error)
-              return
+                console.error(`read ${sourceFile} error : `, error)
+                return
             }
-            console.log(`Init ${getCommonFilePath()} successfully`);
-        });
+            initString += data.replace(/.*@koalaui\/common"/g, '')
+            fs.writeFile(getCommonFilePath(), initString, 'utf8', (error) => {
+                if (error) {
+                console.error(`Init ${getCommonFilePath()} error : `, error)
+                return
+                }
+                console.log(`Init ${getCommonFilePath()} successfully`);
+            });
+        })
     }
 
     fs.readdirSync(sourceDir).forEach(file => {
@@ -202,13 +220,8 @@ export class ArkComponent {
 }
 
 resolveLibDependency()
-copyAndFixPeerFiles('peer_lib/ts/@koalaui', codesTargetDir, true)
-copyTestDts(`tests/subset/ets`)
+copyAndFixPeerFiles(koalauiModulesDir, codesTargetDir, true)
+if (!isFull) copyTestDts(testDtsDir)
 
-if (isFull) {
-    console.log(`copy full to ohos project.`)
-    copyAndFixPeerFiles('generated/peers', codesTargetDir)
-} else {
-    console.log(`copy subset to ohos project.`)
-    copyAndFixPeerFiles('generated/subset', codesTargetDir)
-}
+console.log(`copy ${isFull ? 'full' : 'subset'} peer codes to ohos project.`)
+copyAndFixPeerFiles(generatedDir, codesTargetDir)
