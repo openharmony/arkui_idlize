@@ -344,9 +344,13 @@ export class UnionConvertor extends BaseArgConvertor {
             let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
             let conditions = printer.makeNaryOp("||", it.runtimeTypes.map(it =>
                 printer.makeNaryOp("==", [ printer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
-            let customDiscriminator = it.customDiscriminator(value, index, printer)
-            if (customDiscriminator)
-                conditions = printer.makeNaryOp("&&", [conditions, customDiscriminator])
+            // TODO: restore custom discriminators, when could support that in deserialization.
+            let useCustomDiscriminators = false
+            if (useCustomDiscriminators) {
+                let customDiscriminator = it.customDiscriminator(value, index, printer)
+                if (customDiscriminator)
+                    conditions = printer.makeNaryOp("&&", [conditions, customDiscriminator])
+            }
             printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
             if (!(it instanceof UndefinedConvertor)) {
@@ -374,10 +378,10 @@ export class UnionConvertor extends BaseArgConvertor {
             if (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length == 0) {
                 return
             }
-            const expr = printer.makeNaryOp("||",
+            let conditions = printer.makeNaryOp("||",
                 it.runtimeTypes.map(rt => printer.makeNaryOp("==", [ printer.makeRuntimeType(rt), printer.makeString(runtimeType)])))
             const accessor = printer.getObjectAccessor(this, param, value, {index: `${index}`})
-            branches.push({expr: expr, stmt: new BlockStatement([
+            branches.push({expr: conditions, stmt: new BlockStatement([
                     it.convertorDeserialize(param, accessor, printer),
                     printer.makeSetUnionSelector(value, `${index}`)
                 ], false)})
