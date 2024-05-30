@@ -35,6 +35,7 @@ export class NativeModule {
   static native _StringMake(arg1: String): long;
   static native _GetStringFinalizer(): long;
   static native _InvokeFinalizer(arg1: long, arg2: long): void;
+  static native _GetNodeFinalizer(): long;
   static native _GetPtrVectorSize(arg1: long): int;
   static native _GetPtrVectorElement(arg1: long, arg2: int): long;
   static native _GetGroupedLog(arg1: int): long;

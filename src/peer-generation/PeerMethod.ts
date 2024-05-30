@@ -106,7 +106,7 @@ export class PeerMethod {
     static markOverloads(methods: PeerMethod[]): void {
         for (const peerMethod of methods)
             peerMethod.isOverloaded = false
-        
+
         for (const peerMethod of methods) {
             if (peerMethod.isOverloaded) continue
             const sameNamedMethods = methods.filter(it => it.method.name === peerMethod.method.name)
@@ -132,7 +132,7 @@ export class MethodSeparatorVisitor {
             this.onVisitInseparable()
             return
         }
-        
+
         const visitor: StructVisitor = {
             visitUnionField: (field: FieldRecord, selectorValue: number) => {
                 this.onPushUnionScope(argIndex, field, selectorValue)

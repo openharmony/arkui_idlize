@@ -368,14 +368,15 @@ export function makeArkuiModule(componentsFiles: string[]): string {
 
 export function makeStructCommon(commonMethods: string[], customComponentMethods: string[]): string {
     return `
-import { NativePeerNode } from "./PeerNode"
+import { PeerNode } from "./PeerNode"
 
 // TODO: temporary, remove!
 interface Theme {}
 
 export class ArkCommon implements CommonMethod<CommonAttribute> {
-  protected peer?: NativePeerNode
-  setPeer(peer: NativePeerNode) {
+  protected peer?: PeerNode
+  setPeer(peer: PeerNode) {
+    this.peer = peer
   }
   /** @memo:intrinsic */
   protected checkPriority(

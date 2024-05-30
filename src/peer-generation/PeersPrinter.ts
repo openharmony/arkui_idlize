@@ -122,11 +122,9 @@ class PeerFileVisitor {
             [undefined, undefined, '0'])
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => {
-            if (parentRole === InheritanceRole.Finalizable) {
-                writer.writeSuperCall(['BigInt(42)']) // for now
-            } else if (parentRole === InheritanceRole.PeerNode) {
+            if (parentRole === InheritanceRole.PeerNode) {
                 writer.writeSuperCall([`type`, 'flags'])
-                writer.writeMethodCall('component', 'setPeer', ['this.peer'], true)
+                writer.writeMethodCall('component', 'setPeer', ['this'], true)
             } else if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
                 writer.writeSuperCall([`type`, 'component', 'flags'])
             } else {

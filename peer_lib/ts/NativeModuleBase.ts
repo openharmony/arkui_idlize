@@ -31,6 +31,9 @@ export class NativeModuleBase {
     _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void  {
         throw new Error("_InvokeFinalizer")
     }
+    _GetNodeFinalizer(): KPointer  {
+        throw new Error("_InvokeFinalizer")
+    }
     _StringLength(ptr: KPointer): KInt  {
         throw new Error("_StringLength")
     }

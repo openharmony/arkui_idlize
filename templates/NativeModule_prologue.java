@@ -24,6 +24,7 @@ public class NativeModule {
   static native long _GetGroupedLog(int kind);
   static native long _GetPtrVectorElement(long ptr, int index);
   static native void _InvokeFinalizer(long func, long obj);
+  static native long _GetNodeFinalizer();
   static native void _StartGroupedLog(int index);
   static native void _StopGroupedLog(int index);
   static native int _TestPerfNumber(int value);

@@ -1,7 +1,7 @@
 package org.koalaui.arkoala;
 
-import org.koalaui.interop.Finalizable;
+import org.koalaui.arkoala.PeerNode;
 
 public class ArkCommon {
-    public void setPeer(Finalizable peer) {}
+    public void setPeer(PeerNode peer) {}
 }

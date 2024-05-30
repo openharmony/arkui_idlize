@@ -93,6 +93,15 @@ void impl_InvokeFinalizer(KNativePointer obj, KNativePointer finalizer) {
 }
 KOALA_INTEROP_V2(InvokeFinalizer, KNativePointer, KNativePointer)
 
+void disposeNode(KNativePointer* ptr) {
+}
+
+KNativePointer impl_GetNodeFinalizer() {
+    return fnPtr<KNativePointer>(disposeNode);
+}
+
+KOALA_INTEROP_0(GetNodeFinalizer, KNativePointer)
+
 KInt impl_GetPtrVectorSize(KNativePointer ptr) {
     return reinterpret_cast<std::vector<void*>*>(ptr)->size();
 }

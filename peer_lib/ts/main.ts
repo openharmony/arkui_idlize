@@ -216,17 +216,20 @@ function checkParticle() {
 
 function checkTabContent() {
     let peer = new ArkTabContentPeer(ArkUINodeType.TabContent)
+
     let subTabBarStyle: SubTabBarStyle| undefined = undefined
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = new SubTabBarStyle("abc")),
         `new SubTabBarStyle("abc")[return (void*) 100]getFinalizer()[return (void*) 200]tabBar("Materialized 0x2a")`)
-    assertEquals("new SubTabBarStyle() ptr", 100, subTabBarStyle!.peer!.ptr) // constructor ptr is 100
+    assertEquals("SubTabBarStyle ptr", 100, subTabBarStyle!.peer!.ptr)
+    assertEquals("SubTabBarStyle finalizer", 200, subTabBarStyle!.peer!.finalizer)
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = SubTabBarStyle.of("ABC")),
         `of("ABC")[return (void*) 300]getFinalizer()[return (void*) 200]tabBar("Materialized 0x2a")`)
-    assertEquals("SubTabBarStyle.of() ptr", 300, subTabBarStyle!.peer!.ptr) // static method ptr is 300
+    assertEquals("SubTabBarStyle.of() ptr", 300, subTabBarStyle!.peer!.ptr)
+    assertEquals("SubTabBarStyle finalizer", 200, subTabBarStyle!.peer!.finalizer)
 }
 
 function checkPerf1(count: number) {
