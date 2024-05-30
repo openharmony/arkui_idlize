@@ -15,7 +15,8 @@
 
 import * as ts from "typescript"
 import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations,
-     identName, isStatic, throwException, typeEntityName, identNameWithNamespace } from "../util"
+     identName, isStatic, throwException, typeEntityName, identNameWithNamespace, 
+     typeName} from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -26,8 +27,10 @@ import {
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
-import { LanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters"
+import { BlockStatement, ExpressionStatement, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
+import { RuntimeType } from "./PeerGeneratorVisitor"
 import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
+import { write } from "fs"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -722,7 +725,7 @@ export class DeclarationTable {
         }
     }
 
-    generateDeserializers(printer: LanguageWriter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: IndentedPrinter) {
+    generateDeserializers(printer: LanguageWriter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         this.processPendingRequests()
         let orderer = new DependencySorter(this)
         for (let declaration of this.declarations) {
@@ -774,6 +777,7 @@ export class DeclarationTable {
                     seenNames.add(nameOptional)
                     structs.print(`typedef struct ${nameOptional}{ enum ${PrimitiveType.Tag.getText()} tag; ${nameAssigned} value; } ${nameOptional};`)
                     this.writeOptional(nameOptional, writeToString, isPointer)
+                    this.writeRuntimeType(target, nameOptional, true, writeToString)
                 }
                 continue
             }
@@ -790,6 +794,7 @@ export class DeclarationTable {
             if (!noBasicDecl && !skipWriteToString) {
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
             }
+            this.writeRuntimeType(target, nameAssigned, false, writeToString)
             if (seenNames.has(nameOptional)) continue
             seenNames.add(nameOptional)
             if (!(target instanceof PointerType) && nameAssigned != "Optional" && nameAssigned != "RelativeIndexable") {
@@ -798,6 +803,7 @@ export class DeclarationTable {
                 structs.print(`${nameAssigned} value;`)
                 this.printStructsCTail(nameOptional, structDescriptor.isPacked, structs)
                 this.writeOptional(nameOptional, writeToString, isPointer)
+                this.writeRuntimeType(target, nameOptional, true, writeToString)
             }
         }
         for (let declarationTarget of this.typeMap.values()) {
@@ -808,6 +814,81 @@ export class DeclarationTable {
         }
         // TODO: hack, remove me!
         typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Ark_Length ${PrimitiveType.OptionalPrefix}Length;`)
+    }
+
+    private writeRuntimeType(target: DeclarationTarget, targetTypeName: string, isOptional: boolean, writer: LanguageWriter) {
+        const resultType = new Type("Ark_RuntimeType")
+        const op = this.writeRuntimeTypeOp(target, targetTypeName, resultType, isOptional, writer)
+        if (op) {
+            writer.print("template <>")
+            writer.writeMethodImplementation(
+                new Method("runtimeType",
+                    new NamedMethodSignature(resultType, [new Type(`const ${targetTypeName}&`)], ["value"]),
+                    [MethodModifier.INLINE]),
+                op)
+        }
+    }
+
+    private writeRuntimeTypeOp(
+        target: DeclarationTarget, targetTypeName: string, resultType: Type, isOptional: boolean, writer: LanguageWriter
+    ) : ((writer: LanguageWriter) => void) | undefined
+    {
+        let result: LanguageExpression
+        if (isOptional) {
+            result = writer.makeCast(writer.makeString("value.tag"), resultType)
+        } else if (target instanceof PointerType) {
+            return
+        } else if (target instanceof PrimitiveType) {
+            switch (target) {
+                case PrimitiveType.Boolean:
+                    result = writer.makeRuntimeType(RuntimeType.BOOLEAN)
+                    break
+                case PrimitiveType.CustomObject:
+                case PrimitiveType.Materialized:
+                case PrimitiveType.NativePointer:
+                case PrimitiveType.Resource:
+                case PrimitiveType.Tag:
+                    return undefined
+                case PrimitiveType.Function:
+                    result = writer.makeRuntimeType(RuntimeType.FUNCTION)
+                    break
+                case PrimitiveType.Int32:
+                case PrimitiveType.Number:
+                    result = writer.makeRuntimeType(RuntimeType.NUMBER)
+                    break
+                case PrimitiveType.Length:
+                    result = writer.makeCast(writer.makeString("value.type"), resultType)
+                    break
+                case PrimitiveType.String:
+                    result = writer.makeRuntimeType(RuntimeType.STRING)
+                    break
+                case PrimitiveType.Undefined:
+                    result = writer.makeRuntimeType(RuntimeType.UNDEFINED)
+                    break
+                default:
+                    throw new Error(`Unexpected PrimitiveType ${target.getText()}`)
+            }
+        } else if (ts.isEnumDeclaration(target)) {
+            result = writer.makeRuntimeType(RuntimeType.NUMBER)
+        } else if (ts.isClassDeclaration(target) && isMaterialized(target)) {
+            return undefined
+        } else if (ts.isOptionalTypeNode(target)) {
+            result = writer.makeCast(writer.makeString("value.tag"), resultType)
+        } else if (ts.isUnionTypeNode(target)) {
+            return writer => {
+                writer.print("switch (value.selector) {")
+                writer.pushIndent()
+                for (let i = 0; i < target.types.length; i++) {
+                    writer.print(`case ${i}: return runtimeType(value.value${i});`)
+                }
+                writer.print(`default: throw "Bad selector in ${targetTypeName}: " + std::to_string(value.selector);`)
+                writer.popIndent()
+                writer.print("}")
+            }
+        } else {
+            result = writer.makeRuntimeType(RuntimeType.OBJECT)
+        }
+        return writer => writer.writeStatement(writer.makeReturn(result))
     }
 
     generateTSDeserializers(printer: LanguageWriter) {
@@ -850,7 +931,7 @@ export class DeclarationTable {
         return `struct `
     }
 
-    writeOptional(nameOptional: string, printer: IndentedPrinter, isPointer: boolean) {
+    writeOptional(nameOptional: string, printer: LanguageWriter, isPointer: boolean) {
         printer.print(`template <>`)
         printer.print(`inline void WriteToString(string* result, const ${nameOptional}* value) {`)
         printer.pushIndent()
@@ -924,7 +1005,7 @@ export class DeclarationTable {
             predicate(target.type)
     }
 
-    private generateArrayWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
+    private generateArrayWriteToString(name: string, target: DeclarationTarget, printer: LanguageWriter) {
         if (target instanceof PrimitiveType) throw new Error("Impossible")
         let elementType = ts.isArrayTypeNode(target)
             ? target.elementType
@@ -959,7 +1040,7 @@ export class DeclarationTable {
         printer.print(`}`)
     }
 
-    private generateMapWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter) {
+    private generateMapWriteToString(name: string, target: DeclarationTarget, printer: LanguageWriter) {
         if (target instanceof PrimitiveType)
             throw new Error("Impossible")
         const [keyType, valueType] = ts.isTypeReferenceNode(target) && target.typeArguments
@@ -1002,7 +1083,7 @@ export class DeclarationTable {
         printer.print(`}`)
     }
 
-    private generateWriteToString(name: string, target: DeclarationTarget, printer: IndentedPrinter, isPointer: boolean) {
+    private generateWriteToString(name: string, target: DeclarationTarget, printer: LanguageWriter, isPointer: boolean) {
         if (target instanceof PrimitiveType) throw new Error("Impossible")
 
         this.setCurrentContext(`writeToString(${name})`)

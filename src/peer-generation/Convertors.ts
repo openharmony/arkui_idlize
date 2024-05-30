@@ -508,7 +508,7 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         const valueType = `${value}_type`
-        printer.writeStatement(printer.makeAssign(valueType, undefined,
+        printer.writeStatement(printer.makeAssign(valueType, Type.Int32,
             printer.makeFunctionCall("runtimeType", [printer.makeString(value)]), true))
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [valueType])
         printer.print(`if (${printer.makeRuntimeTypeCondition(valueType, false, RuntimeType.UNDEFINED).asString()}) {`)

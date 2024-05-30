@@ -32,7 +32,8 @@ export enum MethodModifier {
     PUBLIC,
     PRIVATE,
     STATIC,
-    NATIVE  ,
+    NATIVE,
+    INLINE,
 }
 
 export interface LanguageStatement {
@@ -479,6 +480,7 @@ export abstract class LanguageWriter {
     abstract makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement
     abstract getTagType(): Type
     abstract getRuntimeType(): Type
+    abstract get supportedModifiers(): MethodModifier[]
     writeSuperCall(params: string[]): void {
         this.printer.print(`super(${params.join(", ")});`)
     }
@@ -645,7 +647,9 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[]) {
-        let prefix = modifiers?.map(it => this.mapMethodModifier(it)).join(" ")
+        let prefix = modifiers
+            ?.filter(it => this.supportedModifiers.includes(it))
+            .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
         this.printer.print(`${prefix}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
@@ -728,6 +732,9 @@ export class TSLanguageWriter extends LanguageWriter {
     getRuntimeType(): Type {
         return new Type("number");
     }
+    get supportedModifiers(): MethodModifier[] {
+        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC]
+    }
 }
 
 export class ETSLanguageWriter extends TSLanguageWriter {
@@ -751,6 +758,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return super.mapType(type)
     }
+    get supportedModifiers(): MethodModifier[] {
+        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]
+    }
 }
 
 abstract class CLikeLanguageWriter extends LanguageWriter {
@@ -761,16 +771,21 @@ abstract class CLikeLanguageWriter extends LanguageWriter {
         this.printer.print(`${receiver}.${method}(${params.join(", ")});`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
-        let prefix = modifiers?.map(it => this.mapMethodModifier(it)).join(" ")
-        prefix = prefix ? prefix + " " : ""
-        this.printer.print(`${prefix}${this.mapType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")});`)
+        this.writeDeclaration(name, signature, modifiers, ";")
     }
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
-        this.printer.print(`${this.mapType(method.signature.returnType)} ${method.name}(${method.signature.args.map((it, index) => `${this.mapType(it)} ${method.signature.argName(index)}`).join(", ")}) {`)
+        this.writeDeclaration(method.name, method.signature, method.modifiers, " {")
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
+    }
+    private writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string): void {
+        let prefix = modifiers
+            ?.filter(it => this.supportedModifiers.includes(it))
+            .map(it => this.mapMethodModifier(it)).join(" ")
+        prefix = prefix ? prefix + " " : ""
+        this.print(`${prefix}${this.mapType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
     }
 }
 
@@ -876,6 +891,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     getRuntimeType(): Type {
         throw new Error("Method not implemented.")
+    }
+    get supportedModifiers(): MethodModifier[] {
+        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC, MethodModifier.NATIVE]
     }
 }
 
@@ -1050,6 +1068,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     getRuntimeType(): Type {
         return new Type(PrimitiveType.RuntimeType.getText())
+    }
+    get supportedModifiers(): MethodModifier[] {
+        return [MethodModifier.INLINE, MethodModifier.STATIC]
     }
 }
 

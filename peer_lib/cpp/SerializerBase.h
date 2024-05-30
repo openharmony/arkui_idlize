@@ -21,9 +21,18 @@
 #include "common-interop.h"
 #include "arkoala_api.h"
 
+
 template <typename T>
-Ark_RuntimeType runtimeType(T value) {
-    return ARK_RUNTIME_OBJECT; /// add string, number, ?
+inline Ark_RuntimeType runtimeType(const T& value) = delete;
+
+template <>
+inline Ark_RuntimeType runtimeType(const Ark_CustomObject& value) {
+  return ARK_RUNTIME_OBJECT;
+}
+
+template <>
+inline Ark_RuntimeType runtimeType(const Ark_Materialized& value) {
+  return ARK_RUNTIME_OBJECT;
 }
 
 class SerializerBase {
@@ -115,6 +124,7 @@ public:
 
     void writeMaterialized(Ark_Materialized value) {
         // There should be no need to pass accessors back from native code
+        throw "Trying to pass materialized class back from native code -- is that really needed?";
     }
 };
 

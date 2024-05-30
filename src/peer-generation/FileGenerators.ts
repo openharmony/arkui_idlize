@@ -188,7 +188,7 @@ ${printer.getOutput().join("\n")}
 export function makeCSerializers(table: DeclarationTable, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
     const serializers = createLanguageWriter(new IndentedPrinter(), Language.CPP)
-    const writeToString = new IndentedPrinter()
+    const writeToString = createLanguageWriter(new IndentedPrinter(), Language.CPP)
     serializers.print("\n// Serializers\n")
     table.generateSerializers(serializers)
     serializers.print("\n// Deserializers\n")
