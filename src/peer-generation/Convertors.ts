@@ -334,8 +334,6 @@ export class UnionConvertor extends BaseArgConvertor {
         printer.writeStatement(
             printer.makeAssign(`${value}_type`, undefined,
                 printer.makeUnionSelector(value), true))
-        // Save actual type being passed.
-        printer.writeMethodCall(`${param}Serializer`, "writeInt8", [`${value}_type`])
         this.memberConvertors.forEach((it, index) => {
             if (it.runtimeTypes.length == 0) {
                 console.log(`WARNING: branch for ${it.nativeType(false)} was consumed`)
@@ -344,15 +342,12 @@ export class UnionConvertor extends BaseArgConvertor {
             let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
             let conditions = printer.makeNaryOp("||", it.runtimeTypes.map(it =>
                 printer.makeNaryOp("==", [ printer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
-            // TODO: restore custom discriminators, when could support that in deserialization.
-            let useCustomDiscriminators = false
-            if (useCustomDiscriminators) {
-                let customDiscriminator = it.customDiscriminator(value, index, printer)
-                if (customDiscriminator)
-                    conditions = printer.makeNaryOp("&&", [conditions, customDiscriminator])
-            }
+            let customDiscriminator = it.customDiscriminator(value, index, printer)
+            if (customDiscriminator)
+                conditions = printer.makeNaryOp("&&", [conditions, customDiscriminator])
             printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
+            printer.writeMethodCall(`${param}Serializer`, "writeInt8", [index.toString()])
             if (!(it instanceof UndefinedConvertor)) {
                 const valueType = new Type(it.tsTypeName)
                 printer.writeStatement(
@@ -365,29 +360,19 @@ export class UnionConvertor extends BaseArgConvertor {
         })
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        let runtimeType = `runtimeType${uniqueCounter++}`;
-        const statements = [printer.makeAssign(runtimeType,
-            undefined,
-            printer.makeCast(printer.makeString(`${param}Deserializer.readInt8()`), printer.getRuntimeType()),
-            true)]
-        const branches : BranchStatement[] = []
-        this.memberConvertors.forEach((it, index) => {
-            if (it.runtimeTypes.length == 0) {
-                return
-            }
-            if (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length == 0) {
-                return
-            }
-            let conditions = printer.makeNaryOp("||",
-                it.runtimeTypes.map(rt => printer.makeNaryOp("==", [ printer.makeRuntimeType(rt), printer.makeString(runtimeType)])))
+        let selector = `selector${uniqueCounter++}`
+        const selectorAssign = printer.makeAssign(selector, Type.Int32,
+            printer.makeString(`${param}Deserializer.readInt8()`), true)
+        const branches: BranchStatement[] = this.memberConvertors.map((it, index) => {
             const accessor = printer.getObjectAccessor(this, param, value, {index: `${index}`})
-            branches.push({expr: conditions, stmt: new BlockStatement([
-                    it.convertorDeserialize(param, accessor, printer),
-                    printer.makeSetUnionSelector(value, `${index}`)
-                ], false)})
+            const expr = printer.makeString(`${selector} == ${index}`)
+            const stmt = new BlockStatement([
+                it.convertorDeserialize(param, accessor, printer),
+                printer.makeSetUnionSelector(value, `${index}`)
+            ], false)
+            return { expr, stmt }
         })
-        statements.push(printer.makeMultiBranchCondition(branches))
-        return new BlockStatement(statements, false)
+        return new BlockStatement([selectorAssign, printer.makeMultiBranchCondition(branches)], false)
     }
     nativeType(impl: boolean): string {
         return impl
