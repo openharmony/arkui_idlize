@@ -1,3 +1,9 @@
+declare enum NavigationTitleMode {
+    Free = 0,
+    Full,
+    Mini,
+}
+
 declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
 
     // backButtonIcon(value: string | PixelMap | Resource): NavigationAttribute;
@@ -7,6 +13,7 @@ declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
     // navBarWidthRange(value: [Dimension, Dimension]): NavigationAttribute;
 
     testTuple(value: [boolean, number]): NavigationAttribute;
+    titleMode(value: NavigationTitleMode): NavigationAttribute;
 
     // testTuple(value: [boolean, number]): NavigationAttribute;
     // testArray1(value: Array<boolean>): NavigationAttribute;

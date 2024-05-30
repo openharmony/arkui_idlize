@@ -1,6 +1,7 @@
 import { NodeController, FrameNode } from '@ohos.arkui.node';
 import { startPerformanceTest, RunPerformanceTest } from '../idlize/test_performance';
 import { TEST_COUNT, CALL_COUNT, testString1000, testLength_10_percent, testLength_number100, testNumber100 } from '../idlize/test_data'
+import { AttributeUpdater } from '@ohos.arkui.modifier'
 
 function startFrameNodePerformanceTest(node: FrameNode) {
   RunPerformanceTest("frameNode_restoreId_testNumber100", TEST_COUNT, CALL_COUNT, () => {
@@ -31,6 +32,22 @@ function startFrameNodePerformanceTest(node: FrameNode) {
       }
     })
   })
+  RunPerformanceTest("frameNode_linearGradient", TEST_COUNT, CALL_COUNT, () => {
+    node.commonAttribute.linearGradient({
+      angle: 70,
+      repeating: false,
+      direction: GradientDirection.Top,
+      colors: [[0xff0000, 0.0], [0x0000ff, 0.3], [0xffff00, 0.5]]
+    })
+  })
+  RunPerformanceTest("frameNode_border", TEST_COUNT, CALL_COUNT, () => {
+    node.commonAttribute.border({
+      width: 5,
+      color: Color.White,
+      radius: 25,
+      style: BorderStyle.Solid
+    })
+  })
 }
 
 class MyNodeController extends NodeController {
@@ -50,14 +67,24 @@ class MyNodeController extends NodeController {
   }
 }
 
+class MyNavigationAttribute extends AttributeUpdater<NavigationAttribute> {
+  initializeModifier(instance: NavigationAttribute): void {
+    RunPerformanceTest("frameNode_navigation_titleMode", TEST_COUNT, CALL_COUNT, () => {
+      instance.titleMode(NavigationTitleMode.Free)
+    })
+  }
+}
+
 @Entry
 @Component
 struct Index {
   private myNodeController: MyNodeController = new MyNodeController();
+  modifier: MyNavigationAttribute = new MyNavigationAttribute()
 
   build() {
     Row() {
       NodeContainer(this.myNodeController)
+      Navigation().attributeModifier(this.modifier)
     }
   }
 }

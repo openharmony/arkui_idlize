@@ -1,5 +1,6 @@
 import { nativeModule } from "@arkoala/arkui/NativeModule"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
+import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import {
     TEST_COUNT, CALL_COUNT, testString1000, testLength_10_percent,
@@ -59,5 +60,25 @@ export function startPerformanceTest() {
                 grayscale: [1, 1]
             }
         })
+    });
+    RunPerformanceTest("idlize_linearGradientAttribute", TEST_COUNT, CALL_COUNT, () => {
+        peer.linearGradientAttribute({
+            angle: 70,
+            repeating: false,
+            direction: GradientDirection.Top,
+            colors: [[0xff0000, 0.0], [0x0000ff, 0.3], [0xffff00, 0.5]]
+        })
+    });
+    RunPerformanceTest("idlize_borderAttribute", TEST_COUNT, CALL_COUNT, () => {
+        peer.borderAttribute({
+            width: 5,
+            color: 0,
+            radius: 25,
+            style: BorderStyle.Solid
+        })
+    });
+    let navigation = new ArkNavigationPeer(ArkUINodeType.Common);
+    RunPerformanceTest("idlize_navigation_titleModeAttribute", TEST_COUNT, CALL_COUNT, () => {
+        navigation.titleModeAttribute(NavigationTitleMode.Free)
     });
 }

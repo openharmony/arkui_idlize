@@ -110,6 +110,61 @@ declare type Padding = {
     left?: Length;
 };
 
+declare interface LocalizedEdgeWidths {
+    top?: LengthMetrics;
+    end?: LengthMetrics;
+    bottom?: LengthMetrics;
+    start?: LengthMetrics;
+};
+
+declare type EdgeColors = {
+    top?: ResourceColor;
+    right?: ResourceColor;
+    bottom?: ResourceColor;
+    left?: ResourceColor;
+};
+
+declare interface LocalizedEdgeColors  {
+    top?: ResourceColor;
+    end?: ResourceColor;
+    bottom?: ResourceColor;
+    start?: ResourceColor;
+};
+
+declare type BorderRadiuses = {
+    topLeft?: Length;
+    topRight?: Length;
+    bottomLeft?: Length;
+    bottomRight?: Length;
+};
+
+declare interface LocalizedBorderRadiuses  {
+    topStart?: LengthMetrics;
+    topEnd?: LengthMetrics;
+    bottomStart?: LengthMetrics;
+    bottomEnd?: LengthMetrics;
+};
+
+declare enum BorderStyle {
+    Dotted,
+    Dashed,
+    Solid,
+}
+
+declare type EdgeStyles = {
+    top?: BorderStyle;
+    right?: BorderStyle;
+    bottom?: BorderStyle;
+    left?: BorderStyle;
+};
+
+declare interface BorderOptions {
+    width?: EdgeWidths | Length | LocalizedEdgeWidths;
+    color?: EdgeColors | ResourceColor | LocalizedEdgeColors;
+    radius?: BorderRadiuses | Length | LocalizedBorderRadiuses;
+    style?: EdgeStyles | BorderStyle;
+}
+
 declare interface DragPreviewOptions {
     numberBadge?: boolean | number;
 }
@@ -121,6 +176,17 @@ declare interface DragInteractionOptions {
     defaultAnimationBeforeLifting?: boolean;
 }
 
+declare enum GradientDirection {
+    Left,
+    Top,
+    Right,
+    Bottom,
+    LeftTop,
+    LeftBottom,
+    RightTop,
+    RightBottom,
+    None,
+}
 
 declare class CommonMethod<T> {
 
@@ -145,6 +211,15 @@ declare class CommonMethod<T> {
     backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): T;
 
     dragPreviewOptions(value: DragPreviewOptions, options?: DragInteractionOptions): T;
+
+    linearGradient(value: {
+        angle?: number | string;
+        direction?: GradientDirection;
+        colors: Array<[ResourceColor, number]>;
+        repeating?: boolean;
+    }): T;
+
+    border(value: BorderOptions): T;
 }
 
 declare interface Rectangle {
