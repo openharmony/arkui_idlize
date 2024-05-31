@@ -38,7 +38,7 @@ static bool registerNatives(JNIEnv *env)
         methods[i].fnPtr = std::get<2>(impls[i]);
         // fprintf(stderr, "%s %s()\n", methods[i].name,  methods[i].signature);
     }
-    return registerNativeMethods(env, "NativeModule", methods, numMethods);
+    return registerNativeMethods(env, "org/koalaui/arkoala/NativeModule", methods, numMethods);
 }
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {

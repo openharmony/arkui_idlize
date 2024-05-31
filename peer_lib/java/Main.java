@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+package org.koalaui.arkoala;
+
 public class Main {
     public static void main(String[] args) {
         long str = NativeModule._StringMake("Hello");
