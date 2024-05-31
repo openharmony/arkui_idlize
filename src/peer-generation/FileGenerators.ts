@@ -132,6 +132,15 @@ export function dummyImplementations(lines: string): string {
 #include "Serializers.h"
 #include "common-interop.h"
 
+void dummyClassFinalizer(KNativePointer* ptr) {
+    char hex[20];
+    std::snprintf(hex, sizeof(hex), "0x%llx", (long long)ptr);
+    string out("dummyClassFinalizer(");
+    out.append(hex);
+    out.append(")");
+    appendGroupedLog(1, out);
+}
+
 ${lines}
 `
 }

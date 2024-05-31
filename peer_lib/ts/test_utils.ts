@@ -49,6 +49,15 @@ export function checkResult(name: string, test: () => void, expected: string) {
     }
 }
 
+export function assertTrue(name: string, value: boolean) {
+    if (!value) {
+        failedTestsCount++
+        console.log(`TEST ${name} FAIL:\n  EXPECTED value is not true.`)
+    } else {
+        console.log(`TEST ${name} PASS`)
+    }
+}
+
 export function assertEquals(name: string, expected: any, actual: any) {
     if (expected != actual ) {
         failedTestsCount++

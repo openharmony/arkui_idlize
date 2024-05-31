@@ -63,7 +63,7 @@ export class MaterializedMethod extends PeerMethod {
 
     override get dummyReturnValue(): string | undefined {
         if (this.method.name === "ctor") return `(void*) 100`
-        if (this.method.name === "getFinalizer") return `(void*) 200`
+        if (this.method.name === "getFinalizer") return `fnPtr<KNativePointer>(dummyClassFinalizer)`
         if (this.method.modifiers?.includes(MethodModifier.STATIC)) return `(void*) 300`
         return undefined;
     }

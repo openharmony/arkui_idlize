@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { nullptr } from "@koalaui/interop"
 import { SerializerBase } from "@arkoala/arkui/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/DeserializerBase"
 import { Deserializer } from "@arkoala/arkui/Deserializer"
@@ -40,7 +41,8 @@ import {
     CALL_GROUP_LOG,
     stopNativeLog,
     TEST_GROUP_LOG,
-    assertEquals
+    assertEquals,
+    assertTrue,
 } from "./test_utils"
 import { nativeModule } from "@arkoala/arkui//NativeModule"
 
@@ -221,15 +223,20 @@ function checkTabContent() {
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = new SubTabBarStyle("abc")),
-        `new SubTabBarStyle("abc")[return (void*) 100]getFinalizer()[return (void*) 200]tabBar("Materialized 0x2a")`)
+        `new SubTabBarStyle("abc")[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]tabBar("Materialized 0x2a")`)
     assertEquals("SubTabBarStyle ptr", 100, subTabBarStyle!.peer!.ptr)
-    assertEquals("SubTabBarStyle finalizer", 200, subTabBarStyle!.peer!.finalizer)
+    assertTrue("SubTabBarStyle finalizer", subTabBarStyle!.peer!.finalizer != nullptr)
+
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = SubTabBarStyle.of("ABC")),
-        `of("ABC")[return (void*) 300]getFinalizer()[return (void*) 200]tabBar("Materialized 0x2a")`)
+        `of("ABC")[return (void*) 300]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]tabBar("Materialized 0x2a")`)
     assertEquals("SubTabBarStyle.of() ptr", 300, subTabBarStyle!.peer!.ptr)
-    assertEquals("SubTabBarStyle finalizer", 200, subTabBarStyle!.peer!.finalizer)
+    assertTrue("SubTabBarStyle finalizer", subTabBarStyle!.peer!.finalizer != nullptr)
+
+    checkResult("SubTabBarStyle peer close()",
+        () => subTabBarStyle!.peer!.close(),
+        `dummyClassFinalizer(0x12c)`)
 }
 
 function checkPerf1(count: number) {
