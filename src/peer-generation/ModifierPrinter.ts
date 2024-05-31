@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter } from "../IndentedPrinter";
-import { DeclarationTable, FieldRecord } from "./DeclarationTable";
+import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
 import { modifierStructList, modifierStructs } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
@@ -30,36 +30,75 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     ) {
         super(declarationTable, method)
         this.delegateSignatureBuilder = new DelegateSignatureBuilder(declarationTable, method)
-        this.accessChain = method.argConvertors.map(convertor => [{
+        this.accessChain = method.argConvertors.map((convertor, index) => [{
             name: convertor.param,
-            access: convertor.isPointerType() ? '->' : '.'
+            type: method.declarationTargets[index],
+            isPointerType: convertor.isPointerType(),
         }])
     }
 
     private readonly delegateSignatureBuilder: DelegateSignatureBuilder
-    private readonly accessChain: {name: string, access: string}[][]
+    private readonly accessChain: {name: string, type: DeclarationTarget, isPointerType: boolean}[][]
     private generateAccessTo(argIndex: number, fieldName?: string) {
         const argAccessChain = this.accessChain[argIndex]
-        let access = argAccessChain[0].name
-        for (let i = 1; i < argAccessChain.length; i++)
-            access += `${argAccessChain[i-1].access}${argAccessChain[i].name}`
-        if (fieldName)
-            access += `${argAccessChain[argAccessChain.length-1].access}${fieldName}`
-        return access
+        if (argAccessChain[argAccessChain.length - 1].type === PrimitiveType.Undefined) {
+            return `{}`
+        }
+        let resultAccess = argAccessChain[0].name
+        for (let i = 1; i < argAccessChain.length; i++) {
+            const fieldAccess = argAccessChain[i-1].isPointerType ? '->' : '.'
+            resultAccess += `${fieldAccess}${argAccessChain[i].name}`
+        } 
+        
+        if (fieldName) {
+            const fieldAccess = argAccessChain[argAccessChain.length-1].isPointerType ? '->' : '.'
+            resultAccess += `${fieldAccess}${fieldName}`
+        }
+        return resultAccess
     }
 
-    onPushUnionScope(argIndex: number, field: FieldRecord, selectorValue: number): void {
+    protected override onPushUnionScope(argIndex: number, field: FieldRecord, selectorValue: number): void {
         super.onPushUnionScope(argIndex, field, selectorValue)
         this.printer.print(`if (${this.generateAccessTo(argIndex, 'selector')} == ${selectorValue}) {`)
         this.printer.pushIndent()
         this.accessChain[argIndex].push({
             name: field.name,
-            access: '.'
+            type: field.declaration,
+            isPointerType: false
         })
         this.delegateSignatureBuilder.pushUnionScope(argIndex, field)
     }
 
-    onPopUnionScope(argIndex: number): void {
+    protected override onPopUnionScope(argIndex: number): void {
+        super.onPopUnionScope(argIndex)
+        this.accessChain[argIndex].pop()
+        this.printer.popIndent()
+        this.printer.print('}')
+        this.delegateSignatureBuilder.popScope(argIndex)
+    }
+
+    protected override onPushOptionScope(argIndex: number, target: DeclarationTarget, exists: boolean): void {
+        super.onPushOptionScope(argIndex, target, exists)
+        if (exists) {
+            this.printer.print(`if (${this.generateAccessTo(argIndex, 'tag')} != ${PrimitiveType.UndefinedTag}) {`)
+            this.accessChain[argIndex].push({
+                name: "value",
+                type: target,
+                isPointerType: false,
+            })
+        } else {
+            this.printer.print(`if (${this.generateAccessTo(argIndex, 'tag')} == ${PrimitiveType.UndefinedTag}) {`)
+            this.accessChain[argIndex].push({
+                name: "UNDEFINED",
+                type: PrimitiveType.Undefined,
+                isPointerType: false,
+            })
+        }
+        this.printer.pushIndent()
+        this.delegateSignatureBuilder.pushOptionScope(argIndex, target, exists)
+    }
+
+    protected override onPopOptionScope(argIndex: number): void {
         super.onPopUnionScope(argIndex)
         this.accessChain[argIndex].pop()
         this.printer.popIndent()
@@ -73,7 +112,13 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
 
     onVisitInseparableArg(argIndex: number): void {
         super.onVisitInseparableArg(argIndex)
-        this.printer.print(`const auto &${this.generateInseparableFieldName(argIndex)} = ${this.generateAccessTo(argIndex)};`)
+        const argChain = this.accessChain[argIndex]
+        const arg = argChain[argChain.length - 1]
+        const type = this.declarationTable.computeTargetName(arg.type, false)
+        const maybePointer = arg.isPointerType 
+            ? '*' 
+            : arg.type !== PrimitiveType.Undefined ? '&' : ''
+        this.printer.print(`const ${type} ${maybePointer}${this.generateInseparableFieldName(argIndex)} = ${this.generateAccessTo(argIndex)};`)
     }
 
     onVisitInseparable(): void {

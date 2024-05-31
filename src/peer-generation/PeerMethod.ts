@@ -124,6 +124,8 @@ export class MethodSeparatorVisitor {
 
     protected onPushUnionScope(argIndex: number, field: FieldRecord, selectorValue: number): void {}
     protected onPopUnionScope(argIndex: number) {}
+    protected onPushOptionScope(argIndex: number, target: DeclarationTarget, exists: boolean): void {}
+    protected onPopOptionScope(argIndex: number): void {}
     protected onVisitInseparableArg(argIndex: number) {}
     protected onVisitInseparable() {}
 
@@ -144,10 +146,19 @@ export class MethodSeparatorVisitor {
                 this.visitArg(argIndex + 1)
             }
         }
-        // TODO we cannot process optionals for now
-        if (this.method.argConvertors[argIndex] instanceof OptionConvertor)
+        if (this.method.argConvertors[argIndex] instanceof OptionConvertor) {
+            // todo does we have optionals only on root?
+            const conv = this.method.argConvertors[argIndex] as OptionConvertor
+            const target = this.declarationTable.toTarget(conv.type)
+
+            this.onPushOptionScope(argIndex, target, true)
+            this.declarationTable.visitDeclaration(target, visitor)
+            this.onPopOptionScope(argIndex)
+            
+            this.onPushOptionScope(argIndex, target, false)
             visitor.visitInseparable()
-        else
+            this.onPopOptionScope(argIndex)
+        } else
             this.declarationTable.visitDeclaration(this.method.declarationTargets[argIndex], visitor)
     }
 

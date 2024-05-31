@@ -487,7 +487,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
 
 export class OptionConvertor extends BaseArgConvertor {
     private typeConvertor: ArgConvertor
-    constructor(param: string, private table: DeclarationTable, private type: ts.TypeNode) {
+    constructor(param: string, private table: DeclarationTable, public type: ts.TypeNode) {
         let typeConvertor = table.typeConvertor(param, type)
         let runtimeTypes = typeConvertor.runtimeTypes;
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {

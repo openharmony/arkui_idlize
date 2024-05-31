@@ -1,5 +1,5 @@
 import { IndentedPrinter } from "../IndentedPrinter";
-import { DeclarationTable, FieldRecord } from "./DeclarationTable";
+import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
 import { completeDelegatesImpl } from "./FileGenerators";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
@@ -22,6 +22,7 @@ export class DelegateSignatureBuilder {
         argName: string,
         argType: string,
         isPointerType: boolean,
+        exists?: boolean,
     }[][]
 
     pushUnionScope(argIndex: number, field: FieldRecord): void {
@@ -32,13 +33,27 @@ export class DelegateSignatureBuilder {
         })
     }
 
+    pushOptionScope(argIndex: number, target: DeclarationTarget, exists: boolean): void {
+        const arg = this.args[argIndex]
+        arg.push({
+            argName: arg[arg.length - 1].argName,
+            argType: this.declarationTable.computeTargetName(exists ? target : PrimitiveType.Undefined, false),
+            isPointerType: false,
+            exists: exists,
+        })
+    }
+
     popScope(argIndex: number): void {
         this.args[argIndex].pop()
     }
 
     buildIdentifier(): string {
         const argsPostfix = this.args
-            .map(argStack => argStack.map(argStackItem => argStackItem.argType))
+            .map(argStack => argStack.map(argStackItem => {
+                return argStackItem.exists !== undefined
+                    ? (argStackItem.exists ? "Def" : "Undef")
+                    : argStackItem.argType
+            }))
             .map(argStack => argStack.join('_'))
             .join('__')
         return `${this.method.implName}__${argsPostfix}`
@@ -72,13 +87,22 @@ class MethodDelegatePrinter extends MethodSeparatorVisitor {
         this.delegateSignatureBuilder = new DelegateSignatureBuilder(declarationTable, method)
     }
 
-    onPushUnionScope(argIndex: number, field: FieldRecord, selectorValue: number): void {
+    protected override onPushUnionScope(argIndex: number, field: FieldRecord, selectorValue: number): void {
         super.onPushUnionScope(argIndex, field, selectorValue)
         this.delegateSignatureBuilder!.pushUnionScope(argIndex, field)
     }
 
-    onPopUnionScope(argIndex: number): void {
+    protected override onPopUnionScope(argIndex: number): void {
         super.onPopUnionScope(argIndex)
+        this.delegateSignatureBuilder.popScope(argIndex)
+    }
+
+    protected override onPushOptionScope(argIndex: number, target: DeclarationTarget, exists: boolean): void {
+        super.onPushOptionScope(argIndex, target, exists)
+        this.delegateSignatureBuilder.pushOptionScope(argIndex, target, exists)
+    }
+
+    protected override onPopOptionScope(argIndex: number): void {
         this.delegateSignatureBuilder.popScope(argIndex)
     }
 
