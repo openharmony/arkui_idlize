@@ -69,7 +69,7 @@ export class PeerMethod {
     }
 
     get receiverType(): string {
-        return "ArkUINodeHandle"
+        return "Ark_NodeHandle"
     }
 
     get apiCall(): string {

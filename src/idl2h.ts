@@ -77,7 +77,7 @@ function mapType(typechecker: TypeChecker, type: IDLType|undefined): string {
 }
 function printProperty(typechecker: TypeChecker, iface: IDLInterface, idl: IDLProperty): stringOrNone[] {
     let isCommon = hasExtAttribute(idl, "CommonMethod")
-    let arg = isCommon ? "ArkUINodeHandle node" : `${mapInterfaceName(iface.name, true)} instance`
+    let arg = isCommon ? "Ark_NodeHandle node" : `${mapInterfaceName(iface.name, true)} instance`
     return [
         `\t${mapType(typechecker, idl.type)} (*get${capitalize(idl.name!)})(${arg});`,
         idl.isReadonly ? undefined : `\tvoid (*set${capitalize(idl.name!)})(${arg}, ${mapType(typechecker, idl.type)} value);`,
@@ -95,14 +95,14 @@ function printConstructor(typechecker: TypeChecker, iface: IDLInterface, idl: ID
 
 function printDestructor(idl: IDLInterface): string {
     let isCommon = hasExtAttribute(idl, "CommonMethod")
-    let arg = isCommon ? "ArkUINodeHandle node" : `${mapInterfaceName(idl.name, true)} instance`
+    let arg = isCommon ? "Ark_NodeHandle node" : `${mapInterfaceName(idl.name, true)} instance`
     return `\tvoid (*destruct)(${arg});`
 }
 
 function printFunction(typechecker: TypeChecker, iface: IDLInterface, idl: IDLFunction): string {
     let isCommon = hasExtAttribute(idl, "CommonMethod")
     let maybeComma = idl.parameters.length > 0 ? ", " : ""
-    let arg = isCommon ? "ArkUINodeHandle node" : `${mapInterfaceName(iface.name, true)} instance`
+    let arg = isCommon ? "Ark_NodeHandle node" : `${mapInterfaceName(iface.name, true)} instance`
     return `\t${mapType(typechecker, idl.returnType)} (*${idl.name})(${arg}${maybeComma}${printParameters(typechecker, idl.parameters)});`
 }
 

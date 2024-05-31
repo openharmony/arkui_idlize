@@ -245,6 +245,7 @@ inline KInt getArgument<int32_t>(const Napi::CallbackInfo& info, int index) {
 template <>
 inline KInteropNumber getArgument<KInteropNumber>(const Napi::CallbackInfo& info, int index) {
   KInteropNumber result;
+  NAPI_ASSERT_INDEX(info, index, result);
   double value = info[index].As<Napi::Number>().DoubleValue();
   // TODO: boundary check
   if (value == floor(value)) {
@@ -256,6 +257,37 @@ inline KInteropNumber getArgument<KInteropNumber>(const Napi::CallbackInfo& info
   }
   return result;
 }
+
+template <>
+inline KLength getArgument<KLength>(const Napi::CallbackInfo& info, int index) {
+  KLength result = {};
+  NAPI_ASSERT_INDEX(info, index, result);
+  auto value = info[index];
+  napi_valuetype type;
+  auto status = napi_typeof(info.Env(), value, &type);
+  if (status != 0) return result;
+  switch (type) {
+    case napi_number: {
+      result.value = value.As<Napi::Number>().Int32Value();
+      result.unit = 1;
+      break;
+    }
+    case napi_string: {
+      KStringPtr string = getString(info.Env(), value);
+      parseKLength(string, &result);
+      break;
+    }
+    case napi_object: {
+      result.unit = 1;
+      result.resource = value.As<Napi::Object>().Get("id").As<Napi::Number>().Int32Value();
+      break;
+    }
+    default:
+      throw "Error, unexpected KLength type";
+  }
+  return result;
+}
+
 
 template <>
 inline KFloat getArgument<KFloat>(const Napi::CallbackInfo& info, int index) {

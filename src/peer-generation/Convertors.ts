@@ -246,7 +246,7 @@ export class EnumConvertor extends BaseArgConvertor {
 
 export class LengthConvertorScoped extends BaseArgConvertor {
     constructor(param: string) {
-        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, true, param)
+        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
     }
     scopeStart(param: string): string {
         return `withLengthArray(${param}, (${param}Ptr) => {`
@@ -255,7 +255,7 @@ export class LengthConvertorScoped extends BaseArgConvertor {
         return '})'
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        throw new Error("Not used")
+        return param
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(
@@ -272,7 +272,12 @@ export class LengthConvertorScoped extends BaseArgConvertor {
         return PrimitiveType.Length.getText()
     }
     interopType(language: Language): string {
-        return language == Language.CPP ? `${PrimitiveType.Int32.getText()}*` : "Int32ArrayPtr"
+        switch (language) {
+            case Language.CPP: return PrimitiveType.ObjectHandle.getText()
+            case Language.TS: case Language.ARKTS: return 'object'
+            case Language.JAVA: return 'Object'
+            default: throw new Error("Unsupported language")
+        }
     }
     estimateSize() {
         return 12
@@ -284,10 +289,10 @@ export class LengthConvertorScoped extends BaseArgConvertor {
 
 export class LengthConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, true, param)
+        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        throw new Error("Not used")
+        return writer.language == Language.CPP ? `(const ${PrimitiveType.Length.getText()}*)&${param}` : param
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(
@@ -305,7 +310,12 @@ export class LengthConvertor extends BaseArgConvertor {
         return PrimitiveType.Length.getText()
     }
     interopType(language: Language): string {
-        return language == Language.CPP ? `${PrimitiveType.Int32.getText()}*` : "Int32ArrayPtr"
+        switch (language) {
+            case Language.CPP: return 'KLength'
+            case Language.TS: case Language.ARKTS: return 'string|number|object'
+            case Language.JAVA: return 'Object'
+            default: throw new Error("Unsupported language")
+        }
     }
     estimateSize() {
         return 12

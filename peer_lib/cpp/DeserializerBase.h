@@ -104,7 +104,6 @@ inline void parseDimension(const Ark_String &string, Ark_Length *result)
   }
 }
 
-
 // TODO: restore full printing!
 template <typename T>
 inline void WriteToString(string *result, T value) = delete;
@@ -141,7 +140,21 @@ inline void WriteToString(string *result, Ark_Tag value)
 }
 
 template <>
-inline void WriteToString(string *result, ArkUINodeHandle value)
+inline void WriteToString(string *result, Ark_NativePointer value)
+{
+  result->append("0x");
+  result->append(std::to_string((uint64_t)value));
+}
+
+template <>
+inline void WriteToString(string *result, Ark_NodeHandle value)
+{
+  result->append("0x");
+  result->append(std::to_string((uint64_t)value));
+}
+
+template <>
+inline void WriteToString(string *result, Ark_ObjectHandle value)
 {
   result->append("0x");
   result->append(std::to_string((uint64_t)value));

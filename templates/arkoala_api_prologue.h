@@ -64,7 +64,11 @@ typedef int32_t Ark_Int32;
 typedef int8_t Ark_Int8;
 typedef int8_t Ark_Boolean;
 typedef void* Ark_NativePointer;
-typedef void* ArkUINodeHandle;
+
+struct Ark_NodeHandleOpaque;
+typedef struct Ark_NodeHandleOpaque* Ark_NodeHandle;
+struct Ark_ObjectHandleOpaque;
+typedef struct Ark_ObjectHandleOpaque* Ark_ObjectHandle;
 
 // Binary layout of Ark_String must match that of KStringPtrImpl.
 typedef struct Ark_String {
@@ -84,7 +88,8 @@ typedef struct Ark_Number {
   };
 } Ark_Number;
 
-typedef struct ArkUILength
+// Binary layout of Ark_Length must match that of KLength.
+typedef struct Ark_Length
 {
   Ark_Int8 type;
   Ark_Float32 value;

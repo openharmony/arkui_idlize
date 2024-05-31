@@ -15,7 +15,7 @@
 
 import * as ts from "typescript"
 import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations,
-     identName, isStatic, throwException, typeEntityName, identNameWithNamespace, 
+     identName, isStatic, throwException, typeEntityName, identNameWithNamespace,
      typeName} from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
@@ -45,6 +45,7 @@ export class PrimitiveType {
     static Materialized = new PrimitiveType("Ark_Materialized", true)
     static Undefined = new PrimitiveType("Ark_Undefined")
     static NativePointer = new PrimitiveType("Ark_NativePointer")
+    static ObjectHandle = new PrimitiveType("Ark_ObjectHandle")
     static Length = new PrimitiveType("Ark_Length", true)
     static Resource = new PrimitiveType("Ark_Resource", true)
     static CustomObject = new PrimitiveType("Ark_CustomObject", true)
@@ -242,11 +243,11 @@ export class DeclarationTable {
             }
         }
         if (ts.isTemplateLiteralTypeNode(target)) {
-            // TODO: likeley incorrect
+            // TODO: likely incorrect
             return prefix + PrimitiveType.String.getText()
         }
         if (ts.isTypeParameterDeclaration(target)) {
-            // TODO: likeley incorrect
+            // TODO: likely incorrect
             return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumDeclaration(target)) {

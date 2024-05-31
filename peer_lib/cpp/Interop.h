@@ -19,7 +19,6 @@
 #include "common-interop.h"
 
 typedef KInt ArkUI_Int32;
-typedef KNativePointer ArkUINodeHandle;
 
 #define ARKUI_FULL_API_VERSION 1
 

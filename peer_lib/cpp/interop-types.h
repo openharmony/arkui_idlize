@@ -101,6 +101,52 @@ typedef KStringPtrImpl KStringPtr;
 typedef const uint8_t* KStringArray;
 typedef void** KNativePointerArray;
 
+struct KLength {
+    KByte type;
+    KFloat value;
+    KInt unit;
+    KInt resource;
+};
+
+inline void parseKLength(const KStringPtrImpl &string, KLength *result)
+{
+  char *suffixPtr = nullptr;
+
+  float value = std::strtof(string.c_str(), &suffixPtr);
+
+  if (!suffixPtr || suffixPtr == string.c_str())
+  {
+    // not a numeric value
+    result->unit = -1;
+    return;
+  }
+  result->value = value;
+  if (suffixPtr[0] == '\0' || (suffixPtr[0] == 'v' && suffixPtr[1] == 'p'))
+  {
+    result->unit = 1;
+  }
+  else if (suffixPtr[0] == '%')
+  {
+    result->unit = 3;
+  }
+  else if (suffixPtr[0] == 'p' && suffixPtr[1] == 'x')
+  {
+    result->unit = 0;
+  }
+  else if (suffixPtr[0] == 'l' && suffixPtr[1] == 'p' && suffixPtr[2] == 'x')
+  {
+    result->unit = 4;
+  }
+  else if (suffixPtr[0] == 'f' && suffixPtr[1] == 'p')
+  {
+    result->unit = 2;
+  }
+  else
+  {
+    result->unit = -1;
+  }
+}
+
 struct _KVMContext;
 typedef _KVMContext *KVMContext;
 

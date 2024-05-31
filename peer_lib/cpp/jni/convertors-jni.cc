@@ -78,8 +78,10 @@ void addType(const std::string &type, std::string *result)
         result->append("[B");
     else if (type == "KStringPtr")
         result->append("Ljava/lang/String;");
+    else if (type == "KLength")
+        result->append("Ljava/lang/Object;");
     else {
-        fprintf(stderr, "Unhandled type: %s\n", type.c_str());
+        fprintf(stderr, "JNI: unhandled type: %s\n", type.c_str());
         throw "Error";
     }
 }
@@ -98,6 +100,8 @@ std::string javaType(const std::string &type)
         return "byte[]";
     else if (type == "KStringPtr")
         return "String";
+    else if (type == "KLength")
+        return "Object";
     else {
         fprintf(stderr, "Unhandled type: %s\n", type.c_str());
         throw "Error";

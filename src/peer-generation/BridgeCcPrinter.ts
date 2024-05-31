@@ -38,9 +38,11 @@ class BridgeCcVisitor {
 
     // TODO: may be this is another method of ArgConvertor?
     private generateApiArgument(argConvertor: ArgConvertor): string {
-        const prefix = argConvertor.isPointerType() ? `(const ${argConvertor.nativeType(false)}*)&`: "    "
-        if (argConvertor.useArray) return `${prefix}${argConvertor.param}_value`
-        return `${argConvertor.convertorArg(argConvertor.param, this.C)}`
+        const prefix = argConvertor.isPointerType() ? `/*1*/(const ${argConvertor.nativeType(false)}*)&`: "    /*2*/"
+        if (argConvertor.useArray)
+            return `${prefix}${argConvertor.param}_value`
+        else
+            return `${argConvertor.convertorArg(argConvertor.param, this.C)}`
     }
 
     private printAPICall(method: PeerMethod) {
@@ -126,7 +128,15 @@ class BridgeCcVisitor {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
                 let type = it.interopType(this.C.language)
-                return `${type == "KStringPtr" ? "const KStringPtr&" : type} ${it.param}`
+                switch (type) {
+                    case "KStringPtr":
+                        type = `const KStringPtr&`
+                        break
+                    case "KLength":
+                        type = `const KLength&`
+                        break
+                }
+                return `${type} ${it.param}`
             }
         })))
     }
