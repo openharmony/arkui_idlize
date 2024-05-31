@@ -267,7 +267,7 @@ export class DeclarationTable {
                 return this.computeTargetName(this.toTarget(target.typeArguments[0]), true)
             if (name == "Array")
                 return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), optional)
-            if (name == "Map" || name == "Record")
+            if (name == "Map")
                 return prefix + `Map_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false) + '_' + this.computeTargetName(this.toTarget(target.typeArguments[1]), false)
             if (name == "Callback")
                 return prefix + PrimitiveType.Function.getText()
@@ -296,7 +296,7 @@ export class DeclarationTable {
             if (typeName === "Array") {
                 const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 return `${prefix}Array_${elementTypeName}`
-            } else if (typeName === "Map" || typeName == "Record") {
+            } else if (typeName === "Map") {
                 const keyTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 const valueTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![1], false)
                 return `${prefix}Map_${keyTypeName}_${valueTypeName}`
@@ -542,10 +542,11 @@ export class DeclarationTable {
                 return new CustomTypeConvertor(param, "AnimationRange", "AnimationRange<number>")
             case `ContentModifier`:
                 return new CustomTypeConvertor(param, "ContentModifier", "ContentModifier<any>")
+            case `Record`:
+                return new CustomTypeConvertor(param, "Record", "Record<string, string>")
             case `Array`:
                 return new ArrayConvertor(param, this, type, type.typeArguments![0])
             case `Map`:
-            case `Record`:
                 return new MapConvertor(param, this, type, type.typeArguments![0], type.typeArguments![1])
             case `Callback`:
                 return new FunctionConvertor(param, this)
@@ -893,8 +894,8 @@ export class DeclarationTable {
     }
 
     private canGenerateTarget(declaration: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
-        // we can not generate serializer/deserializer for targets, where 
-        // type parameters are in signature and some of this parameters has not 
+        // we can not generate serializer/deserializer for targets, where
+        // type parameters are in signature and some of this parameters has not
         // default value. At all we should not generate even classes with default values,
         // but they are at least compilable.
         // See class TransitionEffect declared at common.d.ts and used at CommonMethod.transition
@@ -1208,7 +1209,7 @@ export class DeclarationTable {
                 result.isArray = true
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "array"))
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "length"))
-            } else if (name == "Map" || name == "Record") {
+            } else if (name == "Map") {
                 let keyType = target.typeArguments[0]
                 let valueType = target.typeArguments[1]
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "size"))
