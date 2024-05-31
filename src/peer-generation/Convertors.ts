@@ -571,8 +571,8 @@ export class AggregateConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const structAccessor = printer.getObjectAccessor(this, param, value)
-        const statements = [printer.makeObjectAlloc(structAccessor)]
-        const struct = this.table.targetStruct(this.table.toTarget(this.type))
+        let struct = this.table.targetStruct(this.table.toTarget(this.type))
+        const statements = [printer.makeObjectAlloc(structAccessor, struct.getFields())]
         this.memberConvertors.forEach((it, index) => {
             // TODO: maybe use accessor?
             statements.push(it.convertorDeserialize(param, `${value}.${struct.getFields()[index].name}`, printer))
@@ -689,14 +689,23 @@ export class TupleConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const runtimeType = `runtimeType${uniqueCounter++}`
-        const accessor = printer.getObjectAccessor(this, param, value)
-        const statements: LanguageStatement[] = [
-            printer.makeTupleAlloc(accessor)
-        ]
+        const receiver = printer.getObjectAccessor(this, param, value)
+        const statements: LanguageStatement[] = []
+        const tmpTupleIds: string[] = []
         this.memberConvertors.forEach((it, index) => {
-            const accessor = printer.getObjectAccessor(this, param, value, {index: `${index}`})
-            statements.push(it.convertorDeserialize(param, accessor, printer))
+            const tmpTupleId = `tmpTuple${uniqueCounter++}`
+            tmpTupleIds.push(tmpTupleId)
+            const receiver = printer.getObjectAccessor(this, param, value, {index: `${index}`})
+            // need to remove the mark '?' from Optional type
+            const tsTypeName = mapType(this.type.elements[index]).replace("?", "")
+            statements.push(
+                printer.makeAssign(tmpTupleId,
+                    // makeType - creating the correct type for TS(using tsTypeName) or C++(use decltype(receiver))
+                    printer.makeType(tsTypeName, true, receiver),undefined, true, false),
+                it.convertorDeserialize(param, tmpTupleId, printer)
+            )
         })
+        statements.push(printer.makeTupleAssign(receiver, tmpTupleIds))
         const thenStatement = new BlockStatement(statements)
         return new BlockStatement([
             printer.makeAssign(runtimeType, undefined,
