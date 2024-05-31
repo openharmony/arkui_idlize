@@ -29,7 +29,7 @@ export function generateEventReceiverName(componentName: string) {
 }
 
 export function generateEventSignature(table: DeclarationTable, event: CallbackInfo): NamedMethodSignature {
-    const nodeType = new Type(table.uniqueName(PrimitiveType.Int32))
+    const nodeType = new Type(table.computeTargetName(PrimitiveType.Int32, false))
     const argsTypes = event.args.map(it => new Type(
         'const ' + table.typeConvertor(it.name, it.type, it.nullable).nativeType(false),
         it.nullable,

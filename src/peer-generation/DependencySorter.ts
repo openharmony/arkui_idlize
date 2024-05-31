@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { DeclarationTable, DeclarationTarget } from "./DeclarationTable";
+import { DeclarationTable, DeclarationTarget, PointerType } from "./DeclarationTable";
 
 export class DependencySorter {
     deps = new Set<DeclarationTarget>()
@@ -25,11 +25,13 @@ export class DependencySorter {
         if (seen.has(target)) return
         seen.add(target)
         // Need to request that declaration.
-        this.table.addDeclaration(target)
+        this.deps.add(target)
         let struct = this.table.targetStruct(target)
         struct.supers.forEach(it => this.fillDepsInDepth(it, seen))
         struct.getFields().forEach(it => this.fillDepsInDepth(it.declaration, seen))
         struct.deps.forEach(dep => this.fillDepsInDepth(dep, seen))
+        if (target instanceof PointerType)
+            this.fillDepsInDepth(target.pointed, seen)
     }
 
     private getDeps(target: DeclarationTarget): DeclarationTarget[] {
@@ -47,7 +49,6 @@ export class DependencySorter {
         let seen = new Set<DeclarationTarget>()
         this.deps.add(declaration)
         this.fillDepsInDepth(declaration, seen)
-        this.table.processPendingRequests()
         // if (seen.size > 0) console.log(`${name}: depends on ${Array.from(seen.keys()).join(",")}`)
     }
 

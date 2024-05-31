@@ -297,6 +297,7 @@ if (options.dts2peer) {
             },
             onEnd(outDir: string) {
                 let lang = declarationTable.language
+                declarationTable.analyze(peerLibrary)
 
                 const peers = printPeers(peerLibrary, options.dumpSerialized ?? false)
                 for (const [targetBasename, peer] of peers) {
@@ -345,12 +346,12 @@ if (options.dts2peer) {
                         path.join(outDir, 'ArkCommon' + langSuffix(lang)),
                         printStructCommon(peerLibrary),
                     )
-                    fs.writeFileSync(path.join(outDir, 'Serializer' + langSuffix(lang)),
-                        makeTSSerializer(declarationTable)
-                    )
                     fs.writeFileSync(
                         path.join(outDir, "peer_events" + langSuffix(lang)),
                         printEvents(peerLibrary)
+                    )
+                    fs.writeFileSync(path.join(outDir, 'Serializer' + langSuffix(lang)),
+                        makeTSSerializer(declarationTable)
                     )
                     fs.writeFileSync(path.join(outDir, 'Deserializer' + langSuffix(lang)),
                         makeTSDeserializer(declarationTable)

@@ -27,7 +27,7 @@ export class DelegateSignatureBuilder {
     pushUnionScope(argIndex: number, field: FieldRecord): void {
         this.args[argIndex].push({
             argName: field.name,
-            argType: this.declarationTable.uniqueName(field.declaration),
+            argType: this.declarationTable.computeTargetName(field.declaration, false),
             isPointerType: false,
         })
     }

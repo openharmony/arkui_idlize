@@ -335,7 +335,6 @@ export class UnionConvertor extends BaseArgConvertor {
             .map(member => table.typeConvertor(param, member))
         this.checkUniques(param, this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
-        table.requestType(undefined, type)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Do not use for union")
@@ -427,7 +426,6 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     constructor(param: string, private table: DeclarationTable, type: ts.ImportTypeNode) {
         super("Object", [RuntimeType.OBJECT], false, true, param)
         this.importedName = importTypeName(type)
-        table.requestType(this.importedName === "default" ? undefined : this.importedName, type)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -558,7 +556,6 @@ export class AggregateConvertor extends BaseArgConvertor {
                 this.members[index] = identName(member.name)!
                 return table.typeConvertor(param, member.type!, member.questionToken != undefined)
             })
-        table.requestType(undefined, type)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Do not use for aggregates")
@@ -607,7 +604,6 @@ export class InterfaceConvertor extends BaseArgConvertor {
         protected table: DeclarationTable,
         private type: ts.TypeReferenceNode  ) {
         super(name, [RuntimeType.OBJECT], false, true, param)
-        table.requestType(name, type)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -677,7 +673,6 @@ export class TupleConvertor extends BaseArgConvertor {
         this.memberConvertors = type
             .elements
             .map(element => table.typeConvertor(param, element))
-        table.requestType(undefined, type)
     }
     private memberConvertors: ArgConvertor[]
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -736,8 +731,6 @@ export class ArrayConvertor extends BaseArgConvertor {
     constructor(param: string, public table: DeclarationTable, type: ts.TypeNode, public elementType: ts.TypeNode) {
         super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
-        table.requestType(undefined, type)
-        table.requestType(undefined, elementType)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -803,9 +796,6 @@ export class MapConvertor extends BaseArgConvertor {
         super(`Map<${mapType(keyType)}, ${mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.keyConvertor = table.typeConvertor(param, keyType)
         this.valueConvertor = table.typeConvertor(param, valueType)
-        table.requestType(undefined, type)
-        table.requestType(undefined, keyType)
-        table.requestType(undefined, valueType)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {

@@ -14,9 +14,8 @@
  */
 
 import * as ts from "typescript"
-import { Language, asString, getDeclarationsByNode, getLineNumberString, getNameWithoutQualifiersRight, heritageDeclarations,
-     identName, isStatic, throwException, typeEntityName, identNameWithNamespace,
-     typeName} from "../util"
+import { Language, asString, getDeclarationsByNode, getNameWithoutQualifiersRight, heritageDeclarations,
+     identName, isStatic, throwException, typeEntityName, identNameWithNamespace} from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -27,10 +26,11 @@ import {
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
-import { BlockStatement, ExpressionStatement, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
+import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
-import { write } from "fs"
+import { PeerLibrary } from "./PeerLibrary"
+import { collectCallbacks } from "./EventsPrinter"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -61,7 +61,7 @@ export class PrimitiveType {
     static OptionalPrefix = "Opt_"
 }
 
-class PointerType extends PrimitiveType {
+export class PointerType extends PrimitiveType {
     constructor(public pointed: DeclarationTarget) {
         super("", true)
     }
@@ -115,7 +115,6 @@ class PendingTypeRequest {
 }
 
 export class DeclarationTable {
-    private declarations = new Set<DeclarationTarget>()
     private typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[]]>()
     private toTargetConvertor: ToDeclarationTargetConvertor
     typeChecker: ts.TypeChecker | undefined = undefined
@@ -132,10 +131,9 @@ export class DeclarationTable {
     }
 
     getTypeName(type: ts.TypeNode, optional: boolean = false): string {
-        this.requestType(undefined, type)
-        let declaration = this.typeMap.get(type)!
+        let declaration = this.typeMap.get(type)
         let prefix = optional ? PrimitiveType.OptionalPrefix : ""
-        return prefix + declaration[1][0]
+        return declaration !== undefined ? prefix + declaration[1][0] : this.computeTargetName(this.toTarget(type), optional)
     }
 
     requestType(name: string | undefined, type: ts.TypeNode) {
@@ -165,46 +163,16 @@ export class DeclarationTable {
         return false
     }
 
-    private pendingRequests = new Array<PendingTypeRequest>()
-
     computeTypeName(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean = false): string {
-        let name = this.computeTypeNameImpl(suggestedName, type, optional)
-        this.pendingRequests.push(new PendingTypeRequest(name, type))
-        return name
-    }
-
-    processPendingRequests() {
-        while (this.pendingRequests.length > 0) {
-            let value = this.pendingRequests.splice(this.pendingRequests.length - 1, 1)[0]
-            this.requestType(value.name, value.type!)
-        }
-    }
-
-    addDeclaration(target: DeclarationTarget) {
-        if (this.declarations.has(target)) return
-        this.declarations.add(target)
-    }
-
-    numDeclarations(): number {
-        return this.declarations.size
+        return this.computeTypeNameImpl(suggestedName, type, optional)
     }
 
     toTarget(node: ts.TypeNode): DeclarationTarget {
-        let result = convertTypeNode(this.toTargetConvertor, node)
-        this.addDeclaration(result)
-        return result
+        return convertTypeNode(this.toTargetConvertor, node)
     }
 
     computeTargetName(target: DeclarationTarget, optional: boolean): string {
-        let name = this.computeTargetNameImpl(target, optional)
-        this.addDeclaration(target)
-        if (!(target instanceof PrimitiveType) && (
-            !ts.isInterfaceDeclaration(target) && !ts.isClassDeclaration(target) && !ts.isEnumDeclaration(target))
-        ) {
-            // TODO: get rid of this queue.
-            this.pendingRequests.push(new PendingTypeRequest(name, target))
-        }
-        return name
+        return this.computeTargetNameImpl(target, optional)
     }
 
     computeTargetNameImpl(target: DeclarationTarget, optional: boolean): string {
@@ -430,13 +398,27 @@ export class DeclarationTable {
         throw new Error(`Cannot compute type name: ${type.getText()} ${type.kind}`)
     }
 
+    private orderedDependencies: DeclarationTarget[] = []
+    analyze(library: PeerLibrary) {
+        const callbacks = collectCallbacks(library)
+        for (const callback of callbacks) {
+            callback.args.forEach(arg => {
+                this.requestType(undefined, arg.type)
+            })
+        }
+
+        let orderer = new DependencySorter(this)
+        for (let declaration of this.typeMap.values()) {
+            orderer.addDep(declaration[0])
+        }
+        this.orderedDependencies = orderer.getToposorted()
+    }
+
     serializerName(name: string, type: ts.TypeNode): string {
-        this.requestType(name, type)
         return `write${name}`
     }
 
     deserializerName(name: string, type: ts.TypeNode): string {
-        this.requestType(name, type)
         return `read${name}`
     }
 
@@ -547,17 +529,6 @@ export class DeclarationTable {
         this._currentContext = context
     }
 
-    private customToTarget(type: ts.TypeReferenceNode): DeclarationTarget | undefined {
-        let name = identName(type)
-        switch (name) {
-            case `Length`: return PrimitiveType.Length
-            case `AnimationRange`: return PrimitiveType.CustomObject
-            case `ContentModifier`: return PrimitiveType.CustomObject
-            case `Date`: return PrimitiveType.String
-            default: return undefined
-        }
-    }
-
     private customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode): ArgConvertor | undefined {
         let name = getNameWithoutQualifiersRight(typeName)
         switch (name) {
@@ -603,10 +574,6 @@ export class DeclarationTable {
         if (customConvertor) {
             return customConvertor
         }
-        if (ts.isTypeReferenceNode(type) && entityName && ts.isQualifiedName(entityName)) {
-            const typeOuter = ts.factory.createTypeReferenceNode(entityName.left)
-            return this.declarationConvertor(param, typeOuter, declaration)
-        }
         if (ts.isEnumDeclaration(declaration)) {
             return new EnumConvertor(param, this, declaration)
         }
@@ -614,7 +581,6 @@ export class DeclarationTable {
             return new EnumConvertor(param, this, declaration.parent)
         }
         if (ts.isTypeAliasDeclaration(declaration)) {
-            this.requestType(declarationName, type)
             return new TypeAliasConvertor(param, this, declaration, type.typeArguments)
         }
         if (ts.isInterfaceDeclaration(declaration)) {
@@ -632,60 +598,6 @@ export class DeclarationTable {
         }
         console.log(`${declaration.getText()}`)
         throw new Error(`Unknown kind: ${declaration.kind}`)
-    }
-
-    private noUniqueNamedFields(declaration: DeclarationTarget): boolean {
-        let struct = this.targetStruct(declaration)
-        if (declaration instanceof PrimitiveType) return true
-        if (!ts.isInterfaceDeclaration(declaration)
-            && !ts.isClassDeclaration(declaration)) return true
-        return struct.isEmpty()
-    }
-
-    private uniqueNames = new Map<DeclarationTarget, string>()
-
-    private dumpFileLineLocation(node: DeclarationTarget, tag: string) {
-        if (node instanceof PrimitiveType) return
-        let sourceFile = node.getSourceFile()
-        let lineNumber = getLineNumberString(sourceFile, node.getStart(sourceFile, false))
-        console.log(`${tag} ${sourceFile.fileName}:${lineNumber}`)
-    }
-
-    private assignUniqueNames() {
-        //this.addDeclaration(PrimitiveType.Int32)
-        let before = 0
-        do {
-            before = this.declarations.size
-            for (let declaration of this.declarations) {
-                if (this.uniqueNames.has(declaration)) continue
-                let name = this.computeTargetName(declaration, false)
-                if (!name) throw new Error(`Cannot compute name for ${declaration}`)
-                this.uniqueNames.set(declaration, name)
-            }
-        } while (before != this.declarations.size)
-        let seenNames = new Map<string, Array<DeclarationTarget>>()
-        for (let pair of this.uniqueNames) {
-            if (seenNames.has(pair[1])) {
-                seenNames.get(pair[1])!.push(pair[0])
-            } else {
-                seenNames.set(pair[1], [pair[0]])
-            }
-        }
-        for (let name of seenNames.keys()) {
-            if (seenNames.get(name)!.length > 1) {
-                let declarations = seenNames.get(name)!
-                // If we have no named fields - no need to make unique.
-                if (declarations.every(it => this.noUniqueNamedFields(it))) continue
-                declarations.forEach((declaration, index) => {
-                    this.uniqueNames.set(declaration, `${name}_${index}`)
-                })
-            }
-        }
-    }
-
-    uniqueName(target: DeclarationTarget): string {
-        if (target instanceof PrimitiveType) return target.getText(this)
-        return this.uniqueNames.get(target)!
     }
 
     private printStructsCHead(name: string, descriptor: StructDescriptor, structs: IndentedPrinter) {
@@ -728,14 +640,6 @@ export class DeclarationTable {
     }
 
     generateDeserializers(printer: LanguageWriter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
-        this.processPendingRequests()
-        let orderer = new DependencySorter(this)
-        for (let declaration of this.declarations) {
-            orderer.addDep(declaration)
-        }
-        let order = orderer.getToposorted()
-        this.assignUniqueNames()
-
         const className = "Deserializer"
         const superName = `${className}Base`
         let ctorSignature = printer.language == Language.CPP
@@ -747,8 +651,8 @@ export class DeclarationTable {
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
             }
             const seenNames = new Set<string>()
-            for (let declaration of order) {
-                let name = this.uniqueNames.get(declaration)!
+            for (let declaration of this.orderedDependencies) {
+                let name = this.computeTargetName(declaration, false)
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
                 this.generateDeserializer(name, declaration, printer)
@@ -758,8 +662,8 @@ export class DeclarationTable {
         const seenNames = new Set<string>()
         seenNames.clear()
         let noDeclaration = [PrimitiveType.Int32, PrimitiveType.Tag, PrimitiveType.Number, PrimitiveType.Boolean, PrimitiveType.String]
-        for (let target of order) {
-            let nameAssigned = this.uniqueNames.get(target)
+        for (let target of this.orderedDependencies) {
+            let nameAssigned = this.computeTargetName(target, false)
             if (nameAssigned === PrimitiveType.Tag.getText(this)) {
                 continue
             }
@@ -786,7 +690,7 @@ export class DeclarationTable {
             const structDescriptor = this.targetStruct(target)
             if (!noBasicDecl && !this.ignoreTarget(target, nameAssigned)) {
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
-                structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.uniqueName(it.declaration)} ${it.name};`))
+                structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.computeTargetName(it.declaration, false)} ${it.name};`))
                 this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
             }
             if (isAccessor) {
@@ -811,7 +715,7 @@ export class DeclarationTable {
         for (let declarationTarget of this.typeMap.values()) {
             let target = declarationTarget[0]
             let aliasNames = declarationTarget[1]
-            let declarationName = this.uniqueNames.get(target)!
+            let declarationName = this.computeTargetName(target, false)
             aliasNames.forEach(aliasName => this.addNameAlias(target, declarationName, aliasName, seenNames, typedefs))
         }
         // TODO: hack, remove me!
@@ -896,15 +800,17 @@ export class DeclarationTable {
     generateTSDeserializers(printer: LanguageWriter) {
         printer.writeClass("Deserializer", (writer)=> {
             let seenNames = new Set<string>()
-            for (const declaration of this.declarations) {
+            for (const declaration of this.orderedDependencies) {
                 if (declaration instanceof PrimitiveType) continue
                 const name = this.computeTargetName(declaration, false)
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
                 if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) {
-                    writer.pushIndent()
-                    this.generateDeserializer(name, declaration, writer)
-                    writer.popIndent()
+                    if (this.canGenerateTarget(declaration)) {
+                        writer.pushIndent()
+                        this.generateDeserializer(name, declaration, writer)
+                        writer.popIndent()
+                    }
                 }
             }
         }, "DeserializerBase");
@@ -974,15 +880,27 @@ export class DeclarationTable {
                 const ctorMethod = new Method(superName, ctorSignature)
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
             }
-            for (let declaration of this.declarations) {
+            for (let declaration of this.orderedDependencies) {
                 let name = this.computeTargetName(declaration, false)
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
                 if (declaration instanceof PrimitiveType) continue
                 if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration))
-                    this.generateSerializer(name, declaration, writer)
+                    if (this.canGenerateTarget(declaration))
+                        this.generateSerializer(name, declaration, writer)
             }
         }, superName)
+    }
+
+    private canGenerateTarget(declaration: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
+        // we can not generate serializer/deserializer for targets, where 
+        // type parameters are in signature and some of this parameters has not 
+        // default value. At all we should not generate even classes with default values,
+        // but they are at least compilable.
+        // See class TransitionEffect declared at common.d.ts and used at CommonMethod.transition
+        return (declaration.typeParameters ?? []).every(it => {
+            return it.default !== undefined
+        })
     }
 
     visitDeclaration(
@@ -1112,7 +1030,7 @@ export class DeclarationTable {
             if (isUnion) {
                 this.targetStruct(target).getFields().forEach((field, index) => {
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                    if (index != 0) printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    if (index != 0) printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     printer.print(`if (value${access}selector == ${index - 1}) {`)
                     printer.pushIndent()
                     printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
@@ -1128,7 +1046,7 @@ export class DeclarationTable {
                 printer.print(`result->append("[");`)
                 const fields = this.targetStruct(target).getFields()
                 fields.forEach((field, index) => {
-                    printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                     if (index > 0) {
                         printer.print(`result->append(", ");`)
@@ -1140,7 +1058,7 @@ export class DeclarationTable {
                 printer.print(`result->append("{");`)
                 const fields = this.targetStruct(target).getFields()
                 fields.forEach((field, index) => {
-                    printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     if (index > 0) printer.print(`result->append(", ");`)
                     printer.print(`result->append("${field.name}: ");`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
@@ -1158,7 +1076,7 @@ export class DeclarationTable {
             } else {
                 printer.print(`result->append("{");`)
                 this.targetStruct(target).getFields().forEach((field, index) => {
-                    printer.print(`// ${this.uniqueNames.get(field.declaration) ?? ""}`)
+                    printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     if (index > 0) printer.print(`result->append(", ");`)
                     printer.print(`result->append("${field.name}: ");`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)

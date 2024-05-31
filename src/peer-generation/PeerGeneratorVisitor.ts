@@ -463,6 +463,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         let paramName = asString(param.name)
         let optional = param.questionToken !== undefined
         //if (optional) this.generateTypedef(param.type, undefined, true)
+        this.requestType(undefined, param.type)
         return this.declarationTable.typeConvertor(paramName, param.type, optional)
     }
 
