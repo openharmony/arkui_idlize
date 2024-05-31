@@ -2,6 +2,7 @@ import { nativeModule } from "@arkoala/arkui/NativeModule"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
+
 import {
     TEST_COUNT, CALL_COUNT, testString1000, testLength_10_percent,
     testLength_number100, testNumber100
@@ -61,11 +62,12 @@ export function startPerformanceTest() {
             }
         })
     });
+
     RunPerformanceTest("idlize_linearGradientAttribute", TEST_COUNT, CALL_COUNT, () => {
         peer.linearGradientAttribute({
             angle: 70,
             repeating: false,
-            direction: GradientDirection.Top,
+            direction: 1, //GradientDirection.Top,
             colors: [[0xff0000, 0.0], [0x0000ff, 0.3], [0xffff00, 0.5]]
         })
     });
@@ -74,7 +76,7 @@ export function startPerformanceTest() {
             width: 5,
             color: 0,
             radius: 25,
-            style: BorderStyle.Solid
+            style: 1 // BorderStyle.Solid
         })
     });
     let navigation = new ArkNavigationPeer(ArkUINodeType.Common);

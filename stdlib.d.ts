@@ -39,3 +39,4 @@ interface Map<K, V> {}
 interface Set<T> {}
 // Temporary
 interface Optional<T> {}
+interface Record<T1, T2> {}

@@ -23,7 +23,7 @@ export class PeerGeneratorConfig {
     ]
     public static ignorePeerMethod = ["attributeModifier"]
 
-    private static knownParametrized = ["Indicator", "AttributeModifier", "AnimationRange", "ContentModifier", "SizeT", "PositionT", "Map"]
+    private static knownParametrized = ["Indicator", "AttributeModifier", "AnimationRange", "ContentModifier", "SizeT", "PositionT"]
 
     public static invalidAttributes = ["ScrollableCommon"]
 

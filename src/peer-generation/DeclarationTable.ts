@@ -299,7 +299,7 @@ export class DeclarationTable {
                 return this.computeTargetName(this.toTarget(target.typeArguments[0]), true)
             if (name == "Array")
                 return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), optional)
-            if (name == "Map")
+            if (name == "Map" || name == "Record")
                 return prefix + `Map_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false) + '_' + this.computeTargetName(this.toTarget(target.typeArguments[1]), false)
             if (name == "Callback")
                 return prefix + PrimitiveType.Function.getText()
@@ -328,7 +328,7 @@ export class DeclarationTable {
             if (typeName === "Array") {
                 const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 return `${prefix}Array_${elementTypeName}`
-            } else if (typeName === "Map") {
+            } else if (typeName === "Map" || typeName == "Record") {
                 const keyTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 const valueTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![1], false)
                 return `${prefix}Map_${keyTypeName}_${valueTypeName}`
@@ -574,6 +574,7 @@ export class DeclarationTable {
             case `Array`:
                 return new ArrayConvertor(param, this, type, type.typeArguments![0])
             case `Map`:
+            case `Record`:
                 return new MapConvertor(param, this, type, type.typeArguments![0], type.typeArguments![1])
             case `Callback`:
                 return new FunctionConvertor(param, this)
@@ -1289,7 +1290,7 @@ export class DeclarationTable {
                 result.isArray = true
                 result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "array"))
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "length"))
-            } else if (name == "Map") {
+            } else if (name == "Map" || name == "Record") {
                 let keyType = target.typeArguments[0]
                 let valueType = target.typeArguments[1]
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "size"))

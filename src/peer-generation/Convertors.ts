@@ -495,7 +495,7 @@ export class OptionConvertor extends BaseArgConvertor {
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
             runtimeTypes.push(RuntimeType.UNDEFINED)
         }
-        super(`(${typeConvertor.tsTypeName})?`, runtimeTypes, typeConvertor.isScoped, true, param)
+        super(`${typeConvertor.tsTypeName}|undefined`, runtimeTypes, typeConvertor.isScoped, true, param)
         this.typeConvertor = typeConvertor
     }
     convertorArg(param: string, writer: LanguageWriter): string {
