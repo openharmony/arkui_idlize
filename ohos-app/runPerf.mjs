@@ -2,6 +2,7 @@ import * as fs from "node:fs"
 import { execSync, exec } from "node:child_process"
 import os from "os";
 import { argv } from 'process'
+import path from "node:path";
 
 let isFull = true
 let isArm64 = true
@@ -46,19 +47,33 @@ if (!fs.existsSync(perfDir)) {
     process.exit(0)
 }
 
-let hvigorw = `.\\hvigorw`
-if (!platform.includes('win')) {
-    hvigorw = `./hvigorw`
-}
-const buildCmd = `${hvigorw} --mode module -p module=entry@default -p product=default -p buildMode=release assembleHap --analyze --parallel --incremental --daemon`
-
-execSync(`${buildCmd}`, { cwd: perfDir, stdio: 'inherit'})
-
-const hapName = `entry-default-signed.hap`
-const hapPath = `${perfDir}/entry/build/default/outputs/default/${hapName}`
+const signToolsDir = `ohos-app/oh_sign`
+const unsignedHapName = `entry-default-unsigned.hap`
+const signedHapName = `entry-release-signed.hap`
+const unsignedHapPathInProject = `${perfDir}/entry/build/default/outputs/default/${unsignedHapName}`
+const unsignedHapPath = `${signToolsDir}/${unsignedHapName}`
+const signedHapPath = `${signToolsDir}/${signedHapName}`
 const packageName = `com.example.api_perf`
 const tmplog = `.tmplog`
 
+let hvigorw = `.\\hvigorw`
+let signRelease  = `.\\sign_release`
+if (!platform.includes('win')) {
+    hvigorw = `./hvigorw`
+    signRelease = `./sign_release`
+}
+
+function buildPerfProject() {
+    const buildCmd = `${hvigorw} --mode module -p module=entry@default -p product=default -p buildMode=release assembleHap --analyze --parallel --incremental --daemon`
+    execSync(`${buildCmd}`, { cwd: perfDir, stdio: 'inherit'})
+}
+
+function signHap() {
+    console.log(`copy ${unsignedHapPathInProject} to ${signToolsDir}`)
+    fs.copyFileSync(unsignedHapPathInProject, unsignedHapPath)
+    console.log(`sign ${unsignedHapPath}`)
+    execSync(`${signRelease}`, { cwd: signToolsDir, stdio: 'inherit'})
+}
 
 function executeCommandWithTimeout(command, timeout, print) {
     const childProcess = exec(command)
@@ -125,8 +140,11 @@ function runHap(hapPath, packageName) {
     execSync(`hdc shell aa start -a EntryAbility -b ${packageName}`, { stdio:'inherit', timeout: 2000 })
 }
 
-if (fs.existsSync(hapPath)) {
+buildPerfProject()
+signHap()
+
+if (fs.existsSync(signedHapPath)) {
     console.log(`Run perf app`)
-    runHap(hapPath, packageName)
+    runHap(signedHapPath, packageName)
 }
 
