@@ -108,7 +108,7 @@ function runHap(hapPath, packageName) {
     console.log(`uninstall ${packageName}`)
     execSync(`hdc uninstall ${packageName}`, { stdio:'inherit', timeout: 2000 })
     console.log(`install ${hapPath}`, { stdio:'inherit', timeout: 2000 })
-    execSync(`hdc install ${hapPath}`, { stdio:'inherit', timeout: 2000 })
+    execSync(`hdc install ${hapPath}`, { stdio:'inherit', timeout: 3000 })
 
     console.log(`clear logs`)
     execSync(`hdc shell hilog -r`, { stdio: 'inherit'})

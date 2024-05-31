@@ -153,6 +153,9 @@ export class ArkComponent {
                 return
             }
             initString += data.replace(/.*@koalaui\/common"/g, '')
+            initString = initString.replace(/.*@koalaui\/arkoala"/g, '')
+            initString = initString.replace(/.*@koalaui\/interop"/g, '')
+            initString = initString.replace(/.*@koalaui\/runtime"/g, '')
             fs.writeFile(getCommonFilePath(), initString, 'utf8', (error) => {
                 if (error) {
                 console.error(`Init ${getCommonFilePath()} error : `, error)
@@ -169,8 +172,7 @@ export class ArkComponent {
             copyAndFixPeerFiles(sourceFile, codesTargetDir, isCommon)
         }
         const targetFile = path.join(codesTargetDir, file);
-        let condition = file.startsWith('Ark') && file.endsWith('Peer.ts') || !file.startsWith('Ark') && file.endsWith('.ts')
-        // let condition = file.endsWith('.ts')
+        let condition = file.endsWith('.ts')
         if (!blackList.includes(file) && (condition || whiteList.includes(file))) {
             fs.readFile(sourceFile, 'utf8', (error, data) => {
                 if (error) {
@@ -194,8 +196,7 @@ export class ArkComponent {
                     expectedData = expectedData.replace(/@koalaui\/common/g, './common')
                     expectedData = expectedData.replace(/@koalaui\/interop/g, './common')
                     expectedData = expectedData.replace(/@koalaui\/runtime/g, './common')
-                    expectedData = expectedData.replace(/ArkCommon,/g, 'ArkComponent,')
-                    expectedData = expectedData.replace(/import { ArkCommon }.*/g, 'import { ArkComponent } from \'./common\'')
+                    expectedData = expectedData.replace(/implements.*/g, '{')
                     if (file === "NativeModule.ts") {
                         const requireStatement = 'require("../../../../native/NativeBridgeNapi")'
                         const requireNapiStatement = `globalThis.requireNapi("libNativeBridge_ohos_${arch}.so", true)`
