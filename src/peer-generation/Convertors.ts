@@ -546,7 +546,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     private members: string[] = []
 
     constructor(param: string, private table: DeclarationTable, private type: ts.TypeLiteralNode) {
-        super(`any`, [RuntimeType.OBJECT], false, true, param)
+        super(mapType(type), [RuntimeType.OBJECT], false, true, param)
         this.memberConvertors = type
             .members
             .filter(ts.isPropertySignature)
@@ -570,10 +570,18 @@ export class AggregateConvertor extends BaseArgConvertor {
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const structAccessor = printer.getObjectAccessor(this, param, value)
         let struct = this.table.targetStruct(this.table.toTarget(this.type))
-        const statements = [printer.makeObjectAlloc(structAccessor, struct.getFields())]
+        const typedStruct = `typedStruct${uniqueCounter++}`
+        const statements = [
+            printer.makeObjectAlloc(structAccessor, struct.getFields()),
+            printer.makeAssign(typedStruct, new Type(printer.makeRef(printer.makeType(this.tsTypeName, false, structAccessor).name)),
+                printer.makeString(structAccessor),true, false
+            )
+        ]
         this.memberConvertors.forEach((it, index) => {
             // TODO: maybe use accessor?
-            statements.push(it.convertorDeserialize(param, `${value}.${struct.getFields()[index].name}`, printer))
+            statements.push(
+                it.convertorDeserialize(param, `${typedStruct}.${struct.getFields()[index].name}`, printer)
+            )
         })
         return new BlockStatement(statements, false)
     }
@@ -642,8 +650,8 @@ export class ClassConvertor extends InterfaceConvertor {
 export class FunctionConvertor extends BaseArgConvertor {
     constructor(
         param: string,
-        protected table: DeclarationTable
-    ) {
+        protected table: DeclarationTable,
+        private type: ts.TypeNode) {
         // TODO: pass functions as integers to native side.
         super("Function", [RuntimeType.FUNCTION], false, true, param)
     }
@@ -659,7 +667,9 @@ export class FunctionConvertor extends BaseArgConvertor {
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = printer.getObjectAccessor(this, param, value)
         return printer.makeAssign(accessor, undefined,
-                printer.makeString(`${param}Deserializer.readFunction()`), false)
+            printer.makeCast(printer.makeString(`${param}Deserializer.readFunction()`),
+                printer.makeType(mapType(this.type), true, accessor))
+            , false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Function.getText()
@@ -745,7 +755,7 @@ export class TupleConvertor extends BaseArgConvertor {
 
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
-    constructor(param: string, public table: DeclarationTable, type: ts.TypeNode, public elementType: ts.TypeNode) {
+    constructor(param: string, public table: DeclarationTable, private type: ts.TypeNode, public elementType: ts.TypeNode) {
         super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param, true)
         this.elementConvertor = table.typeConvertor(param, elementType)
     }
@@ -772,13 +782,13 @@ export class ArrayConvertor extends BaseArgConvertor {
         const runtimeType = `runtimeType${uniqueCounter++}`;
         const arrayLength = `arrayLength${uniqueCounter++}`;
         const forCounterName = `i${uniqueCounter++}`
-        const accessor = printer.getObjectAccessor(this, param, value, {index: `[${forCounterName}]`})
         const arrayAccessor = printer.getObjectAccessor(this, param, value)
+        const accessor = printer.getObjectAccessor(this, param, arrayAccessor, {index: `[${forCounterName}]`})
         const thenStatement = new BlockStatement([
             // read length
             printer.makeAssign(arrayLength, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
             // prepare object
-            printer.makeArrayResize(arrayAccessor, arrayLength, `${param}Deserializer`),
+            printer.makeArrayResize(arrayAccessor, mapType(this.type), arrayLength, `${param}Deserializer`),
             // store
             printer.makeLoop(forCounterName, arrayLength,
                 this.elementConvertor.convertorDeserialize(param, accessor, printer)),

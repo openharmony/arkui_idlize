@@ -460,7 +460,7 @@ export class DeclarationTable {
         }
         if (ts.isImportTypeNode(type)) {
             if (identName(type.qualifier) === "Callback") {
-                return new FunctionConvertor(param, this)
+                return new FunctionConvertor(param, this, type)
             }
             return new ImportTypeConvertor(param, this, type)
         }
@@ -493,7 +493,7 @@ export class DeclarationTable {
             return new TupleConvertor(param, this, type)
         }
         if (ts.isFunctionTypeNode(type)) {
-            return new FunctionConvertor(param, this)
+            return new FunctionConvertor(param, this, type)
         }
         if (ts.isParenthesizedTypeNode(type)) {
             return this.typeConvertor(param, type.type)
@@ -549,7 +549,7 @@ export class DeclarationTable {
             case `Map`:
                 return new MapConvertor(param, this, type, type.typeArguments![0], type.typeArguments![1])
             case `Callback`:
-                return new FunctionConvertor(param, this)
+                return new FunctionConvertor(param, this, type)
             case `Optional`:
                 if (type.typeArguments && type.typeArguments.length == 1)
                     return new OptionConvertor(param, this, type.typeArguments![0])

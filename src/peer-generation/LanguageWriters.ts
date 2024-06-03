@@ -343,8 +343,7 @@ class TsObjectDeclareStatement implements LanguageStatement {
         // Constructing a new type with all optional fields
         const objectType = new Type(`{${this.fields.map(it => {
                 let typeNode = "any"
-                if (it.type && (ts.isTupleTypeNode(it.type) 
-                    || ts.isTypeReferenceNode(it.type))) {
+                if (it.type && (ts.isTupleTypeNode(it.type) || ts.isUnionTypeNode(it.type))) {
                     typeNode = mapType(it.type)
                 }
                 return `${it.name}?: ${typeNode}`
@@ -567,8 +566,8 @@ export abstract class LanguageWriter {
     makeUnionVariantCast(value: string, type: string, index?: number): LanguageExpression {
         return this.makeString(`unsafeCast<${type}>(${value})`)
     }
-    makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
-        return new ExpressionStatement(this.makeString(`${array} = []`))
+    makeArrayResize(array: string, typeName: string, length: string, deserializer: string): LanguageStatement {
+        return new ExpressionStatement(this.makeString(`${array} = [] as ${typeName}`))
     }
     makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression("// TODO: TS map resize"))
@@ -1020,7 +1019,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new CppMapForEachStatement(map, key, value, op)
     }
-    makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
+    makeArrayResize(array: string, typeName: string, length: string, deserializer: string): LanguageStatement {
         return new CppArrayResizeStatement(array, length, deserializer)
     }
     makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
