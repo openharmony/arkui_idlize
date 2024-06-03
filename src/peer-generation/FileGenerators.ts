@@ -375,25 +375,33 @@ export function makeArkuiModule(componentsFiles: string[]): string {
     }).join("\n")
 }
 
-export function makeStructCommon(commonMethods: string[], customComponentMethods: string[]): string {
+export function makeStructCommon(commonComponentBody: string, customComponentMethods: string[]): string {
     return `
 import { PeerNode } from "./PeerNode"
+import { ArkCommonPeer } from "./ArkCommonPeer"
+import { runtimeType, RuntimeType  } from "./SerializerBase"
+import { UseProperties} from "./use_properties"
 
 // TODO: temporary, remove!
 interface Theme {}
 
-export class ArkCommon implements CommonMethod<CommonAttribute> {
-  protected peer?: PeerNode
-  setPeer(peer: PeerNode) {
-    this.peer = peer
-  }
+export class ComponentNode {
+    protected peer?: PeerNode
+    setPeer(peer: PeerNode) {
+        this.peer = peer
+    }
+}
+
+export class ArkCommon extends ComponentNode implements CommonMethod<CommonAttribute> {
+  protected peer?: ArkCommonPeer
   /** @memo:intrinsic */
   protected checkPriority(
       name: string
   ): boolean { throw new Error("not implemented") }
   protected applyAttributesFinish(): void { throw new Error("not implemented") }
+  attributeModifier(modifier: AttributeModifier<this>): this { throw new Error("not implemented") }
 
-  ${commonMethods.join('\n  ')}
+  ${commonComponentBody}
 }
 
 export class ArkStructCommon extends ArkCommon implements CustomComponent {

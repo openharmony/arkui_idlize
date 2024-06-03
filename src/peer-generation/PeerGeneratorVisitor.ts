@@ -37,7 +37,6 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import {
     hasTransitiveHeritageGenericType,
-    isCommonMethod,
     isRoot,
     isStandalone,
     singleParentDeclaration,
@@ -213,9 +212,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         if (!this.needsPeer(node)) return
         if (isCustomComponentClass(node))
             return this.processCustomComponent(node)
-        if (isCommonMethod(nameOrNull(node.name)!)) {
-            this.processCommonComponent(node)
-        }
         const tsMethods = this.extractMethods(node)
 
         const componentName = this.renameToComponent(nameOrNull(node.name)!)
@@ -239,41 +235,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             .map(it => it.getText().replace(/;\s*$/g, ''))
             .map(it => `${it} { throw new Error("not implemented"); }`)
         this.peerLibrary.customComponentMethods.push(...methods)
-    }
-
-    private groupOverloads(methods: Method[]): Method[][] {
-        const seenNames = new Set<string>()
-        const groups: Method[][] = []
-        for (const method of methods) {
-            if (seenNames.has(method.name))
-                continue
-            seenNames.add(method.name)
-            groups.push(methods.filter(it => it.name === method.name))
-        }
-        return groups
-    }
-
-    private processCommonComponent(node: ts.ClassDeclaration) {
-        const tsMethods = this.extractMethods(node)
-
-        const methods = tsMethods
-            .filter(it => !ts.isCallSignatureDeclaration(it))
-            .map(method => {
-                return new Method(
-                    identName(method.name)!,
-                    this.generateSignature(method)
-                )
-            })
-        const collapsedMethods = this.groupOverloads(methods)
-            .map(it => collapseSameNamedMethods(it))
-        collapsedMethods.forEach(it => {
-            const args = it.signature.args.map((type, index) => {
-                const maybeOptional = type.nullable ? "?" : ""
-                return `${it.signature.argName(index)}${maybeOptional}: ${type.name}`.replace('<T>', '<this>')
-            })
-            const declaration = `${it.name}(${args.join(',')}): this { throw new Error("not implemented"); }`
-            this.peerLibrary.commonMethods.push(declaration)
-        })
     }
 
     processInterface(node: ts.InterfaceDeclaration) {

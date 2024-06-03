@@ -24,16 +24,18 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { InheritanceRole, determineInheritanceRole, isCommonMethod } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
-import { OverloadsPrinter, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter";
-import { Type, createLanguageWriter } from "./LanguageWriters";
+import { OverloadsPrinter, collapseSameNamedMethods } from "./OverloadsPrinter";
+import { LanguageWriter, Type, createLanguageWriter } from "./LanguageWriters";
 
 class ComponentFileVisitor {
-    readonly printer = createLanguageWriter(new IndentedPrinter(), this.file.declarationTable.language)
-    private overloadsPrinter = new OverloadsPrinter(this.printer, this.library)
+    private readonly overloadsPrinter = new OverloadsPrinter(this.printer, this.library)
+    private readonly commonOverloadsPrinter = new OverloadsPrinter(this.commonPrinter, this.library)
 
     constructor(
         private library: PeerLibrary,
         private file: PeerFile,
+        readonly printer: LanguageWriter,
+        readonly commonPrinter: LanguageWriter,
     ) { }
 
     get targetBasename() {
@@ -41,6 +43,8 @@ class ComponentFileVisitor {
     }
 
     private canGenerateComponent(peer: PeerClass) {
+        if (isCommonMethod(peer.originalClassName!))
+            return true;
         return !PeerGeneratorConfig.skipComponentGeneration.includes(peer.originalClassName!)
             && determineInheritanceRole(peer.originalClassName!) == InheritanceRole.Heir
     }
@@ -84,9 +88,16 @@ class ComponentFileVisitor {
         return groups
     }
 
+    private printCommonComponent(peer: PeerClass) {
+        for (const grouped of this.groupOverloads(peer.methods))
+            this.commonOverloadsPrinter.printGroupedComponentOverloads(peer, grouped)
+    }
+
     private printComponent(peer: PeerClass) {
         if (!this.canGenerateComponent(peer))
             return
+        if (isCommonMethod(peer.originalClassName!))
+            return this.printCommonComponent(peer)
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
         const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${it.nullable ? "?" : ""}: ${it.name}`)
@@ -170,17 +181,22 @@ ${parentStructClass.typesLines.map(it => indentedBy(it, 2)).join("\n")}
 }
 
 class ComponentsVisitor {
-    readonly components: Map<string, string[]> = new Map()
+    readonly components: Map<string, LanguageWriter> = new Map()
+    readonly commonComponentWriter: LanguageWriter
 
     constructor(
-        private readonly peerLibrary: PeerLibrary
-    ) { }
+        private readonly peerLibrary: PeerLibrary,
+        commonComponentWriter?: LanguageWriter,
+    ) { 
+        this.commonComponentWriter = commonComponentWriter ?? createLanguageWriter(new IndentedPrinter(), Language.TS)
+    }
 
     printComponents(): void {
         for (const file of this.peerLibrary.files.values()) {
-            const visitor = new ComponentFileVisitor(this.peerLibrary, file)
+            const writer = createLanguageWriter(new IndentedPrinter(), Language.TS)
+            const visitor = new ComponentFileVisitor(this.peerLibrary, file, writer, this.commonComponentWriter)
             visitor.printFile()
-            this.components.set(visitor.targetBasename, visitor.printer.getOutput())
+            this.components.set(visitor.targetBasename, writer)
         }
     }
 }
@@ -193,9 +209,17 @@ export function printComponents(peerLibrary: PeerLibrary): Map<string, string> {
     const visitor = new ComponentsVisitor(peerLibrary)
     visitor.printComponents()
     const result = new Map<string, string>()
-    for (const [key, content] of visitor.components) {
-        if (content.length === 0) continue
-        result.set(key, content.join('\n'))
+    for (const [key, writer] of visitor.components) {
+        if (writer.getOutput().length === 0) continue
+        result.set(key, writer.getOutput().join('\n'))
     }
     return result
+}
+
+export function writeCommonComponent(peerLibrary: PeerLibrary, writer: LanguageWriter): void {
+    // TODO: support other output languages
+    if (peerLibrary.declarationTable.language === Language.TS) {
+        const visitor = new ComponentsVisitor(peerLibrary, writer)
+        visitor.printComponents()
+    }
 }

@@ -55,6 +55,9 @@ export class PeerGeneratorConfig {
         "ImageAttachmentInterface",
         "ContentSlotInterface",
         "ParagraphStyleInterface",
+        "LocationButtonInterface",
+        "PasteButtonInterface",
+        "SaveButtonInterface",
     ]
 
     public static skipPeerGeneration = ["CommonAttribute"]
@@ -62,8 +65,8 @@ export class PeerGeneratorConfig {
 
     public static rootComponents = [
         "CommonMethod",
-        "SecurityComponentMethod",
-        "CommonTransition"
+        // "SecurityComponentMethod",
+        // "CommonTransition"
     ]
 
     public static standaloneComponents = [

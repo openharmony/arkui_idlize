@@ -31,7 +31,6 @@ export class PeerLibrary {
         public declarationTable: DeclarationTable
     ) {}
 
-    readonly commonMethods: string[] = []
     readonly customComponentMethods: string[] = []
     readonly importTypesStubs: string[] = []
 
