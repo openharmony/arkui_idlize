@@ -343,7 +343,8 @@ class TsObjectDeclareStatement implements LanguageStatement {
         // Constructing a new type with all optional fields
         const objectType = new Type(`{${this.fields.map(it => {
                 let typeNode = "any"
-                if (it.type && ts.isTupleTypeNode(it.type)) {
+                if (it.type && (ts.isTupleTypeNode(it.type) 
+                    || ts.isTypeReferenceNode(it.type))) {
                     typeNode = mapType(it.type)
                 }
                 return `${it.name}?: ${typeNode}`

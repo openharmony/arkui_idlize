@@ -73,8 +73,8 @@ export abstract class BaseArgConvertor implements ArgConvertor {
 }
 
 export class StringConvertor extends BaseArgConvertor {
-    constructor(param: string) {
-        super("string", [RuntimeType.STRING], false, false, param)
+    constructor(param: string, receiverType: ts.TypeNode) {
+        super(mapType(receiverType), [RuntimeType.STRING], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` : param
@@ -83,8 +83,11 @@ export class StringConvertor extends BaseArgConvertor {
         writer.writeMethodCall(`${param}Serializer`, `writeString`, [value])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const accessor = writer.getObjectAccessor(this, param, value)
-        return writer.makeAssign(accessor, undefined, writer.makeString(`${param}Deserializer.readString()`), false)
+        const receiver = writer.getObjectAccessor(this, param, value)
+        return writer.makeAssign(receiver, undefined,
+            writer.makeCast(writer.makeString(`${param}Deserializer.readString()`),
+                writer.makeType(this.tsTypeName, false, receiver)),
+            false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.String.getText()
@@ -295,9 +298,11 @@ export class LengthConvertor extends BaseArgConvertor {
         )
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
-        return printer.makeAssign(accessor, undefined,
-            printer.makeString(`${param}Deserializer.readLength()`), false)
+        const receiver = printer.getObjectAccessor(this, param, value)
+        return printer.makeAssign(receiver, undefined,
+            printer.makeCast(
+                printer.makeString(`${param}Deserializer.readLength()`),
+                printer.makeType(this.tsTypeName, false, receiver), false), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Length.getText()
@@ -366,10 +371,10 @@ export class UnionConvertor extends BaseArgConvertor {
         const selectorAssign = printer.makeAssign(selector, Type.Int32,
             printer.makeString(`${param}Deserializer.readInt8()`), true)
         const branches: BranchStatement[] = this.memberConvertors.map((it, index) => {
-            const accessor = printer.getObjectAccessor(this, param, value, {index: `${index}`})
+            const receiver = printer.getObjectAccessor(this, param, value, {index: `${index}`})
             const expr = printer.makeString(`${selector} == ${index}`)
             const stmt = new BlockStatement([
-                it.convertorDeserialize(param, accessor, printer),
+                it.convertorDeserialize(param, receiver, printer),
                 printer.makeSetUnionSelector(value, `${index}`)
             ], false)
             return { expr, stmt }
@@ -888,8 +893,11 @@ export class NumberConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeNumber", [value])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const accessor = writer.getObjectAccessor(this, param, value)
-        return writer.makeAssign(accessor, undefined, writer.makeString(`${param}Deserializer.readNumber()`), false)
+        const receiver = writer.getObjectAccessor(this, param, value)
+        return writer.makeAssign(receiver, undefined,
+            writer.makeCast(
+                writer.makeString(`${param}Deserializer.readNumber()`),
+                writer.makeType(this.tsTypeName, false, receiver)), false)
     }
     nativeType(): string {
         return PrimitiveType.Number.getText()

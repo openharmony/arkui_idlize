@@ -56,7 +56,9 @@ export class TSTypeNodeNameConvertor implements
         return `((${parameters.join(', ')}) => ${this.convert(node.type)})`
     }
     convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): string {
-        throw new Error('Method not implemented.')
+        return node.templateSpans.map(template => {
+            return `\`\${${this.convert(template.type)}}${template.literal.rawText}\``
+        }).join()
     }
     convertImport(node: ts.ImportTypeNode): string {
         const from = this.convert(node.argument).match(/[a-zA-Z]+/g)!.join('_')
