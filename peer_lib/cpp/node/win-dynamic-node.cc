@@ -334,7 +334,8 @@ NAPI_EXTERN napi_status NAPI_CDECL napi_get_named_property(napi_env env,
                                                            napi_value object,
                                                            const char* utf8name,
                                                            napi_value* result) {
-  return napi_ok;
+  LoadNapiFunctions();
+  return p_napi_get_named_property(env, object, utf8name, result);
 }
 NAPI_EXTERN napi_status NAPI_CDECL
 napi_create_reference(napi_env env,

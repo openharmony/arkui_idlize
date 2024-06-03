@@ -244,7 +244,7 @@ inline KInt getArgument<int32_t>(const Napi::CallbackInfo& info, int index) {
 
 template <>
 inline KInteropNumber getArgument<KInteropNumber>(const Napi::CallbackInfo& info, int index) {
-  KInteropNumber result;
+  KInteropNumber result = { 0 };
   NAPI_ASSERT_INDEX(info, index, result);
   double value = info[index].As<Napi::Number>().DoubleValue();
   // TODO: boundary check
@@ -260,7 +260,7 @@ inline KInteropNumber getArgument<KInteropNumber>(const Napi::CallbackInfo& info
 
 template <>
 inline KLength getArgument<KLength>(const Napi::CallbackInfo& info, int index) {
-  KLength result = {};
+  KLength result = { 0 };
   NAPI_ASSERT_INDEX(info, index, result);
   auto value = info[index];
   napi_valuetype type;
@@ -268,18 +268,30 @@ inline KLength getArgument<KLength>(const Napi::CallbackInfo& info, int index) {
   if (status != 0) return result;
   switch (type) {
     case napi_number: {
-      result.value = value.As<Napi::Number>().Int32Value();
+      result.value = value.As<Napi::Number>().FloatValue();
       result.unit = 1;
+      result.type = 0;
       break;
     }
     case napi_string: {
       KStringPtr string = getString(info.Env(), value);
       parseKLength(string, &result);
+      result.type = 1;
+      result.resource = 0;
       break;
     }
     case napi_object: {
+      result.value = 0;
       result.unit = 1;
-      result.resource = value.As<Napi::Object>().Get("id").As<Napi::Number>().Int32Value();
+      result.type = 2;
+      napi_value field;
+      napi_status status = napi_get_named_property(info.Env(), value, "id", &field);
+      if (status == 0) {
+        status = napi_get_value_int32(info.Env(), field, &result.resource);
+        if (status != 0) result.resource = 0;
+      } else {
+        result.resource = 0;
+      }
       break;
     }
     default:
