@@ -361,7 +361,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
         if (PeerGeneratorConfig.ignorePeerMethod.includes(methodName)) return
 
-        this.declarationTable.setCurrentContext(`${methodName}()`)
+        this.declarationTable.setCurrentContext(`${originalParentName}.${methodName}()`)
 
         // TODO: fix this ugly code to prevent method args aliases name collisions.
         let methodIndex = 0, index = 0

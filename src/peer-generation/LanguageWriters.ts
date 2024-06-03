@@ -1131,6 +1131,6 @@ export function createLanguageWriter(printer: IndentedPrinter, language: Languag
         case Language.ARKTS: return new ETSLanguageWriter(printer)
         case Language.JAVA: return new JavaLanguageWriter(printer)
         case Language.CPP: return new CppLanguageWriter(printer)
-        default: throw new Error(`Language ${Language[language]} is not supported`)
+        default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

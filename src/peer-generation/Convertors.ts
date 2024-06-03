@@ -27,6 +27,7 @@ export interface ArgConvertor {
     isScoped: boolean
     useArray: boolean
     runtimeTypes: RuntimeType[]
+    hasUnionDiscriminator: boolean
     estimateSize(): number
     scopeStart?(param: string, language: Language): string
     scopeEnd?(param: string, language: Language): string
@@ -36,8 +37,7 @@ export interface ArgConvertor {
     interopType(language: Language): string
     nativeType(impl: boolean): string
     isPointerType(): boolean
-    customDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression|undefined
-    hasCustomDiscriminator(): boolean
+    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression|undefined
 }
 
 export abstract class BaseArgConvertor implements ArgConvertor {
@@ -46,7 +46,8 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         public runtimeTypes: RuntimeType[],
         public isScoped: boolean,
         public useArray: boolean,
-        public param: string
+        public param: string,
+        public hasUnionDiscriminator: boolean = false
     ) { }
 
     estimateSize(): number {
@@ -66,10 +67,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     abstract convertorArg(param: string, writer: LanguageWriter): string
     abstract convertorSerialize(param: string, value: string, writer: LanguageWriter): void
     abstract convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
-    hasCustomDiscriminator(): boolean {
-        return false
-    }
-    customDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression|undefined {
+    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression|undefined {
         return undefined
     }
 }
@@ -190,7 +188,7 @@ export class UndefinedConvertor extends BaseArgConvertor {
 export class EnumConvertor extends BaseArgConvertor {
     constructor(param: string, table: DeclarationTable, private enumType: ts.EnumDeclaration) {
         // Enums are integers in runtime.
-        super("number", [RuntimeType.NUMBER], false, false, param)
+        super("number", [RuntimeType.NUMBER], false, false, param, true)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? param : `unsafeCast<int32>(${param})`
@@ -216,7 +214,7 @@ export class EnumConvertor extends BaseArgConvertor {
         return false
     }
     // TODO: bit clumsy.
-    customDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
         let low: number|undefined = undefined
         let high: number|undefined = undefined
         // TODO: proper enum value computation for cases where enum members have computed initializers.
@@ -224,23 +222,18 @@ export class EnumConvertor extends BaseArgConvertor {
             let value = index
             if (member.initializer) {
                 let tsValue = member.initializer
-                if (ts.isLiteralExpression(tsValue)) value = parseInt(tsValue.text) ?? index
+                if (ts.isLiteralExpression(tsValue)) {
+                    value = parseInt(tsValue.text)
+                    if (Number.isNaN(value)) value = index
+                }
             }
-            if (low == undefined) low = value
-            if (high == undefined) high = value
-            if (value < low) low = value
-            if (value > high) high = value
+            if (low === undefined || low > value) low = value
+            if (high === undefined || high < value) high = value
         })
-        if (Number.isNaN(low) || Number.isNaN(high)) {
-            return undefined
-        }
         return writer.makeNaryOp("&&", [
             writer.makeNaryOp(">=", [writer.makeUnionVariantCast(value, Type.Number.name, index), writer.makeString(low!.toString())]),
             writer.makeNaryOp("<=",  [writer.makeUnionVariantCast(value, Type.Number.name, index), writer.makeString(high!.toString())])
         ])
-    }
-    hasCustomDiscriminator(): boolean {
-        return true
     }
 }
 
@@ -351,9 +344,9 @@ export class UnionConvertor extends BaseArgConvertor {
             let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
             let conditions = printer.makeNaryOp("||", it.runtimeTypes.map(it =>
                 printer.makeNaryOp("==", [ printer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
-            let customDiscriminator = it.customDiscriminator(value, index, printer)
-            if (customDiscriminator)
-                conditions = printer.makeNaryOp("&&", [conditions, customDiscriminator])
+            let unionDiscriminator = printer.language.needsUnionDiscrimination ? it.unionDiscriminator(value, index, printer) : undefined
+            if (unionDiscriminator)
+                conditions = printer.makeNaryOp("&&", [conditions, unionDiscriminator])
             printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", [index.toString()])
@@ -403,7 +396,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 let second = convertors[j].runtimeTypes
                 first.forEach(value => {
                     let index = second.findIndex(it => it == value)
-                    if (index != -1 && !convertors[i].hasCustomDiscriminator() && !convertors[j].hasCustomDiscriminator()) {
+                    if (index != -1 && !convertors[i].hasUnionDiscriminator && !convertors[j].hasUnionDiscriminator) {
                         let current = this.table.getCurrentContext()
                         if (!current) throw new Error("Used in undefined context, do setCurrentContext()")
                         if (!UnionConvertor.reportedConflicts.has(current)) {
@@ -602,8 +595,9 @@ export class InterfaceConvertor extends BaseArgConvertor {
         name: string,
         param: string,
         protected table: DeclarationTable,
-        private type: ts.TypeReferenceNode  ) {
-        super(name, [RuntimeType.OBJECT], false, true, param)
+        private type: ts.TypeReferenceNode,
+        hasUnionDiscriminator: boolean = false) {
+        super(name, [RuntimeType.OBJECT], false, true, param, hasUnionDiscriminator)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -628,6 +622,15 @@ export class InterfaceConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return true
+    }
+}
+
+export class ClassConvertor extends InterfaceConvertor {
+    constructor(name: string, param: string, table: DeclarationTable, type: ts.TypeReferenceNode) {
+        super(name, param, table, type, true)
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+        return writer.makeString(`${value} instanceof ${this.tsTypeName}`)
     }
 }
 
@@ -738,7 +741,7 @@ export class TupleConvertor extends BaseArgConvertor {
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
     constructor(param: string, public table: DeclarationTable, type: ts.TypeNode, public elementType: ts.TypeNode) {
-        super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param, true)
         this.elementConvertor = table.typeConvertor(param, elementType)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -796,13 +799,16 @@ export class ArrayConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+        return writer.makeString(`${value} instanceof Array`)
+    }
 }
 
 export class MapConvertor extends BaseArgConvertor {
     keyConvertor: ArgConvertor
     valueConvertor: ArgConvertor
     constructor(param: string, public table: DeclarationTable, type: ts.TypeNode, public keyType: ts.TypeNode, public valueType: ts.TypeNode) {
-        super(`Map<${mapType(keyType)}, ${mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(`Map<${mapType(keyType)}, ${mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param, true)
         this.keyConvertor = table.typeConvertor(param, keyType)
         this.valueConvertor = table.typeConvertor(param, valueType)
     }
@@ -864,6 +870,9 @@ export class MapConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+        return writer.makeString(`${value} instanceof Map`)
+    }
 }
 
 export class NumberConvertor extends BaseArgConvertor {
@@ -900,10 +909,9 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     constructor(
         name: string,
         param: string,
-        protected table: DeclarationTable,
-        type: ts.TypeReferenceNode
+        protected table: DeclarationTable
     ) {
-        super(name, [RuntimeType.OBJECT], false, true, param)
+        super(name, [RuntimeType.OBJECT], false, true, param, true)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -927,6 +935,11 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return true
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+        // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
+        if (this.tsTypeName === "SubTabBarStyle") return undefined
+        return writer.makeString(`${value} instanceof ${this.tsTypeName}`)
     }
 }
 

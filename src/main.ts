@@ -36,7 +36,7 @@ import {
 import {
     PeerGeneratorVisitor,
 } from "./peer-generation/PeerGeneratorVisitor"
-import { defaultCompilerOptions, isDefined, toSet, langSuffix, Language } from "./util"
+import { defaultCompilerOptions, isDefined, toSet, Language } from "./util"
 import { TypeChecker } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
@@ -322,20 +322,20 @@ if (options.dts2peer) {
                 }
 
                 fs.writeFileSync(
-                    path.join(outDir, 'NativeModule' + langSuffix(lang)),
+                    path.join(outDir, 'NativeModule' + lang.extension),
                     printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi")
                 )
                 if (lang == Language.TS) {
                     fs.writeFileSync(
-                        path.join(outDir, 'ImportsStubs' + langSuffix(lang)),
+                        path.join(outDir, 'ImportsStubs' + lang.extension),
                         printImportsStubs(peerLibrary),
                     )
                     fs.writeFileSync(
-                        path.join(outDir, 'NativeModuleEmpty' + langSuffix(lang)),
+                        path.join(outDir, 'NativeModuleEmpty' + lang.extension),
                         printNativeModuleEmpty(peerLibrary)
                     )
                     fs.writeFileSync(
-                        path.join(outDir, 'ArkUINodeType' + langSuffix(lang)),
+                        path.join(outDir, 'ArkUINodeType' + lang.extension),
                         printNodeTypes(peerLibrary),
                     )
                     fs.writeFileSync(
@@ -343,30 +343,30 @@ if (options.dts2peer) {
                         makeArkuiModule(arkuiComponentsFiles),
                     )
                     fs.writeFileSync(
-                        path.join(outDir, 'ArkCommon' + langSuffix(lang)),
+                        path.join(outDir, 'ArkCommon' + lang.extension),
                         printStructCommon(peerLibrary),
                     )
                     fs.writeFileSync(
-                        path.join(outDir, "peer_events" + langSuffix(lang)),
+                        path.join(outDir, "peer_events" + lang.extension),
                         printEvents(peerLibrary)
                     )
-                    fs.writeFileSync(path.join(outDir, 'Serializer' + langSuffix(lang)),
+                    fs.writeFileSync(path.join(outDir, 'Serializer' + lang.extension),
                         makeTSSerializer(declarationTable)
                     )
-                    fs.writeFileSync(path.join(outDir, 'Deserializer' + langSuffix(lang)),
+                    fs.writeFileSync(path.join(outDir, 'Deserializer' + lang.extension),
                         makeTSDeserializer(declarationTable)
                     )
                 }
                 if(lang == Language.ARKTS) {
                     fs.writeFileSync(
-                        path.join(outDir, 'ArkUINodeType' + langSuffix(lang)),
+                        path.join(outDir, 'ArkUINodeType' + lang.extension),
                         printNodeTypes(peerLibrary),
                     )
-                    fs.writeFileSync(path.join(outDir, 'Serializer' + langSuffix(lang)),
+                    fs.writeFileSync(path.join(outDir, 'Serializer' + lang.extension),
                         makeTSSerializer(declarationTable)
                     )
                     fs.writeFileSync(
-                        path.join(outDir, 'ArkCommon' + langSuffix(lang)),
+                        path.join(outDir, 'ArkCommon' + lang.extension),
                         collectDtsImports() + printStructCommon(peerLibrary),
                     )
                 }

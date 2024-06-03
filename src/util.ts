@@ -17,11 +17,17 @@ import * as ts from "typescript"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { isRoot } from "./peer-generation/inheritance";
 
-export enum Language {
-    TS,
-    ARKTS,
-    JAVA,
-    CPP
+export class Language {
+    public static TS = new Language("TS", ".ts", true)
+    public static ARKTS = new Language("ArkTS", ".ets", true)
+    public static JAVA = new Language("Java", ".java", false)
+    public static CPP = new Language("C++", ".cc", false)
+
+    private constructor(private name: string, public extension: string, public needsUnionDiscrimination: boolean) {}
+
+    toString(): string {
+        return this.name
+    }
 }
 
 export interface NameWithType {
@@ -432,22 +438,13 @@ function snakeCaseToCamelCase(input: string): string {
         .join("")
 }
 
-export function langSuffix(language: Language): string {
-    switch (language) {
-        case Language.JAVA: return ".java"
-        case Language.ARKTS: return ".ets"
-        case Language.TS: return ".ts"
-        case Language.CPP: return ".cc"
-    }
-}
-
 export function renameDtsToPeer(fileName: string, language: Language, withFileExtension: boolean = true) {
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))
         .replace(".d.ts", "")
         .concat("Peer")
     if (withFileExtension) {
-        return renamed.concat(langSuffix(language))
+        return renamed.concat(language.extension)
     }
     return renamed
 }
@@ -456,14 +453,14 @@ export function renameDtsToComponent(fileName: string, language: Language) {
     return "Ark"
         .concat(snakeCaseToCamelCase(fileName))
         .replace(".d.ts", "")
-        .concat(langSuffix(language))
+        .concat(language.extension)
 }
 
 export function renameClassToMaterialized(fileName: string, language: Language) {
     return "Ark"
         .concat(snakeCaseToCamelCase(fileName))
         .concat("Materialized")
-        .concat(langSuffix(language))
+        .concat(language.extension)
 }
 
 export function importTypeName(type: ts.ImportTypeNode, asType = false): string {

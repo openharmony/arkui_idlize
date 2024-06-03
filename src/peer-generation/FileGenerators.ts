@@ -16,7 +16,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
-import { Language, indentedBy, langSuffix } from "../util"
+import { Language } from "../util"
 import { createLanguageWriter } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./EventsPrinter"
@@ -301,7 +301,7 @@ function readTemplate(name: string): string {
 }
 
 function readLangTemplate(name: string, lang: Language): string {
-    return fs.readFileSync(path.join(__dirname, `../templates/${name + langSuffix(lang)}`), 'utf8')
+    return fs.readFileSync(path.join(__dirname, `../templates/${name + lang.extension}`), 'utf8')
 }
 
 

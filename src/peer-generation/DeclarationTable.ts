@@ -19,7 +19,7 @@ import { Language, asString, getDeclarationsByNode, getNameWithoutQualifiersRigh
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
-    AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CustomTypeConvertor,
+    AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, ClassConvertor, CustomTypeConvertor,
     EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor,
     NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, ToStringConvertor, TupleConvertor, TypeAliasConvertor,
     UndefinedConvertor, UnionConvertor
@@ -126,7 +126,7 @@ export class DeclarationTable {
             case "java": this.language = Language.JAVA; break
             case "ts": default: this.language = Language.TS; break
         }
-        console.log(`Emit for ${Language[this.language]}`)
+        console.log(`Emit for ${this.language.toString()}`)
         this.toTargetConvertor = new ToDeclarationTargetConvertor(this)
     }
 
@@ -589,9 +589,9 @@ export class DeclarationTable {
         }
         if (ts.isClassDeclaration(declaration)) {
             if (isMaterialized(declaration)) {
-                return new MaterializedClassConvertor(declarationName, param, this, type)
+                return new MaterializedClassConvertor(declarationName, param, this)
             }
-            return new InterfaceConvertor(declarationName, param, this, type)
+            return new ClassConvertor(declarationName, param, this, type)
         }
         if (ts.isTypeParameterDeclaration(declaration)) {
             // TODO: incorrect, we must use actual, not formal type parameter.
