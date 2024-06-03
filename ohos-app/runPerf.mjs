@@ -47,7 +47,8 @@ if (!fs.existsSync(perfDir)) {
     process.exit(0)
 }
 
-const signToolsDir = `ohos-app/oh_sign`
+const thirdToolsDir = `3rdtools`
+const signToolsDir = `${thirdToolsDir}/oh_sign`
 const unsignedHapName = `entry-default-unsigned.hap`
 const signedHapName = `entry-release-signed.hap`
 const unsignedHapPathInProject = `${perfDir}/entry/build/default/outputs/default/${unsignedHapName}`
@@ -69,10 +70,16 @@ function buildPerfProject() {
 }
 
 function signHap() {
+    if (!fs.existsSync(signToolsDir)) {
+        console.log(`get 3rdtools for oh_sign tools`)
+        if (fs.existsSync(thirdToolsDir)) fs.rmdirSync(thirdToolsDir)
+        let downloadCmd = `node ./download-3rdtools.mjs ${arch}`
+        execSync(downloadCmd, { cwd: './', stdio: 'inherit' })
+    }
     console.log(`copy ${unsignedHapPathInProject} to ${signToolsDir}`)
     fs.copyFileSync(unsignedHapPathInProject, unsignedHapPath)
     console.log(`sign ${unsignedHapPath}`)
-    execSync(`${signRelease}`, { cwd: signToolsDir, stdio: 'inherit'})
+    execSync(signRelease, { cwd: signToolsDir, stdio: 'inherit'})
 }
 
 function executeCommandWithTimeout(command, timeout, print) {

@@ -21,6 +21,6 @@ const dir = "./3rdtools"
 if (fs.existsSync(dir)) {
     //execSync(`cd ${dir} && git pull`)
 } else {
-    console.log("Downloading 3rdtools to get libnode.so.108")
+    console.log("Downloading 3rdtools")
     execSync("git clone --depth=1 https://gitee.com/liyou88/3rdtools.git")
 }

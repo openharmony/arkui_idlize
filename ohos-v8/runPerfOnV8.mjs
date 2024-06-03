@@ -48,10 +48,11 @@ let target = isArm64 ? 'aarch64-linux-ohos' : 'arm-linux-ohos'
 const libName = `NativeBridgeNapi.node`
 const native = `native`
 const ohosV8 = `ohos-v8`
+const thirdToolsDir = `3rdtools`
 let nodeBin = `node`
 let nodeLib = `libnode.so`
 let nodeLib108 = `libnode.so.108`
-let nodeDir = `${ohosV8}/3rdtools/${target}`
+let nodeDir = `${thirdToolsDir}/${target}`
 let sourceDir = isFull ? `build/peers` : `build/subset`
 let deviceAppDir = `/data/local/tmp/perf/`
 let koalauiModulesDir = `peer_lib/ts/@koalaui`
@@ -60,13 +61,16 @@ let ohosSdkVersion = process.env.OHOS_SDK_VERSION ?? 'HarmonyOS-NEXT-DP1'
 let llvmDir = `${ohosSdkRoot}/${ohosSdkVersion}/base/native/llvm/`
 
 function downloadOhosNode() {
-    const thirdToolsDir = `${ohosV8}/3rdtools`
     const download3rdToolCmd = 'node download-3rdtools.mjs'
-    if (!fs.existsSync(thirdToolsDir)) execSync(download3rdToolCmd, { cwd: ohosV8, stdio: 'inherit' })
+    if (!fs.existsSync(nodeDir)) {
+        if (fs.existsSync(thirdToolsDir)) fs.rmdirSync(thirdToolsDir)
+        console.log(`run ${download3rdToolCmd} to get 3rdtools for node`)
+        execSync(download3rdToolCmd, { cwd: ohosV8, stdio: 'inherit' })
+    }
 }
 
 function mountRW() {
-    execSync(`hdc shell mount -o rw,remount /`, )
+    execSync(`hdc shell mount -o rw,remount /`, {stdio: 'inherit'})
 }
 
 function makeDir(targetDir, dir) {

@@ -102,10 +102,12 @@ fs.writeFileSync(`${nativeDir}/${crossFile}`, crossFileContent, 'utf8', (error) 
 });
 
 function resolveV8Deps() {
+    const thirdToolsDir = `3rdtools`
     let nodeLibPath = `${sysrootDir}/usr/lib/${target}/libnode.so`
-    const nodeLibSrc = `ohos-v8/3rdtools/${target}/libnode.so.108`
+    const nodeLibSrc = `${thirdToolsDir}/${target}/libnode.so.108`
     if (!fs.existsSync(nodeLibSrc)) {
-        let downloadCmd = `node ./ohos-v8/download-3rdtools.mjs ${arch}`
+        let downloadCmd = `node ./download-3rdtools.mjs ${arch}`
+        if (fs.existsSync(thirdToolsDir)) fs.rmdirSync(thirdToolsDir)
         execSync(downloadCmd, { cwd: './', stdio: 'inherit' })
     }
     if (!fs.existsSync(nodeLibPath)) {
@@ -122,5 +124,7 @@ let installCmd = `meson install -C ${outDir}`
 execSync(cleanCmd, { cwd: nativeDir, stdio: 'inherit' })
 if (isV8) resolveV8Deps()
 execSync(configCmd, { cwd: nativeDir, stdio: 'inherit' })
+console.log(`${compileCmd}`)
 execSync(compileCmd, { cwd: nativeDir, stdio: 'inherit' })
+console.log(`${installCmd}`)
 execSync(installCmd, { cwd: nativeDir, stdio: 'inherit' })
