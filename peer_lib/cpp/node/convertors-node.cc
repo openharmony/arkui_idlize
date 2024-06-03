@@ -89,10 +89,13 @@ KStringPtr getString(Napi::Env env, Napi::Value value) {
 }
 
 KNativePointer getPointer(Napi::Env env, Napi::Value value) {
-    if (!value.IsBigInt()) {
+    if (!value.IsBigInt() && !value.IsExternal()) {
         Napi::Error::New(env, "cannot be coerced to pointer")
             .ThrowAsJavaScriptException();
         return nullptr;
+    }
+    if (value.IsExternal()) {
+        return value.As<Napi::External<KNativePointer>>().Data();
     }
     bool isWithinRange = true;
     uint64_t ptrU64 = value.As<Napi::BigInt>().Uint64Value(&isWithinRange);
