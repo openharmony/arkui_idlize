@@ -88,7 +88,7 @@ const options = program
     .option('--language [ts|sts|java]', 'Output language')
     .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
     .option('--version')
-    .option('--copy-peers-target <koala-ui|libace>', 'Copy peers to koala-ui or libace')
+    .option('--copy-peers-target <koala-ui|libace>', 'Copy peers to koala-ui or libace (use with --dts2peer)')
     .option('--copy-peers-destination <path>', 'Location of koala-ui or libace repositories')
     .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
     .parse()
@@ -282,11 +282,12 @@ if (options.dts2peer) {
     const declarationTable = new DeclarationTable(options.language ?? "ts")
     const peerLibrary = new PeerLibrary(declarationTable)
     const arkuiComponentsFiles: string[] = []
+    const generatedPeersDir = options.outputDir ?? "./generated/peers"
 
     generate(
         options.inputDir,
         undefined,
-        options.outputDir ?? "./generated/peers",
+        generatedPeersDir,
         (sourceFile, typeChecker) => new PeerGeneratorVisitor({
             sourceFile: sourceFile,
             typeChecker: typeChecker,
@@ -393,30 +394,27 @@ if (options.dts2peer) {
         }
     )
     didJob = true
-}
 
-if (options.copyPeersTarget) {
-    console.log('\nCopying generated peers to external repositories')
-
-    const KOALA_UI = 'koala-ui'
-    const LIBACE = 'libace'
-
-    if (![KOALA_UI, LIBACE].includes(options.copyPeersTarget)) {
-        const err = `--copy-peers-target must be either '${KOALA_UI}' or '${LIBACE}'`
-        throw new Error(err)
-    }
-    if (!options.dts2peer) {
-        throw new Error('flag --dts2peer is expected for copying peers with --copy-peers-target')
-    }
-    if (!options.copyPeersDestination) {
-        throw new Error('flag --copy-peers-destination is expected for copying peers with --copy-peers-target')
-    }
-
-    if (options.copyPeersTarget == KOALA_UI) {
-        copyPeersToKoalaUi(options.outputDir ?? './generated/peers', options.copyPeersDestination, options.copyPeersComponents ?? [])
-    }
-    else if (options.copyPeersTarget == LIBACE) {
-        copyPeersToLibace(options.outputDir ?? './generated/peers', options.copyPeersDestination)
+    if (options.copyPeersTarget) {
+        console.log('\nCopying generated peers to external repositories')
+    
+        const KOALA_UI = 'koala-ui'
+        const LIBACE = 'libace'
+    
+        if (![KOALA_UI, LIBACE].includes(options.copyPeersTarget)) {
+            const err = `--copy-peers-target must be either '${KOALA_UI}' or '${LIBACE}'`
+            throw new Error(err)
+        }
+        if (!options.copyPeersDestination) {
+            throw new Error('--copy-peers-destination is expected for copying peers with --copy-peers-target')
+        }
+    
+        if (options.copyPeersTarget == KOALA_UI) {
+            copyPeersToKoalaUi(generatedPeersDir, options.copyPeersDestination, options.copyPeersComponents ?? [])
+        }
+        else if (options.copyPeersTarget == LIBACE) {
+            copyPeersToLibace(generatedPeersDir, options.copyPeersDestination)
+        }
     }
 }
 

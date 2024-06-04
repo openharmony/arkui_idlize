@@ -83,18 +83,19 @@ function copyCpp(peersDir: string, koalaUiNativeDir: string) {
         })
 }
 
-export function copyPeersToKoalaUi(generatedDir: string, destinationDir: string, components: string[]) {
+
+export function copyPeersToKoalaUi(peersDir: string, destinationDir: string, components: string[]) {
     const koalaUiPeers = path.join(destinationDir, "arkoala-arkui/src/")
     const koalaUiNative = path.join(destinationDir, "arkoala/native/src/")
     fs.mkdirSync(koalaUiPeers, {recursive: true})
     fs.mkdirSync(koalaUiNative, {recursive: true})
 
-    copyTsLib(generatedDir, koalaUiPeers)
-    copyPeers(generatedDir, koalaUiPeers, components)
-    copyCpp(generatedDir, koalaUiNative)
+    copyTsLib(peersDir, koalaUiPeers)
+    copyPeers(peersDir, koalaUiPeers, components)
+    copyCpp(peersDir, koalaUiNative)
 }
 
-export function copyPeersToLibace(generatedDir: string, destinationDir: string) {
+export function copyPeersToLibace(peersDir: string, destinationDir: string) {
     const libaceArkoala = path.join(destinationDir, 'frameworks/core/interfaces/arkoala')
     const libaceNative = path.join(destinationDir, 'frameworks/core/interfaces/native')
     const libaceNode = path.join(destinationDir, 'frameworks/core/interfaces/native/node')
@@ -102,8 +103,8 @@ export function copyPeersToLibace(generatedDir: string, destinationDir: string) 
     fs.mkdirSync(libaceNative, {recursive: true})
     fs.mkdirSync(libaceNode, {recursive: true})
 
-    copyFile(generatedDir, libaceArkoala, 'arkoala_api.h', 'arkoala_api_generated.h')
-    copyFile(generatedDir, libaceNative, 'delegates.cc')
-    copyFile(generatedDir, libaceNative, 'delegates.h')
-    copyFile(generatedDir, libaceNode, 'all_modifiers.cc')
+    copyFile(peersDir, libaceArkoala, 'arkoala_api.h', 'arkoala_api_generated.h')
+    copyFile(peersDir, libaceNative, 'delegates.cc')
+    copyFile(peersDir, libaceNative, 'delegates.h')
+    copyFile(peersDir, libaceNode, 'all_modifiers.cc')
 }
