@@ -88,21 +88,22 @@ export class DeserializerBase {
         return value
     }
 
-    readBoolean(): boolean | undefined {
+    readBoolean(): boolean {
         this.checkCapacity(1)
         const value = this.view.getInt8(this.position)
         this.position += 1
-        return value == RuntimeType.UNDEFINED ? undefined : value == 1
+        return value == 1
     }
 
-    readFunction(): object | undefined {
+    private static _stubFunction() {}
+    readFunction(): Function {
         const id = this.readInt32()
-        return id == RuntimeType.UNDEFINED ? undefined : {}
+        return DeserializerBase._stubFunction
     }
 
-    readMaterialized(): object | undefined {
+    readMaterialized(): object {
         const id = this.readInt32()
-        return id == RuntimeType.UNDEFINED ? undefined : {}
+        return {}
     }
 
     readString(): string {

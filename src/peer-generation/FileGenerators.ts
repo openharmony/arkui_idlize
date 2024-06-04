@@ -424,6 +424,7 @@ export function makePeerEvents(data: string): string {
     return `
 import { Deserializer } from './Deserializer'
 import { RuntimeType } from "./SerializerBase"
+import { int32 } from "@koalaui/common"
 
 interface PeerEvent {
     readonly kind: ${PeerEventKind}

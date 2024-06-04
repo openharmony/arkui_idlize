@@ -930,7 +930,8 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     constructor(
         name: string,
         param: string,
-        protected table: DeclarationTable
+        protected table: DeclarationTable,
+        private type: ts.ClassDeclaration,
     ) {
         super(name, [RuntimeType.OBJECT], false, true, param, true)
     }
@@ -943,7 +944,11 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = printer.getObjectAccessor(this, param, value)
-        return printer.makeAssign(accessor, undefined, printer.makeString(`${param}Deserializer.readMaterialized()`), false)
+        const readStatement = printer.makeCast(
+            printer.makeMethodCall(`${param}Deserializer`, `readMaterialized`, []),
+            new Type(this.table.computeTargetName(this.type, false)!),
+        )
+        return printer.makeAssign(accessor, undefined, readStatement, false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Materialized.getText()

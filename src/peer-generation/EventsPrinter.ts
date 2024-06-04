@@ -275,14 +275,11 @@ class TSEventsVisitor {
 
         this.printer.writeStatement(this.printer.makeMultiBranchCondition(infos.map(info => {
             // TODO wait until TS deserializer is uncomplited
-            const primitiveArgs = info.args.every(arg => ['string', 'number'].includes(mapType(arg.type)))
-                ? info.args 
-                : []
             const constructorTypeArgs = [
                 `kind?: number`,
                 `nodeId?: ${PeerEventKind}`,
-                ...primitiveArgs.map(arg => {
-                    return `${arg.name}?: ${mapType(arg.type)}`
+                ...info.args.map(arg => {
+                    return `${arg.name}?: any`
                 }),
             ]
             const constructorType = new Type(`{ ${constructorTypeArgs.join(', ')} }`)
@@ -301,7 +298,7 @@ class TSEventsVisitor {
                     ),
                     this.printer.makeAssign(`event.kind`, undefined, new StringExpression(`kind`), false),
                     this.printer.makeAssign(`event.nodeId`, undefined, new StringExpression(`nodeId`), false),
-                    ...primitiveArgs.map(arg => {
+                    ...info.args.map(arg => {
                         const convertor = this.library.declarationTable.typeConvertor(arg.name, arg.type, arg.nullable)
                         return convertor.convertorDeserialize('event', `event.${arg.name}`, this.printer)
                     }),
