@@ -342,15 +342,12 @@ class TsObjectDeclareStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         // Constructing a new type with all optional fields
         const objectType = new Type(`{${this.fields.map(it => {
-            let typeNode = mapType(it.type)
-            if (typeNode.startsWith("IMPORT_")) {
-                typeNode = "any";
+                let typeNode = "any"
+                if (it.type && (ts.isTupleTypeNode(it.type) || ts.isUnionTypeNode(it.type))) {
+                    typeNode = mapType(it.type)
+                }
+                return `${it.name}?: ${typeNode}`
             }
-            if (["ArrowPointPosition", "ControlSize", "Date"].includes(typeNode)) {
-                typeNode = "any";
-            }
-            return `${it.name}?: ${typeNode}`
-        }
         ).join(",")}}`)
         new TsObjectAssignStatement(this.object, objectType, true).write(writer)
     }

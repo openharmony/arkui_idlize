@@ -927,7 +927,8 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     constructor(
         name: string,
         param: string,
-        private type: ts.TypeReferenceNode) {
+        protected table: DeclarationTable
+    ) {
         super(name, [RuntimeType.OBJECT], false, true, param, true)
     }
 
@@ -938,11 +939,8 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeMaterialized", [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const receiver = printer.getObjectAccessor(this, param, value)
-        return printer.makeAssign(receiver, undefined,
-            printer.makeCast(printer.makeString(`${param}Deserializer.readMaterialized()`),
-                printer.makeType(mapType(this.type), false, receiver)),
-            false)
+        const accessor = printer.getObjectAccessor(this, param, value)
+        return printer.makeAssign(accessor, undefined, printer.makeString(`${param}Deserializer.readMaterialized()`), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Materialized.getText()
