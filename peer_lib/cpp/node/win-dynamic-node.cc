@@ -62,7 +62,8 @@
    op(napi_get_value_double) \
    op(napi_close_callback_scope) \
    op(napi_async_destroy) \
-   op(napi_call_function)
+   op(napi_call_function) \
+   op(napi_get_value_external)
 
 #define DECL_NAPI_IMPL(fn_name, ...) decltype(&fn_name) p_##fn_name;
 
@@ -315,7 +316,11 @@ napi_fatal_error(const char* location,
   // Not reachable, but not represented in type signature.
   exit(0);
 }
-
+NAPI_EXTERN napi_status  NAPI_CDECL
+napi_get_value_external(napi_env env, napi_value value, void** result) {
+  LoadNapiFunctions();
+  return p_napi_get_value_external(env, value, result);
+}
 NAPI_EXTERN napi_status NAPI_CDECL napi_create_double(napi_env env,
                                                       double value,
                                                       napi_value* result) {
