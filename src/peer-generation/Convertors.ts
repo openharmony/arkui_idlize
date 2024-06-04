@@ -21,6 +21,10 @@ import { mapType } from "./TypeNodeNameConvertor"
 
 let uniqueCounter = 0
 
+function castToInt(lang: Language) {
+    return lang == Language.ARKTS ? " as int32" : ""
+}
+
 export interface ArgConvertor {
     param: string
     tsTypeName: string
@@ -354,7 +358,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 conditions = printer.makeNaryOp("&&", [conditions, unionDiscriminator])
             printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
-            printer.writeMethodCall(`${param}Serializer`, "writeInt8", [index.toString()])
+            printer.writeMethodCall(`${param}Serializer`, "writeInt8", [index.toString() + castToInt(printer.language)])
             if (!(it instanceof UndefinedConvertor)) {
                 const valueType = new Type(it.tsTypeName)
                 printer.writeStatement(
@@ -504,7 +508,7 @@ export class OptionConvertor extends BaseArgConvertor {
         const valueType = `${value}_type`
         printer.writeStatement(printer.makeAssign(valueType, Type.Int32,
             printer.makeFunctionCall("runtimeType", [printer.makeString(value)]), true))
-        printer.writeMethodCall(`${param}Serializer`, "writeInt8", [valueType])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt8", [valueType  + castToInt(printer.language)])
         printer.print(`if (${printer.makeRuntimeTypeCondition(valueType, false, RuntimeType.UNDEFINED).asString()}) {`)
         printer.pushIndent()
         printer.writeStatement(printer.makeAssign(`${value}_value`, undefined, printer.makeValueFromOption(value), true))
@@ -701,7 +705,7 @@ export class TupleConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
-            printer.makeFunctionCall("runtimeType", [ printer.makeString(value) ]).asString()])
+            printer.makeFunctionCall("runtimeType", [ printer.makeString(value) ]).asString() + castToInt(printer.language) ])
         this.memberConvertors.forEach((it, index) => {
             printer.writeStatement(
                 printer.makeAssign(`${value}_${index}`, undefined, printer.makeTupleAccess(value, index), true))
@@ -768,7 +772,7 @@ export class ArrayConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         // Array length.
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
-            printer.makeFunctionCall("runtimeType", [ printer.makeString(value) ]).asString()])
+            printer.makeFunctionCall("runtimeType", [ printer.makeString(value + castToInt(printer.language)) ]).asString()])
         const valueLength = printer.makeArrayLength(value).asString()
         const loopCounter = "i"
         printer.writeMethodCall(`${param}Serializer`, "writeInt32", [valueLength])
@@ -837,7 +841,7 @@ export class MapConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         // Map size.
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
-            printer.makeFunctionCall("runtimeType", [ printer.makeString(value) ]).asString()])
+            printer.makeFunctionCall("runtimeType", [ printer.makeString(value + castToInt(printer.language)) ]).asString()])
         printer.writeMethodCall(`${param}Serializer`, "writeInt32", [`${value}.size`])
         printer.writeStatement(printer.makeMapForEach(value, `${value}_key`, `${value}_value`, () => {
             this.keyConvertor.convertorSerialize(param, `${value}_key`, printer)

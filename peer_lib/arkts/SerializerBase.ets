@@ -72,38 +72,6 @@ function registerMaterialized(value: object|undefined): number {
     // TODO: fix me!
     return 42
 }
-/*
-let textEncoder = new TextEncoder()
-
-class ArrayBufferCache {
-    currentUsed = 0
-    cache: Array<ArrayBuffer|undefined> = []
-    constructor(public maxCapacity: number) {}
-
-    get(size: number): ArrayBuffer {
-        for (let i = 0; i < this.cache.length; i++) {
-            let buffer = this.cache[i]
-            if (buffer && buffer.byteLength >= size) {
-                this.cache[i] = undefined
-                this.currentUsed += buffer.byteLength
-                return buffer
-            }
-        }
-        this.currentUsed += size
-        return new ArrayBuffer(size)
-    }
-    release(buffer: ArrayBuffer) {
-        this.currentUsed -= buffer.byteLength
-        for (let i = 0; i < this.cache.length; i++) {
-            if (!this.cache[i]) {
-                this.cache[i] = buffer
-                return
-            }
-        }
-        this.cache.push(buffer)
-    }
-}
-*/
 
 /* Serialization extension point */
 export abstract class CustomSerializer {
@@ -229,25 +197,25 @@ export class SerializerBase {
     writeMaterialized(value: object | undefined) {
         this.writePointer(registerMaterialized(value))
     }
+    */
     writeString(value: string) {
-        this.checkCapacity(4 + value.length * 4) // length, data
-        let encodedLength =
-            nativeModule()._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
-        this.view.setInt32(this.position, encodedLength, true)
-        this.position += encodedLength + 4
+        this.checkCapacity(4 + value.length as int32 * 4) // length, data
+        // let encodedLength =
+        //     nativeModule()._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
+        // this.view.setInt32(this.position, encodedLength, true)
+        // this.position += encodedLength + 4
     }
     // Length is an important common case.
     writeLength(value: Length|undefined) {
         this.checkCapacity(1)
         let valueType = runtimeType(value)
-        this.writeInt8(valueType)
+        this.writeInt8(valueType as int32)
         if (valueType == RuntimeType.NUMBER) {
-            this.writeFloat32(value as number)
+            this.writeFloat32(value as float32)
         } else if (valueType == RuntimeType.STRING) {
             this.writeString(value as string)
         } else if (valueType == RuntimeType.OBJECT) {
-            this.writeInt32((value as Resource).id)
+            this.writeInt32((value as Resource).id as int32)
         }
     }
-    */
 }

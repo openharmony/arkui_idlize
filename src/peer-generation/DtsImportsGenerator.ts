@@ -1,8 +1,10 @@
 const dtsImports = `import {
     AltOffset,
     BackgroundBlurStyleOptions,
+    BindOptions,
     BlurOptions,
     BlurStyle,
+    BlurStyleOptions,
     Color,
     CommonAttribute,
     CommonMethod,

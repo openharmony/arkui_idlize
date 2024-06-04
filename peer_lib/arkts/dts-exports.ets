@@ -49,9 +49,9 @@ export interface Resource {
   type?: number;
 }
 
-export enum Color {
-    White,
-    Black,
+export class Color {
+    White = 0
+    Black = 1
 }
 
 export type Length = string | number
@@ -104,10 +104,10 @@ export interface UICommonEvent {
     setOnClick(callback: Callback<ClickEvent> | undefined): void;
 }
 
-export enum SheetSize {
-    MEDIUM,
-    LARGE,
-    FIT_CONTENT = 2,
+export class SheetSize {
+    MEDIUM = 0
+    LARGE = 1
+    FIT_CONTENT = 2
 }
 
 export interface BindOptions {
@@ -119,18 +119,18 @@ export interface SheetOptions extends BindOptions {
     detents?: [(SheetSize | Length), (SheetSize | Length), (SheetSize | Length)];
 }
 
-export enum BlurStyle {
-    Thin = 0,
+export class BlurStyle {
+    Thin = 0
 }
 
-export enum ThemeColorMode {
-    SYSTEM = 0,
-    LIGHT = 1,
+export class ThemeColorMode {
+    SYSTEM = 0
+    LIGHT = 1
     DARK = 2
 }
 
-export enum AdaptiveColor {
-    DEFAULT = 0,
+export class AdaptiveColor {
+    DEFAULT = 0
 }
 
 export interface BlurOptions {
