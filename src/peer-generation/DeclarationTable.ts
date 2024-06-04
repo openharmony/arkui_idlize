@@ -589,7 +589,7 @@ export class DeclarationTable {
         }
         if (ts.isClassDeclaration(declaration)) {
             if (isMaterialized(declaration)) {
-                return new MaterializedClassConvertor(declarationName, param, this)
+                return new MaterializedClassConvertor(declarationName, param, type)
             }
             return new ClassConvertor(declarationName, param, this, type)
         }
