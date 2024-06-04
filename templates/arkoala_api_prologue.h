@@ -105,6 +105,7 @@ typedef struct Ark_CustomObject {
     Ark_Int32 ints[4];
     Ark_Float32 floats[4];
     void* pointers[4];
+    Ark_String string;
   };
 } Ark_CustomObject;
 

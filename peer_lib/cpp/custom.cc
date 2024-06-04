@@ -40,5 +40,21 @@ struct MyDeserializer : CustomDeserializer {
     }
 
 };
-
 MyDeserializer deserilizer;
+
+struct DateDeserializer final : CustomDeserializer {
+    const std::vector<string> supported = {"Date"};
+    DateDeserializer() {
+        DeserializerBase::registerCustomDeserializer(this);
+    }
+    virtual bool supports(const string& kind) {
+        return std::find(supported.begin(), supported.end(), kind) != supported.end();
+    }
+    virtual Ark_CustomObject deserialize(DeserializerBase* deserializer, const string& kind) {
+        Ark_CustomObject result = {};
+        result.string = deserializer->readString();
+        strncpy(result.kind, kind.c_str(), sizeof(result.kind) - 1);
+        return result;
+    }
+};
+DateDeserializer dateDeserializer;

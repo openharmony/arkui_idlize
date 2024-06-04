@@ -535,7 +535,7 @@ export class DeclarationTable {
             case `Length`:
                 return new LengthConvertor(param)
             case `Date`:
-                return new ToStringConvertor(param)
+                return new CustomTypeConvertor(param, name, name)
             case `AttributeModifier`:
                 return new PredefinedConvertor(param, "AttributeModifier<any>", "AttributeModifier", "CustomObject")
             case `AnimationRange`:
@@ -1349,7 +1349,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
             case `Length`: return PrimitiveType.Length
             case `AnimationRange`: return PrimitiveType.CustomObject
             case `ContentModifier`: return PrimitiveType.CustomObject
-            case `Date`: return PrimitiveType.String
+            case `Date`: return PrimitiveType.CustomObject
         }
         // Types with type arguments are declarations!
         if (node.typeArguments) {

@@ -203,5 +203,15 @@ class OurCustomDeserializer extends CustomDeserializer {
         return JSON.parse(deserializer.readString())
     }
 }
-
 DeserializerBase.registerCustomDeserializer(new OurCustomDeserializer())
+
+class DateDeserializer extends CustomDeserializer {
+    constructor() {
+        super(["Date"]);
+    }
+
+    deserialize(serializer: DeserializerBase, kind: string): any {
+        return new Date(serializer.readString())
+    }
+}
+DeserializerBase.registerCustomDeserializer(new DateDeserializer())

@@ -501,6 +501,7 @@ export abstract class LanguageWriter {
     abstract getRuntimeType(): Type
     abstract makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement
     abstract get supportedModifiers(): MethodModifier[]
+    abstract makeDate(value: LanguageExpression): LanguageExpression
     writeSuperCall(params: string[]): void {
         this.printer.print(`super(${params.join(", ")});`)
     }
@@ -768,6 +769,9 @@ export class TSLanguageWriter extends LanguageWriter {
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC]
     }
+    makeDate(value: LanguageExpression): LanguageExpression {
+        return this.makeString(`new Date(${value.asString()})`)
+    }
 }
 
 export class ETSLanguageWriter extends TSLanguageWriter {
@@ -930,6 +934,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC, MethodModifier.NATIVE]
+    }
+    makeDate(value: LanguageExpression): LanguageExpression {
+        throw new Error("Method not implemented.")
     }
 }
 
@@ -1122,6 +1129,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.INLINE, MethodModifier.STATIC]
+    }
+    makeDate(value: LanguageExpression): LanguageExpression {
+        return value;
     }
 }
 

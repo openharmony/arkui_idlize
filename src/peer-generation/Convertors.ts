@@ -465,9 +465,12 @@ export class CustomTypeConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, `writeCustomObject`, [`"${this.customName}"`, value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
-        return printer.makeAssign(accessor, undefined,
-                printer.makeString(`${param}Deserializer.readCustomObject("${this.customName}")`), false)
+        const receiver = printer.getObjectAccessor(this, param, value)
+        return printer.makeAssign(receiver, undefined,
+                printer.makeCast(printer.makeMethodCall(`${param}Deserializer`,
+                        "readCustomObject",
+                        [printer.makeString(`"${this.customName}"`)]),
+                    printer.makeType(this.tsTypeName, false, receiver)), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.CustomObject.getText()
