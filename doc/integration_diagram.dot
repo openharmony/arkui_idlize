@@ -1,0 +1,16 @@
+
+digraph Arkoala {
+    generator -> "generated\nmodifiers" [label = rebuilds];
+    generator -> "generated_arkoala_api.h" [label = produces];
+    "arkoala_api.h" -> "manual\nmodifiers" [label = describes];
+    "arkoala_api.h" -> "libace.so" [label = "is interface of"];
+    "ace_engine\nworkspace" -> "manual\nmodifiers" [label = has];
+    "ace_engine\nworkspace" -> "build\nscripts" [label = has];
+    "build\nscripts" -> "generator" [label = "call on api update"];
+    "generated\nmodifiers" -> "manual\nmodifiers" [label = call];
+    "generated\nmodifiers" -> "arkoala_api.h" [label = "refers to"];
+    "generated_arkoala_api.h" -> "libace.so" [label = "is interface of"];
+    "generated_arkoala_api.h" -> "generated\nmodifiers" [label = "describes"];
+    "generated\nmodifiers" -> "libace.so" [label = "part of"];
+    "manual\nmodifiers" -> "libace.so" [label = "part of"];
+}
