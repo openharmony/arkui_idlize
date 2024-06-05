@@ -1,9 +1,9 @@
 import { IndentedPrinter } from "../IndentedPrinter";
-import { Language, renameClassToMaterialized } from "../util";
+import { Language, renameClassToMaterialized, capitalize } from "../util";
 import { PeerLibrary } from "./PeerLibrary";
 import { writePeerMethod } from "./PeersPrinter"
-import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter } from "./LanguageWriters";
-import { MaterializedClass } from "./Materialized"
+import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature } from "./LanguageWriters";
+import { MaterializedClass, MaterializedMethod } from "./Materialized"
 import { makeMaterializedPrologue } from "./FileGenerators";
 import { OverloadsPrinter, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter";
 
@@ -30,6 +30,41 @@ class MaterializedFileVisitor {
             const finalizableType = new Type("Finalizable")
             writer.writeFieldDeclaration("peer", finalizableType, undefined, true)
 
+            let fieldAccessors: MaterializedMethod[] = []
+
+            // getters and setters for fields
+            clazz.fields.forEach(f => {
+                const field = f.field
+                const isReadOnly = field.mofidifiers.includes(FieldModifier.READONLY)
+                const getSignature = new MethodSignature(field.type, [])
+                const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
+                writer.writeGetterImplementation(new Method(field.name, getSignature), writer => {
+                    writer.writeStatement(
+                        writer.makeReturn(
+                            writer.makeMethodCall("this", `get${capitalize(field.name)}`,[])))
+                });
+
+                const getAccessor = new MaterializedMethod(clazz.className, [], [], f.retConvertor, false,
+                    new Method(`get${capitalize(field.name)}`, new NamedMethodSignature(field.type, [], []))
+                )
+
+                fieldAccessors = fieldAccessors.concat(getAccessor)
+
+                if (!isReadOnly) {
+                    writer.writeSetterImplementation(new Method(field.name, setSignature), writer => {
+                        writer.writeMethodCall("this", `set${capitalize(field.name)}`, [field.name])
+                    });
+
+                    const retConvertor = { isVoid: true, nativeType: () => Type.Void.name, macroSuffixPart: () => "V" }
+                    const setAccessor = new MaterializedMethod(clazz.className, [f.declarationTarget], [f.argConvertor], retConvertor, false,
+                        new Method(`set${capitalize(field.name)}`, setSignature)
+                    )
+                    fieldAccessors = fieldAccessors.concat(setAccessor)
+                }
+            })
+
+            clazz.methods = fieldAccessors.concat(clazz.methods)
+
             const pointerType = Type.Pointer
             makePrivate(clazz.ctor.method)
             writePeerMethod(writer, clazz.ctor, this.dumpSerialized, "", "", pointerType)
@@ -41,16 +76,30 @@ class MaterializedFileVisitor {
                 ctorSig.argsNames,
                 ctorSig.defaults)
 
-            const allUndefined = ctorSig.argsNames.map(it => `${it} === undefined`).join(` && `)
-
             writer.writeConstructorImplementation(clazz.className, sigWithPointer, writer => {
 
-                writer.writeStatement(
-                    writer.makeCondition(
-                        writer.makeString(ctorSig.args.length === 0 ? "true" : allUndefined),
-                        writer.makeReturn()
-                    )
-                )
+                const allOptional = ctorSig.args.every(it => it.nullable)
+                const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
+                const allUndefined = ctorSig.argsNames.map(it => `${it} === undefined`).join(` && `)
+
+                if (hasStaticMethods) {
+                    if (allOptional) {
+                        if (ctorSig.args.length == 0) {
+                            writer.print(`// Constructor does not have parameters.`)
+                        } else {
+                            writer.print(`// All constructor parameters are optional.`)
+                        }
+                        writer.print(`// It means that the static method call invokes ctor method as well`)
+                        writer.print(`// when all arguments are undefined.`)
+                    } else {
+                        writer.writeStatement(
+                            writer.makeCondition(
+                                writer.makeString(ctorSig.args.length === 0 ? "true" : allUndefined),
+                                writer.makeReturn()
+                            )
+                        )
+                    }
+                }
 
                 const args = ctorSig.args.map((it, index) => writer.makeString(`${ctorSig.argsNames[index]}${it.nullable ? "" : "!"}`))
                 writer.writeStatement(

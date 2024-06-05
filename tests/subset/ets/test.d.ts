@@ -51,11 +51,87 @@ declare class ClassDTS {
     valBoolean: boolean
 }
 
+// Non materialized class
 declare class ClassWithConstructorDTS {
 
     constructor(valNumber: number, valString: string)
+}
 
-//     method(valBoolean: boolean, valString: string)
+// Non materialized class
+declare class ClassWithConstructorAndFieldsDTS {
+
+    valNumber: number
+    valBoolean: boolean
+
+    constructor(valNumber: number, valBoolean: boolean)
+}
+
+// Materialized class
+declare class ClassWithConstructorAndMethodsDTS {
+
+    constructor(valNumber: number, valString: string)
+
+    method(valNumber: number, valString: string): void
+}
+
+// Materialized class
+declare class ClassWithConstructorAndStaticMethodsDTS {
+
+    constructor(valNumber: number, valString: string)
+
+    static of(valNumber: number, valString: string): ClassWithConstructorAndStaticMethodsDTS
+}
+
+// Materialized class
+declare class ClassWithConstructorAndFieldsAndMethodsDTS {
+
+    valNumber: number
+    valBoolean: boolean
+
+    constructor(valNumber: number, valBoolean: boolean)
+
+    method(valNumber: number, valString: string): void
+}
+
+
+// Materialized class
+declare class ClassWithConstructorAndWithoutParamsDTS {
+
+    constructor()
+
+    static of(): ClassWithConstructorAndWithoutParamsDTS
+
+    method(): void
+}
+
+// Materialized class
+declare class ClassWithConstructorAndNonOptionalParamsDTS {
+
+    constructor(valNumber: number, valString: string)
+
+    static of(valNumber: number, valString: string): ClassWithConstructorAndNonOptionalParamsDTS
+
+    method(valBoolean: boolean, valString: string): void
+}
+
+// Materialized class
+declare class ClassWithConstructorAndSomeOptionalParamsDTS {
+
+    constructor(valNumber: number, valString?: string)
+
+    static of(valNumber: number, valString?: string): ClassWithConstructorAndSomeOptionalParamsDTS
+
+    method(valBoolean: boolean, valString?: string): void
+}
+
+// Materialized class
+declare class ClassWithConstructorAndAllOptionalParamsDTS {
+
+    constructor(valNumber?: number, valString?: string)
+
+    static of(valNumber?: number, valString?: string): ClassWithConstructorAndAllOptionalParamsDTS
+
+    method(valBoolean?: boolean, valString?: string): void
 }
 
 // basic types:
@@ -187,7 +263,23 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testClass(value: ClassDTS): TestAttribute
 
-    //testClassWithConstructor1(value: ClassWithConstructorDTS): TestAttribute
+    testClassWithConstructor(value: ClassWithConstructorDTS): TestAttribute
 
-    //testClassWithConstructor2(valString: string, value: ClassWithConstructorDTS): TestAttribute
+    testClassWithConstructorAndFields(value: ClassWithConstructorAndFieldsDTS): TestAttribute
+
+    // Materialized class
+
+    testClassWithConstructorAndMethods(value: ClassWithConstructorAndMethodsDTS): TestAttribute
+
+    testClassWithConstructorAndStaticMethods(value: ClassWithConstructorAndStaticMethodsDTS): TestAttribute
+
+    testClassWithConstructorAndFieldsAndMethods(value: ClassWithConstructorAndFieldsAndMethodsDTS): TestAttribute
+
+    testClassWithConstructorAndNonOptionalParams(value: ClassWithConstructorAndNonOptionalParamsDTS): TestAttribute
+
+    testClassWithConstructorAndSomeOptionalParams(value: ClassWithConstructorAndSomeOptionalParamsDTS): TestAttribute
+
+    testClassWithConstructorAndAllOptionalParams(value: ClassWithConstructorAndAllOptionalParamsDTS): TestAttribute
+
+    testClassWithConstructorAndWithoutParams(value: ClassWithConstructorAndWithoutParamsDTS): TestAttribute
 }

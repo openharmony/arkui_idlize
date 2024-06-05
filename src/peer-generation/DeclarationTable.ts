@@ -657,6 +657,8 @@ export class DeclarationTable {
                 let name = this.computeTargetName(declaration, false)
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
+                if (!(declaration instanceof PrimitiveType)
+                    && ts.isClassDeclaration(declaration) && isMaterialized(declaration)) continue
                 this.generateDeserializer(name, declaration, printer)
             }
         }, superName)
@@ -808,6 +810,7 @@ export class DeclarationTable {
                 const name = this.computeTargetName(declaration, false)
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
+                if (ts.isClassDeclaration(declaration) && isMaterialized(declaration)) continue
                 if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) {
                     if (this.canGenerateTarget(declaration)) {
                         writer.pushIndent()
@@ -888,6 +891,7 @@ export class DeclarationTable {
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
                 if (declaration instanceof PrimitiveType) continue
+                if (ts.isClassDeclaration(declaration) && isMaterialized(declaration)) continue
                 if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration))
                     if (this.canGenerateTarget(declaration))
                         this.generateSerializer(name, declaration, writer)

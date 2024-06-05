@@ -348,13 +348,16 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
         if (method.hasReceiver() && returnType === Type.This) {
             result = `this`
         } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor"){
-            const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(",")})`
-            const objType = new Type(method.originalParentName)
-            writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
-            writer.writeStatement(
-                writer.makeAssign("obj.peer", new Type("Finalizable"),
-                    writer.makeString(`new Finalizable(${returnValName}, ${method.originalParentName}.getFinalizer())`), false))
-            result = "obj"
+            const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
+            if (!method.hasReceiver()) {
+                const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(",")})`
+                const objType = new Type(method.originalParentName)
+                writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
+                writer.writeStatement(
+                    writer.makeAssign("obj.peer", new Type("Finalizable"),
+                        writer.makeString(`new Finalizable(${returnValName}, ${method.originalParentName}.getFinalizer())`), false))
+                result = "obj"
+            }
         }
         writer.writeStatement(writer.makeReturn(writer.makeString(result)))
     }

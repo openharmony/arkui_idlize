@@ -129,15 +129,18 @@ export class OverloadsPrinter {
             }
         })
 
-        if (isStatic) {
+        const returnType = collapsedMethod.signature.returnType
+        if (returnType === Type.This || returnType === Type.Void) {
+            this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            if (returnType === Type.This) {
+                this.printer.print(`return this`)
+            }
+        } else {
             this.printer.writeStatement(
                 this.printer.makeReturn(
                     this.printer.makeMethodCall(receiver, methodName,
                         argsNames.map(it => this.printer.makeString(it)))
                 ))
-        } else {
-            this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
-            this.printer.print(`return this`)
         }
     }
 }

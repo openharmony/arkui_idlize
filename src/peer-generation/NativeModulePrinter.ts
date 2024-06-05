@@ -92,8 +92,8 @@ export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, native
     nativeModule.writeNativeMethodDeclaration(name, parameters)
     nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
         printer.writePrintLog(name)
-        if (returnType !== undefined) {
-            printer.writeStatement(printer.makeReturn(printer.makeString(`-1`)))
+        if (returnType !== undefined && returnType.name !== Type.Void.name) {
+            printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
         }
     })
     clazz.setGenerationContext(undefined)
@@ -110,4 +110,13 @@ export function printNativeModuleEmpty(peerLibrary: PeerLibrary): string {
     const visitor = new NativeModuleVisitor(peerLibrary)
     visitor.print()
     return nativeModuleEmptyDeclaration(visitor.nativeModuleEmpty.getOutput())
+}
+
+function getReturnValue(type: Type): string {
+    switch(type.name) {
+        case Type.Boolean.name : return "false"
+        case Type.Number.name: return "1"
+        case Type.Pointer.name: return "-1"
+    }
+    throw new Error(`Unknown return type: ${type.name}`)
 }

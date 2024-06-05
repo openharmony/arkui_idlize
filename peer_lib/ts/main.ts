@@ -26,6 +26,7 @@ import { ArkSideBarContainerPeer } from "@arkoala/arkui/ArkSidebarPeer"
 import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
 import { ArkTabContentPeer } from "@arkoala/arkui/ArkTabContentPeer"
 import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleMaterialized"
+import { CanvasRenderingContext2D } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testString1000 } from "@arkoala/arkui/test_data"
@@ -239,6 +240,30 @@ function checkTabContent() {
         `dummyClassFinalizer(0x12c)`)
 }
 
+function checkCanvasRenderingContext2D() {
+
+    let canvasRenderingContext2D: CanvasRenderingContext2D | undefined = undefined
+
+    checkResult("new CanvasRenderingContext2D()",
+        () => canvasRenderingContext2D = new CanvasRenderingContext2D(),
+        `new CanvasRenderingContext2D(undefined)[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`)
+
+    checkResult("CanvasRenderingContext2D width",
+        () => canvasRenderingContext2D!.width,
+        `getWidth()`)
+
+    checkResult("CanvasRenderingContext2D width",
+        () => canvasRenderingContext2D!.height,
+        `getHeight()`)
+
+    assertEquals("CanvasRenderingContext2D width", 0, canvasRenderingContext2D!.width)
+    assertEquals("CanvasRenderingContext2D height", 0, canvasRenderingContext2D!.height)
+
+    checkResult("CanvasRenderingContext2D peer close()",
+        () => canvasRenderingContext2D!.peer!.close(),
+        `dummyClassFinalizer(0x64)`)
+}
+
 function checkPerf1(count: number) {
     let module = nativeModule()
     let start = performance.now()
@@ -336,6 +361,7 @@ ${callLog}
 }`)
 }
 checkTabContent()
+checkCanvasRenderingContext2D()
 
 // Report in error code.
 checkTestFailures()

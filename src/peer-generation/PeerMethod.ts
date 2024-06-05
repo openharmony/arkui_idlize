@@ -154,7 +154,7 @@ export class MethodSeparatorVisitor {
             this.onPushOptionScope(argIndex, target, true)
             this.declarationTable.visitDeclaration(target, visitor)
             this.onPopOptionScope(argIndex)
-            
+
             this.onPushOptionScope(argIndex, target, false)
             visitor.visitInseparable()
             this.onPopOptionScope(argIndex)

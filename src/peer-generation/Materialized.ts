@@ -15,22 +15,43 @@
 
 import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./Convertors"
-import { Method, MethodModifier, Type } from "./LanguageWriters"
+import { Field, Method, MethodModifier, Type } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
 import { identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
 import { DeclarationTarget } from "./DeclarationTable"
 
 const ignoredMaterializedClasses = [
-    "CanvasRenderingContext2D", // has data
+    //"CanvasRenderingContext2D", // has data
     "NavPathStack",             // has data
     "TransitionEffect",         // unknown types `Type` and `Effect`
 ]
 
 export function isMaterialized(declaration: ts.ClassDeclaration): boolean {
-    // TBD: check the class has zero fields
+
     if (ignoredMaterializedClasses.includes(identName(declaration)!)) return false
-    return declaration.members.find(ts.isConstructorDeclaration) !== undefined
+
+
+    // A materialized class is a class which has both constructors and methods
+
+    if (declaration.members.find(ts.isConstructorDeclaration) === undefined) {
+        return false;
+    }
+
+    if (declaration.members.find(ts.isMethodDeclaration) === undefined) {
+        return false;
+    }
+
+    return true
+}
+
+export class MaterializedField {
+    constructor(
+        public declarationTarget: DeclarationTarget,
+        public argConvertor: ArgConvertor,
+        public retConvertor: RetConvertor,
+        public field: Field
+    ) { }
 }
 
 export class MaterializedMethod extends PeerMethod {
@@ -90,20 +111,17 @@ export class MaterializedMethod extends PeerMethod {
 
     tsReturnType(): Type | undefined {
         const returnType = this.method.signature.returnType
-        if (!this.hasReceiver() || returnType === Type.This) {
-            return returnType
-        } else {
-            return returnType.name === this.originalParentName ? Type.This : undefined
-        }
+        return this.hasReceiver() && returnType.name === this.originalParentName ? Type.This : returnType
     }
 }
 
 export class MaterializedClass implements PeerClassBase {
     constructor(
         public readonly className: string,
+        public readonly fields: MaterializedField[],
         public readonly ctor: MaterializedMethod,
         public readonly finalizer: MaterializedMethod,
-        public readonly methods: MaterializedMethod[],
+        public methods: MaterializedMethod[],
     ) {
         PeerMethod.markOverloads(methods)
     }

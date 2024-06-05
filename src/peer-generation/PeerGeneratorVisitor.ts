@@ -28,6 +28,7 @@ import {
     throwException,
     isCustomComponentClass,
     getComment,
+    isReadonly,
 } from "../util"
 import { GenericVisitor } from "../options"
 import {
@@ -45,8 +46,8 @@ import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
-import { MaterializedClass, MaterializedMethod, isMaterialized } from "./Materialized"
-import { Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
+import { MaterializedClass, MaterializedField, MaterializedMethod, isMaterialized } from "./Materialized"
+import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
 import { TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 
@@ -270,7 +271,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
     generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
         const parameters = this.tempExtractParameters(method)
-        const returnType = isStatic(method.modifiers) ? new Type(identName(method.type)!) : Type.This
+        const returnName = identName(method.type)!
+        const returnType = returnName === "void" ? Type.Void
+            : isStatic(method.modifiers) ? new Type(returnName) : Type.This
         return new NamedMethodSignature(returnType,
             parameters
                 .map(it => new Type(this.nameConvertor.convert(it.type), it.questionToken != undefined)),
@@ -397,11 +400,24 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
         let mFinalizer = new MaterializedMethod(className, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]))
+        let mFields = target.members
+            .filter(ts.isPropertyDeclaration)
+            .map(it => this.makeMaterializedField(it))
         let mMethods = target.members
             .filter(ts.isMethodDeclaration)
             .map(method => this.makeMaterializedMethod(className, method))
         this.peerLibrary.materializedClasses.set(className,
-            new MaterializedClass(className, mConstructor, mFinalizer, mMethods))
+            new MaterializedClass(className, mFields, mConstructor, mFinalizer, mMethods))
+    }
+
+    private makeMaterializedField(property: ts.PropertyDeclaration): MaterializedField {
+        const name = identName(property.name)!
+        const declarationTarget = this.declarationTable.toTarget(property.type!)
+        const argConvertor = this.declarationTable.typeConvertor(name, property.type!)
+        const retConvertor = this.retConvertor(property.type!)
+        const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
+        return new MaterializedField(declarationTarget, argConvertor, retConvertor,
+            new Field(name, new Type(identName(property.type)!), modifiers))
     }
 
     private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration) {

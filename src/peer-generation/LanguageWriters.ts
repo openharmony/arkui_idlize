@@ -25,10 +25,15 @@ import * as ts from "typescript"
 export class Type {
     constructor(public name: string, public nullable = false) {}
     static Int32 = new Type('int32')
+    static Boolean = new Type('boolean')
     static Number = new Type('number')
     static Pointer = new Type('KPointer')
     static This = new Type('this')
     static Void = new Type('void')
+}
+
+export enum FieldModifier {
+    READONLY,
 }
 
 export enum MethodModifier {
@@ -37,6 +42,8 @@ export enum MethodModifier {
     STATIC,
     NATIVE,
     INLINE,
+    GETTER,
+    SETTER,
 }
 
 export interface LanguageStatement {
@@ -459,6 +466,10 @@ export class NamedMethodSignature extends MethodSignature {
     }
 }
 
+export class Field {
+    constructor(public name: string, public type: Type, public mofidifiers: FieldModifier[] = []) {}
+}
+
 export class Method {
     constructor(public name: string, public signature: MethodSignature, public modifiers: MethodModifier[]|undefined = undefined) {}
 }
@@ -502,6 +513,12 @@ export abstract class LanguageWriter {
     abstract makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement
     abstract get supportedModifiers(): MethodModifier[]
     abstract makeDate(value: LanguageExpression): LanguageExpression
+    writeGetterImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
+        this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.GETTER].concat(method.modifiers ?? [])), op)
+    }
+    writeSetterImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
+        this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.SETTER].concat(method.modifiers ?? [])), op)
+    }
     writeSuperCall(params: string[]): void {
         this.printer.print(`super(${params.join(", ")});`)
     }
@@ -674,6 +691,12 @@ export class TSLanguageWriter extends LanguageWriter {
         let prefix = modifiers
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
+        if (modifiers?.includes(MethodModifier.GETTER)) {
+            prefix = `get ${prefix}`
+        } else if (modifiers?.includes(MethodModifier.SETTER)) {
+            prefix = `set ${prefix}`
+            needReturn = false
+        }
         prefix = prefix ? prefix + " " : ""
         this.printer.print(`${prefix}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
