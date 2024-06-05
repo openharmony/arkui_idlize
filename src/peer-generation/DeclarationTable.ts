@@ -532,6 +532,7 @@ export class DeclarationTable {
     private customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode): ArgConvertor | undefined {
         let name = getNameWithoutQualifiersRight(typeName)
         switch (name) {
+            case `Dimension`:
             case `Length`:
                 return new LengthConvertor(param)
             case `Date`:
@@ -720,6 +721,7 @@ export class DeclarationTable {
             aliasNames.forEach(aliasName => this.addNameAlias(target, declarationName, aliasName, seenNames, typedefs))
         }
         // TODO: hack, remove me!
+        typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Ark_Length ${PrimitiveType.OptionalPrefix}Dimension;`)
         typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Ark_Length ${PrimitiveType.OptionalPrefix}Length;`)
     }
 
@@ -1346,7 +1348,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
     convertTypeReference(node: ts.TypeReferenceNode): DeclarationTarget {
         let name = identName(node)
         switch (name) {
-            case `Length`: return PrimitiveType.Length
+            case `Dimension`: case `Length`: return PrimitiveType.Length
             case `AnimationRange`: return PrimitiveType.CustomObject
             case `ContentModifier`: return PrimitiveType.CustomObject
             case `Date`: return PrimitiveType.CustomObject

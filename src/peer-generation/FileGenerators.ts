@@ -183,7 +183,7 @@ export function makeTSSerializer(table: DeclarationTable): string {
     let printer = createLanguageWriter(new IndentedPrinter(), table.language)
     table.generateSerializers(printer)
     return `
-import { SerializerBase, runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
+import { SerializerBase, Tags, RuntimeType, Function, runtimeType, isPixelMap, isResource } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"
 ${table.language == Language.ARKTS ? collectDtsImports().trim() : ""}

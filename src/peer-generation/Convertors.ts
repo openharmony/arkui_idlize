@@ -289,7 +289,7 @@ export class LengthConvertorScoped extends BaseArgConvertor {
 
 export class LengthConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
+        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param, true)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `(const ${PrimitiveType.Length.getText()}*)&${param}` : param
@@ -325,6 +325,9 @@ export class LengthConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+        return writer.makeString(`isResource(${value})`)
+    }
 }
 
 export class UnionConvertor extends BaseArgConvertor {
@@ -335,6 +338,9 @@ export class UnionConvertor extends BaseArgConvertor {
         this.memberConvertors = type
             .types
             .map(member => table.typeConvertor(param, member))
+        this.hasUnionDiscriminator = this.memberConvertors
+            .filter(it => it.runtimeTypes.includes(RuntimeType.OBJECT))
+            .every(it => it.hasUnionDiscriminator)
         this.checkUniques(param, this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
     }
@@ -424,10 +430,12 @@ export class UnionConvertor extends BaseArgConvertor {
     private static reportedConflicts = new Set<string>()
 }
 export class ImportTypeConvertor extends BaseArgConvertor {
+    private static knownTypes = [ "PixelMap", "Resource" ]
     private importedName: string
     constructor(param: string, private table: DeclarationTable, type: ts.ImportTypeNode) {
         super("Object", [RuntimeType.OBJECT], false, true, param)
         this.importedName = importTypeName(type)
+        this.hasUnionDiscriminator = ImportTypeConvertor.knownTypes.includes(this.importedName)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -453,6 +461,11 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return true
+    }
+    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+        return this.hasUnionDiscriminator
+            ? writer.makeString(`is${this.importedName}(${value})`)
+            : undefined
     }
 }
 
@@ -1003,7 +1016,7 @@ export class PredefinedConvertor extends BaseArgConvertor {
 
 class ProxyConvertor extends BaseArgConvertor {
     constructor(protected convertor: ArgConvertor) {
-        super(convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
+        super(convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param, convertor.hasUnionDiscriminator)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.convertor.convertorArg(param, writer)
@@ -1022,6 +1035,9 @@ class ProxyConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return this.convertor.isPointerType()
+    }
+    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+        return this.convertor.unionDiscriminator(value, index, writer)
     }
 }
 
