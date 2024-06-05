@@ -451,11 +451,15 @@ export function renameDtsToPeer(fileName: string, language: Language, withFileEx
     return renamed
 }
 
-export function renameDtsToComponent(fileName: string, language: Language) {
-    return "Ark"
+export function renameDtsToComponent(fileName: string, language: Language, withFileExtension: boolean = true) {
+    const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))
         .replace(".d.ts", "")
-        .concat(language.extension)
+        
+    if (withFileExtension) {
+        return renamed.concat(language.extension)
+    }
+    return renamed
 }
 
 export function renameClassToMaterialized(fileName: string, language: Language) {

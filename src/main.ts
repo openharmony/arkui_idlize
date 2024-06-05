@@ -49,7 +49,6 @@ import { printPeers } from "./peer-generation/PeersPrinter"
 import { printMaterialized } from "./peer-generation/MaterializedPrinter"
 import { printApiAndSerializers } from "./peer-generation/HeaderPrinter"
 import { printNodeTypes } from "./peer-generation/NodeTypesPrinter"
-import { printStructCommon } from "./peer-generation/StructCommonPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/NativeModulePrinter"
 import { printBridgeCc } from "./peer-generation/BridgeCcPrinter"
 import { printImportsStubs } from "./peer-generation/ImportsStubsPrinter"
@@ -348,10 +347,6 @@ if (options.dts2peer) {
                         makeArkuiModule(arkuiComponentsFiles),
                     )
                     fs.writeFileSync(
-                        path.join(outDir, 'ArkCommon' + lang.extension),
-                        printStructCommon(peerLibrary),
-                    )
-                    fs.writeFileSync(
                         path.join(outDir, "peer_events" + lang.extension),
                         printEvents(peerLibrary)
                     )
@@ -369,10 +364,6 @@ if (options.dts2peer) {
                     )
                     fs.writeFileSync(path.join(outDir, 'Serializer' + lang.extension),
                         makeTSSerializer(declarationTable)
-                    )
-                    fs.writeFileSync(
-                        path.join(outDir, 'ArkCommon' + lang.extension),
-                        collectDtsImports() + printStructCommon(peerLibrary),
                     )
                 }
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))

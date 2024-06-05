@@ -20,7 +20,7 @@ import { PeerLibrary } from "./PeerLibrary";
 import { Language, isStatic, renameDtsToPeer, throwException } from "../util";
 import { ImportsCollector } from "./ImportsCollector";
 import { PeerClass, PeerClassBase } from "./PeerClass";
-import { InheritanceRole, determineParentRole, isHeir, isRoot } from "./inheritance";
+import { InheritanceRole, determineParentRole, isHeir, isRoot, isStandalone } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import {
     LanguageExpression,
@@ -117,7 +117,7 @@ class PeerFileVisitor {
         const isNode = parentRole !== InheritanceRole.Finalizable
         const signature = new NamedMethodSignature(
             Type.Void,
-            [new Type(this.isArkTs ? 'int' : 'ArkUINodeType', !isNode), new Type('ArkCommon', true), new Type('int32')],
+            [new Type(this.isArkTs ? 'int' : 'ArkUINodeType', !isNode), new Type('ComponentBase', true), new Type('int32')],
             ['type', 'component', 'flags'],
             [undefined, undefined, '0'])
 
@@ -217,7 +217,7 @@ class PeerFileVisitor {
                     `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { nativeModule } from "./NativeModule"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
-                    `import { ArkCommon } from "./ArkCommon"`,
+                    `import { ComponentBase } from "./ComponentBase"`,
                 ]
             }
             case Language.ARKTS: {
@@ -228,7 +228,7 @@ class PeerFileVisitor {
                     `import { isPixelMap, isResource, runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
                     `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
-                    `import { ArkCommon } from "./ArkCommon"`,
+                    `import { ComponentBase } from "./ComponentBase"`,
                     `${collectDtsImports().trim()}`
                 ]
             }

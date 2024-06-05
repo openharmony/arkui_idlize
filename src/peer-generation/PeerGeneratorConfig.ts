@@ -60,18 +60,17 @@ export class PeerGeneratorConfig {
         "SaveButtonInterface",
     ]
 
-    public static skipPeerGeneration = ["CommonAttribute"]
-    public static skipComponentGeneration = ["CommonShapeMethod", "ScrollableCommonMethod"]
+    public static skipPeerGeneration = ["CommonAttribute", "ProgressAttribute"]
 
     public static rootComponents = [
         "CommonMethod",
-        // "SecurityComponentMethod",
-        // "CommonTransition"
+        "SecurityComponentMethod",
+        "CommonTransition",
+        "CalendarAttribute",
+        "ContainerSpanAttribute",
     ]
 
     public static standaloneComponents = [
-        "CalendarAttribute",
-        "ContainerSpanAttribute",
         "TextPickerDialog",
         "TimePickerDialog",
         "AlertDialog",

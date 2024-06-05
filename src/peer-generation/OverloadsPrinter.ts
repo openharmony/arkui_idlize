@@ -68,11 +68,11 @@ export class OverloadsPrinter {
                 writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
                 this.printer.pushIndent()
             }
-            const argsNames = collapsedMethod.signature.args.map((_, index) => collapsedMethod.signature.argName(index))
-            for (let i = 0; i < collapsedMethod.signature.args.length; i++) {
-                this.printer.print(`const ${argsNames[i]}_type = runtimeType(${argsNames[i]})`)
-            }
             if (orderedMethods.length > 1) {
+                const argsNames = collapsedMethod.signature.args.map((_, index) => collapsedMethod.signature.argName(index))
+                for (let i = 0; i < collapsedMethod.signature.args.length; i++) {
+                    this.printer.print(`const ${argsNames[i]}_type = runtimeType(${argsNames[i]})`)
+                }
                 for (const peerMethod of orderedMethods)
                     this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod)
                 writer.print(`throw "Can not select appropriate overload"`)

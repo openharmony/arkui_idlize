@@ -54,5 +54,5 @@ export class PeerClass implements PeerClassBase {
     parentComponentName: string | undefined = undefined
     attributesFields: string[] = []
     attributesTypes: string[] = []
-    hasTransitiveGenericType: boolean = false
+    hasGenericType: boolean = false
 }

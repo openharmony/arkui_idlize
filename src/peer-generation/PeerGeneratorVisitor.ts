@@ -37,7 +37,6 @@ import {
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import {
-    hasTransitiveHeritageGenericType,
     isRoot,
     isStandalone,
     singleParentDeclaration,
@@ -168,7 +167,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             return this.interfacesToGenerate.has(name)
         }
 
-        if (isStandalone(name)) return true
+        // TODO process standalones
+        if (isStandalone(name)) return false
         if (isRoot(name)) return true
         if (this.isRootMethodInheritor(decl)) return true
 
@@ -460,12 +460,12 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
     populatePeer(node: ts.ClassDeclaration, peer: PeerClass) {
         peer.originalClassName = className(node)
+        peer.hasGenericType = (node.typeParameters?.length ?? 0) > 0
         const parent = singleParentDeclaration(this.typeChecker, node) as ts.ClassDeclaration
         if (parent) {
             peer.originalParentName = className(parent)
             peer.originalParentFilename = parent.getSourceFile().fileName
             peer.parentComponentName = this.renameToComponent(peer.originalParentName!)
-            peer.hasTransitiveGenericType = hasTransitiveHeritageGenericType(node)
         }
     }
 

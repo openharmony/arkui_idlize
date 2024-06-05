@@ -5,3 +5,7 @@ export function NodeAttach<Node extends IncrementalNode>(
     /** @memo */
     update: (node: Node) => void
 ) { throw new Error("not implemented") }
+
+export function remember<Value>(compute: () => Value): Value {
+    return compute()
+}

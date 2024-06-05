@@ -73,14 +73,3 @@ export function singleParentDeclaration(
     }
     return undefined
 }
-
-export function hasTransitiveHeritageGenericType(
-    component: ts.ClassDeclaration | ts.InterfaceDeclaration
-) {
-    const componentTypes = component.typeParameters ?? []
-    const parentTypes = component.heritageClauses
-        ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)[0]?.types[0]?.typeArguments ?? []
-    return componentTypes.some(type => {
-        return parentTypes.some(parentType => type.getText() === parentType.getText())
-    })
-}
