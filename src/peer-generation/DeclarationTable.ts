@@ -398,7 +398,10 @@ export class DeclarationTable {
         throw new Error(`Cannot compute type name: ${type.getText()} ${type.kind}`)
     }
 
-    private orderedDependencies: DeclarationTarget[] = []
+    public get orderedDependencies(): DeclarationTarget[] {
+        return this._orderedDependencies
+    }
+    private _orderedDependencies: DeclarationTarget[] = []
     analyze(library: PeerLibrary) {
         const callbacks = collectCallbacks(library)
         for (const callback of callbacks) {
@@ -411,7 +414,7 @@ export class DeclarationTable {
         for (let declaration of this.typeMap.values()) {
             orderer.addDep(declaration[0])
         }
-        this.orderedDependencies = orderer.getToposorted()
+        this._orderedDependencies = orderer.getToposorted()
     }
 
     serializerName(name: string, type: ts.TypeNode): string {
@@ -641,28 +644,7 @@ export class DeclarationTable {
         }
     }
 
-    generateDeserializers(printer: LanguageWriter, structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
-        const className = "Deserializer"
-        const superName = `${className}Base`
-        let ctorSignature = printer.language == Language.CPP
-            ? new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
-            : undefined
-        printer.writeClass(className, writer => {
-            if (ctorSignature) {
-                const ctorMethod = new Method(`${className}Base`, ctorSignature)
-                writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
-            }
-            const seenNames = new Set<string>()
-            for (let declaration of this.orderedDependencies) {
-                let name = this.computeTargetName(declaration, false)
-                if (seenNames.has(name)) continue
-                seenNames.add(name)
-                if (!(declaration instanceof PrimitiveType)
-                    && ts.isClassDeclaration(declaration) && isMaterialized(declaration)) continue
-                this.generateDeserializer(name, declaration, printer)
-            }
-        }, superName)
-
+    generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         const seenNames = new Set<string>()
         seenNames.clear()
         let noDeclaration = [PrimitiveType.Int32, PrimitiveType.Tag, PrimitiveType.Number, PrimitiveType.Boolean, PrimitiveType.String]
@@ -692,7 +674,7 @@ export class DeclarationTable {
                 continue
             }
             const structDescriptor = this.targetStruct(target)
-            if (!noBasicDecl && !this.ignoreTarget(target, nameAssigned)) {
+            if (!noBasicDecl && !this.ignoreTarget(target)) {
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
                 structDescriptor.getFields().forEach(it => structs.print(`${this.cFieldKind(it.declaration)}${it.optional ? PrimitiveType.OptionalPrefix : ""}${this.computeTargetName(it.declaration, false)} ${it.name};`))
                 this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
@@ -802,30 +784,10 @@ export class DeclarationTable {
         return writer => writer.writeStatement(writer.makeReturn(result))
     }
 
-    generateTSDeserializers(printer: LanguageWriter) {
-        printer.writeClass("Deserializer", (writer)=> {
-            let seenNames = new Set<string>()
-            for (const declaration of this.orderedDependencies) {
-                if (declaration instanceof PrimitiveType) continue
-                const name = this.computeTargetName(declaration, false)
-                if (seenNames.has(name)) continue
-                seenNames.add(name)
-                if (ts.isClassDeclaration(declaration) && isMaterialized(declaration)) continue
-                if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) {
-                    if (this.canGenerateTarget(declaration)) {
-                        writer.pushIndent()
-                        this.generateDeserializer(name, declaration, writer)
-                        writer.popIndent()
-                    }
-                }
-            }
-        }, "DeserializerBase");
-    }
-
     private addNameAlias(target: DeclarationTarget, declarationName: string, aliasName: string,
         seenNames: Set<string>, typedefs: IndentedPrinter): void {
         if (seenNames.has(aliasName)) return
-        if (this.ignoreTarget(target, declarationName) && target != PrimitiveType.CustomObject) return
+        if (this.ignoreTarget(target) && target != PrimitiveType.CustomObject) return
         seenNames.add(aliasName)
         typedefs.print(`typedef ${declarationName} ${aliasName};`)
         // TODO: hacky
@@ -866,48 +828,6 @@ export class DeclarationTable {
         }
         printer.popIndent()
         printer.print(`}`)
-    }
-
-    generateSerializers(printer: LanguageWriter) {
-        const className = "Serializer"
-        const superName = `${className}Base`
-        let ctorSignature: NamedMethodSignature | undefined = undefined
-        switch (printer.language) {
-            case Language.ARKTS:
-                ctorSignature = new NamedMethodSignature(Type.Void, [Type.Int32], ["expectedSize"])
-                break;
-            case Language.CPP:
-                ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
-                break;
-        }
-        let seenNames = new Set<string>()
-        printer.writeClass(className, writer => {
-            if (ctorSignature) {
-                const ctorMethod = new Method(superName, ctorSignature)
-                writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
-            }
-            for (let declaration of this.orderedDependencies) {
-                let name = this.computeTargetName(declaration, false)
-                if (seenNames.has(name)) continue
-                seenNames.add(name)
-                if (declaration instanceof PrimitiveType) continue
-                if (ts.isClassDeclaration(declaration) && isMaterialized(declaration)) continue
-                if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration))
-                    if (this.canGenerateTarget(declaration))
-                        this.generateSerializer(name, declaration, writer)
-            }
-        }, superName)
-    }
-
-    private canGenerateTarget(declaration: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
-        // we can not generate serializer/deserializer for targets, where
-        // type parameters are in signature and some of this parameters has not
-        // default value. At all we should not generate even classes with default values,
-        // but they are at least compilable.
-        // See class TransitionEffect declared at common.d.ts and used at CommonMethod.transition
-        return (declaration.typeParameters ?? []).every(it => {
-            return it.default !== undefined
-        })
     }
 
     visitDeclaration(
@@ -1241,42 +1161,8 @@ export class DeclarationTable {
         return result
     }
 
-    private translateSerializerType(name: string, target: DeclarationTarget): string {
-        if (target instanceof PrimitiveType) throw new Error("Unexpected")
-        if (ts.isInterfaceDeclaration(target) && target.typeParameters != undefined) {
-            if (target.typeParameters.length != 1) throw new Error("Unexpected")
-            return `${name}<any>`
-        } else {
-            return name
-        }
-    }
-
-    private generateSerializer(name: string, target: DeclarationTarget, printer: LanguageWriter) {
-        if (this.ignoreTarget(target, name)) return
-        this.setCurrentContext(`write${name}()`)
-
-        printer.writeMethodImplementation(
-            new Method(`write${name}`,
-                new NamedMethodSignature(Type.Void, [new Type(this.translateSerializerType(name, target))], ["value"])),
-            writer => {
-                writer.writeStatement(writer.makeAssign("valueSerializer", undefined, writer.makeThis(), true, false))
-                if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
-                    let struct = this.targetStruct(target)
-                    struct.getFields().forEach(it => {
-                        let field = `value_${it.name}`
-                        writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${it.name}`), true))
-                        let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
-                        typeConvertor.convertorSerialize(`value`, field, writer)
-                    })
-                } else {
-                    let typeConvertor = this.typeConvertor("value", target, false)
-                    typeConvertor.convertorSerialize(`value`, `value`, writer)
-                }
-            })
-        this.setCurrentContext(undefined)
-    }
-
-    private ignoreTarget(target: DeclarationTarget, name: string): target is PrimitiveType | ts.EnumDeclaration {
+    private ignoreTarget(target: DeclarationTarget): target is PrimitiveType | ts.EnumDeclaration {
+        const name = this.computeTargetName(target, false)
         if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return true
         if (target instanceof PrimitiveType) return true
         if (ts.isEnumDeclaration(target)) return true
@@ -1284,31 +1170,6 @@ export class DeclarationTable {
         if (ts.isImportTypeNode(target)) return true
         if (ts.isTemplateLiteralTypeNode(target)) return true
         return false
-    }
-
-    private generateDeserializer(name: string, target: DeclarationTarget, printer: LanguageWriter) {
-        if (this.ignoreTarget(target, name)) return
-        this.setCurrentContext(`read${name}()`)
-        const type = new Type(name)
-        printer.writeMethodImplementation(new Method(`read${name}`, new NamedMethodSignature(type, [], [])), writer => {
-            writer.writeStatement(
-                writer.makeAssign("valueDeserializer", new Type(writer.makeRef("Deserializer")), writer.makeThis(), true, false))
-            // using list initialization to prevent uninitialized value errors
-            writer.writeStatement(writer.makeObjectDeclare("value", type, this.targetStruct(target).getFields()))
-            if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
-                let struct = this.targetStruct(target)
-                struct.getFields().forEach(it => {
-                    let typeConvertor = this.typeConvertor(`value`, it.type!, it.optional)
-                    writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, writer))
-                })
-            } else {
-                let typeConvertor = this.typeConvertor("value", target, false)
-                writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value`, writer))
-            }
-            writer.writeStatement(writer.makeReturn(
-                writer.makeCast(writer.makeString("value"), new Type(name))))
-        })
-        this.setCurrentContext(undefined)
     }
 }
 

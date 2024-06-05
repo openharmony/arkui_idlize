@@ -21,6 +21,7 @@ import { createLanguageWriter } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./EventsPrinter"
 import { collectDtsImports } from "./DtsImportsGenerator"
+import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
 
 const importTsInteropTypes = `
 import {
@@ -181,7 +182,7 @@ extern const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetArkUIAccessors()
 
 export function makeTSSerializer(table: DeclarationTable): string {
     let printer = createLanguageWriter(new IndentedPrinter(), table.language)
-    table.generateSerializers(printer)
+    writeSerializer(table, printer)
     return `
 import { SerializerBase, Tags, RuntimeType, Function, runtimeType, isPixelMap, isResource } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
@@ -199,9 +200,10 @@ export function makeCSerializers(table: DeclarationTable, structs: IndentedPrint
     const serializers = createLanguageWriter(new IndentedPrinter(), Language.CPP)
     const writeToString = createLanguageWriter(new IndentedPrinter(), Language.CPP)
     serializers.print("\n// Serializers\n")
-    table.generateSerializers(serializers)
+    writeSerializer(table, serializers)
     serializers.print("\n// Deserializers\n")
-    table.generateDeserializers(serializers, structs, typedefs, writeToString)
+    writeDeserializer(table, serializers)
+    table.generateStructs(structs, typedefs, writeToString)
 
     return `
 #include "Interop.h"
@@ -218,7 +220,7 @@ ${serializers.getOutput().join("\n")}
 
 export function makeTSDeserializer(table: DeclarationTable): string {
     const deserializer = createLanguageWriter(new IndentedPrinter(), Language.TS)
-    table.generateTSDeserializers(deserializer)
+    writeDeserializer(table, deserializer)
     return `
 import { runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
 import { DeserializerBase } from "./DeserializerBase"
