@@ -26,7 +26,7 @@ EtsExports* EtsExports::getInstance() {
 void addType(const std::string& type, std::string* result) {
     if (type == "void")
         result->append("");
-    else if (type == "KInt" || type == "Ark_Int32" || type == "Ark_Boolean" || type == "int32_t" || type == "KUInt")
+    else if (type == "KInt" || type == "Ark_Int32" || type == "Ark_Boolean" || type == "int32_t" || type == "KUInt" || type == "uint32_t")
         result->append("I");
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         result->append("J");
@@ -34,10 +34,12 @@ void addType(const std::string& type, std::string* result) {
         result->append("[B");
     else if (type == "KStringPtr")
         result->append("Lstd/core/String;");
+    else if (type == "KLength")
+        result->append("Lstd/core/Object;");
     else if (type == "KInteropNumber")
         result->append("J");
     else {
-        fprintf(stderr, "Unhandled type: %s\n", type.c_str());
+        fprintf(stderr, "Unhandled type (addType): %s\n", type.c_str());
         throw "Error";
     }
 }
@@ -46,7 +48,7 @@ std::string etsType(const std::string &type)
 {
     if (type == "void")
         return type;
-    else if (type == "KInt" || type == "Ark_Int32" || type == "Ark_Boolean" || type == "int32_t" || type == "KUInt")
+    else if (type == "KInt" || type == "Ark_Int32" || type == "Ark_Boolean" || type == "int32_t" || type == "KUInt" || type == "uint32_t")
         return "int";
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         return "long";
@@ -54,10 +56,12 @@ std::string etsType(const std::string &type)
         return "byte[]";
     else if (type == "KStringPtr")
         return "String";
+    else if (type == "KLength")
+        return "Object";
     else if (type == "KInteropNumber")
         return "long";
     else {
-        fprintf(stderr, "Unhandled type: %s\n", type.c_str());
+        fprintf(stderr, "Unhandled type (etsType): %s\n", type.c_str());
         throw "Error";
     }
 }

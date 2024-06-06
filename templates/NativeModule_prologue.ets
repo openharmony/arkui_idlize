@@ -33,6 +33,7 @@ export class NativeModule {
   static native _StringLength(arg1: long): int;
   static native _StringData(arg1: long, arg2: byte[], arg3: int): void;
   static native _StringMake(arg1: String): long;
+  static native _ManagedStringWrite(value: String, arg1: byte[], arg2: int): void;
   static native _GetStringFinalizer(): long;
   static native _InvokeFinalizer(arg1: long, arg2: long): void;
   static native _GetNodeFinalizer(): long;
@@ -43,3 +44,7 @@ export class NativeModule {
   static native _StopGroupedLog(arg1: int): void;
   static native _TestPerfNumber(arg1: int): int;
   static native _TestPerfNumberWithArray(arg1: byte[], arg2: int): void;
+  static native _Test_TextPicker_OnAccept(valueArray: byte[], valueSerializerLength: int): void;
+  static native _StartPerf(traceName: String): void;
+  static native _EndPerf(traceName: String): void;
+  static native _DumpPerf(options: int): long;

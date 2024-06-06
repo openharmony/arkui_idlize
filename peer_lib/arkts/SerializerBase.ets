@@ -47,7 +47,7 @@ export enum Tags {
     OBJECT = 107,
 }
 
-export function runtimeType<T>(value: T): RuntimeType {
+export function runtimeType(value: Object|String|number|undefined): RuntimeType {
     let type = typeof value
     if (type == "number") return RuntimeType.NUMBER
     if (type == "string") return RuntimeType.STRING
@@ -63,14 +63,24 @@ export function runtimeType<T>(value: T): RuntimeType {
 
 export type Function = object
 
-function registerCallback(value: object|undefined): number {
+function registerCallback(value: object|undefined): int32 {
     // TODO: fix me!
     return 42
 }
 
-function registerMaterialized(value: object|undefined): number {
+function registerMaterialized(value: object|undefined): int32 {
     // TODO: fix me!
     return 42
+}
+
+export function isPixelMap(value: Object|undefined): boolean {
+    // TODO: fix me!
+    return false
+}
+
+export function isResource(value: Object|undefined): boolean {
+    // TODO: fix me!
+    return false
 }
 
 /* Serialization extension point */
@@ -147,6 +157,9 @@ export class SerializerBase {
         */
         console.log(`Unsupported custom serialization for ${kind}, write undefined`)
         this.writeInt8(Tags.UNDEFINED as int32)
+    }
+    writeFunction(value: object | undefined) {
+        this.writeInt32(registerCallback(value))
     }
     writeNumber(value: number|undefined) {
         this.checkCapacity(5)

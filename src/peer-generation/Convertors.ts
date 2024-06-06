@@ -18,7 +18,6 @@ import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, Type } from "./LanguageWriters"
 import { mapType } from "./TypeNodeNameConvertor"
-import { EnumMember, NodeArray } from "typescript";
 
 let uniqueCounter = 0
 
@@ -347,7 +346,7 @@ export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
 
     constructor(param: string, private table: DeclarationTable, private type: ts.UnionTypeNode) {
-        super(`any`, [], false, true, param)
+        super(`object`, [], false, true, param)
         this.memberConvertors = type
             .types
             .map(member => table.typeConvertor(param, member))
@@ -798,10 +797,10 @@ export class ArrayConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         // Array length.
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
-            printer.makeFunctionCall("runtimeType", [ printer.makeString(value + castToInt(printer.language)) ]).asString()])
+            printer.makeFunctionCall("runtimeType", [ printer.makeString(value) ]).asString() + castToInt(printer.language)])
         const valueLength = printer.makeArrayLength(value).asString()
         const loopCounter = "i"
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [valueLength])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [valueLength + castToInt(printer.language)])
         printer.writeStatement(printer.makeLoop(loopCounter, valueLength))
         printer.pushIndent()
         printer.writeStatement(
@@ -867,13 +866,12 @@ export class MapConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         // Map size.
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
-            printer.makeFunctionCall("runtimeType", [ printer.makeString(value + castToInt(printer.language)) ]).asString()])
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [`${value}.size`])
+            printer.makeFunctionCall("runtimeType", [ printer.makeString(value)]).asString() + castToInt(printer.language)])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [`${value}.size` + castToInt(printer.language)])
         printer.writeStatement(printer.makeMapForEach(value, `${value}_key`, `${value}_value`, () => {
             this.keyConvertor.convertorSerialize(param, `${value}_key`, printer)
             this.valueConvertor.convertorSerialize(param, `${value}_value`, printer)
         }))
-        printer.print(`}`)
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         // Map size.

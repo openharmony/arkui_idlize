@@ -283,8 +283,17 @@ class TSMapForEachStatement implements LanguageStatement {
         writer.pushIndent()
         this.op()
         writer.popIndent()
+        writer.print(`}`)
     }
 }
+
+class ArkTSMapForEachStatement implements LanguageStatement {
+    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`// TODO: map serialization not implemented`)
+    }
+}
+
 
 class JavaMapForEachStatement implements LanguageStatement {
     constructor(private map: string, private key: string, private value: string, private op: () => void) {}
@@ -296,6 +305,7 @@ class JavaMapForEachStatement implements LanguageStatement {
         writer.print(`var ${this.value} = ${entryVar}.getValue();`)
         this.op()
         writer.popIndent()
+        writer.print(`}`)
     }
 }
 
@@ -308,6 +318,7 @@ class CppMapForEachStatement implements LanguageStatement {
         writer.print(`auto ${this.value} = ${this.map}.values[i];`)
         this.op()
         writer.popIndent()
+        writer.print(`}`)
     }
 }
 
@@ -350,7 +361,7 @@ class TsObjectDeclareStatement implements LanguageStatement {
         // Constructing a new type with all optional fields
         const objectType = new Type(`{${this.fields.map(it => {
             //TODO: to preventing an error IMPORT_* types were  not found  
-            const typeNode = it.type && ts.isImportTypeNode(it.type) ? "any" : mapType(it.type)
+            const typeNode = it.type && ts.isImportTypeNode(it.type) ? "object" : mapType(it.type)
             return `${it.name}?: ${typeNode}`
         }).join(",")}}`)
         new TsObjectAssignStatement(this.object, objectType, true).write(writer)
@@ -808,13 +819,16 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
-
+    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
+        return new ArkTSMapForEachStatement(map, key, value, op)
+    }
     mapType(type: Type): string {
         switch (type.name) {
             case 'KPointer': return 'long'
             case 'Uint8Array': return 'byte[]'
             case 'int32': case 'KInt': return 'int'
             case 'KStringPtr': return 'String'
+            case 'KLength': return 'Object'
             case 'number': return 'double'
         }
         return super.mapType(type)

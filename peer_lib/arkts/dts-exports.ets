@@ -54,7 +54,7 @@ export class Color {
     Black = 1
 }
 
-export type Length = string | number
+export type Length = string | number | Resource
 
 export type ResourceColor = Color | number | string
 
@@ -116,7 +116,7 @@ export interface BindOptions {
 
 export interface SheetOptions extends BindOptions {
     title?: SheetTitleOptions;
-    detents?: [(SheetSize | Length), (SheetSize | Length), (SheetSize | Length)];
+    detents?: [(SheetSize | Length | undefined), (SheetSize | Length | undefined), (SheetSize | Length | undefined)] | undefined;
 }
 
 export class BlurStyle {
@@ -195,4 +195,238 @@ export interface CommonMethod<T> {
 }
 
 export interface CommonAttribute extends CommonMethod<CommonAttribute> {
+}
+
+
+export interface CanvasPath {
+
+    rect(x: number, y: number, w: number, h: number): void;
+  
+    arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise?: boolean): void;
+  
+    closePath(): void;
+}
+
+export interface CanvasRenderer extends CanvasPath {
+
+    globalAlpha: number;
+  
+    globalCompositeOperation: string;
+  
+    // drawImage(image: ImageBitmap | PixelMap, dx: number, dy: number): void;
+}
+export type LengthMetrics = string
+
+export interface NativeEmbedInfo {
+    params?: Map<string, string>
+}
+export interface NativeEmbedDataInfo {
+    info?: NativeEmbedInfo;
+}
+
+export interface DividerOptions {
+    strokeWidth?: Dimension
+    color?: ResourceColor
+    startMargin?: Dimension
+    endMargin?: Dimension
+}
+export interface LocalizedPadding {
+    top?: LengthMetrics
+    end?: LengthMetrics
+    bottom?: LengthMetrics
+    start?: LengthMetrics
+}
+export type SymbolGlyphModifier = string
+export class TabBarSymbol {
+    normal: SymbolGlyphModifier
+    selected?: SymbolGlyphModifier
+}
+export interface VisibleListContentInfo {
+    index: number
+}
+export interface TextCascadePickerRangeContent {
+    text: string | Resource
+    children?: TextCascadePickerRangeContent[]
+}
+export interface TextPickerRangeContent {
+    icon: string | Resource
+    text?: string | Resource
+}
+export interface TextPickerOptions {
+    range: string[] | string[][] | Resource | TextPickerRangeContent[] | TextCascadePickerRangeContent[]
+    value?: string | string[]
+    selected?: number | number[]
+}
+export interface IndicatorStyle {
+    color?: ResourceColor
+}
+export interface EmitterProperty {
+    index: number
+    emitRate?: number
+}
+export interface BorderOptions {
+
+}
+export class RenderingContextSettings {
+    antialias?: boolean;
+
+    constructor(antialias?: boolean) {}
+}
+export interface LabelStyle {
+    maxLines?: number
+}
+export declare type Dimension = string | Resource;
+export class BarMode {}
+export class ButtonType {}
+export interface SubTabBarStyle {}
+export interface HorizontalAlign {}
+export interface OnScrollVisibleContentChangeCallback {}
+export interface Vector1 {}
+export interface Vector2 {}
+export interface PixelMap {}
+export interface GradientDirection {}
+export interface NavigationTitleMode {}
+export enum EnumDTS {
+    ELEM_0 = 0,
+    ELEM_1 = 1,
+    ELEM_2 = 2,
+}
+
+export interface  BooleanInterfaceDTS {
+    valBool: boolean
+}
+
+export interface NumberInterfaceDTS {
+    valNumber: number
+}
+
+export interface StringInterfaceDTS {
+    valString: string
+}
+
+export interface UnionInterfaceDTS {
+
+    unionProp: number | boolean
+}
+
+export interface UnionOptionalInterfaceDTS {
+
+    unionProp: string | undefined
+}
+
+export interface TupleInterfaceDTS {
+
+    tuple: [number, boolean]
+}
+
+export interface OptionInterfaceDTS {
+
+    tuple: [boolean|undefined, number|undefined]
+}
+
+export interface ArrayRefNumberInterfaceDTS {
+
+    tuple: Array<number>
+}
+
+export interface ArrayRefTuplesInterfaceDTS {
+
+    tuple: Array<[boolean, number]>
+}
+
+export interface ClassDTS {
+
+    valBoolean: boolean
+}
+
+// Non materialized class
+export class ClassWithConstructorDTS {
+
+    constructor(valNumber: number, valString: string) {}
+}
+
+// Non materialized class
+export class ClassWithConstructorAndFieldsDTS {
+
+    valNumber: number
+    valBoolean: boolean
+
+    constructor(valNumber: number, valBoolean: boolean) {}
+}
+
+// Materialized class
+export class ClassWithConstructorAndMethodsDTS {
+
+    constructor(valNumber: number, valString: string) {}
+
+    method(valNumber: number, valString: string): void {}
+}
+
+// Materialized class
+export class ClassWithConstructorAndStaticMethodsDTS {
+
+    constructor(valNumber: number, valString: string) {}
+
+    static of(valNumber: number, valString: string): ClassWithConstructorAndStaticMethodsDTS {
+        return new ClassWithConstructorAndStaticMethodsDTS(valNumber, valString)
+    }
+}
+
+// Materialized class
+export class ClassWithConstructorAndFieldsAndMethodsDTS {
+
+    valNumber: number
+    valBoolean: boolean
+
+    constructor(valNumber: number, valBoolean: boolean) {}
+
+    method(valNumber: number, valString: string): void {}
+}
+
+
+// Materialized class
+export class ClassWithConstructorAndWithoutParamsDTS {
+
+    constructor() {}
+
+    static of(): ClassWithConstructorAndWithoutParamsDTS {
+        return new ClassWithConstructorAndWithoutParamsDTS()
+    }
+
+    method(): void {}
+}
+
+export class ClassWithConstructorAndNonOptionalParamsDTS {
+
+    constructor(valNumber: number, valString: string) {}
+
+    static of(valNumber: number, valString: string): ClassWithConstructorAndNonOptionalParamsDTS {
+        return new ClassWithConstructorAndNonOptionalParamsDTS(valNumber, valString)
+    }
+
+    method(valBoolean: boolean, valString: string): void {}
+}
+
+// Materialized class
+export class  ClassWithConstructorAndSomeOptionalParamsDTS {
+
+    constructor(valNumber: number, valString?: string) {}
+
+    static of(valNumber: number, valString?: string): ClassWithConstructorAndSomeOptionalParamsDTS {
+        return new ClassWithConstructorAndSomeOptionalParamsDTS(valNumber, valString)
+    }
+
+    method(valBoolean: boolean, valString?: string): void {}
+}
+
+// Materialized class
+export class ClassWithConstructorAndAllOptionalParamsDTS {
+
+    constructor(valNumber?: number, valString?: string) {}
+
+    static of(valNumber?: number, valString?: string): ClassWithConstructorAndAllOptionalParamsDTS {
+        return new ClassWithConstructorAndAllOptionalParamsDTS(valNumber, valString)
+    }
+
+    method(valBoolean?: boolean, valString?: string): void {}
 }

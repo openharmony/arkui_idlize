@@ -159,10 +159,10 @@ declare type EdgeStyles = {
 };
 
 declare interface BorderOptions {
-    width?: EdgeWidths | Length | LocalizedEdgeWidths;
-    color?: EdgeColors | ResourceColor | LocalizedEdgeColors;
-    radius?: BorderRadiuses | Length | LocalizedBorderRadiuses;
-    style?: EdgeStyles | BorderStyle;
+    //width?: EdgeWidths | Length | LocalizedEdgeWidths;
+    //color?: EdgeColors | ResourceColor | LocalizedEdgeColors;
+    //radius?: BorderRadiuses | Length | LocalizedBorderRadiuses;
+    //style?: EdgeStyles | BorderStyle;
 }
 
 declare interface DragPreviewOptions {

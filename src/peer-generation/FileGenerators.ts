@@ -446,7 +446,7 @@ const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {
 ${receiversList}
 };
 
-extern const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* GetArkUiEventsAPI()
+const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* GetArkUiEventsAPI()
 {
     return &eventsImpl;
 }

@@ -31,7 +31,7 @@ static bool registerNatives(EtsEnv *env, ets_class clazz)
     size_t numMethods = impls.size();
     EtsNativeMethod *methods = new EtsNativeMethod[numMethods];
     for (size_t i = 0; i < numMethods; i++)
-    {
+    {        
         // Fill in native methods table!
         methods[i].name = std::get<0>(impls[i]).c_str();
         // TODO: convert signatures properly.
