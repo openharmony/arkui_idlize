@@ -18,6 +18,7 @@ import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, Type } from "./LanguageWriters"
 import { mapType } from "./TypeNodeNameConvertor"
+import { EnumMember, NodeArray } from "typescript";
 
 let uniqueCounter = 0
 
@@ -193,20 +194,30 @@ export class UndefinedConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    constructor(param: string, table: DeclarationTable, private enumType: ts.EnumDeclaration) {
-        // Enums are integers in runtime.
-        super("number", [RuntimeType.NUMBER], false, false, param, true)
+    constructor(param: string,
+                private enumType: ts.EnumDeclaration,
+                private readonly isStringEnum: boolean) {
+        super(isStringEnum ?  "string" : "number",
+            [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
+            false, false, param, true)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? param : `unsafeCast<int32>(${param})`
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        if (this.isStringEnum) {
+            value = printer.ordinalFromEnum(printer.makeString(value),
+                identName(this.enumType.name)!).asString()
+        }
         printer.writeMethodCall(`${param}Serializer`, "writeInt32", [this.convertorArg(value, printer)])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
-        return printer.makeAssign(accessor, undefined,
-            printer.makeString(`${param}Deserializer.readInt32()`), false)
+        let readExpr = printer.makeMethodCall(`${param}Deserializer`, "readInt32", [])
+        if (this.isStringEnum) {
+            readExpr = printer.enumFromOrdinal(readExpr, identName(this.enumType.name)!)
+        }
+        const receiver = printer.getObjectAccessor(this, param, value)
+        return printer.makeAssign(receiver, undefined, readExpr, false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Int32.getText()
@@ -229,17 +240,19 @@ export class EnumConvertor extends BaseArgConvertor {
             let value = index
             if (member.initializer) {
                 let tsValue = member.initializer
-                if (ts.isLiteralExpression(tsValue)) {
+                if (ts.isLiteralExpression(tsValue) && !this.isStringEnum) {
                     value = parseInt(tsValue.text)
-                    if (Number.isNaN(value)) value = index
                 }
             }
             if (low === undefined || low > value) low = value
             if (high === undefined || high < value) high = value
         })
+        const ordinal = this.isStringEnum
+            ? writer.ordinalFromEnum(writer.makeString(value), identName(this.enumType.name)!)
+            : writer.makeUnionVariantCast(value, Type.Number.name, index)
         return writer.makeNaryOp("&&", [
-            writer.makeNaryOp(">=", [writer.makeUnionVariantCast(value, Type.Number.name, index), writer.makeString(low!.toString())]),
-            writer.makeNaryOp("<=",  [writer.makeUnionVariantCast(value, Type.Number.name, index), writer.makeString(high!.toString())])
+            writer.makeNaryOp(">=", [ordinal, writer.makeString(low!.toString())]),
+            writer.makeNaryOp("<=",  [ordinal, writer.makeString(high!.toString())])
         ])
     }
 }
@@ -288,8 +301,8 @@ export class LengthConvertorScoped extends BaseArgConvertor {
 }
 
 export class LengthConvertor extends BaseArgConvertor {
-    constructor(param: string) {
-        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param, true)
+    constructor(name: string, param: string) {
+        super(name, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param, true)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `(const ${PrimitiveType.Length.getText()}*)&${param}` : param

@@ -31,6 +31,7 @@ import { RuntimeType } from "./PeerGeneratorVisitor"
 import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
 import { PeerLibrary } from "./PeerLibrary"
 import { collectCallbacks } from "./EventsPrinter"
+import { EnumMember, NodeArray } from "typescript";
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -472,7 +473,7 @@ export class DeclarationTable {
             return this.declarationConvertor(param, type, declaration)
         }
         if (ts.isEnumMember(type)) {
-            return new EnumConvertor(param, this, type.parent)
+            return new EnumConvertor(param, type.parent, this.isStringEnum(type.parent.members))
         }
         if (ts.isUnionTypeNode(type)) {
             return new UnionConvertor(param, this, type)
@@ -537,7 +538,7 @@ export class DeclarationTable {
         switch (name) {
             case `Dimension`:
             case `Length`:
-                return new LengthConvertor(param)
+                return new LengthConvertor(name, param)
             case `Date`:
                 return new CustomTypeConvertor(param, name, name)
             case `AttributeModifier`:
@@ -580,10 +581,10 @@ export class DeclarationTable {
             return customConvertor
         }
         if (ts.isEnumDeclaration(declaration)) {
-            return new EnumConvertor(param, this, declaration)
+            return new EnumConvertor(param, declaration, this.isStringEnum(declaration.members))
         }
         if (ts.isEnumMember(declaration)) {
-            return new EnumConvertor(param, this, declaration.parent)
+            return new EnumConvertor(param, declaration.parent, this.isStringEnum(declaration.parent.members))
         }
         if (ts.isTypeAliasDeclaration(declaration)) {
             return new TypeAliasConvertor(param, this, declaration, type.typeArguments)
@@ -1170,6 +1171,12 @@ export class DeclarationTable {
         if (ts.isImportTypeNode(target)) return true
         if (ts.isTemplateLiteralTypeNode(target)) return true
         return false
+    }
+
+    private isStringEnum(members: NodeArray<EnumMember>): boolean {
+        return members.find((value) => {
+            return value.initializer && ts.isStringLiteral(value.initializer)
+        }) != undefined
     }
 }
 
