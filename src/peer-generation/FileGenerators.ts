@@ -23,6 +23,46 @@ import { PeerEventKind } from "./EventsPrinter"
 import { collectDtsImports } from "./DtsImportsGenerator"
 import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
 
+const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
+
+function dateChunk(): string {
+    const currentYear = (new Date()).getFullYear()
+    if (currentYear > 2024) return `2024-${currentYear}`
+    return `${currentYear}`
+}
+
+const cStyleCopyright =
+`/*
+ * Copyright (c) ${dateChunk()} Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+`
+
+const sharpCopyright =
+`# Copyright (c) ${dateChunk()} Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+`
+
 const importTsInteropTypes = `
 import {
     int32,
@@ -584,5 +624,14 @@ const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* GetArkUiEventsAPI()
 {
     return &eventsImpl;
 }
+`
+}
+
+export function gniFile(gniSources: string): string {
+return `${sharpCopyright}
+
+# ${warning}
+
+${gniSources}
 `
 }

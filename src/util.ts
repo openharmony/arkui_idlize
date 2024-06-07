@@ -455,7 +455,7 @@ export function renameDtsToComponent(fileName: string, language: Language, withF
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))
         .replace(".d.ts", "")
-        
+
     if (withFileExtension) {
         return renamed.concat(language.extension)
     }

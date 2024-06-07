@@ -105,4 +105,5 @@ export function copyPeersToLibace(peersDir: string, destinationDir: string) {
     copyFile(peersDir, libaceImplementation, 'delegates.cc')
     copyFile(peersDir, libaceGeneratedInterface, 'delegates.h')
     copyFile(peersDir, libaceGeneratedInterface, 'all_modifiers.cc')
+    copyFile(peersDir, libaceGeneratedInterface, 'node_interfaces.gni')
 }

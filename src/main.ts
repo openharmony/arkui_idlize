@@ -32,7 +32,8 @@ import {
     makeArkuiModule,
     makeTSSerializer,
     completeEventsImplementations,
-    makeTSDeserializer
+    makeTSDeserializer,
+    gniFile
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
@@ -56,6 +57,7 @@ import { printDelegatesHeaders, printDelegatesImplementation } from "./peer-gene
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
 import { printEvents, printEventsCImpl } from "./peer-generation/EventsPrinter"
 import { collectDtsImports } from "./peer-generation/DtsImportsGenerator"
+import { printGniSources } from "./peer-generation/GniPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -380,6 +382,9 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'all_modifiers.cc'), completeImplementations(modifiers.real + accessors.real))
                 fs.writeFileSync(path.join(outDir, 'all_events.cc'), completeEventsImplementations(printEventsCImpl(peerLibrary)))
 
+                const gniSources = printGniSources(peerLibrary)
+                fs.writeFileSync(path.join(outDir, 'node_interfaces.gni'), gniFile(gniSources))
+
                 copyPeerLib(path.join(__dirname, '..', 'peer_lib'), outDir)
             }
         }
@@ -388,10 +393,10 @@ if (options.dts2peer) {
 
     if (options.copyPeersTarget) {
         console.log('\nCopying generated peers to external repositories')
-    
+
         const KOALA_UI = 'koala-ui'
         const LIBACE = 'libace'
-    
+
         if (![KOALA_UI, LIBACE].includes(options.copyPeersTarget)) {
             const err = `--copy-peers-target must be either '${KOALA_UI}' or '${LIBACE}'`
             throw new Error(err)
@@ -399,7 +404,7 @@ if (options.dts2peer) {
         if (!options.copyPeersDestination) {
             throw new Error('--copy-peers-destination is expected for copying peers with --copy-peers-target')
         }
-    
+
         if (options.copyPeersTarget == KOALA_UI) {
             copyPeersToKoalaUi(generatedPeersDir, options.copyPeersDestination, options.copyPeersComponents ?? [])
         }
