@@ -243,6 +243,7 @@ export class TabBarSymbol {
 }
 export interface VisibleListContentInfo {
     index: number
+    itemIndexInGroup?: number
 }
 export interface TextCascadePickerRangeContent {
     text: string | Resource
@@ -286,6 +287,25 @@ export interface Vector2 {}
 export interface PixelMap {}
 export interface GradientDirection {}
 export interface NavigationTitleMode {}
+
+export interface RectResult {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export class TouchTestInfo {
+    windowX: number;
+    windowY: number;
+    parentX: number;
+    parentY: number;
+    x: number;
+    y: number;
+    rect: RectResult;
+    id: string;
+}
+
 export enum EnumDTS {
     ELEM_0 = 0,
     ELEM_1 = 1,

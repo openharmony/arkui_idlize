@@ -67,7 +67,9 @@ const dtsImports = `import {
     Vector1,
     Vector2,
     PixelMap,
-    NavigationTitleMode
+    NavigationTitleMode,
+    RectResult,
+    TouchTestInfo
 } from "./dts-exports"
 `
 
