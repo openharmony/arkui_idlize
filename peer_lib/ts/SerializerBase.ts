@@ -63,11 +63,12 @@ export function runtimeType(value: any): int32 {
 export type Function = object
 
 export function isPixelMap(value: Object): value is PixelMap {
-    return Object.hasOwn(value, 'isEditable') && Object.hasOwn(value, 'isStrideAlignment')
+    // Object.hasOwn need es2022
+    return value.hasOwnProperty('isEditable') && value.hasOwnProperty('isStrideAlignment')
 }
 
 export function isResource(value: Object): value is Resource {
-    return Object.hasOwn(value, "bundleName") && Object.hasOwn(value, "moduleName")
+    return value.hasOwnProperty("bundleName") && value.hasOwnProperty("moduleName")
 }
 
 export function withLength(valueLength: Length|undefined, body: (type: int32, value: float32, unit: int32, resource: int32) => void) {

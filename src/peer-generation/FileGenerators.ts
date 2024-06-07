@@ -68,10 +68,60 @@ export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return `#include "Interop.h"
 #include "arkoala_api.h"
 #include "Serializers.h"
+#include "load-library.h"
+#include "arkoala-logging.h"
 
 static ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* impls[${PeerGeneratorConfig.cppPrefix}Ark_APIVariantKind::${PeerGeneratorConfig.cppPrefix}COUNT] = { 0 };
+const std::string getArkUIFullNodeAPIFuncName = "${PeerGeneratorConfig.cppPrefix}GetArkUIFullNodeAPI";
 
 const ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* GetAnyImpl(${PeerGeneratorConfig.cppPrefix}Ark_APIVariantKind kind, int version, std::string* result) {
+    if (!impls[kind]) {
+        ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* impl = nullptr;
+        typedef ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* (*GetAPI_t)(int, int);
+        GetAPI_t getAPI = nullptr;
+
+        void* module = FindModule();
+        if (!module) {
+            if (result)
+                *result = "Cannot find dynamic module";
+            else
+                LOGE("Cannot find dynamic module");
+            return nullptr;
+        }
+
+        if (getAPI == nullptr) {
+            getAPI = reinterpret_cast<GetAPI_t>(FindFunction(module, getArkUIFullNodeAPIFuncName.c_str()));
+            if (!getAPI) {
+                if (result)
+                    *result = "Cannot find " + getArkUIFullNodeAPIFuncName;
+                else
+                    LOGE("Cannot find %s", getArkUIFullNodeAPIFuncName.c_str());
+                return nullptr;
+            }
+        }
+
+        impl = (*getAPI)(kind, version);
+        if (!impl) {
+            if (result)
+                *result = "getAPI() returned null";
+            else
+                LOGE("getAPI() returned null")
+            return nullptr;
+        }
+
+        if (impl->version != version) {
+            if (result) {
+                char buffer[256];
+                snprintf(buffer, sizeof(buffer), "FATAL ERROR: Modifier API version mismatch, expected %d got %d",
+                    version, impl->version);
+                *result = buffer;
+            } else {
+                LOGE("API version mismatch for API %d: expected %d got %d", kind, version, impl->version);
+            }
+            return nullptr;
+        }
+        impls[kind] = impl;
+    }
     return impls[kind];
 }
 
@@ -81,16 +131,32 @@ const ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI* GetFullImpl(std::string*
 
 const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* GetNodeModifiers() {
     // TODO: restore the proper call
-    // return GetFullImpl()->getNodeModifiers();
-    extern const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* GetArkUINodeModifiers();
-    return GetArkUINodeModifiers();
+    if (!GetFullImpl()) return nullptr;
+    return GetFullImpl()->getNodeModifiers();
+    // extern const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers();
+    // return ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers();
 }
 
 const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetAccessors() {
     // TODO: restore the proper call
-    // return GetFullImpl()->getAccessors();
-    extern const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetArkUIAccessors();
-    return GetArkUIAccessors();
+    if (!GetFullImpl()) return nullptr;
+    return GetFullImpl()->getAccessors();
+    // extern const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors();
+    // return ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors();
+}
+
+const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI* GetArkUIExtendedAPI() {
+    // TODO: restore the proper call
+    if (!GetFullImpl()) return nullptr;
+    return GetFullImpl()->getExtendedAPI();
+    // extern const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI* ${PeerGeneratorConfig.cppPrefix}GetArkUIExtendedAPI();
+    // return ${PeerGeneratorConfig.cppPrefix}GetArkUIExtendedAPI();
+}
+
+CONSTRUCTOR(init) {
+    if (!GetArkUIExtendedAPI()) return;
+    auto setAppendGroupedLog = GetArkUIExtendedAPI()->setAppendGroupedLog;
+    if (setAppendGroupedLog) setAppendGroupedLog((void*)appendGroupedLog);
 }
 
 ${bridgeCc.join("\n")}
@@ -101,10 +167,27 @@ export function completeImplementations(lines: string): string {
     return `
 #include "Interop.h"
 #include "Serializers.h"
-#include "common-interop.h"
 #include "delegates.h"
 
 ${lines}
+
+const ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI fullAPIImpl = {
+    1, // version
+    nullptr,
+    ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers,
+    ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    ${PeerGeneratorConfig.cppPrefix}GetArkUIExtendedAPI
+};
+
+EXTERN_C IDLIZE_API_EXPORT const ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* ${PeerGeneratorConfig.cppPrefix}GetArkUIFullNodeAPI(
+    ${PeerGeneratorConfig.cppPrefix}Ark_APIVariantKind kind, int version)
+{
+    return reinterpret_cast<const ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI*>(&fullAPIImpl);
+}
 `
 }
 
@@ -129,9 +212,20 @@ ${lines}
 
 export function dummyImplementations(lines: string): string {
     return `
-#include "Interop.h"
 #include "Serializers.h"
-#include "common-interop.h"
+#include "arkoala-logging.h"
+
+typedef void (*AppendGroupedLogSignature)(int32_t, const std::string&);
+
+AppendGroupedLogSignature appendGroupedLogPtr = nullptr;
+
+void appendGroupedLog(int32_t index, const std::string& str) {
+    if (appendGroupedLogPtr) appendGroupedLogPtr(index, str);
+}
+
+void SetAppendGroupedLog(void* pFunc = nullptr) {
+    if (pFunc) appendGroupedLogPtr = reinterpret_cast<AppendGroupedLogSignature>(pFunc);
+}
 
 void dummyClassFinalizer(KNativePointer* ptr) {
     char hex[20];
@@ -143,6 +237,25 @@ void dummyClassFinalizer(KNativePointer* ptr) {
 }
 
 ${lines}
+
+const ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI fullAPIImpl = {
+    1, // version
+    nullptr,
+    ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers,
+    ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    ${PeerGeneratorConfig.cppPrefix}GetArkUIExtendedAPI
+};
+
+EXTERN_C IDLIZE_API_EXPORT const ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI* ${PeerGeneratorConfig.cppPrefix}GetArkUIFullNodeAPI(
+    ${PeerGeneratorConfig.cppPrefix}Ark_APIVariantKind kind, int version)
+{
+    return reinterpret_cast<const ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI*>(&fullAPIImpl);
+}
+
 `
 }
 
@@ -157,7 +270,7 @@ const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {
 ${lines.join("\n")}
 };
 
-extern const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* GetArkUINodeModifiers()
+const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers()
 {
     return &modifiersImpl;
 }
@@ -172,11 +285,25 @@ const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {
 ${lines.join("\n")}
 };
 
-extern const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* GetArkUIAccessors()
+const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors()
 {
     return &accessorsImpl;
 }
 
+`
+}
+
+export function extendedAPIStructList(isDummy: boolean, lines?: string[]): string {
+    return `
+const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI extendedAPI = {
+    1, // version
+    ${ isDummy ? 'SetAppendGroupedLog' : 'nullptr' }
+};
+
+const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI* ${PeerGeneratorConfig.cppPrefix}GetArkUIExtendedAPI()
+{
+    return &extendedAPI;
+}
 `
 }
 
@@ -206,7 +333,6 @@ export function makeCSerializers(table: DeclarationTable, structs: IndentedPrint
     table.generateStructs(structs, typedefs, writeToString)
 
     return `
-#include "Interop.h"
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
 #include "arkoala_api.h"
@@ -269,6 +395,11 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
 ${events.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI;
 
+typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI {
+    ${PrimitiveType.Int32.getText()} version;
+    void (*setAppendGroupedLog)(void* pFunc);
+} ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI;
+
 /**
  * An API to control an implementation. When making changes modifying binary
  * layout, i.e. adding new events - increase ARKUI_NODE_API_VERSION above for binary
@@ -283,6 +414,7 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
     const ${PeerGeneratorConfig.cppPrefix}ArkUINavigation* (*getNavigation)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* (*getEventsAPI)();
+    const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI* (*getExtendedAPI)();
 } ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {

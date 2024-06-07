@@ -17,8 +17,9 @@
 #define _SERIALIZER_BASE_H
 
 #include <stdint.h>
-
-#include "common-interop.h"
+#include <stdio.h>
+#include <string.h>
+#include <string>
 #include "arkoala_api.h"
 
 

@@ -20,6 +20,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(KOALA_WINDOWS)
+#define IDLIZE_API_EXPORT __declspec(dllexport)
+#else
+#define IDLIZE_API_EXPORT __attribute__((visibility("default")))
+#endif
+
+#define EXTERN_C extern "C"
+
+#define CONSTRUCTOR(fn) \
+static void constructor_##fn(); \
+namespace { struct Constructor_##fn { Constructor_##fn() { constructor_##fn(); } } constructor_##fn##_instance; } \
+static void constructor_##fn()
+
 struct KStringPtrImpl {
     KStringPtrImpl(const char* str) : _value(nullptr) {
         int len = str ? strlen(str) : 0;
@@ -149,5 +162,21 @@ inline void parseKLength(const KStringPtrImpl &string, KLength *result)
 
 struct _KVMContext;
 typedef _KVMContext *KVMContext;
+
+template <class T> T* ptr(KNativePointer ptr) {
+    return reinterpret_cast<T*>(ptr);
+}
+
+template <class T> T& ref(KNativePointer ptr) {
+    return *reinterpret_cast<T*>(ptr);
+}
+
+inline KNativePointer nativePtr(void* pointer) {
+    return reinterpret_cast<KNativePointer>(pointer);
+}
+
+template <class T> KNativePointer fnPtr(void (*pointer)(T*)) {
+    return reinterpret_cast<KNativePointer>(pointer);
+}
 
 #endif /* _INTEROP_TYPES_H */

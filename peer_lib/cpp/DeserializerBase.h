@@ -18,8 +18,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
-
-#include "common-interop.h"
+#include "interop-types.h"
 #include "arkoala_api.h"
 
 using namespace std;

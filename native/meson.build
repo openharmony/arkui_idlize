@@ -34,6 +34,7 @@ sources = [
     gen_dir + '/events.cc',
     gen_dir + '/all_events.cc',
     gen_dir + '/events_test.cc',
+    gen_dir + '/load-library.cc',
 ]
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
@@ -55,14 +56,17 @@ use_dummy_libace = false
 is_arkts = false
 endif
 
+libace_sources = []
+libace_name = 'ace_compatible_mock'
+
 if use_dummy_libace
-sources += [
-   gen_dir + '/dummy_impl.cc',
+libace_sources += [
+    gen_dir + '/dummy_impl.cc',
 ]
 else
-sources += [
-   gen_dir + '/all_modifiers.cc',
-   gen_dir + '/delegates.cc',
+libace_sources += [
+    gen_dir + '/all_modifiers.cc',
+    gen_dir + '/delegates.cc',
 ]
 endif
 
@@ -128,6 +132,9 @@ if get_option('is_ohos_v8') and arch == 'arm64'
 node_ldflags += [
     '-lnode'
 ]
+node_cflags += [
+    '-DKOALA_OHOS',
+]
 endif
 shared_library(node_library_name,
     sources + node_sources,
@@ -137,6 +144,20 @@ shared_library(node_library_name,
     install: true,
     name_prefix: node_module_prefix,
     name_suffix: node_module_suffix,
+    include_directories: include_dirs + node_include_dirs,
+    install_dir: meson.current_source_dir(),
+    cpp_args: cflags + node_cflags,
+    link_args: ldflags + node_ldflags,
+    dependencies: []
+)
+shared_library(libace_name,
+    libace_sources,
+    override_options: [
+        'b_lundef=false',
+    ],
+    install: true,
+    name_prefix: node_module_prefix,
+    name_suffix: 'dll',
     include_directories: include_dirs + node_include_dirs,
     install_dir: meson.current_source_dir(),
     cpp_args: cflags + node_cflags,
@@ -210,6 +231,19 @@ ohos_sources = [
 
 shared_library(ohos_library_name,
     sources + ohos_sources,
+    override_options: [
+        'b_lundef=false',
+    ],
+    install: true,
+    name_prefix: module_prefix,
+    name_suffix: module_suffix,
+    include_directories: include_dirs + ohos_include_dirs,
+    install_dir: meson.current_source_dir(),
+    cpp_args: cflags + ohos_cflags,
+    link_args: ldflags + ohos_ldflags
+)
+shared_library(libace_name,
+    libace_sources,
     override_options: [
         'b_lundef=false',
     ],

@@ -6,6 +6,7 @@ import path from "node:path";
 
 let isFull = true
 let isArm64 = true
+let isMock = false
 
 for (let i = 2; i < argv.length; ++i) {
     switch (argv[i]) {
@@ -21,6 +22,9 @@ for (let i = 2; i < argv.length; ++i) {
         case "arm32":
         case "arm":
             isArm64 = false
+            break;
+        case "mock":
+            isMock = true
             break;
         default:
             break;
@@ -62,6 +66,15 @@ let signRelease  = `.\\sign_release`
 if (!platform.includes('win')) {
     hvigorw = `./hvigorw`
     signRelease = `./sign_release`
+}
+
+function resolveLibDependency() {
+    if (!isMock) return
+    const libaceMockName = `libace_compatible_mock.so`
+    const libaceMockPath = path.resolve(`native/${libaceMockName}`)
+    const pushAceCmd = `hdc file send ${libaceMockPath} /system/lib64/module/${libaceMockName}`
+    console.log(`${pushAceCmd}`)
+    execSync(`${pushAceCmd}`, { cwd: perfDir, stdio: 'inherit'})
 }
 
 function buildPerfProject() {
@@ -147,6 +160,7 @@ function runHap(hapPath, packageName) {
     execSync(`hdc shell aa start -a EntryAbility -b ${packageName}`, { stdio:'inherit', timeout: 2000 })
 }
 
+resolveLibDependency()
 buildPerfProject()
 signHap()
 

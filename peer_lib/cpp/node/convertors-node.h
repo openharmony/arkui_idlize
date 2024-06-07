@@ -24,12 +24,7 @@
 
 #include "interop-types.h"
 
-#if defined(KOALA_USE_ARK_VM) && defined(KOALA_OHOS)
-#include "oh_sk_log.h"
-#define LOG(msg) OH_SK_LOG_INFO(msg);
-#else
-#define LOG(msg) fprintf(stderr, msg);
-#endif
+#include "arkoala-logging.h"
 
 // TODO: switch to more generic convertors eventually.
 template<class T>

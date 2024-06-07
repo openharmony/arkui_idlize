@@ -16,12 +16,13 @@
 #ifndef COMMON_INTEROP_BASE_H
 #define COMMON_INTEROP_BASE_H
 
-#include <unordered_map>
 #include <vector>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
 #include "interop-types.h"
+#include "arkoala-logging.h"
 
 #define KOALA_INTEROP_PROFILER 0
 
@@ -35,22 +36,6 @@
 #else
 #define KOALA_MAYBE_LOG(name)
 #endif
-
-template <class T> T* ptr(KNativePointer ptr) {
-    return reinterpret_cast<T*>(ptr);
-}
-
-template <class T> T& ref(KNativePointer ptr) {
-    return *reinterpret_cast<T*>(ptr);
-}
-
-inline KNativePointer nativePtr(void* pointer) {
-    return reinterpret_cast<KNativePointer>(pointer);
-}
-
-template <class T> KNativePointer fnPtr(void (*pointer)(T*)) {
-    return reinterpret_cast<KNativePointer>(pointer);
-}
 
 std::vector<KStringPtr> makeStringVector(KStringArray strArray);
 std::vector<KStringPtr> makeStringVector(KNativePointerArray arr, KInt size);
