@@ -8,6 +8,7 @@
 // function is implemented.
 void* FindModule()
 {
+#if KOALA_USE_LIBACE
     HMODULE result = nullptr;
     const char libname[] = "./native/ace_compatible_mock.dll";
     result = LoadLibraryA(libname);
@@ -16,10 +17,20 @@ void* FindModule()
     }
     LOG("Cannot find module!");
     return nullptr;
+#else
+     return (void*)1;
+#endif
 }
+extern "C" void* GENERATED_GetArkUIFullNodeAPI(int kind, int version);
+
+
 void* FindFunction(void* library, const char* name)
 {
+#if KOALA_USE_LIBACE
     return (void*)GetProcAddress(reinterpret_cast<HMODULE>(library), TEXT(name));
+#else
+    return (void*)&GENERATED_GetArkUIFullNodeAPI;
+#endif
 }
 
 #elif defined(KOALA_OHOS) || defined(KOALA_LINUX) || defined(KOALA_MACOS)
@@ -27,6 +38,7 @@ void* FindFunction(void* library, const char* name)
 #include <dlfcn.h>
 void* FindModule()
 {
+#if KOALA_USE_LIBACE
 #if defined(KOALA_OHOS)
     const char libname[] = "/system/lib64/module/libace_compatible_mock.so";
 #else
@@ -38,23 +50,23 @@ void* FindModule()
     }
     LOGE("Cannot load libace: %s", dlerror());
     return nullptr;
+#else
+    return (void*)1;
+#endif
 }
 
+extern "C" void* GENERATED_GetArkUIFullNodeAPI(int kind, int version);
 void* FindFunction(void* library, const char* name)
 {
+#if KOALA_USE_LIBACE
     return dlsym(library, name);
+#else
+    return (void*)&GENERATED_GetArkUIFullNodeAPI;
+#endif
 }
 
 #else
 
-void* FindModule()
-{
-    return nullptr;
-}
-
-void* FindFunction(void* library, const char* name)
-{
-    return nullptr;
-}
+#error "Unknown platform"
 
 #endif

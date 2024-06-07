@@ -8,6 +8,7 @@ source_set = get_option('source_set')
 else
 source_set = 'peers'
 endif
+use_libace = false
 use_dummy_libace = true
 if get_option('arkts')
 is_arkts = true
@@ -56,6 +57,7 @@ use_dummy_libace = false
 is_arkts = false
 endif
 
+if use_libace
 libace_sources = []
 libace_name = 'ace_compatible_mock'
 
@@ -65,6 +67,13 @@ libace_sources += [
 ]
 else
 libace_sources += [
+    gen_dir + '/all_modifiers.cc',
+    gen_dir + '/delegates.cc',
+]
+endif
+cflags += ['-DKOALA_USE_LIBACE=1']
+else
+sources += [
     gen_dir + '/all_modifiers.cc',
     gen_dir + '/delegates.cc',
 ]
@@ -150,6 +159,7 @@ shared_library(node_library_name,
     link_args: ldflags + node_ldflags,
     dependencies: []
 )
+if use_libace
 shared_library(libace_name,
     libace_sources,
     override_options: [
@@ -164,6 +174,7 @@ shared_library(libace_name,
     link_args: ldflags + node_ldflags,
     dependencies: []
 )
+endif
 endif
 
 if is_arkts
