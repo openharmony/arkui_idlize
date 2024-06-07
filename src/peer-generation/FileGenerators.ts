@@ -319,6 +319,8 @@ export function makeAPI(
     prologue = prologue
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+    epilogue = epilogue
+        .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
 
     return `
 ${prologue}
