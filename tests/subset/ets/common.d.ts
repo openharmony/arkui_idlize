@@ -220,6 +220,8 @@ declare class CommonMethod<T> {
     }): T;
 
     border(value: BorderOptions): T;
+
+    onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
 }
 
 declare interface Rectangle {
@@ -231,6 +233,24 @@ declare interface Rectangle {
     width?: Length;
 
     height?: Length;
+}
+
+declare interface RectResult {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+declare class TouchTestInfo {
+    windowX: number;
+    windowY: number;
+    parentX: number;
+    parentY: number;
+    x: number;
+    y: number;
+    rect: RectResult;
+    id: string;
 }
 
 declare class CommonAttribute extends CommonMethod<CommonAttribute> {

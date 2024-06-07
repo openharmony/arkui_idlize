@@ -67,7 +67,8 @@ class SerializerPrinter {
             new Method(`write${name}`,
                 new NamedMethodSignature(Type.Void, [new Type(this.translateSerializerType(name, target))], ["value"])),
             writer => {
-                writer.writeStatement(writer.makeAssign("valueSerializer", undefined, writer.makeThis(), true, false))
+                writer.writeStatement(
+                    writer.makeAssign("valueSerializer", new Type(writer.makeRef("Serializer")), writer.makeThis(), true, false))
                 let struct = this.table.targetStruct(target)
                 struct.getFields().forEach(it => {
                     let field = `value_${it.name}`

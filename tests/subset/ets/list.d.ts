@@ -14,8 +14,8 @@
  */
 
 declare interface VisibleListContentInfo {
-
     index: number
+    itemIndexInGroup?: number
 }
 
 declare type OnScrollVisibleContentChangeCallback = (start: VisibleListContentInfo, end: VisibleListContentInfo) => void;

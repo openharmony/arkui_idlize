@@ -729,7 +729,8 @@ export class DeclarationTable {
     {
         let result: LanguageExpression
         if (isOptional) {
-            result = writer.makeCast(writer.makeString("value.tag"), resultType)
+            result = writer.makeTernary(writer.makeDefinedCheck("value.tag"),
+                writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeRuntimeType(RuntimeType.UNDEFINED))
         } else if (target instanceof PointerType) {
             return
         } else if (target instanceof PrimitiveType) {
@@ -767,7 +768,8 @@ export class DeclarationTable {
         } else if (ts.isClassDeclaration(target) && isMaterialized(target)) {
             return undefined
         } else if (ts.isOptionalTypeNode(target)) {
-            result = writer.makeCast(writer.makeString("value.tag"), resultType)
+            result = writer.makeTernary(writer.makeDefinedCheck("value.tag"),
+                writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeRuntimeType(RuntimeType.UNDEFINED))
         } else if (ts.isUnionTypeNode(target)) {
             return writer => {
                 writer.print("switch (value.selector) {")

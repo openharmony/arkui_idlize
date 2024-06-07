@@ -46,6 +46,12 @@ export class NativeModuleBase {
     _ManagedStringWrite(value: KStringPtr, buffer: KUint8ArrayPtr, offset: KInt): KInt {
         throw new Error("_ManagedStringWrite")
     }
+    _Test_Common_OnChildTouchTest(valueArray: Uint8Array, valueSerializerLength: KInt): void {
+        throw new Error("_Test_Common_OnChildTouchTest")
+    }
+    _Test_List_OnScrollVisibleContentChange(valueArray: Uint8Array, valueSerializerLength: KInt): void {
+        throw new Error("_Test_List_OnScrollVisibleContentChange")
+    }
     _Test_TextPicker_OnAccept(valueArray: Uint8Array, valueSerializerLength: KInt): void {
         throw new Error("_Test_TextPicker_OnAccept")
     }

@@ -15,6 +15,7 @@
 import { nullptr } from "@koalaui/interop"
 import { SerializerBase } from "@arkoala/arkui/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/DeserializerBase"
+import { Serializer } from "@arkoala/arkui/Serializer"
 import { Deserializer } from "@arkoala/arkui/Deserializer"
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
@@ -30,7 +31,11 @@ import { CanvasRenderingContext2D } from "@arkoala/arkui/ArkCanvasRenderingConte
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testString1000 } from "@arkoala/arkui/test_data"
-import { deserializePeerEvent, PeerEventKind, TextPicker_onAccept_event } from "./peer_events"
+import { deserializePeerEvent, PeerEventKind,
+    Common_onChildTouchTest_event,
+    List_onScrollVisibleContentChange_event,
+    TextPicker_onAccept_event
+} from "./peer_events"
 
 import {
     getNativeLog,
@@ -304,7 +309,7 @@ function checkPerf3(count: number) {
     console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
-function checkEvents() {
+function checkEvent_Primitive() {
     const BufferSize = 60 * 4
     const serializer = new SerializerBase(BufferSize)
     serializer.writeInt32(1) //nodeId
@@ -315,17 +320,86 @@ function checkEvents() {
     const buffer = new Uint8Array(BufferSize)
     const checkResult = nativeModule()._CheckArkoalaEvents(buffer, BufferSize)
     const event = deserializePeerEvent(new Deserializer(buffer.buffer, BufferSize))
-    assertEquals("Event: read event from native", 1, checkResult)
+    assertEquals("Event_Primitive: read event from native", 1, checkResult)
     if (checkResult !== 1)
         return
 
-    assertEquals("Event: valid kind", PeerEventKind.TextPicker_onAccept, event.kind)
+    assertEquals("Event_Primitive: valid kind", PeerEventKind.TextPicker_onAccept, event.kind)
     if (event.kind !== PeerEventKind.TextPicker_onAccept)
         return
 
     const convertedEvent = event as TextPicker_onAccept_event
-    assertEquals("Event: string argument", "testString", convertedEvent.value)
-    assertEquals("Event: number argument", 22, convertedEvent.index)
+    assertEquals("Event_Primitive: string argument", "testString", convertedEvent.value)
+    assertEquals("Event_Primitive: number argument", 22, convertedEvent.index)
+}
+
+function checkEvent_Interface_Optional() {
+    const bufferSize = 60 * 4
+    const serializer = new Serializer(bufferSize)
+    const eventStart = { index: 11, itemIndexInGroup: 1 }
+    const eventEnd = { index: 22 }
+    serializer.writeInt32(1) //nodeId
+    serializer.writeVisibleListContentInfo(eventStart);
+    serializer.writeVisibleListContentInfo(eventEnd);
+    nativeModule()._Test_List_OnScrollVisibleContentChange(serializer.asArray(), serializer.length())
+
+    const buffer = new Uint8Array(bufferSize)
+    const checkResult = nativeModule()._CheckArkoalaEvents(buffer, bufferSize)
+    const event = deserializePeerEvent(new Deserializer(buffer.buffer, bufferSize))
+    assertEquals("Event_Interface_Optional: read event from native", 1, checkResult)
+    if (checkResult !== 1)
+        return
+
+    assertEquals("Event_Interface_Optional: valid kind", PeerEventKind.List_onScrollVisibleContentChange, event.kind)
+    if (event.kind !== PeerEventKind.List_onScrollVisibleContentChange)
+        return
+
+    const convertedEvent = event as List_onScrollVisibleContentChange_event
+    assertEquals("Event_Interface_Optional: start.index", eventStart.index, convertedEvent.start.index)
+    assertEquals("Event_Interface_Optional: start.itemIndexInGroup", eventStart.itemIndexInGroup, convertedEvent.start.itemIndexInGroup)
+    assertEquals("Event_Interface_Optional: end.index", eventEnd.index, convertedEvent.end.index)
+    assertEquals("Event_Interface_Optional: end.itemIndexInGroup", undefined, convertedEvent.end.itemIndexInGroup)
+}
+
+function checkEvent_Array_Class() {
+    const bufferSize = 60 * 4
+    const serializer = new Serializer(bufferSize)
+    const eventParam: TouchTestInfo[] = [
+        { windowX: 10, windowY: 11, parentX: 12, parentY: 13, x: 14, y: 15, id: "one",
+            rect: { x: 100, y: 101, width: 102, height: 103 } },
+        { windowX: 20, windowY: 21, parentX: 22, parentY: 23, x: 24, y: 25, id: "two",
+            rect: { x: 200, y: 201, width: 202, height: 203 } },
+        { windowX: 30, windowY: 31, parentX: 32, parentY: 33, x: 34, y: 35, id: "three",
+            rect: { x: 300, y: 301, width: 302, height: 303 } }]
+    serializer.writeInt32(1) // nodeId
+    serializer.writeInt8(3)  // RuntimeType.OBJECT
+    serializer.writeInt32(eventParam.length);
+    for (let i = 0; i < eventParam.length; i++) {
+      serializer.writeTouchTestInfo(eventParam[i]);
+    }
+    nativeModule()._Test_Common_OnChildTouchTest(serializer.asArray(), serializer.length())
+
+    const buffer = new Uint8Array(bufferSize)
+    const checkResult = nativeModule()._CheckArkoalaEvents(buffer, bufferSize)
+    const event = deserializePeerEvent(new Deserializer(buffer.buffer, bufferSize))
+    assertEquals("Event_Array_Class: read event from native", 1, checkResult)
+    if (checkResult !== 1)
+        return
+
+    assertEquals("Event_Array_Class: valid kind", PeerEventKind.Common_onChildTouchTest, event.kind)
+    if (event.kind !== PeerEventKind.Common_onChildTouchTest)
+        return
+
+    const convertedEvent = event as Common_onChildTouchTest_event
+    const checkTouchTestInfo = (expected: TouchTestInfo, actual: TouchTestInfo) =>
+        expected.x === actual.x && expected.y === actual.y &&
+        expected.rect.x === actual.rect.x && expected.rect.y === actual.rect.y &&
+        expected.rect.width === actual.rect.width && expected.rect.height === actual.rect.height &&
+        expected.id === actual.id
+    assertEquals("Event_Array_Class: array length", eventParam.length, convertedEvent.value.length)
+    for (let i = 0; i < eventParam.length; i++) {
+        assertTrue(`Event_Array_Class: element ${i}`, checkTouchTestInfo(eventParam[i], convertedEvent.value[i]))
+    }
 }
 
 checkSerdeBaseLength()
@@ -347,7 +421,9 @@ checkCommon()
 checkOverloads()
 checkNavigation()
 checkParticle()
-checkEvents()
+checkEvent_Primitive()
+checkEvent_Interface_Optional()
+checkEvent_Array_Class()
 stopNativeLog(CALL_GROUP_LOG)
 
 const callLog = getNativeLog(CALL_GROUP_LOG)
