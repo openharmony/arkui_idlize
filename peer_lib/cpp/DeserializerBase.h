@@ -404,8 +404,8 @@ public:
   {
     Ark_Length result = {};
     result.unit = 1;
-    Ark_RuntimeType tag = (Ark_RuntimeType)readInt8();
-    switch (tag)
+    result.type = readInt8();
+    switch (result.type)
     {
     case ARK_RUNTIME_OBJECT:
     {
@@ -425,7 +425,7 @@ public:
     }
     default:
     {
-      fprintf(stderr, "Bad length tag %d\n", tag);
+      fprintf(stderr, "Bad length tag %d\n", result.type);
       throw "Error";
     }
     }
