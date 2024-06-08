@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter } from "../IndentedPrinter";
-import { accessorStructList, modifierStructs, extendedAPIStructList } from "./FileGenerators";
+import { accessorStructList, modifierStructs } from "./FileGenerators";
 import { MaterializedClass, MaterializedMethod } from "./Materialized";
 import { ModifierVisitor } from "./ModifierPrinter";
 import { PeerLibrary } from "./PeerLibrary";
@@ -68,13 +68,11 @@ export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: st
     const dummy =
         visitor.dummy.getOutput().join("\n") + "\n" +
         modifierStructs(visitor.accessors.getOutput()) +
-        accessorStructList(visitor.accessorList.getOutput()) +
-        extendedAPIStructList(true)
+        accessorStructList(visitor.accessorList.getOutput())
 
     const real =
         visitor.real.getOutput().join("\n") + "\n" +
         modifierStructs(visitor.accessors.getOutput()) +
-        accessorStructList(visitor.accessorList.getOutput()) +
-        extendedAPIStructList(false)
+        accessorStructList(visitor.accessorList.getOutput())
     return {dummy, real}
 }

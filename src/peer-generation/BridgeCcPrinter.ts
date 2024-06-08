@@ -38,7 +38,7 @@ class BridgeCcVisitor {
 
     // TODO: may be this is another method of ArgConvertor?
     private generateApiArgument(argConvertor: ArgConvertor): string {
-        const prefix = argConvertor.isPointerType() ? `/*1*/(const ${argConvertor.nativeType(false)}*)&`: "    /*2*/"
+        const prefix = argConvertor.isPointerType() ? `(const ${argConvertor.nativeType(false)}*)&`: "    "
         if (argConvertor.useArray)
             return `${prefix}${argConvertor.param}_value`
         else

@@ -136,9 +136,9 @@ typedef struct Opt_Ark_Callback {
 } Opt_Ark_Callback;
 
 enum %CPP_PREFIX%Ark_APIVariantKind {
-    %CPP_PREFIX%BASIC = 1,
-    %CPP_PREFIX%FULL = 2,
-    %CPP_PREFIX%GRAPHICS = 3,
-    %CPP_PREFIX%EXTENDED = 4,
+    %CPP_PREFIX%BASIC = 10,
+    %CPP_PREFIX%FULL = 11,
+    %CPP_PREFIX%GRAPHICS = 12,
+    %CPP_PREFIX%EXTENDED = 13,
     %CPP_PREFIX%COUNT = %CPP_PREFIX%EXTENDED + 1,
 };

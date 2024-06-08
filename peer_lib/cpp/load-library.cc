@@ -4,7 +4,7 @@
 #if defined(KOALA_WINDOWS)
 
 #include <windows.h>
-// Here we need to find module where GetArkUINodeAPI()
+// Here we need to find module where GetArkAnyAPI()
 // function is implemented.
 void* FindModule()
 {
@@ -21,15 +21,14 @@ void* FindModule()
      return (void*)1;
 #endif
 }
-extern "C" void* GENERATED_GetArkUIFullNodeAPI(int kind, int version);
-
+extern "C" void* GENERATED_GetArkAnyAPI(int kind, int version);
 
 void* FindFunction(void* library, const char* name)
 {
 #if KOALA_USE_LIBACE
     return (void*)GetProcAddress(reinterpret_cast<HMODULE>(library), TEXT(name));
 #else
-    return (void*)&GENERATED_GetArkUIFullNodeAPI;
+    return (void*)&GENERATED_GetArkAnyAPI;
 #endif
 }
 
@@ -55,13 +54,13 @@ void* FindModule()
 #endif
 }
 
-extern "C" void* GENERATED_GetArkUIFullNodeAPI(int kind, int version);
+extern "C" void* GENERATED_GetArkAnyAPI(int kind, int version);
 void* FindFunction(void* library, const char* name)
 {
 #if KOALA_USE_LIBACE
     return dlsym(library, name);
 #else
-    return (void*)&GENERATED_GetArkUIFullNodeAPI;
+    return (void*)&GENERATED_GetArkAnyAPI;
 #endif
 }
 

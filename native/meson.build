@@ -74,8 +74,7 @@ endif
 cflags += ['-DKOALA_USE_LIBACE=1']
 else
 sources += [
-    gen_dir + '/all_modifiers.cc',
-    gen_dir + '/delegates.cc',
+    gen_dir + '/dummy_impl.cc',
 ]
 endif
 
@@ -190,13 +189,6 @@ shared_library(arkts_library_name,
     link_args: ldflags,
     dependencies: []
 )
-executable('dummy-panda',
-    gen_dir / 'dummy-panda.cc',
-    cpp_args: cflags,
-    link_args: panda_ldflags,
-    install_dir: meson.current_source_dir()
-)
-
 endif
 
 if is_jni and not is_ohos
