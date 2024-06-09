@@ -172,7 +172,6 @@ export function modifierStructs(lines: string[]): string {
 export function modifierStructList(lines: string[]): string {
     return `
 const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {
-    1, // version
 ${lines.join("\n")}
 };
 
@@ -187,7 +186,6 @@ const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.
 export function accessorStructList(lines: string[]): string {
     return `
 const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {
-    1, // version
 ${lines.join("\n")}
 };
 
@@ -256,12 +254,10 @@ export function makeApiModifiers(modifiers: string[], accessors: string[], event
  * layout checks.
  */
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers {
-    ${PrimitiveType.Int32.getText()} version;
 ${modifiers.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors {
-    ${PrimitiveType.Int32.getText()} version;
 ${accessors.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors;
 
@@ -270,11 +266,9 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIBasicAPI {
 } ${PeerGeneratorConfig.cppPrefix}ArkUIBasicAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation {
-    ${PrimitiveType.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUINavigation {
-    ${PrimitiveType.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUINavigation;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
@@ -282,7 +276,6 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
 } ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
-    ${PrimitiveType.Int32.getText()} version;
 ${events.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI;
 
@@ -298,14 +291,12 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI {
  */
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
     ${PrimitiveType.Int32.getText()} version;
-    const ${PeerGeneratorConfig.cppPrefix}ArkUIBasicAPI* (*getBasicAPI)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* (*getNodeModifiers)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* (*getAccessors)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation* (*getAnimation)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUINavigation* (*getNavigation)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* (*getEventsAPI)();
-    const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI* (*getExtendedAPI)();
 } ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {
@@ -467,7 +458,6 @@ export function makeCEventsImpl(implData: string, receiversList: string): string
 ${implData}
 
 const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {
-  1, // version
 ${receiversList}
 };
 

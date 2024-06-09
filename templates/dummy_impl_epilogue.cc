@@ -1,6 +1,5 @@
 const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {
     %ARKUI_FULL_API_VERSION_VALUE%, // version
-    nullptr,
     %CPP_PREFIX%GetArkUINodeModifiers,
     %CPP_PREFIX%GetArkUIAccessors,
     nullptr,
