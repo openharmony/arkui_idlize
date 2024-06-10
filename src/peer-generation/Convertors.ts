@@ -743,7 +743,7 @@ export class TupleConvertor extends BaseArgConvertor {
         const statements: LanguageStatement[] = []
         const tmpTupleIds: string[] = []
         this.memberConvertors.forEach((it, index) => {
-            const tmpTupleId = `tmpTuple${uniqueCounter++}`
+            const tmpTupleId = `tmpTupleItem${index}`
             tmpTupleIds.push(tmpTupleId)
             const receiver = printer.getObjectAccessor(this, param, value, {index: `${index}`})
             // need to remove the mark '?' from Optional type

@@ -18,7 +18,7 @@ import { Language, stringOrNone } from "../util";
 import { ArrayConvertor, BaseArgConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "./Convertors";
 import { FieldRecord, PrimitiveType } from "./DeclarationTable";
 import { RuntimeType } from "./PeerGeneratorVisitor";
-import { mapType } from "./TypeNodeNameConvertor";
+import { mapType, TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 
 import * as ts from "typescript"
 import * as fs from "fs"
@@ -359,11 +359,10 @@ class TsObjectAssignStatement implements LanguageStatement {
 class TsObjectDeclareStatement implements LanguageStatement {
     constructor(private object: string, private type: Type | undefined, private fields: readonly FieldRecord[]) {}
     write(writer: LanguageWriter): void {
+        const nameConvertor = new TsObjectDeclareNodeNameConvertor()
         // Constructing a new type with all optional fields
         const objectType = new Type(`{${this.fields.map(it => {
-            //TODO: to preventing an error IMPORT_* types were  not found
-            const typeNode = it.type && ts.isImportTypeNode(it.type) ? "object" : mapType(it.type)
-            return `${it.name}?: ${typeNode}`
+            return `${it.name}?: ${nameConvertor.convert(it.type)}`
         }).join(",")}}`)
         new TsObjectAssignStatement(this.object, objectType, true).write(writer)
     }
@@ -1198,5 +1197,33 @@ export function createLanguageWriter(language: Language): LanguageWriter {
         case Language.JAVA: return new JavaLanguageWriter(new IndentedPrinter())
         case Language.CPP: return new CppLanguageWriter(new IndentedPrinter())
         default: throw new Error(`Language ${language.toString()} is not supported`)
+    }
+}
+
+class TsObjectDeclareNodeNameConvertor extends TSTypeNodeNameConvertor {
+    private useOptionalTypes = true
+
+    override convertTuple(node: ts.TupleTypeNode): string {
+        this.useOptionalTypes = false
+        const name = super.convertTuple(node);
+        this.useOptionalTypes = true
+        return name
+    }
+    override convertOptional(node: ts.OptionalTypeNode): string {
+        let name = super.convertOptional(node);
+        if (!this.useOptionalTypes) {
+            name = name.replace("?", "")
+        }
+        return name
+    }
+    override convertImport(_node: ts.ImportTypeNode): string {
+        //TODO: to preventing an error IMPORT_* types were  not found
+        return "object"
+    }
+    override convert(node: ts.Node | undefined): string {
+        if (node) {
+            return super.convert(node)
+        }
+        return "undefined";
     }
 }

@@ -57,16 +57,17 @@ export class TSTypeNodeNameConvertor implements
         throw new Error(`Unknown LiteralTypeNode ${ts.SyntaxKind[node.literal.kind]}`)
     }
     convertTuple(node: ts.TupleTypeNode): string {
-        const members = node.elements.map(it => {
-            if (ts.isNamedTupleMember(it)) {
-                const name = this.convert(it.name)
-                const maybeQuestion = it.questionToken ? '?' : ''
-                const type = this.convert(it.type!)
-                return `${name}${maybeQuestion}: ${type}`
-            }
-            return this.convert(it)
-        })
+        const members = node.elements.map(it => this.convertTupleElement(it))
         return `[${members.join(', ')}]`
+    }
+    protected convertTupleElement(node: ts.TypeNode): string {
+        if (ts.isNamedTupleMember(node)) {
+            const name = this.convert(node.name)
+            const maybeQuestion = node.questionToken ? '?' : ''
+            const type = this.convert(node.type!)
+            return `${name}${maybeQuestion}: ${type}`
+        }
+        return this.convert(node)
     }
     convertArray(node: ts.ArrayTypeNode): string {
         return `${this.convert(node.elementType)}[]`

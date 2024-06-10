@@ -212,11 +212,11 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     // tuple optional
 
-    // testTupleOptional(value: [number, string?, boolean?, EnumDTS?]): TestAttribute;
+    testTupleOptional(value: [number, string, boolean, EnumDTS]): TestAttribute;
 
     // tuple union
 
-    //testTupleUnion(value: [(number | string), (boolean | EnumDTS), (string | EnumDTS | boolean)?]): TestAttribute;
+    testTupleUnion(value: [(number | string), (boolean | EnumDTS), (string | EnumDTS | boolean)]): TestAttribute;
 
     // Array<Type>
 
