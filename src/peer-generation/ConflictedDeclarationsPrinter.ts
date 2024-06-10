@@ -21,7 +21,7 @@ import { DeclarationNameConvertor } from "./dependencies_collector";
 import { convertDeclaration } from './TypeNodeConvertor';
 
 class ConflictedDeclarationsVisitor {
-    readonly writer = createLanguageWriter(new IndentedPrinter(), this.library.declarationTable.language)
+    readonly writer = createLanguageWriter(this.library.declarationTable.language)
 
     constructor(
         private readonly library: PeerLibrary

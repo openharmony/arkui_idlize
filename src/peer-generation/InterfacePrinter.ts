@@ -111,7 +111,7 @@ class InterfacesVisitor {
 
     printInterfaces() {
         for (const file of this.peerLibrary.files.values()) {
-            const writer = createLanguageWriter(new IndentedPrinter(), Language.TS)
+            const writer = createLanguageWriter(Language.TS)
 
             this.printImports(writer, file)
             file.declarations.forEach(it => writer.print(convertDeclaration(this.generator, it)))
