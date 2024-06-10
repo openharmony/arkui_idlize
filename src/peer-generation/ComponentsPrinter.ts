@@ -67,7 +67,8 @@ class ComponentFileVisitor {
             //     imports.addFeature(it.className, `./Ark${peer.componentName}Peer`)
             // })
         })
-        this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+        if (this.file.declarationTable.language === Language.TS)
+            this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(this.printer)
     }
 
@@ -100,7 +101,7 @@ class ComponentFileVisitor {
                 this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!))
-                writer.print(`attributeModifier(modifier: AttributeModifier<any>): this { throw new Error("not implemented") }`)
+                writer.print(`attributeModifier(modifier: AttributeModifier<object>): this { throw new Error("not implemented") }`)
         }, parentComponentClassName, [attributeClassName])
 
 

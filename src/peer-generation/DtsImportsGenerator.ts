@@ -84,7 +84,8 @@ const dtsImports = `import {
     PixelMap,
     NavigationTitleMode,
     RectResult,
-    TouchTestInfo
+    TouchTestInfo,
+    AttributeModifier,
 } from "./dts-exports"
 `
 

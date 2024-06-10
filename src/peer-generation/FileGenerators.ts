@@ -203,9 +203,9 @@ import { SerializerBase, Tags, RuntimeType, Function, runtimeType, isPixelMap, i
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"
 
-export function createSerializer() { return new Serializer(16) }
-
 ${printer.getOutput().join("\n")}
+
+export function createSerializer() { return new Serializer(16) }
 `
 }
 
@@ -389,41 +389,6 @@ export function makeArkuiModule(componentsFiles: string[]): string {
         const basenameNoExt = basename.replaceAll(path.extname(basename), "")
         return `export * from "./${basenameNoExt}"`
     }).join("\n")
-}
-
-export function makeStructCommon(commonComponentBody: string, customComponentMethods: string[]): string {
-    return `
-import { PeerNode } from "./PeerNode"
-import { ArkCommonPeer } from "./ArkCommonPeer"
-import { runtimeType, RuntimeType  } from "./SerializerBase"
-import { UseProperties} from "./use_properties"
-
-// TODO: temporary, remove!
-interface Theme {}
-
-export class ComponentNode {
-    protected peer?: PeerNode
-    setPeer(peer: PeerNode) {
-        this.peer = peer
-    }
-}
-
-export class ArkCommon extends ComponentNode implements CommonMethod<CommonAttribute> {
-  protected peer?: ArkCommonPeer
-  /** @memo:intrinsic */
-  protected checkPriority(
-      name: string
-  ): boolean { throw new Error("not implemented") }
-  protected applyAttributesFinish(): void { throw new Error("not implemented") }
-  attributeModifier(modifier: AttributeModifier<this>): this { throw new Error("not implemented") }
-
-  ${commonComponentBody}
-}
-
-export class ArkStructCommon extends ArkCommon implements CustomComponent {
-  ${customComponentMethods.join('\n  ')}
-}
-`
 }
 
 export function makeMaterializedPrologue(lang: Language): string {

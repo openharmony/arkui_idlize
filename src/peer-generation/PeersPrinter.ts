@@ -84,8 +84,6 @@ class PeerFileVisitor {
 
         const imports = new ImportsCollector()
         imports.addFilterByBasename(this.targetBasename)
-        for (const importType of this.library.importTypesStubs)
-            imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
         this.file.peers.forEach(peer => {
             if (!peer.originalParentFilename) return
             const parentBasename = renameDtsToPeer(path.basename(peer.originalParentFilename), this.file.declarationTable.language)
@@ -94,7 +92,11 @@ class PeerFileVisitor {
             if (parentAttributesClass)
                 imports.addFeatureByBasename(parentAttributesClass, parentBasename)
         })
-        this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+        if (this.file.declarationTable.language === Language.TS) {
+            this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+            for (const importType of this.library.importTypesStubs)
+                imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
+        }
         imports.addFeature("unsafeCast", "./generated-utils")
         imports.print(this.printer)
     }

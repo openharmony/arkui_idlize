@@ -105,7 +105,7 @@ export class TSTypeNodeNameConvertor implements
             return this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.ObjectKeyword))
         let types = node.typeArguments?.map(it => this.convert(it))
         if (name === `AttributeModifier`)
-            types = [`this`]
+            types = [`object`]
         if (name === `ContentModifier`)
             types = [this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
         if (name === `Optional`)
