@@ -1,8 +1,28 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import * as path from "path";
+import * as fs from "fs";
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { completeDelegatesImpl } from "./FileGenerators";
+import { completeDelegatesImpl, warning } from "./FileGenerators";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
+import { PeerClass } from "./PeerClass";
+import { MaterializedClass } from "./Materialized";
+import { CppFileWriter, CppHeaderFileGenerator as CppHeaderFileWriter, CppSourceFileGenerator as CppSourceFileWriter } from "./CppFileGenerator";
 
 export class DelegateSignatureBuilder {
     constructor(
@@ -164,4 +184,133 @@ export function printDelegatesImplementation(library: PeerLibrary): string {
     // TODO here can be conflicts between different union filds with same types
     const uniqueDeclarations = Array.from(new Set(visitor.impl.getOutput()))
     return completeDelegatesImpl(uniqueDeclarations.join('\n'))
+}
+
+export function printDelegatesAsMultipleFiles(library: PeerLibrary, outputDir: string) {
+    const visitor = new MultiFileDelegateVisitor(library)
+    visitor.print()
+    visitor.emitSync(outputDir)
+}
+
+
+interface MultiFileDelegatePrinters {
+    api: IndentedPrinter
+    impl: IndentedPrinter
+}
+
+class MultiFileDelegateVisitor {
+    private readonly printers: Map<string, MultiFileDelegatePrinters> = new Map();
+    private api?: IndentedPrinter
+    private impl?: IndentedPrinter
+    
+    constructor(
+        private readonly library: PeerLibrary,
+    ) {}
+
+    private printMethod(method: PeerMethod) {
+        const visitor = new MethodDelegatePrinter(
+            this.library.declarationTable,
+            method,
+        )
+        visitor.visit()
+        visitor.declPrinter.getOutput().forEach(it => this.api!.print(it))
+        visitor.implPrinter.getOutput().forEach(it => this.impl!.print(it))
+    }
+
+    private onPeerStart(clazz: PeerClass) {
+        let slug = clazz.componentName.toLowerCase()
+        this.pushPrinters(slug)
+    }
+
+    private onPeerEnd(_clazz: PeerClass) {
+        this.api = this.impl = undefined
+    }
+
+    private onMaterializedClassStart(clazz: MaterializedClass) {
+        let slug = clazz.className.toLowerCase()
+        this.pushPrinters(slug)
+    }
+
+    private onMaterializedClassEnd(_clazz: MaterializedClass) {
+        this.api = this.impl = undefined
+    }
+
+    private pushPrinters(slug: string) {
+        let printers = this.printers.get(slug)
+        if (printers) {
+            this.api = printers.api
+            this.impl = printers.impl
+            return
+        }
+        let api = this.api = new IndentedPrinter()
+        let impl = this.impl = new IndentedPrinter()
+        this.printers.set(slug, { api, impl })
+    }
+
+    print() {
+        for (const file of this.library.files) {
+            for (const peer of file.peers.values()) {
+                this.onPeerStart(peer)
+                for (const method of peer.methods) {
+                    this.printMethod(method)
+                }
+                this.onPeerEnd(peer)
+            }
+        }
+        for (const materialized of this.library.materializedClasses.values()) {
+            this.onMaterializedClassStart(materialized)
+            this.printMethod(materialized.ctor)
+            this.printMethod(materialized.finalizer)
+            for (const method of materialized.methods) {
+                this.printMethod(method)
+            }
+            this.onMaterializedClassEnd(materialized)
+        }
+    }
+
+    emitSync(outputDirectory: string): void {
+        fs.mkdirSync(outputDirectory, { recursive: true });
+        let implPrinter = new DelegateImplementationPrinter();
+        let headerPrinter = new DelegateHeaderPrinter();
+
+        for (const [slug, { api, impl }] of this.printers) {
+            implPrinter.printFile(path.join(outputDirectory, `${slug}_delegates.cc`), impl);
+            headerPrinter.printFile(path.join(outputDirectory, `${slug}_delegates.h`), api);
+        }
+    }
+}
+
+abstract class DelegateFilePrinter {
+    static readonly GENERATED_WARNING = `/*
+ * ${warning}
+ */
+`
+    public printFile(filePath: string, source: IndentedPrinter) {
+        let output = this.createFileWriter(filePath)
+        output.writeLine(DelegateFilePrinter.GENERATED_WARNING)
+        let uniqueDecls = new Set(source.getOutput())
+        for (const decl of uniqueDecls) {
+            output.writeLine(decl)
+        }
+        output.end()
+    }
+
+    protected abstract createFileWriter(filePath: string): CppFileWriter
+}
+
+class DelegateHeaderPrinter extends DelegateFilePrinter {
+    protected createFileWriter(filePath: string): CppFileWriter {
+        return new CppHeaderFileWriter(filePath)
+    }
+}
+
+class DelegateImplementationPrinter extends DelegateFilePrinter {
+    protected createFileWriter(filePath: string): CppFileWriter {
+        const output = new CppSourceFileWriter(filePath)
+        const headerName = path.basename(filePath, ".cc") + ".h"
+        output.writeInclude("Serializers.h")
+        output.writeInclude(headerName)
+        output.writeLine()
+        return output
+    }
 }

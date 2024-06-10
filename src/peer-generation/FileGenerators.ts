@@ -23,7 +23,7 @@ import { PeerEventKind } from "./EventsPrinter"
 import { collectDtsImports } from "./DtsImportsGenerator"
 import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
 
-const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
+export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
 function dateChunk(): string {
     const currentYear = (new Date()).getFullYear()
@@ -31,7 +31,7 @@ function dateChunk(): string {
     return `${currentYear}`
 }
 
-const cStyleCopyright =
+export const cStyleCopyright =
 `/*
  * Copyright (c) ${dateChunk()} Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +48,7 @@ const cStyleCopyright =
  */
 `
 
-const sharpCopyright =
+export const sharpCopyright =
 `# Copyright (c) ${dateChunk()} Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -469,6 +469,15 @@ const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* GetArkUiEventsAPI()
 }
 
 export function gniFile(gniSources: string): string {
+return `${sharpCopyright}
+
+# ${warning}
+
+${gniSources}
+`
+}
+
+export function mesonBuildFile(gniSources: string): string {
 return `${sharpCopyright}
 
 # ${warning}

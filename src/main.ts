@@ -27,13 +27,14 @@ import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { copyPeersToKoalaUi, copyPeersToLibace } from "./CopyPeers"
 import {
     copyPeerLib,
-    completeImplementations,
     dummyImplementations,
     makeArkuiModule,
     makeTSSerializer,
     completeEventsImplementations,
     makeTSDeserializer,
-    gniFile
+    gniFile,
+    mesonBuildFile,
+    completeImplementations
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
@@ -42,7 +43,7 @@ import { defaultCompilerOptions, isDefined, toSet, Language } from "./util"
 import { TypeChecker } from "./typecheck"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
-import { printRealAndDummyAccessors } from "./peer-generation/AccessorPrinter"
+import { printRealAndDummyAccessors, printRealModifiersAsMultipleFiles } from "./peer-generation/ModifierPrinter"
 import { printRealAndDummyModifiers } from "./peer-generation/ModifierPrinter"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { printComponents } from "./peer-generation/ComponentsPrinter"
@@ -53,11 +54,11 @@ import { printNodeTypes } from "./peer-generation/NodeTypesPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/NativeModulePrinter"
 import { printBridgeCc } from "./peer-generation/BridgeCcPrinter"
 import { printImportsStubs } from "./peer-generation/ImportsStubsPrinter"
-import { printDelegatesHeaders, printDelegatesImplementation } from "./peer-generation/DelegatePrinter"
+import { printDelegatesAsMultipleFiles, printDelegatesHeaders, printDelegatesImplementation } from "./peer-generation/DelegatePrinter"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
 import { printEvents, printEventsCImpl } from "./peer-generation/EventsPrinter"
-import { collectDtsImports } from "./peer-generation/DtsImportsGenerator"
 import { printGniSources } from "./peer-generation/GniPrinter"
+import { printMesonBuild } from "./peer-generation/MesonPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -386,6 +387,13 @@ if (options.dts2peer) {
                 fs.writeFileSync(path.join(outDir, 'node_interfaces.gni'), gniFile(gniSources))
 
                 copyPeerLib(path.join(__dirname, '..', 'peer_lib'), outDir)
+
+                let newOutDir = path.join(outDir, "refactor")
+                printDelegatesAsMultipleFiles(peerLibrary, newOutDir)
+                printRealModifiersAsMultipleFiles(peerLibrary, newOutDir)
+
+                const mesonBuild = printMesonBuild(peerLibrary)
+                fs.writeFileSync(path.join(newOutDir, 'meson.build'), mesonBuildFile(mesonBuild))
             }
         }
     )

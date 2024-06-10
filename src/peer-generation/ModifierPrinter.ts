@@ -13,14 +13,19 @@
  * limitations under the License.
  */
 
+import * as fs from "fs"
+import * as path from "path"
+
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { modifierStructList, modifierStructs } from "./FileGenerators";
+import { accessorStructList, modifierStructList, modifierStructs } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
 import { DelegateSignatureBuilder } from "./DelegatePrinter";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { MaterializedClass, MaterializedMethod } from "./Materialized";
+import { CppSourceFileGenerator } from "./CppFileGenerator";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     public readonly printer = new IndentedPrinter()
@@ -133,12 +138,11 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     }
 }
 
-export class ModifierVisitor {
+class ModifierVisitor {
     dummy = new IndentedPrinter()
     real = new IndentedPrinter()
     modifiers = new IndentedPrinter()
     modifierList = new IndentedPrinter()
-    accessorList = new IndentedPrinter()
 
     constructor(
         protected library: PeerLibrary,
@@ -217,15 +221,127 @@ export class ModifierVisitor {
         this.modifiers.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
     }
 
+    printPeerClassModifiers(clazz: PeerClass) {
+        this.printClassProlog(clazz)
+        clazz.methods.forEach(method => this.printRealAndDummyModifier(method))
+        this.printClassEpilog(clazz)
+    }
+
     // TODO: have a proper Peer module visitor
     printRealAndDummyModifiers() {
         this.library.files.forEach(file => {
-            file.peers.forEach(clazz => {
-                this.printClassProlog(clazz)
-                clazz.methods.forEach(method => this.printRealAndDummyModifier(method))
-                this.printClassEpilog(clazz)
-            })
+            file.peers.forEach(clazz => this.printPeerClassModifiers(clazz))
         })
+    }
+}
+
+class AccessorVisitor extends ModifierVisitor {
+    accessors = new IndentedPrinter()
+    accessorList = new IndentedPrinter()
+
+    constructor(library: PeerLibrary) {
+        super(library)
+    }
+
+    override printRealAndDummyModifiers() {
+        super.printRealAndDummyModifiers()
+        this.library.materializedClasses.forEach(c => this.printRealAndDummyAccessor(c))
+    }
+
+    printRealAndDummyAccessor(clazz: MaterializedClass) {
+        this.accessorList.pushIndent()
+        this.printMaterializedClassProlog(clazz);
+        [clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
+            this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(m))
+            this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
+            this.accessors.print(`${method.originalParentName}_${method.overloadedName},`)
+        })
+        this.printMaterializedClassEpilog(clazz)
+        this.accessorList.popIndent()
+    }
+
+    printMaterializedClassProlog(clazz: MaterializedClass) {
+        const accessor = `${clazz.className}Accessor`
+        this.accessors.print(`${PeerGeneratorConfig.cppPrefix}ArkUI${accessor} ${accessor}Impl {`)
+        this.accessors.pushIndent()
+        this.accessorList.print(`Get${accessor},`)
+    }
+
+    printMaterializedClassEpilog(clazz: MaterializedClass) {
+        this.accessors.popIndent()
+        this.accessors.print(`};\n`)
+        const accessor = `${clazz.className}Accessor`
+        this.accessors.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}() { return &${accessor}Impl; }\n\n`)
+    }
+
+    printMaterializedMethod(printer: IndentedPrinter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void) {
+        this.printMethodProlog(printer, method)
+        printBody(method)
+        this.printMethodEpilog(printer)
+    }
+}
+
+class MultiFileModifiersVisitorState {
+    dummy = new IndentedPrinter()
+    real = new IndentedPrinter()
+    accessorList = new IndentedPrinter()
+    accessors = new IndentedPrinter()
+    modifierList = new IndentedPrinter()
+    modifiers = new IndentedPrinter()
+}
+
+class MultiFileModifiersVisitor extends AccessorVisitor {
+    private stateByFile = new Map<string, MultiFileModifiersVisitorState>()
+
+    printPeerClassModifiers(clazz: PeerClass): void {
+        this.onFileStart(clazz.componentName.toLowerCase())
+        super.printPeerClassModifiers(clazz)
+        this.onFileEnd()
+    }
+
+    onFileStart(slug: string) {
+        let state = this.stateByFile.get(slug)
+        if (!state) {
+            state = new MultiFileModifiersVisitorState()
+            this.stateByFile.set(slug, state)
+        }
+        this.dummy = state.dummy
+        this.real = state.real
+        this.accessors = state.accessors
+        this.accessorList = state.accessorList
+        this.modifiers = state.modifiers
+        this.modifierList = state.modifierList
+    }
+
+    onFileEnd() {
+    }
+
+    printRealAndDummyAccessor(clazz: MaterializedClass): void {
+        this.onFileStart(clazz.className.toLowerCase())
+        super.printRealAndDummyAccessor(clazz)
+        this.onFileEnd()
+    }
+
+    emitRealSync(outputDirectory: string): void {
+        fs.mkdirSync(outputDirectory, { recursive: true });
+
+        for (const [slug, state] of this.stateByFile) {
+            const filePath = path.join(outputDirectory, `${slug}_modifiers.cc`)
+            const output = new CppSourceFileGenerator(filePath)
+            output.writeInclude("Interop.h")
+            output.writeInclude("Serializers.h")
+            output.writeInclude(`${slug}_delegates.h`)
+            output.writeLine()
+
+            state.real.getOutput().forEach(block => output.writeLine(block))
+            output.writeLine(modifierStructs(state.modifiers.getOutput()))
+            output.writeLine(modifierStructList(state.modifierList.getOutput()))
+            output.writeLine(accessorStructList(state.accessorList.getOutput()))
+            
+            // output.writeLine(completeImplementations()) // TODO implement with versions
+
+            output.end()
+        }
     }
 }
 
@@ -243,4 +359,26 @@ export function printRealAndDummyModifiers(peerLibrary: PeerLibrary): {dummy: st
         modifierStructs(visitor.modifiers.getOutput()) +
         modifierStructList(visitor.modifierList.getOutput())
     return {dummy, real}
+}
+
+export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: string, real: string} {
+    const visitor = new AccessorVisitor(peerLibrary)
+    peerLibrary.materializedClasses.forEach(c => visitor.printRealAndDummyAccessor(c))
+
+    const dummy =
+        visitor.dummy.getOutput().join("\n") + "\n" +
+        modifierStructs(visitor.accessors.getOutput()) +
+        accessorStructList(visitor.accessorList.getOutput())
+
+    const real =
+        visitor.real.getOutput().join("\n") + "\n" +
+        modifierStructs(visitor.accessors.getOutput()) +
+        accessorStructList(visitor.accessorList.getOutput())
+    return {dummy, real}
+}
+
+export function printRealModifiersAsMultipleFiles(library: PeerLibrary, outputDir: string) {
+    const visitor = new MultiFileModifiersVisitor(library)
+    visitor.printRealAndDummyModifiers()
+    visitor.emitRealSync(outputDir)
 }
