@@ -20,6 +20,7 @@ import { PeerMethod } from "./PeerMethod"
 import { identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
 import { DeclarationTarget } from "./DeclarationTable"
+import { ImportFeature } from "./ImportsCollector"
 
 const ignoredMaterializedClasses = [
     //"CanvasRenderingContext2D", // has data
@@ -121,6 +122,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly fields: MaterializedField[],
         public readonly ctor: MaterializedMethod,
         public readonly finalizer: MaterializedMethod,
+        public readonly importFeatures: ImportFeature[],
         public methods: MaterializedMethod[],
     ) {
         PeerMethod.markOverloads(methods)

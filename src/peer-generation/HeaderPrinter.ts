@@ -167,7 +167,7 @@ export function printApiAndSerializers(apiVersion: string|undefined, peerLibrary
     const structs = new IndentedPrinter()
     const typedefs = new IndentedPrinter()
 
-    const serializers = makeCSerializers(peerLibrary.declarationTable, structs, typedefs)
+    const serializers = makeCSerializers(peerLibrary, structs, typedefs)
     const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), structs, typedefs)
 
     return {api, serializers}

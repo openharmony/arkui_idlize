@@ -575,6 +575,8 @@ export class DeclarationTable {
         if (!declaration) {
             return this.customConvertor(entityName, param, type) ?? throwException(`Declaration not found for: ${type.getText()}`)
         }
+        if (PeerGeneratorConfig.isConflictedDeclaration(declaration))
+            return new CustomTypeConvertor(param, identName(declaration.name)!)
         const declarationName = identName(declaration.name)!
         let customConvertor = this.customConvertor(entityName, param, type)
         if (customConvertor) {
@@ -1237,6 +1239,8 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
             throw new Error(`No declaration for ${node.getText()} ${asString(node)}`)
         }
         let declaration = declarations[0]
+        if (PeerGeneratorConfig.isConflictedDeclaration(declaration))
+            return PrimitiveType.CustomObject
         if (ts.isTypeAliasDeclaration(declaration)) {
             const node = declaration.type
             this.table.requestType(identName(declaration.name), node)

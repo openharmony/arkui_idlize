@@ -94,6 +94,7 @@ class PeerFileVisitor {
             if (parentAttributesClass)
                 imports.addFeatureByBasename(parentAttributesClass, parentBasename)
         })
+        this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.addFeature("unsafeCast", "./generated-utils")
         imports.print(this.printer)
     }
@@ -162,44 +163,8 @@ class PeerFileVisitor {
         }, this.generatePeerParentName(peer))
     }
 
-    private printEnum(enumEntity: EnumEntity) {
-        this.printer.print(enumEntity.comment)
-        this.printer.print(`enum Ark${enumEntity.name} {`)
-        this.printer.pushIndent()
-        for (const member of enumEntity.members) {
-            this.printer.print(member.comment)
-            if (member.initializerText != undefined) {
-                this.printer.print(`${member.name} = ${member.initializerText},`)
-            } else {
-                this.printer.print(`${member.name},`)
-            }
-        }
-        this.printer.popIndent()
-        this.printer.print(`}`)
-    }
-
-    private printEnums(peerFile: PeerFile) {
-        if (!(this.isTs||this.isArkTs)) return
-        peerFile.enums.forEach(it => this.printEnum(it))
-    }
-
-    private printAssignEnumsToGlobalScope(peerFile: PeerFile) {
-        if (!(this.isTs||this.isArkTs)) return
-        if (peerFile.enums.length != 0) {
-            this.printer.print(`Object.assign(globalThis, {`)
-            this.printer.pushIndent()
-            for (const enumEntity of peerFile.enums) {
-                this.printer.print(`${enumEntity.name}: Ark${enumEntity.name},`)
-            }
-            this.printer.popIndent()
-            this.printer.print(`})`)
-        }
-    }
-
     printFile(): void {
         this.printImports()
-        this.printEnums(this.file)
-        this.printAssignEnumsToGlobalScope(this.file)
         this.file.peers.forEach(peer => {
             this.printPeer(peer)
             this.printAttributes(peer)

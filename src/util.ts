@@ -368,7 +368,7 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isIndexSignatureDeclaration(node)) return `IndexSignature`
     if (ts.isIndexedAccessTypeNode(node)) return `IndexedAccess`
     if (ts.isTemplateLiteralTypeNode(node)) return `TemplateLiteral`
-    throw new Error(`Unknown: ${node.kind}`)
+    throw new Error(`Unknown: ${ts.SyntaxKind[node.kind]}`)
 }
 
 function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName |  ts.NumericLiteral | ts.ComputedPropertyName  | undefined): string | undefined {
@@ -462,11 +462,26 @@ export function renameDtsToComponent(fileName: string, language: Language, withF
     return renamed
 }
 
-export function renameClassToMaterialized(fileName: string, language: Language) {
-    return "Ark"
-        .concat(snakeCaseToCamelCase(fileName))
+export function renameDtsToInterfaces(fileName: string, language: Language, withFileExtension: boolean = true) {
+    const renamed = "Ark"
+        .concat(snakeCaseToCamelCase(fileName), "Interfaces")
+        .replace(".d.ts", "")
+        
+    if (withFileExtension) {
+        return renamed.concat(language.extension)
+    }
+    return renamed
+}
+
+export function renameClassToMaterialized(className: string, language: Language, withFileExtension: boolean = true) {
+    const renamed = "Ark"
+        .concat(snakeCaseToCamelCase(className))
         .concat("Materialized")
-        .concat(language.extension)
+
+    if (withFileExtension) {
+        return renamed.concat(language.extension)
+    }
+    return renamed
 }
 
 export function importTypeName(type: ts.ImportTypeNode, asType = false): string {

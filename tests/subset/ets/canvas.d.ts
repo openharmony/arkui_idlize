@@ -51,6 +51,19 @@ declare class CanvasRenderingContext2D extends CanvasRenderer {
   static of(): CanvasRenderingContext2D
 }
 
+declare interface DrawingCanvas {}
+declare interface Size {
+  width: number;
+  height: number;
+}
+declare class ImageBitmap {
+  constructor(src: string);
+  constructor(src: string, unit: LengthMetricsUnit);
+  constructor(data: PixelMap);
+  constructor(data: PixelMap, unit: LengthMetricsUnit);
+  close(): void;
+}
+
 declare class DrawingRenderingContext {
 
   get size(): Size;

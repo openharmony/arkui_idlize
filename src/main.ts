@@ -38,6 +38,7 @@ import {
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
+    PeerProcessor,
 } from "./peer-generation/PeerGeneratorVisitor"
 import { defaultCompilerOptions, isDefined, toSet, Language } from "./util"
 import { TypeChecker } from "./typecheck"
@@ -59,6 +60,8 @@ import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
 import { printEvents, printEventsCImpl } from "./peer-generation/EventsPrinter"
 import { printGniSources } from "./peer-generation/GniPrinter"
 import { printMesonBuild } from "./peer-generation/MesonPrinter"
+import { printInterfaces } from "./peer-generation/InterfacePrinter"
+import { printConflictedDeclarations } from "./peer-generation/ConflictedDeclarationsPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -304,6 +307,8 @@ if (options.dts2peer) {
             },
             onEnd(outDir: string) {
                 let lang = declarationTable.language
+                const peerProcessor = new PeerProcessor(peerLibrary)
+                peerProcessor.process()
                 declarationTable.analyze(peerLibrary)
 
                 const peers = printPeers(peerLibrary, options.dumpSerialized ?? false)
@@ -333,9 +338,23 @@ if (options.dts2peer) {
                     printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../native/NativeBridgeNapi")
                 )
                 if (lang == Language.TS) {
+                    // todo I think we want to generate them for ARKTS too
+                    const interfaces = printInterfaces(peerLibrary)
+                    for (const [targetBasename, data] of interfaces) {
+                        const outComponentFile = path.join(outDir, targetBasename)
+                        console.log("producing", outComponentFile)
+                        if (options.verbose) console.log(data)
+                        fs.writeFileSync(outComponentFile, data)
+                        arkuiComponentsFiles.push(outComponentFile)
+                    }
+
                     fs.writeFileSync(
                         path.join(outDir, 'ImportsStubs' + lang.extension),
                         printImportsStubs(peerLibrary),
+                    )
+                    fs.writeFileSync(
+                        path.join(outDir, 'ConflictedDeclarations' + lang.extension),
+                        printConflictedDeclarations(peerLibrary),
                     )
                     fs.writeFileSync(
                         path.join(outDir, 'NativeModuleEmpty' + lang.extension),
@@ -354,10 +373,10 @@ if (options.dts2peer) {
                         printEvents(peerLibrary)
                     )
                     fs.writeFileSync(path.join(outDir, 'Serializer' + lang.extension),
-                        makeTSSerializer(declarationTable)
+                        makeTSSerializer(peerLibrary)
                     )
                     fs.writeFileSync(path.join(outDir, 'Deserializer' + lang.extension),
-                        makeTSDeserializer(declarationTable)
+                        makeTSDeserializer(peerLibrary)
                     )
                 }
                 if(lang == Language.ARKTS) {
@@ -366,7 +385,7 @@ if (options.dts2peer) {
                         printNodeTypes(peerLibrary),
                     )
                     fs.writeFileSync(path.join(outDir, 'Serializer' + lang.extension),
-                        makeTSSerializer(declarationTable)
+                        makeTSSerializer(peerLibrary)
                     )
                 }
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))

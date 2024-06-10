@@ -15,13 +15,13 @@
 import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
-import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
+import { PrimitiveType } from "./DeclarationTable"
 import { Language } from "../util"
 import { createLanguageWriter } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./EventsPrinter"
-import { collectDtsImports } from "./DtsImportsGenerator"
 import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
+import { PeerLibrary } from "./PeerLibrary"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -196,14 +196,13 @@ const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppP
 `
 }
 
-export function makeTSSerializer(table: DeclarationTable): string {
-    let printer = createLanguageWriter(new IndentedPrinter(), table.language)
-    writeSerializer(table, printer)
+export function makeTSSerializer(library: PeerLibrary): string {
+    let printer = createLanguageWriter(new IndentedPrinter(), library.declarationTable.language)
+    writeSerializer(library, printer)
     return `
 import { SerializerBase, Tags, RuntimeType, Function, runtimeType, isPixelMap, isResource } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"
-${table.language == Language.ARKTS ? collectDtsImports().trim() : ""}
 
 export function createSerializer() { return new Serializer(16) }
 
@@ -211,15 +210,15 @@ ${printer.getOutput().join("\n")}
 `
 }
 
-export function makeCSerializers(table: DeclarationTable, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
+export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
     const serializers = createLanguageWriter(new IndentedPrinter(), Language.CPP)
     const writeToString = createLanguageWriter(new IndentedPrinter(), Language.CPP)
     serializers.print("\n// Serializers\n")
-    writeSerializer(table, serializers)
+    writeSerializer(library, serializers)
     serializers.print("\n// Deserializers\n")
-    writeDeserializer(table, serializers)
-    table.generateStructs(structs, typedefs, writeToString)
+    writeDeserializer(library, serializers)
+    library.declarationTable.generateStructs(structs, typedefs, writeToString)
 
     return `
 #include "SerializerBase.h"
@@ -233,9 +232,9 @@ ${serializers.getOutput().join("\n")}
 `
 }
 
-export function makeTSDeserializer(table: DeclarationTable): string {
+export function makeTSDeserializer(library: PeerLibrary): string {
     const deserializer = createLanguageWriter(new IndentedPrinter(), Language.TS)
-    writeDeserializer(table, deserializer)
+    writeDeserializer(library, deserializer)
     return `
 import { runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
 import { DeserializerBase } from "./DeserializerBase"

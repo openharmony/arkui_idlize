@@ -67,6 +67,7 @@ class ComponentFileVisitor {
             //     imports.addFeature(it.className, `./Ark${peer.componentName}Peer`)
             // })
         })
+        this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(this.printer)
     }
 

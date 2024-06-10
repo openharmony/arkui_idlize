@@ -13,10 +13,15 @@
  * limitations under the License.
  */
 
+import * as ts from 'typescript'
 import * as path from "path"
-import { IndentedPrinter } from "../IndentedPrinter";
-import { getOrPut } from "../util";
+import { getOrPut, nameOrNull, renameClassToMaterialized, renameDtsToInterfaces } from "../util";
 import { LanguageWriter } from "./LanguageWriters";
+import { PeerLibrary } from './PeerLibrary';
+import { isMaterialized } from './Materialized';
+import { DeclarationNameConvertor } from './dependencies_collector';
+import { PeerGeneratorConfig } from './PeerGeneratorConfig';
+import { convertDeclaration } from './TypeNodeConvertor';
 
 export type ImportsCollectorFilter = (feature: string, module: string) => boolean
 
@@ -52,5 +57,34 @@ export class ImportsCollector {
             if (filteredFeatures.length > 0)
                 printer.print(`import { ${filteredFeatures.join(', ')} } from "${module}"`)
         })
+    }
+}
+
+export type ImportFeature = { feature: string, module: string }
+
+export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration): ImportFeature {
+    if (PeerGeneratorConfig.isConflictedDeclaration(node)) {
+        const parent = node.parent
+        let feature = ts.isModuleBlock(parent)
+            ? parent.parent.name.text
+            : convertDeclaration(DeclarationNameConvertor.I, node)
+        return {
+            feature: feature,
+            module: './ConflictedDeclarations'
+        }
+    }
+
+    if (!ts.isSourceFile(node.parent))
+        throw "Expected parent of declaration to be a SourceFile"
+    const originalBasename = path.basename(node.parent.fileName)
+    let fileName = renameDtsToInterfaces(originalBasename, library.declarationTable.language)
+    if (ts.isClassDeclaration(node) && isMaterialized(node) && !library.peerDeclarations.has(node))
+        fileName = renameClassToMaterialized(nameOrNull(node.name)!, library.declarationTable.language)
+
+    const basename = path.basename(fileName)
+    const basenameNoExt = basename.replaceAll(path.extname(basename), '')
+    return {
+        feature: convertDeclaration(DeclarationNameConvertor.I, node),
+        module: `./${basenameNoExt}`,
     }
 }

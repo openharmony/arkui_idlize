@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 
+import * as ts from 'typescript'
 import { getOrPut } from "../util"
 import { PeerClass } from "./PeerClass"
 import { DeclarationTable } from "./DeclarationTable"
+import { ImportFeature } from './ImportsCollector'
 
 export class EnumEntity {
     constructor(
@@ -39,6 +41,10 @@ class EnumMember {
 export class PeerFile {
     readonly peers: Map<string, PeerClass> = new Map()
     readonly enums: EnumEntity[] = []
+    // todo maybe declarations should be converted as same as enums - to
+    // structs detached from `ts` nodes
+    readonly declarations: Set<ts.Declaration> = new Set()
+    readonly importFeatures: ImportFeature[] = []
     constructor(
         public readonly originalFilename: string,
         public readonly declarationTable: DeclarationTable,

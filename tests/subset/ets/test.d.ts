@@ -228,21 +228,21 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     // interface
 
-    testBooleanInterface(value: BooleanInterfaceDTS): Attribute
+    testBooleanInterface(value: BooleanInterfaceDTS): TestAttribute
 
-    testNumberInterface(value: NumberInterfaceDTS): Attribute
+    testNumberInterface(value: NumberInterfaceDTS): TestAttribute
 
-    testStringInterface(value: StringInterfaceDTS)
+    testStringInterface(value: StringInterfaceDTS): TestAttribute
 
-    testUnionInterface(value: UnionInterfaceDTS)
+    testUnionInterface(value: UnionInterfaceDTS): TestAttribute
 
-    testUnionOptional(value: UnionOptionalInterfaceDTS)
+    testUnionOptional(value: UnionOptionalInterfaceDTS): TestAttribute
 
-    testTupleInterface(value: TupleInterfaceDTS)
+    testTupleInterface(value: TupleInterfaceDTS): TestAttribute
 
-    testOptionInterface(value: OptionInterfaceDTS)
+    testOptionInterface(value: OptionInterfaceDTS): TestAttribute
 
-    testArrayRefNumberInterface(value: ArrayRefNumberInterfaceDTS)
+    testArrayRefNumberInterface(value: ArrayRefNumberInterfaceDTS): TestAttribute
 
     // testArrayRefTupleInterface(value: ArrayRefTuplesInterfaceDTS)
 
@@ -257,7 +257,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testBooleanInterfaceArrayRef(value: Array<BooleanInterfaceDTS>): TestAttribute
 
-    testInterfaceMixed(v1: UnionInterfaceDTS, v2: number, v3: TupleInterfaceDTS)
+    testInterfaceMixed(v1: UnionInterfaceDTS, v2: number, v3: TupleInterfaceDTS): TestAttribute
 
     // Class
 

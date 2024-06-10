@@ -47,8 +47,10 @@ import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, isMaterialized } from "./Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
-import { collapseSameNamedMethods } from "./OverloadsPrinter";
-import { TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
+import { mapType } from "./TypeNodeNameConvertor";
+import { convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
+import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./dependencies_collector";
+import { convertDeclToFeature } from "./ImportsCollector";
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -78,40 +80,12 @@ export interface TypeAndName {
     optional: boolean
 }
 
-type MaybeCollapsedMethod = {
-    member: ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration
-    collapsed?: {
-        method: Method,
-        generatedImportTypes: string[],
-    }
-}
-
 export type PeerGeneratorVisitorOptions = {
     sourceFile: ts.SourceFile
     typeChecker: ts.TypeChecker
     interfacesToGenerate: Set<string>
     declarationTable: DeclarationTable,
     peerLibrary: PeerLibrary
-}
-
-class ImportsAggregatorNameConvertor extends TSTypeNodeNameConvertor {
-    constructor(
-        private readonly peerLibrary: PeerLibrary,
-    ) {
-        super()
-    }
-
-    override convertImport(node: ts.ImportTypeNode): string {
-        const generatedName = super.convertImport(node)
-        if (!this.peerLibrary.importTypesStubs.includes(generatedName))
-            this.peerLibrary.importTypesStubs.push(generatedName)
-        return generatedName
-    }
-
-    override convert(node: ts.Node | undefined): string {
-        node ??= ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
-        return super.convert(node)
-    }
 }
 
 export class PeerGeneratorVisitor implements GenericVisitor<void> {
@@ -122,7 +96,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
 
     static readonly serializerBaseMethods = serializerBaseMethods()
     readonly typeChecker: ts.TypeChecker
-    readonly nameConvertor: ImportsAggregatorNameConvertor
 
     readonly peerLibrary: PeerLibrary
     readonly peerFile: PeerFile
@@ -135,7 +108,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable)
         this.peerLibrary = options.peerLibrary
         this.peerLibrary.files.push(this.peerFile)
-        this.nameConvertor = new ImportsAggregatorNameConvertor(this.peerLibrary)
     }
 
     requestType(name: string | undefined, type: ts.TypeNode) {
@@ -194,9 +166,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             if (node.body && ts.isModuleBlock(node.body)) {
                 node.body.statements.forEach(it => this.visit(it))
             }
-        } else if (ts.isEnumDeclaration(node)) {
-            this.processEnum(node)
-        } else if (ts.isVariableStatement(node) ||
+        } else if (ts.isEnumDeclaration(node) ||
+            ts.isVariableStatement(node) ||
             ts.isExportDeclaration(node) ||
             ts.isTypeAliasDeclaration(node) ||
             ts.isFunctionDeclaration(node) ||
@@ -209,10 +180,15 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         }
     }
 
+    private markPeerDecl(node: ts.Declaration) {
+        this.peerLibrary.peerDeclarations.add(node)
+    }
+
     private processClass(node: ts.ClassDeclaration): void {
         if (!this.needsPeer(node)) return
         if (isCustomComponentClass(node))
             return this.processCustomComponent(node)
+        this.markPeerDecl(node)
         const tsMethods = this.extractMethods(node)
 
         const componentName = this.renameToComponent(nameOrNull(node.name)!)
@@ -241,6 +217,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
     processInterface(node: ts.InterfaceDeclaration) {
         if (!this.isFriendInterface(node)) return
 
+        this.markPeerDecl(node)
         const componentName = this.renameToComponent(nameOrNull(node.name)!)
         // We don't know what comes first ButtonAttribute or ButtonInterface.
         // Both will contribute to the peer class.
@@ -255,60 +232,8 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         peer.methods.push(...peerMethods)
     }
 
-    processEnum(node: ts.EnumDeclaration) {
-        let name = node.name.getText()
-        let comment = getComment(this.sourceFile, node)
-        let enumEntity = new EnumEntity(name, comment)
-        node.forEachChild(child => {
-            if (ts.isEnumMember(child)) {
-                let name = child.name.getText()
-                let comment = getComment(this.sourceFile, child)
-                enumEntity.pushMember(name, comment, child.initializer?.getText())
-            }
-        })
-        this.peerFile.pushEnum(enumEntity)
-    }
-
-    generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
-        const parameters = this.tempExtractParameters(method)
-        const returnName = identName(method.type)!
-        const returnType = returnName === "void" ? Type.Void
-            : isStatic(method.modifiers) ? new Type(returnName) : Type.This
-        return new NamedMethodSignature(returnType,
-            parameters
-                .map(it => new Type(this.nameConvertor.convert(it.type), it.questionToken != undefined)),
-            parameters
-                .map(it => identName(it.name)!),
-        )
-    }
-
     generateValues(argConvertors: ArgConvertor[]): stringOrNone {
         return argConvertors?.map(it => `${it.param}`).join(", ")
-    }
-
-    private tempExtractParameters(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): ts.ParameterDeclaration[] {
-        if (!ts.isCallSignatureDeclaration(method) && identName(method.name) === "onWillScroll") {
-            /**
-             * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
-             * ScrollAttribute extends ScrollableCommonMethod and overrides this method as
-             * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
-             * valid and cannot be correctly processed and we want to stub this for now.
-             */
-            return [{
-                ...ts.factory.createParameterDeclaration(
-                    undefined,
-                    undefined,
-                    "stub_for_onWillScroll",
-                    undefined,
-                    {
-                        ...ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
-                        getText: () => "any"
-                    },
-                ),
-                getText: () => "stub_for_onWillScroll: any",
-            }]
-        }
-        return Array.from(method.parameters)
     }
 
     processMethodOrCallable(
@@ -339,22 +264,21 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             })
         }
 
-        const parameters = this.tempExtractParameters(method)
+        const parameters = tempExtractParameters(method)
         parameters.forEach((param, index) => {
             if (param.type) {
                 this.requestType(`Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`, param.type)
-                this.collectMaterializedClasses(param.type)
             }
         })
         const argConvertors = parameters
-            .map((param) => this.argConvertor(param))
+            .map((param) => generateArgConvertor(this.declarationTable, param))
         const declarationTargets = parameters
             .map((param) => this.declarationTable.toTarget(param.type ??
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
-        const retConvertor = this.retConvertor(method.type)
+        const retConvertor = generateRetConvertor(method.type)
 
         // TODO: restore collapsing logic!
-        const signature = /* collapsed?.signature ?? */ this.generateSignature(method)
+        const signature = /* collapsed?.signature ?? */ generateSignature(method)
 
         const peerMethod = new PeerMethod(
             originalParentName,
@@ -367,91 +291,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         )
         this.declarationTable.setCurrentContext(undefined)
         return peerMethod
-    }
-
-    private collectMaterializedClasses(type: ts.TypeNode) {
-        if (ts.isTypeReferenceNode(type)) {
-            let target = this.declarationTable.toTarget(type)
-            if (!(target instanceof PrimitiveType) && ts.isClassDeclaration(target)) {
-                this.processMaterializedClass(target)
-            }
-        } else if (ts.isOptionalTypeNode(type) || ts.isParenthesizedTypeNode(type)) {
-            this.collectMaterializedClasses(type.type)
-        } else if (ts.isUnionTypeNode(type)) {
-            type.types.forEach(it => this.collectMaterializedClasses(it))
-        } else if (ts.isFunctionTypeNode(type)) {
-            type.parameters.forEach(param => {
-                this.collectMaterializedClasses(param.type!)
-            })
-        }
-    }
-
-    processMaterializedClass(target: ts.ClassDeclaration) {
-        if (!isMaterialized(target)) {
-            return
-        }
-        let className = nameOrNull(target.name)!
-        if (this.peerLibrary.materializedClasses.has(className)) {
-            return
-        }
-
-        let constructor = target.members.find(ts.isConstructorDeclaration)!
-        let mConstructor = this.makeMaterializedMethod(className, constructor)
-        const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
-        let mFinalizer = new MaterializedMethod(className, [], [], finalizerReturnType, false,
-            new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]))
-        let mFields = target.members
-            .filter(ts.isPropertyDeclaration)
-            .map(it => this.makeMaterializedField(it))
-        let mMethods = target.members
-            .filter(ts.isMethodDeclaration)
-            .map(method => this.makeMaterializedMethod(className, method))
-        this.peerLibrary.materializedClasses.set(className,
-            new MaterializedClass(className, mFields, mConstructor, mFinalizer, mMethods))
-    }
-
-    private makeMaterializedField(property: ts.PropertyDeclaration): MaterializedField {
-        const name = identName(property.name)!
-        const declarationTarget = this.declarationTable.toTarget(property.type!)
-        const argConvertor = this.declarationTable.typeConvertor(name, property.type!)
-        const retConvertor = this.retConvertor(property.type!)
-        const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
-        return new MaterializedField(declarationTarget, argConvertor, retConvertor,
-            new Field(name, new Type(identName(property.type)!), modifiers))
-    }
-
-    private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration) {
-        const declarationTargets = method.parameters.map(param =>
-            this.declarationTable.toTarget(param.type ??
-                throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
-        const argConvertors = method.parameters.map(param => this.argConvertor(param))
-        const retConvertor = ts.isConstructorDeclaration(method)
-            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
-            : this.retConvertor(method.type)
-        const signature = this.generateSignature(method)
-        const methodName = ts.isConstructorDeclaration(method) ? "ctor" : identName(method.name)!
-        const modifiers = ts.isConstructorDeclaration(method) || isStatic(method.modifiers) ? [MethodModifier.STATIC] : []
-        return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false,
-            new Method(methodName, signature, modifiers))
-    }
-
-    argConvertor(param: ts.ParameterDeclaration): ArgConvertor {
-        if (!param.type) throw new Error("Type is needed")
-        let paramName = asString(param.name)
-        let optional = param.questionToken !== undefined
-        //if (optional) this.generateTypedef(param.type, undefined, true)
-        this.requestType(undefined, param.type)
-        return this.declarationTable.typeConvertor(paramName, param.type, optional)
-    }
-
-    retConvertor(typeNode?: ts.TypeNode): RetConvertor {
-        let nativeType = typeNode ? mapCInteropRetType(typeNode) : "void"
-        let isVoid = nativeType == "void"
-        return {
-            isVoid: isVoid,
-            nativeType: () => nativeType,
-            macroSuffixPart: () => isVoid ? "V" : ""
-        }
     }
 
     processProperty(property: ts.PropertyDeclaration | ts.PropertySignature) {
@@ -493,7 +332,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             console.log(`WARNING: ignore seen method: ${methodName}`)
             return
         }
-        const parameters = this.tempExtractParameters(method)
+        const parameters = tempExtractParameters(method)
         if (parameters.length != 1) {
             // We only convert one argument methods to attributes.
             return
@@ -543,7 +382,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             return argumentTypeName
         }
 
-        return parameters.map(it => this.nameConvertor.convert(it.type)).join(', ')
+        return parameters.map(it => mapType(it.type)).join(', ')
     }
 
     private createParameterType(
@@ -551,7 +390,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         attributes: { name: string, type: ts.TypeNode, questionToken: boolean }[]
     ): string {
         const attributeDeclarations = attributes
-            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${this.nameConvertor.convert(it.type)}`)
+            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${mapType(it.type)}`)
             .join('')
         return `export interface ${name} {${attributeDeclarations}\n}`
     }
@@ -575,6 +414,62 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             return name
         }
         throw new Error(`Expected a class or a friend interface: ${asString(clazz)}`)
+    }
+}
+
+function tempExtractParameters(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): ts.ParameterDeclaration[] {
+    if (!ts.isCallSignatureDeclaration(method) && identName(method.name) === "onWillScroll") {
+        /**
+         * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
+         * ScrollAttribute extends ScrollableCommonMethod and overrides this method as
+         * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
+         * valid and cannot be correctly processed and we want to stub this for now.
+         */
+        return [{
+            ...ts.factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                "stub_for_onWillScroll",
+                undefined,
+                {
+                    ...ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+                    getText: () => "any"
+                },
+            ),
+            getText: () => "stub_for_onWillScroll: any",
+        }]
+    }
+    return Array.from(method.parameters)
+}
+
+function generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
+    const parameters = tempExtractParameters(method)
+    const returnName = identName(method.type)!
+    const returnType = returnName === "void" ? Type.Void
+        : isStatic(method.modifiers) ? new Type(returnName) : Type.This
+    return new NamedMethodSignature(returnType,
+        parameters
+            .map(it => new Type(mapType(it.type), it.questionToken != undefined)),
+        parameters
+            .map(it => identName(it.name)!),
+    )
+}
+
+function generateArgConvertor(table: DeclarationTable, param: ts.ParameterDeclaration): ArgConvertor {
+    if (!param.type) throw new Error("Type is needed")
+    let paramName = asString(param.name)
+    let optional = param.questionToken !== undefined
+    table.requestType(undefined, param.type)
+    return table.typeConvertor(paramName, param.type, optional)
+}
+
+function generateRetConvertor(typeNode?: ts.TypeNode): RetConvertor {
+    let nativeType = typeNode ? mapCInteropRetType(typeNode) : "void"
+    let isVoid = nativeType == "void"
+    return {
+        isVoid: isVoid,
+        nativeType: () => nativeType,
+        macroSuffixPart: () => isVoid ? "V" : ""
     }
 }
 
@@ -617,4 +512,188 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         }
     }
     throw new Error(type.getText())
+}
+
+
+class ImportsAggregateCollector extends TypeDependenciesCollector {
+    constructor(
+        private readonly peerLibrary: PeerLibrary,
+    ) {
+        super(peerLibrary.declarationTable.typeChecker!)
+    }
+
+    override convertImport(node: ts.ImportTypeNode): ts.Declaration[] {
+        const generatedName = mapType(node)
+        if (!this.peerLibrary.importTypesStubs.includes(generatedName)) {
+            this.peerLibrary.importTypesStubs.push(generatedName)
+            this.peerLibrary.importTypesStubToSource.set(generatedName, node.getText())
+        }
+        return super.convertImport(node)
+    }
+
+    override convertTypeReference(node: ts.TypeReferenceNode): ts.Declaration[] {
+        const declarations = super.convertTypeReference(node)
+        const result = [...declarations]
+        for (const decl of declarations) {
+            // expand type aliaces because we have serialization inside peers methods
+            if (ts.isTypeAliasDeclaration(decl))
+                result.push(...this.convert(decl.type))
+        }
+        return result
+    }
+}
+
+export class PeerProcessor {
+    private readonly typeDependenciesCollector: TypeDependenciesCollector
+    private readonly declDependenciesCollector: DeclarationDependenciesCollector
+
+    constructor(
+        private readonly library: PeerLibrary,
+    ) { 
+        this.typeDependenciesCollector = new ImportsAggregateCollector(this.library)
+        this.declDependenciesCollector = new DeclarationDependenciesCollector(this.declarationTable.typeChecker!, this.typeDependenciesCollector)
+    }
+    private get declarationTable(): DeclarationTable {
+        return this.library.declarationTable
+    }
+
+    private processMaterializedClass(target: ts.ClassDeclaration) {
+        let className = nameOrNull(target.name)!
+        if (this.library.materializedClasses.has(className)) {
+            return
+        }
+
+        const importFeatures = this.declDependenciesCollector.convert(target)
+            .filter(it => this.isSourceDecl(it))
+            .map(it => convertDeclToFeature(this.library, it))
+        let constructor = target.members.find(ts.isConstructorDeclaration)!
+        let mConstructor = this.makeMaterializedMethod(className, constructor)
+        const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
+        let mFinalizer = new MaterializedMethod(className, [], [], finalizerReturnType, false,
+            new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]))
+        let mFields = target.members
+            .filter(ts.isPropertyDeclaration)
+            .map(it => this.makeMaterializedField(it))
+        let mMethods = target.members
+            .filter(ts.isMethodDeclaration)
+            .map(method => this.makeMaterializedMethod(className, method))
+        this.library.materializedClasses.set(className,
+            new MaterializedClass(className, mFields, mConstructor, mFinalizer, importFeatures, mMethods))
+    }
+
+    private makeMaterializedField(property: ts.PropertyDeclaration): MaterializedField {
+        const name = identName(property.name)!
+        const declarationTarget = this.declarationTable.toTarget(property.type!)
+        const argConvertor = this.declarationTable.typeConvertor(name, property.type!)
+        const retConvertor = generateRetConvertor(property.type!)
+        const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
+        return new MaterializedField(declarationTarget, argConvertor, retConvertor,
+            new Field(name, new Type(identName(property.type)!), modifiers))
+    }
+
+    private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration) {
+        this.declarationTable.setCurrentContext(`materialized_${identName(method.name)}`)
+        const declarationTargets = method.parameters.map(param =>
+            this.declarationTable.toTarget(param.type ??
+                throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
+        const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param))
+        const retConvertor = ts.isConstructorDeclaration(method)
+            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
+            : generateRetConvertor(method.type)
+        const signature = generateSignature(method)
+        const methodName = ts.isConstructorDeclaration(method) ? "ctor" : identName(method.name)!
+        const modifiers = ts.isConstructorDeclaration(method) || isStatic(method.modifiers) ? [MethodModifier.STATIC] : []
+        this.declarationTable.setCurrentContext(undefined)
+        return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false,
+            new Method(methodName, signature, modifiers))
+    }
+
+    private collectDepsRecursive(node: ts.Declaration | ts.TypeNode, deps: Set<ts.Declaration>): void {
+        const currentDeps = ts.isTypeNode(node)
+            ? convertTypeNode(this.typeDependenciesCollector, node)
+            : convertDeclaration(this.declDependenciesCollector, node)
+        for (const dep of currentDeps) {
+            if (deps.has(dep)) continue
+            if (!this.isSourceDecl(dep)) continue
+            deps.add(dep)
+            this.collectDepsRecursive(dep, deps)
+        }
+    }
+
+    private processEnum(node: ts.EnumDeclaration) {
+        const file = this.getDeclSourceFile(node)
+        let name = node.name.getText()
+        let comment = getComment(file, node)
+        let enumEntity = new EnumEntity(name, comment)
+        node.forEachChild(child => {
+            if (ts.isEnumMember(child)) {
+                let name = child.name.getText()
+                let comment = getComment(file, child)
+                enumEntity.pushMember(name, comment, child.initializer?.getText())
+            }
+        })
+        this.library.findFileByOriginalFilename(file.fileName)!.pushEnum(enumEntity)
+    }
+
+    private isSourceDecl(node: ts.Declaration): boolean {
+        if (ts.isModuleBlock(node.parent))
+            return this.isSourceDecl(node.parent.parent)
+        if (ts.isTypeParameterDeclaration(node))
+            return false
+        if (!ts.isSourceFile(node.parent))
+            throw 'Expected declaration to be at file root'
+        return !node.parent.fileName.endsWith('stdlib.d.ts')
+    }
+
+    private getDeclSourceFile(node: ts.Declaration): ts.SourceFile {
+        if (ts.isModuleBlock(node.parent))
+            return this.getDeclSourceFile(node.parent.parent)
+        if (!ts.isSourceFile(node.parent))
+            throw 'Expected declaration to be at file root'
+        return node.parent
+    }
+
+    private generateDeclarations(): Set<ts.Declaration> {
+        const deps = new Set(this.library.peerDeclarations)
+        for (const dep of this.library.peerDeclarations) {
+            this.collectDepsRecursive(dep, deps)
+        }
+        for (const dep of Array.from(deps)) {
+            if (ts.isEnumMember(dep)) {
+                deps.add(dep.parent)
+                deps.delete(dep)
+            }
+        }
+        for (const dep of Array.from(deps)) {
+            if (PeerGeneratorConfig.isConflictedDeclaration(dep)) {
+                deps.delete(dep)
+                this.library.conflictedDeclarations.add(dep)
+            }
+        }
+        return deps
+    }
+
+    process(): void {
+        for (const dep of this.generateDeclarations()) {
+            const file = this.library.findFileByOriginalFilename(this.getDeclSourceFile(dep).fileName)!
+            const isPeerDecl = this.library.peerDeclarations.has(dep)
+
+            if (!isPeerDecl && ts.isClassDeclaration(dep) && isMaterialized(dep)) {
+                this.processMaterializedClass(dep)
+                continue
+            }
+
+            this.declDependenciesCollector.convert(dep).forEach(it => {
+                if (!this.isSourceDecl(it)) return
+                file.importFeatures.push(convertDeclToFeature(this.library, it))
+            })
+            
+            if (ts.isEnumDeclaration(dep)) {
+                this.processEnum(dep)
+            } else {
+                file.declarations.add(dep)
+                file.importFeatures.push(convertDeclToFeature(this.library, dep))
+            }
+        }
+    }
 }

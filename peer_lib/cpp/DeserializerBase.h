@@ -328,6 +328,7 @@ public:
       {
         return current->deserialize(this, kind);
       }
+      current = current->next;
     }
     fprintf(stderr, "Unsupported custom deserialization for %s\n", kind.c_str());
     auto tag = readTag();

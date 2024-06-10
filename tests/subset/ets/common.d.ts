@@ -21,6 +21,8 @@ declare type AnimationRange<T> = [from: T, to: T];
 
 declare interface Callback<T> {}
 
+declare interface BaseEvent {}
+
 declare interface ClickEvent extends BaseEvent {
 
     displayX: number;
@@ -188,6 +190,8 @@ declare enum GradientDirection {
     None,
 }
 
+declare class AttributeModifier<T> {}
+
 declare class CommonMethod<T> {
 
     constructor();
@@ -222,6 +226,8 @@ declare class CommonMethod<T> {
     border(value: BorderOptions): T;
 
     onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
+
+    attributeModifier(modifier: AttributeModifier<T>): T
 }
 
 declare interface Rectangle {

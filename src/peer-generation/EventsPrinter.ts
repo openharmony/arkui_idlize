@@ -25,6 +25,7 @@ import { generateEventReceiverName, generateEventSignature } from "./HeaderPrint
 import { Language, asString, identName } from "../util"
 import { mapType } from "./TypeNodeNameConvertor"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
+import { ImportsCollector } from "./ImportsCollector"
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -209,6 +210,14 @@ class TSEventsVisitor {
         private readonly library: PeerLibrary,
     ) {}
 
+    private printImports() {
+        const imports = new ImportsCollector()
+        for (const file of this.library.files) {
+            file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+        }
+        imports.print(this.printer)
+    }
+
     private printEventsClasses(infos: CallbackInfo[]) {
         for (const info of infos) {
             const eventClassName = callbackEventNameByInfo(info)
@@ -333,6 +342,7 @@ class TSEventsVisitor {
 
     print(): void {
         const callbacks = collectCallbacks(this.library)
+        this.printImports()
         this.printEventsClasses(callbacks)
         this.printEventsEnum(callbacks)
         this.printNameByKindRetriever(callbacks)

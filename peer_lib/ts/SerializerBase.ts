@@ -15,6 +15,7 @@
 import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
 import { nativeModule } from "@arkoala/arkui/NativeModule"
+import { Resource, Length, PixelMap } from "@arkoala/arkui"
 /**
  * Value representing possible JS runtime object type.
  * Must be synced with "enum RuntimeType" in C++.
@@ -213,6 +214,7 @@ export class SerializerBase {
                 current.serialize(this, value, kind)
                 return
             }
+            current = current.next
         }
         console.log(`Unsupported custom serialization for ${kind}, write undefined`)
         this.writeInt8(Tags.UNDEFINED)

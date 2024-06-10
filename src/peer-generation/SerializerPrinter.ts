@@ -19,6 +19,24 @@ import { DeclarationTable, DeclarationTarget, PrimitiveType } from "./Declaratio
 import { LanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters";
 import { PeerGeneratorConfig } from './PeerGeneratorConfig';
 import { isMaterialized } from './Materialized';
+import { ImportsCollector } from './ImportsCollector';
+import { PeerLibrary } from './PeerLibrary';
+import { collectDtsImports } from './DtsImportsGenerator';
+
+function collectAllInterfacesImports(library: PeerLibrary, imports: ImportsCollector) {
+    for (const file of library.files) 
+        file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+}
+
+function printSerializerImports(library: PeerLibrary, writer: LanguageWriter) {
+    if (writer.language === Language.TS) {
+        const collector = new ImportsCollector()
+        collectAllInterfacesImports(library, collector)
+        collector.print(writer)        
+    } else if (writer.language === Language.ARKTS) {
+        writer.print(collectDtsImports().trim())
+    }
+}
 
 function canSerializeTarget(declaration: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
     // we can not generate serializer/deserializer for targets, where
@@ -45,9 +63,13 @@ function ignoreSerializeTarget(table: DeclarationTable, target: DeclarationTarge
 
 class SerializerPrinter {
     constructor(
-        private readonly table: DeclarationTable,
+        private readonly library: PeerLibrary,
         private readonly writer: LanguageWriter,
     ) {}
+
+    private get table(): DeclarationTable {
+        return this.library.declarationTable
+    }
 
     private translateSerializerType(name: string, target: DeclarationTarget): string {
         if (target instanceof PrimitiveType) throw new Error("Unexpected")
@@ -93,6 +115,7 @@ class SerializerPrinter {
                 break;
         }
         let seenNames = new Set<string>()
+        printSerializerImports(this.library, this.writer)
         this.writer.writeClass(className, writer => {
             if (ctorSignature) {
                 const ctorMethod = new Method(superName, ctorSignature)
@@ -114,9 +137,13 @@ class SerializerPrinter {
 
 class DeserializerPrinter {
     constructor(
-        private readonly table: DeclarationTable,
+        private readonly library: PeerLibrary,
         private readonly writer: LanguageWriter,
     ) {}
+
+    private get table(): DeclarationTable {
+        return this.library.declarationTable
+    }
 
     private generateDeserializer(target: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         const name = this.table.computeTargetName(target, false)
@@ -151,7 +178,8 @@ class DeserializerPrinter {
         let ctorSignature = this.writer.language == Language.CPP
             ? new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
             : undefined
-            this.writer.writeClass(className, writer => {
+        printSerializerImports(this.library, this.writer)
+        this.writer.writeClass(className, writer => {
             if (ctorSignature) {
                 const ctorMethod = new Method(`${className}Base`, ctorSignature)
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
@@ -174,12 +202,12 @@ class DeserializerPrinter {
     }
 }
 
-export function writeSerializer(table: DeclarationTable, writer: LanguageWriter) {
-    const printer = new SerializerPrinter(table, writer)
+export function writeSerializer(library: PeerLibrary, writer: LanguageWriter) {
+    const printer = new SerializerPrinter(library, writer)
     printer.print()
 }
 
-export function writeDeserializer(table: DeclarationTable, writer: LanguageWriter) {
-    const printer = new DeserializerPrinter(table, writer)
+export function writeDeserializer(library: PeerLibrary, writer: LanguageWriter) {
+    const printer = new DeserializerPrinter(library, writer)
     printer.print()
 }

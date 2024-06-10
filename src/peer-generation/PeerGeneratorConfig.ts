@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import * as ts from 'typescript'
+
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]
     public static customComponent = ["CustomComponent"]
@@ -85,6 +87,22 @@ export class PeerGeneratorConfig {
 
     static isKnownParametrized(name: string | undefined) : boolean {
         return name != undefined && PeerGeneratorConfig.knownParametrized.includes(name)
+    }
+
+    static isConflictedDeclaration(node: ts.Declaration): boolean {
+        // duplicate type declarations with different signatures
+        if (ts.isTypeAliasDeclaration(node) && node.name.text === 'OnWillScrollCallback') return true
+        // has same named class and interface
+        if ((ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node)) && node.name?.text === 'LinearGradient') return true
+        // just has ugly dependency WrappedBuilder - there is conflict in generic types 
+        if (ts.isInterfaceDeclaration(node) && node.name.text === 'ContentModifier') return true
+        // complicated type arguments
+        if (ts.isClassDeclaration(node) && node.name?.text === 'TransitionEffect') return true
+        // inside namespace
+        if (ts.isEnumDeclaration(node) && node.name.text === 'GestureType') return true
+        // no return type in some methods
+        if (ts.isInterfaceDeclaration(node) && node.name.text === 'LayoutChild') return true
+        return false
     }
 
     static cppPrefix = "GENERATED_"

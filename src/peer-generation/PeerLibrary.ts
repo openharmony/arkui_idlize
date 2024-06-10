@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-
+import * as ts from 'typescript'
 import { DeclarationTable } from "./DeclarationTable";
 import { MaterializedClass } from "./Materialized";
 import { PeerClass } from "./PeerClass";
@@ -33,6 +33,11 @@ export class PeerLibrary {
 
     readonly customComponentMethods: string[] = []
     readonly importTypesStubs: string[] = []
+    // todo really dirty - we use it until we can generate interfaces
+    // replacing import type nodes
+    readonly importTypesStubToSource: Map<string, string> = new Map()
+    readonly peerDeclarations: Set<ts.Declaration> = new Set()
+    readonly conflictedDeclarations: Set<ts.Declaration> = new Set()
 
     findPeerByComponentName(componentName: string): PeerClass | undefined {
         for (const file of this.files)
@@ -40,5 +45,9 @@ export class PeerLibrary {
                 if (peer.componentName == componentName) 
                     return peer
         return undefined
+    }
+
+    findFileByOriginalFilename(filename: string): PeerFile | undefined {
+        return this.files.find(it => it.originalFilename === filename)
     }
 }

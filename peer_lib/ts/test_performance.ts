@@ -2,6 +2,7 @@ import { nativeModule } from "@arkoala/arkui/NativeModule"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
+import { NavigationTitleMode } from "@arkoala/arkui/ArkNavigationInterfaces"
 
 import {
     TEST_COUNT, CALL_COUNT, testString1000, testLength_10_percent,
