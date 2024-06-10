@@ -17,7 +17,7 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PrimitiveType } from "./DeclarationTable"
 import { Language } from "../util"
-import { createLanguageWriter } from "./LanguageWriters"
+import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
@@ -111,7 +111,8 @@ export function bridgeCcDeclaration(bridgeCc: string[]): string {
     return prologue.concat("\n").concat(bridgeCc.join("\n"))
 }
 
-export function completeImplementations(lines: string, basicVersion: number, fullVersion: number, extendedVersion: number): string {
+export function completeImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP)
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
     epilogue = epilogue
@@ -119,17 +120,17 @@ export function completeImplementations(lines: string, basicVersion: number, ful
         .replaceAll(`%ARKUI_BASIC_API_VERSION_VALUE%`, basicVersion.toString())
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_API_VERSION_VALUE%`, extendedVersion.toString())
-    return `
+    result.writeLines(`
 #include "Interop.h"
 #include "Serializers.h"
 #include "delegates.h"
 
 void SetAppendGroupedLog(void* pFunc) {}
-
-${lines}
-
-${epilogue}
-`
+`)
+    result.concat(modifiers)
+    result.concat(accessors)
+    result.writeLines(epilogue)
+    return result
 }
 
 export function completeEventsImplementations(lines: string): string {
@@ -151,7 +152,7 @@ ${lines}
 `
 }
 
-export function dummyImplementations(lines: string, basicVersion: number, fullVersion: number, extendedVersion: number): string {
+export function dummyImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
     let prologue = readTemplate('dummy_impl_prologue.cc')
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
@@ -162,42 +163,40 @@ export function dummyImplementations(lines: string, basicVersion: number, fullVe
         .replaceAll(`%ARKUI_BASIC_API_VERSION_VALUE%`, basicVersion.toString())
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_API_VERSION_VALUE%`, extendedVersion.toString())
-    return prologue.concat("\n").concat(lines).concat("\n").concat(epilogue)
+
+    let result = createLanguageWriter(Language.CPP)
+    result.writeLines(prologue)
+    result.concat(modifiers).concat(accessors)
+    result.writeLines(epilogue)
+
+    return result
 }
 
-export function modifierStructs(lines: string[]): string {
-    return lines.join("\n")
+export function modifierStructList(lines: LanguageWriter): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP)
+    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {`)
+    result.pushIndent()
+    result.concat(lines)
+    result.popIndent()
+    result.print(`};`)
+    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers() { return &modifiersImpl; }`)
+    return result
 }
 
-export function modifierStructList(lines: string[]): string {
-    return `
-const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {
-${lines.join("\n")}
-};
+export function accessorStructList(lines: LanguageWriter): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP)
+    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {`)
+    result.pushIndent()
+    result.concat(lines)
+    result.popIndent()
+    result.print(`};`)
 
-const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers()
-{
-    return &modifiersImpl;
-}
-
-`
-}
-
-export function accessorStructList(lines: string[]): string {
-    return `
-const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {
-${lines.join("\n")}
-};
-
-const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors()
-{
-    return &accessorsImpl;
-}
-`
+    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors() { return &accessorsImpl; }`)
+    return result
 }
 
 export function makeTSSerializer(library: PeerLibrary): string {
-    let printer = createLanguageWriter(new IndentedPrinter(), library.declarationTable.language)
+    let printer = createLanguageWriter(library.declarationTable.language)
     writeSerializer(library, printer)
     return `
 import { SerializerBase, Tags, RuntimeType, Function, runtimeType, isPixelMap, isResource } from "./SerializerBase"
@@ -212,8 +211,8 @@ ${printer.getOutput().join("\n")}
 
 export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
-    const serializers = createLanguageWriter(new IndentedPrinter(), Language.CPP)
-    const writeToString = createLanguageWriter(new IndentedPrinter(), Language.CPP)
+    const serializers = createLanguageWriter(Language.CPP)
+    const writeToString = createLanguageWriter(Language.CPP)
     serializers.print("\n// Serializers\n")
     writeSerializer(library, serializers)
     serializers.print("\n// Deserializers\n")
@@ -233,7 +232,7 @@ ${serializers.getOutput().join("\n")}
 }
 
 export function makeTSDeserializer(library: PeerLibrary): string {
-    const deserializer = createLanguageWriter(new IndentedPrinter(), Language.TS)
+    const deserializer = createLanguageWriter(Language.TS)
     writeDeserializer(library, deserializer)
     return `
 import { runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"

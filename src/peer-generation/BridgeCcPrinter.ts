@@ -23,7 +23,7 @@ import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
 
 class BridgeCcVisitor {
-    readonly C = createLanguageWriter(new IndentedPrinter(), Language.CPP)
+    readonly C = createLanguageWriter(Language.CPP)
 
     constructor(
         private readonly library: PeerLibrary,

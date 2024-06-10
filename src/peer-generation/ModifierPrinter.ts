@@ -18,7 +18,7 @@ import * as path from "path"
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { accessorStructList, modifierStructList, modifierStructs } from "./FileGenerators";
+import { accessorStructList, modifierStructList } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
@@ -26,6 +26,8 @@ import { DelegateSignatureBuilder } from "./DelegatePrinter";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { MaterializedClass, MaterializedMethod } from "./Materialized";
 import { CppSourceFileGenerator } from "./CppFileGenerator";
+import { Language } from "../util";
+import { createLanguageWriter, LanguageWriter } from "./LanguageWriters";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     public readonly printer = new IndentedPrinter()
@@ -53,8 +55,8 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
         for (let i = 1; i < argAccessChain.length; i++) {
             const fieldAccess = argAccessChain[i-1].isPointerType ? '->' : '.'
             resultAccess += `${fieldAccess}${argAccessChain[i].name}`
-        } 
-        
+        }
+
         if (fieldName) {
             const fieldAccess = argAccessChain[argAccessChain.length-1].isPointerType ? '->' : '.'
             resultAccess += `${fieldAccess}${fieldName}`
@@ -120,8 +122,8 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
         const argChain = this.accessChain[argIndex]
         const arg = argChain[argChain.length - 1]
         const type = this.declarationTable.computeTargetName(arg.type, false)
-        const maybePointer = arg.isPointerType 
-            ? '*' 
+        const maybePointer = arg.isPointerType
+            ? '*'
             : arg.type !== PrimitiveType.Undefined ? '&' : ''
         this.printer.print(`const ${type} ${maybePointer}${this.generateInseparableFieldName(argIndex)} = ${this.generateAccessTo(argIndex)};`)
     }
@@ -138,11 +140,11 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     }
 }
 
-class ModifierVisitor {
-    dummy = new IndentedPrinter()
-    real = new IndentedPrinter()
-    modifiers = new IndentedPrinter()
-    modifierList = new IndentedPrinter()
+export class ModifierVisitor {
+    dummy = createLanguageWriter(Language.CPP)
+    real = createLanguageWriter(Language.CPP)
+    modifiers = createLanguageWriter(Language.CPP)
+    modifierList = createLanguageWriter(Language.CPP)
 
     constructor(
         protected library: PeerLibrary,
@@ -173,20 +175,20 @@ class ModifierVisitor {
         this.printReturnStatement(this.real, method)
     }
 
-    private printReturnStatement(printer: IndentedPrinter, method: PeerMethod, returnValue: string | undefined = undefined) {
+    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnValue: string | undefined = undefined) {
         if (!method.retConvertor.isVoid) {
             printer.print(`return ${returnValue?? "0"};`)
         }
     }
 
-    printMethodProlog(printer: IndentedPrinter, method: PeerMethod) {
+    printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
         const apiParameters = method.generateAPIParameters().join(", ")
         const signature = `${method.retType} ${method.implName}(${apiParameters}) {`
         printer.print(signature)
         printer.pushIndent()
     }
 
-    printMethodEpilog(printer: IndentedPrinter) {
+    printMethodEpilog(printer: LanguageWriter) {
         printer.popIndent()
         printer.print(`}`)
     }
@@ -236,8 +238,8 @@ class ModifierVisitor {
 }
 
 class AccessorVisitor extends ModifierVisitor {
-    accessors = new IndentedPrinter()
-    accessorList = new IndentedPrinter()
+    accessors = createLanguageWriter(Language.CPP)
+    accessorList = createLanguageWriter(Language.CPP)
 
     constructor(library: PeerLibrary) {
         super(library)
@@ -274,7 +276,7 @@ class AccessorVisitor extends ModifierVisitor {
         this.accessors.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}() { return &${accessor}Impl; }\n\n`)
     }
 
-    printMaterializedMethod(printer: IndentedPrinter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void) {
+    printMaterializedMethod(printer: LanguageWriter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void) {
         this.printMethodProlog(printer, method)
         printBody(method)
         this.printMethodEpilog(printer)
@@ -282,12 +284,12 @@ class AccessorVisitor extends ModifierVisitor {
 }
 
 class MultiFileModifiersVisitorState {
-    dummy = new IndentedPrinter()
-    real = new IndentedPrinter()
-    accessorList = new IndentedPrinter()
-    accessors = new IndentedPrinter()
-    modifierList = new IndentedPrinter()
-    modifiers = new IndentedPrinter()
+    dummy = createLanguageWriter(Language.CPP)
+    real = createLanguageWriter(Language.CPP)
+    accessorList = createLanguageWriter(Language.CPP)
+    accessors = createLanguageWriter(Language.CPP)
+    modifierList = createLanguageWriter(Language.CPP)
+    modifiers = createLanguageWriter(Language.CPP)
 }
 
 class MultiFileModifiersVisitor extends AccessorVisitor {
@@ -334,9 +336,9 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
             output.writeLine()
 
             state.real.getOutput().forEach(block => output.writeLine(block))
-            output.writeLine(modifierStructs(state.modifiers.getOutput()))
-            output.writeLine(modifierStructList(state.modifierList.getOutput()))
-            output.writeLine(accessorStructList(state.accessorList.getOutput()))
+            output.appendLanguageWriter(state.modifiers)
+            output.appendLanguageWriter(modifierStructList(state.modifierList))
+            output.appendLanguageWriter(accessorStructList(state.accessorList))
             
             // output.writeLine(completeImplementations()) // TODO implement with versions
 
@@ -345,35 +347,25 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
     }
 }
 
-export function printRealAndDummyModifiers(peerLibrary: PeerLibrary): {dummy: string, real: string} {
+export function printRealAndDummyModifiers(peerLibrary: PeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
     const visitor = new ModifierVisitor(peerLibrary)
     visitor.printRealAndDummyModifiers()
-
     const dummy =
-        visitor.dummy.getOutput().join("\n") +
-        modifierStructs(visitor.modifiers.getOutput()) +
-        modifierStructList(visitor.modifierList.getOutput())
-
+        visitor.dummy.concat(visitor.modifiers).concat(modifierStructList(visitor.modifierList))
     const real =
-        visitor.real.getOutput().join("\n") +
-        modifierStructs(visitor.modifiers.getOutput()) +
-        modifierStructList(visitor.modifierList.getOutput())
+        visitor.real.concat(visitor.modifiers).concat(modifierStructList(visitor.real))
     return {dummy, real}
 }
 
-export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: string, real: string} {
+export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
     const visitor = new AccessorVisitor(peerLibrary)
     peerLibrary.materializedClasses.forEach(c => visitor.printRealAndDummyAccessor(c))
 
     const dummy =
-        visitor.dummy.getOutput().join("\n") + "\n" +
-        modifierStructs(visitor.accessors.getOutput()) +
-        accessorStructList(visitor.accessorList.getOutput())
+        visitor.dummy.concat(visitor.accessors).concat(accessorStructList(visitor.accessorList))
 
     const real =
-        visitor.real.getOutput().join("\n") + "\n" +
-        modifierStructs(visitor.accessors.getOutput()) +
-        accessorStructList(visitor.accessorList.getOutput())
+        visitor.real.concat(visitor.accessors).concat(accessorStructList(visitor.accessorList))
     return {dummy, real}
 }
 

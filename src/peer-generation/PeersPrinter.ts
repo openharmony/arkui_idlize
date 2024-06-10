@@ -44,7 +44,7 @@ function componentToAttributesClass(component: string) {
 }
 
 class PeerFileVisitor {
-    readonly printer: LanguageWriter = createLanguageWriter(new IndentedPrinter(), this.file.declarationTable.language)
+    readonly printer: LanguageWriter = createLanguageWriter(this.file.declarationTable.language)
 
     // Temporary, until other languages supported.
     private isTs = this.file.declarationTable.language == Language.TS

@@ -16,6 +16,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { cStyleCopyright } from "./FileGenerators";
+import { LanguageWriter } from "./LanguageWriters";
 
 export interface CppFileOptions {
 }
@@ -46,6 +47,12 @@ export abstract class CppFileWriter {
 
     write(code: string) {
         this.output.write(code)
+    }
+
+    appendLanguageWriter(writer: LanguageWriter) {
+        for (const line of writer.printer.getOutput()) {
+            this.writeLine(line)
+        }
     }
 
     beginNamespace(namespace: string) {

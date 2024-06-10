@@ -21,6 +21,7 @@ import { RuntimeType } from "./PeerGeneratorVisitor";
 import { mapType } from "./TypeNodeNameConvertor";
 
 import * as ts from "typescript"
+import * as fs from "fs"
 
 export class Type {
     constructor(public name: string, public nullable = false) {}
@@ -360,7 +361,7 @@ class TsObjectDeclareStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         // Constructing a new type with all optional fields
         const objectType = new Type(`{${this.fields.map(it => {
-            //TODO: to preventing an error IMPORT_* types were  not found  
+            //TODO: to preventing an error IMPORT_* types were  not found
             const typeNode = it.type && ts.isImportTypeNode(it.type) ? "object" : mapType(it.type)
             return `${it.name}?: ${typeNode}`
         }).join(",")}}`)
@@ -522,6 +523,17 @@ export abstract class LanguageWriter {
     abstract get supportedModifiers(): MethodModifier[]
     abstract enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression
+
+    concat(other: LanguageWriter): LanguageWriter {
+        other.getOutput().forEach(it => this.print(it))
+        return this
+    }
+    printTo(file: string): void {
+        fs.writeFileSync(file, this.getOutput().join("\n"))
+    }
+    writeLines(lines: string): void {
+        lines.split("\n").forEach(it => this.print(it))
+    }
     writeGetterImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
         this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.GETTER].concat(method.modifiers ?? [])), op)
     }
@@ -1179,12 +1191,12 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
 }
 
-export function createLanguageWriter(printer: IndentedPrinter, language: Language): LanguageWriter {
+export function createLanguageWriter(language: Language): LanguageWriter {
     switch (language) {
-        case Language.TS: return new TSLanguageWriter(printer)
-        case Language.ARKTS: return new ETSLanguageWriter(printer)
-        case Language.JAVA: return new JavaLanguageWriter(printer)
-        case Language.CPP: return new CppLanguageWriter(printer)
+        case Language.TS: return new TSLanguageWriter(new IndentedPrinter())
+        case Language.ARKTS: return new ETSLanguageWriter(new IndentedPrinter())
+        case Language.JAVA: return new JavaLanguageWriter(new IndentedPrinter())
+        case Language.CPP: return new CppLanguageWriter(new IndentedPrinter())
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

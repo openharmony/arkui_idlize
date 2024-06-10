@@ -143,7 +143,7 @@ class ComponentsVisitor {
 
     printComponents(): void {
         for (const file of this.peerLibrary.files.values()) {
-            const writer = createLanguageWriter(new IndentedPrinter(), Language.TS)
+            const writer = createLanguageWriter(Language.TS)
             const visitor = new ComponentFileVisitor(this.peerLibrary, file, writer)
             visitor.printFile()
             this.components.set(visitor.targetBasename, writer)

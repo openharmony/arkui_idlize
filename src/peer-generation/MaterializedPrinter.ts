@@ -27,7 +27,7 @@ import { ImportsCollector } from "./ImportsCollector";
 
 class MaterializedFileVisitor {
 
-    readonly printer: LanguageWriter = createLanguageWriter(new IndentedPrinter(), this.language)
+    readonly printer: LanguageWriter = createLanguageWriter(this.language)
     private overloadsPrinter = new OverloadsPrinter(this.printer, this.library, false)
 
     constructor(

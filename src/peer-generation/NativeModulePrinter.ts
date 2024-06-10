@@ -28,8 +28,8 @@ class NativeModuleVisitor {
     constructor(
         private readonly library: PeerLibrary,
     ) {
-        this.nativeModule = createLanguageWriter(new IndentedPrinter(), library.declarationTable.language)
-        this.nativeModuleEmpty = createLanguageWriter(new IndentedPrinter(), library.declarationTable.language)
+        this.nativeModule = createLanguageWriter(library.declarationTable.language)
+        this.nativeModuleEmpty = createLanguageWriter(library.declarationTable.language)
     }
 
     private printPeerMethods(peer: PeerClass) {
