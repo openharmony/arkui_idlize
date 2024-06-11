@@ -284,7 +284,7 @@ void PerfInfo::Print(std::stringstream& result, float counterSelf) {
     result << "Perf trace_name(" << perf_name <<  ") cost " << (cost / 1000.0 - counterSelf) << " us.";
 }
 
-void impl_StartPerf(KStringPtr traceName) {
+void impl_StartPerf(const KStringPtr& traceName) {
     PerfInfo& perf = Performace::GetInstance()->GetCurrent();
     perf.perf_name = traceName.c_str();
     auto now = std::chrono::high_resolution_clock::now();
@@ -292,7 +292,7 @@ void impl_StartPerf(KStringPtr traceName) {
 }
 KOALA_INTEROP_V1(StartPerf, KStringPtr)
 
-void impl_EndPerf(KStringPtr traceName) {
+void impl_EndPerf(const KStringPtr& traceName) {
     auto now = std::chrono::high_resolution_clock::now();
     PerfInfo& perf = Performace::GetInstance()->GetCurrent();
     perf.end = std::chrono::time_point_cast<std::chrono::nanoseconds>(now).time_since_epoch().count();

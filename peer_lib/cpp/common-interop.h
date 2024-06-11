@@ -47,8 +47,8 @@ void appendGroupedLog(int32_t kind, const std::string& str);
 const std::string& getGroupedLog(int32_t kind);
 const bool needGroupedLog(int32_t kind);
 
-void impl_StartPerf(KStringPtr traceName);
-void impl_EndPerf(KStringPtr traceName);
+void impl_StartPerf(const KStringPtr& traceName);
+void impl_EndPerf(const KStringPtr& traceName);
 void impl_DumpPerf();
 
 typedef struct PerfInfo {

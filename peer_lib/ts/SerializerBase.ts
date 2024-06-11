@@ -131,8 +131,6 @@ function registerMaterialized(value: object|undefined): number {
     return 42
 }
 
-let textEncoder = new TextEncoder()
-
 class SerializersCache {
     cache: Array<SerializerBase|undefined>
     constructor(maxCount: number) {
@@ -175,8 +173,8 @@ export class SerializerBase {
             current.next = serializer
         }
     }
-    constructor(expectedSize: int32 = 16) {
-        this.buffer = new ArrayBuffer(expectedSize)
+    constructor() {
+        this.buffer = new ArrayBuffer(96)
         this.view = new DataView(this.buffer)
     }
 
@@ -266,16 +264,6 @@ export class SerializerBase {
     }
     writeMaterialized(value: object | undefined) {
         this.writePointer(registerMaterialized(value))
-    }
-    writeStringEncoder(value: string) {
-        let encoded = textEncoder.encode(value)
-        let length = encoded.length + 1 // zero-terminated
-        this.checkCapacity(4 + length) // length, data
-        this.view.setInt32(this.position, length, true)
-        this.position += 4
-        new Uint8Array(this.view.buffer, this.position).set(encoded)
-        this.view.setInt8(this.position + length  - 1, 0)
-        this.position += length
     }
     writeString(value: string) {
         this.checkCapacity(4 + value.length * 4) // length, data
