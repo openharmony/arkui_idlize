@@ -151,17 +151,23 @@ export class ModifierVisitor {
     ) { }
 
     printDummyImplFunctionBody(method: PeerMethod) {
-        this.dummy.print(`string out("${method.toStringName}(");`)
+        let _ = this.dummy
+        _.writeStatement(
+            _.makeCondition(
+                _.makeString("!needGroupedLog(1)"),
+                _.makeReturn(
+                    method.retConvertor.isVoid ? undefined : _.makeString(method.dummyReturnValue ?? "0"))))
+        _.print(`string out("${method.toStringName}(");`)
         method.argConvertors.forEach((argConvertor, index) => {
             if (index > 0) this.dummy.print(`out.append(", ");`)
-            this.dummy.print(`WriteToString(&out, ${argConvertor.param});`)
+            _.print(`WriteToString(&out, ${argConvertor.param});`)
         })
-        this.dummy.print(`out.append(")");`)
+        _.print(`out.append(")");`)
         const retVal = method.dummyReturnValue
         if (retVal  !== undefined) {
-            this.dummy.print(`out.append("[return ${retVal}]");`)
+            _.print(`out.append("[return ${retVal}]");`)
         }
-        this.dummy.print(`appendGroupedLog(1, out);`)
+        _.print(`appendGroupedLog(1, out);`)
         this.printReturnStatement(this.dummy, method, retVal)
     }
 
@@ -177,7 +183,7 @@ export class ModifierVisitor {
 
     private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnValue: string | undefined = undefined) {
         if (!method.retConvertor.isVoid) {
-            printer.print(`return ${returnValue?? "0"};`)
+            printer.print(`return ${returnValue ?? "0"};`)
         }
     }
 
@@ -339,7 +345,7 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
             output.appendLanguageWriter(state.modifiers)
             output.appendLanguageWriter(modifierStructList(state.modifierList))
             output.appendLanguageWriter(accessorStructList(state.accessorList))
-            
+
             // output.writeLine(completeImplementations()) // TODO implement with versions
 
             output.end()

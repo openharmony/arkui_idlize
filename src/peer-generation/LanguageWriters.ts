@@ -388,12 +388,20 @@ export class IfStatement implements LanguageStatement {
         public thenStatement: LanguageStatement,
         public elseStatement: LanguageStatement | undefined) { }
     write(writer: LanguageWriter): void {
-        writer.print(`if (${this.condition.asString()})`)
+        writer.print(`if (${this.condition.asString()}) {`)
+        writer.pushIndent()
         this.thenStatement.write(writer)
-        if (this.elseStatement!== undefined) {
-            writer.print(" else ")
+        writer.popIndent()
+        if (this.elseStatement !== undefined) {
+            writer.print("} else {")
+            writer.pushIndent()
             this.elseStatement.write(writer)
+            writer.popIndent()
+            writer.print("}")
+        } else {
+            writer.print("}")
         }
+
     }
 }
 

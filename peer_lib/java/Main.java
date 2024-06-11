@@ -20,9 +20,9 @@ public class Main {
         long str = NativeModule._StringMake("Hello");
         System.out.println(NativeModule._StringLength(str));
         Main.checkPerf(10*1000*1000);
-        NativeModule._StartGroupedLog(1);
+        //NativeModule._StartGroupedLog(1);
         Main.checkSerializerPerf(10*1000*1000);
-        NativeModule._StopGroupedLog(1);
+        //NativeModule._StopGroupedLog(1);
     }
 
     static void checkPerf(int count) {
