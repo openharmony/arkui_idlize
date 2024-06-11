@@ -267,7 +267,7 @@ export class DeclarationTable {
             if (name == "Optional")
                 return this.computeTargetName(this.toTarget(target.typeArguments[0]), true)
             if (name == "Array")
-                return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), optional)
+                return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false)
             if (name == "Map")
                 return prefix + `Map_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false) + '_' + this.computeTargetName(this.toTarget(target.typeArguments[1]), false)
             if (name == "Callback")

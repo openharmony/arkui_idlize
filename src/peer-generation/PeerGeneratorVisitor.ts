@@ -511,6 +511,11 @@ function mapCInteropRetType(type: ts.TypeNode): string {
             }
         }
     }
+    if (ts.isArrayTypeNode(type)) {
+        /* HACK, fix */
+        // return array by some way
+        return "void"
+    }
     throw new Error(type.getText())
 }
 

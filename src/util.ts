@@ -333,6 +333,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isTypeReferenceNode(node)) {
         return identString(node.typeName)
     }
+    if (ts.isArrayTypeNode(node)) {
+        return `Array`
+    }
     if (ts.isQualifiedName(node)) {
         return identName(node.right)
     }
