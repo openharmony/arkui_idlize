@@ -15,6 +15,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import { Language } from './util'
 
 class Install {
     mkdir(path: string): string {
@@ -24,29 +25,45 @@ class Install {
 }
 
 export class ArkoalaInstall extends Install{
-    constructor (private outDir: string, private extension: string, private test: boolean) { super() }
+    constructor (private outDir: string, private lang: Language, private test: boolean) { 
+        super() 
+    }
+    langDir(): string {
+        switch (this.lang) {
+            case Language.TS: return this.tsDir
+            case Language.ARKTS: return this.arktsDir
+            case Language.JAVA: return this.javaDir
+            default: throw new Error("unsupported")
+        }
+    }
     koala = this.mkdir(this.test ? path.join(this.outDir, "koalaui") : this.outDir)
     tsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/src/"))
     arktsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/arkts/src/"))
     nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/"))
     javaDir = this.mkdir(path.join(this.koala, "arkoala/java/src/"))
     peer(name: string): string {
-        return path.join(this.tsDir, name)
+        return path.join(this.langDir(), name)
     }
     component(name: string): string {
-        return path.join(this.tsDir, name)
+        return path.join(this.langDir(), name)
     }
     materialized(name: string): string {
-        return path.join(this.tsDir, name)
+        return path.join(this.langDir(), name)
     }
     interface(name: string): string {
-        return path.join(this.tsDir, name)
+        return path.join(this.langDir(), name)
+    }
+    langLib(name: string) {
+        return path.join(this.langDir(), name + this.lang.extension)
     }
     tsLib(name: string) {
-        return path.join(this.tsDir, name + this.extension)
+        return path.join(this.tsDir, name + this.lang.extension)
+    }
+    arktsLib(name: string) {
+        return path.join(this.arktsDir, name + this.lang.extension)
     }
     javaLib(name: string) {
-        return path.join(this.javaDir, name + this.extension)
+        return path.join(this.javaDir, name + this.lang.extension)
     }
     native(name: string) {
         return path.join(this.nativeDir, name)

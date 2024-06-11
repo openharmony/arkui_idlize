@@ -357,8 +357,8 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
 
 function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Language) {
     const arkoala = options.arkoalaDestination ?
-        new ArkoalaInstall(options.arkoalaDestination, lang.extension, false) :
-        new ArkoalaInstall(outDir, lang.extension, true)
+        new ArkoalaInstall(options.arkoalaDestination, lang, false) :
+        new ArkoalaInstall(outDir, lang, true)
 
     const arkuiComponentsFiles: string[] = []
 
@@ -385,7 +385,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     }
 
     fs.writeFileSync(
-        arkoala.tsLib('NativeModule'),
+        arkoala.langLib('NativeModule'),
         printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")
     )
     if (lang == Language.TS) {
@@ -432,10 +432,10 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     }
     if (lang == Language.ARKTS) {
         fs.writeFileSync(
-            arkoala.tsLib('ArkUINodeType'),
+            arkoala.arktsLib('ArkUINodeType'),
             printNodeTypes(peerLibrary),
         )
-        fs.writeFileSync(arkoala.tsLib('Serializer'),
+        fs.writeFileSync(arkoala.arktsLib('Serializer'),
             makeTSSerializer(peerLibrary)
         )
     }
