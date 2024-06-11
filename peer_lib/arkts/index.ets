@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 import { NativeModule } from "./NativeModule" 
+import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
+import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 
 /*
 V8:
@@ -49,6 +51,64 @@ function checkPerf(count: number) {
     console.log(`ARRAY: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
+export function getNativeLog(): string {
+    let ptr = NativeModule._GetGroupedLog(1)
+    let length = NativeModule._StringLength(ptr)
+    let data = new byte[length]
+    NativeModule._StringData(ptr, data, length)
+    NativeModule._InvokeFinalizer(ptr, NativeModule._GetStringFinalizer())
+    // TODO: better string decoding.
+    let result = new StringBuilder()
+    for (let i = 0; i < length; i++) {
+        result.append(String.fromCharCode(data[i] as number))
+    }
+    return result.toString()
+}
+
+export function checkResult(name: string, test: () => void, expected: string) {
+    NativeModule._StartGroupedLog(1)
+    test()
+    NativeModule._StopGroupedLog(1)
+    const actual = getNativeLog()
+    if (actual != expected) {
+        console.log(`TEST ${name} FAIL:\n  EXPECTED "${expected}"\n  ACTUAL   "${actual}"`)
+        console.log(`output: ${actual}`)
+    } else {
+        console.log(`TEST ${name} PASS`)
+    }
+}
+
+function checkButton() {
+    let data = new byte[5]
+    data[0] = 42
+    checkResult("TestPerfNumberWithArray", 
+        () => NativeModule._TestPerfNumberWithArray(data, data.length), 
+        "TestPerfNumberWithArray(42, 5)")
+    /*
+    let peer = new ArkButtonPeer(ArkUINodeType.Button)
+
+    checkResult("width", () => peer.widthAttribute("42%"),
+        "width(Length {value=42.000000, unit=%, resource=0})")
+    checkResult("height", () => peer.heightAttribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
+        "height(Length {value=0.000000, unit=vp, resource=43})")
+    checkResult("bindSheet", () =>
+        peer.bindSheetAttribute(false, () => {}, {
+            title: {
+                title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
+            }
+        }),
+        `bindSheet(false, "Function 42", {backgroundColor: undefined, title: {title: Custom kind=NativeErrorResource id=0, subtitle: undefined}, detents: undefined})`
+    )
+    checkResult("type", () => peer.typeAttribute(1), "type(1)")
+    checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),
+        "labelStyle({maxLines: 3})")
+    checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
+        "labelStyle({maxLines: undefined})")
+        */
+}
+
 export function main(): void {
     checkPerf(100000)
+
+    checkButton()
 }

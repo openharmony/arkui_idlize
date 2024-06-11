@@ -88,6 +88,19 @@ struct InteropTypeConverter<KFloat*> {
     }
 };
 
+template<>
+struct InteropTypeConverter<KByte*> {
+    using InteropType = ets_byteArray;
+    static KByte* convertFrom(EtsEnv* env, InteropType value) {
+     if (!value) return nullptr;
+      return (KByte*)env->PinByteArray(value);
+    }
+    static InteropType convertTo(EtsEnv* env, KByte* value) = delete;
+    static void release(EtsEnv* env, InteropType value, KByte* converted) {
+      if (value) env->UnpinByteArray((ets_byteArray)value);
+    }
+};
+
 template <typename Type>
 inline typename InteropTypeConverter<Type>::InteropType makeResult(EtsEnv* env, Type value) {
   return InteropTypeConverter<Type>::convertTo(env, value);

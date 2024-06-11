@@ -204,6 +204,14 @@ KInt impl_TestPerfNumber(KInt value) {
 KOALA_INTEROP_1(TestPerfNumber, KInt, KInt)
 
 void impl_TestPerfNumberWithArray(KByte* data, KInt length) {
+    if (needGroupedLog(1)) {
+        string out("TestPerfNumberWithArray(");
+        out.append(std::to_string(data[0]));
+        out.append(", ");
+        out.append(std::to_string(length));
+        out.append(")");
+        appendGroupedLog(1, out);
+    }
 }
 KOALA_INTEROP_V2(TestPerfNumberWithArray, KByte*, KInt)
 
