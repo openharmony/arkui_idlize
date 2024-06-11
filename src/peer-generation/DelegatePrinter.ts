@@ -17,12 +17,12 @@ import * as path from "path";
 import * as fs from "fs";
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { completeDelegatesImpl, warning } from "./FileGenerators";
+import { cStyleCopyright, completeDelegatesImpl, makeIncludeGuardDefine, warning } from "./FileGenerators";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
 import { PeerClass } from "./PeerClass";
 import { MaterializedClass } from "./Materialized";
-import { CppFileWriter, CppHeaderFileGenerator as CppHeaderFileWriter, CppSourceFileGenerator as CppSourceFileWriter } from "./CppFileGenerator";
+import { CppLanguageWriter, PrinterLike } from "./LanguageWriters";
 
 export class DelegateSignatureBuilder {
     constructor(
@@ -186,10 +186,10 @@ export function printDelegatesImplementation(library: PeerLibrary): string {
     return completeDelegatesImpl(uniqueDeclarations.join('\n'))
 }
 
-export function printDelegatesAsMultipleFiles(library: PeerLibrary, outputDir: string) {
+export function printDelegatesAsMultipleFiles(library: PeerLibrary, outputDir: string, options: DelegateFileOptions = {}) {
     const visitor = new MultiFileDelegateVisitor(library)
     visitor.print()
-    visitor.emitSync(outputDir)
+    visitor.emitSync(outputDir, options)
 }
 
 
@@ -268,49 +268,71 @@ class MultiFileDelegateVisitor {
         }
     }
 
-    emitSync(outputDirectory: string): void {
+    emitSync(outputDirectory: string, options: DelegateFileOptions): void {
         fs.mkdirSync(outputDirectory, { recursive: true });
-        let implPrinter = new DelegateImplementationPrinter();
-        let headerPrinter = new DelegateHeaderPrinter();
 
         for (const [slug, { api, impl }] of this.printers) {
-            implPrinter.printFile(path.join(outputDirectory, `${slug}_delegates.cc`), impl);
-            headerPrinter.printFile(path.join(outputDirectory, `${slug}_delegates.h`), api);
+            printDelegateImplementation(path.join(outputDirectory, `${slug}_delegates.cc`), impl, options);
+            printDelegateHeader(path.join(outputDirectory, `${slug}_delegates.h`), api, options);
         }
     }
 }
 
-abstract class DelegateFilePrinter {
-    static readonly GENERATED_WARNING = `/*
- * ${warning}
- */
-`
-    public printFile(filePath: string, source: IndentedPrinter) {
-        let output = this.createFileWriter(filePath)
-        output.writeLine(DelegateFilePrinter.GENERATED_WARNING)
-        let uniqueDecls = new Set(source.getOutput())
-        for (const decl of uniqueDecls) {
-            output.writeLine(decl)
-        }
-        output.end()
-    }
-
-    protected abstract createFileWriter(filePath: string): CppFileWriter
+export interface DelegateFileOptions {
+    namespace?: string
 }
 
-class DelegateHeaderPrinter extends DelegateFilePrinter {
-    protected createFileWriter(filePath: string): CppFileWriter {
-        return new CppHeaderFileWriter(filePath)
+function printDelegateImplementation(filePath: string, source: PrinterLike, options: DelegateFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter())
+    writer.writeLines(cStyleCopyright)
+    writer.writeMultilineCommentBlock(warning)
+    writer.print("")
+
+
+    const headerName = path.basename(filePath, ".cc") + ".h"
+    writer.writeInclude("Serializers.h")
+    writer.writeInclude(headerName)
+    writer.print("")
+
+    if (options.namespace) {
+        writer.pushNamespace(options.namespace)
     }
+
+    writer.concat(source)
+
+    if (options.namespace) {
+        writer.popNamespace()
+    }
+
+    writer.print("")
+    writer.printTo(filePath)
 }
 
-class DelegateImplementationPrinter extends DelegateFilePrinter {
-    protected createFileWriter(filePath: string): CppFileWriter {
-        const output = new CppSourceFileWriter(filePath)
-        const headerName = path.basename(filePath, ".cc") + ".h"
-        output.writeInclude("Serializers.h")
-        output.writeInclude(headerName)
-        output.writeLine()
-        return output
+
+function printDelegateHeader(filePath: string, source: PrinterLike, options: DelegateFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter())
+    writer.writeLines(cStyleCopyright)
+    writer.writeMultilineCommentBlock(warning)
+    writer.print("")
+
+    const includeGuardDefine = makeIncludeGuardDefine(filePath)
+    writer.print(`#ifndef ${includeGuardDefine}`)
+    writer.print(`#define ${includeGuardDefine}`)
+    writer.print("")
+
+    writer.writeInclude("arkoala_api.h") // TODO arkoala_api_generated.h ?
+    writer.print("")
+
+    if (options.namespace) {
+        writer.pushNamespace(options.namespace)
     }
+
+    writer.concat(source)
+
+    if (options.namespace) {
+        writer.popNamespace()
+    }
+    writer.print(`\n#endif // ${includeGuardDefine}`)
+    writer.print("")
+    writer.printTo(filePath)
 }

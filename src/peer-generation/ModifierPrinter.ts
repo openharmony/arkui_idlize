@@ -18,16 +18,15 @@ import * as path from "path"
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { accessorStructList, modifierStructList } from "./FileGenerators";
+import { accessorStructList, cStyleCopyright, completeModufiersContent as completeModifiersContent, modifierStructList, warning } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
 import { DelegateSignatureBuilder } from "./DelegatePrinter";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { MaterializedClass, MaterializedMethod } from "./Materialized";
-import { CppSourceFileGenerator } from "./CppFileGenerator";
 import { Language } from "../util";
-import { createLanguageWriter, LanguageWriter } from "./LanguageWriters";
+import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "./LanguageWriters";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     public readonly printer = new IndentedPrinter()
@@ -144,6 +143,7 @@ export class ModifierVisitor {
     dummy = createLanguageWriter(Language.CPP)
     real = createLanguageWriter(Language.CPP)
     modifiers = createLanguageWriter(Language.CPP)
+    getterDeclarations = createLanguageWriter(Language.CPP)
     modifierList = createLanguageWriter(Language.CPP)
 
     constructor(
@@ -227,6 +227,7 @@ export class ModifierVisitor {
         this.modifiers.print(`};\n`)
         const name = clazz.componentName
         this.modifiers.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
+        this.getterDeclarations.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${name}Modifier* Get${name}Modifier();`)
     }
 
     printPeerClassModifiers(clazz: PeerClass) {
@@ -280,6 +281,7 @@ class AccessorVisitor extends ModifierVisitor {
         this.accessors.print(`};\n`)
         const accessor = `${clazz.className}Accessor`
         this.accessors.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}() { return &${accessor}Impl; }\n\n`)
+        this.getterDeclarations.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}();`)
     }
 
     printMaterializedMethod(printer: LanguageWriter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void) {
@@ -296,6 +298,7 @@ class MultiFileModifiersVisitorState {
     accessors = createLanguageWriter(Language.CPP)
     modifierList = createLanguageWriter(Language.CPP)
     modifiers = createLanguageWriter(Language.CPP)
+    getterDeclarations = createLanguageWriter(Language.CPP)
 }
 
 class MultiFileModifiersVisitor extends AccessorVisitor {
@@ -319,6 +322,7 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
         this.accessorList = state.accessorList
         this.modifiers = state.modifiers
         this.modifierList = state.modifierList
+        this.getterDeclarations = state.getterDeclarations
     }
 
     onFileEnd() {
@@ -330,26 +334,27 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
         this.onFileEnd()
     }
 
-    emitRealSync(outputDirectory: string): void {
+    emitRealSync(outputDirectory: string, options: ModifierFileOptions): void {
         fs.mkdirSync(outputDirectory, { recursive: true });
+
+        const modifierList = createLanguageWriter(Language.CPP)
+        const accessorList = createLanguageWriter(Language.CPP)
+        const getterDeclarations = createLanguageWriter(Language.CPP)
 
         for (const [slug, state] of this.stateByFile) {
             const filePath = path.join(outputDirectory, `${slug}_modifiers.cc`)
-            const output = new CppSourceFileGenerator(filePath)
-            output.writeInclude("Interop.h")
-            output.writeInclude("Serializers.h")
-            output.writeInclude(`${slug}_delegates.h`)
-            output.writeLine()
-
-            state.real.getOutput().forEach(block => output.writeLine(block))
-            output.appendLanguageWriter(state.modifiers)
-            output.appendLanguageWriter(modifierStructList(state.modifierList))
-            output.appendLanguageWriter(accessorStructList(state.accessorList))
-
-            // output.writeLine(completeImplementations()) // TODO implement with versions
-
-            output.end()
+            printModifiersImplFile(filePath, slug, state, options)
+            modifierList.concat(state.modifierList)
+            accessorList.concat(state.accessorList)
+            getterDeclarations.concat(state.getterDeclarations)
         }
+
+        const commonFilePath = path.join(outputDirectory, "all_modifiers.cc")
+        const commonFileContent = getterDeclarations
+            .concat(modifierStructList(modifierList))
+            .concat(accessorStructList(accessorList))
+
+        printModifiersCommonImplFile(commonFilePath, commonFileContent, options);
     }
 }
 
@@ -375,8 +380,66 @@ export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: La
     return {dummy, real}
 }
 
-export function printRealModifiersAsMultipleFiles(library: PeerLibrary, outputDir: string) {
+export interface ModifierFileOptions {
+    basicVersion: number;
+    fullVersion: number;
+    extendedVersion: number;
+
+    namespace?: string
+}
+
+export function printRealModifiersAsMultipleFiles(library: PeerLibrary, outputDir: string, options: ModifierFileOptions) {
     const visitor = new MultiFileModifiersVisitor(library)
     visitor.printRealAndDummyModifiers()
-    visitor.emitRealSync(outputDir)
+    visitor.emitRealSync(outputDir, options)
+}
+
+function printModifiersImplFile(filePath: string, slug: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter())
+    writer.writeLines(cStyleCopyright)
+    writer.writeMultilineCommentBlock(warning)
+    writer.print("")
+
+    writer.writeInclude("Interop.h")
+    writer.writeInclude("Serializers.h")
+    writer.writeInclude(`${slug}_delegates.h`)
+    writer.print("")
+
+    if (options.namespace) {
+        writer.pushNamespace(options.namespace)
+    }
+
+    writer.concat(state.real)
+    writer.concat(state.modifiers)
+    
+    if (options.namespace) {
+        writer.popNamespace()
+    }
+
+    writer.print("")
+    writer.printTo(filePath)
+}
+
+function printModifiersCommonImplFile(filePath: string, content: LanguageWriter, options: ModifierFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter())
+    writer.writeLines(cStyleCopyright)
+    writer.writeMultilineCommentBlock(warning)
+    writer.print("")
+
+    writer.writeInclude("Interop.h")
+    writer.writeInclude("Serializers.h")
+    writer.print("")
+
+    if (options.namespace) {
+        writer.pushNamespace(options.namespace)
+    }
+
+    writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
+
+    if (options.namespace) {
+        writer.popNamespace()
+    }
+
+    writer.print("")
+    writer.printTo(filePath)
 }

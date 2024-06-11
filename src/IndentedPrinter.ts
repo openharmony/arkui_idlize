@@ -19,7 +19,7 @@ export class IndentedPrinter {
     private indent = 0
 
     print(value: stringOrNone) {
-        if (value) this.output.push(this.indented(value))
+        if (value != undefined) this.output.push(this.indented(value))
     }
 
     pushIndent() {

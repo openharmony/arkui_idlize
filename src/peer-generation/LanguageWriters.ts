@@ -501,6 +501,10 @@ export interface ObjectArgs {
     [name: string]: string
 }
 
+export interface PrinterLike {
+    getOutput(): string[]
+}
+
 export abstract class LanguageWriter {
     constructor(public printer: IndentedPrinter, public language: Language) {}
 
@@ -531,7 +535,7 @@ export abstract class LanguageWriter {
     abstract enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression
 
-    concat(other: LanguageWriter): LanguageWriter {
+    concat(other: PrinterLike): this {
         other.getOutput().forEach(it => this.print(it))
         return this
     }
@@ -1050,6 +1054,41 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.print(`}`)
     }
+
+    /**
+     * Writes multiline comments decorated with stars
+     */
+    writeMultilineCommentBlock(lines: string) {
+        this.print('/*')
+        lines.split("\n").forEach(it => this.print(' * ' + it))
+        this.print(' */')
+    }
+
+    /**
+     * Writes `#include "path"`
+     * @param path File path to be included
+     */
+    writeInclude(path: string) {
+        this.print(`#include "${path}"`)
+    }
+
+    /**
+     * Writes `namespace <namespace> {` and adds extra indent
+     * @param namespace Namespace to begin
+     */
+    pushNamespace(namespace: string) {
+        this.print(`namespace ${namespace} {`)
+        this.pushIndent()
+    }
+
+    /**
+     * Writes closing brace of namespace block and removes one level of indent
+     */
+    popNamespace() {
+        this.popIndent()
+        this.print(`}`)
+    }
+
     override makeTag(tag: string): string {
         return "ARK_TAG_" + tag
     }

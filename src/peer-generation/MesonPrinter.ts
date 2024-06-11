@@ -36,6 +36,7 @@ export class MesonVisitor {
     printMesonBuildContent() {
         this.printer.print("generated_sources = files(")
         this.printer.pushIndent()
+        this.printer.print("all_modifiers.cc")
         this.library.files.forEach(file => {
             file.peers.forEach(clazz => this.printPeerClassSourcePaths(clazz))
         })

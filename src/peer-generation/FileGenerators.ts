@@ -17,7 +17,7 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PrimitiveType } from "./DeclarationTable"
 import { Language } from "../util"
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "./LanguageWriters"
+import { createLanguageWriter, LanguageWriter, PrinterLike } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
@@ -129,6 +129,23 @@ void SetAppendGroupedLog(void* pFunc) {}
 `)
     result.concat(modifiers)
     result.concat(accessors)
+    result.writeLines(epilogue)
+    return result
+}
+
+export function completeModufiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP)
+    let epilogue = readTemplate('dummy_impl_epilogue.cc')
+
+    epilogue = epilogue
+        .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%ARKUI_BASIC_API_VERSION_VALUE%`, basicVersion.toString())
+        .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
+        .replaceAll(`%ARKUI_EXTENDED_API_VERSION_VALUE%`, extendedVersion.toString())
+    result.writeLines(`
+void SetAppendGroupedLog(void* pFunc) {}
+`)
+    result.concat(content)
     result.writeLines(epilogue)
     return result
 }
@@ -317,8 +334,15 @@ ${lines.join("\n")}
 `
 }
 
+const TEMPLATES_CACHE = new Map<string, string>()
+
 function readTemplate(name: string): string {
-    return fs.readFileSync(path.join(__dirname, `../templates/${name}`), 'utf8')
+    let template = TEMPLATES_CACHE.get(name);
+    if (template == undefined) {
+        template = fs.readFileSync(path.join(__dirname, `../templates/${name}`), 'utf8')
+        TEMPLATES_CACHE.set(name, template)
+    }
+    return template
 }
 
 function readLangTemplate(name: string, lang: Language): string {
@@ -447,11 +471,15 @@ ${gniSources}
 `
 }
 
-export function mesonBuildFile(gniSources: string): string {
+export function mesonBuildFile(content: string): string {
 return `${sharpCopyright}
 
 # ${warning}
 
-${gniSources}
+${content}
 `
+}
+export function makeIncludeGuardDefine(filePath: string) {
+    let basename = path.basename(filePath);
+    return basename.replace(/[.\- ]/g, "_").toUpperCase();
 }

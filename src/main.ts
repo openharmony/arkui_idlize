@@ -415,8 +415,13 @@ if (options.dts2peer) {
                 copyPeerLib(path.join(__dirname, '..', 'peer_lib'), outDir)
 
                 let newOutDir = path.join(outDir, "refactor")
-                printDelegatesAsMultipleFiles(peerLibrary, newOutDir)
-                printRealModifiersAsMultipleFiles(peerLibrary, newOutDir)
+                printDelegatesAsMultipleFiles(peerLibrary, newOutDir, { namespace: "OHOS::Ace::NG::Delegate" })
+                printRealModifiersAsMultipleFiles(peerLibrary, newOutDir, {
+                    namespace: "OHOS::Ace::NG::GeneratedModifier",
+                    basicVersion: 1,
+                    fullVersion: options.apiVersion,
+                    extendedVersion: 6,
+                })
 
                 const mesonBuild = printMesonBuild(peerLibrary)
                 fs.writeFileSync(path.join(newOutDir, 'meson.build'), mesonBuildFile(mesonBuild))
