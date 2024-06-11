@@ -118,6 +118,7 @@ typedef int64_t KLong;
 typedef double KDouble;
 typedef void* KNativePointer;
 typedef KStringPtrImpl KStringPtr;
+typedef float* KFloatArray;
 typedef const uint8_t* KStringArray;
 typedef void** KNativePointerArray;
 

@@ -93,11 +93,11 @@ void impl_InvokeFinalizer(KNativePointer obj, KNativePointer finalizer) {
 }
 KOALA_INTEROP_V2(InvokeFinalizer, KNativePointer, KNativePointer)
 
-void disposeNode(KNativePointer* ptr) {
+void disposeNodeTmp(KNativePointer* ptr) {
 }
 
 KNativePointer impl_GetNodeFinalizer() {
-    return fnPtr<KNativePointer>(disposeNode);
+    return fnPtr<KNativePointer>(disposeNodeTmp);
 }
 
 KOALA_INTEROP_0(GetNodeFinalizer, KNativePointer)

@@ -84,13 +84,17 @@ const %CPP_PREFIX%ArkUIAccessors* GetAccessors() {
     return GetFullImpl()->getAccessors();
 }
 
-const %CPP_PREFIX%ArkUIExtendedAPI* GetArkUIExtendedAPI() {
-    return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedAPI*>(GetAnyImpl(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED, %CPP_PREFIX%ARKUI_EXTENDED_API_VERSION));
+const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
+    return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(GetAnyImpl(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%BASIC, %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION));
+}
+
+const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
+    return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedNodeAPI*>(GetAnyImpl(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED, %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION));
 }
 
 CONSTRUCTOR(init) {
-    if (GetArkUIExtendedAPI()) {
-        auto setAppendGroupedLog = GetArkUIExtendedAPI()->setAppendGroupedLog;
-        if (setAppendGroupedLog) setAppendGroupedLog((void*)appendGroupedLog);
+    if (GetArkUIExtendedNodeAPI()) {
+        auto setAppendGroupedLog = GetArkUIExtendedNodeAPI()->setAppendGroupedLog;
+        if (setAppendGroupedLog) setAppendGroupedLog((void*)GetArkUIExtendedNodeAPI);
     }
 }

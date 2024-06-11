@@ -11,6 +11,7 @@ import {
 } from "@koalaui/interop"
 
 export type NodePointer = pointer
+export type PipelineContext = pointer
 
 let theModule: NativeModule | undefined = undefined
 

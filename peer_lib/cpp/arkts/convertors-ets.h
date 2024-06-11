@@ -987,4 +987,8 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P
 } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12 "|" #P13)
 
+#define KOALA_INTEROP_CTX_1(name, Ret, P0)
+#define KOALA_INTEROP_CTX_2(name, Ret, P0, P1)
+#define KOALA_INTEROP_CTX_V2(name, P0, P1)
+
 #endif // KOALA_ETS_NAPI

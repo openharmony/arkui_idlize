@@ -76,6 +76,7 @@ import {
     KNativePointer,
     KInt32ArrayPtr,
     KUint8ArrayPtr,
+    KFloat32ArrayPtr,
     pointer
 } from "@koalaui/interop"
 `.trim()
@@ -96,19 +97,24 @@ export function nativeModuleEmptyDeclaration(methods: string[]): string {
     return `
 ${importTsInteropTypes}
 import { NativeModuleBase } from "./NativeModuleBase"
-import { NativeModule, NodePointer } from "./NativeModule"
+import { NativeModule, NodePointer, PipelineContext } from "./NativeModule"
+import { nullptr } from "@koalaui/interop"
 
-export class NativeModuleEmpty extends NativeModuleBase implements NativeModule {
+${readTemplate('NativeModuleEmpty_prologue.ts')}
+
 ${methods.join("\n")}
-}
+
+${readTemplate('NativeModuleEmpty_epilogue.ts')}
 `.trim()
 }
 
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
     let prologue = readTemplate('bridge_prologue.cc')
-    prologue = prologue
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
-    return prologue.concat("\n").concat(bridgeCc.join("\n"))
+    let epilogue = readTemplate('bridge_epilogue.cc')
+        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+
+    return prologue.concat("\n").concat(bridgeCc.join("\n")).concat(epilogue).concat("\n")
 }
 
 export function completeImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
@@ -117,9 +123,9 @@ export function completeImplementations(modifiers: LanguageWriter, accessors: La
 
     epilogue = epilogue
         .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
-        .replaceAll(`%ARKUI_BASIC_API_VERSION_VALUE%`, basicVersion.toString())
+        .replaceAll(`%ARKUI_BASIC_NODE_API_VERSION_VALUE%`, basicVersion.toString())
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
-        .replaceAll(`%ARKUI_EXTENDED_API_VERSION_VALUE%`, extendedVersion.toString())
+        .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
     result.writeLines(`
 #include "Interop.h"
 #include "Serializers.h"
@@ -177,9 +183,9 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
     epilogue = epilogue
         .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
-        .replaceAll(`%ARKUI_BASIC_API_VERSION_VALUE%`, basicVersion.toString())
+        .replaceAll(`%ARKUI_BASIC_NODE_API_VERSION_VALUE%`, basicVersion.toString())
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
-        .replaceAll(`%ARKUI_EXTENDED_API_VERSION_VALUE%`, extendedVersion.toString())
+        .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
 
     let result = createLanguageWriter(Language.CPP)
     result.writeLines(prologue)
@@ -269,6 +275,11 @@ ${deserializer.getOutput().join("\n")}
 }
 
 export function makeApiModifiers(modifiers: string[], accessors: string[], events: string[]): string {
+
+    let node_api = readTemplate('arkoala_node_api.h')
+        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+
+
     return `
 /**
  * An API to control an implementation. When making changes modifying binary
@@ -282,10 +293,6 @@ ${modifiers.join("\n")}
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors {
 ${accessors.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors;
-
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIBasicAPI {
-    ${PrimitiveType.Int32.getText()} version;
-} ${PeerGeneratorConfig.cppPrefix}ArkUIBasicAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation {
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation;
@@ -301,10 +308,7 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
 ${events.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI;
 
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI {
-    ${PrimitiveType.Int32.getText()} version;
-    void (*setAppendGroupedLog)(void* pFunc);
-} ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedAPI;
+${node_api}
 
 /**
  * An API to control an implementation. When making changes modifying binary
@@ -319,6 +323,7 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
     const ${PeerGeneratorConfig.cppPrefix}ArkUINavigation* (*getNavigation)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* (*getEventsAPI)();
+    const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedNodeAPI* (*getExtendedAPI)();
 } ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {

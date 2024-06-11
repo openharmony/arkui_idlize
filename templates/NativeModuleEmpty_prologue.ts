@@ -1,0 +1,1 @@
+export class NativeModuleEmpty extends NativeModuleBase implements NativeModule {

@@ -39,3 +39,26 @@ public class NativeModule {
   static native void _Test_Common_OnChildTouchTest(byte[] valueArray, int valueSerializerLength);
   static native void _Test_List_OnScrollVisibleContentChange(byte[] valueArray, int valueSerializerLength);
   static native void _Test_TextPicker_OnAccept(byte[] valueArray, int valueSerializerLength);
+
+  static native long _CreateNode(int type, int id, int flags);
+  static native void _DisposeNode(long nodePtr);
+  static native int _MeasureLayoutAndDraw(long nodePtr);
+  static native int _MeasureNode(long nodePtr, float[] data);
+  static native int _LayoutNode(long nodePtr, float[] data);
+  static native int _DrawNode(long nodePtr, float[] data);
+  static native int _IndexerChecker(long nodePtr);
+  static native void _SetLazyItemIndexer(long nodePtr, int indexerId);
+  static native void _SetCustomCallback(long nodePtr, int updaterId);
+  static native void _SetMeasureWidth(long nodePtr, int value);
+  static native int _GetMeasureWidth(long nodePtr);
+  static native void _SetMeasureHeight(long nodePtr, int value);
+  static native int _GetMeasureHeight(long nodePtr);
+  static native void _SetX(long nodePtr, int value);
+  static native int _GetX(long nodePtr);
+  static native void _SetY(long nodePtr, int value);
+  static native int _GetY(long nodePtr);
+  static native void _SetAlignment(long nodePtr, int value);
+  static native int _GetAlignment(long nodePtr);
+  static native void _SetRangeUpdater(long nodePtr, int updaterId);
+
+  static native void _ShowCrash(String message);

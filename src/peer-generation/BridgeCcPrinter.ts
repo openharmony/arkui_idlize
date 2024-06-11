@@ -18,9 +18,12 @@ import { Language, capitalize, dropSuffix, isDefined } from "../util";
 import { ArgConvertor } from "./Convertors";
 import { PrimitiveType } from "./DeclarationTable";
 import { bridgeCcDeclaration } from "./FileGenerators";
-import { createLanguageWriter } from "./LanguageWriters";
+import { createLanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters";
 import { PeerLibrary } from "./PeerLibrary";
 import { PeerMethod } from "./PeerMethod";
+import { CUSTOM_API, CustomAPI } from "./CustomAPI"
+
+//const VM_CONTEXT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_VMContext`)
 
 class BridgeCcVisitor {
     readonly C = createLanguageWriter(Language.CPP)
@@ -160,6 +163,47 @@ class BridgeCcVisitor {
         this.C.print(` `)
     }
 
+    printCustomApiMethod(c: CustomAPI, m: Method) {
+        const sig = m.signature as NamedMethodSignature
+        const capitalizedName = capitalize(m.name)
+        const retType = c.getArgType(sig.returnType)
+        const argsType =sig.args.map(it => c.getArgType(it))
+        const method = new Method(`impl_${capitalizedName}`, new NamedMethodSignature(
+            retType, argsType, sig.argsNames))
+
+        this.C.writeMethodImplementation(method, writer => {
+            let castNames: string[] = []
+            sig.args.forEach((it, index) => {
+                const type = c.getCastType(it)
+                const name = sig.argsNames[index];
+                let castName = name
+                if (c.getArgType(it).name !== type.name) {
+                    castName = `${name}Cast`
+                    const convert = it.name.endsWith("Enum") ? `${type.name}` : `reinterpret_cast<${type.name}>`
+                    this.C.print(`${type.name} ${castName} = ${convert}(${name});`)
+                }
+                castNames = castNames.concat(castName)
+            })
+            const ret = sig.returnType === Type.Void ? "" : "return "
+            this.C.print(`${ret}GetArkUI${c.apiName}()->${m.name}(${castNames.join(", ")});`)
+        })
+        const v = sig.returnType === Type.Void ? "V" : "";
+        let args = c.withContext ? argsType.slice(1) : argsType
+        const size = args.length
+        args = sig.returnType === Type.Void ? args : [retType, ...args]
+        const CTX = c.withContext ? "_CTX" : ""
+            this.C.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}, ${args.map(it => it.name).join(", ")})\n`)
+    }
+
+    printCustomApiMethodJNI(c: CustomAPI, m: Method) {
+        const sig = m.signature as NamedMethodSignature
+        const ret = c.getJniType(sig.returnType).name
+        let args = sig.args.map((type, index) => `${c.getJniType(type).name} ${sig.argsNames[index]}`)
+        args = c.withContext ? args.slice(1) : args
+        const name = `_${capitalize(m.name)}`
+        console.log(`static native ${ret} ${name}(${args.join(", ")});`)
+    }
+
     print(): void {
         for (const file of this.library.files) {
             for (const peer of file.peers.values()) {
@@ -173,6 +217,15 @@ class BridgeCcVisitor {
         for (const clazz of this.library.materializedClasses.values()) {
             for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
                 this.printMethod(method)
+            }
+        }
+
+        this.C.print("\n// custom API methods\n")
+        for(const customApi of CUSTOM_API) {
+            for(const method of customApi.methods) {
+                this.printCustomApiMethod(customApi, method)
+                // TBD: generate NativeModule for jni
+                // this.printCustomApiMethodJNI(customApi, method)
             }
         }
     }

@@ -80,6 +80,10 @@ void addType(const std::string &type, std::string *result)
         result->append("Ljava/lang/String;");
     else if (type == "KLength")
         result->append("Ljava/lang/Object;");
+    else if (type == "KNativePointerArray")
+        result->append("[J");
+    else if (type == "KFloatArray")
+        result->append("[F");
     else {
         fprintf(stderr, "JNI: unhandled type: %s\n", type.c_str());
         throw "Error";

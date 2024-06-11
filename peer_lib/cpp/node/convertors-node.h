@@ -909,6 +909,17 @@ Napi::ModuleRegisterCallback ProvideModuleRegisterCallback(Napi::ModuleRegisterC
   } \
   MAKE_NODE_EXPORT(name)
 
+#define KOALA_INTEROP_CTX_V2(name, P0, P1) \
+  Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
+      KOALA_MAYBE_LOG(name)                   \
+      KVMContext ctx = reinterpret_cast<KVMContext>((napi_env)info.Env()); \
+      P0 p0 = getArgument<P0>(info, 0); \
+      P1 p1 = getArgument<P1>(info, 1); \
+      impl_##name(ctx, p0, p1); \
+      return makeVoid(info); \
+  } \
+  MAKE_NODE_EXPORT(name)
+
 #define KOALA_INTEROP_CTX_3(name, Ret, P0, P1, P2) \
   Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
       KOALA_MAYBE_LOG(name)                   \
