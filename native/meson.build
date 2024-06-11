@@ -112,7 +112,7 @@ node_sources = [
 ]
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
-    node_sources += [ gen_dir + '/win-dynamic-node.cc' ]
+    node_sources += [ arkoala_dir / 'node' / 'win-dynamic-node.cc' ]
     panda_ldflags = []
 endif
 if os == 'linux'
@@ -144,7 +144,7 @@ if is_jni
         arkoala_dir / 'jni'
     ]
     jni_sources = [
-        arkoala_dir / 'convertors-jni.cc',
+        arkoala_dir / 'jni' / 'convertors-jni.cc',
     ]
 endif
 
