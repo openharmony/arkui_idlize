@@ -1120,7 +1120,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             case 'Function': return 'Ark_Function'
             case 'Length': return 'Ark_Length'
             // TODO: oh no
-            case 'Array<string[]>' : return 'Array_Array_Ark_String'
+            case 'Array<string[]>' : return `Array_Array_${PrimitiveType.String.getText()}`
         }
         if (type.name.startsWith("Array<")) {
             const typeSpec = type.name.match(/<(.*)>/)!

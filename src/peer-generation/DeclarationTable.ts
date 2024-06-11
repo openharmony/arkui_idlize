@@ -36,20 +36,21 @@ import { EnumMember, NodeArray } from "typescript";
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
     getText(table?: DeclarationTable): string { return this.name }
-    static String = new PrimitiveType("Ark_String", true)
-    static Number = new PrimitiveType("Ark_Number", true)
-    static Int32 = new PrimitiveType("Ark_Int32")
-    static Tag = new PrimitiveType("Ark_Tag")
-    static RuntimeType = new PrimitiveType("Ark_RuntimeType")
-    static Boolean = new PrimitiveType("Ark_Boolean")
-    static Function = new PrimitiveType("Ark_Function", true)
-    static Materialized = new PrimitiveType("Ark_Materialized", true)
-    static Undefined = new PrimitiveType("Ark_Undefined")
-    static NativePointer = new PrimitiveType("Ark_NativePointer")
-    static ObjectHandle = new PrimitiveType("Ark_ObjectHandle")
-    static Length = new PrimitiveType("Ark_Length", true)
-    static Resource = new PrimitiveType("Ark_Resource", true)
-    static CustomObject = new PrimitiveType("Ark_CustomObject", true)
+    static ArkPrefix = "Ark_"
+    static String = new PrimitiveType(`${PrimitiveType.ArkPrefix}String`, true)
+    static Number = new PrimitiveType(`${PrimitiveType.ArkPrefix}Number`, true)
+    static Int32 = new PrimitiveType(`${PrimitiveType.ArkPrefix}Int32`)
+    static Tag = new PrimitiveType(`${PrimitiveType.ArkPrefix}Tag`)
+    static RuntimeType = new PrimitiveType(`${PrimitiveType.ArkPrefix}RuntimeType`)
+    static Boolean = new PrimitiveType(`${PrimitiveType.ArkPrefix}Boolean`)
+    static Function = new PrimitiveType(`${PrimitiveType.ArkPrefix}Function`, true)
+    static Materialized = new PrimitiveType(`${PrimitiveType.ArkPrefix}Materialized`, true)
+    static Undefined = new PrimitiveType(`${PrimitiveType.ArkPrefix}Undefined`)
+    static NativePointer = new PrimitiveType(`${PrimitiveType.ArkPrefix}NativePointer`)
+    static ObjectHandle = new PrimitiveType(`${PrimitiveType.ArkPrefix}ObjectHandle`)
+    static Length = new PrimitiveType(`${PrimitiveType.ArkPrefix}Length`, true)
+    static Resource = new PrimitiveType(`${PrimitiveType.ArkPrefix}Resource`, true)
+    static CustomObject = new PrimitiveType(`${PrimitiveType.ArkPrefix}CustomObject`, true)
     private static pointersMap = new Map<DeclarationTarget, PointerType>()
     static pointerTo(target: DeclarationTarget) {
         if (PrimitiveType.pointersMap.has(target)) return PrimitiveType.pointersMap.get(target)!
@@ -220,9 +221,7 @@ export class DeclarationTable {
             return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumDeclaration(target)) {
-            // TODO: support namespaces in other declarations.
-            let name = identNameWithNamespace(target.name)
-            return prefix + name
+            return prefix + this.enumName(target.name)
         }
         if (ts.isUnionTypeNode(target)) {
             return prefix + `Union_${target.types.map(it => this.computeTargetName(this.toTarget(it), false)).join("_")}`
@@ -294,6 +293,9 @@ export class DeclarationTable {
         }
         if (ts.isTypeReferenceNode(type)) {
             const typeName = identName(type.typeName)
+            let declaration = this.toTarget(type)
+            if (!(declaration instanceof PrimitiveType) && ts.isEnumDeclaration(declaration))
+                return this.enumName(declaration.name)
             if (typeName === "Array") {
                 const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false)
                 return `${prefix}Array_${elementTypeName}`
@@ -394,9 +396,14 @@ export class DeclarationTable {
             return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumMember(type)) {
-            return prefix + identName(type.name)
+            return prefix + this.enumName(type.name)
         }
         throw new Error(`Cannot compute type name: ${type.getText()} ${type.kind}`)
+    }
+
+    public enumName(name: ts.PropertyName): string {
+        // TODO: support namespaces in other declarations.
+        return `${PrimitiveType.ArkPrefix}${identNameWithNamespace(name)}`
     }
 
     public get orderedDependencies(): DeclarationTarget[] {
@@ -618,7 +625,7 @@ export class DeclarationTable {
             if (!(elementType instanceof PrimitiveType)) {
                 let name = this.computeTargetName(elementType, false)
                 if (ts.isEnumDeclaration(elementType)) {
-                    structs.print(`typedef int32_t ${name};`)
+                    structs.print(`typedef int32_t ${this.enumName(elementType.name)};`)
                 }
             }
         }
