@@ -22,7 +22,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
 import { PeerLibrary } from "./PeerLibrary"
-import { ArkoalaInstall } from "../CopyPeers"
+import { ArkoalaInstall } from "../Install"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 

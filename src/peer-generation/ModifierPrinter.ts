@@ -24,7 +24,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { MaterializedClass, MaterializedMethod } from "./Materialized";
 import { Language } from "../util";
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "./LanguageWriters";
-import { LibaceInstall } from "../CopyPeers";
+import { LibaceInstall } from "../Install";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     public readonly printer = new IndentedPrinter()

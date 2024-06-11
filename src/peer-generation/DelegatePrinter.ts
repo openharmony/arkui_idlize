@@ -23,7 +23,7 @@ import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
 import { PeerClass } from "./PeerClass";
 import { MaterializedClass } from "./Materialized";
 import { CppLanguageWriter, PrinterLike } from "./LanguageWriters";
-import { LibaceInstall } from "../CopyPeers";
+import { LibaceInstall } from "../Install";
 
 export class DelegateSignatureBuilder {
     constructor(
