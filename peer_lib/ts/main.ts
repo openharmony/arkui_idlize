@@ -72,7 +72,7 @@ function checkSerdeResult(name: string, value: any, expected: any) {
 }
 
 function checkSerdeBaseLength() {
-    const ser = new SerializerBase(12)
+    const ser = new SerializerBase()
     ser.writeLength("10px")
     ser.writeLength("11vp")
     ser.writeLength("12%")
@@ -87,7 +87,7 @@ function checkSerdeBaseLength() {
 }
 
 function checkSerdeBaseText() {
-    const ser = new SerializerBase(12)
+    const ser = new SerializerBase()
     const text = "test text serialization/deserialization"
     ser.writeString(text)
     const des = new DeserializerBase(ser.asArray().buffer, ser.length())
@@ -95,7 +95,7 @@ function checkSerdeBaseText() {
 }
 
 function checkSerdeBasePrimitive() {
-    const ser = new SerializerBase(12)
+    const ser = new SerializerBase()
     ser.writeNumber(10)
     ser.writeNumber(10.5)
     ser.writeNumber(undefined)
@@ -106,7 +106,7 @@ function checkSerdeBasePrimitive() {
 }
 
 function checkSerdeBaseCustomObject() {
-    const ser = new SerializerBase(12)
+    const ser = new SerializerBase()
     const resource: Resource = {
         bundleName: "bundle name",
         moduleName: "module name",
@@ -283,7 +283,7 @@ function checkPerf1(count: number) {
 
     start = performance.now()
     for (let i = 0; i < count; i++) {
-        let serializer = new SerializerBase(5)
+        let serializer = new SerializerBase()
         serializer.writeNumber(0)
         let data = serializer.asArray()
         module._TestPerfNumberWithArray(data, data.length)
@@ -314,7 +314,7 @@ function checkPerf3(count: number) {
 
 function checkEvent_Primitive() {
     const BufferSize = 60 * 4
-    const serializer = new SerializerBase(BufferSize)
+    const serializer = new SerializerBase()
     serializer.writeInt32(1) //nodeId
     serializer.writeString("testString") //arg1
     serializer.writeNumber(22) //arg2
@@ -338,7 +338,7 @@ function checkEvent_Primitive() {
 
 function checkEvent_Interface_Optional() {
     const bufferSize = 60 * 4
-    const serializer = new Serializer(bufferSize)
+    const serializer = new Serializer()
     const eventStart = { index: 11, itemIndexInGroup: 1 }
     const eventEnd = { index: 22 }
     serializer.writeInt32(1) //nodeId
@@ -366,7 +366,7 @@ function checkEvent_Interface_Optional() {
 
 function checkEvent_Array_Class() {
     const bufferSize = 60 * 4
-    const serializer = new Serializer(bufferSize)
+    const serializer = new Serializer()
     const eventParam: TouchTestInfo[] = [
         { windowX: 10, windowY: 11, parentX: 12, parentY: 13, x: 14, y: 15, id: "one",
             rect: { x: 100, y: 101, width: 102, height: 103 } },
