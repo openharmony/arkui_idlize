@@ -402,7 +402,6 @@ function checkEvent_Array_Class() {
         assertTrue(`Event_Array_Class: element ${i}`, checkTouchTestInfo(eventParam[i], convertedEvent.value[i]))
     }
 }
-/*
 checkSerdeBaseLength()
 checkSerdeBaseText()
 checkSerdeBasePrimitive()
@@ -412,7 +411,6 @@ checkPerf2(200 * 1000)
 checkPerf3(200 * 1000)
 
 startPerformanceTest()
-*/
 startNativeLog(CALL_GROUP_LOG)
 checkButton()
 checkCalendar()

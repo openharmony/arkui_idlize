@@ -24,7 +24,7 @@ import { PeerLibrary } from './PeerLibrary';
 import { collectDtsImports } from './DtsImportsGenerator';
 
 function collectAllInterfacesImports(library: PeerLibrary, imports: ImportsCollector) {
-    for (const file of library.files) 
+    for (const file of library.files)
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
 }
 
@@ -32,7 +32,7 @@ function printSerializerImports(library: PeerLibrary, writer: LanguageWriter) {
     if (writer.language === Language.TS) {
         const collector = new ImportsCollector()
         collectAllInterfacesImports(library, collector)
-        collector.print(writer)        
+        collector.print(writer)
     } else if (writer.language === Language.ARKTS) {
         writer.print(collectDtsImports().trim())
     }
@@ -108,13 +108,13 @@ class SerializerPrinter {
         let ctorSignature: NamedMethodSignature | undefined = undefined
         switch (this.writer.language) {
             case Language.ARKTS:
-                ctorSignature = new NamedMethodSignature(Type.Void, [Type.Int32], ["expectedSize"])
+                ctorSignature = new NamedMethodSignature(Type.Void, [], [])
                 break;
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
                 break;
             case Language.JAVA:
-                ctorSignature = new NamedMethodSignature(Type.Void, [new Type("int")], ["expectedSize"])
+                ctorSignature = new NamedMethodSignature(Type.Void, [], [])
                 break;
             }
         let seenNames = new Set<string>()
@@ -133,6 +133,10 @@ class SerializerPrinter {
                 if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration))
                     if (canSerializeTarget(declaration))
                         this.generateSerializer(declaration)
+            }
+            if (this.writer.language == Language.JAVA) {
+                // TODO: somewhat ugly.
+                this.writer.print(`static Serializer createSerializer() { return new Serializer(); }`)
             }
         }, superName)
     }

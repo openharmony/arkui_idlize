@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 enum RuntimeType {
     UNEXPECTED((byte) -1),
@@ -76,17 +77,42 @@ class ByteBufferCache {
     }
 }
 
+class SerializersCache {
+    SerializerBase[] cache;
+
+    SerializersCache(int maxCount) {
+        cache = new SerializerBase[22];;
+    }
+    @SuppressWarnings("unchecked")
+    <T extends SerializerBase> T getCached(Supplier<T> factory, int index) {
+        var result = this.cache[index];
+        if (result != null) {
+            result.resetCurrentPosition();
+            return (T)result;
+        }
+        result = factory.get();
+        this.cache[index] = result;
+        return (T)result;
+    }
+}
+
+
 public class SerializerBase {
 
-    public static final ByteBufferCache bufferCache = new ByteBufferCache();
-    private ByteBuffer buffer;
+    private ByteBuffer buffer = ByteBuffer.allocate(96).order(ByteOrder.LITTLE_ENDIAN);
 
-    public SerializerBase(int size) {
-        buffer = SerializerBase.bufferCache.get(size).order(ByteOrder.LITTLE_ENDIAN);
+    public SerializerBase() {}
+
+    private static SerializersCache cache = new SerializersCache(22);
+
+    static <T extends SerializerBase> T get(Supplier<T> factory, int index) {
+        return SerializerBase.cache.getCached(factory, index);
     }
-    public void close() throws IOException {
-        SerializerBase.bufferCache.release(buffer);
+
+    void resetCurrentPosition() {
+        this.buffer.position(0);
     }
+
     public byte[] asArray() {
         byte[] array = new byte[buffer.position()];
         buffer.get(0, array, 0, buffer.position());
@@ -107,10 +133,9 @@ public class SerializerBase {
             if (buffLimit < buffPosition + value) {
                 var minSize = buffPosition + value;
                 var resizedSize = Math.max(minSize, Math.round((float) (3 * buffPosition) / 2));
-                var resizedBuffer = SerializerBase.bufferCache.get(resizedSize);
+                var resizedBuffer = ByteBuffer.allocate(resizedSize).order(ByteOrder.LITTLE_ENDIAN);
                 resizedBuffer.put(0, buffer.array(), 0, buffPosition);
                 resizedBuffer.position(buffPosition);
-                SerializerBase.bufferCache.release(buffer);
                 buffer = resizedBuffer;
             }
         }
@@ -153,6 +178,17 @@ public class SerializerBase {
         buffer.put(encoded);
         buffer.put((byte) 0);
     }
+    public void writeString1(String value) {
+        var encoded = value.getBytes();
+        int length = encoded.length + 1;
+        this.checkCapacity(4 + value.length() * 4);
+        int encodedLength =
+            NativeModule._ManagedStringWrite(value, this.buffer.array(), this.buffer.position() + 4);
+        buffer.putInt(length);
+        buffer.position(buffer.position() + encodedLength);
+        buffer.put((byte) 0);
+    }
+
     private RuntimeType runtimeType(Object value) {
         if (value == null) { return RuntimeType.UNDEFINED; }
         if (value instanceof Integer) { return RuntimeType.NUMBER; }
@@ -163,58 +199,18 @@ public class SerializerBase {
         if (value instanceof Function) { return RuntimeType.FUNCTION; }
         return RuntimeType.UNDEFINED;
     }
-    @FunctionalInterface
-    public interface TriFunction<T, U, V, R> {
-        R apply(T t, U u, V v);
-    }
-    private void withLength(Object valueLength, TriFunction<Float, Integer, Integer, Void> body) {
-        var type = runtimeType(valueLength);
-        var value = 0.0F;
-        var unit = 1;
-        var resource = 0;
-        switch (type) {
-            case UNDEFINED -> {
-                value = 0;
-                unit = 0;
-            }
-            case NUMBER -> {
-                value = (float) valueLength;
-            }
-            case STRING -> {
-                var valueStr = (String) valueLength;
-                if (valueStr.endsWith("vp")) {
-                    unit = 1;
-                    value = Float.parseFloat(valueStr.substring(0, valueStr.length() - 2));
-                } else if (valueStr.endsWith("%")) {
-                    unit = 3;
-                    value = Float.parseFloat(valueStr.substring(0, valueStr.length() - 1));
-                } else if (valueStr.endsWith("lpx")) {
-                    unit = 4;
-                    value = Float.parseFloat(valueStr.substring(0, valueStr.length() - 3));
-                } else if (valueStr.endsWith("px")) {
-                    unit = 0;
-                    value = Float.parseFloat(valueStr.substring(0, valueStr.length() - 2));
-                }
-            }
-            case OBJECT -> {
-                // resource = ???
-            }
-        }
-        body.apply(value, unit, resource);
-    }
     public void writeLength(Object value) {
         this.checkCapacity(1);
         var valueType = runtimeType(value);
-        if (valueType != RuntimeType.UNDEFINED) {
-            this.writeInt8(Tags.LENGTH.value);
-            withLength(value, (Float v, Integer unit, Integer resource) -> {
-                this.writeFloat32(v);
-                this.writeInt32(unit);
-                this.writeInt32(resource);
-                return null;
-            });
-        } else {
-            this.writeInt8(Tags.UNDEFINED.value);
+        this.writeInt8(valueType.value);
+
+        if (valueType == RuntimeType.NUMBER) {
+            this.writeFloat32((Float)value);
+        } else if (valueType == RuntimeType.STRING) {
+            this.writeString((String)value);
+        } else if (valueType == RuntimeType.OBJECT) {
+            // TODO: write real resource id.
+            this.writeInt32(value.hashCode());
         }
     }
 }

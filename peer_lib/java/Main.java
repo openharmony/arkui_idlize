@@ -56,7 +56,7 @@ public class Main {
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            var serializer = new Serializer(32);
+            Serializer serializer = SerializerBase.get(Serializer::createSerializer, 0);
             serializer.writeTestOptions(options);
             NativeModule._TestAttribute_testMethod(ptr, serializer.asArray(), serializer.length());
         }

@@ -205,7 +205,7 @@ import { unsafeCast } from "./generated-utils"
 
 ${printer.getOutput().join("\n")}
 
-export function createSerializer() { return new Serializer(16) }
+export function createSerializer() { return new Serializer() }
 `
 }
 
