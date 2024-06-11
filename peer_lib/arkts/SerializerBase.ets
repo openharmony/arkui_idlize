@@ -113,12 +113,9 @@ export class SerializerBase {
             */
         }
     }
-    constructor(expectedSize: int32) {
+    constructor() {
         // this.buffer = SerializerBase.bufferCache.get(expectedSize)
         this.view = new DataView(this.buffer)
-    }
-    close() {
-        // SerializerBase.bufferCache.release(this.buffer)
     }
     asArray(): Uint8Array {
         return new Uint8Array(this.buffer)

@@ -15,7 +15,7 @@
 
     // ExtendedNodeAPI
     _SetCustomCallback(node: NodePointer, callbackId: KInt): void
-    _MeausureLayoutAndDraw(root: NodePointer): void
+    _MeasureLayoutAndDraw(root: NodePointer): void
     _MeasureNode(root: NodePointer, data: KFloat32ArrayPtr): KInt
     _LayoutNode(root: NodePointer, data: KFloat32ArrayPtr): KInt
     _DrawNode(root: NodePointer, data: KFloat32ArrayPtr): KInt
