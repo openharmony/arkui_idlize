@@ -22,6 +22,8 @@ is_node = true
 is_arkts = true
 is_jni = java_home != 'undefined'
 
+compile_events_test = get_option('events_test')
+
 gen_dir = '../generated/' + source_set
 
 include_dirs = [
@@ -34,9 +36,13 @@ sources = [
     gen_dir + '/bridge.cc',
     gen_dir + '/events.cc',
     gen_dir + '/all_events.cc',
-    gen_dir + '/events_test.cc',
     gen_dir + '/load-library.cc',
 ]
+if compile_events_test
+    sources += [
+        gen_dir + '/events_test.cc',
+    ]
+endif
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
 is_clang = not is_msvc
@@ -126,11 +132,11 @@ arkts_sources = [
 ]
 
 if is_jni
-jni_cflags = ['-DKOALA_USE_JAVA_VM', '-DKOALA_JNI']
-jni_include_dirs = [ java_home / 'include', java_home / 'include' / jni_os ]
-jni_sources = [
-    gen_dir / 'convertors-jni.cc',
-]
+    jni_cflags = ['-DKOALA_USE_JAVA_VM', '-DKOALA_JNI']
+    jni_include_dirs = [ java_home / 'include', java_home / 'include' / jni_os ]
+    jni_sources = [
+        gen_dir / 'convertors-jni.cc',
+    ]
 endif
 
 if is_node

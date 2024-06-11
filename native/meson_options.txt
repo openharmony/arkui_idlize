@@ -4,3 +4,5 @@ option('arkts', type : 'boolean', value : 'true',
     description : 'If generate ArkTS target')
 option('is_ohos_v8', type : 'boolean', value : 'false',
     description : 'If is ohos v8')
+option('events_test', type : 'boolean', value : 'true',
+    description : 'Whether to compile event test code (e.g. events_test.cc)')

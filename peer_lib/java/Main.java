@@ -20,6 +20,9 @@ public class Main {
         long str = NativeModule._StringMake("Hello");
         System.out.println(NativeModule._StringLength(str));
         Main.checkPerf(10*1000*1000);
+        NativeModule._StartGroupedLog(1);
+        Main.checkSerializerPerf(10*1000*1000);
+        NativeModule._StopGroupedLog(1);
     }
 
     static void checkPerf(int count) {
@@ -42,6 +45,23 @@ public class Main {
         }
         passed = System.currentTimeMillis() - start;
         System.out.println("ARRAY: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
+    }
+
+    static void checkSerializerPerf(int count) {
+        var options = new TestOptions(
+            "Some test string",
+            12345.678f
+        );
+        long ptr = 0;
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            var serializer = new Serializer(32);
+            serializer.writeTestOptions(options);
+            NativeModule._TestAttribute_testMethod(ptr, serializer.asArray(), serializer.length());
+        }
+        long passed = System.currentTimeMillis() - start;
+        System.out.println("SERIALIZER: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
     }
 }
 

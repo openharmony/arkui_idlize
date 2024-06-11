@@ -14,5 +14,6 @@
 /package-lock.json
 
 /native/NativeBridgeNapi.node
-/native/libNativeBridgeArk.so
+/native/*.so
+/native/*.dylib
 NativeBridge.node

@@ -30,6 +30,7 @@ import {
     dummyImplementations,
     makeArkuiModule,
     makeTSSerializer,
+    makeJavaSerializerWriter,
     completeEventsImplementations,
     makeTSDeserializer,
     gniFile,
@@ -379,7 +380,7 @@ if (options.dts2peer) {
                         makeTSDeserializer(peerLibrary)
                     )
                 }
-                if(lang == Language.ARKTS) {
+                if (lang == Language.ARKTS) {
                     fs.writeFileSync(
                         path.join(outDir, 'ArkUINodeType' + lang.extension),
                         printNodeTypes(peerLibrary),
@@ -387,6 +388,10 @@ if (options.dts2peer) {
                     fs.writeFileSync(path.join(outDir, 'Serializer' + lang.extension),
                         makeTSSerializer(peerLibrary)
                     )
+                }
+                if (lang == Language.JAVA) {
+                    const writer = makeJavaSerializerWriter(peerLibrary)
+                    writer.printTo(path.join(outDir, 'Serializer' + lang.extension))
                 }
                 fs.writeFileSync(path.join(outDir, 'bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
 

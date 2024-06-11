@@ -82,6 +82,18 @@ struct InteropTypeConverter<KStringPtr> {
 };
 
 template<>
+struct InteropTypeConverter<KByte*> {
+    using InteropType = jbyteArray;
+    static KByte* convertFrom(JNIEnv* env, InteropType value) {
+        return value ? reinterpret_cast<KByte*>(env->GetByteArrayElements(value, nullptr)) : nullptr;
+    }
+    static InteropType convertTo(JNIEnv* env, KByte* value) = delete;
+    static void release(JNIEnv* env, InteropType value, KByte* converted) {
+         env->ReleaseByteArrayElements(value, reinterpret_cast<jbyte*>(converted), 0);
+    }
+};
+
+template<>
 struct InteropTypeConverter<KInt*> {
     using InteropType = jintArray;
     static KInt* convertFrom(JNIEnv* env, InteropType value) {

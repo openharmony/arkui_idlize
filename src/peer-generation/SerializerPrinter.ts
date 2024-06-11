@@ -113,7 +113,10 @@ class SerializerPrinter {
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
                 break;
-        }
+            case Language.JAVA:
+                ctorSignature = new NamedMethodSignature(Type.Void, [new Type("int")], ["expectedSize"])
+                break;
+            }
         let seenNames = new Set<string>()
         printSerializerImports(this.library, this.writer)
         this.writer.writeClass(className, writer => {

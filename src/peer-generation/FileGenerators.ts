@@ -209,6 +209,13 @@ export function createSerializer() { return new Serializer(16) }
 `
 }
 
+export function makeJavaSerializerWriter(library: PeerLibrary): LanguageWriter {
+    let result = createLanguageWriter(library.declarationTable.language)
+    result.print(`package org.koalaui.arkoala;\n`)
+    writeSerializer(library, result)
+    return result
+}
+
 export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
     const serializers = createLanguageWriter(Language.CPP)

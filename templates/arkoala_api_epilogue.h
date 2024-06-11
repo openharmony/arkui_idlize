@@ -206,7 +206,6 @@ struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     Ark_Int32 version;
 
     const %CPP_PREFIX%Ark_UtilsModifier* (*getUtilsModifier)();
-    const %CPP_PREFIX%ArkUICanvasRenderingContext2DAccessor* (*getCanvasRenderingContext2DAccessor)();
 
     void (*setCallbackMethod)(%CPP_PREFIX%Ark_APICallbackMethod* method);
 

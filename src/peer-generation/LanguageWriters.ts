@@ -912,6 +912,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method) {
         this.printer.print(`${className}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
+        if (superCall) {
+            this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")});`)
+        }
         op(this)
         this.popIndent()
         this.printer.print(`}`)
@@ -961,7 +964,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return this.makeString("undefined")
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
-        throw new Error("Method not implemented.")
+        return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
     }
     makeMapKeyTypeName(c: MapConvertor): string {
         throw new Error("Method not implemented.")
@@ -989,6 +992,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         throw new Error("Method not implemented.")
+    }
+    makeValueFromOption(value: string): LanguageExpression {
+        return this.makeString(`${value}`)
     }
 }
 
