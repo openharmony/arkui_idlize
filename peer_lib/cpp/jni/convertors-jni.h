@@ -71,14 +71,16 @@ struct InteropTypeConverter<KStringPtr> {
     using InteropType = jstring;
     static KStringPtr convertFrom(JNIEnv* env, InteropType value) {
         if (value == nullptr) return KStringPtr();
-        KStringPtr result;
+        jboolean isCopy;
+		    const char* str_value = env->GetStringUTFChars(value, &isCopy);
         int len = env->GetStringLength(value);
-        result.resize(len);
-        env->GetStringUTFRegion(value, 0, len, result.data());
+        KStringPtr result(str_value, len, false);
         return result;
     }
     static InteropType convertTo(JNIEnv* env, KStringPtr value) = delete;
-    static void release(JNIEnv* env, InteropType value, const KStringPtr& converted) {}
+    static void release(JNIEnv* env, InteropType value, const KStringPtr& converted) {
+      env->ReleaseStringUTFChars(value, converted.data());
+    }
 };
 
 template<>

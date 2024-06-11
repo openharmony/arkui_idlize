@@ -52,31 +52,6 @@ enum Tags {
     }
 }
 
-class ByteBufferCache {
-    private final ArrayList<ByteBuffer> cache = new ArrayList<>();
-    public ByteBufferCache() {}
-    public ByteBuffer get(int size) {
-        for (int i = 0; i < cache.size(); i++) {
-            var buf = cache.get(i);
-            if (buf != null && buf.capacity() >= size) {
-                cache.set(i, null);
-                return buf;
-            }
-        }
-        return ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN);
-    }
-    public void release(ByteBuffer buffer) {
-        buffer.position(0);
-        for (int i = 0; i < cache.size(); i++) {
-            if (cache.get(i) == null) {
-                cache.set(i, buffer);
-                return;
-            }
-        }
-        cache.add(buffer);
-    }
-}
-
 class SerializersCache {
     SerializerBase[] cache;
 
@@ -99,6 +74,7 @@ class SerializersCache {
 
 public class SerializerBase {
 
+    // TODO: use allocateDirect
     private ByteBuffer buffer = ByteBuffer.allocate(96).order(ByteOrder.LITTLE_ENDIAN);
 
     public SerializerBase() {}
@@ -112,11 +88,8 @@ public class SerializerBase {
     void resetCurrentPosition() {
         this.buffer.position(0);
     }
-
     public byte[] asArray() {
-        byte[] array = new byte[buffer.position()];
-        buffer.get(0, array, 0, buffer.position());
-        return array;
+        return buffer.array();
     }
     public int length() {
         return buffer.position();
@@ -179,14 +152,11 @@ public class SerializerBase {
         buffer.put((byte) 0);
     }
     public void writeString1(String value) {
-        var encoded = value.getBytes();
-        int length = encoded.length + 1;
-        this.checkCapacity(4 + value.length() * 4);
+        this.checkCapacity(4 + value.length() * 4 + 1);
         int encodedLength =
             NativeModule._ManagedStringWrite(value, this.buffer.array(), this.buffer.position() + 4);
-        buffer.putInt(length);
+        buffer.putInt(encodedLength);
         buffer.position(buffer.position() + encodedLength);
-        buffer.put((byte) 0);
     }
 
     private RuntimeType runtimeType(Object value) {

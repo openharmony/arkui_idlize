@@ -34,22 +34,23 @@ namespace { struct Constructor_##fn { Constructor_##fn() { constructor_##fn(); }
 static void constructor_##fn()
 
 struct KStringPtrImpl {
-    KStringPtrImpl(const char* str) : _value(nullptr) {
+    KStringPtrImpl(const char* str) : _value(nullptr), _owned(true) {
         int len = str ? strlen(str) : 0;
         assign(str, len);
     }
-    KStringPtrImpl(const char* str, int len) : _value(nullptr) {
+    KStringPtrImpl(const char* str, int len, bool owned) : _value(nullptr), _owned(owned) {
         assign(str, len);
     }
-    KStringPtrImpl() : _value(nullptr), _length(0)  {}
+    KStringPtrImpl() : _value(nullptr), _length(0), _owned(true) {}
 
     // TODO: shall be `delete` as well.
     KStringPtrImpl(KStringPtrImpl& other) {
         this->_value = other.release();
+        this->_owned = other._owned;
     }
     KStringPtrImpl& operator=(KStringPtrImpl& other) = delete;
 
-    ~KStringPtrImpl() { if (_value) free(_value); }
+    ~KStringPtrImpl() { if (_value && _owned) free(_value); }
 
     bool isNull() const { return _value == nullptr; }
     const char* c_str() const { return _value; }
@@ -57,11 +58,12 @@ struct KStringPtrImpl {
     int length() const { return _length; }
 
     void resize(int size) {
+        _length = size;
+        if (!_owned) return;
         // Ignore old content.
-        if (_value) free(_value);
+        if (_value && _owned) free(_value);
         _value = reinterpret_cast<char*>(malloc(size + 1));
         _value[size] = 0;
-        _length = size;
     }
 
     void assign(const char* data) {
@@ -69,11 +71,15 @@ struct KStringPtrImpl {
     }
 
     void assign(const char* data, int len) {
-        if (_value) free(_value);
+        if (_value && _owned) free(_value);
         if (data) {
+          if (_owned) {
             _value = reinterpret_cast<char*>(malloc(len + 1));
             memcpy(_value, data, len);
             _value[len] = 0;
+          } else {
+            _value = const_cast<char*>(data);
+          }
         } else {
             _value = nullptr;
         }
@@ -89,6 +95,7 @@ struct KStringPtrImpl {
   private:
     char* _value;
     int _length;
+    bool _owned;
 };
 
 struct KInteropNumber {
