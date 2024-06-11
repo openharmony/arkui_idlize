@@ -16,94 +16,68 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-
-const TS_MODULES = [
-    'NativeModuleBase.ts',
-    'NativeModuleEmpty.ts',
-    'NativeModule.ts',
-    'SerializerBase.ts',
-    'Serializer.ts',
-]
-
-const NATIVE_FILES = [
-    'arkoala_api.h',
-    'all_modifiers.cc',
-    'ArgDeserializerBase.h',
-    'Deserializer.h',
-    'bridge.cc',
-    'Interop.h',
-]
-
-function copyFile(srcDir: string, dstDir: string, srcFilename: string, dstFilename: string = '') {
-    if (dstFilename == '') {
-        dstFilename = srcFilename
-    }
-    const src = path.join(srcDir, srcFilename)
-    const dst = path.join(dstDir, dstFilename)
-    fs.copyFileSync(src, dst)
-    console.log(`Copied: ${src} -> ${dst}`)
-}
-
-
-function copyTsLib(peersDir: string, koalaUiPeersDir: string) {
-    fs.readdirSync(peersDir)
-        .filter(file => TS_MODULES.includes(file))
-        .forEach(file => {
-            copyFile(peersDir, koalaUiPeersDir, file)
-        })
-}
-
-function copyPeers(peersDir: string, koalaUiPeersDir: string, components: string[]) {
-    if (components.length == 0) {
-        fs.readdirSync(peersDir)
-        .filter(file => file.startsWith('Ark') && file.endsWith('Peer.ts'))
-        .forEach(file => {
-            copyFile(peersDir, koalaUiPeersDir, file)
-        })
-    }
-    else {
-        components.forEach(componentName => {
-            try {
-                copyFile(peersDir, koalaUiPeersDir, `Ark${componentName}Peer.ts`)
-            }
-            catch (e) {
-                console.log(`Peer not found for component '${componentName}'`)
-                throw e
-            }
-        })
+class Install {
+    mkdir(path: string): string {
+        fs.mkdirSync(path, { recursive: true })
+        return path
     }
 }
 
-function copyCpp(peersDir: string, koalaUiNativeDir: string) {
-    fs.readdirSync(peersDir)
-        .filter(file => NATIVE_FILES.includes(file))
-        .forEach(file => {
-            const renamed = (file == 'arkoala_api.h' ? 'arkoala_api_generated.h' : file)
-            copyFile(peersDir, koalaUiNativeDir, file, renamed)
-        })
+export class ArkoalaInstall extends Install{
+    constructor (private outDir: string, private extension: string, private test: boolean) { super() }
+    koala = this.mkdir(this.test ? path.join(this.outDir, "koalaui") : this.outDir)
+    tsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/src/"))
+    arktsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/arkts/src/"))
+    nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/"))
+    javaDir = this.mkdir(path.join(this.koala, "arkoala/java/src/"))
+    peer(name: string): string {
+        return path.join(this.tsDir, name)
+    }
+    component(name: string): string {
+        return path.join(this.tsDir, name)
+    }
+    materialized(name: string): string {
+        return path.join(this.tsDir, name)
+    }
+    interface(name: string): string {
+        return path.join(this.tsDir, name)
+    }
+    tsLib(name: string) {
+        return path.join(this.tsDir, name + this.extension)
+    }
+    javaLib(name: string) {
+        return path.join(this.javaDir, name + this.extension)
+    }
+    native(name: string) {
+        return path.join(this.nativeDir, name)
+    }
 }
 
-export function copyPeersToKoalaUi(peersDir: string, destinationDir: string, components: string[]) {
-    const koalaUiPeers = path.join(destinationDir, "arkoala-arkui/src/")
-    const koalaUiNative = path.join(destinationDir, "arkoala/native/src/")
-    fs.mkdirSync(koalaUiPeers, {recursive: true})
-    fs.mkdirSync(koalaUiNative, {recursive: true})
-
-    copyTsLib(peersDir, koalaUiPeers)
-    copyPeers(peersDir, koalaUiPeers, components)
-    copyCpp(peersDir, koalaUiNative)
-}
-
-export function copyPeersToLibace(peersDir: string, destinationDir: string) {
-    // Assume foundation/arkui/ace_engine/frameworks/core/interfaces/arkoala to be root
-    const libaceImplementation = path.join(destinationDir, 'implementation')
-    const libaceGeneratedInterface = path.join(destinationDir, 'generated/interface')
-    fs.mkdirSync(libaceImplementation, {recursive: true})
-    fs.mkdirSync(libaceGeneratedInterface, {recursive: true})
-
-    copyFile(peersDir, libaceGeneratedInterface, 'arkoala_api.h', 'arkoala_api_generated.h')
-    copyFile(peersDir, libaceImplementation, 'delegates.cc')
-    copyFile(peersDir, libaceGeneratedInterface, 'delegates.h')
-    copyFile(peersDir, libaceGeneratedInterface, 'all_modifiers.cc')
-    copyFile(peersDir, libaceGeneratedInterface, 'node_interfaces.gni')
+export class LibaceInstall extends Install {
+    constructor(private outDir: string, private test: boolean) { super() }
+    libace = this.mkdir(this.test ? path.join(this.outDir, "libace") : this.outDir)
+    implementationDir = this.mkdir(path.join(this.libace, "implementation"))
+    generatedInterface = this.mkdir(path.join(this.libace, "generated", "interface"))
+    generatedArkoalaApi = path.join(this.generatedInterface, "arkoala_api_generated.h")
+    gniComponents = path.join(this.generatedInterface, "node_interface.gni")
+    mesonBuild = path.join(this.libace, "meson.build")
+    allModifiers = path.join(this.generatedInterface, "all_modifiers.cpp")
+    interface(name: string) {
+        return path.join(this.generatedInterface, name)
+    }
+    implementation(name: string) {
+        return path.join(this.implementationDir, name)
+    }
+    modifierHeader(component: string) {
+        return this.interface(`${component}_modifier.h`)
+    }
+    modifierCpp(component: string) {
+        return this.interface(`${component}_modifier.cpp`)
+    }
+    delegateHeader(component: string) {
+        return this.interface(`${component}_delegate.h`)
+    }
+    delegateCpp(component: string) {
+        return this.implementation(`${component}_delegate.cpp`)
+    }
 }

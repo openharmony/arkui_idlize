@@ -23,6 +23,7 @@ import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
 import { PeerClass } from "./PeerClass";
 import { MaterializedClass } from "./Materialized";
 import { CppLanguageWriter, PrinterLike } from "./LanguageWriters";
+import { LibaceInstall } from "../CopyPeers";
 
 export class DelegateSignatureBuilder {
     constructor(
@@ -186,10 +187,10 @@ export function printDelegatesImplementation(library: PeerLibrary): string {
     return completeDelegatesImpl(uniqueDeclarations.join('\n'))
 }
 
-export function printDelegatesAsMultipleFiles(library: PeerLibrary, outputDir: string, options: DelegateFileOptions = {}) {
+export function printDelegatesAsMultipleFiles(library: PeerLibrary, libace: LibaceInstall, options: DelegateFileOptions = {}) {
     const visitor = new MultiFileDelegateVisitor(library)
     visitor.print()
-    visitor.emitSync(outputDir, options)
+    visitor.emitSync(libace, options)
 }
 
 
@@ -202,7 +203,7 @@ class MultiFileDelegateVisitor {
     private readonly printers: Map<string, MultiFileDelegatePrinters> = new Map();
     private api?: IndentedPrinter
     private impl?: IndentedPrinter
-    
+
     constructor(
         private readonly library: PeerLibrary,
     ) {}
@@ -268,12 +269,10 @@ class MultiFileDelegateVisitor {
         }
     }
 
-    emitSync(outputDirectory: string, options: DelegateFileOptions): void {
-        fs.mkdirSync(outputDirectory, { recursive: true });
-
+    emitSync(libace: LibaceInstall, options: DelegateFileOptions): void {
         for (const [slug, { api, impl }] of this.printers) {
-            printDelegateImplementation(path.join(outputDirectory, `${slug}_delegates.cc`), impl, options);
-            printDelegateHeader(path.join(outputDirectory, `${slug}_delegates.h`), api, options);
+            printDelegateImplementation(libace.delegateCpp(slug), impl, options);
+            printDelegateHeader(libace.delegateHeader(slug), api, options);
         }
     }
 }

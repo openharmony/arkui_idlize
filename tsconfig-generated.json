@@ -16,8 +16,8 @@
         "module": "CommonJS",
         "baseUrl": ".",
         "paths": {
-            "@arkoala/arkui": ["./generated/peers", "./"],
-            "@arkoala/arkui/*": ["./generated/peers/*", "./*"],
+            "@arkoala/arkui": ["./generated/peers/koalaui/arkoala-arkui/src", "./"],
+            "@arkoala/arkui/*": ["./generated/peers/koalaui/arkoala-arkui/src/*", "./*"],
         },
     },
     "include": [

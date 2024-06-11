@@ -25,22 +25,24 @@ is_jni = java_home != 'undefined'
 compile_events_test = get_option('events_test')
 
 gen_dir = '../generated/' + source_set
+arkoala_dir = gen_dir + '/koalaui/arkoala/native/src'
+libace_dir = gen_dir + '/libace'
 
 include_dirs = [
-   gen_dir
+   arkoala_dir
 ]
 
 sources = [
-    gen_dir + '/common-interop.cc',
-    gen_dir + '/custom.cc',
-    gen_dir + '/bridge.cc',
-    gen_dir + '/events.cc',
-    gen_dir + '/all_events.cc',
-    gen_dir + '/load-library.cc',
+    arkoala_dir + '/common-interop.cc',
+    arkoala_dir + '/custom.cc',
+    arkoala_dir + '/bridge.cc',
+    arkoala_dir + '/events.cc',
+    arkoala_dir + '/all_events.cc',
+    arkoala_dir + '/load-library.cc',
 ]
 if compile_events_test
     sources += [
-        gen_dir + '/events_test.cc',
+        arkoala_dir + '/events_test.cc',
     ]
 endif
 
@@ -69,18 +71,18 @@ libace_name = 'ace_compatible_mock'
 
 if use_dummy_libace
 libace_sources += [
-    gen_dir + '/dummy_impl.cc',
+    arkoala_dir + '/dummy_impl.cc',
 ]
 else
 libace_sources += [
-    gen_dir + '/all_modifiers.cc',
-    gen_dir + '/delegates.cc',
+    libace_dir + 'generated/interface/all_modifiers.cc',
+    libace_dir + 'implementation/delegates.cc',
 ]
 endif
 cflags += ['-DKOALA_USE_LIBACE=1']
 else
 sources += [
-    gen_dir + '/dummy_impl.cc',
+    arkoala_dir + '/dummy_impl.cc',
 ]
 endif
 
@@ -99,13 +101,14 @@ if is_clang
 cflags += ['-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable', '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations', '-Wno-unknown-warning-option']
 endif
 
-node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + node_library_name]
+node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + node_library_name ]
 node_include_dirs = [
     '../node_modules/node-api-headers/include',
-    '../node_modules/node-addon-api'
+    '../node_modules/node-addon-api',
+    arkoala_dir / 'node'
 ]
 node_sources = [
-    gen_dir + '/convertors-node.cc'
+    arkoala_dir + '/node/convertors-node.cc'
 ]
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
@@ -125,17 +128,23 @@ node_module_prefix = ''
 node_module_suffix = 'node'
 
 arkts_cflags = ['-DKOALA_USE_ARK_VM', '-DKOALA_USE_ARK_VM_WITH_ETS', '-DKOALA_ETS_NAPI']
-arkts_include_dirs = []
+arkts_include_dirs = [
+    arkoala_dir / 'arkts'
+]
 arkts_sources = [
-    gen_dir / 'convertors-ark.cc',
-    gen_dir / 'convertors-ets.cc',
+    arkoala_dir / 'arkts/convertors-ark.cc',
+    arkoala_dir / 'arkts/convertors-ets.cc',
 ]
 
 if is_jni
     jni_cflags = ['-DKOALA_USE_JAVA_VM', '-DKOALA_JNI']
-    jni_include_dirs = [ java_home / 'include', java_home / 'include' / jni_os ]
+    jni_include_dirs = [
+        java_home / 'include',
+        java_home / 'include' / jni_os,
+        arkoala_dir / 'jni'
+    ]
     jni_sources = [
-        gen_dir / 'convertors-jni.cc',
+        arkoala_dir / 'convertors-jni.cc',
     ]
 endif
 
@@ -269,7 +278,7 @@ endif
 # TODO: fix on Windows as well
 if os != 'windows'
 executable('test_arkoala_api',
-    gen_dir / 'api_test.c',
+    arkoala_dir / 'api_test.c',
     c_args: cflags
 )
 endif

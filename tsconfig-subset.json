@@ -17,8 +17,8 @@
         "module": "CommonJS",
         "baseUrl": ".",
         "paths": {
-            "@arkoala/arkui": ["./generated/subset", "./"],
-            "@arkoala/arkui/*": ["./generated/subset/*", "./*"],
+            "@arkoala/arkui": ["./generated/subset/koalaui/arkoala-arkui/src", "./"],
+            "@arkoala/arkui/*": ["./generated/subset/koalaui/arkoala-arkui/src/*", "./*"],
         },
     },
     "include": [

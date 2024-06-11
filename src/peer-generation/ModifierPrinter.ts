@@ -27,6 +27,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { MaterializedClass, MaterializedMethod } from "./Materialized";
 import { Language } from "../util";
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "./LanguageWriters";
+import { LibaceInstall } from "../CopyPeers";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     public readonly printer = new IndentedPrinter()
@@ -334,22 +335,20 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
         this.onFileEnd()
     }
 
-    emitRealSync(outputDirectory: string, options: ModifierFileOptions): void {
-        fs.mkdirSync(outputDirectory, { recursive: true });
-
+    emitRealSync(libace: LibaceInstall, options: ModifierFileOptions): void {
         const modifierList = createLanguageWriter(Language.CPP)
         const accessorList = createLanguageWriter(Language.CPP)
         const getterDeclarations = createLanguageWriter(Language.CPP)
 
         for (const [slug, state] of this.stateByFile) {
-            const filePath = path.join(outputDirectory, `${slug}_modifiers.cc`)
+            const filePath = libace.modifierCpp(slug)
             printModifiersImplFile(filePath, slug, state, options)
             modifierList.concat(state.modifierList)
             accessorList.concat(state.accessorList)
             getterDeclarations.concat(state.getterDeclarations)
         }
 
-        const commonFilePath = path.join(outputDirectory, "all_modifiers.cc")
+        const commonFilePath = libace.allModifiers
         const commonFileContent = getterDeclarations
             .concat(modifierStructList(modifierList))
             .concat(accessorStructList(accessorList))
@@ -388,10 +387,10 @@ export interface ModifierFileOptions {
     namespace?: string
 }
 
-export function printRealModifiersAsMultipleFiles(library: PeerLibrary, outputDir: string, options: ModifierFileOptions) {
+export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions) {
     const visitor = new MultiFileModifiersVisitor(library)
     visitor.printRealAndDummyModifiers()
-    visitor.emitRealSync(outputDir, options)
+    visitor.emitRealSync(libace, options)
 }
 
 function printModifiersImplFile(filePath: string, slug: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
@@ -411,7 +410,7 @@ function printModifiersImplFile(filePath: string, slug: string, state: MultiFile
 
     writer.concat(state.real)
     writer.concat(state.modifiers)
-    
+
     if (options.namespace) {
         writer.popNamespace()
     }

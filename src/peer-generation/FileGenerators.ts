@@ -22,6 +22,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
 import { PeerLibrary } from "./PeerLibrary"
+import { ArkoalaInstall } from "../CopyPeers"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -385,19 +386,19 @@ ${epilogue}
 `
 }
 
-export function copyPeerLib(from: string, to: string) {
+export function copyPeerLib(from: string, arkoala: ArkoalaInstall) {
     const tsBase = path.join(from, 'ts')
-    copyDir(tsBase, to)
+    copyDir(tsBase, arkoala.tsDir)
     const cppBase = path.join(from, 'cpp')
-    copyDir(cppBase, to)
-    copyDir(cppBase, to)
+    copyDir(cppBase, arkoala.nativeDir)
     let subdirs = ['node', 'arkts', 'jni']
     subdirs.forEach(subdir => {
         const cppBase = path.join(from, 'cpp', subdir)
-        copyDir(cppBase, to)
+        const destDir = arkoala.native(subdir)
+        copyDir(cppBase, arkoala.mkdir(destDir))
     })
-    copyDir(path.join(from, 'arkts'), to)
-    copyDir(path.join(from, 'java'), to)
+    copyDir(path.join(from, 'arkts'), arkoala.arktsDir)
+    copyDir(path.join(from, 'java'), arkoala.javaDir)
 
 }
 

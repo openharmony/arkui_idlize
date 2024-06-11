@@ -5,7 +5,7 @@ _DisposeNode(ptr: NodePointer): void {}
 
 // ExtendedNodeAPI
 _SetCustomCallback(node: NodePointer, callbackId: KInt): void {}
-_MeausureLayoutAndDraw(root: NodePointer): void {}
+_MeasureLayoutAndDraw(root: NodePointer): void {}
 _MeasureNode(root: NodePointer, data: KFloat32ArrayPtr): KInt { return -1 }
 _LayoutNode(root: NodePointer, data: KFloat32ArrayPtr): KInt { return -1 }
 _DrawNode(root: NodePointer, data: KFloat32ArrayPtr): KInt { return -1 }
