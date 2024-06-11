@@ -369,12 +369,8 @@ export class UnionConvertor extends BaseArgConvertor {
                 return
             }
             let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-            let conditions = printer.makeNaryOp("||", it.runtimeTypes.map(it =>
-                printer.makeNaryOp("==", [ printer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
-            let unionDiscriminator = printer.language.needsUnionDiscrimination ? it.unionDiscriminator(value, index, printer) : undefined
-            if (unionDiscriminator)
-                conditions = printer.makeNaryOp("&&", [conditions, unionDiscriminator])
-            printer.print(`${maybeElse}if (${conditions.asString()}) {`)
+            let conditions = makeUnionVariantCondition(value, it, index, printer)
+            printer.print(`${maybeElse}if (${conditions}) {`)
             printer.pushIndent()
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", [index.toString() + castToInt(printer.language)])
             if (!(it instanceof UndefinedConvertor)) {
@@ -441,6 +437,18 @@ export class UnionConvertor extends BaseArgConvertor {
     }
     private static reportedConflicts = new Set<string>()
 }
+
+export function makeUnionVariantCondition(value: string, convertor: ArgConvertor, index: number, printer: LanguageWriter): string {
+    const runtimeTypes = convertor?.runtimeTypes ?? [RuntimeType.UNDEFINED]
+    let conditions = printer.makeNaryOp("||", runtimeTypes.map(it =>
+        printer.makeNaryOp("==", [ printer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
+    const unionDiscriminator = printer.language.needsUnionDiscrimination ? convertor?.unionDiscriminator(value, index, printer) : undefined
+    if (unionDiscriminator) {
+        conditions = printer.makeNaryOp("&&", [conditions, unionDiscriminator])
+    }
+    return `(${conditions.asString()})`
+}
+
 export class ImportTypeConvertor extends BaseArgConvertor {
     private static knownTypes = [ "PixelMap", "Resource" ]
     private importedName: string

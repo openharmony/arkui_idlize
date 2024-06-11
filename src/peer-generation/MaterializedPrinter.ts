@@ -20,7 +20,7 @@ import { writePeerMethod } from "./PeersPrinter"
 import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature } from "./LanguageWriters";
 import { MaterializedClass, MaterializedMethod } from "./Materialized"
 import { makeMaterializedPrologue } from "./FileGenerators";
-import { OverloadsPrinter, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter";
+import { OverloadsPrinter, groupOverloads } from "./OverloadsPrinter";
 
 import { printPeerFinalizer } from "./PeersPrinter"
 import { ImportsCollector } from "./ImportsCollector";

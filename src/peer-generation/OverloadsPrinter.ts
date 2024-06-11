@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { RuntimeType } from "./PeerGeneratorVisitor";
+import { makeUnionVariantCondition } from "./Convertors"
 import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression } from "./LanguageWriters";
 import { PeerClass, PeerClassBase } from "./PeerClass";
 import { PeerMethod } from "./PeerMethod";
@@ -69,10 +69,10 @@ export class OverloadsPrinter {
                 this.printer.pushIndent()
             }
             if (orderedMethods.length > 1) {
-                const argsNames = collapsedMethod.signature.args.map((_, index) => collapsedMethod.signature.argName(index))
-                for (let i = 0; i < collapsedMethod.signature.args.length; i++) {
-                    this.printer.print(`const ${argsNames[i]}_type = runtimeType(${argsNames[i]})`)
-                }
+                collapsedMethod.signature.args.forEach((_, index) => {
+                    const argName = collapsedMethod.signature.argName(index)
+                    this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
+                })
                 for (const peerMethod of orderedMethods)
                     this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod)
                 writer.print(`throw "Can not select appropriate overload"`)
@@ -88,13 +88,9 @@ export class OverloadsPrinter {
     }
 
     printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod) {
-        const argsConditions = collapsedMethod.signature.args.map((_, argIndex) => {
-            const runtimeTypes = peerMethod.argConvertors[argIndex]?.runtimeTypes ?? [RuntimeType.UNDEFINED]
-            const value = collapsedMethod.signature.argName(argIndex)
-            let maybeComma1 = (runtimeTypes.length > 1) ? "(" : ""
-            let maybeComma2 = (runtimeTypes.length > 1) ? ")" : ""
-            return `(${runtimeTypes.map(it => `${maybeComma1}RuntimeType.${RuntimeType[it]} == ${value}_type${maybeComma2}`).join(" || ")})`
-        })
+        const argsConditions = collapsedMethod.signature.args.map((_, argIndex) =>
+            makeUnionVariantCondition(collapsedMethod.signature.argName(argIndex),
+                peerMethod.argConvertors[argIndex], argIndex, this.printer))
         this.printer.print(`if (${argsConditions.join(" && ")}) {`)
         this.printer.pushIndent()
         this.printPeerCallAndReturn(peer, collapsedMethod, peerMethod)

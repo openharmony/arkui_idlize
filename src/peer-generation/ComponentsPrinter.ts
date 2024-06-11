@@ -60,8 +60,11 @@ class ComponentFileVisitor {
             imports.addFeature("ArkUINodeType", "./ArkUINodeType")
             imports.addFeature("runtimeType", "./SerializerBase")
             imports.addFeature("RuntimeType", "./SerializerBase")
+            imports.addFeature("isPixelMap", "./SerializerBase")
+            imports.addFeature("isResource", "./SerializerBase")
             imports.addFeature("UseProperties", './use_properties')
             imports.addFeature('ComponentBase', './ComponentBase')
+            imports.addFeature('unsafeCast', './generated-utils')
             // TBD
             // peer.materializedClasses.forEach(it => {
             //     imports.addFeature(it.className, `./Ark${peer.componentName}Peer`)
