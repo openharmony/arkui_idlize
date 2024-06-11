@@ -103,7 +103,7 @@ class ComponentFileVisitor {
             for (const grouped of this.groupOverloads(peer.methods))
                 this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
-            if (isCommonMethod(peer.originalClassName!))
+            if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
                 writer.print(`attributeModifier(modifier: AttributeModifier<object>): this { throw new Error("not implemented") }`)
         }, parentComponentClassName, [attributeClassName])
 
