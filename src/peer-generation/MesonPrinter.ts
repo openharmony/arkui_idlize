@@ -14,6 +14,7 @@
  */
 
 import { IndentedPrinter } from "../IndentedPrinter"
+import { makeFileNameFromClassName } from "./FileGenerators"
 import { PeerClass } from "./PeerClass"
 import { PeerLibrary } from "./PeerLibrary"
 
@@ -26,7 +27,8 @@ export class MesonVisitor {
     ) { }
 
     printPeerClassSourcePaths(clazz: PeerClass): void {
-        const className = clazz.componentName.toLowerCase()
+        const className = makeFileNameFromClassName(clazz.componentName)
+        // TODO use names from Libace;
         this.printer.print(`'${className}_delegates.cc',`)
         this.printer.print(`'${className}_modifiers.cc',`)
     }

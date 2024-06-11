@@ -13,12 +13,9 @@
  * limitations under the License.
  */
 
-import * as fs from "fs"
-import * as path from "path"
-
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { accessorStructList, cStyleCopyright, completeModufiersContent as completeModifiersContent, modifierStructList, warning } from "./FileGenerators";
+import { accessorStructList, cStyleCopyright, completeModufiersContent as completeModifiersContent, makeFileNameFromClassName, modifierStructList, warning } from "./FileGenerators";
 import { PeerClass } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
@@ -306,12 +303,13 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
     private stateByFile = new Map<string, MultiFileModifiersVisitorState>()
 
     printPeerClassModifiers(clazz: PeerClass): void {
-        this.onFileStart(clazz.componentName.toLowerCase())
+        this.onFileStart(clazz.componentName)
         super.printPeerClassModifiers(clazz)
         this.onFileEnd()
     }
 
-    onFileStart(slug: string) {
+    onFileStart(className: string) {
+        const slug = makeFileNameFromClassName(className)
         let state = this.stateByFile.get(slug)
         if (!state) {
             state = new MultiFileModifiersVisitorState()
@@ -330,7 +328,7 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
     }
 
     printRealAndDummyAccessor(clazz: MaterializedClass): void {
-        this.onFileStart(clazz.className.toLowerCase())
+        this.onFileStart(clazz.className)
         super.printRealAndDummyAccessor(clazz)
         this.onFileEnd()
     }

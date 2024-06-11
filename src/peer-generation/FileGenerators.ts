@@ -485,7 +485,13 @@ return `${sharpCopyright}
 ${content}
 `
 }
+
 export function makeIncludeGuardDefine(filePath: string) {
     let basename = path.basename(filePath);
-    return basename.replace(/[.\- ]/g, "_").toUpperCase();
+    return basename.replace(/[.\- ]/g, "_").toUpperCase()
+}
+
+export function makeFileNameFromClassName(className: string) {
+    // transfroms camel-case name to snake-case
+    return className.split(/(?=[A-Z][a-z])/g).join("_").toLowerCase()
 }

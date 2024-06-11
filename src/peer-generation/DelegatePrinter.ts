@@ -17,7 +17,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { IndentedPrinter } from "../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { cStyleCopyright, completeDelegatesImpl, makeIncludeGuardDefine, warning } from "./FileGenerators";
+import { cStyleCopyright, completeDelegatesImpl, makeFileNameFromClassName, makeIncludeGuardDefine, warning } from "./FileGenerators";
 import { PeerLibrary } from "./PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
 import { PeerClass } from "./PeerClass";
@@ -219,7 +219,7 @@ class MultiFileDelegateVisitor {
     }
 
     private onPeerStart(clazz: PeerClass) {
-        let slug = clazz.componentName.toLowerCase()
+        let slug = makeFileNameFromClassName(clazz.componentName)
         this.pushPrinters(slug)
     }
 
@@ -228,7 +228,7 @@ class MultiFileDelegateVisitor {
     }
 
     private onMaterializedClassStart(clazz: MaterializedClass) {
-        let slug = clazz.className.toLowerCase()
+        let slug = makeFileNameFromClassName(clazz.className)
         this.pushPrinters(slug)
     }
 
