@@ -341,7 +341,7 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
     const gniSources = printGniSources(peerLibrary)
     fs.writeFileSync(libace.gniComponents, gniFile(gniSources))
 
-    printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
+    // printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
     printRealModifiersAsMultipleFiles(peerLibrary, libace, {
         namespace: "OHOS::Ace::NG::GeneratedModifier",
         basicVersion: 1,

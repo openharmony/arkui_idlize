@@ -175,7 +175,8 @@ export class ModifierVisitor {
             method
         )
         visitor.visit()
-        visitor.printer.getOutput().forEach(it => this.real.print(it))
+        // This is the entry point to delegate print.
+        // visitor.printer.getOutput().forEach(it => this.real.print(it))
         this.printReturnStatement(this.real, method)
     }
 
@@ -397,7 +398,8 @@ function printModifiersImplFile(filePath: string, slug: string, state: MultiFile
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
 
-    writer.writeInclude(`${slug}_delegate.h`)
+    writer.writeInclude(`arkoala_api_generated.h`)
+    // writer.writeInclude(`${slug}_delegate.h`)
     writer.print("")
 
     if (options.namespace) {

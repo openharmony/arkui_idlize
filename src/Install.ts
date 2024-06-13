@@ -25,8 +25,8 @@ class Install {
 }
 
 export class ArkoalaInstall extends Install{
-    constructor (private outDir: string, private lang: Language, private test: boolean) { 
-        super() 
+    constructor (private outDir: string, private lang: Language, private test: boolean) {
+        super()
     }
     langDir(): string {
         switch (this.lang) {
@@ -89,7 +89,7 @@ export class LibaceInstall extends Install {
         return this.interface(`${component}_modifier.h`)
     }
     modifierCpp(component: string) {
-        return this.interface(`${component}_modifier.cpp`)
+        return this.implementation(`${component}_modifier.cpp`)
     }
     delegateHeader(component: string) {
         return this.interface(`${component}_delegate.h`)
