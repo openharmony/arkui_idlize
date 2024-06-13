@@ -341,13 +341,16 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
     const gniSources = printGniSources(peerLibrary)
     fs.writeFileSync(libace.gniComponents, gniFile(gniSources))
 
-    printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::Delegate" })
+    printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
     printRealModifiersAsMultipleFiles(peerLibrary, libace, {
         namespace: "OHOS::Ace::NG::GeneratedModifier",
         basicVersion: 1,
         fullVersion: options.apiVersion,
         extendedVersion: 6,
     })
+
+    const { api, serializers } = printApiAndSerializers(options.apiVersion, peerLibrary)
+    fs.writeFileSync(libace.generatedArkoalaApi, api)
 
     if (!options.libaceDestination) {
         const mesonBuild = printMesonBuild(peerLibrary)

@@ -397,9 +397,7 @@ function printModifiersImplFile(filePath: string, slug: string, state: MultiFile
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
 
-    writer.writeInclude("Interop.h")
-    writer.writeInclude("Serializers.h")
-    writer.writeInclude(`${slug}_delegates.h`)
+    writer.writeInclude(`${slug}_delegate.h`)
     writer.print("")
 
     if (options.namespace) {
@@ -421,10 +419,6 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     const writer = new CppLanguageWriter(new IndentedPrinter())
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
-    writer.print("")
-
-    writer.writeInclude("Interop.h")
-    writer.writeInclude("Serializers.h")
     writer.print("")
 
     if (options.namespace) {

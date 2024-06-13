@@ -288,9 +288,8 @@ function printDelegateImplementation(filePath: string, source: PrinterLike, opti
     writer.print("")
 
 
-    const headerName = path.basename(filePath, ".cc") + ".h"
-    writer.writeInclude("Serializers.h")
-    writer.writeInclude(headerName)
+    const headerName = path.basename(filePath, ".cpp") + ".h"
+    writer.writeInclude(`../generated/interface/${headerName}`)
     writer.print("")
 
     if (options.namespace) {
@@ -319,7 +318,7 @@ function printDelegateHeader(filePath: string, source: PrinterLike, options: Del
     writer.print(`#define ${includeGuardDefine}`)
     writer.print("")
 
-    writer.writeInclude("arkoala_api.h") // TODO arkoala_api_generated.h ?
+    writer.writeInclude("arkoala_api_generated.h")
     writer.print("")
 
     if (options.namespace) {
