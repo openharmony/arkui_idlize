@@ -128,8 +128,7 @@ export function completeImplementations(modifiers: LanguageWriter, accessors: La
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
     result.writeLines(`
-#include "Interop.h"
-#include "Serializers.h"
+#include "arkoala-macros.h"
 #include "delegates.h"
 
 void SetAppendGroupedLog(void* pFunc) {}
@@ -169,7 +168,6 @@ ${lines}
 
 export function completeDelegatesImpl(lines: string): string {
     return `
-#include "Serializers.h"
 #include "delegates.h"
 
 ${lines}

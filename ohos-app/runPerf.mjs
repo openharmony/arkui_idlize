@@ -3,6 +3,7 @@ import { execSync, exec } from "node:child_process"
 import os from "os";
 import { argv } from 'process'
 import path from "node:path";
+import { exit } from "node:process";
 
 let isFull = true
 let isArm64 = true
@@ -38,9 +39,6 @@ let arch = `arm64`
 let mode = `full`
 if (!isArm64) arch = `arm32`
 if (!isFull) mode = `subset`
-let pushDeps4OhosPerfAppCmd = `node ./ohos-app/getDependencies4ohos.mjs ${mode} ${arch}`
-execSync(pushDeps4OhosPerfAppCmd, { cwd: '.', stdio: 'inherit'})
-
 
 const platform = os.platform();
 
@@ -61,6 +59,12 @@ const signedHapPath = `${signToolsDir}/${signedHapName}`
 const packageName = `com.example.api_perf`
 const tmplog = `.tmplog`
 
+let deviceLibDir = `lib64`
+if (!isArm64) deviceLibDir = `lib`
+const libaceMockName = `libace_compatible_mock.so`
+const libaceMockHostPath = path.resolve(`native/${libaceMockName}`)
+const libaceMockDevicePath = `/system/${deviceLibDir}/module/${libaceMockName}`
+
 let hvigorw = `.\\hvigorw`
 let signRelease  = `.\\sign_release`
 if (!platform.includes('win')) {
@@ -68,13 +72,32 @@ if (!platform.includes('win')) {
     signRelease = `./sign_release`
 }
 
+function checkEnv() {
+    if (isMock && !fs.existsSync(libaceMockHostPath)) {
+        console.error(`${libaceMockHostPath} is not exsit`)
+        return false
+    }
+    return true
+}
+
+function mountRW() {
+    execSync(`hdc shell mount -o rw,remount /`, {stdio: 'inherit'})
+}
+
+function cleanEnv() {
+    const rmAceCmd = `hdc shell rm -f ${libaceMockDevicePath}`
+    console.log(`${rmAceCmd}`)
+    execSync(`${rmAceCmd}`, { cwd: '.', stdio: 'inherit'})
+}
+
 function resolveLibDependency() {
+    let pushDeps4OhosPerfAppCmd = `node ./ohos-app/getDependencies4ohos.mjs ${mode} ${arch}`
+    console.log(`${pushDeps4OhosPerfAppCmd}`)
+    execSync(pushDeps4OhosPerfAppCmd, { cwd: '.', stdio: 'inherit'})
     if (!isMock) return
-    const libaceMockName = `libace_compatible_mock.so`
-    const libaceMockPath = path.resolve(`native/${libaceMockName}`)
-    const pushAceCmd = `hdc file send ${libaceMockPath} /system/lib64/module/${libaceMockName}`
+    const pushAceCmd = `hdc file send ${libaceMockHostPath} ${libaceMockDevicePath}`
     console.log(`${pushAceCmd}`)
-    execSync(`${pushAceCmd}`, { cwd: perfDir, stdio: 'inherit'})
+    execSync(`${pushAceCmd}`, { cwd: '.', stdio: 'inherit'})
 }
 
 function buildPerfProject() {
@@ -87,7 +110,7 @@ function signHap() {
         console.log(`get 3rdtools for oh_sign tools`)
         if (fs.existsSync(thirdToolsDir)) fs.rmdirSync(thirdToolsDir)
         let downloadCmd = `node ./download-3rdtools.mjs ${arch}`
-        execSync(downloadCmd, { cwd: './', stdio: 'inherit' })
+        execSync(downloadCmd, { cwd: '.', stdio: 'inherit' })
     }
     console.log(`copy ${unsignedHapPathInProject} to ${signToolsDir}`)
     fs.copyFileSync(unsignedHapPathInProject, unsignedHapPath)
@@ -160,6 +183,9 @@ function runHap(hapPath, packageName) {
     execSync(`hdc shell aa start -a EntryAbility -b ${packageName}`, { stdio:'inherit', timeout: 2000 })
 }
 
+if (!checkEnv()) exit()
+mountRW()
+cleanEnv()
 resolveLibDependency()
 buildPerfProject()
 signHap()

@@ -173,6 +173,10 @@ class DelegateVisitor {
 
 export function printDelegatesHeaders(library: PeerLibrary): string {
     const visitor = new DelegateVisitor(library)
+    visitor.api.print(`#pragma once
+
+#include "arkoala_api.h"
+`)
     visitor.print()
     // TODO here can be conflicts between different union filds with same types
     const uniqueDeclarations = Array.from(new Set(visitor.api.getOutput()))

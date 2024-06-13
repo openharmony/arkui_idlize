@@ -39,7 +39,11 @@ void* FindModule()
 {
 #if KOALA_USE_LIBACE
 #if defined(KOALA_OHOS)
+#if defined(__aarch64__)
     const char libname[] = "/system/lib64/module/libace_compatible_mock.so";
+#elif defined(__arm__)
+    const char libname[] = "/system/lib/module/libace_compatible_mock.so";
+#endif
 #else
     const char libname[] = "./native/libace_compatible_mock.so";
 #endif

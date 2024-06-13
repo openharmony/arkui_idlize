@@ -20,14 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(KOALA_WINDOWS)
-#define IDLIZE_API_EXPORT __declspec(dllexport)
-#else
-#define IDLIZE_API_EXPORT __attribute__((visibility("default")))
-#endif
-
-#define EXTERN_C extern "C"
-
 #define CONSTRUCTOR(fn) \
 static void constructor_##fn(); \
 namespace { struct Constructor_##fn { Constructor_##fn() { constructor_##fn(); } } constructor_##fn##_instance; } \

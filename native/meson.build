@@ -28,6 +28,11 @@ gen_dir = '../generated/' + source_set
 arkoala_dir = gen_dir + '/koalaui/arkoala/native/src'
 libace_dir = gen_dir + '/libace'
 
+cxx = meson.get_compiler('cpp')
+
+cflags = []
+ldflags = []
+
 include_dirs = [
    arkoala_dir,
    arkoala_dir / 'legacy'
@@ -64,6 +69,7 @@ is_ohos = os == 'ohos'
 if is_ohos
 use_dummy_libace = false
 is_arkts = false
+use_libace = true
 endif
 
 if use_libace
@@ -86,11 +92,6 @@ sources += [
     arkoala_dir + '/dummy_impl.cc',
 ]
 endif
-
-cxx = meson.get_compiler('cpp')
-
-cflags = []
-ldflags = []
 
 node_library_name = 'NativeBridgeNapi'
 arkts_library_name = 'NativeBridgeArk'
@@ -156,6 +157,8 @@ if get_option('is_ohos_v8') and arch == 'arm64'
 node_ldflags += [
     '-lnode'
 ]
+endif
+if is_ohos
 node_cflags += [
     '-DKOALA_OHOS',
 ]
@@ -261,6 +264,7 @@ shared_library(ohos_library_name,
     cpp_args: cflags + ohos_cflags,
     link_args: ldflags + ohos_ldflags
 )
+if use_libace
 shared_library(libace_name,
     libace_sources,
     override_options: [
@@ -274,6 +278,7 @@ shared_library(libace_name,
     cpp_args: cflags + ohos_cflags,
     link_args: ldflags + ohos_ldflags
 )
+endif
 endif
 
 # TODO: fix on Windows as well
