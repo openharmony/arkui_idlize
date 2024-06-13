@@ -1,4 +1,4 @@
-#include "arkoala_api.h"
+#include "arkoala_api_generated.h"
 #include "events.h"
 #include "Interop.h"
 #include "Serializers.h"

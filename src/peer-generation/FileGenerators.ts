@@ -159,7 +159,7 @@ void SetAppendGroupedLog(void* pFunc) {}
 
 export function completeEventsImplementations(lines: string): string {
     return `
-#include "arkoala_api.h"
+#include "arkoala_api_generated.h"
 #include "events.h"
 #include "Serializers.h"
 
@@ -253,7 +253,7 @@ export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter,
     return `
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
-#include "arkoala_api.h"
+#include "arkoala_api_generated.h"
 #include <string>
 
 ${writeToString.getOutput().join("\n")}
@@ -391,7 +391,7 @@ export function copyPeerLib(from: string, arkoala: ArkoalaInstall) {
     copyDir(tsBase, arkoala.tsDir)
     const cppBase = path.join(from, 'cpp')
     copyDir(cppBase, arkoala.nativeDir)
-    let subdirs = ['node', 'arkts', 'jni']
+    let subdirs = ['node', 'arkts', 'jni', 'legacy']
     subdirs.forEach(subdir => {
         const cppBase = path.join(from, 'cpp', subdir)
         const destDir = arkoala.native(subdir)

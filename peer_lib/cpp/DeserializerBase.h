@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 #include "interop-types.h"
-#include "arkoala_api.h"
+#include "arkoala_api_generated.h"
 
 using namespace std;
 

@@ -160,7 +160,7 @@ if (options.dts2h) {
             onSingleFile: (entries: IDLEntry[]) => allEntries.push(entries),
         }
     )
-    const outFile = path.join(options.outputDir ?? "./headers", "arkoala_api.h")
+    const outFile = path.join(options.outputDir ?? "./headers", "arkoala_api_generated.h")
     console.log("producing", outFile)
 
     const generated = toHeaderString(new TypeChecker(allEntries.flat()), allEntries, options.generateInterface)
@@ -276,7 +276,7 @@ if (options.idl2h) {
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true })
     }
-    const outFile = path.join(outputDir, "arkoala_api.h")
+    const outFile = path.join(outputDir, "arkoala_api_generated.h")
     console.log("producing", outFile)
     fs.writeFileSync(outFile, generatedHeader)
     didJob = true
@@ -450,7 +450,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
 
     const { api, serializers } = printApiAndSerializers(options.apiVersion, peerLibrary)
     fs.writeFileSync(arkoala.native('Serializers.h'), serializers)
-    fs.writeFileSync(arkoala.native('arkoala_api.h'), api)
+    fs.writeFileSync(arkoala.native('arkoala_api_generated.h'), api)
 
     const modifiers = printRealAndDummyModifiers(peerLibrary)
     const accessors = printRealAndDummyAccessors(peerLibrary)

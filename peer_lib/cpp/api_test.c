@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "arkoala_api.h"
+#include "arkoala_api_generated.h"
 
 int main(int argc, const char** argv) {
     return 0;

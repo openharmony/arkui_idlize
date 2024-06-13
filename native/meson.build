@@ -29,7 +29,8 @@ arkoala_dir = gen_dir + '/koalaui/arkoala/native/src'
 libace_dir = gen_dir + '/libace'
 
 include_dirs = [
-   arkoala_dir
+   arkoala_dir,
+   arkoala_dir / 'legacy'
 ]
 
 sources = [
@@ -279,6 +280,13 @@ endif
 if os != 'windows'
 executable('test_arkoala_api',
     arkoala_dir / 'api_test.c',
-    c_args: cflags
+    c_args: cflags,
+    include_directories: include_dirs
 )
+executable('test_arkoala_compat',
+    arkoala_dir / 'compat_test.cc',
+    cpp_args: cflags,
+    include_directories: include_dirs
+)
+
 endif

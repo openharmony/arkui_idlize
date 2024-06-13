@@ -20,8 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
-#include "arkoala_api.h"
-
+#include "arkoala_api_generated.h"
 
 template <typename T>
 inline Ark_RuntimeType runtimeType(const T& value) = delete;
