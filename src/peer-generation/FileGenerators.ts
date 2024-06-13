@@ -139,7 +139,7 @@ void SetAppendGroupedLog(void* pFunc) {}
     return result
 }
 
-export function completeModufiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
+export function completeModifiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
