@@ -145,9 +145,9 @@ export function completeModufiersContent(content: PrinterLike, basicVersion: num
 
     epilogue = epilogue
         .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
-        .replaceAll(`%ARKUI_BASIC_API_VERSION_VALUE%`, basicVersion.toString())
+        .replaceAll(`%ARKUI_BASIC_NODE_API_VERSION_VALUE%`, basicVersion.toString())
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
-        .replaceAll(`%ARKUI_EXTENDED_API_VERSION_VALUE%`, extendedVersion.toString())
+        .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
     result.writeLines(`
 void SetAppendGroupedLog(void* pFunc) {}
 `)

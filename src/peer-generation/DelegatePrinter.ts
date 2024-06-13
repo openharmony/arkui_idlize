@@ -100,6 +100,7 @@ class MethodDelegatePrinter extends MethodSeparatorVisitor {
     public readonly declPrinter = new IndentedPrinter()
     public readonly implPrinter = new IndentedPrinter()
     private delegateSignatureBuilder: DelegateSignatureBuilder
+    private emittedSignatures = new Set();
     constructor(
         declarationTable: DeclarationTable,
         method: PeerMethod,
@@ -129,9 +130,12 @@ class MethodDelegatePrinter extends MethodSeparatorVisitor {
 
     onVisitInseparable(): void {
         const signature = this.delegateSignatureBuilder.buildSignature()
-        this.declPrinter.print(`${signature};`)
-        const retStatement = this.method.retConvertor.isVoid ? "" :`return 0;`
-        this.implPrinter.print(`${signature} { ${retStatement} }`)
+        if (!this.emittedSignatures.has(signature)) {
+            this.declPrinter.print(`${signature};`)
+            const retStatement = this.method.retConvertor.isVoid ? "" :`return 0;`
+            this.implPrinter.print(`${signature} { ${retStatement} }`)
+            this.emittedSignatures.add(signature)
+        }
     }
 }
 

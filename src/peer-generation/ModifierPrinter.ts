@@ -406,6 +406,7 @@ function printModifiersImplFile(filePath: string, slug: string, state: MultiFile
 
     writer.concat(state.real)
     writer.concat(state.modifiers)
+    writer.concat(state.accessors)
 
     if (options.namespace) {
         writer.popNamespace()
@@ -421,10 +422,14 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
 
+    writer.writeInclude('arkoala_api_generated.h')
+    writer.print("")
+
     if (options.namespace) {
         writer.pushNamespace(options.namespace)
     }
 
+    writer.concat(content)
     writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
 
     if (options.namespace) {
