@@ -86,6 +86,8 @@ const dtsImports = `import {
     RectResult,
     TouchTestInfo,
     AttributeModifier,
+    BottomTabBarStyle,
+    CustomBuilder
 } from "./dts-exports"
 `
 

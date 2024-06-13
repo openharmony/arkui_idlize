@@ -196,6 +196,7 @@ class PeerFileVisitor {
                     `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ComponentBase } from "./ComponentBase"`,
+                    `import { NativeModule } from "./NativeModule"`,
                     `${collectDtsImports().trim()}`
                 ]
             }
@@ -253,7 +254,8 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
 
 export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: Type = Type.Void) {
-    if (printer.language != Language.TS) return
+    // Not yet!
+    if (printer.language != Language.TS/* && printer.language != Language.ARKTS */) return
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
         `${method.overloadedName}${methodPostfix}`,
@@ -296,8 +298,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
             params.push(writer.makeString(it.convertorArg(it.param, writer)))
         }
     })
-    let call = writer.makeMethodCall(
-        `nativeModule()`,
+    let call = writer.makeNativeCall(
         `_${method.originalParentName}_${method.overloadedName}`,
         params)
     if (returnType != Type.Void) {

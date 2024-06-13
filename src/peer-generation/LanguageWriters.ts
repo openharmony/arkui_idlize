@@ -583,6 +583,10 @@ export abstract class LanguageWriter {
     makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(receiver, method, params, nullable)
     }
+    makeNativeCall(method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
+        return new MethodCallExpression(this.nativeReceiver(), method, params, nullable)
+    }
+    nativeReceiver(): string { return 'nativeModule()' }
     makeDefinedCheck(value: string): LanguageExpression {
         return new CheckDefinedExpression(value)
     }
@@ -613,8 +617,8 @@ export abstract class LanguageWriter {
     makeUnionVariantCondition(value: string, type: string, index?: number): LanguageExpression {
         return this.makeString(`RuntimeType.${type.toUpperCase()} == ${value}`)
     }
-    makeUnionVariantCast(value: string, type: string, index?: number): LanguageExpression {
-        return this.makeString(`unsafeCast<${type}>(${value})`)
+    makeUnionVariantCast(value: string, type: Type, index?: number): LanguageExpression {
+        return this.makeString(`unsafeCast<${type.name}>(${value})`)
     }
     makeArrayResize(array: string, typeName: string, length: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(this.makeString(`${array} = [] as ${typeName}`))
@@ -859,6 +863,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]
     }
+    nativeReceiver(): string { return 'NativeModule' }
 }
 
 abstract class CLikeLanguageWriter extends LanguageWriter {
@@ -1122,7 +1127,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override makeUnionVariantCondition(value: string, type: string, index: number) {
         return this.makeString(`${value} == ${index}`)
     }
-    override makeUnionVariantCast(value: string, type: string, index: number) {
+    override makeUnionVariantCast(value: string, type: Type, index: number) {
         return this.makeString(`${value}.value${index}`)
     }
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {

@@ -140,7 +140,13 @@ export class BooleanConvertor extends BaseArgConvertor {
         super("boolean", [RuntimeType.BOOLEAN], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? param : `+${param}`
+        switch (writer.language) {
+            case Language.CPP: return param
+            case Language.TS: return `+${param}`
+            case Language.ARKTS: return `${param} ? 1 : 0`
+            case Language.JAVA: return `${param} ? 1 : 0`
+            default: throw new Error("Unsupported language")
+        }
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, "writeBoolean", [value])
@@ -248,7 +254,7 @@ export class EnumConvertor extends BaseArgConvertor {
         })
         const ordinal = this.isStringEnum
             ? writer.ordinalFromEnum(writer.makeString(value), identName(this.enumType.name)!)
-            : writer.makeUnionVariantCast(value, Type.Number.name, index)
+            : writer.makeUnionVariantCast(value, Type.Number, index)
         return writer.makeNaryOp("&&", [
             writer.makeNaryOp(">=", [ordinal, writer.makeString(low!.toString())]),
             writer.makeNaryOp("<=",  [ordinal, writer.makeString(high!.toString())])
@@ -377,7 +383,7 @@ export class UnionConvertor extends BaseArgConvertor {
                 const valueType = new Type(it.tsTypeName)
                 printer.writeStatement(
                     printer.makeAssign(`${value}_${index}`, undefined,
-                        printer.makeUnionVariantCast(value, valueType.name, index), true))
+                        printer.makeUnionVariantCast(value, valueType, index), true))
                 it.convertorSerialize(param, `${value}_${index}`, printer)
             }
             printer.popIndent()
@@ -585,7 +591,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
     private members: string[] = []
 
-    constructor(param: string, private table: DeclarationTable, private type: ts.TypeLiteralNode) {
+    constructor(param: string, private table: DeclarationTable, private type: ts.TypeLiteralNode) {        
         super(mapType(type), [RuntimeType.OBJECT], false, true, param)
         this.memberConvertors = type
             .members
@@ -1034,8 +1040,8 @@ export class PredefinedConvertor extends BaseArgConvertor {
 }
 
 class ProxyConvertor extends BaseArgConvertor {
-    constructor(protected convertor: ArgConvertor) {
-        super(convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param, convertor.hasUnionDiscriminator)
+    constructor(protected convertor: ArgConvertor, suggestedName?: string) {
+        super(suggestedName ?? convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param, convertor.hasUnionDiscriminator)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.convertor.convertorArg(param, writer)
@@ -1067,7 +1073,7 @@ export class TypeAliasConvertor extends ProxyConvertor {
         declaration: ts.TypeAliasDeclaration,
         private typeArguments?: ts.NodeArray<ts.TypeNode>
     ) {
-        super(table.typeConvertor(param, declaration.type))
+        super(table.typeConvertor(param, declaration.type), identName(declaration.name))
     }
 }
 

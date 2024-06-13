@@ -435,3 +435,24 @@ export class ClassWithConstructorAndAllOptionalParamsDTS {
 
     method(valBoolean?: boolean, valString?: string): void {}
 }
+
+
+export type CustomBuilder = (() => Object) | void
+
+export class BottomTabBarStyle {
+
+    constructor(icon: ResourceStr | TabBarSymbol, text: ResourceStr) {}
+    id(value: string): BottomTabBarStyle { throw new Error() }
+
+    static of(icon: ResourceStr | TabBarSymbol, text: ResourceStr): BottomTabBarStyle  { throw new Error() }
+
+    labelStyle(value: LabelStyle): BottomTabBarStyle { throw new Error() }
+
+    padding(value: Padding | Dimension | LocalizedPadding): BottomTabBarStyle { throw new Error() }
+}
+
+export enum CalendarAlign {
+    START = 0,
+    CENTER = 1,
+    END = 2
+}
