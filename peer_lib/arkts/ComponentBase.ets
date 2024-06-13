@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
-import { pointer } from "@koalaui/interop"
-import { nativeModule } from "./NativeModule";
+import { PeerNode } from './PeerNode'
 
-export class Finalizable {
-    public ptr: pointer
-
-    constructor(ptr: pointer) {
-        this.ptr = ptr
+export class ComponentBase {
+    protected peer?: PeerNode
+    setPeer(peer: PeerNode) {
+        this.peer = peer
     }
+
+    protected checkPriority(
+        name: string
+    ): boolean { throw new Error("not implemented") }
+    public applyAttributesFinish(): void { throw new Error("not implemented") }
 }

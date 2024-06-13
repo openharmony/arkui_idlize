@@ -72,7 +72,7 @@
         "panda:sdk:install": "cd panda && npm run panda:sdk:install",
         "compile:arkts:subset": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset --language arkts && bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module",
         "compile:arkts:peers": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-peers.json --ets-module",
-        "run:panda": "npm run make:arkts && npm run compile:arkts:subset && npm run compile:native-node-host-subset && LD_LIBRARY_PATH=./native PANDA_LIB_FILES=./build/abc/subset/NativeModule.abc bash ./panda/arkts/ark ./build/abc/subset/index.abc",
+        "run:panda": "npm run make:arkts && npm run compile:arkts:subset && npm run compile:native-node-host-subset && LD_LIBRARY_PATH=./native PANDA_LIB_FILES=./build/abc/subset/koalaui/arkoala-arkui/arkts/src/NativeModule.abc bash ./panda/arkts/ark ./build/abc/subset/koalaui/arkoala-arkui/arkts/src/index.abc",
         "run:dummy-panda": "npm run compile:native-node-host-subset && ./native/build-node-host-subset/dummy-panda",
         "compile:java": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/java-subset/ --output-dir ./generated/java-subset --language java && npm run compile:native-node-host-java-subset && javac ./generated/java-subset/koalaui/arkoala/java/src/*.java ./generated/java-subset/koalaui/arkoala-arkui/src/*.java -d ./generated/java-subset",
         "run:java": "npm run compile:java && npm run compile:native-node-host-java-subset && java -Djava.library.path=./native -cp ./generated/java-subset org.koalaui.arkoala.Main",
