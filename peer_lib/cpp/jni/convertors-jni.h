@@ -1016,6 +1016,17 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0)
 } \
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1)
 
+#define KOALA_INTEROP_CTX_V1(name, P0) \
+   KOALA_JNI_CALL(void) Java_org_##name(JNIEnv* env, jclass instance, \
+    InteropTypeConverter<P0>::InteropType _p0) { \
+      KOALA_MAYBE_LOG(name) \
+      P0 p0 = getArgument<P0>(env, _p0); \
+      KVMContext ctx = (KVMContext)env; \
+      impl_##name(ctx, p0); \
+      releaseArgument(env, _p0, p0); \
+  } \
+MAKE_JNI_EXPORT(name, "void|" #P0)
+
 #define KOALA_INTEROP_CTX_V2(name, P0, P1) \
   KOALA_JNI_CALL(void) Java_org_##name(JNIEnv* env, jclass instance, \
    InteropTypeConverter<P0>::InteropType _p0, \

@@ -1027,6 +1027,16 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0)
   } \
 MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1)
 
+#define KOALA_INTEROP_CTX_V1(name, P0)  \
+  void Ark_##name(EtsEnv *env, ets_class clazz, \
+    InteropTypeConverter<P0>::InteropType _p0) { \
+      KOALA_MAYBE_LOG(name)                   \
+      P0 p0 = getArgument<P0>(env, _p0); \
+      KVMContext ctx = (KVMContext)env; \
+      impl_##name(ctx, p0); \
+      releaseArgument(env, _p0, p0); \
+  }
+
 #define KOALA_INTEROP_CTX_V2(name, P0, P1)  \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
     InteropTypeConverter<P0>::InteropType _p0, \

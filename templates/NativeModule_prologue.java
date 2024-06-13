@@ -41,8 +41,22 @@ public class NativeModule {
   static native void _Test_TextPicker_OnAccept(byte[] valueArray, int valueSerializerLength);
 
   static native long _CreateNode(int type, int id, int flags);
+  static native long _GetNodeByViewStack();
   static native void _DisposeNode(long nodePtr);
-  static native int _MeasureLayoutAndDraw(long nodePtr);
+  static native void _Dump(long nodePtr);
+  static native int _AddChild(long parent, long child);
+  static native void _RemoveChild(long parent, long child);
+  static native int _InsertChildAfter(long parent, long child, long sibling);
+  static native int _InsertChildBefore(long parent, long child, long sibling);
+  static native int _InsertChildAt(long parent, long child, int position);
+  // static native void _RegisterNodeAsyncEvent(long nodePtr, int kind, long extraParam);
+  static native void _UnRegisterNodeAsyncEvent(long nodePtr, int kind);
+  static native void _RegisterNodeAsyncEventReceiver(long eventReceiver);
+  static native void _UnRegisterNodeAsyncEventReceiver();
+  static native void _ApplyModifierFinish(long nodePtr);
+  static native void _MarkDirty(long nodePtr, int dirtyFlag);
+  static native boolean _IsBuilderNode(long nodePtr);
+  static native void _MeasureLayoutAndDraw(long nodePtr);
   static native int _MeasureNode(long nodePtr, float[] data);
   static native int _LayoutNode(long nodePtr, float[] data);
   static native int _DrawNode(long nodePtr, float[] data);
@@ -61,4 +75,11 @@ public class NativeModule {
   static native int _GetAlignment(long nodePtr);
   static native void _SetRangeUpdater(long nodePtr, int updaterId);
 
+  static native void _SetChildTotalCount(long nodePtr, int totalCount);
+
   static native void _ShowCrash(String message);
+
+  static native long _GetPipelineContext(long nodePtr);
+  static native void _SetVsyncCallback(long pipelineContext, int callbackId);
+  static native void _UnblockVsyncWait(long pipelineContext);
+

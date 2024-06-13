@@ -191,17 +191,9 @@ class BridgeCcVisitor {
         let args = c.withContext ? argsType.slice(1) : argsType
         const size = args.length
         args = sig.returnType === Type.Void ? args : [retType, ...args]
+        const comma = args.length > 0 ? ", " : ""
         const CTX = c.withContext ? "_CTX" : ""
-            this.C.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}, ${args.map(it => it.name).join(", ")})\n`)
-    }
-
-    printCustomApiMethodJNI(c: CustomAPI, m: Method) {
-        const sig = m.signature as NamedMethodSignature
-        const ret = c.getJniType(sig.returnType).name
-        let args = sig.args.map((type, index) => `${c.getJniType(type).name} ${sig.argsNames[index]}`)
-        args = c.withContext ? args.slice(1) : args
-        const name = `_${capitalize(m.name)}`
-        console.log(`static native ${ret} ${name}(${args.join(", ")});`)
+        this.C.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}${comma}${args.map(it => it.name).join(", ")})\n`)
     }
 
     print(): void {
@@ -224,8 +216,6 @@ class BridgeCcVisitor {
         for(const customApi of CUSTOM_API) {
             for(const method of customApi.methods) {
                 this.printCustomApiMethod(customApi, method)
-                // TBD: generate NativeModule for jni
-                // this.printCustomApiMethodJNI(customApi, method)
             }
         }
     }

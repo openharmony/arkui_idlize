@@ -1,6 +1,7 @@
     // BasicNodeAPI
     static native _CreateNode(type: int, id: int, flags: int): long
     static native _DisposeNode(ptr: long): void
+    static native _ApplyModifierFinish(ptr: long): void
 
     // ExtendedNodeAPI
     static native _SetCustomCallback(node: long, callbackId: int): void
@@ -32,8 +33,8 @@
     static native _SetLazyItemIndexer(node: long, indexerId: int): int
 
     static native _GetPipelineContext(nodePtr:long): long
-    static native _SetVsyncCAllback(long: long, callbackId: int): int
-    static native _UnblockVSyncWait(long: long): int
+    static native _SetVsyncCallback(long: long, callbackId: int): int
+    static native _UnblockVsyncWait(long: long): int
 
 
     // _CheckArkoalaEvents -> checkEvent
@@ -41,10 +42,10 @@
     // _SendArkoalaEvent -> sedEvent
     static native _SendEvent(event: int[], count: int): void
 
-    static native _CallContinuation(continuationId: int, argCount: int, args: int[]): void
-
     static native _SetChildTotalCount(ptr: long, value: int): void
 
     // _Dump
     static native _ShowCrash(messagePtr: String): void
+
+    static native _GetPipelineContext(nodePtr: long ): long
 }

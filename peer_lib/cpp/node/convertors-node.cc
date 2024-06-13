@@ -107,6 +107,23 @@ KNativePointer getPointer(Napi::Env env, Napi::Value value) {
     return reinterpret_cast<KNativePointer>(ptrU64);
 }
 
+KLong getInt64(Napi::Env env, Napi::Value value) {
+    if (!value.IsBigInt()) {
+        Napi::Error::New(env, "cannot be coerced to int64")
+            .ThrowAsJavaScriptException();
+        return -1;
+    }
+
+    bool isWithinRange = true;
+    int64_t ptr64 = value.As<Napi::BigInt>().Int64Value(&isWithinRange);
+    if (!isWithinRange) {
+        Napi::Error::New(env, "cannot be coerced to int64, value is too large")
+            .ThrowAsJavaScriptException();
+        return -1;
+    }
+    return reinterpret_cast<KLong>(ptr64);
+}
+
 Napi::Object getObject(Napi::Env env, Napi::Value value) {
     if (!value.IsObject()) {
         Napi::Error::New(env, "Expected Object")

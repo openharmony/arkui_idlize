@@ -208,6 +208,11 @@ inline void* getPointer(const Napi::CallbackInfo& info, int index) {
     NAPI_ASSERT_INDEX(info, index, nullptr);
     return getPointer(info.Env(), info[index]);
 }
+KLong getInt64(Napi::Env env, Napi::Value value);
+inline KLong getInt64(const Napi::CallbackInfo& info, int index) {
+    NAPI_ASSERT_INDEX(info, index, 0);
+    return getInt64(info.Env(), info[index]);
+}
 KBoolean getBoolean(Napi::Env env, Napi::Value value);
 inline KBoolean getBoolean(const Napi::CallbackInfo& info, int index) {
   NAPI_ASSERT_INDEX(info, index, false);
@@ -309,6 +314,11 @@ inline KDouble getArgument<KDouble>(const Napi::CallbackInfo& info, int index) {
 template <>
 inline KNativePointer getArgument<KNativePointer>(const Napi::CallbackInfo& info, int index) {
   return getPointer(info, index);
+}
+
+template <>
+inline KLong getArgument<KLong>(const Napi::CallbackInfo& info, int index) {
+  return getInt64(info, index);
 }
 
 template <>
@@ -906,6 +916,16 @@ Napi::ModuleRegisterCallback ProvideModuleRegisterCallback(Napi::ModuleRegisterC
       P0 p0 = getArgument<P0>(info, 0); \
       P1 p1 = getArgument<P1>(info, 1); \
       return makeResult<Ret>(info, impl_##name(ctx, p0, p1)); \
+  } \
+  MAKE_NODE_EXPORT(name)
+
+#define KOALA_INTEROP_CTX_V1(name, P0) \
+  Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
+      KOALA_MAYBE_LOG(name)                   \
+      KVMContext ctx = reinterpret_cast<KVMContext>((napi_env)info.Env()); \
+      P0 p0 = getArgument<P0>(info, 0); \
+      impl_##name(ctx, p0); \
+      return makeVoid(info); \
   } \
   MAKE_NODE_EXPORT(name)
 

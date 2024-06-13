@@ -2,6 +2,7 @@
     // BasicNodeAPI
     _CreateNode(type: KInt, id: KInt, flags: KInt): NodePointer
     _DisposeNode(ptr: NodePointer): void
+    _ApplyModifierFinish(ptr: NodePointer): void
 
     // getUtilsModifier
     // getCanvasRenderingContext2DModifier
@@ -43,16 +44,15 @@
     _SetLazyItemIndexer(node: NodePointer, indexerId: KInt): KInt
 
     _GetPipelineContext(nodePtr:NodePointer): PipelineContext
-    _SetVsyncCAllback(pipelineContext: PipelineContext, callbackId: KInt): KInt
-    _UnblockVSyncWait(pipelineContext: PipelineContext): KInt
+
+    _SetVsyncCallback(pipelineContext: PipelineContext, callbackId: KInt): KInt
+    _UnblockVsyncWait(pipelineContext: PipelineContext): KInt
 
 
     // _CheckArkoalaEvents -> checkEvent
     _CheckEvents(result: KInt32ArrayPtr, count: KInt): KInt
     // _SendArkoalaEvent -> sedEvent
     _SendEvent(event: KInt32ArrayPtr, count: KInt): void
-
-    _CallContinuation(continuationId: KInt, argCount: KInt, args: KInt32ArrayPtr): void
 
     _SetChildTotalCount(ptr: NodePointer, value: KInt): void
 
