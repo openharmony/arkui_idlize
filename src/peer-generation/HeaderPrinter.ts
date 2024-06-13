@@ -120,7 +120,7 @@ class HeaderVisitor {
             const args = signature.args.map((type, index) => {
                 return `${type.name} ${signature.argName(index)}`
             })
-            this.api.print(`${signature.returnType.name} (*${callback.methodName})(${args.join(',')});`)
+            this.api.print(`${signature.returnType.name} (*${callback.methodName})(${args.join(', ')});`)
         }
         this.api.popIndent()
         this.api.print(`} ${receiver};\n`)

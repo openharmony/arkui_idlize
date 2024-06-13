@@ -318,7 +318,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
         } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor"){
             const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
             if (!method.hasReceiver()) {
-                const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(",")})`
+                const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(", ")})`
                 const objType = new Type(method.originalParentName)
                 writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
                 writer.writeStatement(
