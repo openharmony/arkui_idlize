@@ -151,7 +151,8 @@ function checkButton() {
     checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
         "labelStyle({maxLines: undefined})")
 
-    //nativeModule()._MeausureLayoutAndDraw(peer.peer.ptr)
+    assertEquals("ButtonPeer ptr", 123, peer!.peer!.ptr)
+    assertTrue("ButtonPeer finalizer", peer!.peer!.finalizer != nullptr)
 }
 
 function checkCalendar() {
