@@ -20,7 +20,6 @@ import { LanguageWriter, createLanguageWriter } from './LanguageWriters'
 import { mapType } from './TypeNodeNameConvertor'
 import { Language, renameDtsToInterfaces } from '../util'
 import { ImportsCollector } from './ImportsCollector'
-import { IndentedPrinter } from '../IndentedPrinter'
 import { EnumEntity, PeerFile } from './PeerFile'
 import { DeclarationConvertor, convertDeclaration } from './TypeNodeConvertor'
 
@@ -61,7 +60,7 @@ class InterfacesVisitor {
 
     constructor(
         private readonly peerLibrary: PeerLibrary,
-    ) { 
+    ) {
         this.generator = new DeclarationGenerator(peerLibrary)
     }
 

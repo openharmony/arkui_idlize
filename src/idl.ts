@@ -442,7 +442,7 @@ export function printMethod(idl: IDLMethod): stringOrNone[] {
 }
 
 export function printModule(idl: IDLModuleType): stringOrNone[] {
-    // may changes later to deal namespace. currently just VerbatimDts
+    // May changes later to deal with namespace. currently just VerbatimDts
     return [
         ...printExtendedAttributes(idl,0),
         `namespace ${idl.name} {};`
@@ -507,7 +507,6 @@ export function printTypedef(idl: IDLTypedef): stringOrNone[] {
     ]
 }
 
-
 export function printIDL(idl: IDLEntry, options?: Partial<IDLPrintOptions>): stringOrNone[] {
     if (idl.kind == IDLKind.Class
         || idl.kind == IDLKind.Interface
@@ -527,10 +526,9 @@ export interface IDLPrintOptions {
 }
 
 export function toIDLString(entries: IDLEntry[], options: Partial<IDLPrintOptions>): string {
-    const generatedScopes = printScopes(entries)
     const generatedIdl = entries
         .map(it => printIDL(it, options))
-        .concat(generatedScopes)
+        .concat(printScopes(entries))
         .flat()
         .filter(isDefined)
         .filter(it => it.length > 0)

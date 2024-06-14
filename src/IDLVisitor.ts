@@ -16,7 +16,7 @@ import * as ts from "typescript"
 import * as path from "path"
 import { parse } from 'comment-parser'
 import {
-    createAnyType, createBooleanType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
+    createBooleanType, createContainerType, createEnumType, createNumberType, createReferenceType, createStringType, createTypedef,
     createTypeParameterReference, createUndefinedType, createUnionType, getExtAttribute, IDLCallable, IDLCallback, IDLConstructor,
     IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLType, IDLTypedef
 } from "./idl"
@@ -26,6 +26,7 @@ import {
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { OptionValues } from "commander"
+import { PrimitiveType } from "./peer-generation/DeclarationTable"
 
 const typeMapper = new Map<string, string>(
     [
@@ -71,6 +72,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         private options: OptionValues) { }
 
     visitWholeFile(): IDLEntry[] {
+        this.addMeta()
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
         if (this.globalScope.length > 0) {
             this.output.push({
@@ -87,6 +89,22 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return this.output
     }
 
+    makeEnumMember(name: string, value: string): IDLEnumMember {
+        return { name: name, kind: IDLKind.EnumMember, type: { name: "DOMString", kind: IDLKind.PrimitiveType }, initializer: value }
+    }
+
+    addMeta() {
+        this.output.push({
+            kind: IDLKind.Enum,
+            name: `Metadata`,
+            extendedAttributes: [ {name: "Synthetic" } ],
+            elements: [
+                this.makeEnumMember("package", "org.openharmony.arkui"),
+                this.makeEnumMember("imports", "'./one', './two'"),
+            ]
+        } as IDLEnum)
+    }
+
     /** visit nodes finding exported classes */
     visit(node: ts.Node) {
         if (ts.isClassDeclaration(node)) {
@@ -100,7 +118,6 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 // This is a namespace, visit its children
                 ts.forEachChild(node, (node) => this.visit(node));
             }
-
         } else if (ts.isEnumDeclaration(node)) {
             this.output.push(this.serializeEnum(node))
         } else if (ts.isTypeAliasDeclaration(node)) {
@@ -325,7 +342,6 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     serializeEnum(node: ts.EnumDeclaration): IDLEnum {
-
         return {
             kind: IDLKind.Enum,
             name: ts.idText(node.name),

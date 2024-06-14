@@ -224,7 +224,7 @@ function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLE
     } else if (node.default == null) {
         initializer = undefined
     } else {
-        throw new Error(`Unrepresentable enum initializer: ${node.default}`)
+        throw new Error(`Not representable enum initializer: ${node.default}`)
     }
     return {
         kind: IDLKind.EnumMember,
