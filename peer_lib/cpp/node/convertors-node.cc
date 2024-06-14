@@ -121,7 +121,7 @@ KLong getInt64(Napi::Env env, Napi::Value value) {
             .ThrowAsJavaScriptException();
         return -1;
     }
-    return reinterpret_cast<KLong>(ptr64);
+    return static_cast<KLong>(ptr64);
 }
 
 Napi::Object getObject(Napi::Env env, Napi::Value value) {
