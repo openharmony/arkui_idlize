@@ -48,7 +48,7 @@ export enum Tags {
     OBJECT = 107,
 }
 
-export function runtimeType(value: Object|String|number|undefined|null): RuntimeType {
+export function runtimeType(value: Object|String|number|undefined|null|void): RuntimeType {
     let type = typeof value
     if (type == "number") return RuntimeType.NUMBER
     if (type == "string") return RuntimeType.STRING

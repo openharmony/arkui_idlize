@@ -32,7 +32,6 @@
     static native _SetRangeUpdater(node: long, updaterId: int): void
     static native _SetLazyItemIndexer(node: long, indexerId: int): int
 
-    static native _GetPipelineContext(nodePtr:long): long
     static native _SetVsyncCallback(long: long, callbackId: int): int
     static native _UnblockVsyncWait(long: long): int
 
