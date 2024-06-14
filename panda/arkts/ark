@@ -17,5 +17,7 @@ SCRIPT_DIR=`dirname "${BASH_SOURCE[0]}"`
 
 . $SCRIPT_DIR/common
 
+PANDA_LIB_FILES=$(echo $(find $PANDA_LIB_PATH -not -name index.abc -name *.abc -exec echo {}: \;) | tr -d ' ')
+
 $PANDA_SDK/$ARCH_TOOLS/bin/ark --load-runtimes=ets --boot-panda-files $PANDA_SDK/ets/etsstdlib.abc:$PANDA_LIB_FILES $@ index.ETSGLOBAL::main
 

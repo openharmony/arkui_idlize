@@ -120,7 +120,7 @@ class PeerFileVisitor {
         const isNode = parentRole !== InheritanceRole.Finalizable
         const signature = new NamedMethodSignature(
             Type.Void,
-            [new Type(this.isArkTs ? 'int' : 'ArkUINodeType', !isNode), new Type('ComponentBase', true), new Type('int32')],
+            [new Type('ArkUINodeType', !isNode), new Type('ComponentBase', true), new Type('int32')],
             ['type', 'component', 'flags'],
             [undefined, undefined, '0'])
 

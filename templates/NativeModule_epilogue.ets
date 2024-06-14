@@ -2,6 +2,17 @@
     static native _CreateNode(type: int, id: int, flags: int): long
     static native _DisposeNode(ptr: long): void
     static native _ApplyModifierFinish(ptr: long): void
+    static native _Dump(nodePtr: long): void
+    static native _AddChild(parent: long, child: long): int
+    static native _RemoveChild(parent: long, child: long): void
+    static native _InsertChildAfter(parent: long, child: long, sibling: long): int
+    static native _InsertChildBefore(parent: long, child: long, sibling: long): int
+    static native _InsertChildAt(parent: long, child: long, position: int): int
+    static native _UnRegisterNodeAsyncEvent(nodePtr: long , kind: int ): void
+    static native _RegisterNodeAsyncEventReceiver(eventReceiver: long ): void
+    static native _UnRegisterNodeAsyncEventReceiver(): void
+    static native _MarkDirty( nodePtr:long,  dirtyFlag:int): void
+    static native _IsBuilderNode( nodePtr:long): boolean
 
     // ExtendedNodeAPI
     static native _SetCustomCallback(node: long, callbackId: int): void
@@ -46,5 +57,5 @@
     // _Dump
     static native _ShowCrash(messagePtr: String): void
 
-    static native _GetPipelineContext(nodePtr: long ): long
+    static native _GetPipelineContext(nodePtr: long): long
 }

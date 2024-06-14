@@ -100,7 +100,7 @@ export interface BindOptions {
 }
 
 export interface SheetOptions extends BindOptions {
-    title?: SheetTitleOptions;
+    title?: SheetTitleOptions | CustomBuilder;
     detents?: [(SheetSize | Length | undefined), (SheetSize | Length | undefined), (SheetSize | Length | undefined)] | undefined;
 }
 
@@ -437,7 +437,7 @@ export class ClassWithConstructorAndAllOptionalParamsDTS {
 }
 
 
-export type CustomBuilder = (() => Object) | void
+export type CustomBuilder = (() => Object | void)
 
 export class BottomTabBarStyle {
 

@@ -1,7 +1,7 @@
 import { int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
 import { Finalizable } from "./Finalizable"
-
+import { ArkUINodeType } from "./ArkUINodeType"
 
 export class NativePeerNode extends Finalizable {
     public constructor(ptr: pointer) {
@@ -11,7 +11,7 @@ export class NativePeerNode extends Finalizable {
 
 export class PeerNode extends Finalizable {
     peer: NativePeerNode
-    constructor(type: number, flags: int32) {
+    constructor(type: ArkUINodeType, flags: int32) {
         // TODO: rework
         super(42)
         this.peer = new NativePeerNode(42)

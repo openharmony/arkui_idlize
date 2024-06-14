@@ -26,7 +26,7 @@ EtsExports* EtsExports::getInstance() {
 void addType(const std::string& type, std::string* result) {
     if (type == "void")
         result->append("");
-    else if (type == "KInt" || type == "Ark_Int32" || type == "Ark_Boolean" || type == "KBoolean" || type == "int32_t" || type == "KUInt" || type == "uint32_t")
+    else if (type == "KInt" || type == "Ark_Int32"  || type == "KBoolean" || type == "Ark_Boolean" || type == "KBoolean" || type == "int32_t" || type == "KUInt" || type == "uint32_t")
         result->append("I");
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         result->append("J");

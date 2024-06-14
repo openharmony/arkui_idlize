@@ -60,7 +60,7 @@ declare interface BindOptions {
 }
 
 declare interface SheetOptions extends BindOptions {
-    title?: SheetTitleOptions // | CustomBuilder;
+    title?: SheetTitleOptions | CustomBuilder;
     detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
 }
 
