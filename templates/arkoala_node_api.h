@@ -366,6 +366,8 @@ typedef struct %CPP_PREFIX%Ark_NodeEvent
 typedef void (*%CPP_PREFIX%EventReceiver)(%CPP_PREFIX%Ark_NodeEvent* event);
 
 typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
+    Ark_Int32 version;
+
     /// Tree operations.
     Ark_NodeHandle (*createNode)(%CPP_PREFIX%Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags);
 

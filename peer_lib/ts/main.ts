@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { nullptr } from "@koalaui/interop"
+import { pointer, nullptr } from "@koalaui/interop"
 import { SerializerBase } from "@arkoala/arkui/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/DeserializerBase"
 import { Serializer } from "@arkoala/arkui/Serializer"
@@ -117,6 +117,17 @@ function checkSerdeBaseCustomObject() {
     checkSerdeResult("DeserializerBase.readCustomObject, Resource",
         JSON.stringify(resource),
         JSON.stringify(des.readCustomObject("Resource") as Resource))
+}
+
+function checkNodeAPI() {
+    const ARKUI_TEXT = 1
+    const id = 12
+    const flags = 7
+    let ptr: pointer = 0
+    checkResult("BasicNodeAPI createNode",
+        () => ptr = nativeModule()._CreateNode(ARKUI_TEXT, id, flags),
+        `createNode(${ARKUI_TEXT}, ${id}, ${flags})`)
+    assertEquals("BasicNodeAPI createNode result", 123, ptr)
 }
 
 function checkButton() {
@@ -414,6 +425,7 @@ checkPerf3(200 * 1000)
 
 startPerformanceTest()
 startNativeLog(CALL_GROUP_LOG)
+checkNodeAPI()
 checkButton()
 checkCalendar()
 //checkDTS()
