@@ -6,7 +6,7 @@ import {Serializer} from "@arkoala/arkui/Serializer"
 
 
 it('Should write LabelStyle maxLines: 10', function () {
-    let serializer = new Serializer(7)
+    let serializer = new Serializer()
     let labelStyle: LabelStyle = {maxLines: 10}
     serializer.writeLabelStyle(labelStyle)
     assert.deepEqual(toArray(serializer), [RuntimeType.NUMBER, Tags.INT32, ...toInt32(10)])

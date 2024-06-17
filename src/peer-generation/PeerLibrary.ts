@@ -32,7 +32,6 @@ export class PeerLibrary {
     ) {}
 
     readonly customComponentMethods: string[] = []
-    readonly importTypesStubs: string[] = []
     // todo really dirty - we use it until we can generate interfaces
     // replacing import type nodes
     readonly importTypesStubToSource: Map<string, string> = new Map()

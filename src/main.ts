@@ -55,7 +55,6 @@ import { printApiAndSerializers } from "./peer-generation/HeaderPrinter"
 import { printNodeTypes } from "./peer-generation/NodeTypesPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/NativeModulePrinter"
 import { printBridgeCc } from "./peer-generation/BridgeCcPrinter"
-import { printImportsStubs } from "./peer-generation/ImportsStubsPrinter"
 import { printDelegatesAsMultipleFiles } from "./peer-generation/DelegatePrinter"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
 import { printEvents, printEventsCImpl } from "./peer-generation/EventsPrinter"
@@ -63,6 +62,7 @@ import { printGniSources } from "./peer-generation/GniPrinter"
 import { printMesonBuild } from "./peer-generation/MesonPrinter"
 import { printInterfaces } from "./peer-generation/InterfacePrinter"
 import { printConflictedDeclarations } from "./peer-generation/ConflictedDeclarationsPrinter"
+import { printFakeDeclarations } from "./peer-generation/FakeDeclarationsPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -93,6 +93,7 @@ const options = program
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
     .option('--language [ts|sts|java]', 'Output language')
     .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
+    .option('--need-interfaces', 'Generate interfaces to resolve all .d.ts dependencies', false)
     .option('--version')
     .option('--generator-target <all|arkoala|libace|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
     .option('--arkoala-destination <path>', 'Location of arkoala repository')
@@ -286,6 +287,7 @@ if (options.dts2peer) {
     if (options.apiPrefix !== undefined) {
         PeerGeneratorConfig.cppPrefix = options.apiPrefix
     }
+    PeerGeneratorConfig.needInterfaces = options.needInterfaces
     const declarationTable = new DeclarationTable(options.language ?? "ts")
     const peerLibrary = new PeerLibrary(declarationTable)
     const generatedPeersDir = options.outputDir ?? "./generated/peers"
@@ -402,10 +404,15 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             arkuiComponentsFiles.push(outComponentFile)
         }
 
-        fs.writeFileSync(
-            arkoala.tsLib('ImportsStubs'),
-            printImportsStubs(peerLibrary),
-        )
+        const fakeDeclarations = printFakeDeclarations(peerLibrary)
+        for (const [filename, data] of fakeDeclarations) {
+            const outComponentFile = arkoala.interface(filename)
+            console.log("producing", outComponentFile)
+            if (options.verbose) console.log(data)
+            fs.writeFileSync(outComponentFile, data)
+            arkuiComponentsFiles.push(outComponentFile)
+        }
+
         fs.writeFileSync(
             arkoala.tsLib('ConflictedDeclarations'),
             printConflictedDeclarations(peerLibrary),

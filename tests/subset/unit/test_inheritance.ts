@@ -15,7 +15,7 @@ enum ThemeColorMode {
 }
 
 it('Test BackgroundBlurStyleOptions serializer has superclass', function () {
-    let serializer = new Serializer(20)
+    let serializer = new Serializer()
     let blurOptions: BlurOptions = {
         grayscale: [2, 3]
     }
@@ -35,7 +35,7 @@ it('Test BackgroundBlurStyleOptions serializer has superclass', function () {
 });
 
 it('Test bindSheet serializer has superclass', function () {
-    let serializer = new Serializer(20)
+    let serializer = new Serializer()
     let resource: Resource = { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
     let sheetTitle: SheetTitleOptions = {
         title: resource

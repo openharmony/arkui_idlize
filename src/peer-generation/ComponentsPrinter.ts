@@ -24,7 +24,8 @@ import { isCommonMethod } from "./inheritance";
 import { PeerMethod } from "./PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
 import { OverloadsPrinter, collapseSameNamedMethods } from "./OverloadsPrinter";
-import { LanguageWriter, Type, createLanguageWriter } from "./LanguageWriters";
+import { LanguageWriter, Method, MethodModifier, MethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
+import { convertToCallback } from "./EventsPrinter";
 
 function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -46,8 +47,6 @@ class ComponentFileVisitor {
     private printImports(): void {
         const imports = new ImportsCollector()
         imports.addFilterByBasename(this.targetBasename)
-        for (const importType of this.library.importTypesStubs)
-            imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
         this.file.peers.forEach(peer => {
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             imports.addFeature("remember", "@koalaui/runtime")
@@ -62,9 +61,13 @@ class ComponentFileVisitor {
             imports.addFeature("RuntimeType", "./SerializerBase")
             imports.addFeature("isPixelMap", "./SerializerBase")
             imports.addFeature("isResource", "./SerializerBase")
-            imports.addFeature("UseProperties", './use_properties')
             imports.addFeature('ComponentBase', './ComponentBase')
             imports.addFeature('unsafeCast', './generated-utils')
+            for (const method of peer.methods) {
+                for (const target of method.declarationTargets)
+                    if (convertToCallback(peer, method, target))
+                        imports.addFeature("UseProperties", './use_properties')
+            }
             // TBD
             // peer.materializedClasses.forEach(it => {
             //     imports.addFeature(it.className, `./Ark${peer.componentName}Peer`)
@@ -105,6 +108,11 @@ class ComponentFileVisitor {
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
                 writer.print(`attributeModifier(modifier: AttributeModifier<object>): this { throw new Error("not implemented") }`)
+            const attributesSignature = new MethodSignature(Type.Void, [])
+            writer.writeMethodImplementation(new Method('applyAttributesFinish', attributesSignature, [MethodModifier.PUBLIC]), (writer) => {
+                writer.print('// we calls this function outside of class, so need to make it public')
+                writer.writeMethodCall('super', 'applyAttributesFinish', [])
+            })
         }, parentComponentClassName, [attributeClassName])
 
 
@@ -121,8 +129,8 @@ export function ${componentFunctionName}(
         return new ${componentClassName}()
     })
     NodeAttach(() => new ${peerClassName}(ArkUINodeType.${peer.componentName}, receiver), () => {
-        style?.(receiver)
         ${callableMethod ? `receiver.${callableMethod.name}(${mappedCallableParamsValues})` : ""}
+        style?.(receiver)
         content_?.()
         receiver.applyAttributesFinish()
     })

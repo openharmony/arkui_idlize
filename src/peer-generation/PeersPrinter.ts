@@ -94,8 +94,7 @@ class PeerFileVisitor {
         })
         if (this.file.declarationTable.language === Language.TS) {
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
-            for (const importType of this.library.importTypesStubs)
-                imports.addFeatureByBasename(importType, 'ImportsStubs.ts')
+            this.file.serializeImportFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         }
         imports.addFeature("unsafeCast", "./generated-utils")
         imports.print(this.printer)

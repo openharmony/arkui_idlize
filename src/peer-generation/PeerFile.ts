@@ -45,6 +45,7 @@ export class PeerFile {
     // structs detached from `ts` nodes
     readonly declarations: Set<ts.Declaration> = new Set()
     readonly importFeatures: ImportFeature[] = []
+    readonly serializeImportFeatures: ImportFeature[] = []
     constructor(
         public readonly originalFilename: string,
         public readonly declarationTable: DeclarationTable,

@@ -10,5 +10,5 @@ export class ComponentBase {
     protected checkPriority(
         name: string
     ): boolean { throw new Error("not implemented") }
-    public applyAttributesFinish(): void { throw new Error("not implemented") }
+    protected applyAttributesFinish(): void { throw new Error("not implemented") }
 }

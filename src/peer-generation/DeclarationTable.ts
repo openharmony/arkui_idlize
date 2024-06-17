@@ -1253,6 +1253,8 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
             case `AnimationRange`: return PrimitiveType.CustomObject
             case `ContentModifier`: return PrimitiveType.CustomObject
             case `Date`: return PrimitiveType.CustomObject
+            // stub required to compile arkoala patched sdk
+            case `Function`: return PrimitiveType.Function
         }
         // Types with type arguments are declarations!
         if (node.typeArguments) {

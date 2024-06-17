@@ -832,7 +832,7 @@ export class TSLanguageWriter extends LanguageWriter {
         return this.makeString(`Object.values(${enumType})[${value.asString()}]`);
     }
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
-        return this.makeString(`Object.keys(${enumType}).indexOf(${value.asString()})`);
+        return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, new Type('string')).asString()})`);
     }
 }
 

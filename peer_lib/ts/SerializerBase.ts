@@ -15,7 +15,8 @@
 import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
 import { nativeModule } from "@arkoala/arkui/NativeModule"
-import { Resource, Length, PixelMap } from "@arkoala/arkui"
+// imports required intarfaces (now generation is disabled)
+// import { Resource, Length, PixelMap } from "@arkoala/arkui"
 /**
  * Value representing possible JS runtime object type.
  * Must be synced with "enum RuntimeType" in C++.

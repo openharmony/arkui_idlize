@@ -15,7 +15,7 @@
 import {float32, int32} from "@koalaui/common"
 import {pointer} from "@koalaui/interop"
 import {RuntimeType, Tags} from "@arkoala/arkui/SerializerBase";
-import { Length } from "@arkoala/arkui"
+// import { Length } from "@arkoala/arkui"
 
 export class DeserializerBase {
     private position = 0

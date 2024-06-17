@@ -51,6 +51,7 @@ import { mapType } from "./TypeNodeNameConvertor";
 import { convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./dependencies_collector";
 import { convertDeclToFeature } from "./ImportsCollector";
+import { isFakeDeclaration, makeFakeTypeAliasDeclaration } from "./fake_declaration";
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -523,17 +524,24 @@ function mapCInteropRetType(type: ts.TypeNode): string {
 class ImportsAggregateCollector extends TypeDependenciesCollector {
     constructor(
         private readonly peerLibrary: PeerLibrary,
+        private readonly expandAliases: boolean,
     ) {
         super(peerLibrary.declarationTable.typeChecker!)
     }
 
     override convertImport(node: ts.ImportTypeNode): ts.Declaration[] {
         const generatedName = mapType(node)
-        if (!this.peerLibrary.importTypesStubs.includes(generatedName)) {
-            this.peerLibrary.importTypesStubs.push(generatedName)
+        if (!this.peerLibrary.importTypesStubToSource.has(generatedName)) {
             this.peerLibrary.importTypesStubToSource.set(generatedName, node.getText())
         }
-        return super.convertImport(node)
+        return [
+            ...super.convertImport(node),
+            makeFakeTypeAliasDeclaration(
+                'FakeDeclarations', 
+                generatedName, 
+                ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
+            ),
+        ]
     }
 
     override convertTypeReference(node: ts.TypeReferenceNode): ts.Declaration[] {
@@ -541,8 +549,9 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
         const result = [...declarations]
         for (const decl of declarations) {
             // expand type aliaces because we have serialization inside peers methods
-            if (ts.isTypeAliasDeclaration(decl))
+            if (this.expandAliases && ts.isTypeAliasDeclaration(decl)) {
                 result.push(...this.convert(decl.type))
+            }
         }
         return result
     }
@@ -551,12 +560,15 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
 export class PeerProcessor {
     private readonly typeDependenciesCollector: TypeDependenciesCollector
     private readonly declDependenciesCollector: DeclarationDependenciesCollector
+    private readonly serializeDepsCollector: DeclarationDependenciesCollector
 
     constructor(
         private readonly library: PeerLibrary,
     ) { 
-        this.typeDependenciesCollector = new ImportsAggregateCollector(this.library)
+        this.typeDependenciesCollector = new ImportsAggregateCollector(this.library, false)
         this.declDependenciesCollector = new DeclarationDependenciesCollector(this.declarationTable.typeChecker!, this.typeDependenciesCollector)
+        this.serializeDepsCollector = new DeclarationDependenciesCollector(
+            this.declarationTable.typeChecker!, new ImportsAggregateCollector(this.library, true))
     }
     private get declarationTable(): DeclarationTable {
         return this.library.declarationTable
@@ -570,6 +582,7 @@ export class PeerProcessor {
 
         const importFeatures = this.declDependenciesCollector.convert(target)
             .filter(it => this.isSourceDecl(it))
+            .filter(it => PeerGeneratorConfig.needInterfaces || isFakeDeclaration(it))
             .map(it => convertDeclToFeature(this.library, it))
         let constructor = target.members.find(ts.isConstructorDeclaration)!
         let mConstructor = this.makeMaterializedMethod(className, constructor)
@@ -641,6 +654,8 @@ export class PeerProcessor {
     }
 
     private isSourceDecl(node: ts.Declaration): boolean {
+        if (isFakeDeclaration(node))
+            return true
         if (ts.isModuleBlock(node.parent))
             return this.isSourceDecl(node.parent.parent)
         if (ts.isTypeParameterDeclaration(node))
@@ -680,6 +695,8 @@ export class PeerProcessor {
 
     process(): void {
         for (const dep of this.generateDeclarations()) {
+            if (isFakeDeclaration(dep))
+                continue
             const file = this.library.findFileByOriginalFilename(this.getDeclSourceFile(dep).fileName)!
             const isPeerDecl = this.library.peerDeclarations.has(dep)
 
@@ -688,14 +705,20 @@ export class PeerProcessor {
                 continue
             }
 
-            this.declDependenciesCollector.convert(dep).forEach(it => {
-                if (!this.isSourceDecl(it)) return
-                file.importFeatures.push(convertDeclToFeature(this.library, it))
-            })
-            
             if (ts.isEnumDeclaration(dep)) {
                 this.processEnum(dep)
-            } else {
+                continue
+            }
+
+            this.declDependenciesCollector.convert(dep).forEach(it => {
+                if (this.isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isFakeDeclaration(it)))
+                    file.importFeatures.push(convertDeclToFeature(this.library, it))
+            })
+            this.serializeDepsCollector.convert(dep).forEach(it => {
+                if (this.isSourceDecl(it) && PeerGeneratorConfig.needInterfaces)
+                    file.serializeImportFeatures.push(convertDeclToFeature(this.library, it))
+            })
+            if (PeerGeneratorConfig.needInterfaces) {
                 file.declarations.add(dep)
                 file.importFeatures.push(convertDeclToFeature(this.library, dep))
             }
