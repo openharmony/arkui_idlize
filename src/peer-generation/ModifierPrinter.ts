@@ -395,8 +395,8 @@ export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: 
 function printModifiersImplFile(filePath: string, slug: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
     const writer = new CppLanguageWriter(new IndentedPrinter())
     writer.writeLines(cStyleCopyright)
-    writer.writeMultilineCommentBlock(warning)
-    writer.print("")
+    // writer.writeMultilineCommentBlock(warning)
+    // writer.print("")
 
     writer.writeInclude(`arkoala_api_generated.h`)
     // writer.writeInclude(`${slug}_delegate.h`)
