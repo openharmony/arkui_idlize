@@ -82,9 +82,11 @@ libace_sources += [
 ]
 else
 libace_sources += [
-    libace_dir + 'generated/interface/all_modifiers.cc',
-    libace_dir + 'implementation/delegates.cc',
+    libace_dir + '/generated/interface/all_modifiers.cpp',
 ]
+getModifierImplFiles = run_command('node', 'getModifierImplFiles.mjs', libace_dir + '/implementation')
+modifier_impl_sources = getModifierImplFiles.stdout().strip().split(',')
+libace_sources += modifier_impl_sources
 endif
 cflags += ['-DKOALA_USE_LIBACE=1']
 else
@@ -244,11 +246,13 @@ ohos_ldflags = [
 ]
 
 ohos_include_dirs = [
-    '../node_modules/node-addon-api'
+    '../node_modules/node-addon-api',
+    arkoala_dir / 'node',
+    arkoala_dir / 'arkts'
 ]
 
 ohos_sources = [
-    gen_dir + '/convertors-node.cc',
+    arkoala_dir + '/node/convertors-node.cc'
 ]
 
 shared_library(ohos_library_name,

@@ -57,8 +57,8 @@ const libTargetDir = `${libsDir}/${archPath}`
 const libTarget = `${libTargetDir}/${libName}`
 const codesTargetDir = 'ohos-app/api_perf/entry/src/main/ets/idlize'
 const koalauiModulesDir = 'peer_lib/ts/@koalaui'
-const generatedDir = `generated/${isFull ? 'peers' : 'subset'}`
-const peerNodePath = `${generatedDir}/PeerNode.ts`
+const arkoalaArkuiSrcDir = `generated/${isFull ? 'peers' : 'subset'}/koalaui/arkoala-arkui/src`
+const peerNodePath = `${arkoalaArkuiSrcDir}/PeerNode.ts`
 const testDtsDir = `tests/subset/ets`
 const commonFilePath = path.join(codesTargetDir, 'common.ts')
 const testDtsPath = path.join(codesTargetDir, 'test.d.ts')
@@ -149,7 +149,7 @@ export class ArkComponent {
     if (isCommon) {
         fs.readFile(peerNodePath, 'utf8', (error, data) => {
             if (error) {
-                console.error(`read ${sourceFile} error : `, error)
+                console.error(`read ${peerNodePath} error : `, error)
                 return
             }
             initString += data.replace(/.*@koalaui\/common"/g, '')
@@ -158,8 +158,8 @@ export class ArkComponent {
             initString = initString.replace(/.*@koalaui\/runtime"/g, '')
             fs.writeFile(getCommonFilePath(), initString, 'utf8', (error) => {
                 if (error) {
-                console.error(`Init ${getCommonFilePath()} error : `, error)
-                return
+                    console.error(`Init ${getCommonFilePath()} error : `, error)
+                    return
                 }
                 console.log(`Init ${getCommonFilePath()} successfully`);
             });
@@ -198,7 +198,7 @@ export class ArkComponent {
                     expectedData = expectedData.replace(/@koalaui\/runtime/g, './common')
                     expectedData = expectedData.replace(/implements.*/g, '{')
                     if (file === "NativeModule.ts") {
-                        const requireStatement = 'require("../../../../native/NativeBridgeNapi")'
+                        const requireStatement = 'require("../../../../../../../native/NativeBridgeNapi")'
                         const requireNapiStatement = `globalThis.requireNapi("libNativeBridge_ohos_${arch}.so", true)`
                         expectedData = expectedData.replace(requireStatement, requireNapiStatement)
                     }
@@ -225,4 +225,4 @@ copyAndFixPeerFiles(koalauiModulesDir, codesTargetDir, true)
 if (!isFull) copyTestDts(testDtsDir)
 
 console.log(`copy ${isFull ? 'full' : 'subset'} peer codes to ohos project.`)
-copyAndFixPeerFiles(generatedDir, codesTargetDir)
+copyAndFixPeerFiles(arkoalaArkuiSrcDir, codesTargetDir)

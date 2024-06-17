@@ -23,6 +23,7 @@
    op(napi_create_string_utf8) \
    op(napi_add_env_cleanup_hook) \
    op(napi_get_last_error_info) \
+   op(napi_get_value_bigint_int64) \
    op(napi_get_value_bigint_uint64) \
    op(napi_create_object) \
    op(napi_get_arraybuffer_info) \
@@ -113,6 +114,12 @@ NAPI_EXTERN napi_status NAPI_CDECL
 napi_get_last_error_info(napi_env env, const napi_extended_error_info** result) {
     LoadNapiFunctions();
     return p_napi_get_last_error_info(env, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_get_value_bigint_int64(
+    napi_env env, napi_value value, int64_t* result, bool* lossless) {
+  LoadNapiFunctions();
+  return p_napi_get_value_bigint_int64(env, value, result, lossless);
 }
 
 NAPI_EXTERN napi_status NAPI_CDECL napi_get_value_bigint_uint64(

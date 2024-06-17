@@ -90,7 +90,7 @@ function cleanEnv() {
     execSync(`${rmAceCmd}`, { cwd: '.', stdio: 'inherit'})
 }
 
-function resolveLibDependency() {
+function resolveDependencies() {
     let pushDeps4OhosPerfAppCmd = `node ./ohos-app/getDependencies4ohos.mjs ${mode} ${arch}`
     console.log(`${pushDeps4OhosPerfAppCmd}`)
     execSync(pushDeps4OhosPerfAppCmd, { cwd: '.', stdio: 'inherit'})
@@ -186,7 +186,7 @@ function runHap(hapPath, packageName) {
 if (!checkEnv()) exit()
 mountRW()
 cleanEnv()
-resolveLibDependency()
+resolveDependencies()
 buildPerfProject()
 signHap()
 
