@@ -61,6 +61,7 @@ class ComponentFileVisitor {
             imports.addFeature("RuntimeType", "./SerializerBase")
             imports.addFeature("isPixelMap", "./SerializerBase")
             imports.addFeature("isResource", "./SerializerBase")
+            imports.addFeature("isInstanceOf", "./SerializerBase")
             imports.addFeature('ComponentBase', './ComponentBase')
             imports.addFeature('unsafeCast', './generated-utils')
             for (const method of peer.methods) {

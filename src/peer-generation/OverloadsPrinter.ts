@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { makeUnionVariantCondition } from "./Convertors"
+import { UndefinedConvertor, UnionRuntimeTypeChecker } from "./Convertors"
 import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression } from "./LanguageWriters";
 import { PeerClass, PeerClassBase } from "./PeerClass";
 import { PeerMethod } from "./PeerMethod";
@@ -53,6 +53,7 @@ export function groupOverloads(peerMethods: PeerMethod[]): PeerMethod[][] {
 }
 
 export class OverloadsPrinter {
+    private static undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
 
     constructor(private printer: LanguageWriter, private library: PeerLibrary, private isComponent: boolean = true) {}
 
@@ -69,12 +70,14 @@ export class OverloadsPrinter {
                 this.printer.pushIndent()
             }
             if (orderedMethods.length > 1) {
-                collapsedMethod.signature.args.forEach((_, index) => {
-                    const argName = collapsedMethod.signature.argName(index)
+                const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
+                    const argName = collapsedMethod.signature.argName(argIndex)
                     this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
+                    return new UnionRuntimeTypeChecker(
+                        orderedMethods.map(m => m.argConvertors[argIndex] ?? OverloadsPrinter.undefinedConvertor))
                 })
-                for (const peerMethod of orderedMethods)
-                    this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod)
+                orderedMethods.forEach((peerMethod, methodIndex) =>
+                    this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod, methodIndex, runtimeTypeCheckers))
                 writer.print(`throw "Can not select appropriate overload"`)
             } else {
                 this.printPeerCallAndReturn(peer, collapsedMethod, orderedMethods[0])
@@ -87,11 +90,10 @@ export class OverloadsPrinter {
         })
     }
 
-    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod) {
+    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
         const argsConditions = collapsedMethod.signature.args.map((_, argIndex) =>
-            makeUnionVariantCondition(collapsedMethod.signature.argName(argIndex),
-                peerMethod.argConvertors[argIndex], argIndex, this.printer))
-        this.printer.print(`if (${argsConditions.join(" && ")}) {`)
+            runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
+        this.printer.print(`if (${this.printer.makeNaryOp("&&", argsConditions).asString()}) {`)
         this.printer.pushIndent()
         this.printPeerCallAndReturn(peer, collapsedMethod, peerMethod)
         this.printer.popIndent()

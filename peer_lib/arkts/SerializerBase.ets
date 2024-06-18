@@ -84,6 +84,11 @@ export function isResource(value: Object|undefined): boolean {
     return false
 }
 
+export function isInstanceOf(className: string, value: Object): boolean {
+    // TODO: fix me!
+    return false
+}
+
 /* Serialization extension point */
 export abstract class CustomSerializer {
     protected supported: Array<string>

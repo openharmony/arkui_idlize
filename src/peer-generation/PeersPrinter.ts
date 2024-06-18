@@ -136,7 +136,9 @@ class PeerFileVisitor {
     }
 
     private printPeerMethod(method: PeerMethod) {
+        this.library.declarationTable.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
         writePeerMethod(this.printer, method, this.dumpSerialized, "Attribute", "this.peer.ptr")
+        this.library.declarationTable.setCurrentContext(undefined)
     }
 
     private printApplyMethod(peer: PeerClass) {
@@ -179,7 +181,7 @@ class PeerFileVisitor {
                     `import { int32 } from "@koalaui/common"`,
                     `import { PeerNode } from "./PeerNode"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { isPixelMap, isResource, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
+                    `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
                     `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { nativeModule } from "./NativeModule"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
@@ -191,7 +193,7 @@ class PeerFileVisitor {
                     `import { int32 } from "@koalaui/common"`,
                     `import { PeerNode } from "./PeerNode"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { isPixelMap, isResource, runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
+                    `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
                     `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ComponentBase } from "./ComponentBase"`,

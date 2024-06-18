@@ -91,7 +91,9 @@ class MaterializedFileVisitor {
 
             const pointerType = Type.Pointer
             makePrivate(clazz.ctor.method)
+            this.library.declarationTable.setCurrentContext(`${clazz.className}.constructor`)
             writePeerMethod(writer, clazz.ctor, this.dumpSerialized, "", "", pointerType)
+            this.library.declarationTable.setCurrentContext(undefined)
 
             const ctorSig = clazz.ctor.method.signature as NamedMethodSignature
             const sigWithPointer = new NamedMethodSignature(
@@ -148,7 +150,9 @@ class MaterializedFileVisitor {
             clazz.methods.forEach(method => {
                 makePrivate(method.method)
                 const returnType = method.tsReturnType()
+                this.library.declarationTable.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
                 writePeerMethod(writer, method, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
+                this.library.declarationTable.setCurrentContext(undefined)
             })
         })
     }

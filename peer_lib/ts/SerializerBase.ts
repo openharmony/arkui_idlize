@@ -73,6 +73,11 @@ export function isResource(value: Object): value is Resource {
     return value.hasOwnProperty("bundleName") && value.hasOwnProperty("moduleName")
 }
 
+// Poor man's instanceof, fails on subclasses
+export function isInstanceOf(className: string, value: Object): boolean {
+    return value.constructor.name === className
+}
+
 export function withLength(valueLength: Length|undefined, body: (type: int32, value: float32, unit: int32, resource: int32) => void) {
     let type = runtimeType(valueLength)
     let value = 0

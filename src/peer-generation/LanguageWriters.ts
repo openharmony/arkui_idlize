@@ -570,6 +570,9 @@ export abstract class LanguageWriter {
     makeThis(): LanguageExpression {
         return new StringExpression("this")
     }
+    makeNull(): LanguageExpression {
+        return new StringExpression("null")
+    }
     makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType): LanguageExpression {
         const op = equals ? "==" : "!="
         return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(typeVarName)])
@@ -1102,6 +1105,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     override makeThis(): LanguageExpression {
         return new StringExpression("*this")
+    }
+    override makeNull(): LanguageExpression {
+        return new StringExpression("nullptr")
     }
     override makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}.value`)

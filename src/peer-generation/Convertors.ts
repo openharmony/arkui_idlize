@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { Language, identName, importTypeName } from "../util"
-import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTable, FieldRecord, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, Type } from "./LanguageWriters"
@@ -31,7 +31,6 @@ export interface ArgConvertor {
     isScoped: boolean
     useArray: boolean
     runtimeTypes: RuntimeType[]
-    hasUnionDiscriminator: boolean
     estimateSize(): number
     scopeStart?(param: string, language: Language): string
     scopeEnd?(param: string, language: Language): string
@@ -41,7 +40,8 @@ export interface ArgConvertor {
     interopType(language: Language): string
     nativeType(impl: boolean): string
     isPointerType(): boolean
-    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression|undefined
+    unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined
+    getMembers(): string[]
 }
 
 export abstract class BaseArgConvertor implements ArgConvertor {
@@ -50,8 +50,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         public runtimeTypes: RuntimeType[],
         public isScoped: boolean,
         public useArray: boolean,
-        public param: string,
-        public hasUnionDiscriminator: boolean = false
+        public param: string
     ) { }
 
     estimateSize(): number {
@@ -71,14 +70,37 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     abstract convertorArg(param: string, writer: LanguageWriter): string
     abstract convertorSerialize(param: string, value: string, writer: LanguageWriter): void
     abstract convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
-    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression|undefined {
+    unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined {
         return undefined
+    }
+    getMembers(): string[] { return [] }
+    protected discriminatorFromExpressions(value: string, runtimeType: RuntimeType, writer: LanguageWriter, exprs: LanguageExpression[]) {
+        return writer.makeNaryOp("&&", [
+            writer.makeNaryOp("==", [writer.makeRuntimeType(runtimeType), writer.makeString(`${value}_type`)]),
+            ...exprs
+        ])
+    }
+    protected discriminatorFromFields<T>(value: string, writer: LanguageWriter,
+        uniqueFields: T[] | undefined, nameAccessor: (field: T) => string, optionalAccessor: (field: T) => boolean)
+    {
+        if (!uniqueFields || uniqueFields.length === 0) return undefined
+        const firstNonOptional = uniqueFields.find(it => !optionalAccessor(it))
+        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer, [
+            firstNonOptional
+                ? writer.makeString(`${value}!.hasOwnProperty("${nameAccessor(firstNonOptional)}")`)
+                : writer.makeString(`(${writer.makeNaryOp("||",
+                    uniqueFields.map(it => writer.makeString(`${value}!.hasOwnProperty("${nameAccessor(it)}")`))).asString()})`)
+        ])
     }
 }
 
 export class StringConvertor extends BaseArgConvertor {
+    private literalValue?: string
     constructor(param: string, receiverType: ts.TypeNode) {
         super(mapType(receiverType), [RuntimeType.STRING], false, false, param)
+        if (ts.isLiteralTypeNode(receiverType) && ts.isStringLiteral(receiverType.literal)) {
+            this.literalValue = receiverType.literal.text
+        }
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` : param
@@ -105,6 +127,11 @@ export class StringConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return this.literalValue
+            ? writer.makeString(`${value} === "${this.literalValue}"`)
+            : undefined
+    }
 }
 
 export class ToStringConvertor extends BaseArgConvertor {
@@ -116,7 +143,7 @@ export class ToStringConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         writer.writeMethodCall(`${param}Serializer`, `writeString`, [
-            writer.language == Language.CPP ? value : `${value}.toString()`])///
+            writer.language == Language.CPP ? value : `${value}.toString()`])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         return printer.makeAssign(value, undefined, printer.makeString(`${param}Deserializer.readString()`), false)
@@ -174,11 +201,9 @@ export class UndefinedConvertor extends BaseArgConvertor {
         super("undefined", [RuntimeType.UNDEFINED], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? "nullptr" : "undefined"
+        return writer.makeUndefined().asString()
     }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.print(`${param}Serializer.writeUndefined()`)
-    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {}
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = printer.getObjectAccessor(this, param, value)
         return printer.makeAssign(accessor, undefined,
@@ -198,13 +223,42 @@ export class UndefinedConvertor extends BaseArgConvertor {
     }
 }
 
+export class NullConvertor extends BaseArgConvertor {
+    constructor(param: string) {
+        super("null", [RuntimeType.OBJECT], false, false, param)
+    }
+    convertorArg(param: string, writer: LanguageWriter): string {
+        return writer.makeNull().asString()
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {}
+    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+        const accessor = printer.getObjectAccessor(this, param, value)
+        return printer.makeAssign(accessor, undefined, printer.makeUndefined(), false)
+    }
+    nativeType(impl: boolean): string {
+        return "nullptr"
+    }
+    interopType(language: Language): string {
+        return PrimitiveType.NativePointer.getText()
+    }
+    estimateSize() {
+        return 1
+    }
+    isPointerType(): boolean {
+        return false
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return writer.makeString(`${value} === null`)
+    }
+}
+
 export class EnumConvertor extends BaseArgConvertor {
     constructor(param: string,
                 private enumType: ts.EnumDeclaration,
                 private readonly isStringEnum: boolean) {
         super(isStringEnum ?  "string" : "number",
             [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
-            false, false, param, true)
+            false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? param : `unsafeCast<int32>(${param})`
@@ -237,7 +291,7 @@ export class EnumConvertor extends BaseArgConvertor {
         return false
     }
     // TODO: bit clumsy.
-    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         let low: number|undefined = undefined
         let high: number|undefined = undefined
         // TODO: proper enum value computation for cases where enum members have computed initializers.
@@ -255,7 +309,7 @@ export class EnumConvertor extends BaseArgConvertor {
         const ordinal = this.isStringEnum
             ? writer.ordinalFromEnum(writer.makeString(value), identName(this.enumType.name)!)
             : writer.makeUnionVariantCast(value, Type.Number, index)
-        return writer.makeNaryOp("&&", [
+        return this.discriminatorFromExpressions(value, this.runtimeTypes[0], writer, [
             writer.makeNaryOp(">=", [ordinal, writer.makeString(low!.toString())]),
             writer.makeNaryOp("<=",  [ordinal, writer.makeString(high!.toString())])
         ])
@@ -307,7 +361,7 @@ export class LengthConvertorScoped extends BaseArgConvertor {
 
 export class LengthConvertor extends BaseArgConvertor {
     constructor(name: string, param: string) {
-        super(name, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param, true)
+        super(name, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `(const ${PrimitiveType.Length.getText()}*)&${param}` : param
@@ -343,23 +397,78 @@ export class LengthConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
-        return writer.makeString(`isResource(${value})`)
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return writer.makeNaryOp("||", [
+            writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.NUMBER), writer.makeString(`${value}_type`)]),
+            writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.STRING), writer.makeString(`${value}_type`)]),
+            writer.makeNaryOp("&&", [
+                writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeString(`${value}_type`)]),
+                writer.makeString(`isResource(${value})`)])])
     }
 }
 
+export class UnionRuntimeTypeChecker {
+    private conflictingConvertors: Set<ArgConvertor> = new Set()
+    private duplicateMembers: Set<string> = new Set()
+    private discriminators: [LanguageExpression | undefined, ArgConvertor, number][] = []
+
+    constructor(private convertors: ArgConvertor[]) {
+        this.checkConflicts()
+    }
+    private checkConflicts() {
+        const runtimeTypeConflicts: Map<RuntimeType, ArgConvertor[]> = new Map()
+        this.convertors.forEach(conv => {
+            conv.runtimeTypes.forEach(rtType => {
+                const convertors = runtimeTypeConflicts.get(rtType)
+                if (convertors) convertors.push(conv)
+                else runtimeTypeConflicts.set(rtType, [conv])
+            })
+        })
+        runtimeTypeConflicts.forEach((convertors, rtType) => {
+            if (convertors.length > 1) {
+                const allMembers: Set<string> = new Set()
+                if (rtType === RuntimeType.OBJECT) {
+                    convertors.forEach(convertor => {
+                        convertor.getMembers().forEach(member => {
+                            if (allMembers.has(member)) this.duplicateMembers.add(member)
+                            allMembers.add(member)
+                        })
+                    })
+                }
+                convertors.forEach(convertor => {
+                    this.conflictingConvertors.add(convertor)
+                })
+            }
+        })
+    }
+    makeDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression {
+        const convertor = this.convertors[index]
+        if (this.conflictingConvertors.has(convertor) && writer.language.needsUnionDiscrimination) {
+            const discriminator = convertor.unionDiscriminator(value, index, writer, this.duplicateMembers)
+            this.discriminators.push([discriminator, convertor, index])
+            if (discriminator) return discriminator
+        }
+        return writer.makeNaryOp("||", convertor.runtimeTypes.map(it =>
+            writer.makeNaryOp("==", [writer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
+    }
+    reportConflicts(context: string) {
+        if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
+            console.log(`WARNING: runtime type conflict in "${context}`)
+            this.discriminators.forEach(([discr, conv, n]) =>
+                console.log(`   ${n} : ${conv.constructor.name} : ${discr ? discr.asString() : "<undefined>"}`))
+        }
+    }
+}
 export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
+    private unionChecker: UnionRuntimeTypeChecker
 
     constructor(param: string, private table: DeclarationTable, private type: ts.UnionTypeNode) {
         super(`object`, [], false, true, param)
         this.memberConvertors = type
             .types
             .map(member => table.typeConvertor(param, member))
-        this.hasUnionDiscriminator = this.memberConvertors
-            .filter(it => it.runtimeTypes.includes(RuntimeType.OBJECT))
-            .every(it => it.hasUnionDiscriminator)
-        this.checkUniques(param, this.memberConvertors)
+        this.unionChecker = new UnionRuntimeTypeChecker(this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -370,13 +479,9 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.makeAssign(`${value}_type`, undefined,
                 printer.makeUnionSelector(value), true))
         this.memberConvertors.forEach((it, index) => {
-            if (it.runtimeTypes.length == 0) {
-                console.log(`WARNING: branch for ${it.nativeType(false)} was consumed`)
-                return
-            }
-            let maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-            let conditions = makeUnionVariantCondition(value, it, index, printer)
-            printer.print(`${maybeElse}if (${conditions}) {`)
+            const maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
+            const conditions = this.unionChecker.makeDiscriminator(value, index, printer)
+            printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", [index.toString() + castToInt(printer.language)])
             if (!(it instanceof UndefinedConvertor)) {
@@ -389,6 +494,7 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.popIndent()
             printer.print(`}`)
         })
+        this.unionChecker.reportConflicts(this.table.getCurrentContext() ?? "<unknown context>")
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         let selector = `selector${uniqueCounter++}`
@@ -418,50 +524,26 @@ export class UnionConvertor extends BaseArgConvertor {
     estimateSize() {
         return 12
     }
-    checkUniques(param: string, convertors: ArgConvertor[]): void {
-        for (let i = 0; i < convertors.length; i++) {
-            for (let j = i + 1; j < convertors.length; j++) {
-                let first = convertors[i].runtimeTypes
-                let second = convertors[j].runtimeTypes
-                first.forEach(value => {
-                    let index = second.findIndex(it => it == value)
-                    if (index != -1 && !convertors[i].hasUnionDiscriminator && !convertors[j].hasUnionDiscriminator) {
-                        let current = this.table.getCurrentContext()
-                        if (!current) throw new Error("Used in undefined context, do setCurrentContext()")
-                        if (!UnionConvertor.reportedConflicts.has(current)) {
-                            if (current) UnionConvertor.reportedConflicts.add(current)
-                            console.log(`WARNING: runtime type conflict in "${current ?? "<unknown>"} ${param}": could be ${RuntimeType[value]} in both ${convertors[i].constructor.name} and ${convertors[j].constructor.name}`)
-                        }
-                        //second.splice(index, 1)
-                    }
-                })
-            }
-        }
-    }
     isPointerType(): boolean {
         return true
     }
-    private static reportedConflicts = new Set<string>()
-}
-
-export function makeUnionVariantCondition(value: string, convertor: ArgConvertor, index: number, printer: LanguageWriter): string {
-    const runtimeTypes = convertor?.runtimeTypes ?? [RuntimeType.UNDEFINED]
-    let conditions = printer.makeNaryOp("||", runtimeTypes.map(it =>
-        printer.makeNaryOp("==", [ printer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
-    const unionDiscriminator = printer.language.needsUnionDiscrimination ? convertor?.unionDiscriminator(value, index, printer) : undefined
-    if (unionDiscriminator) {
-        conditions = printer.makeNaryOp("&&", [conditions, unionDiscriminator])
-    }
-    return `(${conditions.asString()})`
 }
 
 export class ImportTypeConvertor extends BaseArgConvertor {
-    private static knownTypes = [ "PixelMap", "Resource" ]
+    private static knownTypes: Map<string, string[]> = new Map([
+        ["CircleShape", ["isInstanceOf", "\"CircleShape\""]],
+        ["EllipseShape", ["isInstanceOf", "\"EllipseShape\""]],
+        ["PathShape", ["isInstanceOf", "\"PathShape\""]],
+        ["RectShape", ["isInstanceOf", "\"RectShape\""]],
+        ["ComponentContent", ["isInstanceOf", "\"ComponentContent\""]],
+        ["DrawableDescriptor", ["isInstanceOf", "\"DrawableDescriptor\""]],
+        ["SymbolGlyphModifier", ["isInstanceOf", "\"SymbolGlyphModifier\""]],
+        ["PixelMap", ["isPixelMap"]],
+        ["Resource", ["isResource"]]])
     private importedName: string
     constructor(param: string, private table: DeclarationTable, type: ts.ImportTypeNode) {
         super("Object", [RuntimeType.OBJECT], false, true, param)
         this.importedName = importTypeName(type)
-        this.hasUnionDiscriminator = ImportTypeConvertor.knownTypes.includes(this.importedName)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -488,14 +570,19 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
-    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
-        return this.hasUnionDiscriminator
-            ? writer.makeString(`is${this.importedName}(${value})`)
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        const handler = ImportTypeConvertor.knownTypes.get(this.importedName)
+        return handler
+            ? this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+                [writer.makeString(`${handler[0]}(${handler.slice(1).concat(value).join(", ")})`)])
             : undefined
     }
 }
 
 export class CustomTypeConvertor extends BaseArgConvertor {
+    private static knownTypes: Map<string, [string, boolean][]> = new Map([
+        ["LinearGradient", [["angle", true], ["direction", true], ["colors", false], ["repeating", true]]]
+    ])
     private customName: string
     constructor(param: string, customName: string, tsType?: string) {
         super(tsType ?? "Object", [RuntimeType.OBJECT], false, true, param)
@@ -526,6 +613,13 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return true
+    }
+    override getMembers(): string[] {
+        return CustomTypeConvertor.knownTypes.get(this.customName)?.map(it => it[0]) ?? super.getMembers()
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        const uniqueFields = CustomTypeConvertor.knownTypes.get(this.customName)?.filter(it => !duplicates.has(it[0]))
+        return this.discriminatorFromFields(value, writer, uniqueFields, it => it[0], it => it[1])
     }
 }
 
@@ -589,7 +683,7 @@ export class OptionConvertor extends BaseArgConvertor {
 
 export class AggregateConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
-    private members: string[] = []
+    private members: [string, boolean][] = []
 
     constructor(param: string, private table: DeclarationTable, private type: ts.TypeLiteralNode) {        
         super(mapType(type), [RuntimeType.OBJECT], false, true, param)
@@ -597,7 +691,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             .members
             .filter(ts.isPropertySignature)
             .map((member, index) => {
-                this.members[index] = identName(member.name)!
+                this.members[index] = [identName(member.name)!, member.questionToken != undefined]
                 return table.typeConvertor(param, member.type!, member.questionToken != undefined)
             })
     }
@@ -606,7 +700,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         this.memberConvertors.forEach((it, index) => {
-            let memberName = this.members[index]
+            let memberName = this.members[index][0]
             printer.writeStatement(
                 printer.makeAssign(`${value}_${memberName}`, undefined,
                     printer.makeString(`${value}.${memberName}`), true))
@@ -647,16 +741,23 @@ export class AggregateConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
+    getMembers(): string[] {
+        return this.members.map(it => it[0])
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        const uniqueFields = this.members.filter(it => !duplicates.has(it[0]))
+        return this.discriminatorFromFields(value, writer, uniqueFields, it => it[0], it => it[1])
+    }
 }
 
 export class InterfaceConvertor extends BaseArgConvertor {
     constructor(
         name: string,
         param: string,
+        private declaration: ts.InterfaceDeclaration | ts.ClassDeclaration,
         protected table: DeclarationTable,
-        private type: ts.TypeReferenceNode,
-        hasUnionDiscriminator: boolean = false) {
-        super(name, [RuntimeType.OBJECT], false, true, param, hasUnionDiscriminator)
+        private type: ts.TypeReferenceNode) {
+        super(name, [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -682,14 +783,25 @@ export class InterfaceConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
+    getMembers(): string[] {
+        return this.table.targetStruct(this.declaration).getFields().map(it => it.name)
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        const uniqueFields = this.table
+            .targetStruct(this.declaration)
+            .getFields()
+            .filter(it => !duplicates.has(it.name))
+        return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.optional)
+    }
 }
 
 export class ClassConvertor extends InterfaceConvertor {
-    constructor(name: string, param: string, table: DeclarationTable, type: ts.TypeReferenceNode) {
-        super(name, param, table, type, true)
+    constructor(name: string, param: string, declaration: ts.ClassDeclaration, table: DeclarationTable, type: ts.TypeReferenceNode) {
+        super(name, param, declaration, table, type)
     }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
-        return writer.makeString(`${value} instanceof ${this.tsTypeName}`)
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+            [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
     }
 }
 
@@ -802,7 +914,7 @@ export class TupleConvertor extends BaseArgConvertor {
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
     constructor(param: string, public table: DeclarationTable, private type: ts.TypeNode, public elementType: ts.TypeNode) {
-        super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param, true)
+        super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -860,8 +972,9 @@ export class ArrayConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
-        return writer.makeString(`${value} instanceof Array`)
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+            [writer.makeString(`${value} instanceof Array`)])
     }
 }
 
@@ -869,7 +982,7 @@ export class MapConvertor extends BaseArgConvertor {
     keyConvertor: ArgConvertor
     valueConvertor: ArgConvertor
     constructor(param: string, public table: DeclarationTable, type: ts.TypeNode, public keyType: ts.TypeNode, public valueType: ts.TypeNode) {
-        super(`Map<${mapType(keyType)}, ${mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param, true)
+        super(`Map<${mapType(keyType)}, ${mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.keyConvertor = table.typeConvertor(param, keyType)
         this.valueConvertor = table.typeConvertor(param, valueType)
     }
@@ -930,8 +1043,9 @@ export class MapConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
-        return writer.makeString(`${value} instanceof Map`)
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+            [writer.makeString(`${value} instanceof Map`)])
     }
 }
 
@@ -975,7 +1089,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         protected table: DeclarationTable,
         private type: ts.ClassDeclaration,
     ) {
-        super(name, [RuntimeType.OBJECT], false, true, param, true)
+        super(name, [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -1004,10 +1118,9 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
-        // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
-        if (this.tsTypeName === "SubTabBarStyle") return undefined
-        return writer.makeString(`${value} instanceof ${this.tsTypeName}`)
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+            [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
     }
 }
 
@@ -1041,7 +1154,7 @@ export class PredefinedConvertor extends BaseArgConvertor {
 
 class ProxyConvertor extends BaseArgConvertor {
     constructor(protected convertor: ArgConvertor, suggestedName?: string) {
-        super(suggestedName ?? convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param, convertor.hasUnionDiscriminator)
+        super(suggestedName ?? convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.convertor.convertorArg(param, writer)
@@ -1061,8 +1174,11 @@ class ProxyConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return this.convertor.isPointerType()
     }
-    unionDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression | undefined {
-        return this.convertor.unionDiscriminator(value, index, writer)
+    unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return this.convertor.unionDiscriminator(value, index, writer, duplicates)
+    }
+    getMembers(): string[] {
+        return this.convertor.getMembers()
     }
 }
 

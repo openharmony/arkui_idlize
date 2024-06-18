@@ -20,9 +20,9 @@ import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
     AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, ClassConvertor, CustomTypeConvertor,
-    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor,
-    NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, ToStringConvertor, TupleConvertor, TypeAliasConvertor,
-    UndefinedConvertor, UnionConvertor
+    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor,
+    MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor,
+    ToStringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
 import { isMaterialized } from "./Materialized"
@@ -493,7 +493,7 @@ export class DeclarationTable {
         }
         if (ts.isLiteralTypeNode(type)) {
             if (type.literal.kind == ts.SyntaxKind.NullKeyword) {
-                return new UndefinedConvertor(param)
+                return new NullConvertor(param)
             }
             if (type.literal.kind == ts.SyntaxKind.StringLiteral) {
                 return new StringConvertor(param, type)
@@ -599,13 +599,13 @@ export class DeclarationTable {
             return new TypeAliasConvertor(param, this, declaration, type.typeArguments)
         }
         if (ts.isInterfaceDeclaration(declaration)) {
-            return new InterfaceConvertor(declarationName, param, this, type)
+            return new InterfaceConvertor(declarationName, param, declaration, this, type)
         }
         if (ts.isClassDeclaration(declaration)) {
             if (isMaterialized(declaration)) {
                 return new MaterializedClassConvertor(declarationName, param, this, declaration)
             }
-            return new ClassConvertor(declarationName, param, this, type)
+            return new ClassConvertor(declarationName, param, declaration, this, type)
         }
         if (ts.isTypeParameterDeclaration(declaration)) {
             // TODO: incorrect, we must use actual, not formal type parameter.
