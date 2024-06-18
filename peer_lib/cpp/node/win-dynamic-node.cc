@@ -28,7 +28,6 @@
    op(napi_create_object) \
    op(napi_get_arraybuffer_info) \
    op(napi_create_bigint_uint64) \
-   op(napi_get_value_bigint_int64) \
    op(napi_is_typedarray) \
    op(napi_add_finalizer) \
    op(napi_get_typedarray_info) \
@@ -126,12 +125,6 @@ NAPI_EXTERN napi_status NAPI_CDECL napi_get_value_bigint_uint64(
     napi_env env, napi_value value, uint64_t* result, bool* lossless) {
   LoadNapiFunctions();
   return p_napi_get_value_bigint_uint64(env, value, result, lossless);
-}
-
-NAPI_EXTERN napi_status NAPI_CDECL napi_get_value_bigint_int64(
-    napi_env env, napi_value value, int64_t* result, bool* lossless) {
-  LoadNapiFunctions();
-  return p_napi_get_value_bigint_int64(env, value, result, lossless);
 }
 
 NAPI_EXTERN napi_status NAPI_CDECL napi_create_object(napi_env env, napi_value* result) {
