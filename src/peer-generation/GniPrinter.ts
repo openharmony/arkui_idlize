@@ -15,6 +15,7 @@
 
 import { IndentedPrinter } from "../IndentedPrinter"
 import { makeFileNameFromClassName } from "./FileGenerators"
+import { MaterializedClass } from "./Materialized"
 import { PeerClass } from "./PeerClass"
 import { PeerLibrary } from "./PeerLibrary"
 
@@ -31,12 +32,21 @@ export class GniVisitor {
         this.gni.print(`"../arkoala/implementation/${className}_modifier.cpp",`)
     }
 
+    printMaterializedClassSourcePaths(clazz: MaterializedClass) {
+        const className = makeFileNameFromClassName(clazz.className)
+        this.gni.print(`"../arkoala/implementation/${className}_modifier.cpp",`)
+    }
+
     // TODO: have a proper Peer module visitor
     printGniSource() {
         this.gni.print("generated_sources = [")
         this.gni.pushIndent()
+        this.gni.print(`"../arkoala/implementation/all_modifiers.cpp",`)
         this.library.files.forEach(file => {
             file.peers.forEach(clazz => this.printGniEntries(clazz))
+        })
+        this.library.materializedClasses.forEach(clazz => {
+            this.printMaterializedClassSourcePaths(clazz)
         })
         this.gni.popIndent()
         this.gni.print("]")
