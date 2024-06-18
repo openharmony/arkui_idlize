@@ -15,7 +15,7 @@
 
 import { IndentedPrinter } from "../../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "../DeclarationTable";
-import { accessorStructList, cStyleCopyright, completeModifiersContent, makeFileNameFromClassName, modifierStructList, warning } from "../FileGenerators";
+import { accessorStructList, cStyleCopyright, completeModifiersContent, appendApiImplPrologue, makeFileNameFromClassName, modifierStructList, warning } from "../FileGenerators";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "../PeerMethod";
@@ -427,6 +427,8 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.writeInclude('arkoala-macros.h')
     writer.writeInclude('arkoala_api_generated.h')
     writer.print("")
+
+    writer.concat(appendApiImplPrologue())
 
     if (options.namespace) {
         writer.pushNamespace(options.namespace)

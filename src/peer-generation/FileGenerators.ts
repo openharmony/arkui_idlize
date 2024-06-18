@@ -139,6 +139,16 @@ void SetAppendGroupedLog(void* pFunc) {}
     return result
 }
 
+export function appendApiImplPrologue(): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP)
+    let epilogue = readTemplate('impl_prologue.cc')
+
+    epilogue = epilogue.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+
+    result.writeLines(epilogue)
+    return result
+}
+
 export function completeModifiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let epilogue = readTemplate('dummy_impl_epilogue.cc')

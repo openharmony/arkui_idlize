@@ -1,5 +1,6 @@
+
 const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {
-    %ARKUI_FULL_API_VERSION_VALUE%, // version
+    %CPP_PREFIX%ARKUI_FULL_API_VERSION, // version
     %CPP_PREFIX%GetArkUINodeModifiers,
     %CPP_PREFIX%GetArkUIAccessors,
     nullptr,
@@ -7,16 +8,19 @@ const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {
     nullptr,
     nullptr
 };
+const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI() { return &fullAPIImpl; }
 
 const %CPP_PREFIX%ArkUIBasicNodeAPI basicNodeAPIImpl = {
-    %ARKUI_BASIC_NODE_API_VERSION_VALUE%, // version
-    createNode
+    %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, // version
+    OHOS::Ace::NG::CreateNode
 };
+const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI() { return &basicNodeAPIImpl; }
 
 const %CPP_PREFIX%ArkUIExtendedNodeAPI extendedNodeAPIImpl = {
-    %ARKUI_EXTENDED_NODE_API_VERSION_VALUE%, // version
+    %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, // version
     SetAppendGroupedLog
 };
+const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI() { return &extendedNodeAPIImpl; }
 
 EXTERN_C IDLIZE_API_EXPORT const %CPP_PREFIX%ArkUIAnyAPI* %CPP_PREFIX%GetArkAnyAPI(
     %CPP_PREFIX%Ark_APIVariantKind kind, int version)
@@ -24,18 +28,18 @@ EXTERN_C IDLIZE_API_EXPORT const %CPP_PREFIX%ArkUIAnyAPI* %CPP_PREFIX%GetArkAnyA
     switch (kind)
     {
         case %CPP_PREFIX%FULL:
-            if (version == %ARKUI_FULL_API_VERSION_VALUE%)   {
-                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(&fullAPIImpl);
+            if (version == %CPP_PREFIX%ARKUI_FULL_API_VERSION)   {
+                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(%CPP_PREFIX%GetFullAPI());
             }
             break;
         case %CPP_PREFIX%BASIC:
-            if (version == %ARKUI_BASIC_NODE_API_VERSION_VALUE%)   {
-                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(&basicNodeAPIImpl);
+            if (version == %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION)   {
+                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(%CPP_PREFIX%GetBasicAPI());
             }
             break;
         case %CPP_PREFIX%EXTENDED:
-            if (version == %ARKUI_EXTENDED_NODE_API_VERSION_VALUE%)   {
-                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(&extendedNodeAPIImpl);
+            if (version == %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION)   {
+                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(%CPP_PREFIX%GetExtendedAPI());
             }
             break;
         default:
@@ -43,4 +47,3 @@ EXTERN_C IDLIZE_API_EXPORT const %CPP_PREFIX%ArkUIAnyAPI* %CPP_PREFIX%GetArkAnyA
     }
     return nullptr;
 }
-

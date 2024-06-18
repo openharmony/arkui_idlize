@@ -41,13 +41,17 @@ export class GniVisitor {
     printGniSource() {
         this.gni.print("generated_sources = [")
         this.gni.pushIndent()
-        this.gni.print(`"../arkoala/implementation/all_modifiers.cpp",`)
         this.library.files.forEach(file => {
             file.peers.forEach(clazz => this.printGniEntries(clazz))
         })
         this.library.materializedClasses.forEach(clazz => {
             this.printMaterializedClassSourcePaths(clazz)
         })
+
+        this.gni.print(`"../arkoala/utility/utils.cpp",`)
+        this.gni.print(`"../arkoala/implementation/api_impl.cpp",`)
+        this.gni.print(`"../arkoala/generated/interface/all_modifiers.cpp",`)
+
         this.gni.popIndent()
         this.gni.print("]")
     }

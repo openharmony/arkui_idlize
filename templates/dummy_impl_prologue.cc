@@ -34,7 +34,8 @@ void dummyClassFinalizer(KNativePointer* ptr) {
     appendGroupedLog(1, out);
 }
 
-Ark_NodeHandle createNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags) {
+namespace OHOS::Ace::NG {
+Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags) {
     Ark_NodeHandle result = (Ark_NodeHandle) 123;
     if (!needGroupedLog(1)) {
         return result;
@@ -48,5 +49,6 @@ Ark_NodeHandle createNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
     out.append(")");
     appendGroupedLog(1, out);
     return result;
+}
 }
 
