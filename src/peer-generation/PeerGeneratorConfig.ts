@@ -24,45 +24,21 @@ export class PeerGeneratorConfig {
         "Number", "String", "Function", "Optional", "RelativeIndexable"
     ]
     public static ignorePeerMethod = ["attributeModifier"]
+    public static ignoreComponents = [
+        "Particle", 
+        "Progress", 
+        "ForEach", 
+        "LazyForEach",
+        "ContentSlot",
+    ]
 
     private static knownParametrized = [
         "Indicator", "AttributeModifier", "AnimationRange", "ContentModifier", "SizeT", "PositionT", "Record"
     ]
 
-    public static invalidAttributes = ["ScrollableCommon"]
+    public static invalidAttributes = ["ScrollableCommonMethod"]
 
     public static invalidEvents = ["onRenderExited"]
-
-    // TODO: need a better logic to know if the XxxInterface
-    // doesn't have a XxxAttribute class which needs a peer.
-    public static readonly uselessConstructorInterfaces = [
-        "CommonInterface",
-        "ForEachInterface",
-        "LazyForEachInterface",
-        "GestureInterface",
-        "TapGestureInterface",
-        "LongPressGestureInterface",
-        "PanGestureInterface",
-        "SwipeGestureInterface",
-        "PinchGestureInterface",
-        "RotationGestureInterface",
-        "GestureGroupInterface",
-        "PageTransitionEnterInterface",
-        "PageTransitionExitInterface",
-        "ParticleInterface",
-        "ProgressInterface",
-        "TextStyleInterface",
-        "DecorationStyleInterface",
-        "GestureStyleInterface",
-        "ImageAttachmentInterface",
-        "ContentSlotInterface",
-        "ParagraphStyleInterface",
-        "LocationButtonInterface",
-        "PasteButtonInterface",
-        "SaveButtonInterface",
-    ]
-
-    public static skipPeerGeneration = ["CommonAttribute", "ProgressAttribute"]
 
     public static rootComponents = [
         "CommonMethod",

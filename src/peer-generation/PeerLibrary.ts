@@ -18,6 +18,7 @@ import { DeclarationTable } from "./DeclarationTable";
 import { MaterializedClass } from "./Materialized";
 import { PeerClass } from "./PeerClass";
 import { PeerFile } from "./PeerFile";
+import { ComponentDeclaration } from './PeerGeneratorVisitor';
 
 export type PeerLibraryOutput = {
     outputC: string[]
@@ -35,7 +36,7 @@ export class PeerLibrary {
     // todo really dirty - we use it until we can generate interfaces
     // replacing import type nodes
     readonly importTypesStubToSource: Map<string, string> = new Map()
-    readonly peerDeclarations: Set<ts.Declaration> = new Set()
+    readonly componentsDeclarations: ComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<ts.Declaration> = new Set()
 
     findPeerByComponentName(componentName: string): PeerClass | undefined {
@@ -48,5 +49,15 @@ export class PeerLibrary {
 
     findFileByOriginalFilename(filename: string): PeerFile | undefined {
         return this.files.find(it => it.originalFilename === filename)
+    }
+
+    findComponentByDeclaration(node: ts.Declaration): ComponentDeclaration | undefined {
+        return this.componentsDeclarations.find(it => {
+            return it.interfaceDeclaration === node || it.attributesDeclarations === node 
+        })
+    }
+
+    isComponentDeclaration(node: ts.Declaration): boolean {
+        return this.findComponentByDeclaration(node) !== undefined
     }
 }

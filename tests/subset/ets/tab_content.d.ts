@@ -52,9 +52,14 @@ declare class SubTabBarStyle {
 
     id(value: string): SubTabBarStyle;
 }
+declare interface  TabContentInterface { 
+    ():  TabContentAttribute
+}
 
 declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
 
     tabBar(value: SubTabBarStyle): TabContentAttribute;
     tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
 }
+
+declare const TabContent: TabContentInterface

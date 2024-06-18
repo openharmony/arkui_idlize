@@ -84,7 +84,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration)
         throw "Expected parent of declaration to be a SourceFile"
     const originalBasename = path.basename(node.parent.fileName)
     let fileName = renameDtsToInterfaces(originalBasename, library.declarationTable.language)
-    if (ts.isClassDeclaration(node) && isMaterialized(node) && !library.peerDeclarations.has(node))
+    if (ts.isClassDeclaration(node) && isMaterialized(node) && !library.isComponentDeclaration(node))
         fileName = renameClassToMaterialized(nameOrNull(node.name)!, library.declarationTable.language)
 
     const basename = path.basename(fileName)

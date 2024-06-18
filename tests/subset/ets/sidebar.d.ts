@@ -1,5 +1,7 @@
 
-interface SideBarContainerInterface {}
+interface SideBarContainerInterface {
+    (): SideBarContainerAttribute
+}
 
 declare class SideBarContainerAttribute extends CommonMethod<SideBarContainerAttribute> {
     minSideBarWidth(value: number): SideBarContainerAttribute;

@@ -4,6 +4,10 @@ declare enum NavigationTitleMode {
     Mini,
 }
 
+declare interface NavigationInterface { 
+    (): NavigationAttribute
+}
+
 declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
 
     // backButtonIcon(value: string | PixelMap | Resource): NavigationAttribute;
@@ -21,3 +25,5 @@ declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
     // testBoolean(value: boolean): NavigationAttribute;
     // testNumber(value: number): NavigationAttribute;
 }
+
+declare const Navigation: NavigationInterface

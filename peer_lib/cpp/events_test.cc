@@ -33,6 +33,6 @@ void impl_Test_Common_OnChildTouchTest(uint8_t* valueArray, int32_t valueLength)
     for (int i = 0; i < param.length; i++) {
         param.array[i] = deserializer.readTouchTestInfo();
     }
-    GetArkUiEventsAPI()->getCommonEventsReceiver()->onChildTouchTest(nodeId, param);
+    GetArkUiEventsAPI()->getCommonMethodEventsReceiver()->onChildTouchTest(nodeId, param);
 }
 KOALA_INTEROP_V2(Test_Common_OnChildTouchTest, uint8_t*, uint32_t)

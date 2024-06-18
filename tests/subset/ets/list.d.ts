@@ -21,8 +21,14 @@ declare interface VisibleListContentInfo {
 declare type OnScrollVisibleContentChangeCallback = (start: VisibleListContentInfo, end: VisibleListContentInfo) => void;
 declare type Optional<T> = T | undefined
 
+declare interface ListInterface { 
+    (): ListAttribute
+}
+
 declare class ListAttribute extends ScrollableCommonMethod<ListAttribute> {
     someOptional(param: Optional<boolean>): ListAttribute
 
     onScrollVisibleContentChange(handler: OnScrollVisibleContentChangeCallback): ListAttribute;
 }
+
+declare const List: ListInterface

@@ -4,7 +4,13 @@ declare enum HorizontalAlign {
     End,
 }
 
+declare interface ColumnInterface { 
+    (): ColumnAttribute
+}
+
 declare class ColumnAttribute extends CommonMethod<ColumnAttribute> {
 
     alignItems(value: HorizontalAlign): ColumnAttribute;
 }
+
+declare const Column: ColumnInterface

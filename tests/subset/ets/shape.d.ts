@@ -1,5 +1,6 @@
 
 interface ShapeInterface {
+    (): ShapeAttribute
 }
 
 declare class ShapeAttribute extends CommonMethod<ShapeAttribute> {

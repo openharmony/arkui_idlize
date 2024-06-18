@@ -18,9 +18,15 @@ declare enum BarMode {
     Fixed = 1,
 }
 
+declare interface TabsInterface { 
+    (): TabsAttribute
+}
+
 declare class TabsAttribute extends CommonMethod<TabsAttribute> {
 
     // TBD: Fix for the TestGeneratorVisitor
     // barMode(value: BarMode.Fixed): TabsAttribute;
     barMode(value: BarMode): TabsAttribute;
 }
+
+declare const Tabs: TabsInterface

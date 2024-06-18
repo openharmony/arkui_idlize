@@ -33,9 +33,9 @@ class BridgeCcVisitor {
         private readonly callLog: boolean,
     ) {}
 
-    private generateApiCall(method: PeerMethod): string {
+    private generateApiCall(method: PeerMethod, modifierName?: string): string {
         // TODO: may be need some translation tables?
-        let clazz = dropSuffix(dropSuffix(dropSuffix(method.originalParentName, "Method"), "Attribute"), "Interface")
+        let clazz = modifierName ?? dropSuffix(dropSuffix(dropSuffix(method.originalParentName, "Method"), "Attribute"), "Interface")
         return `get${capitalize(clazz)}${method.apiKind}()`
     }
 
@@ -48,11 +48,11 @@ class BridgeCcVisitor {
             return `${argConvertor.convertorArg(argConvertor.param, this.C)}`
     }
 
-    private printAPICall(method: PeerMethod) {
+    private printAPICall(method: PeerMethod, modifierName?: string) {
         const hasReceiver = method.hasReceiver()
         const argConvertors = method.argConvertors
         const isVoid = method.retConvertor.isVoid
-        const modifier = this.generateApiCall(method)
+        const modifier = this.generateApiCall(method, modifierName)
         const peerMethod = method.peerMethodName
         const receiver = hasReceiver ? ['self'] : []
         // TODO: how do we know the real amount of arguments of the API functions?
@@ -63,7 +63,7 @@ class BridgeCcVisitor {
         this.C.print(call)
     }
 
-    private printNativeBody(method: PeerMethod) {
+    private printNativeBody(method: PeerMethod, modifierName?: string) {
         this.C.pushIndent()
         if (method.hasReceiver()) {
             this.C.print(`${method.receiverType} self = reinterpret_cast<${method.receiverType}>(thisPtr);`)
@@ -76,7 +76,7 @@ class BridgeCcVisitor {
                 this.C.writeStatement(it.convertorDeserialize(it.param, result, this.C))
             }
         })
-        this.printAPICall(method)
+        this.printAPICall(method, modifierName)
         this.C.popIndent()
     }
 
@@ -144,7 +144,7 @@ class BridgeCcVisitor {
         })))
     }
 
-    private printMethod(method: PeerMethod) {
+    private printMethod(method: PeerMethod, modifierName?: string) {
         const retConvertor = method.retConvertor
         const argConvertors = method.argConvertors
 
@@ -152,7 +152,7 @@ class BridgeCcVisitor {
         let rv = retConvertor.nativeType()
         this.C.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(method, argConvertors).join(", ")}) {`)
         this.C.pushIndent()
-        this.printNativeBody(method)
+        this.printNativeBody(method, modifierName)
         this.C.popIndent()
         this.C.print(`}`)
         let macroArgs = [cName, method.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, method.hasReceiver()))
@@ -200,7 +200,7 @@ class BridgeCcVisitor {
         for (const file of this.library.files) {
             for (const peer of file.peers.values()) {
                 for (const method of peer.methods) {
-                    this.printMethod(method)
+                    this.printMethod(method, peer.componentName)
                 }
             }
         }

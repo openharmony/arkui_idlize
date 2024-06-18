@@ -134,6 +134,11 @@ declare class ClassWithConstructorAndAllOptionalParamsDTS {
     method(valBoolean?: boolean, valString?: string): void
 }
 
+declare interface TestInterface { 
+    (): TestAttribute
+}
+declare const Test: TestInterface
+
 // basic types:
 // - boolean
 // - number

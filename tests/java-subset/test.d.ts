@@ -18,8 +18,14 @@ declare interface TestOptions {
     num: number;
 }
 
+declare interface TestInterface { 
+    (): TestAttribute
+}
+
 declare class TestAttribute extends CommonMethod<TestAttribute> {
     options: TestOptions;
 
     testMethod(options: TestOptions): void;
 }
+
+declare const Test: TestInterface

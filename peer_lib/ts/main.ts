@@ -22,7 +22,6 @@ import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/ArkFormComponentPeer"
 import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
-import { ArkParticlePeer } from "@arkoala/arkui/ArkParticlePeer"
 import { ArkSideBarContainerPeer } from "@arkoala/arkui/ArkSidebarPeer"
 import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
 import { ArkTabContentPeer } from "@arkoala/arkui/ArkTabContentPeer"
@@ -32,7 +31,7 @@ import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testString1000 } from "@arkoala/arkui/test_data"
 import { deserializePeerEvent, PeerEventKind,
-    Common_onChildTouchTest_event,
+    CommonMethod_onChildTouchTest_event,
     List_onScrollVisibleContentChange_event,
     TextPicker_onAccept_event
 } from "./peer_events"
@@ -231,13 +230,6 @@ function checkNavigation() {
         `backButtonIcon("attr")`)
 }
 
-function checkParticle() {
-    let peer = new ArkParticlePeer(ArkUINodeType.Particle)
-    checkResult("emitter", () => peer.emitterAttribute([]), `emitter([])`)
-    checkResult("emitter", () => peer.emitterAttribute([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}]),
-        `emitter([{index: 1, emitRate: 2}, {index: 3, emitRate: 4}])`)
-}
-
 function checkTabContent() {
     let peer = new ArkTabContentPeer(ArkUINodeType.TabContent)
 
@@ -402,11 +394,11 @@ function checkEvent_Array_Class() {
     if (checkResult !== 1)
         return
 
-    assertEquals("Event_Array_Class: valid kind", PeerEventKind.Common_onChildTouchTest, event.kind)
-    if (event.kind !== PeerEventKind.Common_onChildTouchTest)
+    assertEquals("Event_Array_Class: valid kind", PeerEventKind.CommonMethod_onChildTouchTest, event.kind)
+    if (event.kind !== PeerEventKind.CommonMethod_onChildTouchTest)
         return
 
-    const convertedEvent = event as Common_onChildTouchTest_event
+    const convertedEvent = event as CommonMethod_onChildTouchTest_event
     const checkTouchTestInfo = (expected: TouchTestInfo, actual: TouchTestInfo) =>
         expected.x === actual.x && expected.y === actual.y &&
         expected.rect.x === actual.rect.x && expected.rect.y === actual.rect.y &&
@@ -435,7 +427,6 @@ checkFormComponent()
 checkCommon()
 checkOverloads()
 checkNavigation()
-checkParticle()
 checkEvent_Primitive()
 checkEvent_Interface_Optional()
 checkEvent_Array_Class()

@@ -13,6 +13,11 @@ declare type Vector2 = {
     z: number
 }
 
+declare interface VectorInterface { 
+    (): VectorAttribute
+}
+declare const Vector: VectorInterface
+
 declare class VectorAttribute extends CommonMethod<VectorAttribute> {
 
     testVector1(value: Vector1): VectorAttribute

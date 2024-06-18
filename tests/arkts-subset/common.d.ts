@@ -147,9 +147,13 @@ declare interface Rectangle {
 
     height?: Length;
 }
-
+declare interface CommonInterface { 
+    (): CommonAttribute
+}
 declare class CommonAttribute extends CommonMethod<CommonAttribute> {
 }
+
+declare const Common: CommonInterface
 
 declare class CustomComponent extends CommonAttribute {
     build(): void;
