@@ -7,6 +7,62 @@ This folder contains collection of tools for analyzing and transformation of
 
 ## Tools available
 
+### Peer generator
+
+Prerequisites:
+
+```bash
+cd idlize
+npm i
+```
+
+#### Generating libace interface files:
+
+Given interface definitions it will produce for libace
+  * For libace interface
+    * arkoala_api.h header
+    * api discovery code
+    * component modifiers
+    * etc
+
+```bash
+node . --dts2peer --input-dir sdk/component --generator-target libace --api-version 140
+```
+
+#### Generating high level language peer files:
+
+Given interface definitions it will produce for Arkoala
+  * For high language bindings (arkoala)
+    * C++ glue code
+    * high level language peer classes (TS, ArkTS, Java, etc)
+    * etc
+
+
+```bash
+node . --dts2peer --input-dir sdk/component --generator-target arkoala --api-version 140
+```
+
+
+#### To test for full sdk
+
+```bash
+cd idlize
+npm i
+npm run check:peers:run
+```
+
+The output is in `generated/peers` directory
+
+#### To test with a simple subset sdk
+
+```bash
+cd idlize
+npm i
+npm run check:subset:run
+```
+
+The output is in `generated/subset` directory
+
 ### .d.ts linter
 
  Tool checking that given folder (ArkUI interface declarations downloaded by Arkoala build by default) only contains reasonable set of TypeScript features allowed for usage in public interfaces.
