@@ -19,8 +19,8 @@ import { PrimitiveType } from "./DeclarationTable"
 import { Language } from "../util"
 import { createLanguageWriter, LanguageWriter, PrinterLike } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { PeerEventKind } from "./EventsPrinter"
-import { writeDeserializer, writeSerializer } from "./SerializerPrinter"
+import { PeerEventKind } from "./printers/EventsPrinter"
+import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
 import { PeerLibrary } from "./PeerLibrary"
 import { ArkoalaInstall } from "../Install"
 

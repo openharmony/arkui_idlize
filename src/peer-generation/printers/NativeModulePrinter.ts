@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../IndentedPrinter";
+import { IndentedPrinter } from "../../IndentedPrinter";
 import { generateEventsBridgeSignature } from "./EventsPrinter";
-import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "./FileGenerators";
-import { LanguageWriter, Method, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from "./LanguageWriters";
-import { PeerClass, PeerClassBase } from "./PeerClass";
-import { PeerLibrary } from "./PeerLibrary";
-import { PeerMethod } from "./PeerMethod";
+import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "../FileGenerators";
+import { LanguageWriter, Method, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from "../LanguageWriters";
+import { PeerClass, PeerClassBase } from "../PeerClass";
+import { PeerLibrary } from "../PeerLibrary";
+import { PeerMethod } from "../PeerMethod";
 
 class NativeModuleVisitor {
     readonly nativeModule: LanguageWriter
@@ -70,7 +70,7 @@ class NativeModuleVisitor {
     }
 }
 
-export function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
+function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
     returnType?: Type
 ) {
     const component = clazz.generatedName(method.isCallSignature)

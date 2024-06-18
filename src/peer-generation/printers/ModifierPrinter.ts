@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../IndentedPrinter";
-import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { accessorStructList, cStyleCopyright, completeModifiersContent, makeFileNameFromClassName, modifierStructList, warning } from "./FileGenerators";
-import { PeerClass } from "./PeerClass";
-import { PeerLibrary } from "./PeerLibrary";
-import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "../DeclarationTable";
+import { accessorStructList, cStyleCopyright, completeModifiersContent, makeFileNameFromClassName, modifierStructList, warning } from "../FileGenerators";
+import { PeerClass } from "../PeerClass";
+import { PeerLibrary } from "../PeerLibrary";
+import { MethodSeparatorVisitor, PeerMethod } from "../PeerMethod";
 import { DelegateSignatureBuilder } from "./DelegatePrinter";
-import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { MaterializedClass, MaterializedMethod } from "./Materialized";
-import { Language } from "../util";
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "./LanguageWriters";
-import { LibaceInstall } from "../Install";
+import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { MaterializedClass, MaterializedMethod } from "../Materialized";
+import { Language } from "../../util";
+import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "../LanguageWriters";
+import { LibaceInstall } from "../../Install";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     public readonly printer = new IndentedPrinter()

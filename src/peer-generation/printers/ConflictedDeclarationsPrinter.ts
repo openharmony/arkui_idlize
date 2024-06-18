@@ -14,11 +14,11 @@
  */
 
 import * as ts from 'typescript'
-import { IndentedPrinter } from "../IndentedPrinter";
-import { createLanguageWriter } from "./LanguageWriters";
-import { PeerLibrary } from "./PeerLibrary";
-import { DeclarationNameConvertor } from "./dependencies_collector";
-import { convertDeclaration } from './TypeNodeConvertor';
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { createLanguageWriter } from "../LanguageWriters";
+import { PeerLibrary } from "../PeerLibrary";
+import { DeclarationNameConvertor } from "../dependencies_collector";
+import { convertDeclaration } from '../TypeNodeConvertor';
 
 class ConflictedDeclarationsVisitor {
     readonly writer = createLanguageWriter(this.library.declarationTable.language)

@@ -14,14 +14,14 @@
  */
 
 import * as ts from 'typescript'
-import { Language } from "../util";
-import { DeclarationTable, DeclarationTarget, PrimitiveType } from "./DeclarationTable";
-import { LanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters";
-import { PeerGeneratorConfig } from './PeerGeneratorConfig';
-import { isMaterialized } from './Materialized';
-import { ImportsCollector } from './ImportsCollector';
-import { PeerLibrary } from './PeerLibrary';
-import { collectDtsImports } from './DtsImportsGenerator';
+import { Language } from "../../util";
+import { DeclarationTable, DeclarationTarget, PrimitiveType } from "../DeclarationTable";
+import { LanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
+import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
+import { isMaterialized } from '../Materialized';
+import { ImportsCollector } from '../ImportsCollector';
+import { PeerLibrary } from '../PeerLibrary';
+import { collectDtsImports } from '../DtsImportsGenerator';
 
 function collectAllInterfacesImports(library: PeerLibrary, imports: ImportsCollector) {
     for (const file of library.files)

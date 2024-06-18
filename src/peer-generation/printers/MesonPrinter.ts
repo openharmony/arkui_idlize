@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../IndentedPrinter"
-import { makeFileNameFromClassName } from "./FileGenerators"
-import { MaterializedClass } from "./Materialized"
-import { PeerClass } from "./PeerClass"
-import { PeerLibrary } from "./PeerLibrary"
+import { IndentedPrinter } from "../../IndentedPrinter"
+import { makeFileNameFromClassName } from "../FileGenerators"
+import { MaterializedClass } from "../Materialized"
+import { PeerClass } from "../PeerClass"
+import { PeerLibrary } from "../PeerLibrary"
 
 
 export class MesonVisitor {

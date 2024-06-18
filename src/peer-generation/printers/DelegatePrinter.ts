@@ -15,15 +15,15 @@
 
 import * as path from "path";
 import * as fs from "fs";
-import { IndentedPrinter } from "../IndentedPrinter";
-import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { cStyleCopyright, completeDelegatesImpl, makeFileNameFromClassName, makeIncludeGuardDefine, warning } from "./FileGenerators";
-import { PeerLibrary } from "./PeerLibrary";
-import { MethodSeparatorVisitor, PeerMethod } from "./PeerMethod";
-import { PeerClass } from "./PeerClass";
-import { MaterializedClass } from "./Materialized";
-import { CppLanguageWriter, PrinterLike } from "./LanguageWriters";
-import { LibaceInstall } from "../Install";
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "../DeclarationTable";
+import { cStyleCopyright, completeDelegatesImpl, makeFileNameFromClassName, makeIncludeGuardDefine, warning } from "../FileGenerators";
+import { PeerLibrary } from "../PeerLibrary";
+import { MethodSeparatorVisitor, PeerMethod } from "../PeerMethod";
+import { PeerClass } from "../PeerClass";
+import { MaterializedClass } from "../Materialized";
+import { CppLanguageWriter, PrinterLike } from "../LanguageWriters";
+import { LibaceInstall } from "../../Install";
 
 export class DelegateSignatureBuilder {
     constructor(

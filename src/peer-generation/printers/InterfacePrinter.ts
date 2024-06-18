@@ -15,13 +15,13 @@
 
 import * as ts from 'typescript'
 import * as path from 'path'
-import { PeerLibrary } from "./PeerLibrary"
-import { LanguageWriter, createLanguageWriter } from './LanguageWriters'
-import { mapType } from './TypeNodeNameConvertor'
-import { Language, renameDtsToInterfaces } from '../util'
-import { ImportsCollector } from './ImportsCollector'
-import { EnumEntity, PeerFile } from './PeerFile'
-import { DeclarationConvertor, convertDeclaration } from './TypeNodeConvertor'
+import { PeerLibrary } from "../PeerLibrary"
+import { LanguageWriter, createLanguageWriter } from '../LanguageWriters'
+import { mapType } from '../TypeNodeNameConvertor'
+import { Language, renameDtsToInterfaces } from '../../util'
+import { ImportsCollector } from '../ImportsCollector'
+import { EnumEntity, PeerFile } from '../PeerFile'
+import { DeclarationConvertor, convertDeclaration } from '../TypeNodeConvertor'
 
 export class DeclarationGenerator implements DeclarationConvertor<string> {
     constructor(

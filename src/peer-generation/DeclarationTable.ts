@@ -30,7 +30,7 @@ import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethod
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
 import { PeerLibrary } from "./PeerLibrary"
-import { collectCallbacks } from "./EventsPrinter"
+import { collectCallbacks } from "./printers/EventsPrinter"
 import { EnumMember, NodeArray } from "typescript";
 
 export class PrimitiveType {

@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../IndentedPrinter";
-import { Language, capitalize, dropSuffix, isDefined } from "../util";
-import { ArgConvertor } from "./Convertors";
-import { PrimitiveType } from "./DeclarationTable";
-import { bridgeCcDeclaration } from "./FileGenerators";
-import { createLanguageWriter, Method, NamedMethodSignature, Type } from "./LanguageWriters";
-import { PeerLibrary } from "./PeerLibrary";
-import { PeerMethod } from "./PeerMethod";
-import { CUSTOM_API, CustomAPI } from "./CustomAPI"
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { Language, capitalize, dropSuffix, isDefined } from "../../util";
+import { ArgConvertor } from "../Convertors";
+import { PrimitiveType } from "../DeclarationTable";
+import { bridgeCcDeclaration } from "../FileGenerators";
+import { createLanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
+import { PeerLibrary } from "../PeerLibrary";
+import { PeerMethod } from "../PeerMethod";
+import { CUSTOM_API, CustomAPI } from "../CustomAPI"
 
 //const VM_CONTEXT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_VMContext`)
 

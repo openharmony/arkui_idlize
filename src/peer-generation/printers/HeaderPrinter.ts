@@ -14,15 +14,15 @@
  */
 
 
-import { IndentedPrinter } from "../IndentedPrinter";
-import { makeAPI, makeCSerializers } from "./FileGenerators";
-import { PeerClass } from "./PeerClass";
-import { PeerLibrary } from "./PeerLibrary";
-import { PeerMethod } from "./PeerMethod";
-import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { makeAPI, makeCSerializers } from "../FileGenerators";
+import { PeerClass } from "../PeerClass";
+import { PeerLibrary } from "../PeerLibrary";
+import { PeerMethod } from "../PeerMethod";
+import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { CallbackInfo, collectCallbacks, groupCallbacks } from "./EventsPrinter";
-import { DeclarationTable, PrimitiveType } from "./DeclarationTable";
-import { NamedMethodSignature, Type } from "./LanguageWriters";
+import { DeclarationTable, PrimitiveType } from "../DeclarationTable";
+import { NamedMethodSignature, Type } from "../LanguageWriters";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`

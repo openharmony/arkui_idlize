@@ -483,11 +483,19 @@ export class NamedMethodSignature extends MethodSignature {
 }
 
 export class Field {
-    constructor(public name: string, public type: Type, public mofidifiers: FieldModifier[] = []) {}
+    constructor(
+        public name: string,
+        public type: Type,
+        public modifiers: FieldModifier[] = []
+    ) {}
 }
 
 export class Method {
-    constructor(public name: string, public signature: MethodSignature, public modifiers: MethodModifier[]|undefined = undefined) {}
+    constructor(
+        public name: string,
+        public signature: MethodSignature,
+        public modifiers: MethodModifier[]|undefined = undefined
+    ) {}
 }
 
 export function mangleMethodName(method: Method): string {

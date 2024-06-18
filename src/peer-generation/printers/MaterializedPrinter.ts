@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../IndentedPrinter";
-import { Language, renameClassToMaterialized, capitalize } from "../util";
-import { PeerLibrary } from "./PeerLibrary";
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { Language, renameClassToMaterialized, capitalize } from "../../util";
+import { PeerLibrary } from "../PeerLibrary";
 import { writePeerMethod } from "./PeersPrinter"
-import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature } from "./LanguageWriters";
-import { MaterializedClass, MaterializedMethod } from "./Materialized"
-import { makeMaterializedPrologue } from "./FileGenerators";
+import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature } from "../LanguageWriters";
+import { MaterializedClass, MaterializedMethod } from "../Materialized"
+import { makeMaterializedPrologue } from "../FileGenerators";
 import { OverloadsPrinter, groupOverloads } from "./OverloadsPrinter";
 
 import { printPeerFinalizer } from "./PeersPrinter"
-import { ImportsCollector } from "./ImportsCollector";
+import { ImportsCollector } from "../ImportsCollector";
 
 class MaterializedFileVisitor {
 
@@ -59,7 +59,7 @@ class MaterializedFileVisitor {
             // getters and setters for fields
             clazz.fields.forEach(f => {
                 const field = f.field
-                const isReadOnly = field.mofidifiers.includes(FieldModifier.READONLY)
+                const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
                 const getSignature = new MethodSignature(field.type, [])
                 const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
                 writer.writeGetterImplementation(new Method(field.name, getSignature), writer => {

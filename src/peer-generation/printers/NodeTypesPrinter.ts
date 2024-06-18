@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../IndentedPrinter";
-import { makeNodeTypes } from "./FileGenerators";
-import { PeerLibrary } from "./PeerLibrary";
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { makeNodeTypes } from "../FileGenerators";
+import { PeerLibrary } from "../PeerLibrary";
 
 class NodeTypesVisitor {
     readonly nodeTypes: IndentedPrinter = new IndentedPrinter()

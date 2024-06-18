@@ -14,10 +14,10 @@
  */
 
 import { DeclarationGenerator } from "./InterfacePrinter";
-import { createLanguageWriter } from "./LanguageWriters";
-import { PeerLibrary } from "./PeerLibrary";
-import { convertDeclaration } from "./TypeNodeConvertor";
-import { makeFakeDeclarationsFiles } from "./fake_declaration";
+import { createLanguageWriter } from "../LanguageWriters";
+import { PeerLibrary } from "../PeerLibrary";
+import { convertDeclaration } from "../TypeNodeConvertor";
+import { makeFakeDeclarationsFiles } from "../fake_declaration";
 
 export function printFakeDeclarations(library: PeerLibrary): Map<string, string> {
     const lang = library.declarationTable.language

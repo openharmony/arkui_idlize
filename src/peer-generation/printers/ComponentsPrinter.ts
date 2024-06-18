@@ -14,17 +14,17 @@
  */
 
 import * as path from "path"
-import { IndentedPrinter } from "../IndentedPrinter";
-import { Language, renameDtsToComponent, renameDtsToPeer } from "../util";
-import { ImportsCollector } from "./ImportsCollector";
-import { PeerClass } from "./PeerClass";
-import { PeerFile } from "./PeerFile";
-import { PeerLibrary } from "./PeerLibrary";
-import { isCommonMethod } from "./inheritance";
-import { PeerMethod } from "./PeerMethod";
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { Language, renameDtsToComponent, renameDtsToPeer } from "../../util";
+import { ImportsCollector } from "../ImportsCollector";
+import { PeerClass } from "../PeerClass";
+import { PeerFile } from "../PeerFile";
+import { PeerLibrary } from "../PeerLibrary";
+import { isCommonMethod } from "../inheritance";
+import { PeerMethod } from "../PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
 import { OverloadsPrinter, collapseSameNamedMethods } from "./OverloadsPrinter";
-import { LanguageWriter, Method, MethodModifier, MethodSignature, Type, createLanguageWriter } from "./LanguageWriters";
+import { LanguageWriter, Method, MethodModifier, MethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
 import { convertToCallback } from "./EventsPrinter";
 
 function generateArkComponentName(component: string) {

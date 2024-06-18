@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { UndefinedConvertor, UnionRuntimeTypeChecker } from "./Convertors"
-import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression } from "./LanguageWriters";
-import { PeerClass, PeerClassBase } from "./PeerClass";
-import { PeerMethod } from "./PeerMethod";
-import { isDefined } from "../util";
+import { UndefinedConvertor, UnionRuntimeTypeChecker } from "../Convertors"
+import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression } from "../LanguageWriters";
+import { PeerClass, PeerClassBase } from "../PeerClass";
+import { PeerMethod } from "../PeerMethod";
+import { isDefined } from "../../util";
 import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
-import { PeerLibrary } from "./PeerLibrary";
+import { PeerLibrary } from "../PeerLibrary";
 
 export function collapseSameNamedMethods(methods: Method[]): Method {
     if (methods.some(it => it.signature.defaults?.length))

@@ -14,14 +14,14 @@
  */
 
 import * as path from "path"
-import { IndentedPrinter } from "../IndentedPrinter";
-import { EnumEntity, PeerFile } from "./PeerFile";
-import { PeerLibrary } from "./PeerLibrary";
-import { Language, isStatic, renameDtsToPeer, throwException } from "../util";
-import { ImportsCollector } from "./ImportsCollector";
-import { PeerClass, PeerClassBase } from "./PeerClass";
-import { InheritanceRole, determineParentRole, isHeir, isRoot, isStandalone } from "./inheritance";
-import { PeerMethod } from "./PeerMethod";
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { EnumEntity, PeerFile } from "../PeerFile";
+import { PeerLibrary } from "../PeerLibrary";
+import { Language, isStatic, renameDtsToPeer, throwException } from "../../util";
+import { ImportsCollector } from "../ImportsCollector";
+import { PeerClass, PeerClassBase } from "../PeerClass";
+import { InheritanceRole, determineParentRole, isHeir, isRoot, isStandalone } from "../inheritance";
+import { PeerMethod } from "../PeerMethod";
 import {
     LanguageExpression,
     LanguageWriter,
@@ -31,9 +31,9 @@ import {
     NamedMethodSignature,
     Type,
     createLanguageWriter
-} from "./LanguageWriters";
-import { MaterializedMethod } from "./Materialized";
-import { collectDtsImports } from "./DtsImportsGenerator";
+} from "../LanguageWriters";
+import { MaterializedMethod } from "../Materialized";
+import { collectDtsImports } from "../DtsImportsGenerator";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -254,7 +254,7 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
 }
 
 export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
-    methodPostfix: string, ptr: string, returnType: Type = Type.Void) {
+                                methodPostfix: string, ptr: string, returnType: Type = Type.Void) {
     // Not yet!
     if (printer.language != Language.TS/* && printer.language != Language.ARKTS */) return
     const signature = method.method.signature as NamedMethodSignature
@@ -263,72 +263,74 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
         new NamedMethodSignature(returnType, signature.args, signature.argsNames),
         method.method.modifiers)
     printer.writeMethodImplementation(peerMethod, (writer) => {
-    let scopes = method.argConvertors.filter(it => it.isScoped)
-    scopes.forEach(it => {
-        writer.pushIndent()
-        writer.print(it.scopeStart?.(it.param, printer.language))
-    })
-    method.argConvertors.forEach((it, index) => {
-        if (it.useArray) {
-            writer.writeStatement(
-                writer.makeAssign(`${it.param}Serializer`, new Type('Serializer'),
-                    writer.makeMethodCall('SerializerBase', 'get', [
-                        writer.makeString('createSerializer'), writer.makeString(index.toString())
-                    ]), true)
-                )
-            it.convertorSerialize(it.param, it.param, writer)
-        }
-    })
-    // Enable to see serialized data.
-    if (dumpSerialized) {
+        let scopes = method.argConvertors.filter(it => it.isScoped)
+        scopes.forEach(it => {
+            writer.pushIndent()
+            writer.print(it.scopeStart?.(it.param, printer.language))
+        })
+        printer.writeStatement(printer.makeStatement(printer.makeString("/////")))
         method.argConvertors.forEach((it, index) => {
             if (it.useArray) {
-                writer.writePrintLog(`"${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+                writer.writeStatement(
+                    writer.makeAssign(`${it.param}Serializer`, new Type('Serializer'),
+                        writer.makeMethodCall('SerializerBase', 'get', [
+                            writer.makeString('createSerializer'), writer.makeString(index.toString())
+                        ]), true)
+                )
+                it.convertorSerialize(it.param, it.param, writer)
             }
         })
-    }
-    let params: LanguageExpression[] = []
-    if (method.hasReceiver()) {
-        params.push(writer.makeString(ptr))
-    }
-    method.argConvertors.forEach(it => {
-        if (it.useArray) {
-            params.push(writer.makeMethodCall(`${it.param}Serializer`, `asArray`, []))
-            params.push(writer.makeMethodCall(`${it.param}Serializer`, `length`, []))
-        } else {
-            params.push(writer.makeString(it.convertorArg(it.param, writer)))
+        printer.writeStatement(printer.makeStatement(printer.makeString("/////")))
+        // Enable to see serialized data.
+        if (dumpSerialized) {
+            method.argConvertors.forEach((it, index) => {
+                if (it.useArray) {
+                    writer.writePrintLog(`"${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+                }
+            })
         }
-    })
-    let call = writer.makeNativeCall(
-        `_${method.originalParentName}_${method.overloadedName}`,
-        params)
-    if (returnType != Type.Void) {
-        writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
-    } else {
-        writer.writeStatement(writer.makeStatement(call))
-    }
-    scopes.reverse().forEach(it => {
-        writer.popIndent()
-        writer.print(it.scopeEnd!(it.param, writer.language))
-    })
-    // TODO: refactor
-    if (returnType != Type.Void) {
-        let result = returnValName
-        if (method.hasReceiver() && returnType === Type.This) {
-            result = `this`
-        } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor"){
-            const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
-            if (!method.hasReceiver()) {
-                const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(", ")})`
-                const objType = new Type(method.originalParentName)
-                writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
-                writer.writeStatement(
-                    writer.makeAssign("obj.peer", new Type("Finalizable"),
-                        writer.makeString(`new Finalizable(${returnValName}, ${method.originalParentName}.getFinalizer())`), false))
-                result = "obj"
+        let params: LanguageExpression[] = []
+        if (method.hasReceiver()) {
+            params.push(writer.makeString(ptr))
+        }
+        method.argConvertors.forEach(it => {
+            if (it.useArray) {
+                params.push(writer.makeMethodCall(`${it.param}Serializer`, `asArray`, []))
+                params.push(writer.makeMethodCall(`${it.param}Serializer`, `length`, []))
+            } else {
+                params.push(writer.makeString(it.convertorArg(it.param, writer)))
             }
+        })
+        let call = writer.makeNativeCall(
+            `_${method.originalParentName}_${method.overloadedName}`,
+            params)
+        if (returnType != Type.Void) {
+            writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
+        } else {
+            writer.writeStatement(writer.makeStatement(call))
         }
-        writer.writeStatement(writer.makeReturn(writer.makeString(result)))
-    }
-})
+        scopes.reverse().forEach(it => {
+            writer.popIndent()
+            writer.print(it.scopeEnd!(it.param, writer.language))
+        })
+        // TODO: refactor
+        if (returnType != Type.Void) {
+            let result = returnValName
+            if (method.hasReceiver() && returnType === Type.This) {
+                result = `this`
+            } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
+                const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
+                if (!method.hasReceiver()) {
+                    const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(", ")})`
+                    const objType = new Type(method.originalParentName)
+                    writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
+                    writer.writeStatement(
+                        writer.makeAssign("obj.peer", new Type("Finalizable"),
+                            writer.makeString(`new Finalizable(${returnValName}, ${method.originalParentName}.getFinalizer())`), false))
+                    result = "obj"
+                }
+            }
+            writer.writeStatement(writer.makeReturn(writer.makeString(result)))
+        }
+    })
 }
