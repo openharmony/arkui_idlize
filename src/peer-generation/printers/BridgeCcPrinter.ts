@@ -15,7 +15,7 @@
 
 import { IndentedPrinter } from "../../IndentedPrinter";
 import { Language, capitalize, dropSuffix, isDefined } from "../../util";
-import { ArgConvertor } from "../Convertors";
+import { ArgConvertor, ArrayConvertor } from "../Convertors";
 import { PrimitiveType } from "../DeclarationTable";
 import { bridgeCcDeclaration } from "../FileGenerators";
 import { createLanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
@@ -80,21 +80,52 @@ class BridgeCcVisitor {
         this.C.popIndent()
     }
 
+    private static varCnt : number = 0;
+
     private printCallLog(method: PeerMethod, api: string, modifier: string) {
         this.C.print(`if (needGroupedLog(2)) {`)
         this.C.pushIndent()
+        this.C.print('std::string _logData;')
+        this.C.print('std::string _tmp;')
+        this.C.print('static int _num = 0;')
+        this.C.print(`static int _array_num = 0;`);
+        let varNames : string[] = new Array<string>()
+        for (let i = 0; i < method.argConvertors.length; ++i) {
+            let it = method.argConvertors[i]
+            let name = this.generateApiArgument(it) // it.param + '_value'
+            if (it instanceof ArrayConvertor) {
+                this.C.print(`_tmp = "", generateStdArrayDefinition(&_tmp, ${name});`);
+                this.C.print(`_logData.append("  auto array" + std::to_string(_array_num) + " = " + _tmp + ";");`);
+                this.C.print(`_logData.append("\\n");`);
+                this.C.print(`_tmp = "", WriteToString(&_tmp, ${name}, "array" + std::to_string(_array_num));`)
+                this.C.print("_array_num += 1;")
+            } else {
+                this.C.print(`_tmp = "", WriteToString(&_tmp, ${name});`)
+            }
+            varNames.push(`var${BridgeCcVisitor.varCnt}`)
+            let ptrType = `const ${it.nativeType(false)}`
+            this.C.print(`_logData.append("  ${ptrType} ${varNames[i]}_" + std::to_string(_num) + " = " + _tmp + ";\\n");`)
+            BridgeCcVisitor.varCnt += 1
+        }
 
-        this.C.print(`std::string _logData("  ${api}->${modifier}->${method.peerMethodName}(");`)
+        this.C.print(`_logData.append("  ${api}->${modifier}->${method.peerMethodName}(");`)
         if (method.hasReceiver()) {
+            this.C.print(`_logData.append("(Ark_NativePointer)");`)
             this.C.print(`WriteToString(&_logData, thisPtr);`)
             if (method.argConvertors.length > 0)
                 this.C.print(`_logData.append(", ");`)
         }
         method.argConvertors.forEach((it, index) => {
-            this.C.print(`WriteToString(&_logData, ${this.generateApiArgument(it)});`)
+            if (it.nativeType(false) != "Ark_Number"
+                && (it.tsTypeName == "number" || it.tsTypeName == "boolean")) {
+                this.C.print(`_logData.append("${varNames[index]}_" + std::to_string(_num));`)
+            } else {
+                this.C.print(`_logData.append("&${varNames[index]}_" + std::to_string(_num));`)
+            }
             if (index < method.argConvertors.length - 1)
                 this.C.print(`_logData.append(", ");`)
         })
+        this.C.print("_num += 1;")
         this.C.print(`_logData.append(");\\n");`)
         this.C.print(`appendGroupedLog(2, _logData);`)
         this.C.popIndent()

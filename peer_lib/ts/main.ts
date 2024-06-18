@@ -52,6 +52,7 @@ import {
     assertTrue,
 } from "./test_utils"
 import { nativeModule } from "@arkoala/arkui//NativeModule"
+import { writeFileSync } from "fs"
 
 // TODO: hacky way to detect subset vs full.
 startNativeLog(TEST_GROUP_LOG)
@@ -134,23 +135,21 @@ function checkButton() {
     let peer = new ArkButtonPeer(ArkUINodeType.Button)
 
     checkResult("width", () => peer.widthAttribute("42%"),
-        "width(Length {value=42.000000, unit=%, resource=0})")
+        "width({1, 42.000000, 3, 0})")
     checkResult("height", () => peer.heightAttribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
-        "height(Length {value=0.000000, unit=vp, resource=43})")
+        "height({2, 0.000000, 1, 43})")
     checkResult("bindSheet", () =>
         peer.bindSheetAttribute(false, () => {}, {
             title: {
                 title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
             }
         }),
-        `bindSheet(false, "Function 42", {backgroundColor: undefined, title: {title: Custom kind=NativeErrorResource id=0, subtitle: undefined}, detents: undefined})`
+        `bindSheet(false, {42}, {ARK_TAG_OBJECT, {{ARK_TAG_UNDEFINED, 0}, {ARK_TAG_OBJECT, {0, .value0={{1, .value1={.kind="NativeErrorResource", .id=0}}, {ARK_TAG_UNDEFINED, 0}}}}, {ARK_TAG_UNDEFINED, 0}}})`
     )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
-    checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),
-        "labelStyle({maxLines: 3})")
-    checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
-        "labelStyle({maxLines: undefined})")
-
+    checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}), "labelStyle({{ARK_TAG_OBJECT, {102, .i32=3}}})")
+    checkResult("labelStyle2", () => peer.labelStyleAttribute({}), "labelStyle({{ARK_TAG_UNDEFINED, 0}})")
+    //nativeModule()._MeausureLayoutAndDraw(peer.peer.ptr)
     assertEquals("ButtonPeer ptr", 123, peer!.peer!.ptr)
     assertTrue("ButtonPeer finalizer", peer!.peer!.finalizer != nullptr)
 }
@@ -158,19 +157,19 @@ function checkButton() {
 function checkCalendar() {
     let peer = new ArkCalendarPickerPeer(ArkUINodeType.CalendarPicker)
     checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, {dx: 5, dy: 6}),
-        `edgeAlign(2, {dx: Length {value=5.000000, unit=vp, resource=0}, dy: Length {value=6.000000, unit=vp, resource=0}})`)
+        `edgeAlign(2, {ARK_TAG_OBJECT, {{1, 5.000000, 1, 0}, {1, 6.000000, 1, 0}}})`)
     checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2),
-        `edgeAlign(2, undefined)`)
+        `edgeAlign(2, {ARK_TAG_UNDEFINED, 0})`)
 }
 
 function checkFormComponent() {
     let peer = new ArkFormComponentPeer(ArkUINodeType.FormComponent)
     checkResult("size int", () => peer.sizeAttribute({width: 5, height: 6}),
-        `size({width: 5, height: 6})`)
+        `size({{102, .i32=5}, {102, .i32=6}})`)
     checkResult("size float", () => peer.sizeAttribute({width: 5.5, height: 6.789}),
-        `size({width: 5.50, height: 6.78})`)
+        `size({{103, .f32=5.50}, {103, .f32=6.78}})`)
     checkResult("size zero", () => peer.sizeAttribute({width: 0.0, height: 0.0}),
-        `size({width: 0, height: 0})`)
+        `size({{102, .i32=0}, {102, .i32=0}})`)
 }
 
 function checkCommon() {
@@ -186,17 +185,17 @@ function checkCommon() {
     }
     checkResult("Test backgroundBlurStyle for BackgroundBlurStyleOptions",
         () => peer.backgroundBlurStyleAttribute(0, backgroundBlurStyle),
-        `backgroundBlurStyle(0, {colorMode: 0, adaptiveColor: 0, scale: 1, blurOptions: {grayscale: [1, 1]}})`
+        `backgroundBlurStyle(0, {ARK_TAG_OBJECT, {{ARK_TAG_OBJECT, 0}, {ARK_TAG_OBJECT, 0}, {ARK_TAG_OBJECT, {102, .i32=1}}, {ARK_TAG_OBJECT, {{{102, .i32=1}, {102, .i32=1}}}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with number",
         () => peer.dragPreviewOptionsAttribute({numberBadge: 10}, {isMultiSelectionEnabled: true}),
-        `dragPreviewOptions({numberBadge: 10}, {isMultiSelectionEnabled: true, defaultAnimationBeforeLifting: undefined})`
+        `dragPreviewOptions({{ARK_TAG_OBJECT, {1, .value1={102, .i32=10}}}}, {ARK_TAG_OBJECT, {{ARK_TAG_OBJECT, true}, {ARK_TAG_UNDEFINED, 0}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with boolean",
         () => peer.dragPreviewOptionsAttribute({numberBadge: true}, {defaultAnimationBeforeLifting: false}),
-        `dragPreviewOptions({numberBadge: true}, {isMultiSelectionEnabled: undefined, defaultAnimationBeforeLifting: false})`
+        `dragPreviewOptions({{ARK_TAG_OBJECT, {0, .value0=true}}}, {ARK_TAG_OBJECT, {{ARK_TAG_UNDEFINED, 0}, {ARK_TAG_OBJECT, false}}})`
     )
 }
 
@@ -216,18 +215,18 @@ function checkOverloads() {
     const component = new ArkSideBarContainerComponentTest(peer)
     checkResult("Test number implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth(11),
-        `minSideBarWidth(11)`
+        `minSideBarWidth({102, .i32=11})`
     )
     checkResult("Test string implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth("42%"),
-        `minSideBarWidth("42%")`
+        `minSideBarWidth({"42%", 3})`
     )
 }
 
 function checkNavigation() {
     let peer = new ArkNavigationPeer(ArkUINodeType.Navigation)
     checkResult("backButtonIcon", () => peer.backButtonIconAttribute("attr"),
-        `backButtonIcon("attr")`)
+        `backButtonIcon({0, .value0={"attr", 4}})`)
 }
 
 function checkTabContent() {
@@ -237,14 +236,14 @@ function checkTabContent() {
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = new SubTabBarStyle("abc")),
-        `new SubTabBarStyle("abc")[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]tabBar("Materialized 0x2a")`)
+        `new SubTabBarStyle({0, .value0={"abc", 3}})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]tabBar({0, .value0="Materialized 0x2a"})`)
     assertEquals("SubTabBarStyle ptr", 100, subTabBarStyle!.peer!.ptr)
     assertTrue("SubTabBarStyle finalizer", subTabBarStyle!.peer!.finalizer != nullptr)
 
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = SubTabBarStyle.of("ABC")),
-        `of("ABC")[return (void*) 300]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]tabBar("Materialized 0x2a")`)
+        `of({0, .value0={"ABC", 3}})[return (void*) 300]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]tabBar({0, .value0="Materialized 0x2a"})`)
     assertEquals("SubTabBarStyle.of() ptr", 300, subTabBarStyle!.peer!.ptr)
     assertTrue("SubTabBarStyle finalizer", subTabBarStyle!.peer!.finalizer != nullptr)
 
@@ -259,7 +258,7 @@ function checkCanvasRenderingContext2D() {
 
     checkResult("new CanvasRenderingContext2D()",
         () => canvasRenderingContext2D = new CanvasRenderingContext2D(),
-        `new CanvasRenderingContext2D(undefined)[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`)
+        `new CanvasRenderingContext2D({ARK_TAG_UNDEFINED, 0})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`)
 
     checkResult("CanvasRenderingContext2D width",
         () => canvasRenderingContext2D!.width,
@@ -432,15 +431,39 @@ checkEvent_Interface_Optional()
 checkEvent_Array_Class()
 stopNativeLog(CALL_GROUP_LOG)
 
-const callLog = getNativeLog(CALL_GROUP_LOG)
-if (callLog.length > 0) {
-    console.log(`
-#include "arkoala_api.h"
+const callGroupLog = getNativeLog(CALL_GROUP_LOG)
+const callLogCppCode = `
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "arkoala_api_generated.h"
+#include <array>
+
+const GENERATED_ArkUINodeModifiers* GetNodeModifiers() {
+    // TODO: restore the proper call
+    // return GetFullImpl()->getNodeModifiers();
+    extern const GENERATED_ArkUINodeModifiers* GENERATED_GetArkUINodeModifiers();
+    return GENERATED_GetArkUINodeModifiers();
+}
 
 int main(int argc, const char** argv) {
-${callLog}
+${callGroupLog}
   return 0;
-}`)
+}`
+if (callGroupLog.length > 0) {
+    console.log(callLogCppCode)
+    writeFileSync('./peer_lib/call_log/main.cpp', callLogCppCode)
 }
 checkTabContent()
 checkCanvasRenderingContext2D()

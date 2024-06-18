@@ -46,6 +46,29 @@ inline const char *tagName(Ark_Tag tag)
   throw "Error";
 }
 
+inline const char *tagNameExact(Ark_Tag tag)
+{
+  switch (tag)
+  {
+  case Ark_Tag::ARK_TAG_UNDEFINED:
+    return "ARK_TAG_UNDEFINED";
+  case Ark_Tag::ARK_TAG_INT32:
+    return "ARK_TAG_INT32";
+  case Ark_Tag::ARK_TAG_FLOAT32:
+    return "ARK_TAG_FLOAT32";
+  case Ark_Tag::ARK_TAG_LENGTH:
+    return "ARK_TAG_LENGTH";
+  case Ark_Tag::ARK_TAG_RESOURCE:
+    return "ARK_TAG_RESOURCE";
+  case Ark_Tag::ARK_TAG_STRING:
+    return "ARK_TAG_STRING";
+  case Ark_Tag::ARK_TAG_OBJECT:
+    return "ARK_TAG_OBJECT";
+  }
+  fprintf(stderr, "tag name %d is wrong\n", tag);
+  throw "Error";
+}
+
 inline const char *getUnitName(int value)
 {
   switch (value)
@@ -109,6 +132,9 @@ inline void WriteToString(string *result, T value) = delete;
 
 inline void WriteToString(string *result, const Ark_Empty &value)
 {
+  result->append("{");
+  result->append(std::to_string(value.dummy));
+  result->append("}");
 }
 
 struct Error
@@ -120,16 +146,20 @@ struct Error
 template <>
 inline void WriteToString(string *result, const Ark_Number *value)
 {
+  result->append("{" + std::to_string(value->tag) + ", ");
+
   if (value->tag == ARK_TAG_FLOAT32)
   {
     // print with precision 2 digits after dot
     std::string fv = std::to_string(value->f32);
     size_t i = fv.find(".");
     fv = (i != std::string::npos && (i + 3) < fv.length()) ? fv.substr(0, i + 3) : fv;
-    result->append(fv);
+    result->append(".f32=" + fv);
+  } else {
+    result->append(".i32=" + std::to_string(value->i32));
   }
-  else
-    result->append(std::to_string(value->i32));
+  
+  result->append("}");
 }
 
 template <>
@@ -162,10 +192,7 @@ inline void WriteToString(string *result, Ark_ObjectHandle value)
 template <>
 inline void WriteToString(string *result, const Ark_Function *value)
 {
-  result->append("\"");
-  result->append("Function ");
-  result->append(std::to_string(value->id));
-  result->append("\"");
+  result->append("{" + std::to_string(value->id) + "}");
 }
 
 template <>
@@ -183,11 +210,12 @@ inline void WriteToString(string *result, const Ark_Materialized *value)
 template <>
 inline void WriteToString(string *result, const Ark_Length *value)
 {
-  result->append("Length {");
-  result->append("value=");
+  result->append("{");
+  result->append(std::to_string(value->type));
+  result->append(", ");
   result->append(std::to_string(value->value));
-  result->append(", unit=" + string(getUnitName(value->unit)));
-  result->append(", resource=" + std::to_string(value->resource));
+  result->append(", " + std::to_string(value->unit));
+  result->append(", " + std::to_string(value->resource));
   result->append("}");
 }
 
@@ -204,12 +232,12 @@ class DeserializerBase;
 
 inline void WriteToString(string *result, Ark_Undefined value)
 {
-  result->append("undefined");
+  result->append("0");
 }
 
 inline void WriteToString(string *result, const Ark_Undefined *value)
 {
-  result->append("undefined");
+  result->append("0");
 }
 
 inline void WriteToString(string *result, const Ark_CustomObject *value)
@@ -219,10 +247,12 @@ inline void WriteToString(string *result, const Ark_CustomObject *value)
     result->append("() => {} /* TBD: Function*/");
     return;
   }
-  result->append("Custom kind=");
+  result->append("{");
+  result->append(".kind=\"");
   result->append(value->kind);
-  result->append(" id=");
+  result->append("\", .id=");
   result->append(std::to_string(value->id));
+  result->append("}");
 }
 
 struct CustomDeserializer
@@ -477,10 +507,15 @@ inline void WriteToString(string *result, Ark_Int32 value)
 
 inline void WriteToString(string *result, const Ark_String *value)
 {
-  result->append("\"");
-  if (value->chars)
+  result->append("{");
+  if (value->chars) {
+    result->append("\"");
     result->append(value->chars);
-  else
-    result->append("<null>");
-  result->append("\"");
+    result->append("\"");
+  } else {
+    result->append("");
+  }
+  result->append(", ");
+  WriteToString(result, value->length);
+  result->append("}");
 }

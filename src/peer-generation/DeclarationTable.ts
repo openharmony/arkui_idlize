@@ -840,6 +840,9 @@ export class DeclarationTable {
     writeOptional(nameOptional: string, printer: LanguageWriter, isPointer: boolean) {
         printer.print(`template <>`)
         printer.print(`inline void WriteToString(string* result, const ${nameOptional}* value) {`)
+        printer.print(`result->append("{");`)
+        printer.print(`result->append(tagNameExact((${PrimitiveType.Tag.getText()})(value->tag)));`)
+        printer.print(`result->append(", ");`)
         printer.pushIndent()
         printer.print(`if (value->tag != ${PrimitiveType.UndefinedTag}) {`)
         printer.pushIndent()
@@ -851,12 +854,8 @@ export class DeclarationTable {
         printer.print(`WriteToString(result, undefined);`)
         printer.popIndent()
         printer.print(`}`)
-        if (false) {
-            printer.print(`result->append(" /* ${nameOptional} { tag=");`)
-            printer.print(`result->append(tagName((${PrimitiveType.Tag.getText()})(value->tag)));`)
-            printer.print(`result->append(" } */");`)
-        }
         printer.popIndent()
+        printer.print(`result->append("}");`)
         printer.print(`}`)
     }
 
@@ -896,23 +895,66 @@ export class DeclarationTable {
         let elementNativeType = convertor.nativeType(false)
         let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
 
-        // Provide prototype of element printer.
-        printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);`)
-
-        // Printer.
-        printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${name}* value) {`)
+        printer.print(`inline void WriteToString(string* result, const ${name}* value, const std::string& ptrName = std::string()) {`)
         printer.pushIndent()
-        printer.print(`result->append("[");`)
-        printer.print(`int32_t count = value->length > 7 ? 7 : value->length;`)
+        printer.print(`result->append("{");`)
+        printer.print(`if (ptrName.empty()) {`)
+        printer.pushIndent()
+        printer.print(`int32_t count = value->length;`)
+        printer.print(`if (count > 0) result->append("{");`)
         printer.print(`for (int i = 0; i < count; i++) {`)
         printer.pushIndent()
         printer.print(`if (i > 0) result->append(", ");`)
         printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);`)
         printer.popIndent()
         printer.print(`}`)
-        printer.print(`result->append("]");`)
+        printer.print(`if (count == 0) result->append("{}");`)
+        printer.print(`if (count > 0) result->append("}");`)
+        printer.popIndent()
+        printer.print(`} else {`)
+        printer.pushIndent()
+        printer.print(`result->append(ptrName + ".data()");`)
+        printer.popIndent()
+        printer.print(`}`)
+        printer.print(`result->append(", ");`)
+        printer.print(`result->append(std::to_string(value->length));`)
+        printer.print(`result->append("}");`)
+        printer.popIndent()
+        printer.print(`}`)
+    }
+
+    private generateStdArrayDefinition(name: string, target: DeclarationTarget, printer: LanguageWriter) {
+        if (target instanceof PrimitiveType) throw new Error("Impossible")
+        let elementType = ts.isArrayTypeNode(target)
+            ? target.elementType
+            : ts.isTypeReferenceNode(target) && target.typeArguments
+                ? target.typeArguments[0]
+                : undefined
+
+        if (!elementType) throw new Error("Impossible")
+        let convertor = this.typeConvertor("param", elementType)
+        let isPointerField = convertor.isPointerType()
+        let elementNativeType = convertor.nativeType(false)
+        let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
+
+        // Provide prototype of element printer.
+        printer.print(`template <>`)
+        printer.print(`inline void WriteToString(string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);`)
+
+        // Printer.
+        printer.print(`inline void generateStdArrayDefinition(string* result, const ${name}* value) {`)
+        printer.pushIndent()
+        printer.print(`int32_t count = value->length;`)
+        printer.print(`result->append("std::array<${elementNativeType}, " + std::to_string(count) + ">{{");`)
+        printer.print(`for (int i = 0; i < count; i++) {`);
+        printer.pushIndent()
+        printer.print(`std::string tmp;`)
+        printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);`)
+        printer.print(`result->append(tmp);`);
+        printer.print(`result->append(", ");`)
+        printer.popIndent()
+        printer.print(`}`)
+        printer.print(`result->append("}}");`)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -945,8 +987,8 @@ export class DeclarationTable {
         printer.print(`template <>`)
         printer.print(`inline void WriteToString(string* result, const ${name}* value) {`)
         printer.pushIndent()
-        printer.print(`result->append("[");`)
-        printer.print(`int32_t count = value->size > 7 ? 7 : value->size;`)
+        printer.print(`result->append("{");`)
+        printer.print(`int32_t count = value->size;`)
         printer.print(`for (int i = 0; i < count; i++) {`)
         printer.pushIndent()
         printer.print(`if (i > 0) result->append(", ");`)
@@ -955,7 +997,7 @@ export class DeclarationTable {
         printer.print(`WriteToString(result, ${valueConstCast}${isPointerValueField ? "&" : ""}value->values[i]);`)
         printer.popIndent()
         printer.print(`}`)
-        printer.print(`result->append("]");`)
+        printer.print(`result->append("}");`)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -976,6 +1018,7 @@ export class DeclarationTable {
             isArray = identName(target.typeName) === "Array"
         }
         if (isArray) {
+            this.generateStdArrayDefinition(name, target, printer)
             this.generateArrayWriteToString(name, target, printer)
         } else if (isMap) {
             this.generateMapWriteToString(name, target, printer)
@@ -985,11 +1028,15 @@ export class DeclarationTable {
             printer.pushIndent()
 
             if (isUnion) {
+                printer.print(`result->append("{");`);
+                printer.print(`result->append(std::to_string(value->selector));`);
+                printer.print(`result->append(", ");`);
                 this.targetStruct(target).getFields().forEach((field, index) => {
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                     if (index != 0) printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     printer.print(`if (value${access}selector == ${index - 1}) {`)
                     printer.pushIndent()
+                    printer.print(`result->append(".${field.name}=");`);
                     printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                     printer.popIndent()
                     printer.print(`}`)
@@ -999,8 +1046,9 @@ export class DeclarationTable {
                     printer.print(`result->append(std::to_string(value${access}selector));`)
                     printer.print(`result->append("]*/");`)
                 }
+                printer.print(`result->append("}");`);
             } else if (isTuple) {
-                printer.print(`result->append("[");`)
+                printer.print(`result->append("{");`)
                 const fields = this.targetStruct(target).getFields()
                 fields.forEach((field, index) => {
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
@@ -1010,7 +1058,7 @@ export class DeclarationTable {
                     }
                     printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                 })
-                printer.print(`result->append("]");`)
+                printer.print(`result->append("}");`)
             } else if (isOptional) {
                 printer.print(`result->append("{");`)
                 const fields = this.targetStruct(target).getFields()
@@ -1035,7 +1083,6 @@ export class DeclarationTable {
                 this.targetStruct(target).getFields().forEach((field, index) => {
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     if (index > 0) printer.print(`result->append(", ");`)
-                    printer.print(`result->append("${field.name}: ");`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                     printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                 })

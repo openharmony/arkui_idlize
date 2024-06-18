@@ -147,38 +147,47 @@ std::vector<KStringPtr> makeStringVector(KNativePointerArray arr, KInt length) {
     }
 }
 
-std::vector<std::pair<std::string, bool>> groupedLogs;
+struct Log {
+    std::string log;
+    bool isActive;
+};
+std::vector<Log> groupedLogs;
 
 void startGroupedLog(KInt index) {
     if (index < 0) return;
     if (index >= (int)groupedLogs.size()) {
         groupedLogs.resize(index + 1);
     }
-    groupedLogs[index] = std::make_pair(std::string(), true);
+    groupedLogs[index] = Log{std::string(), true};
 }
 
 void stopGroupedLog(KInt index) {
     if (index >=0 && index < (int)groupedLogs.size()) {
-        groupedLogs[index].second = false;
+        groupedLogs[index].isActive = false;
     }
 }
 
 void appendGroupedLog(KInt index, const std::string& str) {
-    groupedLogs[index].first.append(str);
+    if (index < 0) return;
+    if (index >= (int)groupedLogs.size()) {
+        groupedLogs.resize(index + 1);
+        groupedLogs[index].isActive = true;
+    }
+    groupedLogs[index].log.append(str);
 }
 
 std::string emptyString;
 
 const std::string& getGroupedLog(int32_t index) {
     if (index >=0 && index < (int)groupedLogs.size()) {
-        return groupedLogs[index].first;
+        return groupedLogs[index].log;
     }
     return emptyString;
 }
 
 const bool needGroupedLog(int32_t index) {
     if (index >=0 && index < (int)groupedLogs.size()) {
-        return groupedLogs[index].second;
+        return groupedLogs[index].isActive;
     }
     return false;
 }
