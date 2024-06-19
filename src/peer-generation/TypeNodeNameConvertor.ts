@@ -159,8 +159,8 @@ export class TSTypeNodeNameConvertor implements
     convert(node: ts.Node): string {
         if (ts.isQualifiedName(node)) return this.convertQualifiedName(node)
         if (ts.isIdentifier(node)) return this.convertIdentifier(node)
-        if (ts.isTypeNode(node))
-            return convertTypeNode(this, node)
+        if (ts.isTypeNode(node)) return convertTypeNode(this, node)
+
         throw new Error(`Unknown node type ${ts.SyntaxKind[node.kind]}`)
     }
 }

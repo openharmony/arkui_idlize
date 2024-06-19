@@ -22,6 +22,8 @@ import { Language, renameDtsToInterfaces } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
 import { EnumEntity, PeerFile } from '../PeerFile'
 import { DeclarationConvertor, convertDeclaration } from '../TypeNodeConvertor'
+import { IndentedPrinter } from "../../IndentedPrinter"
+import { read } from "node:fs";
 
 export class DeclarationGenerator implements DeclarationConvertor<string> {
     constructor(
@@ -29,28 +31,79 @@ export class DeclarationGenerator implements DeclarationConvertor<string> {
     ) {}
 
     convertClass(node: ts.ClassDeclaration): string {
-        let text = node.getText()
-        for (const [stub, src] of [...this.library.importTypesStubToSource.entries()].reverse()) {
-            text = text.replaceAll(src, stub)
-        }
-        return 'export ' + text
+        return this.convertDeclaration(node)
     }
+
     convertInterface(node: ts.InterfaceDeclaration): string {
-        let text = node.getText()
-        for (const [stub, src] of [...this.library.importTypesStubToSource.entries()].reverse()) {
-            text = text.replaceAll(src, stub)
-        }
-        return 'export ' + text
+        return this.convertDeclaration(node)
     }
+
     convertEnum(node: ts.EnumDeclaration): string {
-        throw "Enums are processed separatedly"
+        throw "Enums are processed separately"
     }
+
     convertTypeAlias(node: ts.TypeAliasDeclaration): string {
         const maybeTypeArguments = node.typeParameters?.length
             ? `<${node.typeParameters.map(it => it.getText()).join(', ')}>`
             : ''
         let type = mapType(node.type)
         return `export declare type ${node.name.text}${maybeTypeArguments} = ${type};`
+    }
+
+    private replaceImportTypeNodes(text: string): string {
+        for (const [stub, src] of [...this.library.importTypesStubToSource.entries()].reverse()) {
+            text = text.replaceAll(src, stub)
+        }
+        return text
+    }
+
+    private extendsClause(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
+        let parent = node.heritageClauses
+            ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)[0]
+            ?.types[0]
+        if (parent === undefined) return ""
+        return `extends ${parent.getText()}`
+    }
+
+    private declarationName(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
+        let name = ts.idText(node.name as ts.Identifier)
+        let typeParams = node.typeParameters?.map(it => it.getText()).join(', ')
+        let typeParamsClause = typeParams ? `<${typeParams}>` : ``
+        return `${name}${typeParamsClause}`
+    }
+
+    private convertDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
+        if (!this.library.isComponentDeclaration((node))) {
+            return 'export ' + this.replaceImportTypeNodes(node.getText())
+        }
+        let printer = new IndentedPrinter()
+        let className = this.declarationName(node)
+        let extendsClause = this.extendsClause(node)
+
+        let classOrInterface = ts.isClassDeclaration(node) ? `class` : `interface`
+        printer.print(`export declare ${classOrInterface} ${className} ${extendsClause} {`)
+        printer.pushIndent()
+        this.declarationMembers(node)
+            .forEach(it => {
+                printer.print(`/** @memo */`)
+                printer.print(it.getText())
+            })
+        printer.popIndent()
+        printer.print(`}`)
+
+        return this.replaceImportTypeNodes(printer.getOutput().join('\n'))
+    }
+
+    private declarationMembers(
+        node: ts.ClassDeclaration | ts.InterfaceDeclaration
+    ): readonly (ts.MethodSignature | ts.MethodDeclaration)[] {
+        if (ts.isClassDeclaration(node) && node.members.every(ts.isMethodDeclaration)) {
+            return node.members
+        }
+        if (ts.isInterfaceDeclaration(node) && node.members.every(ts.isMethodSignature)) {
+            return node.members
+        }
+        throw new Error(`Encountered component with member that is not method: ${node}`)
     }
 }
 
