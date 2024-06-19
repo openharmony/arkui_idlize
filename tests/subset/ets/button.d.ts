@@ -21,7 +21,12 @@ declare enum ButtonType {
 
 declare interface LabelStyle {
 
+    overflow?: TextOverflow;
     maxLines?: number;
+    minFontSize?: number | ResourceStr;
+    maxFontSize?: number | ResourceStr;
+    heightAdaptivePolicy?: TextHeightAdaptivePolicy;
+    font?: Font;
 
     //  error TS2551: Property 'dayFontSize' does not exist on type 'LabelStyle'.
     //  Did you mean 'maxFontSize'?

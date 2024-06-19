@@ -5,7 +5,7 @@ interface SideBarContainerInterface {
 
 declare class SideBarContainerAttribute extends CommonMethod<SideBarContainerAttribute> {
     minSideBarWidth(value: number): SideBarContainerAttribute;
-    minSideBarWidth(value: string): SideBarContainerAttribute;
+    minSideBarWidth(value: Length): SideBarContainerAttribute;
 }
 
 declare const SideBarContainer: SideBarContainerInterface;

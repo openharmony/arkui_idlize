@@ -17,3 +17,31 @@ declare enum Color {
     White,
     Black,
 }
+
+declare enum TextHeightAdaptivePolicy {
+  MAX_LINES_FIRST,
+  MIN_FONT_SIZE_FIRST,
+  LAYOUT_CONSTRAINT_FIRST,
+}
+
+declare enum TextOverflow {
+  None,
+  Clip,
+  Ellipsis,
+  MARQUEE,
+}
+
+declare enum FontWeight {
+  Lighter,
+  Normal,
+  Regular,
+  Medium,
+  Bold,
+  Bolder,
+}
+
+declare enum FontStyle {
+  Normal,
+  Italic,
+}
+

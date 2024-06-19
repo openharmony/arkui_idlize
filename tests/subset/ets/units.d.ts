@@ -66,3 +66,10 @@ declare interface LocalizedPadding {
 
   start?: LengthMetrics;
 };
+
+declare interface Font {
+  size?: Length;
+  weight?: FontWeight | number | string;
+  family?: string | Resource;
+  style?: FontStyle;
+}
