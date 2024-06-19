@@ -9,7 +9,10 @@ deps = CXX.find_library(
     'NativeBridgeArk',
     dirs : [meson.current_source_dir() + '/../../native/']
 )
-inc_dir = include_directories('../../generated/subset/libace/generated/interface')
+# for subset:
+# inc_dir = include_directories('../../generated/subset/libace/generated/interface')
+# for peers:
+inc_dir = include_directories('../../generated/peers/koalaui/arkoala/native/src')
 executable(
     'run_call_log',
     sources,

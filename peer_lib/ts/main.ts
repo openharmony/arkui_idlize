@@ -144,11 +144,13 @@ function checkButton() {
                 title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
             }
         }),
-        `bindSheet(false, {42}, {ARK_TAG_OBJECT, {{ARK_TAG_UNDEFINED, 0}, {ARK_TAG_OBJECT, {0, .value0={{1, .value1={.kind="NativeErrorResource", .id=0}}, {ARK_TAG_UNDEFINED, 0}}}}, {ARK_TAG_UNDEFINED, 0}}})`
+        `bindSheet(false, {0, .value0={42}}, {ARK_TAG_OBJECT, {{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, {0, .value0={{1, .value1={.kind="NativeErrorResource", .id=0}}, {ARK_TAG_UNDEFINED, {}}}}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}}})`
     )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
-    checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}), "labelStyle({{ARK_TAG_OBJECT, {102, .i32=3}}})")
-    checkResult("labelStyle2", () => peer.labelStyleAttribute({}), "labelStyle({{ARK_TAG_UNDEFINED, 0}})")
+    checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),
+        "labelStyle({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, {102, .i32=3}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}})")
+    checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
+        "labelStyle({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}})")
     //nativeModule()._MeausureLayoutAndDraw(peer.peer.ptr)
     assertEquals("ButtonPeer ptr", 123, peer!.peer!.ptr)
     assertTrue("ButtonPeer finalizer", peer!.peer!.finalizer != nullptr)
@@ -159,7 +161,7 @@ function checkCalendar() {
     checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, {dx: 5, dy: 6}),
         `edgeAlign(2, {ARK_TAG_OBJECT, {{1, 5.000000, 1, 0}, {1, 6.000000, 1, 0}}})`)
     checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2),
-        `edgeAlign(2, {ARK_TAG_UNDEFINED, 0})`)
+        `edgeAlign(2, {ARK_TAG_UNDEFINED, {}})`)
 }
 
 function checkFormComponent() {
@@ -190,12 +192,12 @@ function checkCommon() {
 
     checkResult("Test dragPreviewOptions numberBadge with number",
         () => peer.dragPreviewOptionsAttribute({numberBadge: 10}, {isMultiSelectionEnabled: true}),
-        `dragPreviewOptions({{ARK_TAG_OBJECT, {1, .value1={102, .i32=10}}}}, {ARK_TAG_OBJECT, {{ARK_TAG_OBJECT, true}, {ARK_TAG_UNDEFINED, 0}}})`
+        `dragPreviewOptions({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, {1, .value1={102, .i32=10}}}}, {ARK_TAG_OBJECT, {{ARK_TAG_OBJECT, true}, {ARK_TAG_UNDEFINED, {}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with boolean",
         () => peer.dragPreviewOptionsAttribute({numberBadge: true}, {defaultAnimationBeforeLifting: false}),
-        `dragPreviewOptions({{ARK_TAG_OBJECT, {0, .value0=true}}}, {ARK_TAG_OBJECT, {{ARK_TAG_UNDEFINED, 0}, {ARK_TAG_OBJECT, false}}})`
+        `dragPreviewOptions({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, {0, .value0=true}}}, {ARK_TAG_OBJECT, {{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, false}}})`
     )
 }
 
@@ -219,7 +221,7 @@ function checkOverloads() {
     )
     checkResult("Test string implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth("42%"),
-        `minSideBarWidth({"42%", 3})`
+        `minSideBarWidth({1, 42.000000, 3, 0})`
     )
 }
 
@@ -258,7 +260,7 @@ function checkCanvasRenderingContext2D() {
 
     checkResult("new CanvasRenderingContext2D()",
         () => canvasRenderingContext2D = new CanvasRenderingContext2D(),
-        `new CanvasRenderingContext2D({ARK_TAG_UNDEFINED, 0})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`)
+        `new CanvasRenderingContext2D({ARK_TAG_UNDEFINED, {}})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`)
 
     checkResult("CanvasRenderingContext2D width",
         () => canvasRenderingContext2D!.width,

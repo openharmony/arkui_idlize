@@ -232,12 +232,12 @@ class DeserializerBase;
 
 inline void WriteToString(string *result, Ark_Undefined value)
 {
-  result->append("0");
+  result->append("{}");
 }
 
 inline void WriteToString(string *result, const Ark_Undefined *value)
 {
-  result->append("0");
+  result->append("{}");
 }
 
 inline void WriteToString(string *result, const Ark_CustomObject *value)
