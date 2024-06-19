@@ -11,4 +11,5 @@ export class ComponentBase {
         name: string
     ): boolean { throw new Error("not implemented") }
     protected applyAttributesFinish(): void { throw new Error("not implemented") }
+    __applyStyle(style: (instance: this, ...args: any) => this, ...args: any): this { throw new Error("not implemented") }
 }

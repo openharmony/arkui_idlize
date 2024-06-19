@@ -390,6 +390,8 @@ class ComponentsCompleter {
             if (!heritage)
                 continue
             const parentDecls = getDeclarationsByNode(this.library.declarationTable.typeChecker!, heritage.types[0].expression)
+                // to resolve a problem with duplicate CommonMethod interface in koala fakes
+                .filter(it => ts.isClassDeclaration(it))
             if (parentDecls.length !== 1)
                 throw new Error("Expected parent to have single declaration")
             const parentDecl = parentDecls[0]
