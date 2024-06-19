@@ -299,7 +299,6 @@ if (options.dts2peer) {
         (sourceFile, typeChecker) => new PeerGeneratorVisitor({
             sourceFile: sourceFile,
             typeChecker: typeChecker,
-            interfacesToGenerate: toSet(options.generateInterface),
             declarationTable,
             peerLibrary
         }),
@@ -310,7 +309,7 @@ if (options.dts2peer) {
             },
             onEnd(outDir: string) {
                 let lang = declarationTable.language
-                const peerProcessor = new PeerProcessor(peerLibrary)
+                const peerProcessor = new PeerProcessor(peerLibrary, toSet(options.generateInterface))
                 peerProcessor.process()
                 declarationTable.analyze(peerLibrary)
 

@@ -220,6 +220,8 @@ class PeersVisitor {
 
     printPeers(): void {
         for (const file of this.library.files.values()) {
+            if (!file.peers.size)
+                continue
             const visitor = new PeerFileVisitor(this.library, file, this.dumpSerialized)
             visitor.printFile()
             this.peers.set(visitor.targetBasename, visitor.printer.getOutput())

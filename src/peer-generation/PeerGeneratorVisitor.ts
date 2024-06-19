@@ -80,7 +80,6 @@ export interface TypeAndName {
 export type PeerGeneratorVisitorOptions = {
     sourceFile: ts.SourceFile
     typeChecker: ts.TypeChecker
-    interfacesToGenerate: Set<string>
     declarationTable: DeclarationTable,
     peerLibrary: PeerLibrary
 }
@@ -93,9 +92,24 @@ export class ComponentDeclaration {
     ) {}
 }
 
+function isSubclass(typeChecker: ts.TypeChecker, node: ts.ClassDeclaration, maybeParent: ts.ClassDeclaration): boolean {
+    const heritageParentType = node.heritageClauses?.[0].types[0].expression
+    const heritageDeclarations = heritageParentType ? getDeclarationsByNode(typeChecker, heritageParentType) : []
+    return heritageDeclarations.some(it => {
+        if (it === maybeParent)
+            return true
+        if (ts.isClassDeclaration(it))
+            return isSubclass(typeChecker, it, maybeParent)
+        return false
+    })
+}
+
+function isSubclassComponent(typeChecker: ts.TypeChecker, a: ComponentDeclaration, b: ComponentDeclaration) {
+    return isSubclass(typeChecker, a.attributesDeclarations, b.attributesDeclarations)
+}
+
 export class PeerGeneratorVisitor implements GenericVisitor<void> {
     private readonly sourceFile: ts.SourceFile
-    private interfacesToGenerate: Set<string>
     declarationTable: DeclarationTable
 
     static readonly serializerBaseMethods = serializerBaseMethods()
@@ -107,7 +121,6 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
     constructor(options: PeerGeneratorVisitorOptions) {
         this.sourceFile = options.sourceFile
         this.typeChecker = options.typeChecker
-        this.interfacesToGenerate = options.interfacesToGenerate
         this.declarationTable = options.declarationTable
         this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable)
         this.peerLibrary = options.peerLibrary
@@ -342,6 +355,23 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
     }
 }
 
+class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
+    constructor(
+        private readonly library: PeerLibrary,
+        typeDepsCollector: TypeDependenciesCollector,
+    ) {
+        super(library.declarationTable.typeChecker!, typeDepsCollector)
+    }
+
+    protected override convertHeritageClause(clause: ts.HeritageClause): ts.Declaration[] {
+        const parent = clause.parent
+        if (ts.isClassDeclaration(parent) && this.library.isComponentDeclaration(parent)) {
+            return []
+        }
+        return super.convertHeritageClause(clause)
+    }    
+}
+
 class ComponentsCompleter {
     constructor(
         private readonly library: PeerLibrary,
@@ -349,22 +379,6 @@ class ComponentsCompleter {
 
     private componentNameByClass(node: ts.ClassDeclaration): string {
         return node.name!.text
-    }
-
-    private isSubclass(node: ts.ClassDeclaration, maybeParent: ts.ClassDeclaration): boolean {
-        const heritageParentType = node.heritageClauses?.[0].types[0].expression
-        const heritageDeclarations = heritageParentType ? getDeclarationsByNode(this.library.declarationTable.typeChecker!, heritageParentType) : []
-        return heritageDeclarations.some(it => {
-            if (it === maybeParent)
-                return true
-            if (ts.isClassDeclaration(it))
-                return this.isSubclass(it, maybeParent)
-            return false
-        })
-    }
-
-    private isSubclassComponent(a: ComponentDeclaration, b: ComponentDeclaration) {
-        return this.isSubclass(a.attributesDeclarations, b.attributesDeclarations)
     }
 
     public process(): void {
@@ -393,7 +407,7 @@ class ComponentsCompleter {
         const components = this.library.componentsDeclarations
         for (let i = 0; i < components.length; i++) {
             for (let j = i + 1; j < components.length; j++) {
-                if (this.isSubclassComponent(components[i], components[j])) {
+                if (isSubclassComponent(this.library.declarationTable.typeChecker!, components[i], components[j])) {
                     components.splice(i, 0, ...components.splice(j, 1))
                     i--
                     break
@@ -590,20 +604,18 @@ class PeersGenerator {
         this.createComponentAttributesDeclaration(node, peer)
     }
 
-    public process(): void {
-        for (const component of this.library.componentsDeclarations) {
-            const sourceFile = component.attributesDeclarations.parent
-            if (!ts.isSourceFile(sourceFile))
-                throw new Error("Expected parent of attributes to be a SourceFile")
-            const file = this.library.findFileByOriginalFilename(sourceFile.fileName)
-            if (!file)
-                throw new Error("Not found a file corresponding to attributes class")
-            const peer = new PeerClass(file, component.name, sourceFile.fileName, this.declarationTable)
-            if (component.interfaceDeclaration)
-                this.fillInterface(peer, component.interfaceDeclaration)
-            this.fillClass(peer, component.attributesDeclarations)
-            file.peers.set(component.name, peer)
-        }
+    public generatePeer(component: ComponentDeclaration): void {
+        const sourceFile = component.attributesDeclarations.parent
+        if (!ts.isSourceFile(sourceFile))
+            throw new Error("Expected parent of attributes to be a SourceFile")
+        const file = this.library.findFileByOriginalFilename(sourceFile.fileName)
+        if (!file)
+            throw new Error("Not found a file corresponding to attributes class")
+        const peer = new PeerClass(file, component.name, sourceFile.fileName, this.declarationTable)
+        if (component.interfaceDeclaration)
+            this.fillInterface(peer, component.interfaceDeclaration)
+        this.fillClass(peer, component.attributesDeclarations)
+        file.peers.set(component.name, peer)
     }
 }
 
@@ -614,11 +626,12 @@ export class PeerProcessor {
 
     constructor(
         private readonly library: PeerLibrary,
+        private readonly componentsToGenerate?: Set<string>,
     ) { 
         this.typeDependenciesCollector = new ImportsAggregateCollector(this.library, false)
-        this.declDependenciesCollector = new DeclarationDependenciesCollector(this.declarationTable.typeChecker!, this.typeDependenciesCollector)
-        this.serializeDepsCollector = new DeclarationDependenciesCollector(
-            this.declarationTable.typeChecker!, new ImportsAggregateCollector(this.library, true))
+        this.declDependenciesCollector = new FilteredDeclarationCollector(this.library, this.typeDependenciesCollector)
+        this.serializeDepsCollector = new FilteredDeclarationCollector(
+            this.library, new ImportsAggregateCollector(this.library, true))
     }
     private get declarationTable(): DeclarationTable {
         return this.library.declarationTable
@@ -723,8 +736,19 @@ export class PeerProcessor {
         return node.parent
     }
 
+    private generateActualComponents(): ComponentDeclaration[] {
+        const components = this.library.componentsDeclarations
+        if (!this.componentsToGenerate?.size)
+            return components
+        const entryComponents = components.filter(it => this.componentsToGenerate!.has(it.name))
+        return components.filter(component => {
+            return entryComponents.includes(component) 
+                // entryComponents.some(entryComponent => isSubclassComponent(this.declarationTable.typeChecker!, entryComponent, component))
+        })
+    }
+
     private generateDeclarations(): Set<ts.Declaration> {
-        const deps = new Set(this.library.componentsDeclarations.flatMap(it => {
+        const deps = new Set(this.generateActualComponents().flatMap(it => {
             const decls: ts.Declaration[] = [it.attributesDeclarations]
             if (it.interfaceDeclaration)
                 decls.push(it.interfaceDeclaration)
@@ -751,7 +775,9 @@ export class PeerProcessor {
 
     process(): void {
         new ComponentsCompleter(this.library).process()
-        new PeersGenerator(this.library).process()
+        const peerGenerator = new PeersGenerator(this.library)
+        for (const actualComponent of this.generateActualComponents())
+            peerGenerator.generatePeer(actualComponent)
         for (const dep of this.generateDeclarations()) {
             if (isFakeDeclaration(dep))
                 continue

@@ -134,7 +134,7 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<ts
             ...node.members.flatMap(member => this.convertMember(member)),
         ]
     }
-    private convertHeritageClause(clause: ts.HeritageClause): ts.Declaration[] {
+    protected convertHeritageClause(clause: ts.HeritageClause): ts.Declaration[] {
         return clause.types.flatMap(expression => this.convertExpression(expression))       
     }
     private convertMember(member: ts.TypeElement | ts.ClassElement): ts.Declaration[] {

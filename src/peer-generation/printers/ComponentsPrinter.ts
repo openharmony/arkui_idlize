@@ -156,6 +156,8 @@ class ComponentsVisitor {
 
     printComponents(): void {
         for (const file of this.peerLibrary.files.values()) {
+            if (!file.peers.size)
+                continue
             const writer = createLanguageWriter(Language.TS)
             const visitor = new ComponentFileVisitor(this.peerLibrary, file, writer)
             visitor.printFile()
