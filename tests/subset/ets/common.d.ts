@@ -53,15 +53,96 @@ declare enum SheetSize {
     FIT_CONTENT = 2,
 }
 
+declare enum SheetType {
+    BOTTOM = 0,
+    CENTER = 1,
+    POPUP = 2,
+}
+
+declare enum SheetMode {
+    OVERLAY = 0,
+    EMBEDDED = 1,
+}
+
+declare enum ShadowStyle {
+    OUTER_DEFAULT_XS,
+    OUTER_DEFAULT_SM,
+    OUTER_DEFAULT_MD,
+    OUTER_DEFAULT_LG,
+    OUTER_FLOATING_SM,
+    OUTER_FLOATING_MD,
+}
+
+declare enum ShadowType {
+    COLOR,
+    BLUR,
+}
+
+declare interface ShadowOptions {
+    radius: number | Resource;
+    type?: ShadowType;
+    color?: Color | string | Resource | ColoringStrategy;
+    offsetX?: number | Resource;
+    offsetY?: number | Resource;
+    fill?: boolean;
+}
+
+declare interface SheetDismiss {
+    dismiss: () => void;
+}
+
+declare enum DismissReason {  
+    PRESS_BACK = 0,
+    TOUCH_OUTSIDE = 1,
+    CLOSE_BUTTON = 2,
+    SLIDE_DOWN = 3
+}
+
+declare interface DismissSheetAction {
+    dismiss: Callback<void>;
+    reason: DismissReason;
+}
+
+declare interface SpringBackAction {
+    springBack: Callback<void>;
+}
+
 declare type CustomBuilder = (() => any) | void;
 
 declare interface BindOptions {
     backgroundColor?: ResourceColor;
+    onAppear?: () => void;
+    onDisappear?: () => void;
+    onWillAppear?: () => void;
+    onWillDisappear?: () => void;
 }
 
+declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext; // hack
+
 declare interface SheetOptions extends BindOptions {
-    title?: SheetTitleOptions | CustomBuilder;
+    height?: SheetSize | Length;
+    dragBar?: boolean;
+    maskColor?: ResourceColor;
     detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
+    blurStyle?: BlurStyle;
+    showClose?: boolean | Resource;
+    preferType?: SheetType;
+    title?: SheetTitleOptions | CustomBuilder;
+    shouldDismiss?: (sheetDismiss: SheetDismiss) => void;
+    onWillDismiss?: Callback<DismissSheetAction>;
+    onWillSpringBackWhenDismiss?: Callback<SpringBackAction>;
+    enableOutsideInteractive?: boolean;
+    width?: Dimension;
+    borderWidth?: Dimension | EdgeWidths | LocalizedEdgeWidths;
+    borderColor?: ResourceColor | EdgeColors | LocalizedEdgeColors;
+    borderStyle?: BorderStyle | EdgeStyles;
+    shadow?: ShadowOptions | ShadowStyle;
+    onHeightDidChange?: Callback<number>;
+    mode?: SheetMode;
+    onDetentsDidChange?: Callback<number>;
+    onWidthDidChange?: Callback<number>;
+    onTypeDidChange?: Callback<SheetType>;
+    uiContext?: UIContext;
 }
 
 declare enum BlurStyle {
@@ -167,7 +248,18 @@ declare interface BorderOptions {
     //style?: EdgeStyles | BorderStyle;
 }
 
+declare enum DragPreviewMode {
+  AUTO = 1,
+  DISABLE_SCALE = 2,
+  ENABLE_DEFAULT_SHADOW = 3,
+  ENABLE_DEFAULT_RADIUS = 4,
+}
+
+declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier; // hack
+
 declare interface DragPreviewOptions {
+    mode?: DragPreviewMode | Array<DragPreviewMode>;
+    modifier?: ImageModifier;
     numberBadge?: boolean | number;
 }
 
@@ -210,7 +302,7 @@ declare class CommonMethod<T> {
 
     padding(value: Padding | Dimension): T;
 
-    bindSheet(isShow: boolean, builder: () => void, options?: SheetOptions): T;
+    bindSheet(isShow: boolean, builder: CustomBuilder, options?: SheetOptions): T;
 
     backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): T;
 

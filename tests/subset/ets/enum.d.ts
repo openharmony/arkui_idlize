@@ -45,3 +45,8 @@ declare enum FontStyle {
   Italic,
 }
 
+declare enum ColoringStrategy {
+  INVERT = 'invert',
+  AVERAGE = 'average',
+  PRIMARY = 'primary',
+}
