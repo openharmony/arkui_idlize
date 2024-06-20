@@ -270,7 +270,6 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
             writer.pushIndent()
             writer.print(it.scopeStart?.(it.param, printer.language))
         })
-        printer.writeStatement(printer.makeStatement(printer.makeString("/////")))
         method.argConvertors.forEach((it, index) => {
             if (it.useArray) {
                 writer.writeStatement(
@@ -282,7 +281,6 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
                 it.convertorSerialize(it.param, it.param, writer)
             }
         })
-        printer.writeStatement(printer.makeStatement(printer.makeString("/////")))
         // Enable to see serialized data.
         if (dumpSerialized) {
             method.argConvertors.forEach((it, index) => {
