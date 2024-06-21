@@ -127,6 +127,10 @@ public class SerializerBase {
         this.checkCapacity(1);
         buffer.put(value);
     }
+    public void writeInt8(RuntimeType value) {
+        this.checkCapacity(1);
+        buffer.put(value.value);
+    }
     public void writeInt32(int value) {
         this.checkCapacity(4);
         buffer.putInt(value);

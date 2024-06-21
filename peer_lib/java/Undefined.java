@@ -14,14 +14,4 @@
  */
 package org.koalaui.arkoala;
 
-import java.lang.String;
-
-class TestOptions {
-    public String str;
-    public float num;
-
-    public TestOptions(final String str_, final float num_) {
-        str = str_;
-        num = num_;
-    }
-}
+public class Undefined {}

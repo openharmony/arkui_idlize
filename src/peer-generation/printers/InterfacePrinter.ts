@@ -16,7 +16,7 @@
 import * as ts from 'typescript'
 import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
-import { LanguageWriter, createLanguageWriter } from '../LanguageWriters'
+import { LanguageWriter, createLanguageWriter, Type, Method, MethodSignature, MethodModifier, NamedMethodSignature } from '../LanguageWriters'
 import { mapType } from '../TypeNodeNameConvertor'
 import { Language, renameDtsToInterfaces } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
@@ -46,7 +46,7 @@ export class DeclarationGenerator implements DeclarationConvertor<string> {
         const maybeTypeArguments = node.typeParameters?.length
             ? `<${node.typeParameters.map(it => it.getText()).join(', ')}>`
             : ''
-        let type = mapType(node.type)
+        let type = mapType(node.type, Language.TS)
         return `export declare type ${node.name.text}${maybeTypeArguments} = ${type};`
     }
 
@@ -107,8 +107,13 @@ export class DeclarationGenerator implements DeclarationConvertor<string> {
     }
 }
 
-class InterfacesVisitor {
-    readonly interfaces: Map<string, LanguageWriter> = new Map()
+interface InterfacesVisitor {
+    getInterfaces(): Map<string, LanguageWriter>
+    printInterfaces(): void
+}
+
+class TSInterfacesVisitor implements InterfacesVisitor {
+    private readonly interfaces: Map<string, LanguageWriter> = new Map()
     private readonly generator: DeclarationGenerator
 
     constructor(
@@ -157,6 +162,10 @@ class InterfacesVisitor {
         }
     }
 
+    getInterfaces(): Map<string, LanguageWriter> {
+        return this.interfaces
+    }
+
     printInterfaces() {
         for (const file of this.peerLibrary.files.values()) {
             const writer = createLanguageWriter(Language.TS)
@@ -170,14 +179,190 @@ class InterfacesVisitor {
     }
 }
 
-export function printInterfaces(peerLibrary: PeerLibrary): Map<string, string> {
-    if (peerLibrary.declarationTable.language != Language.TS)
-        return new Map()
 
-    const visitor = new InterfacesVisitor(peerLibrary)
+class JavaInterfacesVisitor {
+    private readonly interfaces: Map<string, LanguageWriter> = new Map()
+
+    constructor(
+        private readonly peerLibrary: PeerLibrary,
+    ) {}
+
+    addInterface(name: string, writer: LanguageWriter) {
+        this.interfaces.set(name, writer)
+    }
+
+    hasInterface(name: string): boolean {
+        return this.interfaces.has(name)
+    }
+
+    getName(node: ts.NamedDeclaration): string {
+        if (!node.name) {
+            throw new Error(`Empty name for node\n${node}`)
+        }
+        return node.name.getText()
+    }
+
+    getSuperClass(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
+        if (!node.heritageClauses) {
+            return
+        }
+
+        for (const clause of node.heritageClauses) {
+            if (clause.token == ts.SyntaxKind.ExtendsKeyword) {
+                return clause.types[0].expression.getText()
+            }
+        }
+    }
+
+    printPackage(writer: LanguageWriter): void {
+        writer.print("package org.koalaui.arkoala;\n")
+    }
+
+    implementType(sourceType: ts.TypeNode | undefined, targetType: Type) {
+        if (!sourceType) {
+            return
+        }
+        if (this.hasInterface(targetType.name)) {
+            return
+        }
+
+        if (ts.isUnionTypeNode(sourceType)) {
+            const writer = createLanguageWriter(Language.JAVA)
+            this.printPackage(writer)
+            this.printUnionImplementation(sourceType, targetType, writer)
+            this.addInterface(targetType.name, writer)
+            return
+        }
+        if (ts.isTupleTypeNode(sourceType)) {
+            const writer = createLanguageWriter(Language.JAVA)
+            this.printPackage(writer)
+            this.printTupleImplementation(sourceType, targetType, writer)
+            this.addInterface(targetType.name, writer)
+            return
+        }
+    }
+
+    printUnionImplementation(sourceType: ts.UnionTypeNode, targetType: Type, writer: LanguageWriter) {
+        writer.writeClass(targetType.name, () => {
+            const intType = new Type('int')
+            const selector = 'selector'
+            writer.writeFieldDeclaration(selector, intType, ['private'], false)
+            writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(selector)
+                    )
+                )
+            })
+
+            for (const [index, subType] of sourceType.types.entries()) {
+                const subTypeTargetType = new Type(mapType(subType, Language.JAVA))
+                this.implementType(subType, subTypeTargetType)
+                const value = `value${index}`
+                const param = 'param'
+
+                writer.writeFieldDeclaration(value, subTypeTargetType, ['private'], false)
+
+                writer.writeConstructorImplementation(
+                    targetType.name,
+                    new NamedMethodSignature(Type.Void, [subTypeTargetType], [param]),
+                    () => {
+                        writer.writeStatement(
+                            writer.makeAssign(value, undefined, writer.makeString(param), false, false)
+                        )
+                        writer.writeStatement(
+                            writer.makeAssign(selector, undefined, writer.makeString(index.toString()), false, false)
+                        )
+                    }
+                )
+
+                writer.writeMethodImplementation(
+                    new Method(`getValue${index}`, new MethodSignature(subTypeTargetType, []), [MethodModifier.PUBLIC]),
+                    () => {
+                        writer.writeStatement(
+                            writer.makeReturn(
+                                writer.makeString(value)
+                            )
+                        )
+                    }
+                )
+            }
+        })
+    }
+
+    printTupleImplementation(sourceType: ts.TupleTypeNode, targetType: Type, writer: LanguageWriter) {
+        writer.writeClass(targetType.name, () => {
+            const rtType = new Type('RuntimeType')
+            writer.writeMethodImplementation(new Method('getRuntimeType', new MethodSignature(rtType, []), [MethodModifier.PUBLIC]), () => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString('RuntimeType.OBJECT')
+                    )
+                )
+            })
+
+            for (const [index, subType] of sourceType.elements.entries()) {
+                const subTypeTargetType = new Type(mapType(subType, Language.JAVA))
+                this.implementType(subType, subTypeTargetType)
+                const value = `value${index}`
+
+                writer.writeFieldDeclaration(value, subTypeTargetType, ['public'], false)
+            }
+        })
+    }
+    
+    printClassOrInterface(node: ts.ClassDeclaration | ts.InterfaceDeclaration, writer: LanguageWriter) {
+        const superClass = this.getSuperClass(node)
+        writer.writeClass(this.getName(node), () => {
+            for (const member of node.members) {
+                if (!ts.isPropertyDeclaration(member) && !ts.isPropertySignature(member)) {
+                    continue
+                }
+                const propertyName = this.getName(member)
+                const propertyType = new Type(mapType(member.type, Language.JAVA))
+                writer.writeFieldDeclaration(propertyName, propertyType, ['public'], false)
+                this.implementType(member.type, propertyType)
+            }
+        }, superClass)
+    }
+
+    getInterfaces(): Map<string, LanguageWriter> {
+        return this.interfaces
+    }
+
+    printInterfaces() {
+        for (const file of this.peerLibrary.files.values()) {
+            file.declarations.forEach(it => {
+                if (!ts.isClassDeclaration(it) && !ts.isInterfaceDeclaration(it)) {
+                    return
+                }
+                const writer = createLanguageWriter(Language.JAVA)
+                this.printPackage(writer);
+                this.printClassOrInterface(it, writer)
+                this.addInterface(this.getName(it), writer)
+            })
+        }
+    }
+}
+
+function getVisitor(peerLibrary: PeerLibrary, lang: Language): InterfacesVisitor | undefined {
+    if (lang == Language.TS) {
+        return new TSInterfacesVisitor(peerLibrary)
+    }
+    if (lang == Language.JAVA) {
+        return new JavaInterfacesVisitor(peerLibrary)
+    }
+}
+
+export function printInterfaces(peerLibrary: PeerLibrary, lang: Language): Map<string, string> {
+    const visitor = getVisitor(peerLibrary, lang)
+    if (!visitor) {
+        return new Map()
+    }
+
     visitor.printInterfaces()
     const result = new Map<string, string>()
-    for (const [key, writer] of visitor.interfaces) {
+    for (const [key, writer] of visitor.getInterfaces()) {
         if (writer.getOutput().length === 0) continue
         result.set(key, writer.getOutput().join('\n'))
     }

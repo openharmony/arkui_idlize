@@ -394,7 +394,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     )
     if (lang == Language.TS) {
         // todo I think we want to generate them for ARKTS too
-        const interfaces = printInterfaces(peerLibrary)
+        const interfaces = printInterfaces(peerLibrary, lang)
         for (const [targetBasename, data] of interfaces) {
             const outComponentFile = arkoala.interface(targetBasename)
             console.log("producing", outComponentFile)
@@ -449,8 +449,16 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         )
     }
     if (lang == Language.JAVA) {
+        const interfaces = printInterfaces(peerLibrary, lang)
+        for (const [targetBasename, data] of interfaces) {
+            const outComponentFile = arkoala.javaLib(targetBasename)
+            console.log("producing", outComponentFile)
+            if (options.verbose) console.log(data)
+            fs.writeFileSync(outComponentFile, data)
+        }
+
         const writer = makeJavaSerializerWriter(peerLibrary)
-        writer.printTo(arkoala.javaLib('Serializer' + lang.extension))
+        writer.printTo(arkoala.javaLib('Serializer'))
     }
     fs.writeFileSync(arkoala.native('bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
 

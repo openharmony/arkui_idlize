@@ -48,21 +48,21 @@ public class Main {
     }
 
     static void checkSerializerPerf(int count) {
-        var options = new TestOptions(
-            "Some test string",
-            12345.678f
-        );
+        var data = new TestTupleUnionInterfaceDTS();
+        data.tuple = new Tuple_Union_Float_Boolean_Union_Float_StringInterfaceDTS();
+        data.tuple.value0 = new Union_Float_Boolean(false);
+        data.tuple.value1 = new Union_Float_StringInterfaceDTS(new StringInterfaceDTS());
+        data.tuple.value1.getValue1().valString = "Some test string";
         long ptr = 0;
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             Serializer serializer = SerializerBase.get(Serializer::createSerializer, 0);
-            serializer.writeTestOptions(options);
-            NativeModule._TestAttribute_testMethod(ptr, serializer.asArray(), serializer.length());
+            serializer.writeTestTupleUnionInterfaceDTS(data);
+            NativeModule._TestAttribute_testTupleInterface_TestTupleUnionInterfaceDTS(ptr, serializer.asArray(), serializer.length());
         }
         long passed = System.currentTimeMillis() - start;
         System.out.println("SERIALIZER: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
-    }
-}
+    }}
 
 // Old: JS 167ms per 1M, Java 15 ms per 1M

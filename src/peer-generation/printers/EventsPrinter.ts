@@ -231,7 +231,7 @@ class TSEventsVisitor {
                 info.args.forEach(arg => {
                     writer.writeFieldDeclaration(
                         arg.name,
-                        new Type(mapType(arg.type), arg.nullable),
+                        new Type(mapType(arg.type, Language.TS), arg.nullable),
                         ["readonly"],
                         arg.nullable,
                     )
@@ -332,7 +332,7 @@ class TSEventsVisitor {
             for (const info of infos) {
                 const signature = new NamedMethodSignature(
                     new Type('void'),
-                    info.args.map(it => new Type(mapType(it.type))),
+                    info.args.map(it => new Type(mapType(it.type, Language.TS))),
                     info.args.map(it => it.name),
                 )
                 writer.writeMethodDeclaration(callbackIdByInfo(info), signature)

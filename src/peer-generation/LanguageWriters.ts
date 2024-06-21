@@ -631,6 +631,9 @@ export abstract class LanguageWriter {
     makeUnionVariantCast(value: string, type: Type, index?: number): LanguageExpression {
         return this.makeString(`unsafeCast<${type.name}>(${value})`)
     }
+    makeRuntimeTypeGetterCall(value: string): LanguageExpression {
+        return this.makeFunctionCall("runtimeType", [ this.makeString(value) ])
+    }
     makeArrayResize(array: string, typeName: string, length: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(this.makeString(`${array} = [] as ${typeName}`))
     }
@@ -805,7 +808,7 @@ export class TSLanguageWriter extends LanguageWriter {
         if (fields.length > 0) {
             return this.makeAssign(object, undefined,
                 this.makeCast(this.makeString("{}"),
-                    new Type(`{${fields.map(it=>`${it.name}: ${mapType(it.type)}`).join(",")}}`)),
+                    new Type(`{${fields.map(it=>`${it.name}: ${mapType(it.type, Language.TS)}`).join(",")}}`)),
                 false)
         }
         return new TsObjectAssignStatement(object, undefined, false)
@@ -968,6 +971,15 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new CLikeExpressionStatement(expr)
     }
+    makeUnionSelector(value: string): LanguageExpression {
+        return this.makeMethodCall(value, "getSelector", [])
+    }
+    makeUnionVariantCondition(value: string, type: string, index: number): LanguageExpression {
+        return this.makeString(`${value} == ${index}`)
+    }
+    makeUnionVariantCast(value: string, type: Type, index: number) {
+        return this.makeMethodCall(value, `getValue${index}`, [])
+    }
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
     }
@@ -994,6 +1006,10 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
     }
+    makeRuntimeTypeGetterCall(value: string): LanguageExpression {
+        const call = this.makeMethodCall(value, "getRuntimeType", []).asString()
+        return this.makeString(`${call}.value`)
+    }
     makeMapKeyTypeName(c: MapConvertor): string {
         throw new Error("Method not implemented.")
     }
@@ -1014,6 +1030,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC, MethodModifier.NATIVE]
+    }
+    makeTupleAccess(value: string, index: number): LanguageExpression {
+        return this.makeString(`${value}.value${index}`)
     }
     enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
         throw new Error("Method not implemented.")
