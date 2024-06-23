@@ -187,7 +187,7 @@ function checkCommon() {
     }
     checkResult("Test backgroundBlurStyle for BackgroundBlurStyleOptions",
         () => peer.backgroundBlurStyleAttribute(0, backgroundBlurStyle),
-        `backgroundBlurStyle(0, {ARK_TAG_OBJECT, {{ARK_TAG_OBJECT, 0}, {ARK_TAG_OBJECT, 0}, {ARK_TAG_OBJECT, {102, .i32=1}}, {ARK_TAG_OBJECT, {{{102, .i32=1}, {102, .i32=1}}}}}})`
+        `backgroundBlurStyle(0, {ARK_TAG_OBJECT, {{ARK_TAG_OBJECT, 0}, {ARK_TAG_OBJECT, 0}, {ARK_TAG_OBJECT, {102, .i32=1}}, {ARK_TAG_OBJECT, {{{102, .i32=1}, {102, .i32=1}}}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with number",

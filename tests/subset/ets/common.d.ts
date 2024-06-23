@@ -91,7 +91,7 @@ declare interface SheetDismiss {
     dismiss: () => void;
 }
 
-declare enum DismissReason {  
+declare enum DismissReason {
     PRESS_BACK = 0,
     TOUCH_OUTSIDE = 1,
     CLOSE_BUTTON = 2,
@@ -163,6 +163,8 @@ declare interface BlurOptions {
     grayscale: [number, number];
 }
 
+
+
 declare interface BlurStyleOptions {
     colorMode?: ThemeColorMode;
     adaptiveColor?: AdaptiveColor;
@@ -170,7 +172,64 @@ declare interface BlurStyleOptions {
     blurOptions?: BlurOptions;
 }
 
-declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {}
+declare enum BlurStyleActivePolicy {
+    /**
+     * The component has the blur effect only when the window is focused.
+     *
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    FOLLOWS_WINDOW_ACTIVE_STATE = 0,
+
+    /**
+     * The component always has the blur effect, regardless of whether the window is focused.
+     *
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    ALWAYS_ACTIVE = 1,
+
+    /**
+     * The component does not have the blur effect, regardless of whether the window is focused.
+     *
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    ALWAYS_INACTIVE = 2,
+}
+
+declare enum BlurType {
+    /**
+     * The blur is applied within the window.
+     *
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    WITHIN_WINDOW = 0,
+    /**
+     * The blur is applied behind the window.
+     *
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    BEHIND_WINDOW = 1
+}
+
+declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {
+    policy?: BlurStyleActivePolicy;
+    inactiveColor?: ResourceColor;
+    type?: BlurType;
+}
 
 declare interface SizeResult {
     width: number,
@@ -350,7 +409,7 @@ declare class TouchTestInfo {
     rect: RectResult;
     id: string;
 }
-declare interface CommonInterface { 
+declare interface CommonInterface {
     (): CommonAttribute
 }
 
