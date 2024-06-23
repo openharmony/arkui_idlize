@@ -67,7 +67,7 @@ const libaceMockDevicePath = `/system/${deviceLibDir}/module/${libaceMockName}`
 
 let hvigorw = `.\\hvigorw`
 let signRelease  = `.\\sign_release`
-if (!platform.includes('win')) {
+if (!(platform === 'win32')) {
     hvigorw = `./hvigorw`
     signRelease = `./sign_release`
 }
@@ -87,7 +87,7 @@ function mountRW() {
 function cleanEnv() {
     const rmAceCmd = `hdc shell rm -f ${libaceMockDevicePath}`
     console.log(`${rmAceCmd}`)
-    execSync(`${rmAceCmd}`, { cwd: '.', stdio: 'inherit'})
+    execSync(`${rmAceCmd}`, { cwd: '.', stdio: 'inherit', timeout: 2000 })
 }
 
 function resolveDependencies() {
@@ -102,6 +102,7 @@ function resolveDependencies() {
 
 function buildPerfProject() {
     const buildCmd = `${hvigorw} --mode module -p module=entry@default -p product=default -p buildMode=release assembleHap --analyze --parallel --incremental --daemon`
+    console.log(buildCmd)
     execSync(`${buildCmd}`, { cwd: perfDir, stdio: 'inherit'})
 }
 
@@ -138,7 +139,7 @@ function executeCommandWithTimeout(command, timeout, print) {
 function killHdc() {
     let processName
     let killCommand
-    if (!platform.includes('win')) {
+    if (!(platform === 'win32')) {
         processName = 'hdc'
         killCommand = `ps aux | grep '${processName}' | awk '{print$2}' | xargs kill`
         execSync(killCommand, { stdio: 'inherit'})
@@ -151,7 +152,7 @@ function killHdc() {
 
 function RemoveTmpLog() {
     let rmLogCmd
-    if (!platform.includes('win')) {
+    if (!(platform === 'win32')) {
         rmLogCmd = `rm -f ${tmplog}`
         execSync(rmLogCmd, { stdio: 'inherit'})
     } else {

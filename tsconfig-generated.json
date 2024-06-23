@@ -12,16 +12,17 @@
         "strict": true,
         "skipLibCheck": true,
         "removeComments": false,
+        "rootDir": "./",
         "outDir": "build/peers",
         "module": "CommonJS",
         "baseUrl": ".",
         "paths": {
             "@arkoala/arkui": ["./generated/peers/koalaui/arkoala-arkui/src", "./"],
-            "@arkoala/arkui/*": ["./generated/peers/koalaui/arkoala-arkui/src/*", "./*"],
-        },
+            "@arkoala/arkui/*": ["./generated/peers/koalaui/arkoala-arkui/src/*", "./*"]
+        }
     },
     "include": [
         "generated/peers/**/*",
-        "sdk/component/**/*",
+        "sdk/component/**/*"
     ]
 }

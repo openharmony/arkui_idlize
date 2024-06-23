@@ -192,7 +192,9 @@ inline void WriteToString(string *result, Ark_ObjectHandle value)
 template <>
 inline void WriteToString(string *result, const Ark_Function *value)
 {
-  result->append("{" + std::to_string(value->id) + "}");
+  result->append("{");
+  result->append(std::to_string(value->id));
+  result->append("}");
 }
 
 template <>

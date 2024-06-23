@@ -20,7 +20,7 @@ import * as fs from "node:fs"
 import os from "os";
 
 const platform = os.platform()
-const isWindows = platform.includes('win')
+const isWindows = (platform === 'win32')
 
 function crossPathResolve(inPath) {
     if (isWindows) {
@@ -61,7 +61,7 @@ console.log(`isArm64 = ${isArm64}`)
 console.log(`isFull = ${isFull}`)
 
 let arch = isArm64 ? `arm64` : `arm32`
-let mode = isFull ? `full` : `subset`
+let mode = isFull ? `peers` : `subset`
 let crossFile = `cross-compilation-ohos-${arch}.txt`
 let outDir = `build-${mode}-ohos-${arch}`
 let ohosSdkRoot = process.env.OHOS_SDK ?? '../koala-ui/ohos-sdk/ohos-sdk'

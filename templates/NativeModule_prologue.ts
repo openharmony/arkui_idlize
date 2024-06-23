@@ -15,12 +15,14 @@ export type PipelineContext = pointer
 
 let theModule: NativeModule | undefined = undefined
 
+declare const LOAD_NATIVE: NativeModule
+
 export function nativeModule(): NativeModule {
     if (theModule) return theModule
     if (%USE_EMPTY%)
         theModule = new NativeModuleEmpty()
     else
-        theModule = require("%NATIVE_BRIDGE_PATH%") as NativeModule
+        theModule = LOAD_NATIVE as NativeModule
     return theModule
 }
 

@@ -198,7 +198,7 @@ export class ArkComponent {
                     expectedData = expectedData.replace(/@koalaui\/runtime/g, './common')
                     expectedData = expectedData.replace(/implements.*/g, '{')
                     if (file === "NativeModule.ts") {
-                        const requireStatement = 'require("../../../../../../../native/NativeBridgeNapi")'
+                        const requireStatement = 'LOAD_NATIVE as NativeModule'
                         const requireNapiStatement = `globalThis.requireNapi("libNativeBridge_ohos_${arch}.so", true)`
                         expectedData = expectedData.replace(requireStatement, requireNapiStatement)
                     }

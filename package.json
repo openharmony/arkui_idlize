@@ -18,6 +18,7 @@
         "@types/webidl2": "^24.4.1",
         "commander": "^10.0.0",
         "comment-parser": "^1.4.1",
+        "cross-env": "^7.0.3",
         "node-addon-api": "^8.0.0",
         "node-api-headers": "^1.1.0",
         "typescript": "^4.9.5",
@@ -25,6 +26,7 @@
     },
     "devDependencies": {
         "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-replace": "^5.0.7",
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^11.1.6",
         "@types/chai": "^4.3.1",
@@ -53,8 +55,8 @@
         "lint:all": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir linter --linter-whitelist whitelist.json",
         "check:peers": "npm run run2peer:all && tsc -p ./tsconfig-generated.json && cp peer_lib/package.json.peers.in build/peers/package.json",
         "check:subset": "npm run compile && node . --call-log --api-version 99 --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset && tsc -p ./tsconfig-subset.json && cp peer_lib/package.json.subset.in build/subset/package.json",
-        "check:subset:run": "npm run check:subset && npm run compile:native-node-host-subset && node ./build/subset",
-        "check:peers:run": "npm run check:peers && npm run compile:native-node-host-full && node ./build/peers",
+        "check:subset:run": "npm run rollup:host:subset && npm run compile:native-node-host-subset && node lib/main.js",
+        "check:peers:run": "npm run rollup:host:full && npm run compile:native-node-host-full && node lib/main.js",
         "test:subset": "npm run check:subset && mocha ./build/subset/tests/subset/unit/",
         "check:subset:fuzz": "npm run compile && node . --dts2test --input-dir ./tests/subset/ets --output-dir ./generated/fuzz && npm run check:subset && npm run compile:native-node-host-subset && node ./build/subset/generated/fuzz",
         "check:peers:native": "npm run run2peer:all && npm run compile:native-node-host-full",
@@ -80,10 +82,18 @@
         "compile:arkts": "bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module",
         "compile:native-ohos-subset-arm32": "npm run check:subset && node ./native/nativeBuild.mjs subset arm32",
         "compile:native-ohos-subset-arm64": "npm run check:subset && node ./native/nativeBuild.mjs subset arm64",
+        "compile:native-ohos-full-arm32": "npm run check:peers && node ./native/nativeBuild.mjs full arm32",
         "compile:native-ohos-full-arm64": "npm run check:peers && node ./native/nativeBuild.mjs full arm64",
         "run:ohos-subset-arm32:perf": "npm run compile:native-ohos-subset-arm32 && node ./ohos-app/runPerf.mjs subset arm32 mock",
         "run:ohos-subset-arm64:perf": "npm run compile:native-ohos-subset-arm64 && node ./ohos-app/runPerf.mjs subset arm64 mock",
+        "run:ohos-full-arm32:perf": "npm run compile:native-ohos-full-arm32 && node ./ohos-app/runPerf.mjs full arm32 mock",
         "compile:native-ohos-subset-arm64:v8": "npm run check:subset && node ./native/nativeBuild.mjs subset arm64 v8",
-        "run:ohos-subset-arm64:perf:v8": "npm run compile:native-ohos-subset-arm64:v8 && node ohos-v8/runPerfOnV8.mjs subset"
+        "run:ohos-subset-arm64:perf:v8": "npm run compile:native-ohos-subset-arm64:v8 && node ohos-v8/runPerfOnV8.mjs subset",
+        "rollup:ohos:full:arm64": "npm run check:peers && cross-env mode=peers isOhos=true arch=arm64 rollup -c rollup.config.components.mjs",
+        "rollup:ohos:full:arm32": "npm run check:peers && cross-env mode=peers isOhos=true arch=arm rollup -c rollup.config.components.mjs",
+        "rollup:ohos:subset:arm64": "npm run check:subset && cross-env mode=subset isOhos=true arch=arm64 rollup -c rollup.config.components.mjs",
+        "rollup:ohos:subset:arm32": "npm run check:subset && cross-env mode=subset isOhos=true arch=arm rollup -c rollup.config.components.mjs",
+        "rollup:host:subset": "npm run check:subset && cross-env mode=subset rollup -c rollup.config.main.mjs",
+        "rollup:host:full": "npm run check:peers && cross-env mode=peers rollup -c rollup.config.main.mjs"
     }
 }

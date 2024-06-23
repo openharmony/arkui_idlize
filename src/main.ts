@@ -341,6 +341,7 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
 
     const gniSources = printGniSources(peerLibrary)
     fs.writeFileSync(libace.gniComponents, gniFile(gniSources))
+    fs.copyFileSync(path.join(outDir, 'koalaui/arkoala/native/src/arkoala-macros.h'), libace.arkoalaMacros)
 
     // printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
     printRealModifiersAsMultipleFiles(peerLibrary, libace, {
