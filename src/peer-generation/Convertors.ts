@@ -719,7 +719,10 @@ export class AggregateConvertor extends BaseArgConvertor {
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const structAccessor = printer.getObjectAccessor(this, param, value)
         let struct = this.table.targetStruct(this.table.toTarget(this.type))
-        const typedStruct = `typedStruct`
+        // Typed structs may refer each other, so use indent level to discriminate.
+        // Somewhat ugly, but works.
+        const typedStruct = `typedStruct${printer.indentDepth()}`
+        printer.pushIndent()
         const statements = [
             printer.makeObjectAlloc(structAccessor, struct.getFields()),
             printer.makeAssign(typedStruct, new Type(printer.makeRef(printer.makeType(this.tsTypeName, false, structAccessor).name)),
@@ -732,6 +735,7 @@ export class AggregateConvertor extends BaseArgConvertor {
                 it.convertorDeserialize(param, `${typedStruct}.${struct.getFields()[index].name}`, printer)
             )
         })
+        printer.popIndent()
         return new BlockStatement(statements, true)
     }
     nativeType(impl: boolean): string {

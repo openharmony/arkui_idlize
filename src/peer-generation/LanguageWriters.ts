@@ -516,6 +516,10 @@ export interface PrinterLike {
 export abstract class LanguageWriter {
     constructor(public printer: IndentedPrinter, public language: Language) {}
 
+    indentDepth(): number {
+        return this.printer.indentDepth()
+    }
+
     abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void
     abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void
     abstract writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void

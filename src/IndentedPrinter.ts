@@ -18,18 +18,21 @@ export class IndentedPrinter {
     constructor (private output: string[] = []) {}
     private indent = 0
 
-    print(value: stringOrNone) {
+    print(value: stringOrNone): void {
         if (value != undefined) this.output.push(this.indented(value))
     }
 
-    pushIndent() {
+    pushIndent(): void {
         this.indent++
     }
-    popIndent() {
+    popIndent(): void {
         this.indent--
     }
+    indentDepth(): number {
+        return this.indent
+    }
 
-    append(printer: IndentedPrinter) {
+    append(printer: IndentedPrinter): void {
         this.output = [...this.output, ...printer.output]
     }
 
