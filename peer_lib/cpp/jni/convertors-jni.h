@@ -66,10 +66,37 @@ struct InteropTypeConverter {
     static void release(JNIEnv* env, InteropType value, T converted) {}
 };
 
+template<class T>
+struct SlowInteropTypeConverter {
+    using InteropType = T;
+    static inline T convertFrom(JNIEnv* env, InteropType value) { return value; }
+    static inline InteropType convertTo(JNIEnv* env, T value) { return value; }
+    static void release(JNIEnv* env, InteropType value, T converted) {}
+};
+
 template<>
 struct InteropTypeConverter<KStringPtr> {
     using InteropType = jstring;
-    static KStringPtr convertFrom(JNIEnv* env, InteropType value) {
+    static inline KStringPtr convertFrom(JNIEnv* env, InteropType value) {
+        if (value == nullptr) return KStringPtr();
+        jboolean isCopy;
+        // TODO: use GetStringCritical() instead and utf-8 encode manually.
+		    const char* str_value = env->GetStringUTFChars(value, &isCopy);
+        int len = env->GetStringLength(value);
+        KStringPtr result(str_value, len, false);
+        return result;
+    }
+    static InteropType convertTo(JNIEnv* env, KStringPtr value) = delete;
+    static inline void release(JNIEnv* env, InteropType value, const KStringPtr& converted) {
+      // TODO: use ReleaseStringCritical().
+      env->ReleaseStringUTFChars(value, converted.data());
+    }
+};
+
+template<>
+struct SlowInteropTypeConverter<KStringPtr> {
+    using InteropType = jstring;
+    static inline KStringPtr convertFrom(JNIEnv* env, InteropType value) {
         if (value == nullptr) return KStringPtr();
         jboolean isCopy;
 		    const char* str_value = env->GetStringUTFChars(value, &isCopy);
@@ -78,7 +105,7 @@ struct InteropTypeConverter<KStringPtr> {
         return result;
     }
     static InteropType convertTo(JNIEnv* env, KStringPtr value) = delete;
-    static void release(JNIEnv* env, InteropType value, const KStringPtr& converted) {
+    static inline void release(JNIEnv* env, InteropType value, const KStringPtr& converted) {
       env->ReleaseStringUTFChars(value, converted.data());
     }
 };
@@ -86,17 +113,41 @@ struct InteropTypeConverter<KStringPtr> {
 template<>
 struct InteropTypeConverter<KByte*> {
     using InteropType = jbyteArray;
-    static KByte* convertFrom(JNIEnv* env, InteropType value) {
+    static inline KByte* convertFrom(JNIEnv* env, InteropType value) {
+        return value ? reinterpret_cast<KByte*>(env->GetPrimitiveArrayCritical(value, nullptr)) : nullptr;
+    }
+    static InteropType convertTo(JNIEnv* env, KByte* value) = delete;
+    static inline void release(JNIEnv* env, InteropType value, KByte* converted) {
+        if (converted) env->ReleasePrimitiveArrayCritical(value, converted, 0);
+    }
+};
+
+template<>
+struct SlowInteropTypeConverter<KByte*> {
+    using InteropType = jbyteArray;
+    static inline KByte* convertFrom(JNIEnv* env, InteropType value) {
         return value ? reinterpret_cast<KByte*>(env->GetByteArrayElements(value, nullptr)) : nullptr;
     }
     static InteropType convertTo(JNIEnv* env, KByte* value) = delete;
-    static void release(JNIEnv* env, InteropType value, KByte* converted) {
-         env->ReleaseByteArrayElements(value, reinterpret_cast<jbyte*>(converted), 0);
+    static inline void release(JNIEnv* env, InteropType value, KByte* converted) {
+        if (converted) env->ReleaseByteArrayElements(value, reinterpret_cast<jbyte*>(converted), 0);
     }
 };
 
 template<>
 struct InteropTypeConverter<KInt*> {
+    using InteropType = jintArray;
+    static KInt* convertFrom(JNIEnv* env, InteropType value) {
+        return value ? reinterpret_cast<KInt*>(env->GetPrimitiveArrayCritical(value, nullptr)) : nullptr;
+    }
+    static InteropType convertTo(JNIEnv* env, KInt* value) = delete;
+    static void release(JNIEnv* env, InteropType value, KInt* converted) {
+         env->ReleasePrimitiveArrayCritical(value, converted, 0);
+    }
+};
+
+template<>
+struct SlowInteropTypeConverter<KInt*> {
     using InteropType = jintArray;
     static KInt* convertFrom(JNIEnv* env, InteropType value) {
         return value ? reinterpret_cast<KInt*>(env->GetIntArrayElements(value, nullptr)) : nullptr;
@@ -109,6 +160,18 @@ struct InteropTypeConverter<KInt*> {
 
 template<>
 struct InteropTypeConverter<KFloat*> {
+    using InteropType = jfloatArray;
+    static KFloat* convertFrom(JNIEnv* env, InteropType value) {
+        return value ? reinterpret_cast<KFloat*>(env->GetPrimitiveArrayCritical(value, nullptr)) : nullptr;
+    }
+    static InteropType convertTo(JNIEnv* env, KFloat* value) = delete;
+    static void release(JNIEnv* env, InteropType value, KFloat* converted) {
+        env->ReleasePrimitiveArrayCritical(value, converted, 0);
+    }
+};
+
+template<>
+struct SlowInteropTypeConverter<KFloat*> {
     using InteropType = jfloatArray;
     static KFloat* convertFrom(JNIEnv* env, InteropType value) {
         return value ? reinterpret_cast<KFloat*>(env->GetFloatArrayElements(value, nullptr)) : nullptr;
@@ -128,8 +191,21 @@ struct InteropTypeConverter<KNativePointer> {
     static InteropType convertTo(JNIEnv* env, KNativePointer value) {
       return reinterpret_cast<jlong>(value);
     }
+    static inline void release(JNIEnv* env, InteropType value, KNativePointer converted) {}
+};
+
+template<>
+struct SlowInteropTypeConverter<KNativePointer> {
+    using InteropType = jlong;
+    static KNativePointer convertFrom(JNIEnv* env, InteropType value) {
+      return reinterpret_cast<KNativePointer>(value);
+    }
+    static InteropType convertTo(JNIEnv* env, KNativePointer value) {
+      return reinterpret_cast<jlong>(value);
+    }
     static void release(JNIEnv* env, InteropType value, KNativePointer converted) {}
 };
+
 
 template <typename Type>
 inline typename InteropTypeConverter<Type>::InteropType makeResult(JNIEnv* env, Type value) {
@@ -991,7 +1067,7 @@ MAKE_JNI_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3)
 #define KOALA_INTEROP_CTX_1(name, Ret, P0) \
    KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) \
    Java_org_##name(JNIEnv* env, jclass instance, \
-    InteropTypeConverter<P0>::InteropType _p0) { \
+    SlowInteropTypeConverter<P0>::InteropType _p0) { \
       KOALA_MAYBE_LOG(name) \
       P0 p0 = getArgument<P0>(env, _p0); \
       KVMContext ctx = (KVMContext)env; \
@@ -1003,8 +1079,8 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0)
 
 #define KOALA_INTEROP_CTX_2(name, Ret, P0, P1) \
   KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
-  InteropTypeConverter<P0>::InteropType _p0, \
-  InteropTypeConverter<P1>::InteropType _p1) { \
+  SlowInteropTypeConverter<P0>::InteropType _p0, \
+  SlowInteropTypeConverter<P1>::InteropType _p1) { \
       KOALA_MAYBE_LOG(name) \
       P0 p0 = getArgument<P0>(env, _p0); \
       P1 p1 = getArgument<P1>(env, _p1); \
@@ -1018,7 +1094,7 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1)
 
 #define KOALA_INTEROP_CTX_V1(name, P0) \
    KOALA_JNI_CALL(void) Java_org_##name(JNIEnv* env, jclass instance, \
-    InteropTypeConverter<P0>::InteropType _p0) { \
+    SlowInteropTypeConverter<P0>::InteropType _p0) { \
       KOALA_MAYBE_LOG(name) \
       P0 p0 = getArgument<P0>(env, _p0); \
       KVMContext ctx = (KVMContext)env; \
@@ -1029,8 +1105,8 @@ MAKE_JNI_EXPORT(name, "void|" #P0)
 
 #define KOALA_INTEROP_CTX_V2(name, P0, P1) \
   KOALA_JNI_CALL(void) Java_org_##name(JNIEnv* env, jclass instance, \
-   InteropTypeConverter<P0>::InteropType _p0, \
-   InteropTypeConverter<P1>::InteropType _p1) { \
+   SlowInteropTypeConverter<P0>::InteropType _p0, \
+   SlowInteropTypeConverter<P1>::InteropType _p1) { \
       KOALA_MAYBE_LOG(name) \
       P0 p0 = getArgument<P0>(env, _p0); \
       P1 p1 = getArgument<P1>(env, _p1); \
