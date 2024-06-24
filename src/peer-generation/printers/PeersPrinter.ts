@@ -100,6 +100,8 @@ class PeerFileVisitor {
             this.file.serializeImportFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         }
         imports.addFeature("unsafeCast", "./generated-utils")
+        imports.addFeature("registerCallback", "./SerializerBase")
+
         imports.print(this.printer)
     }
 

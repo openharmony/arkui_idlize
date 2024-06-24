@@ -40,7 +40,6 @@ export interface ArgConvertor {
     isScoped: boolean
     useArray: boolean
     runtimeTypes: RuntimeType[]
-    estimateSize(): number
     scopeStart?(param: string, language: Language): string
     scopeEnd?(param: string, language: Language): string
     convertorArg(param: string, writer: LanguageWriter): string
@@ -62,9 +61,6 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         public param: string
     ) { }
 
-    estimateSize(): number {
-        return 0
-    }
     nativeType(impl: boolean): string {
         throw new Error("Define")
     }
@@ -130,9 +126,6 @@ export class StringConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         return "KStringPtr"
     }
-    estimateSize() {
-        return 32
-    }
     isPointerType(): boolean {
         return true
     }
@@ -162,9 +155,6 @@ export class ToStringConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         return "KStringPtr"
-    }
-    estimateSize() {
-        return 32
     }
     isPointerType(): boolean {
         return true
@@ -197,9 +187,6 @@ export class BooleanConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         return language == Language.CPP ? PrimitiveType.Boolean.getText() : "KInt"
     }
-    estimateSize() {
-        return 1
-    }
     isPointerType(): boolean {
         return false
     }
@@ -224,9 +211,6 @@ export class UndefinedConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         return PrimitiveType.NativePointer.getText()
     }
-    estimateSize() {
-        return 1
-    }
     isPointerType(): boolean {
         return false
     }
@@ -249,9 +233,6 @@ export class NullConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         return PrimitiveType.NativePointer.getText()
-    }
-    estimateSize() {
-        return 1
     }
     isPointerType(): boolean {
         return false
@@ -292,9 +273,6 @@ export class EnumConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         return language == Language.CPP ? PrimitiveType.Int32.getText() : "KInt"
-    }
-    estimateSize() {
-        return 4
     }
     isPointerType(): boolean {
         return false
@@ -360,9 +338,6 @@ export class LengthConvertorScoped extends BaseArgConvertor {
             default: throw new Error("Unsupported language")
         }
     }
-    estimateSize() {
-        return 12
-    }
     isPointerType(): boolean {
         return true
     }
@@ -399,9 +374,6 @@ export class LengthConvertor extends BaseArgConvertor {
             case Language.JAVA: return 'Object'
             default: throw new Error("Unsupported language")
         }
-    }
-    estimateSize() {
-        return 12
     }
     isPointerType(): boolean {
         return true
@@ -530,9 +502,6 @@ export class UnionConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         throw new Error("Union")
     }
-    estimateSize() {
-        return 12
-    }
     isPointerType(): boolean {
         return true
     }
@@ -572,9 +541,6 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
-    }
-    estimateSize() {
-        return 32
     }
     isPointerType(): boolean {
         return true
@@ -617,9 +583,6 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         throw new Error("Must never be used")
     }
-    estimateSize() {
-        return 32
-    }
     isPointerType(): boolean {
         return true
     }
@@ -634,6 +597,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
 
 export class OptionConvertor extends BaseArgConvertor {
     private typeConvertor: ArgConvertor
+    // TODO: be smarter here, and for smth like Length|undefined or number|undefined pass without serializer.
     constructor(param: string, private table: DeclarationTable, public type: ts.TypeNode) {
         let typeConvertor = table.typeConvertor(param, type)
         let runtimeTypes = typeConvertor.runtimeTypes;
@@ -681,9 +645,6 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         return language == Language.CPP ? PrimitiveType.NativePointer.getText() : "KNativePointer"
-    }
-    estimateSize() {
-        return this.typeConvertor.estimateSize() + 1
     }
     isPointerType(): boolean {
         return true
@@ -748,9 +709,6 @@ export class AggregateConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         throw new Error("Must never be used")
     }
-    estimateSize() {
-        return 4
-    }
     isPointerType(): boolean {
         return true
     }
@@ -790,9 +748,6 @@ export class InterfaceConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         throw new Error("Must never be used")
     }
-    estimateSize() {
-        return 12
-    }
     isPointerType(): boolean {
         return true
     }
@@ -825,36 +780,30 @@ export class FunctionConvertor extends BaseArgConvertor {
         protected table: DeclarationTable,
         private type: ts.TypeNode) {
         // TODO: pass functions as integers to native side.
-        super("Function", [RuntimeType.FUNCTION], false, true, param)
+        super("Function", [RuntimeType.FUNCTION], false, false, param)
         this.language = table.language
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        throw new Error("Must never be used")
+        return writer.language == Language.CPP ? `(Ark_Function){${param}}` : `registerCallback(${param})`
     }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, "writeFunction", [value])
+    convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
+        writer.writeMethodCall(`${param}Serializer`, "writeFunction", [value])
     }
-    convertorCArg(param: string): string {
-        throw new Error("Must never be used")
-    }
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
-        return printer.makeAssign(accessor, undefined,
-            printer.makeCast(printer.makeString(`${param}Deserializer.readFunction()`),
-                printer.makeType(mapType(this.type, this.language), true, accessor))
+    convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
+        const accessor = writer.getObjectAccessor(this, param, value)
+        return writer.makeAssign(accessor, undefined,
+            writer.makeCast(writer.makeString(`${param}Deserializer.readFunction()`),
+                writer.makeType(mapType(this.type, this.language), true, accessor))
             , false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Function.getText()
     }
     interopType(language: Language): string {
-        throw new Error("Must never be used")
-    }
-    estimateSize() {
-        return 12
+        return language == Language.CPP ? PrimitiveType.Int32.getText() : "KInt"
     }
     isPointerType(): boolean {
-        return true
+        return false
     }
 }
 
@@ -919,11 +868,6 @@ export class TupleConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         throw new Error("Must never be used")
     }
-    estimateSize() {
-        return this.memberConvertors
-            .map(it => it.estimateSize())
-            .reduce((sum, current) => sum + current, 0)
-    }
     isPointerType(): boolean {
         return true
     }
@@ -985,9 +929,6 @@ export class ArrayConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
-    }
-    estimateSize() {
-        return 32
     }
     isPointerType(): boolean {
         return true
@@ -1057,9 +998,6 @@ export class MapConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         throw new Error("Must never be used")
     }
-    estimateSize() {
-        return 64
-    }
     isPointerType(): boolean {
         return true
     }
@@ -1093,9 +1031,6 @@ export class NumberConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         return language == Language.CPP ?  "KInteropNumber" : "number"
-    }
-    estimateSize() {
-        return 5
     }
     isPointerType(): boolean {
         return true
@@ -1132,9 +1067,6 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         throw new Error("Must never be used")
     }
-    estimateSize() {
-        return 12
-    }
     isPointerType(): boolean {
         return true
     }
@@ -1165,9 +1097,6 @@ export class PredefinedConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         return language == Language.CPP ? PrimitiveType.Int32.getText() + "*" :  "Int32ArrayPtr"
-    }
-    estimateSize() {
-        return 8
     }
     isPointerType(): boolean {
         return true

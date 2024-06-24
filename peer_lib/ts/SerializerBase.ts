@@ -127,12 +127,12 @@ export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: 
     })
 }
 
-function registerCallback(value: object|undefined): number {
+export function registerCallback(value: object|undefined): number {
     // TODO: fix me!
     return 42
 }
 
-function registerMaterialized(value: object|undefined): number {
+export function registerMaterialized(value: object|undefined): number {
     // TODO: fix me!
     return 42
 }

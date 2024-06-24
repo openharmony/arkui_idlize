@@ -22,6 +22,8 @@ import { mapType, TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 
 import * as ts from "typescript"
 import * as fs from "fs"
+import { PeerFile } from "./PeerFile";
+import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}
@@ -1198,7 +1200,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             case 'KStringPtr': return 'Ark_String'
             case 'number': return 'Ark_Number'
             case 'boolean': return 'Ark_Boolean'
-            case 'Function': return 'Ark_Function'
+            case 'Function': return `Ark_Function`
             case 'Length': return 'Ark_Length'
             // TODO: oh no
             case 'Array<string[]>' : return `Array_Array_${PrimitiveType.String.getText()}`

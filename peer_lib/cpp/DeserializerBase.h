@@ -158,7 +158,7 @@ inline void WriteToString(string *result, const Ark_Number *value)
   } else {
     result->append(".i32=" + std::to_string(value->i32));
   }
-  
+
   result->append("}");
 }
 
@@ -190,7 +190,15 @@ inline void WriteToString(string *result, Ark_ObjectHandle value)
 }
 
 template <>
-inline void WriteToString(string *result, const Ark_Function *value)
+inline void WriteToString(string *result, Ark_Function value)
+{
+  result->append("{");
+  result->append(std::to_string(value.id));
+  result->append("}");
+}
+
+template <>
+inline void WriteToString(string *result, const Ark_Function* value)
 {
   result->append("{");
   result->append(std::to_string(value->id));
@@ -432,6 +440,7 @@ public:
     return result;
   }
 
+  // TODO: produce them with prefix in generator.
   Ark_Length readLength()
   {
     Ark_Length result = {};

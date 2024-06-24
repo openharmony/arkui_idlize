@@ -261,7 +261,6 @@ export function makeJavaSerializerWriter(library: PeerLibrary): LanguageWriter {
 }
 
 export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
-
     const serializers = createLanguageWriter(Language.CPP)
     const writeToString = createLanguageWriter(Language.CPP)
     serializers.print("\n// Serializers\n")

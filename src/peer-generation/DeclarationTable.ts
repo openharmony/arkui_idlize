@@ -43,7 +43,7 @@ export class PrimitiveType {
     static Tag = new PrimitiveType(`${PrimitiveType.ArkPrefix}Tag`)
     static RuntimeType = new PrimitiveType(`${PrimitiveType.ArkPrefix}RuntimeType`)
     static Boolean = new PrimitiveType(`${PrimitiveType.ArkPrefix}Boolean`)
-    static Function = new PrimitiveType(`${PrimitiveType.ArkPrefix}Function`, true)
+    static Function = new PrimitiveType(`${PrimitiveType.ArkPrefix}Function`, false)
     static Materialized = new PrimitiveType(`${PrimitiveType.ArkPrefix}Materialized`, true)
     static Undefined = new PrimitiveType(`${PrimitiveType.ArkPrefix}Undefined`)
     static NativePointer = new PrimitiveType(`${PrimitiveType.ArkPrefix}NativePointer`)
