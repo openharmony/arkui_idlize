@@ -95,6 +95,7 @@ const options = program
     .option('--language [ts|sts|java]', 'Output language')
     .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
     .option('--need-interfaces', 'Generate interfaces to resolve all .d.ts dependencies', false)
+    .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
     .option('--version')
     .option('--generator-target <all|arkoala|libace|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
     .option('--arkoala-destination <path>', 'Location of arkoala repository')
@@ -362,6 +363,11 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
     copyToLibace(path.join(__dirname, '..', 'peer_lib'), libace)
 }
 
+function writeFile(filename: string, content: string, integrated: boolean = false) {
+    if (integrated || !options.onlyIntegrated)
+        fs.writeFileSync(filename, content)
+}
+
 function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Language) {
     const arkoala = options.arkoalaDestination ?
         new ArkoalaInstall(options.arkoalaDestination, lang, false) :
@@ -373,7 +379,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     for (const [targetBasename, peer] of peers) {
         const outPeerFile = arkoala.peer(targetBasename)
         console.log("producing", outPeerFile)
-        fs.writeFileSync(outPeerFile, peer)
+        writeFile(outPeerFile, peer, true)
     }
 
     const components = printComponents(peerLibrary)
@@ -381,17 +387,17 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         const outComponentFile = arkoala.component(targetBasename)
         console.log("producing", outComponentFile)
         if (options.verbose) console.log(component)
-        fs.writeFileSync(outComponentFile, component)
+        writeFile(outComponentFile, component, true)
         arkuiComponentsFiles.push(outComponentFile)
     }
 
     const materialized = printMaterialized(peerLibrary, options.dumpSerialized ?? false)
     for (const [targetBasename, materializedClass] of materialized) {
         const outMaterilizedFile = arkoala.materialized(targetBasename)
-        fs.writeFileSync(outMaterilizedFile, materializedClass)
+        writeFile(outMaterilizedFile, materializedClass)
     }
 
-    fs.writeFileSync(
+    writeFile(
         arkoala.langLib('NativeModule'),
         printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")
     )
@@ -402,7 +408,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             const outComponentFile = arkoala.interface(targetBasename)
             console.log("producing", outComponentFile)
             if (options.verbose) console.log(data)
-            fs.writeFileSync(outComponentFile, data)
+            writeFile(outComponentFile, data, true)
             arkuiComponentsFiles.push(outComponentFile)
         }
 
@@ -411,43 +417,45 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             const outComponentFile = arkoala.interface(filename)
             console.log("producing", outComponentFile)
             if (options.verbose) console.log(data)
-            fs.writeFileSync(outComponentFile, data)
+            writeFile(outComponentFile, data, true)
             arkuiComponentsFiles.push(outComponentFile)
         }
 
-        fs.writeFileSync(
+        writeFile(
             arkoala.tsLib('ConflictedDeclarations'),
             printConflictedDeclarations(peerLibrary),
         )
-        fs.writeFileSync(
+        writeFile(
             arkoala.tsLib('NativeModuleEmpty'),
             printNativeModuleEmpty(peerLibrary)
         )
-        fs.writeFileSync(
+        writeFile(
             arkoala.tsLib('ArkUINodeType'),
             printNodeTypes(peerLibrary),
         )
-        fs.writeFileSync(
+        writeFile(
             arkoala.tsLib('index'),
             makeArkuiModule(arkuiComponentsFiles),
         )
-        fs.writeFileSync(
+        writeFile(
             arkoala.tsLib("peer_events"),
             printEvents(peerLibrary)
         )
-        fs.writeFileSync(arkoala.tsLib('Serializer'),
-            makeTSSerializer(peerLibrary)
+        writeFile(arkoala.tsLib('Serializer'),
+            makeTSSerializer(peerLibrary),
+            true,
         )
-        fs.writeFileSync(arkoala.tsLib('Deserializer'),
-            makeTSDeserializer(peerLibrary)
+        writeFile(arkoala.tsLib('Deserializer'),
+            makeTSDeserializer(peerLibrary),
+            true,
         )
     }
     if (lang == Language.ARKTS) {
-        fs.writeFileSync(
+        writeFile(
             arkoala.arktsLib('ArkUINodeType'),
             printNodeTypes(peerLibrary),
         )
-        fs.writeFileSync(arkoala.arktsLib('Serializer'),
+        writeFile(arkoala.arktsLib('Serializer'),
             makeTSSerializer(peerLibrary)
         )
     }
@@ -463,17 +471,20 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         const writer = makeJavaSerializerWriter(peerLibrary)
         writer.printTo(arkoala.javaLib('Serializer'))
     }
-    fs.writeFileSync(arkoala.native('bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
+    writeFile(arkoala.native('bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
 
     const { api, serializers } = printApiAndSerializers(options.apiVersion, peerLibrary)
-    fs.writeFileSync(arkoala.native('Serializers.h'), serializers)
-    fs.writeFileSync(arkoala.native('arkoala_api_generated.h'), api)
+    writeFile(arkoala.native('Serializers.h'), serializers)
+    writeFile(arkoala.native('arkoala_api_generated.h'), api)
 
     const modifiers = printRealAndDummyModifiers(peerLibrary)
     const accessors = printRealAndDummyAccessors(peerLibrary)
-    dummyImplementations(modifiers.dummy, accessors.dummy, 1, options.apiVersion, 6)
-        .printTo(arkoala.native('dummy_impl.cc'))
-    fs.writeFileSync(arkoala.native('all_events.cc'), completeEventsImplementations(printEventsCImpl(peerLibrary)))
+    writeFile(
+        arkoala.native('dummy_impl.cc'),
+        dummyImplementations(modifiers.dummy, accessors.dummy, 1, options.apiVersion, 6).getOutput().join('\n'),
+    )
+    writeFile(arkoala.native('all_events.cc'), completeEventsImplementations(printEventsCImpl(peerLibrary)))
 
-    copyPeerLib(path.join(__dirname, '..', 'peer_lib'), arkoala)
+    if (!options.onlyIntegrated)
+        copyPeerLib(path.join(__dirname, '..', 'peer_lib'), arkoala)
 }

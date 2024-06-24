@@ -85,12 +85,15 @@ class PeerFileVisitor {
         const imports = new ImportsCollector()
         imports.addFilterByBasename(this.targetBasename)
         this.file.peers.forEach(peer => {
-            if (!peer.originalParentFilename) return
-            const parentBasename = renameDtsToPeer(path.basename(peer.originalParentFilename), this.file.declarationTable.language)
-            imports.addFeatureByBasename(this.generatePeerParentName(peer), parentBasename)
-            const parentAttributesClass = this.generateAttributesParentClass(peer)
-            if (parentAttributesClass)
-                imports.addFeatureByBasename(parentAttributesClass, parentBasename)
+            if (determineParentRole(peer.originalClassName, peer.parentComponentName) === InheritanceRole.PeerNode)
+                imports.addFeatureByBasename('PeerNode', 'PeerNode')
+            if (peer.originalParentFilename) {
+                const parentBasename = renameDtsToPeer(path.basename(peer.originalParentFilename), this.file.declarationTable.language)
+                imports.addFeatureByBasename(this.generatePeerParentName(peer), parentBasename)
+                const parentAttributesClass = this.generateAttributesParentClass(peer)
+                if (parentAttributesClass)
+                    imports.addFeatureByBasename(parentAttributesClass, parentBasename)
+            }
         })
         if (this.file.declarationTable.language === Language.TS) {
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
@@ -179,7 +182,6 @@ class PeerFileVisitor {
             case Language.TS: {
                 return [
                     `import { int32 } from "@koalaui/common"`,
-                    `import { PeerNode } from "./PeerNode"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
                     `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
                     `import { createSerializer, Serializer } from "./Serializer"`,
@@ -191,7 +193,6 @@ class PeerFileVisitor {
             case Language.ARKTS: {
                 return [
                     `import { int32 } from "@koalaui/common"`,
-                    `import { PeerNode } from "./PeerNode"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
                     `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
                     `import { createSerializer, Serializer } from "./Serializer"`,

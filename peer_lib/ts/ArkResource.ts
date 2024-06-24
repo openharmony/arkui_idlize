@@ -13,18 +13,13 @@
  * limitations under the License.
  */
 
-import { PeerNode } from './PeerNode'
-
-export class ComponentBase {
-    protected peer?: PeerNode
-    setPeer(peer: PeerNode) {
-        this.peer = peer
-    }
-
-    /** @memo:intrinsic */
-    protected checkPriority(
-        name: string
-    ): boolean { throw new Error("not implemented") }
-    protected applyAttributesFinish(): void { throw new Error("not implemented") }
-    __applyStyle(style: (instance: this, ...args: any) => this, ...args: any): this { throw new Error("not implemented") }
+export class ArkResource {
+    constructor(
+        public name: string,
+        public id: number,
+        public type: number,
+        public moduleName: string,
+        public bundleName: string,
+        public params?: any[],
+    ) {}
 }

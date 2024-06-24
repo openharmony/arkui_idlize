@@ -58,10 +58,15 @@ export class DeclarationGenerator implements DeclarationConvertor<string> {
     }
 
     private extendsClause(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
-        let parent = node.heritageClauses
-            ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)[0]
-            ?.types[0]
-        if (parent === undefined) return ""
+        if (!node.heritageClauses?.length)
+            return ``
+        if (node.heritageClauses!.some(it => it.token !== ts.SyntaxKind.ExtendsKeyword))
+            throw "Expected to have only extend clauses"
+        if (this.library.isComponentDeclaration(node))
+            // do not extend parent component interface to provide smooth integration
+            return ``
+
+        let parent = node.heritageClauses[0]!.types[0]
         return `extends ${parent.getText()}`
     }
 
@@ -81,6 +86,9 @@ export class DeclarationGenerator implements DeclarationConvertor<string> {
         let extendsClause = this.extendsClause(node)
 
         let classOrInterface = ts.isClassDeclaration(node) ? `class` : `interface`
+        if (this.library.isComponentDeclaration(node))
+            // because we write `ArkBlank implements BlankAttributes`
+            classOrInterface = `interface`
         printer.print(`export declare ${classOrInterface} ${className} ${extendsClause} {`)
         printer.pushIndent()
         this.declarationMembers(node)
@@ -96,12 +104,18 @@ export class DeclarationGenerator implements DeclarationConvertor<string> {
 
     private declarationMembers(
         node: ts.ClassDeclaration | ts.InterfaceDeclaration
-    ): readonly (ts.MethodSignature | ts.MethodDeclaration)[] {
-        if (ts.isClassDeclaration(node) && node.members.every(ts.isMethodDeclaration)) {
-            return node.members
+    ): readonly (ts.MethodDeclaration)[] {
+        if (ts.isClassDeclaration(node)) {
+            const members = node.members.filter(it => !ts.isConstructorDeclaration(it))
+            if (members.every(ts.isMethodDeclaration))
+                return members
         }
-        if (ts.isInterfaceDeclaration(node) && node.members.every(ts.isMethodSignature)) {
-            return node.members
+        if (ts.isInterfaceDeclaration(node) ) {
+            const members = node.members.filter(it => 
+                !ts.isConstructSignatureDeclaration(it) &&
+                !ts.isCallSignatureDeclaration(it))
+            if (members.length === 0)
+                return []
         }
         throw new Error(`Encountered component with member that is not method: ${node}`)
     }

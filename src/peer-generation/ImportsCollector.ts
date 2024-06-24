@@ -22,7 +22,7 @@ import { isMaterialized } from './Materialized';
 import { DeclarationNameConvertor } from './dependencies_collector';
 import { PeerGeneratorConfig } from './PeerGeneratorConfig';
 import { convertDeclaration } from './TypeNodeConvertor';
-import { fakeDeclarationFilename, isFakeDeclaration } from './fake_declaration';
+import { syntheticDeclarationFilename, isSyntheticDeclaration } from './synthetic_declaration';
 
 export type ImportsCollectorFilter = (feature: string, module: string) => boolean
 
@@ -64,10 +64,10 @@ export class ImportsCollector {
 export type ImportFeature = { feature: string, module: string }
 
 export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration): ImportFeature {
-    if (isFakeDeclaration(node))
+    if (isSyntheticDeclaration(node))
         return {
             feature: convertDeclaration(DeclarationNameConvertor.I, node), 
-            module: `./${fakeDeclarationFilename(node)}`
+            module: `./${syntheticDeclarationFilename(node)}`
         }
     if (PeerGeneratorConfig.isConflictedDeclaration(node)) {
         const parent = node.parent

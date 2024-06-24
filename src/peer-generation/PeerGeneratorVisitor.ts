@@ -48,7 +48,7 @@ import { mapType } from "./TypeNodeNameConvertor";
 import { convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./dependencies_collector";
 import { convertDeclToFeature } from "./ImportsCollector";
-import { isFakeDeclaration, makeFakeTypeAliasDeclaration } from "./fake_declaration";
+import { addSyntheticDeclarationDependency, isSyntheticDeclaration, makeSyntheticTypeAliasDeclaration } from "./synthetic_declaration";
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -336,13 +336,25 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
         if (!this.peerLibrary.importTypesStubToSource.has(generatedName)) {
             this.peerLibrary.importTypesStubToSource.set(generatedName, node.getText())
         }
+        let syntheticDeclaration: ts.Declaration
+        
+        if (node.qualifier?.getText() === 'Resource') {
+            syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
+                'SyntheticDeclarations', 
+                generatedName, 
+                ts.factory.createTypeReferenceNode("ArkResource"),
+            )
+            addSyntheticDeclarationDependency(syntheticDeclaration, {feature: "ArkResource", module: "./ArkResource"})
+        } else {
+            syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
+                'SyntheticDeclarations', 
+                generatedName, 
+                ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+            )
+        }
         return [
             ...super.convertImport(node),
-            makeFakeTypeAliasDeclaration(
-                'FakeDeclarations', 
-                generatedName, 
-                ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
-            ),
+            syntheticDeclaration
         ]
     }
 
@@ -656,7 +668,7 @@ export class PeerProcessor {
 
         const importFeatures = this.serializeDepsCollector.convert(target)
             .filter(it => this.isSourceDecl(it))
-            .filter(it => PeerGeneratorConfig.needInterfaces || isFakeDeclaration(it))
+            .filter(it => PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it))
             .map(it => convertDeclToFeature(this.library, it))
         let constructor = target.members.find(ts.isConstructorDeclaration)!
         let mConstructor = this.makeMaterializedMethod(className, constructor)
@@ -728,7 +740,7 @@ export class PeerProcessor {
     }
 
     private isSourceDecl(node: ts.Declaration): boolean {
-        if (isFakeDeclaration(node))
+        if (isSyntheticDeclaration(node))
             return true
         if (ts.isModuleBlock(node.parent))
             return this.isSourceDecl(node.parent.parent)
@@ -790,7 +802,7 @@ export class PeerProcessor {
         for (const actualComponent of this.generateActualComponents())
             peerGenerator.generatePeer(actualComponent)
         for (const dep of this.generateDeclarations()) {
-            if (isFakeDeclaration(dep))
+            if (isSyntheticDeclaration(dep))
                 continue
             const file = this.library.findFileByOriginalFilename(this.getDeclSourceFile(dep).fileName)!
             const isPeerDecl = this.library.isComponentDeclaration(dep)
@@ -806,7 +818,7 @@ export class PeerProcessor {
             }
 
             this.declDependenciesCollector.convert(dep).forEach(it => {
-                if (this.isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isFakeDeclaration(it)))
+                if (this.isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it)))
                     file.importFeatures.push(convertDeclToFeature(this.library, it))
             })
             this.serializeDepsCollector.convert(dep).forEach(it => {
