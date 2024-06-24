@@ -70,6 +70,8 @@ void addType(const std::string &type, std::string *result)
         result->append("I");
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         result->append("J");
+    else if (type == "Ark_Float32")
+        result->append("F");
     else if (type == "KInteropNumber")
         result->append("D");
     else if (type == "KBoolean")

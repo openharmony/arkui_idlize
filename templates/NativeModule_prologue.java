@@ -82,4 +82,5 @@ public class NativeModule {
   static native long _GetPipelineContext(long nodePtr);
   static native void _SetVsyncCallback(long pipelineContext, int callbackId);
   static native void _UnblockVsyncWait(long pipelineContext);
+  static native float _ConvertLengthMetricsUnit(float value, int originUnit, int targetUnit);
 
