@@ -51,18 +51,18 @@ KUInt getUInt32(Napi::Env env, Napi::Value value) {
   return value.As<Napi::Number>().Uint32Value();
 }
 
-KFloat getFloat32(const Napi::CallbackInfo& info, Napi::Value value) {
+KFloat getFloat32(Napi::Env env, Napi::Value value) {
   if (!value.IsNumber()) {
-    Napi::Error::New(info.Env(), "Expected Number")
+    Napi::Error::New(env, "Expected Number")
         .ThrowAsJavaScriptException();
     return 0.0f;
   }
   return value.As<Napi::Number>().FloatValue();
 }
 
-KDouble getFloat64(const Napi::CallbackInfo& info, Napi::Value value) {
+KDouble getFloat64(Napi::Env env, Napi::Value value) {
   if (!value.IsNumber()) {
-    Napi::Error::New(info.Env(), "Expected Number")
+    Napi::Error::New(env, "Expected Number")
         .ThrowAsJavaScriptException();
     return 0.0;
   }

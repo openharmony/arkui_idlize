@@ -22,13 +22,14 @@
 // The only include allowed in this file! Do not add anything else ever.
 #include <stdint.h>
 
-#define GENERATED_ARKUI_FULL_API_VERSION %ARKUI_FULL_API_VERSION_VALUE%
-#define GENERATED_ARKUI_NODE_API_VERSION GENERATED_ARKUI_FULL_API_VERSION
+#define %CPP_PREFIX%ARKUI_FULL_API_VERSION %ARKUI_FULL_API_VERSION_VALUE%
+#define %CPP_PREFIX%ARKUI_NODE_API_VERSION %CPP_PREFIX%ARKUI_FULL_API_VERSION
 
-#define GENERATED_ARKUI_BASIC_NODE_API_VERSION 1
-#define GENERATED_ARKUI_EXTENDED_NODE_API_VERSION 6
-#define GENERATED_ARKUI_NODE_GRAPHICS_API_VERSION 5
-#define GENERATED_ARKUI_NODE_MODIFIERS_API_VERSION 6
+#define %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION 1
+#define %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION 6
+#define %CPP_PREFIX%ARKUI_NODE_GRAPHICS_API_VERSION 5
+#define %CPP_PREFIX%ARKUI_NODE_MODIFIERS_API_VERSION 6
+#define %CPP_PREFIX%ARKUI_AUTO_GENERATE_NODE_ID -2
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,8 +70,13 @@ typedef int8_t Ark_Boolean;
 typedef const char* Ark_CharPtr;
 typedef void* Ark_NativePointer;
 
+#ifdef FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
+typedef struct _ArkUINode* Ark_NodeHandle;
+#else
 struct Ark_NodeHandleOpaque;
 typedef struct Ark_NodeHandleOpaque* Ark_NodeHandle;
+#endif
+
 struct Ark_ObjectHandleOpaque;
 typedef struct Ark_ObjectHandleOpaque* Ark_ObjectHandle;
 

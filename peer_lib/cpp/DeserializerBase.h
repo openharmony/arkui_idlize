@@ -501,8 +501,17 @@ inline void WriteToString(string *result, Ark_Boolean value)
   result->append(value ? "true" : "false");
 }
 
-template <>
 inline void WriteToString(string *result, Ark_Int32 value)
+{
+  result->append(std::to_string(value));
+}
+
+inline void WriteToString(string *result, Ark_UInt32 value)
+{
+  result->append(std::to_string(value));
+}
+
+inline void WriteToString(string *result, Ark_Float32 value)
 {
   result->append(std::to_string(value));
 }

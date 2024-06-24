@@ -20,6 +20,8 @@ const NODE_TYPE_ENUM = new Type("NodeTypeEnum");
 const ARK_NODE_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_NodeType`);
 
 const K_LONG_TYPE = new Type("KLong")
+const K_UINT_TYPE = new Type("KUInt")
+const K_FLOAT_TYPE = new Type("KFloat")
 const K_DOUBLE_TYPE = new Type("KDouble")
 
 const EVENT_SUB_KIND_ENUM = new Type("EventSubKindeEnum");
@@ -42,7 +44,9 @@ export class CustomAPI {
         this.typeMap.set(Type.Int32, [new Type("Ark_Int32"), new Type("Ark_Int32"), new Type("int")])
         this.typeMap.set(Type.Pointer, [ARK_NATIVE_POINTER_TYPE, new Type("Ark_NodeHandle"), new Type("long")])
         this.typeMap.set(Type.Boolean, [new Type("KBoolean"), new Type("Ark_Boolean"), new Type("boolean")])
+        this.typeMap.set(K_UINT_TYPE, [K_UINT_TYPE, new Type("Ark_UInt32"), new Type("int")])
         this.typeMap.set(K_LONG_TYPE, [new Type("Ark_Int64"), new Type("Ark_Int64"), new Type("long")])
+        this.typeMap.set(K_FLOAT_TYPE, [new Type("Ark_Float32"), new Type("Ark_Float32"), new Type("float")])
         this.typeMap.set(K_DOUBLE_TYPE, [K_DOUBLE_TYPE, new Type("Ark_Float64"), new Type("double")])
         this.typeMap.set(K_VMCONTEXT_TYPE, [K_VMCONTEXT_TYPE, ARK_VMCONTEXT_TYPE, new Type("long")])
         this.typeMap.set(K_NATIVE_POINTER_TYPE, [K_NATIVE_POINTER_TYPE, ARK_FLOAT32_ARRAY_PTR_TYPE, new Type("long")])
@@ -81,34 +85,32 @@ export const CUSTOM_API: CustomAPI[] = [
         method(`getNodeByViewStack`, Type.Pointer, [], []),
         method(`disposeNode`, Type.Void, [Type.Pointer], ["nodePtr"]),
         // TBD: Returns string
-        //method(`getName`, K_CHAR_PTR_TYPE, [Type.Pointer], ["nodePtr"]),
-        method(`dump`, Type.Void, [Type.Pointer], ["nodePtr"]),
+        // method(`getName`, K_CHAR_PTR_TYPE, [Type.Pointer], ["nodePtr"]),
+        // method(`dump`, Type.Void, [Type.Pointer], ["nodePtr"]),
 
-        method(`addChild`, Type.Int32, [Type.Pointer, Type.Pointer], ["parent", "child"]),
         method(`removeChild`, Type.Void, [Type.Pointer, Type.Pointer], ["parent", "child"]),
         method(`insertChildAfter`, Type.Int32, [Type.Pointer, Type.Pointer, Type.Pointer], ["parent", "child", "sibling"]),
+        method(`addChild`, Type.Int32, [Type.Pointer, Type.Pointer], ["parent", "child"]),
         method(`insertChildBefore`, Type.Int32, [Type.Pointer, Type.Pointer, Type.Pointer], ["parent", "child", "sibling"]),
         method(`insertChildAt`, Type.Int32, [Type.Pointer, Type.Pointer, Type.Int32], ["parent", "child", "position"]),
 
         // May be obsolete api, returns string
-        //method(`getAttribute`, K_CHAR_PTR_TYPE, [Type.Pointer, K_CHAR_PTR_TYPE], ["nodePtr", "attribute"]),
-        //method(`setAttribute`, Type.Void, [Type.Pointer, K_CHAR_PTR_TYPE, K_CHAR_PTR_TYPE], ["nodePtr", "attribute", "value"]),
-        //method(`resetAttribute`, Type.Void, [Type.Pointer, K_CHAR_PTR_TYPE], ["nodePtr", "attribute"]),
+        // method(`getAttribute`, K_CHAR_PTR_TYPE, [Type.Pointer, K_CHAR_PTR_TYPE], ["nodePtr", "attribute"]),
+        // method(`setAttribute`, Type.Void, [Type.Pointer, K_CHAR_PTR_TYPE, K_CHAR_PTR_TYPE], ["nodePtr", "attribute", "value"]),
+        // method(`resetAttribute`, Type.Void, [Type.Pointer, K_CHAR_PTR_TYPE], ["nodePtr", "attribute"]),
 
         // TBD: Fix Java Int64
         // method(`registerNodeAsyncEvent`, Type.Void, [Type.Pointer, EVENT_SUB_KIND_ENUM, K_LONG_TYPE], ["nodePtr", "kind", "extraParam"]),
-        method(`unRegisterNodeAsyncEvent`, Type.Void, [Type.Pointer, EVENT_SUB_KIND_ENUM], ["nodePtr", "kind"]),
-        method(`registerNodeAsyncEventReceiver`, Type.Void, [RECEIVER_TYPE], ["eventReceiver"]),
-        method(`unRegisterNodeAsyncEventReceiver`, Type.Void, [], []),
+        // method(`unRegisterNodeAsyncEvent`, Type.Void, [Type.Pointer, EVENT_SUB_KIND_ENUM], ["nodePtr", "kind"]),
+        // method(`registerNodeAsyncEventReceiver`, Type.Void, [RECEIVER_TYPE], ["eventReceiver"]),
+        // method(`unRegisterNodeAsyncEventReceiver`, Type.Void, [], []),
         // TBD: convert NodeEvent struct
         // method(`checkAsyncEvent`, Type.Int32, [ARK_NODE_EVENT_TYPE], ["event"]),
 
         method(`applyModifierFinish`, Type.Void, [Type.Pointer], ["nodePtr"]),
-        method(`markDirty`, Type.Void, [Type.Pointer, Type.Int32], ["nodePtr", "dirtyFlag"]),
+        method(`markDirty`, Type.Void, [Type.Pointer, K_UINT_TYPE], ["nodePtr", "dirtyFlag"]),
         method(`isBuilderNode`, Type.Boolean, [Type.Pointer], ["nodePtr"]),
-
-        // Unused method
-        //method(`convertLengthMetricsUnit`, K_DOUBLE_TYPE, [K_DOUBLE_TYPE, Type.Int32, Type.Int32], ["value", "originUnit", "targetUnit"]),
+        method(`convertLengthMetricsUnit`, K_FLOAT_TYPE, [K_FLOAT_TYPE, Type.Int32, Type.Int32], ["value", "originUnit", "targetUnit"]),
     ]),
 
     // ExtendedNodeAPI with context

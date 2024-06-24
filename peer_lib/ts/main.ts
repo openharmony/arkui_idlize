@@ -129,6 +129,66 @@ function checkNodeAPI() {
         () => ptr = nativeModule()._CreateNode(ARKUI_TEXT, id, flags),
         `createNode(${ARKUI_TEXT}, ${id}, ${flags})`)
     assertEquals("BasicNodeAPI createNode result", 123, ptr)
+
+    let stackPtr: pointer = 0
+    checkResult("BasicNodeAPI getNodeByViewStack",
+        () => stackPtr = nativeModule()._GetNodeByViewStack(),
+        `getNodeByViewStack()`
+    )
+    assertEquals("BasicNodeAPI getNodeByViewStack result", 234, stackPtr)
+
+    checkResult("BasicNodeAPI disposeNode",
+        () => nativeModule()._DisposeNode(ptr),
+        `disposeNode(0x123)`)
+
+    checkResult("BasicNodeAPI addChild",
+        () => nativeModule()._AddChild(ptr, stackPtr),
+        `addChild(0x123, 0x234)`
+    )
+
+    checkResult("BasicNodeAPI removeChild",
+        () => nativeModule()._RemoveChild(ptr, stackPtr),
+        `removeChild(0x123, 0x234)`
+    )
+
+    checkResult("BasicNodeAPI insertChildAfter",
+        () => nativeModule()._InsertChildAfter(ptr, stackPtr, nullptr),
+        `insertChildAfter(0x123, 0x234, 0x0)`
+    )
+
+    checkResult("BasicNodeAPI insertChildBefore",
+        () => nativeModule()._InsertChildBefore(ptr, stackPtr, nullptr),
+        `insertChildBefore(0x123, 0x234, 0x0)`
+    )
+
+    checkResult("BasicNodeAPI insertChildAt",
+        () => nativeModule()._InsertChildAt(ptr, stackPtr, 0),
+        `insertChildAt(0x123, 0x234, 0)`
+    )
+
+    checkResult("BasicNodeAPI applyModifierFinish",
+        () => nativeModule()._ApplyModifierFinish(ptr),
+        `applyModifierFinish(0x123)`
+    )
+
+    checkResult("BasicNodeAPI markDirty",
+        () => nativeModule()._MarkDirty(ptr, 123456),
+        `markDirty(0x123, 123456)`
+    )
+
+    let isBuilderNode = 0
+    checkResult("BasicNodeAPI isBuilderNode",
+        () => isBuilderNode = nativeModule()._IsBuilderNode(ptr),
+        `isBuilderNode(0x123)`
+    )
+    assertEquals("BasicNodeAPI isBuilderNode result", 1, isBuilderNode)
+
+    let length = 0.0
+    checkResult("BasicNodeAPI convertLengthMetricsUnit",
+        () => length = nativeModule()._ConvertLengthMetricsUnit(1.23, 10, 0),
+        `convertLengthMetricsUnit(1.230000, 10, 0)`
+    )
+    assertTrue("BasicNodeAPI convertLengthMetricsUnit result", Math.abs(12.3 - length) < 0.00001)
 }
 
 function checkButton() {

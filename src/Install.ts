@@ -80,6 +80,7 @@ export class LibaceInstall extends Install {
     mesonBuild = path.join(this.libace, "meson.build")
     allModifiers = path.join(this.generatedInterface, "all_modifiers.cpp")
     arkoalaMacros = path.join(this.generatedInterface, "arkoala-macros.h")
+    apiImpl = path.join(this.generatedInterface, "api_impl.cpp")
     interface(name: string) {
         return path.join(this.generatedInterface, name)
     }

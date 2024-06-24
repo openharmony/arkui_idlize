@@ -12,7 +12,18 @@ const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI() { return &fullAPIIm
 
 const %CPP_PREFIX%ArkUIBasicNodeAPI basicNodeAPIImpl = {
     %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, // version
-    OHOS::Ace::NG::CreateNode
+    OHOS::Ace::NG::CreateNode,
+    OHOS::Ace::NG::ApiImpl::GetNodeByViewStack,
+    OHOS::Ace::NG::ApiImpl::DisposeNode,
+    OHOS::Ace::NG::ApiImpl::AddChild,
+    OHOS::Ace::NG::ApiImpl::RemoveChild,
+    OHOS::Ace::NG::ApiImpl::InsertChildAfter,
+    OHOS::Ace::NG::ApiImpl::InsertChildBefore,
+    OHOS::Ace::NG::ApiImpl::InsertChildAt,
+    OHOS::Ace::NG::ApiImpl::ApplyModifierFinish,
+    OHOS::Ace::NG::ApiImpl::MarkDirty,
+    OHOS::Ace::NG::ApiImpl::IsBuilderNode,
+    OHOS::Ace::NG::ApiImpl::ConvertLengthMetricsUnit
 };
 const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI() { return &basicNodeAPIImpl; }
 

@@ -15,7 +15,14 @@
 
 import { IndentedPrinter } from "../../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "../DeclarationTable";
-import { accessorStructList, cStyleCopyright, completeModifiersContent, appendApiImplPrologue, makeFileNameFromClassName, modifierStructList, warning } from "../FileGenerators";
+import { accessorStructList,
+         cStyleCopyright,
+         completeModifiersContent,
+         appendModifiersCommonPrologue,
+         appendApiImpl,
+         makeFileNameFromClassName,
+         modifierStructList,
+         warning } from "../FileGenerators";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "../PeerMethod";
@@ -352,7 +359,8 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
             .concat(modifierStructList(modifierList))
             .concat(accessorStructList(accessorList))
 
-        printModifiersCommonImplFile(commonFilePath, commonFileContent, options);
+        printModifiersCommonImplFile(commonFilePath, commonFileContent, options)
+        printApiImplFile(libace.apiImpl, options)
     }
 }
 
@@ -378,12 +386,17 @@ export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: La
     return {dummy, real}
 }
 
+export interface Namespaces {
+    generated: string,
+    impl: string
+}
+
 export interface ModifierFileOptions {
     basicVersion: number;
     fullVersion: number;
     extendedVersion: number;
 
-    namespace?: string
+    namespaces?: Namespaces
 }
 
 export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions) {
@@ -402,15 +415,15 @@ function printModifiersImplFile(filePath: string, slug: string, state: MultiFile
     // writer.writeInclude(`${slug}_delegate.h`)
     writer.print("")
 
-    if (options.namespace) {
-        writer.pushNamespace(options.namespace)
+    if (options.namespaces) {
+        writer.pushNamespace(options.namespaces.generated)
     }
 
     writer.concat(state.real)
     writer.concat(state.modifiers)
     writer.concat(state.accessors)
 
-    if (options.namespace) {
+    if (options.namespaces) {
         writer.popNamespace()
     }
 
@@ -425,21 +438,54 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.print("")
 
     writer.writeInclude('arkoala-macros.h')
+    writer.writeInclude('core/interfaces/arkoala/arkoala_api.h')
     writer.writeInclude('arkoala_api_generated.h')
     writer.print("")
 
-    writer.concat(appendApiImplPrologue())
-
-    if (options.namespace) {
-        writer.pushNamespace(options.namespace)
+    if (options.namespaces) {
+        writer.pushNamespace(options.namespaces.impl)
     }
+    writer.concat(appendModifiersCommonPrologue())
 
-    writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
-
-    if (options.namespace) {
+    if (options.namespaces) {
         writer.popNamespace()
     }
 
     writer.print("")
+
+    if (options.namespaces) {
+        writer.pushNamespace(options.namespaces.generated)
+    }
+
+    writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
+
+    if (options.namespaces) {
+        writer.popNamespace()
+    }
+
+    writer.print("")
+    writer.printTo(filePath)
+}
+
+function printApiImplFile(filePath: string, options: ModifierFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter())
+    writer.writeLines(cStyleCopyright)
+    writer.writeMultilineCommentBlock(warning)
+    writer.print("")
+
+    writer.writeInclude('arkoala_api_generated.h')
+    writer.writeInclude('base/utils/utils.h')
+    writer.writeInclude('core/pipeline/base/element_register.h')
+    writer.print("")
+
+    if (options.namespaces) {
+        writer.pushNamespace(options.namespaces.impl)
+    }
+    writer.concat(appendApiImpl())
+
+    if (options.namespaces) {
+        writer.popNamespace()
+    }
+
     writer.printTo(filePath)
 }

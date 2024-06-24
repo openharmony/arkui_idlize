@@ -1,8 +1,18 @@
 
     // BasicNodeAPI
     _CreateNode(type: KInt, id: KInt, flags: KInt): NodePointer
+    _GetNodeByViewStack(): NodePointer
     _DisposeNode(ptr: NodePointer): void
+
+    _AddChild(parent: NodePointer, child: NodePointer): KInt
+    _RemoveChild(parent: NodePointer, child: NodePointer): void
+    _InsertChildAfter(parent: NodePointer, child: NodePointer, sibling: NodePointer): KInt
+    _InsertChildBefore(parent: NodePointer, child: NodePointer, sibling: NodePointer): KInt
+    _InsertChildAt(parent: NodePointer, child: NodePointer,  position: KInt): KInt
     _ApplyModifierFinish(ptr: NodePointer): void
+    _MarkDirty(ptr: NodePointer, flag: KUInt): void
+    _IsBuilderNode(ptr: NodePointer): KBoolean
+    _ConvertLengthMetricsUnit(value: KFloat, originUnit: KInt, targetUnit: KInt): KFloat
 
     // getUtilsModifier
     // getCanvasRenderingContext2DModifier
@@ -10,7 +20,7 @@
     // setCallbackMethod
     // setCustomMethodFlag
 
-    // registerCutomNodeAsyncEvent
+    // registerCustomNodeAsyncEvent
     // unregisterCustomNodeAsyncEvent
     // registerCustomNodeAsyncEventReceiver
 

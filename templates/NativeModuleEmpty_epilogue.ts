@@ -1,8 +1,17 @@
 
 // BasicNodeAPI
 _CreateNode(type: KInt, id: KInt, flags: KInt): NodePointer { return nullptr }
+_GetNodeByViewStack(): NodePointer { return nullptr }
 _DisposeNode(ptr: NodePointer): void {}
+_AddChild(parent: NodePointer, child: NodePointer): KInt { return 0 }
+_RemoveChild(parent: NodePointer, child: NodePointer): void {}
+_InsertChildAfter(parent: NodePointer, child: NodePointer, sibling: NodePointer): KInt { return 0 }
+_InsertChildBefore(parent: NodePointer, child: NodePointer, sibling: NodePointer): KInt { return 0 }
+_InsertChildAt(parent: NodePointer, child: NodePointer,  position: KInt): KInt { return 0 }
 _ApplyModifierFinish(ptr: NodePointer): void {}
+_MarkDirty(ptr: NodePointer, flag: KUInt): void {}
+_IsBuilderNode(ptr: NodePointer): KBoolean { return 0 }
+_ConvertLengthMetricsUnit(value: KFloat, originUnit: KInt, targetUnit: KInt): KFloat { return 0 }
 
 // ExtendedNodeAPI
 _SetCustomCallback(node: NodePointer, callbackId: KInt): void {}

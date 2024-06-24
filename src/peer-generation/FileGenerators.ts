@@ -72,6 +72,8 @@ import {
 import {
     KInt,
     KBoolean,
+    KFloat,
+    KUInt,
     KStringPtr,
     KPointer,
     KNativePointer,
@@ -139,13 +141,23 @@ void SetAppendGroupedLog(void* pFunc) {}
     return result
 }
 
-export function appendApiImplPrologue(): LanguageWriter {
+export function appendModifiersCommonPrologue(): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
-    let epilogue = readTemplate('impl_prologue.cc')
+    let body = readTemplate('impl_prologue.cc')
 
-    epilogue = epilogue.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+    body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
 
-    result.writeLines(epilogue)
+    result.writeLines(body)
+    return result
+}
+
+export function appendApiImpl(): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP)
+    let body = readTemplate('api_impl.cc')
+
+    body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+
+    result.writeLines(body)
     return result
 }
 

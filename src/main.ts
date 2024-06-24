@@ -346,7 +346,10 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
 
     // printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
     printRealModifiersAsMultipleFiles(peerLibrary, libace, {
-        namespace: "OHOS::Ace::NG::GeneratedModifier",
+        namespaces: {
+            generated: "OHOS::Ace::NG::GeneratedModifier",
+            impl: "OHOS::Ace::NG"
+        },
         basicVersion: 1,
         fullVersion: options.apiVersion,
         extendedVersion: 6,
