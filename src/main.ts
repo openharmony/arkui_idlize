@@ -35,7 +35,8 @@ import {
     makeTSDeserializer,
     gniFile,
     mesonBuildFile,
-    completeImplementations
+    completeImplementations,
+    copyToLibace
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
@@ -341,7 +342,6 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
 
     const gniSources = printGniSources(peerLibrary)
     fs.writeFileSync(libace.gniComponents, gniFile(gniSources))
-    fs.copyFileSync(path.join(outDir, 'koalaui/arkoala/native/src/arkoala-macros.h'), libace.arkoalaMacros)
 
     // printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
     printRealModifiersAsMultipleFiles(peerLibrary, libace, {
@@ -358,6 +358,8 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
         const mesonBuild = printMesonBuild(peerLibrary)
         fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
     }
+
+    copyToLibace(path.join(__dirname, '..', 'peer_lib'), libace)
 }
 
 function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Language) {

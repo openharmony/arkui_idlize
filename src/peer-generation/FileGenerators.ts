@@ -22,7 +22,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./printers/EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
 import { PeerLibrary } from "./PeerLibrary"
-import { ArkoalaInstall } from "../Install"
+import { ArkoalaInstall, LibaceInstall } from "../Install"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -407,7 +407,11 @@ export function copyPeerLib(from: string, arkoala: ArkoalaInstall) {
     })
     copyDir(path.join(from, 'arkts'), arkoala.arktsDir)
     copyDir(path.join(from, 'java'), arkoala.javaDir)
+}
 
+export function copyToLibace(from: string, libace: LibaceInstall) {
+    const macros = path.join(from, 'cpp', 'arkoala-macros.h')
+    fs.copyFileSync(macros, libace.arkoalaMacros)
 }
 
 function copyDir(from: string, to: string) {
