@@ -13,6 +13,36 @@
  * limitations under the License.
  */
 
+declare type CanvasFillRule = "evenodd" | "nonzero";
+
+declare class ImageData {
+
+  readonly data: Uint8ClampedArray;
+
+  readonly height: number;
+
+  readonly width: number;
+
+  constructor(width: number, height: number, data?: Uint8ClampedArray);
+
+  constructor(width: number, height: number, data?: Uint8ClampedArray, unit?: LengthMetricsUnit);
+}
+
+declare interface CanvasPattern {
+
+  setTransform(transform?: Matrix2D): void;
+}
+
+// interface ImageBitmap {
+
+//   readonly height: number;
+
+//   readonly width: number;
+
+//   close(): void;
+// }
+
+
 declare class CanvasPath {
 
   rect(x: number, y: number, w: number, h: number): void;
@@ -22,13 +52,39 @@ declare class CanvasPath {
   closePath(): void;
 }
 
+declare class CanvasGradient {
+
+  addColorStop(offset: number, color: string): void;
+}
+
 declare class CanvasRenderer extends CanvasPath {
 
   globalAlpha: number;
 
   globalCompositeOperation: string;
 
-  drawImage(image: ImageBitmap | PixelMap, dx: number, dy: number): void;
+  fillStyle: string | number | CanvasGradient | CanvasPattern;
+
+  // drawImage(image: ImageBitmap | PixelMap, dx: number, dy: number): void;
+
+  beginPath(): void;
+
+  clip(fillRule?: CanvasFillRule): void;
+
+  reset(): void;
+
+  putImageData(imagedata: ImageData, dx: number | string, dy: number | string): void;
+
+  putImageData(
+    imagedata: ImageData,
+    dx: number | string,
+    dy: number | string,
+    dirtyX: number | string,
+    dirtyY: number | string,
+    dirtyWidth: number | string,
+    dirtyHeight: number | string
+  ): void;
+
 }
 
 declare class RenderingContextSettings {

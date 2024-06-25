@@ -25,7 +25,7 @@ import {
     ToStringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor
 } from "./Convertors"
 import { DependencySorter } from "./DependencySorter"
-import { isMaterialized } from "./Materialized"
+import { checkDeclarationTargetMaterialized, isMaterialized } from "./Materialized"
 import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
@@ -599,6 +599,9 @@ export class DeclarationTable {
             return new TypeAliasConvertor(param, this, declaration, type.typeArguments)
         }
         if (ts.isInterfaceDeclaration(declaration)) {
+            if (isMaterialized(declaration)) {
+                return new MaterializedClassConvertor(declarationName, param, this, declaration)
+            }
             return new InterfaceConvertor(declarationName, param, declaration, this, type)
         }
         if (ts.isClassDeclaration(declaration)) {
@@ -674,7 +677,7 @@ export class DeclarationTable {
             seenNames.add(nameAssigned)
             let isPointer = this.isPointerDeclaration(target)
             let isEnum = !(target instanceof PrimitiveType) && ts.isEnumDeclaration(target)
-            let isAccessor = !(target instanceof PrimitiveType) && ts.isClassDeclaration(target) && isMaterialized(target)
+            let isAccessor = checkDeclarationTargetMaterialized(target)
             let noBasicDecl = isAccessor || (target instanceof PrimitiveType && noDeclaration.includes(target))
             let nameOptional = PrimitiveType.OptionalPrefix + nameAssigned
             let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
@@ -690,6 +693,12 @@ export class DeclarationTable {
             }
             const structDescriptor = this.targetStruct(target)
             if (!noBasicDecl && !this.ignoreTarget(target)) {
+
+                // TODO: fix it to define array type after its elements types
+                if (nameAssigned === "Array_GestureRecognizer") {
+                    structs.print("typedef Ark_Materialized GestureRecognizer;")
+                }
+
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
                 if (isUnion) {
                     const selector = structDescriptor.getFields().find(value => {return value.name === "selector"})
@@ -792,7 +801,7 @@ export class DeclarationTable {
             }
         } else if (ts.isEnumDeclaration(target)) {
             result = writer.makeRuntimeType(RuntimeType.NUMBER)
-        } else if (ts.isClassDeclaration(target) && isMaterialized(target)) {
+        } else if (checkDeclarationTargetMaterialized(target)) {
             return undefined
         } else if (ts.isOptionalTypeNode(target)) {
             result = writer.makeTernary(writer.makeDefinedCheck("value.tag"),
@@ -833,7 +842,7 @@ export class DeclarationTable {
         if (declaration instanceof PrimitiveType) return ""
         if (ts.isEnumDeclaration(declaration)) return ""
         if (ts.isImportTypeNode(declaration)) return ""
-        if (ts.isClassDeclaration(declaration) && isMaterialized(declaration)) return ""
+        if (checkDeclarationTargetMaterialized(declaration)) return ""
         return `struct `
     }
 

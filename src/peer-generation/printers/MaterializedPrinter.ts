@@ -49,6 +49,19 @@ class MaterializedFileVisitor {
         const printer = this.printer
         printer.print(makeMaterializedPrologue(this.language))
 
+        const superClass = clazz.superClass
+        let superClassName = superClass ? `${superClass.name}${superClass.generics ? `<${superClass.generics.join(", ")}>` : ""}` : undefined
+        const selfInterface = clazz.isInterface ? `${clazz.className}${clazz.generics ? `<${clazz.generics.join(", ")}>` : `` }` : undefined
+
+        const interfaces: string[] = []
+        if (clazz.isInterface) {
+            if (selfInterface) interfaces.push(selfInterface)
+            if (superClassName && !this.library.materializedClasses.has(superClassName)) {
+                interfaces.push(superClassName)
+                superClassName = undefined
+            }
+        }
+
         printer.writeClass(clazz.className, writer => {
 
             const finalizableType = new Type("Finalizable")
@@ -58,23 +71,29 @@ class MaterializedFileVisitor {
 
             // getters and setters for fields
             clazz.fields.forEach(f => {
+
                 const field = f.field
+
+                // TBD: use deserializer to get complex type from native
+                const isSimpleType = !f.argConvertor.useArray // type needs to be deserialized from the native
+                if (isSimpleType) {
+                    const getSignature = new MethodSignature(field.type, [])
+                    writer.writeGetterImplementation(new Method(field.name, getSignature), writer => {
+                        writer.writeStatement(
+                            writer.makeReturn(
+                                writer.makeMethodCall("this", `get${capitalize(field.name)}`, [])))
+                    });
+
+                    const getAccessor = new MaterializedMethod(clazz.className, [], [], f.retConvertor, false,
+                        new Method(`get${capitalize(field.name)}`, new NamedMethodSignature(field.type, [], []))
+                    )
+
+                    fieldAccessors = fieldAccessors.concat(getAccessor)
+                }
+
                 const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
-                const getSignature = new MethodSignature(field.type, [])
-                const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
-                writer.writeGetterImplementation(new Method(field.name, getSignature), writer => {
-                    writer.writeStatement(
-                        writer.makeReturn(
-                            writer.makeMethodCall("this", `get${capitalize(field.name)}`,[])))
-                });
-
-                const getAccessor = new MaterializedMethod(clazz.className, [], [], f.retConvertor, false,
-                    new Method(`get${capitalize(field.name)}`, new NamedMethodSignature(field.type, [], []))
-                )
-
-                fieldAccessors = fieldAccessors.concat(getAccessor)
-
                 if (!isReadOnly) {
+                    const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
                     writer.writeSetterImplementation(new Method(field.name, setSignature), writer => {
                         writer.writeMethodCall("this", `set${capitalize(field.name)}`, [field.name])
                     });
@@ -90,7 +109,7 @@ class MaterializedFileVisitor {
             clazz.methods = fieldAccessors.concat(clazz.methods)
 
             const pointerType = Type.Pointer
-            makePrivate(clazz.ctor.method)
+            // makePrivate(clazz.ctor.method)
             this.library.declarationTable.setCurrentContext(`${clazz.className}.constructor`)
             writePeerMethod(writer, clazz.ctor, this.dumpSerialized, "", "", pointerType)
             this.library.declarationTable.setCurrentContext(undefined)
@@ -103,6 +122,10 @@ class MaterializedFileVisitor {
                 ctorSig.defaults)
 
             writer.writeConstructorImplementation(clazz.className, sigWithPointer, writer => {
+
+                if (superClassName) {
+                    writer.writeSuperCall([]);
+                }
 
                 const allOptional = ctorSig.args.every(it => it.nullable)
                 const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
@@ -154,7 +177,7 @@ class MaterializedFileVisitor {
                 writePeerMethod(writer, method, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
                 this.library.declarationTable.setCurrentContext(undefined)
             })
-        })
+        }, superClassName, interfaces.length === 0 ? undefined : interfaces, clazz.generics)
     }
 
     printFile(): void {

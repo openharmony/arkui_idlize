@@ -42,8 +42,10 @@ class NativeModuleVisitor {
             printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, Type.Pointer)
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
+                // TODO: DotIndicator and DigitIndicator implements Indicator
+                const subType = returnType?.name.includes(method.originalParentName)
                 printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
-                    returnType === Type.This || method.originalParentName === returnType?.name? Type.Pointer : returnType)
+                    returnType === Type.This || subType ? Type.Pointer : returnType)
             })
         })
     }
@@ -117,6 +119,7 @@ function getReturnValue(type: Type): string {
         case Type.Boolean.name : return "false"
         case Type.Number.name: return "1"
         case Type.Pointer.name: return "-1"
+        case "string": return `"some string"`
     }
     throw new Error(`Unknown return type: ${type.name}`)
 }

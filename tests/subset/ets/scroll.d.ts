@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,45 +13,35 @@
  * limitations under the License.
  */
 
-declare enum Color {
-    White,
-    Black,
+declare interface ScrollAnimationOptions {
+
+  duration?: number;
+
+  curve?: Curve | ICurve;
+
+  canOverScroll?: boolean;
 }
 
-declare enum Curve {
-  Linear,
-  Ease,
+declare class Scroller {
+
+  constructor();
+
+  scrollTo(value: {
+
+    xOffset: number | string;
+
+    yOffset: number | string;
+
+    animation?: ScrollAnimationOptions | boolean;
+  });
 }
 
-declare enum TextHeightAdaptivePolicy {
-  MAX_LINES_FIRST,
-  MIN_FONT_SIZE_FIRST,
-  LAYOUT_CONSTRAINT_FIRST,
+interface ScrollInterface {
+  (scroller?: Scroller): ScrollAttribute;
 }
 
-declare enum TextOverflow {
-  None,
-  Clip,
-  Ellipsis,
-  MARQUEE,
+declare class ScrollAttribute extends ScrollableCommonMethod<ScrollAttribute> {
+
+    //onScrollEdge(event: (side: Edge) => void): ScrollAttribute;
 }
 
-declare enum FontWeight {
-  Lighter,
-  Normal,
-  Regular,
-  Medium,
-  Bold,
-  Bolder,
-}
-
-declare enum FontStyle {
-  Normal,
-  Italic,
-}
-
-declare enum ColoringStrategy {
-  INVERT = 'invert',
-  AVERAGE = 'average',
-  PRIMARY = 'primary',
-}

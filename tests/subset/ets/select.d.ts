@@ -13,45 +13,16 @@
  * limitations under the License.
  */
 
-declare enum Color {
-    White,
-    Black,
+declare interface MenuItemConfiguration extends CommonConfiguration<MenuItemConfiguration> {
+
+    value: ResourceStr;
+
+    icon?: ResourceStr;
+
+    triggerSelect(index: number, value: string): void;
 }
 
-declare enum Curve {
-  Linear,
-  Ease,
-}
+declare class SelectAttribute extends CommonMethod<SelectAttribute> {
 
-declare enum TextHeightAdaptivePolicy {
-  MAX_LINES_FIRST,
-  MIN_FONT_SIZE_FIRST,
-  LAYOUT_CONSTRAINT_FIRST,
-}
-
-declare enum TextOverflow {
-  None,
-  Clip,
-  Ellipsis,
-  MARQUEE,
-}
-
-declare enum FontWeight {
-  Lighter,
-  Normal,
-  Regular,
-  Medium,
-  Bold,
-  Bolder,
-}
-
-declare enum FontStyle {
-  Normal,
-  Italic,
-}
-
-declare enum ColoringStrategy {
-  INVERT = 'invert',
-  AVERAGE = 'average',
-  PRIMARY = 'primary',
+    menuItemContentModifier(modifier: ContentModifier<MenuItemConfiguration>): SelectAttribute;
 }

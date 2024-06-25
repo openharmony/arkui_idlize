@@ -250,7 +250,8 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
     const finalizer = new Method(
         "getFinalizer",
         new MethodSignature(Type.Pointer, []),
-        [MethodModifier.PRIVATE, MethodModifier.STATIC])
+        // TODO: private static getFinalizer() method conflicts with its implementation in the parent class
+        [MethodModifier.STATIC])
     writer.writeMethodImplementation(finalizer, writer => {
         writer.writeStatement(
             writer.makeReturn(
@@ -259,14 +260,14 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
 }
 
 export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
-                                methodPostfix: string, ptr: string, returnType: Type = Type.Void) {
+                                methodPostfix: string, ptr: string, returnType: Type = Type.Void, generics?: string[]) {
     // Not yet!
     if (printer.language != Language.TS/* && printer.language != Language.ARKTS */) return
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
         `${method.overloadedName}${methodPostfix}`,
         new NamedMethodSignature(returnType, signature.args, signature.argsNames),
-        method.method.modifiers)
+        method.method.modifiers, method.method.generics)
     printer.writeMethodImplementation(peerMethod, (writer) => {
         let scopes = method.argConvertors.filter(it => it.isScoped)
         scopes.forEach(it => {
@@ -324,9 +325,9 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
             } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
                 const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
                 if (!method.hasReceiver()) {
-                    const obj = `new ${method.originalParentName}(${signature.argsNames.map(it => "undefined").join(", ")})`
-                    const objType = new Type(method.originalParentName)
-                    writer.writeStatement(writer.makeAssign("obj", objType, writer.makeString(obj), true))
+                    const retType = signature.returnType
+                    const obj = `new ${retType.name}(${signature.argsNames.map(it => "undefined").join(", ")})`
+                    writer.writeStatement(writer.makeAssign("obj", retType, writer.makeString(obj), true))
                     writer.writeStatement(
                         writer.makeAssign("obj.peer", new Type("Finalizable"),
                             writer.makeString(`new Finalizable(${returnValName}, ${method.originalParentName}.getFinalizer())`), false))

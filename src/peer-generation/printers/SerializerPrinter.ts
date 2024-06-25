@@ -18,7 +18,7 @@ import { Language } from "../../util";
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from "../DeclarationTable";
 import { LanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
-import { isMaterialized } from '../Materialized';
+import { checkDeclarationTargetMaterialized } from '../Materialized';
 import { ImportsCollector } from '../ImportsCollector';
 import { PeerLibrary } from '../PeerLibrary';
 import { collectDtsImports } from '../DtsImportsGenerator';
@@ -57,7 +57,7 @@ function ignoreSerializeTarget(table: DeclarationTable, target: DeclarationTarge
     if (ts.isFunctionTypeNode(target)) return true
     if (ts.isImportTypeNode(target)) return true
     if (ts.isTemplateLiteralTypeNode(target)) return true
-    if (ts.isClassDeclaration(target) && isMaterialized(target)) return true
+    if (checkDeclarationTargetMaterialized(target)) return true
     return false
 }
 

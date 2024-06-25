@@ -496,7 +496,8 @@ export class Method {
     constructor(
         public name: string,
         public signature: MethodSignature,
-        public modifiers: MethodModifier[]|undefined = undefined
+        public modifiers: MethodModifier[]|undefined = undefined,
+        public generics?: string[],
     ) {}
 }
 
@@ -522,7 +523,7 @@ export abstract class LanguageWriter {
         return this.printer.indentDepth()
     }
 
-    abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void
+    abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void
     abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void
     abstract writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
@@ -702,10 +703,11 @@ export class TSLanguageWriter extends LanguageWriter {
     constructor(printer: IndentedPrinter, language: Language = Language.TS) {
         super(printer, language)
     }
-    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
+    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        this.printer.print(`export class ${name}${extendsClause}${implementsClause} {`)
+        const genericsClause = generics ? `<${generics.join(", ")}>` : ''
+        this.printer.print(`export class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -737,13 +739,13 @@ export class TSLanguageWriter extends LanguageWriter {
 
     }
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
-        this.writeDeclaration(method.name, method.signature, true, true, method.modifiers)
+        this.writeDeclaration(method.name, method.signature, true, true, method.modifiers, method.generics)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
     }
-    private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[]) {
+    private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {
         let prefix = modifiers
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
@@ -754,7 +756,8 @@ export class TSLanguageWriter extends LanguageWriter {
             needReturn = false
         }
         prefix = prefix ? prefix + " " : ""
-        this.printer.print(`${prefix}${name}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
+        const typeParams = generics ? `<${generics.join(", ")}>` : ""
+        this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new AssignStatement(variableName, type, expr, isDeclared, isConst)

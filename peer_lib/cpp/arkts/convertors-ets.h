@@ -272,7 +272,7 @@ InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, 
     InteropTypeConverter<P3>::InteropType _p3, \
     InteropTypeConverter<P4>::InteropType _p4, \
     InteropTypeConverter<P5>::InteropType _p5, \
-    InteropTypeConverter<P6>::InteropType _p5) { \
+    InteropTypeConverter<P6>::InteropType _p6) { \
       KOALA_MAYBE_LOG(name) \
       P0 p0 = getArgument<P0>(env, _p0); \
       P1 p1 = getArgument<P1>(env, _p1); \
@@ -280,7 +280,7 @@ InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, 
       P3 p3 = getArgument<P3>(env, _p3); \
       P4 p4 = getArgument<P4>(env, _p4); \
       P5 p5 = getArgument<P5>(env, _p5); \
-      P6 p5 = getArgument<P6>(env, _p6); \
+      P6 p6 = getArgument<P6>(env, _p6); \
       auto rv = makeResult<Ret>(env, impl_##name(p0, p1, p2, p3, p4, p5, p6)); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
@@ -999,6 +999,58 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P
       releaseArgument(env, _p13, p13); \
 } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12 "|" #P13)
+
+#define KOALA_INTEROP_V15(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14) \
+  void Ark_##name(EtsEnv *env, ets_class clazz, \
+  InteropTypeConverter<P0>::InteropType _p0, \
+  InteropTypeConverter<P1>::InteropType _p1, \
+  InteropTypeConverter<P2>::InteropType _p2, \
+  InteropTypeConverter<P3>::InteropType _p3, \
+  InteropTypeConverter<P4>::InteropType _p4, \
+  InteropTypeConverter<P5>::InteropType _p5, \
+  InteropTypeConverter<P6>::InteropType _p6, \
+  InteropTypeConverter<P7>::InteropType _p7, \
+  InteropTypeConverter<P8>::InteropType _p8, \
+  InteropTypeConverter<P9>::InteropType _p9, \
+  InteropTypeConverter<P10>::InteropType _p10, \
+  InteropTypeConverter<P11>::InteropType _p11, \
+  InteropTypeConverter<P12>::InteropType _p12, \
+  InteropTypeConverter<P13>::InteropType _p13, \
+  InteropTypeConverter<P14>::InteropType _p14) { \
+      KOALA_MAYBE_LOG(name) \
+      P0 p0 = getArgument<P0>(env, _p0); \
+      P1 p1 = getArgument<P1>(env, _p1); \
+      P2 p2 = getArgument<P2>(env, _p2); \
+      P3 p3 = getArgument<P3>(env, _p3); \
+      P4 p4 = getArgument<P4>(env, _p4); \
+      P5 p5 = getArgument<P5>(env, _p5); \
+      P6 p6 = getArgument<P6>(env, _p6); \
+      P7 p7 = getArgument<P7>(env, _p7); \
+      P8 p8 = getArgument<P8>(env, _p8); \
+      P9 p9 = getArgument<P9>(env, _p9); \
+      P10 p10 = getArgument<P10>(env, _p10); \
+      P11 p11 = getArgument<P11>(env, _p11); \
+      P12 p12 = getArgument<P12>(env, _p12); \
+      P13 p13 = getArgument<P13>(env, _p13); \
+      P14 p14 = getArgument<P14>(env, _p14); \
+      impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14); \
+      releaseArgument(env, _p0, p0); \
+      releaseArgument(env, _p1, p1); \
+      releaseArgument(env, _p2, p2); \
+      releaseArgument(env, _p3, p3); \
+      releaseArgument(env, _p4, p4); \
+      releaseArgument(env, _p5, p5); \
+      releaseArgument(env, _p6, p6); \
+      releaseArgument(env, _p7, p7); \
+      releaseArgument(env, _p8, p8); \
+      releaseArgument(env, _p9, p9); \
+      releaseArgument(env, _p10, p10); \
+      releaseArgument(env, _p11, p11); \
+      releaseArgument(env, _p12, p12); \
+      releaseArgument(env, _p13, p13); \
+      releaseArgument(env, _p14, p14); \
+} \
+MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #P6 "|" #P7 "|" #P8 "|" #P9 "|" #P10 "|" #P11 "|" #P12 "|" #P13 "|" #P14)
 
 #define KOALA_INTEROP_CTX_1(name, Ret, P0) \
   InteropTypeConverter<Ret>::InteropType Ark_##name(EtsEnv *env, ets_class clazz, \

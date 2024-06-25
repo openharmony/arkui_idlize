@@ -19,31 +19,32 @@ import { Field, Method, MethodModifier, Type } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
 import { identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
-import { DeclarationTarget } from "./DeclarationTable"
+import { DeclarationTarget, PrimitiveType } from "./DeclarationTable"
 import { ImportFeature } from "./ImportsCollector"
+import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 
-const ignoredMaterializedClasses = [
-    //"CanvasRenderingContext2D", // has data
-    "NavPathStack",             // has data
-    "TransitionEffect",         // unknown types `Type` and `Effect`
-]
+export function checkTSDeclarationMaterialized(declaration: ts.Declaration): boolean {
+    return (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) && isMaterialized(declaration)
+}
 
-export function isMaterialized(declaration: ts.ClassDeclaration): boolean {
+export function checkDeclarationTargetMaterialized(declaration: DeclarationTarget): boolean {
+    return !(declaration instanceof PrimitiveType) && (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) && isMaterialized(declaration)
+}
 
-    if (ignoredMaterializedClasses.includes(identName(declaration)!)) return false
+export function isMaterialized(declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): boolean {
 
+    const name = identName(declaration)!
 
-    // A materialized class is a class which has both constructors and methods
-
-    if (declaration.members.find(ts.isConstructorDeclaration) === undefined) {
+    if (PeerGeneratorConfig.isMaterializedIgnored(name)) {
         return false;
     }
 
-    if (declaration.members.find(ts.isMethodDeclaration) === undefined) {
-        return false;
-    }
+    // TODO: parse Builder classes separatly
 
-    return true
+    // A materialized class is a class or an interface with methods
+    // excluding components and related classes
+    return (ts.isClassDeclaration(declaration) && declaration.members.some(ts.isMethodDeclaration))
+        || (ts.isInterfaceDeclaration(declaration) && declaration.members.some(ts.isMethodSignature))
 }
 
 export class MaterializedField {
@@ -116,9 +117,19 @@ export class MaterializedMethod extends PeerMethod {
     }
 }
 
+export class SuperElement {
+    constructor(
+        public readonly name: string,
+        public readonly generics?: string[]
+    ) { }
+}
+
 export class MaterializedClass implements PeerClassBase {
     constructor(
         public readonly className: string,
+        public readonly isInterface: boolean,
+        public readonly superClass: SuperElement | undefined,
+        public readonly generics: string[] | undefined,
         public readonly fields: MaterializedField[],
         public readonly ctor: MaterializedMethod,
         public readonly finalizer: MaterializedMethod,

@@ -1042,7 +1042,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         name: string,
         param: string,
         protected table: DeclarationTable,
-        private type: ts.ClassDeclaration,
+        private type: ts.InterfaceDeclaration | ts.ClassDeclaration,
     ) {
         super(name, [RuntimeType.OBJECT], false, true, param)
     }

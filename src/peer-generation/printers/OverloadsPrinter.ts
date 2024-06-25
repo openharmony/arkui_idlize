@@ -36,7 +36,8 @@ export function collapseSameNamedMethods(methods: Method[]): Method {
             methods[0].signature.returnType,
             collapsedArgs,
         ),
-        methods[0].modifiers
+        methods[0].modifiers,
+        methods[0].generics,
     )
 }
 

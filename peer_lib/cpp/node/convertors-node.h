@@ -900,6 +900,29 @@ Napi::ModuleRegisterCallback ProvideModuleRegisterCallback(Napi::ModuleRegisterC
   } \
   MAKE_NODE_EXPORT(name)
 
+#define KOALA_INTEROP_V15(name, P0, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14) \
+  Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
+      KOALA_MAYBE_LOG(name)                   \
+      P0 p0 = getArgument<P0>(info, 0); \
+      P1 p1 = getArgument<P1>(info, 1); \
+      P2 p2 = getArgument<P2>(info, 2); \
+      P3 p3 = getArgument<P3>(info, 3); \
+      P4 p4 = getArgument<P4>(info, 4); \
+      P5 p5 = getArgument<P5>(info, 5); \
+      P6 p6 = getArgument<P6>(info, 6); \
+      P7 p7 = getArgument<P7>(info, 7); \
+      P8 p8 = getArgument<P8>(info, 8); \
+      P9 p9 = getArgument<P9>(info, 9); \
+      P10 p10 = getArgument<P10>(info, 10); \
+      P11 p11 = getArgument<P11>(info, 11); \
+      P12 p12 = getArgument<P12>(info, 12); \
+      P13 p13 = getArgument<P13>(info, 13); \
+      P14 p14 = getArgument<P14>(info, 14); \
+      impl_##name(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14); \
+      return makeVoid(info); \
+  } \
+  MAKE_NODE_EXPORT(name)
+
 #define KOALA_INTEROP_CTX_1(name, Ret, P0) \
   Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
       KOALA_MAYBE_LOG(impl_##name)                   \

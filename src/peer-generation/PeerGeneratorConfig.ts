@@ -55,6 +55,28 @@ export class PeerGeneratorConfig {
         "CanvasPattern"
     ]
 
+
+    private static ignoreMaterialized = [
+        // standard exclusion
+        "Attribute",
+        "Interface",
+        "Method",
+        // TBD
+        "Event",
+        "Configuration",
+        "UIGestureEvent",
+        "GestureHandler",           // class with generics
+        "ICurve",                   // parent interface for materialized classes
+        "TransitionEffect",         // Generics `Type` and `Effect` types are used in static ctor
+    ]
+
+    public static isMaterializedIgnored(name: string) {
+        for (const ignore of this.ignoreMaterialized) {
+            if (name.endsWith(ignore)) return true
+        }
+        return false
+    }
+
     static mapComponentName(originalName: string): string {
         if (originalName.endsWith("Attribute"))
             return originalName.substring(0, originalName.length - 9)

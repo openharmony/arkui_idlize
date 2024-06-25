@@ -42,7 +42,7 @@ import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
-import { MaterializedClass, MaterializedField, MaterializedMethod, isMaterialized } from "./Materialized"
+import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement, checkTSDeclarationMaterialized, isMaterialized } from "./Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
 import { mapType } from "./TypeNodeNameConvertor";
 import { convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
@@ -313,6 +313,9 @@ function mapCInteropRetType(type: ts.TypeNode): string {
                 return mapCInteropRetType(type.types[0])
             }
         }
+        // TODO: return just type of the first elem
+        // for the materialized class getter with union type
+        return mapCInteropRetType(type.types[0])
     }
     if (ts.isArrayTypeNode(type)) {
         /* HACK, fix */
@@ -660,56 +663,96 @@ export class PeerProcessor {
         return this.library.declarationTable
     }
 
-    private processMaterializedClass(target: ts.ClassDeclaration) {
-        let className = nameOrNull(target.name)!
-        if (this.library.materializedClasses.has(className)) {
+    private processMaterialized(target: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+        let name = nameOrNull(target.name)!
+        if (this.library.materializedClasses.has(name)) {
             return
         }
 
+        const isClass = ts.isClassDeclaration(target)
+        const isInterface = ts.isInterfaceDeclaration(target)
+
+        const superClassType = target.heritageClauses
+            ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)[0]?.types[0]
+
+
+        const superClass = superClassType ?
+            new SuperElement(
+                identName(superClassType.expression)!,
+                superClassType.typeArguments?.filter(ts.isTypeReferenceNode).map(it => identName(it.typeName)!))
+            : undefined
+
         const importFeatures = this.serializeDepsCollector.convert(target)
             .filter(it => this.isSourceDecl(it))
-            .filter(it => PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it))
+            .filter(it => PeerGeneratorConfig.needInterfaces || checkTSDeclarationMaterialized(it) || isSyntheticDeclaration(it))
             .map(it => convertDeclToFeature(this.library, it))
-        let constructor = target.members.find(ts.isConstructorDeclaration)!
-        let mConstructor = this.makeMaterializedMethod(className, constructor)
+        const generics = target.typeParameters?.map(it => it.getText())
+
+        let constructor = isClass ? target.members.find(ts.isConstructorDeclaration) : undefined
+        let mConstructor = this.makeMaterializedMethod(name, constructor)
         const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
-        let mFinalizer = new MaterializedMethod(className, [], [], finalizerReturnType, false,
+        let mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]))
-        let mFields = target.members
-            .filter(ts.isPropertyDeclaration)
-            .map(it => this.makeMaterializedField(it))
-        let mMethods = target.members
-            .filter(ts.isMethodDeclaration)
-            .map(method => this.makeMaterializedMethod(className, method))
-        this.library.materializedClasses.set(className,
-            new MaterializedClass(className, mFields, mConstructor, mFinalizer, importFeatures, mMethods))
+        let mFields = isClass
+            ? target.members
+                .filter(ts.isPropertyDeclaration)
+                .map(it => this.makeMaterializedField(name, it))
+            : isInterface
+                ? target.members
+                    .filter(ts.isPropertySignature)
+                    .map(it => this.makeMaterializedField(name, it))
+                : []
+
+        let mMethods = isClass
+            ? target.members
+                .filter(ts.isMethodDeclaration)
+                .map(method => this.makeMaterializedMethod(name, method))
+            : isInterface
+                ? target.members
+                .filter(ts.isMethodSignature)
+                .map(method => this.makeMaterializedMethod(name, method))
+                : []
+        this.library.materializedClasses.set(name,
+            new MaterializedClass(name, isInterface, superClass, generics, mFields, mConstructor, mFinalizer, importFeatures, mMethods))
     }
 
-    private makeMaterializedField(property: ts.PropertyDeclaration): MaterializedField {
+    private makeMaterializedField(className: string, property: ts.PropertyDeclaration | ts.PropertySignature): MaterializedField {
         const name = identName(property.name)!
+        this.declarationTable.setCurrentContext(`Materialized_${className}_${name}`)
         const declarationTarget = this.declarationTable.toTarget(property.type!)
         const argConvertor = this.declarationTable.typeConvertor(name, property.type!)
         const retConvertor = generateRetConvertor(property.type!)
         const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
+        this.declarationTable.setCurrentContext(undefined)
         return new MaterializedField(declarationTarget, argConvertor, retConvertor,
-            new Field(name, new Type(identName(property.type)!), modifiers))
+            new Field(name, new Type(mapType(property.type, this.language)), modifiers))
     }
 
-    private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration) {
-        this.declarationTable.setCurrentContext(`materialized_${identName(method.name)}`)
+    private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | undefined) {
+        const methodName = method === undefined || ts.isConstructorDeclaration(method) ? "ctor" : identName(method.name)!
+        this.declarationTable.setCurrentContext(`Materialized_${parentName}_${methodName}`)
+
+        const retConvertor = method === undefined || ts.isConstructorDeclaration(method)
+            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
+            : generateRetConvertor(method.type)
+
+        if (method === undefined) {
+            // interface or class without constructors
+            const ctor = new Method("ctor", new NamedMethodSignature(Type.Void, [], []), [MethodModifier.STATIC])
+            this.declarationTable.setCurrentContext(undefined)
+            return new MaterializedMethod(parentName, [], [], retConvertor, false, ctor)
+        }
+
+        const generics = method.typeParameters?.map(it => it.getText())
         const declarationTargets = method.parameters.map(param =>
             this.declarationTable.toTarget(param.type ??
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param))
-        const retConvertor = ts.isConstructorDeclaration(method)
-            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
-            : generateRetConvertor(method.type)
         const signature = generateSignature(method, this.language)
-        const methodName = ts.isConstructorDeclaration(method) ? "ctor" : identName(method.name)!
         const modifiers = ts.isConstructorDeclaration(method) || isStatic(method.modifiers) ? [MethodModifier.STATIC] : []
         this.declarationTable.setCurrentContext(undefined)
         return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false,
-            new Method(methodName, signature, modifiers))
+            new Method(methodName, signature, modifiers, generics))
     }
 
     private collectDepsRecursive(node: ts.Declaration | ts.TypeNode, deps: Set<ts.Declaration>): void {
@@ -807,8 +850,8 @@ export class PeerProcessor {
             const file = this.library.findFileByOriginalFilename(this.getDeclSourceFile(dep).fileName)!
             const isPeerDecl = this.library.isComponentDeclaration(dep)
 
-            if (!isPeerDecl && ts.isClassDeclaration(dep) && isMaterialized(dep)) {
-                this.processMaterializedClass(dep)
+            if (!isPeerDecl && (ts.isClassDeclaration(dep) || ts.isInterfaceDeclaration(dep)) && isMaterialized(dep)) {
+                this.processMaterialized(dep)
                 continue
             }
 
@@ -832,3 +875,4 @@ export class PeerProcessor {
         }
     }
 }
+

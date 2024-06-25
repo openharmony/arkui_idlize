@@ -30,6 +30,18 @@ declare interface ClickEvent extends BaseEvent {
     displayY: number;
 }
 
+declare interface CommonConfiguration<T> {
+
+  enabled: boolean,
+
+  contentModifier: ContentModifier<T>
+}
+
+interface ICurve {
+
+  interpolate(fraction: number): number;
+}
+
 declare interface StateStyles {
 
     normal?: any;
@@ -379,6 +391,10 @@ declare class CommonMethod<T> {
     onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
 
     attributeModifier(modifier: AttributeModifier<T>): T
+
+    gestureModifier(modifier: GestureModifier): T;
+
+    onGestureRecognizerJudgeBegin(callback: GestureRecognizerJudgeBeginCallback): T;
 }
 
 declare interface Rectangle {
@@ -435,6 +451,28 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
 declare class ScrollableCommonMethod<T> extends CommonMethod<T> {
     scrollBarWidth(value: number | string): T;
 }
+
+declare enum SourceTool {
+    Unknown,
+    Finger,
+    Pen,
+    MOUSE,
+    TOUCHPAD,
+    JOYSTICK,
+}
+
+declare interface UIGestureEvent {
+
+  addGesture<T>(gesture: GestureHandler<T>, priority?: GesturePriority, mask?: GestureMask): void;
+}
+
+declare interface GestureModifier {
+  applyGesture(): void;
+  applyGesture(event: UIGestureEvent): void;
+}
+
+declare type GestureRecognizerJudgeBeginCallback = (event: BaseGestureEvent, current: GestureRecognizer, recognizers: Array<GestureRecognizer>) => GestureJudgeResult;
+
 
 declare module 'commonEvent' {
     module 'commonEvent' {
