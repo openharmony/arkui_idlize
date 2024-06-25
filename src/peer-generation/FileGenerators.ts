@@ -90,8 +90,9 @@ export function nativeModuleDeclaration(methods: string[], nativeBridgePath: str
   ${readLangTemplate("NativeModule_prologue", language)
     .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
     .replace("%USE_EMPTY%", useEmpty.toString())}
-
+// #region GENERATED API
   ${methods.join("\n  ")}
+// #endregion
 ${readLangTemplate("NativeModule_epilogue", language)}
 `
 }

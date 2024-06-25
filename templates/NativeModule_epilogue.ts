@@ -1,5 +1,5 @@
 
-    // BasicNodeAPI
+// #region BASIC NODE
     _CreateNode(type: KInt, id: KInt, flags: KInt): NodePointer
     _GetNodeByViewStack(): NodePointer
     _DisposeNode(ptr: NodePointer): void
@@ -13,6 +13,7 @@
     _MarkDirty(ptr: NodePointer, flag: KUInt): void
     _IsBuilderNode(ptr: NodePointer): KBoolean
     _ConvertLengthMetricsUnit(value: KFloat, originUnit: KInt, targetUnit: KInt): KFloat
+// #endregion
 
     // getUtilsModifier
     // getCanvasRenderingContext2DModifier
@@ -24,7 +25,7 @@
     // unregisterCustomNodeAsyncEvent
     // registerCustomNodeAsyncEventReceiver
 
-    // ExtendedNodeAPI
+// #region EXTENDED NODE
     _SetCustomCallback(node: NodePointer, callbackId: KInt): void
     _MeasureLayoutAndDraw(root: NodePointer): void
     _MeasureNode(root: NodePointer, data: KFloat32ArrayPtr): KInt
@@ -68,5 +69,5 @@
 
     // _Dump
     _ShowCrash(messagePtr: KStringPtr): void
-
+// #endregion
 }
