@@ -169,6 +169,10 @@ export class TSTypeNodeNameConvertor implements
     }
 }
 
+// temp convertor for ArkTS
+export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor
+{}
+
 export class JavaTypeNodeNameConvertor implements
     TypeNodeConvertor<string>, BaseConvertor
 {
@@ -186,7 +190,7 @@ export class JavaTypeNodeNameConvertor implements
                 const isOptional = !!it.questionToken
                 const type = this.convert(it.type!)
                 if (isOptional) {
-                    return `Optional_${type} ${name}`
+                    return `Opt_${type} ${name}`
                 }
                 return `${type} ${name}`
             }
@@ -209,7 +213,7 @@ export class JavaTypeNodeNameConvertor implements
         const name = this.convert(node.name)
         const type = this.convert(node.type!)
         if (isOptional) {
-            return `Optional_${type}$ ${name}`
+            return `Opt_${type}$ ${name}`
         }
         return `${type} ${name}`
     }
@@ -237,7 +241,7 @@ export class JavaTypeNodeNameConvertor implements
         return `${this.convert(node.elementType)}[]`
     }
     convertOptional(node: ts.OptionalTypeNode): string {
-        return `Optional_${this.convert(node.type)}`
+        return `Opt_${this.convert(node.type)}`
     }
     convertFunction(node: ts.FunctionTypeNode): string {
         if (node.typeParameters?.length)
@@ -330,8 +334,9 @@ export class JavaTypeNodeNameConvertor implements
 }
 
 const convertors = new Map<Language, BaseConvertor>()
-convertors.set(Language.TS, new TSTypeNodeNameConvertor())
+convertors.set(Language.ARKTS, new ArkTSTypeNodeNameConvertor())
 convertors.set(Language.JAVA, new JavaTypeNodeNameConvertor())
+convertors.set(Language.TS, new TSTypeNodeNameConvertor())
 
 export function mapType(type: ts.TypeNode | undefined, language: Language): string {
     const convertor = convertors.get(language)

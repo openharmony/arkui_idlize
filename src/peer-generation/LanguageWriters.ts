@@ -1017,7 +1017,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     makeRuntimeTypeGetterCall(value: string): LanguageExpression {
         const call = this.makeMethodCall(value, "getRuntimeType", []).asString()
-        return this.makeString(`${call}.value`)
+        return this.makeString(`${call}`)
     }
     makeMapKeyTypeName(c: MapConvertor): string {
         throw new Error("Method not implemented.")
@@ -1050,7 +1050,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         throw new Error("Method not implemented.")
     }
     makeValueFromOption(value: string): LanguageExpression {
-        return this.makeString(`${value}`)
+        return this.makeString(`${value}.value`)
     }
 }
 

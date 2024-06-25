@@ -56,10 +56,15 @@ declare interface TestTupleUnionInterfaceDTS {
     tuple: [number | boolean, number | StringInterfaceDTS]
 }
 
-// declare interface OptionInterfaceDTS {
+declare interface OptionInterfaceDTS {
 
-//     tuple: [boolean?, number?]
-// }
+    tuple: [boolean?, number?]
+}
+
+declare interface OptionalTestInterface {
+    optNumber?: number
+    optString?: string
+}
 
 // declare interface ArrayRefNumberInterfaceDTS {
 
@@ -268,7 +273,9 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testTupleInterface(value: TestTupleUnionInterfaceDTS): TestAttribute
 
-    //testOptionInterface(value: OptionInterfaceDTS): TestAttribute
+    testOptionInterface(value: OptionInterfaceDTS): TestAttribute
+
+    testOptionInterface(value: OptionalTestInterface): TestAttribute
 
     // testArrayRefNumberInterface(value: ArrayRefNumberInterfaceDTS): TestAttribute
 

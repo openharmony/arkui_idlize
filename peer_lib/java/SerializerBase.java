@@ -38,7 +38,7 @@ enum RuntimeType {
     }
 };
 
-enum Tags {
+enum Tag {
     UNDEFINED((byte) 101),
     INT32((byte) 102),
     FLOAT32((byte) 103),
@@ -47,7 +47,7 @@ enum Tags {
     RESOURCE((byte) 106),
     OBJECT((byte) 107);
     public final byte value;
-    Tags(byte value) {
+    Tag(byte value) {
         this.value = value;
     }
 }
@@ -115,17 +115,21 @@ public class SerializerBase {
     }
     public void writeNumber(int value) {
         this.checkCapacity(5);
-        this.buffer.put(Tags.INT32.value);
+        this.buffer.put(Tag.INT32.value);
         this.buffer.putInt(value);
     }
     public void writeNumber(float value) {
         this.checkCapacity(5);
-        this.buffer.put(Tags.FLOAT32.value);
+        this.buffer.put(Tag.FLOAT32.value);
         this.buffer.putFloat(value);
     }
     public void writeInt8(byte value) {
         this.checkCapacity(1);
         buffer.put(value);
+    }
+    public void writeInt8(int value) {
+        this.checkCapacity(1);
+        buffer.put((byte)value);
     }
     public void writeInt8(RuntimeType value) {
         this.checkCapacity(1);

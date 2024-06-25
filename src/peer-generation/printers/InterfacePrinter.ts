@@ -24,6 +24,7 @@ import { EnumEntity, PeerFile } from '../PeerFile'
 import { DeclarationConvertor, convertDeclaration } from '../TypeNodeConvertor'
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { read } from "node:fs";
+import { RuntimeType } from '../PeerGeneratorVisitor'
 
 export class DeclarationGenerator implements DeclarationConvertor<string> {
     constructor(
@@ -216,6 +217,15 @@ class JavaInterfacesVisitor {
         return node.name.getText()
     }
 
+    getMemberTargetType(node: ts.PropertyDeclaration | ts.PropertySignature): Type {
+        const nullable = !!node.questionToken
+        const type = mapType(node.type, Language.JAVA)
+        if (nullable) {
+            return new Type(`Opt_${type}`, true)
+        }
+        return new Type(type, false)
+    }
+
     getSuperClass(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
         if (!node.heritageClauses) {
             return
@@ -233,6 +243,10 @@ class JavaInterfacesVisitor {
     }
 
     implementType(sourceType: ts.TypeNode | undefined, targetType: Type) {
+        if (targetType.nullable) {
+            throw new Error('Types for optional class/interface members must be implemented using implementOptionalMemberType');
+        }
+
         if (!sourceType) {
             return
         }
@@ -254,6 +268,56 @@ class JavaInterfacesVisitor {
             this.addInterface(targetType.name, writer)
             return
         }
+        if (ts.isOptionalTypeNode(sourceType)) {
+            const writer = createLanguageWriter(Language.JAVA)
+            this.printPackage(writer)
+            this.printOptionalTypeImplementation(sourceType, targetType, writer)
+            this.addInterface(targetType.name, writer)
+            return
+        }
+    }
+
+    implementOptionalMemberType(sourceType: ts.TypeNode | undefined, targetType: Type) {
+        if (!sourceType) {
+            return
+        }
+        if (this.hasInterface(targetType.name)) {
+            return
+        }
+
+        const writer = createLanguageWriter(Language.JAVA)
+        this.printPackage(writer)
+        this.printOptionalImplementation(sourceType, targetType, writer)
+        this.addInterface(targetType.name, writer)
+    }
+
+    printOptionalTypeImplementation(sourceType: ts.OptionalTypeNode, targetType: Type, writer: LanguageWriter) {
+        this.printOptionalImplementation(sourceType.type, targetType, writer)
+    }
+
+    private printOptionalImplementation(sourceType: ts.TypeNode, targetType: Type, writer: LanguageWriter) {
+        writer.writeClass(targetType.name, () => {
+            const tag = 'tag'
+            const value = 'value'
+            const rtType = new Type('RuntimeType')
+            writer.writeMethodImplementation(new Method('getRuntimeType', new MethodSignature(rtType, []), [MethodModifier.PUBLIC]), () => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeTernary(
+                            writer.makeString(`${tag} == ${writer.makeTag('UNDEFINED')}`),
+                            writer.makeString('RuntimeType.UNDEFINED'),
+                            writer.makeString('RuntimeType.OBJECT')
+                        )
+                    )
+                )
+            })
+
+            writer.writeFieldDeclaration('tag', new Type('Tag'), ['public'], false)
+
+            const targetType = new Type(mapType(sourceType, Language.JAVA))
+            this.implementType(sourceType, targetType)
+            writer.writeFieldDeclaration(value, targetType, ['public'], false)
+        })
     }
 
     printUnionImplementation(sourceType: ts.UnionTypeNode, targetType: Type, writer: LanguageWriter) {
@@ -324,7 +388,7 @@ class JavaInterfacesVisitor {
             }
         })
     }
-    
+
     printClassOrInterface(node: ts.ClassDeclaration | ts.InterfaceDeclaration, writer: LanguageWriter) {
         const superClass = this.getSuperClass(node)
         writer.writeClass(this.getName(node), () => {
@@ -332,9 +396,15 @@ class JavaInterfacesVisitor {
                 if (!ts.isPropertyDeclaration(member) && !ts.isPropertySignature(member)) {
                     continue
                 }
+
                 const propertyName = this.getName(member)
-                const propertyType = new Type(mapType(member.type, Language.JAVA))
+                const propertyType = this.getMemberTargetType(member)
                 writer.writeFieldDeclaration(propertyName, propertyType, ['public'], false)
+
+                if (propertyType.nullable) {
+                    this.implementOptionalMemberType(member.type, propertyType)
+                    continue
+                }
                 this.implementType(member.type, propertyType)
             }
         }, superClass)

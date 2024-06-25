@@ -22,7 +22,6 @@ import { mapType } from "./TypeNodeNameConvertor"
 function castToInt8(value: string, lang: Language): string {
     switch (lang) {
         case Language.ARKTS: return `${value} as int32` // FIXME: is there int8 in ARKTS?
-        case Language.JAVA: return `(byte)${value}`
         default: return value
     }
 }
@@ -612,7 +611,8 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         const valueType = `${value}_type`
-        printer.writeStatement(printer.makeAssign(valueType, Type.Int32,
+        const serializedType = (printer.language == Language.JAVA ? undefined : Type.Int32)
+        printer.writeStatement(printer.makeAssign(valueType, serializedType,
             printer.makeRuntimeTypeGetterCall(value), true))
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [castToInt8(valueType, printer.language)])
         printer.print(`if (${printer.makeRuntimeTypeCondition(valueType, false, RuntimeType.UNDEFINED).asString()}) {`)
