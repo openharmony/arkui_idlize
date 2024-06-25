@@ -43,7 +43,7 @@
     },
     "scripts": {
         "download:sdk": "node ./download-sdk.mjs",
-        "compile": "npm run download:sdk && rollup -c",
+        "compile": "npm run download:sdk && npm run install:peer:deps && rollup -c",
         "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace*",
         "run": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/@internal/component/ets/ --input-file common.d.ts --verify-idl --common-to-attributes --docs=opt",
         "run:all": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/@internal/component/ets/ --verify-idl --common-to-attributes --docs=opt",
@@ -69,7 +69,6 @@
         "compile:stub:deps": "cd ./peer_lib/ts && tsc -p ./tsconfig.json",
         "copy:peer:deps": "cp -r ./peer_lib/ts/@koalaui ./node_modules",
         "install:peer:deps": "npm run compile:stub:deps && npm run copy:peer:deps",
-        "postinstall": "npm run install:peer:deps",
         "sanity": "npm run check:peers:run && npm run run:all && npm run lint:all",
         "panda:sdk:install": "cd panda && npm run panda:sdk:install",
         "compile:arkts:subset": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset --language arkts && bash ./panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module",
