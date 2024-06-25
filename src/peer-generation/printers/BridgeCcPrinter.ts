@@ -210,8 +210,8 @@ class BridgeCcVisitor {
                 let castName = name
                 if (c.getArgType(it).name !== type.name) {
                     castName = `${name}Cast`
-                    const convert = it.name.endsWith("Enum") ? `${type.name}` : `reinterpret_cast<${type.name}>`
-                    this.C.print(`${type.name} ${castName} = ${convert}(${name});`)
+                    const cast = it.name.endsWith("Enum") ? `${type.name}(${name})` : `(${type.name}) ${name}`
+                    this.C.print(`${type.name} ${castName} = ${cast};`)
                 }
                 castNames = castNames.concat(castName)
             })
