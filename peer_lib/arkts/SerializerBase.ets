@@ -64,7 +64,7 @@ export function runtimeType(value: Object|String|number|undefined|null|void): Ru
 
 export type Function = object
 
-function registerCallback(value: object|undefined): int32 {
+export function registerCallback(value: object|undefined): int32 {
     // TODO: fix me!
     return 42
 }

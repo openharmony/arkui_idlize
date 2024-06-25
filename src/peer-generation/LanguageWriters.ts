@@ -15,7 +15,17 @@
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { Language, stringOrNone } from "../util";
-import { ArrayConvertor, BaseArgConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "./Convertors";
+import {
+    AggregateConvertor,
+    ArgConvertor,
+    ArrayConvertor,
+    BaseArgConvertor,
+    EnumConvertor,
+    MapConvertor,
+    OptionConvertor,
+    TupleConvertor,
+    UnionConvertor
+} from "./Convertors";
 import { FieldRecord, PrimitiveType } from "./DeclarationTable";
 import { RuntimeType } from "./PeerGeneratorVisitor";
 import { mapType, TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
@@ -116,7 +126,7 @@ export class EtsAssignStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
             const typeSpec = ""
-            writer.print(`const ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
+            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
         } else {
             writer.print(`${this.variableName} = ${this.expression.asString()}`)
         }
@@ -592,7 +602,7 @@ export abstract class LanguageWriter {
         const op = equals ? "==" : "!="
         return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(typeVarName)])
     }
-    makeValueFromOption(value: string): LanguageExpression {
+    makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         return this.makeString(`${value}!`)
     }
     makeFunctionCall(name: string, params: LanguageExpression[]): LanguageExpression {
@@ -629,8 +639,8 @@ export abstract class LanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}[${index}]`)
     }
-    makeUnionSelector(value: string): LanguageExpression {
-        return this.makeString(`runtimeType(${value})`)
+    makeUnionSelector(value: string, valueType: string): LanguageStatement {
+        return this.makeAssign(valueType, undefined, this.makeString(`runtimeType(${value})`), false)
     }
     makeUnionVariantCondition(value: string, type: string, index?: number): LanguageExpression {
         return this.makeString(`RuntimeType.${type.toUpperCase()} == ${value}`)
@@ -685,7 +695,7 @@ export abstract class LanguageWriter {
     getOutput(): string[] {
         return this.printer.getOutput()
     }
-    mapType(type: Type): string {
+    mapType(type: Type, convertor?: ArgConvertor): string {
         return type.name
     }
     mapMethodModifier(modifier: MethodModifier): string {
@@ -696,6 +706,17 @@ export abstract class LanguageWriter {
     }
     makeType(typeName: string, nullable: boolean, receiver?: string): Type {
         return new Type(typeName, nullable)
+    }
+    makeUnsafeCast(convertor: ArgConvertor, param: string): string {
+        return `unsafeCast<int32>(${param})`
+    }
+    runtimeType(param: ArgConvertor, valueType: string, value: string) {
+        this.writeStatement(this.makeAssign(valueType, Type.Int32,
+            this.makeFunctionCall("runtimeType", [this.makeString(value)]), false))
+    }
+    makeDiscriminatorFromFields(convertor: BaseArgConvertor, value: string, accessors: string[]): LanguageExpression {
+        return this.makeString(`(${this.makeNaryOp("||",
+            accessors.map(it => this.makeString(`${value}!.hasOwnProperty("${it}")`))).asString()})`)
     }
 }
 
@@ -872,7 +893,16 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, op)
     }
-    mapType(type: Type): string {
+    mapType(type: Type, convertor?: ArgConvertor): string {
+        if (convertor instanceof EnumConvertor) {
+            return 'int'
+        }
+        if (convertor instanceof AggregateConvertor && convertor.aliasName !== undefined) {
+            return convertor.aliasName
+        }
+        if (convertor instanceof ArrayConvertor) {
+            return `${convertor.elementTypeName()}[]`
+        }
         switch (type.name) {
             case 'KPointer': return 'long'
             case 'Uint8Array': return 'byte[]'
@@ -887,6 +917,48 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]
     }
     nativeReceiver(): string { return 'NativeModule' }
+    makeUnsafeCast(convertor: ArgConvertor, param: string): string {
+        if (convertor instanceof EnumConvertor) {
+            return `${param} as int32`
+        }
+        return super.makeUnsafeCast(convertor, param)
+    }
+    runtimeType(param: ArgConvertor, valueType: string, value: string) {
+        if (param instanceof OptionConvertor) {
+            this.writeStatement(this.makeCondition(this.makeString(`${value} != undefined`), this.makeAssign(valueType, undefined,
+                this.makeRuntimeType(RuntimeType.OBJECT), false)))
+        } else {
+            super.runtimeType(param, valueType, value);
+        }
+    }
+    makeUnionSelector(value: string, valueType: string): LanguageStatement {
+        let statements = [this.makeAssign("type", undefined, this.makeString(`typeof ${value}`))]
+        Object.keys(RuntimeType)
+            .filter((value) => isNaN(Number(value)))
+            .forEach((value) => {
+                statements.push(
+                    this.makeCondition(this.makeNaryOp("==", [this.makeString("type"), this.makeString(`"${value.toLowerCase()}"`)]),
+                        this.makeAssign(valueType, undefined, this.makeString(`RuntimeType.${value}`), false))
+                )
+        })
+        return new BlockStatement(statements)
+    }
+    makeUnionVariantCast(value: string, type: Type, index?: number): LanguageExpression {
+        return this.makeString(`${value} as ${type.name}`)
+    }
+    ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
+        return this.makeCast(value, new Type('int'));
+    }
+    makeDiscriminatorFromFields(convertor: BaseArgConvertor, value: string, accessors: string[]): LanguageExpression {
+        return this.makeString(`${value} instanceof ${convertor.targetType(this).name}`)
+    }
+    makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
+        // This preventing arkts compiler from segfault. No need to apply the assertion operator (!) to enum.
+        if (destinationConvertor instanceof EnumConvertor) {
+            return this.makeString(`${value}`)
+        }
+        return super.makeValueFromOption(value, destinationConvertor)
+    }
 }
 
 abstract class CLikeLanguageWriter extends LanguageWriter {
@@ -959,7 +1031,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    makeAssign(variableName: string, type: Type, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
+    makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new JavaAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
@@ -980,8 +1052,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new CLikeExpressionStatement(expr)
     }
-    makeUnionSelector(value: string): LanguageExpression {
-        return this.makeMethodCall(value, "getSelector", [])
+    makeUnionSelector(value: string, valueType: string): LanguageStatement {
+        return this.makeAssign(valueType, undefined, this.makeMethodCall(value, "getSelector", []), false)
     }
     makeUnionVariantCondition(value: string, type: string, index: number): LanguageExpression {
         return this.makeString(`${value} == ${index}`)
@@ -1163,8 +1235,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    override makeUnionSelector(value: string): LanguageExpression {
-        return this.makeString(`${value}.selector`)
+    override makeUnionSelector(value: string, valueType: string): LanguageStatement {
+        return this.makeAssign(valueType, undefined, this.makeString(`${value}.selector`), false)
     }
     override makeUnionVariantCondition(value: string, type: string, index: number) {
         return this.makeString(`${value} == ${index}`)
@@ -1287,6 +1359,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         return value;
+    }
+    makeUnsafeCast(convertor: ArgConvertor, param: string): string {
+        return param
     }
 }
 

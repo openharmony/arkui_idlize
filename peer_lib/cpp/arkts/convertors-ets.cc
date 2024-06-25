@@ -28,6 +28,8 @@ void addType(const std::string& type, std::string* result) {
         result->append("");
     else if (type == "KInt" || type == "Ark_Int32" || type == "KBoolean" || type == "Ark_Boolean" || type == "int32_t" || type == "KUInt" || type == "uint32_t")
         result->append("I");
+    else if (type == "Ark_Float32")
+        result->append("F");
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         result->append("J");
     else if (type == "KByte*" || type == "uint8_t*")

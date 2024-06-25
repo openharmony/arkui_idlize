@@ -54,7 +54,7 @@ export class ImportsCollector {
         this.moduleToFeatures.forEach((features, module) => {
             const filteredFeatures = Array.from(features).filter(feature => {
                 return this.filters.every(it => it(feature, module))
-            })
+            }).sort()
             if (filteredFeatures.length > 0)
                 printer.print(`import { ${filteredFeatures.join(', ')} } from "${module}"`)
         })

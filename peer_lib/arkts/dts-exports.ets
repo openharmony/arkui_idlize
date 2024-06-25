@@ -97,24 +97,92 @@ export class SheetSize {
 
 export interface BindOptions {
     backgroundColor?: ResourceColor;
+    onAppear?: () => void;
+    onDisappear?: () => void;
+    onWillAppear?: () => void;
+    onWillDisappear?: () => void;
+}
+
+export enum SheetType {
+    BOTTOM = 0,
+    CENTER = 1,
+    POPUP = 2
+}
+
+export interface SheetDismiss {
+    dismiss: () => void;
+}
+
+export interface DismissSheetAction {
+    dismiss: Callback<void>;
+    reason: DismissReason;
+}
+
+export enum DismissReason {
+    PRESS_BACK = 0,
+    TOUCH_OUTSIDE = 1,
+    CLOSE_BUTTON = 2,
+    SLIDE_DOWN = 3
+}
+
+export interface SpringBackAction {
+    springBack: Callback<void>;
+}
+
+export enum ShadowStyle {
+    OUTER_DEFAULT_XS,
+    OUTER_DEFAULT_SM,
+    OUTER_DEFAULT_MD,
+    OUTER_DEFAULT_LG,
+    OUTER_FLOATING_SM,
+    OUTER_FLOATING_MD,
+}
+
+export interface UIContext {
+}
+
+export enum SheetMode {
+    OVERLAY = 0,
+    EMBEDDED = 1,
 }
 
 export interface SheetOptions extends BindOptions {
     title?: SheetTitleOptions | CustomBuilder;
     detents?: [(SheetSize | Length | undefined), (SheetSize | Length | undefined), (SheetSize | Length | undefined)] | undefined;
+    height?: SheetSize | Length;
+    dragBar?: boolean;
+    maskColor?: ResourceColor;
+    blurStyle?: BlurStyle;
+    showClose?: boolean | Resource;
+    preferType?: SheetType;
+    shouldDismiss?: (sheetDismiss: SheetDismiss) => void;
+    onWillDismiss?: Callback<DismissSheetAction>;
+    onWillSpringBackWhenDismiss?: Callback<SpringBackAction>;
+    enableOutsideInteractive?: boolean;
+    width?: Dimension;
+    borderWidth?: Dimension | EdgeWidths | LocalizedEdgeWidths;
+    borderColor?: ResourceColor | EdgeColors | LocalizedEdgeColors;
+    borderStyle?: BorderStyle | EdgeStyles;
+    shadow?: ShadowOptions | ShadowStyle;
+    onHeightDidChange?: Callback<number>;
+    mode?: SheetMode;
+    onDetentsDidChange?: Callback<number>;
+    onWidthDidChange?: Callback<number>;
+    onTypeDidChange?: Callback<int>;
+    uiContext?: UIContext;
 }
 
-export class BlurStyle {
+export enum BlurStyle {
     Thin = 0
 }
 
-export class ThemeColorMode {
-    SYSTEM = 0
-    LIGHT = 1
+export enum ThemeColorMode {
+    SYSTEM = 0,
+    LIGHT = 1,
     DARK = 2
 }
 
-export class AdaptiveColor {
+export enum AdaptiveColor {
     DEFAULT = 0
 }
 
@@ -129,7 +197,22 @@ export interface BlurStyleOptions {
     blurOptions?: BlurOptions;
 }
 
-export interface BackgroundBlurStyleOptions extends BlurStyleOptions {}
+export enum BlurStyleActivePolicy {
+    FOLLOWS_WINDOW_ACTIVE_STATE = 0,
+    ALWAYS_ACTIVE = 1,
+    ALWAYS_INACTIVE = 2,
+}
+
+declare enum BlurType {
+    WITHIN_WINDOW = 0,
+    BEHIND_WINDOW = 1
+}
+
+export interface BackgroundBlurStyleOptions extends BlurStyleOptions {
+    policy?: BlurStyleActivePolicy;
+    inactiveColor?: ResourceColor;
+    type?: BlurType;
+}
 
 export interface SizeResult {
     width: number,
@@ -152,7 +235,12 @@ export interface Padding  {
     left?: Length;
 };
 
+export class ImageModifier {
+}
+
 export interface DragPreviewOptions {
+    mode?: DragPreviewMode | Array<int>;
+    modifier?: ImageModifier;
     numberBadge?: boolean | number;
 }
 
@@ -258,20 +346,60 @@ export class RenderingContextSettings {
 
     constructor(antialias?: boolean) {}
 }
+export enum TextOverflow {
+  None,
+  Clip,
+  Ellipsis,
+  MARQUEE,
+}
+export enum TextHeightAdaptivePolicy {
+  MAX_LINES_FIRST,
+  MIN_FONT_SIZE_FIRST,
+  LAYOUT_CONSTRAINT_FIRST,
+}
 export interface LabelStyle {
-    maxLines?: number
+    overflow?: TextOverflow;
+    maxLines?: number;
+    minFontSize?: number | ResourceStr;
+    maxFontSize?: number | ResourceStr;
+    heightAdaptivePolicy?: TextHeightAdaptivePolicy;
+    font?: Font;
 }
 export declare type Dimension = string | Resource;
-export class BarMode {}
-export class ButtonType {}
+export enum BarMode {
+  Scrollable = 0,
+  Fixed = 1,
+}
+export enum ButtonType {
+    Capsule,
+    Circle,
+}
 export interface SubTabBarStyle {}
-export interface HorizontalAlign {}
+export enum HorizontalAlign {
+    Start = 0,
+    Center = 1,
+    End = 2
+}
 export interface OnScrollVisibleContentChangeCallback {}
-export interface Vector1 {}
-export interface Vector2 {}
+export interface Vector1 {
+    x0: number;
+    x1: number;
+    x2: number;
+    x3: number;
+}
+export interface Vector2 {
+    t: number;
+    x: number;
+    y: number;
+    z: number;
+}
 export interface PixelMap {}
 export interface GradientDirection {}
-export interface NavigationTitleMode {}
+export enum NavigationTitleMode {
+    Free = 0,
+    Full,
+    Mini,
+}
 
 export interface RectResult {
     x: number;
@@ -456,3 +584,200 @@ export enum CalendarAlign {
     CENTER = 1,
     END = 2
 }
+
+export enum ShadowType {
+    COLOR = 0,
+    BLUR = 1
+}
+
+export enum ColoringStrategy {
+  INVERT = 'invert',
+  AVERAGE = 'average',
+  PRIMARY = 'primary'
+}
+
+export interface ShadowOptions {
+    radius: number | Resource;
+    type?: ShadowType;
+    color?: Color | string | Resource | ColoringStrategy;
+    offsetX?: number | Resource;
+    offsetY?: number | Resource;
+    fill?: boolean;
+}
+
+export interface LocalizedEdgeColors  {
+  top?: ResourceColor;
+  end?: ResourceColor;
+  bottom?: ResourceColor;
+  start?: ResourceColor;
+}
+
+export interface LocalizedEdgeWidths {
+    top?: LengthMetrics;
+    end?: LengthMetrics;
+    bottom?: LengthMetrics;
+    start?: LengthMetrics;
+}
+
+export enum FontWeight {
+  Lighter,
+  Normal,
+  Regular,
+  Medium,
+  Bold,
+  Bolder,
+}
+
+export enum FontStyle {
+  Normal,
+  Italic,
+}
+
+export interface Font {
+  size?: Length;
+  weight?: FontWeight | number | string;
+  family?: string | Resource;
+  style?: FontStyle;
+}
+
+export enum DragPreviewMode {
+  AUTO = 1,
+  DISABLE_SCALE = 2,
+  ENABLE_DEFAULT_SHADOW = 3,
+  ENABLE_DEFAULT_RADIUS = 4
+}
+
+export interface EdgeColors {
+    top?: ResourceColor;
+    right?: ResourceColor;
+    bottom?: ResourceColor;
+    left?: ResourceColor;
+}
+
+export enum BorderStyle {
+    Dotted,
+    Dashed,
+    Solid
+}
+
+export interface EdgeStyles {
+  top?: BorderStyle;
+  right?: BorderStyle;
+  bottom?: BorderStyle;
+  left?: BorderStyle;
+};
+
+export interface BaseEvent {}
+
+export interface FingerInfo {
+  id: number;
+  globalX: number;
+  globalY: number;
+  localX: number;
+  localY: number;
+  displayX: number;
+  displayY: number;
+}
+
+export interface BaseGestureEvent extends BaseEvent {
+  fingerList: FingerInfo[];
+}
+
+export enum LengthMetricsUnit {
+  DEFAULT = 0,
+  PX = 1
+}
+
+export class ImageData {
+  readonly data: Uint8ClampedArray;
+  readonly height: number;
+  readonly width: number;
+  constructor(width: number, height: number, data?: Uint8ClampedArray, unit?: LengthMetricsUnit) {}
+}
+
+export enum GesturePriority {
+  NORMAL = 0,
+  PRIORITY = 1,
+}
+
+export enum GestureMask {
+  Normal,
+  IgnoreInternal,
+}
+
+export enum SourceTool {
+    Unknown,
+    Finger,
+    Pen,
+    MOUSE,
+    TOUCHPAD,
+    JOYSTICK,
+}
+
+export interface GestureInterface<T> {
+  tag(tag: string): T;
+  allowedTypes(value: Array<int>): T;
+}
+
+export abstract class GestureHandler<T> implements GestureInterface<T> {
+  abstract tag(tag: string): T;
+  abstract allowedTypes(types: Array<int>): T;
+}
+
+export interface UIGestureEvent {
+  addGesture<T>(gesture: GestureHandler<T>, priority?: GesturePriority, mask?: GestureMask): void;
+}
+
+export interface GestureModifier {
+  applyGesture(): void;
+  applyGesture(event: UIGestureEvent): void;
+}
+
+declare namespace GestureControl {
+  enum GestureType {
+    TAP_GESTURE = 0,
+    LONG_PRESS_GESTURE = 1,
+    PAN_GESTURE = 2,
+    PINCH_GESTURE = 3,
+    SWIPE_GESTURE = 4,
+    ROTATION_GESTURE = 5,
+    DRAG = 6,
+    CLICK = 7,
+  }
+}
+
+enum GestureRecognizerState {
+  READY = 0,
+  DETECTING = 1,
+  PENDING = 2,
+  BLOCKED = 3,
+  SUCCESSFUL = 4,
+  FAILED = 5,
+}
+
+abstract class EventTargetInfo {
+  abstract getId(): string;
+}
+
+interface GestureRecognizer {
+  getTag(): string;
+
+  getType(): GestureControl.GestureType;
+
+  isBuiltIn(): boolean;
+
+  setEnabled(isEnabled: boolean): void;
+
+  isEnabled(): boolean;
+
+  getState(): GestureRecognizerState;
+
+  getEventTargetInfo(): EventTargetInfo;
+}
+
+enum GestureJudgeResult {
+  CONTINUE = 0,
+  REJECT = 1,
+}
+
+export type GestureRecognizerJudgeBeginCallback = (event: BaseGestureEvent, current: GestureRecognizer, recognizers: Array<GestureRecognizer>) => GestureJudgeResult;

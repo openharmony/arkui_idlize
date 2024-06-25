@@ -46,6 +46,7 @@ export interface ArgConvertor {
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
     interopType(language: Language): string
     nativeType(impl: boolean): string
+    targetType(writer: LanguageWriter): Type
     isPointerType(): boolean
     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined
     getMembers(): string[]
@@ -69,6 +70,9 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     interopType(language: Language): string {
         throw new Error("Define")
     }
+    targetType(writer: LanguageWriter): Type {
+        return new Type(writer.mapType(new Type(this.tsTypeName), this))
+    }
     scopeStart?(param: string, language: Language): string
     scopeEnd?(param: string, language: Language): string
     abstract convertorArg(param: string, writer: LanguageWriter): string
@@ -90,10 +94,8 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         if (!uniqueFields || uniqueFields.length === 0) return undefined
         const firstNonOptional = uniqueFields.find(it => !optionalAccessor(it))
         return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer, [
-            firstNonOptional
-                ? writer.makeString(`${value}!.hasOwnProperty("${nameAccessor(firstNonOptional)}")`)
-                : writer.makeString(`(${writer.makeNaryOp("||",
-                    uniqueFields.map(it => writer.makeString(`${value}!.hasOwnProperty("${nameAccessor(it)}")`))).asString()})`)
+            writer.makeDiscriminatorFromFields(this, value,
+                firstNonOptional ? [nameAccessor(firstNonOptional)] : uniqueFields.map(it => nameAccessor(it)))
         ])
     }
 }
@@ -250,7 +252,7 @@ export class EnumConvertor extends BaseArgConvertor {
             false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? param : `unsafeCast<int32>(${param})`
+        return writer.makeUnsafeCast(this, param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         if (this.isStringEnum) {
@@ -455,9 +457,8 @@ export class UnionConvertor extends BaseArgConvertor {
         throw new Error("Do not use for union")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeStatement(
-            printer.makeAssign(`${value}_type`, undefined,
-                printer.makeUnionSelector(value), true))
+        printer.writeStatement(printer.makeAssign(`${value}_type`, Type.Int32, printer.makeRuntimeType(RuntimeType.UNDEFINED), true, false))
+        printer.writeStatement(printer.makeUnionSelector(value, `${value}_type`))
         this.memberConvertors.forEach((it, index) => {
             const maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
             const conditions = this.unionChecker.makeDiscriminator(value, index, printer)
@@ -465,10 +466,9 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.pushIndent()
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", [castToInt8(index.toString(), printer.language)])
             if (!(it instanceof UndefinedConvertor)) {
-                const valueType = new Type(it.tsTypeName)
                 printer.writeStatement(
                     printer.makeAssign(`${value}_${index}`, undefined,
-                        printer.makeUnionVariantCast(value, valueType, index), true))
+                        printer.makeUnionVariantCast(value, it.targetType(printer), index), true))
                 it.convertorSerialize(param, `${value}_${index}`, printer)
             }
             printer.popIndent()
@@ -612,12 +612,12 @@ export class OptionConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         const valueType = `${value}_type`
         const serializedType = (printer.language == Language.JAVA ? undefined : Type.Int32)
-        printer.writeStatement(printer.makeAssign(valueType, serializedType,
-            printer.makeRuntimeTypeGetterCall(value), true))
+        printer.writeStatement(printer.makeAssign(valueType, serializedType, printer.makeRuntimeType(RuntimeType.UNDEFINED), true, false))
+        printer.runtimeType(this, valueType, value)
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [castToInt8(valueType, printer.language)])
         printer.print(`if (${printer.makeRuntimeTypeCondition(valueType, false, RuntimeType.UNDEFINED).asString()}) {`)
         printer.pushIndent()
-        printer.writeStatement(printer.makeAssign(`${value}_value`, undefined, printer.makeValueFromOption(value), true))
+        printer.writeStatement(printer.makeAssign(`${value}_value`, undefined, printer.makeValueFromOption(value, this.typeConvertor), true))
         this.typeConvertor.convertorSerialize(param, `${value}_value`, printer)
         printer.popIndent()
         printer.print(`}`)
@@ -654,9 +654,11 @@ export class OptionConvertor extends BaseArgConvertor {
 export class AggregateConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
     private members: [string, boolean][] = []
+    public readonly aliasName: string | undefined
 
     constructor(param: string, private table: DeclarationTable, private type: ts.TypeLiteralNode) {
         super(mapType(type, table.language), [RuntimeType.OBJECT], false, true, param)
+        this.aliasName = ts.isTypeAliasDeclaration(this.type.parent) ? identName(this.type.parent.name) : undefined
         this.memberConvertors = type
             .members
             .filter(ts.isPropertySignature)
@@ -876,7 +878,7 @@ export class TupleConvertor extends BaseArgConvertor {
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
     private readonly language: Language
-    constructor(param: string, public table: DeclarationTable, private type: ts.TypeNode, public elementType: ts.TypeNode) {
+    constructor(param: string, public table: DeclarationTable, private type: ts.TypeNode, private elementType: ts.TypeNode) {
         super(`Array<${mapType(elementType, table.language)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
         this.language = table.language
@@ -923,7 +925,6 @@ export class ArrayConvertor extends BaseArgConvertor {
         ]
         return new BlockStatement(statements, true)
     }
-
     nativeType(impl: boolean): string {
         return `Array_${this.table.computeTypeName(undefined, this.elementType, false)}`
     }
@@ -935,7 +936,10 @@ export class ArrayConvertor extends BaseArgConvertor {
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
-            [writer.makeString(`${value} instanceof Array`)])
+            [writer.makeString(`${value} instanceof ${this.targetType(writer).name}`)])
+    }
+    elementTypeName(): string {
+        return mapType(this.elementType, this.language)
     }
 }
 

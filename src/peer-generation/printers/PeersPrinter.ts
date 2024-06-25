@@ -108,7 +108,7 @@ class PeerFileVisitor {
     private printAttributes(peer: PeerClass) {
         if (!(this.isTs||this.isArkTs)) return
         for (const attributeType of peer.attributesTypes)
-            this.printer.print(attributeType)
+            this.printer.print(attributeType.content)
 
         const parent = this.generateAttributesParentClass(peer)
         this.printer.writeInterface(componentToAttributesClass(peer.componentName), (writer) => {

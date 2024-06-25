@@ -188,7 +188,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
     }
 
     private interfaceToComponentAttributes(node: ts.InterfaceDeclaration | undefined): ts.ClassDeclaration | undefined {
-        if (!node) 
+        if (!node)
             return undefined
         const members = node.members.filter(it => !ts.isConstructSignatureDeclaration(it))
         if (!members.length || !members.every(it => ts.isCallSignatureDeclaration(it)))
@@ -196,7 +196,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         const callable = members[0] as ts.CallSignatureDeclaration
         const retDecl = this.maybeTypeReferenceToDeclaration(callable.type)
         const isSameReturnType = (node: ts.TypeElement): boolean => {
-            if (!ts.isCallSignatureDeclaration(node)) 
+            if (!ts.isCallSignatureDeclaration(node))
                 throw "Expected to be a call signature"
             const otherRetDecl = this.maybeTypeReferenceToDeclaration(node.type)
             return otherRetDecl === retDecl
@@ -340,18 +340,18 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
             this.peerLibrary.importTypesStubToSource.set(generatedName, node.getText())
         }
         let syntheticDeclaration: ts.Declaration
-        
+
         if (node.qualifier?.getText() === 'Resource') {
             syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
-                'SyntheticDeclarations', 
-                generatedName, 
+                'SyntheticDeclarations',
+                generatedName,
                 ts.factory.createTypeReferenceNode("ArkResource"),
             )
             addSyntheticDeclarationDependency(syntheticDeclaration, {feature: "ArkResource", module: "./ArkResource"})
         } else {
             syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
-                'SyntheticDeclarations', 
-                generatedName, 
+                'SyntheticDeclarations',
+                generatedName,
                 ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
             )
         }
@@ -405,7 +405,7 @@ class ComponentsCompleter {
             const attributes = this.library.componentsDeclarations[i].attributesDeclarations
             if ((attributes.heritageClauses?.length ?? 0) > 1)
                 throw new Error("Expected component attributes to have single heritage clause at most")
-            const heritage = attributes.heritageClauses?.[0] 
+            const heritage = attributes.heritageClauses?.[0]
             if (!heritage)
                 continue
             const parentDecls = getDeclarationsByNode(this.library.declarationTable.typeChecker!, heritage.types[0].expression)
@@ -488,7 +488,7 @@ class PeersGenerator {
         parameters.forEach((param, index) => {
             if (param.type) {
                 this.declarationTable.requestType(
-                    `Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`, 
+                    `Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`,
                     param.type
                 )
             }
@@ -568,8 +568,14 @@ class PeersGenerator {
                 })
 
             peer.attributesTypes.push(
-                this.createParameterType(argumentTypeName, typeLiteralStatements)
+                {typeName: argumentTypeName, content: this.createParameterType(argumentTypeName, typeLiteralStatements)}
             )
+            // Arkts needs a named type as its argument method, not an anonymous type
+            // at which producing 'SyntaxError: Invalid Type' error
+            const peerMethod = peer.methods.find((method) => method.overloadedName == methodName)
+            if (peerMethod !== undefined) {
+                peerMethod.method.signature.args = [new Type(argumentTypeName)]
+            }
             return argumentTypeName
         }
         if (parameters.length > 2) {
@@ -579,7 +585,7 @@ class PeersGenerator {
                 questionToken: !!it.questionToken
             }))
             peer.attributesTypes.push(
-                this.createParameterType(argumentTypeName, attributeInterfaceStatements)
+                {typeName: argumentTypeName, content: this.createParameterType(argumentTypeName, attributeInterfaceStatements)}
             )
             return argumentTypeName
         }

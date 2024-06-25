@@ -56,6 +56,10 @@ class ComponentFileVisitor {
             }
             imports.addFeatureByBasename(componentToPeerClass(peer.componentName),
                 renameDtsToPeer(path.basename(peer.originalFilename), peer.declarationTable.language))
+            peer.attributesTypes.forEach((attrType) =>
+                imports.addFeatureByBasename(attrType.typeName,
+                    renameDtsToPeer(path.basename(peer.originalFilename), peer.declarationTable.language))
+            )
             imports.addFeature("ArkUINodeType", "./ArkUINodeType")
             imports.addFeature("runtimeType", "./SerializerBase")
             imports.addFeature("RuntimeType", "./SerializerBase")

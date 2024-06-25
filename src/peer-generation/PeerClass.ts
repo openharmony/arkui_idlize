@@ -53,6 +53,6 @@ export class PeerClass implements PeerClassBase {
     originalParentFilename: string | undefined = undefined
     parentComponentName: string | undefined = undefined
     attributesFields: string[] = []
-    attributesTypes: string[] = []
+    attributesTypes: {typeName: string, content: string}[] = []
     hasGenericType: boolean = false
 }
