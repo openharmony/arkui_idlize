@@ -69,6 +69,12 @@ inline const char *tagNameExact(Ark_Tag tag)
   throw "Error";
 }
 
+inline Ark_Function makeArkFunctionFromId(Ark_Int32 id) {
+  Ark_Function result;
+  result.id = id;
+  return result;
+}
+
 inline const char *getUnitName(int value)
 {
   switch (value)

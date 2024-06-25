@@ -784,7 +784,7 @@ export class FunctionConvertor extends BaseArgConvertor {
         this.language = table.language
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? `(Ark_Function){${param}}` : `registerCallback(${param})`
+        return writer.language == Language.CPP ? `makeArkFunctionFromId(${param})` : `registerCallback(${param})`
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         writer.writeMethodCall(`${param}Serializer`, "writeFunction", [value])
