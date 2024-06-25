@@ -100,7 +100,6 @@ class ComponentFileVisitor {
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const componentFunctionName = `Ark${peer.componentName}`
         const peerClassName = componentToPeerClass(peer.componentName)
-        const attributeClassName = `${peer.originalClassName}${peer.hasGenericType ? `<${componentClassName}>` : ``}`
 
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), ['protected'], true)
@@ -114,7 +113,7 @@ class ComponentFileVisitor {
                 writer.print('// we calls this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', 'applyAttributesFinish', [])
             })
-        }, parentComponentClassName, [attributeClassName])
+        }, parentComponentClassName)
 
 
         this.printer.print(`

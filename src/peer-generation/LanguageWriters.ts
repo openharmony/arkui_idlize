@@ -448,7 +448,7 @@ export class TernaryExpression implements LanguageExpression {
 export class NaryOpExpression implements LanguageExpression {
     constructor(public op: string, public args: LanguageExpression[]) { }
     asString(): string {
-        return `${this.args.map(arg => arg.asString()).join(` ${this.op} `)}`
+        return `${this.args.map(arg => `(${arg.asString()})`).join(` ${this.op} `)}`
     }
 }
 
