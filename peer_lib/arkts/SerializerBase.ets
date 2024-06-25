@@ -62,14 +62,12 @@ export function runtimeType(value: Object|String|number|undefined|null|void): Ru
     throw new Error(`bug: ${value} is ${type}`)
 }
 
-export type Function = object
-
-export function registerCallback(value: object|undefined): int32 {
+export function registerCallback(value: object): int32 {
     // TODO: fix me!
     return 42
 }
 
-function registerMaterialized(value: object|undefined): int32 {
+function registerMaterialized(value: Object): int32 {
     // TODO: fix me!
     return 42
 }
@@ -177,7 +175,7 @@ export class SerializerBase {
         console.log(`Unsupported custom serialization for ${kind}, write undefined`)
         this.writeInt8(Tags.UNDEFINED as int32)
     }
-    writeFunction(value: object | undefined) {
+    writeFunction(value: Object) {
         this.writeInt32(registerCallback(value))
     }
     writeTag(tag: Tags): void {
@@ -246,7 +244,7 @@ export class SerializerBase {
         }
         this.position++
     }
-    writeMaterialized(value: object | undefined) {
+    writeMaterialized(value: Object) {
         this.writePointer(registerMaterialized(value))
     }
     writeString(value: string) {

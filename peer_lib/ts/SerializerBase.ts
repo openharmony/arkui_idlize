@@ -62,8 +62,6 @@ export function runtimeType(value: any): int32 {
     throw new Error(`bug: ${value} is ${type}`)
 }
 
-export type Function = object
-
 export function isPixelMap(value: Object): value is PixelMap {
     // Object.hasOwn need es2022
     return value.hasOwnProperty('isEditable') && value.hasOwnProperty('isStrideAlignment')

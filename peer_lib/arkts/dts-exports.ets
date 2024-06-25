@@ -690,9 +690,13 @@ export enum LengthMetricsUnit {
 
 export class ImageData {
   readonly data: Uint8ClampedArray;
-  readonly height: number;
-  readonly width: number;
-  constructor(width: number, height: number, data?: Uint8ClampedArray, unit?: LengthMetricsUnit) {}
+  readonly height?: number;
+  readonly width?: number;
+  constructor(width: number, height: number, data?: Uint8ClampedArray, unit?: LengthMetricsUnit) {
+    this.width = width
+    this.height = height
+    this.data = data ?? new Uint8ClampedArray(0)
+  }
 }
 
 export enum GesturePriority {

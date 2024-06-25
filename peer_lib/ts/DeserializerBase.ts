@@ -97,7 +97,7 @@ export class DeserializerBase {
     }
 
     private static _stubFunction() {}
-    readFunction(): Function {
+    readFunction(): Object {
         const id = this.readInt32()
         return DeserializerBase._stubFunction
     }

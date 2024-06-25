@@ -244,7 +244,7 @@ export function makeTSSerializer(library: PeerLibrary): string {
     let printer = createLanguageWriter(library.declarationTable.language)
     writeSerializer(library, printer)
     return `
-import { SerializerBase, Tags, RuntimeType, Function, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"
+import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"
 
@@ -286,7 +286,7 @@ export function makeTSDeserializer(library: PeerLibrary): string {
     const deserializer = createLanguageWriter(Language.TS)
     writeDeserializer(library, deserializer)
     return `
-import { runtimeType, Tags, RuntimeType, Function } from "./SerializerBase"
+import { runtimeType, Tags, RuntimeType } from "./SerializerBase"
 import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"

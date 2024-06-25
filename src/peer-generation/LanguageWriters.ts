@@ -909,6 +909,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             case 'int32': case 'KInt': return 'int'
             case 'KStringPtr': return 'String'
             case 'KLength': return 'Object'
+            case 'Function': return 'Object'
             case 'number': return 'double'
         }
         return super.mapType(type)

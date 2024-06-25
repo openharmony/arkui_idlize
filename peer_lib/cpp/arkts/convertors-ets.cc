@@ -32,6 +32,8 @@ void addType(const std::string& type, std::string* result) {
         result->append("F");
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         result->append("J");
+    else if (type == "Ark_Float32") 
+        result->append("J");
     else if (type == "KByte*" || type == "uint8_t*")
         result->append("[B");
      else if (type == "KFloatArray")
