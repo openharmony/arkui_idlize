@@ -527,7 +527,7 @@ ${callGroupLog}
 }`
 if (callGroupLog.length > 0) {
     console.log(callLogCppCode)
-    mkdirSync('./generated/call_log')
+    mkdirSync('./generated/call_log', {recursive: true})
     writeFileSync('./generated/call_log/main.cpp', callLogCppCode)
 }
 checkTabContent()
