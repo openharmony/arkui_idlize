@@ -2,7 +2,7 @@ project('call_log', 'cpp',
         version: '0.1'
 )
 sources = [
-    './main.cpp'
+    '../../generated/call_log/main.cpp'
 ]
 CXX = meson.get_compiler('cpp')
 deps = CXX.find_library(

@@ -52,7 +52,7 @@ import {
     assertTrue,
 } from "./test_utils"
 import { nativeModule } from "@arkoala/arkui//NativeModule"
-import { writeFileSync } from "fs"
+import { mkdirSync, writeFileSync } from "fs"
 
 // TODO: hacky way to detect subset vs full.
 startNativeLog(TEST_GROUP_LOG)
@@ -527,7 +527,8 @@ ${callGroupLog}
 }`
 if (callGroupLog.length > 0) {
     console.log(callLogCppCode)
-    writeFileSync('./peer_lib/call_log/main.cpp', callLogCppCode)
+    mkdirSync('./generated/call_log')
+    writeFileSync('./generated/call_log/main.cpp', callLogCppCode)
 }
 checkTabContent()
 checkCanvasRenderingContext2D()
