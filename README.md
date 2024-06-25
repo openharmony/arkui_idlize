@@ -14,6 +14,7 @@ Prerequisites:
 ```bash
 cd idlize
 npm i
+npm run compile
 ```
 
 #### Generating libace interface files:
