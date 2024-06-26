@@ -464,7 +464,7 @@ export class DeclarationTable {
             return new NumberConvertor(param)
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
-            return new StringConvertor(param, type, this.language)
+            return new StringConvertor(param, type)
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
             return new BooleanConvertor(param)
@@ -496,7 +496,7 @@ export class DeclarationTable {
                 return new NullConvertor(param)
             }
             if (type.literal.kind == ts.SyntaxKind.StringLiteral) {
-                return new StringConvertor(param, type, this.language)
+                return new StringConvertor(param, type)
             }
             throw new Error(`Unsupported literal type: ${type.literal.kind}` + type.getText())
         }
@@ -513,7 +513,7 @@ export class DeclarationTable {
             return new OptionConvertor(param, this, type.type)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
-            return new StringConvertor(param, type, this.language)
+            return new StringConvertor(param, type)
         }
         if (ts.isNamedTupleMember(type)) {
             return this.typeConvertor(param, type.type)

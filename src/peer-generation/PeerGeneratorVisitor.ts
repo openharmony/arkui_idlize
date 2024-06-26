@@ -27,7 +27,6 @@ import {
     getComment,
     isReadonly,
     getDeclarationsByNode,
-    Language,
 } from "../util"
 import { GenericVisitor } from "../options"
 import {
@@ -242,17 +241,14 @@ function tempExtractParameters(method: ts.ConstructorDeclaration | ts.MethodDecl
     return Array.from(method.parameters)
 }
 
-function generateSignature(
-    method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration,
-    language: Language,
-): NamedMethodSignature {
+function generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
     const parameters = tempExtractParameters(method)
     const returnName = identName(method.type)!
     const returnType = returnName === "void" ? Type.Void
         : isStatic(method.modifiers) ? new Type(returnName) : Type.This
     return new NamedMethodSignature(returnType,
         parameters
-            .map(it => new Type(mapType(it.type, language), it.questionToken != undefined)),
+            .map(it => new Type(mapType(it.type), it.questionToken != undefined)),
         parameters
             .map(it => identName(it.name)!),
     )
@@ -331,11 +327,11 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
         private readonly peerLibrary: PeerLibrary,
         private readonly expandAliases: boolean,
     ) {
-        super(peerLibrary.declarationTable.typeChecker!, peerLibrary.declarationTable.language)
+        super(peerLibrary.declarationTable.typeChecker!)
     }
 
     override convertImport(node: ts.ImportTypeNode): ts.Declaration[] {
-        const generatedName = mapType(node, this.language)
+        const generatedName = mapType(node)
         if (!this.peerLibrary.importTypesStubToSource.has(generatedName)) {
             this.peerLibrary.importTypesStubToSource.set(generatedName, node.getText())
         }
@@ -439,12 +435,9 @@ class ComponentsCompleter {
 }
 
 class PeersGenerator {
-    private readonly language: Language
     constructor(
         private readonly library: PeerLibrary,
-    ) {
-        this.language = library.declarationTable.language
-    }
+    ) {}
 
     private get declarationTable(): DeclarationTable {
         return this.library.declarationTable
@@ -501,7 +494,7 @@ class PeersGenerator {
         const retConvertor = generateRetConvertor(method.type)
 
         // TODO: restore collapsing logic!
-        const signature = /* collapsed?.signature ?? */ generateSignature(method, this.language)
+        const signature = /* collapsed?.signature ?? */ generateSignature(method)
 
         const peerMethod = new PeerMethod(
             originalParentName,
@@ -590,7 +583,7 @@ class PeersGenerator {
             return argumentTypeName
         }
 
-        return parameters.map(it => mapType(it.type, this.language)).join(', ')
+        return parameters.map(it => mapType(it.type)).join(', ')
     }
 
     private createParameterType(
@@ -598,7 +591,7 @@ class PeersGenerator {
         attributes: { name: string, type: ts.TypeNode, questionToken: boolean }[]
     ): string {
         const attributeDeclarations = attributes
-            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${mapType(it.type, this.language)}`)
+            .map(it => `\n  ${it.name}${it.questionToken ? "?" : ""}: ${mapType(it.type)}`)
             .join('')
         return `export interface ${name} {${attributeDeclarations}\n}`
     }
@@ -650,7 +643,6 @@ class PeersGenerator {
 }
 
 export class PeerProcessor {
-    private readonly language: Language
     private readonly typeDependenciesCollector: TypeDependenciesCollector
     private readonly declDependenciesCollector: DeclarationDependenciesCollector
     private readonly serializeDepsCollector: DeclarationDependenciesCollector
@@ -659,7 +651,6 @@ export class PeerProcessor {
         private readonly library: PeerLibrary,
         private readonly componentsToGenerate?: Set<string>,
     ) {
-        this.language = library.declarationTable.language
         this.typeDependenciesCollector = new ImportsAggregateCollector(this.library, false)
         this.declDependenciesCollector = new FilteredDeclarationCollector(this.library, this.typeDependenciesCollector)
         this.serializeDepsCollector = new FilteredDeclarationCollector(
@@ -731,7 +722,7 @@ export class PeerProcessor {
         const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
         this.declarationTable.setCurrentContext(undefined)
         return new MaterializedField(declarationTarget, argConvertor, retConvertor,
-            new Field(name, new Type(mapType(property.type, this.language)), modifiers))
+            new Field(name, new Type(mapType(property.type)), modifiers))
     }
 
     private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | undefined) {
@@ -754,7 +745,7 @@ export class PeerProcessor {
             this.declarationTable.toTarget(param.type ??
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param))
-        const signature = generateSignature(method, this.language)
+        const signature = generateSignature(method)
         const modifiers = ts.isConstructorDeclaration(method) || isStatic(method.modifiers) ? [MethodModifier.STATIC] : []
         this.declarationTable.setCurrentContext(undefined)
         return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false,

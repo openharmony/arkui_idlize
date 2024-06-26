@@ -17,13 +17,9 @@ import * as ts from 'typescript'
 import { DeclarationConvertor, TypeNodeConvertor, convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
 import { getDeclarationsByNode } from '../util';
 import { mapType } from './TypeNodeNameConvertor';
-import { Language } from '../util';
 
 export class TypeDependenciesCollector implements TypeNodeConvertor<ts.Declaration[]> {
-    constructor(
-        protected readonly typeChecker: ts.TypeChecker,
-        protected readonly language: Language,
-    ) {}
+    constructor(protected readonly typeChecker: ts.TypeChecker) {}
 
     convertUnion(node: ts.UnionTypeNode): ts.Declaration[] {
         return node.types.flatMap(type => convertTypeNode(this, type))
@@ -72,7 +68,7 @@ export class TypeDependenciesCollector implements TypeNodeConvertor<ts.Declarati
     convertTypeReference(node: ts.TypeReferenceNode): ts.Declaration[] {
         let declarations = getDeclarationsByNode(this.typeChecker, node.typeName)
         if (declarations.length > 1) {
-            console.log(`WARNING: Duplicate declarations temporary unsupported: ${mapType(node, this.language)}`)
+            console.log(`WARNING: Duplicate declarations temporary unsupported: ${mapType(node)}`)
             declarations = [declarations[0]]
         }
         return [

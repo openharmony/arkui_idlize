@@ -22,6 +22,7 @@ import { Language, renameDtsToInterfaces } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
 import { EnumEntity, PeerFile } from '../PeerFile'
 import { DeclarationConvertor, convertDeclaration } from '../TypeNodeConvertor'
+import { TypeNodeConvertor, convertTypeNode } from '../TypeNodeConvertor'
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { read } from "node:fs";
 import { RuntimeType } from '../PeerGeneratorVisitor'
@@ -47,7 +48,7 @@ export class DeclarationGenerator implements DeclarationConvertor<string> {
         const maybeTypeArguments = node.typeParameters?.length
             ? `<${node.typeParameters.map(it => it.getText()).join(', ')}>`
             : ''
-        let type = mapType(node.type, Language.TS)
+        let type = mapType(node.type)
         return `export declare type ${node.name.text}${maybeTypeArguments} = ${type};`
     }
 
@@ -194,6 +195,173 @@ class TSInterfacesVisitor implements InterfacesVisitor {
     }
 }
 
+export class JavaTypeNodeNameConvertor implements
+    TypeNodeConvertor<string>
+{
+    convertUnion(node: ts.UnionTypeNode): string {
+        let unionType = 'Union'
+        for (const unionSubtype of node.types) {
+            unionType = `${unionType}_${this.convert(unionSubtype)}`
+        }
+        return unionType
+    }
+    convertTypeLiteral(node: ts.TypeLiteralNode): string {
+        const members = node.members.map(it => {
+            if (ts.isPropertySignature(it)) {
+                const name = this.convert(it.name)
+                const isOptional = !!it.questionToken
+                const type = this.convert(it.type!)
+                if (isOptional) {
+                    return `Opt_${type} ${name}`
+                }
+                return `${type} ${name}`
+            }
+            if (ts.isIndexSignatureDeclaration(it)) {
+                if (it.modifiers) throw new Error('Not implemented')
+                if (it.typeParameters) throw new Error('Not implemented')
+                if (it.questionToken) throw new Error('Not implemented')
+                if (it.name) throw new Error('Not implemented')
+                const parameters = it.parameters.map(it => this.convertParameterDeclaration(it))
+                return `[${parameters.join(', ')}]: ${this.convert(it.type)}`
+            }
+            throw new Error(`Unknown member type ${ts.SyntaxKind[it.kind]}`)
+        })
+        return `{${members.join(', ')}}`
+    }
+    private convertParameterDeclaration(node: ts.ParameterDeclaration): string {
+        if (node.modifiers) throw new Error('Not implemented')
+        if (!node.type) throw new Error('Expected ParameterDeclaration to have a type')
+        const isOptional = !!node.questionToken
+        const name = this.convert(node.name)
+        const type = this.convert(node.type!)
+        if (isOptional) {
+            return `Opt_${type}$ ${name}`
+        }
+        return `${type} ${name}`
+    }
+    convertLiteralType(node: ts.LiteralTypeNode): string {
+        if (node.literal.kind === ts.SyntaxKind.TrueKeyword) return 'true'
+        if (node.literal.kind === ts.SyntaxKind.FalseKeyword) return 'false'
+        if (node.literal.kind === ts.SyntaxKind.NullKeyword) return 'null'
+        if (node.literal.kind === ts.SyntaxKind.StringLiteral) return `"${node.literal.text}"`
+        throw new Error(`Unknown LiteralTypeNode ${ts.SyntaxKind[node.literal.kind]}`)
+    }
+    convertTuple(node: ts.TupleTypeNode): string {
+        const members = node.elements.map(it => this.convertTupleElement(it))
+        return `Tuple_${members.join('_')}`
+    }
+    protected convertTupleElement(node: ts.TypeNode): string {
+        if (ts.isNamedTupleMember(node)) {
+            const name = this.convert(node.name)
+            const maybeQuestion = node.questionToken ? '?' : ''
+            const type = this.convert(node.type!)
+            return `${name}${maybeQuestion}: ${type}`
+        }
+        return this.convert(node)
+    }
+    convertArray(node: ts.ArrayTypeNode): string {
+        return `${this.convert(node.elementType)}[]`
+    }
+    convertOptional(node: ts.OptionalTypeNode): string {
+        return `Opt_${this.convert(node.type)}`
+    }
+    convertFunction(node: ts.FunctionTypeNode): string {
+        if (node.typeParameters?.length)
+            throw new Error('Not implemented')
+        const parameters = node.parameters.map(it => {
+            const name = this.convert(it.name)
+            const maybeQuestion = it.questionToken ? '?' : ''
+            const type = this.convert(it.type!)
+            return `${name}${maybeQuestion}: ${type}`
+        })
+        return `((${parameters.join(', ')}) => ${this.convert(node.type)})`
+    }
+    convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): string {
+        return node.templateSpans.map(template => {
+            return `\`\${${this.convert(template.type)}}${template.literal.rawText}\``
+        }).join()
+    }
+    convertImport(node: ts.ImportTypeNode): string {
+        const from = this.convert(node.argument)
+        const qualifier = this.convert(node.qualifier!)
+        const maybeTypeArguments = node.typeArguments?.length
+            ? '_' + node.typeArguments.map(it => this.convert(it)).join('_')
+            : ''
+        return `IMPORT_${qualifier}${maybeTypeArguments}_FROM_${from}`
+            .match(/[a-zA-Z]+/g)!.join('_')
+    }
+    convertTypeReference(node: ts.TypeReferenceNode): string {
+        const name = this.convert(node.typeName)
+        if (name === 'Style')
+            return this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.ObjectKeyword))
+        let types = node.typeArguments?.map(it => this.convert(it))
+        if (name === `AttributeModifier`)
+            types = [`object`]
+        if (name === `ContentModifier`)
+            types = [this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
+        if (name === `Optional`)
+            return `${types} | undefined`
+        const maybeTypeArguments = !types?.length ? '' : `<${types.join(', ')}>`
+        return `${name}${maybeTypeArguments}`
+    }
+    convertParenthesized(node: ts.ParenthesizedTypeNode): string {
+        return `(${this.convert(node.type)})`
+    }
+    convertIndexedAccess(node: ts.IndexedAccessTypeNode): string {
+        throw new Error('Method not implemented.')
+    }
+    convertTypeParameterDeclaration(node: ts.TypeParameterDeclaration): string {
+        throw new Error('Method not implemented.')
+    }
+    convertStringKeyword(node: ts.TypeNode): string {
+        return 'String'
+    }
+    convertNumberKeyword(node: ts.TypeNode): string {
+        return 'Float'
+    }
+    convertBooleanKeyword(node: ts.TypeNode): string {
+        return 'Boolean'
+    }
+    convertUndefinedKeyword(node: ts.TypeNode): string {
+        return 'Undefined'
+    }
+    convertVoidKeyword(node: ts.TypeNode): string {
+        return 'void'
+    }
+    convertObjectKeyword(node: ts.TypeNode): string {
+        return 'Object'
+    }
+    convertAnyKeyword(node: ts.TypeNode): string {
+        return 'any'
+    }
+    convertUnknownKeyword(node: ts.TypeNode): string {
+        return `unknown`
+    }
+
+    // identifier
+    convertQualifiedName(node: ts.QualifiedName): string {
+        return `${this.convert(node.left)}.${this.convert(node.right)}`
+    }
+    convertIdentifier(node: ts.Identifier): string {
+        return node.text
+    }
+
+    convert(node: ts.Node): string {
+        if (ts.isQualifiedName(node)) return this.convertQualifiedName(node)
+        if (ts.isIdentifier(node)) return this.convertIdentifier(node)
+        if (ts.isTypeNode(node))
+            return convertTypeNode(this, node)
+        throw new Error(`Unknown node type ${ts.SyntaxKind[node.kind]}`)
+    }
+}
+
+const nameConvertorInstance = new JavaTypeNodeNameConvertor()
+
+// will be refactored after migration to IDL IR
+function mapTypeJava(type: ts.TypeNode | undefined): string {
+    type ??= ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
+    return nameConvertorInstance.convert(type)
+}
 
 class JavaInterfacesVisitor {
     private readonly interfaces: Map<string, LanguageWriter> = new Map()
@@ -219,7 +387,7 @@ class JavaInterfacesVisitor {
 
     getMemberTargetType(node: ts.PropertyDeclaration | ts.PropertySignature): Type {
         const nullable = !!node.questionToken
-        const type = mapType(node.type, Language.JAVA)
+        const type = mapTypeJava(node.type)
         if (nullable) {
             return new Type(`Opt_${type}`, true)
         }
@@ -314,7 +482,7 @@ class JavaInterfacesVisitor {
 
             writer.writeFieldDeclaration('tag', new Type('Tag'), ['public'], false)
 
-            const targetType = new Type(mapType(sourceType, Language.JAVA))
+            const targetType = new Type(mapTypeJava(sourceType))
             this.implementType(sourceType, targetType)
             writer.writeFieldDeclaration(value, targetType, ['public'], false)
         })
@@ -334,7 +502,7 @@ class JavaInterfacesVisitor {
             })
 
             for (const [index, subType] of sourceType.types.entries()) {
-                const subTypeTargetType = new Type(mapType(subType, Language.JAVA))
+                const subTypeTargetType = new Type(mapTypeJava(subType))
                 this.implementType(subType, subTypeTargetType)
                 const value = `value${index}`
                 const param = 'param'
@@ -380,7 +548,7 @@ class JavaInterfacesVisitor {
             })
 
             for (const [index, subType] of sourceType.elements.entries()) {
-                const subTypeTargetType = new Type(mapType(subType, Language.JAVA))
+                const subTypeTargetType = new Type(mapTypeJava(subType))
                 this.implementType(subType, subTypeTargetType)
                 const value = `value${index}`
 

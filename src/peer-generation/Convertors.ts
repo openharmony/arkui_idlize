@@ -102,8 +102,8 @@ export abstract class BaseArgConvertor implements ArgConvertor {
 
 export class StringConvertor extends BaseArgConvertor {
     private literalValue?: string
-    constructor(param: string, receiverType: ts.TypeNode, language: Language) {
-        super(mapType(receiverType, language), [RuntimeType.STRING], false, false, param)
+    constructor(param: string, receiverType: ts.TypeNode) {
+        super(mapType(receiverType), [RuntimeType.STRING], false, false, param)
         if (ts.isLiteralTypeNode(receiverType) && ts.isStringLiteral(receiverType.literal)) {
             this.literalValue = receiverType.literal.text
         }
@@ -138,7 +138,7 @@ export class StringConvertor extends BaseArgConvertor {
 }
 
 export class ToStringConvertor extends BaseArgConvertor {
-    constructor( param: string) {
+    constructor(param: string) {
         super("string", [RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -657,7 +657,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     public readonly aliasName: string | undefined
 
     constructor(param: string, private table: DeclarationTable, private type: ts.TypeLiteralNode) {
-        super(mapType(type, table.language), [RuntimeType.OBJECT], false, true, param)
+        super(mapType(type), [RuntimeType.OBJECT], false, true, param)
         this.aliasName = ts.isTypeAliasDeclaration(this.type.parent) ? identName(this.type.parent.name) : undefined
         this.memberConvertors = type
             .members
@@ -776,14 +776,12 @@ export class ClassConvertor extends InterfaceConvertor {
 }
 
 export class FunctionConvertor extends BaseArgConvertor {
-    private readonly language: Language
     constructor(
         param: string,
         protected table: DeclarationTable,
         private type: ts.TypeNode) {
         // TODO: pass functions as integers to native side.
         super("Function", [RuntimeType.FUNCTION], false, false, param)
-        this.language = table.language
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `makeArkFunctionFromId(${param})` : `registerCallback(${param})`
@@ -795,7 +793,7 @@ export class FunctionConvertor extends BaseArgConvertor {
         const accessor = writer.getObjectAccessor(this, param, value)
         return writer.makeAssign(accessor, undefined,
             writer.makeCast(writer.makeString(`${param}Deserializer.readFunction()`),
-                writer.makeType(mapType(this.type, this.language), true, accessor))
+                writer.makeType(mapType(this.type), true, accessor))
             , false)
     }
     nativeType(impl: boolean): string {
@@ -811,13 +809,11 @@ export class FunctionConvertor extends BaseArgConvertor {
 
 export class TupleConvertor extends BaseArgConvertor {
     constructor(param: string, protected table: DeclarationTable, private type: ts.TupleTypeNode) {
-        super(`[${type.elements.map(it => mapType(it, table.language)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
+        super(`[${type.elements.map(it => mapType(it)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
         this.memberConvertors = type
             .elements
             .map(element => table.typeConvertor(param, element))
-        this.language = table.language
     }
-    private readonly language: Language
     private memberConvertors: ArgConvertor[]
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -842,7 +838,7 @@ export class TupleConvertor extends BaseArgConvertor {
             tmpTupleIds.push(tmpTupleId)
             const receiver = printer.getObjectAccessor(this, param, value, {index: `${index}`})
             // need to remove the mark '?' from Optional type
-            const tsTypeName = mapType(this.type.elements[index], this.language).replace("?", "")
+            const tsTypeName = mapType(this.type.elements[index]).replace("?", "")
             statements.push(
                 printer.makeAssign(tmpTupleId,
                     // makeType - creating the correct type for TS(using tsTypeName) or C++(use decltype(receiver))
@@ -877,11 +873,9 @@ export class TupleConvertor extends BaseArgConvertor {
 
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
-    private readonly language: Language
     constructor(param: string, public table: DeclarationTable, private type: ts.TypeNode, private elementType: ts.TypeNode) {
-        super(`Array<${mapType(elementType, table.language)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
-        this.language = table.language
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -912,7 +906,7 @@ export class ArrayConvertor extends BaseArgConvertor {
             // read length
             printer.makeAssign(arrayLength, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
             // prepare object
-            printer.makeArrayResize(arrayAccessor, mapType(this.type, this.language), arrayLength, `${param}Deserializer`),
+            printer.makeArrayResize(arrayAccessor, mapType(this.type), arrayLength, `${param}Deserializer`),
             // store
             printer.makeLoop(forCounterName, arrayLength,
                 this.elementConvertor.convertorDeserialize(param, accessor, printer)),
@@ -939,7 +933,7 @@ export class ArrayConvertor extends BaseArgConvertor {
             [writer.makeString(`${value} instanceof ${this.targetType(writer).name}`)])
     }
     elementTypeName(): string {
-        return mapType(this.elementType, this.language)
+        return mapType(this.elementType)
     }
 }
 
@@ -947,7 +941,7 @@ export class MapConvertor extends BaseArgConvertor {
     keyConvertor: ArgConvertor
     valueConvertor: ArgConvertor
     constructor(param: string, public table: DeclarationTable, type: ts.TypeNode, public keyType: ts.TypeNode, public valueType: ts.TypeNode) {
-        super(`Map<${mapType(keyType, table.language)}, ${mapType(valueType, table.language)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(`Map<${mapType(keyType)}, ${mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.keyConvertor = table.typeConvertor(param, keyType)
         this.valueConvertor = table.typeConvertor(param, valueType)
     }

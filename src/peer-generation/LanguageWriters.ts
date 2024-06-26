@@ -835,7 +835,7 @@ export class TSLanguageWriter extends LanguageWriter {
         if (fields.length > 0) {
             return this.makeAssign(object, undefined,
                 this.makeCast(this.makeString("{}"),
-                    new Type(`{${fields.map(it=>`${it.name}: ${mapType(it.type, Language.TS)}`).join(",")}}`)),
+                    new Type(`{${fields.map(it=>`${it.name}: ${mapType(it.type)}`).join(",")}}`)),
                 false)
         }
         return new TsObjectAssignStatement(object, undefined, false)
