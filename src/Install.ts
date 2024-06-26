@@ -38,6 +38,7 @@ export class ArkoalaInstall extends Install{
     }
     koala = this.mkdir(this.test ? path.join(this.outDir, "koalaui") : this.outDir)
     tsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/src/"))
+    tsArkoalaDir = this.mkdir(path.join(this.koala, "arkoala/src/generated/"))
     arktsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/arkts/src/"))
     nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/"))
     javaDir = this.mkdir(path.join(this.koala, "arkoala/java/src/"))
@@ -58,6 +59,9 @@ export class ArkoalaInstall extends Install{
     }
     tsLib(name: string) {
         return path.join(this.tsDir, name + this.lang.extension)
+    }
+    tsArkoalaLib(name: string) {
+        return path.join(this.tsArkoalaDir, name + this.lang.extension)
     }
     arktsLib(name: string) {
         return path.join(this.arktsDir, name + this.lang.extension)

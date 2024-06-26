@@ -8,7 +8,7 @@ void sendEvent(const EventBuffer* event) {
     eventQueue.push_back(*event);
 }
 
-KInt impl_CheckArkoalaEvents(KByte* result, KInt size) {
+KInt impl_CheckArkoalaGeneratedEvents(KByte* result, KInt size) {
     if (((size_t)size) < sizeof(EventBuffer::buffer))
         throw std::invalid_argument("Expected buffer size be not less than sizeof(EventBuffer) bytes");
 
@@ -19,4 +19,4 @@ KInt impl_CheckArkoalaEvents(KByte* result, KInt size) {
     eventQueue.pop_front();
     return 1;
 }
-KOALA_INTEROP_2(CheckArkoalaEvents, KInt, KByte*, KInt)
+KOALA_INTEROP_2(CheckArkoalaGeneratedEvents, KInt, KByte*, KInt)

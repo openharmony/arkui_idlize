@@ -1,5 +1,10 @@
+export class NativeModuleEmptyIntegrated extends NativeModuleBase implements NativeModuleIntegrated {
+%GENERATED_EMPTY_METHODS%
+}
 
-// BasicNodeAPI
+export class NativeModuleEmpty extends NativeModuleBase implements NativeModule {
+%GENERATED_EMPTY_METHODS%
+ // BasicNodeAPI
 _CreateNode(type: KInt, id: KInt, flags: KInt): NodePointer { return nullptr }
 _GetNodeByViewStack(): NodePointer { return nullptr }
 _DisposeNode(ptr: NodePointer): void {}

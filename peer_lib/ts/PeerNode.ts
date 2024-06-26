@@ -1,7 +1,7 @@
 import { int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
 import { Finalizable } from "./Finalizable"
-import { nativeModule } from "./NativeModule";
+import { nativeModule } from "@koalaui/arkoala";
 
 export class NativePeerNode extends Finalizable {
 }

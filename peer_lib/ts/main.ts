@@ -51,7 +51,7 @@ import {
     assertEquals,
     assertTrue,
 } from "./test_utils"
-import { nativeModule } from "@arkoala/arkui//NativeModule"
+import { nativeModule } from "@koalaui/arkoala"
 import { mkdirSync, writeFileSync } from "fs"
 
 // TODO: hacky way to detect subset vs full.
@@ -389,7 +389,7 @@ function checkEvent_Primitive() {
     nativeModule()._Test_TextPicker_OnAccept(serializer.asArray(), serializer.length())
 
     const buffer = new Uint8Array(BufferSize)
-    const checkResult = nativeModule()._CheckArkoalaEvents(buffer, BufferSize)
+    const checkResult = nativeModule()._CheckArkoalaGeneratedEvents(buffer, BufferSize)
     const event = deserializePeerEvent(new Deserializer(buffer.buffer, BufferSize))
     assertEquals("Event_Primitive: read event from native", 1, checkResult)
     if (checkResult !== 1)
@@ -415,7 +415,7 @@ function checkEvent_Interface_Optional() {
     nativeModule()._Test_List_OnScrollVisibleContentChange(serializer.asArray(), serializer.length())
 
     const buffer = new Uint8Array(bufferSize)
-    const checkResult = nativeModule()._CheckArkoalaEvents(buffer, bufferSize)
+    const checkResult = nativeModule()._CheckArkoalaGeneratedEvents(buffer, bufferSize)
     const event = deserializePeerEvent(new Deserializer(buffer.buffer, bufferSize))
     assertEquals("Event_Interface_Optional: read event from native", 1, checkResult)
     if (checkResult !== 1)
@@ -451,7 +451,7 @@ function checkEvent_Array_Class() {
     nativeModule()._Test_Common_OnChildTouchTest(serializer.asArray(), serializer.length())
 
     const buffer = new Uint8Array(bufferSize)
-    const checkResult = nativeModule()._CheckArkoalaEvents(buffer, bufferSize)
+    const checkResult = nativeModule()._CheckArkoalaGeneratedEvents(buffer, bufferSize)
     const event = deserializePeerEvent(new Deserializer(buffer.buffer, bufferSize))
     assertEquals("Event_Array_Class: read event from native", 1, checkResult)
     if (checkResult !== 1)

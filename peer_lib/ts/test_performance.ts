@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { nativeModule } from "@arkoala/arkui/NativeModule"
+import { nativeModule } from "@koalaui/arkoala"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"

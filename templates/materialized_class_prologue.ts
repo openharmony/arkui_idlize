@@ -1,6 +1,6 @@
 import { Finalizable } from "./Finalizable"
 import { NativePeerNode } from "./PeerNode"
-import { nativeModule } from "./NativeModule"
+import { nativeModule } from "@koalaui/arkoala"
 import { createSerializer, Serializer } from "./Serializer"
 import { isPixelMap, isResource, isInstanceOf, runtimeType, withLength, withLengthArray, RuntimeType, SerializerBase } from "./SerializerBase"
 import { unsafeCast } from "./generated-utils"

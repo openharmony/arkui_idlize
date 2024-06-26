@@ -14,7 +14,7 @@
  */
 import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
-import { nativeModule } from "@arkoala/arkui/NativeModule"
+import { nativeModule } from "@koalaui/arkoala"
 // imports required intarfaces (now generation is disabled)
 // import { Resource, Length, PixelMap } from "@arkoala/arkui"
 /**

@@ -1,4 +1,4 @@
-import { nativeModule } from "./NativeModule"
+import { nativeModule } from "@koalaui/arkoala"
 import { withStringResult } from "@koalaui/interop"
 
 export const TEST_GROUP_LOG = 1

@@ -62,6 +62,8 @@ class NativeModuleVisitor {
 
     print(): void {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
+        this.nativeModule.pushIndent()
+        this.nativeModuleEmpty.pushIndent()
         for (const file of this.library.files) {
             for (const peer of file.peers.values()) {
                 this.printPeerMethods(peer)
@@ -69,6 +71,8 @@ class NativeModuleVisitor {
         }
         this.printMaterializedMethods(this.nativeModule, this.nativeModuleEmpty)
         this.printEventMethods(this.nativeModule, this.nativeModuleEmpty)
+        this.nativeModule.popIndent()
+        this.nativeModuleEmpty.popIndent()
     }
 }
 
@@ -105,7 +109,7 @@ export function printNativeModule(peerLibrary: PeerLibrary, nativeBridgePath: st
     const lang = peerLibrary.declarationTable.language
     const visitor = new NativeModuleVisitor(peerLibrary)
     visitor.print()
-    return nativeModuleDeclaration(visitor.nativeModule.getOutput(), nativeBridgePath, false, lang)
+    return nativeModuleDeclaration(visitor.nativeModule, nativeBridgePath, false, lang)
 }
 
 export function printNativeModuleEmpty(peerLibrary: PeerLibrary): string {

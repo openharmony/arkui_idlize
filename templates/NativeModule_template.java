@@ -19,6 +19,9 @@ public class NativeModule {
   static {
     Runtime.getRuntime().loadLibrary("NativeBridgeJni");
   }
+
+%GENERATED_METHODS%
+
   static native long _StringMake(String string);
   static native int _StringLength(long ptr);
   static native void _StringData(long ptr, byte[] arg1, int arg2);
@@ -83,4 +86,4 @@ public class NativeModule {
   static native void _SetVsyncCallback(long pipelineContext, int callbackId);
   static native void _UnblockVsyncWait(long pipelineContext);
   static native float _ConvertLengthMetricsUnit(float value, int originUnit, int targetUnit);
-
+}

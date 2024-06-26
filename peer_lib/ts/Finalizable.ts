@@ -15,7 +15,7 @@
 
 import { pointer, nullptr, isNullPtr } from "@koalaui/interop"
 import { finalizerRegister, finalizerUnregister, Thunk } from "./Finalization";
-import { nativeModule } from "./NativeModule";
+import { nativeModule } from "@koalaui/arkoala";
 
 export abstract class FinalizableBase {
     ptr: pointer

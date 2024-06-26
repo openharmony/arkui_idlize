@@ -187,7 +187,7 @@ class PeerFileVisitor {
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
                     `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
                     `import { createSerializer, Serializer } from "./Serializer"`,
-                    `import { nativeModule } from "./NativeModule"`,
+                    `import { nativeModule } from "@koalaui/arkoala"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ComponentBase } from "./ComponentBase"`,
                 ]

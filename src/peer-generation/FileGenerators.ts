@@ -84,16 +84,14 @@ import {
 } from "@koalaui/interop"
 `.trim()
 
-export function nativeModuleDeclaration(methods: string[], nativeBridgePath: string, useEmpty: boolean, language: Language): string {
+export function nativeModuleDeclaration(methods: LanguageWriter, nativeBridgePath: string, useEmpty: boolean, language: Language): string {
     return `
   ${language == Language.TS ? importTsInteropTypes : ""}
-  ${readLangTemplate("NativeModule_prologue", language)
+
+${readLangTemplate("NativeModule_template", language)
     .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
-    .replace("%USE_EMPTY%", useEmpty.toString())}
-// #region GENERATED API
-  ${methods.join("\n  ")}
-// #endregion
-${readLangTemplate("NativeModule_epilogue", language)}
+    .replace("%USE_EMPTY%", useEmpty.toString())
+    .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))}
 `
 }
 
@@ -101,15 +99,12 @@ export function nativeModuleEmptyDeclaration(methods: string[]): string {
     return `
 ${importTsInteropTypes}
 import { NativeModuleBase } from "./NativeModuleBase"
-import { NativeModule, NodePointer, PipelineContext } from "./NativeModule"
+import { NativeModule, NativeModuleIntegrated, NodePointer, PipelineContext } from "./NativeModule"
 import { nullptr } from "@koalaui/interop"
 
-${readTemplate('NativeModuleEmpty_prologue.ts')}
-
-${methods.join("\n")}
-
-${readTemplate('NativeModuleEmpty_epilogue.ts')}
-`.trim()
+${readTemplate('NativeModuleEmpty_template.ts')
+    .replaceAll("%GENERATED_EMPTY_METHODS%", methods.join('\n'))}
+`
 }
 
 export function bridgeCcDeclaration(bridgeCc: string[]): string {
@@ -409,6 +404,8 @@ ${epilogue}
 export function copyPeerLib(from: string, arkoala: ArkoalaInstall) {
     const tsBase = path.join(from, 'ts')
     copyDir(tsBase, arkoala.tsDir)
+    const tsArkoalaBase = path.join(from, 'ts/arkoala')
+    copyDir(tsArkoalaBase, arkoala.tsArkoalaDir)
     const cppBase = path.join(from, 'cpp')
     copyDir(cppBase, arkoala.nativeDir)
     let subdirs = ['node', 'arkts', 'jni', 'legacy']

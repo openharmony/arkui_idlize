@@ -59,7 +59,7 @@ export function generateEventsBridgeSignature(language: Language): Method {
         default:
             throw new Error("Not implemented")
     }
-    return new Method(`CheckArkoalaEvents`, signature)
+    return new Method(`CheckArkoalaGeneratedEvents`, signature)
 }
 
 export function groupCallbacks(callbacks: CallbackInfo[]): Map<string, CallbackInfo[]> {

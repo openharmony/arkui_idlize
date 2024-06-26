@@ -18,7 +18,8 @@
         "baseUrl": ".",
         "paths": {
             "@arkoala/arkui": ["./generated/subset/koalaui/arkoala-arkui/src", "./"],
-            "@arkoala/arkui/*": ["./generated/subset/koalaui/arkoala-arkui/src/*", "./*"]
+            "@arkoala/arkui/*": ["./generated/subset/koalaui/arkoala-arkui/src/*", "./*"],
+            "@koalaui/arkoala": ["./generated/subset/koalaui/arkoala/src/generated", "./"]
         },
     },
     "include": [
