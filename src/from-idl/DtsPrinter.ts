@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { indentedBy, stringOrNone } from "../util"
-import { IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
+import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
     getVerbatimDts,
     hasExtAttribute,
     isCallback,
@@ -27,7 +27,7 @@ export class CustomPrintVisitor  {
 
     visit(node: IDLEntry) {
         if (isInterface(node) || isClass(node)) {
-            this.printClass(node)
+            this.printInterface(node)
         } else if (isMethod(node) || isConstructor(node)) {
             this.printMethod(node)
         } else if (isProperty(node)) {
@@ -45,49 +45,56 @@ export class CustomPrintVisitor  {
         }
     }
 
-    computeDeclaration(node: IDLInterface): string {
-        let keyword = hasExtAttribute(node, "Class") ? "class" : "interface"
-        let typeOrExtends = ""
-        if (hasExtAttribute(node, "Component")) {
-            if (node.name == "CommonMethod")
-                typeOrExtends = "<T>"
-            else
-                typeOrExtends = ` extends CommonMethod<${getExtAttribute(node, "Component")}Attribute>`
-        }
-        if (hasExtAttribute(node, "Parametrized")) {
-            typeOrExtends = `<${getExtAttribute(node, "Parametrized")}>`
-        }
-        return `${keyword} ${node.name}${typeOrExtends}`
-    }
-
     currentInterface?: IDLInterface
 
-    printClass(node: IDLInterface) {
-        // restore globalScope 
-        if (hasExtAttribute(node,"GlobalScope")) {
-            node.methods.map(it => this.printMethod(it, true))
-            return
-        }
-        this.print(`declare ${this.computeDeclaration(node)} {`)
-        this.currentInterface = node
-        this.pushIndent()
-        node.constructors.map(it => this.visit(it))
-        node.properties.map(it => this.visit(it))
-        node.methods.map(it => this.visit(it))
-        node.callables.map(it => this.visit(it))
-        let verbatim = getVerbatimDts(node)
-        if (verbatim) {
-            verbatim
-                .split("\n")
-                .map(it => this.print(it))
-        }
+    printInterface(node: IDLInterface) {
+        let typeOrExtends = typeParamSpec(node)
+        const entity = getExtAttribute(node, "Entity")
+        if (entity === IDLEntity.Literal) {
+            this.print(`declare type ${node.name}${typeOrExtends} = { ${
+                node.properties.map(it => `${it.name}: ${printTypeForTS(it.type)}`).join(", ")
+            } }`)
+        } else if (entity === IDLEntity.Tuple) {
+            this.print(`declare type ${node.name}${typeOrExtends} = [ ${
+                node.properties.map(it => `${printTypeForTS(it.type)}`).join(", ")
+            } ]`)
+        } else if (entity === IDLEntity.NamedTuple) {
+            this.print(`declare type ${node.name}${typeOrExtends} = [ ${
+                node.properties.map(it => `${it.name}: ${printTypeForTS(it.type)}`).join(", ")
+            } ]`)
+        } else {
+            // restore globalScope
+            if (hasExtAttribute(node,"GlobalScope")) {
+                node.methods.map(it => this.printMethod(it, true))
+                return
+            }
+            if (hasExtAttribute(node, "Component")) {
+                if (node.name == "CommonMethod")
+                    typeOrExtends = "<T>"
+                else
+                    typeOrExtends = ` extends CommonMethod<${getExtAttribute(node, "Component")}Attribute>`
+            }
+            this.print(`declare ${entity!.toLowerCase()} ${node.name}${typeOrExtends} {`)
+            this.currentInterface = node
+            this.pushIndent()
+            node.constructors.map(it => this.visit(it))
+            node.properties.map(it => this.visit(it))
+            node.methods.map(it => this.visit(it))
+            node.callables.map(it => this.visit(it))
+            let verbatim = getVerbatimDts(node)
+            if (verbatim) {
+                verbatim
+                    .split("\n")
+                    .map(it => this.print(it))
+            }
 
-        this.popIndent()
-        this.print("}")
-        if (hasExtAttribute(node, "Component")) {
-            let name = getExtAttribute(node, "Component")
-            this.print(`declare const ${name}Instance: ${name}Attribute;`)
-            this.print(`declare const ${name}: ${name}Interface;`)
+            this.popIndent()
+            this.print("}")
+            if (hasExtAttribute(node, "Component")) {
+                let name = getExtAttribute(node, "Component")
+                this.print(`declare const ${name}Instance: ${name}Attribute;`)
+                this.print(`declare const ${name}: ${name}Interface;`)
+            }
         }
     }
 
@@ -181,7 +188,7 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type))
         return `${mapContainerType(type.name)}<${type.elementType.map(it => printTypeForTS(it)).join("\n")}>`
-    if (isReferenceType(type)) return `${type.name}`
+    if (isReferenceType(type)) return `${type.name}${typeParamSpec(type)}`
     if (isUnionType(type)) return `(${type.types.map(it => printTypeForTS(it, undefinedToVoid)).join("|")})`
     if (isEnumType(type)) return type.name
     if (isTypeParameterType(type)) return type.name
@@ -195,4 +202,9 @@ function mapContainerType(idlName: string): string {
         case "Promise": return "Promise"
         default: throw new Error(`Unmapped container type: ${idlName}`)
     }
+}
+
+function typeParamSpec(node: IDLEntry): string {
+    const typeParamsAttr = getExtAttribute(node, "TypeParameters")
+    return typeParamsAttr ? `<${typeParamsAttr}>` : ""
 }

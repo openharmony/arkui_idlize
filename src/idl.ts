@@ -21,6 +21,7 @@ export enum IDLKind {
     Class,
     AnonymousInterface,
     Callback,
+    Const,
     Property,
     Parameter,
     Method,
@@ -37,6 +38,14 @@ export enum IDLKind {
     TypeParameterType,
     ModuleType,
     TupleInterface
+}
+
+export enum IDLEntity {
+    Class = "Class",
+    Interface = "Interface",
+    Literal = "Literal",
+    NamedTuple = "NamedTuple",
+    Tuple = "Tuple"
 }
 
 export interface IDLExtendedAttribute {
@@ -119,6 +128,13 @@ export interface IDLEnumMember extends IDLEntry {
     initializer: number | string | undefined
 }
 
+export interface IDLConstant extends IDLTypedEntry {
+    name: string
+    kind: IDLKind.Const
+    type: IDLType
+    value: string
+}
+
 export interface IDLProperty extends IDLTypedEntry {
     name: string
     kind: IDLKind.Property
@@ -165,6 +181,7 @@ export interface IDLInterface extends IDLEntry {
     kind: IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface | IDLKind.TupleInterface
     inheritance: IDLType[]
     constructors: IDLConstructor[]
+    constants: IDLConstant[]
     properties: IDLProperty[]
     methods: IDLMethod[]
     callables: IDLFunction[]
@@ -360,7 +377,15 @@ export function printType(type: IDLType | undefined): string {
     if (!type) throw new Error("Missing type")
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) return `${type.name}<${type.elementType.map(printType).join(", ")}>`
-    if (isReferenceType(type)) return `${type.name}`
+    if (isReferenceType(type)) {
+        const attrs = type.extendedAttributes?.map(it => {
+            let attr = it.name
+            if (it.value) attr += `=${it.value}`
+            return attr
+        })
+        const attrSpec = attrs ? `[${attrs.join(", ")}] ` : ""
+        return `${attrSpec}${type.name}`
+    }
     if (isUnionType(type)) return `(${type.types.map(printType).join(" or ")})`
     if (isEnumType(type)) return type.name
     if (isTypeParameterType(type)) return type.name
@@ -388,6 +413,13 @@ export function nameWithType(
     const variadic = isVariadic ? "..." : ""
     const optional = isOptional ? "optional " : ""
     return `${optional}${type}${variadic} ${idl.name}`
+}
+
+function printConstant(idl: IDLConstant): stringOrNone[] {
+    return [
+        ...printExtendedAttributes(idl, 1),
+        indentedBy(`const ${nameWithType(idl)} = ${idl.value};`, 1)
+    ]
 }
 
 function printProperty(idl: IDLProperty): stringOrNone[] {
@@ -467,6 +499,7 @@ export function printInterface(idl: IDLInterface): stringOrNone[] {
         // TODO: type system hack!
     ]
         .concat(idl.constructors.map(printConstructor).flat())
+        .concat(idl.constants.map(printConstant).flat())
         .concat(idl.properties.map(printProperty).flat())
         .concat(idl.methods.map(printMethod).flat())
         .concat(idl.callables.map(printFunction).flat())
@@ -476,7 +509,11 @@ export function printInterface(idl: IDLInterface): stringOrNone[] {
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
     const type = printType(idl.type)
     const initializer = type == "DOMString" ? `"${idl.initializer}"` : idl.initializer
-    return [indentedBy(`${type} ${idl.name}${initializer ? ` = ${initializer}` : ``};`, 1)]
+    return [
+        idl.documentation,
+        ...printExtendedAttributes(idl, 0),
+        `${type} ${idl.name}${initializer ? ` = ${initializer}` : ``};`
+    ].map(it => it ? indentedBy(it, 1) : undefined)
 }
 
 export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone[] {
@@ -495,7 +532,7 @@ export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone
             `dictionary ${idl.name!} {`,
             ...idl.elements.map(printEnumMember) as any,
             "};"
-        ]
+        ].flat()
     }
 }
 

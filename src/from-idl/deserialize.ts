@@ -74,6 +74,7 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
         constructors: node.members
             .filter(isConstructor)
             .map(it => toIDLConstructor(file, it)),
+        constants: [],
         properties: node.members
             .filter(isAttribute)
             .map(it => toIDLProperty(file, it)),
@@ -238,10 +239,10 @@ function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLE
 function toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): IDLExtendedAttribute[]|undefined {
     // TODO: be smarter about RHS.
     return extAttrs.map(it => {
-        return {
-            name: it.name,
-            value: it.rhs?.value ? it.rhs?.value : undefined
-        } as IDLExtendedAttribute
+        const value = it.rhs?.value instanceof Array
+            ? it.rhs.value.map(v => v.value).join(",")
+            : it.rhs?.value
+        return { name: it.name, value: value }
     })
 }
 
