@@ -35,6 +35,7 @@ void dummyClassFinalizer(KNativePointer* ptr) {
 }
 
 namespace OHOS::Ace::NG {
+namespace Bridge {
 Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags) {
     Ark_NodeHandle result = (Ark_NodeHandle) 123;
     if (!needGroupedLog(1)) {
@@ -50,6 +51,61 @@ Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
     appendGroupedLog(1, out);
     return result;
 }
+
+void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method) {}
+void RegisterCustomNodeEventReceiver(%CPP_PREFIX%CustomEventReceiver eventReceiver) {}
+int CheckEvent(%CPP_PREFIX%Ark_NodeEvent* event) {
+    return 0;
+}
+void SendAsyncEvent(%CPP_PREFIX%Ark_NodeEvent* event) {}
+void CallContinuation(Ark_Int32 continuationId, Ark_Int32 argCount, %CPP_PREFIX%Ark_EventCallbackArg* args) {}
+}
+
+Ark_Float32 GetDensity(Ark_Int32 deviceId) {
+    Ark_Float32 result = 1.0f;
+
+    if (!needGroupedLog(1)) {
+        return result;
+    }
+
+    string out("getDensity(");
+    WriteToString(&out, deviceId);
+    out.append(")");
+    appendGroupedLog(1, out);
+
+    return result;
+}
+
+Ark_Float32 GetFontScale(Ark_Int32 deviceId) {
+    Ark_Float32 result = 1.0f;
+
+    if (!needGroupedLog(1)) {
+        return result;
+    }
+
+    string out("getFontScale(");
+    WriteToString(&out, deviceId);
+    out.append(")");
+    appendGroupedLog(1, out);
+
+    return result;
+}
+
+Ark_Float32 GetDesignWidthScale(Ark_Int32 deviceId) {
+    Ark_Float32 result = 1.0f;
+
+    if (!needGroupedLog(1)) {
+        return result;
+    }
+
+    string out("getDesignWidthScale(");
+    WriteToString(&out, deviceId);
+    out.append(")");
+    appendGroupedLog(1, out);
+
+    return result;
+}
+
 namespace ApiImpl {
 Ark_NodeHandle GetNodeByViewStack() {
     Ark_NodeHandle result = (Ark_NodeHandle) 234;
@@ -199,5 +255,72 @@ Ark_Float32 ConvertLengthMetricsUnit(Ark_Float32 value, Ark_Int32 originUnit, Ar
     appendGroupedLog(1, out);
     return result;
 }
+
+void SetCustomMethodFlag(Ark_NodeHandle node, Ark_Int32 flag) {}
+Ark_Int32 GetCustomMethodFlag(Ark_NodeHandle node) {
+    return 0;
+}
+void RegisterCustomNodeAsyncEvent(Ark_NodeHandle node, Ark_Int32 eventType, void* extraParam) {}
+Ark_Int32 UnregisterCustomNodeEvent(Ark_NodeHandle node, Ark_Int32 eventType) {
+    return 0;
+}
+
+void SetCustomCallback(Ark_VMContext context, Ark_NodeHandle node, Ark_Int32 callback) {}
+
+Ark_Int32 MeasureLayoutAndDraw(Ark_VMContext vmContext, Ark_NodeHandle rootPtr) {
+    return 0;
+}
+
+Ark_Int32 MeasureNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data) {
+    return 0;
+}
+
+Ark_Int32 LayoutNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data) {
+    return 0;
+}
+
+Ark_Int32 DrawNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data) {
+    return 0;
+}
+
+void SetAttachNodePtr(Ark_NodeHandle node, void* value) {}
+void* GetAttachNodePtr(Ark_NodeHandle node) {
+    return nullptr;
+}
+void SetMeasureWidth(Ark_NodeHandle node, Ark_Int32 value) {}
+
+Ark_Int32 GetMeasureWidth(Ark_NodeHandle node) {
+    return 0;
+}
+
+void SetMeasureHeight(Ark_NodeHandle node, Ark_Int32 value) {}
+Ark_Int32 GetMeasureHeight(Ark_NodeHandle node) {
+    return 0;
+}
+void SetX(Ark_NodeHandle node, Ark_Int32 value) {}
+void SetY(Ark_NodeHandle node, Ark_Int32 value) {}
+Ark_Int32 GetX(Ark_NodeHandle node) {
+    return 0;
+}
+Ark_Int32 GetY(Ark_NodeHandle node) {
+    return 0;
+}
+void SetAlignment(Ark_NodeHandle node, Ark_Int32 value) {}
+Ark_Int32 GetAlignment(Ark_NodeHandle node) {
+    return 0;
+}
+void GetLayoutConstraint(Ark_NodeHandle node, Ark_Int32* value) {}
+Ark_Int32 IndexerChecker(Ark_VMContext vmContext, Ark_NodeHandle nodePtr) {
+    return 0;
+}
+void SetRangeUpdater(Ark_NodeHandle nodePtr, Ark_Int32 updaterId) {}
+void SetLazyItemIndexer(Ark_VMContext vmContext, Ark_NodeHandle nodePtr, Ark_Int32 indexerId) {}
+Ark_PipelineContext GetPipelineContext(Ark_NodeHandle node) {
+    return nullptr;
+}
+void SetVsyncCallback(Ark_VMContext vmContext, Ark_PipelineContext pipelineContext, Ark_Int32 callbackId) {}
+void UnblockVsyncWait(Ark_VMContext vmContext, Ark_PipelineContext pipelineContext) {}
+void SetChildTotalCount(Ark_NodeHandle node, Ark_Int32 totalCount) {}
+void ShowCrash(Ark_CharPtr message) {}
 }
 }

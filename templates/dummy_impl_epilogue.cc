@@ -1,3 +1,9 @@
+const %CPP_PREFIX%Ark_UtilsModifier utilsImpl = {
+    OHOS::Ace::NG::GetDensity,
+    OHOS::Ace::NG::GetFontScale,
+    OHOS::Ace::NG::GetDesignWidthScale
+};
+const %CPP_PREFIX%Ark_UtilsModifier* %CPP_PREFIX%GetUtilsModifier() { return &utilsImpl; }
 
 const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {
     %CPP_PREFIX%ARKUI_FULL_API_VERSION, // version
@@ -12,7 +18,7 @@ const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI() { return &fullAPIIm
 
 const %CPP_PREFIX%ArkUIBasicNodeAPI basicNodeAPIImpl = {
     %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, // version
-    OHOS::Ace::NG::CreateNode,
+    OHOS::Ace::NG::Bridge::CreateNode,
     OHOS::Ace::NG::ApiImpl::GetNodeByViewStack,
     OHOS::Ace::NG::ApiImpl::DisposeNode,
     OHOS::Ace::NG::ApiImpl::AddChild,
@@ -29,7 +35,43 @@ const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI() { return &basicNo
 
 const %CPP_PREFIX%ArkUIExtendedNodeAPI extendedNodeAPIImpl = {
     %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, // version
-    SetAppendGroupedLog
+    SetAppendGroupedLog,
+    %CPP_PREFIX%GetUtilsModifier,
+    OHOS::Ace::NG::Bridge::SetCallbackMethod,
+    OHOS::Ace::NG::ApiImpl::SetCustomMethodFlag,
+    OHOS::Ace::NG::ApiImpl::GetCustomMethodFlag,
+    OHOS::Ace::NG::ApiImpl::RegisterCustomNodeAsyncEvent,
+    OHOS::Ace::NG::ApiImpl::UnregisterCustomNodeEvent,
+    OHOS::Ace::NG::Bridge::RegisterCustomNodeEventReceiver,
+    OHOS::Ace::NG::ApiImpl::SetCustomCallback,
+    OHOS::Ace::NG::ApiImpl::MeasureLayoutAndDraw,
+    OHOS::Ace::NG::ApiImpl::MeasureNode,
+    OHOS::Ace::NG::ApiImpl::LayoutNode,
+    OHOS::Ace::NG::ApiImpl::DrawNode,
+    OHOS::Ace::NG::ApiImpl::SetAttachNodePtr,
+    OHOS::Ace::NG::ApiImpl::GetAttachNodePtr,
+    OHOS::Ace::NG::ApiImpl::SetMeasureWidth,
+    OHOS::Ace::NG::ApiImpl::GetMeasureWidth,
+    OHOS::Ace::NG::ApiImpl::SetMeasureHeight,
+    OHOS::Ace::NG::ApiImpl::GetMeasureHeight,
+    OHOS::Ace::NG::ApiImpl::SetX,
+    OHOS::Ace::NG::ApiImpl::GetX,
+    OHOS::Ace::NG::ApiImpl::SetY,
+    OHOS::Ace::NG::ApiImpl::GetY,
+    OHOS::Ace::NG::ApiImpl::GetLayoutConstraint,
+    OHOS::Ace::NG::ApiImpl::SetAlignment,
+    OHOS::Ace::NG::ApiImpl::GetAlignment,
+    OHOS::Ace::NG::ApiImpl::IndexerChecker,
+    OHOS::Ace::NG::ApiImpl::SetRangeUpdater,
+    OHOS::Ace::NG::ApiImpl::SetLazyItemIndexer,
+    OHOS::Ace::NG::ApiImpl::GetPipelineContext,
+    OHOS::Ace::NG::ApiImpl::SetVsyncCallback,
+    OHOS::Ace::NG::ApiImpl::UnblockVsyncWait,
+    OHOS::Ace::NG::Bridge::CheckEvent,
+    OHOS::Ace::NG::Bridge::SendAsyncEvent,
+    OHOS::Ace::NG::Bridge::CallContinuation,
+    OHOS::Ace::NG::ApiImpl::SetChildTotalCount,
+    OHOS::Ace::NG::ApiImpl::ShowCrash
 };
 const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI() { return &extendedNodeAPIImpl; }
 

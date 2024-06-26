@@ -152,9 +152,9 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
     return result
 }
 
-export function appendApiImpl(): LanguageWriter {
+export function appendViewModelBridge(): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
-    let body = readTemplate('api_impl.cc')
+    let body = readTemplate('view_model_bridge.cc')
 
     body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
 

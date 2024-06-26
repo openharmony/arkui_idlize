@@ -19,7 +19,7 @@ import { accessorStructList,
          cStyleCopyright,
          completeModifiersContent,
          appendModifiersCommonPrologue,
-         appendApiImpl,
+         appendViewModelBridge,
          makeFileNameFromClassName,
          modifierStructList,
          warning } from "../FileGenerators";
@@ -360,7 +360,7 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
             .concat(accessorStructList(accessorList))
 
         printModifiersCommonImplFile(commonFilePath, commonFileContent, options)
-        printApiImplFile(libace.apiImpl, options)
+        printApiImplFile(libace.viewModelBridge, options)
     }
 }
 
@@ -388,7 +388,7 @@ export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: La
 
 export interface Namespaces {
     generated: string,
-    impl: string
+    base: string
 }
 
 export interface ModifierFileOptions {
@@ -443,7 +443,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.impl)
+        writer.pushNamespace(options.namespaces.base)
     }
     writer.concat(appendModifiersCommonPrologue())
 
@@ -473,15 +473,16 @@ function printApiImplFile(filePath: string, options: ModifierFileOptions) {
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
 
+    writer.writeInclude('core/interfaces/arkoala/arkoala_api.h')
     writer.writeInclude('arkoala_api_generated.h')
     writer.writeInclude('base/utils/utils.h')
     writer.writeInclude('core/pipeline/base/element_register.h')
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.impl)
+        writer.pushNamespace(options.namespaces.base)
     }
-    writer.concat(appendApiImpl())
+    writer.concat(appendViewModelBridge())
 
     if (options.namespaces) {
         writer.popNamespace()

@@ -179,13 +179,8 @@ typedef enum {
     %CPP_PREFIX%ARKUI_DIRTY_FLAG_MEASURE_SELF_AND_PARENT = 0b10000,
     %CPP_PREFIX%ARKUI_DIRTY_FLAG_MEASURE_BY_CHILD_REQUEST = 0b100000,
     %CPP_PREFIX%ARKUI_DIRTY_FLAG_RENDER = 0b1000000,
-    %CPP_PREFIX%ARKUI_DIRTY_FLAG_MEASURE_SELF_AND_CHILLD = 0b1000000000,
+    %CPP_PREFIX%ARKUI_DIRTY_FLAG_MEASURE_SELF_AND_CHILD = 0b1000000000,
 } %CPP_PREFIX%ArkUIDirtyFlag;
-
-typedef void* %CPP_PREFIX%Ark_VMContext;
-
-struct %CPP_PREFIX%_Ark_PipelineContext;
-typedef struct %CPP_PREFIX%_Ark_PipelineContext* %CPP_PREFIX%Ark_PipelineContext;
 
 union %CPP_PREFIX%Ark_EventCallbackArg {
     Ark_Int32 i32;
@@ -196,7 +191,7 @@ union %CPP_PREFIX%Ark_EventCallbackArg {
 typedef union %CPP_PREFIX%Ark_EventCallbackArg %CPP_PREFIX%Ark_EventCallbackArg;
 
 typedef struct %CPP_PREFIX%Ark_APICallbackMethod {
-    Ark_Int32 (*CallInt) (%CPP_PREFIX%Ark_VMContext vmContext, Ark_Int32 methodId, Ark_Int32 numArgs, %CPP_PREFIX%Ark_EventCallbackArg* args);
+    Ark_Int32 (*CallInt) (Ark_VMContext vmContext, Ark_Int32 methodId, Ark_Int32 numArgs, %CPP_PREFIX%Ark_EventCallbackArg* args);
 } %CPP_PREFIX%Ark_APICallbackMethod;
 
 typedef struct %CPP_PREFIX%Ark_UtilsModifier {
@@ -332,7 +327,7 @@ typedef struct %CPP_PREFIX%Ark_TouchEvent {
     Ark_Boolean stopPropagation;
 
     /**
-     * @brief Block the current node's defaultevent handling behaviur, allowing events
+     * @brief Block the current node's default event handling behavior, allowing events
      * to bubble up further.
      */
     Ark_Boolean preventDefault;
@@ -410,6 +405,8 @@ typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
 //    const %CPP_PREFIX%ArkUIBasicAPI* (*getBasicModifier)();
 //} %CPP_PREFIX%ArkUIBasicNodeAPI;
 
+typedef void (*%CPP_PREFIX%CustomEventReceiver)(%CPP_PREFIX%Ark_CustomNodeEvent* event);
+
 typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     Ark_Int32 version;
 
@@ -425,15 +422,15 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
 
     void (*registerCustomNodeAsyncEvent)(Ark_NodeHandle nodePtr, Ark_Int32 kind, void* extraParam);
     Ark_Int32(*unregisterCustomNodeAsyncEvent)(Ark_NodeHandle nodePtr, Ark_Int32 kind);
-    void (*registerCustomNodeAsyncEventReceiver)(void* eventReceiver, %CPP_PREFIX%Ark_CustomNodeEvent* event);
+    void (*registerCustomNodeAsyncEventReceiver)(%CPP_PREFIX%CustomEventReceiver eventReceiver);
 
     // setCustomCallback is without the context
-    void (*setCustomCallback) (Ark_NodeHandle node, Ark_Int32 callbackId);
+    void (*setCustomCallback) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Int32 callbackId);
     // make void instead return type Ark_Int32
-    void (*measureLayoutAndDraw) (%CPP_PREFIX%Ark_VMContext vmContext, Ark_NodeHandle node);
-    Ark_Int32 (*measureNode) (%CPP_PREFIX%Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data);
-    Ark_Int32 (*layoutNode) (%CPP_PREFIX%Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data);
-    Ark_Int32 (*drawNode) (%CPP_PREFIX%Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data);
+    Ark_Int32 (*measureLayoutAndDraw) (Ark_VMContext  vmContext, Ark_NodeHandle node);
+    Ark_Int32 (*measureNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32* data);
+    Ark_Int32 (*layoutNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32* data);
+    Ark_Int32 (*drawNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32* data);
     void (*setAttachNodePtr) (Ark_NodeHandle node, void* value);
     void* (*getAttachNodePtr) (Ark_NodeHandle node);
 
@@ -451,20 +448,20 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     void (*setAlignment)(Ark_NodeHandle node, Ark_Int32 value);
     Ark_Int32 (*getAlignment)(Ark_NodeHandle node);
 
-    Ark_Int32 (*indexerChecker) (%CPP_PREFIX%Ark_VMContext vmContext, Ark_NodeHandle node);
+    Ark_Int32 (*indexerChecker) (Ark_VMContext  vmContext, Ark_NodeHandle node);
     void (*setRangeUpdater)(Ark_NodeHandle node, Ark_Int32 updatedId);
-    void (*setLazyItemIndexer) (%CPP_PREFIX%Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Int32 indexerId);
+    void (*setLazyItemIndexer) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Int32 indexerId);
 
     /// Vsync support
-    %CPP_PREFIX%Ark_PipelineContext (*getPipelineContext)(Ark_NodeHandle node);
-    void (*setVsyncCallback)(%CPP_PREFIX%Ark_VMContext vmContext, %CPP_PREFIX%Ark_PipelineContext pipelineContext, Ark_Int32 callbackId);
-    void (*unblockVsyncWait)(%CPP_PREFIX%Ark_VMContext vmContext, %CPP_PREFIX%Ark_PipelineContext pipelineContext);
+    Ark_PipelineContext (*getPipelineContext)(Ark_NodeHandle node);
+    void (*setVsyncCallback)(Ark_VMContext  vmContext, Ark_PipelineContext pipelineContext, Ark_Int32 callbackId);
+    void (*unblockVsyncWait)(Ark_VMContext  vmContext, Ark_PipelineContext pipelineContext);
 
     /// Events
     /**
      * Returns != 0 if an event was received,
      * fills in supplied buffer in such a case
-     * Must not block, blockint is performed by
+     * Must not block, blocking is performed by
      * ArkoalaHostApi.waitForVsync().
     */
    Ark_Int32 (*checkEvent)(%CPP_PREFIX%Ark_NodeEvent* event);
@@ -473,7 +470,7 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     * it will be picked up later by checkEvent().
    */
   void (*sendEvent)(%CPP_PREFIX%Ark_NodeEvent* event);
-
+  void (*callContinuation)(Ark_Int32 continuationId, Ark_Int32 argCount, %CPP_PREFIX%Ark_EventCallbackArg* args);
   void (*setChildTotalCount)(Ark_NodeHandle node, Ark_Int32 totalCount);
 
   /// Error reporting.

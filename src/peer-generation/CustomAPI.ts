@@ -5,7 +5,7 @@ import { capitalize } from "../util";
 
 
 const K_VMCONTEXT_TYPE = new Type("KVMContext");
-const ARK_VMCONTEXT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_VMContext`);
+const ARK_VMCONTEXT_TYPE = new Type(`Ark_VMContext`);
 
 const K_NATIVE_POINTER_TYPE = new Type("KNativePointerArray");
 const ARK_FLOAT32_ARRAY_PTR_TYPE = new Type(`Ark_Float32*`);
@@ -33,7 +33,7 @@ const RECEIVER_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}EventReceiver`)
 const ARK_NODE_EVENT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_NodeEvent`)
 
 const PIPELINE_CONTEXT_TYPE = new Type(`PipelineContext`)
-const ARK_PIPELINE_CONTEXT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_PipelineContext`)
+const ARK_PIPELINE_CONTEXT_TYPE = new Type(`Ark_PipelineContext`)
 
 export class CustomAPI {
 
@@ -128,15 +128,12 @@ export const CUSTOM_API: CustomAPI[] = [
 
         method(`setVsyncCallback`, Type.Void, [K_VMCONTEXT_TYPE, PIPELINE_CONTEXT_TYPE, Type.Int32], ["vmContext", "pipelineContext", "callbackId"]),
         method(`unblockVsyncWait`, Type.Void, [K_VMCONTEXT_TYPE, PIPELINE_CONTEXT_TYPE], ["vmContext", "pipelineContext"]),
-
+        method(`setCustomCallback`, Type.Void, [K_VMCONTEXT_TYPE, Type.Pointer, Type.Int32], ["vmContext", "nodePtr", "updaterId"]),
     ], true),
 
     // ExtendedNodeAPI
     new CustomAPI(
         "ExtendedNodeAPI", [
-        // setCustomCallback is without the context
-        method(`setCustomCallback`, Type.Void, [Type.Pointer, Type.Int32], ["nodePtr", "updaterId"]),
-
         method(`setMeasureWidth`, Type.Void, [Type.Pointer, Type.Int32], ["nodePtr", "value"]),
         method(`getMeasureWidth`, Type.Int32, [Type.Pointer], ["nodePtr"]),
         method(`setMeasureHeight`, Type.Void, [Type.Pointer, Type.Int32], ["nodePtr", "value"]),

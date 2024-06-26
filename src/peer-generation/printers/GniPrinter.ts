@@ -49,8 +49,8 @@ export class GniVisitor {
         })
 
         this.gni.print(`"../arkoala/utility/utils.cpp",`)
-        this.gni.print(`"../arkoala/generated/interface/api_impl.cpp",`)
-        this.gni.print(`"../arkoala/generated/interface/all_modifiers.cpp",`)
+        this.gni.print(`"../arkoala/implementation/view_model_bridge.cpp",`)
+        this.gni.print(`"../arkoala/implementation/all_modifiers.cpp",`)
 
         this.gni.popIndent()
         this.gni.print("]")

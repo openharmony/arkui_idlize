@@ -56,7 +56,6 @@ import { printApiAndSerializers } from "./peer-generation/printers/HeaderPrinter
 import { printNodeTypes } from "./peer-generation/printers/NodeTypesPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/printers/NativeModulePrinter"
 import { printBridgeCc } from "./peer-generation/printers/BridgeCcPrinter"
-import { printDelegatesAsMultipleFiles } from "./peer-generation/printers/DelegatePrinter"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
 import { printEvents, printEventsCImpl } from "./peer-generation/printers/EventsPrinter"
 import { printGniSources } from "./peer-generation/printers/GniPrinter"
@@ -347,8 +346,8 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
     // printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
     printRealModifiersAsMultipleFiles(peerLibrary, libace, {
         namespaces: {
-            generated: "OHOS::Ace::NG::GeneratedModifier",
-            impl: "OHOS::Ace::NG"
+            base: "OHOS::Ace::NG",
+            generated: "OHOS::Ace::NG::GeneratedModifier"
         },
         basicVersion: 1,
         fullVersion: options.apiVersion,

@@ -72,9 +72,17 @@ typedef void* Ark_NativePointer;
 
 #ifdef FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
 typedef struct _ArkUINode* Ark_NodeHandle;
+typedef struct _ArkUIVMContext* Ark_VMContext;
+typedef struct _ArkUIPipelineContext* Ark_PipelineContext;
 #else
 struct Ark_NodeHandleOpaque;
 typedef struct Ark_NodeHandleOpaque* Ark_NodeHandle;
+
+struct Ark_VMContextOpaque;
+typedef struct Ark_VMContextOpaque* Ark_VMContext;
+
+struct Ark_PipelineContextOpaque;
+typedef struct Ark_PipelineContextOpaque* Ark_PipelineContext;
 #endif
 
 struct Ark_ObjectHandleOpaque;
