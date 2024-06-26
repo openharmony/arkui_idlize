@@ -155,7 +155,7 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
             node.kind == ts.SyntaxKind.EndOfFileToken) {
             // Do nothing.
         } else {
-            throw new Error(`Unknown node: ${node.kind}`)
+            throw new Error(`Unknown node: ${node.kind} ${node.getText()}`)
         }
     }
 
@@ -388,7 +388,7 @@ class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
             return []
         }
         return super.convertHeritageClause(clause)
-    }    
+    }
 }
 
 class ComponentsCompleter {
@@ -814,7 +814,7 @@ export class PeerProcessor {
             return components
         const entryComponents = components.filter(it => this.componentsToGenerate!.has(it.name))
         return components.filter(component => {
-            return entryComponents.includes(component) 
+            return entryComponents.includes(component)
                 // entryComponents.some(entryComponent => isSubclassComponent(this.declarationTable.typeChecker!, entryComponent, component))
         })
     }
@@ -881,4 +881,3 @@ export class PeerProcessor {
         }
     }
 }
-

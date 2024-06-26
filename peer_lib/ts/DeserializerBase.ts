@@ -96,10 +96,10 @@ export class DeserializerBase {
         return value == 1
     }
 
-    private static _stubFunction() {}
-    readFunction(): Object {
+    readFunction(): any {
+        // TODO: not exactly correct.
         const id = this.readInt32()
-        return DeserializerBase._stubFunction
+        return id
     }
 
     readMaterialized(): object {

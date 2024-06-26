@@ -801,9 +801,6 @@ export class TSLanguageWriter extends LanguageWriter {
     makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
         return new TSCastExpression(value, type, unsafe)
     }
-    mapType(type: Type): string {
-        return `${type.name}`
-    }
     getObjectAccessor(convertor: BaseArgConvertor, param: string, value: string, args?: ObjectArgs): string {
         if (convertor instanceof OptionConvertor || convertor instanceof UnionConvertor) {
             return value
@@ -878,6 +875,12 @@ export class TSLanguageWriter extends LanguageWriter {
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, new Type('string')).asString()})`);
     }
+    mapType(type: Type, convertor?: ArgConvertor): string {
+        switch (type.name) {
+            case 'Function': return 'Object'
+        }
+        return type.name
+    }
 }
 
 export class ETSLanguageWriter extends TSLanguageWriter {
@@ -909,7 +912,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             case 'int32': case 'KInt': return 'int'
             case 'KStringPtr': return 'String'
             case 'KLength': return 'Object'
-            case 'Function': return 'Object'
             case 'number': return 'double'
         }
         return super.mapType(type)

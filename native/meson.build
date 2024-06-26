@@ -105,6 +105,11 @@ if is_clang
 cflags += ['-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable', '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations', '-Wno-unknown-warning-option']
 endif
 
+if is_msvc
+# Avoid using COMDAT to not exceed COFF file limits, see https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1128?view=msvc-170
+cflags += ['/Gy-']
+endif
+
 node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + node_library_name ]
 node_include_dirs = [
     '../node_modules/node-api-headers/include',
