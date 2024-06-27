@@ -20,6 +20,7 @@
 #include <jni.h>
 #include <assert.h>
 
+#include <cmath>
 #include <vector>
 #include <string>
 #include <tuple>
@@ -212,7 +213,7 @@ struct InteropTypeConverter<KInteropNumber> {
     static KInteropNumber convertFrom(JNIEnv* env, InteropType value) {
         KInteropNumber result;
         // TODO: boundary check
-        if (value == floor(value)) {
+        if (value == std::floor(value)) {
             result.tag = 102; // ARK_TAG_INT32
             result.i32 = (int)value;
         } else {
@@ -238,7 +239,7 @@ template<>
 struct InteropTypeConverter<KLength> {
     using InteropType = jstring;
     static KLength convertFrom(JNIEnv* env, InteropType value) {
-        KLength result;
+        KLength result = { 0 };
 
         if (value == nullptr) {
             result.type = -1; // ARK_RUNTIME_UNEXPECTED
