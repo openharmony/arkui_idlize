@@ -477,6 +477,24 @@ ${importTsInteropTypes}
 `
 }
 
+export function tsCopyrightAndWarning(content: string): string {
+    return `${cStyleCopyright}
+
+// ${warning}
+
+${content}
+`
+}
+
+
+export function peerFileTemplate(content: string): string {
+    return tsCopyrightAndWarning(content)
+}
+
+export function componentFileTemplate(content: string): string {
+    return tsCopyrightAndWarning(content)
+}
+
 export function makePeerEvents(data: string): string {
     return `
 import { Deserializer } from './Deserializer'

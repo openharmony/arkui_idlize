@@ -26,6 +26,7 @@ import { componentToPeerClass } from "./PeersPrinter";
 import { OverloadsPrinter, collapseSameNamedMethods } from "./OverloadsPrinter";
 import { LanguageWriter, Method, MethodModifier, MethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
 import { convertToCallback } from "./EventsPrinter";
+import { tsCopyrightAndWarning } from "../FileGenerators";
 
 function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -179,7 +180,8 @@ export function printComponents(peerLibrary: PeerLibrary): Map<string, string> {
     const result = new Map<string, string>()
     for (const [key, writer] of visitor.components) {
         if (writer.getOutput().length === 0) continue
-        result.set(key, writer.getOutput().join('\n'))
+        const text = tsCopyrightAndWarning(writer.getOutput().join('\n'))
+        result.set(key, text)
     }
     return result
 }

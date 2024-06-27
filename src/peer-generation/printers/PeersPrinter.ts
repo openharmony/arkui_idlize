@@ -34,6 +34,7 @@ import {
 } from "../LanguageWriters";
 import { MaterializedMethod } from "../Materialized";
 import { collectDtsImports } from "../DtsImportsGenerator";
+import { tsCopyrightAndWarning } from "../FileGenerators";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -240,7 +241,8 @@ export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): M
     const result = new Map<string, string>()
     for (const [key, content] of visitor.peers) {
         if (content.length === 0) continue
-        result.set(key, content.join('\n'))
+        const text = tsCopyrightAndWarning(content.join('\n'))
+        result.set(key, text)
     }
     return result
 }

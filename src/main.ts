@@ -418,7 +418,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")
         )
     }
-        
+
     if (lang == Language.TS) {
         // todo I think we want to generate them for ARKTS too
         const interfaces = printInterfaces(peerLibrary, lang)

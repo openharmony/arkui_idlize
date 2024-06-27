@@ -19,7 +19,7 @@ import { PeerLibrary } from "../PeerLibrary";
 import { writePeerMethod } from "./PeersPrinter"
 import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature } from "../LanguageWriters";
 import { MaterializedClass, MaterializedMethod } from "../Materialized"
-import { makeMaterializedPrologue } from "../FileGenerators";
+import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
 import { OverloadsPrinter, groupOverloads } from "./OverloadsPrinter";
 
 import { printPeerFinalizer } from "./PeersPrinter"
@@ -227,7 +227,8 @@ export function printMaterialized(peerLibrary: PeerLibrary, dumpSerialized: bool
     const result = new Map<string, string>()
     for (const [key, content] of visitor.materialized) {
         if (content.length === 0) continue
-        result.set(key, content.join('\n'))
+        const text = tsCopyrightAndWarning(content.join('\n'))
+        result.set(key, text)
     }
     return result
 }
