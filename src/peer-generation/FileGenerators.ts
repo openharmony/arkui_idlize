@@ -21,6 +21,7 @@ import { createLanguageWriter, LanguageWriter, PrinterLike } from "./LanguageWri
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./printers/EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
+import { writeConvertors } from "./printers/ConvertorsPrinter"
 import { PeerLibrary } from "./PeerLibrary"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
 
@@ -255,7 +256,25 @@ export function makeJavaSerializerWriter(library: PeerLibrary): LanguageWriter {
     return result
 }
 
+export function makeConvertors(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
+    const userConvertors = createLanguageWriter(Language.CPP)
+    writeConvertors(library, userConvertors)
+    return `
+#pragma once
+
+#include <optional>
+#include <cstdlib>
+#include "arkoala_api_generated.h"
+#include "base/log/log_wrapper.h"
+
+namespace OHOS::Ace::NG::GeneratedModifier::Convert {
+${userConvertors.getOutput().join("\n")}
+}
+`
+}
+
 export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
+
     const serializers = createLanguageWriter(Language.CPP)
     const writeToString = createLanguageWriter(Language.CPP)
     serializers.print("\n// Serializers\n")

@@ -15,14 +15,15 @@
 
 
 import { IndentedPrinter } from "../../IndentedPrinter";
-import { makeAPI, makeCSerializers } from "../FileGenerators";
+import { makeAPI, makeCSerializers, makeConvertors } from "../FileGenerators";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { CallbackInfo, collectCallbacks, groupCallbacks } from "./EventsPrinter";
 import { DeclarationTable, PrimitiveType } from "../DeclarationTable";
-import { NamedMethodSignature, Type } from "../LanguageWriters";
+import { NamedMethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
+import { Language } from "../../util";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -155,7 +156,7 @@ class HeaderVisitor {
     }
 }
 
-export function printApiAndSerializers(apiVersion: string|undefined, peerLibrary: PeerLibrary): {api: string, serializers: string} {
+export function printApiAndSerializers(apiVersion: string|undefined, peerLibrary: PeerLibrary): {api: string, serializers: string, convertors: string} {
     const apiHeader = new IndentedPrinter()
     const modifierList = new IndentedPrinter()
     const accessorList = new IndentedPrinter()
@@ -167,8 +168,9 @@ export function printApiAndSerializers(apiVersion: string|undefined, peerLibrary
     const structs = new IndentedPrinter()
     const typedefs = new IndentedPrinter()
 
+    const convertors = makeConvertors(peerLibrary, structs, typedefs)
     const serializers = makeCSerializers(peerLibrary, structs, typedefs)
     const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), structs, typedefs)
 
-    return {api, serializers}
+    return {api, serializers, convertors}
 }

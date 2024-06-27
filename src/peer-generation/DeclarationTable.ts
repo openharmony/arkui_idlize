@@ -661,6 +661,58 @@ export class DeclarationTable {
         structs.print(`${this.cFieldKind(field.declaration)}${field.optional ? PrimitiveType.OptionalPrefix : ""}${this.computeTargetName(field.declaration, false)} ${field.name};`)
     }
 
+    allOptionalTypes(): Set<string> {
+        const seenNames = new Set<string>()
+        seenNames.clear()
+        for (let target of this.orderedDependencies) {
+            let nameAssigned = this.computeTargetName(target, false)
+            if (nameAssigned === PrimitiveType.Tag.getText(this)) {
+                continue
+            }
+            if (!nameAssigned) {
+                throw new Error(`No assigned name for ${(target as ts.TypeNode).getText()} shall be ${this.computeTargetName(target, false)}`)
+            }
+            if (seenNames.has(nameAssigned)) continue
+            let nameOptional = PrimitiveType.OptionalPrefix + nameAssigned
+            seenNames.add(nameOptional)
+        }
+        return seenNames
+    }
+
+    allUnionTypes() {
+
+        type UnionType = {
+            typename: string;
+            selectors: Selector[];
+        }
+
+        type Selector = {
+            id: number;
+            name: string;
+        }
+
+        const unions: UnionType[] = []
+        for (let target of this.orderedDependencies) {
+            let nameAssigned = this.computeTargetName(target, false)
+            if (nameAssigned === PrimitiveType.Tag.getText(this)) {
+                continue
+            }
+            if (!nameAssigned) {
+                throw new Error(`No assigned name for ${(target as ts.TypeNode).getText()} shall be ${this.computeTargetName(target, false)}`)
+            }
+
+            if (this.isMaybeWrapped(target, ts.isUnionTypeNode)) {
+                const selectors: Selector[] = []
+                this.targetStruct(target).getFields().forEach((field, index) => {
+                    if (index === 0) return
+                    selectors.push({ id: index, name: field.name })
+                })
+                unions.push({ typename: nameAssigned, selectors: selectors })
+            }
+        }
+        return unions
+    }
+
     generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         const seenNames = new Set<string>()
         seenNames.clear()
@@ -865,6 +917,24 @@ export class DeclarationTable {
         printer.print(`}`)
         printer.popIndent()
         printer.print(`result->append("}");`)
+        printer.print(`}`)
+    }
+
+    writeOptionalConvertor(nameOptional: string, printer: LanguageWriter, isPointer: boolean) {
+        printer.print(`template <>`)
+        printer.print(`inline void convertor(const ${nameOptional}* value) {`)
+        printer.pushIndent()
+        printer.print(`if (value->tag != ${PrimitiveType.UndefinedTag}) {`)
+        printer.pushIndent()
+        printer.print(`convertor(${isPointer ? "&" : ""}value->value);`)
+        printer.popIndent()
+        printer.print(`} else {`)
+        printer.pushIndent()
+        printer.print(`${PrimitiveType.Undefined.getText()} undefined = { 0 };`)
+        printer.print(`convertor(undefined);`)
+        printer.popIndent()
+        printer.print(`}`)
+        printer.popIndent()
         printer.print(`}`)
     }
 

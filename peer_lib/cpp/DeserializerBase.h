@@ -132,6 +132,9 @@ inline void parseDimension(const Ark_String &string, Ark_Length *result)
   }
 }
 
+template <typename T>
+inline void convertor(T value) = delete;
+
 // TODO: restore full printing!
 template <typename T>
 inline void WriteToString(string *result, T value) = delete;

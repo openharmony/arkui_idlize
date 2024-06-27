@@ -354,8 +354,9 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
         extendedVersion: 6,
     })
 
-    const { api, serializers } = printApiAndSerializers(options.apiVersion, peerLibrary)
+    const { api, serializers, convertors } = printApiAndSerializers(options.apiVersion, peerLibrary)
     fs.writeFileSync(libace.generatedArkoalaApi, api)
+    fs.writeFileSync(libace.userConvertors, convertors)
 
     if (!options.libaceDestination) {
         const mesonBuild = printMesonBuild(peerLibrary)
