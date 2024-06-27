@@ -237,11 +237,7 @@ declare enum BlurType {
     BEHIND_WINDOW = 1
 }
 
-declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {
-    policy?: BlurStyleActivePolicy;
-    inactiveColor?: ResourceColor;
-    type?: BlurType;
-}
+declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {}
 
 declare interface SizeResult {
     width: number,
