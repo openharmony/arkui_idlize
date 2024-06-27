@@ -32,7 +32,7 @@ void addType(const std::string& type, std::string* result) {
         result->append("F");
     else if (type == "Ark_NativePointer" || type == "KNativePointer")
         result->append("J");
-    else if (type == "Ark_Float32") 
+    else if (type == "Ark_Float32")
         result->append("J");
     else if (type == "KByte*" || type == "uint8_t*")
         result->append("[B");
@@ -101,7 +101,7 @@ std::string convertType(const char* name, const char* koalaType) {
         for (int i = 1; i < (int)tokens.size(); i++)
         {
             params.append("arg");
-            params.append(std::to_string(i));            
+            params.append(std::to_string(i));
             params.append(": ");
             params.append(etsType(tokens[i]));
             if (i < (int)(tokens.size() - 1))
@@ -113,6 +113,6 @@ std::string convertType(const char* name, const char* koalaType) {
     return result;
 }
 
-void EtsExports::addImpl(const char* name, const char* type, void* impl) {
-    implementations.push_back(std::make_tuple(name, convertType(name, type), impl));
+void EtsExports::addImpl(const char* name, const char* type, void* impl, int flags) {
+    implementations.push_back(std::make_tuple(name, convertType(name, type), impl, flags));
 }
