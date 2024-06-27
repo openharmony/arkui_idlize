@@ -48,6 +48,7 @@ import { convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./dependencies_collector";
 import { convertDeclToFeature } from "./ImportsCollector";
 import { addSyntheticDeclarationDependency, isSyntheticDeclaration, makeSyntheticTypeAliasDeclaration } from "./synthetic_declaration";
+import { isBuilderClass, isCustomBuilderClass, toBuilderClass } from "./BuilderClass";
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -241,7 +242,7 @@ function tempExtractParameters(method: ts.ConstructorDeclaration | ts.MethodDecl
     return Array.from(method.parameters)
 }
 
-function generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
+export function generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration): NamedMethodSignature {
     const parameters = tempExtractParameters(method)
     const returnName = identName(method.type)!
     const returnType = returnName === "void" ? Type.Void
@@ -660,6 +661,20 @@ export class PeerProcessor {
         return this.library.declarationTable
     }
 
+    private processBuilder(target: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+        let name = nameOrNull(target.name)!
+        if (this.library.builderClasses.has(name)) {
+            return
+        }
+
+        if (isCustomBuilderClass(name)) {
+            return
+        }
+
+        const builderClass = toBuilderClass(name, target, this.declarationTable.typeChecker!)
+        this.library.builderClasses.set(name, builderClass)
+    }
+
     private processMaterialized(target: ts.InterfaceDeclaration | ts.ClassDeclaration) {
         let name = nameOrNull(target.name)!
         if (this.library.materializedClasses.has(name)) {
@@ -847,9 +862,13 @@ export class PeerProcessor {
             const file = this.library.findFileByOriginalFilename(this.getDeclSourceFile(dep).fileName)!
             const isPeerDecl = this.library.isComponentDeclaration(dep)
 
-            if (!isPeerDecl && (ts.isClassDeclaration(dep) || ts.isInterfaceDeclaration(dep)) && isMaterialized(dep)) {
-                this.processMaterialized(dep)
-                continue
+            if (!isPeerDecl && (ts.isClassDeclaration(dep) || ts.isInterfaceDeclaration(dep))) {
+                if (isBuilderClass(dep)) {
+                    this.processBuilder(dep)
+                } else if (isMaterialized(dep)) {
+                    this.processMaterialized(dep)
+                    continue
+                }
             }
 
             if (ts.isEnumDeclaration(dep)) {

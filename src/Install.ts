@@ -48,6 +48,9 @@ export class ArkoalaInstall extends Install{
     component(name: string): string {
         return path.join(this.langDir(), name)
     }
+    builderClass(name: string): string {
+        return path.join(this.langDir(), name)
+    }
     materialized(name: string): string {
         return path.join(this.langDir(), name)
     }

@@ -13,6 +13,17 @@
  * limitations under the License.
  */
 
+declare enum SelectedMode {
+
+  INDICATOR,
+  BOARD
+}
+
+interface BoardStyle {
+
+  borderRadius?: Length;
+}
+
 interface IndicatorStyle {
 
     color?: ResourceColor;
@@ -42,16 +53,27 @@ declare class SubTabBarStyle {
 
     constructor(content: ResourceStr);
 
-    // constructor(content: ResourceStr | ComponentContent);
+    constructor(content: ResourceStr | ComponentContent);
 
     static of(content: ResourceStr): SubTabBarStyle;
 
-    static of(content: ResourceStr | string): SubTabBarStyle;
+    static of(content: ResourceStr | ComponentContent): SubTabBarStyle;
 
     indicator(value: IndicatorStyle): SubTabBarStyle;
 
+    selectedMode(value: SelectedMode): SubTabBarStyle;
+
+    board(value: BoardStyle): SubTabBarStyle;
+
+    labelStyle(value: LabelStyle): SubTabBarStyle;
+
+    padding(value: Padding | Dimension): SubTabBarStyle;
+
+    padding(padding: LocalizedPadding): SubTabBarStyle;
+
     id(value: string): SubTabBarStyle;
 }
+
 declare interface  TabContentInterface { 
     ():  TabContentAttribute
 }

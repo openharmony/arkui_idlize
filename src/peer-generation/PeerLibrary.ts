@@ -19,6 +19,7 @@ import { MaterializedClass } from "./Materialized";
 import { PeerClass } from "./PeerClass";
 import { PeerFile } from "./PeerFile";
 import { ComponentDeclaration } from './PeerGeneratorVisitor';
+import { BuilderClass } from './BuilderClass';
 
 export type PeerLibraryOutput = {
     outputC: string[]
@@ -26,6 +27,7 @@ export type PeerLibraryOutput = {
 
 export class PeerLibrary {
     public readonly files: PeerFile[] = []
+    public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public readonly materializedClasses: Map<string, MaterializedClass> = new Map()
 
     constructor(

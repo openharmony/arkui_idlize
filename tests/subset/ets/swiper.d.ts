@@ -17,15 +17,15 @@ declare class Indicator<T> {
 
   left(value: Length): T;
 
-//   top(value: Length): T;
-//
-//   right(value: Length): T;
-//
-//   bottom(value: Length): T;
+  top(value: Length): T;
 
-//   start(value: LengthMetrics): T;
-//
-//   end(value: LengthMetrics): T;
+  right(value: Length): T;
+
+  bottom(value: Length): T;
+
+  start(value: LengthMetrics): T;
+
+  end(value: LengthMetrics): T;
 
   static dot(): DotIndicator;
 
@@ -38,7 +38,9 @@ declare class DotIndicator extends Indicator<DotIndicator> {
 
   itemWidth(value: Length): DotIndicator;
 
-//   itemHeight(value: Length): DotIndicator;
+  itemHeight(value: Length): DotIndicator;
+
+
 //
 //   selectedItemWidth(value: Length): DotIndicator;
 //

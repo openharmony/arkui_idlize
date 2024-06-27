@@ -63,6 +63,7 @@ import { printMesonBuild } from "./peer-generation/printers/MesonPrinter"
 import { printInterfaces } from "./peer-generation/printers/InterfacePrinter"
 import { printConflictedDeclarations } from "./peer-generation/printers/ConflictedDeclarationsPrinter"
 import { printFakeDeclarations } from "./peer-generation/printers/FakeDeclarationsPrinter"
+import { printBuilderClasses } from "./peer-generation/printers/BuilderClassPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -392,6 +393,12 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         if (options.verbose) console.log(component)
         writeFile(outComponentFile, component, true)
         arkuiComponentsFiles.push(outComponentFile)
+    }
+
+    const builderClasses = printBuilderClasses(peerLibrary, options.dumpSerialized ?? false)
+    for (const [targetBasename, builderClass] of builderClasses) {
+        const outBuilderFile = arkoala.builderClass(targetBasename)
+        fs.writeFileSync(outBuilderFile, builderClass)
     }
 
     const materialized = printMaterialized(peerLibrary, options.dumpSerialized ?? false)

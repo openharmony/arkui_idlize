@@ -698,6 +698,9 @@ export abstract class LanguageWriter {
     mapType(type: Type, convertor?: ArgConvertor): string {
         return type.name
     }
+    mapFiledModifier(modifier: FieldModifier): string {
+        return `${FieldModifier[modifier].toLowerCase()}`
+    }
     mapMethodModifier(modifier: MethodModifier): string {
         return `${MethodModifier[modifier].toLowerCase()}`
     }

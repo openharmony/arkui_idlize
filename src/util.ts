@@ -480,6 +480,17 @@ export function renameDtsToInterfaces(fileName: string, language: Language, with
     return renamed
 }
 
+export function renameClassToBuilderClass(className: string, language: Language, withFileExtension: boolean = true) {
+    const renamed = "Ark"
+        .concat(snakeCaseToCamelCase(className))
+        .concat("Builder")
+
+    if (withFileExtension) {
+        return renamed.concat(language.extension)
+    }
+    return renamed
+}
+
 export function renameClassToMaterialized(className: string, language: Language, withFileExtension: boolean = true) {
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(className))

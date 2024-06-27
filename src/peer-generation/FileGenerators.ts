@@ -237,11 +237,15 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
 
 export function makeTSSerializer(library: PeerLibrary): string {
     let printer = createLanguageWriter(library.declarationTable.language)
+    const builderClassImports = Array.from(library.builderClasses.keys())
+        .map(it => `import { ${it} } from "@arkoala/arkui/Ark${it}Builder"`)
     writeSerializer(library, printer)
     return `
 import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"
+
+${builderClassImports.join("\n")}
 
 ${printer.getOutput().join("\n")}
 

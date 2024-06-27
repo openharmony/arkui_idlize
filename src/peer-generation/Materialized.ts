@@ -22,6 +22,7 @@ import { PeerClassBase } from "./PeerClass"
 import { DeclarationTarget, PrimitiveType } from "./DeclarationTable"
 import { ImportFeature } from "./ImportsCollector"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
+import { isBuilderClass } from "./BuilderClass"
 
 export function checkTSDeclarationMaterialized(declaration: ts.Declaration): boolean {
     return (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) && isMaterialized(declaration)
@@ -37,6 +38,10 @@ export function isMaterialized(declaration: ts.InterfaceDeclaration | ts.ClassDe
 
     if (PeerGeneratorConfig.isMaterializedIgnored(name)) {
         return false;
+    }
+
+    if (isBuilderClass(declaration)) {
+        return false
     }
 
     // TODO: parse Builder classes separatly

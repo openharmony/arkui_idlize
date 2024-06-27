@@ -15,7 +15,7 @@
 
 import * as ts from 'typescript'
 import * as path from "path"
-import { getOrPut, nameOrNull, renameClassToMaterialized, renameDtsToInterfaces } from "../util";
+import { getOrPut, nameOrNull, renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces } from "../util";
 import { LanguageWriter } from "./LanguageWriters";
 import { PeerLibrary } from './PeerLibrary';
 import { isMaterialized } from './Materialized';
@@ -23,6 +23,7 @@ import { DeclarationNameConvertor } from './dependencies_collector';
 import { PeerGeneratorConfig } from './PeerGeneratorConfig';
 import { convertDeclaration } from './TypeNodeConvertor';
 import { syntheticDeclarationFilename, isSyntheticDeclaration } from './synthetic_declaration';
+import { isBuilderClass } from './BuilderClass';
 
 export type ImportsCollectorFilter = (feature: string, module: string) => boolean
 
@@ -84,8 +85,13 @@ export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration)
         throw "Expected parent of declaration to be a SourceFile"
     const originalBasename = path.basename(node.parent.fileName)
     let fileName = renameDtsToInterfaces(originalBasename, library.declarationTable.language)
-    if ((ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node)) && isMaterialized(node) && !library.isComponentDeclaration(node))
-        fileName = renameClassToMaterialized(nameOrNull(node.name)!, library.declarationTable.language)
+    if ((ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node)) && !library.isComponentDeclaration(node)) {
+        if (isBuilderClass(node)) {
+            fileName = renameClassToBuilderClass(nameOrNull(node.name)!, library.declarationTable.language)
+        } else if (isMaterialized(node)) {
+            fileName = renameClassToMaterialized(nameOrNull(node.name)!, library.declarationTable.language)
+        }
+    }
 
     const basename = path.basename(fileName)
     const basenameNoExt = basename.replaceAll(path.extname(basename), '')

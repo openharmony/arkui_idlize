@@ -25,7 +25,7 @@ import { ArkNavigationPeer } from "@arkoala/arkui/ArkNavigationPeer"
 import { ArkSideBarContainerPeer } from "@arkoala/arkui/ArkSidebarPeer"
 import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
 import { ArkTabContentPeer } from "@arkoala/arkui/ArkTabContentPeer"
-import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleMaterialized"
+import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleBuilder"
 import { CanvasRenderingContext2D } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
@@ -294,24 +294,17 @@ function checkNavigation() {
 function checkTabContent() {
     let peer = new ArkTabContentPeer(ArkUINodeType.TabContent)
 
-    let subTabBarStyle: SubTabBarStyle| undefined = undefined
+    let subTabBarStyle: SubTabBarStyle = new SubTabBarStyle("Resource").id("testID")
+    assertEquals("SubTabBarStyle id", "testID", subTabBarStyle._id)
 
+    // TBD: Check that id field is passed to native
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = new SubTabBarStyle("abc")),
-        `new SubTabBarStyle({0, .value0={"abc", 3}})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]tabBar({0, .value0="Materialized 0x2a"})`)
-    assertEquals("SubTabBarStyle ptr", 100, subTabBarStyle!.peer!.ptr)
-    assertTrue("SubTabBarStyle finalizer", subTabBarStyle!.peer!.finalizer != nullptr)
+        `tabBar({0, .value0={{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}}})`)
 
 
-    checkResult("new SubTabBarStyle()",
-        () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = SubTabBarStyle.of("ABC")),
-        `of({0, .value0={"ABC", 3}})[return (void*) 300]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]tabBar({0, .value0="Materialized 0x2a"})`)
-    assertEquals("SubTabBarStyle.of() ptr", 300, subTabBarStyle!.peer!.ptr)
-    assertTrue("SubTabBarStyle finalizer", subTabBarStyle!.peer!.finalizer != nullptr)
-
-    checkResult("SubTabBarStyle peer close()",
-        () => subTabBarStyle!.peer!.close(),
-        `dummyClassFinalizer(0x12c)`)
+    // TBD: check SubTabBarStyle is created from static method
+    // subTabBarStyle = SubTabBarStyle.of("Resource2")
 }
 
 function checkCanvasRenderingContext2D() {

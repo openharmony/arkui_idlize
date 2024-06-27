@@ -55,12 +55,28 @@ export class PeerGeneratorConfig {
         "CanvasPattern"
     ]
 
+    public static builderClasses = [
+        "SubTabBarStyle",
+        "BottomTabBarStyle",
+        "DotIndicator",
+        "DigitIndicator",
+    ]
 
-    private static ignoreMaterialized = [
+    private static ignoreStandardNames = [
         // standard exclusion
         "Attribute",
         "Interface",
         "Method",
+    ]
+
+    public static isStandardNameIgnored(name: string) {
+        for (const ignore of this.ignoreStandardNames) {
+            if (name.endsWith(ignore)) return true
+        }
+        return false
+    }
+
+    private static ignoreMaterialized = [
         // TBD
         "Event",
         "Configuration",
@@ -71,6 +87,8 @@ export class PeerGeneratorConfig {
     ]
 
     public static isMaterializedIgnored(name: string) {
+        if (this.isStandardNameIgnored(name)) return true
+
         for (const ignore of this.ignoreMaterialized) {
             if (name.endsWith(ignore)) return true
         }

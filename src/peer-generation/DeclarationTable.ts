@@ -32,6 +32,7 @@ import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
 import { PeerLibrary } from "./PeerLibrary"
 import { collectCallbacks } from "./printers/EventsPrinter"
 import { EnumMember, NodeArray } from "typescript";
+import { extractBuilderFields } from "./BuilderClass"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -1190,6 +1191,9 @@ export class DeclarationTable {
                 .filter(it => !isStatic(it.modifiers))
                 .forEach(it => {
                     result.addField(new FieldRecord(this.toTarget(it.type!), it.type!, identName(it.name)!, it.questionToken != undefined))
+                })
+                extractBuilderFields(clazz, this).forEach(field => {
+                    result.addField(field)
                 })
         } else {
             clazz

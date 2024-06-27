@@ -770,6 +770,8 @@ export class ClassConvertor extends InterfaceConvertor {
         super(name, param, declaration, table, type)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
+        if (this.tsTypeName === "SubTabBarStyle") return undefined
         return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
             [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
     }
@@ -1069,8 +1071,6 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
-        if (this.tsTypeName === "SubTabBarStyle") return undefined
         return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
             [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
     }

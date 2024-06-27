@@ -206,6 +206,7 @@ class MaterializedVisitor {
     ) {}
 
     printMaterialized(): void {
+        console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
         for (const clazz of this.library.materializedClasses.values()) {
             const visitor = new MaterializedFileVisitor(
                 this.library.declarationTable.language, this.library, clazz, this.dumpSerialized)

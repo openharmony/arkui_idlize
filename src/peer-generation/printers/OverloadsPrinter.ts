@@ -14,7 +14,7 @@
  */
 
 import { UndefinedConvertor, UnionRuntimeTypeChecker } from "../Convertors"
-import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression } from "../LanguageWriters";
+import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters";
 import { PeerClass, PeerClassBase } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { isDefined } from "../../util";
@@ -30,11 +30,13 @@ export function collapseSameNamedMethods(methods: Method[]): Method {
         const optional = methods.some(it => it.signature.args[argIndex]?.nullable ?? true)
         return new Type(name, optional)
     })
+    const maxMethod = methods.find(it => it.signature.args.length === maxArgLength)
     return new Method(
         methods[0].name,
-        new MethodSignature(
+        new NamedMethodSignature(
             methods[0].signature.returnType,
             collapsedArgs,
+            (maxMethod?.signature as NamedMethodSignature).argsNames
         ),
         methods[0].modifiers,
         methods[0].generics,
