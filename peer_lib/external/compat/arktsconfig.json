@@ -1,0 +1,7 @@
+{
+    "compilerOptions": {
+        "outDir": "build/abc",
+        "rootDir": "./arkts"
+    },
+    "include": ["./arkts/**/*"]
+}

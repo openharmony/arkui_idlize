@@ -1,0 +1,14 @@
+{
+    "name": "workspace",
+    "private": true,
+    "workspaces": [
+        "build-common",
+        "compat",
+        "common"
+    ],
+    "devDependencies": {
+        "typescript": "4.9.5"
+    },
+    "scripts": {
+    }
+}
