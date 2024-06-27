@@ -648,6 +648,9 @@ export abstract class LanguageWriter {
     makeUnionVariantCast(value: string, type: Type, index?: number): LanguageExpression {
         return this.makeString(`unsafeCast<${type.name}>(${value})`)
     }
+    makeUnionTypeDefaultInitializer() {
+        return this.makeRuntimeType(RuntimeType.UNDEFINED)
+    }
     makeRuntimeTypeGetterCall(value: string): LanguageExpression {
         return this.makeFunctionCall("runtimeType", [ this.makeString(value) ])
     }
@@ -1067,6 +1070,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeUnionVariantCast(value: string, type: Type, index: number) {
         return this.makeMethodCall(value, `getValue${index}`, [])
     }
+    makeUnionTypeDefaultInitializer() {
+        return this.makeString("-1")
+    }
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
     }
@@ -1129,6 +1135,10 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}.value`)
+    }
+    runtimeType(param: ArgConvertor, valueType: string, value: string) {
+        this.writeStatement(this.makeAssign(valueType, undefined,
+            this.makeRuntimeTypeGetterCall(value), false))
     }
 }
 

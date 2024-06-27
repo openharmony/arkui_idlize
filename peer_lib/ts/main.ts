@@ -29,7 +29,7 @@ import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleBuilder"
 import { CanvasRenderingContext2D } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
-import { testString1000 } from "@arkoala/arkui/test_data"
+import { testLength_10_lpx } from "@arkoala/arkui/test_data"
 import { deserializePeerEvent, PeerEventKind,
     CommonMethod_onChildTouchTest_event,
     List_onScrollVisibleContentChange_event,
@@ -367,7 +367,7 @@ function checkPerf3(count: number) {
     let peer = new ArkButtonPeer(ArkUINodeType.Button)
     let start = performance.now()
     for (let i = 0; i < count; i++) {
-        peer.widthAttribute(testString1000)
+        peer.widthAttribute(testLength_10_lpx)
     }
     let passed = performance.now() - start
     console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
@@ -470,8 +470,8 @@ checkSerdeBaseText()
 checkSerdeBasePrimitive()
 checkSerdeBaseCustomObject()
 
-checkPerf2(200 * 1000)
-checkPerf3(200 * 1000)
+checkPerf2(5 * 1000 * 1000)
+checkPerf3(5 * 1000 * 1000)
 
 startPerformanceTest()
 startNativeLog(CALL_GROUP_LOG)

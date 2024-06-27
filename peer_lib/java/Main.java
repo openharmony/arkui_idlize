@@ -19,9 +19,10 @@ public class Main {
     public static void main(String[] args) {
         long str = NativeModule._StringMake("Hello");
         System.out.println(NativeModule._StringLength(str));
-        Main.checkPerf(10*1000*1000);
+        //Main.checkPerf(10*1000*1000);
         //NativeModule._StartGroupedLog(1);
-        Main.checkSerializerPerf(10*1000*1000);
+        Main.checkPerf2(5*1000*1000);
+        Main.checkPerf3(5*1000*1000);
         //NativeModule._StopGroupedLog(1);
     }
 
@@ -47,22 +48,35 @@ public class Main {
         System.out.println("ARRAY: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
     }
 
-    static void checkSerializerPerf(int count) {
-        var data = new TestTupleUnionInterfaceDTS();
-        data.tuple = new Tuple_Union_Float_Boolean_Union_Float_StringInterfaceDTS();
-        data.tuple.value0 = new Union_Float_Boolean(false);
-        data.tuple.value1 = new Union_Float_StringInterfaceDTS(new StringInterfaceDTS());
-        data.tuple.value1.getValue1().valString = "Some test string";
-        long ptr = 0;
-
+    static void checkPerf2(int count) {
+        var peer = new ArkButtonPeerStub();
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            Serializer serializer = SerializerBase.get(Serializer::createSerializer, 0);
-            serializer.writeTestTupleUnionInterfaceDTS(data);
-            NativeModule._TestAttribute_testTupleInterface_TestTupleUnionInterfaceDTS(ptr, serializer.asArray(), serializer.length());
+            if (i % 2 == 0) {
+                peer.backdropBlurAttribute(i, null);
+            }
+            else {
+                BlurOptions options = new BlurOptions();
+                options.grayscale = new Tuple_Float_Float();
+                options.grayscale.value0 = 1.0f;
+                options.grayscale.value1 = 2.0f;
+                peer.backdropBlurAttribute(i, options);
+            }
         }
         long passed = System.currentTimeMillis() - start;
-        System.out.println("SERIALIZER: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
-    }}
+        System.out.println("backdropBlur: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
+    }
+    
+    static void checkPerf3(int count) {
+        var peer = new ArkButtonPeerStub();
+        var testLength_10_lpx = "10lpx";
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            peer.widthAttribute(testLength_10_lpx);
+        }
+        long passed = System.currentTimeMillis() - start;
+        System.out.println("widthAttributeString: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
+    }
+}
 
 // Old: JS 167ms per 1M, Java 15 ms per 1M

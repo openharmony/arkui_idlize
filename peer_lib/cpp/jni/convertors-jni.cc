@@ -81,7 +81,7 @@ void addType(const std::string &type, std::string *result)
     else if (type == "KStringPtr")
         result->append("Ljava/lang/String;");
     else if (type == "KLength")
-        result->append("Ljava/lang/Object;");
+        result->append("Ljava/lang/String;");
     else if (type == "KNativePointerArray")
         result->append("[J");
     else if (type == "KFloatArray")

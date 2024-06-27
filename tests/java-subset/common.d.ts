@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+declare interface BlurOptions {
+    grayscale: [number, number];
+}
 
 declare class CommonMethod<T> {
 
@@ -21,4 +24,6 @@ declare class CommonMethod<T> {
     width(value: Length): T;
 
     height(value: Length): T;
+
+    backdropBlur(value: number, options?: BlurOptions): T;
 }

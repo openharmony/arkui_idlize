@@ -372,7 +372,7 @@ export class LengthConvertor extends BaseArgConvertor {
         switch (language) {
             case Language.CPP: return 'KLength'
             case Language.TS: case Language.ARKTS: return 'string|number|object'
-            case Language.JAVA: return 'Object'
+            case Language.JAVA: return 'String'
             default: throw new Error("Unsupported language")
         }
     }
@@ -457,7 +457,7 @@ export class UnionConvertor extends BaseArgConvertor {
         throw new Error("Do not use for union")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeStatement(printer.makeAssign(`${value}_type`, Type.Int32, printer.makeRuntimeType(RuntimeType.UNDEFINED), true, false))
+        printer.writeStatement(printer.makeAssign(`${value}_type`, Type.Int32, printer.makeUnionTypeDefaultInitializer(), true, false))
         printer.writeStatement(printer.makeUnionSelector(value, `${value}_type`))
         this.memberConvertors.forEach((it, index) => {
             const maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""

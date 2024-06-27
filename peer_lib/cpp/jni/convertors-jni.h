@@ -206,6 +206,60 @@ struct SlowInteropTypeConverter<KNativePointer> {
     static void release(JNIEnv* env, InteropType value, KNativePointer converted) {}
 };
 
+template<>
+struct InteropTypeConverter<KInteropNumber> {
+    using InteropType = jdouble;
+    static KInteropNumber convertFrom(JNIEnv* env, InteropType value) {
+        KInteropNumber result;
+        // TODO: boundary check
+        if (value == floor(value)) {
+            result.tag = 102; // ARK_TAG_INT32
+            result.i32 = (int)value;
+        } else {
+            result.tag = 103; // ARK_TAG_FLOAT32
+            result.f32 = (float)value;
+        }
+        return result;
+    }
+    static InteropType convertTo(JNIEnv* env, KInteropNumber value) {
+        if (value.tag == 102) {
+            // ARK_TAG_INT32
+            return value.i32;
+        } else if (value.tag == 103) {
+            // ARK_TAG_FLOAT32
+            return value.f32;
+        }
+        throw "Error, unexpected KInteropNumber::tag";
+    }
+    static inline void release(JNIEnv* env, InteropType value, KInteropNumber converted) {}
+};
+
+template<>
+struct InteropTypeConverter<KLength> {
+    using InteropType = jstring;
+    static KLength convertFrom(JNIEnv* env, InteropType value) {
+        KLength result;
+
+        if (value == nullptr) {
+            result.type = -1; // ARK_RUNTIME_UNEXPECTED
+            return result;
+        }
+        jboolean isCopy;
+        const char* str_value = env->GetStringUTFChars(value, &isCopy);
+        int len = env->GetStringLength(value);
+        KStringPtr kStr(str_value, len, false);
+        parseKLength(kStr, &result);
+        env->ReleaseStringUTFChars(value, str_value);
+        result.type = 2; // ARK_RUNTIME_STRING
+        result.resource = 0;
+
+        return result;
+    }
+    static InteropType convertTo(JNIEnv* env, KLength value) {
+        throw "InteropTypeConverter<KLength>::convertTo not implemented yet";
+    }
+    static inline void release(JNIEnv* env, InteropType value, KLength converted) {}
+};
 
 template <typename Type>
 inline typename InteropTypeConverter<Type>::InteropType makeResult(JNIEnv* env, Type value) {

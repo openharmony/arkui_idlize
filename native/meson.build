@@ -102,7 +102,7 @@ ohos_library_name = 'NativeBridge_ohos'
 
 if is_clang
 # TODO: remove all -Wno-* when generation is fixed.
-cflags += ['-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable', '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations', '-Wno-unknown-warning-option']
+cflags += ['-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable', '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations', '-Wno-unknown-warning-option', '-Wno-parentheses-equality']
 endif
 
 if is_msvc
