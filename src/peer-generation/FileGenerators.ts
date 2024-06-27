@@ -98,7 +98,6 @@ ${readLangTemplate("NativeModule_template", language)
 export function nativeModuleEmptyDeclaration(methods: string[]): string {
     return `
 ${importTsInteropTypes}
-import { NativeModuleBase } from "./NativeModuleBase"
 import { NativeModule, NativeModuleIntegrated, NodePointer, PipelineContext } from "./NativeModule"
 import { nullptr } from "@koalaui/interop"
 

@@ -1,5 +1,4 @@
 import { NativeModuleEmpty } from "./NativeModuleEmpty"
-import { NativeModuleBase } from "./NativeModuleBase"
 import {
   NativeStringBase,
   providePlatformDefinedData,
@@ -50,18 +49,32 @@ providePlatformDefinedData({
     callbackRegistry(): CallbackRegistry | undefined { return undefined }
 })
 
-export interface NativeModuleIntegrated extends NativeModuleBase {
-// #region GENERATED API
-%GENERATED_METHODS%
-// #endregion
+export interface InteropOps {
+    _GetGroupedLog(index: KInt): KPointer
+    _StartGroupedLog(index: KInt): void
+    _StopGroupedLog(index: KInt): void
+    _GetStringFinalizer(): KPointer
+    _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void
+    _GetNodeFinalizer(): KPointer
+    _StringLength(ptr: KPointer): KInt
+    _StringData(ptr: KPointer, buffer: KUint8ArrayPtr, length: KInt): void
+    _StringMake(value: KStringPtr): KPointer
+    _ManagedStringWrite(value: KStringPtr, buffer: KUint8ArrayPtr, offset: KInt): KInt
+    _Test_Common_OnChildTouchTest(valueArray: Uint8Array, valueSerializerLength: KInt): void
+    _Test_List_OnScrollVisibleContentChange(valueArray: Uint8Array, valueSerializerLength: KInt): void
+    _Test_TextPicker_OnAccept(valueArray: Uint8Array, valueSerializerLength: KInt): void
+    _TestPerfNumber(value: KInt): KInt
+    _TestPerfNumberWithArray(value: KUint8ArrayPtr, length: KInt): void
+    _StartPerf(traceName: KStringPtr): void
+    _EndPerf(traceName: KStringPtr): void
+    _DumpPerf(options: KInt): KPointer
 }
 
-export interface NativeModule extends NativeModuleBase {
-// #region GENERATED API
-%GENERATED_METHODS%
-// #endregion
+export interface GraphicsOps {
+    // TODO fill me if needed
+}
 
-// #region BASIC NODE
+export interface NodeOps {
     _CreateNode(type: KInt, id: KInt, flags: KInt): NodePointer
     _GetNodeByViewStack(): NodePointer
     _DisposeNode(ptr: NodePointer): void
@@ -75,7 +88,7 @@ export interface NativeModule extends NativeModuleBase {
     _MarkDirty(ptr: NodePointer, flag: KUInt): void
     _IsBuilderNode(ptr: NodePointer): KBoolean
     _ConvertLengthMetricsUnit(value: KFloat, originUnit: KInt, targetUnit: KInt): KFloat
-// #endregion
+    // #endregion
 
     // getUtilsModifier
     // getCanvasRenderingContext2DModifier
@@ -87,7 +100,7 @@ export interface NativeModule extends NativeModuleBase {
     // unregisterCustomNodeAsyncEvent
     // registerCustomNodeAsyncEventReceiver
 
-// #region EXTENDED NODE
+    // #region EXTENDED NODE
     _SetCustomCallback(node: NodePointer, callbackId: KInt): void
     _MeasureLayoutAndDraw(root: NodePointer): void
     _MeasureNode(root: NodePointer, data: KFloat32ArrayPtr): KInt
@@ -121,15 +134,13 @@ export interface NativeModule extends NativeModuleBase {
     _SetVsyncCallback(pipelineContext: PipelineContext, callbackId: KInt): KInt
     _UnblockVsyncWait(pipelineContext: PipelineContext): KInt
 
-
-    // _CheckArkoalaEvents -> checkEvent
-    _CheckEvents(result: KInt32ArrayPtr, count: KInt): KInt
-    // _SendArkoalaEvent -> sedEvent
-    _SendEvent(event: KInt32ArrayPtr, count: KInt): void
-
     _SetChildTotalCount(ptr: NodePointer, value: KInt): void
-
-    // _Dump
     _ShowCrash(messagePtr: KStringPtr): void
-// #endregion
 }
+
+export interface ComponentOps {
+%GENERATED_METHODS%
+}
+
+export interface NativeModuleIntegrated extends InteropOps, /*GraphicsOps, NodeOps,*/ ComponentOps {}
+export interface NativeModule extends InteropOps, GraphicsOps, NodeOps, ComponentOps {}
