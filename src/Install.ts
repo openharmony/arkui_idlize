@@ -82,13 +82,15 @@ export class LibaceInstall extends Install {
     libace = this.mkdir(this.test ? path.join(this.outDir, "libace") : this.outDir)
     implementationDir = this.mkdir(path.join(this.libace, "implementation"))
     generatedInterface = this.mkdir(path.join(this.libace, "generated", "interface"))
-    generatedArkoalaApi = path.join(this.generatedInterface, "arkoala_api_generated.h")
-    userConvertors = path.join(this.generatedInterface, "convertors_generated.h")
-    gniComponents = path.join(this.generatedInterface, "node_interface.gni")
+    generatedUtility = this.mkdir(path.join(this.libace, "utility", "generated"))
+    userConvertors = path.join(this.generatedUtility, "convertors_generated.h")
     mesonBuild = path.join(this.libace, "meson.build")
-    allModifiers = path.join(this.generatedInterface, "all_modifiers.cpp")
+
     arkoalaMacros = this.interface("arkoala-macros.h")
+    generatedArkoalaApi = this.interface("arkoala_api_generated.h")
+    gniComponents = this.interface("node_interface.gni")
     viewModelBridge = this.implementation("view_model_bridge.cpp")
+    allModifiers = this.implementation("all_modifiers.cpp")
 
     interface(name: string) {
         return path.join(this.generatedInterface, name)
