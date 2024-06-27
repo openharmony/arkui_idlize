@@ -1089,7 +1089,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1, ETS_SLOW_NATIVE_FLAG)
       KVMContext ctx = (KVMContext)env; \
       impl_##name(ctx, p0); \
       releaseArgument(env, _p0, p0); \
-  }
+  } \
 MAKE_ETS_EXPORT(name, "void|" #P0, ETS_SLOW_NATIVE_FLAG)
 
 #define KOALA_INTEROP_CTX_V2(name, P0, P1)  \
@@ -1103,7 +1103,7 @@ MAKE_ETS_EXPORT(name, "void|" #P0, ETS_SLOW_NATIVE_FLAG)
       impl_##name(ctx, p0, p1); \
       releaseArgument(env, _p0, p0); \
       releaseArgument(env, _p1, p1); \
-  }
+  } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1, ETS_SLOW_NATIVE_FLAG)
 
 #endif // KOALA_ETS_NAPI

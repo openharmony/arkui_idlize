@@ -29,16 +29,32 @@ static bool registerNatives(EtsEnv *env, ets_class clazz)
     EtsExports *exports = EtsExports::getInstance();
     auto &impls = exports->getImpls();
     size_t numMethods = impls.size();
-    EtsNativeMethod *methods = new EtsNativeMethod[numMethods];
+    EtsNativeMethod *fastMethods = new EtsNativeMethod[numMethods];
+    EtsNativeMethod *slowMethods = new EtsNativeMethod[numMethods];
+    int numFastMethods = 0;
+    int numSlowMethods = 0;
     for (size_t i = 0; i < numMethods; i++)
-    {        
-        // Fill in native methods table!
-        methods[i].name = std::get<0>(impls[i]).c_str();
-        // TODO: convert signatures properly.
-        methods[i].signature = nullptr; // std::get<1>(impls[i]).c_str();
-        methods[i].func = std::get<2>(impls[i]);
+    {
+        if ((std::get<3>(impls[i]) & ETS_SLOW_NATIVE_FLAG) == 0) {
+            // Fill in native methods table!
+            fastMethods[numFastMethods].name = std::get<0>(impls[i]).c_str();
+            fastMethods[numFastMethods].signature = nullptr; // std::get<1>(impls[i]).c_str();
+            fastMethods[numFastMethods].func = std::get<2>(impls[i]);
+            numFastMethods++;
+        } else {
+            slowMethods[numSlowMethods].name = std::get<0>(impls[i]).c_str();
+            slowMethods[numSlowMethods].signature = nullptr; // std::get<1>(impls[i]).c_str();
+            slowMethods[numSlowMethods].func = std::get<2>(impls[i]);
+            numSlowMethods++;
+        }
     }
-    return registerNativeMethods(env, clazz, methods, numMethods);
+    fprintf(stderr, "%d slow %d fast\n", numSlowMethods, numFastMethods);
+    bool result = true;
+    if (numSlowMethods > 0)
+        result &= registerNativeMethods(env, clazz, slowMethods, numSlowMethods);
+    if (numFastMethods > 0)
+        result &= registerNativeMethods(env, clazz, fastMethods, numFastMethods);
+    return result;
 }
 
 // TODO: EtsNapiOnLoad() hook shall be used to register native, but unfortunately, env->FindClass("NativeModule.NativeModule")
