@@ -17,6 +17,7 @@ import { SerializerBase } from "@arkoala/arkui/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/DeserializerBase"
 import { Serializer } from "@arkoala/arkui/Serializer"
 import { Deserializer } from "@arkoala/arkui/Deserializer"
+import { registerCallback, callCallback } from "@arkoala/arkui/Events"
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
@@ -189,6 +190,33 @@ function checkNodeAPI() {
         `convertLengthMetricsUnit(1.230000, 10, 0)`
     )
     assertTrue("BasicNodeAPI convertLengthMetricsUnit result", Math.abs(12.3 - length) < 0.00001)
+}
+
+function checkCallback() {
+
+    const id1 = registerCallback((args, length) => 1001)
+    const id2 = registerCallback((args, length) => 1002)
+    assertTrue("Register callback 1", id1 != -1)
+    assertTrue("Register callback 1", id2 != -1)
+    assertTrue("Callback ids are different", id1 != id2)
+
+    const serializer = new Serializer()
+    assertEquals("Call callback 1", 1001, callCallback(id1, serializer.asArray(), serializer.length()))
+    assertEquals("Call callback 2", 1002, callCallback(id2, serializer.asArray(), serializer.length()))
+    assertEquals("Call disposed callback 1", -1, callCallback(id1, serializer.asArray(), serializer.length()))
+    assertEquals("Call disposed callback 2", -1, callCallback(id2, serializer.asArray(), serializer.length()))
+}
+
+function checkWriteFunction() {
+    const s = new Serializer()
+    s.writeFunction((value: number, flag: boolean) => flag ? value + 10 : value - 10)
+    // TBD: id is small number
+    const id = s.asArray()[0]
+    const args = new Serializer()
+    args.writeNumber(20)
+    args.writeBoolean(true)
+    // TBD: callCallback() result should be 30
+    assertEquals("Write function", 42, callCallback(id, args.asArray(), args.length()))
 }
 
 function checkButton() {
@@ -476,6 +504,8 @@ checkPerf3(5 * 1000 * 1000)
 startPerformanceTest()
 startNativeLog(CALL_GROUP_LOG)
 checkNodeAPI()
+checkCallback()
+checkWriteFunction()
 checkButton()
 checkCalendar()
 //checkDTS()

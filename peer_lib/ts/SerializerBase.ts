@@ -15,6 +15,7 @@
 import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
 import { nativeModule } from "@koalaui/arkoala"
+import { registerCallback as wrapCallback } from "./Events"
 // imports required intarfaces (now generation is disabled)
 // import { Resource, Length, PixelMap } from "@arkoala/arkui"
 /**
@@ -125,9 +126,11 @@ export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: 
     })
 }
 
-export function registerCallback(value: object|undefined): number {
-    // TODO: fix me!
-    return 42
+export function registerCallback(value: object|undefined): int32 {
+    return wrapCallback((args: Uint8Array, length: int32) => {
+        // TBD: deserialize the callback arguments and call the callback
+        return 42
+    })
 }
 
 export function registerMaterialized(value: object|undefined): number {
