@@ -1,0 +1,7 @@
+{
+    "ui": "tdd",
+    "spec": "./test/specification/*.test.ts",
+    "extension": ["ts"],
+    "exclude": "./test/specification/developtools_ace_ets2bundle/**/*",
+    "require": ["../test-utils/scripts/register"]
+}

@@ -114,7 +114,6 @@ export function withLength(valueLength: Length|undefined, body: (type: int32, va
     body(type, value, unit, resource)
 }
 
-
 export function withLengthArray(valueLength: Length|undefined, body: (valuePtr: Int32Array) => void) {
     withLength(valueLength, (type: int32, value, unit, resource) => {
         let array = new Int32Array(4)
