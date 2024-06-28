@@ -262,6 +262,11 @@ export function makeJavaSerializerWriter(library: PeerLibrary): LanguageWriter {
 
 export function makeConvertors(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): LanguageWriter {
     const userConvertors = createLanguageWriter(Language.CPP) as CppLanguageWriter
+    userConvertors.writeLines(cStyleCopyright)
+    userConvertors.writeLines(`/*
+ * ${warning}
+ */
+`)
     userConvertors.print("#pragma once")
     userConvertors.writeLines(`
 #include <optional>
