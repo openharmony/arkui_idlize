@@ -1,0 +1,18 @@
+{
+    "extends": "@koalaui/build-common/tsconfig.json",
+    "compilerOptions": {
+        "outDir": "build/lib/garbage",
+        "rootDir": ".",
+        "rootDirs": ["src", "test"],
+        "module": "CommonJS",
+        "plugins": [
+            { "transform": "@koalaui/compiler-plugin/build/lib/src/koala-transformer.js", "contextImport": "../../src/internals", "trace": false, "only_unmemoize": true }
+        ]
+    },
+    "include": ["src/**/*"],
+    "references": [
+        { "path": "../compiler-plugin" },
+        { "path": "../koala-common" },
+        { "path": "../compat" }
+    ]
+}

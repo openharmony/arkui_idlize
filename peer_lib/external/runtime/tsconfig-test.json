@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.json",
+    "include": ["src/**/*", "test/**/*"],
+    "references": [
+        { "path": "../compiler-plugin" },
+        { "path": "../koala-common" }
+    ]
+}
