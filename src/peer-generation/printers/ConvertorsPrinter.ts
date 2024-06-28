@@ -16,15 +16,18 @@ class ConvertorsPrinter {
 
         this.writer.print('template<typename T, typename P>')
         this.writer.print('void assign_to(std::optional<T>& dst, const P& src);')
+        this.writer.print("")
 
         this.writer.print('template<typename T, typename P>')
         this.writer.print('void assign_union_to(std::optional<T>& dst, const P& src);')
+        this.writer.print("")
 
         this.writer.print('template<typename T, typename P>')
         this.writer.print('void assign_optional_to(std::optional<T>& dst, const P& src);')
+        this.writer.print("")
 
-        this.writer.print('template<typename T>')
         this.table.allUnionTypes().forEach(union => {
+            this.writer.print('template<typename T>')
             this.writer.print(`void assign_union_to(std::optional<T>& dst, const ${ union.typename }& src) {`)
             this.writer.pushIndent()
             this.writer.print(`switch (src.selector) {`)
@@ -37,6 +40,7 @@ class ConvertorsPrinter {
             this.writer.print("}")
             this.writer.popIndent()
             this.writer.print("}")
+            this.writer.print("")
         })
 
     }

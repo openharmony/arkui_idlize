@@ -17,7 +17,7 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PrimitiveType } from "./DeclarationTable"
 import { Language } from "../util"
-import { createLanguageWriter, LanguageWriter, PrinterLike } from "./LanguageWriters"
+import { CppLanguageWriter, createLanguageWriter, LanguageWriter, PrinterLike } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./printers/EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
@@ -260,21 +260,19 @@ export function makeJavaSerializerWriter(library: PeerLibrary): LanguageWriter {
     return result
 }
 
-export function makeConvertors(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
-    const userConvertors = createLanguageWriter(Language.CPP)
-    writeConvertors(library, userConvertors)
-    return `
-#pragma once
-
+export function makeConvertors(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): LanguageWriter {
+    const userConvertors = createLanguageWriter(Language.CPP) as CppLanguageWriter
+    userConvertors.print("#pragma once")
+    userConvertors.writeLines(`
 #include <optional>
 #include <cstdlib>
 #include "arkoala_api_generated.h"
 #include "base/log/log_wrapper.h"
-
-namespace OHOS::Ace::NG::GeneratedModifier::Convert {
-${userConvertors.getOutput().join("\n")}
-}
-`
+`)
+    userConvertors.pushNamespace('OHOS::Ace::NG::GeneratedModifier::Convert')
+    writeConvertors(library, userConvertors)
+    userConvertors.popNamespace()
+    return userConvertors
 }
 
 export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
