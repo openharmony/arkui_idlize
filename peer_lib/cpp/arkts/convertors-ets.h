@@ -22,9 +22,9 @@
 #include <vector>
 #include <string>
 
-#include "interop-types.h"
-
+#include "arkoala_api_generated.h"
 #include "etsapi.h"
+#include "interop-types.h"
 
 template<class T>
 struct InteropTypeConverter {
@@ -99,6 +99,34 @@ struct InteropTypeConverter<KByte*> {
     static void release(EtsEnv* env, InteropType value, KByte* converted) {
       if (value) env->UnpinByteArray((ets_byteArray)value);
     }
+};
+
+template<>
+struct InteropTypeConverter<KLength> {
+    using InteropType = ets_object;
+    static KLength convertFrom(EtsEnv* env, InteropType value) {
+        const auto len = env->GetStringLength(static_cast<ets_string>(value));
+        KStringPtr str;
+        str.resize(len);
+        env->GetStringUTFRegion(static_cast<ets_string>(value), 0, len, str.data());
+        KLength result = {};
+        parseKLength(str, &result);
+        result.type = 1;
+        result.resource = 0;
+        return result;
+    }
+    static InteropType convertTo(EtsEnv* env, KLength value) = delete;
+    static void release(EtsEnv* env, InteropType value, KLength converted) {}
+};
+
+template <> struct InteropTypeConverter<KInteropNumber> {
+  using InteropType = ets_double;
+  static KInteropNumber convertFrom(EtsEnv *env, InteropType value) {
+    return {.tag = ARK_TAG_FLOAT32, .f32 = static_cast<float>(value)};
+  }
+  static InteropType convertTo(EtsEnv *env, KInteropNumber value) = delete;
+  static void release(EtsEnv *env, InteropType value,
+                      KInteropNumber converted) {}
 };
 
 template <typename Type>

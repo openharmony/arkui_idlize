@@ -46,6 +46,8 @@ function componentToAttributesClass(component: string) {
 
 class PeerFileVisitor {
     readonly printer: LanguageWriter = createLanguageWriter(this.file.declarationTable.language)
+    //TODO: Ignore until bugs are fixed in https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/17850
+    private static readonly ArkTsIgnoredMethods = ["testTupleNumberStringEnum", "testTupleOptional", "testTupleUnion"]
 
     // Temporary, until other languages supported.
     private isTs = this.file.declarationTable.language == Language.TS
@@ -166,8 +168,9 @@ class PeerFileVisitor {
     private printPeer(peer: PeerClass) {
         this.printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
             this.printPeerConstructor(peer)
-            for (const method of peer.methods)
-                this.printPeerMethod(method)
+            peer.methods.filter((method) =>
+                writer.language == Language.ARKTS ? !PeerFileVisitor.ArkTsIgnoredMethods.includes(method.overloadedName) : true
+            ).forEach((method) => this.printPeerMethod(method))
             this.printApplyMethod(peer)
         }, this.generatePeerParentName(peer))
     }
@@ -197,7 +200,7 @@ class PeerFileVisitor {
                 return [
                     `import { int32 } from "@koalaui/common"`,
                     `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase  } from "./SerializerBase"`,
+                    `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
                     `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
                     `import { ComponentBase } from "./ComponentBase"`,
@@ -264,7 +267,7 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
 export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
                                 methodPostfix: string, ptr: string, returnType: Type = Type.Void, generics?: string[]) {
     // Not yet!
-    if (printer.language != Language.TS/* && printer.language != Language.ARKTS */) return
+    if (printer.language != Language.TS && printer.language != Language.ARKTS) return
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
         `${method.overloadedName}${methodPostfix}`,

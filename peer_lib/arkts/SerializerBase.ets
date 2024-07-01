@@ -38,14 +38,14 @@ export enum RuntimeType {
  * Value representing object type in serialized data.
  * Must be synced with "enum Tags" in C++.
  */
-export enum Tags {
-    UNDEFINED = 101,
-    INT32 = 102,
-    FLOAT32 = 103,
-    STRING = 104,
-    LENGTH = 105,
-    RESOURCE = 106,
-    OBJECT = 107,
+export class Tags {
+    static UNDEFINED = 101
+    static INT32 = 102
+    static FLOAT32 = 103
+    static STRING = 104
+    static LENGTH = 105
+    static RESOURCE = 106
+    static OBJECT = 107
 }
 
 export function runtimeType(value: Object|String|number|undefined|null|void): RuntimeType {
@@ -127,8 +127,8 @@ export class SerializerBase {
             SerializerBase.customSerializers = serializer
         } else {
             let current = SerializerBase.customSerializers
-            while (current!.next != undefined) { 
-                current = current!.next 
+            while (current!.next != undefined) {
+                current = current!.next
             }
             current!.next = serializer
         }
@@ -178,8 +178,8 @@ export class SerializerBase {
     writeFunction(value: Object) {
         this.writeInt32(registerCallback(value))
     }
-    writeTag(tag: Tags): void {
-        this.buffer[this.position] = tag as int32 as byte
+    writeTag(tag: int32): void {
+        this.buffer[this.position] = tag as byte
         this.position++
     }
     writeNumber(value: number|undefined) {

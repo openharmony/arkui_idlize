@@ -39,6 +39,7 @@ struct KStringPtrImpl {
     KStringPtrImpl(KStringPtrImpl& other) {
         this->_value = other.release();
         this->_owned = other._owned;
+        this->_length = other._length;
     }
     KStringPtrImpl& operator=(KStringPtrImpl& other) = delete;
 

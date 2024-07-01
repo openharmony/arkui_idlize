@@ -374,7 +374,26 @@ export enum ButtonType {
     Capsule,
     Circle,
 }
-export interface SubTabBarStyle {}
+export enum SelectedMode {
+  INDICATOR,
+  BOARD,
+}
+export interface SubTabBarStyle {
+    _indicator?: IndicatorStyle;
+    _selectedMode?: SelectedMode;
+    _board?: BoardStyle;
+    _labelStyle?: LabelStyle;
+    _padding?: Padding | Dimension | LocalizedPadding;
+    _id?: string;
+
+    indicator(value: IndicatorStyle): SubTabBarStyle;
+    selectedMode(value: SelectedMode): SubTabBarStyle;
+    board(value: BoardStyle): SubTabBarStyle;
+    labelStyle(value: LabelStyle): SubTabBarStyle;
+    padding(value: Padding | Dimension): SubTabBarStyle;
+    padding(padding: LocalizedPadding): SubTabBarStyle;
+    id(value: string): SubTabBarStyle;
+}
 export enum HorizontalAlign {
     Start = 0,
     Center = 1,
@@ -394,7 +413,17 @@ export interface Vector2 {
     z: number;
 }
 export interface PixelMap {}
-export interface GradientDirection {}
+export enum GradientDirection {
+    Left,
+    Top,
+    Right,
+    Bottom,
+    LeftTop,
+    LeftBottom,
+    RightTop,
+    RightBottom,
+    None
+}
 export enum NavigationTitleMode {
     Free = 0,
     Full,
@@ -568,6 +597,9 @@ export class ClassWithConstructorAndAllOptionalParamsDTS {
 export type CustomBuilder = (() => Object | void)
 
 export class BottomTabBarStyle {
+    _id?: string;
+    _labelStyle?: LabelStyle;
+    _padding?: Padding | Dimension | LocalizedPadding;
 
     constructor(icon: ResourceStr | TabBarSymbol, text: ResourceStr) {}
     id(value: string): BottomTabBarStyle { throw new Error() }
@@ -785,3 +817,36 @@ enum GestureJudgeResult {
 }
 
 export type GestureRecognizerJudgeBeginCallback = (event: BaseGestureEvent, current: GestureRecognizer, recognizers: Array<GestureRecognizer>) => GestureJudgeResult;
+
+export class CanvasRenderingContext2D implements CanvasRenderer {
+  readonly height: number;
+  readonly width: number;
+  globalAlpha: number;
+  globalCompositeOperation: string;
+  stopImageAnalyzer(): void {}
+  constructor(settings?: RenderingContextSettings) {}
+  static of(height: number, width: number): CanvasRenderingContext2D {
+    return new CanvasRenderingContext2D()
+  }
+  rect(x: number, y: number, w: number, h: number): void {}
+  arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise?: boolean): void {}
+  closePath(): void {}
+}
+
+interface DrawingCanvas {}
+
+interface Size {
+  width: number
+  height: number
+}
+
+export class DrawingRenderingContext {
+  // get size(): Size
+  // get canvas(): DrawingCanvas;
+  invalidate(): void {}
+  constructor(unit?: LengthMetricsUnit) {}
+}
+
+export interface BoardStyle {
+  borderRadius?: Length;
+}

@@ -237,7 +237,8 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
 
 export function makeTSSerializer(library: PeerLibrary): string {
     let printer = createLanguageWriter(library.declarationTable.language)
-    const builderClassImports = Array.from(library.builderClasses.keys())
+    const builderClassImports = Array.from(library.declarationTable.language == Language.ARKTS
+            ? [] : library.builderClasses.keys())
         .map(it => `import { ${it} } from "@arkoala/arkui/Ark${it}Builder"`)
     writeSerializer(library, printer)
     return `
