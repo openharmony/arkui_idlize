@@ -37,7 +37,16 @@ void dummyClassFinalizer(KNativePointer* ptr) {
 namespace OHOS::Ace::NG {
 namespace Bridge {
 Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags) {
-    Ark_NodeHandle result = (Ark_NodeHandle) 123;
+    static long peer_num = 1;
+    Ark_NodeHandle result = (Ark_NodeHandle) peer_num++;
+
+    if (needGroupedLog(2)) {
+        std::string _logData;
+        _logData.append("  Ark_NodeHandle peer" + std::to_string((long)result) + " = GetBasicNodeApi()->createNode(GENERATED_Ark_NodeType("
+            + std::to_string(type) + "), " + std::to_string(id) + ", " + std::to_string(flags) + ");\n");
+        appendGroupedLog(2, _logData);
+    }
+
     if (!needGroupedLog(1)) {
         return result;
     }

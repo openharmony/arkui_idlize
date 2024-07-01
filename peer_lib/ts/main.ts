@@ -125,11 +125,7 @@ function checkNodeAPI() {
     const ARKUI_TEXT = 1
     const id = 12
     const flags = 7
-    let ptr: pointer = 0
-    checkResult("BasicNodeAPI createNode",
-        () => ptr = nativeModule()._CreateNode(ARKUI_TEXT, id, flags),
-        `createNode(${ARKUI_TEXT}, ${id}, ${flags})`)
-    assertEquals("BasicNodeAPI createNode result", 123, ptr)
+    let ptr: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id, flags)
 
     let stackPtr: pointer = 0
     checkResult("BasicNodeAPI getNodeByViewStack",
@@ -140,47 +136,47 @@ function checkNodeAPI() {
 
     checkResult("BasicNodeAPI disposeNode",
         () => nativeModule()._DisposeNode(ptr),
-        `disposeNode(0x123)`)
+        `disposeNode(0x${ptr})`)
 
     checkResult("BasicNodeAPI addChild",
         () => nativeModule()._AddChild(ptr, stackPtr),
-        `addChild(0x123, 0x234)`
+        `addChild(0x${ptr}, 0x234)`
     )
 
     checkResult("BasicNodeAPI removeChild",
         () => nativeModule()._RemoveChild(ptr, stackPtr),
-        `removeChild(0x123, 0x234)`
+        `removeChild(0x${ptr}, 0x234)`
     )
 
     checkResult("BasicNodeAPI insertChildAfter",
         () => nativeModule()._InsertChildAfter(ptr, stackPtr, nullptr),
-        `insertChildAfter(0x123, 0x234, 0x0)`
+        `insertChildAfter(0x${ptr}, 0x234, 0x0)`
     )
 
     checkResult("BasicNodeAPI insertChildBefore",
         () => nativeModule()._InsertChildBefore(ptr, stackPtr, nullptr),
-        `insertChildBefore(0x123, 0x234, 0x0)`
+        `insertChildBefore(0x${ptr}, 0x234, 0x0)`
     )
 
     checkResult("BasicNodeAPI insertChildAt",
         () => nativeModule()._InsertChildAt(ptr, stackPtr, 0),
-        `insertChildAt(0x123, 0x234, 0)`
+        `insertChildAt(0x${ptr}, 0x234, 0)`
     )
 
     checkResult("BasicNodeAPI applyModifierFinish",
         () => nativeModule()._ApplyModifierFinish(ptr),
-        `applyModifierFinish(0x123)`
+        `applyModifierFinish(0x${ptr})`
     )
 
     checkResult("BasicNodeAPI markDirty",
         () => nativeModule()._MarkDirty(ptr, 123456),
-        `markDirty(0x123, 123456)`
+        `markDirty(0x${ptr}, 123456)`
     )
 
     let isBuilderNode = 0
     checkResult("BasicNodeAPI isBuilderNode",
         () => isBuilderNode = nativeModule()._IsBuilderNode(ptr),
-        `isBuilderNode(0x123)`
+        `isBuilderNode(0x${ptr})`
     )
     assertEquals("BasicNodeAPI isBuilderNode result", 1, isBuilderNode)
 
@@ -240,7 +236,6 @@ function checkButton() {
     checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
         "labelStyle({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}})")
     //nativeModule()._MeausureLayoutAndDraw(peer.peer.ptr)
-    assertEquals("ButtonPeer ptr", 123, peer!.peer!.ptr)
     assertTrue("ButtonPeer finalizer", peer!.peer!.finalizer != nullptr)
 }
 
@@ -535,13 +530,17 @@ const callLogCppCode = `
  * limitations under the License.
  */
 #include "arkoala_api_generated.h"
-#include <array>
+#include <map>
+#include <string>
 
 const GENERATED_ArkUINodeModifiers* GetNodeModifiers() {
-    // TODO: restore the proper call
-    // return GetFullImpl()->getNodeModifiers();
     extern const GENERATED_ArkUINodeModifiers* GENERATED_GetArkUINodeModifiers();
     return GENERATED_GetArkUINodeModifiers();
+}
+
+const GENERATED_ArkUIBasicNodeAPI* GetBasicNodeApi() {
+    extern const GENERATED_ArkUIBasicNodeAPI* GENERATED_GetBasicAPI();
+    return GENERATED_GetBasicAPI();
 }
 
 int main(int argc, const char** argv) {
