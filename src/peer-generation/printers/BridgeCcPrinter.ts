@@ -111,7 +111,7 @@ class BridgeCcVisitor {
         this.C.print(`_logData.append("  ${api}->${modifier}->${method.peerMethodName}(");`)
         if (method.hasReceiver()) {
             this.C.print(`_logData.append("(Ark_NativePointer)");`)
-            this.C.print(`_logData.append("peer" + std::to_string((long)thisPtr));`);
+            this.C.print(`_logData.append("peer" + std::to_string((uintptr_t)thisPtr));`);
             if (method.argConvertors.length > 0)
                 this.C.print(`_logData.append(", ");`)
         }
