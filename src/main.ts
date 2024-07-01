@@ -64,6 +64,7 @@ import { printInterfaces } from "./peer-generation/printers/InterfacePrinter"
 import { printConflictedDeclarations } from "./peer-generation/printers/ConflictedDeclarationsPrinter"
 import { printFakeDeclarations } from "./peer-generation/printers/FakeDeclarationsPrinter"
 import { printBuilderClasses } from "./peer-generation/printers/BuilderClassPrinter"
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/java"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -419,6 +420,12 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
             true
         )
+    }
+    else if (lang === Language.JAVA) {
+        writeFile(
+            arkoala.javaLib(ARKOALA_PACKAGE_PATH, 'NativeModule'),
+            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")
+        )
     } else {
         writeFile(
             arkoala.langLib('NativeModule'),
@@ -483,14 +490,14 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     if (lang == Language.JAVA) {
         const interfaces = printInterfaces(peerLibrary, lang)
         for (const [targetBasename, data] of interfaces) {
-            const outComponentFile = arkoala.javaLib(targetBasename)
+            const outComponentFile = arkoala.javaLib(ARKOALA_PACKAGE_PATH, targetBasename)
             console.log("producing", outComponentFile)
             if (options.verbose) console.log(data)
             fs.writeFileSync(outComponentFile, data)
         }
 
         const writer = makeJavaSerializerWriter(peerLibrary)
-        writer.printTo(arkoala.javaLib('Serializer'))
+        writer.printTo(arkoala.javaLib(ARKOALA_PACKAGE_PATH, 'Serializer'))
     }
     writeFile(arkoala.native('bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
 

@@ -22,36 +22,6 @@ import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-enum RuntimeType {
-    UNEXPECTED((byte) -1),
-    NUMBER((byte) 1),
-    STRING((byte) 2),
-    OBJECT((byte) 3),
-    BOOLEAN((byte) 4),
-    UNDEFINED((byte) 5),
-    BIGINT((byte) 6),
-    FUNCTION((byte) 7),
-    SYMBOL((byte) 8);
-    public final byte value;
-    RuntimeType(byte value) {
-        this.value = value;
-    }
-};
-
-enum Tag {
-    UNDEFINED((byte) 101),
-    INT32((byte) 102),
-    FLOAT32((byte) 103),
-    STRING((byte) 104),
-    LENGTH((byte) 105),
-    RESOURCE((byte) 106),
-    OBJECT((byte) 107);
-    public final byte value;
-    Tag(byte value) {
-        this.value = value;
-    }
-}
-
 class SerializersCache {
     SerializerBase[] cache;
 

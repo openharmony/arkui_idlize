@@ -450,11 +450,18 @@ export function copyToLibace(from: string, libace: LibaceInstall) {
 
 function copyDir(from: string, to: string) {
     fs.readdirSync(from).forEach(it => {
-        let file = path.join(from, it)
-        if (fs.statSync(file).isFile()) {
-            fs.copyFileSync(file, path.join(to, it))
+        const sourcePath = path.join(from, it)
+        const targetPath = path.join(to, it)
+        const statInfo = fs.statSync(sourcePath)
+        if (statInfo.isFile()) {
+            fs.copyFileSync(sourcePath, targetPath)
         }
-        // TODO: copy dir
+        else if (statInfo.isDirectory()) {
+            if (!fs.existsSync(targetPath)) {
+                fs.mkdirSync(targetPath)
+            }
+            copyDir(sourcePath, targetPath)
+        }
     })
 }
 export function makeNodeTypes(types: string[]): string {

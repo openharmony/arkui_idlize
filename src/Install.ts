@@ -16,6 +16,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Language } from './util'
+import { ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH } from './lang/java'
 
 class Install {
     mkdir(path: string): string {
@@ -24,9 +25,13 @@ class Install {
     }
 }
 
-export class ArkoalaInstall extends Install{
+export class ArkoalaInstall extends Install {
     constructor (private outDir: string, private lang: Language, private test: boolean) {
         super()
+        if (lang == Language.JAVA) {
+            this.mkdir(path.join(this.javaDir, ARKOALA_PACKAGE_PATH))
+            this.mkdir(path.join(this.javaDir, INTEROP_PACKAGE_PATH))
+        }
     }
     langDir(): string {
         switch (this.lang) {
@@ -69,8 +74,8 @@ export class ArkoalaInstall extends Install{
     arktsLib(name: string) {
         return path.join(this.arktsDir, name + this.lang.extension)
     }
-    javaLib(name: string) {
-        return path.join(this.javaDir, name + this.lang.extension)
+    javaLib(packagePath: string, name: string) {
+        return path.join(this.javaDir, packagePath, name + this.lang.extension)
     }
     native(name: string) {
         return path.join(this.nativeDir, name)
