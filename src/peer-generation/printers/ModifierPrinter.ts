@@ -439,7 +439,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
 
     writer.writeInclude('arkoala-macros.h')
     writer.writeInclude('core/interfaces/arkoala/arkoala_api.h')
-    writer.writeInclude('arkoala_api_generated.h')
+    writer.writeInclude('node_api.h')
     writer.print("")
 
     if (options.namespaces) {
