@@ -452,7 +452,7 @@ function checkPerf2(count: number) {
         peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : new BlurOptionsImpl([1, 2] as [number, number]))
     }
     let passed = Date.now() - start
-    console.log(`backdropBlur: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1_000_000)}ms per ${count} iterations`)
+    console.log(`backdropBlur: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1_000_000)}ms per 1M iterations`)
 }
 
 function checkPerf3(count: number) {
@@ -462,7 +462,7 @@ function checkPerf3(count: number) {
         peer.widthAttribute(testString1000)
     }
     let passed = Date.now() - start
-    console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1_000_000)}ms per ${count} iterations`)
+    console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1_000_000)}ms per 1M iterations`)
 }
 
 function checkButton() {
