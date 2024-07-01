@@ -427,20 +427,12 @@ ${epilogue}
 }
 
 export function copyPeerLib(from: string, arkoala: ArkoalaInstall) {
-    const tsBase = path.join(from, 'ts')
-    copyDir(tsBase, arkoala.tsDir)
-    const tsArkoalaBase = path.join(from, 'ts/arkoala')
-    copyDir(tsArkoalaBase, arkoala.tsArkoalaDir)
-    const cppBase = path.join(from, 'cpp')
-    copyDir(cppBase, arkoala.nativeDir)
-    let subdirs = ['node', 'arkts', 'jni', 'legacy']
-    subdirs.forEach(subdir => {
-        const cppBase = path.join(from, 'cpp', subdir)
-        const destDir = arkoala.native(subdir)
-        copyDir(cppBase, arkoala.mkdir(destDir))
-    })
-    copyDir(path.join(from, 'arkts'), arkoala.arktsDir)
-    copyDir(path.join(from, 'java'), arkoala.javaDir)
+    const recursive = true
+    copyDir(path.join(from, 'ts'), arkoala.tsDir, !recursive)
+    copyDir(path.join(from, 'ts/arkoala'), arkoala.tsArkoalaDir, recursive)
+    copyDir(path.join(from, 'cpp'), arkoala.nativeDir, recursive)
+    copyDir(path.join(from, 'arkts'), arkoala.arktsDir, recursive)
+    copyDir(path.join(from, 'java'), arkoala.javaDir, recursive)
 }
 
 export function copyToLibace(from: string, libace: LibaceInstall) {
@@ -448,7 +440,7 @@ export function copyToLibace(from: string, libace: LibaceInstall) {
     fs.copyFileSync(macros, libace.arkoalaMacros)
 }
 
-function copyDir(from: string, to: string) {
+function copyDir(from: string, to: string, recursive: boolean) {
     fs.readdirSync(from).forEach(it => {
         const sourcePath = path.join(from, it)
         const targetPath = path.join(to, it)
@@ -456,11 +448,11 @@ function copyDir(from: string, to: string) {
         if (statInfo.isFile()) {
             fs.copyFileSync(sourcePath, targetPath)
         }
-        else if (statInfo.isDirectory()) {
+        else if (recursive && statInfo.isDirectory()) {
             if (!fs.existsSync(targetPath)) {
                 fs.mkdirSync(targetPath)
             }
-            copyDir(sourcePath, targetPath)
+            copyDir(sourcePath, targetPath, recursive)
         }
     })
 }
