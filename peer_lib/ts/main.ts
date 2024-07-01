@@ -497,7 +497,7 @@ checkPerf2(5 * 1000 * 1000)
 checkPerf3(5 * 1000 * 1000)
 
 startPerformanceTest()
-startNativeLog(CALL_GROUP_LOG)
+// startNativeLog(CALL_GROUP_LOG)
 checkNodeAPI()
 checkCallback()
 checkWriteFunction()
@@ -511,7 +511,7 @@ checkNavigation()
 checkEvent_Primitive()
 checkEvent_Interface_Optional()
 checkEvent_Array_Class()
-stopNativeLog(CALL_GROUP_LOG)
+// stopNativeLog(CALL_GROUP_LOG)
 
 const callGroupLog = getNativeLog(CALL_GROUP_LOG)
 const callLogCppCode = `

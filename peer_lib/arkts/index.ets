@@ -51,16 +51,18 @@ const testString1000 = "One Thousand words One Thousand words One Thousand words
 
 /*
 V8:
-NUMBER: 111.8373319990933ms for 1000000 iteration, 112ms per 1M iterations
-ARRAY: 955.3288690000772ms for 1000000 iteration, 955ms per 1M iterations
+backdropBlur: 1456ms for 5000000 iteration, 291ms per 1M iterations
+widthAttributeString: 1006ms for 5000000 iteration, 201ms per 1M iterations
+
 
 PANDA:
-"NUMBER: 1317ms for 10000000 iteration, 132ms per 1M iterations"
-"ARRAY: 4264ms for 10000000 iteration, 426ms per 1M iterations"
+"backdropBlur: 3518ms for 5000000 iteration, 704ms per 5000000 iterations"
+"widthAttributeString: 1380ms for 5000000 iteration, 276ms per 5000000 iterations"
 
 JVM:
-NUMBER: 162ms for 10000000 iteration, 16ms per 1M iterations
-ARRAY: 241ms for 10000000 iteration, 24ms per 1M iterations
+backdropBlur: 284ms for 5000000 iteration, 57ms per 1M iterations
+widthAttributeString: 502ms for 5000000 iteration, 100ms per 1M iterations
+
 */
 function checkPerf(count: number) {
     let start = Date.now()

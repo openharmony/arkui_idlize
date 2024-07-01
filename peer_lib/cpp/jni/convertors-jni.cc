@@ -72,7 +72,7 @@ void addType(const std::string &type, std::string *result)
         result->append("J");
     else if (type == "Ark_Float32")
         result->append("F");
-    else if (type == "KInteropNumber")
+    else if (type == "KInteropNumber" || type == "KDouble")
         result->append("D");
     else if (type == "KBoolean")
         result->append("Z");
