@@ -76,7 +76,6 @@ const dtsImports = `import {
     Dimension,
     BarMode,
     ButtonType,
-    SubTabBarStyle,
     HorizontalAlign,
     OnScrollVisibleContentChangeCallback,
     Vector1,
@@ -86,7 +85,6 @@ const dtsImports = `import {
     RectResult,
     TouchTestInfo,
     AttributeModifier,
-    BottomTabBarStyle,
     CustomBuilder,
     CalendarAlign,
     ThemeColorMode,
@@ -129,7 +127,11 @@ const dtsImports = `import {
     GestureRecognizerJudgeBeginCallback,
     CanvasRenderingContext2D,
     DrawingRenderingContext,
-    BoardStyle
+    BoardStyle,
+    SelectedMode,
+    ComponentContent,
+    LengthMetrics,
+    DotIndicator
 } from "./dts-exports"
 `
 

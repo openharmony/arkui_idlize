@@ -3,6 +3,7 @@ import { LanguageWriter, MethodModifier, Method, Type, createLanguageWriter, Fie
 import { PeerLibrary } from "../PeerLibrary"
 import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES } from "../BuilderClass";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
+import { collectDtsImports } from "../DtsImportsGenerator";
 
 class BuilderClassFileVisitor {
 
@@ -18,6 +19,11 @@ class BuilderClassFileVisitor {
     private printBuilderClass(clazz: BuilderClass) {
         const writer = this.printer
         clazz = processBuilderClass(clazz)
+
+        //TODO: in the future it is necessary to import elements from generated ets files
+        if (writer.language == Language.ARKTS) {
+            writer.print(collectDtsImports().trim())
+        }
 
         writer.writeClass(clazz.name, writer => {
 
@@ -97,7 +103,7 @@ class BuilderClassVisitor {
 export function printBuilderClasses(peerLibrary: PeerLibrary, dumpSerialized: boolean): Map<string, string> {
 
     // TODO: support other output languages
-    if (peerLibrary.declarationTable.language != Language.TS)
+    if (peerLibrary.declarationTable.language != Language.TS && peerLibrary.declarationTable.language != Language.ARKTS)
         return new Map()
 
     const visitor = new BuilderClassVisitor(peerLibrary, dumpSerialized)

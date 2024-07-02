@@ -46,7 +46,6 @@ export class NativeModule {
   static native _StopGroupedLog(arg1: int): void;
   static native _TestPerfNumber(arg1: int): int;
   static native _TestPerfNumberWithArray(arg1: byte[], arg2: int): void;
-  static native _TestPerfNumberWithDoubleAndArray(arg1: number, arg2: byte[], arg3: int): void;
   static native _Test_TextPicker_OnAccept(valueArray: byte[], valueSerializerLength: int): void;
   static native _StartPerf(traceName: String): void;
   static native _EndPerf(traceName: String): void;

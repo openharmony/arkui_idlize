@@ -224,12 +224,6 @@ void impl_TestPerfNumberWithArray(KByte* data, KInt length) {
 }
 KOALA_INTEROP_V2(TestPerfNumberWithArray, KByte*, KInt)
 
-
-void impl_TestPerfNumberWithDoubleAndArray(KDouble v, KByte* data, KInt length) {
-
-}
-KOALA_INTEROP_V3(TestPerfNumberWithDoubleAndArray, KDouble, KByte*, KInt)
-
 Performace* Performace::GetInstance() {
     static Performace perf;
     return &perf;
