@@ -36,7 +36,8 @@ import {
     gniFile,
     mesonBuildFile,
     completeImplementations,
-    copyToLibace
+    copyToLibace,
+    libraryCcDeclaration,
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
@@ -55,7 +56,6 @@ import { printMaterialized } from "./peer-generation/printers/MaterializedPrinte
 import { printApiAndSerializers } from "./peer-generation/printers/HeaderPrinter"
 import { printNodeTypes } from "./peer-generation/printers/NodeTypesPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/printers/NativeModulePrinter"
-import { printBridgeCc } from "./peer-generation/printers/BridgeCcPrinter"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
 import { printEvents, printEventsCImpl } from "./peer-generation/printers/EventsPrinter"
 import { printGniSources } from "./peer-generation/printers/GniPrinter"
@@ -65,6 +65,7 @@ import { printConflictedDeclarations } from "./peer-generation/printers/Conflict
 import { printFakeDeclarations } from "./peer-generation/printers/FakeDeclarationsPrinter"
 import { printBuilderClasses } from "./peer-generation/printers/BuilderClassPrinter"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/java"
+import { printBridgeCcCustom, printBridgeCcGenerated } from "./peer-generation/printers/BridgeCcPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -292,7 +293,7 @@ if (options.dts2peer) {
     }
     PeerGeneratorConfig.needInterfaces = options.needInterfaces
     const declarationTable = new DeclarationTable(options.language ?? "ts")
-    const peerLibrary = new PeerLibrary(declarationTable)
+    const peerLibrary = new PeerLibrary(declarationTable, toSet(options.generateInterface))
     const generatedPeersDir = options.outputDir ?? "./generated/peers"
 
     generate(
@@ -312,7 +313,7 @@ if (options.dts2peer) {
             },
             onEnd(outDir: string) {
                 let lang = declarationTable.language
-                const peerProcessor = new PeerProcessor(peerLibrary, toSet(options.generateInterface))
+                const peerProcessor = new PeerProcessor(peerLibrary)
                 peerProcessor.process()
                 declarationTable.analyze(peerLibrary)
 
@@ -467,7 +468,8 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         )
         writeFile(
             arkoala.tsLib("peer_events"),
-            printEvents(peerLibrary)
+            printEvents(peerLibrary),
+            true
         )
         writeFile(arkoala.tsLib('Serializer'),
             makeTSSerializer(peerLibrary),
@@ -499,11 +501,12 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         const writer = makeJavaSerializerWriter(peerLibrary)
         writer.printTo(arkoala.javaLib(ARKOALA_PACKAGE_PATH, 'Serializer'))
     }
-    writeFile(arkoala.native('bridge.cc'), printBridgeCc(peerLibrary, options.callLog ?? false))
+    writeFile(arkoala.native('bridge_generated.cc'), printBridgeCcGenerated(peerLibrary, options.callLog ?? false), true)
+    writeFile(arkoala.native('bridge_custom.cc'), printBridgeCcCustom(peerLibrary, options.callLog ?? false))
 
     const { api, serializers } = printApiAndSerializers(options.apiVersion, peerLibrary)
-    writeFile(arkoala.native('Serializers.h'), serializers)
-    writeFile(arkoala.native('arkoala_api_generated.h'), api)
+    writeFile(arkoala.native('Serializers.h'), serializers, true)
+    writeFile(arkoala.native('arkoala_api_generated.h'), api, true)
 
     const modifiers = printRealAndDummyModifiers(peerLibrary)
     const accessors = printRealAndDummyAccessors(peerLibrary)
@@ -511,8 +514,21 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         arkoala.native('dummy_impl.cc'),
         dummyImplementations(modifiers.dummy, accessors.dummy, 1, options.apiVersion, 6).getOutput().join('\n'),
     )
-    writeFile(arkoala.native('all_events.cc'), completeEventsImplementations(printEventsCImpl(peerLibrary)))
+    writeFile(
+        arkoala.native('real_impl.cc'),
+        dummyImplementations(modifiers.real, accessors.real, 1, options.apiVersion, 6).getOutput().join('\n'),
+        true,
+    )
+    writeFile(arkoala.native('all_events.cc',), completeEventsImplementations(printEventsCImpl(peerLibrary)), true)
+    writeFile(arkoala.native('library.cc'), libraryCcDeclaration())
 
-    if (!options.onlyIntegrated)
-        copyPeerLib(path.join(__dirname, '..', 'peer_lib'), arkoala)
+    copyPeerLib(path.join(__dirname, '..', 'peer_lib'), arkoala, !options.onlyIntegrated ? undefined : [
+        'cpp/SerializerBase.h',
+        'cpp/DeserializerBase.h',
+        'cpp/Interop.h',
+        'cpp/arkoala-macros.h',
+        'ts/SerializerBase.ts',
+        'ts/DeserializerBase.ts',
+        'ts/callback_registry.ts'
+    ])
 }

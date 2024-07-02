@@ -107,13 +107,25 @@ ${readTemplate('NativeModuleEmpty_template.ts')
 `
 }
 
-export function bridgeCcDeclaration(bridgeCc: string[]): string {
-    let prologue = readTemplate('bridge_prologue.cc')
+export function libraryCcDeclaration(): string {
+    return readTemplate('library_template.cc')
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
-    let epilogue = readTemplate('bridge_epilogue.cc')
+}
+
+export function bridgeCcGeneratedDeclaration(generatedApi: string[]): string {
+    let prologue = readTemplate('bridge_generated_prologue.cc')
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
 
-    return prologue.concat("\n").concat(bridgeCc.join("\n")).concat(epilogue).concat("\n")
+    return prologue.concat("\n")
+        .concat(generatedApi.join("\n"))
+}
+
+export function bridgeCcCustomDeclaration(customApi: string[]): string {
+    let prologue = readTemplate('bridge_custom_prologue.cc')
+        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+
+    return prologue.concat("\n")
+        .concat(customApi.join("\n"))
 }
 
 export function completeImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
@@ -206,8 +218,12 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
 
     let result = createLanguageWriter(Language.CPP)
     result.writeLines(prologue)
+    result.print("namespace OHOS::Ace::NG::GeneratedModifier {")
+    result.pushIndent()
     result.concat(modifiers).concat(accessors)
     result.writeLines(epilogue)
+    result.popIndent()
+    result.print("}")
 
     return result
 }
@@ -426,13 +442,14 @@ ${epilogue}
 `
 }
 
-export function copyPeerLib(from: string, arkoala: ArkoalaInstall) {
+export function copyPeerLib(from: string, arkoala: ArkoalaInstall, filters?: string[]) {
+    filters = filters?.map(it => path.join(from, it))
     const recursive = true
-    copyDir(path.join(from, 'ts'), arkoala.tsDir, !recursive)
-    copyDir(path.join(from, 'ts/arkoala'), arkoala.tsArkoalaDir, recursive)
-    copyDir(path.join(from, 'cpp'), arkoala.nativeDir, recursive)
-    copyDir(path.join(from, 'arkts'), arkoala.arktsDir, recursive)
-    copyDir(path.join(from, 'java'), arkoala.javaDir, recursive)
+    copyDir(path.join(from, 'ts'), arkoala.tsDir, !recursive, filters)
+    copyDir(path.join(from, 'ts/arkoala'), arkoala.tsArkoalaDir, recursive, filters)
+    copyDir(path.join(from, 'cpp'), arkoala.nativeDir, recursive, filters)
+    copyDir(path.join(from, 'arkts'), arkoala.arktsDir, recursive, filters)
+    copyDir(path.join(from, 'java'), arkoala.javaDir, recursive, filters)
 }
 
 export function copyToLibace(from: string, libace: LibaceInstall) {
@@ -440,19 +457,21 @@ export function copyToLibace(from: string, libace: LibaceInstall) {
     fs.copyFileSync(macros, libace.arkoalaMacros)
 }
 
-function copyDir(from: string, to: string, recursive: boolean) {
+function copyDir(from: string, to: string, recursive: boolean, filters?: string[]) {
     fs.readdirSync(from).forEach(it => {
         const sourcePath = path.join(from, it)
         const targetPath = path.join(to, it)
         const statInfo = fs.statSync(sourcePath)
         if (statInfo.isFile()) {
+            if (filters && !filters.includes(sourcePath))
+                return
             fs.copyFileSync(sourcePath, targetPath)
         }
         else if (recursive && statInfo.isDirectory()) {
             if (!fs.existsSync(targetPath)) {
                 fs.mkdirSync(targetPath)
             }
-            copyDir(sourcePath, targetPath, recursive)
+            copyDir(sourcePath, targetPath, recursive, filters)
         }
     })
 }

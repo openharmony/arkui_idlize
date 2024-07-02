@@ -124,7 +124,7 @@ export class OverloadsPrinter {
                 if (!callback || !canProcessCallback(this.library.declarationTable, callback))
                     return
                 const argName = argsNames[index]
-                this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseProperties`,[
+                this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseEventsProperties`,[
                     new StringExpression(`{${callbackIdByInfo(callback)}: ${argName}}`)
                 ])))
             }

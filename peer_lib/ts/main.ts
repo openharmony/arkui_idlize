@@ -17,7 +17,7 @@ import { SerializerBase } from "@arkoala/arkui/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/DeserializerBase"
 import { Serializer } from "@arkoala/arkui/Serializer"
 import { Deserializer } from "@arkoala/arkui/Deserializer"
-import { registerCallback, callCallback } from "@arkoala/arkui/Events"
+import { wrapCallback, callCallback } from "./callback_registry"
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
@@ -190,8 +190,8 @@ function checkNodeAPI() {
 
 function checkCallback() {
 
-    const id1 = registerCallback((args, length) => 1001)
-    const id2 = registerCallback((args, length) => 1002)
+    const id1 = wrapCallback((args, length) => 1001)
+    const id2 = wrapCallback((args, length) => 1002)
     assertTrue("Register callback 1", id1 != -1)
     assertTrue("Register callback 1", id2 != -1)
     assertTrue("Callback ids are different", id1 != id2)

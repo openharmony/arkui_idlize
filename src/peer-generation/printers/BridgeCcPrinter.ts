@@ -17,7 +17,7 @@ import { IndentedPrinter } from "../../IndentedPrinter";
 import { Language, capitalize, dropSuffix, isDefined } from "../../util";
 import { ArgConvertor, ArrayConvertor } from "../Convertors";
 import { PrimitiveType } from "../DeclarationTable";
-import { bridgeCcDeclaration } from "../FileGenerators";
+import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { createLanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
@@ -26,7 +26,8 @@ import { CUSTOM_API, CustomAPI } from "../CustomAPI"
 //const VM_CONTEXT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_VMContext`)
 
 class BridgeCcVisitor {
-    readonly C = createLanguageWriter(Language.CPP)
+    readonly generatedApi = createLanguageWriter(Language.CPP)
+    readonly customApi = createLanguageWriter(Language.CPP)
 
     constructor(
         private readonly library: PeerLibrary,
@@ -45,7 +46,7 @@ class BridgeCcVisitor {
         if (argConvertor.useArray)
             return `${prefix}${argConvertor.param}_value`
         else
-            return `${argConvertor.convertorArg(argConvertor.param, this.C)}`
+            return `${argConvertor.convertorArg(argConvertor.param, this.generatedApi)}`
     }
 
     private printAPICall(method: PeerMethod, modifierName?: string) {
@@ -60,76 +61,76 @@ class BridgeCcVisitor {
         const args = receiver.concat(argConvertors.map(it => this.generateApiArgument(it))).join(", ")
         const call = `${isVoid ? "" : "return "}${method.apiCall}->${modifier}->${peerMethod}(${args});`
         if (this.callLog) this.printCallLog(method, method.apiCall, modifier)
-        this.C.print(call)
+        this.generatedApi.print(call)
     }
 
     private printNativeBody(method: PeerMethod, modifierName?: string) {
-        this.C.pushIndent()
+        this.generatedApi.pushIndent()
         if (method.hasReceiver()) {
-            this.C.print(`${method.receiverType} self = reinterpret_cast<${method.receiverType}>(thisPtr);`)
+            this.generatedApi.print(`${method.receiverType} self = reinterpret_cast<${method.receiverType}>(thisPtr);`)
         }
         method.argConvertors.forEach(it => {
             if (it.useArray) {
-                this.C.print(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
+                this.generatedApi.print(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
                 let result = `${it.param}_value`
-                this.C.print(`${it.nativeType(false)} ${result};`)
-                this.C.writeStatement(it.convertorDeserialize(it.param, result, this.C))
+                this.generatedApi.print(`${it.nativeType(false)} ${result};`)
+                this.generatedApi.writeStatement(it.convertorDeserialize(it.param, result, this.generatedApi))
             }
         })
         this.printAPICall(method, modifierName)
-        this.C.popIndent()
+        this.generatedApi.popIndent()
     }
 
     private static varCnt : number = 0;
 
     private printCallLog(method: PeerMethod, api: string, modifier: string) {
-        this.C.print(`if (needGroupedLog(2)) {`)
-        this.C.pushIndent()
-        this.C.print('std::string _logData;')
-        this.C.print('std::string _tmp;')
-        this.C.print('static int _num = 0;')
-        this.C.print(`static int _array_num = 0;`);
+        this.generatedApi.print(`if (needGroupedLog(2)) {`)
+        this.generatedApi.pushIndent()
+        this.generatedApi.print('std::string _logData;')
+        this.generatedApi.print('std::string _tmp;')
+        this.generatedApi.print('static int _num = 0;')
+        this.generatedApi.print(`static int _array_num = 0;`);
         let varNames : string[] = new Array<string>()
         for (let i = 0; i < method.argConvertors.length; ++i) {
             let it = method.argConvertors[i]
             let name = this.generateApiArgument(it) // it.param + '_value'
             if (it instanceof ArrayConvertor) {
-                this.C.print(`_tmp = "", generateStdArrayDefinition(&_tmp, ${name});`);
-                this.C.print(`_logData.append("  auto array" + std::to_string(_array_num) + " = " + _tmp + ";");`);
-                this.C.print(`_logData.append("\\n");`);
-                this.C.print(`_tmp = "", WriteToString(&_tmp, ${name}, "array" + std::to_string(_array_num));`)
-                this.C.print("_array_num += 1;")
+                this.generatedApi.print(`_tmp = "", generateStdArrayDefinition(&_tmp, ${name});`);
+                this.generatedApi.print(`_logData.append("  auto array" + std::to_string(_array_num) + " = " + _tmp + ";");`);
+                this.generatedApi.print(`_logData.append("\\n");`);
+                this.generatedApi.print(`_tmp = "", WriteToString(&_tmp, ${name}, "array" + std::to_string(_array_num));`)
+                this.generatedApi.print("_array_num += 1;")
             } else {
-                this.C.print(`_tmp = "", WriteToString(&_tmp, ${name});`)
+                this.generatedApi.print(`_tmp = "", WriteToString(&_tmp, ${name});`)
             }
             varNames.push(`var${BridgeCcVisitor.varCnt}`)
             let ptrType = `const ${it.nativeType(false)}`
-            this.C.print(`_logData.append("  ${ptrType} ${varNames[i]}_" + std::to_string(_num) + " = " + _tmp + ";\\n");`)
+            this.generatedApi.print(`_logData.append("  ${ptrType} ${varNames[i]}_" + std::to_string(_num) + " = " + _tmp + ";\\n");`)
             BridgeCcVisitor.varCnt += 1
         }
 
-        this.C.print(`_logData.append("  ${api}->${modifier}->${method.peerMethodName}(");`)
+        this.generatedApi.print(`_logData.append("  ${api}->${modifier}->${method.peerMethodName}(");`)
         if (method.hasReceiver()) {
-            this.C.print(`_logData.append("(Ark_NativePointer)");`)
-            this.C.print(`_logData.append("peer" + std::to_string((uintptr_t)thisPtr));`);
+            this.generatedApi.print(`_logData.append("(Ark_NativePointer)");`)
+            this.generatedApi.print(`_logData.append("peer" + std::to_string((uintptr_t)thisPtr));`);
             if (method.argConvertors.length > 0)
-                this.C.print(`_logData.append(", ");`)
+                this.generatedApi.print(`_logData.append(", ");`)
         }
         method.argConvertors.forEach((it, index) => {
             if (it.nativeType(false) != "Ark_Number"
                 && (it.tsTypeName == "number" || it.tsTypeName == "boolean")) {
-                this.C.print(`_logData.append("${varNames[index]}_" + std::to_string(_num));`)
+                this.generatedApi.print(`_logData.append("${varNames[index]}_" + std::to_string(_num));`)
             } else {
-                this.C.print(`_logData.append("&${varNames[index]}_" + std::to_string(_num));`)
+                this.generatedApi.print(`_logData.append("&${varNames[index]}_" + std::to_string(_num));`)
             }
             if (index < method.argConvertors.length - 1)
-                this.C.print(`_logData.append(", ");`)
+                this.generatedApi.print(`_logData.append(", ");`)
         })
-        this.C.print("_num += 1;")
-        this.C.print(`_logData.append(");\\n");`)
-        this.C.print(`appendGroupedLog(2, _logData);`)
-        this.C.popIndent()
-        this.C.print(`}`)
+        this.generatedApi.print("_num += 1;")
+        this.generatedApi.print(`_logData.append(");\\n");`)
+        this.generatedApi.print(`appendGroupedLog(2, _logData);`)
+        this.generatedApi.popIndent()
+        this.generatedApi.print(`}`)
     }
 
     private generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string[] {
@@ -138,7 +139,7 @@ class BridgeCcVisitor {
             if (it.useArray) {
                 return `uint8_t*, int32_t`
             } else {
-                return it.interopType(this.C.language)
+                return it.interopType(this.generatedApi.language)
             }
         }))
     }
@@ -161,7 +162,7 @@ class BridgeCcVisitor {
             if (it.useArray) {
                 return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
             } else {
-                let type = it.interopType(this.C.language)
+                let type = it.interopType(this.generatedApi.language)
                 switch (type) {
                     case "KStringPtr":
                         type = `const KStringPtr&`
@@ -181,17 +182,17 @@ class BridgeCcVisitor {
 
         let cName = `${method.originalParentName}_${method.overloadedName}`
         let rv = retConvertor.nativeType()
-        this.C.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(method, argConvertors).join(", ")}) {`)
-        this.C.pushIndent()
+        this.generatedApi.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(method, argConvertors).join(", ")}) {`)
+        this.generatedApi.pushIndent()
         this.printNativeBody(method, modifierName)
-        this.C.popIndent()
-        this.C.print(`}`)
+        this.generatedApi.popIndent()
+        this.generatedApi.print(`}`)
         let macroArgs = [cName, method.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, method.hasReceiver()))
             .filter(isDefined)
             .join(", ")
         const suffix = this.generateCMacroSuffix(method)
-        this.C.print(`KOALA_INTEROP_${suffix}(${macroArgs})`)
-        this.C.print(` `)
+        this.generatedApi.print(`KOALA_INTEROP_${suffix}(${macroArgs})`)
+        this.generatedApi.print(` `)
     }
 
     printCustomApiMethod(c: CustomAPI, m: Method) {
@@ -202,7 +203,7 @@ class BridgeCcVisitor {
         const method = new Method(`impl_${capitalizedName}`, new NamedMethodSignature(
             retType, argsType, sig.argsNames))
 
-        this.C.writeMethodImplementation(method, writer => {
+        this.customApi.writeMethodImplementation(method, writer => {
             let castNames: string[] = []
             sig.args.forEach((it, index) => {
                 const type = c.getCastType(it)
@@ -211,12 +212,12 @@ class BridgeCcVisitor {
                 if (c.getArgType(it).name !== type.name) {
                     castName = `${name}Cast`
                     const cast = it.name.endsWith("Enum") ? `${type.name}(${name})` : `(${type.name}) ${name}`
-                    this.C.print(`${type.name} ${castName} = ${cast};`)
+                    this.customApi.print(`${type.name} ${castName} = ${cast};`)
                 }
                 castNames = castNames.concat(castName)
             })
             const ret = sig.returnType === Type.Void ? "" : "return "
-            this.C.print(`${ret}GetArkUI${c.apiName}()->${m.name}(${castNames.join(", ")});`)
+            this.customApi.print(`${ret}GetArkUI${c.apiName}()->${m.name}(${castNames.join(", ")});`)
         })
         const v = sig.returnType === Type.Void ? "V" : "";
         let args = c.withContext ? argsType.slice(1) : argsType
@@ -224,26 +225,26 @@ class BridgeCcVisitor {
         args = sig.returnType === Type.Void ? args : [retType, ...args]
         const comma = args.length > 0 ? ", " : ""
         const CTX = c.withContext ? "_CTX" : ""
-        this.C.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}${comma}${args.map(it => it.name).join(", ")})\n`)
+        this.customApi.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}${comma}${args.map(it => it.name).join(", ")})\n`)
     }
 
     print(): void {
         for (const file of this.library.files) {
-            for (const peer of file.peers.values()) {
+            for (const peer of file.peersToGenerate.values()) {
                 for (const method of peer.methods) {
                     this.printMethod(method, peer.componentName)
                 }
             }
         }
 
-        this.C.print("\n// Accessors\n")
+        this.generatedApi.print("\n// Accessors\n")
         for (const clazz of this.library.materializedClasses.values()) {
             for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
                 this.printMethod(method)
             }
         }
 
-        this.C.print("\n// custom API methods\n")
+        this.customApi.print("\n// custom API methods\n")
         for(const customApi of CUSTOM_API) {
             for(const method of customApi.methods) {
                 this.printCustomApiMethod(customApi, method)
@@ -252,8 +253,14 @@ class BridgeCcVisitor {
     }
 }
 
-export function printBridgeCc(peerLibrary: PeerLibrary, callLog: boolean): string {
+export function printBridgeCcGenerated(peerLibrary: PeerLibrary, callLog: boolean): string {
     const visitor = new BridgeCcVisitor(peerLibrary, callLog)
     visitor.print()
-    return bridgeCcDeclaration(visitor.C.getOutput())
+    return bridgeCcGeneratedDeclaration(visitor.generatedApi.getOutput())
+}
+
+export function printBridgeCcCustom(peerLibrary: PeerLibrary, callLog: boolean): string {
+    const visitor = new BridgeCcVisitor(peerLibrary, callLog)
+    visitor.print()
+    return bridgeCcCustomDeclaration(visitor.customApi.getOutput())
 }

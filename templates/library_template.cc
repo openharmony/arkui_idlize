@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "Interop.h"
+
 #include "arkoala_api_generated.h"
-#include "Serializers.h"
 #include "load-library.h"
 #include "arkoala-logging.h"
+#include "library.h"
 
 static %CPP_PREFIX%ArkUIAnyAPI* impls[%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%COUNT] = { 0 };
 const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
 
-const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(%CPP_PREFIX%Ark_APIVariantKind kind, int version, std::string* result = nullptr) {
+const ArkUIAnyAPI* GetAnyImpl(ArkUIAPIVariantKind kind, int version, std::string* result) {
     if (!impls[kind]) {
         %CPP_PREFIX%ArkUIAnyAPI* impl = nullptr;
         typedef %CPP_PREFIX%ArkUIAnyAPI* (*GetAPI_t)(int, int);
@@ -69,32 +69,5 @@ const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(%CPP_PREFIX%Ark_APIVariantKind kind, i
         }
         impls[kind] = impl;
     }
-    return impls[kind];
-}
-
-const %CPP_PREFIX%ArkUIFullNodeAPI* GetFullImpl() {
-    return reinterpret_cast<const %CPP_PREFIX%ArkUIFullNodeAPI*>(GetAnyImpl(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%FULL, %CPP_PREFIX%ARKUI_FULL_API_VERSION));
-}
-
-const %CPP_PREFIX%ArkUINodeModifiers* GetNodeModifiers() {
-    return GetFullImpl()->getNodeModifiers();
-}
-
-const %CPP_PREFIX%ArkUIAccessors* GetAccessors() {
-    return GetFullImpl()->getAccessors();
-}
-
-const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
-    return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(GetAnyImpl(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%BASIC, %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION));
-}
-
-const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
-    return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedNodeAPI*>(GetAnyImpl(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED, %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION));
-}
-
-CONSTRUCTOR(init) {
-    if (GetArkUIExtendedNodeAPI()) {
-        auto setAppendGroupedLog = GetArkUIExtendedNodeAPI()->setAppendGroupedLog;
-        if (setAppendGroupedLog) setAppendGroupedLog((void*)GetArkUIExtendedNodeAPI);
-    }
+    return reinterpret_cast<ArkUIAnyAPI*>(impls[kind]);
 }

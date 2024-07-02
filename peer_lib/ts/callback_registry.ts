@@ -54,7 +54,7 @@ class CallbackRegistry {
     }
 }
 
-export function registerCallback(callback: CallbackType, autoDisposable: boolean = true): int32 {
+export function wrapCallback(callback: CallbackType, autoDisposable: boolean = true): int32 {
     return CallbackRegistry.INSTANCE.register(callback, autoDisposable)
 }
 

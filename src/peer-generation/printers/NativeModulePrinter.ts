@@ -65,7 +65,7 @@ class NativeModuleVisitor {
         this.nativeModule.pushIndent()
         this.nativeModuleEmpty.pushIndent()
         for (const file of this.library.files) {
-            for (const peer of file.peers.values()) {
+            for (const peer of file.peersToGenerate.values()) {
                 this.printPeerMethods(peer)
             }
         }

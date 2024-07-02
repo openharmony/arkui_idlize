@@ -124,7 +124,7 @@ class SerializerPrinter {
                 const ctorMethod = new Method(superName, ctorSignature)
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
             }
-            for (let declaration of this.table.orderedDependencies) {
+            for (let declaration of this.table.orderedDependenciesToGenerate) {
                 if (ignoreSerializeTarget(this.table, declaration))
                     continue
                 let name = this.table.computeTargetName(declaration, false)
@@ -192,7 +192,7 @@ class DeserializerPrinter {
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
             }
             const seenNames = new Set<string>()
-            for (let declaration of this.table.orderedDependencies) {
+            for (let declaration of this.table.orderedDependenciesToGenerate) {
                 if (ignoreSerializeTarget(this.table, declaration))
                     continue
 

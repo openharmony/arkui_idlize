@@ -87,7 +87,7 @@ class PeerFileVisitor {
 
         const imports = new ImportsCollector()
         imports.addFilterByBasename(this.targetBasename)
-        this.file.peers.forEach(peer => {
+        this.file.peersToGenerate.forEach(peer => {
             if (determineParentRole(peer.originalClassName, peer.parentComponentName) === InheritanceRole.PeerNode)
                 imports.addFeatureByBasename('PeerNode', 'PeerNode')
             if (peer.originalParentFilename) {
@@ -178,7 +178,7 @@ class PeerFileVisitor {
 
     printFile(): void {
         this.printImports()
-        this.file.peers.forEach(peer => {
+        this.file.peersToGenerate.forEach(peer => {
             this.printPeer(peer)
             this.printAttributes(peer)
         })
@@ -228,11 +228,11 @@ class PeersVisitor {
 
     printPeers(): void {
         for (const file of this.library.files.values()) {
-            if (!file.peers.size)
-                continue
-            const visitor = new PeerFileVisitor(this.library, file, this.dumpSerialized)
-            visitor.printFile()
-            this.peers.set(visitor.targetBasename, visitor.printer.getOutput())
+            if (file.peersToGenerate.length) {
+                const visitor = new PeerFileVisitor(this.library, file, this.dumpSerialized)
+                visitor.printFile()
+                this.peers.set(visitor.targetBasename, visitor.printer.getOutput())
+            }
         }
     }
 }

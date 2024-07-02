@@ -113,12 +113,8 @@ class StructDescriptor {
     }
 }
 
-class PendingTypeRequest {
-    constructor(public name: string, public type: ts.TypeNode | undefined) { }
-}
-
 export class DeclarationTable {
-    private typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[]]>()
+    private typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[], boolean]>()
     private toTargetConvertor: ToDeclarationTargetConvertor
     typeChecker: ts.TypeChecker | undefined = undefined
     public language: Language
@@ -139,9 +135,10 @@ export class DeclarationTable {
         return declaration !== undefined ? prefix + declaration[1][0] : this.computeTargetName(this.toTarget(type), optional)
     }
 
-    requestType(name: string | undefined, type: ts.TypeNode) {
+    requestType(name: string | undefined, type: ts.TypeNode, useToGenerate: boolean) {
         let declaration = this.typeMap.get(type)
         if (declaration) {
+            declaration[2] ||= useToGenerate
             if (name && !declaration[1].includes(name)) {
                 declaration[1].push(name)
             }
@@ -150,7 +147,7 @@ export class DeclarationTable {
         name = this.computeTypeName(name, type, false)
         let target = this.toTarget(type)
         if (!target) throw new Error(`Cannot find declaration: ${type.getText()}`)
-        this.typeMap.set(type, [target, [name]])
+        this.typeMap.set(type, [target, [name], useToGenerate])
     }
 
     private isDeclarationTarget(type: ts.TypeNode): boolean {
@@ -411,11 +408,17 @@ export class DeclarationTable {
         return this._orderedDependencies
     }
     private _orderedDependencies: DeclarationTarget[] = []
+
+    public get orderedDependenciesToGenerate(): DeclarationTarget[] {
+        return this._orderedDependenciesToGenerate
+    }
+    private _orderedDependenciesToGenerate: DeclarationTarget[] = []
     analyze(library: PeerLibrary) {
         const callbacks = collectCallbacks(library)
         for (const callback of callbacks) {
             callback.args.forEach(arg => {
-                this.requestType(undefined, arg.type)
+                const useToGenerate = library.shouldGenerateComponent(callback.componentName)
+                this.requestType(undefined, arg.type, useToGenerate)
             })
         }
 
@@ -424,6 +427,13 @@ export class DeclarationTable {
             orderer.addDep(declaration[0])
         }
         this._orderedDependencies = orderer.getToposorted()
+
+        let toGenerateOrderer = new DependencySorter(this)
+        for (let declaration of this.typeMap.values()) {
+            if (declaration[2])
+                toGenerateOrderer.addDep(declaration[0])
+        }
+        this._orderedDependenciesToGenerate = toGenerateOrderer.getToposorted()
     }
 
     serializerName(name: string, type: ts.TypeNode): string {
@@ -1400,7 +1410,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
             return PrimitiveType.CustomObject
         if (ts.isTypeAliasDeclaration(declaration)) {
             const node = declaration.type
-            this.table.requestType(identName(declaration.name), node)
+            this.table.requestType(identName(declaration.name), node, false)
             return convertTypeNode(this, node)
         }
         if (ts.isEnumMember(declaration)) {

@@ -45,7 +45,7 @@ export class ArkoalaInstall extends Install {
     tsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/src/"))
     tsArkoalaDir = this.mkdir(path.join(this.koala, "arkoala/src/generated/"))
     arktsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/arkts/src/"))
-    nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/"))
+    nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/generated/"))
     javaDir = this.mkdir(path.join(this.koala, "arkoala/java/src/"))
     peer(name: string): string {
         return path.join(this.langDir(), name)

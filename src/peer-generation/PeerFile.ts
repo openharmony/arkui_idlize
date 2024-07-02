@@ -49,7 +49,15 @@ export class PeerFile {
     constructor(
         public readonly originalFilename: string,
         public readonly declarationTable: DeclarationTable,
+        private readonly componentsToGenerate: Set<string>,
     ) {}
+
+    get peersToGenerate(): PeerClass[] {
+        const peers = Array.from(this.peers.values())
+        if (!this.componentsToGenerate.size)
+            return peers
+        return peers.filter(it => this.componentsToGenerate.has(it.componentName))
+    }
 
     getOrPutPeer(componentName: string) {
         return getOrPut(this.peers, componentName, () => new PeerClass(this, componentName, this.originalFilename, this.declarationTable))

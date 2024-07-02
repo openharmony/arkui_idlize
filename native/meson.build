@@ -25,7 +25,7 @@ is_jni = java_home != 'undefined'
 compile_events_test = get_option('events_test')
 
 gen_dir = '../generated/' + source_set
-arkoala_dir = gen_dir + '/koalaui/arkoala/native/src'
+arkoala_dir = gen_dir + '/koalaui/arkoala/native/src/generated'
 libace_dir = gen_dir + '/libace'
 
 cxx = meson.get_compiler('cpp')
@@ -41,10 +41,12 @@ include_dirs = [
 sources = [
     arkoala_dir + '/common-interop.cc',
     arkoala_dir + '/custom.cc',
-    arkoala_dir + '/bridge.cc',
+    arkoala_dir + '/bridge_generated.cc',
+    arkoala_dir + '/bridge_custom.cc',
     arkoala_dir + '/events.cc',
     arkoala_dir + '/all_events.cc',
     arkoala_dir + '/load-library.cc',
+    arkoala_dir + '/library.cc',
 ]
 if compile_events_test
     sources += [

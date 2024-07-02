@@ -48,7 +48,7 @@ class ComponentFileVisitor {
     private printImports(): void {
         const imports = new ImportsCollector()
         imports.addFilterByBasename(this.targetBasename)
-        this.file.peers.forEach(peer => {
+        this.file.peersToGenerate.forEach(peer => {
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             imports.addFeature("remember", "@koalaui/runtime")
             if (peer.originalParentFilename) {
@@ -72,7 +72,7 @@ class ComponentFileVisitor {
             for (const method of peer.methods) {
                 for (const target of method.declarationTargets)
                     if (convertToCallback(peer, method, target))
-                        imports.addFeature("UseProperties", './use_properties')
+                        imports.addFeature("UseEventsProperties", './use_properties')
             }
             // TBD
             // peer.materializedClasses.forEach(it => {
@@ -145,7 +145,7 @@ export function ${componentFunctionName}(
 
     printFile(): void {
         this.printImports()
-        this.file.peers.forEach(peer => {
+        this.file.peersToGenerate.forEach(peer => {
             this.printComponent(peer)
         })
     }
@@ -160,7 +160,7 @@ class ComponentsVisitor {
 
     printComponents(): void {
         for (const file of this.peerLibrary.files.values()) {
-            if (!file.peers.size)
+            if (!file.peersToGenerate.length)
                 continue
             const writer = createLanguageWriter(Language.TS)
             const visitor = new ComponentFileVisitor(this.peerLibrary, file, writer)

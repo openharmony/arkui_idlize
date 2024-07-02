@@ -31,7 +31,8 @@ export class PeerLibrary {
     public readonly materializedClasses: Map<string, MaterializedClass> = new Map()
 
     constructor(
-        public declarationTable: DeclarationTable
+        public declarationTable: DeclarationTable,
+        public componentsToGenerate: Set<string>,
     ) {}
 
     readonly customComponentMethods: string[] = []
@@ -61,5 +62,9 @@ export class PeerLibrary {
 
     isComponentDeclaration(node: ts.Declaration): boolean {
         return this.findComponentByDeclaration(node) !== undefined
+    }
+
+    shouldGenerateComponent(name: string): boolean {
+        return !this.componentsToGenerate.size || this.componentsToGenerate.has(name)
     }
 }

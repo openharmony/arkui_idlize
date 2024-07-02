@@ -123,13 +123,9 @@ export class PeerGeneratorVisitor implements GenericVisitor<void> {
         this.sourceFile = options.sourceFile
         this.typeChecker = options.typeChecker
         this.declarationTable = options.declarationTable
-        this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable)
         this.peerLibrary = options.peerLibrary
+        this.peerFile = new PeerFile(this.sourceFile.fileName, this.declarationTable, this.peerLibrary.componentsToGenerate)
         this.peerLibrary.files.push(this.peerFile)
-    }
-
-    requestType(name: string | undefined, type: ts.TypeNode) {
-        this.declarationTable.requestType(name, type)
     }
 
     visitWholeFile(): void {
@@ -259,7 +255,6 @@ function generateArgConvertor(table: DeclarationTable, param: ts.ParameterDeclar
     if (!param.type) throw new Error("Type is needed")
     let paramName = asString(param.name)
     let optional = param.questionToken !== undefined
-    table.requestType(undefined, param.type)
     return table.typeConvertor(paramName, param.type, optional)
 }
 
@@ -483,7 +478,8 @@ class PeersGenerator {
             if (param.type) {
                 this.declarationTable.requestType(
                     `Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`,
-                    param.type
+                    param.type,
+                    this.library.shouldGenerateComponent(peer.componentName),
                 )
             }
         })
@@ -650,7 +646,6 @@ export class PeerProcessor {
 
     constructor(
         private readonly library: PeerLibrary,
-        private readonly componentsToGenerate?: Set<string>,
     ) {
         this.typeDependenciesCollector = new ImportsAggregateCollector(this.library, false)
         this.declDependenciesCollector = new FilteredDeclarationCollector(this.library, this.typeDependenciesCollector)
@@ -759,6 +754,7 @@ export class PeerProcessor {
         const declarationTargets = method.parameters.map(param =>
             this.declarationTable.toTarget(param.type ??
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
+        method.parameters.forEach(it => this.declarationTable.requestType(undefined, it.type!, true))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param))
         const signature = generateSignature(method)
         const modifiers = ts.isConstructorDeclaration(method) || isStatic(method.modifiers) ? [MethodModifier.STATIC] : []
@@ -816,9 +812,9 @@ export class PeerProcessor {
 
     private generateActualComponents(): ComponentDeclaration[] {
         const components = this.library.componentsDeclarations
-        if (!this.componentsToGenerate?.size)
+        if (!this.library.componentsToGenerate.size)
             return components
-        const entryComponents = components.filter(it => this.componentsToGenerate!.has(it.name))
+        const entryComponents = components.filter(it => this.library.shouldGenerateComponent(it.name))
         return components.filter(component => {
             return entryComponents.includes(component)
                 // entryComponents.some(entryComponent => isSubclassComponent(this.declarationTable.typeChecker!, entryComponent, component))
@@ -854,8 +850,8 @@ export class PeerProcessor {
     process(): void {
         new ComponentsCompleter(this.library).process()
         const peerGenerator = new PeersGenerator(this.library)
-        for (const actualComponent of this.generateActualComponents())
-            peerGenerator.generatePeer(actualComponent)
+        for (const component of this.library.componentsDeclarations)
+            peerGenerator.generatePeer(component)
         for (const dep of this.generateDeclarations()) {
             if (isSyntheticDeclaration(dep))
                 continue
