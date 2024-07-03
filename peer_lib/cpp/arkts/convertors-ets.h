@@ -122,7 +122,10 @@ struct InteropTypeConverter<KLength> {
 template <> struct InteropTypeConverter<KInteropNumber> {
   using InteropType = ets_double;
   static KInteropNumber convertFrom(EtsEnv *env, InteropType value) {
-    return {.tag = ARK_TAG_FLOAT32, .f32 = static_cast<float>(value)};
+    KInteropNumber result;
+    result.tag = ARK_TAG_FLOAT32;
+    result.f32 = static_cast<float>(value);
+    return result;
   }
   static InteropType convertTo(EtsEnv *env, KInteropNumber value) = delete;
   static void release(EtsEnv *env, InteropType value,

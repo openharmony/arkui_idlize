@@ -103,8 +103,8 @@ export class DeserializerBase {
     }
 
     readMaterialized(): object {
-        const id = this.readInt32()
-        return {}
+        const ptr = this.readPointer()
+        return { ptr: ptr }
     }
 
     readString(): string {

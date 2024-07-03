@@ -16,6 +16,8 @@ import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
 import { nativeModule } from "@koalaui/arkoala"
 import { wrapCallback } from "./callback_registry"
+import { FinalizableBase } from "./Finalizable"
+
 // imports required intarfaces (now generation is disabled)
 // import { Resource, Length, PixelMap } from "@arkoala/arkui"
 /**
@@ -269,7 +271,7 @@ export class SerializerBase {
         this.writeInt32(registerCallback(value))
     }
     writeMaterialized(value: object | undefined) {
-        this.writePointer(registerMaterialized(value))
+        this.writePointer(value ? (value as FinalizableBase).ptr : 0)
     }
     writeString(value: string) {
         this.checkCapacity(4 + value.length * 4) // length, data
