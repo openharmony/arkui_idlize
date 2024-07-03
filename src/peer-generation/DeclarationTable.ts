@@ -33,6 +33,7 @@ import { PeerLibrary } from "./PeerLibrary"
 import { collectCallbacks } from "./printers/EventsPrinter"
 import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
+import { setEngine } from "node:crypto"
 
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
@@ -676,6 +677,7 @@ export class DeclarationTable {
         const seenNames = new Set<string>()
         seenNames.clear()
         for (let target of this.orderedDependencies) {
+            if (target instanceof PointerType) continue
             let nameAssigned = this.computeTargetName(target, false)
             if (nameAssigned === PrimitiveType.Tag.getText(this)) {
                 continue
@@ -690,19 +692,35 @@ export class DeclarationTable {
         return seenNames
     }
 
-    allUnionTypes() {
+    allLiteralTypes(): Map<string, string> {
+        const literals = new Map<string, string>()
+        for (let target of this.orderedDependencies) {
 
-        type UnionType = {
-            typename: string;
-            selectors: Selector[];
+            let nameAssigned = this.computeTargetName(target, false)
+            if (nameAssigned === PrimitiveType.Tag.getText(this)) {
+                continue
+            }
+            if (!nameAssigned) {
+                throw new Error(`No assigned name for ${(target as ts.TypeNode).getText()} shall be ${this.computeTargetName(target, false)}`)
+            }
+            if (literals.has(nameAssigned)) continue
+            if (nameAssigned.startsWith("Literal_")) {
+                const type = nameAssigned.split("_").at(1)!
+                literals.set(nameAssigned, type)
+            }
+            
         }
+        return literals
+    }
+
+    allUnionTypes() {
 
         type Selector = {
             id: number;
             name: string;
         }
 
-        const unions: UnionType[] = []
+        const unions = new Map<string, Selector[]>()
         for (let target of this.orderedDependencies) {
             let nameAssigned = this.computeTargetName(target, false)
             if (nameAssigned === PrimitiveType.Tag.getText(this)) {
@@ -718,7 +736,8 @@ export class DeclarationTable {
                     if (index === 0) return
                     selectors.push({ id: index, name: field.name })
                 })
-                unions.push({ typename: nameAssigned, selectors: selectors })
+
+                unions.set(nameAssigned, selectors )
             }
         }
         return unions

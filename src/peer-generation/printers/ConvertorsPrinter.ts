@@ -26,13 +26,13 @@ class ConvertorsPrinter {
         this.writer.print('void assign_optional_to(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        this.table.allUnionTypes().forEach(union => {
+        for (const [typename, selectors] of this.table.allUnionTypes()) {
             this.writer.print('template<typename T>')
-            this.writer.print(`void assign_union_to(std::optional<T>& dst, const ${ union.typename }& src) {`)
+            this.writer.print(`void assign_union_to(std::optional<T>& dst, const ${ typename }& src) {`)
             this.writer.pushIndent()
             this.writer.print(`switch (src.selector) {`)
             this.writer.pushIndent()
-            union.selectors.forEach(selector => {
+            selectors.forEach(selector => {
                 this.writer.print(`case ${ selector.id - 1 }: assign_to(dst, src.${ selector.name }); break;`)
             })
             this.writer.print(`default: LOGE("Unexpected src->selector: %{public}d\\n", src.selector); abort(); `)
@@ -41,7 +41,7 @@ class ConvertorsPrinter {
             this.writer.popIndent()
             this.writer.print("}")
             this.writer.print("")
-        })
+        }
 
     }
 
@@ -78,8 +78,27 @@ class ConvertorsPrinter {
         this.writer.print("#undef ASSIGN_OPT")
     }
 
+    writeLiteralConvertors() {
+
+        this.writer.print('template<typename T, typename P>')
+        this.writer.print('void assign_literal_to(std::optional<T>& dst, const P& src);')
+        this.writer.print("")
+
+        for (const [name, type] of this.table.allLiteralTypes()) {
+            this.writer.print('template<typename T>')
+            this.writer.print(`void assign_literal_to(std::optional<T>& dst, const ${name}& src) {`)
+            this.writer.pushIndent()
+            this.writer.print(`assign_to(dst, src.${type}); `)
+            this.writer.popIndent()
+            this.writer.print(`}`)
+            this.writer.print("")
+        }
+        this.writer.print("")
+    }
+
     print() {
         this.writeUnionConvertors()
+        this.writeLiteralConvertors()
         this.writeOptionalConvertors()
     }
 }
