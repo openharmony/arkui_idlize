@@ -16,7 +16,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Language } from './util'
-import { ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH } from './lang/java'
+import { TargetFile } from './peer-generation/printers/TargetFile'
 
 class Install {
     mkdir(path: string): string {
@@ -28,10 +28,6 @@ class Install {
 export class ArkoalaInstall extends Install {
     constructor (private outDir: string, private lang: Language, private test: boolean) {
         super()
-        if (lang == Language.JAVA) {
-            this.mkdir(path.join(this.javaDir, ARKOALA_PACKAGE_PATH))
-            this.mkdir(path.join(this.javaDir, INTEROP_PACKAGE_PATH))
-        }
     }
     langDir(): string {
         switch (this.lang) {
@@ -41,44 +37,49 @@ export class ArkoalaInstall extends Install {
             default: throw new Error("unsupported")
         }
     }
+    createDirs(dirs: string[]) {
+        for (const dir of dirs) {
+            this.mkdir(dir)
+        }
+    }
     koala = this.mkdir(this.test ? path.join(this.outDir, "koalaui") : this.outDir)
     tsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/src/"))
     tsArkoalaDir = this.mkdir(path.join(this.koala, "arkoala/src/generated/"))
     arktsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/arkts/src/"))
     nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/generated/"))
     javaDir = this.mkdir(path.join(this.koala, "arkoala/java/src/"))
-    peer(name: string): string {
-        return path.join(this.langDir(), name)
+    peer(targetFile: TargetFile): string {
+        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
     }
-    component(name: string): string {
-        return path.join(this.langDir(), name)
+    component(targetFile: TargetFile): string {
+        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
     }
-    builderClass(name: string): string {
-        return path.join(this.langDir(), name)
+    builderClass(targetFile: TargetFile): string {
+        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
     }
-    materialized(name: string): string {
-        return path.join(this.langDir(), name)
+    materialized(targetFile: TargetFile): string {
+        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
     }
-    interface(name: string): string {
-        return path.join(this.langDir(), name)
+    interface(targetFile: TargetFile): string {
+        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
     }
-    langLib(name: string) {
-        return path.join(this.langDir(), name + this.lang.extension)
+    langLib(targetFile: TargetFile) {
+        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name + this.lang.extension)
     }
-    tsLib(name: string) {
-        return path.join(this.tsDir, name + this.lang.extension)
+    tsLib(targetFile: TargetFile) {
+        return path.join(this.tsDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
     }
-    tsArkoalaLib(name: string) {
-        return path.join(this.tsArkoalaDir, name + this.lang.extension)
+    tsArkoalaLib(targetFile: TargetFile) {
+        return path.join(this.tsArkoalaDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
     }
-    arktsLib(name: string) {
-        return path.join(this.arktsDir, name + this.lang.extension)
+    arktsLib(targetFile: TargetFile) {
+        return path.join(this.arktsDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
     }
-    javaLib(packagePath: string, name: string) {
-        return path.join(this.javaDir, packagePath, name + this.lang.extension)
+    javaLib(targetFile: TargetFile) {
+        return path.join(this.javaDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
     }
-    native(name: string) {
-        return path.join(this.nativeDir, name)
+    native(targetFile: TargetFile) {
+        return path.join(this.nativeDir, targetFile.path ?? "", targetFile.name)
     }
 }
 

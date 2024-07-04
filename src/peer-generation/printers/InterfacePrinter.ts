@@ -26,6 +26,8 @@ import { TypeNodeConvertor, convertTypeNode } from '../TypeNodeConvertor'
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { read } from "node:fs";
 import { RuntimeType } from '../PeerGeneratorVisitor'
+import { TargetFile } from './TargetFile'
+import { ARKOALA_PACKAGE_PATH } from '../../lang/java'
 
 export class DeclarationGenerator implements DeclarationConvertor<string> {
     constructor(
@@ -124,12 +126,12 @@ export class DeclarationGenerator implements DeclarationConvertor<string> {
 }
 
 interface InterfacesVisitor {
-    getInterfaces(): Map<string, LanguageWriter>
+    getInterfaces(): Map<TargetFile, LanguageWriter>
     printInterfaces(): void
 }
 
 class TSInterfacesVisitor implements InterfacesVisitor {
-    private readonly interfaces: Map<string, LanguageWriter> = new Map()
+    private readonly interfaces: Map<TargetFile, LanguageWriter> = new Map()
     private readonly generator: DeclarationGenerator
 
     constructor(
@@ -138,7 +140,7 @@ class TSInterfacesVisitor implements InterfacesVisitor {
         this.generator = new DeclarationGenerator(peerLibrary)
     }
 
-    private generateFileBasename(originalFilename: string) {
+    private generateFileBasename(originalFilename: string): string {
         return renameDtsToInterfaces(path.basename(originalFilename), this.peerLibrary.declarationTable.language)
     }
 
@@ -178,7 +180,7 @@ class TSInterfacesVisitor implements InterfacesVisitor {
         }
     }
 
-    getInterfaces(): Map<string, LanguageWriter> {
+    getInterfaces(): Map<TargetFile, LanguageWriter> {
         return this.interfaces
     }
 
@@ -190,7 +192,7 @@ class TSInterfacesVisitor implements InterfacesVisitor {
             file.declarations.forEach(it => writer.print(convertDeclaration(this.generator, it)))
             file.enums.forEach(it => this.printEnum(writer, it))
             this.printAssignEnumsToGlobalScope(writer, file)
-            this.interfaces.set(this.generateFileBasename(file.originalFilename), writer)
+            this.interfaces.set(new TargetFile(this.generateFileBasename(file.originalFilename)), writer)
         }
     }
 }
@@ -578,8 +580,12 @@ class JavaInterfacesVisitor {
         }, superClass)
     }
 
-    getInterfaces(): Map<string, LanguageWriter> {
-        return this.interfaces
+    getInterfaces(): Map<TargetFile, LanguageWriter> {
+        const result =  new Map<TargetFile, LanguageWriter>()
+        for (const [name, writer] of this.interfaces) {
+            result.set(new TargetFile(name, ARKOALA_PACKAGE_PATH), writer)
+        }
+        return result
     }
 
     printInterfaces() {
@@ -606,14 +612,14 @@ function getVisitor(peerLibrary: PeerLibrary, lang: Language): InterfacesVisitor
     }
 }
 
-export function printInterfaces(peerLibrary: PeerLibrary, lang: Language): Map<string, string> {
+export function printInterfaces(peerLibrary: PeerLibrary, lang: Language): Map<TargetFile, string> {
     const visitor = getVisitor(peerLibrary, lang)
     if (!visitor) {
         return new Map()
     }
 
     visitor.printInterfaces()
-    const result = new Map<string, string>()
+    const result = new Map<TargetFile, string>()
     for (const [key, writer] of visitor.getInterfaces()) {
         if (writer.getOutput().length === 0) continue
         result.set(key, writer.getOutput().join('\n'))
