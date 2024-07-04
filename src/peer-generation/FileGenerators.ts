@@ -276,14 +276,18 @@ export function makeJavaSerializerWriter(library: PeerLibrary): LanguageWriter {
     return result
 }
 
-export function makeConvertors(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): LanguageWriter {
+export function makeConvertors(convertorsPath: string, library: PeerLibrary): LanguageWriter {
     const userConvertors = createLanguageWriter(Language.CPP) as CppLanguageWriter
     userConvertors.writeLines(cStyleCopyright)
     userConvertors.writeLines(`/*
  * ${warning}
  */
 `)
-    userConvertors.print("#pragma once")
+    const includeGuardDefine = makeIncludeGuardDefine(convertorsPath)
+    userConvertors.print(`#ifndef ${includeGuardDefine}`)
+    userConvertors.print(`#define ${includeGuardDefine}`)
+    userConvertors.print("")
+
     userConvertors.writeLines(`
 #include <optional>
 #include <cstdlib>
@@ -293,6 +297,8 @@ export function makeConvertors(library: PeerLibrary, structs: IndentedPrinter, t
     userConvertors.pushNamespace('OHOS::Ace::NG::GeneratedModifier::Convert')
     writeConvertors(library, userConvertors)
     userConvertors.popNamespace()
+    userConvertors.print(`\n#endif // ${includeGuardDefine}`)
+    userConvertors.print("")
     return userConvertors
 }
 

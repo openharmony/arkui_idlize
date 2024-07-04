@@ -35,7 +35,6 @@ import {
     makeTSDeserializer,
     gniFile,
     mesonBuildFile,
-    completeImplementations,
     copyToLibace,
     libraryCcDeclaration,
 } from "./peer-generation/FileGenerators"
@@ -53,7 +52,7 @@ import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { printComponents } from "./peer-generation/printers/ComponentsPrinter"
 import { printPeers } from "./peer-generation/printers/PeersPrinter"
 import { printMaterialized } from "./peer-generation/printers/MaterializedPrinter"
-import { printApiAndSerializers } from "./peer-generation/printers/HeaderPrinter"
+import { printSerializers, printUserConvertors } from "./peer-generation/printers/HeaderPrinter"
 import { printNodeTypes } from "./peer-generation/printers/NodeTypesPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/printers/NativeModulePrinter"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
@@ -357,7 +356,7 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
         extendedVersion: 6,
     })
 
-    const { api, serializers, convertors } = printApiAndSerializers(options.apiVersion, peerLibrary)
+    const { api, convertors } = printUserConvertors(libace.userConvertors, options.apiVersion, peerLibrary)
     fs.writeFileSync(libace.generatedArkoalaApi, api)
     fs.writeFileSync(libace.userConvertors, convertors)
 
@@ -405,8 +404,8 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
 
     const materialized = printMaterialized(peerLibrary, options.dumpSerialized ?? false)
     for (const [targetBasename, materializedClass] of materialized) {
-        const outMaterilizedFile = arkoala.materialized(targetBasename)
-        writeFile(outMaterilizedFile, materializedClass)
+        const outMaterializedFile = arkoala.materialized(targetBasename)
+        writeFile(outMaterializedFile, materializedClass)
     }
 
     // NativeModule
@@ -504,7 +503,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     writeFile(arkoala.native('bridge_generated.cc'), printBridgeCcGenerated(peerLibrary, options.callLog ?? false), true)
     writeFile(arkoala.native('bridge_custom.cc'), printBridgeCcCustom(peerLibrary, options.callLog ?? false))
 
-    const { api, serializers } = printApiAndSerializers(options.apiVersion, peerLibrary)
+    const { api, serializers } = printSerializers(options.apiVersion, peerLibrary)
     writeFile(arkoala.native('Serializers.h'), serializers, true)
     writeFile(arkoala.native('arkoala_api_generated.h'), api, true)
 

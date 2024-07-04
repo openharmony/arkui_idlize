@@ -24,6 +24,7 @@ import { CallbackInfo, collectCallbacks, groupCallbacks } from "./EventsPrinter"
 import { DeclarationTable, PrimitiveType } from "../DeclarationTable";
 import { NamedMethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
 import { Language } from "../../util";
+import { LibaceInstall } from "../../Install";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -156,7 +157,7 @@ class HeaderVisitor {
     }
 }
 
-export function printApiAndSerializers(apiVersion: string|undefined, peerLibrary: PeerLibrary): {api: string, serializers: string, convertors: string} {
+export function printUserConvertors(convertorsPath: string, apiVersion: string|undefined, peerLibrary: PeerLibrary): {api: string, convertors: string} {
     const apiHeader = new IndentedPrinter()
     const modifierList = new IndentedPrinter()
     const accessorList = new IndentedPrinter()
@@ -168,9 +169,27 @@ export function printApiAndSerializers(apiVersion: string|undefined, peerLibrary
     const structs = new IndentedPrinter()
     const typedefs = new IndentedPrinter()
 
-    const convertors = makeConvertors(peerLibrary, structs, typedefs).getOutput().join("\n")
+    const convertors = makeConvertors(convertorsPath, peerLibrary).getOutput().join("\n")
+    makeCSerializers(peerLibrary, structs, typedefs)
+    const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), structs, typedefs)
+
+    return {api, convertors}
+}
+
+export function printSerializers(apiVersion: string|undefined, peerLibrary: PeerLibrary): {api: string, serializers: string} {
+    const apiHeader = new IndentedPrinter()
+    const modifierList = new IndentedPrinter()
+    const accessorList = new IndentedPrinter()
+    const eventsList = new IndentedPrinter()
+
+    const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList)
+    visitor.printApiAndDeserializer()
+
+    const structs = new IndentedPrinter()
+    const typedefs = new IndentedPrinter()
+
     const serializers = makeCSerializers(peerLibrary, structs, typedefs)
     const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), structs, typedefs)
 
-    return {api, serializers, convertors}
+    return {api, serializers}
 }

@@ -5,17 +5,6 @@ const %CPP_PREFIX%Ark_UtilsModifier utilsImpl = {
 };
 const %CPP_PREFIX%Ark_UtilsModifier* %CPP_PREFIX%GetUtilsModifier() { return &utilsImpl; }
 
-const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {
-    %CPP_PREFIX%ARKUI_FULL_API_VERSION, // version
-    %CPP_PREFIX%GetArkUINodeModifiers,
-    %CPP_PREFIX%GetArkUIAccessors,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr
-};
-const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI() { return &fullAPIImpl; }
-
 const %CPP_PREFIX%ArkUIBasicNodeAPI basicNodeAPIImpl = {
     %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, // version
     OHOS::Ace::NG::Bridge::CreateNode,
@@ -74,6 +63,18 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI extendedNodeAPIImpl = {
     OHOS::Ace::NG::ApiImpl::ShowCrash
 };
 const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI() { return &extendedNodeAPIImpl; }
+
+const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {
+    %CPP_PREFIX%ARKUI_FULL_API_VERSION, // version
+    %CPP_PREFIX%GetArkUINodeModifiers,
+    %CPP_PREFIX%GetArkUIAccessors,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    %CPP_PREFIX%GetExtendedAPI
+};
+const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI() { return &fullAPIImpl; }
 
 EXTERN_C IDLIZE_API_EXPORT const %CPP_PREFIX%ArkUIAnyAPI* %CPP_PREFIX%GetArkAnyAPI(
     %CPP_PREFIX%Ark_APIVariantKind kind, int version)

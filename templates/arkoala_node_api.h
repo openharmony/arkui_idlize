@@ -371,24 +371,12 @@ typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
 
     Ark_NodeHandle (*getNodeByViewStack)();
     void (*disposeNode)(Ark_NodeHandle node);
-    // Returned pointer is valid only till node is alive.
-    // Ark_CharPtr (*getName)(Ark_NodeHandle node);
-    // void (*dump)(Ark_NodeHandle node);
 
     Ark_Int32 (*addChild)(Ark_NodeHandle parent, Ark_NodeHandle child);
     void (*removeChild)(Ark_NodeHandle parent, Ark_NodeHandle child);
     Ark_Int32 (*insertChildAfter)(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling);
     Ark_Int32 (*insertChildBefore)(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling);
     Ark_Int32 (*insertChildAt)(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Int32 position);
-
-    // Returned pointer is valid only till node is alive.
-    // Ark_CharPtr (*getAttribute)(Ark_NodeHandle node, Ark_CharPtr attribute);
-    // void (*setAttribute)(Ark_NodeHandle node, Ark_CharPtr attribute, Ark_CharPtr value);
-    // void (*resetAttribute)(Ark_NodeHandle node, Ark_CharPtr attribute);
-
-    // void (*registerNodeAsyncEventReceiver)(%CPP_PREFIX%EventReceiver eventReceiver);
-    // void (*unRegisterNodeAsyncEventReceiver)();
-    // Ark_Int32 (*checkAsyncEvent)(%CPP_PREFIX%Ark_NodeEvent* event);
 
     // Commit attributes updates for node.
     void (*applyModifierFinish)(Ark_NodeHandle nodePtr);
@@ -398,12 +386,6 @@ typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
 
     Ark_Float32 (*convertLengthMetricsUnit)(Ark_Float32 value, Ark_Int32 originUnit, Ark_Int32 targetUnit);
 } %CPP_PREFIX%ArkUIBasicNodeAPI;
-
-//typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
-//    Ark_Int32 version;
-//    void (*setCAllBackMethod)(struct %CPP_PREFIX%Ark_APICallbackMethod* method);
-//    const %CPP_PREFIX%ArkUIBasicAPI* (*getBasicModifier)();
-//} %CPP_PREFIX%ArkUIBasicNodeAPI;
 
 typedef void (*%CPP_PREFIX%CustomEventReceiver)(%CPP_PREFIX%Ark_CustomNodeEvent* event);
 

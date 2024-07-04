@@ -233,7 +233,7 @@ export function getOrPut<K, V>(map: Map<K, V>, key: K, create: (key: K) => V): V
 export function indentedBy(input: string, indentedBy: number): string {
     if (input.length > 0 || input.endsWith('\n')) {
         let space = ""
-        for (let i = 0; i < indentedBy; i++) space += "  "
+        for (let i = 0; i < indentedBy; i++) space += "    "
         return `${space}${input}`
     } else {
         return ""
