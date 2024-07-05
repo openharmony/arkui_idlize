@@ -483,6 +483,14 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         )
     }
     if (lang == Language.ARKTS) {
+        const interfaces = printInterfaces(peerLibrary, lang)
+        for (const [targetBasename, data] of interfaces) {
+            const outComponentFile = arkoala.interface(targetBasename)
+            console.log("producing", outComponentFile)
+            if (options.verbose) console.log(data)
+            writeFile(outComponentFile, data)
+            arkuiComponentsFiles.push(outComponentFile)
+        }
         writeFile(
             arkoala.arktsLib(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),

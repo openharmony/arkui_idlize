@@ -17,9 +17,4 @@ SCRIPT_DIR=`dirname "${BASH_SOURCE[0]}"`
 
 . $SCRIPT_DIR/common
 
-EXCLUDE_PANDA_FILE=$DTS_INTERFACES_FILE:$EXCLUDE_PANDA_FILE
-PANDA_LIB_FILES=$(echo $(find $PANDA_LIB_PATH -not -name $(echo $EXCLUDE_PANDA_FILE | sed 's/:/ -not -name /g') -name *.abc -exec echo {}: \;) | tr -d ' ')
-# Set $DTS_INTERFACES_FILE to first position. This is a workaround for the issue: https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/18012
-PANDA_LIB_FILES=$PANDA_LIB_PATH/$DTS_INTERFACES_FILE:$PANDA_LIB_FILES
-$PANDA_SDK/$ARCH_TOOLS/bin/ark --load-runtimes=ets --boot-panda-files $PANDA_SDK/ets/etsstdlib.abc:$PANDA_LIB_FILES $@ index.ETSGLOBAL::main
-
+$PANDA_SDK/$ARCH_TOOLS/bin/ark_link $@

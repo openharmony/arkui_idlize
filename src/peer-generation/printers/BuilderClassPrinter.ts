@@ -23,6 +23,7 @@ class BuilderClassFileVisitor {
         //TODO: in the future it is necessary to import elements from generated ets files
         if (writer.language == Language.ARKTS) {
             writer.print(collectDtsImports().trim())
+            writer.print("import { SelectedMode } from './ArkTabContentInterfaces'")
         }
 
         writer.writeClass(clazz.name, writer => {

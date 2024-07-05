@@ -98,7 +98,8 @@ class PeerFileVisitor {
                     imports.addFeatureByBasename(parentAttributesClass, parentBasename)
             }
         })
-        if (this.file.declarationTable.language === Language.TS) {
+        if (this.file.declarationTable.language === Language.TS
+            || this.file.declarationTable.language === Language.ARKTS) {
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
             this.file.serializeImportFeatures.forEach(it => imports.addFeature(it.feature, it.module))
             imports.addFeature('GestureName', './generated-utils')

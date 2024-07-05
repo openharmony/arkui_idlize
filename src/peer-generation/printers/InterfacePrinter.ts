@@ -131,16 +131,16 @@ interface InterfacesVisitor {
 }
 
 class TSInterfacesVisitor implements InterfacesVisitor {
-    private readonly interfaces: Map<TargetFile, LanguageWriter> = new Map()
-    private readonly generator: DeclarationGenerator
+    protected readonly interfaces: Map<TargetFile, LanguageWriter> = new Map()
+    protected readonly generator: DeclarationGenerator
 
     constructor(
-        private readonly peerLibrary: PeerLibrary,
+        protected readonly peerLibrary: PeerLibrary,
     ) {
         this.generator = new DeclarationGenerator(peerLibrary)
     }
 
-    private generateFileBasename(originalFilename: string): string {
+    protected generateFileBasename(originalFilename: string): string {
         return renameDtsToInterfaces(path.basename(originalFilename), this.peerLibrary.declarationTable.language)
     }
 
@@ -151,18 +151,19 @@ class TSInterfacesVisitor implements InterfacesVisitor {
         imports.print(writer)
     }
 
-    private printEnum(writer: LanguageWriter, enumEntity: EnumEntity) {
+    protected printEnum(writer: LanguageWriter, enumEntity: EnumEntity) {
         writer.print(enumEntity.comment)
         writer.print(`export enum ${enumEntity.name} {`)
         writer.pushIndent()
-        for (const member of enumEntity.members) {
+        enumEntity.members.forEach((member, index) => {
             writer.print(member.comment)
+            const commaOp = index < enumEntity.members.length - 1 ? ',' : ''
             if (member.initializerText != undefined) {
-                writer.print(`${member.name} = ${member.initializerText},`)
+                writer.print(`${member.name} = ${member.initializerText}${commaOp}`)
             } else {
-                writer.print(`${member.name},`)
+                writer.print(`${member.name}${commaOp}`)
             }
-        }
+        })
         writer.popIndent()
         writer.print(`}`)
     }
@@ -603,12 +604,25 @@ class JavaInterfacesVisitor {
     }
 }
 
+class ArkTSInterfacesVisitor extends TSInterfacesVisitor {
+    override printInterfaces() {
+        for (const file of this.peerLibrary.files.values()) {
+            const writer = createLanguageWriter(Language.ARKTS)
+            file.enums.forEach(it => this.printEnum(writer, it))
+            this.interfaces.set(new TargetFile(this.generateFileBasename(file.originalFilename)), writer)
+        }
+    }
+}
+
 function getVisitor(peerLibrary: PeerLibrary, lang: Language): InterfacesVisitor | undefined {
     if (lang == Language.TS) {
         return new TSInterfacesVisitor(peerLibrary)
     }
     if (lang == Language.JAVA) {
         return new JavaInterfacesVisitor(peerLibrary)
+    }
+    if (lang == Language.ARKTS) {
+        return new ArkTSInterfacesVisitor(peerLibrary)
     }
 }
 

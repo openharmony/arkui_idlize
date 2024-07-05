@@ -385,7 +385,8 @@ export class LengthConvertor extends BaseArgConvertor {
             writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.STRING), writer.makeString(`${value}_type`)]),
             writer.makeNaryOp("&&", [
                 writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeString(`${value}_type`)]),
-                writer.makeString(`isResource(${value})`)])])
+                writer.makeCallIsResource(value)
+            ])])
     }
 }
 

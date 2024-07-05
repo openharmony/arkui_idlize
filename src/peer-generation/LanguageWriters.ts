@@ -724,6 +724,9 @@ export abstract class LanguageWriter {
         return this.makeString(`(${this.makeNaryOp("||",
             accessors.map(it => this.makeString(`${value}!.hasOwnProperty("${it}")`))).asString()})`)
     }
+    makeCallIsResource(value: string) {
+        return this.makeString(`isResource(${value})`)
+    }
 }
 
 export class TSLanguageWriter extends LanguageWriter {
@@ -967,6 +970,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             return this.makeString(`${value}`)
         }
         return super.makeValueFromOption(value, destinationConvertor)
+    }
+    makeCallIsResource(value: string): LanguageExpression {
+        return this.makeString(`(${value} instanceof Resource)`);
     }
 }
 

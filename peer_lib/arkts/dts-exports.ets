@@ -13,6 +13,34 @@
  * limitations under the License.
  */
 
+import { BlurStyle,
+         GradientDirection,
+         DismissReason,
+         ShadowStyle,
+         ShadowType,
+         SheetMode,
+         SheetSize,
+         SheetType,
+         SourceTool,
+         BorderStyle,
+         DragPreviewMode,
+         AdaptiveColor,
+         ThemeColorMode } from './ArkCommonInterfaces'
+import { GestureMask,
+         GesturePriority,
+        GestureJudgeResult } from './ArkGestureInterfaces'
+import { CalendarAlign } from './ArkCalendarPickerInterfaces'
+import { EnumDTS } from './ArkTestInterfaces'
+import { NavigationTitleMode } from './ArkNavigationInterfaces'
+import { HorizontalAlign } from './ArkColumnInterfaces'
+import { SelectedMode } from './ArkTabContentInterfaces'
+import { BarMode } from './ArkTabsInterfaces'
+import { TextHeightAdaptivePolicy,
+         FontStyle,
+         TextOverflow,
+         FontWeight,
+         ColoringStrategy } from './ArkEnumInterfaces'
+
 export interface CustomComponent extends CommonAttribute {
     build(): void;
     aboutToAppear(): void;
@@ -89,24 +117,12 @@ export interface UICommonEvent {
     setOnClick(callback: Callback<ClickEvent> | undefined): void;
 }
 
-export class SheetSize {
-    MEDIUM = 0
-    LARGE = 1
-    FIT_CONTENT = 2
-}
-
 export interface BindOptions {
     backgroundColor?: ResourceColor;
     onAppear?: () => void;
     onDisappear?: () => void;
     onWillAppear?: () => void;
     onWillDisappear?: () => void;
-}
-
-export enum SheetType {
-    BOTTOM = 0,
-    CENTER = 1,
-    POPUP = 2
 }
 
 export interface SheetDismiss {
@@ -118,32 +134,11 @@ export interface DismissSheetAction {
     reason: DismissReason;
 }
 
-export enum DismissReason {
-    PRESS_BACK = 0,
-    TOUCH_OUTSIDE = 1,
-    CLOSE_BUTTON = 2,
-    SLIDE_DOWN = 3
-}
-
 export interface SpringBackAction {
     springBack: Callback<void>;
 }
 
-export enum ShadowStyle {
-    OUTER_DEFAULT_XS,
-    OUTER_DEFAULT_SM,
-    OUTER_DEFAULT_MD,
-    OUTER_DEFAULT_LG,
-    OUTER_FLOATING_SM,
-    OUTER_FLOATING_MD,
-}
-
 export interface UIContext {
-}
-
-export enum SheetMode {
-    OVERLAY = 0,
-    EMBEDDED = 1,
 }
 
 export interface SheetOptions extends BindOptions {
@@ -170,20 +165,6 @@ export interface SheetOptions extends BindOptions {
     onWidthDidChange?: Callback<number>;
     onTypeDidChange?: Callback<int>;
     uiContext?: UIContext;
-}
-
-export enum BlurStyle {
-    Thin = 0
-}
-
-export enum ThemeColorMode {
-    SYSTEM = 0,
-    LIGHT = 1,
-    DARK = 2
-}
-
-export enum AdaptiveColor {
-    DEFAULT = 0
 }
 
 export interface BlurOptions {
@@ -274,18 +255,18 @@ export interface CommonAttribute extends CommonMethod<CommonAttribute> {
 export interface CanvasPath {
 
     rect(x: number, y: number, w: number, h: number): void;
-  
+
     arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise?: boolean): void;
-  
+
     closePath(): void;
 }
 
 export interface CanvasRenderer extends CanvasPath {
 
     globalAlpha: number;
-  
+
     globalCompositeOperation: string;
-  
+
     // drawImage(image: ImageBitmap | PixelMap, dx: number, dy: number): void;
 }
 export type LengthMetrics = string
@@ -346,17 +327,7 @@ export class RenderingContextSettings {
 
     constructor(antialias?: boolean) {}
 }
-export enum TextOverflow {
-  None,
-  Clip,
-  Ellipsis,
-  MARQUEE,
-}
-export enum TextHeightAdaptivePolicy {
-  MAX_LINES_FIRST,
-  MIN_FONT_SIZE_FIRST,
-  LAYOUT_CONSTRAINT_FIRST,
-}
+
 export interface LabelStyle {
     overflow?: TextOverflow;
     maxLines?: number;
@@ -366,23 +337,6 @@ export interface LabelStyle {
     font?: Font;
 }
 export declare type Dimension = string | Resource;
-export enum BarMode {
-  Scrollable = 0,
-  Fixed = 1,
-}
-export enum ButtonType {
-    Capsule,
-    Circle,
-}
-export enum SelectedMode {
-  INDICATOR,
-  BOARD,
-}
-export enum HorizontalAlign {
-    Start = 0,
-    Center = 1,
-    End = 2
-}
 export interface OnScrollVisibleContentChangeCallback {}
 export interface Vector1 {
     x0: number;
@@ -397,22 +351,6 @@ export interface Vector2 {
     z: number;
 }
 export interface PixelMap {}
-export enum GradientDirection {
-    Left,
-    Top,
-    Right,
-    Bottom,
-    LeftTop,
-    LeftBottom,
-    RightTop,
-    RightBottom,
-    None
-}
-export enum NavigationTitleMode {
-    Free = 0,
-    Full,
-    Mini,
-}
 
 export interface RectResult {
     x: number;
@@ -430,12 +368,6 @@ export class TouchTestInfo {
     y: number;
     rect: RectResult;
     id: string;
-}
-
-export enum EnumDTS {
-    ELEM_0 = 0,
-    ELEM_1 = 1,
-    ELEM_2 = 2,
 }
 
 export interface  BooleanInterfaceDTS {
@@ -580,23 +512,6 @@ export class ClassWithConstructorAndAllOptionalParamsDTS {
 
 export type CustomBuilder = (() => Object | void)
 
-export enum CalendarAlign {
-    START = 0,
-    CENTER = 1,
-    END = 2
-}
-
-export enum ShadowType {
-    COLOR = 0,
-    BLUR = 1
-}
-
-export enum ColoringStrategy {
-  INVERT = 'invert',
-  AVERAGE = 'average',
-  PRIMARY = 'primary'
-}
-
 export interface ShadowOptions {
     radius: number | Resource;
     type?: ShadowType;
@@ -620,20 +535,6 @@ export interface LocalizedEdgeWidths {
     start?: LengthMetrics;
 }
 
-export enum FontWeight {
-  Lighter,
-  Normal,
-  Regular,
-  Medium,
-  Bold,
-  Bolder,
-}
-
-export enum FontStyle {
-  Normal,
-  Italic,
-}
-
 export interface Font {
   size?: Length;
   weight?: FontWeight | number | string;
@@ -641,24 +542,11 @@ export interface Font {
   style?: FontStyle;
 }
 
-export enum DragPreviewMode {
-  AUTO = 1,
-  DISABLE_SCALE = 2,
-  ENABLE_DEFAULT_SHADOW = 3,
-  ENABLE_DEFAULT_RADIUS = 4
-}
-
 export interface EdgeColors {
     top?: ResourceColor;
     right?: ResourceColor;
     bottom?: ResourceColor;
     left?: ResourceColor;
-}
-
-export enum BorderStyle {
-    Dotted,
-    Dashed,
-    Solid
 }
 
 export interface EdgeStyles {
@@ -698,25 +586,6 @@ export class ImageData {
     this.height = height
     this.data = data ?? new Uint8ClampedArray(0)
   }
-}
-
-export enum GesturePriority {
-  NORMAL = 0,
-  PRIORITY = 1,
-}
-
-export enum GestureMask {
-  Normal,
-  IgnoreInternal,
-}
-
-export enum SourceTool {
-    Unknown,
-    Finger,
-    Pen,
-    MOUSE,
-    TOUCHPAD,
-    JOYSTICK,
 }
 
 export interface GestureInterface<T> {
@@ -778,11 +647,6 @@ interface GestureRecognizer {
   getState(): GestureRecognizerState;
 
   getEventTargetInfo(): EventTargetInfo;
-}
-
-enum GestureJudgeResult {
-  CONTINUE = 0,
-  REJECT = 1,
 }
 
 export type GestureRecognizerJudgeBeginCallback = (event: BaseGestureEvent, current: GestureRecognizer, recognizers: Array<GestureRecognizer>) => GestureJudgeResult;

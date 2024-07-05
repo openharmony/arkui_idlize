@@ -256,7 +256,11 @@ export function makeTSSerializer(library: PeerLibrary): string {
     const builderClassImports = Array.from(library.builderClasses.keys())
         .map(it => `import { ${it} } from "@arkoala/arkui/Ark${it}Builder"`)
     writeSerializer(library, printer)
+    //TODO: need to determine imports when generating serializer
+    const extraImports = library.declarationTable.language === Language.ARKTS ?
+        'import { AdaptiveColor, BlurStyle, BorderStyle, DismissReason, DragPreviewMode, GradientDirection, ShadowStyle, ShadowType, SheetMode, SheetSize, SheetType, ThemeColorMode } from "./ArkCommonInterfaces"' : ''
     return `
+${extraImports}
 import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "./generated-utils"

@@ -15,8 +15,9 @@
 import { NativeModule } from "./NativeModule"
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
-import { ButtonType,
-        LabelStyle,
+import { ButtonType } from '@arkoala/arkui/ArkButtonInterfaces'
+
+import {LabelStyle,
         TextOverflow,
         ResourceStr,
         TextHeightAdaptivePolicy,

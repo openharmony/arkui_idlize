@@ -27,6 +27,7 @@ import {
     getComment,
     isReadonly,
     getDeclarationsByNode,
+    Language
 } from "../util"
 import { GenericVisitor } from "../options"
 import {
@@ -873,17 +874,25 @@ export class PeerProcessor {
             }
 
             this.declDependenciesCollector.convert(dep).forEach(it => {
-                if (this.isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it)))
+                if (this.isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it))
+                    && needImportFeature(this.library.declarationTable.language, it))
                     file.importFeatures.push(convertDeclToFeature(this.library, it))
             })
             this.serializeDepsCollector.convert(dep).forEach(it => {
-                if (this.isSourceDecl(it) && PeerGeneratorConfig.needInterfaces)
+                if (this.isSourceDecl(it) && PeerGeneratorConfig.needInterfaces
+                    && needImportFeature(this.library.declarationTable.language, it)) {
                     file.serializeImportFeatures.push(convertDeclToFeature(this.library, it))
+                }
             })
-            if (PeerGeneratorConfig.needInterfaces) {
+            if (PeerGeneratorConfig.needInterfaces
+                && needImportFeature(this.library.declarationTable.language, dep)) {
                 file.declarations.add(dep)
                 file.importFeatures.push(convertDeclToFeature(this.library, dep))
             }
         }
     }
+}
+
+function needImportFeature(language: Language, decl: ts.Declaration): boolean {
+    return !(language === Language.ARKTS && !ts.isEnumDeclaration(decl));
 }
