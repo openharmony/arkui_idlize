@@ -169,25 +169,28 @@ class CEventsVisitor {
 
     private printReceiver(componentName: string, callbacks: CallbackInfo[]) {
         const receiver = generateEventReceiverName(componentName)
-        this.impl.print(`${receiver} ${receiver}Impl {`)
+        this.impl.print(`const ${receiver}* Get${componentName}EventsReceiver() {`)
+        this.impl.pushIndent()
+        this.impl.print(`static const ${receiver} ${receiver}Impl {`)
         this.impl.pushIndent()
         for (const callback of callbacks) {
             this.impl.print(`${callbackIdByInfo(callback)}Impl,`)
         }
         this.impl.popIndent()
         this.impl.print(`};\n`)
-        this.impl.print(`const ${receiver}* Get${componentName}EventsReceiver() { return &${receiver}Impl; }`)
+
+        this.impl.print(`return &${receiver}Impl;`)
+        this.impl.popIndent()
+        this.impl.print(`}`)
     }
 
     private printReceiversList(callbacks: Map<string, CallbackInfo[]>) {
-        this.receiversList.pushIndent()
         for (const componentName of callbacks.keys()) {
             if (this.library.shouldGenerateComponent(componentName))
                 this.receiversList.print(`Get${componentName}EventsReceiver,`)
             else 
                 this.receiversList.print(`nullptr,`)
         }
-        this.receiversList.popIndent()
     }
 
     print() {
@@ -369,7 +372,7 @@ export function printEventsCImpl(library: PeerLibrary): string {
     const visitor = new CEventsVisitor(library)
     visitor.print()
     return makeCEventsImpl(
-        visitor.impl.getOutput().join('\n'),
-        visitor.receiversList.getOutput().join('\n')
+        visitor.impl,
+        visitor.receiversList
     )
 }

@@ -230,24 +230,36 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
 
 export function modifierStructList(lines: LanguageWriter): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
-    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {`)
+    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers() {`)
+    result.pushIndent()
+
+    result.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {`)
     result.pushIndent()
     result.concat(lines)
     result.popIndent()
     result.print(`};`)
-    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers() { return &modifiersImpl; }`)
+
+    result.print(`return &modifiersImpl;`)
+    result.popIndent()
+    result.print(`}`)
     return result
 }
 
 export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
-    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {`)
+    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors() {`)
+    result.pushIndent()
+
+    result.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {`)
     result.pushIndent()
     result.concat(lines)
     result.popIndent()
     result.print(`};`)
 
-    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors() { return &accessorsImpl; }`)
+    result.print(`return &accessorsImpl;`)
+    result.popIndent()
+    result.print('}')
+
     return result
 }
 
@@ -545,16 +557,21 @@ ${data}
 `
 }
 
-export function makeCEventsImpl(implData: string, receiversList: string): string {
+export function makeCEventsImpl(implData: LanguageWriter, receiversList: LanguageWriter): string {
+    const indentedReceiversList = createLanguageWriter(Language.CPP)
+    indentedReceiversList.pushIndent()
+    indentedReceiversList.pushIndent()
+    indentedReceiversList.concat(receiversList)
+    indentedReceiversList.popIndent()
+    indentedReceiversList.popIndent()
     return `
-${implData}
-
-const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {
-${receiversList}
-};
+${implData.getOutput().join("\n")}
 
 const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* GetArkUiEventsAPI()
 {
+    static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {
+${indentedReceiversList.getOutput().join("\n")}
+    };
     return &eventsImpl;
 }
 `
