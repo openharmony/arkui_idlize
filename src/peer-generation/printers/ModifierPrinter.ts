@@ -232,7 +232,7 @@ export class ModifierVisitor {
         this.modifiers.popIndent()
         this.modifiers.print(`};\n`)
         const name = clazz.componentName
-        this.modifiers.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n\n`)
+        this.modifiers.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${name}Modifier* Get${name}Modifier() { return &ArkUI${name}ModifierImpl; }\n`)
         this.getterDeclarations.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${name}Modifier* Get${name}Modifier();`)
     }
 
@@ -286,7 +286,7 @@ class AccessorVisitor extends ModifierVisitor {
         this.accessors.popIndent()
         this.accessors.print(`};\n`)
         const accessor = `${clazz.className}Accessor`
-        this.accessors.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}() { return &${accessor}Impl; }\n\n`)
+        this.accessors.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}() { return &${accessor}Impl; }\n`)
         this.getterDeclarations.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}();`)
     }
 
