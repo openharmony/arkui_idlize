@@ -101,6 +101,8 @@ class PeerFileVisitor {
         if (this.file.declarationTable.language === Language.TS) {
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
             this.file.serializeImportFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+            imports.addFeature('GestureName', './generated-utils')
+            imports.addFeature('GestureComponent', './generated-utils')
         }
         imports.addFeature("unsafeCast", "./generated-utils")
         imports.addFeature("registerCallback", "./SerializerBase")

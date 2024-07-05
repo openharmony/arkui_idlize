@@ -757,6 +757,13 @@ export class InterfaceConvertor extends BaseArgConvertor {
         return this.table.targetStruct(this.declaration).getFields().map(it => it.name)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        if (this.tsTypeName.endsWith("GestureInterface")) {
+            const gestureType = this.tsTypeName.slice(0, -"GestureInterface".length)
+            const castExpr = writer.makeCast(writer.makeString(value), new Type("GestureComponent<Object>"))
+            return writer.makeNaryOp("===", [
+                writer.makeString(`${castExpr.asString()}.type`),
+                writer.makeString(`GestureName.${gestureType}`)])
+        }
         const uniqueFields = this.table
             .targetStruct(this.declaration)
             .getFields()
