@@ -69,12 +69,16 @@ class BridgeCcVisitor {
         if (method.hasReceiver()) {
             this.generatedApi.print(`${method.receiverType} self = reinterpret_cast<${method.receiverType}>(thisPtr);`)
         }
+        let deserializerCreated = false
         method.argConvertors.forEach(it => {
             if (it.useArray) {
-                this.generatedApi.print(`Deserializer ${it.param}Deserializer(${it.param}Array, ${it.param}Length);`)
+                if (!deserializerCreated) {
+                    this.generatedApi.print(`Deserializer thisDeserializer(thisArray, thisLength);`)
+                    deserializerCreated = true
+                }
                 let result = `${it.param}_value`
                 this.generatedApi.print(`${it.nativeType(false)} ${result};`)
-                this.generatedApi.writeStatement(it.convertorDeserialize(it.param, result, this.generatedApi))
+                this.generatedApi.writeStatement(it.convertorDeserialize(`this`, result, this.generatedApi))
             }
         })
         this.printAPICall(method, modifierName)
@@ -135,20 +139,30 @@ class BridgeCcVisitor {
 
     private generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string[] {
         const receiver = hasReceiver ? [PrimitiveType.NativePointer.getText()] : []
-        return receiver.concat(argConvertors.map(it => {
+        let ptrCreated = false;
+        for (let i = 0; i < argConvertors.length; ++i) {
+            let it = argConvertors[i]
             if (it.useArray) {
-                return `uint8_t*, int32_t`
+                if (!ptrCreated) {
+                    receiver.push(`uint8_t*, int32_t`)
+                    ptrCreated = true
+                }
             } else {
-                return it.interopType(this.generatedApi.language)
+                receiver.push(it.interopType(this.generatedApi.language))
             }
-        }))
+        }
+        return receiver
     }
 
     private generateCMacroSuffix(method: PeerMethod): string {
         let counter = method.hasReceiver() ? 1 : 0
+        let arrayAdded = false
         method.argConvertors.forEach(it => {
             if (it.useArray) {
-                counter += 2
+                if (!arrayAdded) {
+                    counter += 2
+                    arrayAdded = true
+                }
             } else {
                 counter += 1
             }
@@ -158,9 +172,14 @@ class BridgeCcVisitor {
 
     private generateCParameters(method: PeerMethod, argConvertors: ArgConvertor[]): string[] {
         let maybeReceiver = method.hasReceiver() ? [`${PrimitiveType.NativePointer.getText()} thisPtr`] : []
-        return (maybeReceiver.concat(argConvertors.map(it => {
+        let ptrCreated = false;
+        for (let i = 0; i < argConvertors.length; ++i) {
+            let it = argConvertors[i]
             if (it.useArray) {
-                return `uint8_t* ${it.param}Array, int32_t ${it.param}Length`
+                if (!ptrCreated) {
+                    maybeReceiver.push(`uint8_t* thisArray, int32_t thisLength`)
+                    ptrCreated = true
+                }
             } else {
                 let type = it.interopType(this.generatedApi.language)
                 switch (type) {
@@ -171,9 +190,10 @@ class BridgeCcVisitor {
                         type = `const KLength&`
                         break
                 }
-                return `${type} ${it.param}`
+                maybeReceiver.push(`${type} ${it.param}`)
             }
-        })))
+        }
+        return maybeReceiver
     }
 
     private printMethod(method: PeerMethod, modifierName?: string) {

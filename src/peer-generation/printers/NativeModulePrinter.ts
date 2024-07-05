@@ -81,17 +81,21 @@ function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule:
 ) {
     const component = clazz.generatedName(method.isCallSignature)
     clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
-    const args = method.argConvertors
-        .flatMap(it => {
-            if (it.useArray) {
-                const array = `${it.param}Serializer`
-                return [{ name: `${it.param}Array`, type: 'Uint8Array' },
-                { name: `${array}Length`, type: 'int32' }]
-            } else {
-                // TODO: use language as argument of interop type.
-                return [{ name: `${it.param}`, type: it.interopType(nativeModule.language) }]
+    let serializerArgCreated = false
+    let args: ({name: string, type: string})[] = []
+    for (let i = 0; i < method.argConvertors.length; ++i) {
+        let it = method.argConvertors[i]
+        if (it.useArray) {
+            if (!serializerArgCreated) {
+                const array = `thisSerializer`
+                args.push({ name: `thisArray`, type: 'Uint8Array' }, { name: `thisLength`, type: 'int32' })
+                serializerArgCreated = true
             }
-        })
+        } else {
+            // TODO: use language as argument of interop type.
+            args.push({ name: `${it.param}`, type: it.interopType(nativeModule.language) })
+        }
+    }
     let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: 'KPointer' }] : []
     const parameters = NamedMethodSignature.make(returnType?.name ?? 'void', maybeReceiver.concat(args))
     let name = `_${component}_${method.overloadedName}`

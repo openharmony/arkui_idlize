@@ -283,22 +283,27 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
             writer.pushIndent()
             writer.print(it.scopeStart?.(it.param, printer.language))
         })
+        let serializerCreated = false
         method.argConvertors.forEach((it, index) => {
             if (it.useArray) {
-                writer.writeStatement(
-                    writer.makeAssign(`${it.param}Serializer`, new Type('Serializer'),
-                        writer.makeMethodCall('SerializerBase', 'get', [
-                            writer.makeString('createSerializer'), writer.makeString(index.toString())
-                        ]), true)
-                )
-                it.convertorSerialize(it.param, it.param, writer)
+                if (!serializerCreated) {
+                    writer.writeStatement(
+                        writer.makeAssign(`thisSerializer`, new Type('Serializer'),
+                            writer.makeMethodCall('SerializerBase', 'get', [
+                                writer.makeString('createSerializer'), writer.makeString(index.toString())
+                            ]), true)
+                    )
+                    serializerCreated = true
+                }
+                it.convertorSerialize(`this`, it.param, writer)
             }
         })
         // Enable to see serialized data.
         if (dumpSerialized) {
+            let arrayNum = 0
             method.argConvertors.forEach((it, index) => {
                 if (it.useArray) {
-                    writer.writePrintLog(`"${it.param}:", ${it.param}Serializer.asArray(), ${it.param}Serializer.length())`)
+                    writer.writePrintLog(`"${it.param}:", thisSerializer.asArray(), thisSerializer.length())`)
                 }
             })
         }
@@ -306,10 +311,14 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, dum
         if (method.hasReceiver()) {
             params.push(writer.makeString(ptr))
         }
+        let serializerPushed = false
         method.argConvertors.forEach(it => {
             if (it.useArray) {
-                params.push(writer.makeMethodCall(`${it.param}Serializer`, `asArray`, []))
-                params.push(writer.makeMethodCall(`${it.param}Serializer`, `length`, []))
+                if (!serializerPushed) {
+                    params.push(writer.makeMethodCall(`thisSerializer`, 'asArray', []))
+                    params.push(writer.makeMethodCall(`thisSerializer`, 'length', []))
+                    serializerPushed = true
+                }
             } else {
                 params.push(writer.makeString(it.convertorArg(it.param, writer)))
             }
