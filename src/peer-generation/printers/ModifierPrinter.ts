@@ -29,7 +29,7 @@ import { MethodSeparatorVisitor, PeerMethod } from "../PeerMethod";
 import { DelegateSignatureBuilder } from "./DelegatePrinter";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { MaterializedClass, MaterializedMethod } from "../Materialized";
-import { Language } from "../../util";
+import { Language, groupBy } from "../../util";
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
 
@@ -213,7 +213,7 @@ export class ModifierVisitor {
         this.printMethodEpilog(this.dummy)
         this.printMethodEpilog(this.real)
 
-        this.modifiers.print(`${method.implName},`)
+        this.modifiers.print(`${method.implNamespaceName}::${method.implName},`)
     }
 
     printClassProlog(clazz: PeerClass) {
@@ -236,9 +236,31 @@ export class ModifierVisitor {
         this.getterDeclarations.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${name}Modifier* Get${name}Modifier();`)
     }
 
+    pushNamespace(namespaceName: string) {
+        this.real.print(`namespace ${namespaceName} {`)
+        this.dummy.print(`namespace ${namespaceName} {`)
+        this.real.pushIndent()
+        this.dummy.pushIndent()
+    }
+
+    popNamespace(namespaceName: string) {
+        this.real.popIndent()
+        this.dummy.popIndent()
+        this.real.print(`} // ${namespaceName}`)
+        this.dummy.print(`} // ${namespaceName}`)
+    }
+
     printPeerClassModifiers(clazz: PeerClass) {
         this.printClassProlog(clazz)
-        clazz.methods.forEach(method => this.printRealAndDummyModifier(method))
+        // TODO: move to Object.groupBy when move to nodejs 21
+        const namespaces: Map<string, PeerMethod[]> = groupBy(clazz.methods, it => it.implNamespaceName)
+        Array.from(namespaces.keys()).forEach (namespaceName => {
+            this.pushNamespace(namespaceName)
+            namespaces.get(namespaceName)?.forEach(
+                method => this.printRealAndDummyModifier(method)
+            )
+            this.popNamespace(namespaceName)
+        })
         this.printClassEpilog(clazz)
     }
 
@@ -265,12 +287,17 @@ class AccessorVisitor extends ModifierVisitor {
 
     printRealAndDummyAccessor(clazz: MaterializedClass) {
         this.accessorList.pushIndent()
-        this.printMaterializedClassProlog(clazz);
+        this.printMaterializedClassProlog(clazz)
+        // Materialized class methods share the same namespace
+        // so take the first one.
+        const namespaceName = clazz.methods[0].implNamespaceName
+        this.pushNamespace(namespaceName);
         [clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
             this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(m))
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
-            this.accessors.print(`${method.originalParentName}_${method.overloadedName},`)
+            this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
         })
+        this.popNamespace(namespaceName)
         this.printMaterializedClassEpilog(clazz)
         this.accessorList.popIndent()
     }
@@ -408,11 +435,8 @@ export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: 
 function printModifiersImplFile(filePath: string, slug: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
     const writer = new CppLanguageWriter(new IndentedPrinter())
     writer.writeLines(cStyleCopyright)
-    // writer.writeMultilineCommentBlock(warning)
-    // writer.print("")
 
     writer.writeInclude(`arkoala_api_generated.h`)
-    // writer.writeInclude(`${slug}_delegate.h`)
     writer.print("")
 
     if (options.namespaces) {

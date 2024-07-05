@@ -52,8 +52,12 @@ export class PeerMethod {
         return `set${capitalize(name)}`
     }
 
+    get implNamespaceName(): string {
+        return `${capitalize(this.originalParentName)}Modifier`
+    }
+
     get implName(): string {
-        return `${capitalize(this.originalParentName)}_${capitalize(this.overloadedName)}Impl`
+        return `${capitalize(this.overloadedName)}Impl`
     }
 
     get toStringName(): string {

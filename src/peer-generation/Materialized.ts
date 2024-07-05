@@ -77,10 +77,6 @@ export class MaterializedMethod extends PeerMethod {
         return this.overloadedName
     }
 
-    override get implName(): string {
-        return `${this.originalParentName}_${this.overloadedName}`
-    }
-
     override get toStringName(): string {
         switch (this.method.name) {
             case "ctor": return `new ${this.originalParentName}`

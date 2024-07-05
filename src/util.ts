@@ -473,7 +473,7 @@ export function renameDtsToInterfaces(fileName: string, language: Language, with
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName), "Interfaces")
         .replace(".d.ts", "")
-        
+
     if (withFileExtension) {
         return renamed.concat(language.extension)
     }
@@ -512,4 +512,13 @@ export function throwException(message: string): never {
 
 export function className(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
     return nameOrNull(node.name) ?? throwException(`Nameless component ${asString(node)}`)
+}
+
+export function groupBy<K, V>(values: V[], selector: (value: V) => K): Map<K, V[]> {
+    const map = new Map<K, V[]>()
+    values.forEach ( value => {
+        const key = selector(value)
+        getOrPut(map, key, it => []).push(value)
+    })
+    return map
 }
