@@ -39,6 +39,7 @@ public class NativeModule {
   static native void _EndPerf(String traceName);
   static native long _DumpPerf(int options);
   static native int _ManagedStringWrite(String string, byte[] buffer, int offset);
+  static native void _Test_SetEventsApi();
   static native void _Test_Common_OnChildTouchTest(byte[] valueArray, int valueSerializerLength);
   static native void _Test_List_OnScrollVisibleContentChange(byte[] valueArray, int valueSerializerLength);
   static native void _Test_TextPicker_OnAccept(byte[] valueArray, int valueSerializerLength);

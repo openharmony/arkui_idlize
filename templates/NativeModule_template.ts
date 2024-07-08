@@ -60,6 +60,7 @@ export interface InteropOps {
     _StringData(ptr: KPointer, buffer: KUint8ArrayPtr, length: KInt): void
     _StringMake(value: KStringPtr): KPointer
     _ManagedStringWrite(value: KStringPtr, buffer: KUint8ArrayPtr, offset: KInt): KInt
+    _Test_SetEventsApi(): void
     _Test_Common_OnChildTouchTest(valueArray: Uint8Array, valueSerializerLength: KInt): void
     _Test_List_OnScrollVisibleContentChange(valueArray: Uint8Array, valueSerializerLength: KInt): void
     _Test_TextPicker_OnAccept(valueArray: Uint8Array, valueSerializerLength: KInt): void

@@ -17,7 +17,7 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PrimitiveType } from "./DeclarationTable"
 import { Language } from "../util"
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter, PrinterLike } from "./LanguageWriters"
+import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./printers/EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
@@ -128,27 +128,6 @@ export function bridgeCcCustomDeclaration(customApi: string[]): string {
         .concat(customApi.join("\n"))
 }
 
-export function completeImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
-    let epilogue = readTemplate('dummy_impl_epilogue.cc')
-
-    epilogue = epilogue
-        .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
-        .replaceAll(`%ARKUI_BASIC_NODE_API_VERSION_VALUE%`, basicVersion.toString())
-        .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
-        .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
-    result.writeLines(`
-#include "arkoala-macros.h"
-#include "delegates.h"
-
-void SetAppendGroupedLog(void* pFunc) {}
-`)
-    result.concat(modifiers)
-    result.concat(accessors)
-    result.writeLines(epilogue)
-    return result
-}
-
 export function appendModifiersCommonPrologue(): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let body = readTemplate('impl_prologue.cc')
@@ -184,16 +163,6 @@ void SetAppendGroupedLog(void* pFunc) {}
     result.concat(content)
     result.writeLines(epilogue)
     return result
-}
-
-export function completeEventsImplementations(lines: string): string {
-    return `
-#include "arkoala_api_generated.h"
-#include "events.h"
-#include "Serializers.h"
-
-${lines}
-`
 }
 
 export function completeDelegatesImpl(lines: string): string {
@@ -403,6 +372,7 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
     const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* (*getEventsAPI)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedNodeAPI* (*getExtendedAPI)();
+    void (*setArkUIEventsAPI)(const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* api);
 } ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {
@@ -557,24 +527,67 @@ ${data}
 `
 }
 
-export function makeCEventsImpl(implData: LanguageWriter, receiversList: LanguageWriter): string {
-    const indentedReceiversList = createLanguageWriter(Language.CPP)
-    indentedReceiversList.pushIndent()
-    indentedReceiversList.pushIndent()
-    indentedReceiversList.concat(receiversList)
-    indentedReceiversList.popIndent()
-    indentedReceiversList.popIndent()
-    return `
-${implData.getOutput().join("\n")}
+export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: LanguageWriter): string {
+    const writer = new CppLanguageWriter(new IndentedPrinter())
+    writer.print(cStyleCopyright)
+    writer.writeInclude("arkoala_api_generated.h")
+    writer.writeInclude("events.h")
+    writer.writeInclude("Serializers.h")
+    writer.print("")
 
-const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* GetArkUiEventsAPI()
-{
-    static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {
-${indentedReceiversList.getOutput().join("\n")}
-    };
-    return &eventsImpl;
+    writer.pushNamespace("Generated")
+    writer.concat(implData)
+    writer.writeMethodImplementation(new Method(
+        `GetArkUiEventsAPI`,
+        new MethodSignature(new Type(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`), []),
+    ), (writer) => {
+        writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
+        writer.pushIndent()
+        writer.concat(receiversList)
+        writer.popIndent()
+        writer.print(`};`)
+        writer.writeStatement(writer.makeReturn(writer.makeString(`&eventsImpl`)))
+    })
+    writer.popNamespace()
+    return writer.getOutput().join('\n')
 }
-`
+
+export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: PrinterLike, namespace: string): string {
+    const writer = new CppLanguageWriter(new IndentedPrinter())
+    writer.writeLines(cStyleCopyright)
+    writer.print("")
+    writer.writeInclude(`arkoala_api_generated.h`)
+    writer.print("")
+    writer.pushNamespace(namespace)
+
+    writer.concat(implData)
+
+    writer.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;`)
+    writer.writeMethodImplementation(new Method(
+        `${PeerGeneratorConfig.cppPrefix}SetArkUiEventsAPI`,
+        new NamedMethodSignature(Type.Void, [new Type(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`)], [`api`]),
+    ), (writer) => {
+        writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`api`), false))
+    })
+
+    writer.writeMethodImplementation(new Method(
+        `${PeerGeneratorConfig.cppPrefix}GetArkUiEventsAPI`,
+        new MethodSignature(new Type(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`), []),
+    ), (writer) => {
+        writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
+        writer.pushIndent()
+        writer.concat(receiversList)
+        writer.popIndent()
+        writer.print(`};`)
+        writer.writeStatement(writer.makeCondition(
+            writer.makeNaryOp("!=", [writer.makeString(`g_OverriddenEventsImpl`), writer.makeString(`nullptr`)]),
+            writer.makeReturn(writer.makeString(`g_OverriddenEventsImpl`)),
+        ))
+        writer.writeStatement(writer.makeReturn(writer.makeString(`&eventsImpl`)))
+    })
+
+    writer.popNamespace()
+    return writer.getOutput().join('\n')
 }
 
 export function gniFile(gniSources: string): string {

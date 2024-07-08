@@ -31,7 +31,6 @@ import {
     makeArkuiModule,
     makeTSSerializer,
     makeJavaSerializerWriter,
-    completeEventsImplementations,
     makeTSDeserializer,
     gniFile,
     mesonBuildFile,
@@ -56,7 +55,7 @@ import { printSerializers, printUserConvertors } from "./peer-generation/printer
 import { printNodeTypes } from "./peer-generation/printers/NodeTypesPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/printers/NativeModulePrinter"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
-import { printEvents, printEventsCImpl } from "./peer-generation/printers/EventsPrinter"
+import { printEvents, printEventsCArkoalaImpl, printEventsCLibaceImpl } from "./peer-generation/printers/EventsPrinter"
 import { printGniSources } from "./peer-generation/printers/GniPrinter"
 import { printMesonBuild } from "./peer-generation/printers/MesonPrinter"
 import { printInterfaces } from "./peer-generation/printers/InterfacePrinter"
@@ -360,6 +359,8 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
     const { api, convertors } = printUserConvertors(libace.userConvertors, options.apiVersion, peerLibrary)
     fs.writeFileSync(libace.generatedArkoalaApi, api)
     fs.writeFileSync(libace.userConvertors, convertors)
+    const events = printEventsCLibaceImpl(peerLibrary, {namespace: "OHOS::Ace::NG::GeneratedEvents"})
+    fs.writeFileSync(libace.allEvents, events)
 
     if (!options.libaceDestination) {
         const mesonBuild = printMesonBuild(peerLibrary)
@@ -529,7 +530,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         dummyImplementations(modifiers.real, accessors.real, 1, options.apiVersion, 6).getOutput().join('\n'),
         true,
     )
-    writeFile(arkoala.native(new TargetFile('all_events.cc'),), completeEventsImplementations(printEventsCImpl(peerLibrary)), true)
+    writeFile(arkoala.native(new TargetFile('all_events.cc'),), printEventsCArkoalaImpl(peerLibrary), true)
     writeFile(arkoala.native(new TargetFile('library.cc')), libraryCcDeclaration())
 
     copyPeerLib(path.join(__dirname, '..', 'peer_lib'), arkoala, !options.onlyIntegrated ? undefined : [

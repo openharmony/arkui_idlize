@@ -30,6 +30,9 @@ export class NativeModuleEmptyIntegrated implements NativeModuleIntegrated {
     _ManagedStringWrite(value: KStringPtr, buffer: KUint8ArrayPtr, offset: KInt): KInt {
         throw new Error("_ManagedStringWrite")
     }
+    _Test_SetEventsApi(): void {
+        throw new Error("_Test_Common_OnChildTouchTest")
+    }
     _Test_Common_OnChildTouchTest(valueArray: Uint8Array, valueSerializerLength: KInt): void {
         throw new Error("_Test_Common_OnChildTouchTest")
     }

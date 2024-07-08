@@ -77,8 +77,9 @@ const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI() {
         nullptr,
         nullptr,
         nullptr,
-        nullptr,
-        %CPP_PREFIX%GetExtendedAPI
+        OHOS::Ace::NG::GeneratedEvents::%CPP_PREFIX%GetArkUiEventsAPI,
+        %CPP_PREFIX%GetExtendedAPI,
+        OHOS::Ace::NG::GeneratedEvents::%CPP_PREFIX%SetArkUiEventsAPI
     };
     return &fullAPIImpl;
 }

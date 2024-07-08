@@ -20,7 +20,7 @@ import { BlockStatement, CppLanguageWriter, ExpressionStatement, LanguageWriter,
 import { PeerClassBase } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
 import { PeerMethod } from "../PeerMethod"
-import { makeCEventsImpl, makePeerEvents } from "../FileGenerators"
+import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl, makePeerEvents } from "../FileGenerators"
 import { generateEventReceiverName, generateEventSignature } from "./HeaderPrinter"
 import { Language, asString, identName } from "../../util"
 import { mapType } from "../TypeNodeNameConvertor"
@@ -135,9 +135,12 @@ class CEventsVisitor {
 
     constructor(
         private readonly library: PeerLibrary,
+        private readonly isEmptyImplementation: boolean,
     ) {}
 
     private printEventsKinds(callbacks: CallbackInfo[]) {
+        if (this.isEmptyImplementation)
+            return
         this.impl.print(`enum ${PeerEventKind} {`)
         this.impl.pushIndent()
         callbacks.forEach((callback, index) => {
@@ -154,15 +157,19 @@ class CEventsVisitor {
         })
         this.impl.print(`${signature.returnType.name} ${callbackIdByInfo(event)}Impl(${args.join(',')}) {`)
         this.impl.pushIndent()
-        this.impl.print(`EventBuffer _eventBuffer;`)
-        this.impl.print(`Serializer _eventBufferSerializer(_eventBuffer.buffer);`)
-        this.impl.print(`_eventBufferSerializer.writeInt32(Kind${callbackIdByInfo(event)});`)
-        this.impl.print(`_eventBufferSerializer.writeInt32(nodeId);`)
-        for (const arg of event.args) {
-            const convertor = this.library.declarationTable.typeConvertor(arg.name, arg.type, arg.nullable)
-            convertor.convertorSerialize(`_eventBuffer`, arg.name, this.impl)
+        if (this.isEmptyImplementation) {
+            this.impl.print("// GENERATED EMPTY IMPLEMENTATION")
+        } else {
+            this.impl.print(`EventBuffer _eventBuffer;`)
+            this.impl.print(`Serializer _eventBufferSerializer(_eventBuffer.buffer);`)
+            this.impl.print(`_eventBufferSerializer.writeInt32(Kind${callbackIdByInfo(event)});`)
+            this.impl.print(`_eventBufferSerializer.writeInt32(nodeId);`)
+            for (const arg of event.args) {
+                const convertor = this.library.declarationTable.typeConvertor(arg.name, arg.type, arg.nullable)
+                convertor.convertorSerialize(`_eventBuffer`, arg.name, this.impl)
+            }
+            this.impl.print(`sendEvent(&_eventBuffer);`)
         }
-        this.impl.print(`sendEvent(&_eventBuffer);`)
         this.impl.popIndent()
         this.impl.print('}')
     }
@@ -368,11 +375,21 @@ export function printEvents(library: PeerLibrary): string {
     return makePeerEvents(visitor.printer.getOutput().join("\n"))
 }
 
-export function printEventsCImpl(library: PeerLibrary): string {
-    const visitor = new CEventsVisitor(library)
+export function printEventsCArkoalaImpl(library: PeerLibrary): string {
+    const visitor = new CEventsVisitor(library, false)
     visitor.print()
-    return makeCEventsImpl(
+    return makeCEventsArkoalaImpl(
         visitor.impl,
-        visitor.receiversList
+        visitor.receiversList,
+    )
+}
+
+export function printEventsCLibaceImpl(library: PeerLibrary, options: { namespace: string}): string {
+    const visitor = new CEventsVisitor(library, true)
+    visitor.print()
+    return makeCEventsLibaceImpl(
+        visitor.impl,
+        visitor.receiversList,
+        options.namespace,
     )
 }

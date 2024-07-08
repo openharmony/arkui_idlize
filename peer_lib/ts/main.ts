@@ -396,6 +396,10 @@ function checkPerf3(count: number) {
     console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
+function setEventsAPI() {
+    nativeModule()._Test_SetEventsApi()
+}
+
 function checkEvent_Primitive() {
     const BufferSize = 60 * 4
     const serializer = new SerializerBase()
@@ -508,6 +512,7 @@ checkFormComponent()
 checkCommon()
 checkOverloads()
 checkNavigation()
+setEventsAPI()
 checkEvent_Primitive()
 checkEvent_Interface_Optional()
 checkEvent_Array_Class()

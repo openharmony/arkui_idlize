@@ -50,6 +50,7 @@ export class NativeModule {
   static native _StartPerf(traceName: String): void;
   static native _EndPerf(traceName: String): void;
   static native _DumpPerf(options: int): long;
+  static native _Test_SetEventsApi(): void;
   static native _Test_List_OnScrollVisibleContentChange(valueArray: byte[], valueSerializerLength: int): void;
   static native _Test_Common_OnChildTouchTest(valueArray: byte[], valueSerializerLength: int): void;
   static native _GetNodeByViewStack(): long;

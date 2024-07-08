@@ -618,7 +618,7 @@ MAKE_ETS_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2 "|" #P3 "|" #P4 "|" #P5 "|" #
       KOALA_MAYBE_LOG(name)                   \
       impl_##name(); \
   } \
-MAKE_ETS_EXPORT(name, "void")
+MAKE_ETS_EXPORT(name, "void", 0)
 
 #define KOALA_INTEROP_V1(name, P0) \
   void Ark_##name(EtsEnv *env, ets_class clazz, \
