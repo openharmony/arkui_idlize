@@ -315,6 +315,9 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         // return array by some way
         return "void"
     }
+    if (ts.isParenthesizedTypeNode(type)) {
+        return `(${mapCInteropRetType(type.type)})`
+    }
     throw new Error(type.getText())
 }
 

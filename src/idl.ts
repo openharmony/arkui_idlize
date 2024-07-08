@@ -378,12 +378,8 @@ export function printType(type: IDLType | undefined): string {
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) return `${type.name}<${type.elementType.map(printType).join(", ")}>`
     if (isReferenceType(type)) {
-        const attrs = type.extendedAttributes?.map(it => {
-            let attr = it.name
-            if (it.value) attr += `=${it.value}`
-            return attr
-        })
-        const attrSpec = attrs ? `[${attrs.join(", ")}] ` : ""
+        const attrs = quoteAttributeValues(type.extendedAttributes)
+        const attrSpec = attrs ? `[${attrs}] ` : ""
         return `${attrSpec}${type.name}`
     }
     if (isUnionType(type)) return `(${type.types.map(printType).join(" or ")})`
@@ -432,23 +428,34 @@ function printProperty(idl: IDLProperty): stringOrNone[] {
     ]
 }
 
-function escapeDocs(input: string): string {
-    return input.replaceAll('"', "'")
-}
-
 function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNone[] {
     let attributes = idl.extendedAttributes
     if (idl.documentation) {
         let docs: IDLExtendedAttribute = {
             name: 'Documentation',
-            value: `"${escapeDocs(idl.documentation)}"`
+            value: idl.documentation
         }
         if (attributes)
             attributes.push(docs)
         else
             attributes = [docs]
     }
-    return [attributes ? indentedBy(`[${attributes.map(it => `${it.name}${it.value ? "=" + it.value : ""}`).join(", ")}]`, indentLevel) : undefined]
+    const attrSpec = quoteAttributeValues(attributes)
+    return attrSpec ? [indentedBy(`[${attrSpec}]`, indentLevel)] : []
+}
+
+const attributesToQuote = new Set(["Documentation", "Import", "TypeParameters"])
+
+function quoteAttributeValues(attributes?: IDLExtendedAttribute[]): stringOrNone {
+    return attributes
+        ?.map(it => {
+            let attr = it.name
+            if (it.value) {
+                const value = it.value.replaceAll('"', "'")
+                attr += `=${attributesToQuote.has(it.name) ? `"${value}"` : it.value}`
+            }
+            return attr})
+        .join(", ")
 }
 
 export function printFunction(idl: IDLFunction): stringOrNone[] {
@@ -489,6 +496,7 @@ export function printScoped(idl: IDLEntry): stringOrNone[] {
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
     if (idl.kind == IDLKind.AnonymousInterface) return printInterface(idl as IDLInterface)
     if (idl.kind == IDLKind.TupleInterface) return printInterface(idl as IDLInterface)
+    if (idl.kind == IDLKind.Typedef) return printTypedef(idl as IDLTypedef)
     return [`/* Unexpected scoped: ${idl.kind} ${idl.name} */`]
 }
 

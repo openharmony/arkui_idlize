@@ -15,6 +15,7 @@
 
 import * as webidl2 from "webidl2"
 import { ExtendedAttribute } from "webidl2";
+import { IDLEntity } from "../idl";
 
 export function isEnum(node: webidl2.IDLRootType): node is webidl2.EnumType {
     return node.type === "enum"
@@ -26,10 +27,7 @@ export function isInterface(node: webidl2.IDLRootType): node is webidl2.Interfac
 
 export function isClass(node: webidl2.IDLRootType): node is webidl2.InterfaceType {
     return isInterface(node)
-        && node.extAttrs
-            .map((it: ExtendedAttribute) => it.name)
-            .map((it) => it.toLowerCase())
-            .includes("class")
+        && node.extAttrs.find(it => it.name === "Entity")?.rhs?.value === IDLEntity.Class
 }
 
 export function isCallback(node: webidl2.IDLRootType): node is webidl2.CallbackType {

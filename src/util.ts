@@ -375,6 +375,7 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isIndexSignatureDeclaration(node)) return `IndexSignature`
     if (ts.isIndexedAccessTypeNode(node)) return `IndexedAccess`
     if (ts.isTemplateLiteralTypeNode(node)) return `TemplateLiteral`
+    if (ts.isParenthesizedTypeNode(node)) return identName(node.type)
     throw new Error(`Unknown: ${ts.SyntaxKind[node.kind]}`)
 }
 

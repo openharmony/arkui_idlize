@@ -48,18 +48,18 @@ export class CustomPrintVisitor  {
     currentInterface?: IDLInterface
 
     printInterface(node: IDLInterface) {
-        let typeOrExtends = typeParamSpec(node)
+        let typeSpec = toTypeName(node)
         const entity = getExtAttribute(node, "Entity")
         if (entity === IDLEntity.Literal) {
-            this.print(`declare type ${node.name}${typeOrExtends} = { ${
+            this.print(`declare type ${typeSpec} = { ${
                 node.properties.map(it => `${it.name}: ${printTypeForTS(it.type)}`).join(", ")
             } }`)
         } else if (entity === IDLEntity.Tuple) {
-            this.print(`declare type ${node.name}${typeOrExtends} = [ ${
+            this.print(`declare type ${typeSpec} = [ ${
                 node.properties.map(it => `${printTypeForTS(it.type)}`).join(", ")
             } ]`)
         } else if (entity === IDLEntity.NamedTuple) {
-            this.print(`declare type ${node.name}${typeOrExtends} = [ ${
+            this.print(`declare type ${typeSpec} = [ ${
                 node.properties.map(it => `${it.name}: ${printTypeForTS(it.type)}`).join(", ")
             } ]`)
         } else {
@@ -69,12 +69,11 @@ export class CustomPrintVisitor  {
                 return
             }
             if (hasExtAttribute(node, "Component")) {
-                if (node.name == "CommonMethod")
-                    typeOrExtends = "<T>"
-                else
-                    typeOrExtends = ` extends CommonMethod<${getExtAttribute(node, "Component")}Attribute>`
+                typeSpec = node.name + (node.name == "CommonMethod"
+                    ? "<T>"
+                    : ` extends CommonMethod<${getExtAttribute(node, "Component")}Attribute>`)
             }
-            this.print(`declare ${entity!.toLowerCase()} ${node.name}${typeOrExtends} {`)
+            this.print(`declare ${entity!.toLowerCase()} ${typeSpec} {`)
             this.currentInterface = node
             this.pushIndent()
             node.constructors.map(it => this.visit(it))
@@ -187,9 +186,9 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     if (type.name == "this") return "T"
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type))
-        return `${mapContainerType(type.name)}<${type.elementType.map(it => printTypeForTS(it)).join("\n")}>`
-    if (isReferenceType(type)) return `${type.name}${typeParamSpec(type)}`
-    if (isUnionType(type)) return `(${type.types.map(it => printTypeForTS(it, undefinedToVoid)).join("|")})`
+        return `${mapContainerType(type.name)}<${type.elementType.map(it => printTypeForTS(it)).join(",")}>`
+    if (isReferenceType(type)) return toTypeName(type)
+    if (isUnionType(type)) return `(${type.types.map(it => printTypeForTS(it)).join("|")})`
     if (isEnumType(type)) return type.name
     if (isTypeParameterType(type)) return type.name
     throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
@@ -204,7 +203,14 @@ function mapContainerType(idlName: string): string {
     }
 }
 
-function typeParamSpec(node: IDLEntry): string {
+function toTypeName(node: IDLEntry): string {
+    const importAttr = getExtAttribute(node, "Import")
+    if (importAttr) {
+        return importAttr.slice(1, -1)
+    }
     const typeParamsAttr = getExtAttribute(node, "TypeParameters")
-    return typeParamsAttr ? `<${typeParamsAttr}>` : ""
+    if (typeParamsAttr) {
+        return `${node.name}<${typeParamsAttr.slice(1, -1)}>`
+    }
+    return node.name ?? "MISSING_TYPE_NAME"
 }

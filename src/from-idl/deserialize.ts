@@ -23,7 +23,7 @@ import {
 } from "./webidl2-utils"
 import { toString } from "./toString"
 import {
-    createContainerType, createNumberType, createUnionType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLInterface, IDLKind,
+    createContainerType, createNumberType, createUnionType, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLInterface, IDLKind,
     IDLMethod, IDLModuleType, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
 } from "../idl"
 import { isDefined, stringOrNone } from "../util"
@@ -90,12 +90,22 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
     }
 }
 
-function toIDLType(file: string, type: webidl2.IDLTypeDescription | string): IDLType {
+function toTypeParams(extAttrs: webidl2.ExtendedAttribute[] | undefined) {
+    let result = undefined
+    extAttrs?.forEach(it => {
+        if (it.name === "TypeParameters") result = toExtendedAttributeValue(it)
+    })
+    return result
+}
+
+function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extAttrs?: webidl2.ExtendedAttribute[]): IDLType {
     if (typeof type === "string") {
+        const typeParams = toTypeParams(extAttrs)
         return {
             name: type,
             fileName: file,
-            kind: IDLKind.ReferenceType
+            kind: IDLKind.ReferenceType,
+            extendedAttributes: typeParams ? [{ "name": "TypeParameters", value: typeParams }] : []
         }
     }
     if (isUnionTypeDescription(type)) {
@@ -109,7 +119,8 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string): IDL
             name: type.idlType,
             fileName: file,
             kind: IDLKind.ReferenceType,
-            extendedAttributes: toExtendedAttributes(type.extAttrs)
+            extendedAttributes: toExtendedAttributes(type.extAttrs)?.concat(
+                toExtendedAttributes(extAttrs ?? []) ?? [])
         }
     }
     if (isSequenceTypeDescription(type) || isPromiseTypeDescription(type) || isRecordTypeDescription(type)) {
@@ -132,7 +143,7 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): IDLMethod
         isStatic: node.special === "static",
         parameters: node.arguments.map(it => toIDLParameter(file, it)),
         documentation: makeDocs(node),
-        returnType: toIDLType(file, node.idlType),
+        returnType: toIDLType(file, node.idlType, node.extAttrs),
         extendedAttributes: toExtendedAttributes(node.extAttrs),
         kind: IDLKind.Method,
         isOptional: isOptional(node)
@@ -153,7 +164,7 @@ function toIDLParameter(file: string, node: webidl2.Argument): IDLParameter {
         fileName: file,
         isVariadic: node.variadic,
         isOptional: node.optional,
-        type: toIDLType(file, node.idlType),
+        type: toIDLType(file, node.idlType, node.extAttrs),
         name: node.name
     }
 }
@@ -237,13 +248,16 @@ function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLE
 }
 
 function toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): IDLExtendedAttribute[]|undefined {
-    // TODO: be smarter about RHS.
     return extAttrs.map(it => {
-        const value = it.rhs?.value instanceof Array
-            ? it.rhs.value.map(v => v.value).join(",")
-            : it.rhs?.value
-        return { name: it.name, value: value }
+        return { name: it.name, value: toExtendedAttributeValue(it) }
     })
+}
+
+function toExtendedAttributeValue(attr: webidl2.ExtendedAttribute): stringOrNone {
+    // TODO: be smarter about RHS.
+    return attr.rhs?.value instanceof Array
+            ? attr.rhs.value.map(v => v.value).join(",")
+            : attr.rhs?.value
 }
 
 function makeDocs(node: webidl2.AbstractBase): stringOrNone {
