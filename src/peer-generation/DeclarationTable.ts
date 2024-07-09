@@ -931,9 +931,9 @@ export class DeclarationTable {
     writeOptional(nameOptional: string, printer: LanguageWriter, isPointer: boolean) {
         printer.print(`template <>`)
         printer.print(`inline void WriteToString(string* result, const ${nameOptional}* value) {`)
-        printer.print(`result->append("{");`)
+        printer.print(`result->append("{.tag=");`)
         printer.print(`result->append(tagNameExact((${PrimitiveType.Tag.getText()})(value->tag)));`)
-        printer.print(`result->append(", ");`)
+        printer.print(`result->append(", .value=");`)
         printer.pushIndent()
         printer.print(`if (value->tag != ${PrimitiveType.UndefinedTag}) {`)
         printer.pushIndent()
@@ -1025,7 +1025,7 @@ export class DeclarationTable {
         printer.print(`result->append(ptrName + ".data()");`)
         printer.popIndent()
         printer.print(`}`)
-        printer.print(`result->append(", ");`)
+        printer.print(`result->append(", .length=");`)
         printer.print(`result->append(std::to_string(value->length));`)
         printer.print(`result->append("}");`)
         printer.popIndent()
@@ -1138,6 +1138,7 @@ export class DeclarationTable {
 
             if (isUnion) {
                 printer.print(`result->append("{");`);
+                printer.print(`result->append(".selector=");`)
                 printer.print(`result->append(std::to_string(value->selector));`);
                 printer.print(`result->append(", ");`);
                 this.targetStruct(target).getFields().forEach((field, index) => {
@@ -1162,9 +1163,8 @@ export class DeclarationTable {
                 fields.forEach((field, index) => {
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                    if (index > 0) {
-                        printer.print(`result->append(", ");`)
-                    }
+                    if (index > 0) printer.print(`result->append(", ");`)
+                    printer.print(`result->append(".${field.name}=");`)
                     printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                 })
                 printer.print(`result->append("}");`)
@@ -1192,6 +1192,7 @@ export class DeclarationTable {
                 this.targetStruct(target).getFields().forEach((field, index) => {
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     if (index > 0) printer.print(`result->append(", ");`)
+                    printer.print(`result->append(".${field.name}=");`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                     printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                 })

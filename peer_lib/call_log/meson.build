@@ -12,7 +12,7 @@ deps = CXX.find_library(
 # for subset:
 # inc_dir = include_directories('../../generated/subset/libace/generated/interface')
 # for peers:
-inc_dir = include_directories('../../generated/peers/koalaui/arkoala/native/src')
+inc_dir = include_directories('../../generated/peers/koalaui/arkoala/native/src/generated')
 executable(
     'run_call_log',
     sources,

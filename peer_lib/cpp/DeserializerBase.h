@@ -142,7 +142,7 @@ inline void WriteToString(string *result, T value) = delete;
 inline void WriteToString(string *result, const Ark_Empty &value)
 {
   result->append("{");
-  result->append(std::to_string(value.dummy));
+  result->append(".dummy=" + std::to_string(value.dummy));
   result->append("}");
 }
 
@@ -155,7 +155,7 @@ struct Error
 template <>
 inline void WriteToString(string *result, const Ark_Number *value)
 {
-  result->append("{" + std::to_string(value->tag) + ", ");
+  result->append("{.tag=" + std::to_string(value->tag) + ", ");
 
   if (value->tag == ARK_TAG_FLOAT32)
   {
@@ -174,35 +174,33 @@ inline void WriteToString(string *result, const Ark_Number *value)
 template <>
 inline void WriteToString(string *result, Ark_Tag value)
 {
+  result->append(".tag=");
   result->append(tagName(value));
 }
 
 template <>
 inline void WriteToString(string *result, Ark_NativePointer value)
 {
-  result->append("0x");
-  result->append(std::to_string((uint64_t)value));
+  result->append("0x" + std::to_string((uint64_t)value));
 }
 
 template <>
 inline void WriteToString(string *result, Ark_NodeHandle value)
 {
-  result->append("0x");
-  result->append(std::to_string((uint64_t)value));
+  result->append("0x" + std::to_string((uint64_t)value));
 }
 
 template <>
 inline void WriteToString(string *result, Ark_ObjectHandle value)
 {
-  result->append("0x");
-  result->append(std::to_string((uint64_t)value));
+  result->append("0x" + std::to_string((uint64_t)value));
 }
 
 template <>
 inline void WriteToString(string *result, Ark_Function value)
 {
   result->append("{");
-  result->append(std::to_string(value.id));
+  result->append(".id=" + std::to_string(value.id));
   result->append("}");
 }
 
@@ -210,7 +208,7 @@ template <>
 inline void WriteToString(string *result, const Ark_Function* value)
 {
   result->append("{");
-  result->append(std::to_string(value->id));
+  result->append(".id=" + std::to_string(value->id));
   result->append("}");
 }
 
@@ -230,21 +228,11 @@ template <>
 inline void WriteToString(string *result, const Ark_Length *value)
 {
   result->append("{");
-  result->append(std::to_string(value->type));
-  result->append(", ");
-  result->append(std::to_string(value->value));
-  result->append(", " + std::to_string(value->unit));
-  result->append(", " + std::to_string(value->resource));
+  result->append(".type=" + std::to_string(value->type));
+  result->append(", .value=" + std::to_string(value->value));
+  result->append(", .unit=" + std::to_string(value->unit));
+  result->append(", .resource=" + std::to_string(value->resource));
   result->append("}");
-}
-
-inline Ark_Length Length_from_array(Ark_Int32 *array)
-{
-  Ark_Length result;
-  result.value = *(Ark_Float32 *)array;
-  result.unit = array[1];
-  result.resource = array[2];
-  return result;
 }
 
 class DeserializerBase;
@@ -269,8 +257,7 @@ inline void WriteToString(string *result, const Ark_CustomObject *value)
   result->append("{");
   result->append(".kind=\"");
   result->append(value->kind);
-  result->append("\", .id=");
-  result->append(std::to_string(value->id));
+  result->append("\", .id=" + std::to_string(value->id));
   result->append("}");
 }
 
@@ -538,13 +525,13 @@ inline void WriteToString(string *result, const Ark_String *value)
 {
   result->append("{");
   if (value->chars) {
-    result->append("\"");
+    result->append(".chars=\"");
     result->append(value->chars);
     result->append("\"");
   } else {
     result->append("");
   }
-  result->append(", ");
+  result->append(", .length=");
   WriteToString(result, value->length);
   result->append("}");
 }

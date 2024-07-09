@@ -42,24 +42,17 @@ import { deserializePeerEvent, PeerEventKind,
 import {
     getNativeLog,
     reportTestFailures,
-    setReportTestFailures,
     checkResult,
     checkTestFailures,
     startNativeLog,
     CALL_GROUP_LOG,
     stopNativeLog,
-    TEST_GROUP_LOG,
     assertEquals,
     assertTrue,
 } from "./test_utils"
 import { nativeModule } from "@koalaui/arkoala"
 import { mkdirSync, writeFileSync } from "fs"
 
-// TODO: hacky way to detect subset vs full.
-/*startNativeLog(TEST_GROUP_LOG)
-new ArkButtonPeer(0).labelStyleAttribute({maxLines: 3})
-setReportTestFailures(getNativeLog().indexOf("heightAdaptivePolicy") == -1)
-stopNativeLog(TEST_GROUP_LOG)*/
 
 if (!reportTestFailures) {
     console.log("WARNING: ignore test result")
@@ -219,22 +212,22 @@ function checkButton() {
     let peer = new ArkButtonPeer(ArkUINodeType.Button)
 
     checkResult("width", () => peer.widthAttribute("42%"),
-        "width({1, 42.000000, 3, 0})")
+        "width({.type=1, .value=42.000000, .unit=3, .resource=0})")
     checkResult("height", () => peer.heightAttribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
-        "height({2, 0.000000, 1, 43})")
+        "height({.type=2, .value=0.000000, .unit=1, .resource=43})")
     checkResult("bindSheet", () =>
         peer.bindSheetAttribute(false, () => {}, {
             title: {
                 title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
             }
         }),
-        `bindSheet(false, {0, .value0={3}}, {ARK_TAG_OBJECT, {{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, {0, .value0={{1, .value1={.kind="NativeErrorResource", .id=0}}, {ARK_TAG_UNDEFINED, {}}}}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}}})`
+        `bindSheet(false, {.selector=0, .value0={.id=3}}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=1, .value1={.kind="NativeErrorResource", .id=0}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
     checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),
-        "labelStyle({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, {102, .i32=3}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}})")
+        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
     checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
-        "labelStyle({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}})")
+        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
     //nativeModule()._MeausureLayoutAndDraw(peer.peer.ptr)
     assertTrue("ButtonPeer finalizer", peer!.peer!.finalizer != nullptr)
 }
@@ -242,19 +235,19 @@ function checkButton() {
 function checkCalendar() {
     let peer = new ArkCalendarPickerPeer(ArkUINodeType.CalendarPicker)
     checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, {dx: 5, dy: 6}),
-        `edgeAlign(2, {ARK_TAG_OBJECT, {{1, 5.000000, 1, 0}, {1, 6.000000, 1, 0}}})`)
+        `edgeAlign(2, {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5.000000, .unit=1, .resource=0}, .dy={.type=1, .value=6.000000, .unit=1, .resource=0}}})`)
     checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2),
-        `edgeAlign(2, {ARK_TAG_UNDEFINED, {}})`)
+        `edgeAlign(2, {.tag=ARK_TAG_UNDEFINED, .value={}})`)
 }
 
 function checkFormComponent() {
     let peer = new ArkFormComponentPeer(ArkUINodeType.FormComponent)
     checkResult("size int", () => peer.sizeAttribute({width: 5, height: 6}),
-        `size({{102, .i32=5}, {102, .i32=6}})`)
+        `size({.width={.tag=102, .i32=5}, .height={.tag=102, .i32=6}})`)
     checkResult("size float", () => peer.sizeAttribute({width: 5.5, height: 6.789}),
-        `size({{103, .f32=5.50}, {103, .f32=6.78}})`)
+        `size({.width={.tag=103, .f32=5.50}, .height={.tag=103, .f32=6.78}})`)
     checkResult("size zero", () => peer.sizeAttribute({width: 0.0, height: 0.0}),
-        `size({{102, .i32=0}, {102, .i32=0}})`)
+        `size({.width={.tag=102, .i32=0}, .height={.tag=102, .i32=0}})`)
 }
 
 function checkCommon() {
@@ -270,17 +263,17 @@ function checkCommon() {
     }
     checkResult("Test backgroundBlurStyle for BackgroundBlurStyleOptions",
         () => peer.backgroundBlurStyleAttribute(0, backgroundBlurStyle),
-        `backgroundBlurStyle(0, {ARK_TAG_OBJECT, {{ARK_TAG_OBJECT, 0}, {ARK_TAG_OBJECT, 0}, {ARK_TAG_OBJECT, {102, .i32=1}}, {ARK_TAG_OBJECT, {{{102, .i32=1}, {102, .i32=1}}}}}})`
+        `backgroundBlurStyle(0, {.tag=ARK_TAG_OBJECT, .value={.colorMode={.tag=ARK_TAG_OBJECT, .value=0}, .adaptiveColor={.tag=ARK_TAG_OBJECT, .value=0}, .scale={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=1}}, .blurOptions={.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=1}}}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with number",
         () => peer.dragPreviewOptionsAttribute({numberBadge: 10}, {isMultiSelectionEnabled: true}),
-        `dragPreviewOptions({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, {1, .value1={102, .i32=10}}}}, {ARK_TAG_OBJECT, {{ARK_TAG_OBJECT, true}, {ARK_TAG_UNDEFINED, {}}}})`
+        `dragPreviewOptions({.mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .modifier={.tag=ARK_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with boolean",
         () => peer.dragPreviewOptionsAttribute({numberBadge: true}, {defaultAnimationBeforeLifting: false}),
-        `dragPreviewOptions({{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, {0, .value0=true}}}, {ARK_TAG_OBJECT, {{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_OBJECT, false}}})`
+        `dragPreviewOptions({.mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .modifier={.tag=ARK_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=true}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_OBJECT, .value=false}}})`
     )
 }
 
@@ -300,18 +293,18 @@ function checkOverloads() {
     const component = new ArkSideBarContainerComponentTest(peer)
     checkResult("Test number implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth(11),
-        `minSideBarWidth({102, .i32=11})`
+        `minSideBarWidth({.tag=102, .i32=11})`
     )
     checkResult("Test string implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth("42%"),
-        `minSideBarWidth({1, 42.000000, 3, 0})`
+        `minSideBarWidth({.type=1, .value=42.000000, .unit=3, .resource=0})`
     )
 }
 
 function checkNavigation() {
     let peer = new ArkNavigationPeer(ArkUINodeType.Navigation)
     checkResult("backButtonIcon", () => peer.backButtonIconAttribute("attr"),
-        `backButtonIcon({0, .value0={"attr", 4}})`)
+        `backButtonIcon({.selector=0, .value0={.chars="attr", .length=4}})`)
 }
 
 function checkTabContent() {
@@ -323,7 +316,7 @@ function checkTabContent() {
     // TBD: Check that id field is passed to native
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = new SubTabBarStyle("abc")),
-        `tabBar({0, .value0={{ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}, {ARK_TAG_UNDEFINED, {}}}})`)
+        `tabBar({.selector=0, .value0={._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_UNDEFINED, .value={}}, ._id={.tag=ARK_TAG_UNDEFINED, .value={}}}})`)
 
 
     // TBD: check SubTabBarStyle is created from static method
@@ -338,7 +331,7 @@ function checkCanvasRenderingContext2D() {
         () => canvasRenderingContext2D = new CanvasRenderingContext2D(),
         "new CanvasPath()[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]" +
         "new CanvasRenderer()[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]" +
-        "new CanvasRenderingContext2D({ARK_TAG_UNDEFINED, {}})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]")
+        "new CanvasRenderingContext2D({.tag=ARK_TAG_UNDEFINED, .value={}})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]")
 
     checkResult("CanvasRenderingContext2D width",
         () => canvasRenderingContext2D!.width,
@@ -501,7 +494,7 @@ checkPerf2(5 * 1000 * 1000)
 checkPerf3(5 * 1000 * 1000)
 
 startPerformanceTest()
-// startNativeLog(CALL_GROUP_LOG)
+startNativeLog(CALL_GROUP_LOG)
 checkNodeAPI()
 checkCallback()
 checkWriteFunction()
@@ -516,7 +509,7 @@ setEventsAPI()
 checkEvent_Primitive()
 checkEvent_Interface_Optional()
 checkEvent_Array_Class()
-// stopNativeLog(CALL_GROUP_LOG)
+stopNativeLog(CALL_GROUP_LOG)
 
 const callGroupLog = getNativeLog(CALL_GROUP_LOG)
 const callLogCppCode = `
