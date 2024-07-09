@@ -51,7 +51,7 @@ import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { printComponents } from "./peer-generation/printers/ComponentsPrinter"
 import { printPeers } from "./peer-generation/printers/PeersPrinter"
 import { printMaterialized } from "./peer-generation/printers/MaterializedPrinter"
-import { printSerializers, printUserConvertors } from "./peer-generation/printers/HeaderPrinter"
+import { printSerializers, printUserConverter } from "./peer-generation/printers/HeaderPrinter"
 import { printNodeTypes } from "./peer-generation/printers/NodeTypesPrinter"
 import { printNativeModule, printNativeModuleEmpty } from "./peer-generation/printers/NativeModulePrinter"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
@@ -356,9 +356,10 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
         extendedVersion: 6,
     })
 
-    const { api, convertors } = printUserConvertors(libace.userConvertors, options.apiVersion, peerLibrary)
+    const converterNamespace = "OHOS::Ace::NG::Converter"
+    const { api, converterHeader } = printUserConverter(libace.userConverterHeader, converterNamespace, options.apiVersion, peerLibrary)
     fs.writeFileSync(libace.generatedArkoalaApi, api)
-    fs.writeFileSync(libace.userConvertors, convertors)
+    fs.writeFileSync(libace.userConverterHeader, converterHeader)
     const events = printEventsCLibaceImpl(peerLibrary, {namespace: "OHOS::Ace::NG::GeneratedEvents"})
     fs.writeFileSync(libace.allEvents, events)
 

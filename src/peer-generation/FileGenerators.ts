@@ -261,30 +261,30 @@ export function makeJavaSerializerWriter(library: PeerLibrary): LanguageWriter {
     return result
 }
 
-export function makeConvertors(convertorsPath: string, library: PeerLibrary): LanguageWriter {
-    const userConvertors = createLanguageWriter(Language.CPP) as CppLanguageWriter
-    userConvertors.writeLines(cStyleCopyright)
-    userConvertors.writeLines(`/*
+export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
+    const converter = createLanguageWriter(Language.CPP) as CppLanguageWriter
+    converter.writeLines(cStyleCopyright)
+    converter.writeLines(`/*
  * ${warning}
  */
 `)
-    const includeGuardDefine = makeIncludeGuardDefine(convertorsPath)
-    userConvertors.print(`#ifndef ${includeGuardDefine}`)
-    userConvertors.print(`#define ${includeGuardDefine}`)
-    userConvertors.print("")
+    const includeGuardDefine = makeIncludeGuardDefine(path)
+    converter.print(`#ifndef ${includeGuardDefine}`)
+    converter.print(`#define ${includeGuardDefine}`)
+    converter.print("")
 
-    userConvertors.writeLines(`
-#include <optional>
-#include <cstdlib>
-#include "arkoala_api_generated.h"
-#include "base/log/log_wrapper.h"
-`)
-    userConvertors.pushNamespace('OHOS::Ace::NG::GeneratedModifier::Convert')
-    writeConvertors(library, userConvertors)
-    userConvertors.popNamespace()
-    userConvertors.print(`\n#endif // ${includeGuardDefine}`)
-    userConvertors.print("")
-    return userConvertors
+    converter.writeGlobalInclude('optional')
+    converter.writeGlobalInclude('cstdlib')
+    converter.writeInclude('arkoala_api_generated.h')
+    converter.writeInclude('base/log/log_wrapper.h')
+    converter.print("")
+
+    converter.pushNamespace(namespace)
+    writeConvertors(library, converter)
+    converter.popNamespace()
+    converter.print(`\n#endif // ${includeGuardDefine}`)
+    converter.print("")
+    return converter
 }
 
 export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {

@@ -1211,6 +1211,14 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
 
     /**
+     * Writes `#include <path>`
+     * @param path File path to be included
+     */
+    writeGlobalInclude(path: string) {
+        this.print(`#include <${path}>`)
+    }
+
+    /**
      * Writes `namespace <namespace> {` and adds extra indent
      * @param namespace Namespace to begin
      */

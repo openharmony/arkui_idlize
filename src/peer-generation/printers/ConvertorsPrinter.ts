@@ -15,25 +15,25 @@ class ConvertorsPrinter {
     writeUnionConvertors() {
 
         this.writer.print('template<typename T, typename P>')
-        this.writer.print('void assign_to(std::optional<T>& dst, const P& src);')
+        this.writer.print('void AssignTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
         this.writer.print('template<typename T, typename P>')
-        this.writer.print('void assign_union_to(std::optional<T>& dst, const P& src);')
+        this.writer.print('void AssignUnionTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
         this.writer.print('template<typename T, typename P>')
-        this.writer.print('void assign_optional_to(std::optional<T>& dst, const P& src);')
+        this.writer.print('void AssignOptionalTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
         for (const [typename, selectors] of this.table.allUnionTypes()) {
             this.writer.print('template<typename T>')
-            this.writer.print(`void assign_union_to(std::optional<T>& dst, const ${ typename }& src) {`)
+            this.writer.print(`void AssignUnionTo(std::optional<T>& dst, const ${ typename }& src) {`)
             this.writer.pushIndent()
             this.writer.print(`switch (src.selector) {`)
             this.writer.pushIndent()
             selectors.forEach(selector => {
-                this.writer.print(`case ${ selector.id - 1 }: assign_to(dst, src.${ selector.name }); break;`)
+                this.writer.print(`case ${ selector.id - 1 }: AssignTo(dst, src.${ selector.name }); break;`)
             })
             this.writer.print(`default: LOGE("Unexpected src->selector: %{public}d\\n", src.selector); abort(); `)
             this.writer.popIndent()
@@ -49,17 +49,17 @@ class ConvertorsPrinter {
         this.writer.print("#define ASSIGN_OPT(name)\\")
         this.writer.pushIndent()
         this.writer.print("template<typename T> \\")
-        this.writer.print("void assign_optional_to(std::optional<T>& dst, const name& src) { \\")
+        this.writer.print("void AssignOptionalTo(std::optional<T>& dst, const name& src) { \\")
         this.writer.pushIndent()
         this.writer.print("if (src.tag != ARK_TAG_UNDEFINED) { \\")
         this.writer.pushIndent()
-        this.writer.print("assign_union_to(dst, src.value); \\")
+        this.writer.print("AssignUnionTo(dst, src.value); \\")
         this.writer.popIndent()
         this.writer.print("} \\")
         this.writer.popIndent()
         this.writer.print("} \\")
         this.writer.print("template<typename T> \\")
-        this.writer.print("void with_optional(const name& src, T call) { \\")
+        this.writer.print("void WithOptional(const name& src, T call) { \\")
         this.writer.pushIndent()
         this.writer.print("if (src.tag != ARK_TAG_UNDEFINED) { \\")
         this.writer.pushIndent()
@@ -81,14 +81,18 @@ class ConvertorsPrinter {
     writeLiteralConvertors() {
 
         this.writer.print('template<typename T, typename P>')
-        this.writer.print('void assign_literal_to(std::optional<T>& dst, const P& src);')
+        this.writer.print('void AssignLiteralTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
         for (const [name, type] of this.table.allLiteralTypes()) {
             this.writer.print('template<typename T>')
-            this.writer.print(`void assign_literal_to(std::optional<T>& dst, const ${name}& src) {`)
+            this.writer.print(`void AssignLiteralTo(std::optional<T>& dst, const ${name}& src) {`)
             this.writer.pushIndent()
-            this.writer.print(`assign_to(dst, src.${type}); `)
+            if (type === "template") {
+                this.writer.print(`AssignTo(dst, src.template_); `)
+            } else {
+                this.writer.print(`AssignTo(dst, src.${type}); `)
+            }
             this.writer.popIndent()
             this.writer.print(`}`)
             this.writer.print("")
