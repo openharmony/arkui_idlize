@@ -528,17 +528,23 @@ const callLogCppCode = `
  * limitations under the License.
  */
 #include "arkoala_api_generated.h"
+#include "arkoala-macros.h"
+
 #include <map>
 #include <string>
 
+namespace OHOS::Ace::NG::GeneratedModifier {
+    EXTERN_C IDLIZE_API_EXPORT const GENERATED_ArkUIAnyAPI* GENERATED_GetArkAnyAPI(GENERATED_Ark_APIVariantKind kind, int version);
+}
+
 const GENERATED_ArkUINodeModifiers* GetNodeModifiers() {
-    extern const GENERATED_ArkUINodeModifiers* GENERATED_GetArkUINodeModifiers();
-    return GENERATED_GetArkUINodeModifiers();
+    static const auto val = (const GENERATED_ArkUIFullNodeAPI*)(OHOS::Ace::NG::GeneratedModifier::GENERATED_GetArkAnyAPI(GENERATED_FULL,GENERATED_ARKUI_FULL_API_VERSION));
+    return val->getNodeModifiers();
 }
 
 const GENERATED_ArkUIBasicNodeAPI* GetBasicNodeApi() {
-    extern const GENERATED_ArkUIBasicNodeAPI* GENERATED_GetBasicAPI();
-    return GENERATED_GetBasicAPI();
+    static const auto val = (const GENERATED_ArkUIBasicNodeAPI*)OHOS::Ace::NG::GeneratedModifier::GENERATED_GetArkAnyAPI(GENERATED_BASIC, GENERATED_ARKUI_BASIC_NODE_API_VERSION);
+    return val;
 }
 
 int main(int argc, const char** argv) {
