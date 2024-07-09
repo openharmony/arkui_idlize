@@ -1,5 +1,5 @@
 import { Language, renameClassToBuilderClass } from "../../util"
-import { LanguageWriter, MethodModifier, Method, Type, createLanguageWriter, Field } from "../LanguageWriters";
+import { LanguageWriter, MethodModifier, Method, Type, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary"
 import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES } from "../BuilderClass";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
@@ -135,11 +135,25 @@ function collapse(methods: Method[]): Method[] {
 function processBuilderClass(clazz: BuilderClass): BuilderClass {
 
     const methods = collapse(clazz.methods)
-    const constructors = collapse(clazz.constructors)
+    let constructors = collapse(clazz.constructors)
 
-    const ctorSig = constructors[0].signature
-    const ctorFields = ctorSig.args
-        .map((type, i) => new Field(syntheticName(ctorSig.argName(i)), type))
+    if (!constructors || constructors.length == 0) {
+        // make a constructor from a static method parameters
+        const staticMethods = methods.
+            filter(method => method.modifiers?.includes(MethodModifier.STATIC))
+
+        if (staticMethods.length > 0) {
+            const staticSig = staticMethods[0].signature
+            const args = staticSig.args
+            const ctorSig = new NamedMethodSignature(Type.Void, args, args.map((it, i) => staticSig.argName(i)))
+            constructors = [new Method("constructor", ctorSig)]
+        }
+    }
+
+    // generate synthetic properties for the constructor parameters
+    // const ctorSig = constructors[0].signature
+    // const ctorFields = ctorSig.args
+    //     .map((type, i) => new Field(syntheticName(ctorSig.argName(i)), type))
 
     const syntheticFields = methods
         .filter(it => !it.modifiers?.includes(MethodModifier.STATIC))

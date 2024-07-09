@@ -84,6 +84,9 @@ export class PeerGeneratorConfig {
         "GestureHandler",           // class with generics
         "ICurve",                   // parent interface for materialized classes
         "TransitionEffect",         // Generics `Type` and `Effect` types are used in static ctor
+        // constant values need to be generated
+        // "equals(id: TextMenuItemId): boolean" method leads to the "cycle detected" message
+        "TextMenuItemId",
     ]
 
     public static isMaterializedIgnored(name: string) {
