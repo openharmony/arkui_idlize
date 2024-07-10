@@ -53,6 +53,7 @@ export enum LinterError {
     CPP_KEYWORDS,
     INCORRECT_DATA_CLASS,
     EMPTY_DECLARATION,
+    UNION_CONTAINS_ENUM,
 }
 
 export interface LinterMessage {
@@ -188,6 +189,10 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             })
         }
         if (ts.isUnionTypeNode(type)) {
+            const enumType = findEnumType(type.types, this.typeChecker)
+            if (enumType != undefined) {
+                this.report(type, LinterError.UNION_CONTAINS_ENUM, `Union: '${type.getText()}' contains type Enum: '${enumType.name.text}'`)
+            }
             type.types.forEach(it => {
                 this.checkType(it)
             })
@@ -479,6 +484,30 @@ function updateHistogram(message: LinterMessage, histogram: Map<LinterError, num
 function printHistogram(histogram: Map<LinterError, number>): string {
     let sorted = Array.from(histogram.entries()).sort((a, b) => b[1] - a[1])
     return sorted.map(it => `${LinterError[it[0]]}: ${it[1]}`).join("\n")
+}
+
+function findEnumDFS(type: ts.TypeNode, typeChecker: ts.TypeChecker): ts.EnumDeclaration | undefined {
+    if (ts.isTypeReferenceNode(type)) {
+        for (const decl of getDeclarationsByNode(typeChecker, type.typeName)) {
+            if (ts.isEnumDeclaration(decl)) {
+                return decl
+            }
+            if (ts.isTypeAliasDeclaration(decl)) {
+                return findEnumDFS(decl.type, typeChecker)
+            }
+        }
+    }
+    return undefined
+}
+
+function findEnumType(types: ts.NodeArray<ts.TypeNode>, typeChecker: ts.TypeChecker): ts.EnumDeclaration | undefined {
+    for (const type of types) {
+        const enumType = findEnumDFS(type, typeChecker)
+        if (enumType != undefined) {
+            return enumType
+        }
+    }
+    return undefined
 }
 
 export function toLinterString(
