@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../IndentedPrinter";
 import { Language, renameClassToMaterialized, capitalize } from "../../util";
 import { PeerLibrary } from "../PeerLibrary";
 import { writePeerMethod } from "./PeersPrinter"
@@ -24,15 +23,17 @@ import { OverloadsPrinter, groupOverloads } from "./OverloadsPrinter";
 
 import { printPeerFinalizer } from "./PeersPrinter"
 import { ImportsCollector } from "../ImportsCollector";
+import { PrinterContext } from "./PrinterContext";
+import { TargetFile } from "./TargetFile";
 
 class MaterializedFileVisitor {
 
-    readonly printer: LanguageWriter = createLanguageWriter(this.language)
+    readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language)
     private overloadsPrinter = new OverloadsPrinter(this.printer, this.library, false)
 
     constructor(
-        private readonly language: Language,
         private readonly library: PeerLibrary,
+        private readonly printerContext: PrinterContext,
         private readonly clazz: MaterializedClass,
         private readonly dumpSerialized: boolean,
     ) {}
@@ -47,7 +48,7 @@ class MaterializedFileVisitor {
     private printMaterializedClass(clazz: MaterializedClass) {
         this.printImports()
         const printer = this.printer
-        printer.print(makeMaterializedPrologue(this.language))
+        printer.print(makeMaterializedPrologue(this.printerContext.language))
 
         const superClass = clazz.superClass
         let superClassName = superClass ? `${superClass.name}${superClass.generics ? `<${superClass.generics.join(", ")}>` : ""}` : undefined
@@ -111,7 +112,7 @@ class MaterializedFileVisitor {
             const pointerType = Type.Pointer
             // makePrivate(clazz.ctor.method)
             this.library.declarationTable.setCurrentContext(`${clazz.className}.constructor`)
-            writePeerMethod(writer, clazz.ctor, this.dumpSerialized, "", "", pointerType)
+            writePeerMethod(writer, clazz.ctor, this.printerContext, this.dumpSerialized, "", "", pointerType)
             this.library.declarationTable.setCurrentContext(undefined)
 
             const ctorSig = clazz.ctor.method.signature as NamedMethodSignature
@@ -174,7 +175,7 @@ class MaterializedFileVisitor {
                 makePrivate(method.method)
                 const returnType = method.tsReturnType()
                 this.library.declarationTable.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
-                writePeerMethod(writer, method, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
+                writePeerMethod(writer, method, this.printerContext, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
                 this.library.declarationTable.setCurrentContext(undefined)
             })
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, clazz.generics)
@@ -202,6 +203,7 @@ class MaterializedVisitor {
 
     constructor(
         private readonly library: PeerLibrary,
+        private readonly printerContext: PrinterContext,
         private readonly dumpSerialized: boolean,
     ) {}
 
@@ -209,27 +211,27 @@ class MaterializedVisitor {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
         for (const clazz of this.library.materializedClasses.values()) {
             const visitor = new MaterializedFileVisitor(
-                this.library.declarationTable.language, this.library, clazz, this.dumpSerialized)
+                this.library, this.printerContext, clazz, this.dumpSerialized)
             visitor.printFile()
-            const fileName = renameClassToMaterialized(clazz.className, this.library.declarationTable.language)
+            const fileName = renameClassToMaterialized(clazz.className, this.printerContext.language)
             this.materialized.set(fileName, visitor.printer.getOutput())
         }
     }
 }
 
-export function printMaterialized(peerLibrary: PeerLibrary, dumpSerialized: boolean): Map<string, string> {
+export function printMaterialized(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
 
     // TODO: support other output languages
-    if (peerLibrary.declarationTable.language != Language.TS)
+    if (printerContext.language != Language.TS)
         return new Map()
 
-    const visitor = new MaterializedVisitor(peerLibrary, dumpSerialized)
+    const visitor = new MaterializedVisitor(peerLibrary, printerContext, dumpSerialized)
     visitor.printMaterialized()
-    const result = new Map<string, string>()
+    const result = new Map<TargetFile, string>()
     for (const [key, content] of visitor.materialized) {
         if (content.length === 0) continue
         const text = tsCopyrightAndWarning(content.join('\n'))
-        result.set(key, text)
+        result.set(new TargetFile(key), text)
     }
     return result
 }

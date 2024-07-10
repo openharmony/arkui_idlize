@@ -14,12 +14,8 @@
  */
 package org.koalaui.arkoala;
 
-import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 class SerializersCache {
@@ -93,6 +89,17 @@ public class SerializerBase {
         this.buffer.put(Tag.FLOAT32.value);
         this.buffer.putFloat(value);
     }
+    public void writeNumber(double value) {
+        if (Math.floor(value) == value) {
+            this.writeNumber((int)value);
+        }
+        else {
+            this.writeNumber((float)value);
+        }
+    }
+    public void writeNumber(Opt_Number value) {
+        this.writeNumber(value.value);
+    }
     public void writeInt8(byte value) {
         this.checkCapacity(1);
         buffer.put(value);
@@ -117,9 +124,12 @@ public class SerializerBase {
         this.checkCapacity(8);
         buffer.putLong(value);
     }
-    public void writeBoolean(Boolean value) {
+    public void writeBoolean(boolean value) {
         this.checkCapacity(1);
-        buffer.put(value == null ? RuntimeType.UNDEFINED.value : value ? (byte) 1 : (byte) 0);
+        buffer.put(value ? (byte) 1 : (byte) 0);
+    }
+    public void writeBoolean(Opt_Boolean value) {
+        this.writeBoolean(value.value);
     }
     public void writeString(String value) {
         var encoded = value.getBytes();
@@ -136,18 +146,10 @@ public class SerializerBase {
         buffer.putInt(encodedLength);
         buffer.position(buffer.position() + encodedLength);
     }
-
-    private RuntimeType runtimeType(Object value) {
-        if (value == null) { return RuntimeType.UNDEFINED; }
-        if (value instanceof Integer) { return RuntimeType.NUMBER; }
-        if (value instanceof Float) { return RuntimeType.NUMBER; }
-        if (value instanceof String) { return RuntimeType.STRING; }
-        if (value instanceof Boolean) { return RuntimeType.BOOLEAN; }
-        if (value instanceof BigInteger) { return RuntimeType.BIGINT; }
-        if (value instanceof Function) { return RuntimeType.FUNCTION; }
-        return RuntimeType.UNDEFINED;
+    public void writeLength(Ark_Length value) {
+        this.writeString(value.value);
     }
-    public void writeLength(Object value) {
+    /*public void writeLength(Object value) {
         this.checkCapacity(1);
         var valueType = runtimeType(value);
         this.writeInt8(valueType.value);
@@ -160,5 +162,5 @@ public class SerializerBase {
             // TODO: write real resource id.
             this.writeInt32(value.hashCode());
         }
-    }
+    }*/
 }

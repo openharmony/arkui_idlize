@@ -351,7 +351,11 @@ export class LengthConvertor extends BaseArgConvertor {
         super(name, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? `(const ${PrimitiveType.Length.getText()}*)&${param}` : param
+        switch (writer.language) {
+            case Language.CPP: return `(const ${PrimitiveType.Length.getText()}*)&${param}`
+            case Language.JAVA: return `${param}.value`
+            default: return param
+        }
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(

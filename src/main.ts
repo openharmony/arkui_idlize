@@ -62,9 +62,10 @@ import { printInterfaces } from "./peer-generation/printers/InterfacePrinter"
 import { printConflictedDeclarations } from "./peer-generation/printers/ConflictedDeclarationsPrinter"
 import { printFakeDeclarations } from "./peer-generation/printers/FakeDeclarationsPrinter"
 import { printBuilderClasses } from "./peer-generation/printers/BuilderClassPrinter"
-import { ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH } from "./lang/java"
+import { ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH } from "./peer-generation/printers/lang/Java"
 import { TargetFile } from "./peer-generation/printers/TargetFile"
 import { printBridgeCcCustom, printBridgeCcGenerated } from "./peer-generation/printers/BridgeCcPrinter"
+import { createPrinterContext } from "./peer-generation/printers/PrinterContext/PrinterContextImpl"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -383,11 +384,11 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
 
     const arkuiComponentsFiles: string[] = []
+    const context = createPrinterContext(peerLibrary.declarationTable)
 
-
-    const peers = printPeers(peerLibrary, options.dumpSerialized ?? false)
-    for (const [targetBasename, peer] of peers) {
-        const outPeerFile = arkoala.peer(new TargetFile(targetBasename))
+    const peers = printPeers(peerLibrary, context, options.dumpSerialized ?? false)
+    for (const [targetFile, peer] of peers) {
+        const outPeerFile = arkoala.peer(targetFile)
         console.log("producing", outPeerFile)
         writeFile(outPeerFile, peer, true)
     }
@@ -407,9 +408,9 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         fs.writeFileSync(outBuilderFile, builderClass)
     }
 
-    const materialized = printMaterialized(peerLibrary, options.dumpSerialized ?? false)
-    for (const [targetBasename, materializedClass] of materialized) {
-        const outMaterializedFile = arkoala.materialized(new TargetFile(targetBasename))
+    const materialized = printMaterialized(peerLibrary, context, options.dumpSerialized ?? false)
+    for (const [targetFile, materializedClass] of materialized) {
+        const outMaterializedFile = arkoala.materialized(targetFile)
         writeFile(outMaterializedFile, materializedClass)
     }
 
@@ -440,7 +441,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
 
     if (lang == Language.TS) {
         // todo I think we want to generate them for ARKTS too
-        const interfaces = printInterfaces(peerLibrary, lang)
+        const interfaces = printInterfaces(peerLibrary, context)
         for (const [targetFile, data] of interfaces) {
             const outComponentFile = arkoala.interface(targetFile)
             console.log("producing", outComponentFile)
@@ -485,7 +486,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         )
     }
     if (lang == Language.ARKTS) {
-        const interfaces = printInterfaces(peerLibrary, lang)
+        const interfaces = printInterfaces(peerLibrary, context)
         for (const [targetBasename, data] of interfaces) {
             const outComponentFile = arkoala.interface(targetBasename)
             console.log("producing", outComponentFile)
@@ -502,8 +503,16 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         )
     }
     if (lang == Language.JAVA) {
-        const interfaces = printInterfaces(peerLibrary, lang)
+        const interfaces = printInterfaces(peerLibrary, context)
         for (const [targetFile, data] of interfaces) {
+            const outComponentFile = arkoala.javaLib(targetFile)
+            console.log("producing", outComponentFile)
+            if (options.verbose) console.log(data)
+            fs.writeFileSync(outComponentFile, data)
+        }
+
+        const synthesizedTypes = context.synthesizedTypes!.getDefinitions()
+        for (const [targetFile, data] of synthesizedTypes) {
             const outComponentFile = arkoala.javaLib(targetFile)
             console.log("producing", outComponentFile)
             if (options.verbose) console.log(data)

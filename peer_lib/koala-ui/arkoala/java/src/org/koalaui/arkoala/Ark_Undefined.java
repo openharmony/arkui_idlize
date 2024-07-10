@@ -14,4 +14,8 @@
  */
 package org.koalaui.arkoala;
 
-public class Undefined {}
+public class Ark_Undefined extends Ark_ObjectBase {
+    public RuntimeType getRuntimeType() {
+        return RuntimeType.UNDEFINED;
+    }
+}

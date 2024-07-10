@@ -18,7 +18,7 @@ declare type Resource = import('../resource/resource').Resource;
 
 declare type Length = string | number | Resource;
 
-declare type ResourceColor = Color | number | string | Resource;
+declare type ResourceColor = /*Color |*/ number | string /*| Resource*/;
 
 declare type PX = `${number}px`;
 
@@ -32,11 +32,10 @@ declare type Percentage = `${number}%`;
 
 declare type Dimension = PX | VP | FP | LPX | Percentage | Resource;
 
-declare type ResourceStr = string | Resource;
+declare type ResourceStr = string /*| Resource*/;
 
 declare type Offset = {
     dx: Length;
-
     dy: Length;
 };
 
@@ -46,8 +45,13 @@ declare type AltOffset = {
 };
 
 declare interface Position {
-
     x?: Length;
-
     y?: Length;
+}
+
+declare interface Font {
+    size?: Length;
+    weight?: /*FontWeight |*/ number | string;
+    family?: string /*| Resource*/;
+    //style?: FontStyle;
 }

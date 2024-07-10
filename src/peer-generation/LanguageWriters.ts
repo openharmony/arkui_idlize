@@ -789,6 +789,9 @@ export abstract class LanguageWriter {
         return this.makeString(`(${this.makeNaryOp("||",
             accessors.map(it => this.makeString(`${value}!.hasOwnProperty("${it}")`))).asString()})`)
     }
+    makeSerializerCreator() {
+        return this.makeString('createSerializer');
+    }
     makeCallIsResource(value: string): LanguageExpression {
         return this.makeString(`isResource(${value})`)
     }
@@ -1114,7 +1117,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method) {
-        this.printer.print(`${className}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")}) {`)
+        this.printer.print(`public ${className}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
             this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")});`)
@@ -1167,14 +1170,26 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
             case 'KStringPtr': return 'String'
             case 'string': return 'String'
             case 'number': return 'double'
+            case 'boolean': return 'boolean'
+            case 'Length': return 'Ark_Length'
         }
         return super.mapType(type)
     }
+    nativeReceiver(): string { return 'NativeModule' }
     applyToObject(p: BaseArgConvertor, param: string, value: string, args?: ObjectArgs): LanguageStatement {
         throw new Error("Method not implemented.")
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
-        throw new Error("Method not implemented.")
+        if (convertor instanceof OptionConvertor) {
+            return `${value}`
+        }
+        if (convertor instanceof TupleConvertor && args?.index) {
+            return `${value}.value${args.index}`
+        }
+        if (convertor instanceof UnionConvertor && args?.index) {
+            return `${value}.getValue${args.index}()`
+        }
+        return value
     }
     makeUndefined(): LanguageExpression {
         return this.makeString("undefined")
@@ -1183,8 +1198,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
     }
     makeRuntimeTypeGetterCall(value: string): LanguageExpression {
-        const call = this.makeMethodCall(value, "getRuntimeType", []).asString()
-        return this.makeString(`${call}`)
+        return this.makeMethodCall("Ark_Object", "getRuntimeType", [this.makeString(value)])
     }
     makeMapKeyTypeName(c: MapConvertor): string {
         throw new Error("Method not implemented.")
@@ -1217,11 +1231,14 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         throw new Error("Method not implemented.")
     }
     makeValueFromOption(value: string): LanguageExpression {
-        return this.makeString(`${value}.value`)
+        return this.makeString(`${value}`)
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         this.writeStatement(this.makeAssign(valueType, undefined,
             this.makeRuntimeTypeGetterCall(value), false))
+    }
+    makeSerializerCreator() {
+        return this.makeString('Serializer::createSerializer');
     }
 }
 

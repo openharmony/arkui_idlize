@@ -17,6 +17,12 @@ declare interface TestInterface {
     (): TestAttribute
 }
 
+declare interface LengthInterface { 
+    str: string
+    len: Length
+    optLen?: Length
+}
+
 declare const Test: TestInterface
 
 declare enum EnumDTS {
@@ -76,10 +82,9 @@ declare interface OptionalTestInterface {
 //     tuple: Array<[boolean, number]>
 // }
 
-// declare class ClassDTS {
-
-//     valBoolean: boolean
-// }
+declare class ClassDTS {
+    valBoolean: boolean
+}
 
 // // Non materialized class
 // declare class ClassWithConstructorDTS {
@@ -189,9 +194,9 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testString(value: string): TestAttribute;
 
-    testEnum(value: EnumDTS): TestAttribute
+    // testEnum(value: EnumDTS): TestAttribute
 
-    testFunction(value: (a: number) => boolean): TestAttribute;
+    //testFunction(value: (a: number) => boolean): TestAttribute;
 
     testBasicMix(v1: number, v2: string, v3: number): TestAttribute
 
@@ -209,7 +214,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     // union
 
-    testUnionNumberEnum(val: number | EnumDTS): TestAttribute
+    // testUnionNumberEnum(val: number | EnumDTS): TestAttribute
 
     testUnionBooleanString(val: boolean | string): TestAttribute
 
@@ -235,9 +240,9 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
     // // TBD: array of functions
     // //testArrayMix(v1: number[], v2: string[], v3: EnumDTS[], v4: ((a: number) => string)[]): TestAttribute;
 
-    // // tuple
+    // tuple
 
-    // testTupleBooleanNumber(value: [boolean, number]): TestAttribute;
+    testTupleBooleanNumber(value: [boolean, number]): TestAttribute;
 
     // testTupleNumberStringEnum(value: [number, string, EnumDTS]): TestAttribute;
 
@@ -284,7 +289,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     // // Boolean Interface
 
-    // testBooleanInterfaceOption(value?: BooleanInterfaceDTS): TestAttribute
+    testBooleanInterfaceOption(value?: BooleanInterfaceDTS): TestAttribute
 
     // testBooleanInterfaceTuple(value: [BooleanInterfaceDTS]): TestAttribute
 
@@ -294,9 +299,11 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testInterfaceMixed(v1: UnionInterfaceDTS, v2: number, v3: TupleInterfaceDTS): TestAttribute
 
+    testLen(val: LengthInterface): TestAttribute
+
     // // Class
 
-    // testClass(value: ClassDTS): TestAttribute
+    testClass(value: ClassDTS): TestAttribute
 
     // testClassWithConstructor(value: ClassWithConstructorDTS): TestAttribute
 

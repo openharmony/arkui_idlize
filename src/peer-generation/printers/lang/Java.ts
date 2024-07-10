@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,34 +13,14 @@
  * limitations under the License.
  */
 
-declare enum Color {
-    White,
-    Black,
-}
+export const ARKOALA_PACKAGE = 'org.koalaui.arkoala'
+export const INTEROP_PACKAGE = 'org.koalaui.interop'
 
-declare enum TextHeightAdaptivePolicy {
-    MAX_LINES_FIRST,
-    MIN_FONT_SIZE_FIRST,
-    LAYOUT_CONSTRAINT_FIRST,
-}
+export const ARKOALA_PACKAGE_PATH = getPackagePath(ARKOALA_PACKAGE)
+export const INTEROP_PACKAGE_PATH = getPackagePath(INTEROP_PACKAGE)
 
-declare enum TextOverflow {
-    None,
-    Clip,
-    Ellipsis,
-    MARQUEE,
-}
+export const ARK_OBJECTBASE = 'Ark_ObjectBase'
 
-declare enum FontWeight {
-    Lighter,
-    Normal,
-    Regular,
-    Medium,
-    Bold,
-    Bolder,
-}
-
-declare enum FontStyle {
-    Normal,
-    Italic,
+function getPackagePath(javaPackage: string): string {
+    return javaPackage.replaceAll('.', '/')
 }

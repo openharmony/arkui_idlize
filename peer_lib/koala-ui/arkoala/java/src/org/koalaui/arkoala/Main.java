@@ -23,6 +23,7 @@ public class Main {
         //NativeModule._StartGroupedLog(1);
         Main.checkPerf2(5*1000*1000);
         Main.checkPerf3(5*1000*1000);
+        Main.checkPeers();
         //NativeModule._StopGroupedLog(1);
     }
 
@@ -49,7 +50,7 @@ public class Main {
     }
 
     static void checkPerf2(int count) {
-        var peer = new ArkButtonPeerStub();
+        var peer = new ArkButtonPeer(ArkUINodeType.Root, null, 0);
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             if (i % 2 == 0) {
@@ -57,9 +58,7 @@ public class Main {
             }
             else {
                 BlurOptions options = new BlurOptions();
-                options.grayscale = new Tuple_Float_Float();
-                options.grayscale.value0 = 1.0f;
-                options.grayscale.value1 = 2.0f;
+                options.grayscale = new Tuple_double_double(1.0, 2.0);
                 peer.backdropBlurAttribute(i, options);
             }
         }
@@ -68,14 +67,34 @@ public class Main {
     }
     
     static void checkPerf3(int count) {
-        var peer = new ArkButtonPeerStub();
-        var testLength_10_lpx = "10lpx";
+        var peer = new ArkButtonPeer(ArkUINodeType.Root, null, 0);
+        var testLength_10_lpx = new Ark_Length("10lpx");
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             peer.widthAttribute(testLength_10_lpx);
         }
         long passed = System.currentTimeMillis() - start;
         System.out.println("widthAttributeString: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
+    }
+
+    static void checkPeers() {
+        var peer = new ArkTestPeer(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
+        var boolInterface = new BooleanInterfaceDTS();
+        boolInterface.valBool = true;
+        peer.testBooleanInterfaceAttribute(boolInterface);
+
+        var options = new BlurOptions();
+        options.grayscale = new Tuple_double_double(1.0, 2.0);
+        peer.backdropBlurAttribute(42, options);
+
+        var blankPeer = new ArkBlankPeer(ArkUINodeType.Root, null, 0);
+        var color = new Union_double_String("white");
+        blankPeer.colorAttribute(color);
+        var min = new Union_double_String(10);
+        blankPeer._setBlankOptionsAttribute(min);
+        // var attrs = new ArkBlankAttributes();
+        // attrs.color = new Union_double_String("black");
+        // blankPeer.applyAttributes(attrs);
     }
 }
 
