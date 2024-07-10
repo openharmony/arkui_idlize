@@ -64,6 +64,8 @@ export interface LinterMessage {
     node: ts.Node
 }
 
+const suppressed = new Set([LinterError.UNION_CONTAINS_ENUM])
+
 function stringMessage(message: LinterMessage): string {
     return `${message.pos} - [${LinterError[message.error]}] ${message.message}`
 }
@@ -344,6 +346,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     }
 
     report(node: ts.Node, error: LinterError, message: string): void {
+        if (suppressed.has(error)) return
         this.output.push({
             file: this.sourceFile,
             pos: `${path.basename(this.sourceFile.fileName)}:${getLineNumberString(this.sourceFile, node.getStart(this.sourceFile, false))}`,
