@@ -19,7 +19,6 @@ const dtsImports = `import {
     BindOptions,
     BlurOptions,
     BlurStyleOptions,
-    Color,
     CommonAttribute,
     CommonMethod,
     DragInteractionOptions,

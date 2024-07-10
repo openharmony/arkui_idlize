@@ -152,20 +152,7 @@ class TSInterfacesVisitor implements InterfacesVisitor {
     }
 
     protected printEnum(writer: LanguageWriter, enumEntity: EnumEntity) {
-        writer.print(enumEntity.comment)
-        writer.print(`export enum ${enumEntity.name} {`)
-        writer.pushIndent()
-        enumEntity.members.forEach((member, index) => {
-            writer.print(member.comment)
-            const commaOp = index < enumEntity.members.length - 1 ? ',' : ''
-            if (member.initializerText != undefined) {
-                writer.print(`${member.name} = ${member.initializerText}${commaOp}`)
-            } else {
-                writer.print(`${member.name}${commaOp}`)
-            }
-        })
-        writer.popIndent()
-        writer.print(`}`)
+        writer.writeStatement(writer.makeEnumEntity(enumEntity, true))
     }
 
     private printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: PeerFile) {

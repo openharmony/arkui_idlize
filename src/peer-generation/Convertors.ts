@@ -115,7 +115,7 @@ export class StringConvertor extends BaseArgConvertor {
         writer.writeMethodCall(`${param}Serializer`, `writeString`, [value])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const receiver = writer.getObjectAccessor(this, param, value)
+        const receiver = writer.getObjectAccessor(this, value)
         return writer.makeAssign(receiver, undefined,
             writer.makeCast(writer.makeString(`${param}Deserializer.readString()`),
                 writer.makeType(this.tsTypeName, false, receiver)),
@@ -179,7 +179,7 @@ export class BooleanConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeBoolean", [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
+        const accessor = printer.getObjectAccessor(this, value)
         return printer.makeAssign(accessor, undefined, printer.makeString(`${param}Deserializer.readBoolean()`), false)
     }
     nativeType(impl: boolean): string {
@@ -202,7 +202,7 @@ export class UndefinedConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {}
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
+        const accessor = printer.getObjectAccessor(this, value)
         return printer.makeAssign(accessor, undefined,
                 printer.makeUndefined(), false)
     }
@@ -226,7 +226,7 @@ export class NullConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {}
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
+        const accessor = printer.getObjectAccessor(this, value)
         return printer.makeAssign(accessor, undefined, printer.makeUndefined(), false)
     }
     nativeType(impl: boolean): string {
@@ -246,10 +246,13 @@ export class NullConvertor extends BaseArgConvertor {
 export class EnumConvertor extends BaseArgConvertor {
     constructor(param: string,
                 private enumType: ts.EnumDeclaration,
-                private readonly isStringEnum: boolean) {
+                public readonly isStringEnum: boolean) {
         super(isStringEnum ?  "string" : "number",
             [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
+    }
+    enumTypeName(): string {
+        return identName(this.enumType.name)!
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeUnsafeCast(this, param)
@@ -259,15 +262,14 @@ export class EnumConvertor extends BaseArgConvertor {
             value = printer.ordinalFromEnum(printer.makeString(value),
                 identName(this.enumType.name)!).asString()
         }
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [this.convertorArg(value, printer)])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         let readExpr = printer.makeMethodCall(`${param}Deserializer`, "readInt32", [])
         if (this.isStringEnum) {
             readExpr = printer.enumFromOrdinal(readExpr, identName(this.enumType.name)!)
         }
-        const receiver = printer.getObjectAccessor(this, param, value)
-        return printer.makeAssign(receiver, undefined, readExpr, false)
+        return printer.makeAssign(printer.getObjectAccessor(this, value), undefined, readExpr, false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Int32.getText()
@@ -295,8 +297,8 @@ export class EnumConvertor extends BaseArgConvertor {
             if (high === undefined || high < value) high = value
         })
         const ordinal = this.isStringEnum
-            ? writer.ordinalFromEnum(writer.makeString(value), identName(this.enumType.name)!)
-            : writer.makeUnionVariantCast(value, Type.Number, index)
+            ? writer.ordinalFromEnum(writer.makeString(writer.getObjectAccessor(this, value)), identName(this.enumType.name)!)
+            : writer.makeUnionVariantCast(writer.getObjectAccessor(this, value), Type.Number, this, index)
         return this.discriminatorFromExpressions(value, this.runtimeTypes[0], writer, [
             writer.makeNaryOp(">=", [ordinal, writer.makeString(low!.toString())]),
             writer.makeNaryOp("<=",  [ordinal, writer.makeString(high!.toString())])
@@ -359,7 +361,7 @@ export class LengthConvertor extends BaseArgConvertor {
         )
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const receiver = printer.getObjectAccessor(this, param, value)
+        const receiver = printer.getObjectAccessor(this, value)
         return printer.makeAssign(receiver, undefined,
             printer.makeCast(
                 printer.makeString(`${param}Deserializer.readLength()`),
@@ -468,8 +470,8 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", [castToInt8(index.toString(), printer.language)])
             if (!(it instanceof UndefinedConvertor)) {
                 printer.writeStatement(
-                    printer.makeAssign(`${value}_${index}`, undefined,
-                        printer.makeUnionVariantCast(value, it.targetType(printer), index), true))
+                        printer.makeAssign(`${value}_${index}`, undefined,
+                            printer.makeUnionVariantCast(printer.getObjectAccessor(it, value), it.targetType(printer), it, index), true))
                 it.convertorSerialize(param, `${value}_${index}`, printer)
             }
             printer.popIndent()
@@ -482,7 +484,7 @@ export class UnionConvertor extends BaseArgConvertor {
         const selectorAssign = printer.makeAssign(selector, Type.Int32,
             printer.makeString(`${param}Deserializer.readInt8()`), true)
         const branches: BranchStatement[] = this.memberConvertors.map((it, index) => {
-            const receiver = printer.getObjectAccessor(this, param, value, {index: `${index}`})
+            const receiver = printer.getObjectAccessor(this, value, {index: `${index}`})
             const expr = printer.makeString(`${selector} == ${index}`)
             const stmt = new BlockStatement([
                 it.convertorDeserialize(param, receiver, printer),
@@ -530,7 +532,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeCustomObject", [`"${this.importedName}"`, value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
+        const accessor = printer.getObjectAccessor(this, value)
         return printer.makeAssign(accessor, undefined,
                 printer.makeString(`${param}Deserializer.readCustomObject("${this.importedName}")`), false)
     }
@@ -570,7 +572,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, `writeCustomObject`, [`"${this.customName}"`, value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const receiver = printer.getObjectAccessor(this, param, value)
+        const receiver = printer.getObjectAccessor(this, value)
         return printer.makeAssign(receiver, undefined,
                 printer.makeCast(printer.makeMethodCall(`${param}Deserializer`,
                         "readCustomObject",
@@ -619,7 +621,7 @@ export class OptionConvertor extends BaseArgConvertor {
         printer.print(`if (${printer.makeRuntimeTypeCondition(valueType, false, RuntimeType.UNDEFINED).asString()}) {`)
         printer.pushIndent()
         printer.writeStatement(printer.makeAssign(`${value}_value`, undefined, printer.makeValueFromOption(value, this.typeConvertor), true))
-        this.typeConvertor.convertorSerialize(param, `${value}_value`, printer)
+        this.typeConvertor.convertorSerialize(param, printer.getObjectAccessor(this.typeConvertor, `${value}_value`), printer)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -628,7 +630,7 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const runtimeType = `runtimeType`
-        const accessor = printer.getObjectAccessor(this, param, value)
+        const accessor = printer.getObjectAccessor(this, value)
         const thenStatement = new BlockStatement([
             this.typeConvertor.convertorDeserialize(param, accessor, printer)
         ])
@@ -681,7 +683,7 @@ export class AggregateConvertor extends BaseArgConvertor {
         })
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const structAccessor = printer.getObjectAccessor(this, param, value)
+        const structAccessor = printer.getObjectAccessor(this, value)
         let struct = this.table.targetStruct(this.table.toTarget(this.type))
         // Typed structs may refer each other, so use indent level to discriminate.
         // Somewhat ugly, but works.
@@ -741,7 +743,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, this.table.serializerName(this.tsTypeName, this.type), [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
+        const accessor = printer.getObjectAccessor(this, value)
         return printer.makeAssign(accessor, undefined,
                 printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(this.tsTypeName, this.type), []), false)
     }
@@ -800,7 +802,7 @@ export class FunctionConvertor extends BaseArgConvertor {
         writer.writeMethodCall(`${param}Serializer`, "writeFunction", [value])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const accessor = writer.getObjectAccessor(this, param, value)
+        const accessor = writer.getObjectAccessor(this, value)
         return writer.makeAssign(accessor, undefined,
             writer.makeCast(writer.makeString(`${param}Deserializer.readFunction()`),
                 writer.makeType(mapType(this.type), true, accessor))
@@ -840,13 +842,13 @@ export class TupleConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const runtimeType = `runtimeType`
-        const receiver = printer.getObjectAccessor(this, param, value)
+        const receiver = printer.getObjectAccessor(this, value)
         const statements: LanguageStatement[] = []
         const tmpTupleIds: string[] = []
         this.memberConvertors.forEach((it, index) => {
             const tmpTupleId = `tmpTupleItem${index}`
             tmpTupleIds.push(tmpTupleId)
-            const receiver = printer.getObjectAccessor(this, param, value, {index: `${index}`})
+            const receiver = printer.getObjectAccessor(this, value, {index: `${index}`})
             // need to remove the mark '?' from Optional type
             const tsTypeName = mapType(this.type.elements[index]).replace("?", "")
             statements.push(
@@ -901,7 +903,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         printer.pushIndent()
         printer.writeStatement(
             printer.makeAssign(`${value}_element`, undefined, printer.makeArrayAccess(value, loopCounter), true))
-        this.elementConvertor.convertorSerialize(param, `${value}_element`, printer)
+        this.elementConvertor.convertorSerialize(param, printer.getObjectAccessor(this.elementConvertor, `${value}_element`), printer)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -910,8 +912,8 @@ export class ArrayConvertor extends BaseArgConvertor {
         const runtimeType = `runtimeType`
         const arrayLength = `arrayLength`
         const forCounterName = `i`
-        const arrayAccessor = printer.getObjectAccessor(this, param, value)
-        const accessor = printer.getObjectAccessor(this, param, arrayAccessor, {index: `[${forCounterName}]`})
+        const arrayAccessor = printer.getObjectAccessor(this, value)
+        const accessor = printer.getObjectAccessor(this, arrayAccessor, {index: `[${forCounterName}]`})
         const thenStatement = new BlockStatement([
             // read length
             printer.makeAssign(arrayLength, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
@@ -976,8 +978,8 @@ export class MapConvertor extends BaseArgConvertor {
         const keyTypeName = printer.makeMapKeyTypeName(this)
         const valueTypeName = printer.makeMapValueTypeName(this)
         const counterVar = `i`
-        const keyAccessor = printer.getObjectAccessor(this, param, value, {index: counterVar, field: "keys"})
-        const valueAccessor = printer.getObjectAccessor(this, param, value, {index: counterVar, field: "values"})
+        const keyAccessor = printer.getObjectAccessor(this, value, {index: counterVar, field: "keys"})
+        const valueAccessor = printer.getObjectAccessor(this, value, {index: counterVar, field: "values"})
         const tmpKey = `tmpKey`
         const tmpValue = `tmpValue`
         const statements = [
@@ -1028,7 +1030,7 @@ export class NumberConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeNumber", [value])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const receiver = writer.getObjectAccessor(this, param, value)
+        const receiver = writer.getObjectAccessor(this, value)
         return writer.makeAssign(receiver, undefined,
             writer.makeCast(
                 writer.makeString(`${param}Deserializer.readNumber()`),
@@ -1062,7 +1064,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeMaterialized", [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, param, value)
+        const accessor = printer.getObjectAccessor(this, value)
         const readStatement = printer.makeCast(
             printer.makeMethodCall(`${param}Deserializer`, `readMaterialized`, []),
             new Type(this.table.computeTargetName(this.type, false)!),
@@ -1095,7 +1097,7 @@ export class PredefinedConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, `write${this.convertorName}`, [value])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const accessor = writer.getObjectAccessor(this, param, value)
+        const accessor = writer.getObjectAccessor(this, value)
         return writer.makeAssign(accessor, undefined, writer.makeString(`${param}Deserializer.read${this.convertorName}()`), false)
     }
     nativeType(impl: boolean): string {

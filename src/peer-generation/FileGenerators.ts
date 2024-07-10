@@ -239,7 +239,10 @@ export function makeTSSerializer(library: PeerLibrary): string {
     writeSerializer(library, printer)
     //TODO: need to determine imports when generating serializer
     const extraImports = library.declarationTable.language === Language.ARKTS ?
-        'import { AdaptiveColor, BlurStyle, BorderStyle, DismissReason, DragPreviewMode, GradientDirection, ShadowStyle, ShadowType, SheetMode, SheetSize, SheetType, ThemeColorMode } from "./ArkCommonInterfaces"' : ''
+        'import { AdaptiveColor, BlurStyle, BorderStyle, DismissReason, DragPreviewMode, GradientDirection, ShadowStyle, ShadowType, SheetMode, SheetSize, SheetType, ThemeColorMode } from "./ArkCommonInterfaces"\n' +
+        'import { FontWeight, FontStyle, TextOverflow, TextHeightAdaptivePolicy, Color, ColoringStrategy } from "./ArkEnumInterfaces"\n' +
+        'import { SelectedMode } from "./ArkTabContentInterfaces"'
+        : ''
     return `
 ${extraImports}
 import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"

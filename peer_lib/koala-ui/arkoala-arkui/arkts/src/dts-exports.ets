@@ -36,6 +36,7 @@ import { HorizontalAlign } from './ArkColumnInterfaces'
 import { SelectedMode } from './ArkTabContentInterfaces'
 import { BarMode } from './ArkTabsInterfaces'
 import { TextHeightAdaptivePolicy,
+         Color,
          FontStyle,
          TextOverflow,
          FontWeight,
@@ -60,11 +61,6 @@ export interface Resource {
   params?: object[];
 
   type?: number;
-}
-
-export class Color {
-    White = 0
-    Black = 1
 }
 
 export type Length = string | number | Resource
