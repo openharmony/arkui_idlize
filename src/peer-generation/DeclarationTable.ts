@@ -229,7 +229,7 @@ export class DeclarationTable {
             let name = identName(target.name)
             if (name == "Function")
                 return prefix + PrimitiveType.Function.getText()
-            return prefix + name
+            return prefix + PrimitiveType.ArkPrefix + name
         }
         if (ts.isFunctionTypeNode(target)) {
             return prefix + PrimitiveType.Function.getText()
@@ -304,6 +304,16 @@ export class DeclarationTable {
                 return `${prefix}Map_${keyTypeName}_${valueTypeName}`
             } else if (typeName === "Resource") {
                 return `${prefix}${PrimitiveType.Resource.getText()}`
+            } else if (typeName === "Callback") {
+                return prefix + typeName
+            }
+            if (!(declaration instanceof PrimitiveType)) {
+                if (ts.isUnionTypeNode(declaration) && typeName === "GestureType" ||
+                    ts.isInterfaceDeclaration(declaration) ||
+                    ts.isClassDeclaration(declaration)
+                ) {
+                    return prefix + PrimitiveType.ArkPrefix + typeName;
+                }
             }
             return prefix + typeName
         }
@@ -777,8 +787,8 @@ export class DeclarationTable {
             if (!noBasicDecl && !this.ignoreTarget(target)) {
 
                 // TODO: fix it to define array type after its elements types
-                if (nameAssigned === "Array_GestureRecognizer") {
-                    structs.print("typedef Ark_Materialized GestureRecognizer;")
+                if (nameAssigned === "Array_Ark_GestureRecognizer") {
+                    structs.print("typedef Ark_Materialized Ark_GestureRecognizer;")
                 }
 
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
@@ -1430,7 +1440,10 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
             return PrimitiveType.CustomObject
         if (ts.isTypeAliasDeclaration(declaration)) {
             const node = declaration.type
-            this.table.requestType(identName(declaration.name), node, false)
+            let name = identName(declaration.name)
+            if (name === "GestureType")
+                name = PrimitiveType.ArkPrefix + name
+            this.table.requestType(name, node, false)
             return convertTypeNode(this, node)
         }
         if (ts.isEnumMember(declaration)) {

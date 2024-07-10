@@ -748,7 +748,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
                 printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(this.tsTypeName, this.type), []), false)
     }
     nativeType(impl: boolean): string {
-        return this.tsTypeName
+        return PrimitiveType.ArkPrefix + this.tsTypeName
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
