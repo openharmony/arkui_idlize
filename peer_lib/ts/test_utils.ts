@@ -66,3 +66,18 @@ export function assertEquals(name: string, expected: any, actual: any) {
         console.log(`TEST ${name} PASS`)
     }
 }
+
+export function assertThrows(name: string, fn: () => void) {
+    let caught = false
+    try {
+        fn()
+    } catch (e) {
+        caught = true
+    }
+    if (!caught) {
+        failedTestsCount++
+        console.log(`TEST ${name} FAIL:\n  No exception thrown`)
+    } else {
+        console.log(`TEST ${name} PASS`)
+    }
+}

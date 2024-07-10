@@ -29,11 +29,20 @@ class CallbackRegistry {
     static INSTANCE = new CallbackRegistry()
 
     private callbacks = new Map<int32, CallbackRecord>()
-    private id = 0
+    private id = 1
 
-    register(callback: CallbackType, autoDisposal: boolean): int32 {
+    constructor() {
+        this.callbacks.set(0, new CallbackRecord(
+            (args: Uint8Array, length: int32): int32 => {
+                console.log(`Callback 0 called with args = ${args} and length = ${length}`)
+                throw new Error(`Null callback called`)
+            }, false)
+        )
+    }
+
+    wrap(callback: CallbackType, autoDisposable: boolean): int32 {
         const id = this.id++
-        this.callbacks.set(id, new CallbackRecord(callback, autoDisposal))
+        this.callbacks.set(id, new CallbackRecord(callback, autoDisposable))
         return id
     }
 
@@ -41,7 +50,7 @@ class CallbackRegistry {
         const record = this.callbacks.get(id)
         if (!record) {
             console.log(`Callback ${id} is not known`)
-            return -1
+            throw new Error(`Disposed or unwrapped callback called (id = ${id})`)
         }
         if (record.autoDisposable) {
             this.dispose(id)
@@ -55,7 +64,7 @@ class CallbackRegistry {
 }
 
 export function wrapCallback(callback: CallbackType, autoDisposable: boolean = true): int32 {
-    return CallbackRegistry.INSTANCE.register(callback, autoDisposable)
+    return CallbackRegistry.INSTANCE.wrap(callback, autoDisposable)
 }
 
 export function disposeCallback(id: int32) {
