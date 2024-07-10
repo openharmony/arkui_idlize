@@ -1,6 +1,0 @@
-{
-  "name": "@koalaui/common",
-  "version": "1.4.1+devel",
-  "description": "",
-  "types": "./index.ts"
-}

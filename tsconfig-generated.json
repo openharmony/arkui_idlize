@@ -19,7 +19,10 @@
         "paths": {
             "@arkoala/arkui": ["./generated/peers/koalaui/arkoala-arkui/src", "./"],
             "@arkoala/arkui/*": ["./generated/peers/koalaui/arkoala-arkui/src/*", "./*"],
-            "@koalaui/arkoala": ["./generated/peers/koalaui/arkoala/src/generated", "./"]
+            "@koalaui/arkoala": ["./generated/peers/koalaui/arkoala/src", "./"],
+            "@koalaui/common": ["./generated/peers/koalaui/arkui-common/src", "./"],
+            "@koalaui/interop": ["./generated/peers/koalaui/koala-interop/src", "./"],
+            "@koalaui/runtime": ["./generated/peers/koalaui/koala-runtime/src", "./"],
         }
     },
     "include": [

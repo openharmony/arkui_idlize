@@ -434,18 +434,15 @@ ${epilogue}
 `
 }
 
-export function copyPeerLib(from: string, arkoala: ArkoalaInstall, filters?: string[]) {
+export function copyToArkoala(from: string, arkoala: ArkoalaInstall, filters?: string[]) {
     filters = filters?.map(it => path.join(from, it))
-    const recursive = true
-    copyDir(path.join(from, 'ts'), arkoala.tsDir, !recursive, filters)
-    copyDir(path.join(from, 'ts/arkoala'), arkoala.tsArkoalaDir, recursive, filters)
-    copyDir(path.join(from, 'cpp'), arkoala.nativeDir, recursive, filters)
-    copyDir(path.join(from, 'arkts'), arkoala.arktsDir, recursive, filters)
-    copyDir(path.join(from, 'java'), arkoala.javaDir, recursive, filters)
+    copyDir(path.join(from, 'koala-ui'), arkoala.koala, true, filters)
+    const macros = path.join(from, 'shared', 'arkoala-macros.h')
+    copyFile(macros, path.join(arkoala.nativeDir, 'arkoala-macros.h'), filters)
 }
 
 export function copyToLibace(from: string, libace: LibaceInstall) {
-    const macros = path.join(from, 'cpp', 'arkoala-macros.h')
+    const macros = path.join(from, 'shared', 'arkoala-macros.h')
     fs.copyFileSync(macros, libace.arkoalaMacros)
 }
 
@@ -455,9 +452,7 @@ function copyDir(from: string, to: string, recursive: boolean, filters?: string[
         const targetPath = path.join(to, it)
         const statInfo = fs.statSync(sourcePath)
         if (statInfo.isFile()) {
-            if (filters && !filters.includes(sourcePath))
-                return
-            fs.copyFileSync(sourcePath, targetPath)
+            copyFile(sourcePath, targetPath, filters)
         }
         else if (recursive && statInfo.isDirectory()) {
             if (!fs.existsSync(targetPath)) {
@@ -466,6 +461,11 @@ function copyDir(from: string, to: string, recursive: boolean, filters?: string[
             copyDir(sourcePath, targetPath, recursive, filters)
         }
     })
+}
+function copyFile(from: string, to: string, filters?: string[]) {
+    if (filters && !filters.includes(from))
+        return
+    fs.copyFileSync(from, to)
 }
 export function makeNodeTypes(types: string[]): string {
     const enumValues = types.map(it => `  ${it},`).join("\n")

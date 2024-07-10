@@ -1,6 +1,0 @@
-{
-  "name": "@koalaui/runtime",
-  "version": "1.4.1+devel",
-  "description": "",
-  "types": "./index.d.ts"
-}
