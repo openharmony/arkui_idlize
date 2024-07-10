@@ -748,7 +748,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
                 printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(this.tsTypeName, this.type), []), false)
     }
     nativeType(impl: boolean): string {
-        return this.tsTypeName
+        return PrimitiveType.ArkPrefix + this.tsTypeName
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -1067,7 +1067,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         const accessor = printer.getObjectAccessor(this, value)
         const readStatement = printer.makeCast(
             printer.makeMethodCall(`${param}Deserializer`, `readMaterialized`, []),
-            new Type(this.table.computeTargetName(this.type, false)!),
+            new Type(this.table.computeTargetName(this.type, false, "")!),
         )
         return printer.makeAssign(accessor, undefined, readStatement, false)
     }

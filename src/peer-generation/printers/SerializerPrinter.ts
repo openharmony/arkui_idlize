@@ -50,7 +50,7 @@ function canSerializeTarget(declaration: ts.ClassDeclaration | ts.InterfaceDecla
 }
 
 function ignoreSerializeTarget(table: DeclarationTable, target: DeclarationTarget): target is PrimitiveType | ts.EnumDeclaration {
-    const name = table.computeTargetName(target, false)
+    const name = table.computeTargetName(target, false, "")
     if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return true
     if (target instanceof PrimitiveType) return true
     if (ts.isEnumDeclaration(target)) return true
@@ -82,7 +82,7 @@ class SerializerPrinter {
     }
 
     private generateSerializer(target: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const name = this.table.computeTargetName(target, false)
+        const name = this.table.computeTargetName(target, false, "")
         this.table.setCurrentContext(`write${name}()`)
 
         this.writer.writeMethodImplementation(
@@ -127,7 +127,7 @@ class SerializerPrinter {
             for (let declaration of this.table.orderedDependenciesToGenerate) {
                 if (ignoreSerializeTarget(this.table, declaration))
                     continue
-                let name = this.table.computeTargetName(declaration, false)
+                let name = this.table.computeTargetName(declaration, false, "")
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
                 if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration))
@@ -153,7 +153,7 @@ class DeserializerPrinter {
     }
 
     private generateDeserializer(target: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const name = this.table.computeTargetName(target, false)
+        const name = this.table.computeTargetName(target, false, "")
         this.table.setCurrentContext(`read${name}()`)
         const type = new Type(name)
         this.writer.writeMethodImplementation(new Method(`read${name}`, new NamedMethodSignature(type, [], [])), writer => {
@@ -196,7 +196,7 @@ class DeserializerPrinter {
                 if (ignoreSerializeTarget(this.table, declaration))
                     continue
 
-                let name = this.table.computeTargetName(declaration, false)
+                let name = this.table.computeTargetName(declaration, false, "")
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
 
