@@ -219,7 +219,7 @@ shared_library(arkts_library_name,
 )
 endif
 
-if is_jni and not is_ohos
+if is_jni
 shared_library(jni_library_name,
     sources + jni_sources,
     override_options: [

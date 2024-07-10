@@ -15,15 +15,6 @@
 
 #include "convertors-ark.h"
 
-static int registerNativeMethods(EtsEnv *env, ets_class clazz, EtsNativeMethod *methods, int countMethods) {
-    if (clazz == nullptr) {
-        fprintf(stderr, "null class\n");
-        return ETS_FALSE;
-    }
-    if (env->RegisterNatives(clazz, methods, countMethods) < 0) return ETS_FALSE;
-    return ETS_TRUE;
-}
-
 static bool registerNatives(EtsEnv *env, ets_class clazz)
 {
     EtsExports *exports = EtsExports::getInstance();
@@ -51,9 +42,9 @@ static bool registerNatives(EtsEnv *env, ets_class clazz)
     fprintf(stderr, "%d slow %d fast\n", numSlowMethods, numFastMethods);
     bool result = true;
     if (numSlowMethods > 0)
-        result &= registerNativeMethods(env, clazz, slowMethods, numSlowMethods);
+        result &= (env->RegisterNatives(clazz, slowMethods, numSlowMethods) >= 0);
     if (numFastMethods > 0)
-        result &= registerNativeMethods(env, clazz, fastMethods, numFastMethods);
+        result &= (env->RegisterNatives(clazz, fastMethods, numFastMethods) >= 0);
     return result;
 }
 
