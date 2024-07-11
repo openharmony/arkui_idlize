@@ -6,3 +6,5 @@ option('is_ohos_v8', type : 'boolean', value : 'false',
     description : 'If is ohos v8')
 option('events_test', type : 'boolean', value : 'true',
     description : 'Whether to compile event test code (e.g. events_test.cc)')
+option('callbacks_test', type : 'boolean', value : 'true',
+    description : 'Whether to compile callback test code (e.g. callbacks_test.cc)')

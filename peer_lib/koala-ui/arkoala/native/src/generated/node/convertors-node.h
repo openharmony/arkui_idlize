@@ -923,6 +923,14 @@ Napi::ModuleRegisterCallback ProvideModuleRegisterCallback(Napi::ModuleRegisterC
   } \
   MAKE_NODE_EXPORT(name)
 
+#define KOALA_INTEROP_CTX_0(name, Ret) \
+  Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
+      KOALA_MAYBE_LOG(impl_##name)                   \
+      KVMContext ctx = reinterpret_cast<KVMContext>((napi_env)info.Env()); \
+      return makeResult<Ret>(info, impl_##name(ctx)); \
+  } \
+  MAKE_NODE_EXPORT(name)
+
 #define KOALA_INTEROP_CTX_1(name, Ret, P0) \
   Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
       KOALA_MAYBE_LOG(impl_##name)                   \
@@ -941,6 +949,27 @@ Napi::ModuleRegisterCallback ProvideModuleRegisterCallback(Napi::ModuleRegisterC
       return makeResult<Ret>(info, impl_##name(ctx, p0, p1)); \
   } \
   MAKE_NODE_EXPORT(name)
+
+#define KOALA_INTEROP_CTX_3(name, Ret, P0, P1, P2) \
+  Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
+      KOALA_MAYBE_LOG(name)                   \
+      KVMContext ctx = reinterpret_cast<KVMContext>((napi_env)info.Env()); \
+      P0 p0 = getArgument<P0>(info, 0); \
+      P1 p1 = getArgument<P1>(info, 1); \
+      P2 p2 = getArgument<P2>(info, 2); \
+      return makeResult<Ret>(info, impl_##name(ctx, p0, p1, p2)); \
+  } \
+  MAKE_NODE_EXPORT(name)
+
+#define KOALA_INTEROP_CTX_V0(name) \
+  Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
+      KOALA_MAYBE_LOG(name)                   \
+      KVMContext ctx = reinterpret_cast<KVMContext>((napi_env)info.Env()); \
+      impl_##name(ctx); \
+      return makeVoid(info); \
+  } \
+  MAKE_NODE_EXPORT(name)
+
 
 #define KOALA_INTEROP_CTX_V1(name, P0) \
   Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
@@ -963,17 +992,17 @@ Napi::ModuleRegisterCallback ProvideModuleRegisterCallback(Napi::ModuleRegisterC
   } \
   MAKE_NODE_EXPORT(name)
 
-#define KOALA_INTEROP_CTX_3(name, Ret, P0, P1, P2) \
+#define KOALA_INTEROP_CTX_V3(name, P0, P1, P2) \
   Napi::Value Node_##name(const Napi::CallbackInfo& info) { \
       KOALA_MAYBE_LOG(name)                   \
       KVMContext ctx = reinterpret_cast<KVMContext>((napi_env)info.Env()); \
       P0 p0 = getArgument<P0>(info, 0); \
       P1 p1 = getArgument<P1>(info, 1); \
       P2 p2 = getArgument<P2>(info, 2); \
-      return makeResult<Ret>(info, impl_##name(ctx, p0, p1, p2)); \
+      impl_##name(ctx, p0, p1, p2); \
+      return makeVoid(info); \
   } \
   MAKE_NODE_EXPORT(name)
-
 
 #define NODEJS_GET_AND_THROW_LAST_ERROR(env)                                 \
     do {                                                                     \
@@ -991,29 +1020,96 @@ Napi::ModuleRegisterCallback ProvideModuleRegisterCallback(Napi::ModuleRegisterC
     } while (0)
 
 napi_value getKoalaNapiCallbackDispatcher();
-
 // TODO: can/shall we cache bridge reference?
-#define KOALA_INTEROP_CALL_INT(venv, id, argc, args)                                  \
-{                                                                                  \
-  napi_env env = reinterpret_cast<napi_env>(venv);                                 \
-  napi_value bridge = getKoalaNapiCallbackDispatcher(),                            \
-     global = nullptr, return_val = nullptr;                                       \
-  napi_handle_scope scope = nullptr;                                               \
-  napi_open_handle_scope(env, &scope);                                             \
-  napi_status status = napi_get_global(env, &global);                              \
-  napi_value node_args[2];                                                         \
-  napi_create_int32(env, id, &node_args[0]);                                       \
-  napi_value buffer = nullptr;                                                     \
-  napi_create_external_arraybuffer(env,                                            \
-    args, argc * sizeof(int32_t),                                                  \
-    [](napi_env, void* data, void* hint) {}, nullptr, &buffer);                    \
-  napi_create_typedarray(env, napi_int32_array, argc, buffer, 0, &node_args[1]);   \
-  status = napi_call_function(env, global, bridge, 2, node_args, &return_val);     \
-  if (status != napi_ok) NODEJS_GET_AND_THROW_LAST_ERROR((env));                   \
-  int result;                                                                      \
-  status = napi_get_value_int32(env, return_val, &result);                         \
-  napi_close_handle_scope(env, scope);                                             \
-  return result;                                                                   \
+
+#define KOALA_INTEROP_CALL_VOID(venv, id, length, args)                                            \
+{                                                                                                  \
+  napi_env env = reinterpret_cast<napi_env>(venv);                                                 \
+  napi_value bridge = getKoalaNapiCallbackDispatcher(),                                            \
+     global = nullptr, return_val = nullptr;                                                       \
+  napi_handle_scope scope = nullptr;                                                               \
+  napi_open_handle_scope(env, &scope);                                                             \
+  napi_status status = napi_get_global(env, &global);                                              \
+  napi_value node_args[3];                                                                         \
+  napi_create_int32(env, id, &node_args[0]);                                                       \
+  napi_value buffer = nullptr;                                                                     \
+  napi_create_external_arraybuffer(env,                                                            \
+    args, length,                                                                                  \
+    [](napi_env, void* data, void* hint) {}, nullptr, &buffer);                                    \
+  napi_create_typedarray(env, napi_uint8_array, length, buffer, 0, &node_args[1]);                 \
+  napi_create_int32(env, length, &node_args[2]);                                                   \
+  status = napi_call_function(env, global, bridge, 3, node_args, &return_val);                     \
+  if (status != napi_ok) NODEJS_GET_AND_THROW_LAST_ERROR((env));                                   \
+  napi_close_handle_scope(env, scope);                                                             \
+}
+
+#define KOALA_INTEROP_CALL_INT(venv, id, length, args)                                             \
+{                                                                                                  \
+  napi_env env = reinterpret_cast<napi_env>(venv);                                                 \
+  napi_value bridge = getKoalaNapiCallbackDispatcher(),                                            \
+     global = nullptr, return_val = nullptr;                                                       \
+  napi_handle_scope scope = nullptr;                                                               \
+  napi_open_handle_scope(env, &scope);                                                             \
+  napi_status status = napi_get_global(env, &global);                                              \
+  napi_value node_args[3];                                                                         \
+  napi_create_int32(env, id, &node_args[0]);                                                       \
+  napi_value buffer = nullptr;                                                                     \
+  napi_create_external_arraybuffer(env,                                                            \
+    args, length,                                                                                  \
+    [](napi_env, void* data, void* hint) {}, nullptr, &buffer);                                    \
+  napi_create_typedarray(env, napi_uint8_array, length, buffer, 0, &node_args[1]);                 \
+  napi_create_int32(env, length, &node_args[2]);                                                   \
+  status = napi_call_function(env, global, bridge, 3, node_args, &return_val);                     \
+  if (status != napi_ok) NODEJS_GET_AND_THROW_LAST_ERROR((env));                                   \
+  int result;                                                                                      \
+  status = napi_get_value_int32(env, return_val, &result);                                         \
+  napi_close_handle_scope(env, scope);                                                             \
+  return result;                                                                                   \
+}
+
+#define KOALA_INTEROP_CALL_VOID_INTS32(venv, id, argc, args)                                       \
+{                                                                                                  \
+  napi_env env = reinterpret_cast<napi_env>(venv);                                                 \
+  napi_value bridge = getKoalaNapiCallbackDispatcher(),                                            \
+     global = nullptr, return_val = nullptr;                                                       \
+  napi_handle_scope scope = nullptr;                                                               \
+  napi_open_handle_scope(env, &scope);                                                             \
+  napi_status status = napi_get_global(env, &global);                                              \
+  napi_value node_args[3];                                                                         \
+  napi_create_int32(env, id, &node_args[0]);                                                       \
+  napi_value buffer = nullptr;                                                                     \
+  napi_create_external_arraybuffer(env,                                                            \
+    args, argc * sizeof(int32_t),                                                                  \
+    [](napi_env, void* data, void* hint) {}, nullptr, &buffer);                                    \
+  napi_create_typedarray(env, napi_uint8_array, argc * sizeof(int32_t), buffer, 0, &node_args[1]); \
+  napi_create_int32(env, argc * sizeof(int32_t), &node_args[2]);                                   \
+  status = napi_call_function(env, global, bridge, 3, node_args, &return_val);                     \
+  if (status != napi_ok) NODEJS_GET_AND_THROW_LAST_ERROR((env));                                   \
+  napi_close_handle_scope(env, scope);                                                             \
+}
+
+#define KOALA_INTEROP_CALL_INT_INTS32(venv, id, argc, args)                                        \
+{                                                                                                  \
+  napi_env env = reinterpret_cast<napi_env>(venv);                                                 \
+  napi_value bridge = getKoalaNapiCallbackDispatcher(),                                            \
+     global = nullptr, return_val = nullptr;                                                       \
+  napi_handle_scope scope = nullptr;                                                               \
+  napi_open_handle_scope(env, &scope);                                                             \
+  napi_status status = napi_get_global(env, &global);                                              \
+  napi_value node_args[3];                                                                         \
+  napi_create_int32(env, id, &node_args[0]);                                                       \
+  napi_value buffer = nullptr;                                                                     \
+  napi_create_external_arraybuffer(env,                                                            \
+    args, argc * sizeof(int32_t),                                                                  \
+    [](napi_env, void* data, void* hint) {}, nullptr, &buffer);                                    \
+  napi_create_typedarray(env, napi_uint8_array, argc * sizeof(int32_t), buffer, 0, &node_args[1]); \
+  napi_create_int32(env, argc * sizeof(int32_t), &node_args[2]);                                   \
+  status = napi_call_function(env, global, bridge, 3, node_args, &return_val);                     \
+  if (status != napi_ok) NODEJS_GET_AND_THROW_LAST_ERROR((env));                                   \
+  int result;                                                                                      \
+  status = napi_get_value_int32(env, return_val, &result);                                         \
+  napi_close_handle_scope(env, scope);                                                             \
+  return result;                                                                                   \
 }
 
 #endif // KOALA_NAPI

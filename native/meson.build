@@ -23,6 +23,7 @@ is_arkts = true
 is_jni = java_home != 'undefined'
 
 compile_events_test = get_option('events_test')
+compile_callbacks_test = get_option('callbacks_test')
 
 gen_dir = '../generated/' + source_set
 arkoala_dir = gen_dir + '/koalaui/arkoala/native/src/generated'
@@ -51,6 +52,11 @@ sources = [
 if compile_events_test
     sources += [
         arkoala_dir + '/events_test.cc',
+    ]
+endif
+if compile_callbacks_test
+    sources += [
+        arkoala_dir + '/callbacks_test.cc',
     ]
 endif
 

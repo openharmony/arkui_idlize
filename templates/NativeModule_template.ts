@@ -6,8 +6,9 @@ import {
   Access,
   withByteArray,
   CallbackRegistry,
-  ArrayDecoder
+  ArrayDecoder,
 } from "@koalaui/interop"
+import { callCallback } from "@arkoala/arkui/callback_registry"
 
 export type NodePointer = pointer
 export type PipelineContext = pointer
@@ -22,6 +23,9 @@ export function nativeModule(): NativeModule {
         theModule = new NativeModuleEmpty()
     else
         theModule = LOAD_NATIVE as NativeModule
+    if (!theModule)
+        throw new Error("Cannot load native module")
+    theModule._SetCallbackDispatcher(callCallback)
     return theModule
 }
 
@@ -50,6 +54,9 @@ providePlatformDefinedData({
 })
 
 export interface InteropOps {
+    _SetCallbackDispatcher(dispatcher: (id: int32, args: Uint8Array, length: int32) => int32): void
+    _CleanCallbackDispatcher(): void
+
     _GetGroupedLog(index: KInt): KPointer
     _StartGroupedLog(index: KInt): void
     _StopGroupedLog(index: KInt): void
@@ -143,5 +150,11 @@ export interface ComponentOps {
 %GENERATED_METHODS%
 }
 
+export interface TestOps {
+    _TestCallIntNoArgs(arg1: KInt): KInt
+    _TestCallIntInt32ArraySum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt
+    _TestCallVoidInt32ArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): void
+}
+
 export interface NativeModuleIntegrated extends InteropOps, /*GraphicsOps, NodeOps,*/ ComponentOps {}
-export interface NativeModule extends InteropOps, GraphicsOps, NodeOps, ComponentOps {}
+export interface NativeModule extends InteropOps, GraphicsOps, NodeOps, ComponentOps, TestOps {}

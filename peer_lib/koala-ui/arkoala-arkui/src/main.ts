@@ -17,7 +17,7 @@ import { SerializerBase } from "@arkoala/arkui/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/DeserializerBase"
 import { Serializer } from "@arkoala/arkui/Serializer"
 import { Deserializer } from "@arkoala/arkui/Deserializer"
-import { wrapCallback, callCallback } from "./callback_registry"
+import { wrapCallback, callCallback } from "@arkoala/arkui/callback_registry"
 import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/ArkCalendarPickerPeer"
@@ -488,6 +488,37 @@ function checkEvent_Array_Class() {
         assertTrue(`Event_Array_Class: element ${i}`, checkTouchTestInfo(eventParam[i], convertedEvent.value[i]))
     }
 }
+
+function checkNativeCallback() {
+    const id1 = wrapCallback((args: Uint8Array, length: number): number => {
+        return 123456
+    })
+    assertEquals("NativeCallback without args", 123456, nativeModule()._TestCallIntNoArgs(id1))
+    assertThrows("NativeCallback without args called again", () => { callCallback(id1, new Uint8Array([]), 0) })
+    assertThrows("NativeCallback without args called again from native", () => { nativeModule()._TestCallIntNoArgs(id1) })
+
+    const id2 = wrapCallback((args: Uint8Array, length: number): number => {
+        const args32 = new Int32Array(args.buffer)
+        return args32.reduce((acc, val) => acc + val, 0)
+    })
+    const arr2 = new Int32Array([100, 200, 300, -1000])
+    assertEquals("NativeCallback Int32Array sum", -400, nativeModule()._TestCallIntInt32ArraySum(id2, arr2, arr2.length))
+
+    const id3 = wrapCallback((args: Uint8Array, length: number): number => {
+        const args32 = new Int32Array(args.buffer)
+        for (var i = 1; i < args32.length; i++) {
+            args32[i] += args32[i - 1]
+        }
+        return 0
+    })
+    const arr3 = new Int32Array([100, 200, 300, -1000])
+    nativeModule()._TestCallVoidInt32ArrayPrefixSum(id3, arr3, arr3.length)
+    assertEquals("NativeCallback Int32Array PrefixSum [0]", 100, arr3[0])
+    assertEquals("NativeCallback Int32Array PrefixSum [1]", 300, arr3[1])
+    assertEquals("NativeCallback Int32Array PrefixSum [2]", 600, arr3[2])
+    assertEquals("NativeCallback Int32Array PrefixSum [3]", -400, arr3[3])
+}
+
 checkSerdeBaseLength()
 checkSerdeBaseText()
 checkSerdeBasePrimitive()
@@ -512,6 +543,7 @@ setEventsAPI()
 checkEvent_Primitive()
 checkEvent_Interface_Optional()
 checkEvent_Array_Class()
+checkNativeCallback()
 if (recordCallLog) stopNativeLog(CALL_GROUP_LOG)
 
 const callGroupLog = getNativeLog(CALL_GROUP_LOG)
@@ -561,6 +593,8 @@ if (callGroupLog.length > 0) {
 }
 checkTabContent()
 checkCanvasRenderingContext2D()
+
+nativeModule()._CleanCallbackDispatcher()
 
 // Report in error code.
 checkTestFailures()

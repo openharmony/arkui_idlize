@@ -1170,6 +1170,16 @@ MAKE_JNI_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2 "|" #P3)
       releaseArgument(env, _p14, p14); \
 }
 
+#define KOALA_INTEROP_CTX_0(name, Ret) \
+   KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) \
+   Java_org_##name(JNIEnv* env, jclass instance) { \
+      KOALA_MAYBE_LOG(name) \
+      KVMContext ctx = (KVMContext)env; \
+      auto rv = makeResult<Ret>(env, impl_##name(ctx)); \
+      return rv; \
+  } \
+MAKE_JNI_EXPORT(name, #Ret)
+
 #define KOALA_INTEROP_CTX_1(name, Ret, P0) \
    KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) \
    Java_org_##name(JNIEnv* env, jclass instance, \
@@ -1198,6 +1208,32 @@ MAKE_JNI_EXPORT(name, #Ret "|" #P0)
 } \
 MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1)
 
+#define KOALA_INTEROP_CTX_3(name, Ret, P0, P1, P2) \
+  KOALA_JNI_CALL(InteropTypeConverter<Ret>::InteropType) Java_org_##name(JNIEnv* env, jclass instance, \
+  SlowInteropTypeConverter<P0>::InteropType _p0, \
+  SlowInteropTypeConverter<P1>::InteropType _p1, \
+  SlowInteropTypeConverter<P2>::InteropType _p2) { \
+      KOALA_MAYBE_LOG(name) \
+      P0 p0 = getArgument<P0>(env, _p0); \
+      P1 p1 = getArgument<P1>(env, _p1); \
+      P2 p2 = getArgument<P2>(env, _p2); \
+      KVMContext ctx = (KVMContext)env; \
+      auto rv = makeResult<Ret>(env, impl_##name(ctx, p0, p1, p2)); \
+      releaseArgument(env, _p0, p0); \
+      releaseArgument(env, _p1, p1); \
+      releaseArgument(env, _p2, p2); \
+      return rv; \
+} \
+MAKE_JNI_EXPORT(name, #Ret "|" #P0 "|" #P1 "|" #P2)
+
+#define KOALA_INTEROP_CTX_V0(name) \
+   KOALA_JNI_CALL(void) Java_org_##name(JNIEnv* env, jclass instance) { \
+      KOALA_MAYBE_LOG(name) \
+      KVMContext ctx = (KVMContext)env; \
+      impl_##name(ctx); \
+  } \
+MAKE_JNI_EXPORT(name, "void")
+
 #define KOALA_INTEROP_CTX_V1(name, P0) \
    KOALA_JNI_CALL(void) Java_org_##name(JNIEnv* env, jclass instance, \
     SlowInteropTypeConverter<P0>::InteropType _p0) { \
@@ -1223,5 +1259,21 @@ MAKE_JNI_EXPORT(name, "void|" #P0)
 } \
 MAKE_JNI_EXPORT(name, "void|" #P0 "|" #P1)
 
+#define KOALA_INTEROP_CTX_V3(name, P0, P1, P2) \
+  KOALA_JNI_CALL(void) Java_org_##name(JNIEnv* env, jclass instance, \
+   SlowInteropTypeConverter<P0>::InteropType _p0, \
+   SlowInteropTypeConverter<P1>::InteropType _p1, \
+   SlowInteropTypeConverter<P2>::InteropType _p2) { \
+      KOALA_MAYBE_LOG(name) \
+      P0 p0 = getArgument<P0>(env, _p0); \
+      P1 p1 = getArgument<P1>(env, _p1); \
+      P2 p2 = getArgument<P2>(env, _p2); \
+      KVMContext ctx = (KVMContext)env; \
+      impl_##name(ctx, p0, p1, p2); \
+      releaseArgument(env, _p0, p0); \
+      releaseArgument(env, _p1, p1); \
+      releaseArgument(env, _p2, p2); \
+} \
+MAKE_JNI_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2)
 
 #endif  // KOALA_JNI_CALL

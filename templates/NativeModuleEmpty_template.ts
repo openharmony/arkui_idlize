@@ -1,5 +1,11 @@
 export class NativeModuleEmptyIntegrated implements NativeModuleIntegrated {
 %GENERATED_EMPTY_METHODS%
+    _SetCallbackDispatcher(dispatcher: (id: int32, args: Uint8Array, length: int32) => int32): void {
+        throw new Error("_SetCallbackDispatcher")
+    }
+    _CleanCallbackDispatcher(): void {
+        throw new Error("_CleanCallbackDispatcher")
+    }
     _GetGroupedLog(index: KInt): KPointer {
         throw new Error("_GetResultString")
     }
@@ -97,4 +103,8 @@ export class NativeModuleEmpty extends NativeModuleEmptyIntegrated implements Na
     _SetChildTotalCount(ptr: NodePointer, value: KInt): void {}
 
     _ShowCrash(messagePtr: KStringPtr): void {}
+
+    _TestCallIntNoArgs(arg1: KInt): KInt { return -1 }
+    _TestCallIntInt32ArraySum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt { return -1 }
+    _TestCallVoidInt32ArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt { return -1 }
 }
