@@ -64,7 +64,11 @@
    op(napi_close_callback_scope) \
    op(napi_async_destroy) \
    op(napi_call_function) \
-   op(napi_get_value_external)
+   op(napi_get_value_external) \
+   op(napi_throw_error) \
+   op(napi_create_int32) \
+   op(napi_create_external_arraybuffer) \
+   op(napi_create_typedarray)
 
 #define DECL_NAPI_IMPL(fn_name, ...) decltype(&fn_name) p_##fn_name;
 
@@ -426,4 +430,45 @@ NAPI_EXTERN napi_status NAPI_CDECL napi_call_function(napi_env env,
                                                       napi_value* result) {
   LoadNapiFunctions();
   return p_napi_call_function(env, recv, func, argc, argv, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_throw_error(napi_env env,
+                                                    const char* code,
+                                                    const char* msg)
+ {
+  LoadNapiFunctions();
+  return p_napi_throw_error(env, code, msg);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_create_int32(napi_env env,
+                                                     int32_t value,
+                                                     napi_value* result)
+ {
+  LoadNapiFunctions();
+  return p_napi_create_int32(env, value, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_create_external_arraybuffer(
+    napi_env env,
+    void* external_data,
+    size_t byte_length,
+    napi_finalize finalize_cb,
+    void* finalize_hint,
+    napi_value* result)
+{
+  LoadNapiFunctions();
+  return p_napi_create_external_arraybuffer(env, external_data, byte_length, finalize_cb, finalize_hint, result);
+}
+
+NAPI_EXTERN napi_status NAPI_CDECL napi_create_typedarray(
+  napi_env env,
+  napi_typedarray_type type,
+  size_t length,
+  napi_value array_buffer,
+  size_t byte_offset,
+  napi_value* result
+)
+{
+  LoadNapiFunctions();
+  return p_napi_create_typedarray(env, type, length, array_buffer, byte_offset, result);
 }

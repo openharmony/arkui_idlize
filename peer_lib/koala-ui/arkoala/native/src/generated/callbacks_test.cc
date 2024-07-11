@@ -30,7 +30,7 @@ KInt CallIntInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args
 }
 
 KInt impl_TestCallIntNoArgs(KVMContext vmContext, KInt methodId) {
-    int32_t args[] = { };
+    int32_t args[] = { 0 };
     return CallInt(
         vmContext,
         methodId,
