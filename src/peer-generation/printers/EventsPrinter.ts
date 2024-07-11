@@ -16,7 +16,7 @@
 import * as ts from "typescript"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from "../DeclarationTable"
-import { BlockStatement, CppLanguageWriter, ExpressionStatement, LanguageWriter, Method, NamedMethodSignature, StringExpression, TSLanguageWriter, Type } from "../LanguageWriters"
+import { BlockStatement, CppLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, NamedMethodSignature, StringExpression, TSLanguageWriter, Type } from "../LanguageWriters"
 import { PeerClassBase } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
 import { PeerMethod } from "../PeerMethod"
@@ -242,14 +242,14 @@ class TSEventsVisitor {
                 writer.writeFieldDeclaration(
                     'kind',
                     new Type(`${PeerEventKind}.${callbackIdByInfo(info)}`, false),
-                    ["readonly"],
+                    [FieldModifier.READONLY],
                     false,
                 )
                 info.args.forEach(arg => {
                     writer.writeFieldDeclaration(
                         arg.name,
                         new Type(mapType(arg.type), arg.nullable),
-                        ["readonly"],
+                        [FieldModifier.READONLY],
                         arg.nullable,
                     )
                 })

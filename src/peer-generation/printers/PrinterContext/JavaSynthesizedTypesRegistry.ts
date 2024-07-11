@@ -15,7 +15,7 @@
 
 import * as ts from 'typescript'
 import { identName, Language } from '../../../util'
-import { LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from '../../LanguageWriters'
+import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from '../../LanguageWriters'
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
 import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from '../lang/Java'
 import { TargetFile } from '../TargetFile'
@@ -262,7 +262,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         writer.writeClass(targetType.name, () => {
             const intType = new Type('int')
             const selector = 'selector'
-            writer.writeFieldDeclaration(selector, intType, ['private'], false)
+            writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
             writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
                 writer.writeStatement(
                     writer.makeReturn(
@@ -276,7 +276,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 const value = `value${index}`
                 const param = 'param'
 
-                writer.writeFieldDeclaration(value, subTypeTargetType, ['private'], false)
+                writer.writeFieldDeclaration(value, subTypeTargetType, [FieldModifier.PRIVATE], false)
 
                 writer.writeConstructorImplementation(
                     targetType.name,
@@ -315,7 +315,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 const value = `value${index}`
                 memberNames.push(value)
 
-                writer.writeFieldDeclaration(value, subTypeTargetType, ['public'], false)
+                writer.writeFieldDeclaration(value, subTypeTargetType, [FieldModifier.PUBLIC], false)
             }
 
             const signature = new MethodSignature(Type.Void, argTypes)

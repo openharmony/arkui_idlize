@@ -29,8 +29,7 @@ class BuilderClassFileVisitor {
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
-                const modifiers = field.modifiers.map(it => writer.mapFiledModifier(it))
-                writer.writeFieldDeclaration(field.name, field.type, modifiers, field.type.nullable)
+                writer.writeFieldDeclaration(field.name, field.type, field.modifiers, field.type.nullable)
             })
 
 

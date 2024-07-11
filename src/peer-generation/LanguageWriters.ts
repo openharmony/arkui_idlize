@@ -46,6 +46,13 @@ export class Type {
 
 export enum FieldModifier {
     READONLY,
+    PRIVATE,
+    PUBLIC,
+    STATIC,
+    PROTECTED,
+    FINAL,
+    VOLATILE,
+    INTERNAL,
 }
 
 export enum MethodModifier {
@@ -522,7 +529,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                 writer.print(member.comment.length > 0 ? member.comment : undefined)
                 const initText = member.initializerText ?? `${index}`
                 isTypeString &&= isNaN(Number(initText))
-                writer.writeFieldDeclaration(member.name, new Type(this.enumEntity.name), ["static"], false,
+                writer.writeFieldDeclaration(member.name, new Type(this.enumEntity.name), [FieldModifier.STATIC], false,
                     writer.makeString(`new ${this.enumEntity.name}(${initText}${isTypeString ? `,${index}` : ""})`))
             })
             const typeName = isTypeString ? "string" : "int"
@@ -539,9 +546,9 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                         writer.writeStatement(writer.makeAssign("this.ordinal", undefined, writer.makeString("ordinal"), false))
                     }
             })
-            writer.writeFieldDeclaration("value", new Type(typeName), ["public", "readonly"], false)
+            writer.writeFieldDeclaration("value", new Type(typeName), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             if (isTypeString) {
-                writer.writeFieldDeclaration("ordinal", new Type("int"), ["public", "readonly"], false)
+                writer.writeFieldDeclaration("ordinal", new Type("int"), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             }
             writer.writeMethodImplementation(new Method("of", new MethodSignature(new Type(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {
@@ -600,7 +607,7 @@ export abstract class LanguageWriter {
 
     abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void
     abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void
-    abstract writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
+    abstract writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method): void
     abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
@@ -622,6 +629,7 @@ export abstract class LanguageWriter {
     abstract getRuntimeType(): Type
     abstract makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement
     abstract get supportedModifiers(): MethodModifier[]
+    abstract get supportedFieldModifiers(): FieldModifier[]
     abstract enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression
 
@@ -766,7 +774,7 @@ export abstract class LanguageWriter {
     mapType(type: Type, convertor?: ArgConvertor): string {
         return type.name
     }
-    mapFiledModifier(modifier: FieldModifier): string {
+    mapFieldModifier(modifier: FieldModifier): string {
         return `${FieldModifier[modifier].toLowerCase()}`
     }
     mapMethodModifier(modifier: MethodModifier): string {
@@ -798,6 +806,16 @@ export abstract class LanguageWriter {
     makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
         return new TsEnumEntityStatement(enumEntity, isExport)
     }
+    makeFieldModifiersList(modifiers: FieldModifier[] | undefined, custom_filter?: any) : string {
+        let allowed_modifiers = this.supportedFieldModifiers
+        let modifier_filter = custom_filter ? custom_filter : function(field: FieldModifier) {
+            return allowed_modifiers.includes(field)
+        } 
+        let prefix = modifiers
+            ?.filter(modifier_filter)
+            .map(it => this.mapFieldModifier(it)).join(" ")
+        return prefix ? prefix : ""
+    }
 }
 
 export class TSLanguageWriter extends LanguageWriter {
@@ -822,9 +840,10 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
+    writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
-        this.printer.print(`${modifiers?.join(' ') ?? ""} ${name}${optional ? "?"  : ""}: ${type.name}${init}`)
+        let prefix = this.makeFieldModifiersList(modifiers)
+        this.printer.print(`${prefix} ${name}${optional ? "?"  : ""}: ${type.name}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
@@ -949,6 +968,9 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC]
+    }
+    get supportedFieldModifiers(): FieldModifier[] {
+        return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]
     }
     enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
         return this.makeString(`Object.values(${enumType})[${value.asString()}]`);
@@ -1110,8 +1132,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
             super.writeMethodCall(receiver, method, params, nullable)
         }
     }
-    writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void {
-        this.printer.print(`${modifiers?.join(' ') ?? ""}  ${type.name} ${name}${optional ? " = null"  : ""};`)
+    writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean): void {
+        let prefix = this.makeFieldModifiersList(modifiers)
+        this.printer.print(`${prefix}  ${type.name} ${name}${optional ? " = null"  : ""};`)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
@@ -1221,6 +1244,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC, MethodModifier.NATIVE]
     }
+    get supportedFieldModifiers(): FieldModifier[] {
+        return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.STATIC, FieldModifier.FINAL]
+    }
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
@@ -1265,11 +1291,12 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             super.writeMethodCall(receiver, method, params, nullable)
         }
     }
-    writeFieldDeclaration(name: string, type: Type, modifiers: string[] | undefined, optional: boolean): void {
-        const modifier = modifiers?.find(mod => mod !== "static")
-        if (modifier) {
-            this.printer.print(`${modifier}:`)
+    writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[] | undefined, optional: boolean): void { 
+        let filter = function(modifier_name : FieldModifier) {
+            return modifier_name !== FieldModifier.STATIC
         }
+        let prefix = this.makeFieldModifiersList(modifiers, filter)
+        this.printer.print(`${prefix}:`)
         this.printer.pushIndent()
         this.printer.print(`${type.name} ${name};`)
         this.printer.popIndent()
@@ -1477,6 +1504,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.INLINE, MethodModifier.STATIC]
+    }
+    get supportedFieldModifiers(): FieldModifier[] {
+        return []
     }
     enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
         return value;
