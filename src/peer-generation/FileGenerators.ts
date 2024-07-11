@@ -16,7 +16,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PrimitiveType } from "./DeclarationTable"
-import { Language } from "../util"
+import { Language, lastCommitInfo } from "../util"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./printers/EventsPrinter"
@@ -421,6 +421,7 @@ export function makeAPI(
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
     epilogue = epilogue
         .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+        .replaceAll("%COMMIT_HASH%", lastCommitInfo())
 
     return `
 ${prologue}
