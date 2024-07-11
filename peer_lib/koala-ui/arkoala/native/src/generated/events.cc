@@ -2,7 +2,7 @@
 #include "events.h"
 #include "Interop.h"
 
-std::deque<EventBuffer> eventQueue;
+static std::deque<EventBuffer> eventQueue;
 
 void sendEvent(const EventBuffer* event) {
     eventQueue.push_back(*event);
