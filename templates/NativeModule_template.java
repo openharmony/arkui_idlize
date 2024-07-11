@@ -43,6 +43,9 @@ public class NativeModule {
   static native void _Test_Common_OnChildTouchTest(byte[] valueArray, int valueSerializerLength);
   static native void _Test_List_OnScrollVisibleContentChange(byte[] valueArray, int valueSerializerLength);
   static native void _Test_TextPicker_OnAccept(byte[] valueArray, int valueSerializerLength);
+  static native int _TestCallIntNoArgs(int arg);
+  static native int _TestCallIntInt32ArraySum(int arg1, int[] arg2, int arg3);
+  static native void _TestCallVoidInt32ArrayPrefixSum(int arg1, int[] arg2, int arg3);
 
   static native long _CreateNode(int type, int id, int flags);
   static native long _GetNodeByViewStack();
