@@ -806,7 +806,7 @@ export abstract class LanguageWriter {
     makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
         return new TsEnumEntityStatement(enumEntity, isExport)
     }
-    makeFieldModifiersList(modifiers: FieldModifier[] | undefined, custom_filter?: any) : string {
+    makeFieldModifiersList(modifiers: FieldModifier[] | undefined, custom_filter?: (field :FieldModifier) => boolean) : string {
         let allowed_modifiers = this.supportedFieldModifiers
         let modifier_filter = custom_filter ? custom_filter : function(field: FieldModifier) {
             return allowed_modifiers.includes(field)
