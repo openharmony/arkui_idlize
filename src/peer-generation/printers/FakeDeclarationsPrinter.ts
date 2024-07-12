@@ -19,6 +19,8 @@ import { PeerLibrary } from "../PeerLibrary";
 import { convertDeclaration } from "../TypeNodeConvertor";
 import { makeSyntheticDeclarationsFiles } from "../synthetic_declaration";
 import { ImportsCollector } from "../ImportsCollector";
+import { cStyleCopyright } from "../FileGenerators";
+import { removeExt } from "../../util";
 
 export function printFakeDeclarations(library: PeerLibrary): Map<string, string> {
     const lang = library.declarationTable.language
@@ -26,9 +28,10 @@ export function printFakeDeclarations(library: PeerLibrary): Map<string, string>
     const result = new Map<string, string>()
     for (const [filename, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
         const writer = createLanguageWriter(lang)
+        writer.print(cStyleCopyright)
         const imports = new ImportsCollector()
         dependencies.forEach(it => imports.addFeature(it.feature, it.module))
-        imports.print(writer)
+        imports.print(writer, removeExt(filename))
         for (const node of declarations) {
             writer.print(convertDeclaration(declarationGenerator, node))
         }

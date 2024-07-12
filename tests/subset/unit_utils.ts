@@ -1,4 +1,4 @@
-import {Serializer} from "@arkoala/arkui/Serializer"
+import {Serializer} from "@arkoala/arkui/peers/Serializer"
 
 export function toInt32(value: number, littleEndian: boolean = true): number[] {
     const b0 = (value >> 0 & 0xFF)

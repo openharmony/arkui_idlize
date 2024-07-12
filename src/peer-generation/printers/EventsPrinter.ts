@@ -232,7 +232,7 @@ class TSEventsVisitor {
         for (const file of this.library.files) {
             file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         }
-        imports.print(this.printer)
+        imports.print(this.printer, '')
     }
 
     private printEventsClasses(infos: CallbackInfo[]) {

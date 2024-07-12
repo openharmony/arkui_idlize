@@ -105,9 +105,9 @@ const dtsImports = `import {
     ComponentContent,
     LengthMetrics,
     DotIndicator
-} from "./dts-exports"
+} from "%ROOT%/dts-exports"
 `
 
-export function collectDtsImports() {
-    return dtsImports // for now
+export function collectDtsImports(pathToRoot: string = '.') {
+    return dtsImports.replaceAll('%ROOT%', pathToRoot) // for now
 }

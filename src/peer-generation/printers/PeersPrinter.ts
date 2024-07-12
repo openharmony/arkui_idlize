@@ -17,7 +17,7 @@ import * as path from "path"
 import { PeerFile } from "../PeerFile";
 import { PeerLibrary } from "../PeerLibrary";
 import { Language, renameDtsToPeer, throwException } from "../../util";
-import { ImportsCollector } from "../ImportsCollector";
+import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { PeerClass, PeerClassBase } from "../PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "../inheritance";
 import { PeerMethod } from "../PeerMethod";
@@ -79,30 +79,29 @@ class PeerFileVisitor {
         this.getDefaultPeerImports(this.file.declarationTable.language)!.forEach(it => printer.print(it))
 
         const imports = new ImportsCollector()
-        imports.addFilterByBasename(targetBasename)
         this.file.peersToGenerate.forEach(peer => {
             if (determineParentRole(peer.originalClassName, peer.parentComponentName) === InheritanceRole.PeerNode)
-                imports.addFeatureByBasename('PeerNode', 'PeerNode')
+                imports.addFeature('PeerNode', './PeerNode')
             if (peer.originalParentFilename) {
-                const parentBasename = renameDtsToPeer(path.basename(peer.originalParentFilename), this.file.declarationTable.language)
-                imports.addFeatureByBasename(this.generatePeerParentName(peer), parentBasename)
+                const parentModule = convertPeerFilenameToModule(peer.originalParentFilename)
+                imports.addFeature(this.generatePeerParentName(peer), parentModule)
                 const parentAttributesClass = this.generateAttributesParentClass(peer)
                 if (parentAttributesClass)
-                    imports.addFeatureByBasename(parentAttributesClass, parentBasename)
+                    imports.addFeature(parentAttributesClass, parentModule)
             }
         })
         if (this.file.declarationTable.language === Language.TS
             || this.file.declarationTable.language === Language.ARKTS) {
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
             this.file.serializeImportFeatures.forEach(it => imports.addFeature(it.feature, it.module))
-            imports.addFeature('GestureName', './generated-utils')
-            imports.addFeature('GestureComponent', './generated-utils')
+            imports.addFeature('GestureName', './shared/generated-utils')
+            imports.addFeature('GestureComponent', './shared/generated-utils')
         }
-        imports.addFeature("unsafeCast", "./generated-utils")
-        imports.addFeature("registerCallback", "./SerializerBase")
+        imports.addFeature("unsafeCast", "./shared/generated-utils")
+        imports.addFeature("registerCallback", "./peers/SerializerBase")
         Array.from(this.library.builderClasses.keys())
             .forEach((className) => imports.addFeature(className, `./Ark${className}Builder`))
-        imports.print(printer)
+        imports.print(printer, `./peers/${targetBasename}`)
     }
 
     protected printAttributes(peer: PeerClass, printer: LanguageWriter) {
@@ -191,7 +190,7 @@ class PeerFileVisitor {
                     `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { nativeModule } from "@koalaui/arkoala"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
-                    `import { ComponentBase } from "./ComponentBase"`,
+                    `import { ComponentBase } from "../ComponentBase"`,
                 ]
             }
             case Language.ARKTS: {
@@ -201,9 +200,9 @@ class PeerFileVisitor {
                     `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
                     `import { createSerializer, Serializer } from "./Serializer"`,
                     `import { ArkUINodeType } from "./ArkUINodeType"`,
-                    `import { ComponentBase } from "./ComponentBase"`,
-                    `import { NativeModule } from "./NativeModule"`,
-                    `${collectDtsImports().trim()}`
+                    `import { ComponentBase } from "../ComponentBase"`,
+                    `import { NativeModule } from "../NativeModule"`,
+                    `${collectDtsImports('..').trim()}`
                 ]
             }
         }

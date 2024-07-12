@@ -1,8 +1,8 @@
 import {strict as assert} from 'assert';
 
 import {toArray, toInt32, toStr} from "../unit_utils"
-import {RuntimeType, Tags} from "@arkoala/arkui/SerializerBase"
-import {Serializer} from "@arkoala/arkui/Serializer"
+import {RuntimeType, Tags} from "@arkoala/arkui/peers/SerializerBase"
+import {Serializer} from "@arkoala/arkui/peers/Serializer"
 
 // Boolean
 

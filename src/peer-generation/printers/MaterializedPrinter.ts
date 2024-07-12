@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { Language, renameClassToMaterialized, capitalize } from "../../util";
+import { IndentedPrinter } from "../../IndentedPrinter";
+import { Language, renameClassToMaterialized, capitalize, removeExt } from "../../util";
 import { PeerLibrary } from "../PeerLibrary";
 import { writePeerMethod } from "./PeersPrinter"
 import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature } from "../LanguageWriters";
@@ -40,9 +41,9 @@ class MaterializedFileVisitor {
 
     private printImports() {
         const imports = new ImportsCollector()
-        imports.addFilterByBasename(renameClassToMaterialized(this.clazz.className, this.library.declarationTable.language))
         this.clazz.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
-        imports.print(this.printer)
+        const currentModule = removeExt(renameClassToMaterialized(this.clazz.className, this.library.declarationTable.language))
+        imports.print(this.printer, currentModule)
     }
 
     private printMaterializedClass(clazz: MaterializedClass) {

@@ -18,7 +18,7 @@ import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
 import { LanguageWriter, createLanguageWriter } from '../LanguageWriters'
 import { mapType } from '../TypeNodeNameConvertor'
-import { Language, renameDtsToInterfaces } from '../../util'
+import { Language, removeExt, renameDtsToInterfaces } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
 import { EnumEntity, PeerFile } from '../PeerFile'
 import { DeclarationConvertor, convertDeclaration } from '../TypeNodeConvertor'
@@ -144,9 +144,8 @@ class TSInterfacesVisitor implements InterfacesVisitor {
 
     private printImports(writer: LanguageWriter, file: PeerFile) {
         const imports = new ImportsCollector()
-        imports.addFilterByBasename(this.generateFileBasename(file.originalFilename))
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
-        imports.print(writer)
+        imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
     }
 
     protected printEnum(writer: LanguageWriter, enumEntity: EnumEntity) {

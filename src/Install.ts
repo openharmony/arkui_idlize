@@ -49,7 +49,8 @@ export class ArkoalaInstall extends Install {
     nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/generated/"))
     javaDir = this.mkdir(path.join(this.koala, "arkoala/java/src/"))
     peer(targetFile: TargetFile): string {
-        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name + this.lang.extension)
+        const peerDir = this.mkdir(path.join(this.langDir(), this.lang === Language.JAVA ? '.' : 'peers'))
+        return path.join(peerDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
     }
     component(targetFile: TargetFile): string {
         return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)

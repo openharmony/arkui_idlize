@@ -343,7 +343,7 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
                 generatedName,
                 ts.factory.createTypeReferenceNode("ArkResource"),
             )
-            addSyntheticDeclarationDependency(syntheticDeclaration, {feature: "ArkResource", module: "./ArkResource"})
+            addSyntheticDeclarationDependency(syntheticDeclaration, {feature: "ArkResource", module: "./shared/ArkResource"})
         } else {
             syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
                 'SyntheticDeclarations',

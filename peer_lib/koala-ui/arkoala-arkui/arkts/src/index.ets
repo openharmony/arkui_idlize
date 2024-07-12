@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { NativeModule } from "./NativeModule"
-import { ArkButtonPeer } from "@arkoala/arkui/ArkButtonPeer"
-import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"
+import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
+import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { ButtonType } from '@arkoala/arkui/ArkButtonInterfaces'
 
 import {LabelStyle,

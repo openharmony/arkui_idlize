@@ -1,7 +1,7 @@
 import { int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
 import { Finalizable } from "./Finalizable"
-import { ArkUINodeType } from "./ArkUINodeType"
+import { ArkUINodeType } from "./peers/ArkUINodeType"
 
 export class NativePeerNode extends Finalizable {
     public constructor(ptr: pointer) {
