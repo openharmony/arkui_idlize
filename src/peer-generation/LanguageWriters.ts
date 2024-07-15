@@ -1110,8 +1110,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
             super.writeMethodCall(receiver, method, params, nullable)
         }
     }
-    writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void {
-        this.printer.print(`${modifiers?.join(' ') ?? ""}  ${type.name} ${name}${optional ? " = null"  : ""};`)
+    writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
+        this.printer.print(`${modifiers?.join(' ') ?? ""} ${type.name} ${name}${initExpr ? ` = ${initExpr.asString()}` : ""};`)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])

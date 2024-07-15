@@ -15,9 +15,9 @@
 
 import * as ts from 'typescript'
 import { identName, Language } from '../../../util'
-import { LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from '../../LanguageWriters'
+import { LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from '../../LanguageWriters'
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
-import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from '../lang/Java'
+import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../lang/Java'
 import { TargetFile } from '../TargetFile'
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from '../../DeclarationTable'
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
@@ -70,6 +70,12 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             const subTypeTarget = this.toTarget(target.type)
             this.getTargetType(subTypeTarget, this.isExplicitOptional(subTypeTarget))
         }
+        if (ts.isEnumDeclaration(target)) {
+            const writer = createLanguageWriter(Language.JAVA)
+            this.printPackage(writer)
+            this.printEnumImplementation(target, targetType, writer)
+            this.addType(targetType, writer)
+        }
         return targetType
     }
 
@@ -96,11 +102,11 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         return target == PrimitiveType.Boolean || target == PrimitiveType.Number
     }
 
-    /*private enumName(name: ts.PropertyName): string {
+    private enumName(name: ts.PropertyName): string {
         return this.table.enumName(name)
     }
 
-    private mapImportType(type: ts.ImportTypeNode): DeclarationTarget {
+    /*private mapImportType(type: ts.ImportTypeNode): DeclarationTarget {
         let name = identName(type.qualifier)!
         switch (name) {
             case 'Resource': return PrimitiveType.Resource
@@ -191,8 +197,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             // return prefix + PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumDeclaration(target)) {
-            throw unsupportedType(`EnumDeclaration`)
-            // return optionalPrefix + this.enumName(target.name)
+            return optionalPrefix + this.enumName(target.name)
         }
         if (ts.isUnionTypeNode(target)) {
             return optionalPrefix + `Union_${target.types.map(it => this.computeTargetName(this.table.toTarget(it), false)).join('_')}`
@@ -327,5 +332,45 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 }
             })
         }, ARK_OBJECTBASE)
+    }
+
+    private printEnumImplementation(sourceType: ts.EnumDeclaration, targetType: Type, writer: LanguageWriter) {
+        writer.writeClass(targetType.name, () => {
+            let memberValue = 0
+            for (const member of sourceType.members) {
+                if (member.initializer) {
+                    if (ts.isNumericLiteral(member.initializer)) {
+                        memberValue = parseInt(member.initializer.getText())
+                    }
+                    else {
+                        throw new Error(`This type of enum member inititalizer is not supported yet in Java: ${member.initializer.getFullText()}`)
+                    }
+                }
+
+                writer.writeFieldDeclaration(member.name.getText(), targetType, ['public', 'static', 'final'], false,
+                    new StringExpression(`new ${targetType.name}(${memberValue})`)
+                )
+
+                memberValue += 1
+            }
+
+            const value = 'value'
+            const intType = new Type('int')
+            writer.writeFieldDeclaration(value, intType, ['public', 'final'], false)
+
+            const signature = new MethodSignature(Type.Void, [intType])
+            writer.writeConstructorImplementation(targetType.name, signature, () => {
+                writer.writeStatement(
+                    writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
+                )
+            })
+
+            const getIntValue = new Method('getIntValue', new MethodSignature(intType, []), [MethodModifier.PUBLIC])
+            writer.writeMethodImplementation(getIntValue, () => {
+                writer.writeStatement(
+                    writer.makeReturn(writer.makeString(value))
+                )
+            })
+        }, ARK_OBJECTBASE, [INT_VALUE_GETTER])
     }
 }

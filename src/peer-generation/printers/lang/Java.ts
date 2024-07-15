@@ -20,6 +20,7 @@ export const ARKOALA_PACKAGE_PATH = getPackagePath(ARKOALA_PACKAGE)
 export const INTEROP_PACKAGE_PATH = getPackagePath(INTEROP_PACKAGE)
 
 export const ARK_OBJECTBASE = 'Ark_ObjectBase'
+export const INT_VALUE_GETTER = 'IntValueGetter'
 
 function getPackagePath(javaPackage: string): string {
     return javaPackage.replaceAll('.', '/')
