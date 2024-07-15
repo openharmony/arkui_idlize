@@ -255,7 +255,7 @@ export class EnumConvertor extends BaseArgConvertor {
         return identName(this.enumType.name)!
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.makeUnsafeCast(this, param)
+        return writer.language == Language.JAVA ? `${param}.getIntValue()` : writer.makeUnsafeCast(this, param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         if (this.isStringEnum) {

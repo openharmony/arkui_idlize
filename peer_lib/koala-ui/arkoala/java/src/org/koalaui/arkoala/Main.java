@@ -78,23 +78,30 @@ public class Main {
     }
 
     static void checkPeers() {
-        var peer = new ArkTestPeer(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
-        var boolInterface = new BooleanInterfaceDTS();
-        boolInterface.valBool = true;
-        peer.testBooleanInterfaceAttribute(boolInterface);
+        // interface
+        var buttonPeer = new ArkButtonPeer(ArkUINodeType.Root, null, 0);
+        var labelStyle = new LabelStyle();
+        labelStyle.maxLines = new Opt_Number(5);
+        buttonPeer.labelStyleAttribute(labelStyle);
+        System.out.println("Interface tests done");
 
+        // union
+        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String(5.5));
+        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String(Ark_Color.White));
+        System.out.println("Union tests done");
+
+        // enum
+        buttonPeer.typeAttribute(Ark_ButtonType.Capsule);
+        System.out.println("Enum tests done");
+
+        // tuple
+        var peer = new ArkTestPeer(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
         var options = new BlurOptions();
         options.grayscale = new Tuple_double_double(1.0, 2.0);
         peer.backdropBlurAttribute(42, options);
-
-        var blankPeer = new ArkBlankPeer(ArkUINodeType.Root, null, 0);
-        var color = new Union_double_String("white");
-        blankPeer.colorAttribute(color);
-        var min = new Union_double_String(10);
-        blankPeer._setBlankOptionsAttribute(min);
-        // var attrs = new ArkBlankAttributes();
-        // attrs.color = new Union_double_String("black");
-        // blankPeer.applyAttributes(attrs);
+        var tuple1 = new Tuple_double_String_Ark_EnumDTS(5.5, "test", Ark_EnumDTS.ELEM_1);
+        peer.testTupleNumberStringEnumAttribute(tuple1);
+        System.out.println("Tuple tests done");
     }
 }
 

@@ -19,11 +19,11 @@ declare enum ButtonType {
 }
 
 declare interface LabelStyle {
-    //overflow?: TextOverflow;
+    overflow?: TextOverflow;
     maxLines?: number;
     minFontSize?: number | ResourceStr;
     maxFontSize?: number | ResourceStr;
-    //heightAdaptivePolicy?: TextHeightAdaptivePolicy;
+    heightAdaptivePolicy?: TextHeightAdaptivePolicy;
     font?: Font;
 
     //  error TS2551: Property 'dayFontSize' does not exist on type 'LabelStyle'.
@@ -40,7 +40,7 @@ interface ButtonInterface {
 }
 
 declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
-    // type(value: ButtonType): ButtonAttribute;
+    type(value: ButtonType): ButtonAttribute;
     fontColor(value: ResourceColor): ButtonAttribute;
     labelStyle(value: LabelStyle): ButtonAttribute;
 }

@@ -8,7 +8,7 @@ import {
   CallbackRegistry,
   ArrayDecoder,
 } from "@koalaui/interop"
-import { callCallback } from "@arkoala/arkui/callback_registry"
+import { callCallback } from "@koalaui/interop"
 
 export type NodePointer = pointer
 export type PipelineContext = pointer

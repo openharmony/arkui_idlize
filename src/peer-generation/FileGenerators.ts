@@ -239,15 +239,15 @@ export function makeTSSerializer(library: PeerLibrary): string {
     writeSerializer(library, printer)
     //TODO: need to determine imports when generating serializer
     const extraImports = library.declarationTable.language === Language.ARKTS ?
-        'import { AdaptiveColor, BlurStyle, BorderStyle, DismissReason, DragPreviewMode, GradientDirection, ShadowStyle, ShadowType, SheetMode, SheetSize, SheetType, ThemeColorMode } from "./ArkCommonInterfaces"\n' +
-        'import { FontWeight, FontStyle, TextOverflow, TextHeightAdaptivePolicy, Color, ColoringStrategy } from "./ArkEnumInterfaces"\n' +
-        'import { SelectedMode } from "./ArkTabContentInterfaces"'
+        'import { AdaptiveColor, BlurStyle, BorderStyle, DismissReason, DragPreviewMode, GradientDirection, ShadowStyle, ShadowType, SheetMode, SheetSize, SheetType, ThemeColorMode } from "../ArkCommonInterfaces"\n' +
+        'import { FontWeight, FontStyle, TextOverflow, TextHeightAdaptivePolicy, Color, ColoringStrategy } from "../ArkEnumInterfaces"\n' +
+        'import { SelectedMode } from "../ArkTabContentInterfaces"'
         : ''
-    return `
+    return `${cStyleCopyright}
 ${extraImports}
 import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
-import { unsafeCast } from "./generated-utils"
+import { unsafeCast } from "../shared/generated-utils"
 
 ${builderClassImports.join("\n")}
 
@@ -315,11 +315,11 @@ ${serializers.getOutput().join("\n")}
 export function makeTSDeserializer(library: PeerLibrary): string {
     const deserializer = createLanguageWriter(Language.TS)
     writeDeserializer(library, deserializer)
-    return `
+    return `${cStyleCopyright}
 import { runtimeType, Tags, RuntimeType } from "./SerializerBase"
 import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
-import { unsafeCast } from "./generated-utils"
+import { unsafeCast } from "../shared/generated-utils"
 
 ${deserializer.getOutput().join("\n")}
 `
@@ -517,9 +517,9 @@ export function componentFileTemplate(content: string): string {
 }
 
 export function makePeerEvents(data: string): string {
-    return `
-import { Deserializer } from './Deserializer'
-import { RuntimeType } from "./SerializerBase"
+    return `${cStyleCopyright}
+import { Deserializer } from './peers/Deserializer'
+import { RuntimeType } from "./peers/SerializerBase"
 import { int32 } from "@koalaui/common"
 
 interface PeerEvent {

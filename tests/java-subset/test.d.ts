@@ -194,7 +194,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testString(value: string): TestAttribute;
 
-    // testEnum(value: EnumDTS): TestAttribute
+    testEnum(value: EnumDTS): TestAttribute
 
     //testFunction(value: (a: number) => boolean): TestAttribute;
 
@@ -208,13 +208,13 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testStringUndefined(value: string | undefined): TestAttribute;
 
-    // testEnumUndefined(value: EnumDTS | undefined): TestAttribute;
+    testEnumUndefined(value: EnumDTS | undefined): TestAttribute;
 
     // testFunctionUndefined(value: (a: number) => boolean | undefined): TestAttribute;
 
     // union
 
-    // testUnionNumberEnum(val: number | EnumDTS): TestAttribute
+    testUnionNumberEnum(val: number | EnumDTS): TestAttribute
 
     testUnionBooleanString(val: boolean | string): TestAttribute
 
@@ -244,15 +244,15 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testTupleBooleanNumber(value: [boolean, number]): TestAttribute;
 
-    // testTupleNumberStringEnum(value: [number, string, EnumDTS]): TestAttribute;
+    testTupleNumberStringEnum(value: [number, string, EnumDTS]): TestAttribute;
 
-    // // tuple optional
+    // tuple optional
 
-    // testTupleOptional(value: [number, string, boolean, EnumDTS]): TestAttribute;
+    testTupleOptional(value: [number, string, boolean, EnumDTS]): TestAttribute;
 
-    // // tuple union
+    // tuple union
 
-    // testTupleUnion(value: [(number | string), (boolean | EnumDTS), (string | EnumDTS | boolean)]): TestAttribute;
+    testTupleUnion(value: [(number | string), (boolean | EnumDTS), (string | EnumDTS | boolean)]): TestAttribute;
 
     // // Array<Type>
 
@@ -291,7 +291,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testBooleanInterfaceOption(value?: BooleanInterfaceDTS): TestAttribute
 
-    // testBooleanInterfaceTuple(value: [BooleanInterfaceDTS]): TestAttribute
+    testBooleanInterfaceTuple(value: [BooleanInterfaceDTS]): TestAttribute
 
     // testBooleanInterfaceArray(value: BooleanInterfaceDTS[]): TestAttribute
 

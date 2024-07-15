@@ -232,7 +232,7 @@ class TSEventsVisitor {
         for (const file of this.library.files) {
             file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         }
-        imports.print(this.printer)
+        imports.print(this.printer, '')
     }
 
     private printEventsClasses(infos: CallbackInfo[]) {
@@ -277,6 +277,7 @@ class TSEventsVisitor {
         for (const info of infos) {
             this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(info)}: return "${callbackIdByInfo(info)}"`)
         }
+        this.printer.print(`default: throw new Error(\`Unknown kind \${kind}\`)`)
         this.printer.popIndent()
         this.printer.print('}')
         this.printer.popIndent()
@@ -349,7 +350,7 @@ class TSEventsVisitor {
             for (const info of infos) {
                 const signature = new NamedMethodSignature(
                     new Type('void'),
-                    info.args.map(it => new Type(mapType(it.type))),
+                    info.args.map(it => new Type(mapType(it.type), it.nullable)),
                     info.args.map(it => it.name),
                 )
                 writer.writeMethodDeclaration(callbackIdByInfo(info), signature)
@@ -357,15 +358,32 @@ class TSEventsVisitor {
         })
     }
 
+    private printEventsDeliverer(infos: CallbackInfo[]) {
+        this.printer.print(`export function deliverGeneratedPeerEvent(event: PeerEvent, properties: Partial<${PeerEventsProperties}>): void {`)
+        this.printer.pushIndent()
+        this.printer.print(`switch (event.kind) {`)
+        this.printer.pushIndent()
+        for (const info of infos) {
+            const infoFields = info.args.map(it => `(event as ${callbackEventNameByInfo(info)}).${it.name}`).join(', ')
+            this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(info)}: properties.${callbackIdByInfo(info)}?.(${infoFields}); break`)
+        }
+        this.printer.print(`default: throw new Error(\`Unknown kind \${event.kind}\`)`)
+        this.printer.popIndent()
+        this.printer.print('}')
+        this.printer.popIndent()
+        this.printer.print('}')
+    }
+
     print(): void {
         const callbacks = collectCallbacks(this.library)
-            .filter(it => this.library.shouldGenerateComponent(it.componentName))
+        const filteredCallbacks = callbacks.filter(it => this.library.shouldGenerateComponent(it.componentName))
         this.printImports()
-        this.printEventsClasses(callbacks)
+        this.printEventsClasses(filteredCallbacks)
         this.printEventsEnum(callbacks)
-        this.printNameByKindRetriever(callbacks)
-        this.printParseFunction(callbacks)
-        this.printProperties(callbacks)
+        this.printNameByKindRetriever(filteredCallbacks)
+        this.printParseFunction(filteredCallbacks)
+        this.printProperties(filteredCallbacks)
+        this.printEventsDeliverer(filteredCallbacks)
     }
 }
 

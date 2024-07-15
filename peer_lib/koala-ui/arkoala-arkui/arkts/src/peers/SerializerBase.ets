@@ -14,7 +14,7 @@
  */
 import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
-import { Length, Resource } from "./dts-exports"
+import { Length, Resource } from "../dts-exports"
 import { NativeModule } from "@arkoala/arkui/NativeModule"
 
 /**

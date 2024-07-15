@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import * as path from 'path'
 import * as ts from "typescript"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { isRoot } from "./peer-generation/inheritance";
@@ -527,4 +528,8 @@ export function groupBy<K, V>(values: V[], selector: (value: V) => K): Map<K, V[
 
 export function lastCommitInfo() {
     return execSync('git log -1 --date=format:"%Y/%m/%d %T" --format="%ad %H %B"').toString().trim()
+}
+
+export function removeExt(filename: string) {
+    return filename.replaceAll(path.extname(filename), '')
 }

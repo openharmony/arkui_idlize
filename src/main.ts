@@ -464,7 +464,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             printConflictedDeclarations(peerLibrary),
         )
         writeFile(
-            arkoala.tsLib(new TargetFile('ArkUINodeType')),
+            arkoala.peer(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),
         )
         writeFile(
@@ -476,11 +476,11 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             printEvents(peerLibrary),
             true
         )
-        writeFile(arkoala.tsLib(new TargetFile('Serializer')),
+        writeFile(arkoala.peer(new TargetFile('Serializer')),
             makeTSSerializer(peerLibrary),
             true,
         )
-        writeFile(arkoala.tsLib(new TargetFile('Deserializer')),
+        writeFile(arkoala.peer(new TargetFile('Deserializer')),
             makeTSDeserializer(peerLibrary),
             true,
         )
@@ -495,10 +495,10 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             arkuiComponentsFiles.push(outComponentFile)
         }
         writeFile(
-            arkoala.arktsLib(new TargetFile('ArkUINodeType')),
+            arkoala.peer(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),
         )
-        writeFile(arkoala.arktsLib(new TargetFile('Serializer')),
+        writeFile(arkoala.peer(new TargetFile('Serializer')),
             makeTSSerializer(peerLibrary)
         )
     }
@@ -550,6 +550,5 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         'koala-ui/arkoala/native/src/generated/arkoala-macros.h',
         'koala-ui/arkoala-arkui/src/SerializerBase.ts',
         'koala-ui/arkoala-arkui/src/DeserializerBase.ts',
-        'koala-ui/arkoala-arkui/src/callback_registry.ts'
     ])
 }

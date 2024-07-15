@@ -15,7 +15,7 @@
 
 import * as ts from 'typescript'
 import * as path from "path"
-import { getOrPut, nameOrNull, renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces } from "../util";
+import { getOrPut, Language, nameOrNull, renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces, renameDtsToPeer } from "../util";
 import { LanguageWriter } from "./LanguageWriters";
 import { PeerLibrary } from './PeerLibrary';
 import { isMaterialized } from './Materialized';
@@ -29,35 +29,25 @@ export type ImportsCollectorFilter = (feature: string, module: string) => boolea
 
 export class ImportsCollector {
     private readonly moduleToFeatures: Map<string, Set<string>> = new Map()
-    private readonly filters: ImportsCollectorFilter[] = []
 
+    /**
+     * @param feature Feature to be imported from @module
+     * @param module Module name - can be package started with `@` or relative path from current package root
+     */
     addFeature(feature: string, module: string) {
         const dependencies = getOrPut(this.moduleToFeatures, module, () => new Set())
         dependencies.add(feature)
     }
 
-    addFeatureByBasename(feature: string, basename: string) {
-        const basenameNoExt = basename.replaceAll(path.extname(basename), '')
-        this.addFeature(feature, `./${basenameNoExt}`)
-    }
-
-    addFilter(filter: ImportsCollectorFilter) {
-        this.filters.push(filter)
-    }
-
-    addFilterByBasename(basename: string) {
-        const basenameNoExt = basename.replaceAll(path.extname(basename), '')
-        const module = `./${basenameNoExt}`
-        this.addFilter((_, m) => m !== module)
-    }
-
-    print(printer: LanguageWriter) {
+    print(printer: LanguageWriter, currentModule: string) {
+        const currentModuleDir = path.dirname(currentModule)
         this.moduleToFeatures.forEach((features, module) => {
-            const filteredFeatures = Array.from(features).filter(feature => {
-                return this.filters.every(it => it(feature, module))
-            }).sort()
-            if (filteredFeatures.length > 0)
-                printer.print(`import { ${filteredFeatures.join(', ')} } from "${module}"`)
+            if (!module.startsWith('@')) {
+                if (path.relative(currentModule, module) === "")
+                    return
+                module = `./${path.relative(currentModuleDir, module)}`
+            }
+            printer.print(`import { ${Array.from(features).join(', ')} } from "${module}"`)
         })
     }
 }
@@ -99,4 +89,9 @@ export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration)
         feature: convertDeclaration(DeclarationNameConvertor.I, node),
         module: `./${basenameNoExt}`,
     }
+}
+
+export function convertPeerFilenameToModule(filename: string) {
+    const basename = renameDtsToPeer(path.basename(filename), Language.TS, false)
+    return `./peers/${basename}`
 }

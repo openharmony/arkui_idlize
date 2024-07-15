@@ -32,9 +32,9 @@ function printSerializerImports(library: PeerLibrary, writer: LanguageWriter) {
     if (writer.language === Language.TS) {
         const collector = new ImportsCollector()
         collectAllInterfacesImports(library, collector)
-        collector.print(writer)
+        collector.print(writer, './peers/Serializer.ts')
     } else if (writer.language === Language.ARKTS) {
-        writer.print(collectDtsImports().trim())
+        writer.print(collectDtsImports('..').trim())
     }
 }
 

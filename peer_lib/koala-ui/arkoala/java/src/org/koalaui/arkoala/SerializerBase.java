@@ -116,6 +116,9 @@ public class SerializerBase {
         this.checkCapacity(4);
         buffer.putInt(value);
     }
+    public void writeInt32(IntValueGetter value) {
+        this.writeInt32(value.getIntValue());
+    }
     public void writeFloat32(float value) {
         this.checkCapacity(4);
         buffer.putFloat(value);

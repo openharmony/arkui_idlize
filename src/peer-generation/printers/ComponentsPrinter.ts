@@ -15,8 +15,8 @@
 
 import * as path from "path"
 import { IndentedPrinter } from "../../IndentedPrinter";
-import { Language, renameDtsToComponent, renameDtsToPeer } from "../../util";
-import { ImportsCollector } from "../ImportsCollector";
+import { Language, removeExt, renameDtsToComponent, renameDtsToPeer } from "../../util";
+import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { PeerClass } from "../PeerClass";
 import { PeerFile } from "../PeerFile";
 import { PeerLibrary } from "../PeerLibrary";
@@ -47,7 +47,6 @@ class ComponentFileVisitor {
 
     private printImports(): void {
         const imports = new ImportsCollector()
-        imports.addFilterByBasename(this.targetBasename)
         this.file.peersToGenerate.forEach(peer => {
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             imports.addFeature("remember", "@koalaui/runtime")
@@ -55,20 +54,19 @@ class ComponentFileVisitor {
                 const parentBasename = renameDtsToComponent(path.basename(peer.originalParentFilename), this.file.declarationTable.language, false)
                 imports.addFeature(generateArkComponentName(peer.parentComponentName!), `./${parentBasename}`)
             }
-            imports.addFeatureByBasename(componentToPeerClass(peer.componentName),
-                renameDtsToPeer(path.basename(peer.originalFilename), peer.declarationTable.language))
+            const peerModule = convertPeerFilenameToModule(peer.originalFilename)
+            imports.addFeature(componentToPeerClass(peer.componentName), peerModule)
             peer.attributesTypes.forEach((attrType) =>
-                imports.addFeatureByBasename(attrType.typeName,
-                    renameDtsToPeer(path.basename(peer.originalFilename), peer.declarationTable.language))
+                imports.addFeature(attrType.typeName, peerModule)
             )
-            imports.addFeature("ArkUINodeType", "./ArkUINodeType")
-            imports.addFeature("runtimeType", "./SerializerBase")
-            imports.addFeature("RuntimeType", "./SerializerBase")
-            imports.addFeature("isPixelMap", "./SerializerBase")
-            imports.addFeature("isResource", "./SerializerBase")
-            imports.addFeature("isInstanceOf", "./SerializerBase")
+            imports.addFeature("ArkUINodeType", "./peers/ArkUINodeType")
+            imports.addFeature("runtimeType", "./peers/SerializerBase")
+            imports.addFeature("RuntimeType", "./peers/SerializerBase")
+            imports.addFeature("isPixelMap", "./peers/SerializerBase")
+            imports.addFeature("isResource", "./peers/SerializerBase")
+            imports.addFeature("isInstanceOf", "./peers/SerializerBase")
             imports.addFeature('ComponentBase', './ComponentBase')
-            imports.addFeature('unsafeCast', './generated-utils')
+            imports.addFeature('unsafeCast', './shared/generated-utils')
             for (const method of peer.methods) {
                 for (const target of method.declarationTargets)
                     if (convertToCallback(peer, method, target))
@@ -81,7 +79,7 @@ class ComponentFileVisitor {
         })
         if (this.file.declarationTable.language === Language.TS)
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
-        imports.print(this.printer)
+        imports.print(this.printer, removeExt(this.targetBasename))
     }
 
     private groupOverloads(peerMethods: PeerMethod[]): PeerMethod[][] {
