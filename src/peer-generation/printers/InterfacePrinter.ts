@@ -16,7 +16,7 @@
 import * as ts from 'typescript'
 import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
-import { LanguageWriter, createLanguageWriter } from '../LanguageWriters'
+import { FieldModifier, LanguageWriter, createLanguageWriter } from '../LanguageWriters'
 import { mapType } from '../TypeNodeNameConvertor'
 import { Language, removeExt, renameDtsToInterfaces } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
@@ -235,7 +235,7 @@ class JavaInterfacesVisitor {
                 const optional = !!property.questionToken
                 const propertyType = this.context.synthesizedTypes!.getTargetType(propertyDeclarationTarget, optional)
 
-                writer.writeFieldDeclaration(propertyName, propertyType, ['public'], optional)
+                writer.writeFieldDeclaration(propertyName, propertyType, [FieldModifier.PUBLIC], optional)
             }
         }, superClass)
     }

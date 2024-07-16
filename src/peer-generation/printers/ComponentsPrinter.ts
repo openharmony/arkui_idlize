@@ -24,7 +24,7 @@ import { isCommonMethod } from "../inheritance";
 import { PeerMethod } from "../PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
 import { OverloadsPrinter, collapseSameNamedMethods } from "./OverloadsPrinter";
-import { LanguageWriter, Method, MethodModifier, MethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
+import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
 import { convertToCallback } from "./EventsPrinter";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 
@@ -105,7 +105,7 @@ class ComponentFileVisitor {
         const peerClassName = componentToPeerClass(peer.componentName)
 
         this.printer.writeClass(componentClassName, (writer) => {
-            writer.writeFieldDeclaration('peer', new Type(peerClassName), ['protected'], true)
+            writer.writeFieldDeclaration('peer', new Type(peerClassName), [FieldModifier.PROTECTED], true)
             for (const grouped of this.groupOverloads(peer.methods))
                 this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
