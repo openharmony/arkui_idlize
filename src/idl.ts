@@ -71,6 +71,8 @@ export interface IDLType {
     documentation?: string
 }
 
+export const IDLTopType = { name: "__Top__", kind: IDLKind.Interface }
+
 export interface IDLTypedef extends IDLEntry {
     kind: IDLKind.Typedef
     name: string
@@ -291,33 +293,39 @@ export function isTypedef(node: IDLEntry): node is IDLTypedef {
 export function isModuleType(node: IDLEntry): node is IDLModuleType {
     return node.kind === IDLKind.ModuleType
 }
+export function isSyntheticEntry(node: IDLEntry): boolean {
+    return isDefined(node.extendedAttributes?.find(it => it.name === "Synthetic"))
+}
 
-export function createStringType(): IDLPrimitiveType {
+function createPrimitiveType(name: string): IDLPrimitiveType {
     return {
         kind: IDLKind.PrimitiveType,
-        name: "DOMString"
+        name: name
     }
+}
+
+export function createStringType(): IDLPrimitiveType {
+    return createPrimitiveType("DOMString")
 }
 
 export function createNumberType(): IDLPrimitiveType {
-    return {
-        kind: IDLKind.PrimitiveType,
-        name: "number"
-    }
+    return createPrimitiveType("number")
 }
 
 export function createBooleanType(): IDLPrimitiveType {
-    return {
-        kind: IDLKind.PrimitiveType,
-        name: "boolean"
-    }
+    return createPrimitiveType("boolean")
+}
+
+export function createNullType(): IDLPrimitiveType {
+    return createPrimitiveType("null")
 }
 
 export function createUndefinedType(): IDLPrimitiveType {
-    return {
-        kind: IDLKind.PrimitiveType,
-        name: "undefined"
-    }
+    return createPrimitiveType("undefined")
+}
+
+export function createVoidType(): IDLPrimitiveType {
+    return createPrimitiveType("void_")
 }
 
 export function createAnyType(documentation?: string): IDLPrimitiveType {
@@ -444,7 +452,7 @@ function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNo
     return attrSpec ? [indentedBy(`[${attrSpec}]`, indentLevel)] : []
 }
 
-const attributesToQuote = new Set(["Documentation", "Import", "TypeParameters"])
+const attributesToQuote = new Set(["Documentation", "Import", "Interfaces", "TypeParameters"])
 
 function quoteAttributeValues(attributes?: IDLExtendedAttribute[]): stringOrNone {
     return attributes
@@ -489,21 +497,23 @@ export function printModule(idl: IDLModuleType): stringOrNone[] {
 }
 
 export function printCallback(idl: IDLCallback): stringOrNone[] {
-    return [`callback ${idl.name} = ${printType(idl.returnType)} (${printParameters(idl.parameters)});`]
+    return [
+        ...printExtendedAttributes(idl, 0),
+        `callback ${idl.name} = ${printType(idl.returnType)} (${printParameters(idl.parameters)});`
+    ]
 }
 
 export function printScoped(idl: IDLEntry): stringOrNone[] {
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
     if (idl.kind == IDLKind.AnonymousInterface) return printInterface(idl as IDLInterface)
     if (idl.kind == IDLKind.TupleInterface) return printInterface(idl as IDLInterface)
-    if (idl.kind == IDLKind.Typedef) return printTypedef(idl as IDLTypedef)
     return [`/* Unexpected scoped: ${idl.kind} ${idl.name} */`]
 }
 
 export function printInterface(idl: IDLInterface): stringOrNone[] {
     return [
         ...printExtendedAttributes(idl, 0),
-        `interface ${idl.name} ${idl.inheritance.length > 0 ? ": " + printType(idl.inheritance[0]) : ""} {`,
+        `interface ${idl.name}${hasSuperType(idl) ? ": " + printType(idl.inheritance[0]) : ""} {`,
         // TODO: type system hack!
     ]
         .concat(idl.constructors.map(printConstructor).flat())
@@ -512,6 +522,10 @@ export function printInterface(idl: IDLInterface): stringOrNone[] {
         .concat(idl.methods.map(printMethod).flat())
         .concat(idl.callables.map(printFunction).flat())
         .concat(["};"])
+}
+
+function hasSuperType(idl: IDLInterface) {
+    return idl.inheritance[0] && idl.inheritance[0] !== IDLTopType
 }
 
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
@@ -594,11 +608,11 @@ export function hasExtAttribute(node: IDLEntry, attribute: string): boolean {
 }
 
 export function getExtAttribute(node: IDLEntry, name: string): stringOrNone {
-    let value = undefined
+    let value: stringOrNone = undefined
     node.extendedAttributes?.forEach(it => {
         if (it.name == name) value = it.value
     })
-    return value
+    return attributesToQuote.has(name) ? (value as unknown as string)?.slice(1, -1) : value
 }
 
 export function getVerbatimDts(node: IDLEntry): stringOrNone {

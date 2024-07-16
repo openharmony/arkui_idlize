@@ -57,6 +57,7 @@
         "check:subset": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/ets/ --output-dir ./generated/subset && tsc -p ./tsconfig-subset.json && cp peer_lib/package.json.subset.in build/subset/package.json",
         "check:subset:run": "npm run rollup:host:subset && npm run compile:native-node-host-subset && node lib/main.js",
         "check:peers:run": "npm run rollup:host:full && npm run compile:native-node-host-full && node lib/main.js",
+        "check:peers:idl": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir ./generated/idl --verify-idl --common-to-attributes --docs=none && node . --idl2dts --input-dir ./generated/idl && node --stack_trace_limit=200 . --api-version 99  --dts2peer --input-dir ./generated/dts/ --output-dir ./generated/peers && tsc -p ./tsconfig-generated.json && cp peer_lib/package.json.peers.in build/peers/package.json && cross-env mode=peers rollup -c rollup.config.main.mjs && npm run compile:native-node-host-full && node lib/main.js",
         "test:subset": "npm run check:subset && mocha ./build/subset/tests/subset/unit/",
         "check:subset:fuzz": "npm run compile && node . --dts2test --input-dir ./tests/subset/ets --output-dir ./generated/fuzz && npm run check:subset && npm run compile:native-node-host-subset && node ./build/subset/generated/fuzz",
         "check:peers:native": "npm run run2peer:all && npm run compile:native-node-host-full",

@@ -28,6 +28,18 @@ import {
 } from "../idl"
 import { isDefined, stringOrNone } from "../util"
 
+const syntheticTypes = new Map<string, IDLType>()
+
+function addSyntheticType(name: string, type: IDLType) {
+    if (syntheticTypes.has(name))
+        console.log(`WARNING: duplicate synthetic type name "${name}"`) ///throw?
+    syntheticTypes.set(name, type)
+}
+
+export function resolveSyntheticType(name: string | undefined): IDLType | undefined {
+    return name ? syntheticTypes.get(name) : undefined
+}
+
 export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
     if (isEnum(node)) {
         return toIDLEnum(file, node)
@@ -63,7 +75,7 @@ function isCallable(node: webidl2.IDLInterfaceMemberType): boolean {
 }
 
 function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface {
-    return {
+    const result: IDLInterface = {
         kind: isClass(node) ? IDLKind.Class : IDLKind.Interface,
         name: node.name,
         fileName: file,
@@ -88,6 +100,9 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
             .filter(it => isCallable(it))
             .map(it => toIDLMethod(file, it)),
     }
+    if (node.extAttrs.find(it => it.name === "Synthetic"))
+        addSyntheticType(node.name, result)
+    return result
 }
 
 function toTypeParams(extAttrs: webidl2.ExtendedAttribute[] | undefined) {
@@ -170,7 +185,7 @@ function toIDLParameter(file: string, node: webidl2.Argument): IDLParameter {
 }
 
 function toIDLCallback(file: string, node: webidl2.CallbackType): IDLCallback {
-    return {
+    const result: IDLCallback = {
         kind: IDLKind.Callback,
         name: node.name,
         fileName: file,
@@ -179,6 +194,9 @@ function toIDLCallback(file: string, node: webidl2.CallbackType): IDLCallback {
         documentation: makeDocs(node),
         returnType: toIDLType(file, node.idlType)
     }
+    if (node.extAttrs.find(it => it.name === "Synthetic"))
+        addSyntheticType(node.name, result)
+    return result
 }
 
 function toIDLTypedef(file: string, node: webidl2.TypedefType): IDLTypedef {
@@ -230,7 +248,7 @@ function toIDLProperty(file: string, node: webidl2.AttributeMemberType): IDLProp
 function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLEnumMember {
     let initializer = undefined
     if (node.default?.type == "string") {
-        initializer = node.default?.value
+        initializer = `"${node.default?.value}"`
     } else if (node.default?.type == "number") {
         initializer = +(node.default?.value)
     } else if (node.default == null) {

@@ -42,26 +42,28 @@ export function isNodePublic(node: ts.Node): boolean {
     return (ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Public) !== 0
 }
 
-const keywords = new Map<string, string>(
-    [
-        ["callback", "callback_"],
-        ["object", "object_"],
-        ["attribute", "attribute_"],
-    ]
-)
+const IdlKeywords = new Set<string>(["attribute", "callback", "object"])
 
 export function nameOrNullForIdl(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {
     if (name == undefined) return undefined
 
     if (ts.isIdentifier(name)) {
         let rawName = ts.idText(name)
-        return keywords.get(rawName) ?? rawName
+        return IdlKeywords.has(rawName) ? rawName + "_" : rawName
     }
     if (ts.isStringLiteral(name)) {
         return name.text
     }
 
     return undefined
+}
+
+export function nameOrNullFromIdl(name: stringOrNone): stringOrNone {
+    if (name?.endsWith("_")) {
+        const unwrapped = name.slice(0, -1)
+        if (IdlKeywords.has(unwrapped)) return unwrapped
+    }
+    return name
 }
 
 export function nameOrNull(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {
