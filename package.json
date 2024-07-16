@@ -43,6 +43,7 @@
     },
     "scripts": {
         "download:sdk": "node ./download-sdk.mjs",
+        "publish": "npm run compile && node tools/publish.mjs",
         "compile": "npm run download:sdk && rollup -c",
         "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace*",
         "run": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/@internal/component/ets/ --input-file common.d.ts --verify-idl --common-to-attributes --docs=opt",
