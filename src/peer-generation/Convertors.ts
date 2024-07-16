@@ -752,7 +752,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
                 printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(this.tsTypeName, this.type), []), false)
     }
     nativeType(impl: boolean): string {
-        return this.tsTypeName
+        return PrimitiveType.IdlPrefix + this.tsTypeName
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -936,7 +936,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         return new BlockStatement(statements, true)
     }
     nativeType(impl: boolean): string {
-        return `Array_${this.table.computeTypeName(undefined, this.elementType, false)}`
+        return `Array_${this.table.computeTypeName(undefined, this.elementType, false, "")}`
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -1005,8 +1005,8 @@ export class MapConvertor extends BaseArgConvertor {
     }
 
     nativeType(impl: boolean): string {
-        const keyTypeName = this.table.computeTypeName(undefined, this.keyType, false)
-        const valueTypeName = this.table.computeTypeName(undefined, this.valueType, false)
+        const keyTypeName = this.table.computeTypeName(undefined, this.keyType, false, "")
+        const valueTypeName = this.table.computeTypeName(undefined, this.valueType, false, "")
         return `Map_${keyTypeName}_${valueTypeName}`
     }
     interopType(language: Language): string {
@@ -1069,9 +1069,10 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = printer.getObjectAccessor(this, value)
+        const prefix = printer.language === Language.CPP ? PrimitiveType.IdlPrefix : ""
         const readStatement = printer.makeCast(
             printer.makeMethodCall(`${param}Deserializer`, `readMaterialized`, []),
-            new Type(this.table.computeTargetName(this.type, false)!),
+            new Type(this.table.computeTargetName(this.type, false, prefix)!),
         )
         return printer.makeAssign(accessor, undefined, readStatement, false)
     }

@@ -50,7 +50,7 @@ function canSerializeTarget(declaration: ts.ClassDeclaration | ts.InterfaceDecla
 }
 
 function ignoreSerializeTarget(table: DeclarationTable, target: DeclarationTarget): target is PrimitiveType | ts.EnumDeclaration {
-    const name = table.computeTargetName(target, false)
+    const name = table.computeTargetName(target, false, "")
     if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return true
     if (target instanceof PrimitiveType) return true
     if (ts.isEnumDeclaration(target)) return true
@@ -81,12 +81,13 @@ class SerializerPrinter {
         }
     }
 
-    private generateSerializer(target: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const name = this.table.computeTargetName(target, false)
-        this.table.setCurrentContext(`write${name}()`)
+    private generateSerializer(target: ts.ClassDeclaration | ts.InterfaceDeclaration, prefix: string = "") {
+        const name = this.table.computeTargetName(target, false, prefix)
+        const methodName = this.table.computeTargetName(target, false, "")
+        this.table.setCurrentContext(`write${methodName}()`)
 
         this.writer.writeMethodImplementation(
-            new Method(`write${name}`,
+            new Method(`write${methodName}`,
                 new NamedMethodSignature(Type.Void, [new Type(this.translateSerializerType(name, target))], ["value"])),
             writer => {
                 writer.writeStatement(
@@ -105,6 +106,7 @@ class SerializerPrinter {
     print() {
         const className = "Serializer"
         const superName = `${className}Base`
+        let prefix = ""
         let ctorSignature: NamedMethodSignature | undefined = undefined
         switch (this.writer.language) {
             case Language.ARKTS:
@@ -112,6 +114,7 @@ class SerializerPrinter {
                 break;
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
+                prefix = PrimitiveType.IdlPrefix
                 break;
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(Type.Void, [], [])
@@ -127,12 +130,12 @@ class SerializerPrinter {
             for (let declaration of this.table.orderedDependenciesToGenerate) {
                 if (ignoreSerializeTarget(this.table, declaration))
                     continue
-                let name = this.table.computeTargetName(declaration, false)
+                let name = this.table.computeTargetName(declaration, false, prefix)
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
                 if (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration))
                     if (canSerializeTarget(declaration))
-                        this.generateSerializer(declaration)
+                        this.generateSerializer(declaration, prefix)
             }
             if (this.writer.language == Language.JAVA) {
                 // TODO: somewhat ugly.
@@ -152,11 +155,12 @@ class DeserializerPrinter {
         return this.library.declarationTable
     }
 
-    private generateDeserializer(target: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const name = this.table.computeTargetName(target, false)
-        this.table.setCurrentContext(`read${name}()`)
+    private generateDeserializer(target: ts.ClassDeclaration | ts.InterfaceDeclaration, prefix: string = "") {
+        const name = this.table.computeTargetName(target, false, prefix)
+        const methodName = this.table.computeTargetName(target, false, "")
+        this.table.setCurrentContext(`read${methodName}()`)
         const type = new Type(name)
-        this.writer.writeMethodImplementation(new Method(`read${name}`, new NamedMethodSignature(type, [], [])), writer => {
+        this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
             writer.writeStatement(
                 writer.makeAssign("valueDeserializer", new Type(writer.makeRef("Deserializer")), writer.makeThis(), true, false))
             // using list initialization to prevent uninitialized value errors
@@ -182,9 +186,12 @@ class DeserializerPrinter {
     print() {
         const className = "Deserializer"
         const superName = `${className}Base`
-        let ctorSignature = this.writer.language == Language.CPP
-            ? new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
-            : undefined
+        let ctorSignature: NamedMethodSignature | undefined = undefined
+        let prefix = ""
+        if (this.writer.language == Language.CPP) {
+            ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
+            prefix = PrimitiveType.IdlPrefix
+        }
         printSerializerImports(this.library, this.writer)
         this.writer.writeClass(className, writer => {
             if (ctorSignature) {
@@ -196,13 +203,13 @@ class DeserializerPrinter {
                 if (ignoreSerializeTarget(this.table, declaration))
                     continue
 
-                let name = this.table.computeTargetName(declaration, false)
+                let name = this.table.computeTargetName(declaration, false, prefix)
                 if (seenNames.has(name)) continue
                 seenNames.add(name)
 
                 if (ts.isClassDeclaration(declaration) || ts.isInterfaceDeclaration(declaration)) {
                     if (canSerializeTarget(declaration))
-                        this.generateDeserializer(declaration)
+                        this.generateDeserializer(declaration, prefix)
                 }
             }
         }, superName)

@@ -14,7 +14,7 @@
  */
 
 import * as ts from 'typescript'
-import * as path from "path"
+import { posix as path } from "path"
 import { getOrPut, Language, nameOrNull, renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces, renameDtsToPeer } from "../util";
 import { LanguageWriter } from "./LanguageWriters";
 import { PeerLibrary } from './PeerLibrary';

@@ -39,6 +39,12 @@ export class GniVisitor {
 
     // TODO: have a proper Peer module visitor
     printGniSource() {
+        this.gni.print("declare_args() {")
+        this.gni.pushIndent()
+        this.gni.print("include_generated_sources = false")
+        this.gni.popIndent()
+        this.gni.print("}")
+
         this.gni.print("generated_sources = [")
         this.gni.pushIndent()
         this.library.files.forEach(file => {

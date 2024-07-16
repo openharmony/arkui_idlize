@@ -16,4 +16,6 @@
 /native/NativeBridgeNapi.node
 /native/*.so
 /native/*.dylib
+/native/*.dll
+/native/*.lib
 NativeBridge.node
