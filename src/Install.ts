@@ -34,6 +34,7 @@ export class ArkoalaInstall extends Install {
             case Language.TS: return this.tsDir
             case Language.ARKTS: return this.arktsDir
             case Language.JAVA: return this.javaDir
+            case Language.CJ: return this.cjDir
             default: throw new Error("unsupported")
         }
     }
@@ -48,6 +49,7 @@ export class ArkoalaInstall extends Install {
     arktsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/arkts/src/"))
     nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/generated/"))
     javaDir = this.mkdir(path.join(this.koala, "arkoala/java/src/"))
+    cjDir = this.mkdir(path.join(this.koala, "arkoala/cangjie/src/"))
     peer(targetFile: TargetFile): string {
         const peerDir = this.mkdir(path.join(this.langDir(), this.lang === Language.JAVA ? '.' : 'peers'))
         return path.join(peerDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
@@ -78,6 +80,9 @@ export class ArkoalaInstall extends Install {
     }
     javaLib(targetFile: TargetFile) {
         return path.join(this.javaDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
+    }
+    cjLib(targetFile: TargetFile) {
+        return path.join(this.cjDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
     }
     native(targetFile: TargetFile) {
         return path.join(this.nativeDir, targetFile.path ?? "", targetFile.name)

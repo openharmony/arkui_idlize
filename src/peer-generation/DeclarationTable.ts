@@ -125,6 +125,7 @@ export class DeclarationTable {
             case "arkts": this.language = Language.ARKTS; break
             case "java": this.language = Language.JAVA; break
             case "ts": default: this.language = Language.TS; break
+            case "cangjie": this.language = Language.CJ; break
         }
         console.log(`Emit for ${this.language.toString()}`)
         this.toTargetConvertor = new ToDeclarationTargetConvertor(this)

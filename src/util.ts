@@ -24,6 +24,7 @@ export class Language {
     public static ARKTS = new Language("ArkTS", ".ets", true)
     public static JAVA = new Language("Java", ".java", false)
     public static CPP = new Language("C++", ".cc", false)
+    public static CJ = new Language("CangJie", ".cj", false)
 
     private constructor(private name: string, public extension: string, public needsUnionDiscrimination: boolean) {}
 

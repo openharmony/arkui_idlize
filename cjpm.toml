@@ -1,0 +1,13 @@
+[dependencies]
+
+[package]
+  cjc-version = "0.50.3"
+  compile-option = "-L ./native/build-cangjie-native-dummy -l NativeBridgeCJ"
+  description = "config file for cj build"
+  link-option = ""
+  name = "idlize"
+  output-type = "executable"
+  src-dir = "./generated/cangjie-subset/koalaui/arkoala/cangjie/src"
+  target-dir = "./build/cj"
+  version = "1.0.0"
+  package-configuration = {}

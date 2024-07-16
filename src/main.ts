@@ -94,7 +94,7 @@ const options = program
     .option('--dump-serialized', "Dump serialized data")
     .option('--call-log', "Call log")
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
-    .option('--language [ts|sts|java]', 'Output language')
+    .option('--language [ts|sts|java|cangjie]', 'Output language')
     .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
     .option('--need-interfaces', 'Generate interfaces to resolve all .d.ts dependencies', false)
     .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)

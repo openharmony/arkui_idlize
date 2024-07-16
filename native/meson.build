@@ -20,6 +20,7 @@ java_home = run_command('node', '-e', 'console.log(process.env.JAVA_HOME)').stdo
 
 is_node = true
 is_arkts = true
+is_cj = true
 is_jni = java_home != 'undefined'
 
 compile_events_test = get_option('events_test')
@@ -59,6 +60,9 @@ if compile_callbacks_test
         arkoala_dir + '/callbacks_test.cc',
     ]
 endif
+# if source_set == 'cangjie-subset'
+# sources = []
+# endif
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
 is_clang = not is_msvc
@@ -106,6 +110,7 @@ endif
 node_library_name = 'NativeBridgeNapi'
 arkts_library_name = 'NativeBridgeArk'
 jni_library_name = 'NativeBridgeJni'
+cj_library_name = 'NativeBridgeCJ'
 ohos_library_name = 'NativeBridge_ohos'
 
 if is_clang
@@ -153,6 +158,14 @@ arkts_sources = [
     arkoala_dir / 'arkts/convertors-ets.cc',
 ]
 
+cj_include_dirs = [
+    arkoala_dir / 'cj'
+]
+cj_sources = [
+    arkoala_dir / 'cj/dummy.c',
+    arkoala_dir / 'cj/dummy.h',
+]
+
 if is_jni
     jni_cflags = ['-DKOALA_USE_JAVA_VM', '-DKOALA_JNI']
     jni_include_dirs = [
@@ -178,6 +191,22 @@ node_cflags += [
     '-DKOALA_OHOS',
 ]
 endif
+
+
+if is_cj
+shared_library(cj_library_name,
+    cj_sources,
+    override_options: [
+        'b_lundef=false',
+    ],
+    install: true,
+    include_directories: cj_include_dirs,
+    install_dir: meson.current_source_dir(),
+    cpp_args: cflags,
+    link_args: ldflags,
+    dependencies: []
+)
+else
 shared_library(node_library_name,
     sources + node_sources,
     override_options: [
@@ -311,4 +340,5 @@ executable('test_arkoala_compat',
     include_directories: include_dirs
 )
 
+endif
 endif

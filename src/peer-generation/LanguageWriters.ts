@@ -1242,6 +1242,101 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
 }
 
+export class CJLanguageWriter extends LanguageWriter {
+    constructor(printer: IndentedPrinter, language: Language = Language.CJ) {
+        super(printer, language)
+    }
+    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void { }
+    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void { }
+    writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void { }
+    writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void { }
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method) { }
+    writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) { }
+    makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
+        return new AssignStatement(variableName, type, expr, isDeclared, isConst)
+    }
+    makeReturn(expr: LanguageExpression): LanguageStatement {
+        return new TSReturnStatement(expr)
+    }
+    makeStatement(expr: LanguageExpression): LanguageStatement {
+        return new ExpressionStatement(expr)
+    }
+    makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
+        return new TSLoopStatement(counter, limit, statement)
+    }
+    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
+        return new TSMapForEachStatement(map, key, value, op)
+    }
+    writePrintLog(message: string): void {
+        this.print(`console.log("${message}")`)
+    }
+    makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
+        return new TSCastExpression(value, type, unsafe)
+    }
+    getObjectAccessor(convertor: BaseArgConvertor, value: string, args?: ObjectArgs): string {
+        return `${value}`
+    }
+    makeUndefined(): LanguageExpression {
+        return this.makeString("undefined")
+    }
+    makeRuntimeType(rt: RuntimeType): LanguageExpression {
+        return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
+    }
+    makeTupleAlloc(option: string): LanguageStatement {
+        return new TsTupleAllocStatement(option)
+    }
+    makeObjectAlloc(object: string, fields: readonly FieldRecord[]): LanguageStatement {
+        if (fields.length > 0) {
+            return this.makeAssign(object, undefined,
+                this.makeCast(this.makeString("{}"),
+                    new Type(`{${fields.map(it=>`${it.name}: ${mapType(it.type)}`).join(",")}}`)),
+                false)
+        }
+        return new TsObjectAssignStatement(object, undefined, false)
+    }
+    makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
+        return this.makeAssign(map, undefined, this.makeString(`new Map<${keyType}, ${valueType}>()`), false)
+    }
+    makeMapKeyTypeName(c: MapConvertor): string {
+        return c.keyConvertor.tsTypeName;
+    }
+    makeMapValueTypeName(c: MapConvertor): string {
+        return c.valueConvertor.tsTypeName;
+    }
+    makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
+        // keyAccessor and valueAccessor are equal in TS
+        return this.makeStatement(this.makeMethodCall(keyAccessor, "set", [this.makeString(key), this.makeString(value)]))
+    }
+    makeObjectDeclare(name: string, type: Type, fields: readonly FieldRecord[]): LanguageStatement {
+        return new TsObjectDeclareStatement(name, type, fields)
+    }
+    getTagType(): Type {
+        return new Type("Tags");
+    }
+    getRuntimeType(): Type {
+        return new Type("number");
+    }
+    makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
+        return this.makeAssign(receiver, undefined,
+            this.makeString(`[${fields.map(it=> `${it}!`).join(",")}]`), false)
+    }
+    get supportedModifiers(): MethodModifier[] {
+        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC]
+    }
+    enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
+        return this.makeString(`Object.values(${enumType})[${value.asString()}]`);
+    }
+    ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
+        return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, new Type('string')).asString()})`);
+    }
+    mapType(type: Type, convertor?: ArgConvertor): string {
+        switch (type.name) {
+            case 'Function': return 'Object'
+        }
+        return type.name
+    }
+}
+
 export class CppLanguageWriter extends CLikeLanguageWriter {
     constructor(printer: IndentedPrinter) {
         super(printer, Language.CPP)
@@ -1495,6 +1590,7 @@ export function createLanguageWriter(language: Language): LanguageWriter {
         case Language.ARKTS: return new ETSLanguageWriter(new IndentedPrinter())
         case Language.JAVA: return new JavaLanguageWriter(new IndentedPrinter())
         case Language.CPP: return new CppLanguageWriter(new IndentedPrinter())
+        case Language.CJ: return new CJLanguageWriter(new IndentedPrinter())
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

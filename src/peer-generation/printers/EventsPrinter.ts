@@ -42,6 +42,7 @@ export function generateEventsBridgeSignature(language: Language): Method {
     switch (language) {
         case Language.JAVA:
         case Language.ARKTS:
+        case Language.CJ:
         case Language.TS:
             signature = new NamedMethodSignature(
                 new Type(`KInt`),
