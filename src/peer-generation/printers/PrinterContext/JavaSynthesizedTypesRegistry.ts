@@ -396,7 +396,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                     }
                 }
 
-                writer.writeFieldDeclaration(member.name.getText(), javaType.type, ['public', 'static', 'final'], false,
+                writer.writeFieldDeclaration(member.name.getText(), javaType.type, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     new StringExpression(`new ${javaType.alias}(${memberValue})`)
                 )
 
@@ -405,7 +405,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
 
             const value = 'value'
             const intType = new Type('int')
-            writer.writeFieldDeclaration(value, intType, ['public', 'final'], false)
+            writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
 
             const signature = new MethodSignature(Type.Void, [intType])
             writer.writeConstructorImplementation(javaType.alias, signature, () => {

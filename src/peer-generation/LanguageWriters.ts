@@ -1274,7 +1274,7 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void { }
     writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void { }
-    writeFieldDeclaration(name: string, type: Type, modifiers: string[]|undefined, optional: boolean): void { }
+    writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void { }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void { }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method) { }
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) { }
@@ -1348,6 +1348,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC]
+    }
+    get supportedFieldModifiers(): FieldModifier[] {
+        return []
     }
     enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
         return this.makeString(`Object.values(${enumType})[${value.asString()}]`);
