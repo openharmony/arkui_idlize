@@ -86,8 +86,9 @@ public class Main {
         System.out.println("Interface tests done");
 
         // union
-        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String(5.5));
-        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String(Ark_Color.White));
+        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Ark_Resource(5.5));
+        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Ark_Resource(Ark_Color.White)); // +enum
+        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Ark_Resource(new Ark_Resource())); // +import
         System.out.println("Union tests done");
 
         // enum
@@ -100,8 +101,30 @@ public class Main {
         options.grayscale = new Tuple_double_double(1.0, 2.0);
         peer.backdropBlurAttribute(42, options);
         var tuple1 = new Tuple_double_String_Ark_EnumDTS(5.5, "test", Ark_EnumDTS.ELEM_1);
-        peer.testTupleNumberStringEnumAttribute(tuple1);
+        peer.testTupleNumberStringEnumAttribute(tuple1); // +enum
         System.out.println("Tuple tests done");
+
+        // optional
+        peer.someOptionalBoolAttribute(new Opt_Boolean(false));
+        peer.someOptionalEnumAttribute(Ark_EnumDTS.ELEM_1); // +enum
+        var optionalInterface = new OptionalTestInterface();
+        optionalInterface.optNumber = new Opt_Number(10);
+        peer.testOptionInterface_OptionalTestInterfaceAttribute(optionalInterface); // +interface
+        System.out.println("Optional tests done");
+
+        // array
+        BooleanInterfaceDTS[] booleanInterface = { new BooleanInterfaceDTS(), new BooleanInterfaceDTS() };
+        booleanInterface[0].valBool = true;
+        peer.testBooleanInterfaceArrayAttribute(booleanInterface); // no interface
+        peer.testBooleanInterfaceArrayRefAttribute(booleanInterface); // no interface
+        var dragPreviewOptions = new DragPreviewOptions();
+        Ark_DragPreviewMode[] modes = { Ark_DragPreviewMode.DISABLE_SCALE, Ark_DragPreviewMode.ENABLE_DEFAULT_RADIUS };
+        dragPreviewOptions.mode = new Union_Ark_DragPreviewMode_Array_Ark_DragPreviewMode(modes);
+        dragPreviewOptions.numberBadge = new Union_boolean_double(false);
+        var dragInteractionOptions = new DragInteractionOptions();
+        dragInteractionOptions.defaultAnimationBeforeLifting = new Opt_Boolean(true);
+        buttonPeer.dragPreviewOptionsAttribute(dragPreviewOptions, dragInteractionOptions); // +interface +union
+        System.out.println("Array tests done");
     }
 }
 

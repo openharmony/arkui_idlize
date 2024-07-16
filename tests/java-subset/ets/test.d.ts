@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+declare type Optional<T> = T | undefined
+
 declare interface TestInterface { 
     (): TestAttribute
 }
@@ -72,15 +74,13 @@ declare interface OptionalTestInterface {
     optString?: string
 }
 
-// declare interface ArrayRefNumberInterfaceDTS {
+declare interface ArrayRefNumberInterfaceDTS {
+    tuple: Array<number>
+}
 
-//     tuple: Array<number>
-// }
-
-// declare interface ArrayRefTuplesInterfaceDTS {
-
-//     tuple: Array<[boolean, number]>
-// }
+declare interface ArrayRefTuplesInterfaceDTS {
+    tuple: Array<[boolean, number]>
+}
 
 declare class ClassDTS {
     valBoolean: boolean
@@ -187,6 +187,9 @@ declare class ClassDTS {
 
 declare class TestAttribute extends CommonMethod<TestAttribute> {
 
+    someOptionalBool(value: Optional<boolean>): TestAttribute
+    someOptionalEnum(value: Optional<EnumDTS>): TestAttribute
+
     // basic types
     testBoolean(value: boolean): TestAttribute;
 
@@ -222,23 +225,23 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testUnionBooleanStringNumberUndefined(val: boolean | string | number | undefined): TestAttribute
 
-    // // array
+    // array
 
-    // testBooleanArray(value: boolean[]): TestAttribute;
+    testBooleanArray(value: boolean[]): TestAttribute;
 
-    // testNumberArray(value: number[]): TestAttribute;
+    testNumberArray(value: number[]): TestAttribute;
 
-    // testStringArray(value: string[]): TestAttribute;
+    testStringArray(value: string[]): TestAttribute;
 
-    // testEnumArray(value: EnumDTS[]): TestAttribute
+    testEnumArray(value: EnumDTS[]): TestAttribute
 
-    // // TBD: array of functions
-    // // testFunctionArray(value: ((a: number) => boolean)[]): TestAttribute;
+    // TBD: array of functions
+    // testFunctionArray(value: ((a: number) => boolean)[]): TestAttribute;
 
-    // testArrayMix(v1: number[], v2: string[], v3: EnumDTS[]): TestAttribute;
+    testArrayMix(v1: number[], v2: string[], v3: EnumDTS[]): TestAttribute;
 
-    // // TBD: array of functions
-    // //testArrayMix(v1: number[], v2: string[], v3: EnumDTS[], v4: ((a: number) => string)[]): TestAttribute;
+    // TBD: array of functions
+    //testArrayMix(v1: number[], v2: string[], v3: EnumDTS[], v4: ((a: number) => string)[]): TestAttribute;
 
     // tuple
 
@@ -254,15 +257,15 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testTupleUnion(value: [(number | string), (boolean | EnumDTS), (string | EnumDTS | boolean)]): TestAttribute;
 
-    // // Array<Type>
+    // Array<Type>
 
-    // testArrayRefBoolean(value: Array<boolean>): TestAttribute
+    testArrayRefBoolean(value: Array<boolean>): TestAttribute
 
-    // testArrayRefNumber(value: Array<number>): TestAttribute
+    testArrayRefNumber(value: Array<number>): TestAttribute
 
-    // // testArrayTuple(value: Array<[number, boolean]>): TestAttribute
+    testArrayTuple(value: Array<[number, boolean]>): TestAttribute
 
-    // // interface
+    // interface
 
     testBooleanInterface(value: BooleanInterfaceDTS): TestAttribute
 
@@ -282,26 +285,26 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testOptionInterface(value: OptionalTestInterface): TestAttribute
 
-    // testArrayRefNumberInterface(value: ArrayRefNumberInterfaceDTS): TestAttribute
+    testArrayRefNumberInterface(value: ArrayRefNumberInterfaceDTS): TestAttribute
 
-    // // testArrayRefTupleInterface(value: ArrayRefTuplesInterfaceDTS)
+    testArrayRefTupleInterface(value: ArrayRefTuplesInterfaceDTS): TestAttribute
 
 
-    // // Boolean Interface
+    // Boolean Interface
 
     testBooleanInterfaceOption(value?: BooleanInterfaceDTS): TestAttribute
 
     testBooleanInterfaceTuple(value: [BooleanInterfaceDTS]): TestAttribute
 
-    // testBooleanInterfaceArray(value: BooleanInterfaceDTS[]): TestAttribute
+    testBooleanInterfaceArray(value: BooleanInterfaceDTS[]): TestAttribute
 
-    // testBooleanInterfaceArrayRef(value: Array<BooleanInterfaceDTS>): TestAttribute
+    testBooleanInterfaceArrayRef(value: Array<BooleanInterfaceDTS>): TestAttribute
 
     testInterfaceMixed(v1: UnionInterfaceDTS, v2: number, v3: TupleInterfaceDTS): TestAttribute
 
     testLen(val: LengthInterface): TestAttribute
 
-    // // Class
+    // Class
 
     testClass(value: ClassDTS): TestAttribute
 

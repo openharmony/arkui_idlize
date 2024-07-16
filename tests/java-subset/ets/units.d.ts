@@ -14,11 +14,11 @@
  */
 
 
-//declare type Resource = import('../resource/resource').Resource;
+declare type Resource = import('../resource/resource').Resource;
 
-declare type Length = string | number /*| Resource*/;
+declare type Length = string | number | Resource;
 
-declare type ResourceColor = Color | number | string /*| Resource*/;
+declare type ResourceColor = Color | number | string | Resource;
 
 declare type PX = `${number}px`;
 
@@ -30,9 +30,9 @@ declare type LPX = `${number}lpx`;
 
 declare type Percentage = `${number}%`;
 
-declare type Dimension = PX | VP | FP | LPX | Percentage /*| Resource*/;
+declare type Dimension = PX | VP | FP | LPX | Percentage | Resource;
 
-declare type ResourceStr = string /*| Resource*/;
+declare type ResourceStr = string | Resource;
 
 declare type Offset = {
     dx: Length;

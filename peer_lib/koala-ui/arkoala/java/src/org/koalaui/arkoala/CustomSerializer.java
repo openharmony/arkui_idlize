@@ -14,13 +14,15 @@
  */
 package org.koalaui.arkoala;
 
-import java.util.Map;
+import java.util.Set;
 
-public class PeerNode {
-    public NativePeerNode peer;
-    public PeerNode(ArkUINodeType type, int flags) {
-        // TODO: rework ptr
-        this.peer = new NativePeerNode(42, NativeModule._GetNodeFinalizer());
+public abstract class CustomSerializer {
+    protected Set<String> supported;
+    CustomSerializer(Set<String> supported) {
+        this.supported = supported;
     }
-    void applyAttributes(Map<String, Object> attrs) {}
+    boolean supports(String kind) {
+        return supported.contains(kind);
+    }
+    abstract void serialize(SerializerBase serializer, Object value, String kind);
 }

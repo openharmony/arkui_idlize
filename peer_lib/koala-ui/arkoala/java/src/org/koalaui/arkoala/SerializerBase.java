@@ -16,13 +16,15 @@ package org.koalaui.arkoala;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Supplier;
 
 class SerializersCache {
     SerializerBase[] cache;
 
     SerializersCache(int maxCount) {
-        cache = new SerializerBase[22];;
+        cache = new SerializerBase[22];
     }
     @SuppressWarnings("unchecked")
     <T extends SerializerBase> T getCached(Supplier<T> factory, int index) {
@@ -37,19 +39,23 @@ class SerializersCache {
     }
 }
 
-
 public class SerializerBase {
+
+    private static List<CustomSerializer> customSerializers = new LinkedList<CustomSerializer>();
+    public static void registerCustomSerializer(CustomSerializer serializer) {
+        customSerializers.add(serializer);
+    }
 
     // TODO: use allocateDirect
     private ByteBuffer buffer = ByteBuffer.allocate(96).order(ByteOrder.LITTLE_ENDIAN);
-
-    public SerializerBase() {}
 
     private static SerializersCache cache = new SerializersCache(22);
 
     static <T extends SerializerBase> T get(Supplier<T> factory, int index) {
         return SerializerBase.cache.getCached(factory, index);
     }
+
+    public SerializerBase() {}
 
     void resetCurrentPosition() {
         this.buffer.position(0);
@@ -152,18 +158,14 @@ public class SerializerBase {
     public void writeLength(Ark_Length value) {
         this.writeString(value.value);
     }
-    /*public void writeLength(Object value) {
-        this.checkCapacity(1);
-        var valueType = runtimeType(value);
-        this.writeInt8(valueType.value);
-
-        if (valueType == RuntimeType.NUMBER) {
-            this.writeFloat32((Float)value);
-        } else if (valueType == RuntimeType.STRING) {
-            this.writeString((String)value);
-        } else if (valueType == RuntimeType.OBJECT) {
-            // TODO: write real resource id.
-            this.writeInt32(value.hashCode());
+    public void writeCustomObject(String kind, Object value) {
+        for (var serializer: customSerializers) {
+            if (serializer.supports(kind)) {
+                serializer.serialize(this, value, kind);
+                return;
+            }
         }
-    }*/
+        System.out.println(String.format("Unsupported custom serialization for %s, write undefined", kind));
+        this.writeInt8(Tag.UNDEFINED.value);
+    }
 }
