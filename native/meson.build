@@ -20,7 +20,7 @@ java_home = run_command('node', '-e', 'console.log(process.env.JAVA_HOME)').stdo
 
 is_node = true
 is_arkts = true
-is_cj = true
+is_cj = false
 is_jni = java_home != 'undefined'
 
 compile_events_test = get_option('events_test')
