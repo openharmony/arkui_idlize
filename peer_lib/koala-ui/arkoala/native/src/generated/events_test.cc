@@ -31,8 +31,8 @@ KOALA_INTEROP_V2(Test_TextPicker_OnAccept, uint8_t*, uint32_t)
 void impl_Test_List_OnScrollVisibleContentChange(uint8_t* valueArray, int32_t valueLength) {
     Deserializer deserializer(valueArray, valueLength);
     Ark_Int32 nodeId = deserializer.readInt32();
-    IdlVisibleListContentInfo start = deserializer.readVisibleListContentInfo();
-    IdlVisibleListContentInfo end = deserializer.readVisibleListContentInfo();
+    Ark_VisibleListContentInfo start = deserializer.readVisibleListContentInfo();
+    Ark_VisibleListContentInfo end = deserializer.readVisibleListContentInfo();
     GetFullImpl()->getEventsAPI()->getListEventsReceiver()->onScrollVisibleContentChange(nodeId, start, end);
 }
 KOALA_INTEROP_V2(Test_List_OnScrollVisibleContentChange, uint8_t*, uint32_t)

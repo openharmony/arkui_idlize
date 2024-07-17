@@ -114,7 +114,7 @@ class SerializerPrinter {
                 break;
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
-                prefix = PrimitiveType.IdlPrefix
+                prefix = PrimitiveType.ArkPrefix
                 break;
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(Type.Void, [], [])
@@ -190,7 +190,7 @@ class DeserializerPrinter {
         let prefix = ""
         if (this.writer.language == Language.CPP) {
             ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
-            prefix = PrimitiveType.IdlPrefix
+            prefix = PrimitiveType.ArkPrefix
         }
         printSerializerImports(this.library, this.writer)
         this.writer.writeClass(className, writer => {

@@ -43,7 +43,6 @@ export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
     getText(table?: DeclarationTable): string { return this.name }
     static ArkPrefix = "Ark_"
-    static IdlPrefix = "Idl"
     static String = new PrimitiveType(`${PrimitiveType.ArkPrefix}String`, true)
     static Number = new PrimitiveType(`${PrimitiveType.ArkPrefix}Number`, true)
     static Int32 = new PrimitiveType(`${PrimitiveType.ArkPrefix}Int32`)
@@ -143,7 +142,6 @@ export class DeclarationTable {
             let name = declaration[1][0]
             if (optional) {
                 name = cleanPrefix(name, PrimitiveType.ArkPrefix)
-                name = cleanPrefix(name, PrimitiveType.IdlPrefix)
             }
             return prefix + name
         }
@@ -178,7 +176,7 @@ export class DeclarationTable {
         return false
     }
 
-    computeTypeName(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean = false, idlPrefix: string = PrimitiveType.IdlPrefix): string {
+    computeTypeName(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean = false, idlPrefix: string = PrimitiveType.ArkPrefix): string {
         return this.computeTypeNameImpl(suggestedName, type, optional, idlPrefix)
     }
 
@@ -186,7 +184,7 @@ export class DeclarationTable {
         return convertTypeNode(this.toTargetConvertor, node)
     }
 
-    computeTargetName(target: DeclarationTarget, optional: boolean, idlPrefix: string = PrimitiveType.IdlPrefix): string {
+    computeTargetName(target: DeclarationTarget, optional: boolean, idlPrefix: string = PrimitiveType.ArkPrefix): string {
         return this.computeTargetNameImpl(target, optional, idlPrefix)
     }
 
@@ -724,7 +722,6 @@ export class DeclarationTable {
         let name = this.computeTargetName(field.declaration, false)
         if (field.optional) {
             name = cleanPrefix(name, PrimitiveType.ArkPrefix)
-            name = cleanPrefix(name, PrimitiveType.IdlPrefix)
         }
         structs.print(`${this.cFieldKind(field.declaration)}${prefix}${name} ${field.name};`)
     }
@@ -742,8 +739,7 @@ export class DeclarationTable {
                 throw new Error(`No assigned name for ${(target as ts.TypeNode).getText()} shall be ${this.computeTargetName(target, false)}`)
             }
             if (seenNames.has(nameAssigned)) continue
-            let nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.ArkPrefix)
-            nameOptional = cleanPrefix(nameOptional, PrimitiveType.IdlPrefix)
+            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.ArkPrefix)
             seenNames.add(nameOptional)
         }
         return seenNames
@@ -820,8 +816,7 @@ export class DeclarationTable {
             let isEnum = !(target instanceof PrimitiveType) && ts.isEnumDeclaration(target)
             let isAccessor = checkDeclarationTargetMaterialized(target)
             let noBasicDecl = isAccessor || (target instanceof PrimitiveType && noDeclaration.includes(target))
-            let nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.ArkPrefix)
-            nameOptional = cleanPrefix(nameOptional, PrimitiveType.IdlPrefix)
+            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.ArkPrefix)
             let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
             if (isEnum) {
                 structs.print(`typedef ${PrimitiveType.Int32.getText()} ${nameAssigned};`)
@@ -838,7 +833,7 @@ export class DeclarationTable {
 
                 // TODO: fix it to define array type after its elements types
                 if (nameAssigned === `Array_GestureRecognizer`) {
-                    structs.print(`typedef Ark_Materialized ${PrimitiveType.IdlPrefix}GestureRecognizer;`)
+                    structs.print(`typedef Ark_Materialized ${PrimitiveType.ArkPrefix}GestureRecognizer;`)
                 }
 
                 this.printStructsCHead(nameAssigned, structDescriptor, structs)
@@ -973,12 +968,10 @@ export class DeclarationTable {
         typedefs.print(`typedef ${declarationName} ${aliasName};`)
         // TODO: hacky
         aliasName = cleanPrefix(aliasName, PrimitiveType.ArkPrefix)
-        aliasName = cleanPrefix(aliasName, PrimitiveType.IdlPrefix)
         let optAliasName = `${PrimitiveType.OptionalPrefix}${aliasName}`
         if (!declarationName.startsWith(PrimitiveType.OptionalPrefix) && !seenNames.has(optAliasName)) {
             seenNames.add(optAliasName)
             declarationName = cleanPrefix(declarationName, PrimitiveType.ArkPrefix)
-            declarationName = cleanPrefix(declarationName, PrimitiveType.IdlPrefix)
             typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}${declarationName} ${optAliasName};`)
         }
     }
@@ -1496,7 +1489,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
             const node = declaration.type
             let name = identName(declaration.name)
             if (name === "GestureType")
-                name = PrimitiveType.IdlPrefix + name
+                name = PrimitiveType.ArkPrefix + name
             this.table.requestType(name, node, false)
             return convertTypeNode(this, node)
         }
