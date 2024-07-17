@@ -28,7 +28,8 @@ compile_callbacks_test = get_option('callbacks_test')
 
 gen_dir = '../generated/' + source_set
 arkoala_dir = gen_dir + '/koalaui/arkoala/native/src/generated'
-libace_dir = gen_dir + '/libace'
+external_dir = '../external/interop/src/cpp'
+libace_dir = gen_dir / 'libace'
 
 cxx = meson.get_compiler('cpp')
 
@@ -37,22 +38,24 @@ ldflags = []
 
 include_dirs = [
    arkoala_dir,
-   arkoala_dir / 'legacy'
+   arkoala_dir / 'legacy',
+   external_dir
 ]
 
 sources = [
-    arkoala_dir + '/common-interop.cc',
-    arkoala_dir + '/custom.cc',
-    arkoala_dir + '/bridge_generated.cc',
-    arkoala_dir + '/bridge_custom.cc',
-    arkoala_dir + '/events.cc',
-    arkoala_dir + '/all_events.cc',
-    arkoala_dir + '/load-library.cc',
-    arkoala_dir + '/library.cc',
+    external_dir / 'common-interop.cc',
+    arkoala_dir / 'arkoala.cc',
+    arkoala_dir / 'custom.cc',
+    arkoala_dir / 'bridge_generated.cc',
+    arkoala_dir / 'bridge_custom.cc',
+    arkoala_dir / 'events.cc',
+    arkoala_dir / 'all_events.cc',
+    arkoala_dir / 'load-library.cc',
+    arkoala_dir / 'library.cc',
 ]
 if compile_events_test
     sources += [
-        arkoala_dir + '/events_test.cc',
+        arkoala_dir / 'events_test.cc',
     ]
 endif
 if compile_callbacks_test
@@ -103,7 +106,7 @@ endif
 cflags += ['-DKOALA_USE_LIBACE=1']
 else
 sources += [
-    arkoala_dir + '/dummy_impl.cc',
+    arkoala_dir / 'dummy_impl.cc',
 ]
 endif
 
@@ -115,7 +118,11 @@ ohos_library_name = 'NativeBridge_ohos'
 
 if is_clang
 # TODO: remove all -Wno-* when generation is fixed.
-cflags += ['-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable', '-Wno-unused-function', '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations', '-Wno-unknown-warning-option', '-Wno-parentheses-equality']
+cflags += [
+    '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable', 
+    '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations', 
+    '-Wno-unknown-warning-option', '-Wno-parentheses-equality', '-Wno-unused-function'
+]
 endif
 
 if is_msvc
@@ -127,14 +134,14 @@ node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' 
 node_include_dirs = [
     '../node_modules/node-api-headers/include',
     '../node_modules/node-addon-api',
-    arkoala_dir / 'node'
+    external_dir / 'node'
 ]
 node_sources = [
-    arkoala_dir + '/node/convertors-node.cc'
+    external_dir / 'node/convertors-node.cc'
 ]
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
-    node_sources += [ arkoala_dir / 'node' / 'win-dynamic-node.cc' ]
+    node_sources += [ external_dir / 'node' / 'win-dynamic-node.cc' ]
     panda_ldflags = []
 endif
 if os == 'linux'
@@ -151,11 +158,12 @@ node_module_suffix = 'node'
 
 arkts_cflags = ['-DKOALA_USE_ARK_VM', '-DKOALA_USE_ARK_VM_WITH_ETS', '-DKOALA_ETS_NAPI']
 arkts_include_dirs = [
+    external_dir / 'arkts',
     arkoala_dir / 'arkts'
 ]
 arkts_sources = [
-    arkoala_dir / 'arkts/convertors-ark.cc',
-    arkoala_dir / 'arkts/convertors-ets.cc',
+    external_dir / 'arkts/convertors-ark.cc',
+    external_dir / 'arkts/convertors-ets.cc',
 ]
 
 cj_include_dirs = [
@@ -171,10 +179,10 @@ if is_jni
     jni_include_dirs = [
         java_home / 'include',
         java_home / 'include' / jni_os,
-        arkoala_dir / 'jni'
+        external_dir / 'jni'
     ]
     jni_sources = [
-        arkoala_dir / 'jni' / 'convertors-jni.cc',
+        external_dir / 'jni' / 'convertors-jni.cc',
     ]
 endif
 
@@ -289,12 +297,12 @@ ohos_ldflags = [
 
 ohos_include_dirs = [
     '../node_modules/node-addon-api',
-    arkoala_dir / 'node',
-    arkoala_dir / 'arkts'
+    external_dir / 'node',
+    external_dir / 'arkts'
 ]
 
 ohos_sources = [
-    arkoala_dir + '/node/convertors-node.cc'
+    external_dir + '/node/convertors-node.cc'
 ]
 
 shared_library(ohos_library_name,

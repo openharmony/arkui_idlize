@@ -79,7 +79,7 @@ public class SerializerBase {
                 var minSize = buffPosition + value;
                 var resizedSize = Math.max(minSize, Math.round((float) (3 * buffPosition) / 2));
                 var resizedBuffer = ByteBuffer.allocate(resizedSize).order(ByteOrder.LITTLE_ENDIAN);
-                resizedBuffer.put(0, buffer.array(), 0, buffPosition);
+                resizedBuffer.put(buffer.array(), 0, buffPosition);
                 resizedBuffer.position(buffPosition);
                 buffer = resizedBuffer;
             }

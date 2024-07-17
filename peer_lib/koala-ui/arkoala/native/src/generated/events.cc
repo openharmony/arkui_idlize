@@ -1,4 +1,6 @@
 #include <deque>
+#include <stdexcept>
+
 #include "events.h"
 #include "Interop.h"
 
