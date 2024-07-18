@@ -530,7 +530,9 @@ function hasSuperType(idl: IDLInterface) {
 
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
     const type = printType(idl.type)
-    const initializer = type == "DOMString" ? `"${idl.initializer}"` : idl.initializer
+    const initializer = type === "DOMString"
+        ? `"${(idl.initializer as string).replaceAll('"', "'")}"`
+        : idl.initializer
     return [
         idl.documentation,
         ...printExtendedAttributes(idl, 0),

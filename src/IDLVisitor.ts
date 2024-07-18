@@ -47,6 +47,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private output: IDLEntry[] = []
     private currentScope:  IDLEntry[] = []
     scopes: IDLEntry[][] = []
+    imports: string[] = []
     namespaces: string[] = []
     globalConstants: IDLConstant[] = []
     globalFunctions: IDLMethod[] = []
@@ -69,8 +70,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         private options: OptionValues) { }
 
     visitWholeFile(): IDLEntry[] {
-        this.addMeta()
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
+        this.addMeta()
         if (this.globalConstants.length > 0 || this.globalFunctions.length > 0) {
             this.output.push({
                 kind: IDLKind.Interface,
@@ -92,13 +93,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     addMeta() {
-        this.output.push({
+        this.output.unshift({
             kind: IDLKind.Enum,
             name: `Metadata`,
             extendedAttributes: [ {name: "Synthetic" } ],
             elements: [
                 this.makeEnumMember("package", "org.openharmony.arkui"),
-                this.makeEnumMember("imports", "'./one', './two'"),
+                this.makeEnumMember("imports", this.imports.join("\n")),
             ]
         } as IDLEnum)
     }
@@ -128,6 +129,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             this.globalFunctions.push(this.serializeMethod(node))
         } else if (ts.isVariableStatement(node)) {
             this.globalConstants.push(...this.serializeConstants(node))
+        } else if (ts.isImportDeclaration(node)) {
+            this.imports.push(node.getText())
         }
     }
 

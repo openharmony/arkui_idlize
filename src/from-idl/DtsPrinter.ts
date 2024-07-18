@@ -24,10 +24,14 @@ import { resolveSyntheticType, toIDLNode } from "./deserialize"
 
 export class CustomPrintVisitor  {
     output: string[] = []
+    currentInterface?: IDLInterface
 
     visit(node: IDLEntry) {
-        if (isSyntheticEntry(node)) return
-        if (isInterface(node) || isClass(node)) {
+        if (isSyntheticEntry(node)) {
+            if (isEnum(node) && node.name === "Metadata")
+                this.printMetadata(node)
+            else return
+        } else if (isInterface(node) || isClass(node)) {
             this.printInterface(node)
         } else if (isMethod(node) || isConstructor(node)) {
             this.printMethod(node)
@@ -46,7 +50,13 @@ export class CustomPrintVisitor  {
         }
     }
 
-    currentInterface?: IDLInterface
+    printMetadata(node: IDLEnum) {
+        const imports = node.elements
+            .find(it => it.name === "imports")
+            ?.initializer as string
+        if (imports)
+            this.print(imports.slice(1, -1))
+    }
 
     printInterface(node: IDLInterface) {
         const namespace = getExtAttribute(node, "Namespace")
