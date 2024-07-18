@@ -21,10 +21,16 @@ import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER
 import { TargetFile } from '../TargetFile'
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from '../../DeclarationTable'
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
+import { ImportTable } from '../ImportTable'
 
 
 function unsupportedType(type: string): Error {
     return new Error(`Unimplemented type in java: ${type}`)
+}
+
+type MemberInfo = {
+    name: string,
+    type: Type,
 }
 
 class JavaType {
@@ -50,7 +56,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     // maps type name in Java (e.g. `Union_double_String`) to its definition (LanguageWriter containing `package X; class Union_double_String {...}`)
     private readonly types = new Map<Type, LanguageWriter>()
     
-    constructor(private readonly table: DeclarationTable) {}
+    constructor(private readonly table: DeclarationTable, private readonly imports: ImportTable) {}
 
     getDefinitions(): Map<TargetFile, string> {
         const result = new Map<TargetFile, string>()
@@ -106,6 +112,10 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             }
             else if (name == 'Array') {
                 this.getTargetType(this.toTarget(target.typeArguments[0]), false)
+            }
+            else if (name == 'Map') {
+                target.typeArguments.slice(0, 2).forEach(arg => this.getTargetType(this.toTarget(arg), false))
+                this.imports.setImportsForType(javaType.type, ['java.util.Map'])
             }
             else {
                 throw unsupportedType('TypeReferenceNode<Other>')
@@ -169,9 +179,22 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         // TODO: add other primitive types
     ])
 
-    private primitiveToJavaType(primitiveType: PrimitiveType): JavaType {
+    private readonly primitiveToReferenceTypeMap = new Map([
+        ['byte', 'Byte'],
+        ['short', 'Short'],
+        ['int', 'Integer'],
+        ['float', 'Float'],
+        ['double', 'Double'],
+        ['boolean', 'Boolean'],
+        ['char', 'Character'],
+    ])
+
+    private primitiveToJavaType(primitiveType: PrimitiveType, needReferenceType?: boolean): JavaType {
         if (this.primitiveToJavaMap.has(primitiveType)) {
-            const javaTypeName = this.primitiveToJavaMap.get(primitiveType)!
+            let javaTypeName = this.primitiveToJavaMap.get(primitiveType)!
+            if (needReferenceType && this.primitiveToReferenceTypeMap.has(javaTypeName)) {
+                javaTypeName = this.primitiveToReferenceTypeMap.get(javaTypeName)!
+            }
             return JavaType.fromTypeName(javaTypeName)
         }
         throw unsupportedType(`primitive type ${primitiveType.getText()}`)
@@ -190,13 +213,13 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
 
-    private computeJavaType(target: DeclarationTarget, optional: boolean): JavaType {
+    private computeJavaType(target: DeclarationTarget, optional: boolean, needReferenceType?: boolean): JavaType {
         if (target instanceof PrimitiveType) {
             if (optional && this.isExplicitOptional(target)) {
                 // for now, the only explicit optionals in Java are Opt_Boolean and Opt_Number
                 return this.optionalPrimitiveToJavaType(target)
             }
-            return this.primitiveToJavaType(target)
+            return this.primitiveToJavaType(target, needReferenceType)
         }
         if (ts.isTypeLiteralNode(target)) {
             throw unsupportedType(`TypeLiteralNode`)
@@ -299,9 +322,10 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 const arrayElementType = this.computeJavaType(this.toTarget(target.typeArguments[0]), false)
                 return new JavaType(new Type(`${arrayElementType.type.name}[]`), `Array_${arrayElementType.alias}`)
             }
-            if (name == 'Map')
-                throw unsupportedType(`TypeReferenceNode:Map`)
-                // return optionalPrefix + `Map_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false) + '_' + this.computeTargetName(this.toTarget(target.typeArguments[1]), false)
+            if (name == 'Map') {
+                const javaTypes = target.typeArguments.slice(0, 2).map(it => this.computeJavaType(this.toTarget(it), false, true))
+                return new JavaType(new Type(`Map<${javaTypes[0].type.name}, ${javaTypes[1].type.name}>`), `Map_${javaTypes[0].alias}_${javaTypes[1].alias}`)
+            }
             if (name == 'Callback')
                 throw unsupportedType(`TypeReferenceNode:Callback`)
                 // return optionalPrefix + PrimitiveType.Function.getText()
@@ -313,6 +337,12 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
     private printUnionImplementation(sourceType: ts.UnionTypeNode, javaType: JavaType, writer: LanguageWriter) {
+        const membersInfo: MemberInfo[] = sourceType.types.map((subType, index) => {
+            return {name: `value${index}`, type: this.getTargetType(this.toTarget(subType), false)}
+        })
+
+        this.imports.printImportsForTypes(membersInfo.map(it => it.type), writer)
+
         writer.writeClass(javaType.alias, () => {
             const intType = new Type('int')
             const selector = 'selector'
@@ -325,19 +355,16 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 )
             })
 
-            for (const [index, subType] of sourceType.types.entries()) {
-                const subTypeTargetType = this.getTargetType(this.toTarget(subType), false)
-                const value = `value${index}`
-                const param = 'param'
-
-                writer.writeFieldDeclaration(value, subTypeTargetType, [FieldModifier.PRIVATE], false)
+            const param = 'param'
+            for (const [index, memberInfo] of membersInfo.entries()) {
+                writer.writeFieldDeclaration(memberInfo.name, memberInfo.type, [FieldModifier.PRIVATE], false)
 
                 writer.writeConstructorImplementation(
                     javaType.alias,
-                    new NamedMethodSignature(Type.Void, [subTypeTargetType], [param]),
+                    new NamedMethodSignature(Type.Void, [memberInfo.type], [param]),
                     () => {
                         writer.writeStatement(
-                            writer.makeAssign(value, undefined, writer.makeString(param), false)
+                            writer.makeAssign(memberInfo.name, undefined, writer.makeString(param), false)
                         )
                         writer.writeStatement(
                             writer.makeAssign(selector, undefined, writer.makeString(index.toString()), false)
@@ -346,11 +373,11 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 )
 
                 writer.writeMethodImplementation(
-                    new Method(`getValue${index}`, new MethodSignature(subTypeTargetType, []), [MethodModifier.PUBLIC]),
+                    new Method(`getValue${index}`, new MethodSignature(memberInfo.type, []), [MethodModifier.PUBLIC]),
                     () => {
                         writer.writeStatement(
                             writer.makeReturn(
-                                writer.makeString(value)
+                                writer.makeString(memberInfo.name)
                             )
                         )
                     }
@@ -360,16 +387,17 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
     private printTupleImplementation(sourceType: ts.TupleTypeNode, javaType: JavaType, writer: LanguageWriter) {
-        writer.writeClass(javaType.alias, () => {
-            const argTypes: Type[] = []
-            const memberNames: string[] = []
-            for (const [index, subType] of sourceType.elements.entries()) {
-                const subTypeTargetType = this.getTargetType(this.toTarget(subType), false)
-                argTypes.push(subTypeTargetType)
-                const value = `value${index}`
-                memberNames.push(value)
+        const membersInfo: MemberInfo[] = sourceType.elements.map((subType, index) => {
+            return {name: `value${index}`, type: this.getTargetType(this.toTarget(subType), false)}
+        })
 
-                writer.writeFieldDeclaration(value, subTypeTargetType, [FieldModifier.PUBLIC], false)
+        const argTypes: Type[] = membersInfo.map(it => it.type)
+        const memberNames: string[] = membersInfo.map(it => it.name)
+        this.imports.printImportsForTypes(argTypes, writer)
+
+        writer.writeClass(javaType.alias, () => {
+            for (const memberInfo of membersInfo) {
+                writer.writeFieldDeclaration(memberInfo.name, memberInfo.type, [FieldModifier.PUBLIC], false)
             }
 
             const signature = new MethodSignature(Type.Void, argTypes)

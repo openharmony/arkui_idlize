@@ -15,6 +15,8 @@
 
 package org.koalaui.arkoala;
 
+import java.util.Map;
+
 public class Main {
     public static void main(String[] args) {
         long str = NativeModule._StringMake("Hello");
@@ -125,6 +127,18 @@ public class Main {
         dragInteractionOptions.defaultAnimationBeforeLifting = new Opt_Boolean(true);
         buttonPeer.dragPreviewOptionsAttribute(dragPreviewOptions, dragInteractionOptions); // +interface +union
         System.out.println("Array tests done");
+
+        // map
+        var dataInfo = new NativeEmbedDataInfo();
+        dataInfo.info = new NativeEmbedInfo();
+        dataInfo.info.params = Map.of("k1", "v1", "k2", "v2");
+        var webPeer = new ArkWebPeer(ArkUINodeType.Root /* ArkUINodeType.Web */, null, 0);
+        webPeer.testMethodAttribute(dataInfo);
+        System.out.println("Map tests done");
+        var doubleStringMap = Map.of(1.0, "v1", 2.0, "v2");
+        var unionWithMap = new Union_double_Map_Double_String(doubleStringMap);
+        peer.testUnionWithMapAttribute(unionWithMap); // +union
+        peer.testMapAttribute(doubleStringMap); // +map in peer method
     }
 }
 

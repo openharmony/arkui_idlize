@@ -15,8 +15,10 @@
 
 import { Language } from '../../../util';
 import { DeclarationTable } from '../../DeclarationTable';
+import { ImportTable as ImportTable } from '../ImportTable';
 import { PrinterContext } from '../PrinterContext';
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry';
+import { JavaImportTable } from './JavaImportTable';
 import { JavaSynthesizedTypesRegistry } from './JavaSynthesizedTypesRegistry';
 
 class PrinterContextImpl implements PrinterContext {
@@ -26,16 +28,22 @@ class PrinterContextImpl implements PrinterContext {
     get synthesizedTypes(): SynthesizedTypesRegistry | undefined {
         return this._synthesizedTypes
     }
+
+    get imports(): ImportTable | undefined {
+        return this._imports
+    }
     
     constructor(table: DeclarationTable) {
         if (table.language == Language.JAVA) {
-            this._synthesizedTypes = new JavaSynthesizedTypesRegistry(table)
+            this._imports = new JavaImportTable()
+            this._synthesizedTypes = new JavaSynthesizedTypesRegistry(table, this._imports)
         }
         this._language = table.language
     }
 
-    private readonly _synthesizedTypes: SynthesizedTypesRegistry | undefined
     private readonly _language: Language
+    private readonly _imports: ImportTable | undefined
+    private readonly _synthesizedTypes: SynthesizedTypesRegistry | undefined
 }
 
 export function createPrinterContext(table: DeclarationTable): PrinterContext {

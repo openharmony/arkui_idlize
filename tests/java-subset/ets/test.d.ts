@@ -203,6 +203,10 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testBasicMix(v1: number, v2: string, v3: number): TestAttribute
 
+    testMap(value: Map<number, string>): TestAttribute
+    
+    testUnionWithMap(value: number | Map<number, string>): TestAttribute
+
     // undefined
 
     testBooleanUndefined(value: boolean | undefined): TestAttribute;

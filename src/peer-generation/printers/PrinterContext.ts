@@ -14,9 +14,11 @@
  */
 
 import { Language } from '../../util';
+import { ImportTable } from './ImportTable';
 import { SynthesizedTypesRegistry } from './SynthesizedTypesRegistry';
 
 export interface PrinterContext {
     get language(): Language
     get synthesizedTypes(): SynthesizedTypesRegistry | undefined
+    get imports(): ImportTable | undefined
 }

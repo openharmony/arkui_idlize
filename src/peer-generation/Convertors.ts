@@ -969,7 +969,8 @@ export class MapConvertor extends BaseArgConvertor {
         // Map size.
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
             castToInt8(printer.makeRuntimeTypeGetterCall(value).asString(), printer.language)])
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [castToInt32(`${value}.size`, printer.language)])
+        const mapSize = printer.makeMapSize(value)
+        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [mapSize.asString()])
         printer.writeStatement(printer.makeMapForEach(value, `${value}_key`, `${value}_value`, () => {
             this.keyConvertor.convertorSerialize(param, `${value}_key`, printer)
             this.valueConvertor.convertorSerialize(param, `${value}_value`, printer)
@@ -995,7 +996,7 @@ export class MapConvertor extends BaseArgConvertor {
                 printer.makeLoop(counterVar, mapSize, new BlockStatement([
                     printer.makeAssign(tmpKey, new Type(keyTypeName), undefined, true, false),
                     this.keyConvertor.convertorDeserialize(param, tmpKey, printer),
-                    printer.makeAssign(tmpValue, new Type(keyTypeName), undefined, true, false),
+                    printer.makeAssign(tmpValue, new Type(valueTypeName), undefined, true, false),
                     this.valueConvertor.convertorDeserialize(param, tmpValue, printer),
                     printer.makeMapInsert(keyAccessor, tmpKey, valueAccessor, tmpValue),
                 ], false)),

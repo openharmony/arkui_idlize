@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-import { Type } from '../LanguageWriters'
-import { TargetFile } from './TargetFile'
-import { DeclarationTarget } from '../DeclarationTable'
+import { LanguageWriter, Type } from "../LanguageWriters";
 
-export interface SynthesizedTypesRegistry {
-    getDefinitions(): Map<TargetFile, string>
-    getTargetType(target: DeclarationTarget, optional: boolean): Type
+export interface ImportTable {
+    getImportsForType(type: Type): string[]
+    setImportsForType(type: Type, imports: string[]): void
+    printImportsForTypes(types: Type[], printer: LanguageWriter): void
 }

@@ -318,7 +318,7 @@ class JavaMapForEachStatement implements LanguageStatement {
     constructor(private map: string, private key: string, private value: string, private op: () => void) {}
     write(writer: LanguageWriter): void {
         const entryVar = `${this.map}Entry`
-        writer.print(`for (Map.Entry<?, ?> ${entryVar}: ${this.map}.entrySet()) {`)
+        writer.print(`for (var ${entryVar}: ${this.map}.entrySet()) {`)
         writer.pushIndent()
         writer.print(`var ${this.key} = ${entryVar}.getKey();`)
         writer.print(`var ${this.value} = ${entryVar}.getValue();`)
@@ -733,6 +733,9 @@ export abstract class LanguageWriter {
     makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression("// TODO: TS map resize"))
     }
+    makeMapSize(map: string): LanguageExpression {
+        return this.makeString(`${map}.size`)
+    }
     makeTupleAlloc(option: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression(""))
     }
@@ -999,6 +1002,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, op)
     }
+    makeMapSize(map: string): LanguageExpression {
+        return this.makeString(`${super.makeMapSize(map).asString()} as int32`) // TODO: cast really needed?
+    }
     mapType(type: Type, convertor?: ArgConvertor): string {
         if (convertor instanceof EnumConvertor) {
             return 'int'
@@ -1163,6 +1169,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new JavaMapForEachStatement(map, key, value, op)
+    }
+    makeMapSize(map: string): LanguageExpression {
+        return this.makeString(`${map}.size()`)
     }
     makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
         return new JavaCastExpression(value, type, unsafe)

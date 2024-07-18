@@ -208,23 +208,28 @@ class JavaInterfacesVisitor {
     }
 
     private printClassOrInterface(node: ts.ClassDeclaration | ts.InterfaceDeclaration, writer: LanguageWriter) {
+        type MemberInfo = {name: string, type: Type, optional: boolean}
+        const membersInfo: MemberInfo[] = node.members.map(property => {
+            if (!ts.isPropertyDeclaration(property) && !ts.isPropertySignature(property)) {
+                return
+            }
+            if (!property.type) {
+                throw new Error(`Unexpected member type: ${property.type}`);
+            }
+
+            const propertyName = this.getName(property)
+            const propertyDeclarationTarget = this.peerLibrary.declarationTable.toTarget(property.type)
+            const optional = !!property.questionToken
+            const propertyType = this.context.synthesizedTypes!.getTargetType(propertyDeclarationTarget, optional)
+            return {name: propertyName, type: propertyType, optional: optional}
+        }).filter((it): it is MemberInfo => !!it)
+
+        this.context.imports?.printImportsForTypes(membersInfo.map(it => it.type), writer)
+
         const superClass = this.getSuperClass(node) ?? ARK_OBJECTBASE
         writer.writeClass(this.getName(node), () => {
-            for (const property of node.members) {
-                if (!ts.isPropertyDeclaration(property) && !ts.isPropertySignature(property)) {
-                    continue
-                }
-
-                if (!property.type) {
-                    throw new Error(`Unexpected member type: ${property.type}`);
-                }
-
-                const propertyName = this.getName(property)
-                const propertyDeclarationTarget = this.peerLibrary.declarationTable.toTarget(property.type)
-                const optional = !!property.questionToken
-                const propertyType = this.context.synthesizedTypes!.getTargetType(propertyDeclarationTarget, optional)
-
-                writer.writeFieldDeclaration(propertyName, propertyType, [FieldModifier.PUBLIC], optional)
+            for (const member of membersInfo) {
+                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional)
             }
         }, superClass)
     }

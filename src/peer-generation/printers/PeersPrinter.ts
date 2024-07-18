@@ -248,7 +248,12 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ARKOALA_PACKAGE_PATH), printer)
 
+            const allTypesInPeer = peer.methods.flatMap((method) => {
+                return method.declarationTargets.map(target => this.printerContext.synthesizedTypes!.getTargetType(target, false))
+            })
+
             this.printPackage(printer)
+            this.printerContext.imports?.printImportsForTypes(allTypesInPeer, printer)
             this.printPeer(peer, printer)
 
             // TODO: attributes
