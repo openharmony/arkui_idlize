@@ -30,7 +30,7 @@ namespace ApiImpl {
     void SetCustomCallback(Ark_VMContext context, Ark_NodeHandle node, Ark_Int32 callback);
     Ark_Int32 MeasureLayoutAndDraw(Ark_VMContext vmContext, Ark_NodeHandle rootPtr);
     Ark_Int32 MeasureNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data);
-    Ark_Int32 LayoutNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data);
+    Ark_Int32 LayoutNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32 (*data)[2]);
     Ark_Int32 DrawNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data);
     void SetAttachNodePtr(Ark_NodeHandle node, void* value);
     void* GetAttachNodePtr(Ark_NodeHandle node);

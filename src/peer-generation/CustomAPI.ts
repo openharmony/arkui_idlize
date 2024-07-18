@@ -120,7 +120,6 @@ export const CUSTOM_API: CustomAPI[] = [
         method(`measureLayoutAndDraw`, Type.Void, [K_VMCONTEXT_TYPE, Type.Pointer], ["vmContext", "nodePtr"]),
 
         method(`measureNode`, Type.Int32, [K_VMCONTEXT_TYPE, Type.Pointer, K_FLOAT_ARRAY_TYPE], ["vmContext", "nodePtr", "data"]),
-        method(`layoutNode`, Type.Int32, [K_VMCONTEXT_TYPE, Type.Pointer, K_FLOAT_ARRAY_TYPE], ["vmContext", "nodePtr", "data"]),
         method(`drawNode`, Type.Int32, [K_VMCONTEXT_TYPE, Type.Pointer, K_FLOAT_ARRAY_TYPE], ["vmContext", "nodePtr", "data"]),
 
         method(`indexerChecker`, Type.Int32, [K_VMCONTEXT_TYPE, Type.Pointer], ["vmContext", "nodePtr"]),

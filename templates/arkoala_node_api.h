@@ -412,7 +412,7 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     // make void instead return type Ark_Int32
     Ark_Int32 (*measureLayoutAndDraw) (Ark_VMContext  vmContext, Ark_NodeHandle node);
     Ark_Int32 (*measureNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32* data);
-    Ark_Int32 (*layoutNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32* data);
+    Ark_Int32 (*layoutNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32 (*data)[2]);
     Ark_Int32 (*drawNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32* data);
     void (*setAttachNodePtr) (Ark_NodeHandle node, void* value);
     void* (*getAttachNodePtr) (Ark_NodeHandle node);
