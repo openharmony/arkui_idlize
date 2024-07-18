@@ -28,7 +28,14 @@ export type PeerLibraryOutput = {
 export class PeerLibrary {
     public readonly files: PeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
+    public get buildersToGenerate(): BuilderClass[] {
+        return Array.from(this.builderClasses.values()).filter(it => it.needBeGenerated)
+    }
+
     public readonly materializedClasses: Map<string, MaterializedClass> = new Map()
+    public get materializedToGenerate(): MaterializedClass[] {
+        return Array.from(this.materializedClasses.values()).filter(it => it.needBeGenerated)
+    }
 
     constructor(
         public declarationTable: DeclarationTable,

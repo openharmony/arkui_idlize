@@ -88,7 +88,7 @@ class BuilderClassVisitor {
     ) { }
 
     printBuilderClasses(): void {
-        const builderClasses = [...CUSTOM_BUILDER_CLASSES, ...this.library.builderClasses.values()]
+        const builderClasses = [...CUSTOM_BUILDER_CLASSES, ...this.library.buildersToGenerate.values()]
         console.log(`Builder classes: ${builderClasses.length}`)
         for (const clazz of builderClasses) {
             const visitor = new BuilderClassFileVisitor(

@@ -136,6 +136,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly finalizer: MaterializedMethod,
         public readonly importFeatures: ImportFeature[],
         public methods: MaterializedMethod[],
+        public readonly needBeGenerated: boolean = true,
     ) {
         PeerMethod.markOverloads(methods)
     }

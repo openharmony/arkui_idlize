@@ -100,6 +100,7 @@ class PeerFileVisitor {
         imports.addFeature("unsafeCast", "./shared/generated-utils")
         imports.addFeature("registerCallback", "./peers/SerializerBase")
         Array.from(this.library.builderClasses.keys())
+            .filter(it => this.library.builderClasses.get(it)?.needBeGenerated)
             .forEach((className) => imports.addFeature(className, `./Ark${className}Builder`))
         imports.print(printer, `./peers/${targetBasename}`)
     }

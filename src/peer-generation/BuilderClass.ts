@@ -73,6 +73,7 @@ export class BuilderClass {
         public readonly constructors: Method[],
         public readonly methods: Method[],
         public readonly importFeatures: ImportFeature[],
+        public readonly needBeGenerated: boolean = true,
     ) { }
 }
 
@@ -95,7 +96,7 @@ export function isCustomBuilderClass(name: string) {
     return CUSTOM_BUILDER_CLASSES_SET.has(name)
 }
 
-export function toBuilderClass(name: string, target: ts.InterfaceDeclaration | ts.ClassDeclaration, typeChecker: ts.TypeChecker) {
+export function toBuilderClass(name: string, target: ts.InterfaceDeclaration | ts.ClassDeclaration, typeChecker: ts.TypeChecker, needBeGenerated: boolean) {
 
     const isClass = ts.isClassDeclaration(target)
     const isInterface = ts.isInterfaceDeclaration(target)
@@ -118,7 +119,7 @@ export function toBuilderClass(name: string, target: ts.InterfaceDeclaration | t
 
     const methods = getBuilderMethods(target, typeChecker)
 
-    return new BuilderClass(name, isInterface, undefined, fields, constructors, methods, [])
+    return new BuilderClass(name, isInterface, undefined, fields, constructors, methods, [], needBeGenerated)
 }
 
 function getBuilderMethods(target: ts.InterfaceDeclaration | ts.ClassDeclaration, typeChecker: ts.TypeChecker): Method[] {

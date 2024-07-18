@@ -258,7 +258,7 @@ class BridgeCcVisitor {
         }
 
         this.generatedApi.print("\n// Accessors\n")
-        for (const clazz of this.library.materializedClasses.values()) {
+        for (const clazz of this.library.materializedToGenerate) {
             for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
                 this.printMethod(method)
             }

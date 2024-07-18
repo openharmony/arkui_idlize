@@ -660,7 +660,7 @@ export class PeerProcessor {
         return this.library.declarationTable
     }
 
-    private processBuilder(target: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+    private processBuilder(target: ts.InterfaceDeclaration | ts.ClassDeclaration, isActualDeclaration: boolean) {
         let name = nameOrNull(target.name)!
         if (this.library.builderClasses.has(name)) {
             return
@@ -670,11 +670,11 @@ export class PeerProcessor {
             return
         }
 
-        const builderClass = toBuilderClass(name, target, this.declarationTable.typeChecker!)
+        const builderClass = toBuilderClass(name, target, this.declarationTable.typeChecker!, isActualDeclaration)
         this.library.builderClasses.set(name, builderClass)
     }
 
-    private processMaterialized(target: ts.InterfaceDeclaration | ts.ClassDeclaration) {
+    private processMaterialized(target: ts.InterfaceDeclaration | ts.ClassDeclaration, isActualDeclaration: boolean) {
         let name = nameOrNull(target.name)!
         if (this.library.materializedClasses.has(name)) {
             return
@@ -700,7 +700,7 @@ export class PeerProcessor {
         const generics = target.typeParameters?.map(it => it.getText())
 
         let constructor = isClass ? target.members.find(ts.isConstructorDeclaration) : undefined
-        let mConstructor = this.makeMaterializedMethod(name, constructor)
+        let mConstructor = this.makeMaterializedMethod(name, constructor, isActualDeclaration)
         const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
         let mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]))
@@ -717,14 +717,14 @@ export class PeerProcessor {
         let mMethods = isClass
             ? target.members
                 .filter(ts.isMethodDeclaration)
-                .map(method => this.makeMaterializedMethod(name, method))
+                .map(method => this.makeMaterializedMethod(name, method, isActualDeclaration))
             : isInterface
                 ? target.members
                 .filter(ts.isMethodSignature)
-                .map(method => this.makeMaterializedMethod(name, method))
+                .map(method => this.makeMaterializedMethod(name, method, isActualDeclaration))
                 : []
         this.library.materializedClasses.set(name,
-            new MaterializedClass(name, isInterface, superClass, generics, mFields, mConstructor, mFinalizer, importFeatures, mMethods))
+            new MaterializedClass(name, isInterface, superClass, generics, mFields, mConstructor, mFinalizer, importFeatures, mMethods, isActualDeclaration))
     }
 
     private makeMaterializedField(className: string, property: ts.PropertyDeclaration | ts.PropertySignature): MaterializedField {
@@ -739,7 +739,7 @@ export class PeerProcessor {
             new Field(name, new Type(mapType(property.type)), modifiers))
     }
 
-    private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | undefined) {
+    private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | undefined, isActualDeclaration: boolean) {
         const methodName = method === undefined || ts.isConstructorDeclaration(method) ? "ctor" : identName(method.name)!
         this.declarationTable.setCurrentContext(`Materialized_${parentName}_${methodName}`)
 
@@ -758,7 +758,7 @@ export class PeerProcessor {
         const declarationTargets = method.parameters.map(param =>
             this.declarationTable.toTarget(param.type ??
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
-        method.parameters.forEach(it => this.declarationTable.requestType(undefined, it.type!, true))
+        method.parameters.forEach(it => this.declarationTable.requestType(undefined, it.type!, isActualDeclaration))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param))
         const signature = generateSignature(method)
         const modifiers = ts.isConstructorDeclaration(method) || isStatic(method.modifiers) ? [MethodModifier.STATIC] : []
@@ -825,8 +825,8 @@ export class PeerProcessor {
         })
     }
 
-    private generateDeclarations(): Set<ts.Declaration> {
-        const deps = new Set(this.generateActualComponents().flatMap(it => {
+    private generateDeclarations(components: ComponentDeclaration[]): Set<ts.Declaration> {
+        const deps = new Set(components.flatMap(it => {
             const decls: ts.Declaration[] = [it.attributesDeclarations]
             if (it.interfaceDeclaration)
                 decls.push(it.interfaceDeclaration)
@@ -856,20 +856,27 @@ export class PeerProcessor {
         const peerGenerator = new PeersGenerator(this.library)
         for (const component of this.library.componentsDeclarations)
             peerGenerator.generatePeer(component)
-        for (const dep of this.generateDeclarations()) {
+        const allDeclarations = this.generateDeclarations(this.library.componentsDeclarations)
+        const actualDeclarations = this.generateDeclarations(this.generateActualComponents())
+
+        for (const dep of allDeclarations) {
             if (isSyntheticDeclaration(dep))
                 continue
             const file = this.library.findFileByOriginalFilename(this.getDeclSourceFile(dep).fileName)!
             const isPeerDecl = this.library.isComponentDeclaration(dep)
+            const isActualDeclaration = actualDeclarations.has(dep)
 
             if (!isPeerDecl && (ts.isClassDeclaration(dep) || ts.isInterfaceDeclaration(dep))) {
                 if (isBuilderClass(dep)) {
-                    this.processBuilder(dep)
+                    this.processBuilder(dep, isActualDeclaration)
                 } else if (isMaterialized(dep)) {
-                    this.processMaterialized(dep)
+                    this.processMaterialized(dep, isActualDeclaration)
                     continue
                 }
             }
+
+            if (!isActualDeclaration)
+                continue
 
             if (ts.isEnumDeclaration(dep)) {
                 this.processEnum(dep)

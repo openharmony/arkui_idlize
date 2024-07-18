@@ -210,7 +210,7 @@ class MaterializedVisitor {
 
     printMaterialized(): void {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
-        for (const clazz of this.library.materializedClasses.values()) {
+        for (const clazz of this.library.materializedToGenerate) {
             const visitor = new MaterializedFileVisitor(
                 this.library, this.printerContext, clazz, this.dumpSerialized)
             visitor.printFile()
