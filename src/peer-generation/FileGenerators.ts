@@ -253,7 +253,7 @@ export function makeTSSerializer(library: PeerLibrary): string {
         : ''
     return `${cStyleCopyright}
 ${extraImports}
-import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "@arkoala/arkui/peers/SerializerBase"
+import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
 
