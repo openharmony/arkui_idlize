@@ -51,7 +51,7 @@ export class CustomPrintVisitor  {
     printInterface(node: IDLInterface) {
         const namespace = getExtAttribute(node, "Namespace")
         this.openNamespace(namespace)
-        let typeSpec = toTypeName(node)
+        let typeSpec = toTypeName(node, "TypeParameters")
         const entity = getExtAttribute(node, "Entity")
         if (entity === IDLEntity.Literal) {
             this.print(`declare type ${typeSpec} = ${literal(node, false, true)}`)
@@ -104,11 +104,13 @@ export class CustomPrintVisitor  {
         let name = isConstructor(node) ? "constructor" : getName(node)
         let isOptional = isMethod(node) && node.isOptional
         if (hasExtAttribute(node, "CallSignature")) name = ""
-        if (hasExtAttribute(node,"DtsName")) {
-            let dtsName = getExtAttribute(node, "DtsName")
-            name = dtsName ? dtsName.replaceAll("\"","") : ""
-        }
-        this.print(`${isGlobal ? "declare function ": ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
+        // if (hasExtAttribute(node,"DtsName")) {
+        //     let dtsName = getExtAttribute(node, "DtsName")
+        //     name = dtsName ? dtsName.replaceAll("\"","") : ""
+        // }
+        const typeParamsAttr = getExtAttribute(node, "TypeParameters")
+        const typeParams = typeParamsAttr ? `<${typeParamsAttr}>` : ""
+        this.print(`${isGlobal ? "declare function ": ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}${typeParams}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
     }
     paramText(param: IDLParameter): string {
         return `${param.isVariadic ? "..." : ""}${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
@@ -205,7 +207,7 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type))
         return `${mapContainerType(type.name)}<${type.elementType.map(it => printTypeForTS(it)).join(",")}>`
-    if (isReferenceType(type)) return toTypeName(type)
+    if (isReferenceType(type)) return toTypeName(type, "TypeArguments")
     if (isUnionType(type)) return `(${type.types.map(it => printTypeForTS(it)).join("|")})`
     if (isEnumType(type)) return type.name
     if (isTypeParameterType(type)) return type.name
@@ -221,7 +223,7 @@ function mapContainerType(idlName: string): string {
     }
 }
 
-function toTypeName(node: IDLEntry): string {
+function toTypeName(node: IDLEntry, typeAttribute: string): string {
     const synthType = resolveSyntheticType(node.name)
     if (synthType) {
         if (isInterface(synthType)) {
@@ -236,12 +238,12 @@ function toTypeName(node: IDLEntry): string {
     if (importAttr) {
         return importAttr
     }
-    let typeSpec = getName(node) ?? "MISSING_TYPE_NAME"
+    let typeSpec = node.name ?? "MISSING_TYPE_NAME"
     const qualifier = getExtAttribute(node, "Qualifier")
     if (qualifier) {
         typeSpec = `${qualifier}.${typeSpec}`
     }
-    const typeParams = getExtAttribute(node, "TypeParameters")
+    const typeParams = getExtAttribute(node, typeAttribute)
     if (typeParams) {
         typeSpec = `${typeSpec}<${typeParams}>`
     }
@@ -267,5 +269,5 @@ function literal(node: IDLInterface, isTuple: boolean, includeFieldNames: boolea
 }
 
 function getName(node: IDLEntry): stringOrNone {
-    return nameOrNullFromIdl(node.name)
+    return getExtAttribute(node, "DtsName") ?? nameOrNullFromIdl(node.name)
 }

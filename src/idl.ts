@@ -452,7 +452,7 @@ function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNo
     return attrSpec ? [indentedBy(`[${attrSpec}]`, indentLevel)] : []
 }
 
-const attributesToQuote = new Set(["Documentation", "Import", "Interfaces", "TypeParameters"])
+const attributesToQuote = new Set(["Documentation", "DtsName", "Import", "Interfaces", "TypeArguments", "TypeParameters"])
 
 function quoteAttributeValues(attributes?: IDLExtendedAttribute[]): stringOrNone {
     return attributes

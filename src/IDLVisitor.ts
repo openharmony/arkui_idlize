@@ -527,7 +527,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             let result = createReferenceType(transformedType)
             if (type.typeArguments) {
                 result.extendedAttributes = [{
-                    name : "TypeParameters",
+                    name : "TypeArguments",
                     value: type.typeArguments!
                         .map(it => it.getText())
                         .join(",")
@@ -642,13 +642,15 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     serializeProperty(property: ts.TypeElement | ts.ClassElement): IDLProperty {
+        const [propName, escapedName] = escapeName(this.propertyName(property.name!)!)
+        const extAttrs: IDLExtendedAttribute[] = propName !== escapedName ? [{ name: "DtsName", value: propName}] : []
         if (ts.isMethodDeclaration(property) || ts.isMethodSignature(property)) {
-            const name = asString(property.name)
             if (!this.isCommonMethodUsedAsProperty(property)) throw new Error("Wrong")
+            extAttrs.push({ name: "CommonMethod" })
             return {
                 kind: IDLKind.Property,
-                name: name,
-                extendedAttributes: this.computeDeprecatedExtendAttributes(property,[{ name: "CommonMethod" } ]),
+                name: escapedName,
+                extendedAttributes: this.computeDeprecatedExtendAttributes(property, extAttrs),
                 documentation: getDocumentation(this.sourceFile, property, this.options.docs),
                 type: this.serializeType(property.parameters[0].type),
                 isReadonly: false,
@@ -659,7 +661,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
         if (ts.isPropertyDeclaration(property) || ts.isPropertySignature(property)) {
             const name = this.propertyName(property.name)
-            let extendedAttributes = !!property.questionToken ? [{name: 'Optional'}] : undefined
+            if (property.questionToken)
+                extAttrs.push({name: 'Optional'})
             return {
                 kind: IDLKind.Property,
                 name: name!,
@@ -668,7 +671,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 isReadonly: isReadonly(property.modifiers),
                 isStatic: isStatic(property.modifiers),
                 isOptional: !!property.questionToken,
-                extendedAttributes: this.computeDeprecatedExtendAttributes(property,extendedAttributes),
+                extendedAttributes: this.computeDeprecatedExtendAttributes(property, extAttrs),
             }
         }
         throw new Error("Unknown")
@@ -730,23 +733,26 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     /** Serialize a signature (call or construct) */
     serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration): IDLMethod {
+        const typeParams = method.typeParameters?.map(it => it.getText()).join(",")
+        let extendedAttributes: IDLExtendedAttribute[] = typeParams ? [{name: "TypeParameters", value: typeParams}] : []
         if (ts.isIndexSignatureDeclaration(method)) {
+            extendedAttributes.push({name: 'IndexSignature' })
             return {
                 kind: IDLKind.Method,
                 name: "indexSignature",
                 documentation: getDocumentation(this.sourceFile, method, this.options.docs),
                 returnType: this.serializeType(method.type),
-                extendedAttributes: this.computeDeprecatedExtendAttributes(method,[{name: 'IndexSignature' }]),
+                extendedAttributes: this.computeDeprecatedExtendAttributes(method, extendedAttributes),
                 isStatic: false,
                 isOptional: false,
                 parameters: method.parameters.map(it => this.serializeParameter(it))
             }
         }
-        const [methodName, escapedName] = escapeMethodName(method.name!.getText(this.sourceFile))
+        const [methodName, escapedName] = escapeName(nameOrUndefined(method.name)!)
         const returnType = this.serializeType(method.type)
-        const extendedAttributes = this.liftExtendedAttributes([], returnType)
+        extendedAttributes = this.liftExtendedAttributes(extendedAttributes, returnType)
         if (methodName !== escapedName)
-            extendedAttributes.push({ name: "DtsName", value: `"${methodName}"`})
+            extendedAttributes.push({ name: "DtsName", value: methodName})
         if (!!method.questionToken)
             extendedAttributes.push({name: 'Optional'})
         return {
@@ -822,8 +828,9 @@ function sanitize(type: stringOrNone): stringOrNone {
     }
 }
 
-function escapeMethodName(name: string) : [string, string] {
+function escapeName(name: string) : [string, string] {
     if (name.startsWith("$")) return [name, name.replace("$", "dollar_")]
+    if (name.startsWith("_")) return [name, name.replace("_", "bottom_")]
     return [name, name]
 }
 

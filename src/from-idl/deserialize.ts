@@ -105,37 +105,37 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
     return result
 }
 
-function toTypeParams(extAttrs: webidl2.ExtendedAttribute[] | undefined) {
-    let result = undefined
-    extAttrs?.forEach(it => {
-        if (it.name === "TypeParameters") result = toExtendedAttributeValue(it)
-    })
-    return result
+function extractTypeArguments(extAttrs: webidl2.ExtendedAttribute[] | undefined): IDLExtendedAttribute[] | undefined {
+    for (let attr of extAttrs ?? []) {
+        if (attr.name === "TypeArguments")
+            return [{"name": "TypeArguments", value: toExtendedAttributeValue(attr)}]
+    }
+    return undefined
 }
 
 function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extAttrs?: webidl2.ExtendedAttribute[]): IDLType {
     if (typeof type === "string") {
-        const typeParams = toTypeParams(extAttrs)
         return {
             name: type,
             fileName: file,
             kind: IDLKind.ReferenceType,
-            extendedAttributes: typeParams ? [{ "name": "TypeParameters", value: typeParams }] : []
+            extendedAttributes: extractTypeArguments(extAttrs)
         }
     }
     if (isUnionTypeDescription(type)) {
-        const unionTypes = type.idlType
-        return createUnionType(unionTypes
+        return createUnionType(type.idlType
             .map(it => toIDLType(file, it))
             .filter(isDefined))
     }
     if (isSingleTypeDescription(type)) {
+        const combinedExtAttrs = extAttrs
+            ? type.extAttrs ? extAttrs.concat(type.extAttrs) : extAttrs
+            : type.extAttrs
         return {
             name: type.idlType,
             fileName: file,
             kind: IDLKind.ReferenceType,
-            extendedAttributes: toExtendedAttributes(type.extAttrs)?.concat(
-                toExtendedAttributes(extAttrs ?? []) ?? [])
+            extendedAttributes: toExtendedAttributes(combinedExtAttrs)
         }
     }
     if (isSequenceTypeDescription(type) || isPromiseTypeDescription(type) || isRecordTypeDescription(type)) {

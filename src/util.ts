@@ -43,7 +43,7 @@ export function isNodePublic(node: ts.Node): boolean {
     return (ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Public) !== 0
 }
 
-const IdlKeywords = new Set<string>(["attribute", "callback", "object"])
+const IdlKeywords = new Set<string>(["attribute", "callback", "object", "toString"])
 
 export function nameOrNullForIdl(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {
     if (name == undefined) return undefined
