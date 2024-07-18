@@ -23,7 +23,11 @@ class BuilderClassFileVisitor {
         //TODO: in the future it is necessary to import elements from generated ets files
         if (writer.language == Language.ARKTS) {
             writer.print(collectDtsImports().trim())
-            writer.print("import { SelectedMode } from './ArkTabContentInterfaces'")
+            writer.print("import { SelectedMode, IndicatorStyle, BoardStyle } from '@arkoala/arkui/ArkTabContentInterfaces'")
+            writer.print("import { Dimension, Length, LengthMetrics, Resource, ResourceColor, ResourceStr, LocalizedPadding } from '@arkoala/arkui/ArkUnitsInterfaces'")
+            writer.print("import { SheetTitleOptions, Padding, ComponentContent } from '@arkoala/arkui/ArkCommonInterfaces'")
+            writer.print("import { LabelStyle } from '@arkoala/arkui/ArkButtonInterfaces'")
+            writer.print("import { NativeEmbedDataInfo } from '@arkoala/arkui/ArkWebInterfaces'")
         }
 
         writer.writeClass(clazz.name, writer => {

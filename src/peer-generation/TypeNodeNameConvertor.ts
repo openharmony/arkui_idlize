@@ -170,3 +170,39 @@ export function mapType(type: ts.TypeNode | undefined): string {
     type ??= ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
     return nameConvertorInstance.convert(type)
 }
+
+export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
+    convertAnyKeyword(node: ts.TypeNode): string {
+        return "Object"
+    }
+
+    protected convertTupleElement(node: ts.TypeNode): string {
+        return super.convertTupleElement(node).replaceAll("?", " | undefined")
+    }
+
+    convertVoidKeyword(node: ts.TypeNode): string {
+        return "Void"
+    }
+
+    convertImport(node: ts.ImportTypeNode): string {
+        return super.convertImport(node);
+    }
+
+    convertLiteralType(node: ts.LiteralTypeNode): string {
+        if (ts.isUnionTypeNode(node.parent) && ts.isStringLiteral(node.literal)) {
+            return `LITERAL_${node.literal.getText().replaceAll('"', '')}`
+        } else {
+            return super.convertLiteralType(node)
+        }
+    }
+
+    convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): string {
+        const parent = node.parent
+        if (ts.isTypeAliasDeclaration(parent)) {
+            return `TEMPLATE_LITERAL_${node.templateSpans
+                .map(it => `${this.convert(it.type)}_${parent.name.text}`).join('_')}`
+        }
+        return `TEMPLATE_LITERAL_${node.templateSpans
+            .map(it => `${this.convert(it.type)}_${it.literal.text}`).join('_')}`
+    }
+}

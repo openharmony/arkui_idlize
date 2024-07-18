@@ -13,18 +13,17 @@
  * limitations under the License.
  */
 
-import { DeclarationGenerator } from "./InterfacePrinter";
+import { createDeclarationConvertor } from "./InterfacePrinter";
 import { createLanguageWriter } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
-import { convertDeclaration } from "../TypeNodeConvertor";
 import { makeSyntheticDeclarationsFiles } from "../synthetic_declaration";
 import { ImportsCollector } from "../ImportsCollector";
 import { cStyleCopyright } from "../FileGenerators";
 import { removeExt } from "../../util";
+import { convertDeclaration } from "../TypeNodeConvertor";
 
 export function printFakeDeclarations(library: PeerLibrary): Map<string, string> {
     const lang = library.declarationTable.language
-    const declarationGenerator = new DeclarationGenerator(library)
     const result = new Map<string, string>()
     for (const [filename, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
         const writer = createLanguageWriter(lang)
@@ -32,8 +31,9 @@ export function printFakeDeclarations(library: PeerLibrary): Map<string, string>
         const imports = new ImportsCollector()
         dependencies.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(writer, removeExt(filename))
+        const convertor = createDeclarationConvertor(writer, library)
         for (const node of declarations) {
-            writer.print(convertDeclaration(declarationGenerator, node))
+            convertDeclaration(convertor, node)
         }
         result.set(`${filename}${lang.extension}`, writer.getOutput().join('\n'))
     }

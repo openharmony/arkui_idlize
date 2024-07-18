@@ -810,7 +810,7 @@ export abstract class LanguageWriter {
         let allowedModifiers = this.supportedFieldModifiers
         let modifierFilter = customFieldFilter ? customFieldFilter : function(field: FieldModifier) {
             return allowedModifiers.includes(field)
-        } 
+        }
         let prefix = modifiers
             ?.filter(modifierFilter)
             .map(it => this.mapFieldModifier(it)).join(" ")

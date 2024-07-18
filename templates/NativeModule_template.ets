@@ -44,16 +44,19 @@ export class NativeModule {
   static native _GetGroupedLog(arg1: int): long;
   static native _StartGroupedLog(arg1: int): void;
   static native _StopGroupedLog(arg1: int): void;
-  static native _TestPerfNumber(arg1: int): int;
-  static native _TestPerfNumberWithArray(arg1: byte[], arg2: int): void;
-  static native _Test_TextPicker_OnAccept(valueArray: byte[], valueSerializerLength: int): void;
   static native _StartPerf(traceName: String): void;
   static native _EndPerf(traceName: String): void;
   static native _DumpPerf(options: int): long;
+  static native _GetNodeByViewStack(): long;
+  static native _TestPerfNumber(arg1: int): int;
+  static native _TestPerfNumberWithArray(arg1: byte[], arg2: int): void;
+  static native _Test_TextPicker_OnAccept(valueArray: byte[], valueSerializerLength: int): void;
   static native _Test_SetEventsApi(): void;
   static native _Test_List_OnScrollVisibleContentChange(valueArray: byte[], valueSerializerLength: int): void;
   static native _Test_Common_OnChildTouchTest(valueArray: byte[], valueSerializerLength: int): void;
-  static native _GetNodeByViewStack(): long;
+  static native _TestCallIntNoArgs(arg1: int): int
+  static native _TestCallIntInt32ArraySum(arg1: int, arg2: Int32Array, arg3: int): int
+  static native _TestCallVoidInt32ArrayPrefixSum(arg1: int, arg2: int[], arg3: int): int
 
   // BasicNodeAPI
   static native _CreateNode(type: int, id: int, flags: int): long

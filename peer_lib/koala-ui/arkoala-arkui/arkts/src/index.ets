@@ -15,38 +15,37 @@
 import { NativeModule } from "./NativeModule"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
-import { ButtonType } from '@arkoala/arkui/ArkButtonInterfaces'
+import { ButtonType, LabelStyle } from '@arkoala/arkui/ArkButtonInterfaces'
+import { BlurOptions,
+         SheetSize,
+         BlurStyle,
+         SheetType,
+         SheetDismiss,
+         DismissSheetAction,
+         SpringBackAction,
+         EdgeWidths,
+         LocalizedEdgeWidths,
+         EdgeColors,
+         LocalizedEdgeColors,
+         BorderStyle,
+         ShadowOptions,
+         ShadowStyle,
+         SheetMode,
+         Callback,
+         SheetTitleOptions,
+         SheetOptions,
+         CustomBuilder,
+         EdgeStyles,
+         UIContext, } from "@arkoala/arkui/ArkCommonInterfaces"
+import { Dimension,
+         Length,
+         LengthMetrics,
+         Resource,
+         ResourceColor,
+         ResourceStr,
+         Font } from "@arkoala/arkui/ArkUnitsInterfaces"
 
-import {LabelStyle,
-        TextOverflow,
-        ResourceStr,
-        TextHeightAdaptivePolicy,
-        Font,
-        SheetOptions,
-        SheetTitleOptions,
-        CustomBuilder,
-        SheetSize,
-        Length,
-        ResourceColor,
-        BlurStyle,
-        SheetType,
-        Resource,
-        SheetDismiss,
-        DismissSheetAction,
-        SpringBackAction,
-        Dimension,
-        EdgeWidths,
-        LocalizedEdgeWidths,
-        EdgeColors,
-        LocalizedEdgeColors,
-        BorderStyle,
-        EdgeStyles,
-        ShadowOptions,
-        ShadowStyle,
-        SheetMode,
-        UIContext,
-        Callback,
-        BlurOptions } from "./dts-exports"
+import { TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/ArkEnumInterfaces"
 
 const testString1000 = "One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand";
 
@@ -194,14 +193,14 @@ class SheetTitleOptionsImpl implements SheetTitleOptions {
 
 class SheetOptionsImpl implements SheetOptions {
     _title: SheetTitleOptions | CustomBuilder| undefined
-    _detents: [(SheetSize | Length | undefined), (SheetSize | Length | undefined), (SheetSize | Length | undefined)] | undefined
+    _detents: [(SheetSize | Length), (SheetSize | Length) | undefined, (SheetSize | Length) | undefined] | undefined
     _height: SheetSize | Length| undefined
     _dragBar: boolean| undefined
     _maskColor: ResourceColor| undefined
     _blurStyle: BlurStyle| undefined
     _showClose: boolean | Resource| undefined
     _preferType: SheetType| undefined
-    _shouldDismiss: ((sheetDismiss: SheetDismiss) => void) | undefined
+    _shouldDismiss: ((sheetDismiss: SheetDismiss) => Void) | undefined
     _onWillDismiss: Callback<DismissSheetAction>| undefined
     _onWillSpringBackWhenDismiss: Callback<SpringBackAction>| undefined
     _enableOutsideInteractive: boolean| undefined
@@ -214,13 +213,13 @@ class SheetOptionsImpl implements SheetOptions {
     _mode: SheetMode| undefined
     _onDetentsDidChange: Callback<number>| undefined
     _onWidthDidChange: Callback<number>| undefined
-    _onTypeDidChange: Callback<int>| undefined
+    _onTypeDidChange: Callback<SheetType>| undefined
     _uiContext: UIContext| undefined
     _backgroundColor: ResourceColor | undefined
-    _onAppear: (() => void) | undefined
-    _onDisappear: (() => void) | undefined
-    _onWillAppear: (() => void) | undefined
-    _onWillDisappear: (() => void) | undefined
+    _onAppear: (() => Void) | undefined
+    _onDisappear: (() => Void) | undefined
+    _onWillAppear: (() => Void) | undefined
+    _onWillDisappear: (() => Void) | undefined
 
     constructor(title?: SheetTitleOptions) {
         this._title = title
@@ -240,10 +239,10 @@ class SheetOptionsImpl implements SheetOptions {
         this._onWillDismiss = arg
     }
 
-    get detents(): [(SheetSize | Length | undefined), (SheetSize | Length | undefined), (SheetSize | Length | undefined)] | undefined {
+    get detents(): [(SheetSize | Length), (SheetSize | Length) | undefined, (SheetSize | Length) | undefined] | undefined {
         return this._detents
     }
-    set detents(arg: [(SheetSize | Length | undefined), (SheetSize | Length | undefined), (SheetSize | Length | undefined)] | undefined) {
+    set detents(arg: [(SheetSize | Length), (SheetSize | Length) | undefined, (SheetSize | Length) | undefined] | undefined) {
         this._detents = arg
     }
 
@@ -289,10 +288,10 @@ class SheetOptionsImpl implements SheetOptions {
         this._preferType = arg
     }
 
-    get shouldDismiss(): ((sheetDismiss: SheetDismiss) => void) | undefined {
+    get shouldDismiss(): ((sheetDismiss: SheetDismiss) => Void) | undefined {
         return this._shouldDismiss
     }
-    set shouldDismiss(arg: ((sheetDismiss: SheetDismiss) => void) | undefined) {
+    set shouldDismiss(arg: ((sheetDismiss: SheetDismiss) => Void) | undefined) {
         this._shouldDismiss = arg
     }
 
@@ -373,10 +372,10 @@ class SheetOptionsImpl implements SheetOptions {
         this._onWidthDidChange = arg
     }
 
-    get onTypeDidChange(): Callback<int>| undefined {
+    get onTypeDidChange(): Callback<SheetType>| undefined {
         return this._onTypeDidChange
     }
-    set onTypeDidChange(arg: Callback<int>| undefined) {
+    set onTypeDidChange(arg: Callback<SheetType>| undefined) {
         this._onTypeDidChange = arg
     }
 
@@ -394,31 +393,31 @@ class SheetOptionsImpl implements SheetOptions {
         this._backgroundColor = arg
     }
 
-    get onAppear(): (() => void) | undefined {
+    get onAppear(): (() => Void) | undefined {
         return this._onAppear
     }
-    set onAppear(arg: (() => void) | undefined) {
+    set onAppear(arg: (() => Void) | undefined) {
         this._onAppear = arg
     }
 
-    get onDisappear(): (() => void) | undefined {
+    get onDisappear(): (() => Void) | undefined {
         return this._onDisappear
     }
-    set onDisappear(arg: (() => void) | undefined) {
+    set onDisappear(arg: (() => Void) | undefined) {
         this._onDisappear = arg
     }
 
-    get onWillAppear(): (() => void) | undefined {
+    get onWillAppear(): (() => Void) | undefined {
         return this._onWillAppear
     }
-    set onWillAppear(arg: (() => void) | undefined) {
+    set onWillAppear(arg: (() => Void) | undefined) {
         this._onWillAppear = arg
     }
 
-    get onWillDisappear(): (() => void) | undefined {
+    get onWillDisappear(): (() => Void) | undefined {
         return this._onWillDisappear
     }
-    set onWillDisappear(arg: (() => void) | undefined) {
+    set onWillDisappear(arg: (() => Void) | undefined) {
         this._onWillDisappear = arg
     }
 }
@@ -442,14 +441,6 @@ function checkPerf2(count: number) {
     let peer = new ArkButtonPeer(ArkUINodeType.Button)
     let start = Date.now()
     for (let i = 0; i < count; i++) {
-        let data: byte[]
-        if ( i % 2 == 0) {
-            data = new byte[2]
-            data[0] = 1
-            data[1] = 2
-        } else {
-            data = new byte[0]
-        }
         peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : new BlurOptionsImpl([1, 2] as [number, number]))
     }
     let passed = Date.now() - start
@@ -485,7 +476,7 @@ function checkButton() {
         "height(Length {value=0.000000, unit=vp, resource=43})")
 */
     checkResult("bindSheet", () =>
-        peer.bindSheetAttribute(false, () => {}, new SheetOptionsImpl(new SheetTitleOptionsImpl("My App"))),
+        peer.bindSheetAttribute(false, (): Object => {}, new SheetOptionsImpl(new SheetTitleOptionsImpl("My App"))),
         "bindSheet(false, {.selector=0, .value0={.id=42}}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=0, .value0={.chars=\"My App\", .length=6}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})"
     )
 }

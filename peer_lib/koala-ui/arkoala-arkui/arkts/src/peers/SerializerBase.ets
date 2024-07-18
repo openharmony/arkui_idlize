@@ -14,7 +14,7 @@
  */
 import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
-import { Length, Resource } from "../dts-exports"
+import { Length, Resource } from "@arkoala/arkui/ArkUnitsInterfaces"
 import { NativeModule } from "@arkoala/arkui/NativeModule"
 
 /**
@@ -263,7 +263,7 @@ export class SerializerBase {
         } else if (valueType == RuntimeType.STRING) {
             this.writeString(value as string)
         } else if (valueType == RuntimeType.OBJECT) {
-            this.writeInt32((value as Resource).id as int32)
+         //   this.writeInt32((value as Resource).id as int32)
         }
     }
 }

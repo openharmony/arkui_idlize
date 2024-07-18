@@ -44,7 +44,7 @@ import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement, checkTSDeclarationMaterialized, isMaterialized } from "./Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
-import { mapType } from "./TypeNodeNameConvertor";
+import { ArkTSTypeNodeNameConvertor, mapType } from "./TypeNodeNameConvertor";
 import { convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./dependencies_collector";
 import { convertDeclToFeature } from "./ImportsCollector";
@@ -324,7 +324,7 @@ function mapCInteropRetType(type: ts.TypeNode): string {
 
 class ImportsAggregateCollector extends TypeDependenciesCollector {
     constructor(
-        private readonly peerLibrary: PeerLibrary,
+        protected readonly peerLibrary: PeerLibrary,
         private readonly expandAliases: boolean,
     ) {
         super(peerLibrary.declarationTable.typeChecker!)
@@ -367,6 +367,35 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
             }
         }
         return result
+    }
+}
+
+class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
+    private readonly typeConvertor = new ArkTSTypeNodeNameConvertor()
+
+    override convertLiteralType(node: ts.LiteralTypeNode): ts.Declaration[] {
+        if (ts.isUnionTypeNode(node.parent) && ts.isStringLiteral(node.literal)) {
+            return [this.addSyntheticDeclarationDependency(this.typeConvertor.convertLiteralType(node))]
+        }
+        return super.convertLiteralType(node)
+    }
+
+    override convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): ts.Declaration[] {
+        return [this.addSyntheticDeclarationDependency(this.typeConvertor.convertTemplateLiteral(node))]
+    }
+
+    private addSyntheticDeclarationDependency(generatedName: string): ts.TypeAliasDeclaration {
+        const typeRef = `External_${generatedName}`
+        const syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
+            'SyntheticDeclarations',
+            generatedName,
+            ts.factory.createTypeReferenceNode(typeRef),
+        )
+        addSyntheticDeclarationDependency(syntheticDeclaration, {
+            feature: typeRef,
+            module: "./shared/dts-exports"
+        })
+        return syntheticDeclaration
     }
 }
 
@@ -651,7 +680,7 @@ export class PeerProcessor {
     constructor(
         private readonly library: PeerLibrary,
     ) {
-        this.typeDependenciesCollector = new ImportsAggregateCollector(this.library, false)
+        this.typeDependenciesCollector = createTypeDependenciesCollector(this.library)
         this.declDependenciesCollector = new FilteredDeclarationCollector(this.library, this.typeDependenciesCollector)
         this.serializeDepsCollector = new FilteredDeclarationCollector(
             this.library, new ImportsAggregateCollector(this.library, true))
@@ -904,5 +933,19 @@ export class PeerProcessor {
 }
 
 function needImportFeature(language: Language, decl: ts.Declaration): boolean {
-    return !(language === Language.ARKTS && !ts.isEnumDeclaration(decl));
+    if (language === Language.ARKTS) {
+        if (ts.isInterfaceDeclaration(decl) && isMaterialized(decl)) {
+            return false
+        }
+        return ts.isEnumDeclaration(decl)
+            || ts.isInterfaceDeclaration(decl)
+            || (ts.isTypeAliasDeclaration(decl))
+    }
+    return true;
+}
+
+function createTypeDependenciesCollector(library: PeerLibrary): TypeDependenciesCollector {
+    return library.declarationTable.language == Language.TS
+        ? new ImportsAggregateCollector(library, false)
+        : new ArkTSImportsAggregateCollector(library, false)
 }

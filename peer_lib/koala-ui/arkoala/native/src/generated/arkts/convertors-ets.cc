@@ -46,6 +46,8 @@ void addType(const std::string& type, std::string* result) {
         result->append("Lstd/core/Object;");
     else if (type == "KInteropNumber")
         result->append("J");
+    else if (type == "int32_t*")
+        result->append("[I");
     else {
         fprintf(stderr, "Unhandled type (addType): %s\n", type.c_str());
         throw "Error";
