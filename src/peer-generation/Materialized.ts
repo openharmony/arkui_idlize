@@ -118,6 +118,22 @@ export class MaterializedMethod extends PeerMethod {
     }
 }
 
+export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
+    method?: Method,
+    // add more if you need
+}) {
+    const newMethod = new MaterializedMethod(
+        method.originalParentName,
+        method.declarationTargets,
+        method.argConvertors,
+        method.retConvertor,
+        method.isCallSignature,
+        overrides.method ?? method.method,
+    )
+    newMethod.isOverloaded = method.isOverloaded
+    return newMethod
+}
+
 export class SuperElement {
     constructor(
         public readonly name: string,
@@ -135,7 +151,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly ctor: MaterializedMethod,
         public readonly finalizer: MaterializedMethod,
         public readonly importFeatures: ImportFeature[],
-        public methods: MaterializedMethod[],
+        public readonly methods: MaterializedMethod[],
         public readonly needBeGenerated: boolean = true,
     ) {
         PeerMethod.markOverloads(methods)

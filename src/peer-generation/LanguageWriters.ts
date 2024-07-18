@@ -590,6 +590,20 @@ export function mangleMethodName(method: Method): string {
     return `${method.name}_${argsPostfix}`
 }
 
+export function copyMethod(method: Method, overrides: { 
+    name?: string,
+    signature?: MethodSignature,
+    modifiers?: MethodModifier[],
+    generics?: string[],
+ }) {
+    return new Method(
+        overrides.name ?? method.name,
+        overrides.signature ?? method.signature,
+        overrides.modifiers ?? method.modifiers,
+        overrides.generics ?? method.generics,
+    )
+ }
+
 export interface ObjectArgs {
     [name: string]: string
 }
@@ -870,8 +884,8 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {
-        let prefix = modifiers
-            ?.filter(it => this.supportedModifiers.includes(it))
+        let prefix = !modifiers ? undefined : this.supportedModifiers
+            .filter(it => modifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         if (modifiers?.includes(MethodModifier.GETTER)) {
             prefix = `get ${prefix}`

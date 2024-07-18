@@ -752,6 +752,30 @@ export class PeerProcessor {
                 .filter(ts.isMethodSignature)
                 .map(method => this.makeMaterializedMethod(name, method, isActualDeclaration))
                 : []
+
+
+        mFields.forEach(f => {
+            const field = f.field
+            // TBD: use deserializer to get complex type from native
+            const isSimpleType = !f.argConvertor.useArray // type needs to be deserialized from the native
+            if (isSimpleType) {
+                const getAccessor = new MaterializedMethod(name, [], [], f.retConvertor, false,
+                    new Method(`get${capitalize(field.name)}`, new NamedMethodSignature(field.type, [], []), [MethodModifier.PRIVATE])
+                )
+                mMethods.push(getAccessor)
+            }
+
+            const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
+            if (!isReadOnly) {
+                const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
+                const retConvertor = { isVoid: true, nativeType: () => Type.Void.name, macroSuffixPart: () => "V" }
+                const setAccessor = new MaterializedMethod(name, [f.declarationTarget], [f.argConvertor], retConvertor, false,
+                    new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE])
+                )
+                mMethods.push(setAccessor)
+            }
+        })
+
         this.library.materializedClasses.set(name,
             new MaterializedClass(name, isInterface, superClass, generics, mFields, mConstructor, mFinalizer, importFeatures, mMethods, isActualDeclaration))
     }

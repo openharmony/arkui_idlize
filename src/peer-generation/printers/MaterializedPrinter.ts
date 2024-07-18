@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../IndentedPrinter";
 import { Language, renameClassToMaterialized, capitalize, removeExt } from "../../util";
 import { PeerLibrary } from "../PeerLibrary";
 import { writePeerMethod } from "./PeersPrinter"
-import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature } from "../LanguageWriters";
-import { MaterializedClass, MaterializedMethod } from "../Materialized"
+import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature, copyMethod } from "../LanguageWriters";
+import { copyMaterializedMethod, MaterializedClass } from "../Materialized"
 import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
 import { OverloadsPrinter, groupOverloads } from "./OverloadsPrinter";
 
@@ -69,8 +68,6 @@ class MaterializedFileVisitor {
             const finalizableType = new Type("Finalizable")
             writer.writeFieldDeclaration("peer", finalizableType, undefined, true)
 
-            let fieldAccessors: MaterializedMethod[] = []
-
             // getters and setters for fields
             clazz.fields.forEach(f => {
 
@@ -85,12 +82,6 @@ class MaterializedFileVisitor {
                             writer.makeReturn(
                                 writer.makeMethodCall("this", `get${capitalize(field.name)}`, [])))
                     });
-
-                    const getAccessor = new MaterializedMethod(clazz.className, [], [], f.retConvertor, false,
-                        new Method(`get${capitalize(field.name)}`, new NamedMethodSignature(field.type, [], []))
-                    )
-
-                    fieldAccessors = fieldAccessors.concat(getAccessor)
                 }
 
                 const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
@@ -99,16 +90,8 @@ class MaterializedFileVisitor {
                     writer.writeSetterImplementation(new Method(field.name, setSignature), writer => {
                         writer.writeMethodCall("this", `set${capitalize(field.name)}`, [field.name])
                     });
-
-                    const retConvertor = { isVoid: true, nativeType: () => Type.Void.name, macroSuffixPart: () => "V" }
-                    const setAccessor = new MaterializedMethod(clazz.className, [f.declarationTarget], [f.argConvertor], retConvertor, false,
-                        new Method(`set${capitalize(field.name)}`, setSignature)
-                    )
-                    fieldAccessors = fieldAccessors.concat(setAccessor)
                 }
             })
-
-            clazz.methods = fieldAccessors.concat(clazz.methods)
 
             const pointerType = Type.Pointer
             // makePrivate(clazz.ctor.method)
@@ -173,10 +156,16 @@ class MaterializedFileVisitor {
             }
 
             clazz.methods.forEach(method => {
-                makePrivate(method.method)
-                const returnType = method.tsReturnType()
-                this.library.declarationTable.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
-                writePeerMethod(writer, method, this.printerContext, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
+                let privateMethod = method
+                if (!privateMethod.method.modifiers?.includes(MethodModifier.PRIVATE))
+                    privateMethod = copyMaterializedMethod(method, {
+                        method: copyMethod(method.method, { 
+                            modifiers: (method.method.modifiers ?? []).concat([MethodModifier.PRIVATE]) 
+                        })
+                    })
+                const returnType = privateMethod.tsReturnType()
+                this.library.declarationTable.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.overloadedName}`)
+                writePeerMethod(writer, privateMethod, this.printerContext, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
                 this.library.declarationTable.setCurrentContext(undefined)
             })
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, clazz.generics)
@@ -235,8 +224,4 @@ export function printMaterialized(peerLibrary: PeerLibrary, printerContext: Prin
         result.set(new TargetFile(key), text)
     }
     return result
-}
-
-function makePrivate(method: Method) {
-    method.modifiers?.unshift(MethodModifier.PRIVATE)
 }
