@@ -13,11 +13,11 @@ const koalaRegistry = "https://rnd-gitlab-msc.huawei.com/api/v4/projects/3921/pa
 const idlizeRegistry = "https://nexus.bz-openlab.ru:10443/repository/koala-npm/"
 
 function setRegistry(key, value) {
-    execSync(`npm config set ${key} ${value}`)
+    execSync(`npm config --location project set ${key} ${value}`)
 }
 
 function getRegistry(key) {
-    execSync(`npm config get ${key}`)
+    execSync(`npm config --location project get ${key}`)
 }
 
 function pack() {
@@ -31,6 +31,7 @@ function publishToOpenlab() {
 
     pack()
     setRegistry(keyIdlizeRegistry, idlizeRegistry)
+    setRegistry("strict-ssl", false)
 
     let packageName = fs.readdirSync(prebuiltPath)[0]
     console.log(chalk.green(`> Publishing ${packageName}...`))
@@ -42,6 +43,7 @@ function publishToGitlab() {
 
     pack()
     setRegistry(keyIdlizeRegistry, koalaRegistry)
+    setRegistry("strict-ssl", false)
 
     let packageName = fs.readdirSync(prebuiltPath)[0]
     console.log(chalk.green(`> Publishing ${packageName}...`))
