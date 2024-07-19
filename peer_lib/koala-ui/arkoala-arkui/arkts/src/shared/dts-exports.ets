@@ -176,7 +176,8 @@ export interface GestureModifier {
   applyGesture(event: UIGestureEvent): void;
 }
 
-declare namespace GestureControl {
+// todo: es2panda doesn't compile namespaces properly (as of @panda/sdk/1.5.0-dev.1349)
+//declare namespace GestureControl {
   enum GestureType {
     TAP_GESTURE = 0,
     LONG_PRESS_GESTURE = 1,
@@ -187,7 +188,7 @@ declare namespace GestureControl {
     DRAG = 6,
     CLICK = 7,
   }
-}
+//}
 
 enum GestureRecognizerState {
   READY = 0,
@@ -204,7 +205,7 @@ abstract class EventTargetInfo {
 
 export interface GestureRecognizer {
   getTag(): string;
-  getType(): GestureControl.GestureType;
+  getType(): /*GestureControl.*/GestureType;
   isBuiltIn(): boolean;
   setEnabled(isEnabled: boolean): void;
   isEnabled(): boolean;

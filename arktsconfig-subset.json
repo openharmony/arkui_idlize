@@ -11,5 +11,6 @@
             "@koalaui/runtime": ["generated/subset/koalaui/arkoala"]
         }
     },
-    "include": ["./generated/subset/**/*.ets"]
+    "include": ["./generated/subset/**/*.ets"],
+    "exclude": ["./generated/subset/koalaui/arkoala-arkui/arkts/src/shared/dts-exports.ets"]
 }
