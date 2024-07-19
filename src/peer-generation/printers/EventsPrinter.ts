@@ -131,7 +131,7 @@ export function callbackEventNameByInfo(info: CallbackInfo): string {
 }
 
 class CEventsVisitor {
-    readonly impl: LanguageWriter = new CppLanguageWriter(new IndentedPrinter())
+    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter())
     readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter())
 
     constructor(
@@ -156,7 +156,7 @@ class CEventsVisitor {
         const args = signature.args.map((type, index) => {
             return `${type.name} ${signature.argName(index)}`
         })
-        this.impl.print(`${signature.returnType.name} ${callbackIdByInfo(event)}Impl(${args.join(',')}) {`)
+        this.impl.print(`${signature.returnType.name} ${event.methodName}Impl(${args.join(', ')}) {`)
         this.impl.pushIndent()
         if (this.isEmptyImplementation) {
             this.impl.print("// GENERATED EMPTY IMPLEMENTATION")
@@ -182,7 +182,7 @@ class CEventsVisitor {
         this.impl.print(`static const ${receiver} ${receiver}Impl {`)
         this.impl.pushIndent()
         for (const callback of callbacks) {
-            this.impl.print(`${callbackIdByInfo(callback)}Impl,`)
+            this.impl.print(`${callback.componentName}::${callback.methodName}Impl,`)
         }
         this.impl.popIndent()
         this.impl.print(`};\n`)
@@ -208,9 +208,11 @@ class CEventsVisitor {
         for (const [name, callbacks] of groupedCallbacks) {
             if (!this.library.shouldGenerateComponent(name))
                 continue
+            this.impl.pushNamespace(name)
             for (const callback of callbacks) {
                 this.printEventImpl(callback)
             }
+            this.impl.popNamespace()
         }
         for (const [name, callbacks] of groupedCallbacks) {
             if (!this.library.shouldGenerateComponent(name))
