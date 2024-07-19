@@ -10,6 +10,7 @@ source_set = 'peers'
 endif
 use_libace = false
 use_dummy_libace = true
+use_dummy_panda = true
 if get_option('arkts')
 is_arkts = true
 else
@@ -52,6 +53,8 @@ sources = [
     arkoala_dir / 'all_events.cc',
     arkoala_dir / 'load-library.cc',
     arkoala_dir / 'library.cc',
+    arkoala_dir / 'arkts/panda-loader.cc',
+
 ]
 if compile_events_test
     sources += [
@@ -119,8 +122,8 @@ ohos_library_name = 'NativeBridge_ohos'
 if is_clang
 # TODO: remove all -Wno-* when generation is fixed.
 cflags += [
-    '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable', 
-    '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations', 
+    '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable',
+    '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations',
     '-Wno-unknown-warning-option', '-Wno-parentheses-equality', '-Wno-unused-function'
 ]
 endif
@@ -194,12 +197,12 @@ node_ldflags += [
     '-lnode'
 ]
 endif
+endif
 if is_ohos
 node_cflags += [
     '-DKOALA_OHOS',
 ]
 endif
-
 
 if is_cj
 shared_library(cj_library_name,
@@ -333,6 +336,7 @@ shared_library(libace_name,
     link_args: ldflags + ohos_ldflags
 )
 endif
+
 endif
 
 # TODO: fix on Windows as well
@@ -347,6 +351,17 @@ executable('test_arkoala_compat',
     cpp_args: cflags,
     include_directories: include_dirs
 )
-
 endif
+
+if use_dummy_panda and is_jni
+libdummy_sources = [
+    'dummy-panda' / 'vm.cc',
+]
+shared_library('panda',
+    libdummy_sources,
+    install: true,
+    cpp_args: cflags,
+    include_directories: arkts_include_dirs + jni_include_dirs + [ external_dir ],
+    install_dir: meson.current_source_dir(),
+)
 endif

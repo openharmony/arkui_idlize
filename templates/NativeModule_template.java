@@ -90,4 +90,7 @@ public class NativeModule {
   static native void _SetVsyncCallback(long pipelineContext, int callbackId);
   static native void _UnblockVsyncWait(long pipelineContext);
   static native float _ConvertLengthMetricsUnit(float value, int originUnit, int targetUnit);
+
+  static native long _LoadVirtualMachine(String classPath, String libPath, int kind);
+  static native int _RunVirtualMachine(long env, int what);
 }

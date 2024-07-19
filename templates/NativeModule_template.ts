@@ -82,6 +82,11 @@ export interface GraphicsOps {
     // TODO fill me if needed
 }
 
+export interface LoaderOps {
+    _LoadVirtualMachine(classPath: string, libPath: string, kind: KInt): pointer
+    _RunVirtualMachine(env: pointer, what: KInt): KInt
+}
+
 export interface NodeOps {
     _CreateNode(type: KInt, id: KInt, flags: KInt): NodePointer
     _GetNodeByViewStack(): NodePointer
@@ -157,4 +162,4 @@ export interface TestOps {
 }
 
 export interface NativeModuleIntegrated extends InteropOps, /*GraphicsOps, NodeOps,*/ ComponentOps {}
-export interface NativeModule extends InteropOps, GraphicsOps, NodeOps, ComponentOps, TestOps {}
+export interface NativeModule extends InteropOps, GraphicsOps, NodeOps, ComponentOps, TestOps, LoaderOps {}

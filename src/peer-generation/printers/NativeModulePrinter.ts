@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../IndentedPrinter";
 import { generateEventsBridgeSignature } from "./EventsPrinter";
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "../FileGenerators";
 import { LanguageWriter, Method, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from "../LanguageWriters";

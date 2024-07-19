@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (c) 2024 Huawei Device Co., Ltd.
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
 import { SerializerBase } from "@arkoala/arkui/peers/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
@@ -30,7 +30,8 @@ import { CanvasRenderingContext2D } from "@arkoala/arkui/ArkCanvasRenderingConte
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testLength_10_lpx } from "@arkoala/arkui/test_data"
-import { deserializePeerEvent, PeerEventKind,
+import {
+    deserializePeerEvent, PeerEventKind,
     CommonMethod_onChildTouchTest_event,
     List_onScrollVisibleContentChange_event,
     TextPicker_onAccept_event
@@ -52,6 +53,7 @@ import {
 } from "./test_utils"
 import { nativeModule } from "@koalaui/arkoala"
 import { mkdirSync, writeFileSync } from "fs"
+import { checkLoader } from "./loader"
 
 
 if (!reportTestFailures) {
@@ -218,7 +220,7 @@ function checkButton() {
     checkResult("height", () => peer.heightAttribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
         "height({.type=2, .value=0.000000, .unit=1, .resource=43})")
     checkResult("bindSheet", () =>
-        peer.bindSheetAttribute(false, () => {}, {
+        peer.bindSheetAttribute(false, () => { }, {
             title: {
                 title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
             }
@@ -226,7 +228,7 @@ function checkButton() {
         `bindSheet(false, {.selector=0, .value0={.id=4}}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=1, .value1={.kind="NativeErrorResource", .id=0}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
-    checkResult("labelStyle", () => peer.labelStyleAttribute({maxLines: 3}),
+    checkResult("labelStyle", () => peer.labelStyleAttribute({ maxLines: 3 }),
         "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
     checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
         "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
@@ -236,7 +238,7 @@ function checkButton() {
 
 function checkCalendar() {
     let peer = new ArkCalendarPickerPeer(ArkUINodeType.CalendarPicker)
-    checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, {dx: 5, dy: 6}),
+    checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, { dx: 5, dy: 6 }),
         `edgeAlign(2, {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5.000000, .unit=1, .resource=0}, .dy={.type=1, .value=6.000000, .unit=1, .resource=0}}})`)
     checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2),
         `edgeAlign(2, {.tag=ARK_TAG_UNDEFINED, .value={}})`)
@@ -244,11 +246,11 @@ function checkCalendar() {
 
 function checkFormComponent() {
     let peer = new ArkFormComponentPeer(ArkUINodeType.FormComponent)
-    checkResult("size int", () => peer.sizeAttribute({width: 5, height: 6}),
+    checkResult("size int", () => peer.sizeAttribute({ width: 5, height: 6 }),
         `size({.width={.tag=102, .i32=5}, .height={.tag=102, .i32=6}})`)
-    checkResult("size float", () => peer.sizeAttribute({width: 5.5, height: 6.789}),
+    checkResult("size float", () => peer.sizeAttribute({ width: 5.5, height: 6.789 }),
         `size({.width={.tag=103, .f32=5.50}, .height={.tag=103, .f32=6.78}})`)
-    checkResult("size zero", () => peer.sizeAttribute({width: 0.0, height: 0.0}),
+    checkResult("size zero", () => peer.sizeAttribute({ width: 0.0, height: 0.0 }),
         `size({.width={.tag=102, .i32=0}, .height={.tag=102, .i32=0}})`)
 }
 
@@ -269,12 +271,12 @@ function checkCommon() {
     )
 
     checkResult("Test dragPreviewOptions numberBadge with number",
-        () => peer.dragPreviewOptionsAttribute({numberBadge: 10}, {isMultiSelectionEnabled: true}),
+        () => peer.dragPreviewOptionsAttribute({ numberBadge: 10 }, { isMultiSelectionEnabled: true }),
         `dragPreviewOptions({.mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .modifier={.tag=ARK_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with boolean",
-        () => peer.dragPreviewOptionsAttribute({numberBadge: true}, {defaultAnimationBeforeLifting: false}),
+        () => peer.dragPreviewOptionsAttribute({ numberBadge: true }, { defaultAnimationBeforeLifting: false }),
         `dragPreviewOptions({.mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .modifier={.tag=ARK_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=true}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_OBJECT, .value=false}}})`
     )
 }
@@ -375,7 +377,7 @@ function checkPerf2(count: number) {
     let peer = new ArkButtonPeer(ArkUINodeType.Button)
     let start = performance.now()
     for (let i = 0; i < count; i++) {
-        peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : {grayscale: [1, 2]})
+        peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : { grayscale: [1, 2] })
     }
     let passed = performance.now() - start
     console.log(`backdropBlur: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
@@ -451,17 +453,23 @@ function checkEvent_Array_Class() {
     const bufferSize = 60 * 4
     const serializer = new Serializer()
     const eventParam: TouchTestInfo[] = [
-        { windowX: 10, windowY: 11, parentX: 12, parentY: 13, x: 14, y: 15, id: "one",
-            rect: { x: 100, y: 101, width: 102, height: 103 } },
-        { windowX: 20, windowY: 21, parentX: 22, parentY: 23, x: 24, y: 25, id: "two",
-            rect: { x: 200, y: 201, width: 202, height: 203 } },
-        { windowX: 30, windowY: 31, parentX: 32, parentY: 33, x: 34, y: 35, id: "three",
-            rect: { x: 300, y: 301, width: 302, height: 303 } }]
+        {
+            windowX: 10, windowY: 11, parentX: 12, parentY: 13, x: 14, y: 15, id: "one",
+            rect: { x: 100, y: 101, width: 102, height: 103 }
+        },
+        {
+            windowX: 20, windowY: 21, parentX: 22, parentY: 23, x: 24, y: 25, id: "two",
+            rect: { x: 200, y: 201, width: 202, height: 203 }
+        },
+        {
+            windowX: 30, windowY: 31, parentX: 32, parentY: 33, x: 34, y: 35, id: "three",
+            rect: { x: 300, y: 301, width: 302, height: 303 }
+        }]
     serializer.writeInt32(1) // nodeId
     serializer.writeInt8(3)  // RuntimeType.OBJECT
     serializer.writeInt32(eventParam.length);
     for (let i = 0; i < eventParam.length; i++) {
-      serializer.writeTouchTestInfo(eventParam[i]);
+        serializer.writeTouchTestInfo(eventParam[i]);
     }
     nativeModule()._Test_Common_OnChildTouchTest(serializer.asArray(), serializer.length())
 
@@ -518,35 +526,36 @@ function checkNativeCallback() {
     assertEquals("NativeCallback Int32Array PrefixSum [3]", -400, arr3[3])
 }
 
-checkSerdeBaseLength()
-checkSerdeBaseText()
-checkSerdeBasePrimitive()
-checkSerdeBaseCustomObject()
+function main() {
+    checkSerdeBaseLength()
+    checkSerdeBaseText()
+    checkSerdeBasePrimitive()
+    checkSerdeBaseCustomObject()
 
-checkPerf2(5 * 1000 * 1000)
-checkPerf3(5 * 1000 * 1000)
+    checkPerf2(5 * 1000 * 1000)
+    checkPerf3(5 * 1000 * 1000)
 
-startPerformanceTest()
-if (recordCallLog) startNativeLog(CALL_GROUP_LOG)
-checkNodeAPI()
-checkCallback()
-checkWriteFunction()
-checkButton()
-checkCalendar()
-//checkDTS()
-checkFormComponent()
-checkCommon()
-checkOverloads()
-checkNavigation()
-setEventsAPI()
-checkEvent_Primitive()
-checkEvent_Interface_Optional()
-checkEvent_Array_Class()
-checkNativeCallback()
-if (recordCallLog) stopNativeLog(CALL_GROUP_LOG)
+    startPerformanceTest()
+    if (recordCallLog) startNativeLog(CALL_GROUP_LOG)
+    checkNodeAPI()
+    checkCallback()
+    checkWriteFunction()
+    checkButton()
+    checkCalendar()
+    //checkDTS()
+    checkFormComponent()
+    checkCommon()
+    checkOverloads()
+    checkNavigation()
+    setEventsAPI()
+    checkEvent_Primitive()
+    checkEvent_Interface_Optional()
+    checkEvent_Array_Class()
+    checkNativeCallback()
+    if (recordCallLog) stopNativeLog(CALL_GROUP_LOG)
 
-const callGroupLog = getNativeLog(CALL_GROUP_LOG)
-const callLogCppCode = `
+    const callGroupLog = getNativeLog(CALL_GROUP_LOG)
+    const callLogCppCode = `
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -585,15 +594,16 @@ int main(int argc, const char** argv) {
 ${callGroupLog}
   return 0;
 }`
-if (callGroupLog.length > 0) {
-    console.log(callLogCppCode)
-    mkdirSync('./generated/call_log', {recursive: true})
-    writeFileSync('./generated/call_log/main.cpp', callLogCppCode)
+    if (callGroupLog.length > 0) {
+        console.log(callLogCppCode)
+        mkdirSync('./generated/call_log', { recursive: true })
+        writeFileSync('./generated/call_log/main.cpp', callLogCppCode)
+    }
+    checkTabContent()
+    checkCanvasRenderingContext2D()
+
+    // Report in error code.
+    checkTestFailures()
 }
-checkTabContent()
-checkCanvasRenderingContext2D()
 
-nativeModule()._CleanCallbackDispatcher()
-
-// Report in error code.
-checkTestFailures()
+main()
