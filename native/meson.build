@@ -133,10 +133,12 @@ if is_msvc
 cflags += ['/Gy-']
 endif
 
+node_headers = '../node_modules'
+
 node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + node_library_name ]
 node_include_dirs = [
-    '../node_modules/node-api-headers/include',
-    '../node_modules/node-addon-api',
+    node_headers / 'node-api-headers/include',
+    node_headers / 'node-addon-api',
     external_dir / 'node'
 ]
 node_sources = [
