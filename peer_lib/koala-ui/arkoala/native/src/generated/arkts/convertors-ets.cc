@@ -38,7 +38,9 @@ void addType(const std::string& type, std::string* result) {
         result->append("J");
     else if (type == "KByte*" || type == "uint8_t*")
         result->append("[B");
-     else if (type == "KFloatArray")
+    else if (type == "int32_t*")
+        result->append("[I");
+    else if (type == "KFloatArray")
         result->append("[F");
     else if (type == "KStringPtr")
         result->append("Lstd/core/String;");
@@ -64,6 +66,8 @@ std::string etsType(const std::string &type)
         return "long";
     else if (type == "KByte*" || type == "uint8_t*")
         return "byte[]";
+    else if (type == "int32_t*")
+        return "int[]";
     else if (type == "KStringPtr")
         return "String";
     else if (type == "KLength")

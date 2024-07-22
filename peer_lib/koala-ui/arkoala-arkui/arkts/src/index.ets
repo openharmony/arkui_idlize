@@ -12,7 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NativeModule } from "./NativeModule"
+import { NativeModule, nativeModule } from "./NativeModule"
+import { wrapCallback, callCallback } from "./CallbackRegistry"
+import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { ButtonType, LabelStyle } from '@arkoala/arkui/ArkButtonInterfaces'
@@ -481,10 +483,117 @@ function checkButton() {
     )
 }
 
+function checkCallback() {
+    const id1 = wrapCallback((args: byte[], length: int) => 2024)
+    const id2 = wrapCallback((args: byte[], length: int) => 2025)
+
+    assertEquals("Call callback 1", 2024, callCallback(id1, [], 0))
+    assertEquals("Call callback 2", 2025, callCallback(id2, [], 0))
+    assertThrows("Call disposed callback 1", () => { callCallback(id1, [], 0) })
+    assertThrows("Call callback 0", () => { callCallback(0, [2, 4, 6, 8], 4) })
+}
+
+function checkNativeCallback() {
+    const id1 = wrapCallback((args: byte[], length: int): int => {
+        return 123456
+    })
+    assertEquals("NativeCallback without args", 123456, nativeModule()._TestCallIntNoArgs(id1))
+    assertThrows("NativeCallback without args called again", () => { callCallback(id1, [], 0) })
+    assertThrows("NativeCallback without args called again from native", () => { nativeModule()._TestCallIntNoArgs(id1) })
+
+    const id2 = wrapCallback((args: byte[], length: int): int => {
+        const buf = new ArrayBuffer(length)
+        const args32 = new Int32Array(buf)
+        for (let i = 0; i < length; i++) {
+            buf.set(i, args[i]);
+        }
+        let sum: int = 0
+        for (let i = 0; i < args32.length; i++) {
+            sum += args32[i]
+        }
+        return sum
+    })
+    const arr2: int[] = [100, 200, 300, -1000]
+    assertEquals("NativeCallback Int32Array sum", -400, nativeModule()._TestCallIntInt32ArraySum(id2, arr2, arr2.length))
+
+    const id3 = wrapCallback((args: byte[], length: int): int => {
+        const buf = new ArrayBuffer(length)
+        const args32 = new Int32Array(buf)
+        for (let i = 0; i < length; i++) {
+            buf.set(i, args[i]);
+        }
+        for (let i = 1; i < args32.length; i++) {
+            args32[i] += args32[i - 1]
+        }
+        for (let i = 0; i < length; i++) {
+            args[i] = buf.at(i)
+        }
+        return 0
+    })
+    const arr3: int[] = [100, 200, 300, -1000]
+    nativeModule()._TestCallVoidInt32ArrayPrefixSum(id3, arr3, arr3.length)
+    assertEquals("NativeCallback Int32Array PrefixSum [0]", 100, arr3[0])
+    assertEquals("NativeCallback Int32Array PrefixSum [1]", 300, arr3[1])
+    assertEquals("NativeCallback Int32Array PrefixSum [2]", 600, arr3[2])
+    assertEquals("NativeCallback Int32Array PrefixSum [3]", -400, arr3[3])
+
+    const start = Date.now()
+    const id4 = wrapCallback((args: byte[], length: int): int => {
+        const buf = new ArrayBuffer(length)
+        const args32 = new Int32Array(buf)
+        for (let i = 0; i < length; i++) {
+            buf.set(i, args[i]);
+        }
+        args32[1]++
+        for (let i = 0; i < length; i++) {
+            args[i] = buf.at(i)
+        }
+        if (args32[0] + args32[1] < args32[2]) {
+            return nativeModule()._TestCallIntRecursiveCallback(id3 + 1, args, args.length)
+        }
+        return 1
+    }, false)
+    assertEquals("NativeCallback prepare recursive callback test", id4, id3 + 1)
+    const depth = 500
+    const count = 100
+    for (let i = 0; i < count; i++) {
+        const length = 12
+        const args = new byte[length]
+        const buf = new ArrayBuffer(length)
+        const args32 = new Int32Array(buf)
+        args32[2] = depth
+        for (let i = 0; i < length; i++) {
+            args[i] = buf.at(i)
+        }
+        nativeModule()._TestCallIntRecursiveCallback(id4, args, args.length)
+        for (let i = 0; i < length; i++) {
+            buf.set(i, args[i]);
+        }
+        if (i == 0) {
+            assertEquals("NativeCallback Recursive [0]", Math.ceil(depth / 2), args32[0])
+            assertEquals("NativeCallback Recursive [1]", Math.floor(depth / 2), args32[1])
+        }
+    }
+    const passed = Date.now() - start
+    console.log(`recursive native callback: ${Math.round(passed)}ms for ${depth * count} callbacks, ${Math.round(passed / (depth * count) * 1000000)}ms per 1M callbacks`)
+
+    const id5 = wrapCallback((args: byte[], length: int): int => {
+        let sum: int = 0
+        for (let i = 0; i < args.length; i++) {
+            sum += args[i]
+        }
+        return sum
+    }, false)
+    nativeModule()._TestCallIntMemory(id5, 1000)
+}
+
 export function main(): void {
     checkPerf(5 * 1000 * 1000)
     checkPerf2(5 * 1000 * 1000)
     checkPerf3(5 * 1000 * 1000)
 
     checkButton()
+
+    checkCallback()
+    checkNativeCallback()
 }

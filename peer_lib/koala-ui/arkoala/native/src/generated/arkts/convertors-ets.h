@@ -1189,4 +1189,44 @@ MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1, ETS_SLOW_NATIVE_FLAG)
   } \
 MAKE_ETS_EXPORT(name, "void|" #P0 "|" #P1 "|" #P2, ETS_SLOW_NATIVE_FLAG)
 
+void setKoalaEtsNapiCallbackDispatcher(
+    EtsEnv* etsEnv,
+    const KStringPtr& dispatcherClassName,
+    const KStringPtr& dispatcherMethodName,
+    const KStringPtr& dispactherMethodSig
+); 
+void getKoalaEtsNapiCallbackDispatcher(ets_class* clazz, ets_method* method);
+
+#define KOALA_INTEROP_CALL_VOID(venv, id, length, args)                               \
+{                                                                                     \
+  ets_class clazz = nullptr;                                                          \
+  ets_method method = nullptr;                                                        \
+  getKoalaEtsNapiCallbackDispatcher(&clazz, &method);                                 \
+  EtsEnv* etsEnv = reinterpret_cast<EtsEnv*>(vmContext);                              \
+  etsEnv->PushLocalFrame(1);                                                          \
+  ets_byteArray args_ets = etsEnv->NewByteArray(length);                              \
+  etsEnv->SetByteArrayRegion(args_ets, 0, length, reinterpret_cast<ets_byte*>(args)); \
+  etsEnv->CallStaticIntMethod(clazz, method, id, args_ets, length);                   \
+  etsEnv->GetByteArrayRegion(args_ets, 0, length, reinterpret_cast<ets_byte*>(args)); \
+  etsEnv->PopLocalFrame(nullptr);                                                     \
+}
+
+#define KOALA_INTEROP_CALL_INT(venv, id, length, args)                                \
+{                                                                                     \
+  ets_class clazz = nullptr;                                                          \
+  ets_method method = nullptr;                                                        \
+  getKoalaEtsNapiCallbackDispatcher(&clazz, &method);                                 \
+  EtsEnv* etsEnv = reinterpret_cast<EtsEnv*>(vmContext);                              \
+  etsEnv->PushLocalFrame(1);                                                          \
+  ets_byteArray args_ets = etsEnv->NewByteArray(length);                              \
+  etsEnv->SetByteArrayRegion(args_ets, 0, length, reinterpret_cast<ets_byte*>(args)); \
+  int32_t rv = etsEnv->CallStaticIntMethod(clazz, method, id, args_ets, length);      \
+  etsEnv->GetByteArrayRegion(args_ets, 0, length, reinterpret_cast<ets_byte*>(args)); \
+  etsEnv->PopLocalFrame(nullptr);                                                     \
+  return rv;                                                                          \
+}
+
+#define KOALA_INTEROP_CALL_VOID_INTS32(venv, id, argc, args) KOALA_INTEROP_CALL_VOID(venv, id, (argc) * sizeof(int32_t), args)
+#define KOALA_INTEROP_CALL_INT_INTS32(venv, id, argc, args) KOALA_INTEROP_CALL_INT(venv, id, (argc) * sizeof(int32_t), args)
+
 #endif // KOALA_ETS_NAPI

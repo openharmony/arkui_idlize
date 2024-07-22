@@ -524,6 +524,34 @@ function checkNativeCallback() {
     assertEquals("NativeCallback Int32Array PrefixSum [1]", 300, arr3[1])
     assertEquals("NativeCallback Int32Array PrefixSum [2]", 600, arr3[2])
     assertEquals("NativeCallback Int32Array PrefixSum [3]", -400, arr3[3])
+
+    const start = performance.now()
+    const id4 = wrapCallback((args: Uint8Array, length: number): number => {
+        const args32 = new Int32Array(args.buffer)
+        args32[1]++
+        if (args32[0] + args32[1] < args32[2]) {
+            return nativeModule()._TestCallIntRecursiveCallback(id3 + 1, args, args.length)
+        }
+        return 1
+    }, false)
+    assertEquals("NativeCallback prepare recursive callback test", id4, id3 + 1)
+    const depth = 500
+    const count = 100
+    for (var i = 0; i < count; i++) {
+        const arr4 = new Int32Array([0, 0, depth])
+        nativeModule()._TestCallIntRecursiveCallback(id4, new Uint8Array(arr4.buffer), arr4.byteLength)
+        if (i == 0) {
+            assertEquals("NativeCallback Recursive [0]", Math.ceil(depth / 2), arr4[0])
+            assertEquals("NativeCallback Recursive [1]", Math.floor(depth / 2), arr4[1])
+        }
+    }
+    const passed = performance.now() - start
+    console.log(`recursive native callback: ${Math.round(passed)}ms for ${depth * count} callbacks, ${Math.round(passed / (depth * count) * 1000000)}ms per 1M callbacks`)
+
+    const id5 = wrapCallback((args: Uint8Array, length: number): number => {
+        return args.reduce((acc, val) => acc + val, 0)
+    }, false)
+    nativeModule()._TestCallIntMemory(id5, 1000)
 }
 
 function main() {

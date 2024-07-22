@@ -16,13 +16,13 @@
 #include "common-interop.h"
 
 void CallVoid(KVMContext vmContext, KInt methodId, KInt length, void* args) {
-#ifdef KOALA_USE_NODE_VM
+#if KOALA_USE_NODE_VM || KOALA_USE_ARK_VM
     KOALA_INTEROP_CALL_VOID(vmContext, methodId, length, args)
 #endif
 }
 
 KInt CallInt(KVMContext vmContext, KInt methodId, KInt length, void* args) {
-#ifdef KOALA_USE_NODE_VM
+#if KOALA_USE_NODE_VM || KOALA_USE_ARK_VM
     KOALA_INTEROP_CALL_INT(vmContext, methodId, length, args)
 #else
     return -1;
@@ -30,13 +30,13 @@ KInt CallInt(KVMContext vmContext, KInt methodId, KInt length, void* args) {
 }
 
 void CallVoidInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args) {
-#ifdef KOALA_USE_NODE_VM
+#if KOALA_USE_NODE_VM || KOALA_USE_ARK_VM
     KOALA_INTEROP_CALL_VOID_INTS32(vmContext, methodId, numArgs, args)
 #endif
 }
 
 KInt CallIntInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args) {
-#ifdef KOALA_USE_NODE_VM
+#if KOALA_USE_NODE_VM || KOALA_USE_ARK_VM
     KOALA_INTEROP_CALL_INT_INTS32(vmContext, methodId, numArgs, args)
 #else
     return -1;
@@ -73,3 +73,31 @@ void impl_TestCallVoidInt32ArrayPrefixSum(KVMContext vmContext, KInt methodId, i
     );
 }
 KOALA_INTEROP_CTX_V3(TestCallVoidInt32ArrayPrefixSum, KInt, int32_t*, KInt)
+
+KInt impl_TestCallIntRecursiveCallback(KVMContext vmContext, KInt methodId, uint8_t* arr, KInt length) {
+    reinterpret_cast<int32_t*>(arr)[0]++;
+    if (reinterpret_cast<int32_t*>(arr)[0] + reinterpret_cast<int32_t*>(arr)[1] < reinterpret_cast<int32_t*>(arr)[2]) {
+        return CallInt(
+            vmContext,
+            methodId,
+            length,
+            reinterpret_cast<void*>(arr)
+        );
+    }
+    return 0;
+}
+KOALA_INTEROP_CTX_3(TestCallIntRecursiveCallback, KInt, KInt, uint8_t*, KInt)
+
+KInt impl_TestCallIntMemory(KVMContext vmContext, KInt methodId, KInt n) {
+    int res = 0;
+    for (int i = 0; i < n; i++) {
+        void* arr = malloc(n);
+        for (int j = 0; j < n; j++) {
+            reinterpret_cast<uint8_t*>(arr)[j] = j & 255;
+        }
+        res += CallInt(vmContext, methodId, n, arr) & 255;
+        free(arr);
+    }
+    return res;
+}
+KOALA_INTEROP_CTX_2(TestCallIntMemory, KInt, KInt, KInt)

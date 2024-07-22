@@ -106,7 +106,9 @@ export class NativeModuleEmpty extends NativeModuleEmptyIntegrated implements Na
 
     _TestCallIntNoArgs(arg1: KInt): KInt { return -1 }
     _TestCallIntInt32ArraySum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt { return -1 }
-    _TestCallVoidInt32ArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt { return -1 }
+    _TestCallVoidInt32ArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): void {}
+    _TestCallIntRecursiveCallback(arg1: KInt, arg2: Uint8Array, arg3: KInt): KInt { return -1 }
+    _TestCallIntMemory(arg1: KInt, arg2: KInt): KInt { return -1 }
 
     _LoadVirtualMachine(classPath: string, libPath: string, kind: KInt): pointer { throw new Error("unsupported") }
     _RunVirtualMachine(env: pointer, what: KInt): KInt { throw new Error("unsupported") }

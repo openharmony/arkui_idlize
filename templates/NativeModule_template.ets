@@ -12,12 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
+import { callCallback } from "./CallbackRegistry"
+
 let theModule: NativeModule
 
 export function nativeModule(): NativeModule {
     if (theModule) return theModule
-      
+    // todo: is this code actually reachable?
     theModule = new NativeModule()
     return theModule
 }
@@ -25,10 +27,17 @@ export function nativeModule(): NativeModule {
 export class NativeModule {
   static {
     loadLibrary("NativeBridgeArk")
-    NativeModule.init()
+    NativeModule.init();
   }
-  // TODO: shall be done in static initializer instead
+
   static native init(): void;
+
+  static callCallbackFromNative(id: int, args: byte[], length: int): int {
+    return callCallback(id, args, length)
+  }
+
+  static native _LoadVirtualMachine(classPath: String, libPath: String, kind: int): long;
+  static native _RunVirtualMachine(env: long, what: int): int;
 
 %GENERATED_METHODS%
 
@@ -55,8 +64,10 @@ export class NativeModule {
   static native _Test_List_OnScrollVisibleContentChange(valueArray: byte[], valueSerializerLength: int): void;
   static native _Test_Common_OnChildTouchTest(valueArray: byte[], valueSerializerLength: int): void;
   static native _TestCallIntNoArgs(arg1: int): int
-  static native _TestCallIntInt32ArraySum(arg1: int, arg2: Int32Array, arg3: int): int
-  static native _TestCallVoidInt32ArrayPrefixSum(arg1: int, arg2: int[], arg3: int): int
+  static native _TestCallIntInt32ArraySum(arg1: int, arg2: int[], arg3: int): int
+  static native _TestCallVoidInt32ArrayPrefixSum(arg1: int, arg2: int[], arg3: int): void
+  static native _TestCallIntRecursiveCallback(arg1: int, arg2: byte[], arg3: int): int
+  static native _TestCallIntMemory(arg1: int, arg2: int): int
 
   // BasicNodeAPI
   static native _CreateNode(type: int, id: int, flags: int): long

@@ -14,6 +14,7 @@
  */
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <jni.h>
 

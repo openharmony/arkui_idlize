@@ -48,14 +48,13 @@ static bool registerNatives(EtsEnv *env, ets_class clazz)
     return result;
 }
 
-// TODO: EtsNapiOnLoad() hook shall be used to register native, but unfortunately, env->FindClass("NativeModule.NativeModule")
-// returns null.
-extern "C" ETS_EXPORT void ETS_NativeModule_NativeModule_init__(EtsEnv *env, ets_class clazz) {
-    registerNatives(env, clazz);
-}
-
-/*
 extern "C" ETS_EXPORT ets_int ETS_CALL EtsNapiOnLoad(EtsEnv *env) {
-    if (!registerNatives(env, env->FindClass("NativeModule.NativeModule"))) return -1;
+    if (!registerNatives(env, env->FindClass("NativeModule/NativeModule"))) return -1;
+    setKoalaEtsNapiCallbackDispatcher(
+        env,
+        "NativeModule/NativeModule",
+        "callCallbackFromNative",
+        "I[BI:I"
+    );
     return ETS_NAPI_VERSION_1_0;
-} */
+}
