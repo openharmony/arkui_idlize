@@ -292,7 +292,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             inheritance: inheritance,
             constructors: node.members.filter(ts.isConstructorDeclaration).map(it => this.serializeConstructor(it as ts.ConstructorDeclaration, name)),
             constants: [],
-            properties: this.pickProperties(node.members, name),
+            properties: this.pickProperties(node.members, name).concat(this.pickAccessors(node.members, name)),
             methods: this.pickMethods(node.members, name),
             callables: [],
             scope: this.endScope()
@@ -316,6 +316,10 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     pickCallables(members: ReadonlyArray<ts.TypeElement>, typePrefix: string): IDLFunction[] {
         return members.filter(ts.isCallSignatureDeclaration)
             .map(it => this.serializeCallable(it, typePrefix))
+    }
+    pickAccessors(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, typePrefix: string): IDLProperty[] {
+        return members.filter(it => (ts.isGetAccessorDeclaration(it) || ts.isSetAccessorDeclaration(it)))
+        .map(it => this.serializeAccessor(it as ts.GetAccessorDeclaration | ts.SetAccessorDeclaration, typePrefix))
     }
 
     fakeOverrides(node: ts.InterfaceDeclaration): ts.TypeElement[] {
@@ -453,6 +457,24 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             parameters: signature.parameters.map(it => this.serializeParameter(it, name)),
             returnType: this.serializeType(signature.type, name),
         };
+    }
+
+    serializeAccessor(accessor: ts.GetAccessorDeclaration | ts.SetAccessorDeclaration, typePrefix: string): IDLProperty {
+        let propertyType = ts.isGetAccessorDeclaration(accessor)
+            ? this.serializeType(accessor.type, typePrefix)
+            : this.serializeType(accessor.parameters[0].type, typePrefix)
+        let attributes: IDLExtendedAttribute[] = [
+            { name: "Accessor", value: ts.isGetAccessorDeclaration(accessor) ? "Getter" : "Setter" }
+        ]
+        return {
+            kind: IDLKind.Property,
+            name: asString(accessor.name),
+            type: propertyType,
+            isOptional: false,
+            isStatic: false,
+            isReadonly: false,
+            extendedAttributes: attributes
+        }
     }
 
     addToScope(entry: IDLEntry) {

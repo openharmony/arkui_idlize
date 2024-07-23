@@ -132,6 +132,13 @@ export class CustomPrintVisitor  {
         if (isCommonMethod) {
             let returnType = this.currentInterface!.name == "CommonMethod" ? "T" : this.currentInterface!.name
             this.print(`${getName(node)}(value: ${printTypeForTS(node.type)}): ${returnType};`)
+        } else if (hasExtAttribute(node, "Accessor")) {
+            const accessorName = getExtAttribute(node, "Accessor")
+            if (accessorName == "Getter") {
+                this.print(`get ${getName(node)}(): ${printTypeForTS(node.type)};`)
+            } else if (accessorName == "Setter") {
+                this.print(`set ${getName(node)}(value: ${printTypeForTS(node.type)});`)
+            }
         } else {
             this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${getName(node)}${node.isOptional ? "?" : ""}: ${printTypeForTS(node.type)};`)
 
