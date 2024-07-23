@@ -20,6 +20,10 @@ public class NativeModule {
     Runtime.getRuntime().loadLibrary("NativeBridgeJni");
   }
 
+  static int callCallbackFromNative(int id, byte[] args, int length) {
+    throw new Error("implement callCallbackFromNative()");
+  }
+
 %GENERATED_METHODS%
 
   static native long _StringMake(String string);
