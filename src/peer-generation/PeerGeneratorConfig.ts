@@ -20,7 +20,7 @@ export class PeerGeneratorConfig {
     public static customComponent = ["CustomComponent"]
 
     public static ignoreSerialization = [
-        "Array", "Callback", "ErrorCallback", "Resource", "Length", "AttributeModifier",
+        "Array", "Callback", "ErrorCallback", "Length", "AttributeModifier",
         "Number", "String", "Function", "Optional", "RelativeIndexable"
     ]
     public static ignorePeerMethod = ["attributeModifier"]

@@ -88,9 +88,14 @@ public class Main {
         System.out.println("Interface tests done");
 
         // union
-        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Ark_Resource(5.5));
-        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Ark_Resource(Ark_Color.White)); // +enum
-        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Ark_Resource(new Ark_Resource())); // +import
+        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Resource(5.5));
+        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Resource(Ark_Color.White)); // +enum
+        var resource = new Resource();
+        resource.id = 10;
+        resource.type = 2000;
+        resource.moduleName = "module_name";
+        resource.bundleName = "bundle_name";
+        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Resource(resource)); // +import
         System.out.println("Union tests done");
 
         // enum

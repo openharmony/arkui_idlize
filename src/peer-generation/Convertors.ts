@@ -735,8 +735,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
         name: string,
         param: string,
         private declaration: ts.InterfaceDeclaration | ts.ClassDeclaration,
-        protected table: DeclarationTable,
-        private type: ts.TypeReferenceNode) {
+        protected table: DeclarationTable) {
         super(name, [RuntimeType.OBJECT], false, true, param)
     }
 
@@ -744,12 +743,12 @@ export class InterfaceConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, this.table.serializerName(this.tsTypeName, this.type), [value])
+        printer.writeMethodCall(`${param}Serializer`, this.table.serializerName(this.tsTypeName), [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = printer.getObjectAccessor(this, value)
         return printer.makeAssign(accessor, undefined,
-                printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(this.tsTypeName, this.type), []), false)
+                printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(this.tsTypeName), []), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.ArkPrefix + this.tsTypeName
@@ -780,8 +779,8 @@ export class InterfaceConvertor extends BaseArgConvertor {
 }
 
 export class ClassConvertor extends InterfaceConvertor {
-    constructor(name: string, param: string, declaration: ts.ClassDeclaration, table: DeclarationTable, type: ts.TypeReferenceNode) {
-        super(name, param, declaration, table, type)
+    constructor(name: string, param: string, declaration: ts.ClassDeclaration, table: DeclarationTable) {
+        super(name, param, declaration, table)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error

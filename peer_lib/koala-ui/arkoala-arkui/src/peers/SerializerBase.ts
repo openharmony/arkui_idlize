@@ -296,7 +296,7 @@ export class SerializerBase {
 
 class OurCustomSerializer extends CustomSerializer {
     constructor() {
-        super(["Resource", "Pixmap"])
+        super(["PixelMap"])
     }
     serialize(serializer: SerializerBase, value: any, kind: string): void {
         // console.log(`managed serialize() for ${kind}`)

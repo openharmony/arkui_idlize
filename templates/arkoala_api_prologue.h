@@ -141,8 +141,6 @@ typedef struct Ark_Materialized {
   Ark_NativePointer ptr;
 } Ark_Materialized;
 
-typedef Ark_CustomObject Ark_Resource;
-
 // TODO: generate!
 typedef struct Opt_Ark_Callback {
   enum Ark_Tag tag;

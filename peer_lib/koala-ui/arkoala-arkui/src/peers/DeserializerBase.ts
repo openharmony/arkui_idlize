@@ -199,7 +199,7 @@ export abstract class CustomDeserializer {
 
 class OurCustomDeserializer extends CustomDeserializer {
     constructor() {
-        super(["Resource", "Pixmap"])
+        super(["PixelMap"])
     }
     deserialize(deserializer: DeserializerBase, kind: string): any {
         return JSON.parse(deserializer.readString())

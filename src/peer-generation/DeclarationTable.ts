@@ -35,6 +35,15 @@ import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { setEngine } from "node:crypto"
 
+export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
+    ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
+    ts.factory.createPropertySignature(undefined, "type", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
+    ts.factory.createPropertySignature(undefined, "moduleName", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)),
+    ts.factory.createPropertySignature(undefined, "bundleName", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)),
+    ts.factory.createPropertySignature(undefined, "params", ts.factory.createToken(ts.SyntaxKind.QuestionToken), 
+        ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword))),
+])
+
 function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
 }
@@ -55,7 +64,6 @@ export class PrimitiveType {
     static NativePointer = new PrimitiveType(`${PrimitiveType.ArkPrefix}NativePointer`)
     static ObjectHandle = new PrimitiveType(`${PrimitiveType.ArkPrefix}ObjectHandle`)
     static Length = new PrimitiveType(`${PrimitiveType.ArkPrefix}Length`, true)
-    static Resource = new PrimitiveType(`${PrimitiveType.ArkPrefix}Resource`, true)
     static CustomObject = new PrimitiveType(`${PrimitiveType.ArkPrefix}CustomObject`, true)
     private static pointersMap = new Map<DeclarationTarget, PointerType>()
     static pointerTo(target: DeclarationTarget) {
@@ -268,7 +276,7 @@ export class DeclarationTable {
             return prefix + `Array_` + this.computeTargetName(this.toTarget(target.elementType), false, "")
         }
         if (ts.isImportTypeNode(target)) {
-            return prefix + this.mapImportType(target).getText()
+            return prefix + this.mapImportTypeName(target)
         }
         if (ts.isOptionalTypeNode(target)) {
             let name = this.computeTargetName(this.toTarget(target.type), false, "")
@@ -301,19 +309,19 @@ export class DeclarationTable {
         throw new Error(`Cannot compute target name: ${(target as any).getText()} ${(target as any).kind}`)
     }
 
-    private mapImportType(type: ts.ImportTypeNode): DeclarationTarget {
+    private mapImportTypeName(type: ts.ImportTypeNode): string {
         let name = identName(type.qualifier)!
         switch (name) {
-            case "Resource": return PrimitiveType.Resource
-            case "Callback": return PrimitiveType.Function
-            default: return PrimitiveType.CustomObject
+            case "Resource": return "Resource"
+            case "Callback": return PrimitiveType.Function.getText()
+            default: return PrimitiveType.CustomObject.getText()
         }
     }
 
     private computeTypeNameImpl(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean, idlPrefix: string): string {
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (ts.isImportTypeNode(type)) {
-            return prefix + this.mapImportType(type).getText()
+            return prefix + this.mapImportTypeName(type)
         }
         if (ts.isTypeReferenceNode(type)) {
             const typeName = identName(type.typeName)
@@ -329,8 +337,6 @@ export class DeclarationTable {
                 const keyTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false, "")
                 const valueTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![1], false, "")
                 return `${prefix}Map_${keyTypeName}_${valueTypeName}`
-            } else if (typeName === "Resource") {
-                return `${prefix}${PrimitiveType.Resource.getText()}`
             } else if (typeName === "Callback") {
                 return prefix + typeName
             }
@@ -483,13 +489,16 @@ export class DeclarationTable {
                 toGenerateOrderer.addDep(declaration[0])
         }
         this._orderedDependenciesToGenerate = toGenerateOrderer.getToposorted()
+
+        console.log(this._orderedDependencies.includes(ResourceDeclaration))
+        console.log(this._orderedDependenciesToGenerate.includes(ResourceDeclaration))
     }
 
-    serializerName(name: string, type: ts.TypeNode): string {
+    serializerName(name: string): string {
         return `write${name}`
     }
 
-    deserializerName(name: string, type: ts.TypeNode): string {
+    deserializerName(name: string): string {
         return `read${name}`
     }
 
@@ -532,6 +541,9 @@ export class DeclarationTable {
         if (ts.isImportTypeNode(type)) {
             if (identName(type.qualifier) === "Callback") {
                 return new FunctionConvertor(param, this, type)
+            }
+            if (identName(type.qualifier) === "Resource") {
+                return new InterfaceConvertor("Resource", param, ResourceDeclaration, this)
             }
             return new ImportTypeConvertor(param, this, type)
         }
@@ -662,13 +674,13 @@ export class DeclarationTable {
             if (isMaterialized(declaration)) {
                 return new MaterializedClassConvertor(declarationName, param, this, declaration)
             }
-            return new InterfaceConvertor(declarationName, param, declaration, this, type)
+            return new InterfaceConvertor(declarationName, param, declaration, this)
         }
         if (ts.isClassDeclaration(declaration)) {
             if (isMaterialized(declaration)) {
                 return new MaterializedClassConvertor(declarationName, param, this, declaration)
             }
-            return new ClassConvertor(declarationName, param, declaration, this, type)
+            return new ClassConvertor(declarationName, param, declaration, this)
         }
         if (ts.isTypeParameterDeclaration(declaration)) {
             // TODO: incorrect, we must use actual, not formal type parameter.
@@ -913,7 +925,6 @@ export class DeclarationTable {
                 case PrimitiveType.CustomObject:
                 case PrimitiveType.Materialized:
                 case PrimitiveType.NativePointer:
-                case PrimitiveType.Resource:
                 case PrimitiveType.Tag:
                     return undefined
                 case PrimitiveType.Function:
@@ -1458,7 +1469,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
     convertImport(node: ts.ImportTypeNode): DeclarationTarget {
         let name = identName(node.qualifier)!
         switch (name) {
-            case "Resource": return PrimitiveType.Resource
+            case "Resource": return ResourceDeclaration
             case "Callback": return PrimitiveType.Function
             default: return PrimitiveType.CustomObject
         }

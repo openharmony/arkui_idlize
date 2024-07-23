@@ -106,16 +106,15 @@ function checkSerdeBasePrimitive() {
 
 function checkSerdeBaseCustomObject() {
     const ser = new SerializerBase()
-    const resource: Resource = {
-        bundleName: "bundle name",
-        moduleName: "module name",
-        id: 1,
+    const pixelMap: PixelMap = {
+        isEditable: true,
+        isStrideAlignment: true,
     }
-    ser.writeCustomObject("Resource", resource)
+    ser.writeCustomObject("PixelMap", pixelMap)
     const des = new DeserializerBase(ser.asArray().buffer, ser.length())
-    checkSerdeResult("DeserializerBase.readCustomObject, Resource",
-        JSON.stringify(resource),
-        JSON.stringify(des.readCustomObject("Resource") as Resource))
+    checkSerdeResult("DeserializerBase.readCustomObject, PixelMap",
+        JSON.stringify(pixelMap),
+        JSON.stringify(des.readCustomObject("PixelMap") as PixelMap))
 }
 
 function checkNodeAPI() {
@@ -222,10 +221,10 @@ function checkButton() {
     checkResult("bindSheet", () =>
         peer.bindSheetAttribute(false, () => { }, {
             title: {
-                title: { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
+                title: { id: 43, type: 2000, bundleName: "MyApp", moduleName: "MyApp", params: ["param1", "param2"] }
             }
         }),
-        `bindSheet(false, {.selector=0, .value0={.id=4}}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=1, .value1={.kind="NativeErrorResource", .id=0}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
+        `bindSheet(false, {.selector=0, .value0={.id=4}}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=1, .value1={.id={.tag=102, .i32=43}, .type={.tag=102, .i32=2000}, .moduleName={.chars="MyApp", .length=5}, .bundleName={.chars="MyApp", .length=5}, .params={.tag=ARK_TAG_OBJECT, .value={{{.chars="param1", .length=6}, {.chars="param2", .length=6}}, .length=2}}}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
     checkResult("type", () => peer.typeAttribute(1), "type(1)")
     checkResult("labelStyle", () => peer.labelStyleAttribute({ maxLines: 3 }),

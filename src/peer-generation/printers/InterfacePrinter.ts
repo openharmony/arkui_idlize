@@ -18,7 +18,7 @@ import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
 import { FieldModifier, LanguageWriter, createLanguageWriter, Type } from '../LanguageWriters'
 import { ArkTSTypeNodeNameConvertor, mapType } from '../TypeNodeNameConvertor'
-import { Language, removeExt, renameDtsToInterfaces } from '../../util'
+import { identName, Language, removeExt, renameDtsToInterfaces } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
 import { PeerFile } from '../PeerFile'
 import { IndentedPrinter } from "../../IndentedPrinter"
@@ -26,6 +26,7 @@ import { TargetFile } from './TargetFile'
 import { PrinterContext } from './PrinterContext'
 import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from './lang/Java'
 import { convertDeclaration, DeclarationConvertor } from "../TypeNodeConvertor";
+import { ResourceDeclaration } from '../DeclarationTable'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -188,7 +189,7 @@ class JavaInterfacesVisitor {
         if (!node.name) {
             throw new Error(`Empty name for node\n${node}`)
         }
-        return node.name.getText()
+        return identName(node.name)!
     }
 
     private getSuperClass(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
@@ -242,18 +243,23 @@ class JavaInterfacesVisitor {
         return result
     }
 
+    private addInterfaceDeclaration(it: ts.ClassDeclaration | ts.InterfaceDeclaration) {
+        const writer = createLanguageWriter(Language.JAVA)
+        this.printPackage(writer);
+        this.printClassOrInterface(it, writer)
+        this.addInterface(this.getName(it), writer)
+    }
+
     printInterfaces() {
         for (const file of this.peerLibrary.files.values()) {
             file.declarations.forEach(it => {
                 if (!ts.isClassDeclaration(it) && !ts.isInterfaceDeclaration(it)) {
                     return
                 }
-                const writer = createLanguageWriter(Language.JAVA)
-                this.printPackage(writer);
-                this.printClassOrInterface(it, writer)
-                this.addInterface(this.getName(it), writer)
+                this.addInterfaceDeclaration(it)
             })
         }
+        this.addInterfaceDeclaration(ResourceDeclaration)
     }
 }
 

@@ -154,10 +154,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     private mapImportType(type: ts.ImportTypeNode): JavaType {
         let name = identName(type.qualifier)!
         let javaTypeName: string
-        if (name == 'Resource') {
-            javaTypeName = PrimitiveType.Resource.getText()
-        }
-        else if (name == 'Callback') {
+        if (name == 'Callback') {
             throw unsupportedType('Import:Callback') //return PrimitiveType.Function
         }
         else {
@@ -175,7 +172,6 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         [PrimitiveType.Boolean, 'boolean'],
         [PrimitiveType.Undefined, `${PrimitiveType.ArkPrefix}Undefined`],
         [PrimitiveType.Length, `${PrimitiveType.ArkPrefix}Length`],
-        [PrimitiveType.Resource, `${PrimitiveType.ArkPrefix}Resource`],
         // TODO: add other primitive types
     ])
 
