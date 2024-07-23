@@ -114,6 +114,7 @@ export class CustomPrintVisitor  {
         let isStatic = isMethod(node) && node.isStatic
         let name = isConstructor(node) ? "constructor" : getName(node)
         let isOptional = isMethod(node) && node.isOptional
+        let isProtected = hasExtAttribute(node, "Protected")
         if (hasExtAttribute(node, "CallSignature")) name = ""
         // if (hasExtAttribute(node,"DtsName")) {
         //     let dtsName = getExtAttribute(node, "DtsName")
@@ -122,13 +123,14 @@ export class CustomPrintVisitor  {
         const typeParamsAttr = getExtAttribute(node, "TypeParameters")
         const typeParams = typeParamsAttr ? `<${typeParamsAttr}>` : ""
         let isExport = hasExtAttribute(node, "Export")
-        this.print(`${isGlobal ? `${isExport ? "export ": ""}declare function `: ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}${typeParams}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
+        this.print(`${isGlobal ? `${isExport ? "export ": ""}declare function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}${typeParams}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
     }
     paramText(param: IDLParameter): string {
         return `${param.isVariadic ? "..." : ""}${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
     }
     printProperty(node: IDLProperty) {
         const isCommonMethod = hasExtAttribute(node, "CommonMethod")
+        let isProtected = hasExtAttribute(node, "Protected")
         if (isCommonMethod) {
             let returnType = this.currentInterface!.name == "CommonMethod" ? "T" : this.currentInterface!.name
             this.print(`${getName(node)}(value: ${printTypeForTS(node.type)}): ${returnType};`)
@@ -140,7 +142,7 @@ export class CustomPrintVisitor  {
                 this.print(`set ${getName(node)}(value: ${printTypeForTS(node.type)});`)
             }
         } else {
-            this.print(`${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${getName(node)}${node.isOptional ? "?" : ""}: ${printTypeForTS(node.type)};`)
+            this.print(`${isProtected ? "protected " : ""}${node.isStatic ? "static " : ""}${node.isReadonly ? "readonly " : ""}${getName(node)}${node.isOptional ? "?" : ""}: ${printTypeForTS(node.type)};`)
 
         }
     }

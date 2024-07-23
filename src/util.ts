@@ -177,6 +177,14 @@ export function isStatic(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefine
     return modifierLikes?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) != undefined
 }
 
+export function isPrivate(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined) {
+    return modifierLikes?.find(it => it.kind == ts.SyntaxKind.PrivateKeyword) != undefined
+}
+
+export function isProtected(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined) {
+    return modifierLikes?.find(it => it.kind == ts.SyntaxKind.ProtectedKeyword) != undefined
+}
+
 export function getLineNumberString(sourceFile: ts.SourceFile, position: number): string {
     let pos = ts.getLineAndCharacterOfPosition(sourceFile, position)
     return `${pos.line + 1}:${pos.character}`

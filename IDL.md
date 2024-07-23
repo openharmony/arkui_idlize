@@ -22,3 +22,4 @@ We use WebIDL language with several custom extension attributes documented below
    * `VerbatimDts` - code to add "as-is" to produced .d.ts, for language-specific features, avoid when possible
    * `Export` - if given node has `export` modifier
    * `Accessor = Getter | Setter` - if given node is accessor
+   * `Protected` - if given attribute is protected

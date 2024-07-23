@@ -21,7 +21,7 @@ import {
     IDLEntity, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLTopType, IDLType, IDLTypedef
 } from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isExport, isNodePublic, isReadonly, isStatic, nameOrNull, nameOrNullForIdl as nameOrUndefined, stringOrNone
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameOrNull, nameOrNullForIdl as nameOrUndefined, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -305,12 +305,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
     pickProperties(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, typePrefix: string): IDLProperty[] {
         return members
-            .filter(it => ts.isPropertySignature(it) || ts.isPropertyDeclaration(it) || this.isCommonMethodUsedAsProperty(it))
+            .filter(it => (ts.isPropertySignature(it) || ts.isPropertyDeclaration(it) || this.isCommonMethodUsedAsProperty(it)) && !isPrivate(it.modifiers))
             .map(it => this.serializeProperty(it, typePrefix))
     }
     pickMethods(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, typePrefix: string): IDLMethod[] {
         return members
-            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it))
+            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it) && !isPrivate(it.modifiers))
             .map(it => this.serializeMethod(it as ts.MethodDeclaration|ts.MethodSignature, typePrefix))
     }
     pickCallables(members: ReadonlyArray<ts.TypeElement>, typePrefix: string): IDLFunction[] {
@@ -710,6 +710,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             const name = this.propertyName(property.name)!
             if (property.questionToken)
                 extAttrs.push({name: 'Optional'})
+            if (isProtected(property.modifiers))
+                extAttrs.push({name: 'Protected'})
             return {
                 kind: IDLKind.Property,
                 name: name,
@@ -802,6 +804,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             extendedAttributes.push({ name: "DtsName", value: methodName})
         if (!!method.questionToken)
             extendedAttributes.push({name: 'Optional'})
+        if (isProtected(method.modifiers))
+            extendedAttributes.push({name: 'Protected'})
         return {
             kind: IDLKind.Method,
             name: escapedName,
