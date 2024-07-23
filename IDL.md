@@ -20,3 +20,4 @@ We use WebIDL language with several custom extension attributes documented below
    * `TypeArguments` - concrete types used as values for type parameters
    * `TypeParameters` - type parameters for a parameterized type
    * `VerbatimDts` - code to add "as-is" to produced .d.ts, for language-specific features, avoid when possible
+   * `Export` - if given node has `export` modifier

@@ -169,6 +169,10 @@ export function isReadonly(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefi
     return modifierLikes?.find(it => it.kind == ts.SyntaxKind.ReadonlyKeyword) != undefined
 }
 
+export function isExport(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined): boolean {
+    return modifierLikes?.find(it => it.kind == ts.SyntaxKind.ExportKeyword) != undefined
+}
+
 export function isStatic(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined): boolean {
     return modifierLikes?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) != undefined
 }

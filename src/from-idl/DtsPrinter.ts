@@ -84,7 +84,8 @@ export class CustomPrintVisitor  {
             if (interfaces) {
                 typeSpec += ` implements ${interfaces}`
             }
-            this.print(`declare ${entity!.toLowerCase()} ${typeSpec} {`)
+            let isExport = hasExtAttribute(node, "Export")
+            this.print(`${isExport ? "export ": ""}declare ${entity!.toLowerCase()} ${typeSpec} {`)
             this.currentInterface = node
             this.pushIndent()
             node.constructors.map(it => this.visit(it))
@@ -120,7 +121,8 @@ export class CustomPrintVisitor  {
         // }
         const typeParamsAttr = getExtAttribute(node, "TypeParameters")
         const typeParams = typeParamsAttr ? `<${typeParamsAttr}>` : ""
-        this.print(`${isGlobal ? "declare function ": ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}${typeParams}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
+        let isExport = hasExtAttribute(node, "Export")
+        this.print(`${isGlobal ? `${isExport ? "export ": ""}declare function `: ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}${typeParams}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
     }
     paramText(param: IDLParameter): string {
         return `${param.isVariadic ? "..." : ""}${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
@@ -138,7 +140,8 @@ export class CustomPrintVisitor  {
     printEnum(node: IDLEnum) {
         const namespace = getExtAttribute(node, "Namespace")
         this.openNamespace(namespace)
-        this.print(`declare enum ${node.name} {`)
+        let isExport = hasExtAttribute(node, "Export")
+        this.print(`${isExport ? "export ": ""}declare enum ${node.name} {`)
         this.pushIndent()
         node.elements.forEach((it, index) => {
             this.print(`${getName(it)}${it.initializer ? " = " + it.initializer : ""}${index < node.elements.length - 1 ? "," : ""}`)
@@ -153,7 +156,8 @@ export class CustomPrintVisitor  {
     }
     printTypedef(node: IDLTypedef) {
         let text = getVerbatimDts(node) ?? printTypeForTS(node.type)
-        this.print(`declare type ${(node.name)} = ${text};`)
+        let isExport = hasExtAttribute(node, "Export")
+        this.print(`${isExport ? "export ": ""}declare type ${(node.name)} = ${text};`)
     }
 
     printModuleType(node: IDLModuleType) {

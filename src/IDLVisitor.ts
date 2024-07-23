@@ -21,7 +21,7 @@ import {
     IDLEntity, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLTopType, IDLType, IDLTypedef
 } from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isNodePublic, isReadonly, isStatic, nameOrNull, nameOrNullForIdl as nameOrUndefined, stringOrNone
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isExport, isNodePublic, isReadonly, isStatic, nameOrNull, nameOrNullForIdl as nameOrUndefined, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -213,7 +213,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return inheritance?.map(it => this.serializeHeritage(it)).flat() ?? []
     }
 
-    computeNamespaceAttribute() {
+    computeNamespaceAttribute(): IDLExtendedAttribute[] {
         const namespace = this.namespaces[0]
         return namespace ? [{name: "Namespace", value: namespace}] : []
     }
@@ -236,6 +236,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 name : "TypeParameters",
                 value: typeParameters.map(it => it.getText()).join(",")})
         }
+        if (isExport(node.modifiers)) {
+            result.push({
+                name: "Export"
+            })
+        }
         return result
     }
 
@@ -254,6 +259,15 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     computeDeprecatedExtendAttributes(node: ts.Node, attributes: IDLExtendedAttribute[] = []): IDLExtendedAttribute[] | undefined {
         if (isDeprecatedNode(this.sourceFile,node)) {
             attributes.push({ name: "Deprecated" })
+        }
+        if (ts.canHaveModifiers(node)) {
+            if (!attributes.find(it => it.name == "Export")) {
+                if (isExport(node.modifiers)) {
+                    attributes.push({
+                        name: "Export"
+                    })
+                }
+            }
         }
         return attributes
     }
