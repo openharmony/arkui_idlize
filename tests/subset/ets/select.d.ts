@@ -13,6 +13,12 @@
  * limitations under the License.
  */
 
+declare interface SelectOption {
+  value: ResourceStr;
+  icon?: ResourceStr;
+  symbolIcon?: SymbolGlyphModifier;
+}
+
 declare interface MenuItemConfiguration extends CommonConfiguration<MenuItemConfiguration> {
 
     value: ResourceStr;
@@ -22,7 +28,15 @@ declare interface MenuItemConfiguration extends CommonConfiguration<MenuItemConf
     triggerSelect(index: number, value: string): void;
 }
 
+interface SelectInterface {
+  (options: Array<SelectOption>): SelectAttribute;
+}
+
 declare class SelectAttribute extends CommonMethod<SelectAttribute> {
 
     menuItemContentModifier(modifier: ContentModifier<MenuItemConfiguration>): SelectAttribute;
 }
+
+declare const Select: SelectInterface;
+
+declare const SelectInstance: SelectAttribute;

@@ -45,3 +45,6 @@ declare class ScrollAttribute extends ScrollableCommonMethod<ScrollAttribute> {
     //onScrollEdge(event: (side: Edge) => void): ScrollAttribute;
 }
 
+declare const Scroll: ScrollInterface;
+
+declare const ScrollInstance: ScrollAttribute;

@@ -226,8 +226,8 @@ if (options.dts2test) {
         {
             compilerOptions: defaultCompilerOptions,
             onBegin: (outDir: string) => {
-                lines.push(`import { ArkUINodeType } from "@arkoala/arkui/ArkUINodeType"`)
-                lines.push(`import {checkResult, checkTestFailures} from "../subset/test_utils"`)
+                lines.push(`import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"`)
+                lines.push(`import {checkResult, checkTestFailures} from "@arkoala/arkui/test_utils"`)
                 lines.push(``)
             },
             onSingleFile: (entries: string[], outputDir, sourceFile) => {

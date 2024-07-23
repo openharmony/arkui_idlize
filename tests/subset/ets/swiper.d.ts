@@ -68,6 +68,18 @@ declare class DotIndicator extends Indicator<DotIndicator> {
 //   selectedDigitFont(value: Font): DigitIndicator;
 // }
 
+declare class SwiperController {
+  constructor();
+  showNext();
+  showPrevious();
+  changeIndex(index: number, useAnimation?: boolean);
+  finishAnimation(callback?: () => void);
+}
+
+interface SwiperInterface {
+  (controller?: SwiperController): SwiperAttribute;
+}
+
 declare class SwiperAttribute extends CommonMethod<SwiperAttribute> {
 
   index(value: number): SwiperAttribute;
@@ -76,3 +88,7 @@ declare class SwiperAttribute extends CommonMethod<SwiperAttribute> {
 //  indicator(value: DotIndicator | DigitIndicator | boolean): SwiperAttribute;
 
 }
+
+declare const Swiper: SwiperInterface;
+
+declare const SwiperInstance: SwiperAttribute;
