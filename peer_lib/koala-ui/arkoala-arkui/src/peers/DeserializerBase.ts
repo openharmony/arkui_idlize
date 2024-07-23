@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {float32, int32} from "@koalaui/common"
+import {CustomTextDecoder, float32, int32} from "@koalaui/common"
 import {pointer} from "@koalaui/interop"
 import {RuntimeType, Tags} from "./SerializerBase";
 // import { Length } from "@arkoala/arkui"
@@ -22,7 +22,7 @@ export class DeserializerBase {
     private readonly buffer: ArrayBuffer
     private readonly length: int32
     private view: DataView
-    private static textDecoder = new TextDecoder()
+    private static textDecoder = new CustomTextDecoder()
     private static customDeserializers: CustomDeserializer | undefined = undefined
 
     static registerCustomDeserializer(deserializer: CustomDeserializer) {
