@@ -33,6 +33,7 @@ interface Date {}
 interface IterableIterator<T> {}
 interface Object {}
 interface Function {}
+interface Partial<T> {}
 interface Promise<T> {}
 interface ArrayBuffer {}
 interface Map<K, V> {}
