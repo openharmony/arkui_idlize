@@ -15,28 +15,44 @@
 
 import { LanguageWriter, Type } from "../../LanguageWriters";
 import { ImportTable } from "../ImportTable";
+import * as assert from "assert";
 
 export class JavaImportTable implements ImportTable {
-    private readonly imports = new Map<Type, string[]>();
+    private readonly imports = new Map<string, string[]>();
+
+    constructor() {
+        this.setPeerLibImports()
+    }
 
     getImportsForType(type: Type): string[] {
-        return this.imports.get(type) ?? []
+        return this.imports.get(this.encode(type)) ?? []
     }
 
     setImportsForType(type: Type, imports: string[]): void {
-        if (this.imports.has(type)) {
-            throw new Error(`Imports already defined for type ${type.name}`)
+        const encodedType = this.encode(type)
+        if (this.imports.has(encodedType)) {
+            assert.deepStrictEqual(imports, this.imports.get(encodedType))
         }
-        this.imports.set(type, imports)
+        else {
+            this.imports.set(encodedType, imports)
+        }
     }
 
     printImportsForTypes(types: Type[], printer: LanguageWriter): void {
         const allImports = new Set(types.flatMap(it => {
-            return this.imports.get(it) ?? []
+            return this.imports.get(this.encode(it)) ?? []
         }))
 
         for (const importedModule of allImports) {
             printer.print(`import ${importedModule};\n`)
         }
+    }
+
+    private encode(type: Type): string {
+        return `${type.name}/${type.nullable}`
+    }
+
+    private setPeerLibImports(): void {
+        this.setImportsForType(new Type('Finalizable'), ['org.koalaui.interop.Finalizable'])
     }
 }

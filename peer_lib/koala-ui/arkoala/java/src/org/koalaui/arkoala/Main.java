@@ -83,19 +83,20 @@ public class Main {
         // interface
         var buttonPeer = new ArkButtonPeer(ArkUINodeType.Root, null, 0);
         var labelStyle = new LabelStyle();
-        labelStyle.maxLines = new Opt_Number(5);
+        labelStyle.maxLines = new Opt_Number(5); // +optional
         buttonPeer.labelStyleAttribute(labelStyle);
         System.out.println("Interface tests done");
 
         // union
-        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Resource(5.5));
-        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Resource(Ark_Color.White)); // +enum
+        var blankPeer = new ArkBlankPeer(ArkUINodeType.Root, null, 0);
+        blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(5.5));
+        blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(Ark_Color.White)); // +enum
         var resource = new Resource();
         resource.id = 10;
         resource.type = 2000;
         resource.moduleName = "module_name";
         resource.bundleName = "bundle_name";
-        buttonPeer.fontColorAttribute(new Union_Ark_Color_double_String_Resource(resource)); // +import
+        blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(resource)); // +import
         System.out.println("Union tests done");
 
         // enum
@@ -112,12 +113,16 @@ public class Main {
         System.out.println("Tuple tests done");
 
         // optional
-        peer.someOptionalBoolAttribute(new Opt_Boolean(false));
-        peer.someOptionalEnumAttribute(Ark_EnumDTS.ELEM_1); // +enum
-        var optionalInterface = new OptionalTestInterface();
-        optionalInterface.optNumber = new Opt_Number(10);
-        peer.testOptionInterface_OptionalTestInterfaceAttribute(optionalInterface); // +interface
+        var listPeer = new ArkListPeer(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
+        listPeer.someOptionalAttribute(new Opt_Boolean(false));
         System.out.println("Optional tests done");
+
+        // enum
+        buttonPeer.typeAttribute(Ark_ButtonType.Capsule);
+        System.out.println("Enum tests done");
+        var sheetOptions = new SheetOptions();
+        sheetOptions.mode = Ark_SheetMode.EMBEDDED;
+        buttonPeer.bindSheetAttribute(false, sheetOptions); // +interface
 
         // array
         BooleanInterfaceDTS[] booleanInterface = { new BooleanInterfaceDTS(), new BooleanInterfaceDTS() };
@@ -139,11 +144,19 @@ public class Main {
         dataInfo.info.params = Map.of("k1", "v1", "k2", "v2");
         var webPeer = new ArkWebPeer(ArkUINodeType.Root /* ArkUINodeType.Web */, null, 0);
         webPeer.testMethodAttribute(dataInfo);
-        System.out.println("Map tests done");
         var doubleStringMap = Map.of(1.0, "v1", 2.0, "v2");
         var unionWithMap = new Union_double_Map_Double_String(doubleStringMap);
         peer.testUnionWithMapAttribute(unionWithMap); // +union
         peer.testMapAttribute(doubleStringMap); // +map in peer method
+        System.out.println("Map tests done");
+
+        // materialized classes
+        var classCtor = new ClassWithConstructorAndAllOptionalParamsDTS(new Opt_Number(10), null);
+        var classOf = ClassWithConstructorAndAllOptionalParamsDTS.of(null, "test");
+        classOf.method(new Opt_Boolean(false), null);
+        peer.testClassWithConstructorAndAllOptionalParamsAttribute(classCtor);
+        peer.testClassWithConstructorAndAllOptionalParamsAttribute(classOf);
+        System.out.println("Materialized classes tests done");
     }
 }
 

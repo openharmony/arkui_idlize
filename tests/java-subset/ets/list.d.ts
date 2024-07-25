@@ -13,45 +13,22 @@
  * limitations under the License.
  */
 
-declare enum Color {
-    White,
-    Black,
+declare interface VisibleListContentInfo {
+    index: number
+    itemIndexInGroup?: number
 }
 
-declare enum Curve {
-  Linear,
-  Ease,
+declare type OnScrollVisibleContentChangeCallback = (start: VisibleListContentInfo, end: VisibleListContentInfo) => void;
+declare type Optional<T> = T | undefined
+
+declare interface ListInterface { 
+    (): ListAttribute
 }
 
-declare enum TextHeightAdaptivePolicy {
-  MAX_LINES_FIRST,
-  MIN_FONT_SIZE_FIRST,
-  LAYOUT_CONSTRAINT_FIRST,
+declare class ListAttribute extends ScrollableCommonMethod<ListAttribute> {
+    someOptional(param: Optional<boolean>): ListAttribute
+
+    //~onScrollVisibleContentChange(handler: OnScrollVisibleContentChangeCallback): ListAttribute;
 }
 
-declare enum TextOverflow {
-  None,
-  Clip,
-  Ellipsis,
-  MARQUEE,
-}
-
-declare enum FontWeight {
-  Lighter,
-  Normal,
-  Regular,
-  Medium,
-  Bold,
-  Bolder,
-}
-
-declare enum FontStyle {
-  Normal,
-  Italic,
-}
-
-declare enum ColoringStrategy {
-  INVERT = 'invert',
-  AVERAGE = 'average',
-  PRIMARY = 'primary',
-}
+declare const List: ListInterface

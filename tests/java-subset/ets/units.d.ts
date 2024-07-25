@@ -16,6 +16,10 @@
 
 declare type Resource = import('../resource/resource').Resource;
 
+declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUnit;
+
+declare type LengthMetrics = import('../api/arkui/Graphics').LengthMetrics;
+
 declare type Length = string | number | Resource;
 
 declare type ResourceColor = Color | number | string | Resource;
@@ -36,6 +40,7 @@ declare type ResourceStr = string | Resource;
 
 declare type Offset = {
     dx: Length;
+
     dy: Length;
 };
 
@@ -45,13 +50,26 @@ declare type AltOffset = {
 };
 
 declare interface Position {
+
     x?: Length;
+
     y?: Length;
 }
 
+declare interface LocalizedPadding {
+
+  /*~top?: LengthMetrics;
+
+  end?: LengthMetrics;
+
+  bottom?: LengthMetrics;
+
+  start?: LengthMetrics;*/
+};
+
 declare interface Font {
-    size?: Length;
-    weight?: FontWeight | number | string;
-    family?: string /*| Resource*/;
-    style?: FontStyle;
+  size?: Length;
+  weight?: FontWeight | number | string;
+  family?: string | Resource;
+  style?: FontStyle;
 }

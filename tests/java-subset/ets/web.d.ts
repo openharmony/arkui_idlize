@@ -12,7 +12,7 @@ interface WebInterface {
 
 declare class WebAttribute extends CommonMethod<WebAttribute> {
     testMethod(dataInfo: NativeEmbedDataInfo): WebAttribute
-    //onNativeEmbedLifecycleChange(callback: (event: NativeEmbedDataInfo) => void): WebAttribute;
+    //~onNativeEmbedLifecycleChange(callback: (event: NativeEmbedDataInfo) => void): WebAttribute;
 }
 
 declare const Web: WebInterface;

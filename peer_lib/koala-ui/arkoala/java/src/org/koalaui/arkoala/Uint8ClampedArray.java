@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,46 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.koalaui.arkoala;
 
-declare enum Color {
-    White,
-    Black,
-}
-
-declare enum Curve {
-  Linear,
-  Ease,
-}
-
-declare enum TextHeightAdaptivePolicy {
-  MAX_LINES_FIRST,
-  MIN_FONT_SIZE_FIRST,
-  LAYOUT_CONSTRAINT_FIRST,
-}
-
-declare enum TextOverflow {
-  None,
-  Clip,
-  Ellipsis,
-  MARQUEE,
-}
-
-declare enum FontWeight {
-  Lighter,
-  Normal,
-  Regular,
-  Medium,
-  Bold,
-  Bolder,
-}
-
-declare enum FontStyle {
-  Normal,
-  Italic,
-}
-
-declare enum ColoringStrategy {
-  INVERT = 'invert',
-  AVERAGE = 'average',
-  PRIMARY = 'primary',
-}
+public class Uint8ClampedArray {}

@@ -13,45 +13,20 @@
  * limitations under the License.
  */
 
-declare enum Color {
-    White,
-    Black,
+declare enum BarMode {
+    Scrollable = 0,
+    Fixed = 1,
 }
 
-declare enum Curve {
-  Linear,
-  Ease,
+declare interface TabsInterface { 
+    (): TabsAttribute
 }
 
-declare enum TextHeightAdaptivePolicy {
-  MAX_LINES_FIRST,
-  MIN_FONT_SIZE_FIRST,
-  LAYOUT_CONSTRAINT_FIRST,
+declare class TabsAttribute extends CommonMethod<TabsAttribute> {
+
+    // TBD: Fix for the TestGeneratorVisitor
+    // barMode(value: BarMode.Fixed): TabsAttribute;
+    barMode(value: BarMode): TabsAttribute;
 }
 
-declare enum TextOverflow {
-  None,
-  Clip,
-  Ellipsis,
-  MARQUEE,
-}
-
-declare enum FontWeight {
-  Lighter,
-  Normal,
-  Regular,
-  Medium,
-  Bold,
-  Bolder,
-}
-
-declare enum FontStyle {
-  Normal,
-  Italic,
-}
-
-declare enum ColoringStrategy {
-  INVERT = 'invert',
-  AVERAGE = 'average',
-  PRIMARY = 'primary',
-}
+declare const Tabs: TabsInterface

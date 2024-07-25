@@ -1,32 +1,3 @@
-/*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-declare type Optional<T> = T | undefined
-
-declare interface TestInterface { 
-    (): TestAttribute
-}
-
-declare interface LengthInterface { 
-    str: string
-    len: Length
-    optLen?: Length
-}
-
-declare const Test: TestInterface
-
 declare enum EnumDTS {
     ELEM_0 = 0,
     ELEM_1 = 1,
@@ -60,114 +31,113 @@ declare interface TupleInterfaceDTS {
     tuple: [number, boolean]
 }
 
-declare interface TestTupleUnionInterfaceDTS {
-    tuple: [number | boolean, number | StringInterfaceDTS]
-}
-
 declare interface OptionInterfaceDTS {
 
     tuple: [boolean?, number?]
 }
 
-declare interface OptionalTestInterface {
-    optNumber?: number
-    optString?: string
-}
-
 declare interface ArrayRefNumberInterfaceDTS {
+
     tuple: Array<number>
 }
 
 declare interface ArrayRefTuplesInterfaceDTS {
+
     tuple: Array<[boolean, number]>
 }
 
 declare class ClassDTS {
+
     valBoolean: boolean
 }
 
-// // Non materialized class
-// declare class ClassWithConstructorDTS {
+// Non materialized class
+declare class ClassWithConstructorDTS {
 
-//     constructor(valNumber: number, valString: string)
-// }
+    constructor(valNumber: number, valString: string)
+}
 
-// // Non materialized class
-// declare class ClassWithConstructorAndFieldsDTS {
+// Non materialized class
+/*~declare class ClassWithConstructorAndFieldsDTS {
 
-//     valNumber: number
-//     valBoolean: boolean
+    valNumber: number
+    valBoolean: boolean
 
-//     constructor(valNumber: number, valBoolean: boolean)
-// }
+    constructor(valNumber: number, valBoolean: boolean)
+}*/
 
-// // Materialized class
-// declare class ClassWithConstructorAndMethodsDTS {
+// Materialized class
+declare class ClassWithConstructorAndMethodsDTS {
 
-//     constructor(valNumber: number, valString: string)
+    constructor(valNumber: number, valString: string)
 
-//     method(valNumber: number, valString: string): void
-// }
+    method(valNumber: number, valString: string): void
+}
 
-// // Materialized class
-// declare class ClassWithConstructorAndStaticMethodsDTS {
+// Materialized class
+declare class ClassWithConstructorAndStaticMethodsDTS {
 
-//     constructor(valNumber: number, valString: string)
+    constructor(valNumber: number, valString: string)
 
-//     static of(valNumber: number, valString: string): ClassWithConstructorAndStaticMethodsDTS
-// }
+    static of(valNumber: number, valString: string): ClassWithConstructorAndStaticMethodsDTS
+}
 
-// // Materialized class
-// declare class ClassWithConstructorAndFieldsAndMethodsDTS {
+// Materialized class
+/*~declare class ClassWithConstructorAndFieldsAndMethodsDTS {
 
-//     valNumber: number
-//     valBoolean: boolean
+    valNumber: number
+    valBoolean: boolean
 
-//     constructor(valNumber: number, valBoolean: boolean)
+    constructor(valNumber: number, valBoolean: boolean)
 
-//     method(valNumber: number, valString: string): void
-// }
+    method(valNumber: number, valString: string): void
+}*/
 
 
-// // Materialized class
-// declare class ClassWithConstructorAndWithoutParamsDTS {
+// Materialized class
+declare class ClassWithConstructorAndWithoutParamsDTS {
 
-//     constructor()
+    constructor()
 
-//     static of(): ClassWithConstructorAndWithoutParamsDTS
+    static of(): ClassWithConstructorAndWithoutParamsDTS
 
-//     method(): void
-// }
+    method(): void
+}
 
-// // Materialized class
-// declare class ClassWithConstructorAndNonOptionalParamsDTS {
+// Materialized class
+declare class ClassWithConstructorAndNonOptionalParamsDTS {
 
-//     constructor(valNumber: number, valString: string)
+    constructor(valNumber: number, valString: string)
 
-//     static of(valNumber: number, valString: string): ClassWithConstructorAndNonOptionalParamsDTS
+    static of(valNumber: number, valString: string): ClassWithConstructorAndNonOptionalParamsDTS
 
-//     method(valBoolean: boolean, valString: string): void
-// }
+    method(valBoolean: boolean, valString: string): void
+}
 
-// // Materialized class
-// declare class ClassWithConstructorAndSomeOptionalParamsDTS {
+// Materialized class
+declare class ClassWithConstructorAndSomeOptionalParamsDTS {
 
-//     constructor(valNumber: number, valString?: string)
+    constructor(valNumber: number, valString?: string)
 
-//     static of(valNumber: number, valString?: string): ClassWithConstructorAndSomeOptionalParamsDTS
+    static of(valNumber: number, valString?: string): ClassWithConstructorAndSomeOptionalParamsDTS
 
-//     method(valBoolean: boolean, valString?: string): void
-// }
+    method(valBoolean: boolean, valString?: string): void
+}
 
-// // Materialized class
-// declare class ClassWithConstructorAndAllOptionalParamsDTS {
+// Materialized class
+declare class ClassWithConstructorAndAllOptionalParamsDTS {
 
-//     constructor(valNumber?: number, valString?: string)
+    constructor(valNumber?: number, valString?: string)
 
-//     static of(valNumber?: number, valString?: string): ClassWithConstructorAndAllOptionalParamsDTS
+    static of(valNumber?: number, valString?: string): ClassWithConstructorAndAllOptionalParamsDTS
 
-//     method(valBoolean?: boolean, valString?: string): void
-// }
+    method(valBoolean?: boolean, valString?: string): void
+}
+
+declare interface TestInterface { 
+    (): TestAttribute
+}
+declare const Test: TestInterface
 
 // basic types:
 // - boolean
@@ -184,11 +154,7 @@ declare class ClassDTS {
 // [type1 | type2, (type3 | type 4)?]    // tuple union
 // Array<type> // ArrayRef type
 // Array<[type1, type2]> // ArrayRef tuple
-
 declare class TestAttribute extends CommonMethod<TestAttribute> {
-
-    someOptionalBool(value: Optional<boolean>): TestAttribute
-    someOptionalEnum(value: Optional<EnumDTS>): TestAttribute
 
     // basic types
     testBoolean(value: boolean): TestAttribute;
@@ -199,7 +165,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testEnum(value: EnumDTS): TestAttribute
 
-    //testFunction(value: (a: number) => boolean): TestAttribute;
+    //~testFunction(value: (a: number) => boolean): TestAttribute;
 
     testBasicMix(v1: number, v2: string, v3: number): TestAttribute
 
@@ -217,7 +183,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testEnumUndefined(value: EnumDTS | undefined): TestAttribute;
 
-    // testFunctionUndefined(value: (a: number) => boolean | undefined): TestAttribute;
+    //~testFunctionUndefined(value: (a: number) => boolean | undefined): TestAttribute;
 
     // union
 
@@ -267,7 +233,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testArrayRefNumber(value: Array<number>): TestAttribute
 
-    testArrayTuple(value: Array<[number, boolean]>): TestAttribute
+    // testArrayTuple(value: Array<[number, boolean]>): TestAttribute
 
     // interface
 
@@ -283,15 +249,11 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testTupleInterface(value: TupleInterfaceDTS): TestAttribute
 
-    testTupleInterface(value: TestTupleUnionInterfaceDTS): TestAttribute
-
     testOptionInterface(value: OptionInterfaceDTS): TestAttribute
-
-    testOptionInterface(value: OptionalTestInterface): TestAttribute
 
     testArrayRefNumberInterface(value: ArrayRefNumberInterfaceDTS): TestAttribute
 
-    testArrayRefTupleInterface(value: ArrayRefTuplesInterfaceDTS): TestAttribute
+    // testArrayRefTupleInterface(value: ArrayRefTuplesInterfaceDTS)
 
 
     // Boolean Interface
@@ -306,29 +268,27 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testInterfaceMixed(v1: UnionInterfaceDTS, v2: number, v3: TupleInterfaceDTS): TestAttribute
 
-    testLen(val: LengthInterface): TestAttribute
-
     // Class
 
     testClass(value: ClassDTS): TestAttribute
 
-    // testClassWithConstructor(value: ClassWithConstructorDTS): TestAttribute
+    testClassWithConstructor(value: ClassWithConstructorDTS): TestAttribute
 
-    // testClassWithConstructorAndFields(value: ClassWithConstructorAndFieldsDTS): TestAttribute
+    //~testClassWithConstructorAndFields(value: ClassWithConstructorAndFieldsDTS): TestAttribute
 
-    // // Materialized class
+    // Materialized class
 
-    // testClassWithConstructorAndMethods(value: ClassWithConstructorAndMethodsDTS): TestAttribute
+    testClassWithConstructorAndMethods(value: ClassWithConstructorAndMethodsDTS): TestAttribute
 
-    // testClassWithConstructorAndStaticMethods(value: ClassWithConstructorAndStaticMethodsDTS): TestAttribute
+    testClassWithConstructorAndStaticMethods(value: ClassWithConstructorAndStaticMethodsDTS): TestAttribute
 
-    // testClassWithConstructorAndFieldsAndMethods(value: ClassWithConstructorAndFieldsAndMethodsDTS): TestAttribute
+    //~testClassWithConstructorAndFieldsAndMethods(value: ClassWithConstructorAndFieldsAndMethodsDTS): TestAttribute
 
-    // testClassWithConstructorAndNonOptionalParams(value: ClassWithConstructorAndNonOptionalParamsDTS): TestAttribute
+    testClassWithConstructorAndNonOptionalParams(value: ClassWithConstructorAndNonOptionalParamsDTS): TestAttribute
 
-    // testClassWithConstructorAndSomeOptionalParams(value: ClassWithConstructorAndSomeOptionalParamsDTS): TestAttribute
+    testClassWithConstructorAndSomeOptionalParams(value: ClassWithConstructorAndSomeOptionalParamsDTS): TestAttribute
 
-    // testClassWithConstructorAndAllOptionalParams(value: ClassWithConstructorAndAllOptionalParamsDTS): TestAttribute
+    testClassWithConstructorAndAllOptionalParams(value: ClassWithConstructorAndAllOptionalParamsDTS): TestAttribute
 
-    // testClassWithConstructorAndWithoutParams(value: ClassWithConstructorAndWithoutParamsDTS): TestAttribute
+    testClassWithConstructorAndWithoutParams(value: ClassWithConstructorAndWithoutParamsDTS): TestAttribute
 }

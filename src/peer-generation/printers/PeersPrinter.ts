@@ -34,7 +34,7 @@ import {
 import { MaterializedMethod } from "../Materialized";
 import { collectDtsImports } from "../DtsImportsGenerator";
 import { tsCopyrightAndWarning } from "../FileGenerators";
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
+import { ARK_MATERIALIZEDBASE_EMPTY_PARAMETER, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 
@@ -315,23 +315,28 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
     writer.writeMethodImplementation(finalizer, writer => {
         writer.writeStatement(
             writer.makeReturn(
-                writer.makeMethodCall("nativeModule()", `_${className}_getFinalizer`, [])))
+                writer.makeNativeCall(`_${className}_getFinalizer`, [])))
     })
 }
 
 export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, printerContext: PrinterContext, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: Type = Type.Void, generics?: string[]
 ) {
+    const isTsLike = [Language.ARKTS, Language.TS].includes(printerContext.language)
+    const isJava = printerContext.language == Language.JAVA
+
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod: Method
-    if ([Language.ARKTS, Language.TS].includes(printerContext.language)) {
+    if (isTsLike) {
         peerMethod = new Method(
             `${method.overloadedName}${methodPostfix}`,
             new NamedMethodSignature(returnType, signature.args, signature.argsNames),
             method.method.modifiers, method.method.generics)
     }
-    else if (printerContext.language == Language.JAVA) {
-        const args = method.declarationTargets.map(declarationTarget => printerContext.synthesizedTypes!.getTargetType(declarationTarget, false))
+    else if (isJava) {
+        const args = method.declarationTargets.map((declarationTarget, index) => {
+            return printerContext.synthesizedTypes!.getTargetType(declarationTarget, signature.args[index].nullable)
+        })
         peerMethod = new Method(
             `${method.overloadedName}${methodPostfix}`,
             new NamedMethodSignature(returnType, args, signature.argsNames),
@@ -407,7 +412,16 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, pri
                 const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
                 if (!method.hasReceiver()) {
                     const retType = signature.returnType
-                    const obj = `new ${retType.name}(${signature.argsNames.map(it => "undefined").join(", ")})`
+                    let obj: string
+                    if (isTsLike) {
+                        obj = `new ${retType.name}(${signature.argsNames.map(it => "undefined").join(", ")})`
+                    }
+                    else if (isJava) {
+                        obj = `new ${retType.name}((${ARK_MATERIALIZEDBASE_EMPTY_PARAMETER})null)`
+                    }
+                    else {
+                        throw new Error(`Need add support for peer methods in ${printerContext.language.toString()}`);
+                    }
                     writer.writeStatement(writer.makeAssign("obj", retType, writer.makeString(obj), true))
                     writer.writeStatement(
                         writer.makeAssign("obj.peer", new Type("Finalizable"),

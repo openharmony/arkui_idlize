@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,45 +13,14 @@
  * limitations under the License.
  */
 
-declare enum Color {
-    White,
-    Black,
+interface EmitterProperty {
+
+    index: number;
+
+    emitRate?: number;
 }
 
-declare enum Curve {
-  Linear,
-  Ease,
-}
+declare class ParticleAttribute extends CommonMethod<ParticleAttribute> {
 
-declare enum TextHeightAdaptivePolicy {
-  MAX_LINES_FIRST,
-  MIN_FONT_SIZE_FIRST,
-  LAYOUT_CONSTRAINT_FIRST,
-}
-
-declare enum TextOverflow {
-  None,
-  Clip,
-  Ellipsis,
-  MARQUEE,
-}
-
-declare enum FontWeight {
-  Lighter,
-  Normal,
-  Regular,
-  Medium,
-  Bold,
-  Bolder,
-}
-
-declare enum FontStyle {
-  Normal,
-  Italic,
-}
-
-declare enum ColoringStrategy {
-  INVERT = 'invert',
-  AVERAGE = 'average',
-  PRIMARY = 'primary',
+    emitter(value: Array<EmitterProperty>): ParticleAttribute;
 }

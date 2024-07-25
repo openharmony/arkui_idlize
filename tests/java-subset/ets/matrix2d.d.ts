@@ -13,45 +13,35 @@
  * limitations under the License.
  */
 
-declare enum Color {
-    White,
-    Black,
-}
+declare class Matrix2D {
 
-declare enum Curve {
-  Linear,
-  Ease,
-}
+  scaleX?: number;
 
-declare enum TextHeightAdaptivePolicy {
-  MAX_LINES_FIRST,
-  MIN_FONT_SIZE_FIRST,
-  LAYOUT_CONSTRAINT_FIRST,
-}
+  rotateY?: number;
 
-declare enum TextOverflow {
-  None,
-  Clip,
-  Ellipsis,
-  MARQUEE,
-}
+  rotateX?: number;
 
-declare enum FontWeight {
-  Lighter,
-  Normal,
-  Regular,
-  Medium,
-  Bold,
-  Bolder,
-}
+  scaleY?: number;
 
-declare enum FontStyle {
-  Normal,
-  Italic,
-}
+  translateX?: number;
 
-declare enum ColoringStrategy {
-  INVERT = 'invert',
-  AVERAGE = 'average',
-  PRIMARY = 'primary',
+  translateY?: number;
+
+  identity(): Matrix2D;
+
+  invert(): Matrix2D;
+
+  multiply(other?: Matrix2D): Matrix2D;
+
+  rotate(rx?: number, ry?: number): Matrix2D;
+
+  rotate(degree: number, rx?: number, ry?: number): Matrix2D;
+
+  translate(tx?: number, ty?: number): Matrix2D;
+
+  scale(sx?: number, sy?: number): Matrix2D;
+
+  constructor();
+
+  constructor(unit: LengthMetricsUnit);
 }
