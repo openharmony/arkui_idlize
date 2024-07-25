@@ -1,0 +1,14 @@
+idlize build:
+  stage: build
+  before_script:
+    - npm ci --no-audit --no-fund
+  script:
+    - npm run compile
+
+pg check peers run:
+  stage: test
+  before_script:
+    - npm ci --no-audit --no-fund
+  script:
+    - npm run check:peers:run
+
