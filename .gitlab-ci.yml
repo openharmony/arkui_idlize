@@ -1,5 +1,10 @@
+image: "gitlab.bz-openlab.ru:10443/huawei/koala-ci:0.1"
+
 idlize build:
   stage: build
+  tags:
+    - idlize-ci
+    - koala-ci
   before_script:
     - npm ci --no-audit --no-fund
   script:
@@ -7,6 +12,9 @@ idlize build:
 
 pg check peers run:
   stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
   before_script:
     - npm ci --no-audit --no-fund
   script:
