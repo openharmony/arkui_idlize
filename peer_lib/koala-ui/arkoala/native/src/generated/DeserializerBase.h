@@ -18,7 +18,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include "interop-types.h"
+#include "koala-types.h"
 #include "arkoala_api_generated.h"
 
 using namespace std;

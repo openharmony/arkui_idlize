@@ -40,7 +40,8 @@ ldflags = []
 include_dirs = [
    arkoala_dir,
    arkoala_dir / 'legacy',
-   external_dir
+   external_dir,
+   external_dir / 'types',
 ]
 
 sources = [
@@ -167,8 +168,8 @@ arkts_include_dirs = [
     arkoala_dir / 'arkts'
 ]
 arkts_sources = [
-    external_dir / 'arkts/convertors-ark.cc',
     external_dir / 'arkts/convertors-ets.cc',
+    external_dir / 'types/signatures.cc',
 ]
 
 cj_include_dirs = [
@@ -188,6 +189,7 @@ if is_jni
     ]
     jni_sources = [
         external_dir / 'jni' / 'convertors-jni.cc',
+        external_dir / 'types' / 'signatures.cc',
     ]
 endif
 
