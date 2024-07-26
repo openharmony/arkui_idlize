@@ -1154,7 +1154,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         if (nullable) {
             this.printer.print(`if (${receiver} != null) ${receiver}.${method}(${params.join(", ")});`)
         } else {
-            super.writeMethodCall(receiver, method, params, nullable)
+            this.printer.print(`${receiver}.${method}(${params.join(", ")})`)
         }
     }
     writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[] | undefined, optional: boolean, initExpr?: LanguageExpression): void {
@@ -1300,12 +1300,27 @@ export class CJLanguageWriter extends LanguageWriter {
     constructor(printer: IndentedPrinter, language: Language = Language.CJ) {
         super(printer, language)
     }
-    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void { }
+    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
+        let extendsClause = superClass ? ` <: ${superClass}` : ''
+        let implementsClause = interfaces ? `<: implements ${interfaces.join("&")}` : ''
+        this.printer.print(`public ${name == 'ArkCommonMethodPeer' ? '' : 'open '}class ${name}${extendsClause}${implementsClause} {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
+    }
     writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void { }
+    writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
+        if (nullable) {
+            this.printer.print(`if (let Some(${receiver}) <- ${receiver}) {${receiver}.${method}(${params.join(", ")}) }`)
+        } else {
+            super.writeMethodCall(receiver, method, params, nullable)
+        }
+    }
     writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void { }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void { }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
-        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")}) {`)
+        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.mapType(it)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
             this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")});`)
@@ -1314,7 +1329,20 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) { }
+    writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
+        this.writeDeclaration(method.name, method.signature, method.modifiers, " {")
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
+    }
+    private writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string): void {
+        let prefix = modifiers
+            ?.filter(it => this.supportedModifiers.includes(it))
+            .map(it => this.mapMethodModifier(it)).join(" ")
+        prefix = prefix ? prefix + " " : ""
+        this.print(`${prefix}${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.mapType(it)}`).join(", ")}): ${this.mapType(signature.returnType)}${postfix ?? ""}`)
+    }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new AssignStatement(variableName, type, expr, isDeclared, isConst)
     }
@@ -1395,11 +1423,18 @@ export class CJLanguageWriter extends LanguageWriter {
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, new Type('string')).asString()})`);
     }
-    mapType(type: Type, convertor?: ArgConvertor): string {
+    
+    mapType(type: Type): string {
         switch (type.name) {
-            case 'Function': return 'Object'
+            case 'KPointer': return 'Int64'
+            case 'int32': case 'KInt': return 'Int32'
+            case 'KStringPtr': return 'String'
+            case 'string': return 'String'
+            case 'number': return 'Float64'
+            case 'boolean': return 'Bool'
+            case 'Length': return 'String'
         }
-        return type.name
+        return super.mapType(type)
     }
 }
 

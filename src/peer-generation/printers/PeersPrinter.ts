@@ -222,6 +222,9 @@ class PeerFileVisitor {
                     `${collectDtsImports('..').trim()}`
                 ]
             }
+            default: {
+                return []
+            }
         }
     }
 }

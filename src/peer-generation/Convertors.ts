@@ -178,6 +178,7 @@ export class BooleanConvertor extends BaseArgConvertor {
             case Language.TS: return `+${param}`
             case Language.ARKTS: return `${param} ? 1 : 0`
             case Language.JAVA: return `${param} ? 1 : 0`
+            case Language.CJ: return `if (${param} { 1 } else { 0 })`
             default: throw new Error("Unsupported language")
         }
     }
@@ -344,6 +345,7 @@ export class LengthConvertorScoped extends BaseArgConvertor {
             case Language.CPP: return PrimitiveType.ObjectHandle.getText()
             case Language.TS: case Language.ARKTS: return 'object'
             case Language.JAVA: return 'Object'
+            case Language.CJ: return 'Object'
             default: throw new Error("Unsupported language")
         }
     }
@@ -385,6 +387,7 @@ export class LengthConvertor extends BaseArgConvertor {
             case Language.CPP: return 'KLength'
             case Language.TS: case Language.ARKTS: return 'string|number|object'
             case Language.JAVA: return 'String'
+            case Language.CJ: return 'String'
             default: throw new Error("Unsupported language")
         }
     }

@@ -47,6 +47,7 @@ import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement,
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
 import {
     ArkTSTypeNodeNameConvertor,
+    CJTypeNodeNameConvertor,
     mapType,
     TSTypeNodeNameConvertor,
     TypeNodeNameConvertor
@@ -1053,6 +1054,9 @@ export function createTypeNodeConvertor(library: PeerLibrary,
         }
         case Language.TS: {
             return new TSTypeNodeNameConvertor()
+        }
+        case Language.CJ: {
+            return new CJTypeNodeNameConvertor()
         }
         default:
             throw `Unsupported language: ${library.declarationTable.language}`
