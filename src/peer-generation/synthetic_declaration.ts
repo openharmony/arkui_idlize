@@ -1,5 +1,11 @@
 import * as ts from 'typescript'
-import { ImportFeature, ImportsCollector } from './ImportsCollector'
+import { convertDeclToFeature, ImportFeature } from './ImportsCollector'
+import { ArkTSTypeNodeNameConvertor, TSTypeNodeNameConvertor, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
+import { PeerLibrary } from "./PeerLibrary";
+import { DeclarationDependenciesCollector } from "./dependencies_collector";
+import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { isSourceDecl, needImportFeature } from "./PeerGeneratorVisitor";
+import { convertTypeNode, TypeNodeConvertor } from "./TypeNodeConvertor";
 
 const syntheticDeclarations: Map<string, {node: ts.Declaration, filename: string, dependencies: ImportFeature[]}> = new Map()
 export function makeSyntheticDeclaration(targetFilename: string, declName: string, factory: () => ts.Declaration): ts.Declaration {
@@ -57,4 +63,109 @@ export function makeSyntheticDeclarationsFiles(): Map<string, {dependencies: Imp
         files.get(decl.filename)!.dependencies.push(...decl.dependencies)
     }
     return files
+}
+
+export function makeSyntheticInterfaceDeclaration(targetFileName: string,
+                                                  typeName: string,
+                                                  members: ts.NodeArray<ts.TypeElement>,
+                                                  declDependenciesCollector: DeclarationDependenciesCollector,
+                                                  peerLibrary: PeerLibrary): ts.Declaration {
+    const decl = makeSyntheticDeclaration(targetFileName,
+        typeName,
+        () => ts.factory.createInterfaceDeclaration([], typeName, [], [], members)
+    )
+    declDependenciesCollector.convert(decl).forEach(it => {
+        if (isSourceDecl(it)
+            && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it))
+            && needImportFeature(peerLibrary.declarationTable.language, it)) {
+            addSyntheticDeclarationDependency(decl, convertDeclToFeature(peerLibrary, it))
+        }
+    })
+    return decl
+}
+
+export class ArkTSTypeNodeNameConvertorProxy implements TypeNodeNameConvertor {
+    constructor(private readonly convertor: TypeNodeNameConvertor,
+                private readonly peerLibrary: PeerLibrary,
+                private readonly declDependenciesCollector: DeclarationDependenciesCollector,
+                private readonly importFeatures: ImportFeature[]) {
+    }
+    convertUnion(node: ts.UnionTypeNode): string {
+        return this.convertor.convertUnion(node)
+    }
+    convertTypeLiteral(node: ts.TypeLiteralNode): string {
+        const typeName = this.convertor.convertTypeLiteral(node)
+        if (this.importFeatures != undefined && this.peerLibrary != undefined && this.declDependenciesCollector != undefined) {
+            this.importFeatures.push(convertDeclToFeature(this.peerLibrary,
+                makeSyntheticInterfaceDeclaration('SyntheticDeclarations', typeName, node.members, this.declDependenciesCollector, this.peerLibrary))
+            )
+        }
+        return typeName
+    }
+    convertLiteralType(node: ts.LiteralTypeNode): string {
+        return this.convertor.convertLiteralType(node)
+    }
+    convertTuple(node: ts.TupleTypeNode): string {
+        return this.convertor.convertTuple(node)
+    }
+    convertArray(node: ts.ArrayTypeNode): string {
+        return this.convertor.convertArray(node)
+    }
+    convertOptional(node: ts.OptionalTypeNode): string {
+        return this.convertor.convertOptional(node)
+    }
+    convertFunction(node: ts.FunctionTypeNode): string {
+        return this.convertor.convertFunction(node)
+    }
+    convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): string {
+        return this.convertor.convertTemplateLiteral(node)
+    }
+    convertImport(node: ts.ImportTypeNode): string {
+        return this.convertor.convertImport(node)
+    }
+    convertTypeReference(node: ts.TypeReferenceNode): string {
+        return this.convertor.convertTypeReference(node)
+    }
+    convertParenthesized(node: ts.ParenthesizedTypeNode): string {
+        return this.convertor.convertParenthesized(node)
+    }
+    convertIndexedAccess(node: ts.IndexedAccessTypeNode): string {
+        return this.convertor.convertIndexedAccess(node)
+    }
+    convertStringKeyword(node: ts.TypeNode): string {
+        return this.convertor.convertStringKeyword(node)
+    }
+    convertNumberKeyword(node: ts.TypeNode): string {
+        return this.convertor.convertNumberKeyword(node)
+    }
+    convertBooleanKeyword(node: ts.TypeNode): string {
+        return this.convertor.convertBooleanKeyword(node)
+    }
+    convertUndefinedKeyword(node: ts.TypeNode): string {
+        return this.convertor.convertUndefinedKeyword(node)
+    }
+    convertVoidKeyword(node: ts.TypeNode): string {
+        return this.convertor.convertVoidKeyword(node)
+    }
+    convertObjectKeyword(node: ts.TypeNode): string {
+        return this.convertor.convertObjectKeyword(node)
+    }
+    convertAnyKeyword(node: ts.TypeNode): string {
+        return this.convertor.convertAnyKeyword(node)
+    }
+    convertUnknownKeyword(node: ts.TypeNode): string {
+        return this.convertor.convertUnknownKeyword(node)
+    }
+    convertQualifiedName(node: ts.QualifiedName): string {
+        return `${this.convert(node.left)}.${this.convert(node.right)}`
+    }
+    convertIdentifier(node: ts.Identifier): string {
+        return node.text
+    }
+    convert(node: ts.Node): string {
+        if (ts.isQualifiedName(node)) return this.convertQualifiedName(node)
+        if (ts.isIdentifier(node)) return this.convertIdentifier(node)
+        if (ts.isTypeNode(node)) return convertTypeNode(this, node)
+        throw new Error(`Unknown node type ${ts.SyntaxKind[node.kind]}`)
+    }
 }

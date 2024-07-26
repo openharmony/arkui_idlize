@@ -14,9 +14,10 @@
  */
 
 export interface ArkResource {
+  name: string,
+  id: number;
+  type: number;
   bundleName: string;
   moduleName: string;
-  id: number;
-  params?: object[];
-  type?: number;
+  params?: string[];
 }

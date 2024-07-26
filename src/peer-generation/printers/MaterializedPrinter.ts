@@ -16,16 +16,28 @@
 import { Language, renameClassToMaterialized, capitalize, removeExt } from "../../util";
 import { PeerLibrary } from "../PeerLibrary";
 import { writePeerMethod } from "./PeersPrinter"
-import { LanguageWriter, MethodModifier, NamedMethodSignature, Method, Type, createLanguageWriter, FieldModifier, MethodSignature, copyMethod } from "../LanguageWriters";
+import {
+    LanguageWriter,
+    MethodModifier,
+    NamedMethodSignature,
+    Method,
+    Type,
+    createLanguageWriter,
+    FieldModifier,
+    MethodSignature,
+    copyMethod,
+    BlockStatement, LanguageStatement
+} from "../LanguageWriters";
 import { copyMaterializedMethod, MaterializedClass } from "../Materialized"
 import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
-import { OverloadsPrinter, groupOverloads } from "./OverloadsPrinter";
+import { OverloadsPrinter, groupOverloads, collapseSameNamedMethods } from "./OverloadsPrinter";
 
 import { printPeerFinalizer } from "./PeersPrinter"
 import { ImportsCollector } from "../ImportsCollector";
 import { PrinterContext } from "./PrinterContext";
 import { TargetFile } from "./TargetFile";
 import { ARK_MATERIALIZEDBASE, ARK_MATERIALIZEDBASE_EMPTY_PARAMETER, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
+import { createInterfaceDeclName } from "../PeerGeneratorVisitor";
 
 interface MaterializedFileVisitor {
     visit(): void
@@ -77,10 +89,14 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
         const superClass = clazz.superClass
         let superClassName = superClass ? `${superClass.name}${superClass.generics ? `<${superClass.generics.join(", ")}>` : ""}` : undefined
-        const selfInterface = clazz.isInterface ? `${clazz.className}${clazz.generics ? `<${clazz.generics.join(", ")}>` : `` }` : undefined
+        let selfInterface = clazz.isInterface ? `${clazz.className}${clazz.generics ? `<${clazz.generics.join(", ")}>` : `` }` : undefined
 
         const interfaces: string[] = []
         if (clazz.isInterface) {
+            // self-interface is not supported ArkTS
+            if (this.library.declarationTable.language == Language.ARKTS) {
+                selfInterface = createInterfaceDeclName(selfInterface!)
+            }
             if (selfInterface) interfaces.push(selfInterface)
             if (superClassName && !this.library.materializedClasses.has(superClassName)) {
                 interfaces.push(superClassName)
@@ -139,39 +155,38 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
                 const allOptional = ctorSig.args.every(it => it.nullable)
                 const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
-                const allUndefined = ctorSig.argsNames.map(it => `${it} === undefined`).join(` && `)
-
-                if (hasStaticMethods) {
-                    if (allOptional) {
-                        if (ctorSig.args.length == 0) {
-                            writer.print(`// Constructor does not have parameters.`)
-                        } else {
-                            writer.print(`// All constructor parameters are optional.`)
-                        }
-                        writer.print(`// It means that the static method call invokes ctor method as well`)
-                        writer.print(`// when all arguments are undefined.`)
+                if (hasStaticMethods && allOptional) {
+                    if (ctorSig.args.length == 0) {
+                        writer.print(`// Constructor does not have parameters.`)
                     } else {
-                        writer.writeStatement(
-                            writer.makeCondition(
-                                writer.makeString(ctorSig.args.length === 0 ? "true" : allUndefined),
-                                writer.makeReturn()
-                            )
-                        )
+                        writer.print(`// All constructor parameters are optional.`)
                     }
+                    writer.print(`// It means that the static method call invokes ctor method as well`)
+                    writer.print(`// when all arguments are undefined.`)
                 }
-
-                const args = ctorSig.args.map((it, index) => writer.makeString(`${ctorSig.argsNames[index]}${it.nullable ? "" : "!"}`))
-                writer.writeStatement(
+                let ctorStatements: LanguageStatement = new BlockStatement([
                     writer.makeAssign("ctorPtr", Type.Pointer,
-                        writer.makeMethodCall(clazz.className, "ctor", args),
-                        true))
-
-                writer.writeStatement(writer.makeAssign(
-                    "this.peer",
-                    finalizableType,
-                    writer.makeString(`new Finalizable(ctorPtr, ${clazz.className}.getFinalizer())`),
-                    false
-                ))
+                        writer.makeMethodCall(clazz.className, "ctor",
+                            ctorSig.args.map((it, index) => writer.makeString(`${ctorSig.argsNames[index]}`))),
+                        true),
+                    writer.makeAssign(
+                        "this.peer",
+                        finalizableType,
+                        writer.makeString(`new Finalizable(ctorPtr, ${clazz.className}.getFinalizer())`),
+                        false
+                    )
+                ], false)
+                if (!allOptional) {
+                    ctorStatements =
+                        writer.makeCondition(
+                            ctorSig.args.length === 0 ? writer.makeString("true") :
+                                writer.makeNaryOp('&&', ctorSig.argsNames.map(it =>
+                                    writer.makeNaryOp('!==', [writer.makeString(it), writer.makeUndefined()]))
+                                ),
+                            ctorStatements
+                        )
+                }
+                writer.writeStatement(ctorStatements)
             })
 
             printPeerFinalizer(clazz, writer)
@@ -184,8 +199,8 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 let privateMethod = method
                 if (!privateMethod.method.modifiers?.includes(MethodModifier.PRIVATE))
                     privateMethod = copyMaterializedMethod(method, {
-                        method: copyMethod(method.method, { 
-                            modifiers: (method.method.modifiers ?? []).concat([MethodModifier.PRIVATE]) 
+                        method: copyMethod(method.method, {
+                            modifiers: (method.method.modifiers ?? []).concat([MethodModifier.PRIVATE])
                         })
                     })
                 const returnType = privateMethod.tsReturnType()
@@ -338,7 +353,7 @@ class MaterializedVisitor {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
         for (const clazz of this.library.materializedToGenerate) {
             let visitor: MaterializedFileVisitor
-            if (this.printerContext.language == Language.TS) {
+            if ([Language.ARKTS, Language.TS].includes(this.printerContext.language)) {
                 visitor = new TSMaterializedFileVisitor(
                     this.library, this.printerContext, clazz, this.dumpSerialized)
             }
@@ -349,7 +364,7 @@ class MaterializedVisitor {
             else {
                 throw new Error(`Unsupported language ${this.printerContext.language} in MaterializedPrinter.ts`)
             }
-            
+
             visitor.visit()
             this.materialized.set(visitor.getTargetFile(), visitor.getOutput())
         }
@@ -359,7 +374,7 @@ class MaterializedVisitor {
 export function printMaterialized(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
 
     // TODO: support other output languages
-    if (![Language.TS, Language.JAVA].includes(printerContext.language))
+    if (![Language.ARKTS, Language.TS, Language.JAVA].includes(printerContext.language))
         return new Map()
 
     const visitor = new MaterializedVisitor(peerLibrary, printerContext, dumpSerialized)

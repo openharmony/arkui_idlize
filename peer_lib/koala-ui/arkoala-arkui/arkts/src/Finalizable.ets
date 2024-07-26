@@ -18,8 +18,10 @@ import { nativeModule } from "./NativeModule";
 
 export class Finalizable {
     public ptr: pointer
+    public finalizerPtr: pointer
 
-    constructor(ptr: pointer) {
+    constructor(ptr: pointer, finalizerPtr: pointer) {
         this.ptr = ptr
+        this.finalizerPtr = finalizerPtr
     }
 }

@@ -6,6 +6,7 @@ export type KUint8ArrayPtr = int | byte[] | null
 export type KInt32ArrayPtr = int | byte[] | null
 export type KFloat32ArrayPtr = int | Float32Array | null
 export type KInt = int
+export type KUInt = KInt
 export type KBoolean = int
 export type KFloat = float
 export type KPointer = long // look once again

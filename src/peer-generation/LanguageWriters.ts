@@ -619,8 +619,8 @@ export abstract class LanguageWriter {
         return this.printer.indentDepth()
     }
 
-    abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void
-    abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void
+    abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void
+    abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method): void
@@ -839,19 +839,19 @@ export class TSLanguageWriter extends LanguageWriter {
     constructor(printer: IndentedPrinter, language: Language = Language.TS) {
         super(printer, language)
     }
-    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
+    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
         const genericsClause = generics ? `<${generics.join(", ")}>` : ''
-        this.printer.print(`export class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
+        this.printer.print(`export${isDeclared ? " declare" : ""} class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
+    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[], isDeclared?: boolean): void {
         let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
-        this.printer.print(`export interface ${name}${extendsClause} {`)
+        this.printer.print(`export ${isDeclared ? "declare " : ""}interface ${name}${extendsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -1095,6 +1095,10 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             return `(${value} as ${convertor.enumTypeName()}).${convertor.isStringEnum ? "ordinal" : "value"}`
         }
         return super.getObjectAccessor(convertor, value, args);
+    }
+    writeMethodCall(receiver: string, method: string, params: string[], nullable: boolean = false) {
+        // ArkTS does not support - 'this.?'
+        super.writeMethodCall(receiver, method, params, nullable && receiver !== "this");
     }
 }
 

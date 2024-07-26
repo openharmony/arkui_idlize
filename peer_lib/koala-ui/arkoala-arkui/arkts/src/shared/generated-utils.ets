@@ -5,7 +5,7 @@
 /**
  * Only to workaround non-int enums
  */
-export function unsafeCast<T>(value: Object|undefined|string|null|(() => Object)| void): T {
+export function unsafeCast<T>(value: Object|undefined|string|null|(() => Object)| Void): T {
     return value as T
 }
 

@@ -81,7 +81,7 @@ export class OverloadsPrinter {
                 })
                 orderedMethods.forEach((peerMethod, methodIndex) =>
                     this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod, methodIndex, runtimeTypeCheckers))
-                writer.print(`throw "Can not select appropriate overload"`)
+                writer.print(`throw new Error("Can not select appropriate overload")`)
             } else {
                 this.printPeerCallAndReturn(peer, collapsedMethod, orderedMethods[0])
             }

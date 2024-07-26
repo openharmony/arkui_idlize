@@ -135,6 +135,12 @@ export class StringConvertor extends BaseArgConvertor {
             ? writer.makeString(`${value} === "${this.literalValue}"`)
             : undefined
     }
+    targetType(writer: LanguageWriter): Type {
+        if (this.literalValue) {
+            return new Type("string")
+        }
+        return super.targetType(writer);
+    }
 }
 
 export class ToStringConvertor extends BaseArgConvertor {

@@ -4,17 +4,16 @@ import { Finalizable } from "./Finalizable"
 import { ArkUINodeType } from "./peers/ArkUINodeType"
 
 export class NativePeerNode extends Finalizable {
-    public constructor(ptr: pointer) {
-        super(ptr)
+    public constructor(ptr: pointer, finalizerPtr: pointer) {
+        super(ptr, finalizerPtr)
     }
 }
 
-export class PeerNode extends Finalizable {
+export class PeerNode {
     peer: NativePeerNode
     constructor(type: ArkUINodeType, flags: int32) {
         // TODO: rework
-        super(42)
-        this.peer = new NativePeerNode(42)
+        this.peer = new NativePeerNode(42, 0)
     }
     applyAttributes(attrs: Object) {}
 }

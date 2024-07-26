@@ -14,17 +14,17 @@
  */
 
 import * as ts from 'typescript'
-import { IndentedPrinter } from "../../IndentedPrinter";
-import { createLanguageWriter } from "../LanguageWriters";
+import { createLanguageWriter, LanguageWriter } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 import { DeclarationNameConvertor } from "../dependencies_collector";
 import { convertDeclaration } from '../TypeNodeConvertor';
+import { Language } from "../../util";
 
 class ConflictedDeclarationsVisitor {
     readonly writer = createLanguageWriter(this.library.declarationTable.language)
 
     constructor(
-        private readonly library: PeerLibrary
+        protected readonly library: PeerLibrary
     ) {}
 
     print() {
@@ -39,23 +39,39 @@ class ConflictedDeclarationsVisitor {
                 this.writer.print(`export namespace ${parent.parent.name.text} {`)
                 this.writer.pushIndent()
             }
-
-            let maybeGenerics = ''
-            if (ts.isClassDeclaration(decl) || ts.isInterfaceDeclaration(decl))
-                if (decl.typeParameters?.length)
-                    maybeGenerics = `<${decl.typeParameters.map((_, i) => `T${i}=undefined`).join(',')}>`
-            this.writer.print(`export type ${name}${maybeGenerics} = object;`)
-
+            this.convertDeclaration(name, decl, this.writer)
             if (ts.isModuleBlock(parent)) {
                 this.writer.popIndent()
                 this.writer.print('}')
             }
         }
     }
+
+    protected convertDeclaration(name: string, decl: ts.Declaration, writer: LanguageWriter) {
+        let maybeGenerics = ''
+        if (ts.isClassDeclaration(decl) || ts.isInterfaceDeclaration(decl))
+            if (decl.typeParameters?.length)
+                maybeGenerics = `<${decl.typeParameters.map((_, i) => `T${i}=undefined`).join(',')}>`
+        writer.print(`export type ${name}${maybeGenerics} = object;`)
+    }
+}
+
+class ArkTSConflictedDeclarationsVisitor extends ConflictedDeclarationsVisitor {
+    protected convertDeclaration(name: string, decl: ts.Declaration, writer: LanguageWriter) {
+        let maybeGenerics = ''
+        if (ts.isClassDeclaration(decl) || ts.isInterfaceDeclaration(decl)) {
+            if (decl.typeParameters?.length) {
+                maybeGenerics = `<${decl.typeParameters.map((_, i) => `T${i}=Object`).join(',')}>`
+            }
+        }
+        writer.print(`export type ${name}${maybeGenerics} = T0`)
+    }
 }
 
 export function printConflictedDeclarations(library: PeerLibrary): string {
-    const visitor = new ConflictedDeclarationsVisitor(library)
+    const visitor = library.declarationTable.language == Language.ARKTS
+        ? new ArkTSConflictedDeclarationsVisitor(library)
+        : new ConflictedDeclarationsVisitor(library)
     visitor.print()
     return visitor.writer.getOutput().join('\n')
 }

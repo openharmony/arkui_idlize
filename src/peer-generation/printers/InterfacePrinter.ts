@@ -16,7 +16,7 @@
 import * as ts from 'typescript'
 import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
-import { FieldModifier, LanguageWriter, createLanguageWriter, Type } from '../LanguageWriters'
+import { FieldModifier, LanguageWriter, createLanguageWriter, Type, MethodModifier } from '../LanguageWriters'
 import { ArkTSTypeNodeNameConvertor, mapType } from '../TypeNodeNameConvertor'
 import { identName, Language, removeExt, renameDtsToInterfaces } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
@@ -26,6 +26,8 @@ import { TargetFile } from './TargetFile'
 import { PrinterContext } from './PrinterContext'
 import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from './lang/Java'
 import { convertDeclaration, DeclarationConvertor } from "../TypeNodeConvertor";
+import { createTypeNodeConvertor, generateMethodModifiers, generateSignature } from "../PeerGeneratorVisitor";
+import { isMaterialized } from "../Materialized";
 import { ResourceDeclaration } from '../DeclarationTable'
 
 interface InterfacesVisitor {
@@ -265,21 +267,85 @@ class JavaInterfacesVisitor {
 
 export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
     private readonly typeConvertor = new ArkTSTypeNodeNameConvertor()
-    constructor(private readonly writer: LanguageWriter, private readonly peerLibrary: PeerLibrary) {
-
+    constructor(private readonly writer: LanguageWriter,
+                private readonly peerLibrary: PeerLibrary) {
     }
+
     convertEnum(node: ts.EnumDeclaration): void {
+        throw `Wrong enum type conversion: ${node.name.text}`
     }
-    convertClass(node: ts.ClassDeclaration): void {
 
+    convertClass(node: ts.ClassDeclaration): void {
+        const writer = (writer: LanguageWriter) => {
+            this.declarationMembers(node).forEach(member => {
+                if (ts.isPropertyDeclaration(member)) {
+                    const propName = member.name.getText()
+                    const propType = member.type?.getText()
+                    const isOptional = member.questionToken
+                    writer.print(`${propName}${isOptional ? "?" : ""}: ${propType};`)
+                } else {
+                    const methodName = member.name.getText()
+                    const returnType = member.type?.getText()
+                    const parameters = member.parameters.map((param) => {
+                        if (param.type != undefined && ts.isTypeLiteralNode(param.type)) {
+                            return `${param.name.getText()}: ${this.typeConvertor.convert(param.type)}`
+                        }
+                        return param.getText()
+                    }).join(',')
+                    writer.print(`${methodName}(${parameters}): ${returnType};`)
+                }
+            })
+        };
+        if (this.peerLibrary.isComponentDeclaration(node)) {
+            // because we write `ArkBlank implements BlankAttributes`
+            this.writer.writeInterface(this.declarationName(node), writer, this.extendsClause(node), true)
+        } else {
+            this.writer.writeClass(this.declarationName(node), writer, undefined, this.extendsClause(node), undefined, true)
+        }
     }
+
+    private extendsClause(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string[] | undefined {
+        if (!node.heritageClauses?.length) {
+            return undefined
+        }
+        if (this.peerLibrary.isComponentDeclaration(node)) {
+            // do not extend parent component interface to provide smooth integration
+            return undefined
+        }
+        const parent = node.heritageClauses[0]?.types[0]
+        if (node.heritageClauses!.some(it => it.token === ts.SyntaxKind.ImplementsKeyword)) {
+            return [parent.getText()]
+        }
+        return [parent.getText()]
+    }
+
+    private declarationMembers(node: ts.ClassDeclaration): ts.MethodDeclaration[] | ts.PropertyDeclaration[] {
+        const members = node.members.filter(it => !ts.isConstructorDeclaration(it))
+        if (members.every(ts.isMethodDeclaration))
+            return members
+        if (members.every(ts.isPropertyDeclaration)) {
+            return members
+        }
+        return []
+    }
+
     convertInterface(node: ts.InterfaceDeclaration): void {
         this.writer.writeInterface(this.declarationName(node), writer => {
             this.peerLibrary.declarationTable.targetStruct(node).getFields().map(it => {
                 writer.writeFieldDeclaration(it.name, new Type(this.mapType(it.type), it.optional), undefined, it.optional)
             })
-        })
+            if (isMaterialized(node)) {
+                node.members.forEach(method => {
+                    if (ts.isMethodSignature(method)) {
+                        writer.writeMethodDeclaration(generateMethodName(method),
+                            generateSignature(method, createTypeNodeConvertor(this.peerLibrary)),
+                            generateMethodModifiers(method))
+                    }
+                })
+            }
+         })
     }
+
     convertTypeAlias(node: ts.TypeAliasDeclaration): void {
         if (ts.isTypeLiteralNode(node.type)) {
             const members = node.type.members
@@ -297,12 +363,14 @@ export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
             this.writer.print(`export declare type ${node.name.text}${maybeTypeArguments} = ${this.mapType(node.type)}`)
         }
     }
+
     private declarationName(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
         let name = ts.idText(node.name as ts.Identifier)
         let typeParams = node.typeParameters?.map(it => it.name.text).join(', ')
         let typeParamsClause = typeParams ? `<${typeParams}>` : ``
         return `${name}${typeParamsClause}`
     }
+
     private mapType(type: ts.TypeNode | undefined): string {
         if (type !== undefined) {
             return this.typeConvertor.convert(type)
@@ -329,22 +397,11 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
     override printInterfaces() {
         for (const file of this.peerLibrary.files.values()) {
             const writer = createLanguageWriter(this.peerLibrary.declarationTable.language)
-            const typeConvertor = new ArkTSDeclConvertor(writer, this.peerLibrary)
-            const extraImports = new ImportsCollector()
-            //TODO: imports are needed until the classes generate
-            if ("ArkCommonInterfaces.ets" == this.generateFileBasename(file.originalFilename)) {
-                this.addExtraImports(extraImports, "GestureRecognizer")
-            }
             this.printImports(writer, file)
-            extraImports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
             file.enums.forEach(it => writer.writeStatement(writer.makeEnumEntity(it, true)))
-            file.declarations.forEach(it => convertDeclaration(typeConvertor, it))
+            file.declarations.forEach(it => convertDeclaration(new ArkTSDeclConvertor(writer, this.peerLibrary), it))
             this.interfaces.set(new TargetFile(this.generateFileBasename(file.originalFilename)), writer)
         }
-    }
-
-    private addExtraImports(collector: ImportsCollector, feature: string) {
-        collector.addFeature(feature, "./shared/dts-exports")
     }
 }
 
@@ -379,4 +436,9 @@ export function createDeclarationConvertor(writer: LanguageWriter, peerLibrary: 
     return writer.language == Language.TS
         ? new TSDeclConvertor(writer, peerLibrary)
         : new ArkTSDeclConvertor(writer, peerLibrary)
+}
+
+function generateMethodName(method: ts.MethodSignature): string {
+    const typeParams = method.typeParameters?.map(it => it.name.text).join(', ')
+    return `${method.name.getText()}${typeParams ? `<${typeParams}>` : ``}`
 }

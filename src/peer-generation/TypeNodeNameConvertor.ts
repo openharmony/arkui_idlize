@@ -15,9 +15,14 @@
 
 import * as ts from 'typescript'
 import { TypeNodeConvertor, convertTypeNode } from './TypeNodeConvertor'
+import { snakeCaseToCamelCase } from "../util";
+
+export interface TypeNodeNameConvertor extends TypeNodeConvertor<string> {
+    convert(node: ts.Node): string
+}
 
 export class TSTypeNodeNameConvertor implements
-    TypeNodeConvertor<string>
+    TypeNodeNameConvertor
 {
     convertUnion(node: ts.UnionTypeNode): string {
         return node.types.map(it => this.convert(it)).join(" | ")
@@ -194,6 +199,10 @@ export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
         } else {
             return super.convertLiteralType(node)
         }
+    }
+
+    convertTypeLiteral(node: ts.TypeLiteralNode): string {
+        return `LITERAL_${snakeCaseToCamelCase(node.members.map(it => it.name?.getText()).join('_'))}`
     }
 
     convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): string {

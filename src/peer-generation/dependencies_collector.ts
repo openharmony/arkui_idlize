@@ -114,6 +114,10 @@ export class TypeDependenciesCollector implements TypeNodeConvertor<ts.Declarati
             return []
         return convertTypeNode(this, node)
     }
+
+    setDeclDependenciesCollector(declDependenciesCollector: DeclarationDependenciesCollector) {
+        
+    }
 }
 
 export class DeclarationDependenciesCollector implements DeclarationConvertor<ts.Declaration[]> {

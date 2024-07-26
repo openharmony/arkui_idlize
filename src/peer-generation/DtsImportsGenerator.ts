@@ -13,27 +13,7 @@
  * limitations under the License.
  */
 
-const dtsImports = `import {
-    ClassWithConstructorAndFieldsDTS,
-    ClassWithConstructorDTS,
-    ClassDTS,
-    ClassWithConstructorAndMethodsDTS,
-    ClassWithConstructorAndStaticMethodsDTS,
-    ClassWithConstructorAndFieldsAndMethodsDTS,
-    ClassWithConstructorAndNonOptionalParamsDTS,
-    ClassWithConstructorAndSomeOptionalParamsDTS,
-    ClassWithConstructorAndAllOptionalParamsDTS,
-    ClassWithConstructorAndWithoutParamsDTS,
-    RenderingContextSettings,
-    TouchTestInfo,
-    ImageData,
-    GestureModifier,
-    CanvasRenderingContext2D,
-    DrawingRenderingContext,
-    TabBarSymbol,
-    DotIndicator
-} from "%ROOT%/shared/dts-exports"
-`
+const dtsImports = ``
 
 export function collectDtsImports(pathToRoot: string = '.') {
     return dtsImports.replaceAll('%ROOT%', pathToRoot) // for now

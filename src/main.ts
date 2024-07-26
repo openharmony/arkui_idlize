@@ -501,6 +501,10 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             writeFile(outComponentFile, data, true)
         }
         writeFile(
+            arkoala.arktsLib(new TargetFile('ConflictedDeclarations')),
+            printConflictedDeclarations(peerLibrary),
+        )
+        writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),
         )

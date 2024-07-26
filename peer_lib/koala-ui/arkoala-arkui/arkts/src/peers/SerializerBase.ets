@@ -48,7 +48,7 @@ export class Tags {
     static OBJECT = 107
 }
 
-export function runtimeType(value: Object|String|number|undefined|null|void): RuntimeType {
+export function runtimeType(value: Object|String|number|undefined|null|Void): RuntimeType {
     let type = typeof value
     if (type == "number") return RuntimeType.NUMBER
     if (type == "string") return RuntimeType.STRING
