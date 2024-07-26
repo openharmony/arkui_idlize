@@ -3,6 +3,7 @@
 /.vscode/
 /build/
 /generated/
+/out/
 /.packages/
 /idl/
 /interface_sdk-js/

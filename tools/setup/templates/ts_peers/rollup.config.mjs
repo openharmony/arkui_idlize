@@ -14,9 +14,9 @@
  */
 
 import nodeResolve from "@rollup/plugin-node-resolve";
+import commonJs from "@rollup/plugin-commonjs"
 import os from 'os';
 import replace from '@rollup/plugin-replace';
-import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import * as path from "path";
 
@@ -31,13 +31,12 @@ function crossPathRelative(from, to) {
     }
 }
 
-const mode = process.env.mode
 const arch = process.env.arch
 
-console.log(`rollup args: mode = ${mode}, arch = ${arch}`)
+console.log(`rollup args: arch = ${arch}`)
 const generatedDir = `generated`
-const arkoalaArkuiSrcDir = `${generatedDir}/${mode}/koalaui/arkoala-arkui/src`
-const tsconfigFile = path.resolve(`tsconfig-${mode == 'subset' ? mode : 'generated'}.json`)
+const arkoalaArkuiSrcDir = `${generatedDir}/koalaui/arkoala-arkui/src`
+const tsconfigFile = path.resolve(`tsconfig.json`)
 const outDir = path.resolve('lib')
 
 const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
@@ -78,8 +77,9 @@ export default {
         nodeResolve({
             extensions: [".js", ".mjs", ".cjs", ".ts", ".cts", ".mts"]
         }),
+        commonJs(),
         replace({
-            'LOAD_NATIVE': `require('${crossPathRelative(outDir, 'native/NativeBridgeNapi.node')}')`,
+            'LOAD_NATIVE': `require('${crossPathRelative(outDir, '../../native/NativeBridgeNapi.node')}')`,
             preventAssignment: true
         })
     ]

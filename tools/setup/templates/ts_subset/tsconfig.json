@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "es2017",
+        "lib": ["ESNext", "ESNext.WeakRef"],
+        "moduleResolution": "node",
+        "composite": true,
+        "incremental": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "declaration": true,
+        "noEmitOnError": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "removeComments": false,
+        "outDir": "build",
+        "rootDir": "generated",
+        "module": "CommonJS",
+        "paths": {
+            "@arkoala/arkui": ["./generated/koalaui/arkoala-arkui/src", "./"],
+            "@arkoala/arkui/*": ["./generated/koalaui/arkoala-arkui/src/*", "./*"],
+            "@koalaui/arkoala": ["./generated/koalaui/arkoala/src", "./"],
+        },
+    }
+}

@@ -452,8 +452,6 @@ ${epilogue}
 export function copyToArkoala(from: string, arkoala: ArkoalaInstall, filters?: string[]) {
     filters = filters?.map(it => path.join(from, it))
     copyDir(path.join(from, 'koala-ui'), arkoala.koala, true, filters)
-    const macros = path.join(from, 'shared', 'arkoala-macros.h')
-    copyFile(macros, path.join(arkoala.nativeDir, 'arkoala-macros.h'), filters)
 }
 
 export function copyToLibace(from: string, libace: LibaceInstall) {

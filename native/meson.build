@@ -6,7 +6,7 @@ project('NativeBridge', 'c', 'cpp',
 if get_option('source_set') != ''
 source_set = get_option('source_set')
 else
-source_set = 'peers'
+source_set = 'ts_peers'
 endif
 use_libace = false
 use_dummy_libace = true
@@ -27,9 +27,15 @@ is_jni = java_home != 'undefined'
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
 
-gen_dir = '../generated/' + source_set
+if source_set == 'ts-peers' or source_set == 'ts-subset'
+gen_dir = '../out/' + source_set + '/generated'
+else
+# todo move all of output to `../out` dir 
+gen_dir = '../generated' / source_set
+endif
 arkoala_dir = gen_dir + '/koalaui/arkoala/native/src/generated'
-external_dir = '../external/interop/src/cpp'
+external_framework_dir = '../external/arkoala/framework/native/src'
+external_interop_dir = '../external/interop/src/cpp'
 libace_dir = gen_dir / 'libace'
 
 cxx = meson.get_compiler('cpp')
@@ -40,19 +46,19 @@ ldflags = []
 include_dirs = [
    arkoala_dir,
    arkoala_dir / 'legacy',
-   external_dir,
-   external_dir / 'types',
+   external_interop_dir,
+   external_interop_dir / 'types',
+   external_framework_dir,
 ]
 
 sources = [
-    external_dir / 'common-interop.cc',
+    external_interop_dir / 'common-interop.cc',
     arkoala_dir / 'arkoala.cc',
     arkoala_dir / 'custom.cc',
     arkoala_dir / 'bridge_generated.cc',
     arkoala_dir / 'bridge_custom.cc',
-    arkoala_dir / 'events.cc',
+    external_framework_dir / 'events.cc',
     arkoala_dir / 'all_events.cc',
-    arkoala_dir / 'load-library.cc',
     arkoala_dir / 'library.cc',
     arkoala_dir / 'arkts/panda-loader.cc',
 
@@ -125,7 +131,8 @@ if is_clang
 cflags += [
     '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable',
     '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations',
-    '-Wno-unknown-warning-option', '-Wno-parentheses-equality', '-Wno-unused-function'
+    '-Wno-unknown-warning-option', '-Wno-parentheses-equality', '-Wno-unused-function', '-Wno-macro-redefined',
+    '-Wno-enum-compare', '-Wno-tautological-constant-out-of-range-compare'
 ]
 endif
 
@@ -140,14 +147,14 @@ node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' 
 node_include_dirs = [
     node_headers / 'node-api-headers/include',
     node_headers / 'node-addon-api',
-    external_dir / 'node'
+    external_interop_dir / 'node'
 ]
 node_sources = [
-    external_dir / 'node/convertors-node.cc'
+    external_interop_dir / 'node/convertors-node.cc'
 ]
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
-    node_sources += [ external_dir / 'node' / 'win-dynamic-node.cc' ]
+    node_sources += [ external_interop_dir / 'node' / 'win-dynamic-node.cc' ]
     panda_ldflags = []
 endif
 if os == 'linux'
@@ -164,12 +171,12 @@ node_module_suffix = 'node'
 
 arkts_cflags = ['-DKOALA_USE_ARK_VM', '-DKOALA_USE_ARK_VM_WITH_ETS', '-DKOALA_ETS_NAPI']
 arkts_include_dirs = [
-    external_dir / 'arkts',
+    external_interop_dir / 'arkts',
     arkoala_dir / 'arkts'
 ]
 arkts_sources = [
-    external_dir / 'arkts/convertors-ets.cc',
-    external_dir / 'types/signatures.cc',
+    external_interop_dir / 'arkts/convertors-ets.cc',
+    external_interop_dir / 'types/signatures.cc',
 ]
 
 cj_include_dirs = [
@@ -185,11 +192,11 @@ if is_jni
     jni_include_dirs = [
         java_home / 'include',
         java_home / 'include' / jni_os,
-        external_dir / 'jni'
+        external_interop_dir / 'jni'
     ]
     jni_sources = [
-        external_dir / 'jni' / 'convertors-jni.cc',
-        external_dir / 'types' / 'signatures.cc',
+        external_interop_dir / 'jni' / 'convertors-jni.cc',
+        external_interop_dir / 'types' / 'signatures.cc',
     ]
 endif
 
@@ -304,12 +311,12 @@ ohos_ldflags = [
 
 ohos_include_dirs = [
     '../node_modules/node-addon-api',
-    external_dir / 'node',
-    external_dir / 'arkts'
+    external_interop_dir / 'node',
+    external_interop_dir / 'arkts'
 ]
 
 ohos_sources = [
-    external_dir + '/node/convertors-node.cc'
+    external_interop_dir + '/node/convertors-node.cc'
 ]
 
 shared_library(ohos_library_name,
@@ -365,7 +372,7 @@ shared_library('panda',
     libdummy_sources,
     install: true,
     cpp_args: cflags,
-    include_directories: arkts_include_dirs + jni_include_dirs + [ external_dir ],
+    include_directories: arkts_include_dirs + jni_include_dirs + [ external_interop_dir ],
     install_dir: meson.current_source_dir(),
 )
 endif

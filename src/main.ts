@@ -294,7 +294,7 @@ if (options.dts2peer) {
     PeerGeneratorConfig.needInterfaces = options.needInterfaces
     const declarationTable = new DeclarationTable(options.language ?? "ts")
     const peerLibrary = new PeerLibrary(declarationTable, toSet(options.generateInterface))
-    const generatedPeersDir = options.outputDir ?? "./generated/peers"
+    const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
 
     generate(
         options.inputDir,
