@@ -50,7 +50,7 @@ export function RunPerformanceTest(testName: string, testCnt: number, callCnt: n
 }
 
 export function startPerformanceTest() {
-    let peer = new ArkCommonPeer(ArkUINodeType.Common);
+    let peer = ArkCommonPeer.create(ArkUINodeType.Common);
     RunPerformanceTest("idlize_restoreIdAttribute_testNumber100", TEST_COUNT, CALL_COUNT, () => {
         peer.restoreIdAttribute(testNumber100)
     });
@@ -96,7 +96,7 @@ export function startPerformanceTest() {
             style: 1 // BorderStyle.Solid
         })
     });
-    let navigation = new ArkNavigationPeer(ArkUINodeType.Common);
+    let navigation = ArkNavigationPeer.create(ArkUINodeType.Common);
     RunPerformanceTest("idlize_navigation_titleModeAttribute", TEST_COUNT, CALL_COUNT, () => {
         navigation.titleModeAttribute(/*NavigationTitleMode.Free*/0)
     });

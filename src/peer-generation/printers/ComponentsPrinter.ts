@@ -131,7 +131,7 @@ export function ${componentFunctionName}(
     const receiver = remember(() => {
         return new ${componentClassName}()
     })
-    NodeAttach(() => new ${peerClassName}(ArkUINodeType.${peer.componentName}, receiver), () => {
+    NodeAttach(() => ${peerClassName}.create(ArkUINodeType.${peer.componentName}, receiver), () => {
         ${callableMethod ? `receiver.${callableMethod.name}(${mappedCallableParamsValues})` : ""}
         style?.(receiver)
         content_?.()

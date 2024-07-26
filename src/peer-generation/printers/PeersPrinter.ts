@@ -122,20 +122,35 @@ class PeerFileVisitor {
         const isNode = parentRole !== InheritanceRole.Finalizable
         const signature = new NamedMethodSignature(
             Type.Void,
-            [new Type('ArkUINodeType', !isNode), new Type('ComponentBase', true), new Type('int32')],
-            ['type', 'component', 'flags'],
+            [new Type('ArkUINodeType', !isNode), new Type('int32')],
+            ['type', 'flags'],
             [undefined, undefined, '0'])
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => {
-            if (parentRole === InheritanceRole.PeerNode) {
+            if (parentRole === InheritanceRole.PeerNode || parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
                 writer.writeSuperCall([`type`, 'flags'])
-                writer.writeMethodCall('component', 'setPeer', ['this'], true)
-            } else if (parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
-                writer.writeSuperCall([`type`, 'component', 'flags'])
             } else {
                 throwException(`Unexpected parent inheritance role: ${parentRole}`)
             }
+        }, undefined, [MethodModifier.PROTECTED])
+    }
+
+    protected printCreateMethod(peer: PeerClass, writer: LanguageWriter): void {
+        const signature = new NamedMethodSignature(
+            new Type(componentToPeerClass(peer.componentName)),
+            [new Type('ArkUINodeType'), new Type('ComponentBase', true), new Type('int32')],
+            ['type', 'component', 'flags'],
+            [undefined, undefined, '0'])
+
+        writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
+            const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
+            writer.print(`let _peer = new ${componentToPeerClass(peer.componentName)}(type, flags)`)
+            if (parentRole === InheritanceRole.PeerNode) {
+                writer.writeMethodCall('component', 'setPeer', ['_peer'], true)
+            }
+            writer.print(`return _peer`)
         })
+        
     }
 
     protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
@@ -162,6 +177,7 @@ class PeerFileVisitor {
     protected printPeer(peer: PeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
             this.printPeerConstructor(peer, writer)
+            this.printCreateMethod(peer, writer)
             peer.methods.filter((method) =>
                 writer.language == Language.ARKTS ? !PeerFileVisitor.ArkTsIgnoredMethods.includes(method.overloadedName) : true
             ).forEach((method) => this.printPeerMethod(method, writer))

@@ -212,7 +212,7 @@ function checkWriteFunction() {
 }
 
 function checkButton() {
-    let peer = new ArkButtonPeer(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
 
     checkResult("width", () => peer.widthAttribute("42%"),
         "width({.type=1, .value=42.000000, .unit=3, .resource=0})")
@@ -236,7 +236,7 @@ function checkButton() {
 }
 
 function checkCalendar() {
-    let peer = new ArkCalendarPickerPeer(ArkUINodeType.CalendarPicker)
+    let peer = ArkCalendarPickerPeer.create(ArkUINodeType.CalendarPicker)
     checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, { dx: 5, dy: 6 }),
         `edgeAlign(2, {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5.000000, .unit=1, .resource=0}, .dy={.type=1, .value=6.000000, .unit=1, .resource=0}}})`)
     checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2),
@@ -244,7 +244,7 @@ function checkCalendar() {
 }
 
 function checkFormComponent() {
-    let peer = new ArkFormComponentPeer(ArkUINodeType.FormComponent)
+    let peer = ArkFormComponentPeer.create(ArkUINodeType.FormComponent)
     checkResult("size int", () => peer.sizeAttribute({ width: 5, height: 6 }),
         `size({.width={.tag=102, .i32=5}, .height={.tag=102, .i32=6}})`)
     checkResult("size float", () => peer.sizeAttribute({ width: 5.5, height: 6.789 }),
@@ -254,7 +254,7 @@ function checkFormComponent() {
 }
 
 function checkCommon() {
-    let peer = new ArkCommonPeer(ArkUINodeType.Common)
+    let peer = ArkCommonPeer.create(ArkUINodeType.Common)
     // check backgroundBlurStyle and check the heritance by the way
     let backgroundBlurStyle: BackgroundBlurStyleOptions = {
         colorMode: 0,
@@ -292,7 +292,7 @@ class ArkSideBarContainerComponentTest extends ArkSideBarContainerComponent {
 }
 
 function checkOverloads() {
-    const peer = new ArkSideBarContainerPeer(ArkUINodeType.SideBarContainer)
+    const peer = ArkSideBarContainerPeer.create(ArkUINodeType.SideBarContainer)
     const component = new ArkSideBarContainerComponentTest(peer)
     checkResult("Test number implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth(11),
@@ -305,14 +305,13 @@ function checkOverloads() {
 }
 
 function checkNavigation() {
-    let peer = new ArkNavigationPeer(ArkUINodeType.Navigation)
+    let peer = ArkNavigationPeer.create(ArkUINodeType.Navigation)
     checkResult("backButtonIcon", () => peer.backButtonIconAttribute("attr"),
         `backButtonIcon({.selector=0, .value0={.chars="attr", .length=4}})`)
 }
 
 function checkTabContent() {
-    let peer = new ArkTabContentPeer(ArkUINodeType.TabContent)
-
+    let peer = ArkTabContentPeer.create(ArkUINodeType.TabContent)
     let subTabBarStyle: SubTabBarStyle = new SubTabBarStyle("Resource").id("testID")
     assertEquals("SubTabBarStyle id", "testID", subTabBarStyle._id)
 
@@ -373,7 +372,7 @@ function checkPerf1(count: number) {
 }
 
 function checkPerf2(count: number) {
-    let peer = new ArkButtonPeer(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
     let start = performance.now()
     for (let i = 0; i < count; i++) {
         peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : { grayscale: [1, 2] })
@@ -383,7 +382,7 @@ function checkPerf2(count: number) {
 }
 
 function checkPerf3(count: number) {
-    let peer = new ArkButtonPeer(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
     let start = performance.now()
     for (let i = 0; i < count; i++) {
         peer.widthAttribute(testLength_10_lpx)
