@@ -33,7 +33,7 @@ else
 # todo move all of output to `../out` dir 
 gen_dir = '../generated' / source_set
 endif
-arkoala_dir = gen_dir + '/koalaui/arkoala/native/src/generated'
+arkoala_dir = gen_dir + '/sig/arkoala/framework/native/src/generated'
 external_framework_dir = '../external/arkoala/framework/native/src'
 external_interop_dir = '../external/interop/src/cpp'
 libace_dir = gen_dir / 'libace'

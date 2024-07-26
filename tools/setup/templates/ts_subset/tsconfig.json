@@ -16,9 +16,9 @@
         "rootDir": "generated",
         "module": "CommonJS",
         "paths": {
-            "@arkoala/arkui": ["./generated/koalaui/arkoala-arkui/src", "./"],
-            "@arkoala/arkui/*": ["./generated/koalaui/arkoala-arkui/src/*", "./*"],
-            "@koalaui/arkoala": ["./generated/koalaui/arkoala/src", "./"],
+            "@arkoala/arkui": ["./generated/sig/arkoala/arkui/src", "./"],
+            "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"],
+            "@koalaui/arkoala": ["./generated/sig/arkoala/framework/src", "./"],
         },
     }
 }

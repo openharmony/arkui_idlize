@@ -3,11 +3,11 @@
         "outDir": "build/abc/subset",
         "rootDir": "./generated/subset",
         "paths": {
-            "@arkoala/arkui": ["./generated/subset/koalaui/arkoala-arkui/arkts/src", "./"],
-            "@arkoala/arkui/*": ["./generated/subset/koalaui/arkoala-arkui/arkts/src/*", "./*"],
+            "@arkoala/arkui": ["./generated/subset/sig/arkoala/arkui/arkts/src", "./"],
+            "@arkoala/arkui/*": ["./generated/subset/sig/arkoala/arkui/arkts/src/*", "./*"],
             "@koalaui/arkoala": ["generated/subset/koalaui/arkoala"],
-            "@koalaui/common": ["./generated/subset/koalaui/arkoala-arkui/arkts/src/common"],
-            "@koalaui/interop": ["./generated/subset/koalaui/arkoala-arkui/arkts/src/interop"],
+            "@koalaui/common": ["./generated/subset/sig/arkoala/arkui/arkts/src/common"],
+            "@koalaui/interop": ["./generated/subset/sig/arkoala/arkui/arkts/src/interop"],
             "@koalaui/runtime": ["generated/subset/koalaui/arkoala"]
         }
     },

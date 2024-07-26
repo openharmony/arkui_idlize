@@ -1,9 +1,9 @@
 {
     "name": "@arkoala/arkui",
-    "main": "generated/subset/koalaui/arkoala-arkui/src/main.js",
+    "main": "generated/subset/sig/arkoala/arkui/src/main.js",
     "exports": {
         "./package.json": "./package.json",
         "./tests/*": "./tests/*.js",
-        "./*": "./generated/subset/koalaui/arkoala-arkui/src/*.js"
+        "./*": "./generated/subset/sig/arkoala/arkui/src/*.js"
     }
 }

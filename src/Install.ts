@@ -43,13 +43,17 @@ export class ArkoalaInstall extends Install {
             this.mkdir(dir)
         }
     }
-    koala = this.mkdir(this.test ? path.join(this.outDir, "koalaui") : this.outDir)
-    tsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/src/"))
-    tsArkoalaDir = this.mkdir(path.join(this.koala, "arkoala/src/generated/"))
-    arktsDir = this.mkdir(path.join(this.koala, "arkoala-arkui/arkts/src/"))
-    nativeDir = this.mkdir(path.join(this.koala, "arkoala/native/src/generated/"))
-    javaDir = this.mkdir(path.join(this.koala, "arkoala/java/src/"))
-    cjDir = this.mkdir(path.join(this.koala, "arkoala/cangjie/src/"))
+    sig = this.mkdir(this.test ? path.join(this.outDir, "sig") : this.outDir)
+
+    arkuiDir = this.mkdir(path.join(this.sig, "arkoala/arkui"))
+    tsDir = this.mkdir(path.join(this.arkuiDir, "src/"))
+    arktsDir = this.mkdir(path.join(this.arkuiDir, "arkts/src/"))
+
+    frameworkDir = this.mkdir(path.join(this.sig, "arkoala/framework"))
+    tsArkoalaDir = this.mkdir(path.join(this.frameworkDir, "src/generated/"))
+    nativeDir = this.mkdir(path.join(this.frameworkDir, "native/src/generated/"))
+    javaDir = this.mkdir(path.join(this.frameworkDir, "java/src/"))
+    cjDir = this.mkdir(path.join(this.frameworkDir, "cangjie/src/"))
     peer(targetFile: TargetFile): string {
         const peerDir = this.mkdir(path.join(this.langDir(), this.lang === Language.JAVA ? '.' : 'peers'))
         return path.join(peerDir, targetFile.path ?? "", targetFile.name + this.lang.extension)

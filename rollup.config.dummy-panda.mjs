@@ -35,7 +35,7 @@ const mode = process.env.mode
 
 console.log(`rollup args: mode = ${mode}`)
 const generatedDir = `generated`
-const arkoalaArkuiSrcDir = `${generatedDir}/${mode}/koalaui/arkoala-arkui/src`
+const arkoalaArkuiSrcDir = `${generatedDir}/${mode}/sig/arkoala/arkui/src`
 const tsconfigFile = path.resolve(`tsconfig-${mode == 'subset' ? mode : 'generated'}.json`)
 const outDir = path.resolve('lib')
 

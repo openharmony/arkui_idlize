@@ -554,11 +554,11 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     writeFile(arkoala.native(new TargetFile('library.cc')), libraryCcDeclaration())
 
     copyToArkoala(path.join(__dirname, '..', 'peer_lib'), arkoala, !options.onlyIntegrated ? undefined : [
-        'koala-ui/arkoala/native/src/generated/SerializerBase.h',
-        'koala-ui/arkoala/native/src/generated/DeserializerBase.h',
-        'koala-ui/arkoala/native/src/generated/Interop.h',
-        'koala-ui/arkoala/native/src/generated/arkoala-macros.h',
-        'koala-ui/arkoala-arkui/src/peers/SerializerBase.ts',
-        'koala-ui/arkoala-arkui/src/peers/DeserializerBase.ts',
+        'sig/arkoala/framework/native/src/generated/SerializerBase.h',
+        'sig/arkoala/framework/native/src/generated/DeserializerBase.h',
+        'sig/arkoala/framework/native/src/generated/Interop.h',
+        'sig/arkoala/framework/native/src/generated/arkoala-macros.h',
+        'sig/arkoala/arkui/src/peers/SerializerBase.ts',
+        'sig/arkoala/arkui/src/peers/DeserializerBase.ts',
     ])
 }
