@@ -27,7 +27,7 @@ is_jni = java_home != 'undefined'
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
 
-if source_set == 'ts-peers' or source_set == 'ts-subset'
+if source_set == 'ts-peers' or source_set == 'ts-subset' or source_set == 'java-subset'
 gen_dir = '../out/' + source_set + '/generated'
 else
 # todo move all of output to `../out` dir 
