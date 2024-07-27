@@ -107,8 +107,8 @@ export class OverloadsPrinter {
         const argsNames = peerMethod.argConvertors.map((conv, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${argName}_casted`
-            const castedType = peerMethod.method.signature.args[index].name
-            this.printer.print(`const ${castedArgName} = ${argName} as (${castedType})`)
+            const castedType = peerMethod.method.signature.args[index]
+            this.printer.print(`const ${castedArgName} = ${argName} as (${this.printer.mapType(castedType)})`)
             return castedArgName
         })
         const isStatic = collapsedMethod.modifiers?.includes(MethodModifier.STATIC)

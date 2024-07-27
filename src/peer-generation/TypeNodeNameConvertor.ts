@@ -116,6 +116,8 @@ export class TSTypeNodeNameConvertor implements
             types = [this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
         if (name === `Optional`)
             return `${types} | undefined`
+        // TODO: workaround, remove.
+        if (name === `bool`) return `boolean`
         const maybeTypeArguments = !types?.length ? '' : `<${types.join(', ')}>`
         return `${name}${maybeTypeArguments}`
     }

@@ -591,7 +591,7 @@ export function mangleMethodName(method: Method): string {
     return `${method.name}_${argsPostfix}`
 }
 
-export function copyMethod(method: Method, overrides: { 
+export function copyMethod(method: Method, overrides: {
     name?: string,
     signature?: MethodSignature,
     modifiers?: MethodModifier[],
@@ -999,6 +999,8 @@ export class TSLanguageWriter extends LanguageWriter {
     mapType(type: Type, convertor?: ArgConvertor): string {
         switch (type.name) {
             case 'Function': return 'Object'
+            // TODO: temporary
+            case 'bool': return 'boolean'
         }
         return type.name
     }
@@ -1423,7 +1425,7 @@ export class CJLanguageWriter extends LanguageWriter {
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, new Type('string')).asString()})`);
     }
-    
+
     mapType(type: Type): string {
         switch (type.name) {
             case 'KPointer': return 'Int64'

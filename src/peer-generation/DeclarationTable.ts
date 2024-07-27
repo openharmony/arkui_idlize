@@ -40,7 +40,7 @@ export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefin
     ts.factory.createPropertySignature(undefined, "type", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
     ts.factory.createPropertySignature(undefined, "moduleName", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)),
     ts.factory.createPropertySignature(undefined, "bundleName", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)),
-    ts.factory.createPropertySignature(undefined, "params", ts.factory.createToken(ts.SyntaxKind.QuestionToken), 
+    ts.factory.createPropertySignature(undefined, "params", ts.factory.createToken(ts.SyntaxKind.QuestionToken),
         ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword))),
 ])
 
@@ -773,7 +773,7 @@ export class DeclarationTable {
                 const type = nameAssigned.split("_").at(1)!
                 literals.set(nameAssigned, type)
             }
-            
+
         }
         return literals
     }
