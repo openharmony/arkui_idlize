@@ -11,8 +11,19 @@ This folder contains collection of tools for analyzing and transformation of
 
 Prerequisites:
 
+Add registry to the `.npmrc` file in the `$HOME` directory (`~/.npmrc`):
+```text
+registry=https://repo.huaweicloud.com/repository/npm/
+@ohos:registry=https://repo.harmonyos.com/npm/
+strict-ssl=false
+lockfile=false
+```
+
+Run:
 ```bash
 cd idlize
+git submodule update --init
+git submodule update --remote
 npm i
 npm run compile
 ```
