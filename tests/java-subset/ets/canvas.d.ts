@@ -128,7 +128,7 @@ declare class DrawingRenderingContext {
 
   invalidate(): void;
 
-  constructor(/*unit?: LengthMetricsUnit*/);
+  constructor(unit?: LengthMetricsUnit);
 }
 
 interface CanvasInterface {

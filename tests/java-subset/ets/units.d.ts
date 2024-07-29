@@ -58,13 +58,13 @@ declare interface Position {
 
 declare interface LocalizedPadding {
 
-  /*~top?: LengthMetrics;
+  top?: LengthMetrics;
 
   end?: LengthMetrics;
 
   bottom?: LengthMetrics;
 
-  start?: LengthMetrics;*/
+  start?: LengthMetrics;
 };
 
 declare interface Font {

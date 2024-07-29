@@ -172,6 +172,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         [PrimitiveType.Boolean, 'boolean'],
         [PrimitiveType.Undefined, `${PrimitiveType.ArkPrefix}Undefined`],
         [PrimitiveType.Length, `${PrimitiveType.ArkPrefix}Length`],
+        [PrimitiveType.CustomObject, 'Ark_CustomObject'],
         // TODO: add other primitive types
     ])
 

@@ -31,9 +31,9 @@ interface IndicatorStyle {
 
 declare class TabBarSymbol {
 
-    /*~normal: SymbolGlyphModifier;
+    normal: SymbolGlyphModifier;
 
-    selected?: SymbolGlyphModifier;*/
+    selected?: SymbolGlyphModifier;
 }
 
 declare class BottomTabBarStyle {
@@ -80,8 +80,8 @@ declare interface  TabContentInterface {
 
 declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
 
-    tabBar(value: SubTabBarStyle): TabContentAttribute;
-    tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
+    /*~tabBar(value: SubTabBarStyle): TabContentAttribute;
+    tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;*/
 }
 
 declare const TabContent: TabContentInterface

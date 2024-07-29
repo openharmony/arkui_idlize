@@ -364,3 +364,6 @@ export class CJTypeNodeNameConvertor implements TypeNodeNameConvertor {
         throw new Error(`Unknown node type ${ts.SyntaxKind[node.kind]}`)
     }
 }
+
+// Java printers does not use this in fact
+export class JavaTypeNodeNameConvertor extends TSTypeNodeNameConvertor {}

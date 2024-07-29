@@ -24,5 +24,5 @@ public abstract class CustomSerializer {
     boolean supports(String kind) {
         return supported.contains(kind);
     }
-    abstract void serialize(SerializerBase serializer, Object value, String kind);
+    abstract void serialize(SerializerBase serializer, Ark_CustomObject value, String kind);
 }

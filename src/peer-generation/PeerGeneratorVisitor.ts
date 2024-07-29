@@ -48,6 +48,7 @@ import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Typ
 import {
     ArkTSTypeNodeNameConvertor,
     CJTypeNodeNameConvertor,
+    JavaTypeNodeNameConvertor,
     mapType,
     TSTypeNodeNameConvertor,
     TypeNodeNameConvertor
@@ -1037,6 +1038,9 @@ export function createTypeNodeConvertor(library: PeerLibrary,
         }
         case Language.CJ: {
             return new CJTypeNodeNameConvertor()
+        }
+        case Language.JAVA: {
+            return new JavaTypeNodeNameConvertor()
         }
         default:
             throw `Unsupported language: ${library.declarationTable.language}`

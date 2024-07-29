@@ -1156,7 +1156,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         if (nullable) {
             this.printer.print(`if (${receiver} != null) ${receiver}.${method}(${params.join(", ")});`)
         } else {
-            this.printer.print(`${receiver}.${method}(${params.join(", ")})`)
+            super.writeMethodCall(receiver, method, params, nullable)
         }
     }
     writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[] | undefined, optional: boolean, initExpr?: LanguageExpression): void {

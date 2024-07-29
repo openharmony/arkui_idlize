@@ -52,7 +52,7 @@ public class Main {
     }
 
     static void checkPerf2(int count) {
-        var peer = new ArkButtonPeer(ArkUINodeType.Root, null, 0);
+        var peer = ArkButtonPeer.create(ArkUINodeType.Root, null, 0);
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             if (i % 2 == 0) {
@@ -69,7 +69,7 @@ public class Main {
     }
     
     static void checkPerf3(int count) {
-        var peer = new ArkButtonPeer(ArkUINodeType.Root, null, 0);
+        var peer = ArkButtonPeer.create(ArkUINodeType.Root, null, 0);
         var testLength_10_lpx = new Ark_Length("10lpx");
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
@@ -81,14 +81,14 @@ public class Main {
 
     static void checkPeers() {
         // interface
-        var buttonPeer = new ArkButtonPeer(ArkUINodeType.Root, null, 0);
+        var buttonPeer = ArkButtonPeer.create(ArkUINodeType.Root, null, 0);
         var labelStyle = new LabelStyle();
         labelStyle.maxLines = new Opt_Number(5); // +optional
         buttonPeer.labelStyleAttribute(labelStyle);
         System.out.println("Interface tests done");
 
         // union
-        var blankPeer = new ArkBlankPeer(ArkUINodeType.Root, null, 0);
+        var blankPeer = ArkBlankPeer.create(ArkUINodeType.Root, null, 0);
         blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(5.5));
         blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(Ark_Color.White)); // +enum
         var resource = new Resource();
@@ -104,7 +104,7 @@ public class Main {
         System.out.println("Enum tests done");
 
         // tuple
-        var peer = new ArkTestPeer(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
+        var peer = ArkTestPeer.create(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
         var options = new BlurOptions();
         options.grayscale = new Tuple_double_double(1.0, 2.0);
         peer.backdropBlurAttribute(42, options);
@@ -113,7 +113,7 @@ public class Main {
         System.out.println("Tuple tests done");
 
         // optional
-        var listPeer = new ArkListPeer(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
+        var listPeer = ArkListPeer.create(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
         listPeer.someOptionalAttribute(new Opt_Boolean(false));
         System.out.println("Optional tests done");
 
@@ -142,7 +142,7 @@ public class Main {
         var dataInfo = new NativeEmbedDataInfo();
         dataInfo.info = new NativeEmbedInfo();
         dataInfo.info.params = Map.of("k1", "v1", "k2", "v2");
-        var webPeer = new ArkWebPeer(ArkUINodeType.Root /* ArkUINodeType.Web */, null, 0);
+        var webPeer = ArkWebPeer.create(ArkUINodeType.Root /* ArkUINodeType.Web */, null, 0);
         webPeer.testMethodAttribute(dataInfo);
         var doubleStringMap = Map.of(1.0, "v1", 2.0, "v2");
         var unionWithMap = new Union_double_Map_Double_String(doubleStringMap);
@@ -157,6 +157,12 @@ public class Main {
         peer.testClassWithConstructorAndAllOptionalParamsAttribute(classCtor);
         peer.testClassWithConstructorAndAllOptionalParamsAttribute(classOf);
         System.out.println("Materialized classes tests done");
+
+        // custom object stub
+        var stateStyles = new StateStyles();
+        stateStyles.normal = new Ark_CustomObject();
+        buttonPeer.stateStylesAttribute(stateStyles);        
+        System.out.println("Custom object tests done");
     }
 }
 

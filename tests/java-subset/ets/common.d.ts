@@ -44,10 +44,10 @@ interface ICurve {
   interpolate(fraction: number): number;
 }
 
-/*~declare interface StateStyles {
+declare interface StateStyles {
 
     normal?: any;
-}*/
+}
 
 declare interface AttributeModifier<T>{}
 declare interface ContentModifier<T>{}
@@ -156,7 +156,7 @@ declare interface SheetOptions extends BindOptions {
     //~onDetentsDidChange?: Callback<number>;
     //~onWidthDidChange?: Callback<number>;
     //~onTypeDidChange?: Callback<SheetType>;
-    //~uiContext?: UIContext;
+    uiContext?: UIContext;
 }
 
 declare enum BlurStyle {
@@ -357,7 +357,7 @@ declare class CommonMethod<T> {
 
     constructor();
 
-    //~stateStyles(value: StateStyles): T;
+    stateStyles(value: StateStyles): T;
 
     backdropBlur(value: number, options?: BlurOptions): T;
 

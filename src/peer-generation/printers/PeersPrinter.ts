@@ -136,19 +136,23 @@ class PeerFileVisitor {
     }
 
     protected printCreateMethod(peer: PeerClass, writer: LanguageWriter): void {
+        const peerClass = componentToPeerClass(peer.componentName)
         const signature = new NamedMethodSignature(
-            new Type(componentToPeerClass(peer.componentName)),
+            new Type(peerClass),
             [new Type('ArkUINodeType'), new Type('ComponentBase', true), new Type('int32')],
             ['type', 'component', 'flags'],
             [undefined, undefined, '0'])
 
         writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
             const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
-            writer.print(`let _peer = new ${componentToPeerClass(peer.componentName)}(type, flags)`)
+            const _peer = '_peer'
+
+            writer.writeStatement(writer.makeAssign(_peer, undefined, writer.makeString(
+                `new ${peerClass}(${signature.argName(0)}, ${signature.argName(2)})`), true))
             if (parentRole === InheritanceRole.PeerNode) {
-                writer.writeMethodCall('component', 'setPeer', ['_peer'], true)
+                writer.writeMethodCall(signature.argName(1), 'setPeer', [_peer], true)
             }
-            writer.print(`return _peer`)
+            writer.writeStatement(writer.makeReturn(writer.makeString(_peer)))
         })
         
     }
