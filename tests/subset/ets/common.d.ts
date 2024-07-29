@@ -133,6 +133,11 @@ declare interface BindOptions {
 
 declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext; // hack
 
+declare enum ScrollSizeMode {
+    FOLLOW_DETENT = 0,
+    CONTINUOUS = 1,
+}
+
 declare interface SheetOptions extends BindOptions {
     height?: SheetSize | Length;
     dragBar?: boolean;
@@ -153,6 +158,7 @@ declare interface SheetOptions extends BindOptions {
     shadow?: ShadowOptions | ShadowStyle;
     onHeightDidChange?: Callback<number>;
     mode?: SheetMode;
+    scrollSizeMode?: ScrollSizeMode;
     onDetentsDidChange?: Callback<number>;
     onWidthDidChange?: Callback<number>;
     onTypeDidChange?: Callback<SheetType>;
@@ -239,7 +245,11 @@ declare enum BlurType {
     BEHIND_WINDOW = 1
 }
 
-declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {}
+declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {
+    policy?: BlurStyleActivePolicy;
+    inactiveColor?: ResourceColor;
+    type?: BlurType;
+}
 
 declare interface SizeResult {
     width: number,
@@ -371,7 +381,7 @@ declare class CommonMethod<T> {
 
     padding(value: Padding | Dimension): T;
 
-    bindSheet(isShow: boolean, builder: CustomBuilder, options?: SheetOptions): T;
+    bindSheet(isShow: Optional<boolean>, builder: CustomBuilder, options?: SheetOptions): T;
 
     backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): T;
 
