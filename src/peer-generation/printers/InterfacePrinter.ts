@@ -298,7 +298,7 @@ export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
         };
         if (this.peerLibrary.isComponentDeclaration(node)) {
             // because we write `ArkBlank implements BlankAttributes`
-            this.writer.writeInterface(this.declarationName(node), writer, this.extendsClause(node), true)
+            this.writer.writeInterface(this.declarationName(node), writer, this.extendsClause(node), false)
         } else {
             this.writer.writeClass(this.declarationName(node), writer, undefined, this.extendsClause(node), undefined, true)
         }

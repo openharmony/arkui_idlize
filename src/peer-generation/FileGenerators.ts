@@ -240,7 +240,7 @@ export function makeTSSerializer(library: PeerLibrary): string {
     writeSerializer(library, printer)
     //TODO: need to determine imports when generating serializer
     const extraImports = library.declarationTable.language === Language.ARKTS ?
-        'import { AdaptiveColor, BlurOptions, BlurStyle, BorderStyle, CustomBuilder, DragPreviewMode, ShadowStyle, ShadowType, SheetMode, SheetSize, SheetType, StateStyles, ThemeColorMode, ShadowOptions, LocalizedEdgeColors, LocalizedEdgeWidths, SheetTitleOptions, SheetOptions, BaseEvent, RectResult, BlurStyleOptions, BindOptions, UIGestureEvent, BorderOptions, DragInteractionOptions, DragPreviewOptions, BackgroundBlurStyleOptions, Padding, EdgeWidths, EdgeColors, EdgeStyles, TouchTestInfo, ICurve } from "@arkoala/arkui/ArkCommonInterfaces"\n' +
+        'import { AdaptiveColor, BlurOptions, BlurStyle, BorderStyle, CustomBuilder, DragPreviewMode, ShadowStyle, ShadowType, SheetMode, SheetSize, SheetType, StateStyles, ThemeColorMode, ShadowOptions, LocalizedEdgeColors, LocalizedEdgeWidths, SheetTitleOptions, SheetOptions, BaseEvent, RectResult, BlurStyleOptions, BindOptions, UIGestureEvent, BorderOptions, DragInteractionOptions, DragPreviewOptions, BackgroundBlurStyleOptions, Padding, EdgeWidths, EdgeColors, EdgeStyles, TouchTestInfo, ICurve, BlurStyleActivePolicy, BlurType, ScrollSizeMode } from "@arkoala/arkui/ArkCommonInterfaces"\n' +
         'import { FontWeight, FontStyle, TextOverflow, TextHeightAdaptivePolicy, Color, ColoringStrategy, Curve } from "@arkoala/arkui/ArkEnumInterfaces"\n' +
         'import { SelectedMode, BoardStyle, IndicatorStyle } from "@arkoala/arkui/ArkTabContentInterfaces"\n' +
         'import { LabelStyle } from "@arkoala/arkui/ArkButtonInterfaces"\n' +

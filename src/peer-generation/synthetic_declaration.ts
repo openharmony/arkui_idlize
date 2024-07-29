@@ -1,11 +1,11 @@
 import * as ts from 'typescript'
 import { convertDeclToFeature, ImportFeature } from './ImportsCollector'
-import { ArkTSTypeNodeNameConvertor, TSTypeNodeNameConvertor, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
+import { TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 import { PeerLibrary } from "./PeerLibrary";
 import { DeclarationDependenciesCollector } from "./dependencies_collector";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { isSourceDecl, needImportFeature } from "./PeerGeneratorVisitor";
-import { convertTypeNode, TypeNodeConvertor } from "./TypeNodeConvertor";
+import { isSourceDecl } from "./PeerGeneratorVisitor";
+import { convertTypeNode } from "./TypeNodeConvertor";
 
 const syntheticDeclarations: Map<string, {node: ts.Declaration, filename: string, dependencies: ImportFeature[]}> = new Map()
 export function makeSyntheticDeclaration(targetFilename: string, declName: string, factory: () => ts.Declaration): ts.Declaration {
@@ -75,9 +75,7 @@ export function makeSyntheticInterfaceDeclaration(targetFileName: string,
         () => ts.factory.createInterfaceDeclaration([], typeName, [], [], members)
     )
     declDependenciesCollector.convert(decl).forEach(it => {
-        if (isSourceDecl(it)
-            && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it))
-            && needImportFeature(peerLibrary.declarationTable.language, it)) {
+        if (isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it))) {
             addSyntheticDeclarationDependency(decl, convertDeclToFeature(peerLibrary, it))
         }
     })

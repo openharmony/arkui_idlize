@@ -1,16 +1,16 @@
 {
     "compilerOptions": {
         "outDir": "build/abc/subset",
-        "rootDir": "./generated/subset",
+        "rootDir": "./generated/arkts-subset",
         "paths": {
-            "@arkoala/arkui": ["./generated/subset/sig/arkoala/arkui/arkts/src", "./"],
-            "@arkoala/arkui/*": ["./generated/subset/sig/arkoala/arkui/arkts/src/*", "./*"],
-            "@koalaui/arkoala": ["generated/subset/koalaui/arkoala"],
-            "@koalaui/common": ["./generated/subset/sig/arkoala/arkui/arkts/src/common"],
-            "@koalaui/interop": ["./generated/subset/sig/arkoala/arkui/arkts/src/interop"],
-            "@koalaui/runtime": ["generated/subset/koalaui/arkoala"]
+            "@arkoala/arkui": ["./generated/arkts-subset/sig/arkoala/arkui/arkts/src", "./"],
+            "@arkoala/arkui/*": ["./generated/arkts-subset/sig/arkoala/arkui/arkts/src/*", "./*"],
+            "@koalaui/arkoala": ["./generated/arkts-subset/koalaui/arkoala"],
+            "@koalaui/common": ["./generated/arkts-subset/sig/arkoala/arkui/arkts/src/common"],
+            "@koalaui/interop": ["./generated/arkts-subset/sig/arkoala/arkui/arkts/src/interop"],
+            "@koalaui/runtime": ["./generated/arkts-subset/koalaui/arkoala"]
         }
     },
-    "include": ["./generated/subset/**/*.ets"],
-    "exclude": ["./generated/subset/sig/arkoala/arkui/arkts/src/shared/dts-exports.ets"]
+    "include": ["./generated/arkts-subset/**/*.ets"],
+    "exclude": ["./generated/arkts-subset/sig/arkoala/arkui/arkts/src/shared/dts-exports.ets"]
 }

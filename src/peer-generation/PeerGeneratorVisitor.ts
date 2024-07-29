@@ -978,40 +978,20 @@ export class PeerProcessor {
             }
 
             this.declDependenciesCollector.convert(dep).forEach(it => {
-                if (isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it))
-                    && needImportFeature(this.library.declarationTable.language, it))
+                if (isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it)))
                     file.importFeatures.push(convertDeclToFeature(this.library, it))
             })
             this.serializeDepsCollector.convert(dep).forEach(it => {
-                if (isSourceDecl(it) && PeerGeneratorConfig.needInterfaces
-                    && needImportFeature(this.library.declarationTable.language, it)) {
+                if (isSourceDecl(it) && PeerGeneratorConfig.needInterfaces) {
                     file.serializeImportFeatures.push(convertDeclToFeature(this.library, it))
                 }
             })
-            if (PeerGeneratorConfig.needInterfaces
-                && needImportFeature(this.library.declarationTable.language, dep)) {
+            if (PeerGeneratorConfig.needInterfaces) {
                 file.declarations.add(dep)
                 file.importFeatures.push(convertDeclToFeature(this.library, dep))
             }
         }
     }
-}
-
-export function needImportFeature(language: Language, decl: ts.Declaration): boolean {
-    if (language == Language.ARKTS) {
-        //TODO: Skip these classes temporarily, this crashes es2panda.
-        if (ts.isClassDeclaration(decl)
-            && ["CalendarPickerAttribute",
-            "CommonMethod",
-            "TestAttribute"].includes(decl.name!.text)) {
-            return false
-        }
-        return ts.isEnumDeclaration(decl)
-            || ts.isInterfaceDeclaration(decl)
-            || ts.isTypeAliasDeclaration(decl)
-            || ts.isClassDeclaration(decl)
-    }
-    return true
 }
 
 function createTypeDependenciesCollector(library: PeerLibrary): TypeDependenciesCollector {
