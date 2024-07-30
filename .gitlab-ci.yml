@@ -1,18 +1,21 @@
-image: "nexus.bz-openlab.ru:10443/huawei/koala-ci:0.1"
+image: "nexus.bz-openlab.ru:10443/huawei/koala-ci:0.2"
+
+stages:
+  - test
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
+
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-idlize build:
-  stage: build
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - npm config set registry https://repo.huaweicloud.com/repository/npm/
-    - npm config set @ohos:registry https://repo.harmonyos.com/npm/
-    - npm i --no-audit --no-fund
-  script:
-    - npm run compile
+.setup:
+    script:
+        - npm config set registry https://repo.huaweicloud.com/repository/npm/
+        - npm config set @ohos:registry https://repo.harmonyos.com/npm/
+        - npm i --no-audit --no-fund
 
 pg check peers run:
   stage: test
@@ -20,9 +23,27 @@ pg check peers run:
     - idlize-ci
     - koala-ci
   before_script:
-    - npm config set registry https://repo.huaweicloud.com/repository/npm/
-    - npm config set @ohos:registry https://repo.harmonyos.com/npm/
-    - npm i --no-audit --no-fund
+    - !reference [.setup, script]
   script:
     - npm run check:peers:run
+
+idlize sanity:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+  script:
+    - npm run sanity
+
+pg java:run:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+  script:
+    - JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64 npm run run:java
 

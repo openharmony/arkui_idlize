@@ -187,10 +187,12 @@ if (options.linter) {
             onBegin: () => { },
             onEnd: (outputDir) => {
                 const outFile = options.outputDir ? path.join(outputDir, "linter.txt") : undefined
+                const histogramFile = options.outputDir ? path.join(outputDir, "histogram.txt") : undefined
                 let [generated, exitCode, histogram] = toLinterString(allEntries, options.linterSuppressErrors, options.linterWhitelist)
                 console.log(histogram)
                 if (!outFile || options.verbose) console.log(generated)
                 if (outFile) fs.writeFileSync(outFile, generated)
+                if (histogramFile) fs.writeFileSync(histogramFile, histogram)
                 process.exit(exitCode)
             }
         }

@@ -516,7 +516,7 @@ function findEnumType(types: ts.NodeArray<ts.TypeNode>, typeChecker: ts.TypeChec
 export function toLinterString(
     allEntries: Array<LinterMessage[]>,
     suppressErrors: string | undefined,
-    whitelistFile: string | undefined
+    whitelistFile: string | undefined,
 ): [string, number, string] {
     const suppressedErrorsSet = new Set<LinterError>()
     if (suppressErrors) {
