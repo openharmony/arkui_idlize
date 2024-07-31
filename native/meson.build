@@ -3,6 +3,8 @@ project('NativeBridge', 'c', 'cpp',
     default_options: ['cpp_std=c++17', 'buildtype=release']
 )
 
+assert(meson.get_compiler('cpp').get_id() == 'clang', 'Only Clang compiler is supported. Environment variables need to be defined: CC=clang CXX=clang++')
+
 if get_option('source_set') != ''
 source_set = get_option('source_set')
 else
