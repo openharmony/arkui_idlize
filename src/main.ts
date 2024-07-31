@@ -133,9 +133,10 @@ if (options.dts2idl) {
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: IDLEntry[], outputDir, sourceFile) => {
+                console.log('producing', path.relative(options.inputDir, sourceFile.fileName))
                 const outFile = path.join(outputDir,
-                    path.basename(sourceFile.fileName).replace(".d.ts", ".idl"))
-                console.log("producing", outFile)
+                    path.relative(options.inputDir, sourceFile.fileName).replace(".d.ts", ".idl"))
+                console.log("saved", outFile)
                 if (options.skipDocs) {
                     entries.forEach(it => forEachChild(
                         it, (it) => it.documentation = undefined))
@@ -145,6 +146,9 @@ if (options.dts2idl) {
                     disableEnumInitializers: options.disableEnumInitializers ?? false
                 })
                 if (options.verbose) console.log(generated)
+                if (!fs.existsSync(path.dirname(outFile))){
+                    fs.mkdirSync(path.dirname(outFile), { recursive: true });
+                }
                 fs.writeFileSync(outFile, generated)
             }
         }

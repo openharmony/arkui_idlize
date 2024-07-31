@@ -20,6 +20,19 @@ import * as webidl2 from "webidl2"
 import { toIDLNode } from "./deserialize";
 import { zip } from "../util";
 
+function getFilesRecursive(dirPath: string, arrayOfFiles: string[] = []) {
+    let files = fs.readdirSync(dirPath)
+    arrayOfFiles = arrayOfFiles || []
+    files.forEach((file: string) => {
+        if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+            arrayOfFiles = getFilesRecursive(dirPath + "/" + file, arrayOfFiles)
+        } else {
+            arrayOfFiles.push(path.join(dirPath, file))
+        }
+    })
+    return arrayOfFiles
+}
+
 export function fromIDL(
     inputDir: string,
     inputFile: string | undefined,
@@ -29,11 +42,9 @@ export function fromIDL(
     transform: (name: string, content: string) => string
 ): void {
     inputDir = path.resolve(inputDir)
-    const files: string[] =
-        inputFile
-            ? [path.join(inputDir, inputFile)]
-            : fs.readdirSync(inputDir)
-                .map((elem: string) => path.join(inputDir, elem))
+    const files: string[] = inputFile
+        ? [path.join(inputDir, inputFile)]
+        : getFilesRecursive(inputDir)
 
     const results: string[] =
         files
@@ -41,13 +52,18 @@ export function fromIDL(
 
     zip(files, results)
         .forEach(([fileName, output]: [string, string]) => {
-            fs.mkdirSync(outputDir, { recursive : true })
+            fs.mkdirSync(outputDir, { recursive: true })
+            console.log('producing', path.relative(inputDir, fileName))
             const outFile = path.join(
                 outputDir,
-                path.basename(fileName).replace(".idl", extension)
+                path.relative(inputDir, fileName).replace(".idl", extension)
             )
             if (verbose) console.log(output)
+            if (!fs.existsSync(path.dirname(outFile))) {
+                fs.mkdirSync(path.dirname(outFile), { recursive: true });
+            }
             fs.writeFileSync(outFile, licence.concat(output))
+            console.log("saved", outFile)
         })
 }
 
