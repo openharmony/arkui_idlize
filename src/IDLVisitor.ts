@@ -63,7 +63,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     globalFunctions: IDLMethod[] = []
 
     startScope() {
-        this.scopes.push(this.currentScope)
+        if (this.currentScope && this.currentScope.length) this.scopes.push(this.currentScope)
         this.currentScope = []
     }
 
@@ -137,7 +137,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         } else if (ts.isTypeAliasDeclaration(node)) {
             this.output.push(this.serializeTypeAlias(node))
         } else if (ts.isFunctionDeclaration(node)) {
-            this.globalFunctions.push(this.serializeMethod(node, ""))
+            this.globalFunctions.push(this.serializeMethod(node, "", true))
         } else if (ts.isVariableStatement(node)) {
             this.globalConstants.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
         } else if (ts.isImportDeclaration(node)) {
@@ -783,7 +783,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     /** Serialize a signature (call or construct) */
-    serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration, namePrefix: string): IDLMethod {
+    serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration, namePrefix: string, isGlobal: boolean = false): IDLMethod {
+        if (isGlobal) this.startScope()
         const typeParams = method.typeParameters?.map(it => it.getText()).join(",")
         let extendedAttributes: IDLExtendedAttribute[] = typeParams ? [{name: "TypeParameters", value: typeParams}] : []
         if (ts.isIndexSignatureDeclaration(method)) {
@@ -811,12 +812,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return {
             kind: IDLKind.Method,
             name: escapedName,
-            extendedAttributes: this.computeDeprecatedExtendAttributes(method,extendedAttributes),
+            extendedAttributes: this.computeDeprecatedExtendAttributes(method, extendedAttributes),
             documentation: getDocumentation(this.sourceFile, method, this.options.docs),
             parameters: method.parameters.map(it => this.serializeParameter(it, `${namePrefix}_${escapedName}`)),
             returnType: returnType,
             isStatic: isStatic(method.modifiers),
-            isOptional: !!method.questionToken
+            isOptional: !!method.questionToken,
+            scope: isGlobal ? this.endScope() : undefined
         };
     }
 

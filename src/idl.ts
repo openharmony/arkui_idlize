@@ -524,6 +524,15 @@ export function printScoped(idl: IDLEntry): stringOrNone[] {
 }
 
 export function printInterface(idl: IDLInterface): stringOrNone[] {
+    idl.methods.map((it: IDLMethod) => {
+        let result = it.scope
+        it.scope = undefined
+        return result
+    })
+        .filter(isDefined)
+        .map(scope => {
+            idl.scope ? idl.scope.push(...scope) : idl.scope = scope
+        })
     return [
         ...printExtendedAttributes(idl, 0),
         `interface ${idl.name}${hasSuperType(idl) ? ": " + printType(idl.inheritance[0]) : ""} {`,
