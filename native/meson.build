@@ -3,8 +3,6 @@ project('NativeBridge', 'c', 'cpp',
     default_options: ['cpp_std=c++17', 'buildtype=release']
 )
 
-assert(meson.get_compiler('cpp').get_id() == 'clang', 'Only Clang compiler is supported. Environment variables need to be defined: CC=clang CXX=clang++')
-
 if get_option('source_set') != ''
 source_set = get_option('source_set')
 else
@@ -32,7 +30,7 @@ compile_callbacks_test = get_option('callbacks_test')
 if source_set == 'ts-peers' or source_set == 'ts-subset' or source_set == 'java-subset'
 gen_dir = '../out/' + source_set + '/generated'
 else
-# todo move all of output to `../out` dir 
+# todo move all of output to `../out` dir
 gen_dir = '../generated' / source_set
 endif
 arkoala_dir = gen_dir + '/sig/arkoala/framework/native/src/generated'
@@ -81,6 +79,11 @@ endif
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
 is_clang = not is_msvc
+
+if is_clang
+assert(meson.get_compiler('cpp').get_id() == 'clang', 'Only Clang compiler is supported. Environment variables need to be defined: CC=clang CXX=clang++')
+clang_prefix = 'export CC=clang CXX=clang++'
+endif
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
 archs = { 'x86_64': 'x64', 'aarch64': 'arm64', 'wasm32': 'wasm', 'armv7a': 'arm' }
