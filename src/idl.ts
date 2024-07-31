@@ -15,6 +15,7 @@
 
 import * as webidl2 from "webidl2"
 import { indentedBy, isDefined, stringOrNone } from "./util";
+import { NodeArray, TypeNode } from "typescript";
 
 export enum IDLKind {
     Interface,
@@ -336,7 +337,19 @@ export function createAnyType(documentation?: string): IDLPrimitiveType {
     }
 }
 
-export function createReferenceType(name: string): IDLReferenceType {
+export function createReferenceType(name: string, typeArguments?: NodeArray<TypeNode>): IDLReferenceType {
+    if (typeArguments) {
+        return {
+            kind: IDLKind.ReferenceType,
+            name: name,
+            extendedAttributes: [{
+                name: "TypeArguments",
+                value: typeArguments!
+                    .map(it => it.getText())
+                    .join(",")
+            }]
+        }
+    }
     return {
         kind: IDLKind.ReferenceType,
         name: name

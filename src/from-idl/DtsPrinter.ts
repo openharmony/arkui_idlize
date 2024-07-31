@@ -42,7 +42,7 @@ export class CustomPrintVisitor  {
         } else if (isEnum(node)) {
             this.printEnum(node)
         } else if (isCallback(node)) {
-            this.printCallbackDeclaration(node)
+            this.printTypedef(node)
         } else if (isModuleType(node)) {
             this.printModuleType(node)
         } else {
@@ -56,6 +56,12 @@ export class CustomPrintVisitor  {
             ?.initializer as string
         if (imports)
             this.print(imports.slice(1, -1))
+
+        const exports = node.elements
+            .find(it => it.name === "exports")
+            ?.initializer as string
+        if (exports)
+            this.print(exports.slice(1, -1))
     }
 
     printInterface(node: IDLInterface) {
@@ -126,14 +132,14 @@ export class CustomPrintVisitor  {
         this.print(`${isGlobal ? `${isExport ? "export ": ""}declare function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}${typeParams}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
     }
     paramText(param: IDLParameter): string {
-        return `${param.isVariadic ? "..." : ""}${param.name}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
+        return `${param.isVariadic ? "..." : ""}${getName(param)}${param.isOptional ? "?" : ""}: ${printTypeForTS(param.type)}`
     }
     printProperty(node: IDLProperty) {
         const isCommonMethod = hasExtAttribute(node, "CommonMethod")
         let isProtected = hasExtAttribute(node, "Protected")
         if (isCommonMethod) {
             let returnType = this.currentInterface!.name == "CommonMethod" ? "T" : this.currentInterface!.name
-            this.print(`${getName(node)}(value: ${printTypeForTS(node.type)}): ${returnType};`)
+            this.print(`${getName(node)}(value: ${printTypeForTS(node.type, undefined, undefined, isCommonMethod)}): ${returnType};`)
         } else if (hasExtAttribute(node, "Accessor")) {
             const accessorName = getExtAttribute(node, "Accessor")
             if (accessorName == "Getter") {
@@ -159,14 +165,17 @@ export class CustomPrintVisitor  {
         this.print("}")
         this.closeNamespace(namespace)
     }
-    printCallbackDeclaration(node: IDLCallback) {
-        // TODO: is it correct.
-        this.print(`declare type ${getName(node)} = ${callbackType(node)};`)
-    }
-    printTypedef(node: IDLTypedef) {
-        let text = getVerbatimDts(node) ?? printTypeForTS(node.type)
+    printTypedef(node: IDLTypedef | IDLCallback) {
+        let text = ""
+        if (isCallback(node)) {
+            text = callbackType(node)
+        } else {
+            text = getVerbatimDts(node) ?? printTypeForTS(node.type)
+        }
         let isExport = hasExtAttribute(node, "Export")
-        this.print(`${isExport ? "export ": ""}declare type ${(node.name)} = ${text};`)
+        const typeParamsAttr = getExtAttribute(node, "TypeParameters")
+        const typeParams = typeParamsAttr ? `<${typeParamsAttr}>` : ""
+        this.print(`${isExport ? "export ": ""}declare type ${getName(node)}${typeParams} = ${text};`)
     }
 
     printModuleType(node: IDLModuleType) {
@@ -220,16 +229,18 @@ export function idlToString(name: string, content: string): string {
     return printer.output.join("\n")
 }
 
-export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: boolean): string {
+export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: boolean, sequenceToArrayInterface: boolean = false, isCommonMethod = false): string {
     if (!type) throw new Error("Missing type")
     if (type.name == "undefined" && undefinedToVoid) return "void"
-    if (type.name == "int32" || type.name == "float32") return "number"
     if (type.name == "DOMString") return "string"
-    if (type.name == "this") return "T"
+    if (isCommonMethod && type.name == "this") return "T"
     if (type.name == "void_") return "void"
     if (isPrimitiveType(type)) return type.name
-    if (isContainerType(type))
+    if (isContainerType(type)) {
+        if (!sequenceToArrayInterface && type.name == "sequence") 
+            return `${type.elementType.map(it => printTypeForTS(it)).join(",")}[]`
         return `${mapContainerType(type.name)}<${type.elementType.map(it => printTypeForTS(it)).join(",")}>`
+    }
     if (isReferenceType(type)) return toTypeName(type, "TypeArguments")
     if (isUnionType(type)) return `(${type.types.map(it => printTypeForTS(it)).join("|")})`
     if (isEnumType(type)) return type.name

@@ -57,6 +57,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private currentScope:  IDLEntry[] = []
     scopes: IDLEntry[][] = []
     imports: string[] = []
+    exports: string[] = []
     namespaces: string[] = []
     globalConstants: IDLConstant[] = []
     globalFunctions: IDLMethod[] = []
@@ -109,6 +110,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             elements: [
                 this.makeEnumMember("package", "org.openharmony.arkui"),
                 this.makeEnumMember("imports", this.imports.join("\n")),
+                this.makeEnumMember("exports", this.exports.join("\n")),
             ]
         } as IDLEnum)
     }
@@ -137,9 +139,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         } else if (ts.isFunctionDeclaration(node)) {
             this.globalFunctions.push(this.serializeMethod(node, ""))
         } else if (ts.isVariableStatement(node)) {
-            this.globalConstants.push(...this.serializeConstants(node))
+            this.globalConstants.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
         } else if (ts.isImportDeclaration(node)) {
             this.imports.push(node.getText())
+        } else if (ts.isExportDeclaration(node)) {
+            this.exports.push(node.getText())
         }
     }
 
@@ -163,8 +167,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 type: createReferenceType(`Imported${name}`)
             }
         }
+
+        let extendedAttributes = this.computeDeprecatedExtendAttributes(node, node.typeParameters ? [{
+            name: "TypeParameters",
+            value: node.typeParameters.map(it => it.getText()).join(",")
+        }] : undefined)
         if (ts.isFunctionTypeNode(node.type)) {
-            return this.serializeFunctionType(name, node.type)
+            return this.serializeFunctionType(name, node.type, extendedAttributes)
         }
         if (ts.isTypeLiteralNode(node.type)) {
             return this.serializeObjectType(name, node.type, node.typeParameters)
@@ -178,10 +187,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             }
         }
         this.startScope()
+
         return {
             kind: IDLKind.Typedef,
             name: name,
-            extendedAttributes: this.computeDeprecatedExtendAttributes(node),
+            extendedAttributes: extendedAttributes,
             type: this.serializeType(node.type, name),
             scope: this.endScope()
         }
@@ -450,12 +460,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
     }
 
-    serializeFunctionType(name: string, signature: ts.SignatureDeclarationBase): IDLCallback {
+    serializeFunctionType(name: string, signature: ts.SignatureDeclarationBase, extendedAttributes?: IDLExtendedAttribute[]): IDLCallback {
         return {
             kind: IDLKind.Callback,
             name: name,
             parameters: signature.parameters.map(it => this.serializeParameter(it, name)),
             returnType: this.serializeType(signature.type, name),
+            extendedAttributes: extendedAttributes,
         };
     }
 
@@ -563,7 +574,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             if (declaration.length == 0) {
                 let name = type.typeName.getText(type.typeName.getSourceFile())
                 this.warn(`Do not know type ${name}`)
-                return createReferenceType(name)
+                return createReferenceType(name, type.typeArguments)
             }
             let isEnum = ts.isEnumDeclaration(declaration[0])
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
@@ -574,16 +585,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             if (isEnum) {
                 return createEnumType(transformedType)
             }
-            let result = createReferenceType(transformedType)
-            if (type.typeArguments) {
-                result.extendedAttributes = [{
-                    name : "TypeArguments",
-                    value: type.typeArguments!
-                        .map(it => it.getText())
-                        .join(",")
-                }]
-            }
-            return result;
+            return createReferenceType(transformedType, type.typeArguments);
         }
         if (ts.isThisTypeNode(type)) {
             return createReferenceType("this")

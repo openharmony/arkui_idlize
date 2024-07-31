@@ -34,6 +34,8 @@ interface IterableIterator<T> {}
 interface Object {}
 interface Function {}
 interface Partial<T> {}
+interface Readonly<T> {}
+interface Error {}
 interface Promise<T> {}
 interface ArrayBuffer {}
 interface Map<K, V> {}

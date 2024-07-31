@@ -145,7 +145,7 @@ export function getExportedDeclarationNameByDecl(declaration: ts.NamedDeclaratio
     source.forEachChild(it => {
         if (ts.isExportDeclaration(it)) {
             let clause = it.exportClause!
-            if (ts.isNamedExportBindings(clause) && ts.isNamedExports(clause)) {
+            if (clause && ts.isNamedExportBindings(clause) && ts.isNamedExports(clause)) {
                 clause.elements.forEach(it => {
                     let propName = it.propertyName ? ts.idText(it.propertyName) : undefined
                     let property = ts.idText(it.name)
