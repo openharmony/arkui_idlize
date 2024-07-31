@@ -127,7 +127,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             } else {
                 // This is a namespace, visit its children
                 if (node.body) {
-                    this.namespaces.unshift(node.name.getText())
+                    if (isExport(node.modifiers)) {
+                        this.namespaces.unshift(`Export ${node.name.getText()}`)
+                    } else {
+                        this.namespaces.unshift(node.name.getText())
+                    }
                     ts.forEachChild(node.body, (node) => this.visit(node));
                     this.namespaces.shift()
                 }
@@ -224,8 +228,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     computeNamespaceAttribute(): IDLExtendedAttribute[] {
-        const namespace = this.namespaces[0]
-        return namespace ? [{name: "Namespace", value: namespace}] : []
+        const namespace = this.namespaces.join(',')
+        return namespace ? [{name: "Namespace", value: `"${namespace}"`}] : []
     }
 
     computeExtendedAttributes(
@@ -785,8 +789,9 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     /** Serialize a signature (call or construct) */
     serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration, namePrefix: string, isGlobal: boolean = false): IDLMethod {
         if (isGlobal) this.startScope()
+        let extendedAttributes: IDLExtendedAttribute[] = isGlobal ? this.computeNamespaceAttribute() : []
         const typeParams = method.typeParameters?.map(it => it.getText()).join(",")
-        let extendedAttributes: IDLExtendedAttribute[] = typeParams ? [{name: "TypeParameters", value: typeParams}] : []
+        if (typeParams) extendedAttributes.push({name: "TypeParameters", value: typeParams})
         if (ts.isIndexSignatureDeclaration(method)) {
             extendedAttributes.push({name: 'IndexSignature' })
             return {
