@@ -46,6 +46,11 @@ declare interface ArrayRefTuplesInterfaceDTS {
     tuple: Array<[boolean, number]>
 }
 
+declare interface DatePickerOptionsTest {
+  start?: Date;
+  end?: Date;
+}
+
 declare class ClassDTS {
 
     valBoolean: boolean
@@ -254,6 +259,8 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
     testArrayRefNumberInterface(value: ArrayRefNumberInterfaceDTS): TestAttribute
 
     // testArrayRefTupleInterface(value: ArrayRefTuplesInterfaceDTS)
+
+    testDateCustomObject(value: DatePickerOptionsTest): TestAttribute //~
 
 
     // Boolean Interface

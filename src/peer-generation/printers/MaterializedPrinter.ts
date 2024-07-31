@@ -242,22 +242,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
         this.printerContext.imports!.printImportsForTypes([finalizableType], this.printer)
 
         const superClass = clazz.superClass
-        let superClassName = superClass ? `${superClass.name}${superClass.generics ? `<${superClass.generics.join(', ')}>` : ''}` : undefined
-        //const selfInterface = clazz.isInterface ? `${clazz.className}${clazz.generics ? `<${clazz.generics.join(', ')}>` : `` }` : undefined
-        if (clazz.isInterface) {
-            throw new Error(`Interfaces as materialized classes not supported: ${clazz.className}`)
-        }
-
-        const interfaces: string[] = []
-        if (clazz.isInterface) {
-            //if (selfInterface) interfaces.push(selfInterface)
-            if (superClassName && !this.library.materializedClasses.has(superClassName)) {
-                interfaces.push(superClassName)
-                superClassName = undefined
-            }
-        }
-
-        superClassName = superClassName ? superClassName : ARK_MATERIALIZEDBASE
+        const superClassName = superClass ? `${superClass.name}${superClass.generics ? `<${superClass.generics.join(', ')}>` : ''}` : ARK_MATERIALIZEDBASE
 
         this.printer.writeClass(clazz.className, writer => {
             // getters and setters for fields
@@ -328,7 +313,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 writePeerMethod(writer, method, this.printerContext, this.dumpSerialized, '', 'this.peer.ptr', method.method.signature.returnType)
                 this.library.declarationTable.setCurrentContext(undefined)
             })
-        }, superClassName, interfaces.length === 0 ? undefined : interfaces, clazz.generics)
+        }, superClassName, undefined, clazz.generics)
     }
 
     visit(): void {

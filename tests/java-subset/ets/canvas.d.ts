@@ -28,10 +28,10 @@ declare class ImageData {
   constructor(width: number, height: number, data?: Uint8ClampedArray, unit?: LengthMetricsUnit);
 }
 
-/*~declare interface CanvasPattern {
+declare interface CanvasPattern {
 
   setTransform(transform?: Matrix2D): void;
-}*/
+}
 
 // interface ImageBitmap {
 
@@ -52,10 +52,10 @@ declare class CanvasPath {
   closePath(): void;
 }
 
-/*~declare class CanvasGradient {
+declare class CanvasGradient {
 
   addColorStop(offset: number, color: string): void;
-}*/
+}
 
 declare class CanvasRenderer extends CanvasPath {
 
@@ -63,7 +63,7 @@ declare class CanvasRenderer extends CanvasPath {
 
   //~ globalCompositeOperation: string;
 
-  //~ fillStyle: string | number | CanvasGradient /*~| CanvasPattern*/;
+  //~ fillStyle: string | number | CanvasGradient | CanvasPattern;
 
   // drawImage(image: ImageBitmap | PixelMap, dx: number, dy: number): void;
 

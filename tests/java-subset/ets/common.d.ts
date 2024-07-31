@@ -390,7 +390,7 @@ declare class CommonMethod<T> {
 
     attributeModifier(modifier: AttributeModifier<T>): T
 
-    //~gestureModifier(modifier: GestureModifier): T;
+    gestureModifier(modifier: GestureModifier): T;
 
     //~onGestureRecognizerJudgeBegin(callback: GestureRecognizerJudgeBeginCallback): T;
 }
@@ -464,10 +464,10 @@ declare interface UIGestureEvent {
   addGesture<T>(gesture: GestureHandler<T>, priority?: GesturePriority, mask?: GestureMask): void;
 }
 
-/*~declare interface GestureModifier {
+declare interface GestureModifier {
   applyGesture(): void;
   applyGesture(event: UIGestureEvent): void;
-}*/
+}
 
 declare type GestureRecognizerJudgeBeginCallback = (event: BaseGestureEvent, current: GestureRecognizer, recognizers: Array<GestureRecognizer>) => GestureJudgeResult;
 

@@ -16,18 +16,23 @@
 package org.koalaui.arkoala;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 public class Main {
     public static void main(String[] args) {
-        long str = NativeModule._StringMake("Hello");
-        System.out.println(NativeModule._StringLength(str));
-        //checkPerf(10*1000*1000);
-        //NativeModule._StartGroupedLog(1);
+        perfTests();
+        peerTests();
+        checkTree();
+
+        TestUtils.checkTestFailures();
+    }
+
+    static void perfTests() {
+        System.out.println("\nJava performance tests");
+        checkPerf(10*1000*1000);
         checkPerf2(5*1000*1000);
         checkPerf3(5*1000*1000);
-        checkPeers();
-        checkTree();
-        //NativeModule._StopGroupedLog(1);
+        System.out.println();
     }
 
     static void checkPerf(int count) {
@@ -80,93 +85,129 @@ public class Main {
         System.out.println("widthAttributeString: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
     }
 
-    static void checkPeers() {
+    static void peerTests() {
+        System.out.println("Java peer tests");
+
         // interface
         var buttonPeer = ArkButtonPeer.create(ArkUINodeType.Root, null, 0);
         var labelStyle = new LabelStyle();
-        labelStyle.maxLines = new Opt_Number(5); // +optional
-        buttonPeer.labelStyleAttribute(labelStyle);
-        System.out.println("Interface tests done");
+        labelStyle.maxLines = new Opt_Number(5);
+        TestUtils.checkResult("[Interface + Optional] ButtonPeer.labelStyle",
+            () -> { buttonPeer.labelStyleAttribute(labelStyle); },
+            "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=5}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})");
 
         // union
         var blankPeer = ArkBlankPeer.create(ArkUINodeType.Root, null, 0);
-        blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(5.5));
-        blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(Ark_Color.White)); // +enum
+        TestUtils.checkResult("[Union] BlankPeer.color",
+            () -> { blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(5.5)); },
+            "color({.selector=1, .value1={.tag=103, .f32=5.50}})");
+        TestUtils.checkResult("[Union + Enum] BlankPeer.color",
+            () -> { blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(Ark_Color.White)); },
+            "color({.selector=0, .value0=0})");
         var resource = new Resource();
         resource.id = 10;
         resource.type = 2000;
         resource.moduleName = "module_name";
         resource.bundleName = "bundle_name";
-        blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(resource)); // +import
-        System.out.println("Union tests done");
-
-        // enum
-        buttonPeer.typeAttribute(Ark_ButtonType.Capsule);
-        System.out.println("Enum tests done");
+        TestUtils.checkResult("[Union + Resource] BlankPeer.color",
+            () -> { blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(resource)); },
+            "color({.selector=3, .value3={.id={.tag=102, .i32=10}, .type={.tag=102, .i32=2000}, .moduleName={.chars=\"module_name\", .length=11}, .bundleName={.chars=\"bundle_name\", .length=11}, .params={.tag=ARK_TAG_UNDEFINED, .value={}}}})");
 
         // tuple
         var peer = ArkTestPeer.create(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
         var options = new BlurOptions();
         options.grayscale = new Tuple_double_double(1.0, 2.0);
-        peer.backdropBlurAttribute(42, options);
+        TestUtils.checkResult("[Tuple] TestPeer.backdropBlur",
+            () -> { peer.backdropBlurAttribute(42, options); },
+            "backdropBlur({.tag=102, .i32=42}, {.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=2}}}})");
         var tuple1 = new Tuple_double_String_Ark_EnumDTS(5.5, "test", Ark_EnumDTS.ELEM_1);
-        peer.testTupleNumberStringEnumAttribute(tuple1); // +enum
-        System.out.println("Tuple tests done");
+        TestUtils.checkResult("[Tuple + Enum] TestPeer.testTupleNumberStringEnum",
+            () -> { peer.testTupleNumberStringEnumAttribute(tuple1); },
+            "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.50}, .value1={.chars=\"test\", .length=4}, .value2=1})");
 
         // optional
         var listPeer = ArkListPeer.create(ArkUINodeType.Root /* ArkUINodeType.Test */, null, 0);
-        listPeer.someOptionalAttribute(new Opt_Boolean(false));
-        System.out.println("Optional tests done");
+        TestUtils.checkResult("[Optional] ListPeer.someOptional",
+            () -> { listPeer.someOptionalAttribute(new Opt_Boolean(false)); },
+            "someOptional({.tag=ARK_TAG_OBJECT, .value=false})");
 
         // enum
-        buttonPeer.typeAttribute(Ark_ButtonType.Capsule);
-        System.out.println("Enum tests done");
+        TestUtils.checkResult("[Enum] ButtonPeer.type", () -> { buttonPeer.typeAttribute(Ark_ButtonType.Capsule); }, "type(0)");
         var sheetOptions = new SheetOptions();
         sheetOptions.mode = Ark_SheetMode.EMBEDDED;
-        buttonPeer.bindSheetAttribute(false, sheetOptions); // +interface
+        TestUtils.checkResult("[Enum + Interface] ButtonPeer.bindSheet",
+            () -> { buttonPeer.bindSheetAttribute(false, sheetOptions); },
+            "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=1}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})");
 
         // array
         BooleanInterfaceDTS[] booleanInterface = { new BooleanInterfaceDTS(), new BooleanInterfaceDTS() };
         booleanInterface[0].valBool = true;
-        peer.testBooleanInterfaceArrayAttribute(booleanInterface); // no interface
-        peer.testBooleanInterfaceArrayRefAttribute(booleanInterface); // no interface
+        TestUtils.checkResult("[Array] TestPeer.testBooleanInterfaceArray",
+            () -> { peer.testBooleanInterfaceArrayAttribute(booleanInterface); },
+            "testBooleanInterfaceArray({{{.valBool=true}, {.valBool=false}}, .length=2})");
+        TestUtils.checkResult("[Array] TestPeer.testBooleanInterfaceArrayRef",
+            () -> { peer.testBooleanInterfaceArrayRefAttribute(booleanInterface); },
+            "testBooleanInterfaceArrayRef({{{.valBool=true}, {.valBool=false}}, .length=2})");
         var dragPreviewOptions = new DragPreviewOptions();
         Ark_DragPreviewMode[] modes = { Ark_DragPreviewMode.DISABLE_SCALE, Ark_DragPreviewMode.ENABLE_DEFAULT_RADIUS };
         dragPreviewOptions.mode = new Union_Ark_DragPreviewMode_Array_Ark_DragPreviewMode(modes);
         dragPreviewOptions.numberBadge = new Union_boolean_double(false);
         var dragInteractionOptions = new DragInteractionOptions();
         dragInteractionOptions.defaultAnimationBeforeLifting = new Opt_Boolean(true);
-        buttonPeer.dragPreviewOptionsAttribute(dragPreviewOptions, dragInteractionOptions); // +interface +union
-        System.out.println("Array tests done");
+        TestUtils.checkResult("[Array + Interface + Union] ButtonPeer.dragPreviewOptions",
+            () -> { buttonPeer.dragPreviewOptionsAttribute(dragPreviewOptions, dragInteractionOptions); },
+            "dragPreviewOptions({.mode={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={{2, 4}, .length=2}}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=false}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_OBJECT, .value=true}}})");
 
         // map
         var dataInfo = new NativeEmbedDataInfo();
         dataInfo.info = new NativeEmbedInfo();
-        dataInfo.info.params = Map.of("k1", "v1", "k2", "v2");
+        dataInfo.info.params = new TreeMap<String, String>(Map.of("k1", "v1", "k2", "v2"));
         var webPeer = ArkWebPeer.create(ArkUINodeType.Root /* ArkUINodeType.Web */, null, 0);
-        webPeer.testMethodAttribute(dataInfo);
-        var doubleStringMap = Map.of(1.0, "v1", 2.0, "v2");
+        TestUtils.checkResult("[Map] WebPeer.testMethod",
+            () -> { webPeer.testMethodAttribute(dataInfo); },
+            "testMethod({.info={.tag=ARK_TAG_OBJECT, .value={.params={.tag=ARK_TAG_OBJECT, .value={{.chars=\"k1\", .length=2}: {.chars=\"v1\", .length=2}, {.chars=\"k2\", .length=2}: {.chars=\"v2\", .length=2}}}}}})");
+        var doubleStringMap = new TreeMap<Double, String>(Map.of(1.0, "v1", 2.0, "v2"));
         var unionWithMap = new Union_double_Map_Double_String(doubleStringMap);
-        peer.testUnionWithMapAttribute(unionWithMap); // +union
-        peer.testMapAttribute(doubleStringMap); // +map in peer method
-        System.out.println("Map tests done");
+        TestUtils.checkResult("[Map + Union] TestPeer.testUnionWithMap",
+            () -> { peer.testUnionWithMapAttribute(unionWithMap); },
+            "testUnionWithMap({.selector=1, .value1={{.tag=102, .i32=1}: {.chars=\"v1\", .length=2}, {.tag=102, .i32=2}: {.chars=\"v2\", .length=2}}})");
+        TestUtils.checkResult("[Map] TestPeer.testMap",
+            () -> { peer.testMapAttribute(doubleStringMap); },
+            "testMap({{.tag=102, .i32=1}: {.chars=\"v1\", .length=2}, {.tag=102, .i32=2}: {.chars=\"v2\", .length=2}})");
 
         // materialized classes
+        TestUtils.checkResult("[Materialized] ctor",
+            () -> { new ClassWithConstructorAndAllOptionalParamsDTS(new Opt_Number(10), null); },
+            "new ClassWithConstructorAndAllOptionalParamsDTS({.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=10}}, {.tag=ARK_TAG_UNDEFINED, .value={}})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]");
+        TestUtils.checkResult("[Materialized] of",
+            () -> { ClassWithConstructorAndAllOptionalParamsDTS.of(null, "test"); },
+            "of({.tag=ARK_TAG_UNDEFINED, .value={}}, {.tag=ARK_TAG_OBJECT, .value={.chars=\"test\", .length=4}})[return (void*) 300]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]");
         var classCtor = new ClassWithConstructorAndAllOptionalParamsDTS(new Opt_Number(10), null);
         var classOf = ClassWithConstructorAndAllOptionalParamsDTS.of(null, "test");
-        classOf.method(new Opt_Boolean(false), null);
-        peer.testClassWithConstructorAndAllOptionalParamsAttribute(classCtor);
-        peer.testClassWithConstructorAndAllOptionalParamsAttribute(classOf);
-        System.out.println("Materialized classes tests done");
+        TestUtils.checkResult("[Materialized] method",
+            () -> { classOf.method(new Opt_Boolean(false), null); },
+            "method({.tag=ARK_TAG_OBJECT, .value=false}, {.tag=ARK_TAG_UNDEFINED, .value={}})");
+        TestUtils.checkResult("[Materialized] TestPeer.testClassWithConstructorAndAllOptionalParams(ctor)",
+            () -> { peer.testClassWithConstructorAndAllOptionalParamsAttribute(classCtor); },
+            "testClassWithConstructorAndAllOptionalParams(\"Materialized 0x64\")");
+        TestUtils.checkResult("[Materialized] TestPeer.testClassWithConstructorAndAllOptionalParams(of)",
+            () -> { peer.testClassWithConstructorAndAllOptionalParamsAttribute(classOf); },
+            "testClassWithConstructorAndAllOptionalParams(\"Materialized 0x12c\")");
 
         // custom object stub
-        var stateStyles = new StateStyles();
-        stateStyles.normal = new Ark_CustomObject();
-        buttonPeer.stateStylesAttribute(stateStyles);        
-        System.out.println("Custom object tests done");
+        var datePickerOptions = new DatePickerOptionsTest();
+        datePickerOptions.start = new Ark_CustomObject();
+        datePickerOptions.end = new Ark_CustomObject();
+        TestUtils.checkResult("[CustomObject] TestPeer.testDateCustomObject",
+            () -> { peer.testDateCustomObjectAttribute(datePickerOptions); },
+            "testDateCustomObject({.start={.tag=ARK_TAG_OBJECT, .value={.kind=\"Date\", .id=0}}, .end={.tag=ARK_TAG_OBJECT, .value={.kind=\"Date\", .id=0}}})");
+
+        System.out.println();
     }
 
     static void checkTree() {
+        System.out.println("Java TreeNode tests");
+
         var root = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
         var child1 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
         child1.incrementalUpdateDone(root);
@@ -181,7 +222,7 @@ public class Main {
         child2.dispose();
         System.out.println(root.toHierarchy());
 
-        System.out.println("TreeNode tests done");
+        System.out.println();
     }
 }
 

@@ -147,17 +147,12 @@ class PeerFileVisitor {
             [undefined, undefined, '0'])
 
         writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
-            const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
             const _peer = '_peer'
-
             writer.writeStatement(writer.makeAssign(_peer, undefined, writer.makeString(
                 `new ${peerClass}(${signature.argName(0)}, ${signature.argName(2)})`), true))
-            if (parentRole === InheritanceRole.PeerNode) {
-                writer.writeMethodCall(signature.argName(1), 'setPeer', [_peer], true)
-            }
+            writer.writeMethodCall(signature.argName(1), 'setPeer', [_peer], true)
             writer.writeStatement(writer.makeReturn(writer.makeString(_peer)))
         })
-        
     }
 
     protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
