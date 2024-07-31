@@ -78,12 +78,8 @@ endif
 # endif
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
-is_clang = not is_msvc
-
-if is_clang
-assert(meson.get_compiler('cpp').get_id() == 'clang', 'Only Clang compiler is supported. Environment variables need to be defined: CC=clang CXX=clang++')
-clang_prefix = 'export CC=clang CXX=clang++'
-endif
+is_clang = meson.get_compiler('cpp').get_id() == 'clang'
+is_gcc = meson.get_compiler('cpp').get_id() == 'gcc'
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
 archs = { 'x86_64': 'x64', 'aarch64': 'arm64', 'wasm32': 'wasm', 'armv7a': 'arm' }
