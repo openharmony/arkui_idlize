@@ -21,11 +21,12 @@ public class Main {
     public static void main(String[] args) {
         long str = NativeModule._StringMake("Hello");
         System.out.println(NativeModule._StringLength(str));
-        //Main.checkPerf(10*1000*1000);
+        //checkPerf(10*1000*1000);
         //NativeModule._StartGroupedLog(1);
-        Main.checkPerf2(5*1000*1000);
-        Main.checkPerf3(5*1000*1000);
-        Main.checkPeers();
+        checkPerf2(5*1000*1000);
+        checkPerf3(5*1000*1000);
+        checkPeers();
+        checkTree();
         //NativeModule._StopGroupedLog(1);
     }
 
@@ -163,6 +164,24 @@ public class Main {
         stateStyles.normal = new Ark_CustomObject();
         buttonPeer.stateStylesAttribute(stateStyles);        
         System.out.println("Custom object tests done");
+    }
+
+    static void checkTree() {
+        var root = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
+        var child1 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
+        child1.incrementalUpdateDone(root);
+        var child2 = ArkColumnPeer.create(ArkUINodeType.Column, null, 0);
+        child2.incrementalUpdateDone(root);
+        var child3 = ArkSwiperPeer.create(ArkUINodeType.Web, null, 0);
+        child3.incrementalUpdateDone(root);
+        var child4 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
+        child4.incrementalUpdateDone(child2);
+        System.out.println(root.toHierarchy());
+
+        child2.dispose();
+        System.out.println(root.toHierarchy());
+
+        System.out.println("TreeNode tests done");
     }
 }
 

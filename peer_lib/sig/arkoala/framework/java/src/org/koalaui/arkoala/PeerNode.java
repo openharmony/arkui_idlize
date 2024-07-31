@@ -16,11 +16,14 @@ package org.koalaui.arkoala;
 
 import java.util.Map;
 
-public class PeerNode {
+public class PeerNode extends IncrementalNode {
+    private static final int PEER_NODE_TYPE = 11;
     public NativePeerNode peer;
     public PeerNode(ArkUINodeType type, int flags) {
-        // TODO: rework ptr
-        this.peer = new NativePeerNode(42, NativeModule._GetNodeFinalizer());
+        super(PEER_NODE_TYPE);
+        int id = 0; // TODO: use id
+        long ptr = NativeModule._CreateNode(type.value, id, flags);
+        this.peer = new NativePeerNode(ptr, NativeModule._GetNodeFinalizer());
     }
     void applyAttributes(Map<String, Object> attrs) {}
 }

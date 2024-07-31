@@ -14,7 +14,19 @@
  */
 package org.koalaui.arkoala;
 
-public enum  ArkUINodeType {
-    Root,
-    Component
+// TODO: add generation or update according GENERATED_Ark_NodeType
+public class ArkUINodeType {
+    public static final ArkUINodeType List = new ArkUINodeType(10);
+    public static final ArkUINodeType Button = new ArkUINodeType(13);
+    public static final ArkUINodeType Column = new ArkUINodeType(16);
+    public static final ArkUINodeType Web = new ArkUINodeType(22);
+    public static final ArkUINodeType Root = new ArkUINodeType(30);
+    public static final ArkUINodeType ComponentRoot = new ArkUINodeType(31);
+    public static final ArkUINodeType Blank = new ArkUINodeType(43);
+
+    public int value;
+
+    private ArkUINodeType(int value) {
+        this.value = value;
+    }
 }
