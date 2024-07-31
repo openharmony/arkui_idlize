@@ -21,7 +21,9 @@ declare type ComponentContent = import('../api/arkui/ComponentContent').Componen
 
 declare type AnimationRange<T> = [from: T, to: T];
 
-declare interface Callback<T> {}
+declare interface Callback<T, V = void> {
+  (data: T): V;
+}
 
 declare interface BaseEvent {}
 

@@ -16,8 +16,9 @@ import { Language, identName, importTypeName } from "../util"
 import { DeclarationTable, FieldRecord, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
-import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, Type } from "./LanguageWriters"
+import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters"
 import { mapType } from "./TypeNodeNameConvertor"
+import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 
 function castToInt8(value: string, lang: Language): string {
     switch (lang) {
@@ -468,6 +469,7 @@ export class UnionConvertor extends BaseArgConvertor {
             .map(member => table.typeConvertor(param, member))
         this.unionChecker = new UnionRuntimeTypeChecker(this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
+        this.tsTypeName = this.memberConvertors.map(it => it.tsTypeName).join(" | ")
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Do not use for union")
@@ -803,7 +805,7 @@ export class FunctionConvertor extends BaseArgConvertor {
     constructor(
         param: string,
         protected table: DeclarationTable,
-        private type: ts.TypeNode) {
+        protected type: ts.TypeNode) {
         // TODO: pass functions as integers to native side.
         super("Function", [RuntimeType.FUNCTION], false, false, param)
     }
@@ -828,6 +830,114 @@ export class FunctionConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return false
+    }
+}
+
+abstract class CallbackConvertor extends FunctionConvertor {
+
+    constructor(
+        param: string,
+        table: DeclarationTable,
+        type: ts.TypeNode,
+        protected args: ArgConvertor[] = [],
+        protected ret?: ArgConvertor) {
+        super(param, table, type)
+    }
+    convertorArg(param: string, writer: LanguageWriter): string {
+
+        if (writer.language == Language.CPP) return super.convertorArg(param, writer)
+
+        this.wrapCallback(param, param, writer)
+        return `${param}_callbackId`
+    }
+    convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
+
+        if (writer.language == Language.CPP) {
+            super.convertorSerialize(param, value, writer)
+            return
+        }
+
+        this.wrapCallback(param, value, writer)
+        writer.writeMethodCall(`${param}Serializer`, "writeInt32", [`${value}_callbackId`])
+    }
+    wrapCallback(param: string, value: string, writer: LanguageWriter): void {
+
+        const callbackName = `${value}_callback`
+        const argList: string[] = []
+
+        writer.writeStatement(
+            writer.makeAssign(`${callbackName}`, undefined,
+                writer.makeLambda(new NamedMethodSignature(Type.Void, [new Type("Uint8Array"), new Type("int32")], ["args", "length"]),
+                    [
+                        this.args.length > 0
+                            ? writer.makeAssign("callbackDeserializer", new Type("Deserializer"),
+                                writer.makeMethodCall("Deserializer", "get",
+                                    [writer.makeString("createDeserializer"), writer.makeString("args"), writer.makeString("length")]),
+                                true, true)
+                            : [],
+                        // deserialize arguments
+                        ...this.args.map(it => {
+                            const argName = `${it.param}Arg`
+                            const isUndefined = it.runtimeTypes.includes(RuntimeType.UNDEFINED)
+                            argList.push(`${argName}${isUndefined ? "" : "!"}`)
+                            return [
+                                writer.makeAssign(argName, new Type(it.tsTypeName), undefined, true, false),
+                                it.convertorDeserialize("callback", argName, writer)
+                            ]
+
+                        }),
+                        // call lambda with deserialized arguments
+                        writer.makeStatement(
+                            writer.makeFunctionCall(value, argList.map(it => writer.makeString(it)))),
+                        // TBD: return value from the callback
+                        writer.makeReturn(
+                            writer.makeString("0"))
+
+                    ].flat()
+
+                ),
+                true, true
+            )
+        )
+        writer.writeStatement(
+            writer.makeAssign(`${callbackName}Id`, Type.Int32,
+                writer.makeFunctionCall("wrapCallback", [writer.makeString(`${callbackName}`)]),
+                true, true
+            )
+        )
+    }
+}
+
+export class CallbackFunctionConvertor extends CallbackConvertor {
+
+    constructor(
+        param: string,
+        table: DeclarationTable,
+        type: ts.FunctionTypeNode) {
+        super(
+            param,
+            table,
+            type,
+            type.parameters.map(it => table.typeConvertor(identName(it.name)!, it.type!)),
+            table.typeConvertor("", type.type))
+        this.tsTypeName = `(${this.args.map((it, i) => `arg_${i}: ${it.tsTypeName}`).join(", ")}) => ${this.ret!.tsTypeName}`
+    }
+}
+
+export class CallbackTypeReferenceConvertor extends CallbackConvertor {
+
+    // interface Callback<T, V = void> { (data: T): V; }
+    constructor(
+        param: string,
+        table: DeclarationTable,
+        type: ts.TypeReferenceNode) {
+        super(
+            param,
+            table,
+            type,
+            [table.typeConvertor("data", type.typeArguments![0])],
+            type.typeArguments!.length > 1 ? table.typeConvertor("", type.typeArguments![1]) : undefined
+        )
     }
 }
 

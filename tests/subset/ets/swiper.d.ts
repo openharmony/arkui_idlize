@@ -13,6 +13,20 @@
  * limitations under the License.
  */
 
+declare class SwiperController {
+
+  constructor();
+
+  showNext();
+
+  showPrevious();
+
+  changeIndex(index: number, useAnimation?: boolean);
+
+  finishAnimation(callback?: () => void);
+}
+
+
 declare class Indicator<T> {
 
   left(value: Length): T;

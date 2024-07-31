@@ -333,6 +333,8 @@ import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
 
 ${deserializer.getOutput().join("\n")}
+
+export function createDeserializer(args: Uint8Array, length: int32): Deserializer { return new Deserializer(args, length) }
 `
 }
 

@@ -15,11 +15,12 @@
 
 import * as ts from "typescript"
 import { Language, asString, getDeclarationsByNode, getNameWithoutQualifiersRight, heritageDeclarations,
-     identName, isStatic, throwException, typeEntityName, identNameWithNamespace} from "../util"
+     identName, isStatic, throwException, typeEntityName, identNameWithNamespace,
+     isCommonMethodOrSubclass} from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
-    AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, ClassConvertor, CustomTypeConvertor,
+    AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CallbackFunctionConvertor, CallbackTypeReferenceConvertor, ClassConvertor, CustomTypeConvertor,
     EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor,
     MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor,
     ToStringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor
@@ -576,6 +577,9 @@ export class DeclarationTable {
             return new TupleConvertor(param, this, type)
         }
         if (ts.isFunctionTypeNode(type)) {
+            if (isCallback(type, this)) {
+                return new CallbackFunctionConvertor(param, this, type)
+            }
             return new FunctionConvertor(param, this, type)
         }
         if (ts.isParenthesizedTypeNode(type)) {
@@ -633,6 +637,9 @@ export class DeclarationTable {
             case `Map`:
                 return new MapConvertor(param, this, type, type.typeArguments![0], type.typeArguments![1])
             case `Callback`:
+                if (ts.isTypeReferenceNode(type) && isCallback(type, this)) {
+                    return new CallbackTypeReferenceConvertor(param, this, type)
+                }
                 return new FunctionConvertor(param, this, type)
             case `Optional`:
                 if (type.typeArguments && type.typeArguments.length == 1)
@@ -1547,4 +1554,15 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
     convertUnknownKeyword(node: ts.TypeNode): DeclarationTarget {
         return PrimitiveType.CustomObject
     }
+}
+
+function isCallback(type: ts.TypeNode, table: DeclarationTable): boolean {
+        const m = type.parent.parent
+        if (ts.isMethodDeclaration(m)) {
+            const c = m.parent
+            if (ts.isClassDeclaration(c) && !isCommonMethodOrSubclass(table.typeChecker!, c)) {
+                return true
+            }
+        }
+    return false
 }

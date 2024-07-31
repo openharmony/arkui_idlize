@@ -204,6 +204,53 @@ export class MethodCallExpression extends FunctionCallExpression {
     }
 }
 
+abstract class LambdaExpression implements LanguageExpression {
+    constructor(
+        protected signature: MethodSignature,
+        private body?: LanguageStatement[]) { }
+
+    abstract asString(): string
+
+    bodyAsString(): string {
+        const writer = new TSLanguageWriter(new IndentedPrinter(), Language.TS)
+        if (this.body) {
+            for (const stmt of this.body) {
+                stmt.write(writer)
+            }
+        }
+
+        return writer.printer.getOutput()
+            .map(line => line.trim())
+            .filter(line => line !== "")
+            .map(line => line === "{" || line === "}" ? line : `${line};`)
+            .join(" ")
+    }
+}
+
+class TSLambdaExpression extends LambdaExpression {
+    constructor(
+        signature: MethodSignature,
+        body?: LanguageStatement[]) {
+        super(signature, body)
+    }
+    asString(): string {
+        const params = this.signature.args.map((it, i) => `${this.signature.argName(i)}: ${it.name}`)
+        return `(${params.join(", ")}) => { ${this.bodyAsString()} }`
+    }
+}
+
+class JavaLambdaExpression extends LambdaExpression {
+    constructor(
+        signature: MethodSignature,
+        body?: LanguageStatement[]) {
+        super(signature, body)
+    }
+    asString(): string {
+        const params = this.signature.args.map((it, i) => `${it.name} ${this.signature.argName(i)}`)
+        return `(${params.join(", ")}) -> { ${this.bodyAsString()} }`
+    }
+}
+
 export class ExpressionStatement implements LanguageStatement {
     constructor(public expression: LanguageExpression) { }
     write(writer: LanguageWriter): void {
@@ -627,6 +674,7 @@ export abstract class LanguageWriter {
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
     abstract makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean): LanguageStatement;
+    abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression;
     abstract makeReturn(expr?: LanguageExpression): LanguageStatement;
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
     abstract getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
@@ -701,6 +749,9 @@ export abstract class LanguageWriter {
     }
     makeNativeCall(method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(this.nativeReceiver(), method, params, nullable)
+    }
+    makeBlock(statements: LanguageStatement[], inScope: boolean = true) {
+        return new BlockStatement(statements, inScope)
     }
     nativeReceiver(): string { return 'nativeModule()' }
     makeDefinedCheck(value: string): LanguageExpression {
@@ -901,6 +952,9 @@ export class TSLanguageWriter extends LanguageWriter {
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new AssignStatement(variableName, type, expr, isDeclared, isConst)
     }
+    makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
+        return new TSLambdaExpression(signature, body)
+    }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new TSReturnStatement(expr)
     }
@@ -1015,6 +1069,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst)
+    }
+    makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
+        return new TSLambdaExpression(signature, body)
     }
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, op)
@@ -1178,6 +1235,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new JavaAssignStatement(variableName, type, expr, isDeclared, isConst)
+    }
+    makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
+        return new JavaLambdaExpression(signature, body)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)
@@ -1347,6 +1407,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new AssignStatement(variableName, type, expr, isDeclared, isConst)
+    }
+    makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
+        throw new Error(`TBD`)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new TSReturnStatement(expr)
@@ -1545,6 +1608,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new CppAssignStatement(variableName, type, expr, isDeclared, isConst)
+    }
+    makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
+        throw new Error(`TBD`)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)

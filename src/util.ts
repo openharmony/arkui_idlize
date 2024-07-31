@@ -376,6 +376,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isClassDeclaration(node)) {
         return identString(node.name)
     }
+    if (ts.isEnumDeclaration(node)){
+        return identString(node.name)
+    }
     if (ts.isEnumMember(node)) {
         return identString(node.name)
     }
@@ -385,6 +388,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isUnionTypeNode(node)) {
         return `UnionType`
     }
+    if (ts.isFunctionTypeNode(node)) {
+        return `FunctionType`
+    }
     if (ts.isIdentifier(node)) return identString(node)
     if (ts.isImportTypeNode(node)) return `imported ${identString(node.qualifier)}`
     if (ts.isTypeLiteralNode(node)) return `TypeLiteral`
@@ -392,7 +398,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isIndexSignatureDeclaration(node)) return `IndexSignature`
     if (ts.isIndexedAccessTypeNode(node)) return `IndexedAccess`
     if (ts.isTemplateLiteralTypeNode(node)) return `TemplateLiteral`
+    if (ts.isParameter(node)) return `Parameter`
     if (ts.isParenthesizedTypeNode(node)) return identName(node.type)
+    if(node.kind === ts.SyntaxKind.UnknownKeyword) return `UnknownKeyword`
     throw new Error(`Unknown: ${ts.SyntaxKind[node.kind]}`)
 }
 

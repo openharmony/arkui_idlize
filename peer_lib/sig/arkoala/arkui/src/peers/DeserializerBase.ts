@@ -43,6 +43,14 @@ export class DeserializerBase {
         this.view = new DataView(this.buffer)
     }
 
+    static get<T extends DeserializerBase>(
+        factory: (args: Uint8Array, length: int32) => T,
+        args: Uint8Array, length: int32): T {
+
+        // TBD: Use cache
+        return factory(args, length);
+    }
+
     asArray(position?: number, length?: number): Uint8Array {
         return new Uint8Array(this.buffer, position, length)
     }
