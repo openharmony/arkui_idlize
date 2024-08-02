@@ -66,7 +66,11 @@ export interface LinterMessage {
     node: ts.Node
 }
 
-const suppressed = new Set([LinterError.UNION_CONTAINS_ENUM])
+const suppressed = new Set([
+    LinterError.UNION_CONTAINS_ENUM,
+    LinterError.EVENT_HANDLER_WITH_FUNCTIONAL_PARAM_TYPE,
+    LinterError.CALLBACK_WITH_FUNCTIONAL_PARAM_TYPE,
+])
 
 function stringMessage(message: LinterMessage): string {
     return `${message.pos} - [${LinterError[message.error]}] ${message.message}`
