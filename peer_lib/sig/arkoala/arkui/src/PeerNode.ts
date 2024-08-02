@@ -11,7 +11,10 @@ const PeerNodeType = 11
 
 export class PeerNode extends IncrementalNode {
     peer: NativePeerNode
-    constructor(type: number, flags: int32) {
+    // TODO: the second argument is here for signature
+    // compatibility with the existring arkoala/arkui
+    // To be dropped as soon as we generate common into arkoala, I suppose.
+    constructor(type: number, component: Object|undefined, flags: int32) {
         super(PeerNodeType)
         const id = 0 // TODO: use id
         const ptr = nativeModule()._CreateNode(type, id, flags)
