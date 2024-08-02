@@ -54,6 +54,8 @@ export enum LinterError {
     INCORRECT_DATA_CLASS,
     EMPTY_DECLARATION,
     UNION_CONTAINS_ENUM,
+    EVENT_HANDLER_WITH_FUNCTIONAL_PARAM_TYPE,
+    CALLBACK_WITH_FUNCTIONAL_PARAM_TYPE,
 }
 
 export interface LinterMessage {
@@ -230,6 +232,9 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (ts.isImportTypeNode(type)) {
             this.report(type, LinterError.IMPORT_TYPE, `Import type: ${type.getText(this.sourceFile)}`)
         }
+        if (ts.isFunctionTypeNode(type)) {
+            this.checkHandler(type)
+        }
         if (this.isTypeParameterReferenceAndNotCommonMethod(type)) {
             this.report(type, LinterError.UNSUPPORTED_TYPE_PARAMETER, `Unsupported type parameter: ${type.getText(this.sourceFile)}`)
         }
@@ -263,6 +268,55 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 )
             }
         }
+    }
+
+    checkHandler(type: ts.FunctionTypeNode) {
+        const prop = type.parent
+        const method = type.parent.parent
+        let clazz: ts.Node | undefined
+        let memberName: string | undefined
+
+        if (ts.isPropertySignature(prop) || ts.isPropertyDeclaration(prop)) {
+            clazz = prop.parent
+            memberName = identName(prop.name)
+        } else if (ts.isMethodSignature(method) || ts.isMethodDeclaration(method)) {
+            clazz = method.parent
+            memberName = identName(method.name)
+        } else {
+            return
+        }
+
+        if (ts.isClassDeclaration(clazz) || ts.isInterfaceDeclaration(clazz)) {
+            const clazzName = identName(clazz.name)
+            type.parameters.forEach(it => {
+                if (it.type && this.isInvalidHandlerParamType(it.type)) {
+                    const error = ts.isClassDeclaration(clazz!) && isCommonMethodOrSubclass(this.typeChecker, clazz!)
+                        ? LinterError.EVENT_HANDLER_WITH_FUNCTIONAL_PARAM_TYPE
+                        : LinterError.CALLBACK_WITH_FUNCTIONAL_PARAM_TYPE
+                    const paramName = identName(it.name)
+                    this.report(type, error,
+                        `Callback ${clazzName}.${memberName} has functional type for param ${paramName}`)
+                }
+            })
+        }
+    }
+
+    isInvalidHandlerParamType(type: ts.Node): boolean {
+        if (ts.isFunctionTypeNode(type)) {
+            return true
+        }
+        if (ts.isInterfaceDeclaration(type)) {
+            return type.members
+                .filter(ts.isPropertySignature)
+                .some(it => ts.isFunctionTypeNode(it.type!) || identName(it.type) === "Callback")
+        }
+        if (ts.isTypeReferenceNode(type)) {
+            const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
+                .find(it => ts.isClassDeclaration(it) || ts.isInterfaceDeclaration(it))
+
+            return declaration ? this.isInvalidHandlerParamType(declaration) : false
+        }
+        return false
     }
 
     // See https://en.cppreference.com/w/cpp/keyword.
