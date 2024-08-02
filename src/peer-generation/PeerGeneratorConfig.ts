@@ -89,6 +89,10 @@ export class PeerGeneratorConfig {
         "TextMenuItemId",
     ]
 
+    public static ignoreReturnTypes = new Set<string>([
+        "Promise"
+    ])
+
     public static isMaterializedIgnored(name: string) {
         if (this.isStandardNameIgnored(name)) return true
 

@@ -794,6 +794,10 @@ export class PeerProcessor {
                 .map(method => this.makeMaterializedMethod(name, method, isActualDeclaration, typeNodeConvertor))
                 : []
 
+        // TODO: Properly handle methods with return Promise<T> type
+        mMethods = mMethods.filter(it => !PeerGeneratorConfig.ignoreReturnTypes.has(
+            it.method.signature.returnType.name
+        ))
 
         mFields.forEach(f => {
             const field = f.field
