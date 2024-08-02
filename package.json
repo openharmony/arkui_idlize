@@ -79,7 +79,7 @@
     "compile:native-node-host-full": "npm run configure:native-node-host-full && cd native && meson compile --verbose -C build-node-host-full && meson install -C build-node-host-full",
     "sanity": "npm run check:subset:run && npm run run:all && npm run lint:test && npm run make:arkts",
     "panda:sdk:install": "npm run panda:sdk:install --prefix external/incremental/tools/panda",
-    "make:arkts": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --input-dir ./tests/subset/ets --output-dir ./generated/arkts-subset --language arkts",
+    "make:arkts": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --input-dir ./tests/subset/ets --output-dir ./out/arkts-subset/generated --language arkts",
     "compile:arkts": "bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module && bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-subset-index.json",
     "compile:arkts:subset": "npm run make:arkts && npm run compile:arkts",
     "run:arkts-link-interfaces": "bash ./external/incremental/tools/panda/arkts/arklink --output ./build/abc/subset/sig/arkoala/arkui/arkts/src/dts_interfaces.abc -- `find ./build/abc/subset/sig/arkoala/arkui/arkts/src/ -name *Interfaces.abc`",

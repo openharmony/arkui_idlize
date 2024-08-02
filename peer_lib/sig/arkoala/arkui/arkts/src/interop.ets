@@ -15,3 +15,9 @@ export type KNativePointer = KPointer
 
 
 export const nullptr: pointer = 0
+
+//TODO: needs to be implemented correctly
+export type CallbackType = (args: Uint8Array, length: int) => int
+export function wrapCallback(callback: CallbackType, autoDisposable: boolean = true): int {
+    return 0
+}

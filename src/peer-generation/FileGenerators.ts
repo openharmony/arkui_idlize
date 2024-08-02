@@ -234,33 +234,11 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
 
 export function makeTSSerializer(library: PeerLibrary): string {
     let printer = createLanguageWriter(library.declarationTable.language)
-    const builderClassImports = Array.from(library.builderClasses.keys())
-        .filter(it => library.builderClasses.get(it)?.needBeGenerated)
-        .map(it => `import { ${it} } from "@arkoala/arkui/Ark${it}Builder"`)
     writeSerializer(library, printer)
-    //TODO: need to determine imports when generating serializer
-    const extraImports = library.declarationTable.language === Language.ARKTS ?
-        'import { AdaptiveColor, BlurOptions, BlurStyle, BorderStyle, CustomBuilder, DragPreviewMode, ShadowStyle, ShadowType, SheetMode, SheetSize, SheetType, StateStyles, ThemeColorMode, ShadowOptions, LocalizedEdgeColors, LocalizedEdgeWidths, SheetTitleOptions, SheetOptions, BaseEvent, RectResult, BlurStyleOptions, BindOptions, UIGestureEvent, BorderOptions, DragInteractionOptions, DragPreviewOptions, BackgroundBlurStyleOptions, Padding, EdgeWidths, EdgeColors, EdgeStyles, TouchTestInfo, ICurve, BlurStyleActivePolicy, BlurType, ScrollSizeMode } from "@arkoala/arkui/ArkCommonInterfaces"\n' +
-        'import { FontWeight, FontStyle, TextOverflow, TextHeightAdaptivePolicy, Color, ColoringStrategy, Curve } from "@arkoala/arkui/ArkEnumInterfaces"\n' +
-        'import { SelectedMode, BoardStyle, IndicatorStyle } from "@arkoala/arkui/ArkTabContentInterfaces"\n' +
-        'import { LabelStyle } from "@arkoala/arkui/ArkButtonInterfaces"\n' +
-        'import { NativeEmbedInfo, NativeEmbedDataInfo } from "@arkoala/arkui/ArkWebInterfaces"\n' +
-        'import { DividerOptions, TextCascadePickerRangeContent, TextPickerRangeContent, TextPickerOptions } from "@arkoala/arkui/ArkTextPickerInterfaces"\n' +
-        'import { VisibleListContentInfo } from "@arkoala/arkui/ArkListInterfaces"\n' +
-        'import { ArrayRefNumberInterfaceDTS, BooleanInterfaceDTS, OptionInterfaceDTS, TupleInterfaceDTS, UnionOptionalInterfaceDTS, UnionInterfaceDTS, StringInterfaceDTS, NumberInterfaceDTS, ClassDTS, ClassWithConstructorAndFieldsDTS, ClassWithConstructorDTS} from "@arkoala/arkui/ArkTestInterfaces"\n' +
-        'import { BaseGestureEvent, FingerInfo } from "@arkoala/arkui/ArkGestureInterfaces"\n' +
-        'import { Dimension, Length, LengthMetrics, Resource, ResourceColor, ResourceStr, LocalizedPadding, Font } from "../ArkUnitsInterfaces"\n' +
-        'import { ImageData, RenderingContextSettings } from "../ArkCanvasInterfaces"\n' +
-        'import { ScrollAnimationOptions } from "../ArkScrollInterfaces"\n' +
-        'import { SelectOption } from "../ArkSelectInterfaces"\n'
-        : ''
     return `${cStyleCopyright}
-${extraImports}
 import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
-
-${builderClassImports.join("\n")}
 
 ${printer.getOutput().join("\n")}
 

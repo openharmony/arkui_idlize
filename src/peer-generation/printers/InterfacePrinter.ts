@@ -366,7 +366,10 @@ export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
 
     private declarationName(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {
         let name = ts.idText(node.name as ts.Identifier)
-        let typeParams = node.typeParameters?.map(it => it.name.text).join(', ')
+        let typeParams = node.typeParameters?.map(it => {
+            const defaultValue = it.default !== undefined ? this.mapType(it.default) : undefined
+            return `${it.name.text}${defaultValue != undefined ? `=${defaultValue}` : ``}`
+        }).join(', ')
         let typeParamsClause = typeParams ? `<${typeParams}>` : ``
         return `${name}${typeParamsClause}`
     }

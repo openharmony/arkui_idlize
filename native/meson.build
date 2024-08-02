@@ -26,12 +26,8 @@ is_jni = java_home != 'undefined'
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
-
-if source_set == 'ts-peers' or source_set == 'ts-subset' or source_set == 'java-subset'
-gen_dir = '../out/' + source_set + '/generated'
-else
-# todo move all of output to `../out` dir
-gen_dir = '../generated' / source_set
+if ['ts-peers', 'ts-subset', 'java-subset', 'arkts-subset'].contains(source_set)
+    gen_dir = '../out/' / source_set / 'generated'
 endif
 arkoala_dir = gen_dir + '/sig/arkoala/framework/native/src/generated'
 external_framework_dir = '../external/arkoala/framework/native/src'

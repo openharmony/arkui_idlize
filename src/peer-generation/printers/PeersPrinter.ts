@@ -100,8 +100,10 @@ class PeerFileVisitor {
         imports.addFeature("unsafeCast", "./shared/generated-utils")
         imports.addFeature("registerCallback", "./peers/SerializerBase")
         imports.addFeature("wrapCallback", "@koalaui/interop")
-        imports.addFeature("Deserializer", "./peers/Deserializer")
-        imports.addFeature("createDeserializer", "./peers/Deserializer")
+        if (this.file.declarationTable.language !== Language.ARKTS) {
+            imports.addFeature("Deserializer", "./peers/Deserializer")
+            imports.addFeature("createDeserializer", "./peers/Deserializer")
+        }
         Array.from(this.library.builderClasses.keys())
             .filter(it => this.library.builderClasses.get(it)?.needBeGenerated)
             .forEach((className) => imports.addFeature(className, `./Ark${className}Builder`))
