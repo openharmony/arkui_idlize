@@ -52,6 +52,7 @@ public class NativeModule {
   static native void _TestCallVoidInt32ArrayPrefixSum(int arg1, int[] arg2, int arg3);
   static native int _TestCallIntRecursiveCallback(int arg1, byte[] arg2, int arg3);
   static native int _TestCallIntMemory(int arg1, int arg2);
+  static native int _CallExternalAPI(long env, int what, byte[] buffer, int length);
 
   static native long _CreateNode(int type, int id, int flags);
   static native long _GetNodeByViewStack();
@@ -98,5 +99,6 @@ public class NativeModule {
   static native float _ConvertLengthMetricsUnit(float value, int originUnit, int targetUnit);
 
   static native long _LoadVirtualMachine(String classPath, String libPath, int kind);
-  static native int _RunVirtualMachine(long env, int what);
+  static native int _RunVirtualMachine(long env, int what, int arg0);
+  static native void _SetCallbackMethod(long method);
 }

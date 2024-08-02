@@ -14,9 +14,9 @@
  */
 
 import nodeResolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import os from 'os';
 import replace from '@rollup/plugin-replace';
-import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import * as path from "path";
 
@@ -34,9 +34,9 @@ function crossPathRelative(from, to) {
 const mode = process.env.mode
 
 console.log(`rollup args: mode = ${mode}`)
-const generatedDir = `generated`
-const arkoalaArkuiSrcDir = `${generatedDir}/${mode}/sig/arkoala/arkui/src`
-const tsconfigFile = path.resolve(`tsconfig-${mode == 'subset' ? mode : 'generated'}.json`)
+const generatedDir = `out`
+const arkoalaArkuiSrcDir = `${generatedDir}/ts-subset/generated/sig/arkoala/arkui/src`
+const tsconfigFile = path.resolve(`${generatedDir}/ts-subset/tsconfig.json`)
 const outDir = path.resolve('lib')
 
 const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
@@ -64,6 +64,7 @@ export default {
     },
     external: [],
     plugins: [
+        commonjs(),
         typescript({
             outputToFilesystem: false,
             module: "ESNext",

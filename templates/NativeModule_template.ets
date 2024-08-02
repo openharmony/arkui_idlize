@@ -37,7 +37,9 @@ export class NativeModule {
   }
 
   static native _LoadVirtualMachine(classPath: String, libPath: String, kind: int): long;
-  static native _RunVirtualMachine(env: long, what: int): int;
+  static native _RunVirtualMachine(env: long, what: int, arg0: int): int;
+  static native _CallExternalAPI(env: long, what: int, buffer: byte[], len: int): int;
+  static native void _SetCallbackMethod(method: long);
 
 %GENERATED_METHODS%
 
@@ -57,6 +59,7 @@ export class NativeModule {
   static native _EndPerf(traceName: String): void;
   static native _DumpPerf(options: int): long;
   static native _GetNodeByViewStack(): long;
+
   static native _TestPerfNumber(arg1: int): int;
   static native _TestPerfNumberWithArray(arg1: byte[], arg2: int): void;
   static native _Test_TextPicker_OnAccept(valueArray: byte[], valueSerializerLength: int): void;
@@ -117,7 +120,6 @@ export class NativeModule {
 
   static native _SetVsyncCallback(long: long, callbackId: int): int
   static native _UnblockVsyncWait(long: long): int
-
 
   // _CheckArkoalaEvents -> checkEvent
   static native _CheckEvents(result: int[], count: int): int
