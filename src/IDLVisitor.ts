@@ -63,7 +63,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     globalFunctions: IDLMethod[] = []
 
     startScope() {
-        if (this.currentScope && this.currentScope.length) this.scopes.push(this.currentScope)
+        this.scopes.push(this.currentScope)
         this.currentScope = []
     }
 
