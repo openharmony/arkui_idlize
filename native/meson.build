@@ -144,14 +144,14 @@ node_cflags = ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' 
 node_include_dirs = [
     node_headers / 'node-api-headers/include',
     node_headers / 'node-addon-api',
-    external_interop_dir / 'node'
+    external_interop_dir / 'napi'
 ]
 node_sources = [
-    external_interop_dir / 'node/convertors-node.cc'
+    external_interop_dir / 'napi/convertors-napi.cc'
 ]
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
-    node_sources += [ external_interop_dir / 'node' / 'win-dynamic-node.cc' ]
+    node_sources += [ external_interop_dir / 'napi' / 'win-dynamic-node.cc' ]
     panda_ldflags = []
 endif
 if os == 'linux'
@@ -166,13 +166,13 @@ endif
 node_module_prefix = ''
 node_module_suffix = 'node'
 
-arkts_cflags = ['-DKOALA_USE_ARK_VM', '-DKOALA_USE_ARK_VM_WITH_ETS', '-DKOALA_ETS_NAPI']
+arkts_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI']
 arkts_include_dirs = [
-    external_interop_dir / 'arkts',
+    external_interop_dir / 'ets',
     arkoala_dir / 'arkts'
 ]
 arkts_sources = [
-    external_interop_dir / 'arkts/convertors-ets.cc',
+    external_interop_dir / 'ets/convertors-ets.cc',
     external_interop_dir / 'types/signatures.cc',
 ]
 
