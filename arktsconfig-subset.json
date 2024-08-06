@@ -5,12 +5,12 @@
         "paths": {
             "@arkoala/arkui": ["./out/arkts-subset/generated/sig/arkoala/arkui/arkts/src", "./"],
             "@arkoala/arkui/*": ["./out/arkts-subset/generated/sig/arkoala/arkui/arkts/src/*", "./*"],
-            "@koalaui/arkoala": ["./out/arkts-subset/generated/koalaui/arkoala"],
+            "@koalaui/arkoala": ["./out/arkts-subset/generated/sig/arkoala/arkui/arkts/src"],
             "@koalaui/common": ["./out/arkts-subset/generated/sig/arkoala/arkui/arkts/src/common"],
             "@koalaui/interop": ["./out/arkts-subset/generated/sig/arkoala/arkui/arkts/src/interop"],
-            "@koalaui/runtime": ["./out/arkts-subset/generated/koalaui/arkoala"]
+            "@koalaui/runtime": ["./out/arkts-subset/generated/koalaui/arkoala", "./"]
         }
     },
-    "include": ["./out/arkts-subset/generated/**/*.ets"],
-    "exclude": ["./out/arkts-subset/generated/sig/arkoala/arkui/arkts/src/shared/dts-exports.ets"]
+    "include": ["out/arkts-subset/generated/**/*.ets"],
+    "exclude": ["out/arkts-subset/generated/sig/arkoala/arkui/arkts/src/shared/dts-exports.ets"]
 }
