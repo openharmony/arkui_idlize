@@ -42,6 +42,10 @@ export class Type {
     static Pointer = new Type('KPointer')
     static This = new Type('this')
     static Void = new Type('void')
+
+    toString(): string {
+        return `${this.name}${this.nullable ? "?" : ""}`
+    }
 }
 
 export enum FieldModifier {
@@ -531,6 +535,10 @@ export class MethodSignature {
     }
     argDefault(index: number): string|undefined {
         return this.defaults?.[index]
+    }
+
+    toString(): string {
+        return `${this.args.map(it => it.name)} => ${this.returnType}`
     }
 }
 

@@ -490,9 +490,6 @@ export class DeclarationTable {
                 toGenerateOrderer.addDep(declaration[0])
         }
         this._orderedDependenciesToGenerate = toGenerateOrderer.getToposorted()
-
-        console.log(this._orderedDependencies.includes(ResourceDeclaration))
-        console.log(this._orderedDependenciesToGenerate.includes(ResourceDeclaration))
     }
 
     serializerName(name: string): string {
@@ -820,8 +817,6 @@ export class DeclarationTable {
         seenNames.clear()
         let noDeclaration = [PrimitiveType.Int32, PrimitiveType.Tag, PrimitiveType.Number, PrimitiveType.Boolean, PrimitiveType.String]
         for (let target of this.orderedDependencies) {
-            if (this.computeTargetName(target, false) === 'Union_Ark_String_Ark_String_Ark_String_Ark_String_Ark_String')
-                console.log("AAA")
             let nameAssigned = this.computeTargetName(target, false)
             if (nameAssigned === PrimitiveType.Tag.getText(this)) {
                 continue

@@ -14,6 +14,9 @@ import { indentedBy, stringOrNone } from "./util"
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
+import * as fs from "fs"
+
 export class IndentedPrinter {
     constructor (private output: string[] = []) {}
     private indent = 0
@@ -42,6 +45,10 @@ export class IndentedPrinter {
 
     getOutput(): string[] {
         return this.output
+    }
+
+    printTo(file: string): void {
+        fs.writeFileSync(file, this.getOutput().join("\n"))
     }
 }
 

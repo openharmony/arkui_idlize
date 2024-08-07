@@ -66,6 +66,7 @@ import { ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH } from "./peer-generation/pr
 import { TargetFile } from "./peer-generation/printers/TargetFile"
 import { printBridgeCcCustom, printBridgeCcGenerated } from "./peer-generation/printers/BridgeCcPrinter"
 import { createPrinterContext } from "./peer-generation/printers/PrinterContext/PrinterContextImpl"
+import { generateTracker } from "./peer-generation/Tracker"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -322,17 +323,19 @@ if (options.dts2peer) {
                 const peerProcessor = new PeerProcessor(peerLibrary)
                 peerProcessor.process()
                 declarationTable.analyze(peerLibrary)
-
+                
                 if (options.generatorTarget == "arkoala" ||
                     options.generatorTarget == "all") {
-
                     generateArkoala(outDir, peerLibrary, lang)
                 }
 
                 if (options.generatorTarget == "libace" ||
                     options.generatorTarget == "all") {
-
                     generateLibace(outDir, peerLibrary)
+                }
+
+                if (options.generatorTarget == "tracker") {
+                    generateTracker(outDir, peerLibrary)
                 }
             }
         }
@@ -451,7 +454,6 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         for (const [targetFile, data] of interfaces) {
             const outComponentFile = arkoala.interface(targetFile)
             console.log("producing", outComponentFile)
-            if (options.verbose) console.log(data)
             writeFile(outComponentFile, data)
             arkuiComponentsFiles.push(outComponentFile)
         }

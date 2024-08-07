@@ -56,6 +56,7 @@
     "run2peer:target": "node --stack_trace_limit=200 . --api-version 99 --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir ./out/ts-peers/generated",
     "run2peer:arkoala": "npm run run2peer:target -- --generator-target arkoala --arkoala-destination out/ts-peers/generated/sig",
     "run2peer:libace": "npm run run2peer:target -- --generator-target libace --libace-destination out/ts-peers/generated/libace",
+    "tracker": "npm run compile && node --stack_trace_limit=200 . --api-version 99 --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir ./out/tracker --generator-target tracker",
     "run2peer:all": "npm run compile && npm run run2peer:libace && npm run run2peer:arkoala",
     "run2peer": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/ --generate-interface Blank --output-dir ./out/ts-peers/generated --need-interfaces",
     "lint": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/ --input-file common.d.ts --output-dir linter --linter-whitelist whitelist.json",
