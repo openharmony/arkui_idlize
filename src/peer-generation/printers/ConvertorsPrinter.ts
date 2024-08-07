@@ -2,6 +2,8 @@ import { DeclarationTable } from "../DeclarationTable";
 import { LanguageWriter } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 
+export const SELECTOR_ID_PREFIX = "SELECTOR_ID_"
+
 class ConvertorsPrinter {
     constructor(
         private readonly library: PeerLibrary,
@@ -33,9 +35,15 @@ class ConvertorsPrinter {
             this.writer.print(`switch (src.selector) {`)
             this.writer.pushIndent()
             selectors.forEach(selector => {
-                this.writer.print(`case ${ selector.id - 1 }: AssignTo(dst, src.${ selector.name }); break;`)
+                this.writer.print(`case ${SELECTOR_ID_PREFIX}${ selector.id - 1 }: AssignTo(dst, src.${ selector.name }); break;`)
             })
-            this.writer.print(`default: LOGE("Unexpected src->selector: %{public}d\\n", src.selector); abort(); `)
+            this.writer.print(`default:`)
+            this.writer.print(`{`)
+            this.writer.pushIndent()
+            this.writer.print(`LOGE("Unexpected src->selector: %{public}d\\n", src.selector);`)
+            this.writer.print(`return;`)
+            this.writer.popIndent()
+            this.writer.print(`}`)
             this.writer.popIndent()
             this.writer.print("}")
             this.writer.popIndent()

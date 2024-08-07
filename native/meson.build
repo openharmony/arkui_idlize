@@ -359,6 +359,11 @@ executable('test_arkoala_compat',
     cpp_args: cflags,
     include_directories: include_dirs
 )
+executable('test_converter',
+    arkoala_dir / 'converter_test.cc',
+    cpp_args: cflags,
+    include_directories: include_dirs + [libace_dir + '/utility/generated']
+)
 endif
 
 if use_dummy_panda and is_jni

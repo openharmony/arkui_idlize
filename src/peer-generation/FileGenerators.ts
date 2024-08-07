@@ -21,7 +21,7 @@ import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, Method
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./printers/EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
-import { writeConvertors } from "./printers/ConvertorsPrinter"
+import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
 import { PeerLibrary } from "./PeerLibrary"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
 
@@ -269,6 +269,12 @@ export function makeConverterHeader(path: string, namespace: string, library: Pe
     converter.writeGlobalInclude('cstdlib')
     converter.writeInclude('arkoala_api_generated.h')
     converter.writeInclude('base/log/log_wrapper.h')
+    converter.print("")
+
+    const MAX_SELECTORS_IDS = 12
+    for(let i = 0; i < MAX_SELECTORS_IDS; i++) {
+        converter.print(`#define ${SELECTOR_ID_PREFIX}${i} ${i}`)
+    }
     converter.print("")
 
     converter.pushNamespace(namespace)
