@@ -36,8 +36,6 @@ import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { setEngine } from "node:crypto"
 
-const NAME_SEPARATOR = `_`
-
 export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
     ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
     ts.factory.createPropertySignature(undefined, "type", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
@@ -54,7 +52,7 @@ function cleanPrefix(name: string, prefix: string): string {
 export class PrimitiveType {
     constructor(private name: string, public isPointer = false) { }
     getText(table?: DeclarationTable): string { return this.name }
-    static ArkPrefix = "Ark" + NAME_SEPARATOR
+    static ArkPrefix = "Ark_"
     static String = new PrimitiveType(`${PrimitiveType.ArkPrefix}String`, true)
     static Number = new PrimitiveType(`${PrimitiveType.ArkPrefix}Number`, true)
     static Int32 = new PrimitiveType(`${PrimitiveType.ArkPrefix}Int32`)
@@ -77,7 +75,7 @@ export class PrimitiveType {
     }
     static UndefinedTag = "ARK_TAG_UNDEFINED"
     static UndefinedRuntime = "ARK_RUNTIME_UNDEFINED"
-    static OptionalPrefix = "Opt" + NAME_SEPARATOR
+    static OptionalPrefix = "Opt_"
 }
 
 export class PointerType extends PrimitiveType {
@@ -199,24 +197,6 @@ export class DeclarationTable {
         return this.computeTargetNameImpl(target, optional, idlPrefix)
     }
 
-    computePropertiesName(props: ts.PropertySignature[]): string  {
-        const map = new Map<string, string[]>()
-        for (const prop of props) {
-            const target = this.toTarget(prop.type!)
-            const type = this.computeTargetName(target, prop.questionToken != undefined, "")
-            const field = identName(prop.name)!
-            const values = map.has(type) ? map.get(type)! : []
-            values.push(field)
-            map.set(type, values)
-        }
-        const names:string[] = []
-        for (const key of map.keys()) {
-            const values = map.get(key)!.join(NAME_SEPARATOR)
-            names.push(`${key}${NAME_SEPARATOR}${values}`)
-        }
-        return names.join(NAME_SEPARATOR)
-    }
-
     computeTargetNameImpl(target: DeclarationTarget, optional: boolean, idlPrefix: string): string {
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (target instanceof PrimitiveType) {
@@ -228,7 +208,17 @@ export class DeclarationTable {
                 // For indexed access we just replace the whole type to a custom accessor.
                 return prefix + `CustomMap`
             }
-            return prefix + `Literal${NAME_SEPARATOR}${this.computePropertiesName(target.members.filter(ts.isPropertySignature))}`
+            return prefix + `Literal_${target.members.map(member => {
+                if (ts.isPropertySignature(member)) {
+                    let target = this.toTarget(member.type!)
+                    let field = identName(member.name)
+                    return `${field}_${this.computeTargetName(target, member.questionToken != undefined, "")}`
+                } else {
+                    return undefined
+                }
+            })
+                .filter(it => it != undefined)
+                .join("_")}`
         }
         if (ts.isLiteralTypeNode(target)) {
             const literal = target.literal
@@ -260,7 +250,7 @@ export class DeclarationTable {
             return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
         }
         if (ts.isUnionTypeNode(target)) {
-            return prefix + `Union${NAME_SEPARATOR}${target.types.map(it => this.computeTargetName(this.toTarget(it), false, "")).join(NAME_SEPARATOR)}`
+            return prefix + `Union_${target.types.map(it => this.computeTargetName(this.toTarget(it), false, "")).join("_")}`
         }
         if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
             let name = identName(target.name)
@@ -275,16 +265,16 @@ export class DeclarationTable {
             return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
         }
         if (ts.isTupleTypeNode(target)) {
-            return prefix + `Tuple${NAME_SEPARATOR}${target.elements.map(it => {
+            return prefix + `Tuple_${target.elements.map(it => {
                 if (ts.isNamedTupleMember(it)) {
                     return this.computeTargetName(this.toTarget(it.type), it.questionToken != undefined, "")
                 } else {
                     return this.computeTargetName(this.toTarget(it), false, "")
                 }
-            }).join(NAME_SEPARATOR)}`
+            }).join("_")}`
         }
         if (ts.isArrayTypeNode(target)) {
-            return prefix + `Array${NAME_SEPARATOR}` + this.computeTargetName(this.toTarget(target.elementType), false, "")
+            return prefix + `Array_` + this.computeTargetName(this.toTarget(target.elementType), false, "")
         }
         if (ts.isImportTypeNode(target)) {
             return prefix + this.mapImportTypeName(target)
@@ -305,10 +295,10 @@ export class DeclarationTable {
             if (name == "Optional")
                 return this.computeTargetName(this.toTarget(target.typeArguments[0]), true, idlPrefix)
             if (name == "Array")
-                return prefix + `Array${NAME_SEPARATOR}` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false, "")
+                return prefix + `Array_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false, "")
             if (name == "Map")
-                return prefix + `Map${NAME_SEPARATOR}` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false, "")
-                    + NAME_SEPARATOR + this.computeTargetName(this.toTarget(target.typeArguments[1]), false, "")
+                return prefix + `Map_` + this.computeTargetName(this.toTarget(target.typeArguments[0]), false, "")
+                    + '_' + this.computeTargetName(this.toTarget(target.typeArguments[1]), false, "")
             if (name == "Callback") {
                 return prefix + PrimitiveType.Function.getText()
             }
@@ -343,7 +333,7 @@ export class DeclarationTable {
             }
             if (typeName === "Array") {
                 const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false, "")
-                return `${prefix}Array${NAME_SEPARATOR}${elementTypeName}`
+                return `${prefix}Array_${elementTypeName}`
             } else if (typeName === "Map") {
                 const keyTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false, "")
                 const valueTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![1], false, "")
@@ -363,7 +353,7 @@ export class DeclarationTable {
         }
         if (ts.isUnionTypeNode(type)) {
             if (suggestedName) return suggestedName
-            return prefix + `Union${NAME_SEPARATOR}${type.types.map(it => this.computeTypeNameImpl(undefined, it, optional, "")).join(NAME_SEPARATOR)}`
+            return prefix + `Union_${type.types.map(it => this.computeTypeNameImpl(undefined, it, optional, "")).join("_")}`
         }
         if (ts.isOptionalTypeNode(type)) {
             if (suggestedName) return suggestedName
@@ -372,21 +362,30 @@ export class DeclarationTable {
         }
         if (ts.isTupleTypeNode(type)) {
             if (suggestedName) return suggestedName
-            return prefix + `Tuple${NAME_SEPARATOR}${type.elements.map(it => {
+            return prefix + `Tuple_${type.elements.map(it => {
                 if (ts.isNamedTupleMember(it)) {
                     return this.computeTypeNameImpl(undefined, it.type, optional, "")
                 } else {
                     return this.computeTypeNameImpl(undefined, it, optional, "")
                 }
 
-            }).join(NAME_SEPARATOR)}`
+            }).join("_")}`
         }
         if (ts.isParenthesizedTypeNode(type)) {
             return this.computeTypeNameImpl(suggestedName, type.type!, optional, idlPrefix)
         }
         if (ts.isTypeLiteralNode(type)) {
             if (suggestedName) return suggestedName
-            return prefix + `Literal${NAME_SEPARATOR}${this.computePropertiesName(type.members.filter(ts.isPropertySignature))}`
+            return prefix + `Literal_${type.members.map(member => {
+                if (ts.isPropertySignature(member)) {
+                    let field = identName(member.name)
+                    return `${field}_${this.computeTypeNameImpl(undefined, member.type!, member.questionToken != undefined, "")}`
+                } else {
+                    return undefined
+                }
+            })
+                .filter(it => it != undefined)
+                .join("_")}`
         }
         if (ts.isLiteralTypeNode(type)) {
             const literal = type.literal
@@ -411,7 +410,7 @@ export class DeclarationTable {
         }
         if (ts.isArrayTypeNode(type)) {
             if (suggestedName) return suggestedName
-            return prefix + `Array${NAME_SEPARATOR}` + this.computeTypeNameImpl(undefined, type.elementType, false, "")
+            return prefix + `Array_` + this.computeTypeNameImpl(undefined, type.elementType, false, "")
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
             const name = PrimitiveType.Number.getText()
