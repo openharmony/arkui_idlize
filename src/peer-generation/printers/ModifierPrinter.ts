@@ -195,8 +195,9 @@ export class ModifierVisitor {
 
     printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
         const apiParameters = method.generateAPIParameters().join(", ")
-        const signature = `${method.retType} ${method.implName}(${apiParameters}) {`
+        const signature = `${method.retType} ${method.implName}(${apiParameters})`
         printer.print(signature)
+        printer.print("{")
         printer.pushIndent()
     }
 
@@ -220,7 +221,8 @@ export class ModifierVisitor {
         const component = clazz.componentName
         const modifierStructImpl = `ArkUI${component}ModifierImpl`
 
-        this.modifiers.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${component}Modifier* Get${component}Modifier() {`)
+        this.modifiers.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${component}Modifier* Get${component}Modifier()`)
+        this.modifiers.print("{")
         this.modifiers.pushIndent()
         this.modifiers.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUI${component}Modifier ${modifierStructImpl} {`)
         this.modifiers.pushIndent()
@@ -307,7 +309,8 @@ class AccessorVisitor extends ModifierVisitor {
 
     printMaterializedClassProlog(clazz: MaterializedClass) {
         const accessor = `${clazz.className}Accessor`
-        this.accessors.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}() {`)
+        this.accessors.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor}* Get${accessor}()`)
+        this.accessors.print("{")
         this.accessors.pushIndent()
         this.accessors.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUI${accessor} ${accessor}Impl {`)
         this.accessors.pushIndent()

@@ -87,8 +87,7 @@ const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI() {
 EXTERN_C IDLIZE_API_EXPORT const %CPP_PREFIX%ArkUIAnyAPI* %CPP_PREFIX%GetArkAnyAPI(
     %CPP_PREFIX%Ark_APIVariantKind kind, int version)
 {
-    switch (kind)
-    {
+    switch (kind) {
         case %CPP_PREFIX%FULL:
             if (version == %CPP_PREFIX%ARKUI_FULL_API_VERSION)   {
                 return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(%CPP_PREFIX%GetFullAPI());

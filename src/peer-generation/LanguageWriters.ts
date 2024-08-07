@@ -1587,7 +1587,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
      * @param namespace Namespace to begin
      */
     pushNamespace(namespace: string) {
-        this.print(`namespace ${namespace} {`)
+        this.print(`namespace ${namespace}`)
+        this.print("{")
         this.pushIndent()
     }
 

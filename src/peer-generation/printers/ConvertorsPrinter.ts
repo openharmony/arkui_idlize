@@ -30,7 +30,8 @@ class ConvertorsPrinter {
 
         for (const [typename, selectors] of this.table.allUnionTypes()) {
             this.writer.print('template<typename T>')
-            this.writer.print(`void AssignUnionTo(std::optional<T>& dst, const ${ typename }& src) {`)
+            this.writer.print(`void AssignUnionTo(std::optional<T>& dst, const ${ typename }& src)`)
+            this.writer.print("{")
             this.writer.pushIndent()
             this.writer.print(`switch (src.selector) {`)
             this.writer.pushIndent()
@@ -54,7 +55,7 @@ class ConvertorsPrinter {
     }
 
     writeOptionalConvertors() {
-        this.writer.print("#define ASSIGN_OPT(name)\\")
+        this.writer.print("#define ASSIGN_OPT(name) \\")
         this.writer.pushIndent()
         this.writer.print("template<typename T> \\")
         this.writer.print("void AssignOptionalTo(std::optional<T>& dst, const name& src) { \\")
@@ -94,12 +95,13 @@ class ConvertorsPrinter {
 
         for (const [name, type] of this.table.allLiteralTypes()) {
             this.writer.print('template<typename T>')
-            this.writer.print(`void AssignLiteralTo(std::optional<T>& dst, const ${name}& src) {`)
+            this.writer.print(`void AssignLiteralTo(std::optional<T>& dst, const ${name}& src)`)
+            this.writer.print("{")
             this.writer.pushIndent()
             if (type === "template") {
-                this.writer.print(`AssignTo(dst, src.template_); `)
+                this.writer.print(`AssignTo(dst, src.template_);`)
             } else {
-                this.writer.print(`AssignTo(dst, src.${type}); `)
+                this.writer.print(`AssignTo(dst, src.${type});`)
             }
             this.writer.popIndent()
             this.writer.print(`}`)

@@ -199,7 +199,8 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
 
 export function modifierStructList(lines: LanguageWriter): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
-    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers() {`)
+    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers()`)
+    result.print("{")
     result.pushIndent()
 
     result.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {`)
@@ -216,7 +217,8 @@ export function modifierStructList(lines: LanguageWriter): LanguageWriter {
 
 export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
-    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors() {`)
+    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors()`)
+    result.print("{")
     result.pushIndent()
 
     result.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {`)

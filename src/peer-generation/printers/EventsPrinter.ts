@@ -156,7 +156,8 @@ class CEventsVisitor {
         const args = signature.args.map((type, index) => {
             return `${type.name} ${signature.argName(index)}`
         })
-        this.impl.print(`${signature.returnType.name} ${event.methodName}Impl(${args.join(', ')}) {`)
+        this.impl.print(`${signature.returnType.name} ${event.methodName}Impl(${args.join(', ')})`)
+        this.impl.print("{")
         this.impl.pushIndent()
         if (this.isEmptyImplementation) {
             this.impl.print("// GENERATED EMPTY IMPLEMENTATION")
@@ -177,7 +178,8 @@ class CEventsVisitor {
 
     private printReceiver(componentName: string, callbacks: CallbackInfo[]) {
         const receiver = generateEventReceiverName(componentName)
-        this.impl.print(`const ${receiver}* Get${componentName}EventsReceiver() {`)
+        this.impl.print(`const ${receiver}* Get${componentName}EventsReceiver()`)
+        this.impl.print("{")
         this.impl.pushIndent()
         this.impl.print(`static const ${receiver} ${receiver}Impl {`)
         this.impl.pushIndent()
