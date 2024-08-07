@@ -863,6 +863,9 @@ export class DeclarationTable {
                     structs.popIndent()
                     structs.print("};")
                 } else {
+                    if (structDescriptor.getFields().length === 0) {
+                        structs.print(`void *handle;`)
+                    }
                     structDescriptor.getFields().forEach(it => this.printStructField(structs, it))
                 }
                 this.printStructsCTail(nameAssigned, structDescriptor.isPacked, structs)
