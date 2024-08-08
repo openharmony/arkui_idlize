@@ -63,8 +63,51 @@ class TrackerVisitor {
         this.out.print(`## Enum ${enam.name}`)
     }
 
+    printStats() {
+        let allComponents = [0, 0, 0]
+        let allMaterialized = [0, 0, 0]
+        let allFunctions = [0, 0, 0]
+
+        this.library.files.forEach(file => {
+            file.peers.forEach(component => {
+                allComponents[0]++
+                component.methods.forEach(method => {
+                    allFunctions[0]++
+                    let track = this.track.get(key(component.componentName, method.method.name))
+                    if (track) {
+                        if (track.status == "In Progress") allFunctions[1]++
+                        if (track.status == "Done") allFunctions[2]++
+                    }
+                })
+            })
+        })
+        this.library.materializedClasses.forEach(clazz => {
+            allMaterialized[0]++
+            clazz.methods.forEach(method => {
+                allFunctions[0]++
+                let track = this.track.get(key(clazz.className, method.method.name))
+                    if (track) {
+                        if (track.status == "In Progress") allFunctions[1]++
+                        if (track.status == "Done") allFunctions[2]++
+                    }
+            })
+        })
+
+        this.out.print(`| Status       | Components | Classes | Functions |`)
+        this.out.print(`| -----------  | ---------- | ------- | --------- |`)
+        this.out.print(`| Total        | ${allComponents[0]}      | ${allMaterialized[0]}     | ${allFunctions[0]}     |`)
+        this.out.print(`| In Progress  | ${allComponents[1]}      | ${allMaterialized[1]}     | ${allFunctions[1]}     |`)
+        this.out.print(`| Done         | ${allComponents[2]}      | ${allMaterialized[2]}     | ${allFunctions[2]}     |`)
+    }
+
     print() {
         this.out.print(`# All components`)
+
+        this.out.print("\n")
+
+        this.printStats()
+
+        this.out.print("\n")
 
         this.out.print(`| Name | Kind | Owner | Status |`)
         this.out.print(`| ---- | ---- | ----- | ------ |`)
