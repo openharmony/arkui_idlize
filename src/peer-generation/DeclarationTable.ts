@@ -197,6 +197,21 @@ export class DeclarationTable {
         return this.computeTargetNameImpl(target, optional, idlPrefix)
     }
 
+    computeTargetTypeLiteralName(type: ts.TypeLiteralNode, prefix: string): string {
+        const props = type.members.filter(ts.isPropertySignature)
+        const map = new Map<string, string[]>()
+        for (const prop of props) {
+            const target = this.toTarget(prop.type!)
+            const type = this.computeTargetName(target, prop.questionToken != undefined, "")
+            const field = identName(prop.name)!
+            const values = map.has(type) ? map.get(type)! : []
+            values.push(field)
+            map.set(type, values)
+        }
+        const names = Array.from(map.keys()).map(key => `${key}_${map.get(key)!.join('_')}`)
+        return prefix + `Literal_${names.join('_')}`
+    }
+
     computeTargetNameImpl(target: DeclarationTarget, optional: boolean, idlPrefix: string): string {
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (target instanceof PrimitiveType) {
@@ -208,17 +223,7 @@ export class DeclarationTable {
                 // For indexed access we just replace the whole type to a custom accessor.
                 return prefix + `CustomMap`
             }
-            return prefix + `Literal_${target.members.map(member => {
-                if (ts.isPropertySignature(member)) {
-                    let target = this.toTarget(member.type!)
-                    let field = identName(member.name)
-                    return `${field}_${this.computeTargetName(target, member.questionToken != undefined, "")}`
-                } else {
-                    return undefined
-                }
-            })
-                .filter(it => it != undefined)
-                .join("_")}`
+            return this.computeTargetTypeLiteralName(target, prefix)
         }
         if (ts.isLiteralTypeNode(target)) {
             const literal = target.literal
@@ -376,16 +381,7 @@ export class DeclarationTable {
         }
         if (ts.isTypeLiteralNode(type)) {
             if (suggestedName) return suggestedName
-            return prefix + `Literal_${type.members.map(member => {
-                if (ts.isPropertySignature(member)) {
-                    let field = identName(member.name)
-                    return `${field}_${this.computeTypeNameImpl(undefined, member.type!, member.questionToken != undefined, "")}`
-                } else {
-                    return undefined
-                }
-            })
-                .filter(it => it != undefined)
-                .join("_")}`
+            return this.computeTargetTypeLiteralName(type, prefix)
         }
         if (ts.isLiteralTypeNode(type)) {
             const literal = type.literal
@@ -761,8 +757,8 @@ export class DeclarationTable {
         return seenNames
     }
 
-    allLiteralTypes(): Map<string, string> {
-        const literals = new Map<string, string>()
+    allLiteralTypes(): Map<string, string[]> {
+        const literals = new Map<string, string[]>()
         for (let target of this.orderedDependencies) {
 
             let nameAssigned = this.computeTargetName(target, false)
@@ -774,8 +770,8 @@ export class DeclarationTable {
             }
             if (literals.has(nameAssigned)) continue
             if (nameAssigned.startsWith("Literal_")) {
-                const type = nameAssigned.split("_").at(1)!
-                literals.set(nameAssigned, type)
+                const fields = this.targetStruct(target).getFields()
+                literals.set(nameAssigned, fields.map(it => it.name))
             }
 
         }

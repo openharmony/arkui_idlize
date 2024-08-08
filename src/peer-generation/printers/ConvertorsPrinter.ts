@@ -93,15 +93,13 @@ class ConvertorsPrinter {
         this.writer.print('void AssignLiteralTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        for (const [name, type] of this.table.allLiteralTypes()) {
+        for (const [name, fields] of this.table.allLiteralTypes()) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignLiteralTo(std::optional<T>& dst, const ${name}& src)`)
             this.writer.print("{")
             this.writer.pushIndent()
-            if (type === "template") {
-                this.writer.print(`AssignTo(dst, src.template_);`)
-            } else {
-                this.writer.print(`AssignTo(dst, src.${type});`)
+            if (fields.length > 0) {
+                this.writer.print(`AssignTo(dst, src.${fields[0]});`)
             }
             this.writer.popIndent()
             this.writer.print(`}`)
