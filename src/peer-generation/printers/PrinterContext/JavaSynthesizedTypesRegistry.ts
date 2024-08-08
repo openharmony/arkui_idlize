@@ -176,6 +176,19 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         // TODO: add other primitive types
     ])
 
+    private readonly primitiveToCJMap = new Map([
+        [PrimitiveType.String, 'String'],
+        [PrimitiveType.Number, 'Float64'],
+        [PrimitiveType.Int32, 'Int32'],
+        [PrimitiveType.Tag, 'Tag'],
+        [PrimitiveType.RuntimeType, 'RuntimeType'],
+        [PrimitiveType.Boolean, 'Bool'],
+        [PrimitiveType.Undefined, `${PrimitiveType.ArkPrefix}Undefined`],
+        [PrimitiveType.Length, `${PrimitiveType.ArkPrefix}Length`],
+        [PrimitiveType.CustomObject, 'Ark_CustomObject'],
+        // TODO: add other primitive types
+    ])
+
     private readonly primitiveToReferenceTypeMap = new Map([
         ['byte', 'Byte'],
         ['short', 'Short'],

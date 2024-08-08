@@ -164,6 +164,25 @@ export class CppAssignStatement extends AssignStatement {
     }
 }
 
+export class CJAssignStatement extends AssignStatement {
+    constructor(public variableName: string,
+        public type: Type | undefined,
+        public expression: LanguageExpression,
+        public isDeclared: boolean = true,
+        public isConst: boolean = true) {
+            super(variableName, type, expression, isDeclared, isConst)
+        }
+
+        write(writer: LanguageWriter): void {
+            if (this.isDeclared) {
+                const typeSpec = this.type ? ':' + writer.mapType(this.type) : ''
+                writer.print(`${this.isConst ? "let" : "var"} ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
+            } else {
+                writer.print(`${this.variableName} = ${this.expression.asString()}`)
+            }
+        }
+}
+
 export class CDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
     asString(): string {
@@ -182,6 +201,13 @@ export class JavaCheckDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
     asString(): string {
         return `${this.value} != null`
+    }
+}
+
+export class CJCheckDefinedExpression implements LanguageExpression {
+    constructor(private value: string) { }
+    asString(): string {
+        return `${this.value}.isNotNone()}`
     }
 }
 
@@ -347,6 +373,19 @@ class CLikeLoopStatement implements LanguageStatement {
     }
 }
 
+class CJLoopStatement implements LanguageStatement {
+    constructor(private counter: string, private limit: string, private statement: LanguageStatement | undefined) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`for (let ${this.counter} in 0..${this.limit}) {`)
+        if (this.statement) {
+            writer.pushIndent()
+            this.statement.write(writer)
+            writer.popIndent()
+            writer.print("}")
+        }
+    }
+}
+
 class TSMapForEachStatement implements LanguageStatement {
     constructor(private map: string, private key: string, private value: string, private op: () => void) {}
     write(writer: LanguageWriter): void {
@@ -387,6 +426,17 @@ class CppMapForEachStatement implements LanguageStatement {
         writer.pushIndent()
         writer.print(`auto ${this.key} = ${this.map}.keys[i];`)
         writer.print(`auto ${this.value} = ${this.map}.values[i];`)
+        this.op()
+        writer.popIndent()
+        writer.print(`}`)
+    }
+}
+
+class CJMapForEachStatement implements LanguageStatement {
+    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`for ((key, value) in ${this.map}) {`)
+        writer.pushIndent()
         this.op()
         writer.popIndent()
         writer.print(`}`)
@@ -1373,25 +1423,35 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
         let extendsClause = superClass ? ` <: ${superClass}` : ''
-        let implementsClause = interfaces ? `<: implements ${interfaces.join("&")}` : ''
-        this.printer.print(`public ${name == 'ArkCommonMethodPeer' ? '' : 'open '}class ${name}${extendsClause}${implementsClause} {`)
+        let implementsClause = interfaces ? `<: ${interfaces.join("&")}` : ''
+        this.printer.print(`public open class ${name}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void { }
+    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
+        let extendsClause = superInterfaces ? ` <: ${superInterfaces.join(" & ")}` : ''
+        this.printer.print(`interface ${name}${extendsClause} {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
+    }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         if (nullable) {
-            this.printer.print(`if (let Some(${receiver}) <- ${receiver}) {${receiver}.${method}(${params.join(", ")}) }`)
+            this.printer.print(`if (let Some(${receiver}) <- ${receiver}) { ${receiver}.${method}(${params.join(", ")}) }`)
         } else {
             super.writeMethodCall(receiver, method, params, nullable)
         }
     }
-    writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void { }
+    writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
+        let prefix = this.makeFieldModifiersList(modifiers)
+        this.printer.print(`${prefix} ${name}: ${type.nullable ? '?' : ''}${type.name} ${initExpr ? ` = ${initExpr.asString()}`  : ""}`)
+    }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void { }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
-        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.mapType(it)}`).join(", ")}) {`)
+        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${it.nullable ? '?' : ''}${this.mapType(it)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
             this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")});`)
@@ -1412,28 +1472,28 @@ export class CJLanguageWriter extends LanguageWriter {
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.mapType(it)}`).join(", ")}): ${this.mapType(signature.returnType)}${postfix ?? ""}`)
+        this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${it.nullable ? '?' : ''}${this.mapType(it)}`).join(", ")}): ${this.mapType(signature.returnType)}${postfix ?? ""}`)
     }
-    makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
-        return new AssignStatement(variableName, type, expr, isDeclared, isConst)
+    makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
+        return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         throw new Error(`TBD`)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
-        return new TSReturnStatement(expr)
+        return new ReturnStatement(expr)
     }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
-        return new TSLoopStatement(counter, limit, statement)
+        return new CJLoopStatement(counter, limit, statement)
     }
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
-        return new TSMapForEachStatement(map, key, value, op)
+        return new CJMapForEachStatement(map, key, value, op)
     }
     writePrintLog(message: string): void {
-        this.print(`console.log("${message}")`)
+        this.print(`println("${message}")`)
     }
     makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
         return new TSCastExpression(value, type, unsafe)
@@ -1442,7 +1502,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return `${value}`
     }
     makeUndefined(): LanguageExpression {
-        return this.makeString("undefined")
+        return this.makeString("Option.None")
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
@@ -1492,10 +1552,10 @@ export class CJLanguageWriter extends LanguageWriter {
         return []
     }
     enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
-        return this.makeString(`Object.values(${enumType})[${value.asString()}]`);
+        throw new Error('Not yet implemented')
     }
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
-        return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, new Type('string')).asString()})`);
+        throw new Error('Not yet implemented')
     }
 
     mapType(type: Type): string {
@@ -1507,6 +1567,7 @@ export class CJLanguageWriter extends LanguageWriter {
             case 'number': return 'Float64'
             case 'boolean': return 'Bool'
             case 'Length': return 'String'
+            case 'void': return 'Unit'
         }
         return super.mapType(type)
     }

@@ -265,6 +265,96 @@ class JavaInterfacesVisitor {
     }
 }
 
+class CJInterfacesVisitor {
+    private readonly interfaces: Map<string, LanguageWriter> = new Map()
+
+    constructor(
+        private readonly peerLibrary: PeerLibrary,
+        private readonly context: PrinterContext,
+    ) {}
+
+    private addInterface(name: string, writer: LanguageWriter) {
+        this.interfaces.set(name, writer)
+    }
+
+    private getName(node: ts.NamedDeclaration): string {
+        if (!node.name) {
+            throw new Error(`Empty name for node\n${node}`)
+        }
+        return identName(node.name)!
+    }
+
+    private getSuperClass(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string | undefined {
+        if (!node.heritageClauses) {
+            return
+        }
+
+        for (const clause of node.heritageClauses) {
+            if (clause.token == ts.SyntaxKind.ExtendsKeyword) {
+                return clause.types[0].expression.getText()
+            }
+        }
+    }
+
+    private printPackage(writer: LanguageWriter): void {
+        writer.print(`package ${ARKOALA_PACKAGE};\n`)
+    }
+
+    private printClassOrInterface(node: ts.ClassDeclaration | ts.InterfaceDeclaration, writer: LanguageWriter) {
+        type MemberInfo = {name: string, type: Type, optional: boolean}
+        const membersInfo: MemberInfo[] = node.members.map(property => {
+            if (!ts.isPropertyDeclaration(property) && !ts.isPropertySignature(property)) {
+                return
+            }
+            if (!property.type) {
+                throw new Error(`Unexpected member type: ${property.type}`);
+            }
+
+            const propertyName = this.getName(property)
+            const propertyDeclarationTarget = this.peerLibrary.declarationTable.toTarget(property.type)
+            const optional = !!property.questionToken
+            const propertyType = this.context.synthesizedTypes!.getTargetType(propertyDeclarationTarget, optional)
+            return {name: propertyName, type: propertyType, optional: optional}
+        }).filter((it): it is MemberInfo => !!it)
+
+        this.context.imports?.printImportsForTypes(membersInfo.map(it => it.type), writer)
+
+        const superClass = this.getSuperClass(node) ?? ARK_OBJECTBASE
+        writer.writeClass(this.getName(node), () => {
+            for (const member of membersInfo) {
+                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional)
+            }
+        }, superClass)
+    }
+
+    getInterfaces(): Map<TargetFile, LanguageWriter> {
+        const result =  new Map<TargetFile, LanguageWriter>()
+        for (const [name, writer] of this.interfaces) {
+            result.set(new TargetFile(name, ARKOALA_PACKAGE_PATH), writer)
+        }
+        return result
+    }
+
+    private addInterfaceDeclaration(it: ts.ClassDeclaration | ts.InterfaceDeclaration) {
+        const writer = createLanguageWriter(Language.CJ)
+        this.printPackage(writer);
+        this.printClassOrInterface(it, writer)
+        this.addInterface(this.getName(it), writer)
+    }
+
+    printInterfaces() {
+        for (const file of this.peerLibrary.files.values()) {
+            file.declarations.forEach(it => {
+                if (!ts.isClassDeclaration(it) && !ts.isInterfaceDeclaration(it)) {
+                    return
+                }
+                this.addInterfaceDeclaration(it)
+            })
+        }
+        this.addInterfaceDeclaration(ResourceDeclaration)
+    }
+}
+
 export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
     private readonly typeConvertor = new ArkTSTypeNodeNameConvertor()
     constructor(private readonly writer: LanguageWriter,
@@ -417,6 +507,9 @@ function getVisitor(peerLibrary: PeerLibrary, context: PrinterContext): Interfac
     }
     if (context.language == Language.ARKTS) {
         return new ArkTSInterfacesVisitor(peerLibrary)
+    }
+    if (context.language == Language.CJ) {
+        return new CJInterfacesVisitor(peerLibrary, context)
     }
 }
 

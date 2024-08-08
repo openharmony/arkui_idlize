@@ -392,6 +392,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         new ArkoalaInstall(options.arkoalaDestination, lang, false) :
         new ArkoalaInstall(outDir, lang, true)
     arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
+    arkoala.createDirs(['', ''].map(dir => path.join(arkoala.cjDir, dir)))
 
     const arkuiComponentsFiles: string[] = []
     const context = createPrinterContext(peerLibrary.declarationTable)
@@ -442,7 +443,13 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             arkoala.javaLib(new TargetFile('NativeModule', ARKOALA_PACKAGE_PATH)),
             printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")
         )
-    } else {
+    } else if (lang === Language.CJ) {
+        writeFile(
+            arkoala.cjLib(new TargetFile('NativeModule', '')),
+            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")
+        )
+    }
+    else {
         writeFile(
             arkoala.langLib(new TargetFile('NativeModule')),
             printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")

@@ -34,7 +34,7 @@ class PrinterContextImpl implements PrinterContext {
     }
     
     constructor(table: DeclarationTable) {
-        if (table.language == Language.JAVA) {
+        if (table.language == Language.JAVA || table.language == Language.CJ) {
             this._imports = new JavaImportTable()
             this._synthesizedTypes = new JavaSynthesizedTypesRegistry(table, this._imports)
         }

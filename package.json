@@ -108,6 +108,6 @@
     "rollup:host:full": "npm run check:peers && cd out/ts-peers && rollup -c",
     "configure:cj:native": "cd ./native && meson setup -Dsource_set=cangjie-subset build-cangjie-native-dummy",
     "compile:cj:native": "npm run configure:cj:native && cd native && meson compile --verbose -C build-cangjie-native-dummy",
-    "run:cj": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/cangjie-subset/ --output-dir ./generated/cangjie-subset --language cangjie && LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH && cjpm run"
+    "run:cj": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/cangjie-subset/ --output-dir ./out/cangjie-subset/generated --language cangjie && LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH && cjpm run"
   }
 }

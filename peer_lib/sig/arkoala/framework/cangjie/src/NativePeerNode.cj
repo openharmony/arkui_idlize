@@ -12,18 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package peers
 
-foreign {
-    func _TestPerfNumber(value: Int32): Int32
-}
-
-public open class NativeModule {
-    public static func TestPerfNumber(arg1: Int32): Int32 {
-        return unsafe{_TestPerfNumber(arg1)}
-    }
-    public static func hello(): String {
-        return "hello"
+public open class NativePeerNode <: Finalizable {
+    public NativePeerNode(ptr: Int64, finalizer: Int64) {
+        super(ptr, finalizer)
     }
 }

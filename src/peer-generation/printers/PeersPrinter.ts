@@ -128,12 +128,12 @@ class PeerFileVisitor {
         const signature = new NamedMethodSignature(
             Type.Void,
             [new Type('ArkUINodeType', !isNode), new Type('ComponentBase', true), new Type('int32')],
-            ['type', 'component', 'flags'],
+            ['nodeType', 'component', 'flags'],
             [undefined, undefined, '0'])
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => {
             if (parentRole === InheritanceRole.PeerNode || parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
-                writer.writeSuperCall([`type`, 'component', 'flags'])
+                writer.writeSuperCall([`nodeType`, 'component', 'flags'])
             } else {
                 throwException(`Unexpected parent inheritance role: ${parentRole}`)
             }
@@ -145,13 +145,13 @@ class PeerFileVisitor {
         const signature = new NamedMethodSignature(
             new Type(peerClass),
             [new Type('ArkUINodeType'), new Type('ComponentBase', true), new Type('int32')],
-            ['type', 'component', 'flags'],
+            ['nodeType', 'component', 'flags'],
             [undefined, undefined, '0'])
 
         writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
             const _peer = '_peer'
             writer.writeStatement(writer.makeAssign(_peer, undefined, writer.makeString(
-                `new ${peerClass}(${signature.argName(0)}, ${signature.argName(1)}, ${signature.argName(2)})`), true))
+                `${writer.language == Language.CJ ? ' ' : 'new '} ${peerClass}(${signature.argName(0)}, ${signature.argName(1)}, ${signature.argName(2)})`), true))
             writer.writeMethodCall(signature.argName(1), 'setPeer', [_peer], true)
             writer.writeStatement(writer.makeReturn(writer.makeString(_peer)))
         })
@@ -170,8 +170,7 @@ class PeerFileVisitor {
             printer.print(`applyAttributes(attributes: ${typeParam}): void {}`)
             return
         }
-
-        printer.print(`applyAttributes<T extends ${typeParam}>(attributes: T): void {`)
+        printer.print(`applyAttributes<T extends ${typeParam}>(attributes: T): ${printer.mapType(Type.Void)} {`)
         printer.pushIndent()
         printer.print(`super.applyAttributes(attributes)`)
         printer.popIndent()
@@ -290,6 +289,63 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
     }
 }
 
+class CJPeerFileVisitor extends PeerFileVisitor {
+    constructor(
+        library: PeerLibrary,
+        file: PeerFile,
+        printerContext: PrinterContext,
+        dumpSerialized: boolean,
+    ) {
+        super(library, file, printerContext, dumpSerialized)
+    }
+
+    private printPackage(printer: LanguageWriter): void {
+        if (this.file.declarationTable.language == Language.CJ) {
+            printer.print(`package peers\n`)
+        }
+    }
+
+    protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
+        // TODO: attributes
+        // const name = peer.originalClassName!
+        // const typeParam = componentToAttributesClass(peer.componentName)
+        // if (isRoot(name)) {
+        //     printer.print(`void applyAttributes(${typeParam} attributes) {}`)
+        //     return
+        // }
+
+        // printer.print(`void applyAttributes(${typeParam} attributes) {`)
+        // printer.pushIndent()
+        // printer.print(`super.applyAttributes(attributes)`)
+        // printer.popIndent()
+        // printer.print(`}`)
+    }
+
+    printFile(): void {
+        this.file.peers.forEach(peer => {
+            let printer = createLanguageWriter(this.library.declarationTable.language)
+            const peerName = componentToPeerClass(peer.componentName)
+            this.printers.set(new TargetFile(peerName, ''), printer)
+
+            const allTypesInPeer = peer.methods.flatMap((method) => {
+                return method.declarationTargets.map(target => this.printerContext.synthesizedTypes!.getTargetType(target, false))
+            })
+
+            this.printPackage(printer)
+            this.printerContext.imports?.printImportsForTypes(allTypesInPeer, printer)
+            this.printPeer(peer, printer)
+
+            // TODO: attributes
+            // printer = createLanguageWriter(this.library.declarationTable.language)
+            // const attributesName = componentToAttributesClass(peer.componentName)
+            // this.printers.set(new TargetFile(attributesName, ARKOALA_PACKAGE_PATH), printer)
+
+            // this.printPackage(printer)
+            // this.printAttributes(peer, printer)
+        })
+    }
+}
+
 class PeersVisitor {
     readonly peers: Map<TargetFile, string[]> = new Map()
 
@@ -305,6 +361,7 @@ class PeersVisitor {
                 continue
             const visitor = this.printerContext.language == Language.JAVA ?
                 new JavaPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized) :
+                this.printerContext.language == Language.CJ ? new CJPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized) :
                 new PeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
             visitor.printFile()
             visitor.printers.forEach((printer, targetFile) => {

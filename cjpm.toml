@@ -7,7 +7,7 @@
   link-option = ""
   name = "idlize"
   output-type = "executable"
-  src-dir = "./generated/cangjie-subset/koalaui/arkoala/cangjie/src"
+  src-dir = "./out/cangjie-subset/generated/sig/arkoala/framework/cangjie/src"
   target-dir = "./build/cj"
   version = "1.0.0"
   package-configuration = {}
