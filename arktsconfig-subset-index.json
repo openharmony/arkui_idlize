@@ -11,5 +11,5 @@
             "@koalaui/runtime": ["./out/arkts-subset/generated/sig/incremental/src/runtime"]
         }
     },
-    "include": ["./out/arkts-subset/generated/**/index.ets"]
+    "include": ["./out/arkts-subset/generated/**/index.sts"]
 }

@@ -203,7 +203,7 @@ class SheetOptionsImpl implements SheetOptions {
     _blurStyle: BlurStyle| undefined
     _showClose: boolean | Resource| undefined
     _preferType: SheetType| undefined
-    _shouldDismiss: ((sheetDismiss: SheetDismiss) => Void) | undefined
+    _shouldDismiss: ((sheetDismiss: SheetDismiss) => void) | undefined
     _onWillDismiss: Callback<DismissSheetAction>| undefined
     _onWillSpringBackWhenDismiss: Callback<SpringBackAction>| undefined
     _enableOutsideInteractive: boolean| undefined
@@ -220,10 +220,10 @@ class SheetOptionsImpl implements SheetOptions {
     _onTypeDidChange: Callback<SheetType>| undefined
     _uiContext: UIContext| undefined
     _backgroundColor: ResourceColor | undefined
-    _onAppear: (() => Void) | undefined
-    _onDisappear: (() => Void) | undefined
-    _onWillAppear: (() => Void) | undefined
-    _onWillDisappear: (() => Void) | undefined
+    _onAppear: (() => void) | undefined
+    _onDisappear: (() => void) | undefined
+    _onWillAppear: (() => void) | undefined
+    _onWillDisappear: (() => void) | undefined
 
     constructor(title?: SheetTitleOptions) {
         this._title = title
@@ -292,10 +292,10 @@ class SheetOptionsImpl implements SheetOptions {
         this._preferType = arg
     }
 
-    get shouldDismiss(): ((sheetDismiss: SheetDismiss) => Void) | undefined {
+    get shouldDismiss(): ((sheetDismiss: SheetDismiss) => void) | undefined {
         return this._shouldDismiss
     }
-    set shouldDismiss(arg: ((sheetDismiss: SheetDismiss) => Void) | undefined) {
+    set shouldDismiss(arg: ((sheetDismiss: SheetDismiss) => void) | undefined) {
         this._shouldDismiss = arg
     }
 
@@ -404,31 +404,31 @@ class SheetOptionsImpl implements SheetOptions {
         this._backgroundColor = arg
     }
 
-    get onAppear(): (() => Void) | undefined {
+    get onAppear(): (() => void) | undefined {
         return this._onAppear
     }
-    set onAppear(arg: (() => Void) | undefined) {
+    set onAppear(arg: (() => void) | undefined) {
         this._onAppear = arg
     }
 
-    get onDisappear(): (() => Void) | undefined {
+    get onDisappear(): (() => void) | undefined {
         return this._onDisappear
     }
-    set onDisappear(arg: (() => Void) | undefined) {
+    set onDisappear(arg: (() => void) | undefined) {
         this._onDisappear = arg
     }
 
-    get onWillAppear(): (() => Void) | undefined {
+    get onWillAppear(): (() => void) | undefined {
         return this._onWillAppear
     }
-    set onWillAppear(arg: (() => Void) | undefined) {
+    set onWillAppear(arg: (() => void) | undefined) {
         this._onWillAppear = arg
     }
 
-    get onWillDisappear(): (() => Void) | undefined {
+    get onWillDisappear(): (() => void) | undefined {
         return this._onWillDisappear
     }
-    set onWillDisappear(arg: (() => Void) | undefined) {
+    set onWillDisappear(arg: (() => void) | undefined) {
         this._onWillDisappear = arg
     }
 }

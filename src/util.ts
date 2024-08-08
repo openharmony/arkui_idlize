@@ -21,7 +21,7 @@ import {execSync} from "node:child_process";
 
 export class Language {
     public static TS = new Language("TS", ".ts", true)
-    public static ARKTS = new Language("ArkTS", ".ets", true)
+    public static ARKTS = new Language("ArkTS", ".sts", true)
     public static JAVA = new Language("Java", ".java", false)
     public static CPP = new Language("C++", ".cc", false)
     public static CJ = new Language("CangJie", ".cj", false)

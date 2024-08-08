@@ -183,12 +183,20 @@ export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
         return "Object"
     }
 
+    convertUnion(node: ts.UnionTypeNode): string {
+        const isTypeAliasDecl = ts.isTypeAliasDeclaration(node.parent)
+        return node.types
+            .filter(type => !(isTypeAliasDecl && type.kind == ts.SyntaxKind.VoidKeyword))
+            .map(it => this.convert(it))
+            .join(" | ");
+    }
+
     protected convertTupleElement(node: ts.TypeNode): string {
         return super.convertTupleElement(node).replaceAll("?", " | undefined")
     }
 
     convertVoidKeyword(node: ts.TypeNode): string {
-        return "Void"
+        return "void"
     }
 
     convertImport(node: ts.ImportTypeNode): string {
