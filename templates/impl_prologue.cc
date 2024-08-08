@@ -59,16 +59,20 @@ namespace ApiImpl {
 namespace Bridge {
     Ark_NodeHandle CreateNode(%CPP_PREFIX%Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags);
     void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method);
-    void RegisterCustomNodeEventReceiver(%CPP_PREFIX%CustomEventReceiver eventReceiver) {
+    void RegisterCustomNodeEventReceiver(%CPP_PREFIX%CustomEventReceiver eventReceiver)
+    {
         ApiImpl::RegisterCustomNodeEventReceiver(reinterpret_cast<CustomEventReceiver>(eventReceiver));
     }
-    int CheckEvent(%CPP_PREFIX%Ark_NodeEvent* event) {
+    int CheckEvent(%CPP_PREFIX%Ark_NodeEvent* event)
+    {
         return NodeEvent::CheckEvent(reinterpret_cast<ArkUINodeEvent*>(event));
     }
-    void SendAsyncEvent(%CPP_PREFIX%Ark_NodeEvent* event) {
+    void SendAsyncEvent(%CPP_PREFIX%Ark_NodeEvent* event)
+    {
         NodeEvent::SendArkUIAsyncEvent(reinterpret_cast<ArkUINodeEvent*>(event));
     }
-    void CallContinuation(Ark_Int32 continuationId, Ark_Int32 argCount, %CPP_PREFIX%Ark_EventCallbackArg* args) {
+    void CallContinuation(Ark_Int32 continuationId, Ark_Int32 argCount, %CPP_PREFIX%Ark_EventCallbackArg* args)
+    {
         ApiImpl::CallContinuation(continuationId, argCount, reinterpret_cast<ArkUIEventCallbackArg*>(args));
     }
 }

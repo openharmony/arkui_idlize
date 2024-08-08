@@ -1181,7 +1181,8 @@ abstract class CLikeLanguageWriter extends LanguageWriter {
         this.writeDeclaration(name, signature, modifiers, ";")
     }
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
-        this.writeDeclaration(method.name, method.signature, method.modifiers, " {")
+        this.writeDeclaration(method.name, method.signature, method.modifiers)
+        this.printer.print(`{`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -1587,8 +1588,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
      * @param namespace Namespace to begin
      */
     pushNamespace(namespace: string) {
-        this.print(`namespace ${namespace}`)
-        this.print("{")
+        this.print(`namespace ${namespace} {`)
         this.pushIndent()
     }
 

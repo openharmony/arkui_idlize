@@ -1,4 +1,5 @@
-const %CPP_PREFIX%Ark_UtilsModifier* %CPP_PREFIX%GetUtilsModifier() {
+const %CPP_PREFIX%Ark_UtilsModifier* %CPP_PREFIX%GetUtilsModifier()
+{
     static const %CPP_PREFIX%Ark_UtilsModifier utilsImpl = {
         OHOS::Ace::NG::GetDensity,
         OHOS::Ace::NG::GetFontScale,
@@ -6,7 +7,8 @@ const %CPP_PREFIX%Ark_UtilsModifier* %CPP_PREFIX%GetUtilsModifier() {
     };
     return &utilsImpl;
 }
-const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI() {
+const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI()
+{
     static const %CPP_PREFIX%ArkUIBasicNodeAPI basicNodeAPIImpl = {
         %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, // version
         OHOS::Ace::NG::Bridge::CreateNode,
@@ -25,7 +27,8 @@ const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI() {
     return &basicNodeAPIImpl;
 }
 
-const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI() {
+const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI()
+{
     static const %CPP_PREFIX%ArkUIExtendedNodeAPI extendedNodeAPIImpl = {
         %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, // version
         SetAppendGroupedLog,
@@ -69,7 +72,8 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI() {
     return &extendedNodeAPIImpl;
 }
 
-const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI() {
+const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI()
+{
     static const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {
         %CPP_PREFIX%ARKUI_FULL_API_VERSION, // version
         %CPP_PREFIX%GetArkUINodeModifiers,
