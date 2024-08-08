@@ -344,12 +344,6 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors {
 ${accessors.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors;
 
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation {
-} ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation;
-
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUINavigation {
-} ${PeerGeneratorConfig.cppPrefix}ArkUINavigation;
-
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
     ${PrimitiveType.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI;
@@ -369,8 +363,6 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
     ${PrimitiveType.Int32.getText()} version;
     const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* (*getNodeModifiers)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* (*getAccessors)();
-    const ${PeerGeneratorConfig.cppPrefix}ArkUIAnimation* (*getAnimation)();
-    const ${PeerGeneratorConfig.cppPrefix}ArkUINavigation* (*getNavigation)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* (*getEventsAPI)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedNodeAPI* (*getExtendedAPI)();
