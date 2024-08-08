@@ -78,6 +78,6 @@ namespace Bridge {
 }
 
 namespace GeneratedEvents {
-  const %CPP_PREFIX%ArkUIEventsAPI* %CPP_PREFIX%GetArkUiEventsAPI();
-  void %CPP_PREFIX%SetArkUiEventsAPI(const %CPP_PREFIX%ArkUIEventsAPI* api);
+    const %CPP_PREFIX%ArkUIEventsAPI* %CPP_PREFIX%GetArkUiEventsAPI();
+    void %CPP_PREFIX%SetArkUiEventsAPI(const %CPP_PREFIX%ArkUIEventsAPI* api);
 }
