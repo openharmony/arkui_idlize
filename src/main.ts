@@ -104,6 +104,7 @@ const options = program
     .option('--arkoala-destination <path>', 'Location of arkoala repository')
     .option('--libace-destination <path>', 'Location of libace repository')
     .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
+    .option('--tracker-status <file>', 'Tracker status file)')
     .parse()
     .opts()
 
@@ -323,7 +324,7 @@ if (options.dts2peer) {
                 const peerProcessor = new PeerProcessor(peerLibrary)
                 peerProcessor.process()
                 declarationTable.analyze(peerLibrary)
-                
+
                 if (options.generatorTarget == "arkoala" ||
                     options.generatorTarget == "all") {
                     generateArkoala(outDir, peerLibrary, lang)
@@ -335,7 +336,7 @@ if (options.dts2peer) {
                 }
 
                 if (options.generatorTarget == "tracker") {
-                    generateTracker(outDir, peerLibrary)
+                    generateTracker(outDir, peerLibrary, options.trackerStatus)
                 }
             }
         }

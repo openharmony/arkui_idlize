@@ -21,24 +21,41 @@ import { PeerClass } from "./PeerClass";
 import { MaterializedClass } from "./Materialized";
 import { EnumEntity } from './PeerFile';
 
-export class TrackerVisitor {
+class TrackerVisitor {
     out = new IndentedPrinter()
 
     constructor(
-        protected library: PeerLibrary
+        protected library: PeerLibrary,
+        protected track: Map<string, StatusRecord>
     ) { }
 
+    tracking(component: string, func: string): string {
+        const record = this.track.get(key(component, func))
+        if (record) {
+            return `${record.owner} | ${record.status} |`
+        }
+        return '| |'
+    }
+
     printPeerClass(clazz: PeerClass): void {
-        this.out.print(`|*${clazz.componentName}*| *Component* | |`)
+        let seen = new Set<string>()
+        this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(clazz.componentName, "")}`)
         clazz.methods.forEach(method => {
-            this.out.print(`|\`${method.method.name}\`| Function | |`)
+            if (!seen.has(method.method.name)) {
+                this.out.print(`|\`${method.method.name}\`| Function | ${this.tracking(clazz.componentName, method.method.name)}`)
+                seen.add(method.method.name)
+            }
         })
     }
 
     printMaterializedClass(clazz: MaterializedClass) {
-        this.out.print(`|*${clazz.className}*| *Class* | |`)
+        let seen = new Set<string>()
+        this.out.print(`|*${clazz.className}*| *Class* | ${this.tracking(clazz.className, "")}`)
         clazz.methods.forEach(method => {
-            this.out.print(`|\`${method.method.name}\`| Function | |`)
+            if (!seen.has(method.method.name)) {
+                this.out.print(`|\`${method.method.name}\`| Function | ${this.tracking(clazz.className, method.method.name)}`)
+                seen.add(method.method.name)
+            }
         })
     }
 
@@ -49,8 +66,8 @@ export class TrackerVisitor {
     print() {
         this.out.print(`# All components`)
 
-        this.out.print(`Name | Kind | Owner`)
-        this.out.print(`---- | ---- | -----`)
+        this.out.print(`| Name | Kind | Owner | Status |`)
+        this.out.print(`| ---- | ---- | ----- | ------ |`)
 
         this.library.files.forEach(file => {
             file.peers.forEach(clazz => this.printPeerClass(clazz))
@@ -63,9 +80,38 @@ export class TrackerVisitor {
     }
 }
 
-export function generateTracker(outDir: string, peerLibrary: PeerLibrary): void {
+class StatusRecord {
+    constructor(
+        public component: string,
+        public func: string,
+        public owner: string,
+        public status: string) { }
+}
+
+function key(component: string, func: string): string {
+    return `${component}:${func}`
+}
+
+export function generateTracker(outDir: string, peerLibrary: PeerLibrary, trackerStatus: string): void {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
-    const visitor = new TrackerVisitor(peerLibrary)
+    let track = new Map<string, StatusRecord>()
+    if (fs.existsSync(trackerStatus)) {
+        console.log(`Using status ${trackerStatus}`)
+        const content = fs.readFileSync(trackerStatus, 'utf8')
+        const lines = content.split('\n')
+        lines.forEach(line => {
+            const parts = line.split('|')
+            if (parts.length > 4) {
+                let component = parts[1].trim()
+                let func = parts[2].trim()
+                let owner = parts[3].trim()
+                let status = parts[4].trim()
+                track.set(key(component, func), new StatusRecord(component, func, owner, status))
+            }
+        })
+    }
+
+    const visitor = new TrackerVisitor(peerLibrary, track)
     visitor.print()
     visitor.out.printTo(path.join(outDir, "COMPONENTS.md"))
 }
