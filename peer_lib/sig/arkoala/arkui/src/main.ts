@@ -317,7 +317,7 @@ function checkTabContent() {
 
     // TBD: Check that id field is passed to native
     checkResult("new SubTabBarStyle()",
-        () => peer.tabBar_SubTabBarStyleBottomTabBarStyleAttribute(subTabBarStyle = new SubTabBarStyle("abc")),
+        () => peer.tabBar1Attribute(subTabBarStyle = new SubTabBarStyle("abc")),
         `tabBar({.selector=0, .value0={._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_UNDEFINED, .value={}}, ._id={.tag=ARK_TAG_UNDEFINED, .value={}}}})`)
 
 

@@ -25,7 +25,8 @@ export class PeerMethod {
         public retConvertor: RetConvertor,
         public isCallSignature: boolean,
         public isOverloaded: boolean,
-        public method: Method
+        public method: Method,
+        public index: number,
     ) { }
 
     public hasReceiver(): boolean {
@@ -33,7 +34,7 @@ export class PeerMethod {
     }
 
     get overloadedName(): string {
-        return this.isOverloaded ? mangleMethodName(this.method) : this.method.name
+        return this.isOverloaded ? mangleMethodName(this.method, this.index) : this.method.name
     }
 
     get fullMethodName(): string {

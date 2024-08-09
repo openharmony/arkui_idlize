@@ -68,9 +68,10 @@ export class MaterializedMethod extends PeerMethod {
         argConvertors: ArgConvertor[],
         retConvertor: RetConvertor,
         isCallSignature: boolean,
-        method: Method
+        method: Method,
+        index: number,
     ) {
-        super(originalParentName, declarationTargets, argConvertors, retConvertor, isCallSignature, false, method)
+        super(originalParentName, declarationTargets, argConvertors, retConvertor, isCallSignature, false, method, index)
     }
 
     override get peerMethodName() {
@@ -129,6 +130,7 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
         method.retConvertor,
         method.isCallSignature,
         overrides.method ?? method.method,
+        method.index
     )
     newMethod.isOverloaded = method.isOverloaded
     return newMethod

@@ -689,11 +689,8 @@ export class Method {
     ) {}
 }
 
-export function mangleMethodName(method: Method): string {
-    const argsPostfix = method.signature.args.map(it => {
-        return Array.from(it.name).filter(it => it.match(/[a-zA-Z]/)).join("")
-    }).join("_")
-    return `${method.name}_${argsPostfix}`
+export function mangleMethodName(method: Method, id: number): string {
+    return `${method.name}${id}`
 }
 
 export function copyMethod(method: Method, overrides: {
