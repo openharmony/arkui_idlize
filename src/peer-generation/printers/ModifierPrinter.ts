@@ -243,16 +243,20 @@ export class ModifierVisitor {
         this.getterDeclarations.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${name}Modifier* Get${name}Modifier();`)
     }
 
-    pushNamespace(namespaceName: string) {
+    pushNamespace(namespaceName: string, ident: boolean = true) {
         this.real.print(`namespace ${namespaceName} {`)
         this.dummy.print(`namespace ${namespaceName} {`)
-        this.real.pushIndent()
-        this.dummy.pushIndent()
+        if (ident) {
+            this.real.pushIndent()
+            this.dummy.pushIndent()
+        }
     }
 
-    popNamespace(namespaceName: string) {
-        this.real.popIndent()
-        this.dummy.popIndent()
+    popNamespace(namespaceName: string, ident: boolean = true) {
+        if (ident) {
+            this.real.popIndent()
+            this.dummy.popIndent()
+        }
         this.real.print(`} // ${namespaceName}`)
         this.dummy.print(`} // ${namespaceName}`)
     }
@@ -262,11 +266,11 @@ export class ModifierVisitor {
         // TODO: move to Object.groupBy when move to nodejs 21
         const namespaces: Map<string, PeerMethod[]> = groupBy(clazz.methods, it => it.implNamespaceName)
         Array.from(namespaces.keys()).forEach (namespaceName => {
-            this.pushNamespace(namespaceName)
+            this.pushNamespace(namespaceName, false)
             namespaces.get(namespaceName)?.forEach(
                 method => this.printRealAndDummyModifier(method)
             )
-            this.popNamespace(namespaceName)
+            this.popNamespace(namespaceName, false)
         })
         this.printClassEpilog(clazz)
     }
@@ -297,13 +301,13 @@ class AccessorVisitor extends ModifierVisitor {
         // Materialized class methods share the same namespace
         // so take the first one.
         const namespaceName = clazz.methods[0].implNamespaceName
-        this.pushNamespace(namespaceName);
+        this.pushNamespace(namespaceName, false);
         [clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
             this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(m))
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
             this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
         })
-        this.popNamespace(namespaceName)
+        this.popNamespace(namespaceName, false)
         this.printMaterializedClassEpilog(clazz)
     }
 
@@ -450,7 +454,7 @@ function printModifiersImplFile(filePath: string, slug: string, state: MultiFile
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.generated)
+        writer.pushNamespace(options.namespaces.generated, false)
     }
 
     writer.concat(state.real)
@@ -458,7 +462,7 @@ function printModifiersImplFile(filePath: string, slug: string, state: MultiFile
     writer.concat(state.accessors)
 
     if (options.namespaces) {
-        writer.popNamespace()
+        writer.popNamespace(false)
     }
 
     writer.print("")
@@ -477,24 +481,24 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.base)
+        writer.pushNamespace(options.namespaces.base, false)
     }
     writer.concat(appendModifiersCommonPrologue())
 
     if (options.namespaces) {
-        writer.popNamespace()
+        writer.popNamespace(false)
     }
 
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.generated)
+        writer.pushNamespace(options.namespaces.generated, false)
     }
 
     writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
 
     if (options.namespaces) {
-        writer.popNamespace()
+        writer.popNamespace(false)
     }
 
     writer.print("")
@@ -514,12 +518,12 @@ function printApiImplFile(filePath: string, options: ModifierFileOptions) {
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.base)
+        writer.pushNamespace(options.namespaces.base, false)
     }
     writer.concat(appendViewModelBridge())
 
     if (options.namespaces) {
-        writer.popNamespace()
+        writer.popNamespace(false)
     }
 
     writer.printTo(filePath)
