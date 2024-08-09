@@ -194,9 +194,18 @@ export class ModifierVisitor {
     }
 
     printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
-        const apiParameters = method.generateAPIParameters().join(", ")
-        const signature = `${method.retType} ${method.implName}(${apiParameters})`
-        printer.print(signature)
+        const apiParameters = method.generateAPIParameters()
+        if (apiParameters.length > 1) {
+            const methodTypeName = `${method.retType} ${method.implName}`
+            const ident = ` `.repeat(methodTypeName.length + 1)
+            printer.print(`${methodTypeName}(${apiParameters[0]},`)
+            for (let i = 1; i < apiParameters.length; i++) {
+                printer.print(ident + apiParameters[i] + ((i === apiParameters.length - 1) ? ")" : ","))
+            }
+        } else {
+            const signature = `${method.retType} ${method.implName}(${apiParameters.join(", ")})`
+            printer.print(signature)
+        }
         printer.print("{")
         printer.pushIndent()
     }
