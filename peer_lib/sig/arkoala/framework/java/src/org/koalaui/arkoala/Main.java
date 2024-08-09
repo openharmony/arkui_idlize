@@ -15,6 +15,7 @@
 
 package org.koalaui.arkoala;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -22,7 +23,8 @@ public class Main {
     public static void main(String[] args) {
         perfTests();
         peerTests();
-        checkTree();
+        checkIncrementalTree();
+        checkNodeAPI();
 
         TestUtils.checkTestFailures();
     }
@@ -205,8 +207,8 @@ public class Main {
         System.out.println();
     }
 
-    static void checkTree() {
-        System.out.println("Java TreeNode tests");
+    static void checkIncrementalTree() {
+        System.out.println("Java IncremerntalTree tests");
 
         var root = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
         var child1 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
@@ -223,6 +225,41 @@ public class Main {
         System.out.println(root.toHierarchy());
 
         System.out.println();
+    }
+
+    static void checkNodeAPI() {
+        System.out.println("Java TreeNode tests");
+
+        NativePeerNode.setCreateNodeDelay(ArkUINodeType.Column, Duration.ofNanos(500000));
+        NativePeerNode.setMeasureNodeDelay(ArkUINodeType.Button, Duration.ofNanos(400000));
+        NativePeerNode.setLayoutNodeDelay(ArkUINodeType.List, Duration.ofNanos(600000));
+        NativePeerNode.setDrawNodeDelay(ArkUINodeType.Web, Duration.ofNanos(700000));
+
+        var root = ArkColumnPeer.create(ArkUINodeType.Column, null, 0);
+        var child1 = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
+        var child2 = ArkButtonPeer.create(ArkUINodeType.Blank, null, 0);
+        var child3 = ArkButtonPeer.create(ArkUINodeType.List, null, 0);
+        var child4 = ArkButtonPeer.create(ArkUINodeType.Web, null, 0);
+        var child5 = ArkButtonPeer.create(ArkUINodeType.Web, null, 0);
+
+        TestUtils.checkResult("BasicNodeAPI addChild", () -> root.peer.addChild(child1.peer),
+            String.format("addChild(0x%d, 0x%d)", root.peer.ptr, child1.peer.ptr));
+        TestUtils.checkResult("BasicNodeAPI insertChildAfter", () -> root.peer.insertChildAfter(child4.peer, child1.peer),
+            String.format("insertChildAfter(0x%d, 0x%d, 0x%d)", root.peer.ptr, child4.peer.ptr, child1.peer.ptr));
+        TestUtils.checkResult("BasicNodeAPI insertChildBefore", () -> root.peer.insertChildBefore(child3.peer, child4.peer),
+            String.format("insertChildBefore(0x%d, 0x%d, 0x%d)", root.peer.ptr, child3.peer.ptr, child4.peer.ptr));
+        TestUtils.checkResult("BasicNodeAPI insertChildAt", () -> root.peer.insertChildAt(child2.peer, 1),
+            String.format("insertChildAt(0x%d, 0x%d, %d)", root.peer.ptr, child2.peer.ptr, 1));
+        TestUtils.checkResult("BasicNodeAPI insertChildAfter (empty tree case)", () -> child4.peer.insertChildAfter(child5.peer, null),
+            String.format("insertChildAfter(0x%d, 0x%d, 0x%d)", child4.peer.ptr, child5.peer.ptr, 0));
+        TestUtils.checkResult("BasicNodeAPI removeChild", () -> root.peer.removeChild(child2.peer),
+            String.format("removeChild(0x%d, 0x%d)", root.peer.ptr, child2.peer.ptr));
+        TestUtils.checkResult("BasicNodeAPI dispose", () -> child2.peer.dispose(),
+            String.format("disposeNode(0x%d)", child2.peer.ptr));
+        TestUtils.checkResult("BasicNodeAPI dumpTree", () -> root.peer.dumpTree(),
+            String.format("dumpTreeNode(0x%d)", root.peer.ptr));
+        TestUtils.checkResult("BasicNodeAPI measureLayoutAndDraw", () -> NativeModule._MeasureLayoutAndDraw(root.peer.ptr),
+            String.format("measureLayoutAndDraw(0x%d)", root.peer.ptr));
     }
 }
 

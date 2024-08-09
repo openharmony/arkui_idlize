@@ -30,6 +30,43 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
         %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION));
 }
 
+
+// set delay API
+
+namespace TreeNodeDelays {
+    void SetCreateNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds);
+    void SetMeasureNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds);
+    void SetLayoutNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds);
+    void SetDrawNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds);
+}
+
+void impl_SetCreateNodeDelay(Ark_Int32 type, Ark_Int64 nanoseconds) {
+    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
+    TreeNodeDelays::SetCreateNodeDelay(typeCast, nanoseconds);
+}
+KOALA_INTEROP_V2(SetCreateNodeDelay, Ark_Int32, Ark_Int64)
+
+void impl_SetMeasureNodeDelay(Ark_Int32 type, Ark_Int64 nanoseconds) {
+    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
+    TreeNodeDelays::SetMeasureNodeDelay(typeCast, nanoseconds);
+}
+KOALA_INTEROP_V2(SetMeasureNodeDelay, Ark_Int32, Ark_Int64)
+
+void impl_SetLayoutNodeDelay(Ark_Int32 type, Ark_Int64 nanoseconds) {
+    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
+    TreeNodeDelays::SetLayoutNodeDelay(typeCast, nanoseconds);
+}
+KOALA_INTEROP_V2(SetLayoutNodeDelay, Ark_Int32, Ark_Int64)
+
+void impl_SetDrawNodeDelay(Ark_Int32 type, Ark_Int64 nanoseconds) {
+    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
+    TreeNodeDelays::SetDrawNodeDelay(typeCast, nanoseconds);
+}
+KOALA_INTEROP_V2(SetDrawNodeDelay, Ark_Int32, Ark_Int64)
+
+
+// custom methods
+
 void impl_ShowCrash(const KStringPtr& messagePtr) {
     GetArkUIExtendedNodeAPI()->showCrash(messagePtr.c_str());
 }

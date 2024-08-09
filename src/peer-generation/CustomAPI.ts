@@ -84,9 +84,9 @@ export const CUSTOM_API: CustomAPI[] = [
         method(`createNode`, Type.Pointer, [NODE_TYPE_ENUM, Type.Int32, Type.Int32], ["type", "id", "flags"]),
         method(`getNodeByViewStack`, Type.Pointer, [], []),
         method(`disposeNode`, Type.Void, [Type.Pointer], ["nodePtr"]),
+        method(`dumpTreeNode`, Type.Void, [Type.Pointer], ["nodePtr"]),
         // TBD: Returns string
         // method(`getName`, K_CHAR_PTR_TYPE, [Type.Pointer], ["nodePtr"]),
-        // method(`dump`, Type.Void, [Type.Pointer], ["nodePtr"]),
 
         method(`removeChild`, Type.Void, [Type.Pointer, Type.Pointer], ["parent", "child"]),
         method(`insertChildAfter`, Type.Int32, [Type.Pointer, Type.Pointer, Type.Pointer], ["parent", "child", "sibling"]),

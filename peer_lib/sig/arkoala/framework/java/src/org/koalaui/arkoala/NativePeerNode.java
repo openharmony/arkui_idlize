@@ -14,10 +14,54 @@
  */
 package org.koalaui.arkoala;
 
+import java.time.Duration;
+
 import org.koalaui.interop.Finalizable;
 
 public class NativePeerNode extends Finalizable {
     public NativePeerNode(long ptr, long finalizer) {
         super(ptr, finalizer);
+    }
+
+    public static NativePeerNode create(ArkUINodeType type, int id, int flags) {
+        long ptr = NativeModule._CreateNode(type.value, id, flags);
+        return new NativePeerNode(ptr, NativeModule._GetNodeFinalizer());
+    }
+
+    public void dispose() {
+        NativeModule._DisposeNode(ptr);
+    }
+
+    public void addChild(NativePeerNode node) {
+        NativeModule._AddChild(ptr, node.ptr);
+    }
+    public void removeChild(NativePeerNode node) {
+        NativeModule._RemoveChild(ptr, node.ptr);
+    }
+    public void insertChildBefore(NativePeerNode node, NativePeerNode sibling) {
+        NativeModule._InsertChildBefore(ptr, node.ptr, sibling == null ? 0 : sibling.ptr);
+    }
+    public void insertChildAfter(NativePeerNode node, NativePeerNode sibling) {
+        NativeModule._InsertChildAfter(ptr, node.ptr, sibling == null ? 0 : sibling.ptr);
+    }
+    public void insertChildAt(NativePeerNode node, int position) {
+        NativeModule._InsertChildAt(ptr, node.ptr, position);
+    }
+
+    public void dumpTree() {
+        NativeModule._DumpTreeNode(ptr);
+    }
+
+    public static void setCreateNodeDelay(ArkUINodeType type, Duration delay) {
+        NativeModule._SetCreateNodeDelay(type.value, delay.toNanos());
+    }
+    public static void setMeasureNodeDelay(ArkUINodeType type, Duration delay) {
+        NativeModule._SetMeasureNodeDelay(type.value, delay.toNanos());
+    }
+    public static void setLayoutNodeDelay(ArkUINodeType type, Duration delay) {
+        NativeModule._SetLayoutNodeDelay(type.value, delay.toNanos());
+    }
+    public static void setDrawNodeDelay(ArkUINodeType type, Duration delay) {
+        NativeModule._SetDrawNodeDelay(type.value, delay.toNanos());
     }
 }

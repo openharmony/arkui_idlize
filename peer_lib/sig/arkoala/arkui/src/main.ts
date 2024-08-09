@@ -122,6 +122,8 @@ function checkNodeAPI() {
     const id = 12
     const flags = 7
     let ptr: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id, flags)
+    let childPtr1: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id + 1, flags)
+    let childPtr2: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id + 2, flags)
 
     let stackPtr: pointer = 0
     checkResult("BasicNodeAPI getNodeByViewStack",
@@ -130,34 +132,34 @@ function checkNodeAPI() {
     )
     assertEquals("BasicNodeAPI getNodeByViewStack result", 234, stackPtr)
 
-    checkResult("BasicNodeAPI disposeNode",
-        () => nativeModule()._DisposeNode(ptr),
-        `disposeNode(0x${ptr})`)
-
     checkResult("BasicNodeAPI addChild",
-        () => nativeModule()._AddChild(ptr, stackPtr),
-        `addChild(0x${ptr}, 0x234)`
+        () => nativeModule()._AddChild(ptr, childPtr1),
+        `addChild(0x${ptr}, 0x${childPtr1})`
     )
 
+    nativeModule()._AddChild(ptr, childPtr2)
     checkResult("BasicNodeAPI removeChild",
-        () => nativeModule()._RemoveChild(ptr, stackPtr),
-        `removeChild(0x${ptr}, 0x234)`
+        () => nativeModule()._RemoveChild(ptr, childPtr2),
+        `removeChild(0x${ptr}, 0x${childPtr2})`
     )
 
     checkResult("BasicNodeAPI insertChildAfter",
-        () => nativeModule()._InsertChildAfter(ptr, stackPtr, nullptr),
-        `insertChildAfter(0x${ptr}, 0x234, 0x0)`
+        () => nativeModule()._InsertChildAfter(ptr, childPtr2, childPtr1),
+        `insertChildAfter(0x${ptr}, 0x${childPtr2}, 0x${childPtr1})`
     )
+    nativeModule()._RemoveChild(ptr, childPtr2)
 
     checkResult("BasicNodeAPI insertChildBefore",
-        () => nativeModule()._InsertChildBefore(ptr, stackPtr, nullptr),
-        `insertChildBefore(0x${ptr}, 0x234, 0x0)`
+        () => nativeModule()._InsertChildBefore(ptr, childPtr2, childPtr1),
+        `insertChildBefore(0x${ptr}, 0x${childPtr2}, 0x${childPtr1})`
     )
+    nativeModule()._RemoveChild(ptr, childPtr2)
 
     checkResult("BasicNodeAPI insertChildAt",
-        () => nativeModule()._InsertChildAt(ptr, stackPtr, 0),
-        `insertChildAt(0x${ptr}, 0x234, 0)`
+        () => nativeModule()._InsertChildAt(ptr, childPtr2, 0),
+        `insertChildAt(0x${ptr}, 0x${childPtr2}, 0)`
     )
+    nativeModule()._RemoveChild(ptr, childPtr2)
 
     checkResult("BasicNodeAPI applyModifierFinish",
         () => nativeModule()._ApplyModifierFinish(ptr),
@@ -175,6 +177,10 @@ function checkNodeAPI() {
         `isBuilderNode(0x${ptr})`
     )
     assertEquals("BasicNodeAPI isBuilderNode result", 1, isBuilderNode)
+
+    checkResult("BasicNodeAPI disposeNode",
+        () => nativeModule()._DisposeNode(childPtr2),
+        `disposeNode(0x${childPtr2})`)
 
     let length = 0.0
     checkResult("BasicNodeAPI convertLengthMetricsUnit",

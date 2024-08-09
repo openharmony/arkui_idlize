@@ -54,10 +54,15 @@ public class NativeModule {
   static native int _TestCallIntMemory(int arg1, int arg2);
   static native int _CallExternalAPI(long env, int what, byte[] buffer, int length);
 
+  static native void _SetCreateNodeDelay(int type, long nanoseconds);
+  static native void _SetMeasureNodeDelay(int type, long nanoseconds);
+  static native void _SetLayoutNodeDelay(int type, long nanoseconds);
+  static native void _SetDrawNodeDelay(int type, long nanoseconds);
+
   static native long _CreateNode(int type, int id, int flags);
   static native long _GetNodeByViewStack();
   static native void _DisposeNode(long nodePtr);
-  static native void _Dump(long nodePtr);
+  static native void _DumpTreeNode(long nodePtr);
   static native int _AddChild(long parent, long child);
   static native void _RemoveChild(long parent, long child);
   static native int _InsertChildAfter(long parent, long child, long sibling);

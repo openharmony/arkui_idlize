@@ -18,12 +18,15 @@ import java.util.Map;
 
 public class PeerNode extends IncrementalNode {
     private static final int PEER_NODE_TYPE = 11;
+    private static int currentId = 1000;
+
+    private int id = currentId++;
+
     public NativePeerNode peer;
     public PeerNode(ArkUINodeType type, ComponentBase component, int flags) {
         super(PEER_NODE_TYPE);
-        int id = 0; // TODO: use id
-        long ptr = NativeModule._CreateNode(type.value, id, flags);
-        this.peer = new NativePeerNode(ptr, NativeModule._GetNodeFinalizer());
+        peer = NativePeerNode.create(type, id, flags);
     }
+
     void applyAttributes(Map<String, Object> attrs) {}
 }

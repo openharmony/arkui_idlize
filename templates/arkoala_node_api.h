@@ -373,6 +373,8 @@ typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
     Ark_NodeHandle (*getNodeByViewStack)();
     void (*disposeNode)(Ark_NodeHandle node);
 
+    void (*dumpTreeNode)(Ark_NodeHandle node);
+
     Ark_Int32 (*addChild)(Ark_NodeHandle parent, Ark_NodeHandle child);
     void (*removeChild)(Ark_NodeHandle parent, Ark_NodeHandle child);
     Ark_Int32 (*insertChildAfter)(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling);

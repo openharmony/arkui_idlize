@@ -12,10 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <array>
+#include <chrono>
+
+#include "arkoala_api.h"
+#include "arkoala_api_generated.h"
 #include "Serializers.h"
 #include "arkoala-logging.h"
 #include "common-interop.h"
 #include "arkoala-macros.h"
+#include "tree.h"
+#include "logging.h"
 
 typedef void (*AppendGroupedLogSignature)(int32_t, const std::string&);
 
@@ -34,11 +41,304 @@ void dummyClassFinalizer(KNativePointer* ptr) {
     appendGroupedLog(1, out);
 }
 
+
+namespace TreeNodeDelays {
+
+void busyWait(Ark_Int64 nsDelay) {
+    if (nsDelay <= 0) {
+        return;
+    }
+    using namespace std::chrono;
+    auto start = steady_clock::now();
+    auto now = start;
+    auto deadline = now + nanoseconds(nsDelay);
+    std::array<char, 8> buf;
+    for (; now < deadline; now = steady_clock::now()) {
+        auto nsNow = now.time_since_epoch().count();
+        buf = { static_cast<char>(nsNow%100 + 20), 19, 18, 17, 16, 15, 14, static_cast<char>(nsNow%12) };
+        for (int i = 0; i < 200; i++) {
+            std::next_permutation(buf.begin(), buf.end());
+        }
+    }
+    //ARKOALA_LOG("Requested wait %f ms, actual %f ms\n", nsDelay/1000000.0f, (now - start).count()/1000000.0f);
+}
+
+const int MAX_NODE_TYPE = 200;
+std::array<Ark_Int64, MAX_NODE_TYPE> createNodeDelay = {};\
+std::array<Ark_Int64, MAX_NODE_TYPE> measureNodeDelay = {};
+std::array<Ark_Int64, MAX_NODE_TYPE> layoutNodeDelay = {};
+std::array<Ark_Int64, MAX_NODE_TYPE> drawNodeDelay = {};
+
+void CheckType(GENERATED_Ark_NodeType type) {
+    if (type >= MAX_NODE_TYPE) {
+        LOGE("Error: GENERATED_Ark_NodeType value is too big, change MAX_NODE_TYPE accordingly");
+        throw "Error";
+    }
+}
+
+void SetCreateNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {
+    CheckType(type);
+    createNodeDelay[type] = nanoseconds;
+}
+
+void SetMeasureNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {
+    CheckType(type);
+    measureNodeDelay[type] = nanoseconds;
+}
+
+void SetLayoutNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {
+    CheckType(type);
+    layoutNodeDelay[type] = nanoseconds;
+}
+
+void SetDrawNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {
+    CheckType(type);
+    drawNodeDelay[type] = nanoseconds;
+}
+
+}
+
+inline Ark_NodeHandle AsNodeHandle(TreeNode* node) {
+    return reinterpret_cast<Ark_NodeHandle>(node);
+}
+inline TreeNode* AsNode(Ark_NodeHandle handle) {
+    return reinterpret_cast<TreeNode*>(handle);
+}
+
+void DumpTree(TreeNode *node, Ark_Int32 indent) {
+    ARKOALA_LOG("%s[%s: %d]\n", string(indent * 2, ' ').c_str(), node->namePtr(), node->id());
+    for (auto child: *node->children()) {
+        if (child)
+            DumpTree(child, indent + 1);
+    }
+}
+
+GENERATED_Ark_APICallbackMethod *callbacks = nullptr;
+
+int TreeNode::_globalId = 1;
+string TreeNode::_noAttribute;
+
+Ark_Float32 parseLength(Ark_Float32 parentValue, Ark_Float32 value, Ark_Int32 unit) {
+    switch (unit) {
+        //PX
+        case 0: {
+            const Ark_Float32 scale = 1; // TODO: need getting current device scale
+            return value * scale;
+        }
+        //PERCENTAGE
+        case 3: {
+            return parentValue / 100 * value;
+        }
+        default:
+            // VP, FP, LPX, UndefinedDimensionUnit: TODO: parse properly this units
+            return value;
+    }
+}
+
+void align(TreeNode *child, Ark_Float32 width, Ark_Float32 height, Ark_Float32* args) {
+    switch (child->alignment) {
+        case 0: { // Alignment.TopStart
+            break;
+        }
+        case 3: { // Alignment.Start
+            args[1] += (height - child->measureResult[1]) / 2;
+            break;
+        }
+        case 6: { // Alignment.BottomStart
+            args[1] += height - child->measureResult[1];
+            break;
+        }
+        case 1: { // Alignment.Top
+            args[0] += (width - child->measureResult[0]) / 2;
+            break;
+        }
+        case 4: { // Alignment.Center
+            args[0] += (width - child->measureResult[0]) / 2;
+            args[1] += (height - child->measureResult[1]) / 2;
+            break;
+        }
+        case 7: { // Alignment.Bottom
+            args[0] += (width - child->measureResult[0]) / 2;
+            args[1] += height - child->measureResult[1];
+            break;
+        }
+        case 2: { // Alignment.TopEnd
+            args[0] += width - child->measureResult[0];
+            break;
+        }
+        case 5: { // Alignment.End
+            args[0] += width - child->measureResult[0];
+            args[1] += (height - child->measureResult[1]) / 2;
+            break;
+        }
+        case 8: { // Alignment.BottomEnd
+            args[0] += width - child->measureResult[0];
+            args[1] += height - child->measureResult[1];
+            break;
+        }
+    }
+}
+
+GENERATED_Ark_EventCallbackArg arg(Ark_Float32 f32) {
+    GENERATED_Ark_EventCallbackArg result;
+    result.f32 = f32;
+    return result;
+}
+
+GENERATED_Ark_EventCallbackArg arg(Ark_Int32 i32) {
+    GENERATED_Ark_EventCallbackArg result;
+    result.i32 = i32;
+    return result;
+}
+
+ArkUI_Int32 TreeNode::measure(ArkUIVMContext vmContext, ArkUI_Float32* data) {
+    TreeNodeDelays::busyWait(TreeNodeDelays::measureNodeDelay[_customIntData]);
+
+    Ark_Float32 minWidth = data[0];
+    Ark_Float32 minHeight = data[1];
+    Ark_Float32 maxWidth = data[2];
+    Ark_Float32 maxHeight = data[3];
+    if (_flags & ArkUIAPINodeFlags::CUSTOM_MEASURE) {
+        GENERATED_Ark_EventCallbackArg args[] = { arg(ArkUIAPICustomOp::MEASURE), arg(minWidth), arg(minHeight), arg(maxWidth), arg(maxHeight) };
+        callbacks->CallInt(vmContext, customId(), 5, &args[0]);
+        _width = args[1].f32;
+        _height = args[2].f32;
+        return 0;
+    }
+
+    const Ark_Float32 constraintWidth = data[0];
+    const Ark_Float32 constraintHeight = data[1];
+
+    _width = parseLength(constraintWidth, dimensionWidth.value, dimensionWidth.unit);
+    _height = parseLength(constraintHeight, dimensionHeight.value, dimensionHeight.unit);
+
+    Ark_Float32 itData[] = { minWidth, minHeight, minHeight, maxHeight };
+    if (dimensionWidth.unit != UndefinedDimensionUnit) {
+        itData[0] = _width;
+    }
+    if (dimensionHeight.unit != UndefinedDimensionUnit) {
+        itData[1] = _height;
+    }
+
+    const bool isWidthWrapped = dimensionWidth.unit == UndefinedDimensionUnit;
+    const bool isHeightWrapped = dimensionHeight.unit == UndefinedDimensionUnit;
+
+    for (auto* it: *children()) {
+        it->measure(vmContext, &itData[0] );
+        if (isWidthWrapped) {
+            _width = std::max(_width, itData[0]);
+        }
+        if (isHeightWrapped) {
+            _height = std::max(_height, itData[1]);
+        }
+    }
+
+    data[0] = _width;
+    data[1] = _height;
+
+    measureResult = &data[0];
+
+    // TODO: use return flag for dirty bits propagation.
+    return 0;
+}
+
+ArkUICanvasHandle getCanvas(TreeNode* node) {
+    // TODO: real canvas.
+    return reinterpret_cast<ArkUICanvasHandle>(0x123456789aLL);
+}
+
+ArkUI_Int32 TreeNode::layout(ArkUIVMContext vmContext, ArkUI_Float32* data) {
+    TreeNodeDelays::busyWait(TreeNodeDelays::layoutNodeDelay[_customIntData]);
+
+    if (_flags & ArkUIAPINodeFlags::CUSTOM_LAYOUT) {
+        GENERATED_Ark_EventCallbackArg args[] = { arg(ArkUIAPICustomOp::LAYOUT), arg(0.0f), arg(0.0f), arg(0.0f), arg(0.0f) };
+        callbacks->CallInt(vmContext, customId(), 5, &args[0]);
+        return 0;
+    }
+
+    _x = data[0];
+    _y = data[1];
+
+    for (auto* it: *children()) {
+        Ark_Float32 itData[] = { data[0], data[1], data[2], data[3] };
+        align(it, _width, _height, &itData[0]);
+        it->layout(vmContext, &itData[0]);
+    }
+
+    layoutResult = &data[0];
+
+    // TODO: use return flag for dirty bits propagation.
+    return 0;
+}
+
+ArkUI_Int32 TreeNode::draw(ArkUIVMContext vmContext, ArkUI_Float32* data) {
+    TreeNodeDelays::busyWait(TreeNodeDelays::drawNodeDelay[_customIntData]);
+
+    if (_flags & ArkUIAPINodeFlags::CUSTOM_DRAW) {
+        uintptr_t canvas = reinterpret_cast<uintptr_t>(getCanvas(this));
+        GENERATED_Ark_EventCallbackArg args[] = {
+            arg(ArkUIAPICustomOp::DRAW),
+            arg((Ark_Int32)(canvas & 0xffffffff)),
+            arg((Ark_Int32)((canvas >> 32) & 0xffffffff)),
+            arg(data[0]), arg(data[1]), arg(data[2]), arg(data[3])
+        };
+        callbacks->CallInt(vmContext, customId(), 7, &args[0]);
+        return 0;
+    }
+    for (auto* it: *children()) {
+        Ark_Float32 itData[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        it->draw(vmContext, &itData[0]);
+    }
+    return 0;
+}
+
+void TreeNode::setMeasureWidthValue(ArkUI_Int32 value) {
+    if (measureResult != nullptr) measureResult[0] = value;
+    _width = value;
+}
+
+ArkUI_Int32 TreeNode::getMeasureWidthValue() {
+    return (measureResult == nullptr) ? 0 : measureResult[0];
+}
+
+void TreeNode::setMeasureHeightValue(ArkUI_Int32 value) {
+    if (measureResult != nullptr) measureResult[1] = value;
+    _height = value;
+}
+
+ArkUI_Int32 TreeNode::getMeasureHeightValue() {
+    return (measureResult == nullptr) ? 0 : measureResult[1];
+}
+
+void TreeNode::setXValue(ArkUI_Int32 value) {
+    if (layoutResult != nullptr) layoutResult[0] = value;
+    _x = value;
+}
+
+ArkUI_Int32 TreeNode::getXValue() {
+    return (layoutResult == nullptr) ? 0 : layoutResult[0];
+}
+
+void TreeNode::setYValue(ArkUI_Int32 value) {
+    if (layoutResult != nullptr) layoutResult[1] = value;
+    _y = value;
+}
+
+ArkUI_Int32 TreeNode::getYValue() {
+    return (layoutResult == nullptr) ? 0 : layoutResult[1];
+}
+
+
 namespace OHOS::Ace::NG {
+
 namespace Bridge {
+
 Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags) {
-    static uintptr_t peer_num = 1;
-    Ark_NodeHandle result = (Ark_NodeHandle) peer_num++;
+    TreeNodeDelays::CheckType(type);
+    TreeNodeDelays::busyWait(TreeNodeDelays::createNodeDelay[type]);
+    TreeNode *node = new TreeNode("node", id, flags);
+    node->setCustomIntData(type);
+    Ark_NodeHandle result = AsNodeHandle(node);
 
     if (needGroupedLog(2)) {
         std::string _logData;
@@ -61,7 +361,9 @@ Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
     return result;
 }
 
-void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method) {}
+void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method) {
+    callbacks = method;
+}
 void RegisterCustomNodeEventReceiver(%CPP_PREFIX%CustomEventReceiver eventReceiver) {}
 int CheckEvent(%CPP_PREFIX%Ark_NodeEvent* event) {
     return 0;
@@ -116,6 +418,7 @@ Ark_Float32 GetDesignWidthScale(Ark_Int32 deviceId) {
 }
 
 namespace ApiImpl {
+
 Ark_NodeHandle GetNodeByViewStack() {
     Ark_NodeHandle result = (Ark_NodeHandle) 234;
     if (!needGroupedLog(1)) {
@@ -127,6 +430,8 @@ Ark_NodeHandle GetNodeByViewStack() {
 }
 
 void DisposeNode(Ark_NodeHandle node) {
+    AsNode(node)->dispose();
+
     if (!needGroupedLog(1)) {
         return;
     }
@@ -137,9 +442,24 @@ void DisposeNode(Ark_NodeHandle node) {
     appendGroupedLog(1, out);
 }
 
-Ark_Int32 AddChild(Ark_NodeHandle parent, Ark_NodeHandle child) {
+void DumpTreeNode(Ark_NodeHandle node) {
+    DumpTree(AsNode(node), 0);
+
     if (!needGroupedLog(1)) {
-        return 0;
+        return;
+    }
+
+    string out("dumpTreeNode(");
+    WriteToString(&out, node);
+    out.append(")");
+    appendGroupedLog(1, out);
+}
+
+Ark_Int32 AddChild(Ark_NodeHandle parent, Ark_NodeHandle child) {
+    int result = AsNode(parent)->addChild(AsNode(child));
+
+    if (!needGroupedLog(1)) {
+        return result;
     }
 
     string out("addChild(");
@@ -150,10 +470,14 @@ Ark_Int32 AddChild(Ark_NodeHandle parent, Ark_NodeHandle child) {
     appendGroupedLog(1, out);
 
     // TODO: implement test
-    return 0; // ERROR_CODE_NO_ERROR
+    return result;
 }
 
 void RemoveChild(Ark_NodeHandle parent, Ark_NodeHandle child) {
+    TreeNode *parentPtr = reinterpret_cast<TreeNode *>(parent);
+    TreeNode *childPtr = reinterpret_cast<TreeNode *>(child);
+    parentPtr->removeChild(childPtr);
+
     if (!needGroupedLog(1)) {
         return;
     }
@@ -167,8 +491,10 @@ void RemoveChild(Ark_NodeHandle parent, Ark_NodeHandle child) {
 }
 
 Ark_Int32 InsertChildAfter(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling) {
+    int result = AsNode(parent)->insertChildAfter(AsNode(child), AsNode(sibling));
+
     if (!needGroupedLog(1)) {
-        return 0;
+        return result;
     }
 
     string out("insertChildAfter(");
@@ -179,12 +505,14 @@ Ark_Int32 InsertChildAfter(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Node
     WriteToString(&out, sibling);
     out.append(")");
     appendGroupedLog(1, out);
-    return 0;
+    return result;
 }
 
 Ark_Int32 InsertChildBefore(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling) {
+    int result = AsNode(parent)->insertChildBefore(AsNode(child), AsNode(sibling));
+
     if (!needGroupedLog(1)) {
-        return 0;
+        return result;
     }
 
     string out("insertChildBefore(");
@@ -195,12 +523,14 @@ Ark_Int32 InsertChildBefore(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Nod
     WriteToString(&out, sibling);
     out.append(")");
     appendGroupedLog(1, out);
-    return 0;
+    return result;
 }
 
 Ark_Int32 InsertChildAt(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Int32 position) {
+    int result = AsNode(parent)->insertChildAt(AsNode(child), position);
+
     if (!needGroupedLog(1)) {
-        return 0;
+        return result;
     }
 
     string out("insertChildAt(");
@@ -211,7 +541,7 @@ Ark_Int32 InsertChildAt(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Int32 p
     WriteToString(&out, position);
     out.append(")");
     appendGroupedLog(1, out);
-    return 0;
+    return result;
 }
 
 void ApplyModifierFinish(Ark_NodeHandle node) {
@@ -276,20 +606,34 @@ Ark_Int32 UnregisterCustomNodeEvent(Ark_NodeHandle node, Ark_Int32 eventType) {
 
 void SetCustomCallback(Ark_VMContext context, Ark_NodeHandle node, Ark_Int32 callback) {}
 
-Ark_Int32 MeasureLayoutAndDraw(Ark_VMContext vmContext, Ark_NodeHandle rootPtr) {
-    return 0;
-}
-
 Ark_Int32 MeasureNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data) {
-    return 0;
+    return AsNode(node)->measure(vmContext, data);
 }
 
 Ark_Int32 LayoutNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32 (*data)[2]) {
-    return 0;
+    return AsNode(node)->layout(vmContext, (Ark_Float32*)data);
 }
 
 Ark_Int32 DrawNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data) {
-    return 0;
+    return AsNode(node)->draw(vmContext, data);
+}
+
+Ark_Int32 MeasureLayoutAndDraw(Ark_VMContext vmContext, Ark_NodeHandle root) {
+    Ark_Float32 rootMeasures[] = {800, 600, 800, 600};
+    MeasureNode(vmContext, root, &rootMeasures[0]);
+    Ark_Float32 rootLayouts[] = {0, 0, 800, 600};
+    LayoutNode(vmContext, root, reinterpret_cast<Ark_Float32(*)[2]>(&rootLayouts));
+    Ark_Float32 rootDraw[] = {0, 0, 800, 600};
+    DrawNode(vmContext, root, &rootDraw[0]);
+    Ark_Int32 result = 0;
+    if (!needGroupedLog(1)) {
+        return result;
+    }
+    string out("measureLayoutAndDraw(");
+    WriteToString(&out, root);
+    out.append(")");
+    appendGroupedLog(1, out);
+    return result;
 }
 
 void SetAttachNodePtr(Ark_NodeHandle node, void* value) {}

@@ -14,6 +14,7 @@ const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI()
         OHOS::Ace::NG::Bridge::CreateNode,
         OHOS::Ace::NG::ApiImpl::GetNodeByViewStack,
         OHOS::Ace::NG::ApiImpl::DisposeNode,
+        OHOS::Ace::NG::ApiImpl::DumpTreeNode,
         OHOS::Ace::NG::ApiImpl::AddChild,
         OHOS::Ace::NG::ApiImpl::RemoveChild,
         OHOS::Ace::NG::ApiImpl::InsertChildAfter,
