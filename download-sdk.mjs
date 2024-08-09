@@ -22,7 +22,7 @@ if (fs.existsSync(dir)) {
     //execSync(`cd ${dir} && git pull`)
 } else {
     console.log("Downloading sdk")
-    execSync("git clone --depth=1 https://gitee.com/openharmony/interface_sdk-js.git")
+    execSync("git clone https://gitee.com/openharmony/interface_sdk-js.git")
 }
 
 let sdk = "./sdk"
