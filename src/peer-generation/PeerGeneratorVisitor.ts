@@ -63,6 +63,7 @@ import {
     makeSyntheticTypeAliasDeclaration
 } from "./synthetic_declaration";
 import { isBuilderClass, isCustomBuilderClass, toBuilderClass } from "./BuilderClass";
+import { Lazy, lazy } from "./lazy";
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -386,7 +387,14 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
 
 class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
     private readonly typeConvertor = new ArkTSTypeNodeNameConvertor()
-    private declDependenciesCollector: DeclarationDependenciesCollector | undefined
+
+    constructor(
+        peerLibrary: PeerLibrary,
+        expandAliases: boolean,
+        private readonly declDependenciesCollector: Lazy<DeclarationDependenciesCollector>
+    ) {
+        super(peerLibrary, expandAliases);
+    }
 
     override convertLiteralType(node: ts.LiteralTypeNode): ts.Declaration[] {
         if (ts.isUnionTypeNode(node.parent) && ts.isStringLiteral(node.literal)) {
@@ -403,7 +411,7 @@ class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
         return [makeSyntheticInterfaceDeclaration('SyntheticDeclarations',
             this.typeConvertor.convert(node),
             node.members,
-            this.declDependenciesCollector!,
+            this.declDependenciesCollector.value,
             this.peerLibrary)]
     }
 
@@ -419,11 +427,6 @@ class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
             module: "./shared/dts-exports"
         })
         return syntheticDeclaration
-    }
-
-    override setDeclDependenciesCollector(declDependenciesCollector: DeclarationDependenciesCollector) {
-        super.setDeclDependenciesCollector(declDependenciesCollector);
-        this.declDependenciesCollector = declDependenciesCollector
     }
 }
 
@@ -703,9 +706,10 @@ export class PeerProcessor {
     constructor(
         private readonly library: PeerLibrary,
     ) {
-        this.typeDependenciesCollector = createTypeDependenciesCollector(this.library)
+        this.typeDependenciesCollector = createTypeDependenciesCollector(this.library, { 
+            declDependenciesCollector: lazy(() => this.declDependenciesCollector) 
+        })
         this.declDependenciesCollector = new FilteredDeclarationCollector(this.library, this.typeDependenciesCollector)
-        this.typeDependenciesCollector.setDeclDependenciesCollector(this.declDependenciesCollector)
         this.serializeDepsCollector = new FilteredDeclarationCollector(
             this.library, new ImportsAggregateCollector(this.library, true))
     }
@@ -990,10 +994,15 @@ export class PeerProcessor {
     }
 }
 
-export function createTypeDependenciesCollector(library: PeerLibrary): TypeDependenciesCollector {
+export function createTypeDependenciesCollector(
+    library: PeerLibrary, 
+    arkts: {
+        declDependenciesCollector: Lazy<DeclarationDependenciesCollector>
+    }
+): TypeDependenciesCollector {
     return library.declarationTable.language == Language.TS
         ? new ImportsAggregateCollector(library, false)
-        : new ArkTSImportsAggregateCollector(library, false)
+        : new ArkTSImportsAggregateCollector(library, false, arkts.declDependenciesCollector)
 }
 
 export function createInterfaceDeclName(declName: string): string {

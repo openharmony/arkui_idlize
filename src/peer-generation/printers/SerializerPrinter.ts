@@ -25,6 +25,7 @@ import {createTypeDependenciesCollector, isSourceDecl} from "../PeerGeneratorVis
 import {isSyntheticDeclaration} from "../synthetic_declaration";
 import { DeclarationDependenciesCollector } from "../dependencies_collector";
 import { isBuilderClass } from "../BuilderClass";
+import { lazy, lazyThrow } from '../lazy';
 
 function printSerializerImports(table: (ts.ClassDeclaration | ts.InterfaceDeclaration)[], library: PeerLibrary, writer: LanguageWriter) {
     const collector = new ImportsCollector()
@@ -215,7 +216,7 @@ class TSSerializerDependenciesCollector implements SerializerDependenciesCollect
     constructor(private readonly collector: ImportsCollector, private readonly library: PeerLibrary) {
         this.declDependenciesCollector = new DeclarationDependenciesCollector(
             library.declarationTable.typeChecker!,
-            createTypeDependenciesCollector(library))
+            createTypeDependenciesCollector(library, { declDependenciesCollector: lazyThrow()}))
         for (const file of this.library.files) {
             file.importFeatures.forEach(it => this.collector.addFeature(it.feature, it.module))
         }
@@ -242,7 +243,10 @@ class ArkTSSerializerDependenciesCollector implements SerializerDependenciesColl
     constructor(private readonly collector: ImportsCollector, private readonly library: PeerLibrary) {
         this.declDependenciesCollector = new DeclarationDependenciesCollector(
             library.declarationTable.typeChecker!,
-            createTypeDependenciesCollector(library))
+            createTypeDependenciesCollector(library, {
+                declDependenciesCollector: lazy(() => this.declDependenciesCollector)
+            })
+        )
     }
 
     collect(decl: ts.Declaration): void {
