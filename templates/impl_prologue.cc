@@ -11,6 +11,7 @@ namespace ApiImpl {
     // Basic API
     Ark_NodeHandle GetNodeByViewStack();
     void DisposeNode(Ark_NodeHandle node);
+    void DumpTreeNode(ArkUINodeHandle node);
     Ark_Int32 AddChild(Ark_NodeHandle parent, Ark_NodeHandle child);
     void RemoveChild(Ark_NodeHandle parent, Ark_NodeHandle child);
     Ark_Int32 InsertChildAfter(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling);

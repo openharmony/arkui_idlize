@@ -1,6 +1,6 @@
 #include "arkoala_api_generated.h"
 #include "events.h"
-#include "Interop.h"
+#include "common-interop.h"
 #include "Serializers.h"
 #include "library.h"
 

@@ -31,6 +31,8 @@
 #define %CPP_PREFIX%ARKUI_NODE_MODIFIERS_API_VERSION 6
 #define %CPP_PREFIX%ARKUI_AUTO_GENERATE_NODE_ID (-2)
 
+/* clang-format off */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

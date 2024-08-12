@@ -55,7 +55,8 @@ namespace ViewModel {
 using FrameNodeCreator = Ark_NodeHandle(Ark_Int32 nodeId);
 
 namespace Bridge {
-    Ark_NodeHandle CreateNode(%CPP_PREFIX%Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags) {
+    Ark_NodeHandle CreateNode(%CPP_PREFIX%Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags)
+    {
         if (id == %CPP_PREFIX%ARKUI_AUTO_GENERATE_NODE_ID) {
             id = ElementRegister::GetInstance()->MakeUniqueId();
         }
