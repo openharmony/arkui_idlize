@@ -22,7 +22,7 @@ import { PeerMethod } from "../PeerMethod";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { CallbackInfo, collectCallbacks, groupCallbacks } from "./EventsPrinter";
 import { DeclarationTable, PrimitiveType } from "../DeclarationTable";
-import { NamedMethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
+import { NamedMethodSignature, Type, printMethodDeclaration } from "../LanguageWriters";
 import { Language } from "../../util";
 import { LibaceInstall } from "../../Install";
 
@@ -64,8 +64,8 @@ class HeaderVisitor {
     }
 
     private printMethod(method: PeerMethod) {
-        const apiParameters = method.generateAPIParameters().join(", ")
-        this.api.print(`${method.retType} (*${method.fullMethodName})(${apiParameters});`)
+        const apiParameters = method.generateAPIParameters()
+        printMethodDeclaration(this.api, method.retType, `(*${method.fullMethodName})`, apiParameters, `;`)
     }
 
     private printClassEpilog(clazz: PeerClass) {
@@ -122,7 +122,7 @@ class HeaderVisitor {
             const args = signature.args.map((type, index) => {
                 return `${type.name} ${signature.argName(index)}`
             })
-            this.api.print(`${signature.returnType.name} (*${callback.methodName})(${args.join(', ')});`)
+            printMethodDeclaration(this.api, signature.returnType.name, `(*${callback.methodName})`, args, `;`)
         }
         this.api.popIndent()
         this.api.print(`} ${receiver};\n`)

@@ -16,7 +16,7 @@
 import * as ts from "typescript"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from "../DeclarationTable"
-import { BlockStatement, CppLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, NamedMethodSignature, StringExpression, TSLanguageWriter, Type } from "../LanguageWriters"
+import { BlockStatement, CppLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, NamedMethodSignature, printMethodDeclaration, StringExpression, TSLanguageWriter, Type } from "../LanguageWriters"
 import { PeerClassBase } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
 import { PeerMethod } from "../PeerMethod"
@@ -156,7 +156,7 @@ class CEventsVisitor {
         const args = signature.args.map((type, index) => {
             return `${type.name} ${signature.argName(index)}`
         })
-        this.impl.print(`${signature.returnType.name} ${event.methodName}Impl(${args.join(', ')})`)
+        printMethodDeclaration(this.impl.printer, signature.returnType.name, `${event.methodName}Impl`, args)
         this.impl.print("{")
         this.impl.pushIndent()
         if (this.isEmptyImplementation) {
@@ -210,11 +210,11 @@ class CEventsVisitor {
         for (const [name, callbacks] of groupedCallbacks) {
             if (!this.library.shouldGenerateComponent(name))
                 continue
-            this.impl.pushNamespace(name)
+            this.impl.pushNamespace(name, false)
             for (const callback of callbacks) {
                 this.printEventImpl(callback)
             }
-            this.impl.popNamespace()
+            this.impl.popNamespace(false)
         }
         for (const [name, callbacks] of groupedCallbacks) {
             if (!this.library.shouldGenerateComponent(name))

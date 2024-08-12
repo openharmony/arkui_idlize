@@ -279,9 +279,10 @@ export function makeConverterHeader(path: string, namespace: string, library: Pe
     }
     converter.print("")
 
-    converter.pushNamespace(namespace)
+    converter.pushNamespace(namespace, false)
+    converter.print("")
     writeConvertors(library, converter)
-    converter.popNamespace()
+    converter.popNamespace(false)
     converter.print(`\n#endif // ${includeGuardDefine}`)
     converter.print("")
     return converter
@@ -551,7 +552,7 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
     writer.print("")
     writer.writeInclude(`arkoala_api_generated.h`)
     writer.print("")
-    writer.pushNamespace(namespace)
+    writer.pushNamespace(namespace, false)
 
     writer.concat(implData)
 
@@ -579,7 +580,7 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
         writer.writeStatement(writer.makeReturn(writer.makeString(`&eventsImpl`)))
     })
 
-    writer.popNamespace()
+    writer.popNamespace(false)
     return writer.getOutput().join('\n')
 }
 

@@ -368,26 +368,37 @@ typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
     Ark_Int32 version;
 
     /// Tree operations.
-    Ark_NodeHandle (*createNode)(%CPP_PREFIX%Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags);
+    Ark_NodeHandle (*createNode)(%CPP_PREFIX%Ark_NodeType type,
+                                 Ark_Int32 id, Ark_Int32 flags);
 
     Ark_NodeHandle (*getNodeByViewStack)();
     void (*disposeNode)(Ark_NodeHandle node);
 
     void (*dumpTreeNode)(Ark_NodeHandle node);
 
-    Ark_Int32 (*addChild)(Ark_NodeHandle parent, Ark_NodeHandle child);
-    void (*removeChild)(Ark_NodeHandle parent, Ark_NodeHandle child);
-    Ark_Int32 (*insertChildAfter)(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling);
-    Ark_Int32 (*insertChildBefore)(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling);
-    Ark_Int32 (*insertChildAt)(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_Int32 position);
+    Ark_Int32 (*addChild)(Ark_NodeHandle parent,
+                          Ark_NodeHandle child);
+    void (*removeChild)(Ark_NodeHandle parent,
+                        Ark_NodeHandle child);
+    Ark_Int32 (*insertChildAfter)(Ark_NodeHandle parent,
+                                  Ark_NodeHandle child, Ark_NodeHandle sibling);
+    Ark_Int32 (*insertChildBefore)(Ark_NodeHandle parent,
+                                   Ark_NodeHandle child,
+                                   Ark_NodeHandle sibling);
+    Ark_Int32 (*insertChildAt)(Ark_NodeHandle parent,
+                               Ark_NodeHandle child,
+                               Ark_Int32 position);
 
     // Commit attributes updates for node.
     void (*applyModifierFinish)(Ark_NodeHandle nodePtr);
     // the flag can combine different flag like Ark_DIRTY_FLAG_MEASURE | Ark_DIRTY_FLAG_RENDER
-    void (*markDirty)(Ark_NodeHandle nodePtr, Ark_UInt32 dirtyFlag);
+    void (*markDirty)(Ark_NodeHandle nodePtr,
+                      Ark_UInt32 dirtyFlag);
     Ark_Boolean (*isBuilderNode)(Ark_NodeHandle node);
 
-    Ark_Float32 (*convertLengthMetricsUnit)(Ark_Float32 value, Ark_Int32 originUnit, Ark_Int32 targetUnit);
+    Ark_Float32 (*convertLengthMetricsUnit)(Ark_Float32 value,
+                                            Ark_Int32 originUnit,
+                                            Ark_Int32 targetUnit);
 } %CPP_PREFIX%ArkUIBasicNodeAPI;
 
 typedef void (*%CPP_PREFIX%CustomEventReceiver)(%CPP_PREFIX%Ark_CustomNodeEvent* event);
@@ -402,45 +413,71 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     void (*setCallbackMethod)(%CPP_PREFIX%Ark_APICallbackMethod* method);
 
     // the custom node is not set in create.
-    void (*setCustomMethodFlag)(Ark_NodeHandle node, Ark_Int32 flag);
+    void (*setCustomMethodFlag)(Ark_NodeHandle node,
+                                Ark_Int32 flag);
     Ark_Int32 (*getCustomMethodFlag)(Ark_NodeHandle node);
 
-    void (*registerCustomNodeAsyncEvent)(Ark_NodeHandle nodePtr, Ark_Int32 kind, void* extraParam);
-    Ark_Int32(*unregisterCustomNodeAsyncEvent)(Ark_NodeHandle nodePtr, Ark_Int32 kind);
+    void (*registerCustomNodeAsyncEvent)(Ark_NodeHandle nodePtr,
+                                         Ark_Int32 kind,
+                                         void* extraParam);
+    Ark_Int32(*unregisterCustomNodeAsyncEvent)(Ark_NodeHandle nodePtr,
+                                               Ark_Int32 kind);
     void (*registerCustomNodeAsyncEventReceiver)(%CPP_PREFIX%CustomEventReceiver eventReceiver);
 
     // setCustomCallback is without the context
-    void (*setCustomCallback) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Int32 callbackId);
+    void (*setCustomCallback) (Ark_VMContext  vmContext,
+                               Ark_NodeHandle node,
+                               Ark_Int32 callbackId);
     // make void instead return type Ark_Int32
-    Ark_Int32 (*measureLayoutAndDraw) (Ark_VMContext  vmContext, Ark_NodeHandle node);
-    Ark_Int32 (*measureNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32* data);
-    Ark_Int32 (*layoutNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32 (*data)[2]);
-    Ark_Int32 (*drawNode) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Float32* data);
-    void (*setAttachNodePtr) (Ark_NodeHandle node, void* value);
+    Ark_Int32 (*measureLayoutAndDraw) (Ark_VMContext  vmContext,
+                                       Ark_NodeHandle node);
+    Ark_Int32 (*measureNode) (Ark_VMContext  vmContext,
+                              Ark_NodeHandle node,
+                              Ark_Float32* data);
+    Ark_Int32 (*layoutNode) (Ark_VMContext  vmContext,
+                             Ark_NodeHandle node,
+                             Ark_Float32 (*data)[2]);
+    Ark_Int32 (*drawNode) (Ark_VMContext  vmContext,
+                           Ark_NodeHandle node,
+                           Ark_Float32* data);
+    void (*setAttachNodePtr) (Ark_NodeHandle node,
+                              void* value);
     void* (*getAttachNodePtr) (Ark_NodeHandle node);
 
     // may be better to use int in px unit
-    void (*setMeasureWidth)(Ark_NodeHandle node, Ark_Int32 value);
+    void (*setMeasureWidth)(Ark_NodeHandle node,
+                            Ark_Int32 value);
     Ark_Int32 (*getMeasureWidth)(Ark_NodeHandle node);
-    void (*setMeasureHeight)(Ark_NodeHandle node, Ark_Int32 value);
+    void (*setMeasureHeight)(Ark_NodeHandle node,
+                             Ark_Int32 value);
     Ark_Int32 (*getMeasureHeight)(Ark_NodeHandle node);
     void (*setX)(Ark_NodeHandle node, Ark_Int32 value);
     Ark_Int32 (*getX)(Ark_NodeHandle node);
-    void (*setY)(Ark_NodeHandle node, Ark_Int32 value);
+    void (*setY)(Ark_NodeHandle node,
+                 Ark_Int32 value);
     Ark_Int32 (*getY)(Ark_NodeHandle node);
 
-    void (*getLayoutConstraint)(Ark_NodeHandle node, Ark_Int32* value);
-    void (*setAlignment)(Ark_NodeHandle node, Ark_Int32 value);
+    void (*getLayoutConstraint)(Ark_NodeHandle node,
+                                Ark_Int32* value);
+    void (*setAlignment)(Ark_NodeHandle node,
+                         Ark_Int32 value);
     Ark_Int32 (*getAlignment)(Ark_NodeHandle node);
 
-    Ark_Int32 (*indexerChecker) (Ark_VMContext  vmContext, Ark_NodeHandle node);
-    void (*setRangeUpdater)(Ark_NodeHandle node, Ark_Int32 updatedId);
-    void (*setLazyItemIndexer) (Ark_VMContext  vmContext, Ark_NodeHandle node, Ark_Int32 indexerId);
+    Ark_Int32 (*indexerChecker) (Ark_VMContext  vmContext,
+                                 Ark_NodeHandle node);
+    void (*setRangeUpdater)(Ark_NodeHandle node,
+                            Ark_Int32 updatedId);
+    void (*setLazyItemIndexer) (Ark_VMContext  vmContext,
+                                Ark_NodeHandle node,
+                                Ark_Int32 indexerId);
 
     /// Vsync support
     Ark_PipelineContext (*getPipelineContext)(Ark_NodeHandle node);
-    void (*setVsyncCallback)(Ark_VMContext  vmContext, Ark_PipelineContext pipelineContext, Ark_Int32 callbackId);
-    void (*unblockVsyncWait)(Ark_VMContext  vmContext, Ark_PipelineContext pipelineContext);
+    void (*setVsyncCallback)(Ark_VMContext  vmContext,
+                             Ark_PipelineContext pipelineContext,
+                             Ark_Int32 callbackId);
+    void (*unblockVsyncWait)(Ark_VMContext  vmContext,
+                             Ark_PipelineContext pipelineContext);
 
     /// Events
     /**
@@ -455,8 +492,11 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     * it will be picked up later by checkEvent().
    */
   void (*sendEvent)(%CPP_PREFIX%Ark_NodeEvent* event);
-  void (*callContinuation)(Ark_Int32 continuationId, Ark_Int32 argCount, %CPP_PREFIX%Ark_EventCallbackArg* args);
-  void (*setChildTotalCount)(Ark_NodeHandle node, Ark_Int32 totalCount);
+  void (*callContinuation)(Ark_Int32 continuationId,
+                           Ark_Int32 argCount,
+                           %CPP_PREFIX%Ark_EventCallbackArg* args);
+  void (*setChildTotalCount)(Ark_NodeHandle node,
+                             Ark_Int32 totalCount);
 
   /// Error reporting.
   void (*showCrash)(Ark_CharPtr message);

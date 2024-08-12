@@ -30,7 +30,7 @@ import { DelegateSignatureBuilder } from "./DelegatePrinter";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { MaterializedClass, MaterializedMethod } from "../Materialized";
 import { Language, groupBy } from "../../util";
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter } from "../LanguageWriters";
+import { CppLanguageWriter, createLanguageWriter, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
@@ -195,17 +195,7 @@ export class ModifierVisitor {
 
     printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
         const apiParameters = method.generateAPIParameters()
-        if (apiParameters.length > 1) {
-            const methodTypeName = `${method.retType} ${method.implName}`
-            const ident = ` `.repeat(methodTypeName.length + 1)
-            printer.print(`${methodTypeName}(${apiParameters[0]},`)
-            for (let i = 1; i < apiParameters.length; i++) {
-                printer.print(ident + apiParameters[i] + ((i === apiParameters.length - 1) ? ")" : ","))
-            }
-        } else {
-            const signature = `${method.retType} ${method.implName}(${apiParameters.join(", ")})`
-            printer.print(signature)
-        }
+        printMethodDeclaration(printer.printer, method.retType, method.implName, apiParameters)
         printer.print("{")
         printer.pushIndent()
     }
