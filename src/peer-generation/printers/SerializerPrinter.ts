@@ -88,9 +88,11 @@ class SerializerPrinter {
             new Method(`write${methodName}`,
                 new NamedMethodSignature(Type.Void, [new Type(this.translateSerializerType(name, target))], ["value"])),
             writer => {
-                writer.writeStatement(
-                    writer.makeAssign("valueSerializer", new Type(writer.makeRef("Serializer")), writer.makeThis(), true, false))
                 let struct = this.table.targetStruct(target)
+                if (struct.getFields().length > 0) {
+                    writer.writeStatement(
+                        writer.makeAssign("valueSerializer", new Type(writer.makeRef("Serializer")), writer.makeThis(), true, false))
+                }
                 struct.getFields().forEach(it => {
                     let field = `value_${it.name}`
                     writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${it.name}`), true))
@@ -153,12 +155,17 @@ class DeserializerPrinter {
         this.table.setCurrentContext(`read${methodName}()`)
         const type = new Type(name)
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
-            writer.writeStatement(
-                writer.makeAssign("valueDeserializer", new Type(writer.makeRef("Deserializer")), writer.makeThis(), true, false))
+            function declareDeserializer() {
+                writer.writeStatement(
+                    writer.makeAssign("valueDeserializer", new Type(writer.makeRef("Deserializer")), writer.makeThis(), true, false))
+            }
             // using list initialization to prevent uninitialized value errors
             writer.writeStatement(writer.makeObjectDeclare("value", type, this.table.targetStruct(target).getFields()))
             if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
                 let struct = this.table.targetStruct(target)
+                if (struct.getFields().length > 0) {
+                    declareDeserializer()
+                }
                 struct.getFields().forEach(it => {
                     let typeConvertor = this.table.typeConvertor(`value`, it.type!, it.optional)
                     writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, writer))
@@ -166,6 +173,7 @@ class DeserializerPrinter {
             } else {
                 if (writer.language === Language.CPP) {
                     let typeConvertor = this.table.typeConvertor("value", target, false)
+                    declareDeserializer()
                     writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value`, writer))
                 }
             }

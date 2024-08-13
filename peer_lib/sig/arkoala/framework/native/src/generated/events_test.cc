@@ -41,7 +41,7 @@ void impl_Test_Common_OnChildTouchTest(uint8_t* valueArray, int32_t valueLength)
     Deserializer deserializer(valueArray, valueLength);
     Ark_Int32 nodeId = deserializer.readInt32();
     Array_TouchTestInfo param;
-    const auto runtimeType = deserializer.readInt8();
+    deserializer.readInt8();
     param.length = deserializer.readInt32();
     deserializer.resizeArray<std::decay<decltype(param)>::type, std::decay<decltype(*param.array)>::type>(&param, param.length);
     for (int i = 0; i < param.length; i++) {
