@@ -520,7 +520,7 @@ class PeersGenerator {
         // Such as the ones coming from thr friend interfaces
         // E.g. ButtonInterface instead of ButtonAttribute
         const originalParentName = parentName ?? peer.originalClassName!
-        const methodName = isCallSignature ? `_set${peer.componentName}Options` : identName(method.name)!
+        const methodName = isCallSignature ? `set${peer.componentName}Options` : identName(method.name)!
 
         if (PeerGeneratorConfig.ignorePeerMethod.includes(methodName)) return
 

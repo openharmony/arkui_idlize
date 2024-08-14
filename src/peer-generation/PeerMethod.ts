@@ -45,8 +45,7 @@ export class PeerMethod {
         const name = this.overloadedName
         if (!this.hasReceiver()) return name
         if (name.startsWith("set") ||
-            name.startsWith("get") ||
-            name.startsWith("_set")
+            name.startsWith("get")
         ) return name
         return `set${capitalize(name)}`
     }

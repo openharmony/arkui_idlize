@@ -223,6 +223,12 @@ export class DeclarationTable {
                 // For indexed access we just replace the whole type to a custom accessor.
                 return prefix + `CustomMap`
             }
+
+            const parent = target.parent
+            if (ts.isTypeAliasDeclaration(parent)) {
+                return `${PrimitiveType.ArkPrefix}${identName(parent.name)}`
+            }
+
             return this.computeTargetTypeLiteralName(target, prefix)
         }
         if (ts.isLiteralTypeNode(target)) {
@@ -255,6 +261,10 @@ export class DeclarationTable {
             return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
         }
         if (ts.isUnionTypeNode(target)) {
+            const parent = target.parent
+            if (ts.isTypeAliasDeclaration(parent)) {
+                return `${PrimitiveType.ArkPrefix}${identName(parent.name)}`
+            }
             return prefix + `Union_${target.types.map(it => this.computeTargetName(this.toTarget(it), false, "")).join("_")}`
         }
         if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
@@ -832,7 +842,12 @@ export class DeclarationTable {
                 structs.print(`typedef ${PrimitiveType.Int32.getText()} ${nameAssigned};`)
                 if (!seenNames.has(nameOptional)) {
                     seenNames.add(nameOptional)
-                    structs.print(`typedef struct ${nameOptional} { enum ${PrimitiveType.Tag.getText()} tag; ${nameAssigned} value; } ${nameOptional};`)
+                    structs.print(`typedef struct ${nameOptional} {`)
+                    structs.pushIndent()
+                    structs.print(`enum ${PrimitiveType.Tag.getText()} tag;`)
+                    structs.print(`${nameAssigned} value;`)
+                    structs.popIndent()
+                    structs.print(`} ${nameOptional};`)
                     this.writeOptional(nameOptional, writeToString, isPointer)
                     this.writeRuntimeType(target, nameOptional, true, writeToString)
                 }
