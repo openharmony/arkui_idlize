@@ -422,7 +422,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     const materialized = printMaterialized(peerLibrary, context, options.dumpSerialized ?? false)
     for (const [targetFile, materializedClass] of materialized) {
         const outMaterializedFile = arkoala.materialized(targetFile)
-        writeFile(outMaterializedFile, materializedClass)
+        writeFile(outMaterializedFile, materializedClass, peerLibrary.declarationTable.language === Language.ARKTS)
     }
 
     // NativeModule
@@ -452,7 +452,8 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     else {
         writeFile(
             arkoala.langLib(new TargetFile('NativeModule')),
-            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")
+            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
+            true,
         )
     }
 
@@ -507,7 +508,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             const outComponentFile = arkoala.interface(targetBasename)
             console.log("producing", outComponentFile)
             if (options.verbose) console.log(data)
-            writeFile(outComponentFile, data)
+            writeFile(outComponentFile, data, true)
         }
         const fakeDeclarations = printFakeDeclarations(peerLibrary)
         for (const [filename, data] of fakeDeclarations) {
@@ -519,13 +520,16 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         writeFile(
             arkoala.arktsLib(new TargetFile('ConflictedDeclarations')),
             printConflictedDeclarations(peerLibrary),
+            true,
         )
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),
+            true,
         )
         writeFile(arkoala.peer(new TargetFile('Serializer')),
-            makeTSSerializer(peerLibrary)
+            makeTSSerializer(peerLibrary),
+            true,
         )
     }
     if (lang == Language.JAVA) {
@@ -576,5 +580,14 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         'sig/arkoala/framework/native/src/generated/arkoala-macros.h',
         'sig/arkoala/arkui/src/peers/SerializerBase.ts',
         'sig/arkoala/arkui/src/peers/DeserializerBase.ts',
+        'sig/arkoala-arkts/arkui/src/interop.sts',
+        'sig/arkoala-arkts/arkui/src/Finalizable.sts',
+        'sig/arkoala-arkts/arkui/src/CallbackRegistry.sts',
+        'sig/arkoala-arkts/arkui/src/ComponentBase.sts',
+        'sig/arkoala-arkts/arkui/src/PeerNode.sts',
+        'sig/arkoala-arkts/arkui/src/peers/SerializerBase.sts',
+        'sig/arkoala-arkts/arkui/src/shared/ArkResource.sts',
+        'sig/arkoala-arkts/arkui/src/shared/dts-exports.sts',
+        'sig/arkoala-arkts/arkui/src/shared/generated-utils.sts',
     ])
 }
