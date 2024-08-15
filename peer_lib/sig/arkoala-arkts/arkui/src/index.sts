@@ -16,6 +16,7 @@ import { NativeModule, nativeModule } from "./NativeModule"
 import { wrapCallback, callCallback } from "./CallbackRegistry"
 import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
+import { ArkColumnPeer } from "@arkoala/arkui/peers/ArkColumnPeer"
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { ButtonType, LabelStyle } from '@arkoala/arkui/ArkButtonInterfaces'
 import { BlurOptions,
@@ -596,6 +597,36 @@ function checkNativeCallback() {
     nativeModule()._TestCallIntMemory(id5, 1000)
 }
 
+function checkNodeAPI() {
+    console.log("TreeNode tests")
+
+    const root = ArkColumnPeer.create(ArkUINodeType.Column, undefined, 0)
+    const child1 = ArkButtonPeer.create(ArkUINodeType.Button, undefined, 0)
+    const child2 = ArkButtonPeer.create(ArkUINodeType.Blank, undefined, 0)
+    const child3 = ArkButtonPeer.create(ArkUINodeType.List, undefined, 0)
+    const child4 = ArkButtonPeer.create(ArkUINodeType.Web, undefined, 0)
+    const child5 = ArkButtonPeer.create(ArkUINodeType.Web, undefined, 0)
+
+    checkResult("BasicNodeAPI addChild", () => root.peer.addChild(child1.peer),
+        `addChild(0x${root.peer.ptr}, 0x${child1.peer.ptr})`)
+    checkResult("BasicNodeAPI insertChildAfter", () => root.peer.insertChildAfter(child4.peer, child1.peer),
+        `insertChildAfter(0x${root.peer.ptr}, 0x${child4.peer.ptr}, 0x${child1.peer.ptr})`)
+    checkResult("BasicNodeAPI insertChildBefore", () => root.peer.insertChildBefore(child3.peer, child4.peer),
+        `insertChildBefore(0x${root.peer.ptr}, 0x${child3.peer.ptr}, 0x${child4.peer.ptr})`)
+    checkResult("BasicNodeAPI insertChildAt", () => root.peer.insertChildAt(child2.peer, 1),
+        `insertChildAt(0x${root.peer.ptr}, 0x${child2.peer.ptr}, 1)`)
+    checkResult("BasicNodeAPI insertChildAfter (empty tree case)", () => child4.peer.insertChildAfter(child5.peer, undefined),
+        `insertChildAfter(0x${child4.peer.ptr}, 0x${child5.peer.ptr}, 0x0)`)
+    checkResult("BasicNodeAPI removeChild", () => root.peer.removeChild(child2.peer),
+        `removeChild(0x${root.peer.ptr}, 0x${child2.peer.ptr})`)
+    checkResult("BasicNodeAPI dispose", () => child2.peer.dispose(),
+        `disposeNode(0x${child2.peer.ptr})`)
+    checkResult("BasicNodeAPI dumpTree", () => root.peer.dumpTree(),
+        `dumpTreeNode(0x${root.peer.ptr})`)
+    checkResult("BasicNodeAPI measureLayoutAndDraw", () => NativeModule._MeasureLayoutAndDraw(root.peer.ptr),
+        `measureLayoutAndDraw(0x${root.peer.ptr})`)
+}
+
 export function main(): void {
     checkPerf(5 * 1000 * 1000)
     checkPerf2(5 * 1000 * 1000)
@@ -605,4 +636,6 @@ export function main(): void {
 
     checkCallback()
     checkNativeCallback()
+
+    checkNodeAPI()
 }

@@ -18,10 +18,13 @@ from std import collection.*
 
 public open class PeerNode {
     public var peer: NativePeerNode
+    
+    private var id: Int32 = currentId++
+
+    private static var currentId: Int32 = 1000
+
     public PeerNode(nodeType: ArkUINodeType, component: ?ComponentBase, flags: Int32) {
-        // const id = 0
-        // const ptr = NativeModule._CreateNode(nodeType, id, flags)
-        this.peer = NativePeerNode(42, 0);
+        this.peer = NativePeerNode.create(nodeType, this.id, flags)
     }
     func applyAttributes(attrs: HashMap<String, Object>): Unit {}
 }

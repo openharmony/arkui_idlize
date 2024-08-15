@@ -18,4 +18,33 @@ public open class NativePeerNode <: Finalizable {
     public NativePeerNode(ptr: Int64, finalizer: Int64) {
         super(ptr, finalizer)
     }
+
+    public static func create(type: ArkUINodeType, id: Int32, flags: Int32): NativePeerNode {
+        var ptr = NativeModule._CreateNode(Int32(type), id, flags)
+        return NativePeerNode(ptr, NativeModule._GetNodeFinalizer())
+    }
+
+    public func dispose() {
+        NativeModule._DisposeNode(this.ptr)
+    }
+
+    public func addChild(node: NativePeerNode) {
+        NativeModule._AddChild(this.ptr, node.ptr)
+    }
+    public func removeChild(node: NativePeerNode) {
+        NativeModule._RemoveChild(this.ptr, node.ptr)
+    }
+    public func insertChildBefore(node: NativePeerNode, sibling: NativePeerNode) {
+        NativeModule._InsertChildBefore(this.ptr, node.ptr, sibling == null ? 0 : sibling.ptr)
+    }
+    public func insertChildAfter(node: NativePeerNode, sibling: NativePeerNode) {
+        NativeModule._InsertChildAfter(this.ptr, node.ptr, sibling == null ? 0 : sibling.ptr)
+    }
+    public func insertChildAt(node: NativePeerNode, position: Int32) {
+        NativeModule._InsertChildAt(this.ptr, node.ptr, position)
+    }
+
+    public func dumpTree() {
+        NativeModule._DumpTreeNode(this.ptr)
+    }
 }
