@@ -27,6 +27,7 @@ import { OverloadsPrinter, collapseSameNamedMethods } from "./OverloadsPrinter";
 import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
 import { convertToCallback } from "./EventsPrinter";
 import { tsCopyrightAndWarning } from "../FileGenerators";
+import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 
 function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -77,7 +78,7 @@ class ComponentFileVisitor {
             //     imports.addFeature(it.className, `./Ark${peer.componentName}Peer`)
             // })
         })
-        if (this.file.declarationTable.language === Language.TS)
+        if ([Language.TS, Language.ARKTS].includes(this.file.declarationTable.language))
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(this.printer, removeExt(this.targetBasename))
     }
@@ -106,7 +107,12 @@ class ComponentFileVisitor {
 
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), [FieldModifier.PROTECTED], true)
-            for (const grouped of this.groupOverloads(peer.methods))
+            const filteredMethods = peer.methods.filter(it => {
+                if (this.library.declarationTable.language === Language.ARKTS)
+                    return !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(it.overloadedName)
+                return true
+            })
+            for (const grouped of this.groupOverloads(filteredMethods))
                 this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
@@ -131,7 +137,7 @@ export function ${componentFunctionName}(
     const receiver = remember(() => {
         return new ${componentClassName}()
     })
-    NodeAttach(() => ${peerClassName}.create(ArkUINodeType.${peer.componentName}, receiver), () => {
+    NodeAttach<${peerClassName}>((): ${peerClassName} => ${peerClassName}.create(ArkUINodeType.${peer.componentName}, receiver), (_: ${peerClassName}) => {
         ${callableMethod ? `receiver.${callableMethod.name}(${mappedCallableParamsValues})` : ""}
         style?.(receiver)
         content_?.()
@@ -170,7 +176,7 @@ class ComponentsVisitor {
 
 export function printComponents(peerLibrary: PeerLibrary): Map<string, string> {
     // TODO: support other output languages
-    if (peerLibrary.declarationTable.language != Language.TS)
+    if (![Language.TS, Language.ARKTS].includes(peerLibrary.declarationTable.language))
         return new Map()
 
     const visitor = new ComponentsVisitor(peerLibrary)

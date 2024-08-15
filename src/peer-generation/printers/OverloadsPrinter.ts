@@ -17,7 +17,7 @@ import { UndefinedConvertor, UnionRuntimeTypeChecker } from "../Convertors"
 import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters";
 import { PeerClass, PeerClassBase } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
-import { isDefined } from "../../util";
+import { isDefined, Language } from "../../util";
 import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
 import { PeerLibrary } from "../PeerLibrary";
 
@@ -118,17 +118,18 @@ export class OverloadsPrinter {
         const postfix = this.isComponent ? "Attribute" : "_serialize"
         const methodName = `${peerMethod.overloadedName}${postfix}`
 
-        peerMethod.declarationTargets.map((target, index) => {
-            if (this.isComponent) { // TBD: Check for materialized classes
-                const callback = convertToCallback(peer, peerMethod, target)
-                if (!callback || !canProcessCallback(this.library.declarationTable, callback))
-                    return
-                const argName = argsNames[index]
-                this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseEventsProperties`,[
-                    new StringExpression(`{${callbackIdByInfo(callback)}: ${argName}}`)
-                ])))
-            }
-        })
+        if ([Language.TS].includes(this.library.declarationTable.language))
+            peerMethod.declarationTargets.map((target, index) => {
+                if (this.isComponent) { // TBD: Check for materialized classes
+                    const callback = convertToCallback(peer, peerMethod, target)
+                    if (!callback || !canProcessCallback(this.library.declarationTable, callback))
+                        return
+                    const argName = argsNames[index]
+                    this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseEventsProperties`,[
+                        new StringExpression(`{${callbackIdByInfo(callback)}: ${argName}}`)
+                    ])))
+                }
+            })
 
         const returnType = collapsedMethod.signature.returnType
         if (returnType === Type.This || returnType === Type.Void) {

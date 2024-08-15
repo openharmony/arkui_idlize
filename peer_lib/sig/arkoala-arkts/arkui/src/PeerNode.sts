@@ -1,8 +1,9 @@
 import { int32 } from "@koalaui/common"
+import { IncrementalNode } from "@koalaui/runtime"
 import { ArkUINodeType } from "./peers/ArkUINodeType"
 import { NativePeerNode } from "./NativePeerNode"
 
-export class PeerNode {
+export class PeerNode extends IncrementalNode {
     peer: NativePeerNode
     private id: int32 = PeerNode.currentId++
 

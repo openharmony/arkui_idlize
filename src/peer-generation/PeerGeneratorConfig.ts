@@ -88,6 +88,8 @@ export class PeerGeneratorConfig {
         "TextMenuItemId",
     ]
 
+    public static ArkTsIgnoredMethods = ["testTupleNumberStringEnum", "testTupleOptional", "testTupleUnion"]
+
     public static ignoreReturnTypes = new Set<string>([
         "Promise"
     ])

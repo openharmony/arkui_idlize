@@ -37,6 +37,7 @@ import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARK_MATERIALIZEDBASE_EMPTY_PARAMETER, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
+import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -50,7 +51,6 @@ function componentToAttributesClass(component: string) {
 class PeerFileVisitor {
     readonly printers = new Map<TargetFile, LanguageWriter>
     //TODO: Ignore until bugs are fixed in https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/17850
-    private static readonly ArkTsIgnoredMethods = ["testTupleNumberStringEnum", "testTupleOptional", "testTupleUnion"]
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -182,7 +182,7 @@ class PeerFileVisitor {
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer)
             peer.methods.filter((method) =>
-                writer.language == Language.ARKTS ? !PeerFileVisitor.ArkTsIgnoredMethods.includes(method.overloadedName) : true
+                writer.language == Language.ARKTS ? !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(method.overloadedName) : true
             ).forEach((method) => this.printPeerMethod(method, writer))
             this.printApplyMethod(peer, writer)
         }, this.generatePeerParentName(peer))

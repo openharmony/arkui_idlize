@@ -581,6 +581,8 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         'sig/arkoala/arkui/src/peers/SerializerBase.ts',
         'sig/arkoala/arkui/src/peers/DeserializerBase.ts',
         'sig/arkoala-arkts/arkui/src/interop.sts',
+        'sig/arkoala-arkts/arkui/src/runtime.sts',
+        'sig/arkoala-arkts/arkui/src/use_properties.sts',
         'sig/arkoala-arkts/arkui/src/Finalizable.sts',
         'sig/arkoala-arkts/arkui/src/CallbackRegistry.sts',
         'sig/arkoala-arkts/arkui/src/ComponentBase.sts',
