@@ -1,24 +1,47 @@
 import { Language, renameClassToBuilderClass } from "../../util"
 import { LanguageWriter, MethodModifier, Method, Type, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary"
-import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES } from "../BuilderClass";
+import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES, BuilderMethod, BuilderField } from "../BuilderClass";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
 import { collectDtsImports } from "../DtsImportsGenerator";
+import { TargetFile } from "./TargetFile";
+import { PrinterContext } from "./PrinterContext";
+import { SuperElement } from "../Materialized";
+import { ImportFeature } from "../ImportsCollector";
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 
-class BuilderClassFileVisitor {
+interface BuilderClassFileVisitor {
+    printFile(): void
+    getTargetFile(): TargetFile
+    getOutput(): string[]
+}
 
-    readonly printer: LanguageWriter = createLanguageWriter(this.language)
+class TSBuilderClass {
+    constructor(
+        public readonly name: string,
+        public readonly isInterface: boolean,
+        public readonly superClass: SuperElement | undefined,
+        public readonly fields: Field[],
+        public readonly constructors: Method[],
+        public readonly methods: Method[],
+        public readonly importFeatures: ImportFeature[],
+        public readonly needBeGenerated: boolean = true,
+    ) { }
+}
+
+class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
+
+    private readonly printer: LanguageWriter = createLanguageWriter(this.language)
 
     constructor(
         private readonly language: Language,
-        private readonly library: PeerLibrary,
         private readonly builderClass: BuilderClass,
         private readonly dumpSerialized: boolean,
     ) { }
 
-    private printBuilderClass(clazz: BuilderClass) {
+    private printBuilderClass(builderClass: TSBuilderClass) {
         const writer = this.printer
-        clazz = processBuilderClass(clazz)
+        const clazz = processTSBuilderClass(builderClass)
 
         //TODO: in the future it is necessary to import elements from generated ets files
         if (writer.language == Language.ARKTS) {
@@ -36,7 +59,6 @@ class BuilderClassFileVisitor {
             clazz.fields.forEach(field => {
                 writer.writeFieldDeclaration(field.name, field.type, field.modifiers, field.type.nullable)
             })
-
 
             clazz.constructors
                 .forEach(ctor => {
@@ -80,40 +102,169 @@ class BuilderClassFileVisitor {
     }
 
     printFile(): void {
+        this.printBuilderClass(toTSBuilderClass(this.builderClass))
+    }
+
+    getTargetFile(): TargetFile {
+        return new TargetFile(renameClassToBuilderClass(this.builderClass.name, this.language))
+    }
+
+    getOutput(): string[] {
+        return this.printer.getOutput()
+    }
+}
+
+class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
+
+    private readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language)
+
+    constructor(
+        private readonly printerContext: PrinterContext,
+        private readonly builderClass: BuilderClass,
+        private readonly dumpSerialized: boolean,
+    ) { }
+
+    private synthesizeField(method: BuilderMethod): BuilderField {
+        const fieldType = this.printerContext.synthesizedTypes!.getTargetType(method.declarationTargets[0], true)
+        return new BuilderField(
+            new Field(syntheticName(method.method.name), fieldType),
+            method.declarationTargets[0])
+    }
+
+    private convertBuilderMethod(method: BuilderMethod, returnType: Type, newMethodName?: string): BuilderMethod {
+        const oldSignature = method.method.signature as NamedMethodSignature
+        const types = method.declarationTargets.map(it => this.printerContext.synthesizedTypes!.getTargetType(it, true))
+        const signature = new NamedMethodSignature(returnType, types, oldSignature.argsNames, oldSignature.defaults);
+        return new BuilderMethod(
+            new Method(
+                newMethodName ?? method.method.name,
+                signature,
+                method.method.modifiers,
+                method.method.generics,
+            ),
+            method.declarationTargets
+        )
+    }
+    
+    private processBuilderClass(clazz: BuilderClass): BuilderClass {
+        const syntheticFields = clazz.methods
+            .filter(it => !it.method.modifiers?.includes(MethodModifier.STATIC))
+            .map(it => this.synthesizeField(it))
+        const fields = [...clazz.fields, ...syntheticFields]
+
+        const returnType = new Type(clazz.name)
+        const constructors = clazz.constructors.map(it => this.convertBuilderMethod(it, returnType, clazz.name))
+        const methods = clazz.methods.map(it => this.convertBuilderMethod(it, returnType))
+    
+        return new BuilderClass(
+            clazz.name,
+            clazz.isInterface,
+            clazz.superClass,
+            fields,
+            constructors,
+            methods,
+            clazz.importFeatures
+        )
+    }
+
+    private printPackage(): void {
+        this.printer.print(`package ${ARKOALA_PACKAGE};\n`)
+    }
+
+    private printBuilderClass(clazz: BuilderClass) {
+        const writer = this.printer
+        clazz = this.processBuilderClass(clazz)
+
+        this.printPackage()
+
+        writer.writeClass(clazz.name, writer => {
+
+            clazz.fields.forEach(field => {
+                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, field.field.type.nullable)
+            })
+
+            clazz.constructors
+                .forEach(ctor => {
+                    writer.writeConstructorImplementation(ctor.method.name, ctor.method.signature, writer => {})
+                })
+
+            clazz.methods
+                .filter(method => method.method.modifiers?.includes(MethodModifier.STATIC))
+                .forEach(staticMethod => {
+                    writer.writeMethodImplementation(staticMethod.method, writer => {
+                        const sig = staticMethod.method.signature
+                        const args = sig.args.map((_, i) => sig.argName(i)).join(", ")
+                        writer.writeStatement(writer.makeReturn(writer.makeString(`new ${clazz.name}(${args})`)))
+                    })
+                })
+
+            clazz.methods
+                .filter(method => !method.method.modifiers?.includes(MethodModifier.STATIC))
+                .forEach(method => {
+                    writer.writeMethodImplementation(method.method, writer => {
+                        const argName = method.method.signature.argName(0)
+                        const fieldName = syntheticName(method.method.name)
+                        writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
+                        writer.writeStatement(writer.makeReturn(writer.makeString("this")))
+                    })
+                })
+        })
+    }
+
+    printFile(): void {
         this.printBuilderClass(this.builderClass)
+    }
+
+    getTargetFile(): TargetFile {
+        return new TargetFile(this.builderClass.name + this.printerContext.language.extension, ARKOALA_PACKAGE_PATH)
+    }
+
+    getOutput(): string[] {
+        return this.printer.getOutput()
     }
 }
 
 class BuilderClassVisitor {
-    readonly builderClasses: Map<string, string[]> = new Map()
+    readonly builderClasses: Map<TargetFile, string[]> = new Map()
 
     constructor(
         private readonly library: PeerLibrary,
+        private printerContext: PrinterContext, 
         private readonly dumpSerialized: boolean,
     ) { }
 
     printBuilderClasses(): void {
         const builderClasses = [...CUSTOM_BUILDER_CLASSES, ...this.library.buildersToGenerate.values()]
         console.log(`Builder classes: ${builderClasses.length}`)
+        const language = this.printerContext.language
         for (const clazz of builderClasses) {
-            const visitor = new BuilderClassFileVisitor(
-                this.library.declarationTable.language, this.library, clazz, this.dumpSerialized)
+            let visitor: BuilderClassFileVisitor
+            if ([Language.ARKTS, Language.TS].includes(language)) {
+                visitor = new TSBuilderClassFileVisitor(language, clazz, this.dumpSerialized)
+            }
+            else if ([Language.JAVA].includes(language)) {
+                visitor = new JavaBuilderClassFileVisitor(this.printerContext, clazz, this.dumpSerialized)
+            }
+            else {
+                throw new Error(`Unsupported language ${language.toString()} in BuilderClassPrinter`)
+            }
+
             visitor.printFile()
-            const fileName = renameClassToBuilderClass(clazz.name, this.library.declarationTable.language)
-            this.builderClasses.set(fileName, visitor.printer.getOutput())
+            const targetFile = visitor.getTargetFile()
+            this.builderClasses.set(targetFile, visitor.getOutput())
         }
     }
 }
 
-export function printBuilderClasses(peerLibrary: PeerLibrary, dumpSerialized: boolean): Map<string, string> {
-
+export function printBuilderClasses(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
     // TODO: support other output languages
-    if (peerLibrary.declarationTable.language != Language.TS && peerLibrary.declarationTable.language != Language.ARKTS)
+    if (printerContext.language != Language.TS && printerContext.language != Language.ARKTS && printerContext.language != Language.JAVA) {
         return new Map()
+    }
 
-    const visitor = new BuilderClassVisitor(peerLibrary, dumpSerialized)
+    const visitor = new BuilderClassVisitor(peerLibrary, printerContext, dumpSerialized)
     visitor.printBuilderClasses()
-    const result = new Map<string, string>()
+    const result = new Map<TargetFile, string>()
     for (const [key, content] of visitor.builderClasses) {
         if (content.length === 0) continue
         result.set(key, content.join('\n'))
@@ -133,11 +284,22 @@ function toSyntheticField(method: Method): Field {
 function collapse(methods: Method[]): Method[] {
     const groups = methodsGroupOverloads(methods)
     return groups.map(it => it.length == 1 ? it[0] : collapseSameNamedMethods(it))
-
 }
 
-function processBuilderClass(clazz: BuilderClass): BuilderClass {
+function toTSBuilderClass(clazz: BuilderClass): TSBuilderClass {
+    return new TSBuilderClass(
+        clazz.name,
+        clazz.isInterface,
+        clazz.superClass,
+        clazz.fields.map(it => it.field),
+        clazz.constructors.map(it => it.method),
+        clazz.methods.map(it => it.method),
+        clazz.importFeatures,
+        clazz.needBeGenerated,
+    )
+}
 
+function processTSBuilderClass(clazz: TSBuilderClass): TSBuilderClass {
     const methods = collapse(clazz.methods)
     let constructors = collapse(clazz.constructors)
 
@@ -168,7 +330,7 @@ function processBuilderClass(clazz: BuilderClass): BuilderClass {
     const fields = [...clazz.fields, ...syntheticFields]
     //const fields = [typeField, ...clazz.fields, ...ctorFields, ...syntheticFields]
 
-    return new BuilderClass(
+    return new TSBuilderClass(
         clazz.name,
         clazz.isInterface,
         clazz.superClass,

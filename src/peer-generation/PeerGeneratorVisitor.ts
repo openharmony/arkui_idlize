@@ -62,7 +62,7 @@ import {
     makeSyntheticInterfaceDeclaration,
     makeSyntheticTypeAliasDeclaration
 } from "./synthetic_declaration";
-import { isBuilderClass, isCustomBuilderClass, toBuilderClass } from "./BuilderClass";
+import { initCustomBuilderClasses, isBuilderClass, isCustomBuilderClass, toBuilderClass } from "./BuilderClass";
 import { Lazy, lazy } from "./lazy";
 
 export enum RuntimeType {
@@ -728,7 +728,8 @@ export class PeerProcessor {
         if (isCustomBuilderClass(name)) {
             return
         }
-        const builderClass = toBuilderClass(name,
+        const builderClass = toBuilderClass(this.declarationTable,
+            name,
             target,
             this.declarationTable.typeChecker!,
             isActualDeclaration,
@@ -943,6 +944,7 @@ export class PeerProcessor {
     }
 
     process(): void {
+        initCustomBuilderClasses()
         new ComponentsCompleter(this.library).process()
         const peerGenerator = new PeersGenerator(this.library)
         const typeNodeConvertor = createTypeNodeConvertor(this.library)

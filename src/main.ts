@@ -413,9 +413,9 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         arkuiComponentsFiles.push(outComponentFile)
     }
 
-    const builderClasses = printBuilderClasses(peerLibrary, options.dumpSerialized ?? false)
-    for (const [targetBasename, builderClass] of builderClasses) {
-        const outBuilderFile = arkoala.builderClass(new TargetFile(targetBasename))
+    const builderClasses = printBuilderClasses(peerLibrary, context, options.dumpSerialized ?? false)
+    for (const [targetFile, builderClass] of builderClasses) {
+        const outBuilderFile = arkoala.builderClass(targetFile)
         fs.writeFileSync(outBuilderFile, builderClass)
     }
 

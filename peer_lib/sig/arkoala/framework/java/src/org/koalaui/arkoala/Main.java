@@ -204,6 +204,14 @@ public class Main {
             () -> { peer.testDateCustomObjectAttribute(datePickerOptions); },
             "testDateCustomObject({.start={.tag=ARK_TAG_OBJECT, .value={.kind=\"Date\", .id=0}}, .end={.tag=ARK_TAG_OBJECT, .value={.kind=\"Date\", .id=0}}})");
 
+        // builder classes
+        var len = new Ark_Length("10lpx");
+        var indicator = DotIndicator.dot().right(len).left(len).itemWidth(len);
+        var swiperPeer = ArkSwiperPeer.create(ArkUINodeType.Root, null, 0);
+        TestUtils.checkResult("[Builder] SwiperPeer.indicator",
+            () -> { swiperPeer.indicatorAttribute(indicator); },
+            "indicator({._left={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10.000000, .unit=4, .resource=0}}, ._top={.tag=ARK_TAG_UNDEFINED, .value={}}, ._right={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10.000000, .unit=4, .resource=0}}, ._bottom={.tag=ARK_TAG_UNDEFINED, .value={}}, ._start={.tag=ARK_TAG_UNDEFINED, .value={}}, ._end={.tag=ARK_TAG_UNDEFINED, .value={}}, ._itemWidth={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10.000000, .unit=4, .resource=0}}, ._itemHeight={.tag=ARK_TAG_UNDEFINED, .value={}}})");
+
         System.out.println();
     }
 

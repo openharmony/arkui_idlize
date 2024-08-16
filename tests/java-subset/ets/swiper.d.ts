@@ -36,9 +36,9 @@ declare class DotIndicator extends Indicator<DotIndicator> {
 
   constructor();
 
-  /*~itemWidth(value: Length): DotIndicator;
+  itemWidth(value: Length): DotIndicator;
 
-  itemHeight(value: Length): DotIndicator;*/
+  itemHeight(value: Length): DotIndicator;
 
 
 //
@@ -84,7 +84,7 @@ declare class SwiperAttribute extends CommonMethod<SwiperAttribute> {
 
   index(value: number): SwiperAttribute;
 
-  //~indicator(value: DotIndicator): SwiperAttribute;
+  indicator(value: DotIndicator): SwiperAttribute;
 //  indicator(value: DotIndicator | DigitIndicator | boolean): SwiperAttribute;
 
 }

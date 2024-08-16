@@ -17,7 +17,7 @@ import * as ts from "typescript"
 import { heritageDeclarations, identName, isReadonly, isStatic } from "../util"
 import { Field, FieldModifier, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
-import { DeclarationTable, FieldRecord } from "./DeclarationTable"
+import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable"
 import { generateMethodModifiers, generateSignature } from "./PeerGeneratorVisitor"
 import { SuperElement } from "./Materialized"
 import { ImportFeature } from "./ImportsCollector"
@@ -60,8 +60,23 @@ export function isBuilderClass(declaration: ts.InterfaceDeclaration | ts.ClassDe
     */
 }
 
-function builderMethod(name: string, typeName: string): Method {
-    return new Method(name, new NamedMethodSignature(Type.This, [new Type(typeName)], ["value"]))
+function builderMethod(name: string, typeName: string, declarationTarget: DeclarationTarget): BuilderMethod {
+    const method = new Method(name, new NamedMethodSignature(Type.This, [new Type(typeName)], ["value"]))
+    return new BuilderMethod(method, [declarationTarget])
+}
+
+export class BuilderField {
+    constructor(
+        public field: Field,
+        public declarationTarget: DeclarationTarget,
+    ) { }
+}
+
+export class BuilderMethod {
+    constructor(
+        public method: Method,
+        public declarationTargets: DeclarationTarget[],
+    ) { }
 }
 
 export class BuilderClass {
@@ -69,37 +84,42 @@ export class BuilderClass {
         public readonly name: string,
         public readonly isInterface: boolean,
         public readonly superClass: SuperElement | undefined,
-        public readonly fields: Field[],
-        public readonly constructors: Method[],
-        public readonly methods: Method[],
+        public readonly fields: BuilderField[],
+        public readonly constructors: BuilderMethod[],
+        public readonly methods: BuilderMethod[],
         public readonly importFeatures: ImportFeature[],
         public readonly needBeGenerated: boolean = true,
     ) { }
 }
 
-export const CUSTOM_BUILDER_CLASSES: BuilderClass[] = [
-    new BuilderClass("Indicator", false, undefined,
-        [], // fields
-        [new Method("constructor", new MethodSignature(Type.Void, []))],
-        [
-            ...["left", "top", "right", "bottom"].map(it => builderMethod(it, "Length")),
-            ...["start", "end"].map(it => builderMethod(it, "LengthMetrics")),
-            new Method("dot", new MethodSignature(new Type("DotIndicator"), []), [MethodModifier.STATIC]),
-        ],
-        [], // imports
-    ),
-]
+export const CUSTOM_BUILDER_CLASSES: BuilderClass[] = []
+const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set()
 
-const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set(CUSTOM_BUILDER_CLASSES.map(it => it.name))
+export function initCustomBuilderClasses() {
+    CUSTOM_BUILDER_CLASSES.push(
+        new BuilderClass("Indicator", false, undefined,
+            [], // fields
+            [new BuilderMethod(new Method("constructor", new MethodSignature(Type.Void, [])), [])],
+            [
+                ...["left", "top", "right", "bottom"].map(it => builderMethod(it, "Length", PrimitiveType.Length)),
+                ...["start", "end"].map(it => builderMethod(it, "LengthMetrics", PrimitiveType.CustomObject)),
+                new BuilderMethod(new Method("dot", new MethodSignature(new Type("DotIndicator"), []), [MethodModifier.STATIC]), [PrimitiveType.CustomObject]),
+            ],
+            [], // imports
+        )
+    )
+    CUSTOM_BUILDER_CLASSES.forEach(it => CUSTOM_BUILDER_CLASSES_SET.add(it.name))
+}
 
 export function isCustomBuilderClass(name: string) {
     return CUSTOM_BUILDER_CLASSES_SET.has(name)
 }
 
-export function toBuilderClass(name: string,
+export function toBuilderClass(declarationTable: DeclarationTable,
+                               name: string,
                                target: ts.InterfaceDeclaration | ts.ClassDeclaration, typeChecker: ts.TypeChecker,
                                needBeGenerated: boolean,
-                               typeNodeNameConvertor: TypeNodeNameConvertor) {
+                               typeNodeNameConvertor: TypeNodeNameConvertor): BuilderClass {
 
     const isClass = ts.isClassDeclaration(target)
     const isInterface = ts.isInterfaceDeclaration(target)
@@ -107,30 +127,30 @@ export function toBuilderClass(name: string,
     const fields = isClass
         ? target.members
             .filter(ts.isPropertyDeclaration)
-            .map(it => toBuilderField(it))
+            .map(it => toBuilderField(declarationTable, it))
         : isInterface
             ? target.members
                 .filter(ts.isPropertySignature)
-                .map(it => toBuilderField(it))
+                .map(it => toBuilderField(declarationTable, it))
             : []
 
     const constructors = isClass
         ? target.members
             .filter(ts.isConstructorDeclaration)
-            .map(method => toBuilderMethod(method, typeNodeNameConvertor))
-        : [toBuilderMethod(undefined, typeNodeNameConvertor)]
+            .map(method => toBuilderMethod(declarationTable, method, typeNodeNameConvertor))
+        : [toBuilderMethod(declarationTable, undefined, typeNodeNameConvertor)]
 
-    const methods = getBuilderMethods(target, typeChecker, typeNodeNameConvertor)
+    const methods = getBuilderMethods(declarationTable, target, typeChecker, typeNodeNameConvertor)
 
     return new BuilderClass(name, isInterface, undefined, fields, constructors, methods, [], needBeGenerated)
 }
 
-function getBuilderMethods(target: ts.InterfaceDeclaration | ts.ClassDeclaration, typeChecker: ts.TypeChecker, typeNodeNameConvertor: TypeNodeNameConvertor): Method[] {
+function getBuilderMethods(declarationTable: DeclarationTable, target: ts.InterfaceDeclaration | ts.ClassDeclaration, typeChecker: ts.TypeChecker, typeNodeNameConvertor: TypeNodeNameConvertor): BuilderMethod[] {
 
     const heritageMethods = target.heritageClauses
         ?.flatMap(it => heritageDeclarations(typeChecker, it))
         .flatMap(it => (ts.isClassDeclaration(it) || ts.isInterfaceDeclaration(it))
-            ? getBuilderMethods(it, typeChecker, typeNodeNameConvertor)
+            ? getBuilderMethods(declarationTable, it, typeChecker, typeNodeNameConvertor)
             : [])
         ?? []
 
@@ -140,35 +160,37 @@ function getBuilderMethods(target: ts.InterfaceDeclaration | ts.ClassDeclaration
     const methods = isClass
         ? target.members
             .filter(ts.isMethodDeclaration)
-            .map(method => toBuilderMethod(method, typeNodeNameConvertor))
+            .map(method => toBuilderMethod(declarationTable, method, typeNodeNameConvertor))
         : isInterface
             ? target.members
                 .filter(ts.isMethodSignature)
-                .map(method => toBuilderMethod(method, typeNodeNameConvertor))
+                .map(method => toBuilderMethod(declarationTable, method, typeNodeNameConvertor))
             : []
 
     return [...heritageMethods, ...methods]
 }
 
-function toBuilderField(property: ts.PropertyDeclaration | ts.PropertySignature): Field {
+function toBuilderField(declarationTable: DeclarationTable, property: ts.PropertyDeclaration | ts.PropertySignature): BuilderField {
     const fieldName = identName(property.name)!
     const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
     const isOptional = property.questionToken !== undefined
-    return new Field(fieldName, new Type(mapType(property.type), isOptional), modifiers)
+    const declarationTarget = declarationTable.toTarget(property.type!)
+    return new BuilderField(new Field(fieldName, new Type(mapType(property.type), isOptional), modifiers), declarationTarget)
 }
 
-function toBuilderMethod(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | undefined, typeNodeNameConvertor: TypeNodeNameConvertor): Method {
+function toBuilderMethod(declarationTable: DeclarationTable, method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | undefined, typeNodeNameConvertor: TypeNodeNameConvertor): BuilderMethod {
     const methodName = method === undefined || ts.isConstructorDeclaration(method) ? "constructor" : identName(method.name)!
 
     if (method === undefined) {
-        return new Method(methodName, new NamedMethodSignature(Type.Void))
+        return new BuilderMethod(new Method(methodName, new NamedMethodSignature(Type.Void)), [])
     }
 
     const generics = method.typeParameters?.map(it => it.getText())
     const signature = generateSignature(method, typeNodeNameConvertor)
     const modifiers = generateMethodModifiers(method)
+    const declarationTargets: DeclarationTarget[] = method.parameters.map(it => declarationTable.toTarget(it.type!))
 
-    return new Method(methodName, signature, modifiers, generics)
+    return new BuilderMethod(new Method(methodName, signature, modifiers, generics), declarationTargets)
 }
 
 export function methodsGroupOverloads(methods: Method[]): Method[][] {

@@ -156,6 +156,7 @@ public class SerializerBase {
         buffer.position(buffer.position() + encodedLength);
     }
     public void writeLength(Ark_Length value) {
+        this.buffer.put(RuntimeType.STRING.value);
         this.writeString(value.value);
     }
     public void writeCustomObject(String kind, Ark_CustomObject value) {
