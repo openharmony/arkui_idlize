@@ -1,8 +1,8 @@
-#include "arkoala_api_generated.h"
 #include "events.h"
 #include "common-interop.h"
-#include "Serializers.h"
 #include "library.h"
+#include "Serializers.h"
+#include "arkoala_api_generated.h"
 
 namespace Generated {
     extern const GENERATED_ArkUIEventsAPI* GetArkUiEventsAPI();

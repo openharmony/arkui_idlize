@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "arkoala_api_generated.h"
 #include "arkoala-logging.h"
 #include "library.h"
 
 #include "arkoala-logging.h"
+#include "arkoala_api_generated.h"
 
 #if defined(KOALA_WINDOWS)
 
