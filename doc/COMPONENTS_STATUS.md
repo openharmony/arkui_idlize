@@ -6,4 +6,7 @@
 | Badge |      | Lena | In Progress |
 | Progress |      | Roman | In Progress |
 | QrCode |      | Roman | In Progress |
-
+| LoadingProgress |      | samarinsergey| In Progress |
+| Select |      | samarinsergey | In Progress |
+| Blank |      | skrobagleb | In Progress |
+| CheckBoxGroup|      | dwx480579 | In Progress |
