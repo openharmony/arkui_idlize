@@ -19,6 +19,9 @@ import path from "path"
 import process from "process"
 import { execSync } from "child_process"
 
+var args = process.argv.slice(2)
+const dryRun = args.includes('--dry-run')
+
 const CWD = process.cwd()
 const prebuiltPath = path.join(CWD, ".packages")
 
@@ -50,7 +53,11 @@ function publishToOpenlab() {
 
     let packageName = fs.readdirSync(prebuiltPath)[0]
     console.log(chalk.green(`> Publishing ${packageName}...`))
-    execSync(`npm publish ${path.join(prebuiltPath, packageName)}`)
+    if (dryRun) {
+        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --dry-run`)
+    } else {
+        execSync(`npm publish ${path.join(prebuiltPath, packageName)}`)
+    }
 
 }
 
@@ -62,7 +69,11 @@ function publishToGitlab() {
 
     let packageName = fs.readdirSync(prebuiltPath)[0]
     console.log(chalk.green(`> Publishing ${packageName}...`))
-    execSync(`npm publish ${path.join(prebuiltPath, packageName)}`)
+    if (dryRun) {
+        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --dry-run`)
+    } else {
+        execSync(`npm publish ${path.join(prebuiltPath, packageName)}`)
+    }
 
     setRegistry(keyIdlizeRegistry, idlizeRegistry)
 }
