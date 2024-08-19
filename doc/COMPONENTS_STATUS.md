@@ -4,9 +4,14 @@
 | AlphabetIndexer | color | Peter | In Progress |
 | Animator | state |  |  |
 | Badge |      | Lena | In Progress |
-| Progress |      | Roman | In Progress |
-| QrCode |      | Roman | In Progress |
-| LoadingProgress |      | samarinsergey| In Progress |
-| Select |      | samarinsergey | In Progress |
-| Blank |      | skrobagleb | In Progress |
-| CheckBoxGroup|      | dwx480579 | In Progress |
+| Progress |      | wx1298574  Roman | In Progress |
+| QrCode |      | wx1298574 Roman | In Progress |
+| LoadingProgress |      | wx480555 Sergey| In Progress |
+| Select |      | wx480555 Sergey| In Progress |
+| Blank |      | wx781919 Gleb| In Progress |
+| CheckBoxGroup |      | dwx480579 Sergey| In Progress |
+| Radio |      | wx1298574 Roman | In Progress |
+| Menu |      | wx997882 Sergey| In Progress |
+| Counter |      | wx498619 Ilya | In Progress |
+| Divider|      | wx480581 Ivan| In Progress |
+
