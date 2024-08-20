@@ -35,6 +35,7 @@ export type CallbackInfo = {
     methodName: string,
     args: {name: string, type: ts.TypeNode, nullable: boolean}[],
     returnType: ts.TypeNode,
+    originTarget: ts.TypeNode
 }
 
 export function generateEventsBridgeSignature(language: Language): Method {
@@ -109,6 +110,7 @@ export function convertToCallback(peer: PeerClassBase, method: PeerMethod, targe
                 nullable: !!it.questionToken
             }}),
             returnType: target.type,
+            originTarget: target,
         }
     if (ts.isTypeReferenceNode(target) && identName(target.typeName) === "Callback") {
         const data = target.typeArguments![0]
@@ -117,7 +119,8 @@ export function convertToCallback(peer: PeerClassBase, method: PeerMethod, targe
             componentName: peer.getComponentName(),
             methodName: method.method.name,
             args: hasData ? [{name: 'data', type: data, nullable: false}] : [],
-            returnType: target.typeArguments![1] ?? ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
+            returnType: target.typeArguments![1] ?? ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
+            originTarget: target,
         }
     }
 }
@@ -353,12 +356,7 @@ class TSEventsVisitor {
     private printProperties(infos: CallbackInfo[]) {
         this.printer.writeInterface(PeerEventsProperties, writer => {
             for (const info of infos) {
-                const signature = new NamedMethodSignature(
-                    new Type('void'),
-                    info.args.map(it => new Type(mapType(it.type), it.nullable)),
-                    info.args.map(it => it.name),
-                )
-                writer.writeMethodDeclaration(callbackIdByInfo(info), signature)
+                writer.writeFieldDeclaration(callbackIdByInfo(info), new Type(mapType(info.originTarget)), undefined, true)
             }
         })
     }
