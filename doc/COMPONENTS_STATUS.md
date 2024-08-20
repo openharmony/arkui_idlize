@@ -14,4 +14,5 @@
 | Menu |      | wx997882 Sergey| In Progress |
 | Counter |      | wx498619 Ilya | In Progress |
 | Divider|      | wx480581 Ivan| In Progress |
+| Text | all | k00660564 Kirill Kirichenko | In Progress |
 
