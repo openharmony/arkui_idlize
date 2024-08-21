@@ -22,7 +22,7 @@ import {
     getLineNumberString,
     identName,
     isCommonMethodOrSubclass,
-    nameOrNullForIdl,
+    nameOrNull,
     zip
 } from "./util"
 import { LinterWhitelist } from "./LinterWhitelist"
@@ -388,7 +388,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                 this.report(
                     member,
                     LinterError.ENUM_WITH_INIT,
-                    `Enum ${nameOrNullForIdl(enumDeclaration.name)}.${nameOrNullForIdl(member.name)} with non-int initializer: ${member.initializer.getText(this.sourceFile)}`
+                    `Enum ${nameOrNull(enumDeclaration.name)}.${nameOrNull(member.name)} with non-int initializer: ${member.initializer.getText(this.sourceFile)}`
                 )
             }
         })

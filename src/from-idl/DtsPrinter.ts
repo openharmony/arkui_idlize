@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { indentedBy, nameOrNullFromIdl, stringOrNone } from "../util"
+import { indentedBy, stringOrNone } from "../util"
 import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
     getVerbatimDts,
     hasExtAttribute,
@@ -56,17 +56,17 @@ export class CustomPrintVisitor  {
             .find(it => it.name === "imports")
             ?.initializer as string
         if (imports)
-            this.print(imports.slice(1, -1))
+            this.print(imports)
 
         const exports = node.elements
             .find(it => it.name === "exports")
             ?.initializer as string
         if (exports)
-            this.print(exports.slice(1, -1))
+            this.print(exports)
     }
 
     printInterface(node: IDLInterface) {
-        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.slice(1, -1).split(",").reverse()
+        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
         this.openNamespace(namespace)
         let typeSpec = toTypeName(node, IDLExtendedAttributes.TypeParameters)
         const entity = getExtAttribute(node, IDLExtendedAttributes.Entity)
@@ -117,7 +117,7 @@ export class CustomPrintVisitor  {
     }
 
     printMethod(node: IDLMethod|IDLConstructor, isGlobal : boolean = false) {
-        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.slice(1, -1).split(",").reverse()
+        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
         this.openNamespace(namespace)
         let returnType = node.returnType ? `: ${printTypeForTS(node.returnType, true)}` : ""
         let isStatic = isMethod(node) && node.isStatic
@@ -157,25 +157,25 @@ export class CustomPrintVisitor  {
         }
     }
     printEnum(node: IDLEnum) {
-        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.slice(1, -1).split(",").reverse()
+        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
         this.openNamespace(namespace)
         let isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
         this.print(`${isExport ? "export ": ""}${namespace ? "" : "declare "}enum ${node.name} {`)
         this.pushIndent()
-        node.elements.forEach((it, index) => {
-            this.print(`${getName(it)}${it.initializer ? " = " + it.initializer : ""}${index < node.elements.length - 1 ? "," : ""}`)
+        node.elements.forEach(it => {
+            const initializer = it.initializer
+                ? it.type.name === "DOMString" ? ` = "${it.initializer}"` : ` = ${it.initializer}`
+                : undefined
+            this.print(`${getName(it)}${initializer ?? ""},`)
         })
         this.popIndent()
         this.print("}")
         this.closeNamespace(namespace)
     }
     printTypedef(node: IDLTypedef | IDLCallback) {
-        let text = ""
-        if (isCallback(node)) {
-            text = callbackType(node)
-        } else {
-            text = getVerbatimDts(node) ?? printTypeForTS(node.type)
-        }
+        const text = isCallback(node)
+            ? callbackType(node)
+            : getExtAttribute(node, IDLExtendedAttributes.Import) ?? printTypeForTS(node.type)
         let isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
         const typeParamsAttr = getExtAttribute(node, IDLExtendedAttributes.TypeParameters)
         const typeParams = typeParamsAttr ? `<${typeParamsAttr}>` : ""
@@ -248,6 +248,7 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     if (type.name == "undefined" && undefinedToVoid) return "void"
     if (type.name == "DOMString") return "string"
     if (isCommonMethod && type.name == "this") return "T"
+    if (type.name == "null_") return "null"
     if (type.name == "void_") return "void"
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) {
@@ -317,5 +318,5 @@ function literal(node: IDLInterface, isTuple: boolean, includeFieldNames: boolea
 }
 
 function getName(node: IDLEntry): stringOrNone {
-    return getExtAttribute(node, IDLExtendedAttributes.DtsName) ?? nameOrNullFromIdl(node.name)
+    return getExtAttribute(node, IDLExtendedAttributes.DtsName) ?? node.name
 }

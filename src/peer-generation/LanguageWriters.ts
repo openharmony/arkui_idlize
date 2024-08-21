@@ -689,8 +689,8 @@ export class Method {
     ) {}
 }
 
-export function mangleMethodName(method: Method, id: number): string {
-    return `${method.name}${id}`
+export function mangleMethodName(method: Method, id?: number): string {
+    return `${method.name}${id ?? ""}`
 }
 
 export function copyMethod(method: Method, overrides: {
@@ -917,7 +917,7 @@ export abstract class LanguageWriter {
         this.writeStatement(this.makeAssign(valueType, Type.Int32,
             this.makeFunctionCall("runtimeType", [this.makeString(value)]), false))
     }
-    makeDiscriminatorFromFields(convertor: BaseArgConvertor, value: string, accessors: string[]): LanguageExpression {
+    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => Type}, value: string, accessors: string[]): LanguageExpression {
         return this.makeString(`(${this.makeNaryOp("||",
             accessors.map(it => this.makeString(`${value}!.hasOwnProperty("${it}")`))).asString()})`)
     }
@@ -1190,7 +1190,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         return this.makeCast(value, new Type('int'));
     }
-    makeDiscriminatorFromFields(convertor: BaseArgConvertor, value: string, accessors: string[]): LanguageExpression {
+    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => Type}, value: string, accessors: string[]): LanguageExpression {
         return this.makeString(`${value} instanceof ${convertor.targetType(this).name}`)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {

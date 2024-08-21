@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import * as ts from "typescript"
-import { asString, nameOrNullForIdl as nameOrUndefined, getDeclarationsByNode } from "./util"
+import { asString, getDeclarationsByNode, nameOrNull } from "./util"
 import { GenericVisitor } from "./options"
 import {randInt, randString, pick, pickArray} from "./rand_utils";
 
@@ -52,7 +52,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     }
 
     testClass(node: ts.ClassDeclaration) {
-        if (this.interfacesToTest.size > 0 && !this.interfacesToTest.has(nameOrUndefined(node.name)!)) return
+        if (this.interfacesToTest.size > 0 && !this.interfacesToTest.has(nameOrNull(node.name)!)) return
         this.prologue(node.name!)
         node.members.forEach(child => {
             if (ts.isConstructorDeclaration(child)) {
@@ -67,7 +67,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     }
 
     testInterface(node: ts.InterfaceDeclaration) {
-        if (this.interfacesToTest.size > 0 && !this.interfacesToTest.has(nameOrUndefined(node.name)!)) return
+        if (this.interfacesToTest.size > 0 && !this.interfacesToTest.has(nameOrNull(node.name)!)) return
         this.prologue(node.name!)
         let members = this.membersWithFakeOverrides(node)
         members.forEach(child => {
@@ -87,10 +87,10 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     }
 
     testMethod(method: ts.MethodDeclaration | ts.MethodSignature) {
-        if (this.methodsToTest.size > 0 && !this.methodsToTest.has(nameOrUndefined(method.name)!)) return
+        if (this.methodsToTest.size > 0 && !this.methodsToTest.has(nameOrNull(method.name)!)) return
 
         this.generateArgs(method).forEach(args => {
-            let methodName = nameOrUndefined(method.name)
+            let methodName = nameOrNull(method.name)
 
             // Handle Lambda
             let passedArgs = args.replaceAll(LAMBDA, `() => {}`)
@@ -168,19 +168,19 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
 
                     return pick(decl.members.filter(ts.isPropertySignature), (key) =>
                         this.generateValueOfType(key.type!)
-                            .map(it => `${nameOrUndefined(key.name)}: ${it}`))
+                            .map(it => `${nameOrNull(key.name)}: ${it}`))
                         .map(it => `{${it}}`)
                 }
                 if (decl && ts.isClassDeclaration(decl)) {
 
-                    let className = nameOrUndefined(decl.name)
-                    console.log(`class: ${nameOrUndefined(decl.name)}`)
-                    decl.members.forEach(it => console.log(`class member: ${nameOrUndefined(it.name)}`))
+                    let className = nameOrNull(decl.name)
+                    console.log(`class: ${nameOrNull(decl.name)}`)
+                    decl.members.forEach(it => console.log(`class member: ${nameOrNull(it.name)}`))
 
                     let consturctors = decl.members.filter(ts.isConstructorDeclaration)
                     if (consturctors.length > 0) {
                         let constructor = consturctors[randInt(consturctors.length)]
-                        constructor.parameters.forEach(it => {console.log(`constructor param: ${nameOrUndefined(it.name)}`)})
+                        constructor.parameters.forEach(it => {console.log(`constructor param: ${nameOrNull(it.name)}`)})
 
                         // TBD: add imports for classes with constructors
                         /*
@@ -197,7 +197,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
 
                     return pick(decl.members.filter(ts.isPropertyDeclaration), (key) =>
                         this.generateValueOfType(key.type!)
-                            .map(it => `${nameOrUndefined(key.name)}: ${it}`))
+                            .map(it => `${nameOrNull(key.name)}: ${it}`))
                         .map(it => `{${it}}`)
                 }
                 console.log(`Cannot create value of type ${asString(type)}`)
@@ -232,7 +232,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
         if (ts.isTypeLiteralNode(type)) {
             // TODO: be smarter here
             return pick(type.members.filter(ts.isPropertySignature), (key) =>
-                this.generateValueOfType(key.type!).map(it => `${nameOrUndefined(key.name)}: ${it}`))
+                this.generateValueOfType(key.type!).map(it => `${nameOrNull(key.name)}: ${it}`))
                 .map(it => `{${it}}`)
         }
         console.log(`Cannot create value of type ${asString(type)}`)
@@ -240,12 +240,12 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
     }
 
     testProperty(property: ts.PropertyDeclaration | ts.PropertySignature) {
-        if (this.methodsToTest.size > 0 && !this.methodsToTest.has(nameOrUndefined(property.name)!)) return
-        console.log(`test prop ${nameOrUndefined(property.name)!}`)
+        if (this.methodsToTest.size > 0 && !this.methodsToTest.has(nameOrNull(property.name)!)) return
+        console.log(`test prop ${nameOrNull(property.name)!}`)
     }
 
     getClassName(name: ts.Identifier) : string {
-        const clazzName = nameOrUndefined(name)!
+        const clazzName = nameOrNull(name)!
         return clazzName.endsWith("Attribute") ? clazzName.replace("Attribute", "") : clazzName
     }
 
@@ -272,7 +272,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
             const next = worklist.shift()!
             const fakeOverrides = this.filterNotOverridden(overridden, next)
             fakeOverrides
-                .map(it => nameOrUndefined(it.name))
+                .map(it => nameOrNull(it.name))
                 .forEach(it => it ? overridden.add(it) : undefined)
             result.push(...fakeOverrides)
             const bases = next.heritageClauses

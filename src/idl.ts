@@ -44,6 +44,7 @@ export enum IDLKind {
 export enum IDLEntity {
     Class = "Class",
     Interface = "Interface",
+    Intersection = "Intersection",
     Literal = "Literal",
     NamedTuple = "NamedTuple",
     Tuple = "Tuple"
@@ -157,6 +158,7 @@ export interface IDLEnum extends IDLEntry {
 export interface IDLEnumMember extends IDLEntry {
     kind: IDLKind.EnumMember
     name: string
+    parent: IDLEnum
     type: IDLPrimitiveType
     initializer: number | string | undefined
 }
@@ -217,7 +219,7 @@ export interface IDLInterface extends IDLEntry {
     constants: IDLConstant[]
     properties: IDLProperty[]
     methods: IDLMethod[]
-    callables: IDLFunction[]
+    callables: IDLCallable[]
 }
 
 export interface IDLCallback extends IDLEntry, IDLSignature {
@@ -293,6 +295,9 @@ export function isEnumType(type: IDLType): type is IDLEnumType {
 export function isEnum(type: IDLEntry): type is IDLEnum {
     return type.kind == IDLKind.Enum
 }
+export function isEnumMember(type: IDLEntry): type is IDLEnumMember {
+    return type.kind == IDLKind.EnumMember
+}
 export function isUnionType(type: IDLType): type is IDLUnionType {
     return type.kind == IDLKind.UnionType
 }
@@ -301,6 +306,12 @@ export function isTypeParameterType(type: IDLType): type is IDLTypeParameterType
 }
 export function isInterface(node: IDLEntry): node is IDLInterface {
     return node.kind === IDLKind.Interface
+}
+export function isAnonymousInterface(node: IDLEntry): node is IDLInterface {
+    return node.kind === IDLKind.AnonymousInterface
+}
+export function isTupleInterface(node: IDLEntry): node is IDLInterface {
+    return node.kind === IDLKind.TupleInterface
 }
 export function isClass(node: IDLEntry): node is IDLInterface {
     return node.kind === IDLKind.Class
@@ -316,6 +327,9 @@ export function isProperty(node: IDLEntry): node is IDLProperty {
 }
 export function isCallback(node: IDLEntry): node is IDLCallback {
     return node.kind === IDLKind.Callback
+}
+export function isConstant(node: IDLEntry): node is IDLConstant {
+    return node.kind === IDLKind.Const
 }
 export function isTypedef(node: IDLEntry): node is IDLTypedef {
     return node.kind === IDLKind.Typedef
@@ -348,7 +362,7 @@ export function createBooleanType(): IDLPrimitiveType {
 }
 
 export function createNullType(): IDLPrimitiveType {
-    return createPrimitiveType("null")
+    return createPrimitiveType("null_")
 }
 
 export function createUndefinedType(): IDLPrimitiveType {
@@ -424,6 +438,20 @@ export function createTypedef(name: string, type: IDLType): IDLTypedef {
     }
 }
 
+const IDLKeywords = new Set<string>(["attribute", "callback", "object", "toString"])
+
+export function escapeKeyword(name: string): string {
+    return name + (IDLKeywords.has(name) ? "_" : "")
+}
+
+export function unescapeKeyword(name: string): string {
+    if (name.endsWith("_")) {
+        const unwrapped = name.slice(0, -1)
+        if (IDLKeywords.has(unwrapped)) return unwrapped
+    }
+    return name
+}
+
 export function printType(type: IDLType | undefined): string {
     if (!type) throw new Error("Missing type")
     if (isPrimitiveType(type)) return type.name
@@ -459,7 +487,7 @@ export function nameWithType(
     const type = printType(idl.type)
     const variadic = isVariadic ? "..." : ""
     const optional = isOptional ? "optional " : ""
-    return `${optional}${type}${variadic} ${idl.name}`
+    return `${optional}${type}${variadic} ${escapeKeyword(idl.name!)}`
 }
 
 function printConstant(idl: IDLConstant): stringOrNone[] {
@@ -583,8 +611,13 @@ export function printInterface(idl: IDLInterface): stringOrNone[] {
         .concat(["};"])
 }
 
+export function getSuperType(idl: IDLInterface) {
+    const parent = idl.inheritance[0]
+    return parent && parent !== IDLTopType ? parent : undefined
+}
+
 function hasSuperType(idl: IDLInterface) {
-    return idl.inheritance[0] && idl.inheritance[0] !== IDLTopType
+    return isDefined(getSuperType(idl))
 }
 
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
@@ -669,11 +702,7 @@ export function hasExtAttribute(node: IDLEntry, attribute: IDLExtendedAttributes
 }
 
 export function getExtAttribute(node: IDLEntry, name: IDLExtendedAttributes): stringOrNone {
-    let value: stringOrNone = undefined
-    node.extendedAttributes?.forEach(it => {
-        if (it.name == name) value = it.value
-    })
-    return attributesToQuote.has(name) ? (value as unknown as string)?.slice(1, -1) : value
+    return node.extendedAttributes?.find(it => it.name === name)?.value
 }
 
 export function getVerbatimDts(node: IDLEntry): stringOrNone {

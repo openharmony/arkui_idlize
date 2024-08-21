@@ -31,6 +31,16 @@ export class Language {
     toString(): string {
         return this.name
     }
+
+    static fromString(name: string): Language {
+        switch (name) {
+            case "arkts": return Language.ARKTS
+            case "java": return Language.JAVA
+            case "ts": return Language.TS
+            case "cangjie": return Language.CJ
+            default: throw new Error(`Unsupported language ${name}`)
+        }
+    }
 }
 
 export interface NameWithType {
@@ -41,30 +51,6 @@ export interface NameWithType {
 /** True if this is visible outside this file, false otherwise */
 export function isNodePublic(node: ts.Node): boolean {
     return (ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Public) !== 0
-}
-
-const IdlKeywords = new Set<string>(["attribute", "callback", "object", "toString"])
-
-export function nameOrNullForIdl(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {
-    if (name == undefined) return undefined
-
-    if (ts.isIdentifier(name)) {
-        let rawName = ts.idText(name)
-        return IdlKeywords.has(rawName) ? rawName + "_" : rawName
-    }
-    if (ts.isStringLiteral(name)) {
-        return name.text
-    }
-
-    return undefined
-}
-
-export function nameOrNullFromIdl(name: stringOrNone): stringOrNone {
-    if (name?.endsWith("_")) {
-        const unwrapped = name.slice(0, -1)
-        if (IdlKeywords.has(unwrapped)) return unwrapped
-    }
-    return name
 }
 
 export function nameOrNull(name: ts.EntityName | ts.DeclarationName | undefined): string | undefined {

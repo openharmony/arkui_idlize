@@ -23,7 +23,9 @@ import {
 } from "./webidl2-utils"
 import { toString } from "./toString"
 import {
-    createContainerType, createNumberType, createUnionType, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLInterface, IDLKind,
+    createAnyType,
+    createBooleanType,
+    createContainerType, createNullType, createNumberType, createStringType, createUndefinedType, createUnionType, createVoidType, hasExtAttribute, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLInterface, IDLKind,
     IDLMethod, IDLModuleType, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
 } from "../idl"
 import { isDefined, stringOrNone } from "../util"
@@ -60,7 +62,7 @@ export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
         return toIDLDictionary(file, node)
     }
     if (isNamespace(node)) {
-        return toIDLNamespcae(file, node)
+        return toIDLNamespace(file, node)
     }
 
     throw new Error(`unexpected node type: ${toString(node)}`)
@@ -98,7 +100,7 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
         callables: node.members
             .filter(isOperation)
             .filter(it => isCallable(it))
-            .map(it => toIDLMethod(file, it)),
+            .map(it => toIDLCallable(file, it)),
     }
     if (node.extAttrs.find(it => it.name === "Synthetic"))
         addSyntheticType(node.name, result)
@@ -128,6 +130,15 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
             .filter(isDefined))
     }
     if (isSingleTypeDescription(type)) {
+        switch (type.idlType) {
+            case "any": return createAnyType()
+            case "boolean": return createBooleanType()
+            case "null_": return createNullType()
+            case "number": return createNumberType()
+            case "DOMString": return createStringType()
+            case "undefined": return createUndefinedType()
+            case "void_": return createVoidType()
+        }
         const combinedExtAttrs = extAttrs
             ? type.extAttrs ? extAttrs.concat(type.extAttrs) : extAttrs
             : type.extAttrs
@@ -148,6 +159,21 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
     throw new Error(`unexpected type: ${toString(type)}`)
 }
 
+
+function toIDLCallable(file: string, node: webidl2.OperationMemberType): IDLCallable {
+    if (!node.idlType) {
+        throw new Error(`method with no type ${toString(node)}`)
+    }
+    return {
+        name: node.name ?? "",
+        isStatic: node.special === "static",
+        parameters: node.arguments.map(it => toIDLParameter(file, it)),
+        documentation: makeDocs(node),
+        returnType: toIDLType(file, node.idlType, node.extAttrs),
+        extendedAttributes: toExtendedAttributes(node.extAttrs),
+        kind: IDLKind.Callable,
+    }
+}
 
 function toIDLMethod(file: string, node: webidl2.OperationMemberType): IDLMethod {
     if (!node.idlType) {
@@ -211,17 +237,19 @@ function toIDLTypedef(file: string, node: webidl2.TypedefType): IDLTypedef {
 }
 
 function toIDLDictionary(file: string, node: webidl2.DictionaryType): IDLEnum {
-    return {
+    const result: IDLEnum = {
         kind: IDLKind.Enum,
         name: node.name,
         documentation: makeDocs(node),
         extendedAttributes: toExtendedAttributes(node.extAttrs),
         fileName: file,
-        elements: node.members.map(it => toIDLEnumMember(file, it))
+        elements: []
     }
+    result.elements = node.members.map(it => toIDLEnumMember(file, it, result))
+    return result
 }
 
-function toIDLNamespcae(file: string, node: webidl2.NamespaceType): IDLModuleType {
+function toIDLNamespace(file: string, node: webidl2.NamespaceType): IDLModuleType {
 
     return {
         kind: IDLKind.ModuleType,
@@ -245,10 +273,10 @@ function toIDLProperty(file: string, node: webidl2.AttributeMemberType): IDLProp
     }
 }
 
-function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLEnumMember {
+function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType, parent: IDLEnum): IDLEnumMember {
     let initializer = undefined
     if (node.default?.type == "string") {
-        initializer = `"${node.default?.value}"`
+        initializer = node.default?.value
     } else if (node.default?.type == "number") {
         initializer = +(node.default?.value)
     } else if (node.default == null) {
@@ -259,9 +287,10 @@ function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType): IDLE
     return {
         kind: IDLKind.EnumMember,
         name: node.name,
+        parent,
         type: toIDLType(file, node.idlType) as IDLPrimitiveType,
         extendedAttributes: toExtendedAttributes(node.extAttrs),
-        initializer: initializer
+        initializer
     }
 }
 
@@ -273,9 +302,12 @@ function toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): IDLExtende
 
 function toExtendedAttributeValue(attr: webidl2.ExtendedAttribute): stringOrNone {
     // TODO: be smarter about RHS.
-    return attr.rhs?.value instanceof Array
-            ? attr.rhs.value.map(v => v.value).join(",")
-            : attr.rhs?.value
+    if (attr.rhs?.value instanceof Array)
+        return attr.rhs.value.map(v => v.value).join(",")
+    const value = attr.rhs?.value
+    if (value?.startsWith('"'))
+        return value.slice(1, -1)
+    return value
 }
 
 function makeDocs(node: webidl2.AbstractBase): stringOrNone {
@@ -287,19 +319,22 @@ function makeDocs(node: webidl2.AbstractBase): stringOrNone {
 }
 
 function toIDLEnum(file: string, node: webidl2.EnumType): IDLEnum {
-    return {
+    const result: IDLEnum = {
         kind: IDLKind.Enum,
         name: node.name,
         fileName: file,
         documentation: makeDocs(node),
         extendedAttributes: toExtendedAttributes(node.extAttrs),
-        elements: node.values.map((it: { value: string }) => {
-            return {
-                kind: IDLKind.EnumMember,
-                name: it.value,
-                type: createNumberType(),
-                initializer: undefined
-            }
-        })
+        elements: []
     }
+    result.elements = node.values.map((it: { value: string }) => {
+        return {
+            kind: IDLKind.EnumMember,
+            name: it.value,
+            parent: result,
+            type: createNumberType(),
+            initializer: undefined
+        }
+    })
+    return result
 }
