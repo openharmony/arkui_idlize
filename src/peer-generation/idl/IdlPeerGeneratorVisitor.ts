@@ -665,32 +665,30 @@ export class IdlPeerProcessor {
     //         new Method(methodName, signature, modifiers, generics))
     // }
 
-    private collectDepsRecursive(decl: idl.IDLInterface, deps: Set<idl.IDLEntry>): void {
-        const currentDeps = idl.isClass(decl) || idl.isInterface(decl) || idl.isEnum(decl) || idl.isTypedef(decl)
+    private collectDepsRecursive(decl: idl.IDLEntry, deps: Set<idl.IDLEntry>): void {
+        const isDeclaration = idl.isClass(decl) || idl.isInterface(decl) || idl.isAnonymousInterface(decl) ||
+            idl.isTupleInterface(decl) || idl.isEnum(decl) || idl.isTypedef(decl) || idl.isCallback(decl)
+        const currentDeps = isDeclaration
             ? convertDeclaration(this.declDependenciesCollector, decl)
-            : convertType(this.typeDependenciesCollector, decl)
+            : convertType(this.typeDependenciesCollector, decl as idl.IDLType)
         for (const dep of currentDeps) {
             if (deps.has(dep)) continue
-            // if (!this.isSourceDecl(dep)) continue
+            if (!isSourceDecl(dep)) continue
             deps.add(dep)
-            // this.collectDepsRecursive(dep, deps)
+            this.collectDepsRecursive(dep, deps)
         }
     }
 
-    // private processEnum(node: ts.EnumDeclaration) {
-    //     const file = this.getDeclSourceFile(node)
-    //     let name = node.name.getText()
-    //     let comment = getComment(file, node)
-    //     let enumEntity = new EnumEntity(name, comment)
-    //     node.forEachChild(child => {
-    //         if (ts.isEnumMember(child)) {
-    //             let name = child.name.getText()
-    //             let comment = getComment(file, child)
-    //             enumEntity.pushMember(name, comment, child.initializer?.getText())
-    //         }
-    //     })
-    //     this.library.findFileByOriginalFilename(file.fileName)!.pushEnum(enumEntity)
-    // }
+    private processEnum(decl: idl.IDLEnum) {
+        // TODO do we need this? Cannot we just put all IDLEnums from a peer file into Ark*Interface.ts?
+        const comment = decl.documentation ?? ""
+        const enumEntity = new EnumEntity(decl.name, comment)
+        decl.elements.forEach(child => {
+            const comment = child.documentation ?? ""
+            enumEntity.pushMember(child.name, comment, child.initializer?.toString())
+        })
+        this.library.findFileByOriginalFilename(decl.fileName ?? "MISSING_FILENAME")!.pushEnum(enumEntity)
+    }
 
     // private getDeclSourceFile(node: ts.Declaration): ts.SourceFile {
     //     if (ts.isModuleBlock(node.parent))
@@ -708,8 +706,8 @@ export class IdlPeerProcessor {
         return components.filter(component => entryComponents.includes(component))
     }
 
-    private generateDeclarations(components: IdlComponentDeclaration[]): Set<idl.IDLInterface> {
-        const deps = new Set(
+    private generateDeclarations(components: IdlComponentDeclaration[]): Set<idl.IDLEntry> {
+        const deps: Set<idl.IDLEntry> = new Set(
             components.flatMap(it => {
                 const decls = [it.attributesDeclarations]
                 if (it.interfaceDeclaration)
@@ -720,12 +718,12 @@ export class IdlPeerProcessor {
         for (const dep of depsCopy) {
             this.collectDepsRecursive(dep, deps)
         }
-        // for (const dep of Array.from(deps)) {
-        //     if (ts.isEnumMember(dep)) {
-        //         deps.add(dep.parent)
-        //         deps.delete(dep)
-        //     }
-        // }
+        for (const dep of Array.from(deps)) {
+            if (idl.isEnumMember(dep)) {
+                deps.add(dep.parent)
+                deps.delete(dep)
+            }
+        }
         for (const dep of Array.from(deps)) {
             if (isConflictedDeclaration(dep)) {
                 deps.delete(dep)
@@ -747,7 +745,7 @@ export class IdlPeerProcessor {
             if (isSyntheticDeclaration(dep))
                 continue
             const file = this.library.findFileByOriginalFilename(dep.fileName!)!
-            const isPeerDecl = this.library.isComponentDeclaration(dep)
+            const isPeerDecl = idl.isInterface(dep) && this.library.isComponentDeclaration(dep)
             const isActualDeclaration = actualDeclarations.has(dep)
 
             if (!isPeerDecl && (idl.isClass(dep) || idl.isInterface(dep))) {
@@ -762,10 +760,10 @@ export class IdlPeerProcessor {
             if (!isActualDeclaration)
                 continue
 
-        //     if (ts.isEnumDeclaration(dep)) {
-        //         this.processEnum(dep)
-        //         continue
-        //     }
+            if (idl.isEnum(dep)) {
+                this.processEnum(dep)
+                continue
+            }
 
             this.declDependenciesCollector.convert(dep).forEach(it => {
                 if (isSourceDecl(it) &&
@@ -784,7 +782,7 @@ export class IdlPeerProcessor {
                 }
             })
             if (PeerGeneratorConfig.needInterfaces && needImportFeature(this.library.language, dep)) {
-                // file.declarations.add(dep)
+                file.declarations.add(dep)
                 file.importFeatures.push(convertDeclToFeature(this.library, dep))
             }
         }

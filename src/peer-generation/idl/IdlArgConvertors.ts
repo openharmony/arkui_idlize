@@ -1396,7 +1396,7 @@ function isStringEnum(decl: idl.IDLEnum): boolean {
     return decl.elements.some(e => e.type.name === "DOMString")
 }
 
-const ResourceDeclaration: idl.IDLInterface = {
+export const ResourceDeclaration: idl.IDLInterface = {
     name: "Resource",
     kind: idl.IDLKind.Interface,
     inheritance: [],

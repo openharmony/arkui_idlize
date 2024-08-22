@@ -42,7 +42,7 @@ export class IdlPeerFile {
     readonly enums: EnumEntity[] = []
     // todo maybe declarations should be converted as same as enums - to
     // structs detached from `ts` nodes
-    // readonly declarations: Set<ts.Declaration> = new Set()
+    readonly declarations: Set<idl.IDLEntry> = new Set()
     readonly importFeatures: ImportFeature[] = []
     readonly serializeImportFeatures: ImportFeature[] = []
     constructor(

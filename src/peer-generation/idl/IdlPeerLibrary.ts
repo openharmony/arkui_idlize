@@ -48,7 +48,7 @@ export class IdlPeerLibrary {
     // replacing import type nodes
     readonly importTypesStubToSource: Map<string, string> = new Map()
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
-    readonly conflictedDeclarations: Set<idl.IDLInterface> = new Set()
+    readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
     readonly nameConvertorInstance = new TSTypeNameConvertor(this)
 
     findPeerByComponentName(componentName: string): IdlPeerClass | undefined {

@@ -60,6 +60,7 @@ import { printEvents, printEventsCArkoalaImpl, printEventsCLibaceImpl } from "./
 import { printGniSources } from "./peer-generation/printers/GniPrinter"
 import { printMesonBuild } from "./peer-generation/printers/MesonPrinter"
 import { printInterfaces } from "./peer-generation/printers/InterfacePrinter"
+import { printInterfaces as printIdlInterfaces } from "./peer-generation/idl/InterfacePrinter"
 import { printConflictedDeclarations } from "./peer-generation/printers/ConflictedDeclarationsPrinter"
 import { printFakeDeclarations } from "./peer-generation/printers/FakeDeclarationsPrinter"
 import { printBuilderClasses } from "./peer-generation/printers/BuilderClassPrinter"
@@ -105,7 +106,7 @@ const options = program
     .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
     .option('--version')
     .option('--generator-target <all|arkoala|libace|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
-    .option('--skip-idl', 'Generate peers directly from .d.ts files (use with --dts2peer)', false)
+    .option('--via-idl', 'Generate peers directly from .d.ts files (use with --dts2peer)', false)
     .option('--arkoala-destination <path>', 'Location of arkoala repository')
     .option('--libace-destination <path>', 'Location of libace repository')
     .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
@@ -304,9 +305,9 @@ if (options.dts2peer) {
     PeerGeneratorConfig.needInterfaces = options.needInterfaces
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
-    const skipIdl = options.skipIdl || lang !== Language.TS
+    const arkuiComponentsFiles: string[] = []
 
-    if (!skipIdl) {
+    if (options.viaIdl) {
         // For now, we only generate TS peers from IDL representation.
         // In the future, more stuff will be generated from IDL, and more languages will be supported.
         const tsCompileContext = new CompileContext()
@@ -353,6 +354,17 @@ if (options.dts2peer) {
                         const outPeerFile = arkoala.peer(targetFile)
                         writeFile(outPeerFile, peer, true)
                     }
+
+                    if (PeerGeneratorConfig.needInterfaces) {
+                        // Write out interfaces
+                        const interfaces = printIdlInterfaces(idlLibrary, context)
+                        for (const [targetFile, data] of interfaces) {
+                            const outComponentFile = arkoala.interface(targetFile)
+                            console.log("producing", outComponentFile)
+                            writeFile(outComponentFile, data)
+                            arkuiComponentsFiles.push(outComponentFile)
+                        }
+                    }
                 }
             }
         )
@@ -386,7 +398,7 @@ if (options.dts2peer) {
 
                 if (options.generatorTarget == "arkoala" ||
                     options.generatorTarget == "all") {
-                    generateArkoala(outDir, peerLibrary, lang, skipIdl)
+                    generateArkoala(outDir, peerLibrary, lang, !options.viaIdl, arkuiComponentsFiles)
                 }
 
                 if (options.generatorTarget == "libace" ||
@@ -446,7 +458,7 @@ function writeFile(filename: string, content: string, integrated: boolean = fals
         fs.writeFileSync(filename, content)
 }
 
-function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Language, includePeers: boolean) {
+function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Language, includePeers: boolean, interfaceFiles: string[]) {
     const arkoala = options.arkoalaDestination ?
         new ArkoalaInstall(options.arkoalaDestination, lang, false) :
         new ArkoalaInstall(outDir, lang, true)
@@ -521,13 +533,16 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
 
     if (lang == Language.TS) {
         // todo I think we want to generate them for ARKTS too
-        const interfaces = printInterfaces(peerLibrary, context)
-        for (const [targetFile, data] of interfaces) {
-            const outComponentFile = arkoala.interface(targetFile)
-            console.log("producing", outComponentFile)
-            writeFile(outComponentFile, data)
-            arkuiComponentsFiles.push(outComponentFile)
-        }
+        if (includePeers) {
+            const interfaces = printInterfaces(peerLibrary, context)
+            for (const [targetFile, data] of interfaces) {
+                const outComponentFile = arkoala.interface(targetFile)
+                console.log("producing", outComponentFile)
+                writeFile(outComponentFile, data)
+                arkuiComponentsFiles.push(outComponentFile)
+            }
+        } else
+            arkuiComponentsFiles.push(...interfaceFiles)
 
         const fakeDeclarations = printFakeDeclarations(peerLibrary)
         for (const [filename, data] of fakeDeclarations) {
