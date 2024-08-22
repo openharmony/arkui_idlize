@@ -48,6 +48,7 @@ namespace ViewModel {
     Ark_NodeHandle createGridColNode(Ark_Int32 nodeId);
     Ark_NodeHandle createRadioNode(Ark_Int32 nodeId);
     Ark_NodeHandle createTabContentNode(Ark_Int32 nodeId);
+    Ark_NodeHandle createQRCodeNode(Ark_Int32 nodeId);
 
     void SetCallbackMethod(ArkUIAPICallbackMethod* method);
 } // namespace ViewModel
@@ -111,6 +112,7 @@ namespace Bridge {
             case %CPP_PREFIX%ARKUI_GRID_COL: return ViewModel::createGridColNode(id);
             case %CPP_PREFIX%ARKUI_RADIO: return ViewModel::createRadioNode(id);
             case %CPP_PREFIX%ARKUI_TABCONTENT: return ViewModel::createTabContentNode(id);
+            case %CPP_PREFIX%ARKUI_QRCODE: return ViewModel::createQRCodeNode(id);
             default: return nullptr;
         }
     }
