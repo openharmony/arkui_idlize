@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package peers
+package idlize
 
 public open class Finalizable {
     public var ptr: Int64

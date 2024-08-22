@@ -255,6 +255,13 @@ export function makeJavaSerializerWriter(library: PeerLibrary): LanguageWriter {
     return result
 }
 
+export function makeCJSerializer(library: PeerLibrary): LanguageWriter {
+    let result = createLanguageWriter(library.declarationTable.language)
+    result.print(`package idlize\n`)
+    writeSerializer(library, result)
+    return result
+}
+
 export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
     const converter = createLanguageWriter(Language.CPP) as CppLanguageWriter
     converter.writeLines(cStyleCopyright)

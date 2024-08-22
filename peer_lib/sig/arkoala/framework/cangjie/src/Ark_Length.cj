@@ -14,6 +14,9 @@
  */
 package idlize
 
-public enum ArkUINodeType {
-    Root | Component
+public class Ark_Length <: Ark_ObjectBase {
+    var value: String
+    public Ark_Length(v: String) {
+        this.value = v
+    }
 }

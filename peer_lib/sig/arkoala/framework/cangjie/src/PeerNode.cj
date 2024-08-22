@@ -12,19 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package peers
+package idlize
 
-from std import collection.*
+import std.collection.*
 
 public open class PeerNode {
     public var peer: NativePeerNode
     
-    private var id: Int32 = currentId++
+    // possibly wrong
+    static func getId() {
+        currentId += 1
+        return currentId
+    }
 
     private static var currentId: Int32 = 1000
 
     public PeerNode(nodeType: ArkUINodeType, component: ?ComponentBase, flags: Int32) {
-        this.peer = NativePeerNode.create(nodeType, this.id, flags)
+        this.peer = NativePeerNode.create(nodeType, PeerNode.getId(), flags)
     }
     func applyAttributes(attrs: HashMap<String, Object>): Unit {}
 }

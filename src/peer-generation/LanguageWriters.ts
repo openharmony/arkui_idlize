@@ -175,7 +175,7 @@ export class CJAssignStatement extends AssignStatement {
 
         write(writer: LanguageWriter): void {
             if (this.isDeclared) {
-                const typeSpec = this.type ? ':' + writer.mapType(this.type) : ''
+                const typeSpec = this.type ? ': ' + writer.mapType(this.type) : ''
                 writer.print(`${this.isConst ? "let" : "var"} ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
             } else {
                 writer.print(`${this.variableName} = ${this.expression.asString()}`)
@@ -376,7 +376,7 @@ class CLikeLoopStatement implements LanguageStatement {
 class CJLoopStatement implements LanguageStatement {
     constructor(private counter: string, private limit: string, private statement: LanguageStatement | undefined) {}
     write(writer: LanguageWriter): void {
-        writer.print(`for (let ${this.counter} in 0..${this.limit}) {`)
+        writer.print(`for (${this.counter} in 0..${this.limit}) {`)
         if (this.statement) {
             writer.pushIndent()
             this.statement.write(writer)
@@ -672,6 +672,24 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
     }
 }
 
+export class CJEnumEntityStatement implements LanguageStatement {
+    constructor(private readonly enumEntity: EnumEntity, private readonly isExport: boolean) {}
+
+    write(writer: LanguageWriter) {
+        writer.print(this.enumEntity.comment.length > 0 ? this.enumEntity.comment : undefined)
+        writer.print(`${this.isExport ? "public " : ""}enum ${this.enumEntity.name} {`)
+        writer.pushIndent()
+        this.enumEntity.members.forEach((member, index) => {
+            writer.print(member.comment.length > 0 ? member.comment : undefined)
+            const varticalBar = index < this.enumEntity.members.length - 1 ? '|' : ''
+            const initValue = member.initializerText ? ` = ${member.initializerText}` : ``
+            writer.print(`${member.name}${initValue}${varticalBar}`)
+        })
+        writer.popIndent()
+        writer.print(`}`)
+    }
+}
+
 export class Field {
     constructor(
         public name: string,
@@ -939,6 +957,9 @@ export abstract class LanguageWriter {
             ?.filter(modifierFilter)
             .map(it => this.mapFieldModifier(it)).join(" ")
         return prefix ? prefix : ""
+    }
+    languageKeywordProtection(keyword: string): string {
+        return keyword
     }
 }
 
@@ -1443,12 +1464,13 @@ export class CJLanguageWriter extends LanguageWriter {
         }
     }
     writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
+        const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} ${name}: ${type.nullable ? '?' : ''}${type.name} ${initExpr ? ` = ${initExpr.asString()}`  : ""}`)
+        this.printer.print(`${prefix} let ${name}: ${type.nullable ? '?' : ''}${this.mapType(type)}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void { }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
-        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${it.nullable ? '?' : ''}${this.mapType(it)}`).join(", ")}) {`)
+        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${it.nullable ? '?' : ''}${this.mapType(it)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
             this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")});`)
@@ -1473,6 +1495,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
+    }
+    makeArrayLength(array: string, length?: string): LanguageExpression {
+        return this.makeString(`${array}.size`)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         throw new Error(`TBD`)
@@ -1501,8 +1526,15 @@ export class CJLanguageWriter extends LanguageWriter {
     makeUndefined(): LanguageExpression {
         return this.makeString("Option.None")
     }
+    makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
+        return this.makeString(`${value}`)
+    }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
-        return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
+        return this.makeString(`RuntimeType.${RuntimeType[rt]}.ordinal`)
+    }
+    makeRuntimeTypeGetterCall(value: string): LanguageExpression {
+        let methodCall = this.makeMethodCall("Ark_Object", "getRuntimeType", [this.makeString(value)])
+        return this.makeString(methodCall.asString() + '.ordinal')
     }
     makeTupleAlloc(option: string): LanguageStatement {
         return new TsTupleAllocStatement(option)
@@ -1546,7 +1578,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.STATIC]
     }
     get supportedFieldModifiers(): FieldModifier[] {
-        return []
+        return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]
     }
     enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
         throw new Error('Not yet implemented')
@@ -1555,6 +1587,13 @@ export class CJLanguageWriter extends LanguageWriter {
         throw new Error('Not yet implemented')
     }
 
+    makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
+        return new CJEnumEntityStatement(enumEntity, isExport)
+    }
+    runtimeType(param: ArgConvertor, valueType: string, value: string) {
+        this.writeStatement(this.makeAssign(valueType, undefined,
+            this.makeRuntimeTypeGetterCall(value), false))
+    }
     mapType(type: Type): string {
         switch (type.name) {
             case 'KPointer': return 'Int64'
@@ -1565,8 +1604,15 @@ export class CJLanguageWriter extends LanguageWriter {
             case 'boolean': return 'Bool'
             case 'Length': return 'String'
             case 'void': return 'Unit'
+            case 'double': return 'Float64'
         }
         return super.mapType(type)
+    }
+    languageKeywordProtection(word: string): string {
+        switch (word) {
+            case 'type': return 'type_'
+            default: return word
+        }
     }
 }
 

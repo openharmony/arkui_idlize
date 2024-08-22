@@ -30,6 +30,7 @@ function castToInt8(value: string, lang: Language): string {
 function castToInt32(value: string, lang: Language): string {
     switch (lang) {
         case Language.ARKTS: return `${value} as int32`
+        case Language.CJ: return `Int32(${value})`
         default: return value
     }
 }
@@ -179,7 +180,7 @@ export class BooleanConvertor extends BaseArgConvertor {
             case Language.TS: return `+${param}`
             case Language.ARKTS: return `${param} ? 1 : 0`
             case Language.JAVA: return `${param} ? 1 : 0`
-            case Language.CJ: return `if (${param} { 1 } else { 0 })`
+            case Language.CJ: return `if (${param}) { 1 } else { 0 }`
             default: throw new Error("Unsupported language")
         }
     }

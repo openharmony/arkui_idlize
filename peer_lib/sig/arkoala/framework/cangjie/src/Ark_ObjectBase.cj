@@ -14,6 +14,4 @@
  */
 package idlize
 
-public enum ArkUINodeType {
-    Root | Component
-}
+public abstract class Ark_ObjectBase <: Ark_Object { }

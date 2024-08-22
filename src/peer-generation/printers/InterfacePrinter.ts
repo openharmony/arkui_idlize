@@ -297,8 +297,22 @@ class CJInterfacesVisitor {
     }
 
     private printPackage(writer: LanguageWriter): void {
-        writer.print(`package ${ARKOALA_PACKAGE};\n`)
+        writer.print('package idlize\n')
     }
+
+    private printLangImports(writer: LanguageWriter): void {
+        writer.print('import std.collection.*\n')
+    }
+
+    private readonly initialValue = new Map([
+        ['String', "\"\""],
+        ['Int32', "0"],
+        ['Int64', "0"],
+        ['Float32', "0.0"],
+        ['Float64', "0.0"],
+        ['Bool', "false"],
+        ['ArrayList<String>', "ArrayList()"]
+    ])
 
     private printClassOrInterface(node: ts.ClassDeclaration | ts.InterfaceDeclaration, writer: LanguageWriter) {
         type MemberInfo = {name: string, type: Type, optional: boolean}
@@ -322,7 +336,7 @@ class CJInterfacesVisitor {
         const superClass = this.getSuperClass(node) ?? ARK_OBJECTBASE
         writer.writeClass(this.getName(node), () => {
             for (const member of membersInfo) {
-                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional)
+                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional, writer.makeString(this.initialValue.get(member.type.name) ?? '0'))
             }
         }, superClass)
     }
@@ -330,7 +344,7 @@ class CJInterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter> {
         const result =  new Map<TargetFile, LanguageWriter>()
         for (const [name, writer] of this.interfaces) {
-            result.set(new TargetFile(name, ARKOALA_PACKAGE_PATH), writer)
+            result.set(new TargetFile(name, ''), writer)
         }
         return result
     }
@@ -338,9 +352,19 @@ class CJInterfacesVisitor {
     private addInterfaceDeclaration(it: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         const writer = createLanguageWriter(Language.CJ)
         this.printPackage(writer);
+        this.printLangImports(writer)
         this.printClassOrInterface(it, writer)
         this.addInterface(this.getName(it), writer)
     }
+
+    CJResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
+        ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
+        ts.factory.createPropertySignature(undefined, "type_", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
+        ts.factory.createPropertySignature(undefined, "moduleName", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)),
+        ts.factory.createPropertySignature(undefined, "bundleName", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)),
+        ts.factory.createPropertySignature(undefined, "params", ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+            ts.factory.createArrayTypeNode(ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword))),
+    ])
 
     printInterfaces() {
         for (const file of this.peerLibrary.files.values()) {
@@ -351,7 +375,7 @@ class CJInterfacesVisitor {
                 this.addInterfaceDeclaration(it)
             })
         }
-        this.addInterfaceDeclaration(ResourceDeclaration)
+        this.addInterfaceDeclaration(this.CJResourceDeclaration)
     }
 }
 

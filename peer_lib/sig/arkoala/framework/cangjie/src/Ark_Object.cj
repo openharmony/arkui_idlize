@@ -14,6 +14,12 @@
  */
 package idlize
 
-public enum ArkUINodeType {
-    Root | Component
+public abstract class Ark_Object {
+    static func getRuntimeType(object: String): RuntimeType {
+        return RuntimeType.STRING
+    }
+
+    static func getRuntimeType(object: Object): RuntimeType {
+        return RuntimeType.OBJECT
+    }
 }

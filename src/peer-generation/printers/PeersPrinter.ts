@@ -301,7 +301,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
 
     private printPackage(printer: LanguageWriter): void {
         if (this.file.declarationTable.language == Language.CJ) {
-            printer.print(`package peers\n`)
+            printer.print(`package idlize\n`)
         }
     }
 

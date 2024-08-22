@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-package peers
+package idlize
 
-from std import time.DateTime
-from std import math.round
+import std.time.DateTime
+import std.math.round
 
 func checkPerf(count: Int64) {
     var start = DateTime.now().nanosecond

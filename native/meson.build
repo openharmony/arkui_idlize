@@ -21,13 +21,14 @@ java_home = run_command('node', '-e', 'console.log(process.env.JAVA_HOME)').stdo
 
 is_node = true
 is_arkts = true
-is_cj = false
+is_cj = (source_set == 'cangjie-subset')
 is_jni = java_home != 'undefined'
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
-if ['ts-peers', 'ts-subset', 'java-subset', 'arkts-subset'].contains(source_set)
+if ['ts-peers', 'ts-subset', 'java-subset', 'arkts-subset', 'cangjie-subset'].contains(source_set)
     gen_dir = '../out/' / source_set / 'generated'
+else
 endif
 arkoala_dir = gen_dir + '/sig/arkoala/framework/native/src/generated'
 external_framework_dir = '../external/arkoala/framework/native/src'
@@ -256,7 +257,6 @@ shared_library(libace_name,
     dependencies: []
 )
 endif
-endif
 
 if is_arkts
 shared_library(arkts_library_name,
@@ -377,4 +377,5 @@ shared_library('panda',
     include_directories: arkts_include_dirs + jni_include_dirs + [ external_interop_dir ],
     install_dir: meson.current_source_dir(),
 )
+endif
 endif

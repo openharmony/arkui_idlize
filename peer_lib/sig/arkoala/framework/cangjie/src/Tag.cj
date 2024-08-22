@@ -14,6 +14,25 @@
  */
 package idlize
 
-public enum ArkUINodeType {
-    Root | Component
+public enum Tag {
+    |UNDEFINED
+    |INT32
+    |FLOAT32
+    |STRING
+    |LENGTH
+    |RESOURCE
+    |OBJECT
+    prop ordinal: Int8 {
+        get() {
+            match (this) {
+                case UNDEFINED => 101
+                case INT32 => 102
+                case FLOAT32 => 103
+                case STRING => 104
+                case LENGTH => 105
+                case RESOURCE => 106
+                case OBJECT => 107
+            }
+        }
+    }
 }

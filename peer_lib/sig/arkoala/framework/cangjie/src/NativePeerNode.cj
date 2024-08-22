@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package peers
+package idlize
 
 public open class NativePeerNode <: Finalizable {
     public NativePeerNode(ptr: Int64, finalizer: Int64) {
         super(ptr, finalizer)
     }
 
-    public static func create(type: ArkUINodeType, id: Int32, flags: Int32): NativePeerNode {
-        var ptr = NativeModule._CreateNode(Int32(type), id, flags)
-        return NativePeerNode(ptr, NativeModule._GetNodeFinalizer())
+    public static func create(type_: ArkUINodeType, id: Int32, flags: Int32): NativePeerNode {
+        // var ptr = NativeModule._CreateNode(Int32(type_), id, flags)
+        return NativePeerNode(42, 0)
     }
 
     public func dispose() {
@@ -35,10 +35,10 @@ public open class NativePeerNode <: Finalizable {
         NativeModule._RemoveChild(this.ptr, node.ptr)
     }
     public func insertChildBefore(node: NativePeerNode, sibling: NativePeerNode) {
-        NativeModule._InsertChildBefore(this.ptr, node.ptr, sibling == null ? 0 : sibling.ptr)
+        // NativeModule._InsertChildBefore(this.ptr, node.ptr, sibling == null ? 0 : sibling.ptr)
     }
     public func insertChildAfter(node: NativePeerNode, sibling: NativePeerNode) {
-        NativeModule._InsertChildAfter(this.ptr, node.ptr, sibling == null ? 0 : sibling.ptr)
+        // NativeModule._InsertChildAfter(this.ptr, node.ptr, sibling == null ? 0 : sibling.ptr)
     }
     public func insertChildAt(node: NativePeerNode, position: Int32) {
         NativeModule._InsertChildAt(this.ptr, node.ptr, position)
