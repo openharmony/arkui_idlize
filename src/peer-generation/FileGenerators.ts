@@ -513,21 +513,6 @@ export function componentFileTemplate(content: string): string {
     return tsCopyrightAndWarning(content)
 }
 
-export function makePeerEvents(data: string): string {
-    return `${cStyleCopyright}
-import { Deserializer } from './peers/Deserializer'
-import { RuntimeType } from "./peers/SerializerBase"
-import { int32 } from "@koalaui/common"
-
-interface PeerEvent {
-    readonly kind: ${PeerEventKind}
-    readonly nodeId: number
-}
-
-${data}
-`
-}
-
 export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: LanguageWriter): string {
     const writer = new CppLanguageWriter(new IndentedPrinter())
     writer.print(cStyleCopyright)

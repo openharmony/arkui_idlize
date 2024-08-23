@@ -605,6 +605,11 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             printNodeTypes(peerLibrary),
             true,
         )
+        writeFile(
+            arkoala.arktsLib(new TargetFile("peer_events")),
+            printEvents(peerLibrary),
+            true
+        )
         writeFile(arkoala.peer(new TargetFile('Serializer')),
             makeTSSerializer(peerLibrary),
             true,

@@ -20,7 +20,7 @@ import { BlockStatement, CppLanguageWriter, ExpressionStatement, FieldModifier, 
 import { PeerClassBase } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
 import { PeerMethod } from "../PeerMethod"
-import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl, makePeerEvents } from "../FileGenerators"
+import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl } from "../FileGenerators"
 import { generateEventReceiverName, generateEventSignature } from "./HeaderPrinter"
 import { Language, asString, identName } from "../../util"
 import { mapType } from "../TypeNodeNameConvertor"
@@ -237,6 +237,10 @@ class TSEventsVisitor {
 
     private printImports() {
         const imports = new ImportsCollector()
+        imports.addFeature("RuntimeType", "./peers/SerializerBase")
+        imports.addFeature("int32", "@koalaui/common")
+        if ([Language.TS].includes(this.library.declarationTable.language))
+            imports.addFeature("Deserializer", "./peers/Deserializer")
         for (const file of this.library.files) {
             file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         }
@@ -244,12 +248,21 @@ class TSEventsVisitor {
     }
 
     private printEventsClasses(infos: CallbackInfo[]) {
+        this.printer.print(`
+interface PeerEvent {
+    readonly kind: ${PeerEventKind}
+    readonly nodeId: number
+}
+`)
         for (const info of infos) {
             const eventClassName = callbackEventNameByInfo(info)
             this.printer.writeInterface(eventClassName, (writer) => {
+                let kindType = this.library.declarationTable.language === Language.TS
+                    ? `${PeerEventKind}.${callbackIdByInfo(info)}`
+                    : `${PeerEventKind}`
                 writer.writeFieldDeclaration(
                     'kind',
-                    new Type(`${PeerEventKind}.${callbackIdByInfo(info)}`, false),
+                    new Type(kindType, false),
                     [FieldModifier.READONLY],
                     false,
                 )
@@ -354,15 +367,19 @@ class TSEventsVisitor {
     }
 
     private printProperties(infos: CallbackInfo[]) {
-        this.printer.writeInterface(PeerEventsProperties, writer => {
+        const contentOp = (writer: LanguageWriter) => {
             for (const info of infos) {
                 writer.writeFieldDeclaration(callbackIdByInfo(info), new Type(mapType(info.originTarget)), undefined, true)
             }
-        })
+        }
+        if (this.library.declarationTable.language == Language.ARKTS)
+            this.printer.writeClass(PeerEventsProperties, contentOp)
+        else
+            this.printer.writeInterface(PeerEventsProperties, contentOp)
     }
 
     private printEventsDeliverer(infos: CallbackInfo[]) {
-        this.printer.print(`export function deliverGeneratedPeerEvent(event: PeerEvent, properties: Partial<${PeerEventsProperties}>): void {`)
+        this.printer.print(`export function deliverGeneratedPeerEvent(event: PeerEvent, properties: ${PeerEventsProperties}): void {`)
         this.printer.pushIndent()
         this.printer.print(`switch (event.kind) {`)
         this.printer.pushIndent()
@@ -381,10 +398,11 @@ class TSEventsVisitor {
         const callbacks = collectCallbacks(this.library)
         const filteredCallbacks = callbacks.filter(it => this.library.shouldGenerateComponent(it.componentName))
         this.printImports()
-        this.printEventsClasses(filteredCallbacks)
         this.printEventsEnum(callbacks)
+        this.printEventsClasses(filteredCallbacks)
         this.printNameByKindRetriever(filteredCallbacks)
-        this.printParseFunction(filteredCallbacks)
+        if ([Language.TS].includes(this.library.declarationTable.language))
+            this.printParseFunction(filteredCallbacks)
         this.printProperties(filteredCallbacks)
         this.printEventsDeliverer(filteredCallbacks)
     }
@@ -393,7 +411,7 @@ class TSEventsVisitor {
 export function printEvents(library: PeerLibrary): string {
     const visitor = new TSEventsVisitor(library)
     visitor.print()
-    return makePeerEvents(visitor.printer.getOutput().join("\n"))
+    return visitor.printer.getOutput().join("\n")
 }
 
 export function printEventsCArkoalaImpl(library: PeerLibrary): string {
