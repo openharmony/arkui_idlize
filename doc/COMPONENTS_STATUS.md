@@ -4,7 +4,6 @@
 | AlphabetIndexer | color | Peter | In Progress |
 | Animator | state |  |  |
 | Badge |      | Lena | In Progress |
-| Progress |      | wx1298574  Roman | ToDo |
 | QrCode |      | wx1298574 Roman | ToDo |
 | LoadingProgress |      | wx480555 Sergey| In Progress |
 | Select |      | wx480555 Sergey| In Progress |
