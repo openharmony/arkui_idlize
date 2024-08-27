@@ -20,5 +20,6 @@
 | Rect | | dwx480579 Sergey| In Progress |
 | Line | | dwx480579 Sergey| In Progress |
 | Circle | | dwx480579 Sergey| In Progress |
+| Scroll | | bwx1356458 Kirill Berezin | In Progress |
 
 

@@ -3,7 +3,7 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 112      | 74     | 1795     |
+| Total        | 112      | 74     | 1792     |
 | In Progress  | 0      | 0     | 1     |
 | Done         | 0      | 0     | 1     |
 
@@ -61,7 +61,7 @@
 |`onFrame`| Function | | |
 |*Badge*| *Component* | Lena | In Progress |
 |`setBadgeOptions`| Function | | |
-|*Blank*| *Component* | skrobagleb | In Progress |
+|*Blank*| *Component* | wx781919 Gleb | done |
 |`setBlankOptions`| Function | | |
 |`color`| Function | | |
 |*Button*| *Component* | | |
@@ -119,7 +119,7 @@
 |`mark`| Function | | |
 |`onChange`| Function | | |
 |`checkboxShape`| Function | | |
-|*Circle*| *Component* | | |
+|*Circle*| *Component* | dwx480579 Sergey | In Progress |
 |`setCircleOptions`| Function | | |
 |*Column*| *Component* | | |
 |`setColumnOptions`| Function | | |
@@ -340,7 +340,7 @@
 |*ContainerSpan*| *Component* | | |
 |`setContainerSpanOptions`| Function | | |
 |`textBackgroundStyle`| Function | | |
-|*Counter*| *Component* | | |
+|*Counter*| *Component* | wx498619 Ilya | In Progress |
 |`setCounterOptions`| Function | | |
 |`onInc`| Function | | |
 |`onDec`| Function | | |
@@ -362,7 +362,7 @@
 |`selectedTextStyle`| Function | | |
 |`onChange`| Function | | |
 |`onDateChange`| Function | | |
-|*Divider*| *Component* | | |
+|*Divider*| *Component* | wx480581 Ivan | In Progress |
 |`setDividerOptions`| Function | | |
 |`vertical`| Function | | |
 |`color`| Function | | |
@@ -442,7 +442,6 @@
 |`nestedScroll`| Function | | |
 |`enableScrollInteraction`| Function | | |
 |`friction`| Function | | |
-|`alignItems`| Function | | |
 |`onScroll`| Function | | |
 |`onReachStart`| Function | | |
 |`onReachEnd`| Function | | |
@@ -523,7 +522,7 @@
 |`onComplete`| Function | | |
 |`onError`| Function | | |
 |`alt`| Function | | |
-|*Line*| *Component* | | |
+|*Line*| *Component* | dwx480579 Sergey | In Progress |
 |`setLineOptions`| Function | | |
 |`startPoint`| Function | | |
 |`endPoint`| Function | | |
@@ -534,6 +533,7 @@
 |`listDirection`| Function | | |
 |`scrollBar`| Function | | |
 |`edgeEffect`| Function | | |
+|`fadingEdge`| Function | | |
 |`contentStartOffset`| Function | | |
 |`contentEndOffset`| Function | | |
 |`divider`| Function | | |
@@ -575,7 +575,7 @@
 |`setListItemGroupOptions`| Function | | |
 |`divider`| Function | | |
 |`childrenMainSize`| Function | | |
-|*LoadingProgress*| *Component* | samarinsergey | In Progress |
+|*LoadingProgress*| *Component* | wx480555 Sergey | In Progress |
 |`setLoadingProgressOptions`| Function | | |
 |`color`| Function | | |
 |`enableLoading`| Function | | |
@@ -596,7 +596,7 @@
 |`onFinish`| Function | | |
 |*MediaCachedImage*| *Component* | | |
 |`setMediaCachedImageOptions`| Function | | |
-|*Menu*| *Component* | | |
+|*Menu*| *Component* | wx997882 Sergey | In Progress |
 |`setMenuOptions`| Function | | |
 |`fontSize`| Function | | |
 |`font`| Function | | |
@@ -719,7 +719,7 @@
 |`color`| Function | | |
 |`backgroundColor`| Function | | |
 |`contentOpacity`| Function | | |
-|*Radio*| *Component* | | |
+|*Radio*| *Component* | wx1298574 Roman | In Progress |
 |`setRadioOptions`| Function | | |
 |`checked`| Function | | |
 |`onChange`| Function | | |
@@ -732,7 +732,7 @@
 |`starStyle`| Function | | |
 |`onChange`| Function | | |
 |`contentModifier`| Function | | |
-|*Rect*| *Component* | | |
+|*Rect*| *Component* | dwx480579 Sergey | In Progress |
 |`setRectOptions`| Function | | |
 |`radiusWidth`| Function | | |
 |`radiusHeight`| Function | | |
@@ -756,7 +756,6 @@
 |`onSelectionChange`| Function | | |
 |`aboutToIMEInput`| Function | | |
 |`onIMEInputComplete`| Function | | |
-|`onDidIMEInput`| Function | | |
 |`aboutToDelete`| Function | | |
 |`onDeleteComplete`| Function | | |
 |`copyOptions`| Function | | |
@@ -777,7 +776,6 @@
 |`onCut`| Function | | |
 |`onCopy`| Function | | |
 |`editMenuOptions`| Function | | |
-|`enableKeyboardOnFocus`| Function | | |
 |*RichText*| *Component* | | |
 |`setRichTextOptions`| Function | | |
 |`onStart`| Function | | |
@@ -797,7 +795,7 @@
 |`onClick`| Function | | |
 |*Screen*| *Component* | | |
 |`setScreenOptions`| Function | | |
-|*Scroll*| *Component* | | |
+|*Scroll*| *Component* | bwx1356458 Kirill Berezin | In Progress |
 |`setScrollOptions`| Function | | |
 |`scrollable`| Function | | |
 |`onScroll`| Function | | |
@@ -885,7 +883,7 @@
 |`height`| Function | | |
 |`size`| Function | | |
 |`constraintSize`| Function | | |
-|*Select*| *Component* | samarinsergey | In Progress |
+|*Select*| *Component* | wx480555 Sergey | In Progress |
 |`setSelectOptions`| Function | | |
 |`selected`| Function | | |
 |`value`| Function | | |
@@ -1050,7 +1048,7 @@
 |`tabBar`| Function | | |
 |`onWillShow`| Function | | |
 |`onWillHide`| Function | | |
-|*Text*| *Component* | | |
+|*Text*| *Component* | k00660564 Kirill Kirichenko | In Progress |
 |`setTextOptions`| Function | | |
 |`font`| Function | | |
 |`fontColor`| Function | | |
@@ -1086,10 +1084,11 @@
 |`bindSelectionMenu`| Function | | |
 |`onTextSelectionChange`| Function | | |
 |`fontFeature`| Function | | |
+|`marqueeOptions`| Function | | |
+|`onMarqueeStateChange`| Function | | |
 |`privacySensitive`| Function | | |
 |`textSelectable`| Function | | |
 |`editMenuOptions`| Function | | |
-|`halfLeading`| Function | | |
 |*TextArea*| *Component* | | |
 |`setTextAreaOptions`| Function | | |
 |`placeholderColor`| Function | | |
@@ -1483,7 +1482,6 @@
 |`isEnabled`| Function | | |
 |`getState`| Function | | |
 |`getEventTargetInfo`| Function | | |
-|`isValid`| Function | | |
 |*EventTargetInfo*| *Class* | | |
 |`getId`| Function | | |
 |*ContentModifier*| *Class* | | |
@@ -1638,7 +1636,6 @@
 |`replacePathByName`| Function | | |
 |`removeByIndexes`| Function | | |
 |`removeByName`| Function | | |
-|`removeByNavDestinationId`| Function | | |
 |`pop`| Function | | |
 |`popToName`| Function | | |
 |`popToIndex`| Function | | |
