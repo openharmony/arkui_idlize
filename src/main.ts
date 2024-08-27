@@ -37,6 +37,7 @@ import {
     copyToLibace,
     libraryCcDeclaration,
     makeCJSerializer,
+    cStyleCopyright
 } from "./peer-generation/FileGenerators"
 import {
     PeerGeneratorVisitor,
@@ -73,6 +74,7 @@ import { generateTracker } from "./peer-generation/Tracker"
 import { IdlPeerLibrary } from "./peer-generation/idl/IdlPeerLibrary"
 import { IdlPeerFile } from "./peer-generation/idl/IdlPeerFile"
 import { IdlPeerGeneratorVisitor, IdlPeerProcessor } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
+import { SkoalaCCodeGenerator } from "./peer-generation/printers/SkoalaPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -84,6 +86,7 @@ const options = program
     .option('--output-dir <path>', 'Path to output dir')
     .option('--input-file <name>', 'Name of file to convert, all files in input-dir if none')
     .option('--idl2dts', 'Convert IDL to .d.ts definitions')
+    .option('--dts2skoala', 'Convert DTS to skoala definitions')
     .option('--idl2h', 'Convert IDL to .h definitions')
     .option('--linter', 'Run linter')
     .option('--linter-suppress-errors <suppress>', 'Error codes to suppress, comma separated, no space')
@@ -159,6 +162,54 @@ if (options.dts2idl) {
                     fs.mkdirSync(path.dirname(outFile), { recursive: true });
                 }
                 fs.writeFileSync(outFile, generated)
+            }
+        }
+    )
+    didJob = true
+}
+
+if (options.dts2skoala) {
+    const tsCompileContext = new CompileContext()
+    const generatedIDLMap = new Map<string, IDLEntry[]>()
+    const outputDir: string = options.outputDir ?? "./generated/skoala"
+
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true })
+    }
+
+    generate(
+        options.inputDir,
+        options.inputFile,
+        outputDir,
+        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options),
+        {
+            compilerOptions: defaultCompilerOptions,
+            onSingleFile: (entries: IDLEntry[], outputDirectory, sourceFile) => {
+                const fileName = path.basename(sourceFile.fileName, ".d.ts")
+
+                if (!generatedIDLMap.has(fileName)) {
+                    generatedIDLMap.set(fileName, [])
+                }
+                
+                generatedIDLMap.get(fileName)?.push(...entries)
+            },
+            onEnd: () => {
+                generatedIDLMap.forEach((entries, fileName) => {
+                    const printer = new SkoalaCCodeGenerator(entries, outputDir, fileName)
+
+                    try {
+                        printer.generate()
+                        console.log(`Code generation completed for ${fileName}.cc`)
+                    } catch (error) {
+                        if (error instanceof Error) {
+                            console.error(`Error during code generation for ${fileName}.cc: ${error.message}`)
+                        } else {
+                            console.error(`Unknown error during code generation for ${fileName}.cc:`, error)
+                        }
+                    }
+                })
+
+                console.log("All files processed.")
             }
         }
     )
