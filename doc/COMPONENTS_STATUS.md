@@ -86,4 +86,5 @@
 |`nestedScroll`| Function | | done |
 |`indicatorInteractive`| Function | | done |
 | Text |      | k00660564 Kirill Kirichenko | In Progress |
+| List | | wx997882 Sergey| In Progress |
 
