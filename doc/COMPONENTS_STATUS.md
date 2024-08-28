@@ -63,7 +63,7 @@
 |`radiusWidth`| Function | dwx480579 Dudkin Sergey | In Progress |
 |`radiusHeight`| Function | dwx480579 Dudkin Sergey | In Progress |
 |`radius`| Function | dwx480579 Dudkin Sergey | In Progress |
-| Scroll | | bwx1356458 Kirill Berezin | In Progress |
+| Scroll | *Component* | bwx1356458 Kirill Berezin | In Progress |
 |*Search*| *Component* | wx1298574 Evstigneev Roman | In Progress |
 |`fontColor`| Function | wx1298574 Evstigneev Roman | done |
 |`searchIcon`| Function | | blocked |
@@ -88,5 +88,5 @@
 |`disableSwipe`| Function | swx781919 Skroba Gleb | done |
 |`nestedScroll`| Function | swx781919 Skroba Gleb | done |
 |`indicatorInteractive`| Function | swx781919 Skroba Gleb | done |
-| Text |      | k00660564 Kirill Kirichenko | In Progress |
-| Span|      | WX1356459 Zamsha Vadim | In Progress |
+| Text | *Component* | k00660564 Kirill Kirichenko | In Progress |
+| Span | *Component* | WX1356459 Zamsha Vadim | In Progress |
