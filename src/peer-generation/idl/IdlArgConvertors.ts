@@ -1239,6 +1239,10 @@ export interface RetConvertor {
     macroSuffixPart: () => string
 }
 
+const PredefinedTypes = new Set([
+    "ArrayBuffer", "Object"
+])
+
 export function typeConvertor(library: IdlPeerLibrary, param: string, type: idl.IDLType, isOptionalParam = false, maybeCallback: boolean = false): ArgConvertor {
     if (isOptionalParam) {
         return new OptionConvertor(library, param, type)
@@ -1268,8 +1272,8 @@ export function typeConvertor(library: IdlPeerLibrary, param: string, type: idl.
         }
     }
     if (idl.isReferenceType(type) || idl.isEnumType(type)) {
-        if (type.name === "Object") {///handle predef types
-            return new CustomTypeConvertor(param, "Object", "Object")
+        if (PredefinedTypes.has(type.name)) {
+            return new CustomTypeConvertor(param, type.name, type.name)///predef conv?
         }
         const decl = library.resolveTypeReference(type)
         return declarationConvertor(library, param, type, decl, maybeCallback)
@@ -1372,20 +1376,9 @@ function customConvertor(library: IdlPeerLibrary, typeName: string, param: strin
             return new FunctionConvertor(library, param, type)
         case `Optional`:
             const wrappedType = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)!
-            return new OptionConvertor(library, param, toIDLType(wrappedType))
+            return new OptionConvertor(library, param, idl.toIDLType(wrappedType))
     }
     return undefined
-}
-
-///don't like this. But type args are stored as strings, not as IDLType as they should
-function toIDLType(typeName: string): idl.IDLType {
-    switch (typeName) {
-        case "boolean": return idl.createBooleanType()
-        case "number": return idl.createNumberType()
-        case "string": return idl.createStringType()
-        case "undefined": return idl.createUndefinedType()
-        default: return idl.createReferenceType(typeName)
-    }
 }
 
 function isImportDeclaration(decl: idl.IDLEntry): boolean {
@@ -1461,13 +1454,7 @@ export function isMaterialized(declaration: idl.IDLInterface): boolean {
     return declaration.methods.length > 0
 }
 
-// function isCallbackFunction(type: ts.TypeNode, table: DeclarationTable): boolean {
-//     const m = type.parent.parent
-//     if (ts.isMethodDeclaration(m)) {
-//         const c = m.parent
-//         if (ts.isClassDeclaration(c) && !isCommonMethodOrSubclass(table.typeChecker!, c)) {
-//             return true
-//         }
-//     }
-//     return false
-// }
+export function checkTSDeclarationMaterialized(decl: idl.IDLEntry): boolean {
+    return (idl.isInterface(decl) || idl.isClass(decl) || idl.isAnonymousInterface(decl) || idl.isTupleInterface(decl))
+            && isMaterialized(decl)
+}

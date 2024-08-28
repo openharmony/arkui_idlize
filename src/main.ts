@@ -52,7 +52,6 @@ import { printRealAndDummyModifiers } from "./peer-generation/printers/ModifierP
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { printComponents } from "./peer-generation/printers/ComponentsPrinter"
 import { printPeers } from "./peer-generation/printers/PeersPrinter"
-import { printPeers as printIdlPeers } from "./peer-generation/idl/IdlPeerPrinter"
 import { printMaterialized } from "./peer-generation/printers/MaterializedPrinter"
 import { printSerializers, printUserConverter } from "./peer-generation/printers/HeaderPrinter"
 import { printNodeTypes } from "./peer-generation/printers/NodeTypesPrinter"
@@ -401,11 +400,28 @@ if (options.dts2peer) {
                         synthesizedTypes: undefined,
                         imports: undefined
                     }
-                    const peers = printIdlPeers(idlLibrary, context, options.dumpSerialized ?? false)
+                    const peers = printPeers(idlLibrary, context, options.dumpSerialized ?? false)
                     for (const [targetFile, peer] of peers) {
                         const outPeerFile = arkoala.peer(targetFile)
                         writeFile(outPeerFile, peer, true)
                     }
+                    const materialized = printMaterialized(idlLibrary, context, options.dumpSerialized ?? false)
+                    for (const [targetFile, materializedClass] of materialized) {
+                        const outMaterializedFile = arkoala.materialized(targetFile)
+                        writeFile(outMaterializedFile, materializedClass, idlLibrary.language === Language.ARKTS)
+                    }
+
+                    // Write out native module
+                    writeFile(
+                        arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
+                        printNativeModuleEmpty(idlLibrary),
+                        true
+                    )
+                    writeFile(
+                        arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
+                        printNativeModule(idlLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
+                        true
+                    )
 
                     if (PeerGeneratorConfig.needInterfaces) {
                         // Write out interfaces
@@ -545,24 +561,28 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         fs.writeFileSync(outBuilderFile, builderClass)
     }
 
-    const materialized = printMaterialized(peerLibrary, context, options.dumpSerialized ?? false)
-    for (const [targetFile, materializedClass] of materialized) {
-        const outMaterializedFile = arkoala.materialized(targetFile)
-        writeFile(outMaterializedFile, materializedClass, peerLibrary.declarationTable.language === Language.ARKTS)
+    if (includePeers) {
+        const materialized = printMaterialized(peerLibrary, context, options.dumpSerialized ?? false)
+        for (const [targetFile, materializedClass] of materialized) {
+            const outMaterializedFile = arkoala.materialized(targetFile)
+            writeFile(outMaterializedFile, materializedClass, peerLibrary.declarationTable.language === Language.ARKTS)
+        }
     }
 
     // NativeModule
     if (lang === Language.TS) {
-        writeFile(
-            arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
-            printNativeModuleEmpty(peerLibrary),
-            true
-        )
-        writeFile(
-            arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
-            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
-            true
-        )
+        if (includePeers) {
+            writeFile(
+                arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
+                printNativeModuleEmpty(peerLibrary),
+                true
+            )
+            writeFile(
+                arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
+                printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
+                true
+            )
+        }
     }
     else if (lang === Language.JAVA) {
         writeFile(

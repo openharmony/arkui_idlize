@@ -34,7 +34,7 @@ function generateArkComponentName(component: string) {
 }
 
 class ComponentFileVisitor {
-    private readonly overloadsPrinter = new OverloadsPrinter(this.printer, this.library)
+    private readonly overloadsPrinter = new OverloadsPrinter(this.printer, this.library.language)
 
     constructor(
         private library: PeerLibrary,

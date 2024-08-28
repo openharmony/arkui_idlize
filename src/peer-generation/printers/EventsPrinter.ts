@@ -82,7 +82,7 @@ export function collectCallbacks(library: PeerLibrary): CallbackInfo[] {
             for (const method of peer.methods) {
                 for (const target of method.declarationTargets) {
                     const info = convertToCallback(peer, method, target)
-                    if (info && canProcessCallback(library.declarationTable, info))
+                    if (info && canProcessCallback(info))
                         callbacks.push(info)
                 }
             }
@@ -91,7 +91,7 @@ export function collectCallbacks(library: PeerLibrary): CallbackInfo[] {
     return callbacks
 }
 
-export function canProcessCallback(declarationTable: DeclarationTable, callback: CallbackInfo): boolean {
+export function canProcessCallback(callback: CallbackInfo): boolean {
     if (PeerGeneratorConfig.invalidEvents.includes(callback.methodName))
         return false
     return true

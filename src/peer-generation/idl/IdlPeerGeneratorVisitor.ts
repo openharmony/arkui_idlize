@@ -17,25 +17,25 @@ import * as idl from "../../idl"
 import { posix as path } from "path"
 import { serializerBaseMethods, isDefined, Language, renameDtsToInterfaces, renameClassToBuilderClass, renameClassToMaterialized, capitalize } from "../../util"
 import { GenericVisitor } from "../../options"
-import { ArgConvertor, RetConvertor } from "./IdlArgConvertors"
+import { ArgConvertor, RetConvertor, typeConvertor } from "./IdlArgConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { IdlPeerClass } from "./IdlPeerClass"
 import { IdlPeerMethod } from "./IdlPeerMethod"
 import { IdlPeerFile, EnumEntity } from "./IdlPeerFile"
 import { IdlPeerLibrary } from "./IdlPeerLibrary"
-// import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement, checkTSDeclarationMaterialized, isMaterialized } from "../Materialized"
+import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
 import { convertDeclaration, convertType } from "./IdlTypeConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
 // import { convertDeclToFeature } from "../ImportsCollector";
 import { addSyntheticDeclarationDependency, isSyntheticDeclaration, makeSyntheticTypeAliasDeclaration, syntheticDeclarationFilename } from "./IdlSyntheticDeclarations";
-import { BuilderClass, isCustomBuilderClass } from "../BuilderClass";
-import { typeConvertor } from "./IdlArgConvertors";
+import { initCustomBuilderClasses, BuilderClass, isCustomBuilderClass } from "../BuilderClass";
 import { isRoot } from "../inheritance";
-import { isMaterialized } from "./IdlArgConvertors";
+import { isMaterialized, checkTSDeclarationMaterialized } from "./IdlArgConvertors";
 import { ImportFeature } from "../ImportsCollector";
 import { DeclarationNameConvertor } from "./IdlDependenciesCollector";
 import { ArkTSTypeNameConvertor } from "./IdlTypeNameConvertor";
+import { PrimitiveType } from "../DeclarationTable"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -130,67 +130,64 @@ function generateArgConvertor(library: IdlPeerLibrary, param: idl.IDLParameter, 
     return typeConvertor(library, param.name, param.type, param.isOptional, maybeCallback)
 }
 
-// function generateRetConvertor(typeNode?: ts.TypeNode): RetConvertor {
-//     let nativeType = typeNode ? mapCInteropRetType(typeNode) : "void"
-//     let isVoid = nativeType == "void"
-//     return {
-//         isVoid: isVoid,
-//         nativeType: () => nativeType,
-//         macroSuffixPart: () => isVoid ? "V" : ""
-//     }
-// }
+function generateRetConvertor(type?: idl.IDLType): RetConvertor {
+    let nativeType = type ? mapCInteropRetType(type) : "void"
+    let isVoid = nativeType == "void"
+    return {
+        isVoid: isVoid,
+        nativeType: () => nativeType,
+        macroSuffixPart: () => isVoid ? "V" : ""
+    }
+}
 
-// function mapCInteropRetType(type: ts.TypeNode): string {
-//     if (type.kind == ts.SyntaxKind.VoidKeyword) {
-//         return `void`
-//     }
-//     if (type.kind == ts.SyntaxKind.NumberKeyword) {
-//         return PrimitiveType.Int32.getText()
-//     }
-//     if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-//         return PrimitiveType.Boolean.getText()
-//     }
-//     if (ts.isTypeReferenceNode(type)) {
-//         let name = identName(type.typeName)!
-//         /* HACK, fix */
-//         if (name.endsWith("Attribute")) return "void"
-//         switch (name) {
-//             /* ANOTHER HACK, fix */
-//             case "T": return "void"
-//             case "UIContext": return PrimitiveType.NativePointer.getText()
-//             default: return PrimitiveType.NativePointer.getText()
-//         }
-//     }
-//     if (type.kind == ts.SyntaxKind.StringKeyword) {
-//         /* HACK, fix */
-//         // return `KStringPtr`
-//         return "void"
-//     }
-//     if (ts.isUnionTypeNode(type)) {
-//         console.log(`WARNING: unhandled union type: ${type.getText()}`)
-//         // TODO: not really properly supported.
-//         if (type.types[0].kind == ts.SyntaxKind.VoidKeyword) return "void"
-//         if (type.types.length == 2) {
-//             if (type.types[1].kind == ts.SyntaxKind.UndefinedKeyword) return `void`
-//             if (ts.isLiteralTypeNode(type.types[1]) && type.types[1].literal.kind == ts.SyntaxKind.NullKeyword) {
-//                 // NavPathStack | null
-//                 return mapCInteropRetType(type.types[0])
-//             }
-//         }
-//         // TODO: return just type of the first elem
-//         // for the materialized class getter with union type
-//         return mapCInteropRetType(type.types[0])
-//     }
-//     if (ts.isArrayTypeNode(type)) {
-//         /* HACK, fix */
-//         // return array by some way
-//         return "void"
-//     }
-//     if (ts.isParenthesizedTypeNode(type)) {
-//         return mapCInteropRetType(type.type)
-//     }
-//     throw new Error(type.getText())
-// }
+// TODO convert to convertor ;)
+function mapCInteropRetType(type: idl.IDLType): string {
+    if (idl.isPrimitiveType(type)) {
+        switch (type.name) {
+            case "boolean": return PrimitiveType.Boolean.getText()
+            case "number": return PrimitiveType.Int32.getText()
+            case "DOMString":
+                /* HACK, fix */
+                // return `KStringPtr`
+                return "void"
+            case "void_":
+            case "undefined": return "void"
+        }
+    }
+    if (idl.isReferenceType(type)) {
+        /* HACK, fix */
+        if (type.name.endsWith("Attribute"))
+            return "void"
+        return PrimitiveType.NativePointer.getText()
+    }
+    if (idl.isEnumType(type))
+        return PrimitiveType.NativePointer.getText()
+    if (idl.isUnionType(type)) {
+        console.log(`WARNING: unhandled union type: ${type.name}`)
+        // TODO: not really properly supported.
+        if (type.types[0].name == "void_") return "void"
+        if (type.types.length == 2) {
+            switch (type.types[1].name) {
+                case "undefined": return "void"
+                case "null_":
+                // NavPathStack | null
+                return mapCInteropRetType(type.types[0])
+            }
+        }
+        // TODO: return just type of the first elem
+        // for the materialized class getter with union type
+        return mapCInteropRetType(type.types[0])
+    }
+    if (idl.isContainerType(type)) {
+        if (type.name === "sequence") {
+            /* HACK, fix */
+            // return array by some way
+            return "void"
+        } else
+            return PrimitiveType.NativePointer.getText()
+    }
+    throw `mapCInteropType failed for ${idl.IDLKind[type.kind]} ${type.name}`
+}
 
 
 class ImportsAggregateCollector extends TypeDependenciesCollector {
@@ -400,7 +397,7 @@ class PeersGenerator {
     //     const retConvertor = generateRetConvertor(method.type)
 
     //     // TODO: restore collapsing logic!
-        const signature = /* collapsed?.signature ?? */ this.generateSignature(method)
+        const signature = /* collapsed?.signature ?? */ generateSignature(this.library, method)
 
         const peerMethod = new IdlPeerMethod(
             originalParentName,
@@ -411,15 +408,6 @@ class PeersGenerator {
             new Method(methodName, signature, method.isStatic ? [MethodModifier.STATIC] : []))
     //     this.declarationTable.setCurrentContext(undefined)
         return peerMethod
-    }
-
-    private generateSignature(method: idl.IDLCallable | idl.IDLMethod): NamedMethodSignature {
-        const returnName = method.returnType!.name
-        const returnType = returnName === "void" ? Type.Void
-            : method.isStatic ? new Type(returnName) : Type.This
-        return new NamedMethodSignature(returnType,
-            method.parameters.map(it => new Type(this.library.mapType(it.type!), it.isOptional)),
-            method.parameters.map(it => it.name))
     }
 
     private createComponentAttributesDeclaration(clazz: idl.IDLInterface, peer: IdlPeerClass) {
@@ -530,9 +518,6 @@ export class IdlPeerProcessor {
         this.serializeDepsCollector = new FilteredDeclarationCollector(
             this.library, new ImportsAggregateCollector(this.library, true))
     }
-    // private get declarationTable(): DeclarationTable {
-    //     return this.library.declarationTable
-    // }
 
     private processBuilder(target: idl.IDLInterface, isActualDeclaration: boolean) {
         let name = target.name!
@@ -548,122 +533,97 @@ export class IdlPeerProcessor {
         this.library.builderClasses.set(name, builderClass)
     }
 
-    // private processMaterialized(target: ts.InterfaceDeclaration | ts.ClassDeclaration, isActualDeclaration: boolean) {
-    //     let name = nameOrNull(target.name)!
-    //     if (this.library.materializedClasses.has(name)) {
-    //         return
-    //     }
+    private processMaterialized(decl: idl.IDLInterface, isActualDeclaration: boolean) {
+        const name = decl.name
+        if (this.library.materializedClasses.has(name)) {
+            return
+        }
 
-    //     const isClass = ts.isClassDeclaration(target)
-    //     const isInterface = ts.isInterfaceDeclaration(target)
+        const superClassType = idl.getSuperType(decl)
+        const superClass = superClassType ?
+            new SuperElement(
+                superClassType.name,
+                idl.getExtAttribute(superClassType, idl.IDLExtendedAttributes.TypeArguments)?.split(","))
+            : undefined
 
-    //     const superClassType = target.heritageClauses
-    //         ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)[0]?.types[0]
+        const importFeatures = this.serializeDepsCollector.convert(decl)
+            .filter(it => isSourceDecl(it))
+            .filter(it => PeerGeneratorConfig.needInterfaces || checkTSDeclarationMaterialized(it) || isSyntheticDeclaration(it))
+            .map(it => convertDeclToFeature(this.library, it))
+        const generics = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.TypeParameters)?.split(",")
 
+        const constructor = idl.isClass(decl) ? decl.constructors[0] : undefined
+        const mConstructor = this.makeMaterializedMethod(decl, constructor, isActualDeclaration)
+        const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
+        const mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
+            new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]), 0)
+        const mFields = decl.properties
+            // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
+            .filter(it => idl.getExtAttribute(it, idl.IDLExtendedAttributes.Accessor) !== idl.IDLAccessorAttribute.Setter)
+            .map(it => this.makeMaterializedField(name, it))
+        const mMethods = decl.methods
+            // TODO: Properly handle methods with return Promise<T> type
+            .map(method => this.makeMaterializedMethod(decl, method, isActualDeclaration))
+            .filter(it => !PeerGeneratorConfig.ignoreReturnTypes.has(it.method.signature.returnType.name))
 
-    //     const superClass = superClassType ?
-    //         new SuperElement(
-    //             identName(superClassType.expression)!,
-    //             superClassType.typeArguments?.filter(ts.isTypeReferenceNode).map(it => identName(it.typeName)!))
-    //         : undefined
+        mFields.forEach(f => {
+            const field = f.field
+            // TBD: use deserializer to get complex type from native
+            const isSimpleType = !f.argConvertor.useArray // type needs to be deserialized from the native
+            if (isSimpleType) {
+                const getSignature = new NamedMethodSignature(field.type, [], [])
+                const getAccessor = new MaterializedMethod(
+                    name, [], [], f.retConvertor, false,
+                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE]), 0)
+                mMethods.push(getAccessor)
+            }
+            const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
+            if (!isReadOnly) {
+                const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
+                const retConvertor = { isVoid: true, nativeType: () => Type.Void.name, macroSuffixPart: () => "V" }
+                const setAccessor = new MaterializedMethod(
+                    name, [], [f.argConvertor], retConvertor, false,
+                    new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]), 0)
+                mMethods.push(setAccessor)
+            }
+        })
+        this.library.materializedClasses.set(name,
+            new MaterializedClass(name, idl.isInterface(decl), superClass, generics,
+                mFields, mConstructor, mFinalizer, importFeatures, mMethods, isActualDeclaration))
+    }
 
-    //     const importFeatures = this.serializeDepsCollector.convert(target)
-    //         .filter(it => this.isSourceDecl(it))
-    //         .filter(it => PeerGeneratorConfig.needInterfaces || checkTSDeclarationMaterialized(it) || isSyntheticDeclaration(it))
-    //         .map(it => convertDeclToFeature(this.library, it))
-    //     const generics = target.typeParameters?.map(it => it.getText())
+    private makeMaterializedField(className: string, prop: idl.IDLProperty): MaterializedField {
+        const argConvertor = typeConvertor(this.library, prop.name, prop.type!)
+        const retConvertor = generateRetConvertor(prop.type!)
+        const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
+        return new MaterializedField(
+            new Field(prop.name, new Type(this.library.mapType(prop.type)), modifiers),
+            argConvertor, retConvertor)
+    }
 
-    //     let constructor = isClass ? target.members.find(ts.isConstructorDeclaration) : undefined
-    //     let mConstructor = this.makeMaterializedMethod(name, constructor, isActualDeclaration)
-    //     const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
-    //     let mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
-    //         new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]))
-    //     let mFields = isClass
-    //         ? target.members
-    //             .filter(ts.isPropertyDeclaration)
-    //             .map(it => this.makeMaterializedField(name, it))
-    //         : isInterface
-    //             ? target.members
-    //                 .filter(ts.isPropertySignature)
-    //                 .map(it => this.makeMaterializedField(name, it))
-    //             : []
+    private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined, isActualDeclaration: boolean) {
+        const methodName = method === undefined || idl.isConstructor(method) ? "ctor" : method.name
+        const retConvertor = method === undefined || idl.isConstructor(method)
+            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
+            : generateRetConvertor(method.returnType)
 
-    //     let mMethods = isClass
-    //         ? target.members
-    //             .filter(ts.isMethodDeclaration)
-    //             .map(method => this.makeMaterializedMethod(name, method, isActualDeclaration))
-    //         : isInterface
-    //             ? target.members
-    //             .filter(ts.isMethodSignature)
-    //             .map(method => this.makeMaterializedMethod(name, method, isActualDeclaration))
-    //             : []
+        if (method === undefined) {
+            // interface or class without constructors
+            const ctor = new Method("ctor", new NamedMethodSignature(Type.Void, [], []), [MethodModifier.STATIC])
+            return new MaterializedMethod(decl.name, [], [], retConvertor, false, ctor, 0)
+        }
 
-
-    //     mFields.forEach(f => {
-    //         const field = f.field
-    //         // TBD: use deserializer to get complex type from native
-    //         const isSimpleType = !f.argConvertor.useArray // type needs to be deserialized from the native
-    //         if (isSimpleType) {
-    //             const getAccessor = new MaterializedMethod(name, [], [], f.retConvertor, false,
-    //                 new Method(`get${capitalize(field.name)}`, new NamedMethodSignature(field.type, [], []), [MethodModifier.PRIVATE])
-    //             )
-    //             mMethods.push(getAccessor)
-    //         }
-
-    //         const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
-    //         if (!isReadOnly) {
-    //             const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
-    //             const retConvertor = { isVoid: true, nativeType: () => Type.Void.name, macroSuffixPart: () => "V" }
-    //             const setAccessor = new MaterializedMethod(name, [f.declarationTarget], [f.argConvertor], retConvertor, false,
-    //                 new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE])
-    //             )
-    //             mMethods.push(setAccessor)
-    //         }
-    //     })
-
-    //     this.library.materializedClasses.set(name,
-    //         new MaterializedClass(name, isInterface, superClass, generics, mFields, mConstructor, mFinalizer, importFeatures, mMethods, isActualDeclaration))
-    // }
-
-    // private makeMaterializedField(className: string, property: ts.PropertyDeclaration | ts.PropertySignature): MaterializedField {
-    //     const name = identName(property.name)!
-    //     this.declarationTable.setCurrentContext(`Materialized_${className}_${name}`)
-    //     const declarationTarget = this.declarationTable.toTarget(property.type!)
-    //     const argConvertor = this.declarationTable.typeConvertor(name, property.type!)
-    //     const retConvertor = generateRetConvertor(property.type!)
-    //     const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
-    //     this.declarationTable.setCurrentContext(undefined)
-    //     return new MaterializedField(declarationTarget, argConvertor, retConvertor,
-    //         new Field(name, new Type(mapType(property.type)), modifiers))
-    // }
-
-    // private makeMaterializedMethod(parentName: string, method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | undefined, isActualDeclaration: boolean) {
-    //     const methodName = method === undefined || ts.isConstructorDeclaration(method) ? "ctor" : identName(method.name)!
-    //     this.declarationTable.setCurrentContext(`Materialized_${parentName}_${methodName}`)
-
-    //     const retConvertor = method === undefined || ts.isConstructorDeclaration(method)
-    //         ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
-    //         : generateRetConvertor(method.type)
-
-    //     if (method === undefined) {
-    //         // interface or class without constructors
-    //         const ctor = new Method("ctor", new NamedMethodSignature(Type.Void, [], []), [MethodModifier.STATIC])
-    //         this.declarationTable.setCurrentContext(undefined)
-    //         return new MaterializedMethod(parentName, [], [], retConvertor, false, ctor)
-    //     }
-
-    //     const generics = method.typeParameters?.map(it => it.getText())
-    //     const declarationTargets = method.parameters.map(param =>
-    //         this.declarationTable.toTarget(param.type ??
-    //             throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
-    //     method.parameters.forEach(it => this.declarationTable.requestType(undefined, it.type!, isActualDeclaration))
-    //     const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param))
-    //     const signature = generateSignature(method)
-    //     const modifiers = ts.isConstructorDeclaration(method) || isStatic(method.modifiers) ? [MethodModifier.STATIC] : []
-    //     this.declarationTable.setCurrentContext(undefined)
-    //     return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false,
-    //         new Method(methodName, signature, modifiers, generics))
-    // }
+        const generics = undefined ///method.typeParameters?.map(it => it.getText())
+        // const declarationTargets = method.parameters.map(param =>
+        //     this.declarationTable.toTarget(param.type ??
+        //         throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
+        // method.parameters.forEach(it => this.declarationTable.requestType(undefined, it.type!, isActualDeclaration))
+        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, false))
+        const signature = generateSignature(this.library, method)
+        const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
+        return new MaterializedMethod(decl.name, /*declarationTargets*/ [], argConvertors, retConvertor, false,
+            new Method(methodName, signature, modifiers, generics), getMethodIndex(decl, method))
+    }
 
     private collectDepsRecursive(decl: idl.IDLEntry, deps: Set<idl.IDLEntry>): void {
         const isDeclaration = idl.isClass(decl) || idl.isInterface(decl) || idl.isAnonymousInterface(decl) ||
@@ -734,6 +694,7 @@ export class IdlPeerProcessor {
     }
 
     process(): void {
+        initCustomBuilderClasses()
         new ComponentsCompleter(this.library).process()
         const peerGenerator = new PeersGenerator(this.library)
         for (const component of this.library.componentsDeclarations)
@@ -751,9 +712,10 @@ export class IdlPeerProcessor {
             if (!isPeerDecl && (idl.isClass(dep) || idl.isInterface(dep))) {
                 if (isBuilderClass(dep)) {
                     this.processBuilder(dep, isActualDeclaration)
-                // } else if (isMaterialized(dep)) {
-                //     this.processMaterialized(dep, isActualDeclaration)
-                //     continue
+                    continue
+                } else if (isMaterialized(dep)) {
+                    this.processMaterialized(dep, isActualDeclaration)
+                    continue
                 }
             }
 
@@ -840,16 +802,17 @@ function createTypeDependenciesCollector(library: IdlPeerLibrary): TypeDependenc
     }
 
 
-export function isConflictedDeclaration(decl: idl.IDLEntry): boolean {// stolen from PGConfig
-    // if (!this.needInterfaces) return false
+export function isConflictedDeclaration(decl: idl.IDLEntry): boolean {/// stolen from PGConfig
+    if (!PeerGeneratorConfig.needInterfaces) return false
     // duplicate type declarations with different signatures
-    if (idl.isInterface(decl) && decl.name === 'OnWillScrollCallback') return true
+    if (/*idl.isInterface(decl) && */decl.name === 'OnWillScrollCallback')///anon iface?
+        return true
     // has same named class and interface
     if ((idl.isInterface(decl)) && decl.name === 'LinearGradient') return true
     // just has ugly dependency WrappedBuilder - there is conflict in generic types
     if (idl.isInterface(decl) && decl.name === 'ContentModifier') return true
     // complicated type arguments
-    if (idl.isInterface(decl) && decl.name === 'TransitionEffect') return true
+    if (idl.isClass(decl) && decl.name === 'TransitionEffect') return true
     // inside namespace
     if (idl.isEnum(decl) && decl.name === 'GestureType') return true
     // no return type in some methods
@@ -857,7 +820,7 @@ export function isConflictedDeclaration(decl: idl.IDLEntry): boolean {// stolen 
     return false
 }
 
-export function isBuilderClass(declaration: idl.IDLInterface): boolean {// stolen from BUilderClass
+export function isBuilderClass(declaration: idl.IDLInterface): boolean {/// stolen from BUilderClass
 
     // Builder classes are classes with methods which have only one parameter and return only itself
 
@@ -974,4 +937,26 @@ export function isSourceDecl(node: idl.IDLEntry): boolean {
     // if (!ts.isSourceFile(node.parent))
     //     throw 'Expected declaration to be at file root'
     return !node.fileName?.endsWith('stdlib.d.ts')
+}
+
+function generateSignature(library: IdlPeerLibrary, method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor): NamedMethodSignature {
+    const returnName = method.returnType!.name
+    const returnType =
+        returnName === "void_" ? Type.Void///tired of this. Let's have isVoidType()?
+        : idl.isConstructor(method) || !method.isStatic ? Type.This : new Type(returnName)
+    return new NamedMethodSignature(returnType,
+        method.parameters.map(it => new Type(library.mapType(it.type!), it.isOptional)),
+        method.parameters.map(it => it.name))
+}
+
+function getMethodIndex(clazz: idl.IDLInterface, method: idl.IDLSignature | undefined): number {
+    if (!method || !method.name) {
+        return 0
+    }
+    if (idl.isCallable(method))
+        return clazz.callables.findIndex(it => it === method)
+    else
+        return clazz.methods
+            .filter(it => it.name === method.name)
+            .findIndex(it => method === it)
 }

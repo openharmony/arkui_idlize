@@ -19,19 +19,22 @@ import { LanguageWriter, Method, NamedMethodSignature, StringExpression, Type, c
 import { PeerClass, PeerClassBase } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
+import { IdlPeerClass } from "../idl/IdlPeerClass";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 
 class NativeModuleVisitor {
     readonly nativeModule: LanguageWriter
     readonly nativeModuleEmpty: LanguageWriter
 
     constructor(
-        private readonly library: PeerLibrary,
+        private readonly library: PeerLibrary | IdlPeerLibrary,
     ) {
-        this.nativeModule = createLanguageWriter(library.declarationTable.language)
-        this.nativeModuleEmpty = createLanguageWriter(library.declarationTable.language)
+        this.nativeModule = createLanguageWriter(library.language)
+        this.nativeModuleEmpty = createLanguageWriter(library.language)
     }
 
-    private printPeerMethods(peer: PeerClass) {
+    private printPeerMethods(peer: PeerClass | IdlPeerClass) {
         peer.methods.forEach(it => printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty))
     }
 
@@ -75,7 +78,7 @@ class NativeModuleVisitor {
     }
 }
 
-function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
+function printPeerMethod(clazz: PeerClassBase, method: PeerMethod | IdlPeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
     returnType?: Type
 ) {
     const component = clazz.generatedName(method.isCallSignature)
@@ -108,14 +111,14 @@ function printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule:
     clazz.setGenerationContext(undefined)
 }
 
-export function printNativeModule(peerLibrary: PeerLibrary, nativeBridgePath: string): string {
-    const lang = peerLibrary.declarationTable.language
+export function printNativeModule(peerLibrary: PeerLibrary | IdlPeerLibrary, nativeBridgePath: string): string {
+    const lang = peerLibrary.language
     const visitor = new NativeModuleVisitor(peerLibrary)
     visitor.print()
     return nativeModuleDeclaration(visitor.nativeModule, nativeBridgePath, false, lang)
 }
 
-export function printNativeModuleEmpty(peerLibrary: PeerLibrary): string {
+export function printNativeModuleEmpty(peerLibrary: PeerLibrary | IdlPeerLibrary): string {
     const visitor = new NativeModuleVisitor(peerLibrary)
     visitor.print()
     return nativeModuleEmptyDeclaration(visitor.nativeModuleEmpty.getOutput())

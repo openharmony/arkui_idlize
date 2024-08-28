@@ -20,6 +20,7 @@ import { PeerClass } from "./PeerClass";
 import { PeerFile } from "./PeerFile";
 import { ComponentDeclaration } from './PeerGeneratorVisitor';
 import { BuilderClass } from './BuilderClass';
+import { Language } from '../util';
 
 export type PeerLibraryOutput = {
     outputC: string[]
@@ -41,6 +42,10 @@ export class PeerLibrary {
         public declarationTable: DeclarationTable,
         public componentsToGenerate: Set<string>,
     ) {}
+
+    public get language(): Language {
+        return this.declarationTable.language
+    }
 
     readonly customComponentMethods: string[] = []
     // todo really dirty - we use it until we can generate interfaces
@@ -73,5 +78,9 @@ export class PeerLibrary {
 
     shouldGenerateComponent(name: string): boolean {
         return !this.componentsToGenerate.size || this.componentsToGenerate.has(name)
+    }
+
+    setCurrentContext(context: string | undefined) {
+        this.declarationTable.setCurrentContext(context)
     }
 }

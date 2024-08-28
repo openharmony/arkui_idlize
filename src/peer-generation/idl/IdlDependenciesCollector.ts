@@ -58,12 +58,6 @@ export class TypeDependenciesCollector implements TypeConvertor<idl.IDLEntry[]> 
     // convertOptional(node: ts.OptionalTypeNode): ts.Declaration[] {
     //     return convertTypeNode(this, node.type)
     // }
-    // convertFunction(node: ts.FunctionTypeNode): ts.Declaration[] {
-    //     return [
-    //         ...node.parameters.flatMap(it => convertTypeNode(this, it.type!)),
-    //         ...convertTypeNode(this, node.type),
-    //     ]
-    // }
     // convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): ts.Declaration[] {
     //     return []
     // }
@@ -72,8 +66,13 @@ export class TypeDependenciesCollector implements TypeConvertor<idl.IDLEntry[]> 
     }
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
-        return !decl ? []
+        const result = !decl ? []
             : idl.isEnumMember(decl) ? [decl.parent] : [decl]
+        const typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)
+        if (typeArgs) {
+            result.push(...typeArgs.split(",").flatMap(it => convertType(this, idl.toIDLType(it))))
+        }
+        return result
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLEntry[] {
         return []
@@ -150,7 +149,10 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<id
         return convertType(this.typeDepsCollector, decl.type)
     }
     convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {
-        return []
+        return [
+            ...decl.parameters.flatMap(it => convertType(this.typeDepsCollector, it.type!)),
+            ...convertType(this.typeDepsCollector, decl.returnType),
+        ]
     }
     convert(node: idl.IDLEntry | undefined): idl.IDLEntry[] {
         if (node === undefined)

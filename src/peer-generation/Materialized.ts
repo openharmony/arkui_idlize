@@ -54,10 +54,10 @@ export function isMaterialized(declaration: ts.InterfaceDeclaration | ts.ClassDe
 
 export class MaterializedField {
     constructor(
-        public declarationTarget: DeclarationTarget,
+        public field: Field,
         public argConvertor: ArgConvertor,
         public retConvertor: RetConvertor,
-        public field: Field
+        public declarationTarget?: DeclarationTarget,
     ) { }
 }
 

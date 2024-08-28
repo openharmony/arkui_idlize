@@ -85,22 +85,30 @@ export class IdlPeerLibrary {
         return this.nameConvertorInstance.convert(type ?? idl.createVoidType())
     }
 
+    ///need EnumType?
     resolveTypeReference(type: idl.IDLEnumType | idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
         entries ??= this.files.flatMap(it => it.entries)
         const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier);
         if (qualifier) {
-            // This is a namespace or enum member
-            const parent = this.resolveTypeReference(idl.createReferenceType(qualifier), entries)///oh oh
+            // This is a namespace or enum member. Try enum first
+            const parent = this.resolveTypeReference(idl.createReferenceType(qualifier), entries)///oh oh, just entries.find?
             if (parent && idl.isEnum(parent))
                 return parent.elements.find(it => it.name === type.name)
-            ///handle namespaces
+            // Else try namespaces
+            return entries.find(it =>
+                it.name === type.name && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === qualifier)
         }
-        const result = entries.find(it => it.name === type.name)
+        const result = entries.find(it =>
+            it.name === type.name && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Namespace))
         return result ??
             entries
                 .map(it => it.scope)
                 .filter(isDefined)
                 .flat()
                 .find(it => it.name === type.name)
+    }
+
+    // TODO temporary, needed for unification with PeerLibrary
+    setCurrentContext(context: string | undefined) {
     }
 }

@@ -38,6 +38,10 @@ import { ARK_MATERIALIZEDBASE_EMPTY_PARAMETER, ARKOALA_PACKAGE, ARKOALA_PACKAGE_
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { IdlPeerFile } from "../idl/IdlPeerFile";
+import { IdlPeerClass } from "../idl/IdlPeerClass";
+import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -53,13 +57,13 @@ class PeerFileVisitor {
     //TODO: Ignore until bugs are fixed in https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/17850
 
     constructor(
-        protected readonly library: PeerLibrary,
-        protected readonly file: PeerFile,
+        protected readonly library: PeerLibrary | IdlPeerLibrary,
+        protected readonly file: PeerFile | IdlPeerFile,
         protected readonly printerContext: PrinterContext,
         protected readonly dumpSerialized: boolean,
     ) { }
 
-    protected generatePeerParentName(peer: PeerClass): string {
+    protected generatePeerParentName(peer: PeerClass | IdlPeerClass): string {
         if (!peer.originalClassName)
             throw new Error(`${peer.componentName} is not supported, use 'uselessConstructorInterfaces' for now`)
         const parentRole = determineParentRole(peer.originalClassName, peer.parentComponentName)
@@ -70,13 +74,13 @@ class PeerFileVisitor {
         return componentToPeerClass(parent)
     }
 
-    protected generateAttributesParentClass(peer: PeerClass): string | undefined {
+    protected generateAttributesParentClass(peer: PeerClass | IdlPeerClass): string | undefined {
         if (!isHeir(peer.originalClassName!)) return undefined
         return componentToAttributesClass(peer.parentComponentName!)
     }
 
     protected printImports(printer: LanguageWriter, targetBasename: string): void {
-        this.getDefaultPeerImports(this.file.declarationTable.language)!.forEach(it => printer.print(it))
+        this.getDefaultPeerImports(this.library.language)!.forEach(it => printer.print(it))
 
         const imports = new ImportsCollector()
         this.file.peersToGenerate.forEach(peer => {
@@ -90,8 +94,8 @@ class PeerFileVisitor {
                     imports.addFeature(parentAttributesClass, parentModule)
             }
         })
-        if (this.file.declarationTable.language === Language.TS
-            || this.file.declarationTable.language === Language.ARKTS) {
+        if (this.library.language === Language.TS
+            || this.library.language === Language.ARKTS) {
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
             this.file.serializeImportFeatures.forEach(it => imports.addFeature(it.feature, it.module))
             imports.addFeature('GestureName', './shared/generated-utils')
@@ -100,7 +104,7 @@ class PeerFileVisitor {
         imports.addFeature("unsafeCast", "./shared/generated-utils")
         imports.addFeature("registerCallback", "./peers/SerializerBase")
         imports.addFeature("wrapCallback", "@koalaui/interop")
-        if (this.file.declarationTable.language !== Language.ARKTS) {
+        if (this.library.language !== Language.ARKTS) {
             imports.addFeature("Deserializer", "./peers/Deserializer")
             imports.addFeature("createDeserializer", "./peers/Deserializer")
         }
@@ -110,7 +114,7 @@ class PeerFileVisitor {
         imports.print(printer, `./peers/${targetBasename}`)
     }
 
-    protected printAttributes(peer: PeerClass, printer: LanguageWriter) {
+    protected printAttributes(peer: PeerClass | IdlPeerClass, printer: LanguageWriter) {
         for (const attributeType of peer.attributesTypes)
             printer.print(attributeType.content)
 
@@ -121,7 +125,7 @@ class PeerFileVisitor {
         }, parent ? [parent] : undefined)
     }
 
-    protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
+    protected printPeerConstructor(peer: PeerClass | IdlPeerClass, printer: LanguageWriter): void {
         // TODO: fully switch to writer!
         const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
         const isNode = parentRole !== InheritanceRole.Finalizable
@@ -140,7 +144,7 @@ class PeerFileVisitor {
         }, undefined, [MethodModifier.PROTECTED])
     }
 
-    protected printCreateMethod(peer: PeerClass, writer: LanguageWriter): void {
+    protected printCreateMethod(peer: PeerClass | IdlPeerClass, writer: LanguageWriter): void {
         const peerClass = componentToPeerClass(peer.componentName)
         const signature = new NamedMethodSignature(
             new Type(peerClass),
@@ -157,13 +161,13 @@ class PeerFileVisitor {
         })
     }
 
-    protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
-        this.library.declarationTable.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
+    protected printPeerMethod(method: PeerMethod | IdlPeerMethod, printer: LanguageWriter) {
+        this.library.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
         writePeerMethod(printer, method, this.printerContext, this.dumpSerialized, "Attribute", "this.peer.ptr")
-        this.library.declarationTable.setCurrentContext(undefined)
+        this.library.setCurrentContext(undefined)
     }
 
-    protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
+    protected printApplyMethod(peer: PeerClass | IdlPeerClass, printer: LanguageWriter) {
         const name = peer.originalClassName!
         const typeParam = componentToAttributesClass(peer.componentName)
         if (isRoot(name)) {
@@ -177,20 +181,23 @@ class PeerFileVisitor {
         printer.print(`}`)
     }
 
-    protected printPeer(peer: PeerClass, printer: LanguageWriter) {
+    protected printPeer(peer: PeerClass | IdlPeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer)
-            peer.methods.filter((method) =>
-                writer.language == Language.ARKTS ? !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(method.overloadedName) : true
-            ).forEach((method) => this.printPeerMethod(method, writer))
+            peer.methods.forEach(method => {
+                if (writer.language !== Language.ARKTS || // TODO should use filter, but it doesn't compile
+                    !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(method.overloadedName))
+                {
+                    this.printPeerMethod(method, writer)
+                }})
             this.printApplyMethod(peer, writer)
         }, this.generatePeerParentName(peer))
     }
 
     printFile(): void {
-        const printer = createLanguageWriter(this.library.declarationTable.language)
-        const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.file.declarationTable.language, false)
+        const printer = createLanguageWriter(this.library.language)
+        const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
         this.printers.set(new TargetFile(targetBasename), printer)
 
         this.printImports(printer, targetBasename)
@@ -234,8 +241,8 @@ class PeerFileVisitor {
 
 class JavaPeerFileVisitor extends PeerFileVisitor {
     constructor(
-        library: PeerLibrary,
-        file: PeerFile,
+        protected readonly library: PeerLibrary,
+        protected readonly file: PeerFile,
         printerContext: PrinterContext,
         dumpSerialized: boolean,
     ) {
@@ -243,7 +250,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
     }
 
     private printPackage(printer: LanguageWriter): void {
-        if (this.file.declarationTable.language == Language.JAVA) {
+        if (this.library.language == Language.JAVA) {
             printer.print(`package ${ARKOALA_PACKAGE};\n`)
         }
     }
@@ -266,7 +273,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 
     printFile(): void {
         this.file.peers.forEach(peer => {
-            let printer = createLanguageWriter(this.library.declarationTable.language)
+            let printer = createLanguageWriter(this.library.language)
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ARKOALA_PACKAGE_PATH), printer)
 
@@ -291,8 +298,8 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 
 class CJPeerFileVisitor extends PeerFileVisitor {
     constructor(
-        library: PeerLibrary,
-        file: PeerFile,
+        protected readonly library: PeerLibrary,
+        protected readonly file: PeerFile,
         printerContext: PrinterContext,
         dumpSerialized: boolean,
     ) {
@@ -300,7 +307,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     }
 
     private printPackage(printer: LanguageWriter): void {
-        if (this.file.declarationTable.language == Language.CJ) {
+        if (this.library.language == Language.CJ) {
             printer.print(`package idlize\n`)
         }
     }
@@ -323,7 +330,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
 
     printFile(): void {
         this.file.peers.forEach(peer => {
-            let printer = createLanguageWriter(this.library.declarationTable.language)
+            let printer = createLanguageWriter(this.library.language)
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ''), printer)
 
@@ -350,7 +357,7 @@ class PeersVisitor {
     readonly peers: Map<TargetFile, string[]> = new Map()
 
     constructor(
-        private readonly library: PeerLibrary,
+        private readonly library: PeerLibrary | IdlPeerLibrary,
         private readonly printerContext: PrinterContext,
         private readonly dumpSerialized: boolean,
     ) { }
@@ -359,10 +366,11 @@ class PeersVisitor {
         for (const file of this.library.files.values()) {
             if (!file.peersToGenerate.length)
                 continue
-            const visitor = this.printerContext.language == Language.JAVA ?
-                new JavaPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized) :
-                this.printerContext.language == Language.CJ ? new CJPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized) :
-                new PeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
+            const visitor = this.printerContext.language == Language.JAVA
+                ? new JavaPeerFileVisitor(this.library as PeerLibrary, file as PeerFile, this.printerContext, this.dumpSerialized)
+                : this.printerContext.language == Language.CJ
+                    ? new CJPeerFileVisitor(this.library as PeerLibrary, file as PeerFile, this.printerContext, this.dumpSerialized)
+                    : new PeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
             visitor.printFile()
             visitor.printers.forEach((printer, targetFile) => {
                 this.peers.set(targetFile, printer.getOutput())
@@ -373,7 +381,7 @@ class PeersVisitor {
 
 const returnValName = "retval"  // make sure this doesn't collide with parameter names!
 
-export function printPeers(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
+export function printPeers(peerLibrary: PeerLibrary | IdlPeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
     const visitor = new PeersVisitor(peerLibrary, printerContext, dumpSerialized)
     visitor.printPeers()
     const result = new Map<TargetFile, string>()
@@ -399,7 +407,7 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
     })
 }
 
-export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, printerContext: PrinterContext, dumpSerialized: boolean,
+export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | IdlPeerMethod, printerContext: PrinterContext, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: Type = Type.Void, generics?: string[]
 ) {
     const isTsLike = [Language.ARKTS, Language.TS].includes(printerContext.language)
@@ -414,7 +422,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, pri
             method.method.modifiers, method.method.generics)
     }
     else if (isJava) {
-        const args = method.declarationTargets.map((declarationTarget, index) => {
+        const args = (method as PeerMethod).declarationTargets.map((declarationTarget, index) => {
             return printerContext.synthesizedTypes!.getTargetType(declarationTarget, signature.args[index].nullable)
         })
         peerMethod = new Method(

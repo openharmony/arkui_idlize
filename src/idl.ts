@@ -316,6 +316,9 @@ export function isTupleInterface(node: IDLEntry): node is IDLInterface {
 export function isClass(node: IDLEntry): node is IDLInterface {
     return node.kind === IDLKind.Class
 }
+export function isCallable(node: IDLEntry): node is IDLCallable {
+    return node.kind === IDLKind.Callable
+}
 export function isMethod(node: IDLEntry): node is IDLMethod {
     return node.kind === IDLKind.Method
 }
@@ -708,4 +711,18 @@ export function getExtAttribute(node: IDLEntry, name: IDLExtendedAttributes): st
 export function getVerbatimDts(node: IDLEntry): stringOrNone {
     let value = getExtAttribute(node, IDLExtendedAttributes.VerbatimDts)
     return value ? value.substring(1, value.length - 1) : undefined
+}
+
+///don't like this. But type args are stored as strings, not as IDLType as they should
+export function toIDLType(typeName: string): IDLType {
+    const arrayMatch = typeName.match(/Array<(.*)>/)!
+    if (arrayMatch)
+        return createContainerType("sequence", [toIDLType(arrayMatch[1])])
+    switch (typeName) {
+        case "boolean": return createBooleanType()
+        case "number": return createNumberType()
+        case "string": return createStringType()
+        case "undefined": return createUndefinedType()
+        default: return createReferenceType(typeName)
+    }
 }

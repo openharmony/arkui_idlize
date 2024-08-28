@@ -376,8 +376,9 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             .map(it => this.serializeCallable(it, typePrefix))
     }
     pickAccessors(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, typePrefix: string): IDLProperty[] {
-        return members.filter(it => (ts.isGetAccessorDeclaration(it) || ts.isSetAccessorDeclaration(it)))
-        .map(it => this.serializeAccessor(it as ts.GetAccessorDeclaration | ts.SetAccessorDeclaration, typePrefix))
+        return members
+            .filter(it => (ts.isGetAccessorDeclaration(it) || ts.isSetAccessorDeclaration(it)))
+            .map(it => this.serializeAccessor(it as ts.GetAccessorDeclaration | ts.SetAccessorDeclaration, typePrefix))
     }
 
     fakeOverrides(node: ts.InterfaceDeclaration): ts.TypeElement[] {
@@ -547,26 +548,18 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     serializeAccessor(accessor: ts.GetAccessorDeclaration | ts.SetAccessorDeclaration, typePrefix: string): IDLProperty {
-        let propertyType = ts.isGetAccessorDeclaration(accessor)
-            ? this.serializeType(accessor.type, typePrefix)
-            : this.serializeType(accessor.parameters[0].type, typePrefix)
-        let attributes: IDLExtendedAttribute[] = [
-            {
-                name: IDLExtendedAttributes.Accessor,
-                value: ts.isGetAccessorDeclaration(accessor)
-                    ? IDLAccessorAttribute.Getter
-                    : IDLAccessorAttribute.Setter
-            }
-        ]
+        const [accessorType, accessorAttr, readonly] = ts.isGetAccessorDeclaration(accessor)
+            ? [accessor.type, IDLAccessorAttribute.Getter, true]
+            : [accessor.parameters[0].type, IDLAccessorAttribute.Setter, false]
         return {
             kind: IDLKind.Property,
             name: asString(accessor.name),
             fileName: accessor.getSourceFile().fileName,
-            type: propertyType,
+            type: this.serializeType(accessorType, typePrefix),
             isOptional: false,
             isStatic: false,
-            isReadonly: false,
-            extendedAttributes: attributes
+            isReadonly: readonly,
+            extendedAttributes: [{name: IDLExtendedAttributes.Accessor, value: accessorAttr}]
         }
     }
 

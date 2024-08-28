@@ -810,7 +810,7 @@ export class PeerProcessor {
             if (!isReadOnly) {
                 const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
                 const retConvertor = { isVoid: true, nativeType: () => Type.Void.name, macroSuffixPart: () => "V" }
-                const setAccessor = new MaterializedMethod(name, [f.declarationTarget], [f.argConvertor], retConvertor, false,
+                const setAccessor = new MaterializedMethod(name, [f.declarationTarget!], [f.argConvertor], retConvertor, false,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]), 0
                 )
                 mMethods.push(setAccessor)
@@ -836,8 +836,9 @@ export class PeerProcessor {
         const retConvertor = generateRetConvertor(property.type!)
         const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
         this.declarationTable.setCurrentContext(undefined)
-        return new MaterializedField(declarationTarget, argConvertor, retConvertor,
-            new Field(name, new Type(mapType(property.type)), modifiers))
+        return new MaterializedField(
+            new Field(name, new Type(mapType(property.type)), modifiers),
+            argConvertor, retConvertor, declarationTarget)
     }
 
     private makeMaterializedMethod(parentName: string,

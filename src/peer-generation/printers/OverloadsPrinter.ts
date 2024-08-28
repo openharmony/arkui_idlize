@@ -19,7 +19,6 @@ import { PeerClass, PeerClassBase } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { isDefined, Language } from "../../util";
 import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
-import { PeerLibrary } from "../PeerLibrary";
 
 export function collapseSameNamedMethods(methods: Method[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
@@ -58,7 +57,7 @@ export function groupOverloads(peerMethods: PeerMethod[]): PeerMethod[][] {
 export class OverloadsPrinter {
     private static undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
 
-    constructor(private printer: LanguageWriter, private library: PeerLibrary, private isComponent: boolean = true) {}
+    constructor(private printer: LanguageWriter, private language: Language, private isComponent: boolean = true) {}
 
     printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: PeerMethod[]) {
         const orderedMethods = Array.from(peerMethods)
@@ -118,11 +117,11 @@ export class OverloadsPrinter {
         const postfix = this.isComponent ? "Attribute" : "_serialize"
         const methodName = `${peerMethod.overloadedName}${postfix}`
 
-        if ([Language.TS].includes(this.library.declarationTable.language))
+        if ([Language.TS].includes(this.language))
             peerMethod.declarationTargets.map((target, index) => {
                 if (this.isComponent) { // TBD: Check for materialized classes
                     const callback = convertToCallback(peer, peerMethod, target)
-                    if (!callback || !canProcessCallback(this.library.declarationTable, callback))
+                    if (!callback || !canProcessCallback(callback))
                         return
                     const argName = argsNames[index]
                     this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseEventsProperties`,[
