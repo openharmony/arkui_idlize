@@ -39,7 +39,7 @@ class TrackerVisitor {
 
     printPeerClass(clazz: PeerClass): void {
         let seen = new Set<string>()
-        this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(clazz.componentName, "")}`)
+        this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(clazz.componentName, "Component")}`)
         clazz.methods.forEach(method => {
             if (!seen.has(method.method.name)) {
                 this.out.print(`|\`${method.method.name}\`| Function | ${this.tracking(clazz.componentName, method.method.name)}`)
@@ -50,7 +50,7 @@ class TrackerVisitor {
 
     printMaterializedClass(clazz: MaterializedClass) {
         let seen = new Set<string>()
-        this.out.print(`|*${clazz.className}*| *Class* | ${this.tracking(clazz.className, "")}`)
+        this.out.print(`|*${clazz.className}*| *Class* | ${this.tracking(clazz.className, "Class")}`)
         clazz.methods.forEach(method => {
             if (!seen.has(method.method.name)) {
                 this.out.print(`|\`${method.method.name}\`| Function | ${this.tracking(clazz.className, method.method.name)}`)
@@ -132,7 +132,7 @@ class StatusRecord {
 }
 
 function key(component: string, func: string): string {
-    return `${component}:${func}`
+    return `${trimKey(component)}:${trimKey(func)}`
 }
 
 export function generateTracker(outDir: string, peerLibrary: PeerLibrary, trackerStatus: string): void {
@@ -157,4 +157,13 @@ export function generateTracker(outDir: string, peerLibrary: PeerLibrary, tracke
     const visitor = new TrackerVisitor(peerLibrary, track)
     visitor.print()
     visitor.out.printTo(path.join(outDir, "COMPONENTS.md"))
+}
+
+function trimKey(key: string): string {
+    function trim(v: string, c: string): string {
+        return v.startsWith(c) && v.endsWith(c) ? v.substring(1, v.length - 1) : v
+    }
+    key = trim(key, '*')
+    key = trim(key, '`')
+    return key
 }
