@@ -14,6 +14,9 @@
  */
 package idlize
 
+import std.collection.*
+import std.reflect.*
+
 public abstract class Ark_Object {
     static func getRuntimeType(object: String): RuntimeType {
         return RuntimeType.STRING
@@ -21,5 +24,18 @@ public abstract class Ark_Object {
 
     static func getRuntimeType(object: Object): RuntimeType {
         return RuntimeType.OBJECT
+    }
+
+    static func getRuntimeType<T>(object: ArrayList<T>): RuntimeType {
+        return RuntimeType.OBJECT
+    }
+    
+    static func getRuntimeType<T>(object: Option<T>): RuntimeType {
+        if(object.isNone()) {
+            return RuntimeType.UNDEFINED
+        }
+        else {
+            throw Exception("Wrong overload of getRuntimeType() has been used for the type ${TypeInfo.of(object)}")
+        }
     }
 }

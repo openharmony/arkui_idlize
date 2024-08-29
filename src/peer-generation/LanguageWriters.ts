@@ -506,16 +506,21 @@ export class BlockStatement implements LanguageStatement {
 export class IfStatement implements LanguageStatement {
     constructor(public condition: LanguageExpression,
         public thenStatement: LanguageStatement,
-        public elseStatement: LanguageStatement | undefined) { }
+        public elseStatement: LanguageStatement | undefined,
+        public insideIfOp: (() => void) | undefined,
+        public insideElseOp: (() => void) | undefined
+    ) { }
     write(writer: LanguageWriter): void {
         writer.print(`if (${this.condition.asString()}) {`)
         writer.pushIndent()
         this.thenStatement.write(writer)
+        if (this.insideIfOp) { this.insideIfOp!() }
         writer.popIndent()
         if (this.elseStatement !== undefined) {
             writer.print("} else {")
             writer.pushIndent()
             this.elseStatement.write(writer)
+            if (this.insideElseOp) { this.insideElseOp!() }
             writer.popIndent()
             writer.print("}")
         } else {
@@ -807,7 +812,7 @@ export abstract class LanguageWriter {
     makeNull(): LanguageExpression {
         return new StringExpression("null")
     }
-    makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType): LanguageExpression {
+    makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName?: string): LanguageExpression {
         const op = equals ? "==" : "!="
         return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(typeVarName)])
     }
@@ -833,8 +838,8 @@ export abstract class LanguageWriter {
     makeRuntimeTypeDefinedCheck(runtimeType: string): LanguageExpression {
         return this.makeRuntimeTypeCondition(runtimeType, false, RuntimeType.UNDEFINED)
     }
-    makeCondition(condition: LanguageExpression, thenStatement: LanguageStatement, elseStatement?: LanguageStatement): LanguageStatement {
-        return new IfStatement(condition, thenStatement, elseStatement)
+    makeCondition(condition: LanguageExpression, thenStatement: LanguageStatement, elseStatement?: LanguageStatement, insideIfOp?: () => void, insideElseOp?: () => void): LanguageStatement {
+        return new IfStatement(condition, thenStatement, elseStatement, insideIfOp, insideElseOp)
     }
     makeMultiBranchCondition(conditions: BranchStatement[], elseStatement?: LanguageStatement): LanguageStatement {
         return new MultiBranchIfStatement(conditions, elseStatement)
@@ -1466,7 +1471,7 @@ export class CJLanguageWriter extends LanguageWriter {
     writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} let ${name}: ${type.nullable ? '?' : ''}${this.mapType(type)}${init}`)
+        this.printer.print(`${prefix} var ${name}: ${optional ? '?' : ''}${this.mapType(type)}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void { }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
@@ -1498,6 +1503,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeArrayLength(array: string, length?: string): LanguageExpression {
         return this.makeString(`${array}.size`)
+    }
+    makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName: string): LanguageExpression {
+        return this.makeString(`let Some(${varName}) <- ${varName}`)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         throw new Error(`TBD`)
@@ -1579,6 +1587,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]
+    }
+    makeTupleAccess(value: string, index: number): LanguageExpression {
+        return this.makeString(`${value}.value${index}`)
     }
     enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
         throw new Error('Not yet implemented')

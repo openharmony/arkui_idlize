@@ -155,7 +155,7 @@ class PeerFileVisitor {
         writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
             const _peer = '_peer'
             writer.writeStatement(writer.makeAssign(_peer, undefined, writer.makeString(
-                `${writer.language == Language.CJ ? ' ' : 'new '} ${peerClass}(${signature.argName(0)}, ${signature.argName(1)}, ${signature.argName(2)})`), true))
+                `${writer.language == Language.CJ ? ' ' : 'new '}${peerClass}(${signature.argName(0)}, ${signature.argName(1)}, ${signature.argName(2)})`), true))
             writer.writeMethodCall(signature.argName(1), 'setPeer', [_peer], true)
             writer.writeStatement(writer.makeReturn(writer.makeString(_peer)))
         })

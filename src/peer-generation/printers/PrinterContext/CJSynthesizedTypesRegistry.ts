@@ -15,7 +15,7 @@
 
 import * as ts from 'typescript'
 import { identName, Language } from '../../../util'
-import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from '../../LanguageWriters'
+import { ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from '../../LanguageWriters'
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
 import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../lang/Java'
 import { TargetFile } from '../TargetFile'
@@ -354,14 +354,15 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
 
             const param = 'param'
             for (const [index, memberInfo] of membersInfo.entries()) {
-                writer.writeFieldDeclaration(memberInfo.name, memberInfo.type, [FieldModifier.PRIVATE], false)
+                let optionalType = new Type(memberInfo.type.name, true)
+                writer.writeFieldDeclaration(memberInfo.name, optionalType, [FieldModifier.PRIVATE], true, new StringExpression(`None<${memberInfo.type}>`) )
 
                 writer.writeConstructorImplementation(
-                    CJType.alias,
+                    "init",
                     new NamedMethodSignature(Type.Void, [memberInfo.type], [param]),
                     () => {
                         writer.writeStatement(
-                            writer.makeAssign(memberInfo.name, undefined, writer.makeString(param), false)
+                            writer.makeAssign(memberInfo.name, undefined, writer.makeString(param), false, false)
                         )
                         writer.writeStatement(
                             writer.makeAssign(selector, undefined, writer.makeString(index.toString()), false)
@@ -372,11 +373,16 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 writer.writeMethodImplementation(
                     new Method(`getValue${index}`, new MethodSignature(memberInfo.type, []), [MethodModifier.PUBLIC]),
                     () => {
+                        writer.print(`if (let Some(${memberInfo.name}) <- ${memberInfo.name}) {`)
+                        writer.pushIndent()
                         writer.writeStatement(
                             writer.makeReturn(
                                 writer.makeString(memberInfo.name)
                             )
                         )
+                        writer.popIndent()
+                        writer.print('}')
+                        writer.print('throw Exception()')
                     }
                 )
             }

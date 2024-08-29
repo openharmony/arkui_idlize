@@ -16,7 +16,7 @@
 import * as ts from 'typescript'
 import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
-import { FieldModifier, LanguageWriter, createLanguageWriter, Type, MethodModifier } from '../LanguageWriters'
+import { FieldModifier, LanguageWriter, createLanguageWriter, Type, MethodModifier, MethodSignature } from '../LanguageWriters'
 import { ArkTSTypeNodeNameConvertor, mapType } from '../TypeNodeNameConvertor'
 import { identName, Language, removeExt, renameDtsToInterfaces } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
@@ -315,6 +315,7 @@ class CJInterfacesVisitor {
     ])
 
     private printClassOrInterface(node: ts.ClassDeclaration | ts.InterfaceDeclaration, writer: LanguageWriter) {
+        console.log(node.name)
         type MemberInfo = {name: string, type: Type, optional: boolean}
         const membersInfo: MemberInfo[] = node.members.map(property => {
             if (!ts.isPropertyDeclaration(property) && !ts.isPropertySignature(property)) {
@@ -336,8 +337,13 @@ class CJInterfacesVisitor {
         const superClass = this.getSuperClass(node) ?? ARK_OBJECTBASE
         writer.writeClass(this.getName(node), () => {
             for (const member of membersInfo) {
-                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional, writer.makeString(this.initialValue.get(member.type.name) ?? '0'))
+                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional, this.initialValue.get(member.type.name) ? writer.makeString(this.initialValue.get(member.type.name)!): undefined)
             }
+            writer.writeConstructorImplementation(this.getName(node), new MethodSignature(Type.Void, membersInfo.map(property => property.type)), (printer) => {
+                for (let i in membersInfo) {
+                    printer.writeStatement(printer.makeAssign(`this.${membersInfo[i].name}`, undefined, writer.makeString(`arg${i}`), false))
+                }
+            })
         }, superClass)
     }
 
@@ -372,6 +378,7 @@ class CJInterfacesVisitor {
                 if (!ts.isClassDeclaration(it) && !ts.isInterfaceDeclaration(it)) {
                     return
                 }
+                console.log(it.name)
                 this.addInterfaceDeclaration(it)
             })
         }

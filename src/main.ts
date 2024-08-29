@@ -707,24 +707,24 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         writer.printTo(arkoala.javaLib(new TargetFile('Serializer', ARKOALA_PACKAGE_PATH)))
     }
     if (lang == Language.CJ) {
-        // const interfaces = printInterfaces(peerLibrary, context)
-        // for (const [targetFile, data] of interfaces) {
-        //     const outComponentFile = arkoala.cjLib(targetFile)
-        //     console.log("producing", outComponentFile)
-        //     if (options.verbose) console.log(data)
-        //     fs.writeFileSync(outComponentFile, data)
-        // }
+        const interfaces = printInterfaces(peerLibrary, context)
+        for (const [targetFile, data] of interfaces) {
+            const outComponentFile = arkoala.cjLib(targetFile)
+            console.log("producing", outComponentFile)
+            if (options.verbose) console.log(data)
+            fs.writeFileSync(outComponentFile, data)
+        }
 
-        // const synthesizedTypes = context.synthesizedTypes!.getDefinitions()
-        // for (const [targetFile, data] of synthesizedTypes) {
-        //     const outComponentFile = arkoala.cjLib(targetFile)
-        //     console.log("producing", outComponentFile)
-        //     if (options.verbose) console.log(data)
-        //     fs.writeFileSync(outComponentFile, data)
-        // }
+        const synthesizedTypes = context.synthesizedTypes!.getDefinitions()
+        for (const [targetFile, data] of synthesizedTypes) {
+            const outComponentFile = arkoala.cjLib(targetFile)
+            console.log("producing", outComponentFile)
+            if (options.verbose) console.log(data)
+            fs.writeFileSync(outComponentFile, data)
+        }
 
-        // const writer = makeCJSerializer(peerLibrary)
-        // writer.printTo(arkoala.cjLib(new TargetFile('Serializer', '')))
+        const writer = makeCJSerializer(peerLibrary)
+        writer.printTo(arkoala.cjLib(new TargetFile('Serializer', '')))
     }
     writeFile(arkoala.native(new TargetFile('bridge_generated.cc')), printBridgeCcGenerated(peerLibrary, options.callLog ?? false), true)
     writeFile(arkoala.native(new TargetFile('bridge_custom.cc')), printBridgeCcCustom(peerLibrary, options.callLog ?? false))
