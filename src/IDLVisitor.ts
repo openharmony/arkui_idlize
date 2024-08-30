@@ -723,8 +723,9 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             let where = type.argument.getText(type.getSourceFile()).split("/").map(it => it.replaceAll("'", ""))
             let what = asString(type.qualifier)
             let typeName = sanitize(what == "default" ? where[where.length - 1] : what)!
-            let result = createReferenceType(typeName)
-            result.extendedAttributes = [{ name: IDLExtendedAttributes.Import, value: originalText}]
+            let result = createReferenceType(typeName, type.typeArguments)
+            result.extendedAttributes ??= []
+            result.extendedAttributes.push({ name: IDLExtendedAttributes.Import, value: originalText})
             return result
         }
         if (ts.isNamedTupleMember(type)) {

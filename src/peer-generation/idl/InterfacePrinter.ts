@@ -28,7 +28,7 @@ import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from '../printe
 import { convertDeclaration, DeclarationConvertor } from "./IdlTypeConvertor";
 // import { createTypeNodeConvertor, generateMethodModifiers, generateSignature } from "./IdlPeerGeneratorVisitor";
 import { isMaterialized } from "../Materialized";
-import { ResourceDeclaration } from './IdlArgConvertors'
+import { ResourceDeclaration } from './IdlPeerLibrary'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>

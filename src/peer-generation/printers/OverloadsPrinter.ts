@@ -19,6 +19,7 @@ import { PeerClass, PeerClassBase } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { isDefined, Language } from "../../util";
 import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
+import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 
 export function collapseSameNamedMethods(methods: Method[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
@@ -59,7 +60,7 @@ export class OverloadsPrinter {
 
     constructor(private printer: LanguageWriter, private language: Language, private isComponent: boolean = true) {}
 
-    printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: PeerMethod[]) {
+    printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: (PeerMethod | IdlPeerMethod)[]) {
         const orderedMethods = Array.from(peerMethods)
             .sort((a, b) => b.argConvertors.length - a.argConvertors.length)
         const collapsedMethod = collapseSameNamedMethods(orderedMethods.map(it => it.method))
@@ -92,7 +93,7 @@ export class OverloadsPrinter {
         })
     }
 
-    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
+    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod | IdlPeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
         const argsConditions = collapsedMethod.signature.args.map((_, argIndex) =>
             runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
         this.printer.print(`if (${this.printer.makeNaryOp("&&", argsConditions).asString()}) {`)
@@ -102,7 +103,7 @@ export class OverloadsPrinter {
         this.printer.print('}')
     }
 
-    private printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod) {
+    private printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod | IdlPeerMethod) {
         const argsNames = peerMethod.argConvertors.map((conv, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${argName}_casted`

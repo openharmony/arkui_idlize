@@ -15,14 +15,14 @@
 
 import * as idl from "../../idl"
 import { posix as path } from "path"
-import { serializerBaseMethods, isDefined, Language, renameDtsToInterfaces, renameClassToBuilderClass, renameClassToMaterialized, capitalize } from "../../util"
+import { serializerBaseMethods, isDefined, Language, renameDtsToInterfaces, renameClassToBuilderClass, renameClassToMaterialized, capitalize, throwException } from "../../util"
 import { GenericVisitor } from "../../options"
-import { ArgConvertor, RetConvertor, typeConvertor } from "./IdlArgConvertors"
+import { ArgConvertor, RetConvertor } from "./IdlArgConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { IdlPeerClass } from "./IdlPeerClass"
 import { IdlPeerMethod } from "./IdlPeerMethod"
 import { IdlPeerFile, EnumEntity } from "./IdlPeerFile"
-import { IdlPeerLibrary } from "./IdlPeerLibrary"
+import { IdlPeerLibrary, ResourceDeclaration } from "./IdlPeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
 import { convertDeclaration, convertType } from "./IdlTypeConvertor";
@@ -31,7 +31,6 @@ import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./I
 import { addSyntheticDeclarationDependency, isSyntheticDeclaration, makeSyntheticTypeAliasDeclaration, syntheticDeclarationFilename } from "./IdlSyntheticDeclarations";
 import { initCustomBuilderClasses, BuilderClass, isCustomBuilderClass } from "../BuilderClass";
 import { isRoot } from "../inheritance";
-import { isMaterialized, checkTSDeclarationMaterialized } from "./IdlArgConvertors";
 import { ImportFeature } from "../ImportsCollector";
 import { DeclarationNameConvertor } from "./IdlDependenciesCollector";
 import { ArkTSTypeNameConvertor } from "./IdlTypeNameConvertor";
@@ -127,7 +126,7 @@ export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
 
 function generateArgConvertor(library: IdlPeerLibrary, param: idl.IDLParameter, maybeCallback: boolean): ArgConvertor {
     if (!param.type) throw new Error("Type is needed")
-    return typeConvertor(library, param.name, param.type, param.isOptional, maybeCallback)
+    return library.typeConvertor(param.name, param.type, param.isOptional, maybeCallback)
 }
 
 function generateRetConvertor(type?: idl.IDLType): RetConvertor {
@@ -356,12 +355,12 @@ class PeersGenerator {
         }
         const originalParentName = parentName ?? peer.originalClassName!
         // this.declarationTable.setCurrentContext(`${originalParentName}.${methodName}()`)
-        const argConvertor = typeConvertor(this.library, "value", prop.type, prop.isOptional, maybeCallback)
+        const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional, maybeCallback)
         const argType = new Type(this.library.mapType(prop.type), prop.isOptional)
-        const signature = new NamedMethodSignature(Type.Void, [argType], ["value"])
+        const signature = new NamedMethodSignature(Type.This, [argType], ["value"])
         const peerMethod = new IdlPeerMethod(
             originalParentName,
-    //         declarationTargets,
+            [this.toDeclaration(prop.type)],
             [argConvertor],
     //         retConvertor,
             false,
@@ -391,9 +390,8 @@ class PeersGenerator {
     //         }
     //     })
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, maybeCallback))
-    //     const declarationTargets = parameters
-    //         .map((param) => this.declarationTable.toTarget(param.type ??
-    //             throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
+        const declarationTargets = method.parameters.map(param =>
+            this.toDeclaration(param.type ?? throwException(`Expected a type for ${param.name} in ${method.name}`)))
     //     const retConvertor = generateRetConvertor(method.type)
 
     //     // TODO: restore collapsing logic!
@@ -401,13 +399,29 @@ class PeersGenerator {
 
         const peerMethod = new IdlPeerMethod(
             originalParentName,
-    //         declarationTargets,
+            declarationTargets,
             argConvertors,
     //         retConvertor,
             isCallSignature,
             new Method(methodName, signature, method.isStatic ? [MethodModifier.STATIC] : []))
     //     this.declarationTable.setCurrentContext(undefined)
         return peerMethod
+    }
+
+    private toDeclaration(type: idl.IDLType): idl.IDLType {
+        if (idl.isReferenceType(type)) {
+            const decl = this.library.resolveTypeReference(type)
+            // Currently we're only interested in callbacks for EventsPrinter. In the future, who knows
+            if (decl && idl.isCallback(decl))
+                return decl
+            if (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.Import)) {
+                switch (type.name) {
+                    case "Resource": return ResourceDeclaration
+                    case "Callback": return idl.createReferenceType("Function")
+                }
+            }
+        }
+        return type
     }
 
     private createComponentAttributesDeclaration(clazz: idl.IDLInterface, peer: IdlPeerClass) {
@@ -560,7 +574,7 @@ export class IdlPeerProcessor {
         const mFields = decl.properties
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
             .filter(it => idl.getExtAttribute(it, idl.IDLExtendedAttributes.Accessor) !== idl.IDLAccessorAttribute.Setter)
-            .map(it => this.makeMaterializedField(name, it))
+            .map(it => this.makeMaterializedField(it))
         const mMethods = decl.methods
             // TODO: Properly handle methods with return Promise<T> type
             .map(method => this.makeMaterializedMethod(decl, method, isActualDeclaration))
@@ -592,8 +606,8 @@ export class IdlPeerProcessor {
                 mFields, mConstructor, mFinalizer, importFeatures, mMethods, isActualDeclaration))
     }
 
-    private makeMaterializedField(className: string, prop: idl.IDLProperty): MaterializedField {
-        const argConvertor = typeConvertor(this.library, prop.name, prop.type!)
+    private makeMaterializedField(prop: idl.IDLProperty): MaterializedField {
+        const argConvertor = this.library.typeConvertor(prop.name, prop.type!)
         const retConvertor = generateRetConvertor(prop.type!)
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
         return new MaterializedField(
@@ -941,8 +955,7 @@ export function isSourceDecl(node: idl.IDLEntry): boolean {
 
 function generateSignature(library: IdlPeerLibrary, method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor): NamedMethodSignature {
     const returnName = method.returnType!.name
-    const returnType =
-        returnName === "void_" ? Type.Void///tired of this. Let's have isVoidType()?
+    const returnType = idl.isVoidType(method.returnType!) ? Type.Void
         : idl.isConstructor(method) || !method.isStatic ? Type.This : new Type(returnName)
     return new NamedMethodSignature(returnType,
         method.parameters.map(it => new Type(library.mapType(it.type!), it.isOptional)),
@@ -959,4 +972,22 @@ function getMethodIndex(clazz: idl.IDLInterface, method: idl.IDLSignature | unde
         return clazz.methods
             .filter(it => it.name === method.name)
             .findIndex(it => method === it)
+}
+
+export function isMaterialized(declaration: idl.IDLInterface): boolean {
+    if (PeerGeneratorConfig.isMaterializedIgnored(declaration.name))
+        return false;
+    if (isBuilderClass(declaration))
+        return false
+
+    // TODO: parse Builder classes separatly
+
+    // A materialized class is a class or an interface with methods
+    // excluding components and related classes
+    return declaration.methods.length > 0
+}
+
+export function checkTSDeclarationMaterialized(decl: idl.IDLEntry): boolean {
+    return (idl.isInterface(decl) || idl.isClass(decl) || idl.isAnonymousInterface(decl) || idl.isTupleInterface(decl))
+            && isMaterialized(decl)
 }

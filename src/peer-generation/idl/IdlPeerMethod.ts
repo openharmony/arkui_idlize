@@ -18,12 +18,13 @@ import { capitalize, isDefined } from "../../util"
 import { ArgConvertor, OptionConvertor, RetConvertor } from "./IdlArgConvertors"
 import { Method, MethodModifier, mangleMethodName } from "../LanguageWriters"
 import { PrimitiveType } from "../DeclarationTable"
+import { IDLType } from "../../idl"
 
 export class IdlPeerMethod {
     private overloadIndex?: number
     constructor(
         public originalParentName: string,
-        // public declarationTargets: DeclarationTarget[],
+        public declarationTargets: IDLType[],
         public argConvertors: ArgConvertor[],
         // public retConvertor: RetConvertor,
         public isCallSignature: boolean,

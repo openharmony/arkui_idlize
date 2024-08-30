@@ -20,11 +20,14 @@ import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
-import { CallbackInfo, collectCallbacks, groupCallbacks } from "./EventsPrinter";
+import { CallbackInfo, collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
 import { DeclarationTable, PrimitiveType } from "../DeclarationTable";
 import { NamedMethodSignature, Type, printMethodDeclaration } from "../LanguageWriters";
 import { Language } from "../../util";
 import { LibaceInstall } from "../../Install";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { IdlPeerClass } from "../idl/IdlPeerClass";
+import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -45,30 +48,30 @@ export function generateEventSignature(table: DeclarationTable, event: CallbackI
 
 class HeaderVisitor {
     constructor(
-        private library: PeerLibrary,
+        private library: PeerLibrary | IdlPeerLibrary,
         private api: IndentedPrinter,
         private modifiersList: IndentedPrinter,
         private accessorsList: IndentedPrinter,
         private eventsList: IndentedPrinter,
     ) {}
 
-    private apiModifierHeader(clazz: PeerClass) {
+    private apiModifierHeader(clazz: PeerClass | IdlPeerClass) {
         return `typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUI${clazz.componentName}Modifier {`
     }
 
-    private printClassProlog(clazz: PeerClass) {
+    private printClassProlog(clazz: PeerClass | IdlPeerClass) {
         this.api.print(this.apiModifierHeader(clazz))
         this.api.pushIndent()
         this.modifiersList.pushIndent()
         this.modifiersList.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${clazz.componentName}Modifier* (*get${clazz.componentName}Modifier)();`)
     }
 
-    private printMethod(method: PeerMethod) {
+    private printMethod(method: PeerMethod | IdlPeerMethod) {
         const apiParameters = method.generateAPIParameters()
         printMethodDeclaration(this.api, method.retType, `(*${method.fullMethodName})`, apiParameters, `;`)
     }
 
-    private printClassEpilog(clazz: PeerClass) {
+    private printClassEpilog(clazz: PeerClass | IdlPeerClass) {
         if (clazz.methods.length == 0) {
             this.api.print("int dummy;")
         }
@@ -113,16 +116,36 @@ class HeaderVisitor {
         }
     }
 
-    private printEventsReceiver(componentName: string, callbacks: CallbackInfo[]) {
+    private printEventsReceiver(componentName: string, callbacks: (CallbackInfo | IdlCallbackInfo)[]) {
+        return this.library instanceof PeerLibrary
+            ? this.printEventsReceiverTs(componentName, callbacks as CallbackInfo[], this.library)
+            : this.printEventsReceiverIdl(componentName, callbacks as IdlCallbackInfo[], this.library)
+    }
+
+    private printEventsReceiverTs(componentName: string, callbacks: CallbackInfo[], library: PeerLibrary) {
         const receiver = generateEventReceiverName(componentName)
         this.api.print(`typedef struct ${receiver} {`)
         this.api.pushIndent()
         for (const callback of callbacks) {
-            const signature = generateEventSignature(this.library.declarationTable, callback)
+            const signature = generateEventSignature(library.declarationTable, callback)
             const args = signature.args.map((type, index) => {
                 return `${type.name} ${signature.argName(index)}`
             })
             printMethodDeclaration(this.api, signature.returnType.name, `(*${callback.methodName})`, args, `;`)
+        }
+        this.api.popIndent()
+        this.api.print(`} ${receiver};\n`)
+    }
+
+    private printEventsReceiverIdl(componentName: string, callbacks: IdlCallbackInfo[], library: IdlPeerLibrary) {
+        const receiver = generateEventReceiverName(componentName)
+        this.api.print(`typedef struct ${receiver} {`)
+        this.api.pushIndent()
+        for (const callback of callbacks) {
+            const args = ["Ark_Int32 nodeId",///same code in EventsPrinter
+                ...callback.args.map(it =>
+                    `const ${library.typeConvertor(it.name, it.type, it.nullable).nativeType(false)} ${it.name}`)]
+            printMethodDeclaration(this.api, "void", `(*${callback.methodName})`, args, `;`)
         }
         this.api.popIndent()
         this.api.print(`} ${receiver};\n`)

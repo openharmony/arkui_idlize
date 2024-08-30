@@ -86,7 +86,12 @@ export class TypeDependenciesCollector implements TypeConvertor<idl.IDLEntry[]> 
     convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLEntry[] {
         return []
     }
-
+    convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {///same as in DeclarationDependenciesCollector
+        return [
+            ...decl.parameters.flatMap(it => convertType(this, it.type!)),
+            ...convertType(this, decl.returnType),
+        ]
+    }
     convert(node: idl.IDLType | undefined): idl.IDLEntry[] {
         return node ? convertType(this, node) : []
     }

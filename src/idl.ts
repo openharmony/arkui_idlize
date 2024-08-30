@@ -280,6 +280,15 @@ export function forEachChild(node: IDLEntry, cb: (entry: IDLEntry) => void): voi
     }
 }
 
+export function isNullType(type: IDLType): type is IDLPrimitiveType {
+    return isPrimitiveType(type) && type.name === "null_"
+}
+export function isUndefinedType(type: IDLType): type is IDLPrimitiveType {
+    return isPrimitiveType(type) && type.name === "undefined"
+}
+export function isVoidType(type: IDLType): type is IDLPrimitiveType {
+    return isPrimitiveType(type) && type.name === "void_"
+}
 export function isPrimitiveType(type: IDLType): type is IDLPrimitiveType {
     return type.kind == IDLKind.PrimitiveType
 }
@@ -720,9 +729,11 @@ export function toIDLType(typeName: string): IDLType {
         return createContainerType("sequence", [toIDLType(arrayMatch[1])])
     switch (typeName) {
         case "boolean": return createBooleanType()
+        case "null": return createNullType()
         case "number": return createNumberType()
         case "string": return createStringType()
         case "undefined": return createUndefinedType()
+        case "void": return createVoidType()
         default: return createReferenceType(typeName)
     }
 }

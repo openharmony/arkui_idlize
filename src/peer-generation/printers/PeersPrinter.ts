@@ -184,13 +184,11 @@ class PeerFileVisitor {
     protected printPeer(peer: PeerClass | IdlPeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
             this.printPeerConstructor(peer, writer)
-            this.printCreateMethod(peer, writer)
-            peer.methods.forEach(method => {
-                if (writer.language !== Language.ARKTS || // TODO should use filter, but it doesn't compile
-                    !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(method.overloadedName))
-                {
-                    this.printPeerMethod(method, writer)
-                }})
+            this.printCreateMethod(peer, writer);
+            (peer.methods as any[])
+                .filter(method => writer.language !== Language.ARKTS
+                               || !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(method.overloadedName))
+                .forEach(method => this.printPeerMethod(method, writer))
             this.printApplyMethod(peer, writer)
         }, this.generatePeerParentName(peer))
     }

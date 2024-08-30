@@ -31,7 +31,7 @@ import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethod
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
 import { PeerLibrary } from "./PeerLibrary"
-import { collectCallbacks } from "./printers/EventsPrinter"
+import { CallbackInfo, collectCallbacks } from "./printers/EventsPrinter"
 import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { setEngine } from "node:crypto"
@@ -471,7 +471,7 @@ export class DeclarationTable {
     }
     private _orderedDependenciesToGenerate: DeclarationTarget[] = []
     analyze(library: PeerLibrary) {
-        const callbacks = collectCallbacks(library)
+        const callbacks = collectCallbacks(library) as CallbackInfo[]
         for (const callback of callbacks) {
             callback.args.forEach(arg => {
                 const useToGenerate = library.shouldGenerateComponent(callback.componentName)

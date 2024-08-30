@@ -40,6 +40,8 @@ export interface TypeConvertor<T> {
     // convertObjectKeyword(node: ts.TypeNode): T
     // convertAnyKeyword(node: ts.TypeNode): T
     // convertUnknownKeyword(node: ts.TypeNode): T
+    /// experimental. Do we need these?
+    convertCallback(type: idl.IDLCallback): T
 }
 
 export function convertType<T>(convertor: TypeConvertor<T>, type: idl.IDLType): T {
@@ -71,7 +73,8 @@ export function convertType<T>(convertor: TypeConvertor<T>, type: idl.IDLType): 
     // if (type.kind == ts.SyntaxKind.ObjectKeyword) return convertor.convertObjectKeyword(type)
     // if (type.kind == ts.SyntaxKind.AnyKeyword) return convertor.convertAnyKeyword(type)
     // if (type.kind == ts.SyntaxKind.UnknownKeyword) return convertor.convertUnknownKeyword(type)
-    throw new Error(`Unknown TypeNode ${idl.IDLKind[type.kind]}`)
+    if (idl.isCallback(type)) return convertor.convertCallback(type)
+    throw new Error(`Unknown type ${idl.IDLKind[type.kind]}`)
 }
 
 export interface DeclarationConvertor<T> {

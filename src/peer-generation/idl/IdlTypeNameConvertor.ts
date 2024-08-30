@@ -91,17 +91,15 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor {
     // convertOptional(node: ts.OptionalTypeNode): string {
     //     return `${this.convert(node.type)}?`
     // }
-    // convertFunction(node: ts.FunctionTypeNode): string {
-    //     if (node.typeParameters?.length)
-    //         throw "Not implemented"
-    //     const parameters = node.parameters.map(it => {
-    //         const name = this.convert(it.name)
-    //         const maybeQuestion = it.questionToken ? '?' : ''
-    //         const type = this.convert(it.type!)
-    //         return `${name}${maybeQuestion}: ${type}`
-    //     })
-    //     return `((${parameters.join(', ')}) => ${this.convert(node.type)})`
-    // }
+    convertCallback(type: idl.IDLCallback): string {
+        // if (node.typeParameters?.length)
+        //     throw "Not implemented"
+        const parameters = type.parameters.map(it => {
+            const type = this.convert(it.type!)
+            return `${it.name}${it.isOptional ? '?' : ''}: ${type}`
+        })
+        return `((${parameters.join(', ')}) => ${this.convert(type.returnType)})`
+    }
     // convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): string {
     //     return node.templateSpans.map(template => {
     //         return `\`\${${this.convert(template.type)}}${template.literal.rawText}\``
@@ -211,7 +209,8 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor {
     }
 
     private callbackType(decl: idl.IDLCallback): string {
-        const params = decl.parameters.map(it => `${it.isVariadic ? "..." : ""}${it.name}: ${this.library.mapType(it.type)}`)
+        const params = decl.parameters.map(it =>
+            `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${this.library.mapType(it.type)}`)
         return `((${params.join(", ")}) => ${this.library.mapType(decl.returnType)})`
     }
 

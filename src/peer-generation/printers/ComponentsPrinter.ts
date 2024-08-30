@@ -28,6 +28,10 @@ import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature,
 import { convertToCallback } from "./EventsPrinter";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { IdlPeerFile } from "../idl/IdlPeerFile";
+import { IdlPeerClass } from "../idl/IdlPeerClass";
+import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 
 function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -37,13 +41,13 @@ class ComponentFileVisitor {
     private readonly overloadsPrinter = new OverloadsPrinter(this.printer, this.library.language)
 
     constructor(
-        private library: PeerLibrary,
-        private file: PeerFile,
+        private library: PeerLibrary | IdlPeerLibrary,
+        private file: PeerFile | IdlPeerFile,
         readonly printer: LanguageWriter,
     ) { }
 
     get targetBasename() {
-        return renameDtsToComponent(path.basename(this.file.originalFilename), this.file.declarationTable.language)
+        return renameDtsToComponent(path.basename(this.file.originalFilename), this.library.language)
     }
 
     private printImports(): void {
@@ -52,7 +56,7 @@ class ComponentFileVisitor {
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             imports.addFeature("remember", "@koalaui/runtime")
             if (peer.originalParentFilename) {
-                const parentBasename = renameDtsToComponent(path.basename(peer.originalParentFilename), this.file.declarationTable.language, false)
+                const parentBasename = renameDtsToComponent(path.basename(peer.originalParentFilename), this.library.language, false)
                 imports.addFeature(generateArkComponentName(peer.parentComponentName!), `./${parentBasename}`)
             }
             const peerModule = convertPeerFilenameToModule(peer.originalFilename)
@@ -69,8 +73,8 @@ class ComponentFileVisitor {
             imports.addFeature('ComponentBase', './ComponentBase')
             imports.addFeature('unsafeCast', './shared/generated-utils')
             for (const method of peer.methods) {
-                for (const target of method.declarationTargets)
-                    if (convertToCallback(peer, method, target))
+                for (const argType of method.declarationTargets)
+                    if (convertToCallback(peer, method, argType))
                         imports.addFeature("UseEventsProperties", './use_properties')
             }
             // TBD
@@ -78,14 +82,14 @@ class ComponentFileVisitor {
             //     imports.addFeature(it.className, `./Ark${peer.componentName}Peer`)
             // })
         })
-        if ([Language.TS, Language.ARKTS].includes(this.file.declarationTable.language))
+        if ([Language.TS, Language.ARKTS].includes(this.library.language))
             this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(this.printer, removeExt(this.targetBasename))
     }
 
-    private groupOverloads(peerMethods: PeerMethod[]): PeerMethod[][] {
+    private groupOverloads<T extends PeerMethod | IdlPeerMethod>(peerMethods: T[]): T[][] {
         const seenNames = new Set<string>()
-        const groups: PeerMethod[][] = []
+        const groups: T[][] = []
         for (const method of peerMethods) {
             if (seenNames.has(method.method.name))
                 continue
@@ -95,8 +99,8 @@ class ComponentFileVisitor {
         return groups
     }
 
-    private printComponent(peer: PeerClass) {
-        const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
+    private printComponent(peer: PeerClass | IdlPeerClass) {
+        const callableMethods = (peer.methods as any[]).filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
         const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${it.nullable ? "?" : ""}: ${it.name}`)
         const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
@@ -107,11 +111,8 @@ class ComponentFileVisitor {
 
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), [FieldModifier.PROTECTED], true)
-            const filteredMethods = peer.methods.filter(it => {
-                if (this.library.declarationTable.language === Language.ARKTS)
-                    return !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(it.overloadedName)
-                return true
-            })
+            const filteredMethods = (peer.methods as any[]).filter(it =>
+                this.library.language !== Language.ARKTS || !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(it.overloadedName))
             for (const grouped of this.groupOverloads(filteredMethods))
                 this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
@@ -159,7 +160,7 @@ class ComponentsVisitor {
     readonly components: Map<string, LanguageWriter> = new Map()
 
     constructor(
-        private readonly peerLibrary: PeerLibrary,
+        private readonly peerLibrary: PeerLibrary | IdlPeerLibrary,
     ) { }
 
     printComponents(): void {
@@ -174,9 +175,9 @@ class ComponentsVisitor {
     }
 }
 
-export function printComponents(peerLibrary: PeerLibrary): Map<string, string> {
+export function printComponents(peerLibrary: PeerLibrary | IdlPeerLibrary): Map<string, string> {
     // TODO: support other output languages
-    if (![Language.TS, Language.ARKTS].includes(peerLibrary.declarationTable.language))
+    if (![Language.TS, Language.ARKTS].includes(peerLibrary.language))
         return new Map()
 
     const visitor = new ComponentsVisitor(peerLibrary)
