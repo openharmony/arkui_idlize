@@ -1,7 +1,8 @@
 | Component | Function | Owner | Status |
 | --------- | -------- | ----- | ------ |
-| AlphabetIndexer | onSelected | Ivan | Done |
-| AlphabetIndexer | color | Peter | In Progress |
+| *AlphabetIndexer* | *Component* |  |  |
+| onSelected | Function | Ivan | Done |
+| color | Function | Peter | In Progress |
 | Animator | state |  |  |
 |*Blank*| *Component* | wx781919 Skroba Gleb | done |
 |`setBlankOptions`| Function | wx781919 Skroba Gleb | done |
@@ -71,7 +72,7 @@
 |`caretStyle`| Function | wx1298574 Evstigneev Roman | done |
 |`placeholderColor`| Function | wx1298574 Evstigneev Roman | done |
 |`placeholderFont`| Function | wx1298574 Evstigneev Roman | done|
-| Stack | all | k00898293 Korobeinikov Evgeny | In Progress |
+| *Stack* | *Component* | k00898293 Korobeinikov Evgeny | In Progress |
 |*Swiper*| *Component* | swx781919 Skroba Gleb | In progress |
 |`index`| Function | swx781919 Skroba Gleb | done |
 |`autoPlay`| Function | swx781919 Skroba Gleb | done |
