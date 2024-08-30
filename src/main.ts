@@ -30,7 +30,6 @@ import {
     dummyImplementations,
     makeArkuiModule,
     makeTSSerializer,
-    makeJavaSerializerWriter,
     makeTSDeserializer,
     gniFile,
     mesonBuildFile,
@@ -39,6 +38,7 @@ import {
     makeCJSerializer,
     cStyleCopyright
 } from "./peer-generation/FileGenerators"
+import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./peer-generation/printers/lang/JavaPrinters"
 import {
     PeerGeneratorVisitor,
     PeerProcessor,
@@ -405,9 +405,9 @@ if (options.dts2peer) {
                         const outPeerFile = arkoala.peer(targetFile)
                         writeFile(outPeerFile, peer, true, "producing [idl]")
                     }
-                    const components = printComponents(idlLibrary)
-                    for (const [targetBasename, component] of components) {
-                        const outComponentFile = arkoala.component(new TargetFile(targetBasename))
+                    const components = printComponents(idlLibrary, context)
+                    for (const [targetFile, component] of components) {
+                        const outComponentFile = arkoala.component(targetFile)
                         if (options.verbose) console.log(component)
                         writeFile(outComponentFile, component, true, "producing [idl]")
                         arkuiComponentsFiles.push(outComponentFile)
@@ -554,9 +554,9 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             writeFile(outPeerFile, peer, true, "producing")
         }
 
-        const components = printComponents(peerLibrary)
-        for (const [targetBasename, component] of components) {
-            const outComponentFile = arkoala.component(new TargetFile(targetBasename))
+        const components = printComponents(peerLibrary, context)
+        for (const [targetFile, component] of components) {
+            const outComponentFile = arkoala.component(targetFile)
             writeFile(outComponentFile, component, true, "producing")
             if (options.verbose) console.log(component)
             arkuiComponentsFiles.push(outComponentFile)
@@ -710,8 +710,14 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             fs.writeFileSync(outComponentFile, data)
         }
 
-        const writer = makeJavaSerializerWriter(peerLibrary)
-        writer.printTo(arkoala.javaLib(new TargetFile('Serializer', ARKOALA_PACKAGE_PATH)))
+        const serializer = makeJavaSerializer(peerLibrary)
+        serializer.writer.printTo(arkoala.javaLib(serializer.targetFile))
+
+        const nodeTypes = makeJavaNodeTypes(peerLibrary)
+        nodeTypes.writer.printTo(arkoala.javaLib(nodeTypes.targetFile))
+
+        const arkComponents = makeJavaArkComponents(peerLibrary, context)
+        arkComponents.writer.printTo(arkoala.javaLib(arkComponents.targetFile))
     }
     if (lang == Language.CJ) {
         const interfaces = printInterfaces(peerLibrary, context)

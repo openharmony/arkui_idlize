@@ -424,7 +424,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
             return printerContext.synthesizedTypes!.getTargetType(declarationTarget, signature.args[index].nullable)
         })
         peerMethod = new Method(
-            `${method.overloadedName}${methodPostfix}`,
+            `${method.method.name}${methodPostfix}`,
             new NamedMethodSignature(returnType, args, signature.argsNames),
             method.method.modifiers, method.method.generics)
     }

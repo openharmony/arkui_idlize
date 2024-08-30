@@ -20,9 +20,12 @@ export const ARKOALA_PACKAGE_PATH = getPackagePath(ARKOALA_PACKAGE)
 export const INTEROP_PACKAGE_PATH = getPackagePath(INTEROP_PACKAGE)
 
 export const ARK_OBJECTBASE = 'Ark_ObjectBase'
+export const ARK_BASE = 'ArkBase'
+export const ARK_UI_NODE_TYPE = 'ArkUINodeType'
 export const ARK_MATERIALIZEDBASE = 'Ark_MaterializedBase'
 export const ARK_MATERIALIZEDBASE_EMPTY_PARAMETER = `${ARK_MATERIALIZEDBASE}.EmptyParameter`
 export const INT_VALUE_GETTER = 'IntValueGetter'
+export const COMPONENT_BASE = 'ComponentBase'
 
 function getPackagePath(javaPackage: string): string {
     return javaPackage.replaceAll('.', '/')

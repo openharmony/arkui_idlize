@@ -239,6 +239,7 @@ abstract class LambdaExpression implements LanguageExpression {
         protected signature: MethodSignature,
         private body?: LanguageStatement[]) { }
 
+    protected abstract get statementHasSemicolon(): boolean
     abstract asString(): string
 
     bodyAsString(): string {
@@ -252,7 +253,7 @@ abstract class LambdaExpression implements LanguageExpression {
         return writer.printer.getOutput()
             .map(line => line.trim())
             .filter(line => line !== "")
-            .map(line => line === "{" || line === "}" ? line : `${line};`)
+            .map(line => line === "{" || line === "}" || this.statementHasSemicolon ? line : `${line};`)
             .join(" ")
     }
 }
@@ -262,6 +263,9 @@ class TSLambdaExpression extends LambdaExpression {
         signature: MethodSignature,
         body?: LanguageStatement[]) {
         super(signature, body)
+    }
+    protected get statementHasSemicolon(): boolean {
+        return false
     }
     asString(): string {
         const params = this.signature.args.map((it, i) => `${this.signature.argName(i)}: ${it.name}`)
@@ -274,6 +278,9 @@ class JavaLambdaExpression extends LambdaExpression {
         signature: MethodSignature,
         body?: LanguageStatement[]) {
         super(signature, body)
+    }
+    protected get statementHasSemicolon(): boolean {
+        return true
     }
     asString(): string {
         const params = this.signature.args.map((it, i) => `${it.name} ${this.signature.argName(i)}`)

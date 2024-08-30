@@ -54,5 +54,7 @@ export class JavaImportTable implements ImportTable {
 
     private setPeerLibImports(): void {
         this.setImportsForType(new Type('Finalizable'), ['org.koalaui.interop.Finalizable'])
+        this.setImportsForType(new Type('Consumer'), ['java.util.function.Consumer'])
+        this.setImportsForType(new Type('Supplier'), ['java.util.function.Supplier'])
     }
 }

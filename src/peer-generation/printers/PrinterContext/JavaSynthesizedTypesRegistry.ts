@@ -15,9 +15,10 @@
 
 import * as ts from 'typescript'
 import { identName, Language } from '../../../util'
-import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from '../../LanguageWriters'
+import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from '../../LanguageWriters'
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
-import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../lang/Java'
+import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from '../lang/Java'
+import { JavaEnum, printJavaEnum } from "../lang/JavaPrinters"
 import { TargetFile } from '../TargetFile'
 import { DeclarationTable, DeclarationTarget, PrimitiveType } from '../../DeclarationTable'
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
@@ -409,42 +410,21 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
     private printEnumImplementation(sourceType: ts.EnumDeclaration, javaType: JavaType, writer: LanguageWriter) {
-        writer.writeClass(javaType.alias, () => {
-            let memberValue = 0
-            for (const member of sourceType.members) {
-                if (member.initializer) {
-                    if (ts.isNumericLiteral(member.initializer)) {
-                        memberValue = parseInt(member.initializer.getText())
-                    }
-                    else {
-                        throw new Error(`This type of enum member inititalizer is not supported yet in Java: ${member.initializer.getFullText()}`)
-                    }
+        const members: {name: string, id: number}[] = []
+        let memberValue = 0
+        for (const member of sourceType.members) {
+            if (member.initializer) {
+                if (ts.isNumericLiteral(member.initializer)) {
+                    memberValue = parseInt(member.initializer.getText())
                 }
-
-                writer.writeFieldDeclaration(member.name.getText(), javaType.type, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
-                    new StringExpression(`new ${javaType.alias}(${memberValue})`)
-                )
-
-                memberValue += 1
+                else {
+                    throw new Error(`This type of enum member inititalizer is not supported yet in Java: ${member.initializer.getFullText()}`)
+                }
             }
-
-            const value = 'value'
-            const intType = new Type('int')
-            writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
-
-            const signature = new MethodSignature(Type.Void, [intType])
-            writer.writeConstructorImplementation(javaType.alias, signature, () => {
-                writer.writeStatement(
-                    writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
-                )
-            })
-
-            const getIntValue = new Method('getIntValue', new MethodSignature(intType, []), [MethodModifier.PUBLIC])
-            writer.writeMethodImplementation(getIntValue, () => {
-                writer.writeStatement(
-                    writer.makeReturn(writer.makeString(value))
-                )
-            })
-        }, ARK_OBJECTBASE, [INT_VALUE_GETTER])
+            members.push({name: member.name.getText(), id: memberValue})
+            memberValue += 1
+        }
+        const javaEnum = new JavaEnum(javaType.alias, members)
+        printJavaEnum(javaEnum, writer)
     }
 }

@@ -14,6 +14,13 @@
  */
 package org.koalaui.arkoala;
 
-public class ArkCommon {
-    public void setPeer(PeerNode peer) {}
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+class ArkBase {
+    public static <T extends ComponentBase> T remember(Supplier<T> creator) {
+        return creator.get();
+    }
+
+    public static <T extends PeerNode> void nodeAttach(Supplier<T> creator, Consumer<T> updater) {}
 }
