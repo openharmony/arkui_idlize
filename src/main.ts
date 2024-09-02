@@ -638,6 +638,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),
+            true,
         )
         writeFile(
             arkoala.tsLib(new TargetFile('index')),

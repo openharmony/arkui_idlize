@@ -364,12 +364,6 @@ Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
 void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method) {
     callbacks = method;
 }
-void RegisterCustomNodeEventReceiver(%CPP_PREFIX%CustomEventReceiver eventReceiver) {}
-int CheckEvent(%CPP_PREFIX%Ark_NodeEvent* event) {
-    return 0;
-}
-void SendAsyncEvent(%CPP_PREFIX%Ark_NodeEvent* event) {}
-void CallContinuation(Ark_Int32 continuationId, Ark_Int32 argCount, %CPP_PREFIX%Ark_EventCallbackArg* args) {}
 }
 
 Ark_Float32 GetDensity(Ark_Int32 deviceId) {
@@ -597,10 +591,6 @@ Ark_Float32 ConvertLengthMetricsUnit(Ark_Float32 value, Ark_Int32 originUnit, Ar
 
 void SetCustomMethodFlag(Ark_NodeHandle node, Ark_Int32 flag) {}
 Ark_Int32 GetCustomMethodFlag(Ark_NodeHandle node) {
-    return 0;
-}
-void RegisterCustomNodeAsyncEvent(Ark_NodeHandle node, Ark_Int32 eventType, void* extraParam) {}
-Ark_Int32 UnregisterCustomNodeEvent(Ark_NodeHandle node, Ark_Int32 eventType) {
     return 0;
 }
 

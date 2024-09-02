@@ -325,11 +325,9 @@ export function createDeserializer(args: Uint8Array, length: int32): Deserialize
 `
 }
 
-export function makeApiModifiers(modifiers: string[], accessors: string[], events: string[]): string {
-
+export function makeApiModifiers(modifiers: string[], accessors: string[], events: string[], nodeTypes: string[]): string {
     let node_api = readTemplate('arkoala_node_api.h')
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
-
 
     return `
 /**
@@ -352,6 +350,10 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
 ${events.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI;
+
+typedef enum ${PeerGeneratorConfig.cppPrefix}Ark_NodeType {
+${nodeTypes.join(",\n")}
+} ${PeerGeneratorConfig.cppPrefix}Ark_NodeType;
 
 ${node_api}
 
@@ -401,7 +403,7 @@ function readLangTemplate(name: string, lang: Language): string {
 
 export function makeAPI(
     apiVersion: string,
-    headers: string[], modifiers: string[], accessors: string[], events: string[],
+    headers: string[], modifiers: string[], accessors: string[], events: string[], nodeTypes: string[],
     structs: IndentedPrinter, typedefs: IndentedPrinter
 ): string {
 
@@ -424,7 +426,7 @@ ${typedefs.getOutput().join("\n")}
 
 ${makeApiHeaders(headers)}
 
-${makeApiModifiers(modifiers, accessors, events)}
+${makeApiModifiers(modifiers, accessors, events, nodeTypes)}
 
 ${epilogue}
 `

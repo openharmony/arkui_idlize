@@ -459,6 +459,12 @@ export function snakeCaseToCamelCase(input: string): string {
         .join("")
 }
 
+export function camelCaseToUpperSnakeCase(input: string): string {
+    return input.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+        .replace(/^_+/g, "")
+        .toUpperCase();
+}
+
 export function renameDtsToPeer(fileName: string, language: Language, withFileExtension: boolean = true) {
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))

@@ -37,9 +37,6 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI()
         OHOS::Ace::NG::Bridge::SetCallbackMethod,
         OHOS::Ace::NG::ApiImpl::SetCustomMethodFlag,
         OHOS::Ace::NG::ApiImpl::GetCustomMethodFlag,
-        OHOS::Ace::NG::ApiImpl::RegisterCustomNodeAsyncEvent,
-        OHOS::Ace::NG::ApiImpl::UnregisterCustomNodeEvent,
-        OHOS::Ace::NG::Bridge::RegisterCustomNodeEventReceiver,
         OHOS::Ace::NG::ApiImpl::SetCustomCallback,
         OHOS::Ace::NG::ApiImpl::MeasureLayoutAndDraw,
         OHOS::Ace::NG::ApiImpl::MeasureNode,
@@ -64,9 +61,6 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI()
         OHOS::Ace::NG::ApiImpl::GetPipelineContext,
         OHOS::Ace::NG::ApiImpl::SetVsyncCallback,
         OHOS::Ace::NG::ApiImpl::UnblockVsyncWait,
-        OHOS::Ace::NG::Bridge::CheckEvent,
-        OHOS::Ace::NG::Bridge::SendAsyncEvent,
-        OHOS::Ace::NG::Bridge::CallContinuation,
         OHOS::Ace::NG::ApiImpl::SetChildTotalCount,
         OHOS::Ace::NG::ApiImpl::ShowCrash
     };
