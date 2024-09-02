@@ -3,9 +3,9 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 112      | 74     | 1792     |
-| In Progress  | 0      | 0     | 1     |
-| Done         | 0      | 0     | 1     |
+| Total        | 112      | 74     | 1795     |
+| In Progress  | 12      | 0     | 11     |
+| Done         | 3      | 0     | 141     |
 
 
 | Name | Kind | Owner | Status |
@@ -14,13 +14,13 @@
 |`setAbilityComponentOptions`| Function | | |
 |`onConnect`| Function | | |
 |`onDisconnect`| Function | | |
-|*AlphabetIndexer*| *Component* | | |
+|*AlphabetIndexer*| *Component* |  |  |
 |`setAlphabetIndexerOptions`| Function | | |
 |`onSelected`| Function | Ivan | Done |
-|`color`| Function | Peter | In Progress |
-|`selectedColor`| Function | | |
+|`color`| Function | wx480555 Samarin Sergey | done |
+|`selectedColor`| Function | dwx480579 Dudkin Sergey | done |
 |`popupColor`| Function | | |
-|`selectedBackgroundColor`| Function | | |
+|`selectedBackgroundColor`| Function | wx1298574 Evstigneev Roman | done |
 |`popupBackground`| Function | | |
 |`popupSelectedColor`| Function | | |
 |`popupUnselectedColor`| Function | | |
@@ -45,8 +45,8 @@
 |`enableHapticFeedback`| Function | | |
 |*Animator*| *Component* | | |
 |`setAnimatorOptions`| Function | | |
-|`state`| Function |  |  |
-|`duration`| Function | | |
+|`state`| Function | | |
+|`duration`| Function | swx781919 Skroba Gleb | done |
 |`curve`| Function | | |
 |`delay`| Function | | |
 |`fillMode`| Function | | |
@@ -59,11 +59,11 @@
 |`onCancel`| Function | | |
 |`onFinish`| Function | | |
 |`onFrame`| Function | | |
-|*Badge*| *Component* | Lena | In Progress |
+|*Badge*| *Component* | | |
 |`setBadgeOptions`| Function | | |
-|*Blank*| *Component* | wx781919 Gleb | done |
-|`setBlankOptions`| Function | | |
-|`color`| Function | | |
+|*Blank*| *Component* | wx781919 Skroba Gleb | done |
+|`setBlankOptions`| Function | wx781919 Skroba Gleb | done |
+|`color`| Function | wx480555 Samarin Sergey | done |
 |*Button*| *Component* | | |
 |`setButtonOptions`| Function | | |
 |`type`| Function | | |
@@ -71,12 +71,12 @@
 |`buttonStyle`| Function | | |
 |`controlSize`| Function | | |
 |`role`| Function | | |
-|`fontColor`| Function | | |
-|`fontSize`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`fontWeight`| Function | | |
 |`fontStyle`| Function | | |
 |`fontFamily`| Function | | |
-|`contentModifier`| Function | | |
+|`contentModifier`| Function |  | blocked |
 |`labelStyle`| Function | | |
 |*Calendar*| *Component* | | |
 |`setCalendarOptions`| Function | | |
@@ -97,7 +97,7 @@
 |`setCalendarPickerOptions`| Function | | |
 |`edgeAlign`| Function | | |
 |`textStyle`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |*Canvas*| *Component* | | |
 |`setCanvasOptions`| Function | | |
 |`onReady`| Function | | |
@@ -105,22 +105,22 @@
 |*Checkbox*| *Component* | | |
 |`setCheckboxOptions`| Function | | |
 |`select`| Function | | |
-|`selectedColor`| Function | | |
+|`selectedColor`| Function | dwx480579 Dudkin Sergey | done |
 |`shape`| Function | | |
-|`unselectedColor`| Function | | |
-|`mark`| Function | | |
-|`onChange`| Function | | |
-|`contentModifier`| Function | | |
-|*CheckboxGroup*| *Component* | | |
-|`setCheckboxGroupOptions`| Function | | |
-|`selectAll`| Function | | |
-|`selectedColor`| Function | | |
-|`unselectedColor`| Function | | |
-|`mark`| Function | | |
-|`onChange`| Function | | |
-|`checkboxShape`| Function | | |
-|*Circle*| *Component* | dwx480579 Sergey | In Progress |
-|`setCircleOptions`| Function | | |
+|`unselectedColor`| Function | dwx480579 Dudkin Sergey | done |
+|`mark`| Function | dwx480579 Dudkin Sergey | done |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
+|`contentModifier`| Function |  | blocked |
+|*CheckboxGroup*| *Component* | dwx480579 Dudkin Sergey | blocked |
+|`setCheckboxGroupOptions`| Function | dwx480579 Dudkin Sergey | done |
+|`selectAll`| Function | dwx480579 Dudkin Sergey | done |
+|`selectedColor`| Function | dwx480579 Dudkin Sergey | done |
+|`unselectedColor`| Function | dwx480579 Dudkin Sergey | done |
+|`mark`| Function | dwx480579 Dudkin Sergey | done |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
+|`checkboxShape`| Function | dwx480579 Dudkin Sergey | done |
+|*Circle*| *Component* | dwx480579 Dudkin Sergey | In Progress |
+|`setCircleOptions`| Function | dwx480579 Dudkin Sergey | In Progress |
 |*Column*| *Component* | | |
 |`setColumnOptions`| Function | | |
 |`alignItems`| Function | | |
@@ -307,7 +307,7 @@
 |`strokeMiterLimit`| Function | | |
 |`strokeOpacity`| Function | | |
 |`fillOpacity`| Function | | |
-|`strokeWidth`| Function | | |
+|`strokeWidth`| Function | wx480581 Tuzhilkin Ivan | done |
 |`antiAlias`| Function | | |
 |`strokeDashArray`| Function | | |
 |*Common*| *Component* | | |
@@ -317,7 +317,7 @@
 |`scrollBarColor`| Function | | |
 |`scrollBarWidth`| Function | | |
 |`edgeEffect`| Function | | |
-|`nestedScroll`| Function | | |
+|`nestedScroll`| Function | swx781919 Skroba Gleb | done |
 |`enableScrollInteraction`| Function | | |
 |`friction`| Function | | |
 |`onScroll`| Function | | |
@@ -340,34 +340,34 @@
 |*ContainerSpan*| *Component* | | |
 |`setContainerSpanOptions`| Function | | |
 |`textBackgroundStyle`| Function | | |
-|*Counter*| *Component* | iwx498619 Ilya | In Progress |
-|`setCounterOptions`| Function | | |
-|`onInc`| Function | | |
-|`onDec`| Function | | |
-|`enableDec`| Function | | |
-|`enableInc`| Function | | |
+|*Counter*| *Component* | wx498619 Erokhin Ilya | blocked |
+|`setCounterOptions`| Function | wx498619 Erokhin Ilya | done |
+|`onInc`| Function | wx498619 Erokhin Ilya | done |
+|`onDec`| Function | wx498619 Erokhin Ilya | done |
+|`enableDec`| Function | wx498619 Erokhin Ilya | done |
+|`enableInc`| Function | wx498619 Erokhin Ilya | done |
 |*DataPanel*| *Component* | | |
 |`setDataPanelOptions`| Function | | |
 |`closeEffect`| Function | | |
 |`valueColors`| Function | | |
 |`trackBackgroundColor`| Function | | |
-|`strokeWidth`| Function | | |
+|`strokeWidth`| Function | wx480581 Tuzhilkin Ivan | done |
 |`trackShadow`| Function | | |
-|`contentModifier`| Function | | |
+|`contentModifier`| Function |  | blocked |
 |*DatePicker*| *Component* | | |
 |`setDatePickerOptions`| Function | | |
 |`lunar`| Function | | |
 |`disappearTextStyle`| Function | | |
 |`textStyle`| Function | | |
 |`selectedTextStyle`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`onDateChange`| Function | | |
-|*Divider*| *Component* | wx480581 Ivan | In Progress |
-|`setDividerOptions`| Function | | |
-|`vertical`| Function | | |
-|`color`| Function | | |
-|`strokeWidth`| Function | | |
-|`lineCap`| Function | | |
+|*Divider*| *Component* | wx480581 Tuzhilkin Ivan | done |
+|`setDividerOptions`| Function | wx480581 Tuzhilkin Ivan | done |
+|`vertical`| Function | swx781919 Skroba Gleb | done |
+|`color`| Function | wx480555 Samarin Sergey | done |
+|`strokeWidth`| Function | wx480581 Tuzhilkin Ivan | done |
+|`lineCap`| Function | wx480581 Tuzhilkin Ivan | done |
 |*EffectComponent*| *Component* | | |
 |`setEffectComponentOptions`| Function | | |
 |*Ellipse*| *Component* | | |
@@ -408,13 +408,13 @@
 |`startAngle`| Function | | |
 |`endAngle`| Function | | |
 |`colors`| Function | | |
-|`strokeWidth`| Function | | |
+|`strokeWidth`| Function | wx480581 Tuzhilkin Ivan | done |
 |`description`| Function | | |
 |`trackShadow`| Function | | |
-|`indicator`| Function | | |
+|`indicator`| Function | swx781919 Skroba Gleb | In progress |
 |`privacySensitive`| Function | | |
-|`contentModifier`| Function | | |
-|*Grid*| *Component* | iwx498619 Ilya | In progress |
+|`contentModifier`| Function |  | blocked |
+|*Grid*| *Component* | | |
 |`setGridOptions`| Function | | |
 |`columnsTemplate`| Function | | |
 |`rowsTemplate`| Function | | |
@@ -425,9 +425,9 @@
 |`scrollBar`| Function | | |
 |`onScrollBarUpdate`| Function | | |
 |`onScrollIndex`| Function | | |
-|`cachedCount`| Function | | |
-|`editMode`| Function | | |
-|`multiSelectable`| Function | | |
+|`cachedCount`| Function | swx781919 Skroba Gleb | done |
+|`editMode`| Function | mWX997882 Morozov Sergey | Done |
+|`multiSelectable`| Function | mWX997882 Morozov Sergey | Done |
 |`maxCount`| Function | | |
 |`minCount`| Function | | |
 |`cellLength`| Function | | |
@@ -439,16 +439,17 @@
 |`onItemDragLeave`| Function | | |
 |`onItemDrop`| Function | | |
 |`edgeEffect`| Function | | |
-|`nestedScroll`| Function | | |
+|`nestedScroll`| Function | swx781919 Skroba Gleb | done |
 |`enableScrollInteraction`| Function | | |
 |`friction`| Function | | |
+|`alignItems`| Function | | |
 |`onScroll`| Function | | |
 |`onReachStart`| Function | | |
 |`onReachEnd`| Function | | |
 |`onScrollStart`| Function | | |
 |`onScrollStop`| Function | | |
 |`onScrollFrameBegin`| Function | | |
-|*GridItem*| *Component* | iwx498619 Ilya | In Progress |
+|*GridItem*| *Component* | | |
 |`setGridItemOptions`| Function | | |
 |`rowStart`| Function | | |
 |`rowEnd`| Function | | |
@@ -471,7 +472,7 @@
 |`alignItems`| Function | | |
 |*Hyperlink*| *Component* | | |
 |`setHyperlinkOptions`| Function | | |
-|`color`| Function | | |
+|`color`| Function | wx480555 Samarin Sergey | done |
 |*Image*| *Component* | | |
 |`setImageOptions`| Function | | |
 |`alt`| Function | | |
@@ -503,7 +504,7 @@
 |`setImageAnimatorOptions`| Function | | |
 |`images`| Function | | |
 |`state`| Function | | |
-|`duration`| Function | | |
+|`duration`| Function | swx781919 Skroba Gleb | done |
 |`reverse`| Function | | |
 |`fixedSize`| Function | | |
 |`preDecode`| Function | | |
@@ -523,28 +524,27 @@
 |`onError`| Function | | |
 |`alt`| Function | | |
 |*Line*| *Component* | dwx480579 Sergey | In Progress |
-|`setLineOptions`| Function | | |
-|`startPoint`| Function | | |
-|`endPoint`| Function | | |
-|*List*| *Component* | | |
+|`setLineOptions`| Function | dwx480579 Sergey | In Progress |
+|`startPoint`| Function | dwx480579 Dudkin Sergey | In Progress |
+|`endPoint`| Function | dwx480579 Dudkin Sergey | In Progress |
+|*List*| *Component* | mWX997882Morozov Sergey | In Progress |
 |`setListOptions`| Function | | |
 |`lanes`| Function | | |
 |`alignListItem`| Function | | |
 |`listDirection`| Function | | |
 |`scrollBar`| Function | | |
 |`edgeEffect`| Function | | |
-|`fadingEdge`| Function | | |
 |`contentStartOffset`| Function | | |
 |`contentEndOffset`| Function | | |
 |`divider`| Function | | |
-|`editMode`| Function | | |
-|`multiSelectable`| Function | | |
-|`cachedCount`| Function | | |
-|`chainAnimation`| Function | | |
+|`editMode`| Function | mWX997882 Morozov Sergey | Done |
+|`multiSelectable`| Function | mWX997882 Morozov Sergey | Done |
+|`cachedCount`| Function | swx781919 Skroba Gleb | done |
+|`chainAnimation`| Function | mWX997882 Morozov Sergey | Done |
 |`chainAnimationOptions`| Function | | |
 |`sticky`| Function | | |
 |`scrollSnapAlign`| Function | | |
-|`nestedScroll`| Function | | |
+|`nestedScroll`| Function | swx781919 Skroba Gleb | done |
 |`enableScrollInteraction`| Function | | |
 |`friction`| Function | | |
 |`childrenMainSize`| Function | | |
@@ -575,18 +575,18 @@
 |`setListItemGroupOptions`| Function | | |
 |`divider`| Function | | |
 |`childrenMainSize`| Function | | |
-|*LoadingProgress*| *Component* | wx480555 Sergey | In Progress |
-|`setLoadingProgressOptions`| Function | | |
-|`color`| Function | | |
-|`enableLoading`| Function | | |
-|`contentModifier`| Function | | |
+|*LoadingProgress*| *Component* | wx480555 Samarin Sergey | In Progress |
+|`setLoadingProgressOptions`| Function | wx480555 Samarin Sergey | done |
+|`color`| Function | wx480555 Samarin Sergey | done |
+|`enableLoading`| Function | wx480555 Samarin Sergey | done |
+|`contentModifier`| Function |  | blocked |
 |*LocationButton*| *Component* | | |
 |`setLocationButtonOptions`| Function | | |
 |`onClick`| Function | | |
 |*Marquee*| *Component* | | |
 |`setMarqueeOptions`| Function | | |
-|`fontColor`| Function | | |
-|`fontSize`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`allowScale`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
@@ -596,20 +596,20 @@
 |`onFinish`| Function | | |
 |*MediaCachedImage*| *Component* | | |
 |`setMediaCachedImageOptions`| Function | | |
-|*Menu*| *Component* | wx997882 Sergey | In Progress |
+|*Menu*| *Component* | mWX997882 Morozov Sergey | blocked |
 |`setMenuOptions`| Function | | |
-|`fontSize`| Function | | |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`font`| Function | | |
-|`fontColor`| Function | | |
-|`radius`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`radius`| Function | dwx480579 Dudkin Sergey | In Progress |
 |`menuItemDivider`| Function | | |
 |`menuItemGroupDivider`| Function | | |
-|`subMenuExpandingMode`| Function | | |
+|`subMenuExpandingMode`| Function | mWX997882 Morozov Sergey | done |
 |*MenuItem*| *Component* | | |
 |`setMenuItemOptions`| Function | | |
 |`selected`| Function | | |
 |`selectIcon`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`contentFont`| Function | | |
 |`contentFontColor`| Function | | |
 |`labelFont`| Function | | |
@@ -682,7 +682,7 @@
 |`show`| Function | | |
 |`backgroundMask`| Function | | |
 |`showCloseIcon`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`onHeightChange`| Function | | |
 |*PasteButton*| *Component* | | |
 |`setPasteButtonOptions`| Function | | |
@@ -696,7 +696,7 @@
 |`circleRadius`| Function | | |
 |`backgroundColor`| Function | | |
 |`regularColor`| Function | | |
-|`selectedColor`| Function | | |
+|`selectedColor`| Function | dwx480579 Dudkin Sergey | done |
 |`activeColor`| Function | | |
 |`pathColor`| Function | | |
 |`pathStrokeWidth`| Function | | |
@@ -716,27 +716,27 @@
 |`points`| Function | | |
 |*QRCode*| *Component* | | |
 |`setQRCodeOptions`| Function | | |
-|`color`| Function | | |
+|`color`| Function | wx480555 Samarin Sergey | done |
 |`backgroundColor`| Function | | |
 |`contentOpacity`| Function | | |
-|*Radio*| *Component* | wx1298574 Roman | In Progress |
-|`setRadioOptions`| Function | | |
-|`checked`| Function | | |
-|`onChange`| Function | | |
-|`radioStyle`| Function | | |
-|`contentModifier`| Function | | |
+|*Radio*| *Component* | wx1298574 Evstigneev Roman | done |
+|`setRadioOptions`| Function | wx1298574 Evstigneev Roman | done |
+|`checked`| Function | wx1298574 Evstigneev Roman | done |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
+|`radioStyle`| Function | wx1298574 Evstigneev Roman | done |
+|`contentModifier`| Function |  | blocked |
 |*Rating*| *Component* | | |
 |`setRatingOptions`| Function | | |
 |`stars`| Function | | |
 |`stepSize`| Function | | |
 |`starStyle`| Function | | |
-|`onChange`| Function | | |
-|`contentModifier`| Function | | |
-|*Rect*| *Component* | dwx480579 Sergey | In Progress |
-|`setRectOptions`| Function | | |
-|`radiusWidth`| Function | | |
-|`radiusHeight`| Function | | |
-|`radius`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
+|`contentModifier`| Function |  | blocked |
+|*Rect*| *Component* | dwx480579 Dudkin Sergey | In Progress |
+|`setRectOptions`| Function | dwx480579 Dudkin Sergey | In Progress |
+|`radiusWidth`| Function | dwx480579 Dudkin Sergey | In Progress |
+|`radiusHeight`| Function | dwx480579 Dudkin Sergey | In Progress |
+|`radius`| Function | dwx480579 Dudkin Sergey | In Progress |
 |*Refresh*| *Component* | | |
 |`setRefreshOptions`| Function | | |
 |`onStateChange`| Function | | |
@@ -756,6 +756,7 @@
 |`onSelectionChange`| Function | | |
 |`aboutToIMEInput`| Function | | |
 |`onIMEInputComplete`| Function | | |
+|`onDidIMEInput`| Function | | |
 |`aboutToDelete`| Function | | |
 |`onDeleteComplete`| Function | | |
 |`copyOptions`| Function | | |
@@ -767,7 +768,7 @@
 |`dataDetectorConfig`| Function | | |
 |`placeholder`| Function | | |
 |`caretColor`| Function | | |
-|`selectedBackgroundColor`| Function | | |
+|`selectedBackgroundColor`| Function | wx1298574 Evstigneev Roman | done |
 |`onEditingChange`| Function | | |
 |`enterKeyType`| Function | | |
 |`onSubmit`| Function | | |
@@ -776,6 +777,7 @@
 |`onCut`| Function | | |
 |`onCopy`| Function | | |
 |`editMenuOptions`| Function | | |
+|`enableKeyboardOnFocus`| Function | | |
 |*RichText*| *Component* | | |
 |`setRichTextOptions`| Function | | |
 |`onStart`| Function | | |
@@ -810,7 +812,7 @@
 |`scrollBarWidth`| Function | | |
 |`edgeEffect`| Function | | |
 |`onScrollFrameBegin`| Function | | |
-|`nestedScroll`| Function | | |
+|`nestedScroll`| Function | swx781919 Skroba Gleb | done |
 |`enableScrollInteraction`| Function | | |
 |`friction`| Function | | |
 |`scrollSnap`| Function | | |
@@ -818,23 +820,23 @@
 |`initialOffset`| Function | | |
 |*ScrollBar*| *Component* | | |
 |`setScrollBarOptions`| Function | | |
-|*Search*| *Component* | | |
+|*Search*| *Component* | wx1298574 Evstigneev Roman | In Progress |
 |`setSearchOptions`| Function | | |
 |`searchButton`| Function | | |
-|`fontColor`| Function | | |
-|`searchIcon`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`searchIcon`| Function |  | blocked |
 |`cancelButton`| Function | | |
 |`textIndent`| Function | | |
 |`inputFilter`| Function | | |
 |`onEditChange`| Function | | |
-|`selectedBackgroundColor`| Function | | |
-|`caretStyle`| Function | | |
-|`placeholderColor`| Function | | |
-|`placeholderFont`| Function | | |
+|`selectedBackgroundColor`| Function | wx1298574 Evstigneev Roman | done |
+|`caretStyle`| Function | wx1298574 Evstigneev Roman | done |
+|`placeholderColor`| Function | wx1298574 Evstigneev Roman | done |
+|`placeholderFont`| Function | wx1298574 Evstigneev Roman | done |
 |`textFont`| Function | | |
 |`enterKeyType`| Function | | |
 |`onSubmit`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`onTextSelectionChange`| Function | | |
 |`onContentScroll`| Function | | |
 |`onCopy`| Function | | |
@@ -865,11 +867,11 @@
 |`position`| Function | | |
 |`markAnchor`| Function | | |
 |`offset`| Function | | |
-|`fontSize`| Function | | |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`fontStyle`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
-|`fontColor`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
 |`iconColor`| Function | | |
 |`backgroundColor`| Function | | |
 |`borderStyle`| Function | | |
@@ -883,25 +885,25 @@
 |`height`| Function | | |
 |`size`| Function | | |
 |`constraintSize`| Function | | |
-|*Select*| *Component* | wx480555 Sergey | In Progress |
+|*Select*| *Component* | wx480555 Samarin Sergey | In Progress |
 |`setSelectOptions`| Function | | |
 |`selected`| Function | | |
 |`value`| Function | | |
 |`font`| Function | | |
-|`fontColor`| Function | | |
-|`selectedOptionBgColor`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`selectedOptionBgColor`| Function | wx480555 Samarin Sergey | done |
 |`selectedOptionFont`| Function | | |
-|`selectedOptionFontColor`| Function | | |
+|`selectedOptionFontColor`| Function | wx480555 Samarin Sergey | done |
 |`optionBgColor`| Function | | |
-|`optionFont`| Function | | |
-|`optionFontColor`| Function | | |
+|`optionFont`| Function | wx480555 Samarin Sergey | done |
+|`optionFontColor`| Function | wx480555 Samarin Sergey | done |
 |`onSelect`| Function | | |
 |`space`| Function | | |
 |`arrowPosition`| Function | | |
 |`menuAlign`| Function | | |
 |`optionWidth`| Function | | |
 |`optionHeight`| Function | | |
-|`menuBackgroundColor`| Function | | |
+|`menuBackgroundColor`| Function | wx480555 Samarin Sergey | done |
 |`menuBackgroundBlurStyle`| Function | | |
 |`controlSize`| Function | | |
 |`menuItemContentModifier`| Function | | |
@@ -918,20 +920,20 @@
 |`strokeMiterLimit`| Function | | |
 |`strokeOpacity`| Function | | |
 |`fillOpacity`| Function | | |
-|`strokeWidth`| Function | | |
+|`strokeWidth`| Function | wx480581 Tuzhilkin Ivan | done |
 |`antiAlias`| Function | | |
 |`mesh`| Function | | |
 |*Slider*| *Component* | | |
 |`setSliderOptions`| Function | | |
 |`blockColor`| Function | | |
 |`trackColor`| Function | | |
-|`selectedColor`| Function | | |
+|`selectedColor`| Function | dwx480579 Dudkin Sergey | done |
 |`minLabel`| Function | | |
 |`maxLabel`| Function | | |
 |`showSteps`| Function | | |
 |`showTips`| Function | | |
 |`trackThickness`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`blockBorderColor`| Function | | |
 |`blockBorderWidth`| Function | | |
 |`stepColor`| Function | | |
@@ -942,16 +944,16 @@
 |`stepSize`| Function | | |
 |`sliderInteractionMode`| Function | | |
 |`minResponsiveDistance`| Function | | |
-|`contentModifier`| Function | | |
+|`contentModifier`| Function |  | blocked |
 |`slideRange`| Function | | |
 |*BaseSpan*| *Component* | | |
 |`textBackgroundStyle`| Function | | |
 |`baselineOffset`| Function | | |
-|*Span*| *Component* | | |
+|*Span*| *Component* | WX1356459 Zamsha Vadim | In Progress |
 |`setSpanOptions`| Function | | |
 |`font`| Function | | |
-|`fontColor`| Function | | |
-|`fontSize`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`fontStyle`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
@@ -960,7 +962,7 @@
 |`textCase`| Function | | |
 |`lineHeight`| Function | | |
 |`textShadow`| Function | | |
-|*Stack*| *Component* | | |
+|*Stack*| *Component* | k00898293 Korobeinikov Evgeny | In Progress |
 |`setStackOptions`| Function | | |
 |`alignContent`| Function | | |
 |`pointLight`| Function | | |
@@ -968,7 +970,7 @@
 |`setStepperOptions`| Function | | |
 |`onFinish`| Function | | |
 |`onSkip`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`onNext`| Function | | |
 |`onPrevious`| Function | | |
 |*StepperItem*| *Component* | | |
@@ -976,52 +978,52 @@
 |`prevLabel`| Function | | |
 |`nextLabel`| Function | | |
 |`status`| Function | | |
-|*Swiper*| *Component* | | |
+|*Swiper*| *Component* | swx781919 Skroba Gleb | In progress |
 |`setSwiperOptions`| Function | | |
-|`index`| Function | | |
-|`autoPlay`| Function | | |
-|`interval`| Function | | |
-|`indicator`| Function | | |
+|`index`| Function | swx781919 Skroba Gleb | done |
+|`autoPlay`| Function | swx781919 Skroba Gleb | done |
+|`interval`| Function | swx781919 Skroba Gleb | done |
+|`indicator`| Function | swx781919 Skroba Gleb | In progress |
 |`displayArrow`| Function | | |
-|`loop`| Function | | |
-|`duration`| Function | | |
-|`vertical`| Function | | |
-|`itemSpace`| Function | | |
-|`displayMode`| Function | | |
-|`cachedCount`| Function | | |
-|`displayCount`| Function | | |
-|`effectMode`| Function | | |
-|`disableSwipe`| Function | | |
+|`loop`| Function | swx781919 Skroba Gleb | done |
+|`duration`| Function | swx781919 Skroba Gleb | done |
+|`vertical`| Function | swx781919 Skroba Gleb | done |
+|`itemSpace`| Function | swx781919 Skroba Gleb | done |
+|`displayMode`| Function | swx781919 Skroba Gleb | done |
+|`cachedCount`| Function | swx781919 Skroba Gleb | done |
+|`displayCount`| Function | swx781919 Skroba Gleb | done |
+|`effectMode`| Function | swx781919 Skroba Gleb | done |
+|`disableSwipe`| Function | swx781919 Skroba Gleb | done |
 |`curve`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`indicatorStyle`| Function | | |
 |`prevMargin`| Function | | |
 |`nextMargin`| Function | | |
 |`onAnimationStart`| Function | | |
 |`onAnimationEnd`| Function | | |
 |`onGestureSwipe`| Function | | |
-|`nestedScroll`| Function | | |
+|`nestedScroll`| Function | swx781919 Skroba Gleb | done |
 |`customContentTransition`| Function | | |
 |`onContentDidScroll`| Function | | |
-|`indicatorInteractive`| Function | | |
+|`indicatorInteractive`| Function | swx781919 Skroba Gleb | done |
 |*SymbolGlyph*| *Component* | | |
 |`setSymbolGlyphOptions`| Function | | |
-|`fontSize`| Function | | |
-|`fontColor`| Function | | |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
 |`fontWeight`| Function | | |
 |`effectStrategy`| Function | | |
 |`renderingStrategy`| Function | | |
 |`symbolEffect`| Function | | |
 |*SymbolSpan*| *Component* | | |
 |`setSymbolSpanOptions`| Function | | |
-|`fontSize`| Function | | |
-|`fontColor`| Function | | |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
 |`fontWeight`| Function | | |
 |`effectStrategy`| Function | | |
 |`renderingStrategy`| Function | | |
 |*Tabs*| *Component* | | |
 |`setTabsOptions`| Function | | |
-|`vertical`| Function | | |
+|`vertical`| Function | swx781919 Skroba Gleb | done |
 |`barPosition`| Function | | |
 |`scrollable`| Function | | |
 |`barMode`| Function | | |
@@ -1030,7 +1032,7 @@
 |`animationDuration`| Function | | |
 |`animationMode`| Function | | |
 |`edgeEffect`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`onTabBarClick`| Function | | |
 |`onAnimationStart`| Function | | |
 |`onAnimationEnd`| Function | | |
@@ -1051,8 +1053,8 @@
 |*Text*| *Component* | k00660564 Kirill Kirichenko | In Progress |
 |`setTextOptions`| Function | | |
 |`font`| Function | | |
-|`fontColor`| Function | | |
-|`fontSize`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`minFontSize`| Function | | |
 |`maxFontSize`| Function | | |
 |`minFontScale`| Function | | |
@@ -1084,30 +1086,29 @@
 |`bindSelectionMenu`| Function | | |
 |`onTextSelectionChange`| Function | | |
 |`fontFeature`| Function | | |
-|`marqueeOptions`| Function | | |
-|`onMarqueeStateChange`| Function | | |
 |`privacySensitive`| Function | | |
 |`textSelectable`| Function | | |
 |`editMenuOptions`| Function | | |
+|`halfLeading`| Function | | |
 |*TextArea*| *Component* | | |
 |`setTextAreaOptions`| Function | | |
-|`placeholderColor`| Function | | |
-|`placeholderFont`| Function | | |
+|`placeholderColor`| Function | wx1298574 Evstigneev Roman | done |
+|`placeholderFont`| Function | wx1298574 Evstigneev Roman | done |
 |`enterKeyType`| Function | | |
 |`textAlign`| Function | | |
 |`caretColor`| Function | | |
-|`fontColor`| Function | | |
-|`fontSize`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`fontStyle`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
 |`textOverflow`| Function | | |
 |`textIndent`| Function | | |
 |`inputFilter`| Function | | |
-|`caretStyle`| Function | | |
-|`selectedBackgroundColor`| Function | | |
+|`caretStyle`| Function | wx1298574 Evstigneev Roman | done |
+|`selectedBackgroundColor`| Function | wx1298574 Evstigneev Roman | done |
 |`onSubmit`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`onTextSelectionChange`| Function | | |
 |`onContentScroll`| Function | | |
 |`onEditChange`| Function | | |
@@ -1146,34 +1147,34 @@
 |`setTextClockOptions`| Function | | |
 |`format`| Function | | |
 |`onDateChange`| Function | | |
-|`fontColor`| Function | | |
-|`fontSize`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`fontStyle`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
 |`textShadow`| Function | | |
 |`fontFeature`| Function | | |
-|`contentModifier`| Function | | |
+|`contentModifier`| Function |  | blocked |
 |`dateTimeOptions`| Function | | |
 |*TextInput*| *Component* | | |
 |`setTextInputOptions`| Function | | |
 |`type`| Function | | |
 |`contentType`| Function | | |
-|`placeholderColor`| Function | | |
+|`placeholderColor`| Function | wx1298574 Evstigneev Roman | done |
 |`textOverflow`| Function | | |
 |`textIndent`| Function | | |
-|`placeholderFont`| Function | | |
+|`placeholderFont`| Function | wx1298574 Evstigneev Roman | done |
 |`enterKeyType`| Function | | |
 |`caretColor`| Function | | |
 |`onEditChanged`| Function | | |
 |`onEditChange`| Function | | |
 |`onSubmit`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`onTextSelectionChange`| Function | | |
 |`onContentScroll`| Function | | |
 |`maxLength`| Function | | |
-|`fontColor`| Function | | |
-|`fontSize`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`fontStyle`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
@@ -1185,8 +1186,8 @@
 |`showPasswordIcon`| Function | | |
 |`textAlign`| Function | | |
 |`style`| Function | | |
-|`caretStyle`| Function | | |
-|`selectedBackgroundColor`| Function | | |
+|`caretStyle`| Function | wx1298574 Evstigneev Roman | done |
+|`selectedBackgroundColor`| Function | wx1298574 Evstigneev Roman | done |
 |`caretPosition`| Function | | |
 |`enableKeyboardOnFocus`| Function | | |
 |`passwordIcon`| Function | | |
@@ -1202,7 +1203,7 @@
 |`customKeyboard`| Function | | |
 |`showCounter`| Function | | |
 |`cancelButton`| Function | | |
-|`selectAll`| Function | | |
+|`selectAll`| Function | dwx480579 Dudkin Sergey | done |
 |`minFontSize`| Function | | |
 |`maxFontSize`| Function | | |
 |`heightAdaptivePolicy`| Function | | |
@@ -1229,44 +1230,44 @@
 |`selectedTextStyle`| Function | | |
 |`onAccept`| Function | | |
 |`onCancel`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`selectedIndex`| Function | | |
 |`divider`| Function | | |
 |`gradientHeight`| Function | | |
 |*TextTimer*| *Component* | | |
 |`setTextTimerOptions`| Function | | |
 |`format`| Function | | |
-|`fontColor`| Function | | |
-|`fontSize`| Function | | |
+|`fontColor`| Function | wx1298574 Evstigneev Roman | done |
+|`fontSize`| Function | mWX997882  Morozov Sergey | done |
 |`fontStyle`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
 |`onTimer`| Function | | |
 |`textShadow`| Function | | |
-|`contentModifier`| Function | | |
+|`contentModifier`| Function |  | blocked |
 |*TimePicker*| *Component* | | |
 |`setTimePickerOptions`| Function | | |
 |`useMilitaryTime`| Function | | |
-|`loop`| Function | | |
+|`loop`| Function | swx781919 Skroba Gleb | done |
 |`disappearTextStyle`| Function | | |
 |`textStyle`| Function | | |
 |`selectedTextStyle`| Function | | |
 |`dateTimeOptions`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`enableHapticFeedback`| Function | | |
 |*Toggle*| *Component* | | |
 |`setToggleOptions`| Function | | |
-|`onChange`| Function | | |
-|`contentModifier`| Function | | |
-|`selectedColor`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
+|`contentModifier`| Function |  | blocked |
+|`selectedColor`| Function | dwx480579 Dudkin Sergey | done |
 |`switchPointColor`| Function | | |
 |`switchStyle`| Function | | |
 |*Video*| *Component* | | |
 |`setVideoOptions`| Function | | |
 |`muted`| Function | | |
-|`autoPlay`| Function | | |
+|`autoPlay`| Function | swx781919 Skroba Gleb | done |
 |`controls`| Function | | |
-|`loop`| Function | | |
+|`loop`| Function | swx781919 Skroba Gleb | done |
 |`objectFit`| Function | | |
 |`onStart`| Function | | |
 |`onPause`| Function | | |
@@ -1381,7 +1382,7 @@
 |`javaScriptOnDocumentStart`| Function | | |
 |`javaScriptOnDocumentEnd`| Function | | |
 |`layoutMode`| Function | | |
-|`nestedScroll`| Function | | |
+|`nestedScroll`| Function | swx781919 Skroba Gleb | done |
 |`enableNativeEmbedMode`| Function | | |
 |`registerNativeEmbedRule`| Function | | |
 |`onNativeEmbedLifecycleChange`| Function | | |
@@ -1411,7 +1412,7 @@
 |`showSideBar`| Function | | |
 |`controlButton`| Function | | |
 |`showControlButton`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |`sideBarWidth`| Function | | |
 |`minSideBarWidth`| Function | | |
 |`maxSideBarWidth`| Function | | |
@@ -1429,10 +1430,10 @@
 |`columnsGap`| Function | | |
 |`rowsGap`| Function | | |
 |`layoutDirection`| Function | | |
-|`nestedScroll`| Function | | |
+|`nestedScroll`| Function | swx781919 Skroba Gleb | done |
 |`enableScrollInteraction`| Function | | |
 |`friction`| Function | | |
-|`cachedCount`| Function | | |
+|`cachedCount`| Function | swx781919 Skroba Gleb | done |
 |`onReachStart`| Function | | |
 |`onReachEnd`| Function | | |
 |`onScrollFrameBegin`| Function | | |
@@ -1449,7 +1450,7 @@
 |`setLinearIndicatorOptions`| Function | | |
 |`indicatorStyle`| Function | | |
 |`indicatorLoop`| Function | | |
-|`onChange`| Function | | |
+|`onChange`| Function | wx1298574 Evstigneev Roman | done |
 |*DrawModifier*| *Class* | | |
 |`drawBehind`| Function | | |
 |`drawContent`| Function | | |
@@ -1482,6 +1483,7 @@
 |`isEnabled`| Function | | |
 |`getState`| Function | | |
 |`getEventTargetInfo`| Function | | |
+|`isValid`| Function | | |
 |*EventTargetInfo*| *Class* | | |
 |`getId`| Function | | |
 |*ContentModifier*| *Class* | | |
@@ -1636,6 +1638,7 @@
 |`replacePathByName`| Function | | |
 |`removeByIndexes`| Function | | |
 |`removeByName`| Function | | |
+|`removeByNavDestinationId`| Function | | |
 |`pop`| Function | | |
 |`popToName`| Function | | |
 |`popToIndex`| Function | | |
@@ -1887,7 +1890,7 @@
 |`copy`| Function | | |
 |`paste`| Function | | |
 |`cut`| Function | | |
-|`selectAll`| Function | | |
+|`selectAll`| Function | dwx480579 Dudkin Sergey | done |
 |*SslErrorHandler*| *Class* | | |
 |`handleConfirm`| Function | | |
 |`handleCancel`| Function | | |
