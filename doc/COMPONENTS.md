@@ -340,7 +340,7 @@
 |*ContainerSpan*| *Component* | | |
 |`setContainerSpanOptions`| Function | | |
 |`textBackgroundStyle`| Function | | |
-|*Counter*| *Component* | wx498619 Ilya | In Progress |
+|*Counter*| *Component* | iwx498619 Ilya | In Progress |
 |`setCounterOptions`| Function | | |
 |`onInc`| Function | | |
 |`onDec`| Function | | |
@@ -414,7 +414,7 @@
 |`indicator`| Function | | |
 |`privacySensitive`| Function | | |
 |`contentModifier`| Function | | |
-|*Grid*| *Component* | | |
+|*Grid*| *Component* | iwx498619 Ilya | In progress |
 |`setGridOptions`| Function | | |
 |`columnsTemplate`| Function | | |
 |`rowsTemplate`| Function | | |
@@ -448,7 +448,7 @@
 |`onScrollStart`| Function | | |
 |`onScrollStop`| Function | | |
 |`onScrollFrameBegin`| Function | | |
-|*GridItem*| *Component* | | |
+|*GridItem*| *Component* | iwx498619 Ilya | In Progress |
 |`setGridItemOptions`| Function | | |
 |`rowStart`| Function | | |
 |`rowEnd`| Function | | |
