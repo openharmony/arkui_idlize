@@ -64,32 +64,38 @@ class TrackerVisitor {
     }
 
     printStats() {
-        let allComponents = [0, 0, 0]
-        let allMaterialized = [0, 0, 0]
-        let allFunctions = [0, 0, 0]
+        let allComponents = [0, 0, 0, 0]
+        let allMaterialized = [0, 0, 0, 0]
+        let allFunctions = [0, 0, 0, 0]
 
         this.library.files.forEach(file => {
             file.peers.forEach(component => {
                 allComponents[0]++
+                const compKey = key(component.componentName, "Component")
+                this.incStatus(compKey, "In Progress", 1, allComponents)
+                this.incStatus(compKey, "Done", 2, allComponents)
+                this.incStatus(compKey, "Blocked", 3, allComponents)
                 component.methods.forEach(method => {
                     allFunctions[0]++
-                    let track = this.track.get(key(component.componentName, method.method.name))
-                    if (track) {
-                        if (track.status == "In Progress") allFunctions[1]++
-                        if (track.status == "Done") allFunctions[2]++
-                    }
+                    const funcKey = key(component.componentName, method.method.name)
+                    this.incStatus(funcKey, "In Progress", 1, allFunctions)
+                    this.incStatus(funcKey, "Done", 2, allFunctions)
+                    this.incStatus(funcKey, "Blocked", 3, allFunctions)
                 })
             })
         })
         this.library.materializedClasses.forEach(clazz => {
             allMaterialized[0]++
+            const classKey = key(clazz.className, "Class")
+            this.incStatus(classKey, "In Progress", 1, allMaterialized)
+            this.incStatus(classKey, "Done", 2, allMaterialized)
+            this.incStatus(classKey, "Blocked", 3, allMaterialized)
             clazz.methods.forEach(method => {
                 allFunctions[0]++
-                let track = this.track.get(key(clazz.className, method.method.name))
-                    if (track) {
-                        if (track.status == "In Progress") allFunctions[1]++
-                        if (track.status == "Done") allFunctions[2]++
-                    }
+                const funcKey = key(clazz.className, method.method.name)
+                this.incStatus(funcKey, "In Progress", 1, allFunctions)
+                this.incStatus(funcKey, "Done", 2, allFunctions)
+                this.incStatus(funcKey, "Blocked", 3, allFunctions)
             })
         })
 
@@ -98,6 +104,14 @@ class TrackerVisitor {
         this.out.print(`| Total        | ${allComponents[0]}      | ${allMaterialized[0]}     | ${allFunctions[0]}     |`)
         this.out.print(`| In Progress  | ${allComponents[1]}      | ${allMaterialized[1]}     | ${allFunctions[1]}     |`)
         this.out.print(`| Done         | ${allComponents[2]}      | ${allMaterialized[2]}     | ${allFunctions[2]}     |`)
+        this.out.print(`| Blocked      | ${allComponents[3]}      | ${allMaterialized[3]}     | ${allFunctions[3]}     |`)
+    }
+
+    incStatus(key: string, status: string, index: number, counter: number[]) {
+        let track = this.track.get(key)
+        if (track && equalsIgnoreCase(track.status, status)) {
+            counter[index]++
+        }
     }
 
     print() {
@@ -132,7 +146,7 @@ class StatusRecord {
 }
 
 function key(component: string, func: string): string {
-    return `${trimKey(component)}:${trimKey(func)}`
+    return `${component}:${func}`
 }
 
 export function generateTracker(outDir: string, peerLibrary: PeerLibrary, trackerStatus: string): void {
@@ -142,14 +156,19 @@ export function generateTracker(outDir: string, peerLibrary: PeerLibrary, tracke
         console.log(`Using status ${trackerStatus}`)
         const content = fs.readFileSync(trackerStatus, 'utf8')
         const lines = content.split('\n')
+        let parent = ""
         lines.forEach(line => {
             const parts = line.split('|')
             if (parts.length > 4) {
-                let component = parts[1].trim()
-                let func = parts[2].trim()
+                let name = trimName(parts[1].trim())
+                let kind = trimName(parts[2].trim())
                 let owner = parts[3].trim()
                 let status = parts[4].trim()
-                track.set(key(component, func), new StatusRecord(component, func, owner, status))
+                if (kind === "Component" || kind === "Class") {
+                    parent = name
+                }
+                const k = kind === "Function" ? key(parent, name) : key(name, kind)
+                track.set(k, new StatusRecord(name, kind, owner, status))
             }
         })
     }
@@ -159,7 +178,11 @@ export function generateTracker(outDir: string, peerLibrary: PeerLibrary, tracke
     visitor.out.printTo(path.join(outDir, "COMPONENTS.md"))
 }
 
-function trimKey(key: string): string {
+function  equalsIgnoreCase(str1: string, str2: string): boolean {
+    return str1.toLowerCase() == str2.toLowerCase()
+}
+
+function trimName(key: string): string {
     function trim(v: string, c: string): string {
         return v.startsWith(c) && v.endsWith(c) ? v.substring(1, v.length - 1) : v
     }
