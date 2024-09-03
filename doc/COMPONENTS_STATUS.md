@@ -33,6 +33,8 @@
 |`setLineOptions`| Function | dwx480579 Sergey | In Progress |
 |`startPoint`| Function | dwx480579 Dudkin Sergey | In Progress |
 |`endPoint`| Function | dwx480579 Dudkin Sergey | In Progress |
+|*Grid*| *Component* | iwx498619 Ilya Erokhin | ToDo |
+|*GridItem*| *Component* | iwx498619 Ilya Erokhin | In Progress |
 |*List*|*Component*| mWX997882Morozov Sergey |In Progress|
 |`editMode`|Function|mWX997882 Morozov Sergey |Done|
 |`multiSelectable`|Function|mWX997882 Morozov Sergey |Done|
