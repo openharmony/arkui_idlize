@@ -166,12 +166,14 @@ class HeaderVisitor {
     }
 
     private printNodeTypes() {
+        this.nodeTypesList.pushIndent()
         for (const file of this.library.files) {
             for (const peer of file.peers.values()) {
                 const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(peer.componentName)}`
                 this.nodeTypesList.print(name)
             }
         }
+        this.nodeTypesList.popIndent()
     }
 
     // TODO: have a proper Peer module visitor
