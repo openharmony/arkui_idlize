@@ -21,7 +21,7 @@ import { PeerLibrary } from './PeerLibrary';
 import { isMaterialized } from './Materialized';
 import { DeclarationNameConvertor } from './dependencies_collector';
 import { PeerGeneratorConfig } from './PeerGeneratorConfig';
-import { convertDeclaration } from './TypeNodeConvertor';
+import { convertDeclaration, DeclarationConvertor } from './TypeNodeConvertor';
 import { syntheticDeclarationFilename, isSyntheticDeclaration } from './synthetic_declaration';
 import { isBuilderClass } from './BuilderClass';
 
@@ -61,10 +61,8 @@ export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration)
             module: `./${syntheticDeclarationFilename(node)}`
         }
     if (PeerGeneratorConfig.isConflictedDeclaration(node)) {
-        const parent = node.parent
-        let feature = ts.isModuleBlock(parent)
-            ? parent.parent.name.text
-            : convertDeclaration(DeclarationNameConvertor.I, node)
+        const feature = convertDeclaration(
+            createConflictedDeclarationConvertor(library.declarationTable.language), node)
         return {
             feature: feature,
             module: './ConflictedDeclarations'
@@ -89,6 +87,10 @@ export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration)
         feature: convertDeclaration(DeclarationNameConvertor.I, node),
         module: `./${basenameNoExt}`,
     }
+}
+
+function createConflictedDeclarationConvertor(language: Language): DeclarationConvertor<string> {
+    return DeclarationNameConvertor.I
 }
 
 export function convertPeerFilenameToModule(filename: string) {

@@ -191,6 +191,10 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testUnionBooleanStringNumberUndefined(val: boolean | string | number | undefined): TestAttribute
 
+    testUnionWithGenericArray(value: number | Array<string>): TestAttribute;
+
+    testUnionWithArrayType(value: number | string[]): TestAttribute;
+
     // array
 
     testBooleanArray(value: boolean[]): TestAttribute;

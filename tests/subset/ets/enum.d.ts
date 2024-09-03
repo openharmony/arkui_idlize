@@ -55,3 +55,7 @@ declare enum ColoringStrategy {
   AVERAGE = 'average',
   PRIMARY = 'primary',
 }
+
+declare enum EmbeddedType {
+  EMBEDDED_UI_EXTENSION = 0,
+}

@@ -40,6 +40,10 @@ export class NativeModule {
   static native _RunVirtualMachine(env: long, what: int, arg0: int): int;
   static native _CallExternalAPI(env: long, what: int, buffer: byte[], len: int): int;
   static native _SetCallbackMethod(method: long): void;
+  static native _SetCreateNodeDelay(type: int, nanoseconds: long): void;
+  static native _SetMeasureNodeDelay(type: int, nanoseconds: long): void;
+  static native _SetLayoutNodeDelay(type: int, nanoseconds: long): void;
+  static native _SetDrawNodeDelay(type: int, nanoseconds: long): void;
 
 %GENERATED_METHODS%
 

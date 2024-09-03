@@ -13,31 +13,35 @@
  * limitations under the License.
  */
 
-import { Language, renameClassToMaterialized, capitalize, removeExt } from "../../util";
+import { capitalize, Language, removeExt, renameClassToMaterialized } from "../../util";
 import { PeerLibrary } from "../PeerLibrary";
-import { writePeerMethod } from "./PeersPrinter"
+import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
-    LanguageWriter,
-    MethodModifier,
-    NamedMethodSignature,
-    Method,
-    Type,
+    BlockStatement,
+    copyMethod,
     createLanguageWriter,
     FieldModifier,
+    LanguageStatement,
+    LanguageWriter,
+    Method,
+    MethodModifier,
     MethodSignature,
-    copyMethod,
-    BlockStatement, LanguageStatement
+    NamedMethodSignature,
+    Type
 } from "../LanguageWriters";
-import { copyMaterializedMethod, MaterializedClass } from "../Materialized"
+import { copyMaterializedMethod, MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
 import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
-import { OverloadsPrinter, groupOverloads, collapseSameNamedMethods } from "./OverloadsPrinter";
-
-import { printPeerFinalizer } from "./PeersPrinter"
+import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector";
 import { PrinterContext } from "./PrinterContext";
 import { TargetFile } from "./TargetFile";
-import { ARK_MATERIALIZEDBASE, ARK_MATERIALIZEDBASE_EMPTY_PARAMETER, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
-import { createInterfaceDeclName } from "../PeerGeneratorVisitor";
+import {
+    ARK_MATERIALIZEDBASE,
+    ARK_MATERIALIZEDBASE_EMPTY_PARAMETER,
+    ARKOALA_PACKAGE,
+    ARKOALA_PACKAGE_PATH
+} from "./lang/Java";
+import { createInterfaceDeclName } from "../TypeNodeNameConvertor";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 
 interface MaterializedFileVisitor {
@@ -57,7 +61,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     abstract visit(): void
     abstract getTargetFile(): TargetFile
-
+    convertToPropertyType(field: MaterializedField): Type {
+        return new Type(field.field.type.name)
+    }
     getOutput(): string[] {
         return this.printer.getOutput()
     }
@@ -111,26 +117,37 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             writer.writeFieldDeclaration("peer", finalizableType, undefined, true)
 
             // getters and setters for fields
-            clazz.fields.forEach(f => {
+            clazz.fields.forEach(field => {
 
-                const field = f.field
+                const mField = field.field
 
                 // TBD: use deserializer to get complex type from native
-                const isSimpleType = !f.argConvertor.useArray // type needs to be deserialized from the native
-                if (isSimpleType) {
-                    const getSignature = new MethodSignature(field.type, [])
-                    writer.writeGetterImplementation(new Method(field.name, getSignature), writer => {
-                        writer.writeStatement(
-                            writer.makeReturn(
-                                writer.makeMethodCall("this", `get${capitalize(field.name)}`, [])))
-                    });
-                }
+                const isSimpleType = !field.argConvertor.useArray // type needs to be deserialized from the native
+                writer.writeGetterImplementation(new Method(mField.name,
+                    new MethodSignature(this.convertToPropertyType(field), [])), writer => {
+                    writer.writeStatement(
+                        isSimpleType
+                            ? writer.makeReturn(writer.makeMethodCall("this", `get${capitalize(mField.name)}`, []))
+                            : writer.makeStatement(writer.makeString("throw new Error(\"Not implemented\")"))
+                    )
+                });
 
-                const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
+                const isReadOnly = mField.modifiers.includes(FieldModifier.READONLY)
                 if (!isReadOnly) {
-                    const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
-                    writer.writeSetterImplementation(new Method(field.name, setSignature), writer => {
-                        writer.writeMethodCall("this", `set${capitalize(field.name)}`, [field.name])
+                    const setSignature = new NamedMethodSignature(Type.Void,
+                        [this.convertToPropertyType(field)], [mField.name])
+                    writer.writeSetterImplementation(new Method(mField.name, setSignature), writer => {
+                        let castedNonNullArg
+                        if (field.isNullableOriginalTypeField) {
+                            castedNonNullArg = `${mField.name}_NonNull`
+                            this.printer.writeStatement(writer.makeAssign(castedNonNullArg,
+                                undefined,
+                                writer.makeCast(writer.makeString(mField.name), mField.type),
+                                true))
+                        } else {
+                            castedNonNullArg = mField.name
+                        }
+                        writer.writeMethodCall("this", `set${capitalize(mField.name)}`, [castedNonNullArg])
                     });
                 }
             })
@@ -326,6 +343,12 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 }
 
+class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
+    convertToPropertyType(field: MaterializedField): Type {
+        return new Type(`${field.field.type.name}${field.isNullableOriginalTypeField ? "|undefined" : ""}`);
+    }
+}
+
 class MaterializedVisitor {
     readonly materialized: Map<TargetFile, string[]> = new Map()
 
@@ -339,15 +362,16 @@ class MaterializedVisitor {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
         for (const clazz of this.library.materializedToGenerate) {
             let visitor: MaterializedFileVisitor
-            if ([Language.ARKTS, Language.TS].includes(this.printerContext.language)) {
+            if (Language.TS == this.printerContext.language) {
                 visitor = new TSMaterializedFileVisitor(
                     this.library, this.printerContext, clazz, this.dumpSerialized)
-            }
-            else if (this.printerContext.language == Language.JAVA) {
+            } else if (Language.ARKTS == this.printerContext.language) {
+                visitor = new ArkTSMaterializedFileVisitor(
+                    this.library, this.printerContext, clazz, this.dumpSerialized)
+            } else if (this.printerContext.language == Language.JAVA) {
                 visitor = new JavaMaterializedFileVisitor(
                     this.library, this.printerContext, clazz, this.dumpSerialized)
-            }
-            else {
+            } else {
                 throw new Error(`Unsupported language ${this.printerContext.language} in MaterializedPrinter.ts`)
             }
 

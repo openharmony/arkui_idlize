@@ -17,7 +17,7 @@ import { DeclarationTable, FieldRecord, PrimitiveType } from "./DeclarationTable
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters"
-import { mapType } from "./TypeNodeNameConvertor"
+import { mapType, TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 
 function castToInt8(value: string, lang: Language): string {
@@ -103,15 +103,16 @@ export abstract class BaseArgConvertor implements ArgConvertor {
 }
 
 export class StringConvertor extends BaseArgConvertor {
-    private literalValue?: string
-    constructor(param: string, receiverType: ts.TypeNode) {
-        super(mapType(receiverType), [RuntimeType.STRING], false, false, param)
+    private readonly literalValue?: string
+    constructor(param: string, receiverType: ts.TypeNode, typeNodeNameConvertor: TypeNodeNameConvertor | undefined) {
+        super(typeNodeNameConvertor?.convert(receiverType) ?? mapType(receiverType), [RuntimeType.STRING], false, false, param)
         if (ts.isLiteralTypeNode(receiverType) && ts.isStringLiteral(receiverType.literal)) {
             this.literalValue = receiverType.literal.text
         }
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` : param
+        return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` :
+            this.isLiteral() ? `${param}.toString()` : param
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         writer.writeMethodCall(`${param}Serializer`, `writeString`, [value])
@@ -133,15 +134,18 @@ export class StringConvertor extends BaseArgConvertor {
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return this.literalValue
-            ? writer.makeString(`${value} === "${this.literalValue}"`)
+        return this.isLiteral()
+            ? writer.compareLiteral(writer.makeString(value), this.literalValue!)
             : undefined
     }
     targetType(writer: LanguageWriter): Type {
-        if (this.literalValue) {
+        if (this.isLiteral()) {
             return new Type("string")
         }
         return super.targetType(writer);
+    }
+    isLiteral(): boolean {
+        return this.literalValue !== undefined
     }
 }
 
@@ -463,11 +467,11 @@ export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
     private unionChecker: UnionRuntimeTypeChecker
 
-    constructor(param: string, private table: DeclarationTable, private type: ts.UnionTypeNode) {
+    constructor(param: string, private table: DeclarationTable, private type: ts.UnionTypeNode, typeNodeNameConvertor?: TypeNodeNameConvertor) {
         super(`object`, [], false, true, param)
         this.memberConvertors = type
             .types
-            .map(member => table.typeConvertor(param, member))
+            .map(member => table.typeConvertor(param, member, false, typeNodeNameConvertor))
         this.unionChecker = new UnionRuntimeTypeChecker(this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
         this.tsTypeName = this.memberConvertors.map(it => it.tsTypeName).join(" | ")
@@ -576,7 +580,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     private static knownTypes: Map<string, [string, boolean][]> = new Map([
         ["LinearGradient", [["angle", true], ["direction", true], ["colors", false], ["repeating", true]]]
     ])
-    private customName: string
+    public readonly customName: string
     constructor(param: string, customName: string, tsType?: string) {
         super(tsType ?? "Object", [RuntimeType.OBJECT], false, true, param)
         this.customName = customName
@@ -616,8 +620,8 @@ export class CustomTypeConvertor extends BaseArgConvertor {
 export class OptionConvertor extends BaseArgConvertor {
     private typeConvertor: ArgConvertor
     // TODO: be smarter here, and for smth like Length|undefined or number|undefined pass without serializer.
-    constructor(param: string, private table: DeclarationTable, public type: ts.TypeNode) {
-        let typeConvertor = table.typeConvertor(param, type)
+    constructor(param: string, private table: DeclarationTable, public type: ts.TypeNode, typeNodeNameConvertor?: TypeNodeNameConvertor) {
+        let typeConvertor = table.typeConvertor(param, type, false, typeNodeNameConvertor)
         let runtimeTypes = typeConvertor.runtimeTypes;
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
             runtimeTypes.push(RuntimeType.UNDEFINED)
@@ -675,15 +679,18 @@ export class AggregateConvertor extends BaseArgConvertor {
     private members: [string, boolean][] = []
     public readonly aliasName: string | undefined
 
-    constructor(param: string, private table: DeclarationTable, private type: ts.TypeLiteralNode) {
-        super(mapType(type), [RuntimeType.OBJECT], false, true, param)
+    constructor(param: string,
+                private table: DeclarationTable,
+                private type: ts.TypeLiteralNode,
+                typeNodeNameConvertor?: TypeNodeNameConvertor) {
+        super(typeNodeNameConvertor?.convert(type) ?? mapType(type), [RuntimeType.OBJECT], false, true, param)
         this.aliasName = ts.isTypeAliasDeclaration(this.type.parent) ? identName(this.type.parent.name) : undefined
         this.memberConvertors = type
             .members
             .filter(ts.isPropertySignature)
             .map((member, index) => {
                 this.members[index] = [identName(member.name)!, member.questionToken != undefined]
-                return table.typeConvertor(param, member.type!, member.questionToken != undefined)
+                return table.typeConvertor(param, member.type!, member.questionToken != undefined, typeNodeNameConvertor)
             })
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -1008,6 +1015,7 @@ export class TupleConvertor extends BaseArgConvertor {
 
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
+    readonly isArrayType = ts.isArrayTypeNode(this.type) // Array type - Type[], otherwise - Array<Type>
     constructor(param: string, public table: DeclarationTable, private type: ts.TypeNode, private elementType: ts.TypeNode) {
         super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
@@ -1271,9 +1279,10 @@ export class TypeAliasConvertor extends ProxyConvertor {
         param: string,
         private table: DeclarationTable,
         declaration: ts.TypeAliasDeclaration,
-        private typeArguments?: ts.NodeArray<ts.TypeNode>
+        private typeArguments: ts.NodeArray<ts.TypeNode> | undefined,
+        typeNodeNameConvertor: TypeNodeNameConvertor | undefined
     ) {
-        super(table.typeConvertor(param, declaration.type), identName(declaration.name))
+        super(table.typeConvertor(param, declaration.type, false, typeNodeNameConvertor), identName(declaration.name))
     }
 }
 

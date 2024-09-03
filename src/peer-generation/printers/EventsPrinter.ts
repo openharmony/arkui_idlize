@@ -16,7 +16,7 @@
 import * as ts from "typescript"
 import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
-import { DeclarationTable, DeclarationTarget, PrimitiveType } from "../DeclarationTable"
+import { DeclarationTarget, PrimitiveType } from "../DeclarationTable"
 import { BlockStatement, CppLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, NamedMethodSignature, printMethodDeclaration, StringExpression, TSLanguageWriter, Type } from "../LanguageWriters"
 import { PeerClassBase } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
@@ -31,6 +31,7 @@ import { IdlPeerMethod } from "../idl/IdlPeerMethod"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 import { ArgConvertor } from "../Convertors"
 import { ArgConvertor as IdlArgConvertor } from "../idl/IdlArgConvertors"
+import { createTypeNodeConvertor } from "../PeerGeneratorVisitor";
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -250,7 +251,7 @@ abstract class CEventsVisitorBase {
         for (const componentName of callbacks.keys()) {
             if (this.library.shouldGenerateComponent(componentName))
                 this.receiversList.print(`Get${componentName}EventsReceiver,`)
-            else 
+            else
                 this.receiversList.print(`nullptr,`)
         }
     }
@@ -404,7 +405,7 @@ interface PeerEvent {
         this.printer.print('}')
     }
 
-    private printParseFunction(infos: (CallbackInfo | IdlCallbackInfo)[]) {
+    protected printParseFunction(infos: (CallbackInfo | IdlCallbackInfo)[]) {
         this.printer.print(`export function deserializePeerEvent(eventDeserializer: Deserializer): PeerEvent {`)
         this.printer.pushIndent()
         this.printer.writeStatement(this.printer.makeAssign(
@@ -421,41 +422,41 @@ interface PeerEvent {
         ))
 
         this.printer.writeStatement(this.printer.makeMultiBranchCondition(infos.map(info => {
-            // TODO wait until TS deserializer is uncomplited
-            const constructorTypeArgs = [
-                `kind?: number`,
-                `nodeId?: ${PeerEventKind}`,
-                ...info.args.map(arg => {
-                    return `${arg.name}?: any`
-                }),
-            ]
-            const constructorType = new Type(`{ ${constructorTypeArgs.join(', ')} }`)
-            
-            return {
-                expr: this.printer.makeNaryOp('===', [
-                    new StringExpression('kind'), 
-                    new StringExpression(`${PeerEventKind}.${callbackIdByInfo(info)}`),
-                ]),
-                stmt: new BlockStatement([
-                    this.printer.makeAssign(
-                        `event`,
-                        constructorType,
-                        new StringExpression(`{}`),
-                        true,
-                    ),
-                    this.printer.makeAssign(`event.kind`, undefined, new StringExpression(`kind`), false),
-                    this.printer.makeAssign(`event.nodeId`, undefined, new StringExpression(`nodeId`), false),
+                // TODO wait until TS deserializer is uncomplited
+                const constructorTypeArgs = [
+                    `kind?: number`,
+                    `nodeId?: ${PeerEventKind}`,
                     ...info.args.map(arg => {
-                        const convertor = this.typeConvertor(arg.name, arg.type, arg.nullable)
-                        return convertor.convertorDeserialize('event', `event.${arg.name}`, this.printer)
+                        return `${arg.name}?: any`
                     }),
-                    this.printer.makeReturn(this.printer.makeCast(
-                        new StringExpression(`event`),
-                        new Type(callbackEventNameByInfo(info)),
-                    ))
-                ], false),
-            }
-        }), 
+                ]
+                const constructorType = new Type(`{ ${constructorTypeArgs.join(', ')} }`)
+
+                return {
+                    expr: this.printer.makeNaryOp('===', [
+                        new StringExpression('kind'),
+                        new StringExpression(`${PeerEventKind}.${callbackIdByInfo(info)}`),
+                    ]),
+                    stmt: new BlockStatement([
+                        this.printer.makeAssign(
+                            `event`,
+                            constructorType,
+                            new StringExpression(`{}`),
+                            true,
+                        ),
+                        this.printer.makeAssign(`event.kind`, undefined, new StringExpression(`kind`), false),
+                        this.printer.makeAssign(`event.nodeId`, undefined, new StringExpression(`nodeId`), false),
+                        ...info.args.map(arg => {
+                            const convertor = this.typeConvertor(arg.name, arg.type, arg.nullable)
+                            return convertor.convertorDeserialize('event', `event.${arg.name}`, this.printer)
+                        }),
+                        this.printer.makeReturn(this.printer.makeCast(
+                            new StringExpression(`event`),
+                            new Type(callbackEventNameByInfo(info)),
+                        ))
+                    ], false),
+                }
+            }),
             new BlockStatement([
                 new ExpressionStatement(new StringExpression(`throw \`Unknown kind \${kind}\``))
             ], false)
@@ -469,7 +470,9 @@ interface PeerEvent {
         const contentOp = (writer: LanguageWriter) => {
             for (const info of infos) {
                 writer.writeFieldDeclaration(callbackIdByInfo(info),
-                    new Type(this.mapType(info.originTarget)), undefined, true)
+                    new Type(this.mapType(info.originTarget)),
+                    undefined,
+                    true)
             }
         }
         if (this.library.language == Language.ARKTS)
@@ -478,15 +481,17 @@ interface PeerEvent {
             this.printer.writeInterface(PeerEventsProperties, contentOp)
     }
 
+    protected printCallbackInfo(callbackInfo: CallbackInfo | IdlCallbackInfo) {
+        const infoFields = callbackInfo.args.map(it => `(event as ${callbackEventNameByInfo(callbackInfo)}).${it.name}`).join(', ')
+        this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(callbackInfo)}: properties.${callbackIdByInfo(callbackInfo)}?.(${infoFields}); break`)
+    }
+
     private printEventsDeliverer(infos: (CallbackInfo | IdlCallbackInfo)[]) {
         this.printer.print(`export function deliverGeneratedPeerEvent(event: PeerEvent, properties: ${PeerEventsProperties}): void {`)
         this.printer.pushIndent()
         this.printer.print(`switch (event.kind) {`)
         this.printer.pushIndent()
-        for (const info of infos) {
-            const infoFields = info.args.map(it => `(event as ${callbackEventNameByInfo(info)}).${it.name}`).join(', ')
-            this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(info)}: properties.${callbackIdByInfo(info)}?.(${infoFields}); break`)
-        }
+        infos.forEach(it => this.printCallbackInfo(it))
         this.printer.print(`default: throw new Error(\`Unknown kind \${event.kind}\`)`)
         this.printer.popIndent()
         this.printer.print('}')
@@ -501,10 +506,35 @@ interface PeerEvent {
         this.printEventsEnum(callbacks)
         this.printEventsClasses(filteredCallbacks)
         this.printNameByKindRetriever(filteredCallbacks)
-        if ([Language.TS].includes(this.library.language))
-            this.printParseFunction(filteredCallbacks)
+        this.printParseFunction(filteredCallbacks)
         this.printProperties(filteredCallbacks)
         this.printEventsDeliverer(filteredCallbacks)
+    }
+}
+
+class ArkTSEventsVisitor extends TSEventsVisitorBase {
+    private readonly  typeNodeConvertor = createTypeNodeConvertor(this.library)
+    constructor(protected readonly library: PeerLibrary) {
+        super(library)
+    }
+    protected printCallbackInfo(callbackInfo: CallbackInfo | IdlCallbackInfo) {
+        //TODO: causes compile error
+        const isSupport = !this.typeNodeConvertor.convert(callbackInfo.originTarget as ts.TypeNode).startsWith("Callback")
+        if (isSupport) {
+            super.printCallbackInfo(callbackInfo);
+        }
+    }
+
+    protected typeConvertor(param: string, type: ts.TypeNode, isOptional: boolean): ArgConvertor {
+        return this.library.declarationTable.typeConvertor(param, type, isOptional)
+    }
+
+    protected printParseFunction(infos: CallbackInfo[]) {
+        //TODO: Not implemented yet
+    }
+
+    protected mapType(type: ts.TypeNode): string {
+        return this.typeNodeConvertor.convert(type)
     }
 }
 
@@ -537,8 +567,17 @@ class IdlTSEventsVisitor extends TSEventsVisitorBase {
 }
 
 export function printEvents(library: PeerLibrary | IdlPeerLibrary): string {
-    const visitor = library instanceof PeerLibrary
-        ? new TSEventsVisitor(library) : new IdlTSEventsVisitor(library)
+    let visitor
+    switch (library.language) {
+        case Language.ARKTS:
+            visitor = library instanceof PeerLibrary ? new ArkTSEventsVisitor(library) : new IdlTSEventsVisitor(library)
+            break
+        case Language.TS:
+            visitor = library instanceof PeerLibrary ? new TSEventsVisitor(library) : new IdlTSEventsVisitor(library)
+            break
+        default:
+            throw new Error("Not implemented yet")
+    }
     visitor.print()
     return visitor.printer.getOutput().join("\n")
 }

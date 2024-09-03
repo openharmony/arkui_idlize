@@ -21,17 +21,17 @@ import { NativeModule } from "@arkoala/arkui/NativeModule"
  * Value representing possible JS runtime object type.
  * Must be synced with "enum RuntimeType" in C++.
  */
-export enum RuntimeType {
-    UNEXPECTED = -1,
-    NUMBER = 1,
-    STRING = 2,
-    OBJECT = 3,
-    BOOLEAN = 4,
-    UNDEFINED = 5,
-    BIGINT = 6,
-    FUNCTION = 7,
-    SYMBOL = 8,
-    MATERIALIZED = 9,
+export class RuntimeType {
+    static UNEXPECTED = -1
+    static NUMBER = 1
+    static STRING = 2
+    static OBJECT = 3
+    static BOOLEAN = 4
+    static UNDEFINED = 5
+    static BIGINT = 6
+    static FUNCTION = 7
+    static SYMBOL = 8
+    static MATERIALIZED = 9
 }
 
 /**
@@ -48,7 +48,7 @@ export class Tags {
     static OBJECT = 107
 }
 
-export function runtimeType(value: Object|String|number|undefined|null|Void): RuntimeType {
+export function runtimeType(value: Object|String|number|undefined|null): int {
     let type = typeof value
     if (type == "number") return RuntimeType.NUMBER
     if (type == "string") return RuntimeType.STRING

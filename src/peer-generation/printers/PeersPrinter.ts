@@ -32,7 +32,6 @@ import {
     createLanguageWriter
 } from "../LanguageWriters";
 import { MaterializedMethod } from "../Materialized";
-import { collectDtsImports } from "../DtsImportsGenerator";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARK_MATERIALIZEDBASE_EMPTY_PARAMETER, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile";
@@ -206,29 +205,22 @@ class PeerFileVisitor {
     }
 
     protected getDefaultPeerImports(lang: Language) {
+        const defaultPeerImports =  [
+            `import { int32 } from "@koalaui/common"`,
+            `import { nullptr, KPointer } from "@koalaui/interop"`,
+            `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
+            `import { createSerializer, Serializer } from "./Serializer"`,
+            `import { ArkUINodeType } from "./ArkUINodeType"`,
+            `import { ComponentBase } from "../ComponentBase"`,
+        ]
         switch(lang) {
             case Language.TS: {
-                return [
-                    `import { int32 } from "@koalaui/common"`,
-                    `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
-                    `import { createSerializer, Serializer } from "./Serializer"`,
-                    `import { nativeModule } from "@koalaui/arkoala"`,
-                    `import { ArkUINodeType } from "./ArkUINodeType"`,
-                    `import { ComponentBase } from "../ComponentBase"`,
-                ]
+                return [...defaultPeerImports,
+                    `import { nativeModule } from "@koalaui/arkoala"`,]
             }
             case Language.ARKTS: {
-                return [
-                    `import { int32 } from "@koalaui/common"`,
-                    `import { nullptr, KPointer } from "@koalaui/interop"`,
-                    `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
-                    `import { createSerializer, Serializer } from "./Serializer"`,
-                    `import { ArkUINodeType } from "./ArkUINodeType"`,
-                    `import { ComponentBase } from "../ComponentBase"`,
-                    `import { NativeModule } from "../NativeModule"`,
-                    `${collectDtsImports('..').trim()}`
-                ]
+                return [...defaultPeerImports,
+                    `import { NativeModule } from "../NativeModule"`,]
             }
             default: {
                 return []

@@ -15,11 +15,11 @@
 
 import * as ts from 'typescript'
 import { DeclarationConvertor, TypeNodeConvertor, convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
-import { getDeclarationsByNode } from '../util';
+import {getDeclarationsByNode, Language} from '../util';
 import { mapType } from './TypeNodeNameConvertor';
 
 export class TypeDependenciesCollector implements TypeNodeConvertor<ts.Declaration[]> {
-    constructor(protected readonly typeChecker: ts.TypeChecker) {}
+    constructor(protected readonly typeChecker: ts.TypeChecker, private readonly language: Language) {}
 
     convertUnion(node: ts.UnionTypeNode): ts.Declaration[] {
         return node.types.flatMap(type => convertTypeNode(this, type))
@@ -46,6 +46,9 @@ export class TypeDependenciesCollector implements TypeNodeConvertor<ts.Declarati
                 return convertTypeNode(this, it.type)
             return convertTypeNode(this, it)
         })
+    }
+    convertNamedTupleMember(node: ts.NamedTupleMember): ts.Declaration[] {
+        return convertTypeNode(this, node)
     }
     convertArray(node: ts.ArrayTypeNode): ts.Declaration[] {
         return convertTypeNode(this, node.elementType)
@@ -120,7 +123,8 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<ts
     constructor(
         private readonly typeChecker: ts.TypeChecker,
         private readonly typeDepsCollector: TypeDependenciesCollector,
-    ) {}
+    ) {
+    }
 
     convertClass(node: ts.ClassDeclaration): ts.Declaration[] {
         return [
@@ -152,12 +156,16 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<ts
             ]
         if (ts.isConstructorDeclaration(member) || ts.isConstructSignatureDeclaration(member))
             return member.parameters.flatMap(param => this.typeDepsCollector.convert(param.type))
-
+        if (ts.isIndexSignatureDeclaration(member)) {
+            return []
+        }
         throw new Error(`Not implemented ${ts.SyntaxKind[member.kind]}`)
     }
     private convertExpression(expression: ts.ExpressionWithTypeArguments) {
+        const declsByNode = getDeclarationsByNode(this.typeChecker, expression.expression)
         return [
-            ...getDeclarationsByNode(this.typeChecker, expression.expression),
+            ...declsByNode,
+            ...declsByNode.flatMap(it => this.convert(it)),
             ...expression.typeArguments?.flatMap(type => this.typeDepsCollector.convert(type)) ?? []
         ]
     }
@@ -183,6 +191,9 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
         return node.name!.text
     }
     convertEnum(node: ts.EnumDeclaration): string {
+        if (ts.isModuleBlock(node.parent)) {
+            return `${node.parent.parent.name.text}_${node.name!.text}`
+        }
         return node.name!.text
     }
     convertTypeAlias(node: ts.TypeAliasDeclaration): string {
@@ -190,4 +201,16 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     }
 
     static readonly I = new DeclarationNameConvertor()
+}
+
+export function findNodeSourceFile(node: ts.Node): ts.SourceFile | undefined {
+    let sourceFile: ts.SourceFile | undefined = undefined
+    do {
+        if (ts.isSourceFile(node.parent)) {
+            sourceFile = node.parent
+        } else {
+            node = node.parent
+        }
+    } while (node != undefined && sourceFile == undefined)
+    return sourceFile
 }

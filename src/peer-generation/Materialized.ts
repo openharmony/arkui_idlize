@@ -58,6 +58,7 @@ export class MaterializedField {
         public argConvertor: ArgConvertor,
         public retConvertor: RetConvertor,
         public declarationTarget?: DeclarationTarget,
+        public isNullableOriginalTypeField?: boolean
     ) { }
 }
 

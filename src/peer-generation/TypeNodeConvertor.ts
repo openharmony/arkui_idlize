@@ -20,6 +20,7 @@ export interface TypeNodeConvertor<T> {
     convertTypeLiteral(node: ts.TypeLiteralNode): T
     convertLiteralType(node: ts.LiteralTypeNode): T
     convertTuple(node: ts.TupleTypeNode): T
+    convertNamedTupleMember(node: ts.NamedTupleMember): T
     convertArray(node: ts.ArrayTypeNode): T
     convertOptional(node: ts.OptionalTypeNode): T
     convertFunction(node: ts.FunctionTypeNode): T
@@ -43,6 +44,7 @@ export function convertTypeNode<T>(convertor: TypeNodeConvertor<T>, node: ts.Typ
     if (ts.isTypeLiteralNode(node)) return convertor.convertTypeLiteral(node)
     if (ts.isLiteralTypeNode(node)) return convertor.convertLiteralType(node)
     if (ts.isTupleTypeNode(node)) return convertor.convertTuple(node)
+    if (ts.isNamedTupleMember(node)) return convertor.convertNamedTupleMember(node)
     if (ts.isArrayTypeNode(node)) return convertor.convertArray(node)
     if (ts.isOptionalTypeNode(node)) return convertor.convertOptional(node)
     if (ts.isFunctionTypeNode(node)) return convertor.convertFunction(node)

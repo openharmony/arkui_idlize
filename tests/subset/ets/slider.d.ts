@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-export type External_LITERAL_evenodd = string
-export type External_LITERAL_onzero = string
-export type External_LITERAL_nonzero = string
-export type External_TEMPLATE_LITERAL_number_FP = string
-export type External_TEMPLATE_LITERAL_number_LPX = string
-export type External_TEMPLATE_LITERAL_number_vp = string
-export type External_TEMPLATE_LITERAL_number_Percentage = string
-export type External_TEMPLATE_LITERAL_number_PX = string
+declare class SliderAttribute extends CommonMethod<SliderAttribute> {
+  blockColor(value: ResourceColor): SliderAttribute;
+  trackColor(value: ResourceColor | LinearGradient): SliderAttribute;
+  selectedColor(value: ResourceColor): SliderAttribute;
+  minLabel(value: string): SliderAttribute;
+  maxLabel(value: string): SliderAttribute;
+  showSteps(value: boolean): SliderAttribute;
+  showTips(value: boolean, content?: ResourceStr): SliderAttribute;
+}

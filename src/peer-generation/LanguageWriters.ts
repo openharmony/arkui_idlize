@@ -20,15 +20,17 @@ import {
     ArgConvertor,
     ArrayConvertor,
     BaseArgConvertor,
+    CustomTypeConvertor,
     EnumConvertor,
     MapConvertor,
     OptionConvertor,
+    StringConvertor,
     TupleConvertor,
     UnionConvertor
 } from "./Convertors";
 import { FieldRecord, PrimitiveType } from "./DeclarationTable";
 import { RuntimeType } from "./PeerGeneratorVisitor";
-import { mapType, TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
+import { createLiteralDeclName, mapType, TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 
 import * as ts from "typescript"
 import * as fs from "fs"
@@ -973,6 +975,9 @@ export abstract class LanguageWriter {
     languageKeywordProtection(keyword: string): string {
         return keyword
     }
+    compareLiteral(expr: LanguageExpression, literal: string): LanguageExpression {
+        return this.makeNaryOp('===', [expr, this.makeString(`"${literal}"`)])
+    }
 }
 
 export class TSLanguageWriter extends LanguageWriter {
@@ -1033,7 +1038,7 @@ export class TSLanguageWriter extends LanguageWriter {
             prefix = `set ${prefix}`
             needReturn = false
         }
-        prefix = prefix ? prefix + " " : ""
+        prefix = prefix ? prefix.trim() + " " : ""
         const typeParams = generics ? `<${generics.join(", ")}>` : ""
         this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
@@ -1175,7 +1180,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             return convertor.aliasName
         }
         if (convertor instanceof ArrayConvertor) {
-            return `${convertor.elementTypeName()}[]`
+            return convertor.isArrayType
+                ? `${convertor.elementTypeName()}[]`
+                : `Array<${convertor.elementTypeName()}>`
         }
         switch (type.name) {
             case 'KPointer': return 'long'
@@ -1205,18 +1212,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             super.runtimeType(param, valueType, value);
         }
     }
-    makeUnionSelector(value: string, valueType: string): LanguageStatement {
-        let statements = [this.makeAssign("type", undefined, this.makeString(`typeof ${value}`))]
-        Object.keys(RuntimeType)
-            .filter((value) => isNaN(Number(value)))
-            .forEach((value) => {
-                statements.push(
-                    this.makeCondition(this.makeNaryOp("==", [this.makeString("type"), this.makeString(`"${value.toLowerCase()}"`)]),
-                        this.makeAssign(valueType, undefined, this.makeString(`RuntimeType.${value}`), false))
-                )
-        })
-        return new BlockStatement(statements)
-    }
     makeUnionVariantCast(value: string, type: Type, convertor: ArgConvertor, index?: number): LanguageExpression {
         return this.makeString(`${value} as ${type.name}`)
     }
@@ -1224,6 +1219,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeCast(value, new Type('int'));
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => Type}, value: string, accessors: string[]): LanguageExpression {
+        if (convertor instanceof CustomTypeConvertor) {
+            return this.makeString(`${value} instanceof ${convertor.customName}`)
+        }
         return this.makeString(`${value} instanceof ${convertor.targetType(this).name}`)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
@@ -1233,7 +1231,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeValueFromOption(value, destinationConvertor)
     }
     makeCallIsResource(value: string): LanguageExpression {
-        return this.makeString(`(${value} instanceof Resource)`);
+        return this.makeString(`isResource(${value})`);
     }
     makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
         return new ArkTSEnumEntityStatement(enumEntity, isExport);
@@ -1242,11 +1240,17 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         if (convertor instanceof EnumConvertor) {
             return `(${value} as ${convertor.enumTypeName()}).${convertor.isStringEnum ? "ordinal" : "value"}`
         }
+        if (convertor instanceof StringConvertor && convertor.isLiteral()) {
+            return `${value}.toString()`
+        }
         return super.getObjectAccessor(convertor, value, args);
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable: boolean = false) {
         // ArkTS does not support - 'this.?'
         super.writeMethodCall(receiver, method, params, nullable && receiver !== "this");
+    }
+    compareLiteral(expr: LanguageExpression, literal: string): LanguageExpression {
+        return super.makeNaryOp('instanceof', [expr, this.makeString(createLiteralDeclName(literal))]);
     }
 }
 

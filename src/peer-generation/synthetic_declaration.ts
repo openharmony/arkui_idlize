@@ -18,8 +18,9 @@ import { TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 import { PeerLibrary } from "./PeerLibrary";
 import { DeclarationDependenciesCollector } from "./dependencies_collector";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { isSourceDecl } from "./PeerGeneratorVisitor";
+import { ArkTSTypeDepsCollector, isSourceDecl } from "./PeerGeneratorVisitor";
 import { convertTypeNode } from "./TypeNodeConvertor";
+import { lazy } from "./lazy";
 
 const syntheticDeclarations: Map<string, {node: ts.Declaration, filename: string, dependencies: ImportFeature[]}> = new Map()
 export function makeSyntheticDeclaration(targetFilename: string, declName: string, factory: () => ts.Declaration): ts.Declaration {
@@ -40,12 +41,17 @@ export function addSyntheticDeclarationDependency(node: ts.Declaration, dependen
     throw "Declaration is not synthetic"
 }
 
-export function makeSyntheticTypeAliasDeclaration(targetFilename: string, declName: string, type: ts.TypeNode): ts.TypeAliasDeclaration {
+export function makeSyntheticTypeAliasDeclaration(targetFilename: string,
+                                                  declName: string,
+                                                  type: ts.TypeNode,
+                                                  typeParameters?: readonly ts.TypeParameterDeclaration[]
+                                                  ): ts.TypeAliasDeclaration {
+    declName = declName.replace(/<.*>/g, '')
     const decl = makeSyntheticDeclaration(targetFilename, declName, () => {
         return ts.factory.createTypeAliasDeclaration(
             undefined,
             declName,
-            undefined,
+            typeParameters,
             type
         )
     })
@@ -80,13 +86,32 @@ export function makeSyntheticDeclarationsFiles(): Map<string, {dependencies: Imp
 }
 
 export function makeSyntheticInterfaceDeclaration(targetFileName: string,
-                                                  typeName: string,
+                                                  interfaceName: string,
+                                                  typeParameters: ts.NodeArray<ts.TypeParameterDeclaration> | undefined,
                                                   members: ts.NodeArray<ts.TypeElement>,
                                                   declDependenciesCollector: DeclarationDependenciesCollector,
                                                   peerLibrary: PeerLibrary): ts.Declaration {
     const decl = makeSyntheticDeclaration(targetFileName,
-        typeName,
-        () => ts.factory.createInterfaceDeclaration([], typeName, [], [], members)
+        interfaceName,
+        () => ts.factory.createInterfaceDeclaration([], interfaceName, typeParameters, [], members.map(
+            it => {
+                // Replacing the Function type with Function<void>
+                if (ts.isPropertySignature(it)
+                    && it.type
+                    && ts.isTypeReferenceNode(it.type)
+                    && it.type.typeName.getText() == "Function") {
+                    return ts.factory.createPropertySignature(
+                        it.modifiers,
+                        it.name,
+                        it.questionToken,
+                        ts.factory.createTypeReferenceNode(it.type.typeName, ts.factory.createNodeArray([
+                            ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
+                        ]))
+                    )
+                }
+                return it
+            }
+        ))
     )
     declDependenciesCollector.convert(decl).forEach(it => {
         if (isSourceDecl(it) && (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it))) {
@@ -96,7 +121,10 @@ export function makeSyntheticInterfaceDeclaration(targetFileName: string,
     return decl
 }
 
-export class ArkTSTypeNodeNameConvertorProxy implements TypeNodeNameConvertor {
+export class ArkTSTypeNodeNameConvertorWithDepsCollector implements TypeNodeNameConvertor {
+    private readonly depsCollector = new ArkTSTypeDepsCollector(this.peerLibrary, true,
+        lazy(() => this.declDependenciesCollector))
+
     constructor(private readonly convertor: TypeNodeNameConvertor,
                 private readonly peerLibrary: PeerLibrary,
                 private readonly declDependenciesCollector: DeclarationDependenciesCollector,
@@ -106,19 +134,18 @@ export class ArkTSTypeNodeNameConvertorProxy implements TypeNodeNameConvertor {
         return this.convertor.convertUnion(node)
     }
     convertTypeLiteral(node: ts.TypeLiteralNode): string {
-        const typeName = this.convertor.convertTypeLiteral(node)
-        if (this.importFeatures != undefined && this.peerLibrary != undefined && this.declDependenciesCollector != undefined) {
-            this.importFeatures.push(convertDeclToFeature(this.peerLibrary,
-                makeSyntheticInterfaceDeclaration('SyntheticDeclarations', typeName, node.members, this.declDependenciesCollector, this.peerLibrary))
-            )
-        }
-        return typeName
+        this.depsCollector.convertTypeLiteral(node).forEach(it => this.addDeclToImports(it))
+        return this.convertor.convertTypeLiteral(node)
     }
     convertLiteralType(node: ts.LiteralTypeNode): string {
+        this.depsCollector.convertLiteralType(node).forEach(it => this.addDeclToImports(it))
         return this.convertor.convertLiteralType(node)
     }
     convertTuple(node: ts.TupleTypeNode): string {
         return this.convertor.convertTuple(node)
+    }
+    convertNamedTupleMember(node: ts.NamedTupleMember): string {
+        return this.convertor.convertNamedTupleMember(node)
     }
     convertArray(node: ts.ArrayTypeNode): string {
         return this.convertor.convertArray(node)
@@ -179,5 +206,10 @@ export class ArkTSTypeNodeNameConvertorProxy implements TypeNodeNameConvertor {
         if (ts.isIdentifier(node)) return this.convertIdentifier(node)
         if (ts.isTypeNode(node)) return convertTypeNode(this, node)
         throw new Error(`Unknown node type ${ts.SyntaxKind[node.kind]}`)
+    }
+    private addDeclToImports(decl: ts.Declaration) {
+        if (isSourceDecl(decl)) {
+            this.importFeatures.push(convertDeclToFeature(this.peerLibrary, decl))
+        }
     }
 }

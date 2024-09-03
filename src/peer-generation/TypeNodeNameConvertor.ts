@@ -14,8 +14,10 @@
  */
 
 import * as ts from 'typescript'
-import { TypeNodeConvertor, convertTypeNode } from './TypeNodeConvertor'
-import { snakeCaseToCamelCase } from "../util";
+import { TypeNodeConvertor, convertTypeNode, convertDeclaration } from './TypeNodeConvertor'
+import { getDeclarationsByNode, snakeCaseToCamelCase } from "../util";
+import { PeerLibrary } from "./PeerLibrary";
+import { DeclarationNameConvertor, findNodeSourceFile } from "./dependencies_collector";
 
 export interface TypeNodeNameConvertor extends TypeNodeConvertor<string> {
     convert(node: ts.Node): string
@@ -64,6 +66,9 @@ export class TSTypeNodeNameConvertor implements
     convertTuple(node: ts.TupleTypeNode): string {
         const members = node.elements.map(it => this.convertTupleElement(it))
         return `[${members.join(', ')}]`
+    }
+    convertNamedTupleMember(node: ts.NamedTupleMember): string {
+        return `${node.name.text}${this.convert(node.type)}`
     }
     protected convertTupleElement(node: ts.TypeNode): string {
         if (ts.isNamedTupleMember(node)) {
@@ -179,16 +184,11 @@ export function mapType(type: ts.TypeNode | undefined): string {
 }
 
 export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
+    constructor(private readonly peerLibrary: PeerLibrary) {
+        super();
+    }
     convertAnyKeyword(node: ts.TypeNode): string {
         return "Object"
-    }
-
-    convertUnion(node: ts.UnionTypeNode): string {
-        const isTypeAliasDecl = ts.isTypeAliasDeclaration(node.parent)
-        return node.types
-            .filter(type => !(isTypeAliasDecl && type.kind == ts.SyntaxKind.VoidKeyword))
-            .map(it => this.convert(it))
-            .join(" | ");
     }
 
     protected convertTupleElement(node: ts.TypeNode): string {
@@ -203,26 +203,106 @@ export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
         return super.convertImport(node);
     }
 
+    convertTuple(node: ts.TupleTypeNode): string {
+        if (node.parent == undefined) {
+            return super.convertTuple(node);
+        }
+        //TODO: need to create an alias for ts.TupleTypeNode to prevent es2panda segmentation fault
+        const name = createTupleDeclName(node.elements
+            .map(e => this.convert(e))
+            .map(e => e.replaceAll("?", "Opt"))
+            .map(e => e.replace(/[\W_]+/g, ""))
+            .join("_"))
+        const genericsTypes = Array.from(
+            new Set(searchTypeParameters(node.parent)
+                ?.map(it => it.name.text)))
+            .join(",")
+        return `${name}${genericsTypes.length > 0 ? ''.concat('<', genericsTypes, '>') : ''}`
+    }
+
+    convertUnknownKeyword(node: ts.TypeNode): string {
+        return "Object"
+    }
+
+    convertUnion(node: ts.UnionTypeNode): string {
+        const isAliasOrFunction = node.parent && (ts.isTypeAliasDeclaration(node.parent)
+            || ts.isFunctionTypeNode(getFirstNotParenthesizedNode(node.parent)))
+        const unionTypes = node.types
+            .filter(type => !(isAliasOrFunction && type.kind == ts.SyntaxKind.VoidKeyword))
+            .map(it => this.convert(it))
+        if (node?.parent?.parent !== undefined
+            && ts.isTupleTypeNode(node.parent)
+            && ts.isTypeReferenceNode(node.parent.parent)) {
+            return createUnionDeclName(unionTypes.join('_'))
+        }
+        return unionTypes.join(" | ");
+    }
+
     convertLiteralType(node: ts.LiteralTypeNode): string {
-        if (ts.isUnionTypeNode(node.parent) && ts.isStringLiteral(node.literal)) {
-            return `LITERAL_${node.literal.getText().replaceAll('"', '')}`
+        if ((ts.isUnionTypeNode(node.parent)
+            || ts.isTypeReferenceNode(node.parent)
+            || ts.isTypeAliasDeclaration(node.parent)
+            || ts.isParameter(node.parent)
+        ) && ts.isStringLiteral(node.literal)) {
+            return createLiteralDeclName(node.literal.getText().replaceAll(/['"]+/g, ''))
         } else {
             return super.convertLiteralType(node)
         }
     }
 
     convertTypeLiteral(node: ts.TypeLiteralNode): string {
-        return `LITERAL_${snakeCaseToCamelCase(node.members.map(it => it.name?.getText()).join('_'))}`
+        return createLiteralDeclName(snakeCaseToCamelCase(node.members.map(it => {
+            if (ts.isIndexSignatureDeclaration(it)) {
+                return `${it.parameters.map(
+                    it => ts.isIdentifier(it.name) ? it.name.text : it.getText()
+                )}_${this.convert(it.type)}`
+            }
+            return it.name?.getText()
+        }).join('_')))
     }
 
     convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): string {
-        const parent = node.parent
-        if (ts.isTypeAliasDeclaration(parent)) {
-            return `TEMPLATE_LITERAL_${node.templateSpans
-                .map(it => `${this.convert(it.type)}_${parent.name.text}`).join('_')}`
+        const typeSuffix = ts.isTypeAliasDeclaration(node.parent) ? node.parent.name.text : undefined
+        return createTemplateLiteralDeclName(node.templateSpans
+            .map(it => `${this.convert(it.type)}_${typeSuffix ?? it.literal.text}`).join('_'))
+    }
+
+    convertFunction(node: ts.FunctionTypeNode): string {
+        if (node.typeParameters?.length) {
+            throw "Not implemented"
         }
-        return `TEMPLATE_LITERAL_${node.templateSpans
-            .map(it => `${this.convert(it.type)}_${it.literal.text}`).join('_')}`
+        const parameters = node.parameters.map(it => {
+            const name = this.convert(it.name)
+            const type = this.convert(it.type!)
+            return `${name}: ${type}${it.questionToken ? `|undefined` : ``}`
+        })
+        return `((${parameters.join(', ')}) => ${this.convert(node.type)})`
+    }
+
+    convertQualifiedName(node: ts.QualifiedName): string {
+        const name = Array.from(this.peerLibrary.conflictedDeclarations)
+            .map(it => {
+                if ((ts.isInterfaceDeclaration(it) || ts.isClassDeclaration(it) || ts.isEnumDeclaration(it)) &&
+                    ts.isModuleBlock(it.parent) && super.convert(node.right) === it.name?.text) {
+                    return convertDeclaration(DeclarationNameConvertor.I, it)
+                }
+            })
+            .find(it => it != undefined)
+        if (name !== undefined) {
+            return name
+        }
+        // Fixing a method parameter with an enum type like 'barMode (value: BarMode.Fixed)'
+        if (ts.isIdentifier(node.left) && ts.isIdentifier(node.right)) {
+            const declarations = getDeclarationsByNode(this.peerLibrary.declarationTable.typeChecker!,
+                node.left)
+            if (declarations.length) {
+                const likelyDecl = declarations.find(decl => findNodeSourceFile(decl) == findNodeSourceFile(node))
+                if (likelyDecl && ts.isEnumDeclaration(likelyDecl)) {
+                    return this.convert(node.left)
+                }
+            }
+        }
+        return super.convertQualifiedName(node);
     }
 }
 
@@ -267,6 +347,9 @@ export class CJTypeNodeNameConvertor implements TypeNodeNameConvertor {
     convertTuple(node: ts.TupleTypeNode): string {
         const members = node.elements.map(it => this.convertTupleElement(it))
         return `[${members.join(', ')}]`
+    }
+    convertNamedTupleMember(node: ts.NamedTupleMember): string {
+        throw new Error('Method not implemented.')
     }
     protected convertTupleElement(node: ts.TypeNode): string {
         if (ts.isNamedTupleMember(node)) {
@@ -375,3 +458,38 @@ export class CJTypeNodeNameConvertor implements TypeNodeNameConvertor {
 
 // Java printers does not use this in fact
 export class JavaTypeNodeNameConvertor extends TSTypeNodeNameConvertor {}
+
+export function createInterfaceDeclName(name: string): string {
+    return `INTERFACE_${name}`
+}
+export function createTemplateLiteralDeclName(name: string): string {
+    return `TEMPLATE_LITERAL_${name}`
+}
+export function createLiteralDeclName(name: string): string {
+    return `LITERAL_${name}`
+}
+export function createUnionDeclName(name: string): string {
+    return `UNION_${name}`
+}
+export function createTupleDeclName(name: string): string {
+    return `TUPLE_${name}`
+}
+
+export function searchTypeParameters(node: ts.Node): ts.NodeArray<ts.TypeParameterDeclaration> | undefined {
+    if (ts.isTypeAliasDeclaration(node)
+        || ts.isClassDeclaration(node)
+        || ts.isInterfaceDeclaration(node)
+        || ts.isMethodDeclaration(node)) {
+        return node.typeParameters
+    }
+    if (node.parent != null && !ts.isSourceFile(node.parent)) {
+        return searchTypeParameters(node.parent)
+    }
+}
+
+function getFirstNotParenthesizedNode(node: ts.Node): ts.Node {
+    if (ts.isParenthesizedTypeNode(node) && node.parent !== undefined) {
+        return getFirstNotParenthesizedNode(node.parent)
+    }
+    return node
+}

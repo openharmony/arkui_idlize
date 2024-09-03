@@ -58,13 +58,23 @@ class ConflictedDeclarationsVisitor {
 
 class ArkTSConflictedDeclarationsVisitor extends ConflictedDeclarationsVisitor {
     protected convertDeclaration(name: string, decl: ts.Declaration, writer: LanguageWriter) {
-        let maybeGenerics = ''
-        if (ts.isClassDeclaration(decl) || ts.isInterfaceDeclaration(decl)) {
-            if (decl.typeParameters?.length) {
-                maybeGenerics = `<${decl.typeParameters.map((_, i) => `T${i}=Object`).join(',')}>`
+        const typeParameters = (ts.isClassDeclaration(decl) || ts.isInterfaceDeclaration(decl))
+        && decl.typeParameters?.length
+            ? decl.typeParameters.map((_, i) => `T${i}=Object`)
+            : undefined
+        writer.writeClass(name, _ => {}, undefined, undefined, typeParameters)
+    }
+
+    print() {
+        const printedNames = new Set<string>()
+        for (const decl of this.library.conflictedDeclarations) {
+            const name = convertDeclaration(DeclarationNameConvertor.I, decl)
+            if (printedNames.has(name)) {
+                continue
             }
+            printedNames.add(name)
+            this.convertDeclaration(name, decl, this.writer)
         }
-        writer.print(`export type ${name}${maybeGenerics} = T0`)
     }
 }
 

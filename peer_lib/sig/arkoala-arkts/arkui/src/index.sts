@@ -513,9 +513,10 @@ function checkNativeCallback() {
 
     const id2 = wrapCallback((args: byte[], length: int): int => {
         const buf = new ArrayBuffer(length)
+        const view = new DataView(buf)
         const args32 = new Int32Array(buf)
         for (let i = 0; i < length; i++) {
-            buf.set(i, args[i]);
+            view.setUint8(i, args[i]);
         }
         let sum: int = 0
         for (let i = 0; i < args32.length; i++) {
@@ -528,15 +529,16 @@ function checkNativeCallback() {
 
     const id3 = wrapCallback((args: byte[], length: int): int => {
         const buf = new ArrayBuffer(length)
+        const view = new DataView(buf)
         const args32 = new Int32Array(buf)
         for (let i = 0; i < length; i++) {
-            buf.set(i, args[i]);
+            view.setUint8(i, args[i]);
         }
         for (let i = 1; i < args32.length; i++) {
             args32[i] += args32[i - 1]
         }
         for (let i = 0; i < length; i++) {
-            args[i] = buf.at(i)
+            args[i] = view.getUint8(i) as byte
         }
         return 0
     })
@@ -550,13 +552,14 @@ function checkNativeCallback() {
     const start = Date.now()
     const id4 = wrapCallback((args: byte[], length: int): int => {
         const buf = new ArrayBuffer(length)
+        const view = new DataView(buf)
         const args32 = new Int32Array(buf)
         for (let i = 0; i < length; i++) {
-            buf.set(i, args[i]);
+            view.setUint8(i, args[i]);
         }
         args32[1]++
         for (let i = 0; i < length; i++) {
-            args[i] = buf.at(i)
+            args[i] = view.getUint8(i) as byte
         }
         if (args32[0] + args32[1] < args32[2]) {
             return nativeModule()._TestCallIntRecursiveCallback(id3 + 1, args, args.length)
@@ -570,14 +573,15 @@ function checkNativeCallback() {
         const length = 12
         const args = new byte[length]
         const buf = new ArrayBuffer(length)
+        const view = new DataView(buf)
         const args32 = new Int32Array(buf)
         args32[2] = depth
         for (let i = 0; i < length; i++) {
-            args[i] = buf.at(i)
+            args[i] = view.getUint8(i) as byte
         }
         nativeModule()._TestCallIntRecursiveCallback(id4, args, args.length)
         for (let i = 0; i < length; i++) {
-            buf.set(i, args[i]);
+            view.setUint8(i, args[i]);
         }
         if (i == 0) {
             assertEquals("NativeCallback Recursive [0]", Math.ceil(depth / 2), args32[0])

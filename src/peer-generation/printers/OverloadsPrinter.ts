@@ -108,6 +108,15 @@ export class OverloadsPrinter {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${argName}_casted`
             const castedType = peerMethod.method.signature.args[index]
+            if (this.language == Language.ARKTS
+                && collapsedMethod.signature.args[index].nullable) {
+                this.printer.writeStatement(
+                    this.printer.makeCondition(this.printer.makeNaryOp("==",
+                            [this.printer.makeString(argName), this.printer.makeString("undefined")]),
+                        this.printer.makeStatement(this.printer.makeString(`throw new Error(\"Arg '${argName}' is null\")`))
+                    )
+                )
+            }
             this.printer.print(`const ${castedArgName} = ${argName} as (${this.printer.mapType(castedType)})`)
             return castedArgName
         })

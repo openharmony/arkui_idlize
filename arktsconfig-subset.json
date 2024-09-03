@@ -12,6 +12,5 @@
             "@koalaui/runtime": ["./external/incremental/runtime/src"]
         }
     },
-    "include": ["out/arkts-subset/generated/**/*.sts"],
-    "exclude": ["out/arkts-subset/generated/sig/arkoala/arkui/arkts/src/shared/dts-exports.sts"]
+    "include": ["out/arkts-subset/generated/**/*.sts"]
 }

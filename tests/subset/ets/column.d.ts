@@ -14,3 +14,17 @@ declare class ColumnAttribute extends CommonMethod<ColumnAttribute> {
 }
 
 declare const Column: ColumnInterface
+
+declare enum LayoutSafeAreaType {
+    SYSTEM = 0,
+}
+
+declare enum LayoutSafeAreaEdge {
+    TOP = 0,
+    BOTTOM = 1,
+}
+
+declare enum TitleHeight {
+    MainOnly,
+    MainWithSub,
+}
