@@ -28,7 +28,7 @@ if (fs.existsSync(dir)) {
 let sdk = "./sdk"
 let components = "./interface_sdk-js/api/\@internal/component/ets"
 if (!fs.existsSync(sdk)) {
-    execSync("cd ./interface_sdk-js && git checkout cdee3f3a35c1d20680b13d8f3d17e30d63dcedab")
+    execSync("cd ./interface_sdk-js && git checkout 0aae0ebf596d34e203818819b55436f5a3528d2f")
     fs.mkdirSync(sdk)
     try {
       fs.symlinkSync("." + components, sdk + "/component")

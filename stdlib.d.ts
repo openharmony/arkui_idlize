@@ -45,3 +45,7 @@ interface Optional<T> {}
 interface Record<T1, T2> {}
 // TODO: temporary
 type bool = boolean
+
+// TODO: move TextModifier to the sdk component dir
+//       and remove it from the workaround.d.ts
+declare type TextModifier = import('../api/arkui/TextModifier').TextModifier;
