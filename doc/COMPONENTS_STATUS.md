@@ -1,9 +1,5 @@
 | Component | Function | Owner | Status |
 | --------- | -------- | ----- | ------ |
-| *AlphabetIndexer* | *Component* |  |  |
-| onSelected | Function | Ivan | Done |
-| color | Function | Peter | In Progress |
-| Animator | state |  |  |
 |*Blank*| *Component* | wx781919 Skroba Gleb | done |
 |`setBlankOptions`| Function | wx781919 Skroba Gleb | done |
 |`color`| Function | wx781919 Skroba Gleb | done |
