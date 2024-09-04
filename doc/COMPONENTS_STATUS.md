@@ -70,7 +70,11 @@
 |`caretStyle`| Function | wx1298574 Evstigneev Roman | done |
 |`placeholderColor`| Function | wx1298574 Evstigneev Roman | done |
 |`placeholderFont`| Function | wx1298574 Evstigneev Roman | done|
-| *Stack* | *Component* | k00898293 Korobeinikov Evgeny | In Progress |
+|*Stack*| *Component* | k00898293 Korobeinikov Evgeny | In Progress |
+| `setStackOptions` | Function | k00898293 Korobeinikov Evgeny | done |
+| `alignContent` | Function | k00898293 Korobeinikov Evgeny | done |
+| `pointLight` | Function | k00898293 Korobeinikov Evgeny | In Progress |
+|*Image*| *Component* | k00898293 Korobeinikov Evgeny | In Progress |
 |*Swiper*| *Component* | swx781919 Skroba Gleb | In progress |
 |`index`| Function | swx781919 Skroba Gleb | done |
 |`autoPlay`| Function | swx781919 Skroba Gleb | done |
@@ -89,3 +93,49 @@
 |`indicatorInteractive`| Function | swx781919 Skroba Gleb | done |
 | Text | *Component* | k00660564 Kirill Kirichenko | In Progress |
 | Span | *Component* | WX1356459 Zamsha Vadim | In Progress |
+| CommonMethod | *Component* | Roman Sedaikin | In Progress |
+|`width`| Function | Roman Sedaikin | done |
+|`height`| Function | Roman Sedaikin | done |
+|`backgroundColor`| Function | Roman Sedaikin | done |
+|`opacity`| Function | Roman Sedaikin | done |
+|`responseRegion`| Function | Roman Sedaikin | In Progress |
+|`constraintSize`| Function | Roman Sedaikin | In Progress |
+|`size`| Function | Roman Sedaikin | In Progress |
+|`touchable`| Function | Roman Sedaikin | In Progress |
+|`hitTestBehavior`| Function | Roman Sedaikin | In Progress |
+|`layoutWeight`| Function | Roman Sedaikin | In Progress |
+|`padding`| Function | Roman Sedaikin | In Progress |
+|`margin`| Function | Roman Sedaikin | In Progress |
+|`foregroundBlurStyle`| Function | Roman Sedaikin | In Progress |
+|`border`| Function | Roman Sedaikin | In Progress |
+|`borderStyle`| Function | Roman Sedaikin | In Progress |
+|`borderWidth`| Function | Roman Sedaikin | In Progress |
+|`borderColor`| Function | Roman Sedaikin | In Progress |
+|`borderRadius`| Function | Roman Sedaikin | In Progress |
+|`borderImage`| Function | Roman Sedaikin | In Progress |
+|`foregroundColor`| Function | Roman Sedaikin | In Progress |
+|`onClick`| Function | Roman Sedaikin | In Progress |
+|`hoverEffect`| Function | Roman Sedaikin | In Progress |
+|`onTouch`| Function | Roman Sedaikin | In Progress |
+|`focusable`| Function | Roman Sedaikin | In Progress |
+|`onFocus`| Function | Roman Sedaikin | In Progress |
+|`onBlur`| Function | Roman Sedaikin | In Progress |
+|`blur`| Function | Roman Sedaikin | In Progress |
+|`onDisAppear`| Function | Roman Sedaikin | In Progress |
+|`onApper`| Function | Roman Sedaikin | In Progress |
+|`onAreaChange`| Function | Roman Sedaikin | In Progress |
+|`visibility`| Function | Roman Sedaikin | In Progress |
+|`alignSelf`| Function | Roman Sedaikin | In Progress |
+|`displayPriority`| Function | Roman Sedaikin | In Progress |
+|`zIndex`| Function | Roman Sedaikin | In Progress |
+|`direction`| Function | Roman Sedaikin | In Progress |
+|`align`| Function | Roman Sedaikin | In Progress |
+|`position`| Function | Roman Sedaikin | In Progress |
+|`offset`| Function | Roman Sedaikin | In Progress |
+|`enabled`| Function | Roman Sedaikin | In Progress |
+|`aspectRatio`| Function | Roman Sedaikin | In Progress |
+|`overlay`| Function | Roman Sedaikin | In Progress |
+|`linearGradient`| Function | Roman Sedaikin | In Progress |
+|`sweepGradient`| Function | Roman Sedaikin | In Progress |
+|`radialGradient`| Function | Roman Sedaikin | In Progress |
+|`shadow`| Function | Roman Sedaikin | In Progress |
