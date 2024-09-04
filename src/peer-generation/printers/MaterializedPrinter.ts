@@ -94,9 +94,8 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         const printer = this.printer
         printer.print(makeMaterializedPrologue(this.printerContext.language))
 
-        const superClass = clazz.superClass
-        let superClassName = superClass ? `${superClass.name}${superClass.generics ? `<${superClass.generics.join(", ")}>` : ""}` : undefined
-        let selfInterface = clazz.isInterface ? `${clazz.className}${clazz.generics ? `<${clazz.generics.join(", ")}>` : `` }` : undefined
+        let superClassName = clazz.superClass?.getSyperType()
+        let selfInterface = clazz.isInterface ? `${clazz.className}${clazz.generics ? `<${clazz.generics.join(", ")}>` : ``}` : undefined
 
         const interfaces: string[] = []
         if (clazz.isInterface) {
@@ -109,6 +108,13 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 interfaces.push(superClassName)
                 superClassName = undefined
             }
+        }
+
+        // TODO: workarond for ContentModifier<T> which returns WrappedBuilder<[T]>
+        //       and the WrappedBuilder is defined as "class WrappedBuilder<Args extends Object[]>""
+        let generics = clazz.generics
+        if (clazz.className === "ContentModifier") {
+            generics = ["T extends Object"]
         }
 
         printer.writeClass(clazz.className, writer => {
@@ -226,7 +232,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 writePeerMethod(writer, privateMethod, this.printerContext, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
                 this.library.setCurrentContext(undefined)
             })
-        }, superClassName, interfaces.length === 0 ? undefined : interfaces, clazz.generics)
+        }, superClassName, interfaces.length === 0 ? undefined : interfaces, generics)
     }
 
     visit(): void {
@@ -259,8 +265,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
         const finalizableType = new Type('Finalizable')
         this.printerContext.imports!.printImportsForTypes([finalizableType], this.printer)
 
-        const superClass = clazz.superClass
-        const superClassName = superClass ? `${superClass.name}${superClass.generics ? `<${superClass.generics.join(', ')}>` : ''}` : ARK_MATERIALIZEDBASE
+        const superClassName = clazz.superClass?.getSyperType() ?? ARK_MATERIALIZEDBASE
 
         this.printer.writeClass(clazz.className, writer => {
             // getters and setters for fields
@@ -307,6 +312,15 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 }),
                 ctorSig.argsNames,
                 ctorSig.defaults)
+
+            // generate a constructor with zero parameters for static methods
+            // in case there is no alredy defined one
+            if (signatureWithJavaTypes.args.length > 0) {
+                writer.writeConstructorImplementation(clazz.className, new MethodSignature(Type.Void, []), writer => {
+                    writer.writeSuperCall([`(${ARK_MATERIALIZEDBASE_EMPTY_PARAMETER})null`]);
+                })
+            }
+
             writer.writeConstructorImplementation(clazz.className, signatureWithJavaTypes, writer => {
                 writer.writeSuperCall([`(${emptyParameterType.name})null`]);
 

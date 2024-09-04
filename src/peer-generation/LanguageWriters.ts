@@ -45,8 +45,17 @@ export class Type {
     static This = new Type('this')
     static Void = new Type('void')
 
+    private static PRIMITIVE_TYPES = new Set(
+        [Type.Boolean, Type.Int32, Type.Number, Type.Pointer, Type.Void]
+            .map(it => it.name)
+    )
+
     toString(): string {
         return `${this.name}${this.nullable ? "?" : ""}`
+    }
+
+    isPrimitive(): boolean {
+        return Type.PRIMITIVE_TYPES.has(this.name)
     }
 }
 
@@ -213,6 +222,15 @@ export class CJCheckDefinedExpression implements LanguageExpression {
     }
 }
 
+export class NewObjectExpression implements LanguageExpression {
+    constructor(
+        private objectName: string,
+        private params: LanguageExpression[]) { }
+    asString(): string {
+        return `new ${this.objectName}(${this.params.map(it => it.asString()).join(", ")})`
+    }
+}
+
 export class FunctionCallExpression implements LanguageExpression {
     constructor(
         private name: string,
@@ -287,6 +305,20 @@ class JavaLambdaExpression extends LambdaExpression {
     asString(): string {
         const params = this.signature.args.map((it, i) => `${it.name} ${this.signature.argName(i)}`)
         return `(${params.join(", ")}) -> { ${this.bodyAsString()} }`
+    }
+}
+
+class TSThrowErrorStatement implements LanguageStatement {
+    constructor(public message: string) { }
+    write(writer: LanguageWriter): void {
+        writer.print(`throw new Error("${this.message}")`)
+    }
+}
+
+class CLikeThrowErrorStatement implements LanguageStatement {
+    constructor(public message: string) { }
+    write(writer: LanguageWriter): void {
+        writer.print(`throw new Error("${this.message}");`)
     }
 }
 
@@ -762,6 +794,7 @@ export abstract class LanguageWriter {
     abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
     abstract makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean): LanguageStatement;
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression;
+    abstract makeThrowError(message: string): LanguageStatement;
     abstract makeReturn(expr?: LanguageExpression): LanguageStatement;
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
     abstract getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
@@ -827,6 +860,9 @@ export abstract class LanguageWriter {
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         return this.makeString(`${value}!`)
+    }
+    makeNewObject(objectName: string, params: LanguageExpression[] = []): LanguageExpression {
+        return new NewObjectExpression(objectName, params)
     }
     makeFunctionCall(name: string, params: LanguageExpression[]): LanguageExpression {
         return new FunctionCallExpression(name, params)
@@ -1048,6 +1084,9 @@ export class TSLanguageWriter extends LanguageWriter {
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         return new TSLambdaExpression(signature, body)
     }
+    makeThrowError(message: string): LanguageStatement {
+        return new TSThrowErrorStatement(message)
+    }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new TSReturnStatement(expr)
     }
@@ -1257,6 +1296,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
 abstract class CLikeLanguageWriter extends LanguageWriter {
     protected constructor(printer: IndentedPrinter, language: Language) {
         super(printer, language)
+    }
+    makeThrowError(message: string): LanguageStatement {
+        return new CLikeThrowErrorStatement(message)
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         this.printer.print(`${receiver}.${method}(${params.join(", ")});`)
@@ -1519,6 +1561,9 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString(`let Some(${varName}) <- ${varName}`)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
+        throw new Error(`TBD`)
+    }
+    makeThrowError(message: string): LanguageStatement {
         throw new Error(`TBD`)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {

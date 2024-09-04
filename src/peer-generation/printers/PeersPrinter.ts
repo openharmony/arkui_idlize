@@ -23,6 +23,7 @@ import { InheritanceRole, determineParentRole, isHeir, isRoot } from "../inherit
 import { PeerMethod } from "../PeerMethod";
 import {
     LanguageExpression,
+    LanguageStatement,
     LanguageWriter,
     Method,
     MethodModifier,
@@ -483,31 +484,37 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
         })
         // TODO: refactor
         if (returnType != Type.Void) {
-            let result = returnValName
+            let result: LanguageStatement[] = [writer.makeReturn(writer.makeString(returnValName))]
             if (method.hasReceiver() && returnType === Type.This) {
-                result = `this`
+                result = [writer.makeReturn(writer.makeString("this"))]
             } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
-                const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
-                if (!method.hasReceiver()) {
-                    const retType = signature.returnType
-                    let obj: string
-                    if (isTsLike) {
-                        obj = `new ${retType.name}(${signature.argsNames.map(it => "undefined").join(", ")})`
+                // const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
+                if (returnType.name === method.originalParentName) {
+                    if (!method.hasReceiver()) {
+                        result = [
+                            ...constructMaterializedObject(writer, signature, "obj", returnValName),
+                            writer.makeReturn(writer.makeString("obj"))
+                        ]
                     }
-                    else if (isJava) {
-                        obj = `new ${retType.name}((${ARK_MATERIALIZEDBASE_EMPTY_PARAMETER})null)`
-                    }
-                    else {
-                        throw new Error(`Need add support for peer methods in ${printerContext.language.toString()}`);
-                    }
-                    writer.writeStatement(writer.makeAssign("obj", retType, writer.makeString(obj), true))
-                    writer.writeStatement(
-                        writer.makeAssign("obj.peer", new Type("Finalizable"),
-                            writer.makeString(`new Finalizable(${returnValName}, ${method.originalParentName}.getFinalizer())`), false))
-                    result = "obj"
+                } else if (!returnType.isPrimitive()) {
+                    result = [
+                        writer.makeThrowError("Object deserialization is not implemented.")
+                    ]
                 }
             }
-            writer.writeStatement(writer.makeReturn(writer.makeString(result)))
+            for (const stmt of result) {
+                writer.writeStatement(stmt)
+            }
         }
     })
+}
+
+function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,
+    resultName: string, peerPtrName: string): LanguageStatement[] {
+    const retType = signature.returnType
+    return [
+        writer.makeAssign(`${resultName}`, retType, writer.makeNewObject(retType.name), true),
+        writer.makeAssign(`${resultName}.peer`, new Type("Finalizable"),
+            writer.makeString(`new Finalizable(${peerPtrName}, ${retType.name}.getFinalizer())`), false),
+    ]
 }

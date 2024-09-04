@@ -43,7 +43,7 @@ import { PeerClass } from "./PeerClass"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
-import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement, checkTSDeclarationMaterialized, isMaterialized } from "./Materialized"
+import { MaterializedClass, MaterializedField, MaterializedMethod, extractSuperElement, checkTSDeclarationMaterialized, isMaterialized } from "./Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
 import {
     ArkTSTypeNodeNameConvertor,
@@ -264,11 +264,18 @@ function tempExtractParameters(method: ts.ConstructorDeclaration | ts.MethodDecl
 }
 
 export function generateSignature(method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.CallSignatureDeclaration,
-                                  typeNodeConvertor: TypeNodeNameConvertor): NamedMethodSignature {
+                                  typeNodeConvertor: TypeNodeNameConvertor,
+                                  isComponent = true,
+                                  genericsSubstitution: Map<string, string> | undefined = undefined): NamedMethodSignature {
     const parameters = tempExtractParameters(method)
-    const returnName = identName(method.type)!
-    const returnType = returnName === "void" ? Type.Void
-        : isStatic(method.modifiers) ? new Type(returnName) : Type.This
+    let returnName = method.type ? typeNodeConvertor.convert(method.type) : ""
+    const substitutedReturnName = genericsSubstitution?.get(returnName)
+    returnName = substitutedReturnName ? substitutedReturnName : returnName
+
+    const parent = method.parent
+    const parentName = ts.isClassDeclaration(parent) || ts.isInterfaceDeclaration(parent) ? identName(parent.name) : ""
+    const returnType = returnName === "void" || returnName === "" ? Type.Void
+        : isComponent || (returnName === parentName && !isStatic(method.modifiers)) ? Type.This : new Type(returnName)
     return new NamedMethodSignature(returnType,
         parameters
             .map(it => new Type(typeNodeConvertor.convert(it.type!), it.questionToken != undefined)),
@@ -850,15 +857,7 @@ export class PeerProcessor {
         const isClass = ts.isClassDeclaration(target)
         const isInterface = ts.isInterfaceDeclaration(target)
 
-        const superClassType = target.heritageClauses
-            ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)[0]?.types[0]
-
-
-        const superClass = superClassType ?
-            new SuperElement(
-                identName(superClassType.expression)!,
-                superClassType.typeArguments?.filter(ts.isTypeReferenceNode).map(it => identName(it.typeName)!))
-            : undefined
+        const superClass = extractSuperElement(target)
 
         const importFeatures = this.serializeDepsCollector.convert(target)
             .filter(it => isSourceDecl(it))
@@ -891,11 +890,6 @@ export class PeerProcessor {
                 .filter(ts.isMethodSignature)
                 .map(method => this.makeMaterializedMethod(name, method, isActualDeclaration, typeNodeConvertor))
                 : []
-
-        // TODO: Properly handle methods with return Promise<T> type
-        mMethods = mMethods.filter(it => !PeerGeneratorConfig.ignoreReturnTypes.has(
-            it.method.signature.returnType.name
-        ))
 
         mFields.forEach(f => {
             const field = f.field
@@ -974,7 +968,7 @@ export class PeerProcessor {
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
         method.parameters.forEach(it => this.declarationTable.requestType(undefined, it.type!, isActualDeclaration))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param, typeNodeConverter))
-        const signature = generateSignature(method, typeNodeConverter)
+        const signature = generateSignature(method, typeNodeConverter, false)
         const modifiers = generateMethodModifiers(method)
         this.declarationTable.setCurrentContext(undefined)
         return new MaterializedMethod(parentName, declarationTargets, argConvertors, retConvertor, false,

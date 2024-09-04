@@ -44,10 +44,8 @@ class NativeModuleVisitor {
             printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, Type.Pointer)
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
-                // TODO: DotIndicator and DigitIndicator implements Indicator
-                const subType = returnType?.name.includes(method.originalParentName)
                 printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
-                    returnType === Type.This || subType ? Type.Pointer : returnType)
+                    returnType?.isPrimitive() ? returnType : Type.Pointer)
             })
         })
     }

@@ -25,6 +25,16 @@ declare enum GestureMask {
   IgnoreInternal,
 }
 
+declare enum GestureRecognizerState {
+
+  READY = 0,
+  DETECTING = 1,
+  PENDING = 2,
+  BLOCKED = 3,
+  SUCCESSFUL = 4,
+  FAILED = 5,
+}
+
 interface GestureInterface<T> {
 
   tag(tag: string): T;
@@ -51,6 +61,30 @@ interface FingerInfo {
   displayY: number;
 }
 
+declare namespace GestureControl {
+
+  enum GestureType {
+
+    TAP_GESTURE = 0,
+    LONG_PRESS_GESTURE = 1,
+    PAN_GESTURE = 2,
+    PINCH_GESTURE = 3,
+    SWIPE_GESTURE = 4,
+    ROTATION_GESTURE = 5,
+    DRAG = 6,
+    CLICK = 7,
+  }
+}
+
+declare type GestureType =
+  TapGestureInterface
+  | LongPressGestureInterface
+  | PanGestureInterface
+  | PinchGestureInterface
+  | SwipeGestureInterface
+  | RotationGestureInterface
+  | GestureGroupInterface;
+
 interface BaseGestureEvent extends BaseEvent {
 
   fingerList: FingerInfo[];
@@ -61,6 +95,11 @@ declare enum GestureJudgeResult {
 
   CONTINUE = 0,
   REJECT = 1,
+}
+
+declare class EventTargetInfo {
+
+  getId(): string;
 }
 
 declare class GestureRecognizer {

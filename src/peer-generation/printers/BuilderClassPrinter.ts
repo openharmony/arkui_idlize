@@ -47,6 +47,8 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         const currentModule = removeExt(renameClassToBuilderClass(clazz.name, this.peerLibrary.declarationTable.language))
         imports.print(this.printer, currentModule)
 
+        const superType = clazz.superClass?.getSyperType()
+
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
@@ -56,6 +58,9 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
             clazz.constructors
                 .forEach(ctor => {
                     writer.writeConstructorImplementation(ctor.name, ctor.signature, writer => {
+                        if (superType) {
+                            writer.writeSuperCall([])
+                        }
                         /*
                         const typeFiledName = syntheticName("type")
                         writer.writeStatement(writer.makeAssign(`this.${typeFiledName}`, undefined, writer.makeString(`"${clazz.name}"`), false))
@@ -91,7 +96,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
                         writer.writeStatement(writer.makeReturn(writer.makeString("this")))
                     })
                 })
-        })
+        }, superType)
     }
 
     printFile(): void {

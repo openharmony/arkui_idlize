@@ -15,9 +15,9 @@
 
 import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./Convertors"
-import { Field, Method, MethodModifier, Type } from "./LanguageWriters"
+import { Field, Method, MethodModifier, MethodSignature, Type } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
-import { identName } from "../util"
+import { heritageDeclarations, identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
 import { DeclarationTarget, PrimitiveType } from "./DeclarationTable"
 import { ImportFeature } from "./ImportsCollector"
@@ -142,6 +142,10 @@ export class SuperElement {
         public readonly name: string,
         public readonly generics?: string[]
     ) { }
+
+    getSyperType(): string {
+        return `${this.name}${this.generics ? `<${this.generics.join(", ")}>` : ``}`
+    }
 }
 
 export class MaterializedClass implements PeerClassBase {
@@ -171,4 +175,20 @@ export class MaterializedClass implements PeerClassBase {
     generatedName(isCallSignature: boolean): string{
         return this.className
     }
+}
+
+export function extractSuperElement(target: ts.ClassDeclaration | ts.InterfaceDeclaration): SuperElement | undefined {
+
+    const heritageClause = target.heritageClauses
+        ?.find(it => it.token == ts.SyntaxKind.ExtendsKeyword)
+
+    if (!heritageClause) return undefined
+
+    const superClassType = heritageClause.types[0]
+    const superClassName = identName(superClassType.expression)!
+    const superClassTypeArgs = superClassType.typeArguments
+        ?.filter(ts.isTypeReferenceNode)
+        .map(it => identName(it.typeName)!)
+
+    return new SuperElement(superClassName, superClassTypeArgs)
 }
