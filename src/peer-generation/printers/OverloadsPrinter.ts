@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import * as idl from "../../idl"
 import { UndefinedConvertor, UnionRuntimeTypeChecker } from "../Convertors"
 import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters";
 import { PeerClass, PeerClassBase } from "../PeerClass";
@@ -20,32 +21,74 @@ import { PeerMethod } from "../PeerMethod";
 import { isDefined, Language } from "../../util";
 import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { ArgConvertor as IdlArgConvertor } from "../idl/IdlArgConvertors"
 
-export function collapseSameNamedMethods(methods: Method[]): Method {
+export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
         throw "Can not process defaults in collapsed method"
     const maxArgLength = Math.max(...methods.map(it => it.signature.args.length))
+    const maxMethod = methods.find(it => it.signature.args.length === maxArgLength)!
     const collapsedArgs: Type[] = Array.from({length: maxArgLength}, (_, argIndex) => {
+        if (selectMaxMethodArgs?.includes(argIndex))
+            return maxMethod.signature.args[argIndex]
         const name = methods.map(it => it.signature.args[argIndex]?.name).filter(isDefined).join(' | ')
         const optional = methods.some(it => it.signature.args[argIndex]?.nullable ?? true)
         return new Type(name, optional)
     })
-    const maxMethod = methods.find(it => it.signature.args.length === maxArgLength)
     return new Method(
         methods[0].name,
         new NamedMethodSignature(
             methods[0].signature.returnType,
             collapsedArgs,
-            (maxMethod?.signature as NamedMethodSignature).argsNames
+            (maxMethod.signature as NamedMethodSignature).argsNames
         ),
         methods[0].modifiers,
         methods[0].generics,
     )
 }
 
-export function groupOverloads(peerMethods: PeerMethod[]): PeerMethod[][] {
+export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPeerMethod[], selectMaxMethodArgs?: number[]): IdlPeerMethod {
+    const method = collapseSameNamedMethods(overloads.map(it => it.method), selectMaxMethodArgs)
+    const maxArgsLength = Math.max(...overloads.map(it => it.declarationTargets.length))
+    const maxMethod = overloads.find(it => it.declarationTargets.length === maxArgsLength)!
+    const targets: idl.IDLType[] = Array.from({length: maxArgsLength}, (_, argIndex) => {
+        if (selectMaxMethodArgs?.includes(argIndex))
+            return maxMethod.declarationTargets[argIndex]
+        return idl.createUnionType(overloads.flatMap(overload => {
+            if (overload.declarationTargets.length <= argIndex)
+                return []
+            const target = overload.declarationTargets[argIndex]
+            if (idl.isUnionType(target))
+                return target.types
+            return [target]
+        }))
+    })
+    const typeConvertors: IdlArgConvertor[] = targets.map((target, index) => {
+        if (selectMaxMethodArgs?.includes(index)) {
+            const convertor = maxMethod.argConvertors[index]
+            convertor.param = method.signature.argName(index)
+            return convertor
+        }
+        return library.typeConvertor(
+            method.signature.argName(index), 
+            target, 
+            method.signature.args[index].nullable, 
+            true
+        )
+    })
+    return new IdlPeerMethod(
+        overloads[0].originalParentName,
+        targets,
+        typeConvertors,
+        overloads[0].isCallSignature,
+        method,
+    )
+}
+
+export function groupOverloads<T extends PeerMethod | IdlPeerMethod>(peerMethods: T[]): T[][] {
     const seenNames = new Set<string>()
-    const groups: PeerMethod[][] = []
+    const groups: T[][] = []
     for (const method of peerMethods) {
         if (seenNames.has(method.method.name))
             continue

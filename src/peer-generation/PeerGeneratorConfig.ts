@@ -38,7 +38,7 @@ export class PeerGeneratorConfig {
 
     public static invalidAttributes = ["ScrollableCommonMethod"]
 
-    public static invalidEvents = ["onRenderExited"]
+    public static invalidEvents: string[] = []
 
     public static rootComponents = [
         "CommonMethod",

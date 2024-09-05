@@ -32,6 +32,8 @@ import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 import { ArgConvertor } from "../Convertors"
 import { ArgConvertor as IdlArgConvertor } from "../idl/IdlArgConvertors"
 import { createTypeNodeConvertor } from "../PeerGeneratorVisitor";
+import { IdlPeerClass } from "../idl/IdlPeerClass"
+import { collapseIdlPeerMethods, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter"
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -95,10 +97,15 @@ export function collectCallbacks(library: PeerLibrary | IdlPeerLibrary): (Callba
     for (const file of library.files) {
         for (const peer of file.peers.values()) {
             for (const method of peer.methods) {
+                let callbackFound = false
                 for (const target of method.declarationTargets) {
                     const info = convertToCallback(peer, method, target)
-                    if (info && canProcessCallback(info))
+                    if (info && canProcessCallback(info)) {
+                        if (callbackFound)
+                            throw new Error("Only one callback per method is acceptable")
+                        callbackFound = true
                         callbacks.push(info)
+                    }
                 }
             }
         }
@@ -129,7 +136,7 @@ function convertTargetToCallback(peer: PeerClassBase, method: PeerMethod, target
     if (ts.isFunctionTypeNode(target))
         return {
             componentName: peer.getComponentName(),
-            methodName: method.method.name,
+            methodName: method.overloadedName,
             args: target.parameters.map(it => {return {
                 name: asString(it.name),
                 type: it.type!,
@@ -143,7 +150,7 @@ function convertTargetToCallback(peer: PeerClassBase, method: PeerMethod, target
         const hasData = data.kind !== ts.SyntaxKind.VoidKeyword
         return {
             componentName: peer.getComponentName(),
-            methodName: method.method.name,
+            methodName: method.overloadedName,
             args: hasData ? [{name: 'data', type: data, nullable: false}] : [],
             returnType: target.typeArguments![1] ?? ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
             originTarget: target,
@@ -155,7 +162,7 @@ function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argTyp
     if (idl.isCallback(argType))
         return {
             componentName: peer.getComponentName(),
-            methodName: method.method.name,
+            methodName: method.overloadedName,
             args: argType.parameters.map(it => {return {
                 name: it.name,
                 type: it.type!,
@@ -170,7 +177,7 @@ function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argTyp
         const hasData = !idl.isVoidType(inputType)
         return {
             componentName: peer.getComponentName(),
-            methodName: method.method.name,
+            methodName: method.overloadedName,
             args: hasData ? [{name: 'data', type: inputType, nullable: false}] : [],
             returnType: typeArgs[1] ? idl.createReferenceType(typeArgs[1]) : idl.createVoidType(),
             originTarget: argType,
@@ -185,6 +192,65 @@ export function callbackIdByInfo(info: CallbackInfoBase): string {
 
 export function callbackEventNameByInfo(info: CallbackInfoBase): string {
     return `${callbackIdByInfo(info)}_event`
+}
+
+function idlTypesEquals(a: idl.IDLType, b: idl.IDLType): boolean {
+    if (a.kind !== b.kind ||
+        a.name !== b.name)
+        return false
+    if (idl.isUnionType(a) && idl.isUnionType(b)) {
+        return a.types.every(it => b.types.some(other => idlTypesEquals(it, other))) &&
+            idlTypesEquals(b, a)
+    }
+    return true
+}
+
+function idlCallbacksEquals(a: IdlCallbackInfo | undefined, b: IdlCallbackInfo | undefined): boolean {
+    if (!a || !b)
+        return a === b
+
+    if (a.args.length != b.args.length) 
+        return false
+    for (let i = 0; i < a.args.length; i++) {
+        if (!idlTypesEquals(a.args[i].type, b.args[i].type))
+            return false
+        if (a.args[i].nullable !== b.args[i].nullable)
+            return false
+    }
+    if (!idlTypesEquals(a.returnType, b.returnType))
+        return false
+    return true
+}
+
+export function collapseIdlEventsOverloads(library: IdlPeerLibrary, peer: IdlPeerClass): void {
+    if (1==1) {
+        console.log("WARNING: Events collapsing is disabled, waiting for IDL supporting native generation")
+        return
+    }
+    const replacements: [IdlPeerMethod[], IdlPeerMethod][] = []
+
+    for (const overloads of groupOverloads(peer.methods)) {
+        if (overloads.length <= 1) continue
+        const callbacks = overloads[0].declarationTargets.map(it => convertToCallback(peer, overloads[0], it))
+        const callbackIndex = callbacks.findIndex(it => it)
+        if (callbackIndex === -1) continue
+
+        const sampleCallback = callbacks[callbackIndex]
+        let canCollapseCallbacks = true
+        for (const overload of overloads) {
+            const overloadCallback = convertToCallback(peer, overload, overload.declarationTargets[callbackIndex])
+            if (!idlCallbacksEquals(sampleCallback, overloadCallback))
+                canCollapseCallbacks = false
+        }
+        if (!canCollapseCallbacks) continue
+
+        replacements.push([overloads, collapseIdlPeerMethods(library, overloads, [callbackIndex])])
+    }
+
+    for (const replacement of replacements) {
+        peer.methods[peer.methods.indexOf(replacement[0][0])] = replacement[1]
+        peer.methods = peer.methods.filter(it => !replacement[0].includes(it))
+    }
 }
 
 abstract class CEventsVisitorBase {

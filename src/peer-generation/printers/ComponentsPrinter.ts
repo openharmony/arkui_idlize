@@ -22,7 +22,7 @@ import { PeerLibrary } from "../PeerLibrary";
 import { isCommonMethod } from "../inheritance";
 import { PeerMethod } from "../PeerMethod";
 import { componentToPeerClass } from "./PeersPrinter";
-import { OverloadsPrinter, collapseSameNamedMethods } from "./OverloadsPrinter";
+import { OverloadsPrinter, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter";
 import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
 import { convertToCallback } from "./EventsPrinter";
 import { tsCopyrightAndWarning } from "../FileGenerators";
@@ -109,18 +109,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         imports.print(this.printer, removeExt(this.targetBasename))
     }
 
-    private groupOverloads<T extends PeerMethod | IdlPeerMethod>(peerMethods: T[]): T[][] {
-        const seenNames = new Set<string>()
-        const groups: T[][] = []
-        for (const method of peerMethods) {
-            if (seenNames.has(method.method.name))
-                continue
-            seenNames.add(method.method.name)
-            groups.push(peerMethods.filter(it => it.method.name === method.method.name))
-        }
-        return groups
-    }
-
     private printComponent(peer: PeerClass | IdlPeerClass) {
         const callableMethods = (peer.methods as any[]).filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
@@ -135,7 +123,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), [FieldModifier.PROTECTED], true)
             const filteredMethods = (peer.methods as any[]).filter(it =>
                 this.language !== Language.ARKTS || !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(it.overloadedName))
-            for (const grouped of this.groupOverloads(filteredMethods))
+            for (const grouped of groupOverloads(filteredMethods))
                 this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")

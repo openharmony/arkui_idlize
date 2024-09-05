@@ -35,6 +35,7 @@ import { ImportFeature } from "../ImportsCollector";
 import { DeclarationNameConvertor } from "./IdlDependenciesCollector";
 import { ArkTSTypeNameConvertor } from "./IdlTypeNameConvertor";
 import { PrimitiveType } from "../DeclarationTable"
+import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -515,6 +516,7 @@ class PeersGenerator {
         if (component.interfaceDeclaration)
             this.fillInterface(peer, component.interfaceDeclaration)
         this.fillClass(peer, component.attributesDeclarations)
+        collapseIdlEventsOverloads(this.library, peer)
         file.peers.set(component.name, peer)
     }
 }
