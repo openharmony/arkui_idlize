@@ -164,6 +164,7 @@ declare interface SheetOptions extends BindOptions {
     onDetentsDidChange?: Callback<number>;
     onWidthDidChange?: Callback<number>;
     onTypeDidChange?: Callback<SheetType>;
+    expandSafeAreaInEmbeddedMode?: boolean;
     uiContext?: UIContext;
 }
 
