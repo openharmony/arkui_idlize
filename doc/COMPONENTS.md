@@ -3,9 +3,9 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 112      | 74     | 1795     |
-| In Progress  | 13      | 0     | 10     |
-| Done         | 3      | 0     | 58     |
+| Total        | 112      | 74     | 1796     |
+| In Progress  | 15      | 0     | 50     |
+| Done         | 3      | 0     | 63     |
 | Blocked      | 3      | 0     | 3     |
 
 
@@ -15,10 +15,10 @@
 |`setAbilityComponentOptions`| Function | | |
 |`onConnect`| Function | | |
 |`onDisconnect`| Function | | |
-|*AlphabetIndexer*| *Component* |  |  |
+|*AlphabetIndexer*| *Component* | | |
 |`setAlphabetIndexerOptions`| Function | | |
-|`onSelected`| Function | Ivan | Done |
-|`color`| Function | Peter | In Progress |
+|`onSelected`| Function | | |
+|`color`| Function | | |
 |`selectedColor`| Function | | |
 |`popupColor`| Function | | |
 |`selectedBackgroundColor`| Function | | |
@@ -46,7 +46,7 @@
 |`enableHapticFeedback`| Function | | |
 |*Animator*| *Component* | | |
 |`setAnimatorOptions`| Function | | |
-|`state`| Function |  |  |
+|`state`| Function | | |
 |`duration`| Function | | |
 |`curve`| Function | | |
 |`delay`| Function | | |
@@ -131,24 +131,24 @@
 |`setColumnSplitOptions`| Function | | |
 |`resizeable`| Function | | |
 |`divider`| Function | | |
-|*CommonMethod*| *Component* | | |
-|`width`| Function | | |
-|`height`| Function | | |
+|*CommonMethod*| *Component* | Roman Sedaikin | In Progress |
+|`width`| Function | Roman Sedaikin | done |
+|`height`| Function | Roman Sedaikin | done |
 |`drawModifier`| Function | | |
 |`customProperty`| Function | | |
 |`expandSafeArea`| Function | | |
-|`responseRegion`| Function | | |
+|`responseRegion`| Function | Roman Sedaikin | In Progress |
 |`mouseResponseRegion`| Function | | |
-|`size`| Function | | |
-|`constraintSize`| Function | | |
-|`touchable`| Function | | |
-|`hitTestBehavior`| Function | | |
+|`size`| Function | Roman Sedaikin | In Progress |
+|`constraintSize`| Function | Roman Sedaikin | In Progress |
+|`touchable`| Function | Roman Sedaikin | In Progress |
+|`hitTestBehavior`| Function | Roman Sedaikin | In Progress |
 |`onChildTouchTest`| Function | | |
-|`layoutWeight`| Function | | |
-|`padding`| Function | | |
-|`margin`| Function | | |
+|`layoutWeight`| Function | Roman Sedaikin | In Progress |
+|`padding`| Function | Roman Sedaikin | In Progress |
+|`margin`| Function | Roman Sedaikin | In Progress |
 |`background`| Function | | |
-|`backgroundColor`| Function | | |
+|`backgroundColor`| Function | Roman Sedaikin | done |
 |`pixelRound`| Function | | |
 |`backgroundImage`| Function | | |
 |`backgroundImageSize`| Function | | |
@@ -161,31 +161,31 @@
 |`backgroundFilter`| Function | | |
 |`foregroundFilter`| Function | | |
 |`compositingFilter`| Function | | |
-|`foregroundBlurStyle`| Function | | |
-|`opacity`| Function | | |
-|`border`| Function | | |
-|`borderStyle`| Function | | |
-|`borderWidth`| Function | | |
-|`borderColor`| Function | | |
-|`borderRadius`| Function | | |
-|`borderImage`| Function | | |
+|`foregroundBlurStyle`| Function | Roman Sedaikin | In Progress |
+|`opacity`| Function | Roman Sedaikin | done |
+|`border`| Function | Roman Sedaikin | In Progress |
+|`borderStyle`| Function | Roman Sedaikin | In Progress |
+|`borderWidth`| Function | Roman Sedaikin | In Progress |
+|`borderColor`| Function | Roman Sedaikin | In Progress |
+|`borderRadius`| Function | Roman Sedaikin | In Progress |
+|`borderImage`| Function | Roman Sedaikin | In Progress |
 |`outline`| Function | | |
 |`outlineStyle`| Function | | |
 |`outlineWidth`| Function | | |
 |`outlineColor`| Function | | |
 |`outlineRadius`| Function | | |
-|`foregroundColor`| Function | | |
-|`onClick`| Function | | |
+|`foregroundColor`| Function | Roman Sedaikin | In Progress |
+|`onClick`| Function | Roman Sedaikin | In Progress |
 |`onHover`| Function | | |
 |`onAccessibilityHover`| Function | | |
-|`hoverEffect`| Function | | |
+|`hoverEffect`| Function | Roman Sedaikin | In Progress |
 |`onMouse`| Function | | |
-|`onTouch`| Function | | |
+|`onTouch`| Function | Roman Sedaikin | In Progress |
 |`onKeyEvent`| Function | | |
 |`onKeyPreIme`| Function | | |
-|`focusable`| Function | | |
-|`onFocus`| Function | | |
-|`onBlur`| Function | | |
+|`focusable`| Function | Roman Sedaikin | In Progress |
+|`onFocus`| Function | Roman Sedaikin | In Progress |
+|`onBlur`| Function | Roman Sedaikin | In Progress |
 |`tabIndex`| Function | | |
 |`defaultFocus`| Function | | |
 |`groupDefaultFocus`| Function | | |
@@ -198,7 +198,7 @@
 |`gesture`| Function | | |
 |`priorityGesture`| Function | | |
 |`parallelGesture`| Function | | |
-|`blur`| Function | | |
+|`blur`| Function | Roman Sedaikin | In Progress |
 |`linearGradientBlur`| Function | | |
 |`motionBlur`| Function | | |
 |`brightness`| Function | | |
@@ -222,28 +222,28 @@
 |`rotate`| Function | | |
 |`transform`| Function | | |
 |`onAppear`| Function | | |
-|`onDisAppear`| Function | | |
+|`onDisAppear`| Function | Roman Sedaikin | In Progress |
 |`onAttach`| Function | | |
 |`onDetach`| Function | | |
-|`onAreaChange`| Function | | |
-|`visibility`| Function | | |
+|`onAreaChange`| Function | Roman Sedaikin | In Progress |
+|`visibility`| Function | Roman Sedaikin | In Progress |
 |`flexGrow`| Function | | |
 |`flexShrink`| Function | | |
 |`flexBasis`| Function | | |
-|`alignSelf`| Function | | |
-|`displayPriority`| Function | | |
-|`zIndex`| Function | | |
+|`alignSelf`| Function | Roman Sedaikin | In Progress |
+|`displayPriority`| Function | Roman Sedaikin | In Progress |
+|`zIndex`| Function | Roman Sedaikin | In Progress |
 |`sharedTransition`| Function | | |
-|`direction`| Function | | |
-|`align`| Function | | |
-|`position`| Function | | |
+|`direction`| Function | Roman Sedaikin | In Progress |
+|`align`| Function | Roman Sedaikin | In Progress |
+|`position`| Function | Roman Sedaikin | In Progress |
 |`markAnchor`| Function | | |
-|`offset`| Function | | |
-|`enabled`| Function | | |
+|`offset`| Function | Roman Sedaikin | In Progress |
+|`enabled`| Function | Roman Sedaikin | In Progress |
 |`useSizeType`| Function | | |
 |`alignRules`| Function | | |
 |`chainMode`| Function | | |
-|`aspectRatio`| Function | | |
+|`aspectRatio`| Function | Roman Sedaikin | In Progress |
 |`clickEffect`| Function | | |
 |`onDragStart`| Function | | |
 |`onDragEnter`| Function | | |
@@ -256,12 +256,12 @@
 |`dragPreview`| Function | | |
 |`dragPreviewOptions`| Function | | |
 |`onPreDrag`| Function | | |
-|`overlay`| Function | | |
-|`linearGradient`| Function | | |
-|`sweepGradient`| Function | | |
-|`radialGradient`| Function | | |
+|`overlay`| Function | Roman Sedaikin | In Progress |
+|`linearGradient`| Function | Roman Sedaikin | In Progress |
+|`sweepGradient`| Function | Roman Sedaikin | In Progress |
+|`radialGradient`| Function | Roman Sedaikin | In Progress |
 |`motionPath`| Function | | |
-|`shadow`| Function | | |
+|`shadow`| Function | Roman Sedaikin | In Progress |
 |`blendMode`| Function | | |
 |`clip`| Function | | |
 |`clipShape`| Function | | |
@@ -474,7 +474,7 @@
 |*Hyperlink*| *Component* | | |
 |`setHyperlinkOptions`| Function | | |
 |`color`| Function | | |
-|*Image*| *Component* | | |
+|*Image*| *Component* | k00898293 Korobeinikov Evgeny | In Progress |
 |`setImageOptions`| Function | | |
 |`alt`| Function | | |
 |`matchTextDirection`| Function | | |
@@ -964,9 +964,9 @@
 |`lineHeight`| Function | | |
 |`textShadow`| Function | | |
 |*Stack*| *Component* | k00898293 Korobeinikov Evgeny | In Progress |
-|`setStackOptions`| Function | | |
-|`alignContent`| Function | | |
-|`pointLight`| Function | | |
+|`setStackOptions`| Function | k00898293 Korobeinikov Evgeny | done |
+|`alignContent`| Function | k00898293 Korobeinikov Evgeny | done |
+|`pointLight`| Function | k00898293 Korobeinikov Evgeny | In Progress |
 |*Stepper*| *Component* | | |
 |`setStepperOptions`| Function | | |
 |`onFinish`| Function | | |
@@ -1709,6 +1709,7 @@
 |`getStyles`| Function | | |
 |`equals`| Function | | |
 |`subStyledString`| Function | | |
+|`fromHtml`| Function | | |
 |`getLength`| Function | | |
 |*CustomSpan*| *Class* | | |
 |`onMeasure`| Function | | |
