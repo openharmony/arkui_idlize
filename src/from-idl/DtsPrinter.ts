@@ -83,13 +83,16 @@ export class CustomPrintVisitor  {
                 return
             }
             const component = getExtAttribute(node, IDLExtendedAttributes.Component)
+            const parentTypeArguments = getExtAttribute(node, IDLExtendedAttributes.ParentTypeArguments)
             if (node.inheritance[0]) {
-                const typeParams = component ? `<${component}Attribute>` : ""
-                typeSpec += ` extends ${node.inheritance[0].name}${typeParams}`
+                const typeArgs = component ? `<${component}Attribute>` : parentTypeArguments ?  `<${parentTypeArguments}>` : ""
+                typeSpec += ` extends ${node.inheritance[0].name}${typeArgs}`
             }
             const interfaces = getExtAttribute(node, IDLExtendedAttributes.Interfaces)
+            const interfaceTypeArguments = getExtAttribute(node, IDLExtendedAttributes.InterfaceTypeArguments)
             if (interfaces) {
-                typeSpec += ` implements ${interfaces}`
+                const typeArgs = interfaceTypeArguments ?  `<${interfaceTypeArguments}>` : ""
+                typeSpec += ` implements ${interfaces}${typeArgs}`
             }
             let isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
             this.print(`${isExport ? "export ": ""}${namespace ? "" : "declare "}${entity!.toLowerCase()} ${typeSpec} {`)

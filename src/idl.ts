@@ -64,6 +64,8 @@ export enum IDLExtendedAttributes {
     Qualifier = "Qualifier",
     TypeArguments = "TypeArguments",
     TypeParameters = "TypeParameters",
+    ParentTypeArguments = "ParentTypeArguments",
+    InterfaceTypeArguments = "InterfaceTypeArguments",
     VerbatimDts = "VerbatimDts",
     Export = "Export",
     Accessor = "Accessor",
