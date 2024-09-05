@@ -367,6 +367,7 @@ export class LengthConvertor extends BaseArgConvertor {
         switch (writer.language) {
             case Language.CPP: return `(const ${PrimitiveType.Length.getText()}*)&${param}`
             case Language.JAVA: return `${param}.value`
+            case Language.CJ: return `${param}.value`
             default: return param
         }
     }

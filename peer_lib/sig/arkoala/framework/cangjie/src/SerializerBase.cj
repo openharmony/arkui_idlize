@@ -62,16 +62,39 @@ public abstract class CustomSerializer {
 class SerializersCache {
     var cache: ArrayList<?SerializerBase>
     init(maxCount: Int64) {
-        this.cache = ArrayList<?SerializerBase>(maxCount)
+        this.cache = ArrayList<?SerializerBase>()
+        for(i in 0..maxCount) {
+            this.cache.append(None<SerializerBase>)
+        }
     }
-    // TODO
+    func getCached<T>(factory: () -> T, index: Int32): T where T <: SerializerBase {
+        while(this.cache.size < Int64(index)) {
+            cache.append(None<SerializerBase>)
+        }
+        var result = this.cache[Int64(index)]
+        match(result) {
+            case Some(result) =>
+                result.resetCurrentPosition()
+                return match(result) {
+                    case res: T => res
+                    case _ => throw Exception("Factory lambda inside getCached function has returned no value")
+                }
+            case None => 
+                result = factory()
+                this.cache[Int64(index)] = result
+                return match(result) {
+                    case Some(res: T) => res
+                    case _ => throw Exception("Factory lambda inside getCached function has returned no value")
+                }
+        }
+    }
 }
 
 public open class SerializerBase {
     private static var cache = SerializersCache(22)
 
     private var position: Int32 = 0
-    private var buffer: ArrayList<Int8>
+    private var buffer: ArrayList<Int8> = ArrayList<Int8>()
 
     private static var customSerializers: ?CustomSerializer = Option.None
     static func registerCustomSerializer(serializer: CustomSerializer) {
@@ -80,11 +103,12 @@ public open class SerializerBase {
     func resetCurrentPosition(): Unit { this.position = 0 }
 
     init() {
-        this.buffer = ArrayList<Int8>(96)
+        for(i in 0..96) {
+            this.buffer.append(0)
+        }
     }
     static func get<T>(factory: () -> T, index: Int32): T where T <: SerializerBase {
-        // TODO
-        throw Exception("Not implemented yet")
+        return SerializerBase.cache.getCached(factory, index)
     }
     func asArray(): ArrayList<Int8> {
         return this.buffer
@@ -133,6 +157,9 @@ public open class SerializerBase {
         this.checkCapacity(5)
         // TODO
     }
+    func writeNumber(value: Opt_Number): Unit {
+        this.writeNumber(value.value);
+    }
     func writeInt8(value: Int8): Unit {
         this.checkCapacity(1)
         this.buffer[Int64(this.position)] = value
@@ -162,13 +189,13 @@ public open class SerializerBase {
     func writePointer(value: Int64): Unit {
         this.checkCapacity(8)
         this.buffer[Int64(this.position + 0)] = Int8(((value       ) & 0xff))
-        this.buffer[Int64(this.position + 0)] = Int8(((value >>   8) & 0xff))
-        this.buffer[Int64(this.position + 0)] = Int8(((value >>  16) & 0xff))
-        this.buffer[Int64(this.position + 0)] = Int8(((value >>  24) & 0xff))
-        this.buffer[Int64(this.position + 0)] = Int8(((value >>  32) & 0xff))
-        this.buffer[Int64(this.position + 0)] = Int8(((value >>  40) & 0xff))
-        this.buffer[Int64(this.position + 0)] = Int8(((value >>  48) & 0xff))
-        this.buffer[Int64(this.position + 0)] = Int8(((value >>  56) & 0xff))
+        this.buffer[Int64(this.position + 1)] = Int8(((value >>   8) & 0xff))
+        this.buffer[Int64(this.position + 2)] = Int8(((value >>  16) & 0xff))
+        this.buffer[Int64(this.position + 3)] = Int8(((value >>  24) & 0xff))
+        this.buffer[Int64(this.position + 4)] = Int8(((value >>  32) & 0xff))
+        this.buffer[Int64(this.position + 5)] = Int8(((value >>  40) & 0xff))
+        this.buffer[Int64(this.position + 6)] = Int8(((value >>  48) & 0xff))
+        this.buffer[Int64(this.position + 7)] = Int8(((value >>  56) & 0xff))
         this.position += 8
     }
     func writeBoolean(value: ?Bool): Unit {
@@ -198,6 +225,9 @@ public open class SerializerBase {
     }
     // Length is an important common case.
     // TODO
-    func writeLength(): Unit {
+    func writeLength(value: Ark_Length): Unit {
+        this.buffer[Int64(this.position)] = Int8(RuntimeType.STRING.ordinal)
+        this.position++
+        this.writeString(value.value);
     }
 }

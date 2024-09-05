@@ -23,6 +23,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 function castToInt8(value: string, lang: Language): string {
     switch (lang) {
         case Language.ARKTS: return `${value} as int32` // FIXME: is there int8 in ARKTS?
+        case Language.CJ: return `Int8(${value})`
         default: return value
     }
 }
@@ -268,14 +269,14 @@ export class EnumConvertor extends BaseArgConvertor {
         return identName(this.enumType.name)!
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.JAVA ? `${param}.getIntValue()` : writer.makeUnsafeCast(this, param)
+        return writer.writeEnumToInt(this, param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         if (this.isStringEnum) {
             value = printer.ordinalFromEnum(printer.makeString(value),
                 identName(this.enumType.name)!).asString()
         }
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [value])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [printer.writeEnumToInt(this, value)])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         let readExpr = printer.makeMethodCall(`${param}Deserializer`, "readInt32", [])
@@ -368,6 +369,7 @@ export class LengthConvertor extends BaseArgConvertor {
         switch (writer.language) {
             case Language.CPP: return `(const ${PrimitiveType.Length.getText()}*)&${param}`
             case Language.JAVA: return `${param}.value`
+            case Language.CJ: return `${param}.value`
             default: return param
         }
     }

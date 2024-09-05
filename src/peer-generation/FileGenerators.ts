@@ -85,14 +85,15 @@ import {
 } from "@koalaui/interop"
 `.trim()
 
-export function nativeModuleDeclaration(methods: LanguageWriter, nativeBridgePath: string, useEmpty: boolean, language: Language): string {
+export function nativeModuleDeclaration(methods: LanguageWriter, nativeBridgePath: string, useEmpty: boolean, language: Language, nativeMethods?: LanguageWriter): string {
     return `
   ${language == Language.TS ? importTsInteropTypes : ""}
 
 ${readLangTemplate("NativeModule_template", language)
     .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
     .replace("%USE_EMPTY%", useEmpty.toString())
-    .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))}
+    .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))
+    .replaceAll("%GENERATED_NATIVE_FUNCTIONS%", nativeMethods ? nativeMethods.getOutput().join('\n') : "")}
 `
 }
 
@@ -252,6 +253,7 @@ export function makeCJSerializer(library: PeerLibrary): LanguageWriter {
     let result = createLanguageWriter(library.declarationTable.language)
     result.print(`package idlize\n`)
     writeSerializer(library, result)
+    result.print('public func createSerializer(): Serializer { return Serializer() }')
     return result
 }
 

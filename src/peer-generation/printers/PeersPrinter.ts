@@ -304,24 +304,11 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     }
 
     protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
-        // TODO: attributes
-        // const name = peer.originalClassName!
-        // const typeParam = componentToAttributesClass(peer.componentName)
-        // if (isRoot(name)) {
-        //     printer.print(`void applyAttributes(${typeParam} attributes) {}`)
-        //     return
-        // }
-
-        // printer.print(`void applyAttributes(${typeParam} attributes) {`)
-        // printer.pushIndent()
-        // printer.print(`super.applyAttributes(attributes)`)
-        // printer.popIndent()
-        // printer.print(`}`)
     }
 
     printFile(): void {
+        const printer = createLanguageWriter(this.library.declarationTable.language)
         this.file.peers.forEach(peer => {
-            let printer = createLanguageWriter(this.library.language)
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ''), printer)
 
@@ -332,14 +319,6 @@ class CJPeerFileVisitor extends PeerFileVisitor {
             this.printPackage(printer)
             this.printerContext.imports?.printImportsForTypes(allTypesInPeer, printer)
             this.printPeer(peer, printer)
-
-            // TODO: attributes
-            // printer = createLanguageWriter(this.library.declarationTable.language)
-            // const attributesName = componentToAttributesClass(peer.componentName)
-            // this.printers.set(new TargetFile(attributesName, ARKOALA_PACKAGE_PATH), printer)
-
-            // this.printPackage(printer)
-            // this.printAttributes(peer, printer)
         })
     }
 }
@@ -403,6 +382,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
 ) {
     const isTsLike = [Language.ARKTS, Language.TS].includes(printerContext.language)
     const isJava = printerContext.language == Language.JAVA
+    const isCJ = printerContext.language == Language.CJ
 
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod: Method
@@ -418,6 +398,15 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
         })
         peerMethod = new Method(
             `${method.method.name}${methodPostfix}`,
+            new NamedMethodSignature(returnType, args, signature.argsNames),
+            method.method.modifiers, method.method.generics)
+    }
+    else if (isCJ) {
+        const args = (method as PeerMethod).declarationTargets.map((declarationTarget, index) => {
+            return printerContext.synthesizedTypes!.getTargetType(declarationTarget, signature.args[index].nullable)
+        })
+        peerMethod = new Method(
+            `${method.overloadedName}${methodPostfix}`,
             new NamedMethodSignature(returnType, args, signature.argsNames),
             method.method.modifiers, method.method.generics)
     }
@@ -471,12 +460,18 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
             }
         })
         let call = writer.makeNativeCall(
+            // here we write methods
             `_${method.originalParentName}_${method.overloadedName}`,
             params)
-        if (returnType != Type.Void) {
-            writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
+        
+        if (writer.language != Language.CJ) {
+            if (returnType != Type.Void) {
+                writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
+            } else {
+                writer.writeStatement(writer.makeStatement(call))
+            }
         } else {
-            writer.writeStatement(writer.makeStatement(call))
+            writer.print('NativeModule.TestPerfNumber(1337)')
         }
         scopes.reverse().forEach(it => {
             writer.popIndent()

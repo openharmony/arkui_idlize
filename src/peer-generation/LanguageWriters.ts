@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter } from "../IndentedPrinter";
-import { Language, stringOrNone } from "../util";
+import { isDefined, Language, stringOrNone } from "../util";
 import {
     AggregateConvertor,
     ArgConvertor,
@@ -816,6 +816,7 @@ export abstract class LanguageWriter {
     abstract enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression
 
+
     concat(other: PrinterLike): this {
         other.getOutput().forEach(it => this.print(it))
         return this
@@ -841,6 +842,12 @@ export abstract class LanguageWriter {
     writeStatement(stmt: LanguageStatement) {
         //this.printer.print(stmt.asString())
         stmt.write(this)
+    }
+    writeEnumToInt(convertor: EnumConvertor, enumName: string, unsafe?: boolean): string {
+        if (unsafe) {
+            return this.makeUnsafeCast(convertor, enumName)
+        }
+        return enumName
     }
     makeTag(tag: string): string {
         return "Tag." + tag
@@ -948,8 +955,11 @@ export abstract class LanguageWriter {
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }
-    writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
+    writeNativeMethodDeclaration(name: string, signature: MethodSignature, isNative?: boolean): void {
         this.writeMethodDeclaration(name, signature)
+    }
+    writeUnsafeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
+        return
     }
     pushIndent() {
         this.printer.pushIndent()
@@ -1491,6 +1501,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeSerializerCreator() {
         return this.makeString('Serializer::createSerializer');
     }
+    writeEnumToInt(convertor: EnumConvertor, enumName: string): string {
+        return `${enumName}.getIntValue()`
+    }
 }
 
 export class CJLanguageWriter extends LanguageWriter {
@@ -1498,9 +1511,13 @@ export class CJLanguageWriter extends LanguageWriter {
         super(printer, language)
     }
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
-        let extendsClause = superClass ? ` <: ${superClass}` : ''
-        let implementsClause = interfaces ? `<: ${interfaces.join("&")}` : ''
-        this.printer.print(`public open class ${name}${extendsClause}${implementsClause} {`)
+        let extendsClause = superClass ? `${superClass}` : undefined
+        let implementsClause = interfaces ? `${interfaces.join(' & ')}` : undefined
+        let inheritancePart = [extendsClause, implementsClause]
+            .filter(isDefined)
+            .join(' & ')
+        inheritancePart = inheritancePart.length != 0 ? ' <: '.concat(inheritancePart) : '' 
+        this.printer.print(`public open class ${name}${inheritancePart} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -1515,6 +1532,8 @@ export class CJLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
+        receiver = this.languageKeywordProtection(receiver)
+        params = params.map(argName => this.languageKeywordProtection(argName))
         if (nullable) {
             this.printer.print(`if (let Some(${receiver}) <- ${receiver}) { ${receiver}.${method}(${params.join(", ")}) }`)
         } else {
@@ -1526,7 +1545,9 @@ export class CJLanguageWriter extends LanguageWriter {
         let prefix = this.makeFieldModifiersList(modifiers)
         this.printer.print(`${prefix} var ${name}: ${optional ? '?' : ''}${this.mapType(type)}${init}`)
     }
-    writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void { }
+    writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
+        this.writeDeclaration(name, signature, modifiers)
+    }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
         this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${it.nullable ? '?' : ''}${this.mapType(it)}`).join(", ")}) {`)
         this.pushIndent()
@@ -1551,6 +1572,16 @@ export class CJLanguageWriter extends LanguageWriter {
         prefix = prefix ? prefix + " " : ""
         this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${it.nullable ? '?' : ''}${this.mapType(it)}`).join(", ")}): ${this.mapType(signature.returnType)}${postfix ?? ""}`)
     }
+    nativeReceiver(): string { return 'NativeModule' }
+    writeNativeFunctionCall(printer: LanguageWriter, name: string, signature: MethodSignature) {
+        printer.print(`return unsafe { ${name}(${signature.args.map((it, index) => `${signature.argName(index)}`).join(", ")}) }`)
+    }
+    writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
+        this.print(`func ${name}(${signature.args.map((it, index) => `${this.languageKeywordProtection(signature.argName(index))}: ${it.nullable ? '?' : ''}${this.mapCType(it)}`).join(", ")}): ${this.mapCType(signature.returnType)}`)
+    }
+    writeEnumToInt(convertor: EnumConvertor, enumName: string): string {
+        return `${enumName}.getIntValue()`
+    }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
@@ -1558,6 +1589,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString(`${array}.size`)
     }
     makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName: string): LanguageExpression {
+        varName = this.languageKeywordProtection(varName)
         return this.makeString(`let Some(${varName}) <- ${varName}`)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
@@ -1644,6 +1676,15 @@ export class CJLanguageWriter extends LanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]
     }
+    makeUnionSelector(value: string, valueType: string): LanguageStatement {
+        return this.makeAssign(valueType, undefined, this.makeMethodCall(value, "getSelector", []), false)
+    }
+    makeUnionVariantCondition(value: string, type: string, index: number): LanguageExpression {
+        return this.makeString(`${value} == ${index}`)
+    }
+    makeUnionVariantCast(value: string, type: Type, convertor: ArgConvertor, index: number) {
+        return this.makeMethodCall(value, `getValue${index}`, [])
+    }
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
@@ -1672,6 +1713,23 @@ export class CJLanguageWriter extends LanguageWriter {
             case 'Length': return 'String'
             case 'void': return 'Unit'
             case 'double': return 'Float64'
+            case 'Uint8Array': return 'ArrayList<Int8>'
+        }
+        return super.mapType(type)
+    }
+    mapCType(type: Type): string {
+        switch (type.name) {
+            case 'KPointer': return 'Int64'
+            case 'int32': case 'KInt': return 'Int32'
+            case 'KStringPtr': return 'CString'
+            case 'string': return 'CString'
+            case 'String': return 'CString'
+            case 'number': return 'Float64'
+            case 'boolean': return 'Bool'
+            case 'Length': return 'CString'
+            case 'void': return 'Unit'
+            case 'double': return 'Float64'
+            case 'Uint8Array': return 'CPointer<Int8>'
         }
         return super.mapType(type)
     }

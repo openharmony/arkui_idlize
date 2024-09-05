@@ -29,10 +29,11 @@ foreign {
     func _InsertChildAfter(ptr: Int64, node: Int64, sibling: Int64): Int32
     func _InsertChildBefore(ptr: Int64, node: Int64, sibling: Int64): Int32
     func _InsertChildAt(ptr: Int64, node: Int64, position: Int32): Int32
-    // func _MeasureNode(ptr: Int64, data: ArrayList<Float32>): Int32
-    // func _LayoutNode(ptr: Int64, data: ArrayList<Float32>): Int32
-    // func _DrawNode(ptr: Int64, data: ArrayList<Float32>): Int32
+    func _MeasureNode(ptr: Int64, data: CPointer<Float32>): Int32
+    func _LayoutNode(ptr: Int64, data: CPointer<Float32>): Int32
+    func _DrawNode(ptr: Int64, data: CPointer<Float32>): Int32
     func _MeasureLayoutAndDraw(ptr: Int64): Unit
+%GENERATED_NATIVE_FUNCTIONS%
 }
 
 public open class NativeModule {
@@ -42,6 +43,8 @@ public open class NativeModule {
     public static func hello(): String {
         return "hello"
     }
+
+%GENERATED_METHODS%
 
     // Node API
     public static func _CreateNode(type_: Int32, id: Int32, flags: Int32): Int64 {

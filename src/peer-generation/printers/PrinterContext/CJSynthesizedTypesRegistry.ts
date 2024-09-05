@@ -42,8 +42,8 @@ class CJType {
     // string representation contains only letters, numbers and underscores (e.g. Array_String)
     readonly alias: string
 
-    static fromTypeName(typeName: string): CJType {
-        return new CJType(new Type(typeName), typeName)
+    static fromTypeName(typeName: string, optional?: boolean): CJType {
+        return new CJType(new Type(typeName, optional), typeName)
     }
 
     constructor(type: Type, alias: string) {
@@ -53,7 +53,7 @@ class CJType {
 }
 
 export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
-    // maps type name in Java (e.g. `Union_double_String`) to its definition (LanguageWriter containing `package X; class Union_double_String {...}`)
+    // maps type name in CJ (e.g. `Union_double_String`) to its definition (LanguageWriter containing `package X; class Union_double_String {...}`)
     private readonly types = new Map<Type, LanguageWriter>()
     
     constructor(private readonly table: DeclarationTable, private readonly imports: ImportTable) {}
@@ -186,13 +186,13 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         ['char', 'Character'],
     ])
 
-    private primitiveToCJType(primitiveType: PrimitiveType, needReferenceType?: boolean): CJType {
+    private primitiveToCJType(primitiveType: PrimitiveType, needReferenceType?: boolean, optional?: boolean): CJType {
         if (this.primitiveToCJMap.has(primitiveType)) {
             let CJTypeName = this.primitiveToCJMap.get(primitiveType)!
             if (needReferenceType && this.primitiveToReferenceTypeMap.has(CJTypeName)) {
                 CJTypeName = this.primitiveToReferenceTypeMap.get(CJTypeName)!
             }
-            return CJType.fromTypeName(CJTypeName)
+            return CJType.fromTypeName(CJTypeName, optional)
         }
         throw unsupportedType(`primitive type ${primitiveType.getText()}`)
     }
@@ -216,7 +216,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 // for now, the only explicit optionals in Java are Opt_Boolean and Opt_Number
                 return this.optionalPrimitiveToCJType(target)
             }
-            return this.primitiveToCJType(target, needReferenceType)
+            return this.primitiveToCJType(target, needReferenceType, optional)
         }
         if (ts.isTypeLiteralNode(target)) {
             throw unsupportedType(`TypeLiteralNode`)
@@ -262,19 +262,19 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         }
         if (ts.isEnumDeclaration(target)) {
             const enumName = this.enumName(target.name)
-            return CJType.fromTypeName(enumName)
+            return CJType.fromTypeName(enumName, optional)
         }
         if (ts.isUnionTypeNode(target)) {
             const memberTypes = target.types.map(it => this.computeCJType(this.toTarget(it), false))
             const unionName = `Union_${memberTypes.map(it => it.alias, false).join('_')}`
-            return CJType.fromTypeName(unionName)
+            return CJType.fromTypeName(unionName, optional)
         }
         if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
             let name = identName(target.name)
             if (name == 'Function')
                 throw unsupportedType(`InterfaceDeclaration/ClassDeclaration:Function`)
                 //return PrimitiveType.Function.getText()
-            return CJType.fromTypeName(name ?? '')
+            return CJType.fromTypeName(name ?? '', optional)
         }
         if (ts.isFunctionTypeNode(target)) {
             throw unsupportedType(`FunctionTypeNode`)
@@ -289,7 +289,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 }
             })
             const tupleName = `Tuple_${elementTypes.map(it => it.alias, false).join('_')}`
-            return CJType.fromTypeName(tupleName)
+            return CJType.fromTypeName(tupleName, optional)
         }
         if (ts.isArrayTypeNode(target)) {
             const arrayElementType = this.computeCJType(this.toTarget(target.elementType), false)
@@ -373,7 +373,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 writer.writeMethodImplementation(
                     new Method(`getValue${index}`, new MethodSignature(memberInfo.type, []), [MethodModifier.PUBLIC]),
                     () => {
-                        writer.print(`if (let Some(${memberInfo.name}) <- ${memberInfo.name}) {`)
+                        writer.print(`if (let Some(${writer.languageKeywordProtection(memberInfo.name)}) <- ${writer.languageKeywordProtection(memberInfo.name)}) {`)
                         writer.pushIndent()
                         writer.writeStatement(
                             writer.makeReturn(
@@ -451,6 +451,6 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                     writer.makeReturn(writer.makeString(value))
                 )
             })
-        }, ARK_OBJECTBASE)
+        }, undefined, [ARK_OBJECTBASE, INT_VALUE_GETTER])
     }
 }
