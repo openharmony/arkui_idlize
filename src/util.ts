@@ -459,10 +459,29 @@ export function snakeCaseToCamelCase(input: string): string {
         .join("")
 }
 
-export function camelCaseToUpperSnakeCase(input: string): string {
-    return input.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
-        .replace(/^_+/g, "")
-        .toUpperCase();
+export function camelCaseToUpperSnakeCase(input: string) {
+
+    function isDigit(s: string): boolean {
+        return s >= '0' && s <= '9'
+    }
+
+    function boundaryFromLowerToUpperCase(s1: string, s2: string): string {
+        return s2 !== undefined
+            && (s1 === s1.toLowerCase() && !isDigit(s1))
+            && (s2 === s2.toUpperCase() || isDigit(s2))
+            ? '_' : ''
+    }
+
+    function toUpperSnakeCase(s: string): string {
+        return Array.from(s)
+            .map((c, i) => `${c.toUpperCase()}${boundaryFromLowerToUpperCase(c, s[i + 1])}`)
+            .join('')
+    }
+
+    return input.split('_')
+        .filter(s => s !== "")
+        .map(s => toUpperSnakeCase(s))
+        .join('_')
 }
 
 export function renameDtsToPeer(fileName: string, language: Language, withFileExtension: boolean = true) {
