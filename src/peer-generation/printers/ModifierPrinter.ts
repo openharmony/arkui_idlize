@@ -381,7 +381,7 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
         this.onFileEnd()
     }
 
-    emitRealSync(libace: LibaceInstall, options: ModifierFileOptions): void {
+    emitRealSync(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
         const modifierList = createLanguageWriter(Language.CPP)
         const accessorList = createLanguageWriter(Language.CPP)
         const getterDeclarations = createLanguageWriter(Language.CPP)
@@ -400,7 +400,7 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
             .concat(accessorStructList(accessorList))
 
         printModifiersCommonImplFile(commonFilePath, commonFileContent, options)
-        printApiImplFile(libace.viewModelBridge, options)
+        printApiImplFile(library, libace.viewModelBridge, options)
     }
 }
 
@@ -442,7 +442,7 @@ export interface ModifierFileOptions {
 export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions) {
     const visitor = new MultiFileModifiersVisitor(library)
     visitor.printRealAndDummyModifiers()
-    visitor.emitRealSync(libace, options)
+    visitor.emitRealSync(library, libace, options)
 }
 
 function printModifiersImplFile(filePath: string, slug: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
@@ -504,7 +504,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.printTo(filePath)
 }
 
-function printApiImplFile(filePath: string, options: ModifierFileOptions) {
+function printApiImplFile(library: PeerLibrary, filePath: string, options: ModifierFileOptions) {
     const writer = new CppLanguageWriter(new IndentedPrinter())
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
@@ -519,7 +519,7 @@ function printApiImplFile(filePath: string, options: ModifierFileOptions) {
     if (options.namespaces) {
         writer.pushNamespace(options.namespaces.base, false)
     }
-    writer.concat(appendViewModelBridge())
+    writer.concat(appendViewModelBridge(library))
 
     if (options.namespaces) {
         writer.popNamespace(false)

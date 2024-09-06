@@ -16,7 +16,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PrimitiveType } from "./DeclarationTable"
-import { Language, lastCommitInfo } from "../util"
+import { Language, camelCaseToUpperSnakeCase, lastCommitInfo } from "../util"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { PeerEventKind } from "./printers/EventsPrinter"
@@ -140,10 +140,21 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
     return result
 }
 
-export function appendViewModelBridge(): LanguageWriter {
+export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let body = readTemplate('view_model_bridge.cc')
 
+    let createNodeSwitch: string[] = []
+
+    const space = "            "
+    for(const file of library.files) {
+        for(const peer of file.peers.values()) {
+            const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(peer.componentName)}`
+            createNodeSwitch.push(`${space}case ${name}: return ViewModel::create${peer.componentName}Node(id);`)
+        }
+    }
+
+    body = body.replaceAll("%CREATE_NODE_SWITCH%", createNodeSwitch.join("\n"))
     body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
 
     result.writeLines(body)
