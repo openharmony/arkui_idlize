@@ -69,39 +69,40 @@
 |`selectable`|Function|iwx498619 Ilya Erokhin| done |
 |`selected`|Function|iwx498619 Ilya Erokhin| done |
 |`onSelect`|Function|iwx498619 Ilya Erokhin| done |
-|*List*|*Component*|Morozov Sergey mWX997882| in progress |
-|`setListOptions`|Function|Morozov Sergey mWX997882| done |
-|`lanes`|Function|Morozov Sergey mWX997882| done |
-|`alignListItem`|Function|Morozov Sergey mWX997882| done |
-|`listDirection`|Function|Morozov Sergey mWX997882| done |
-|`scrollBar`|Function|Morozov Sergey mWX997882| done |
-|`edgeEffect`|Function|Morozov Sergey mWX997882| done |
-|`fadingEdge`|Function|Morozov Sergey mWX997882| in progress |
-|`contentStartOffset`|Function|Morozov Sergey mWX997882| done |
-|`contentEndOffset`|Function|Morozov Sergey mWX997882| done |
-|`divider`|Function|Morozov Sergey mWX997882| done |
-|`editMode`|Function|Morozov Sergey mWX997882| done |
-|`multiSelectable`|Function|Morozov Sergey mWX997882| done |
-|`cachedCount`|Function|Morozov Sergey mWX997882| done |
-|`chainAnimation`|Function|Morozov Sergey mWX997882| done |
-|`chainAnimationOptions`|Function|Morozov Sergey mWX997882| in progress |
-|`sticky`|Function|Morozov Sergey mWX997882| done |
-|`scrollSnapAlign`|Function|Morozov Sergey mWX997882| done |
-|`nestedScroll`|Function|Morozov Sergey mWX997882| done |
-|`enableScrollInteraction`|Function|Morozov Sergey mWX997882| done |
-|`friction`|Function|Morozov Sergey mWX997882| done |
-|`childrenMainSize`|Function|Morozov Sergey mWX997882| blocked |
+|*List*|*Component*|mWX997882 Morozov Sergey| in progress |
+|`setListOptions`|Function|mWX997882 Morozov Sergey| done |
+|`lanes`|Function|mWX997882 Morozov Sergey| done |
+|`alignListItem`|Function|mWX997882 Morozov Sergey| done |
+|`listDirection`|Function|mWX997882 Morozov Sergey| done |
+|`scrollBar`|Function|mWX997882 Morozov Sergey| done |
+|`edgeEffect`|Function|mWX997882 Morozov Sergey| done |
+|`fadingEdge`|Function|mWX997882 Morozov Sergey| in progress |
+|`contentStartOffset`|Function|mWX997882 Morozov Sergey| done |
+|`contentEndOffset`|Function|mWX997882 Morozov Sergey| done |
+|`divider`|Function|mWX997882 Morozov Sergey| done |
+|`editMode`|Function|mWX997882 Morozov Sergey| done |
+|`multiSelectable`|Function|mWX997882 Morozov Sergey| done |
+|`cachedCount`|Function|mWX997882 Morozov Sergey| done |
+|`chainAnimation`|Function|mWX997882 Morozov Sergey| done |
+|`chainAnimationOptions`|Function|mWX997882 Morozov Sergey| in progress |
+|`sticky`|Function|mWX997882 Morozov Sergey| done |
+|`scrollSnapAlign`|Function|mWX997882 Morozov Sergey| done |
+|`nestedScroll`|Function|mWX997882 Morozov Sergey| done |
+|`enableScrollInteraction`|Function|mWX997882 Morozov Sergey| done |
+|`friction`|Function|mWX997882 Morozov Sergey| done |
+|`childrenMainSize`|Function|mWX997882 Morozov Sergey| blocked |
+|*ListItem*| *Component* |mWX997882 Morozov Sergey| in progress |
+|*ListItemGroup*| *Component* |mWX997882 Morozov Sergey| in progress |
 |*LoadingProgress*|*Component*| wx480555 Samarin Sergey | in progress |
 |`setLoadingProgressOptions`|Function| wx480555 Samarin Sergey | done |
 |`color`|Function| wx480555 Samarin Sergey | done |
 |`enableLoading`|Function| wx480555 Samarin Sergey | done |
 |`contentModifier`|Function| | blocked |
-|*Menu*|*Component*|wx997882 Sergey| blocked |
-|`fontSize`|Function|| done |
-|`fontColor`|Function|| done |
-|`radius`|Function|| done |
-|`subMenuExpandingMode`|Function|| done |
-|`subMenuExpandingMode`| Function | mWX997882 Morozov Sergey | done |
+|*Menu*|*Component*|mWX997882 Morozov Sergey| blocked |
+|`fontSize`|Function|mWX997882 Morozov Sergey| done |
+|`fontColor`|Function|mWX997882 Morozov Sergey| done |
+|`radius`|Function|mWX997882 Morozov Sergey| done |
+|`subMenuExpandingMode`|Function|mWX997882 Morozov Sergey| done |
 |*Select*| *Component* | wx480555 Samarin Sergey | in progress |
 |`fontColor`| Function | wx480555 Samarin Sergey | done |
 |`selectedOptionBgColor`| Function | wx480555 Samarin Sergey | done |
@@ -121,7 +122,7 @@
 |`radiusHeight`|Function|dwx480579 Sergey| done |
 |`radius`|Function|dwx480579 Sergey| done |
 | Scroll | *Component* | bwx1356458 Kirill Berezin | in progress |
-|*Search*|*Component*|ewx1298574 Roman| in progress |
+|*Search*|*Component*|wx1298574 Evstigneev Roman| in progress |
 |`setSearchOptions`|Function|| In progress / Test disabled|
 |`searchButton`|Function|| Done , Test disabled|
 |`fontColor`|Function|| done |
