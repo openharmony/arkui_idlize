@@ -1337,10 +1337,11 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     constructor(printer: IndentedPrinter) {
         super(printer, Language.JAVA)
     }
-    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
+    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
+        let genericsClause = generics?.length ? `<${generics.join(', ')}> ` : ``
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        this.printer.print(`class ${name}${extendsClause}${implementsClause} {`)
+        this.printer.print(`class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()

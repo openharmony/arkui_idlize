@@ -14,7 +14,7 @@
  */
 
 import * as ts from "typescript"
-import { heritageDeclarations, identName, isReadonly, isStatic } from "../util"
+import { heritageDeclarations, identName, isReadonly, isStatic, Language } from "../util"
 import { Field, FieldModifier, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable"
@@ -89,6 +89,7 @@ export class BuilderMethod {
 export class BuilderClass {
     constructor(
         public readonly name: string,
+        public readonly generics: string[] | undefined,
         public readonly isInterface: boolean,
         public readonly superClass: SuperElement | undefined,
         public readonly fields: BuilderField[],
@@ -104,7 +105,7 @@ const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set()
 
 export function initCustomBuilderClasses() {
     CUSTOM_BUILDER_CLASSES.push(
-        new BuilderClass("Indicator", false, undefined,
+        new BuilderClass("Indicator", ["T"], false, undefined,
             [], // fields
             [new BuilderMethod(new Method("constructor", new MethodSignature(Type.Void, [])), [])],
             [
@@ -155,8 +156,10 @@ export function toBuilderClass(declarationTable: DeclarationTable,
             .map(method => toBuilderMethod(declarationTable, method, typeNodeConvertor))
         : [toBuilderMethod(declarationTable, undefined, typeNodeConvertor)]
 
+    const generics = target.typeParameters?.map(it => it.name.text)
+
     const methods = getBuilderMethods(declarationTable, target, peerLibrary.declarationTable.typeChecker!, typeNodeConvertor, name)
-    return new BuilderClass(name, isInterface, superClass, fields, constructors, methods, importFeatures, needBeGenerated)
+    return new BuilderClass(name, generics, isInterface, superClass, fields, constructors, methods, importFeatures, needBeGenerated)
 }
 
 function getBuilderMethods(declarationTable: DeclarationTable,
@@ -165,11 +168,10 @@ function getBuilderMethods(declarationTable: DeclarationTable,
                            typeNodeNameConvertor: TypeNodeNameConvertor,
                            childName: string): BuilderMethod[] {
 
-    const className = identName(target.name)!
     const heritageMethods = target.heritageClauses
         ?.flatMap(it => heritageDeclarations(typeChecker, it))
         .flatMap(it => (ts.isClassDeclaration(it) || ts.isInterfaceDeclaration(it))
-            ? getBuilderMethods(declarationTable, it, typeChecker, typeNodeNameConvertor, className)
+            ? getBuilderMethods(declarationTable, it, typeChecker, typeNodeNameConvertor, 'this')
             : [])
         ?? []
 

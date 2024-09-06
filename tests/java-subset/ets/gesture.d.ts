@@ -63,6 +63,10 @@ declare enum GestureJudgeResult {
   REJECT = 1,
 }
 
+class EventTargetInfo {
+  getId(): string;
+}
+
 declare class GestureRecognizer {
 
   getTag(): string;

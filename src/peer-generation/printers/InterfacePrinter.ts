@@ -466,7 +466,7 @@ export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
                 node.members.forEach(method => {
                     if (ts.isMethodSignature(method)) {
                         writer.writeMethodDeclaration(generateMethodName(method),
-                            generateSignature(method, createTypeNodeConvertor(this.peerLibrary)),
+                            generateSignature(method, createTypeNodeConvertor(this.peerLibrary), false),
                             generateMethodModifiers(method))
                     }
                 })

@@ -144,7 +144,7 @@ export class SuperElement {
     ) { }
 
     getSyperType(): string {
-        return `${this.name}${this.generics ? `<${this.generics.join(", ")}>` : ``}`
+        return `${this.name}${this.generics?.length ? `<${this.generics.join(", ")}>` : ``}`
     }
 }
 
