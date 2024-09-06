@@ -30,7 +30,7 @@ export class NativePeerNode extends Finalizable {
     insertChildAfter(node: NativePeerNode, sibling: NativePeerNode | undefined) {
         NativeModule._InsertChildAfter(this.ptr, node.ptr, sibling == undefined ? 0 : sibling.ptr);
     }
-    insertChildAt(node: NativePeerNode, position: int) {
+    insertChildAt(node: NativePeerNode, position: int32) {
         NativeModule._InsertChildAt(this.ptr, node.ptr, position);
     }
 

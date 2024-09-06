@@ -775,6 +775,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         'sig/arkoala-arkts/arkui/src/CallbackRegistry.sts',
         'sig/arkoala-arkts/arkui/src/ComponentBase.sts',
         'sig/arkoala-arkts/arkui/src/PeerNode.sts',
+        'sig/arkoala-arkts/arkui/src/NativePeerNode.sts',
         'sig/arkoala-arkts/arkui/src/peers/SerializerBase.sts',
         'sig/arkoala-arkts/arkui/src/shared/ArkResource.sts',
         'sig/arkoala-arkts/arkui/src/shared/dts-exports.sts',

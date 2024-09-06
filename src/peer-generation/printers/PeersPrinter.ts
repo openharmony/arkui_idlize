@@ -101,7 +101,8 @@ class PeerFileVisitor {
             imports.addFeature('GestureName', './shared/generated-utils')
             imports.addFeature('GestureComponent', './shared/generated-utils')
         }
-        imports.addFeature("unsafeCast", "./shared/generated-utils")
+        if (printer.language == Language.TS)
+            imports.addFeature("unsafeCast", "./shared/generated-utils")
         imports.addFeature("registerCallback", "./peers/SerializerBase")
         imports.addFeature("wrapCallback", "@koalaui/interop")
         if (this.library.language !== Language.ARKTS) {
@@ -208,7 +209,7 @@ class PeerFileVisitor {
     protected getDefaultPeerImports(lang: Language) {
         const defaultPeerImports =  [
             `import { int32 } from "@koalaui/common"`,
-            `import { nullptr, KPointer } from "@koalaui/interop"`,
+            `import { nullptr, KPointer, KInt } from "@koalaui/interop"`,
             `import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
             `import { createSerializer, Serializer } from "./Serializer"`,
             `import { ArkUINodeType } from "./ArkUINodeType"`,

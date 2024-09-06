@@ -13,8 +13,11 @@
  * limitations under the License.
  */
 
+import { int32 } from "@koalaui/compat"
+import { KUint8ArrayPtr } from "@koalaui/interop"
+
 // todo: do we need an Uint8Array version?
-export type CallbackType = (args: byte[], length: int) => int
+export type CallbackType = (args: KUint8ArrayPtr, length: int32) => int32
 
 class CallbackRecord {
     public callback: CallbackType
@@ -30,25 +33,25 @@ class CallbackRegistry {
 
     static INSTANCE = new CallbackRegistry()
 
-    private callbacks = new Map<int, CallbackRecord>()
+    private callbacks = new Map<int32, CallbackRecord>()
     private id = 1
 
     constructor() {
         this.callbacks.set(0, new CallbackRecord(
-            (args: byte[], length: int): int => {
+            (args: KUint8ArrayPtr, length: int32): int32 => {
                 console.log(`Callback 0 called with args = ${args} and length = ${length}`)
                 throw new Error(`Null callback called`)
             }, false)
         )
     }
 
-    wrap(callback: CallbackType, autoDisposable: boolean): int {
+    wrap(callback: CallbackType, autoDisposable: boolean): int32 {
         const id = this.id++
         this.callbacks.set(id, new CallbackRecord(callback, autoDisposable))
         return id
     }
 
-    call(id: int, args: byte[], length: int): int {
+    call(id: int32, args: KUint8ArrayPtr, length: int32): int32 {
         if (!this.callbacks.has(id)) {
             console.log(`Callback ${id} is not known`)
             throw new Error(`Disposed or unwrapped callback called (id = ${id})`)
@@ -60,19 +63,19 @@ class CallbackRegistry {
         return record.callback(args, length)
     }
 
-    dispose(id: int) {
+    dispose(id: int32) {
         this.callbacks.delete(id)
     }
 }
 
-export function wrapCallback(callback: CallbackType, autoDisposable: boolean = true): int {
+export function wrapCallback(callback: CallbackType, autoDisposable: boolean = true): int32 {
     return CallbackRegistry.INSTANCE.wrap(callback, autoDisposable)
 }
 
-export function disposeCallback(id: int) {
+export function disposeCallback(id: int32) {
     CallbackRegistry.INSTANCE.dispose(id)
 }
 
-export function callCallback(id: int, args: byte[], length: int): int {
+export function callCallback(id: int32, args: KUint8ArrayPtr, length: int32): int32 {
     return CallbackRegistry.INSTANCE.call(id, args, length)
 }

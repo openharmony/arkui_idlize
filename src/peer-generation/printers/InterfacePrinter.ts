@@ -146,6 +146,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
     private printImports(writer: LanguageWriter, file: PeerFile) {
         const imports = new ImportsCollector()
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+        imports.addFeature("KInt", "@koalaui/interop")
         imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
     }
 
@@ -523,6 +524,7 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
     private printImports(writer: LanguageWriter, file: PeerFile) {
         const imports = new ImportsCollector()
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+        imports.addFeature("KInt", "@koalaui/interop")
         imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
     }
 

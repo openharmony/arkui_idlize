@@ -684,11 +684,11 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                 writer.writeFieldDeclaration(member.name, new Type(this.enumEntity.name), [FieldModifier.STATIC], false,
                     writer.makeString(`new ${this.enumEntity.name}(${initText}${isTypeString ? `,${index}` : ""})`))
             })
-            const typeName = isTypeString ? "string" : "int"
+            const typeName = isTypeString ? "string" : "KInt"
             let argTypes = [new Type(typeName)]
             let argNames = ["value"]
             if (isTypeString) {
-                argTypes.push(new Type("int"))
+                argTypes.push(new Type("KInt"))
                 argNames.push("ordinal")
             }
             writer.writeConstructorImplementation(this.enumEntity.name,
@@ -700,7 +700,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
             })
             writer.writeFieldDeclaration("value", new Type(typeName), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             if (isTypeString) {
-                writer.writeFieldDeclaration("ordinal", new Type("int"), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
+                writer.writeFieldDeclaration("ordinal", new Type("KInt"), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             }
             writer.writeMethodImplementation(new Method("of", new MethodSignature(new Type(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {
@@ -1223,7 +1223,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     mapType(type: Type, convertor?: ArgConvertor): string {
         if (convertor instanceof EnumConvertor) {
-            return 'int'
+            return 'KInt'
         }
         if (convertor instanceof AggregateConvertor && convertor.aliasName !== undefined) {
             return convertor.aliasName
@@ -1234,12 +1234,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 : `Array<${convertor.elementTypeName()}>`
         }
         switch (type.name) {
-            case 'KPointer': return 'long'
-            case 'Uint8Array': return 'byte[]'
-            case 'int32': case 'KInt': return 'int'
-            case 'KStringPtr': return 'String'
-            case 'KLength': return 'Object'
-            case 'number': return 'double'
+            case 'Uint8Array': return 'KUint8ArrayPtr'
         }
         return super.mapType(type)
     }
@@ -1265,7 +1260,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`${value} as ${type.name}`)
     }
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
-        return this.makeCast(value, new Type('int'));
+        return this.makeCast(value, new Type('int32'));
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => Type}, value: string, accessors: string[]): LanguageExpression {
         if (convertor instanceof CustomTypeConvertor) {

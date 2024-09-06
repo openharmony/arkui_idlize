@@ -24,6 +24,7 @@ import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
 import { PeerLibrary } from "./PeerLibrary"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
+import { ImportsCollector } from "./ImportsCollector"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -237,11 +238,14 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
 
 export function makeTSSerializer(library: PeerLibrary): string {
     let printer = createLanguageWriter(library.declarationTable.language)
+    const imports = new ImportsCollector()
+    imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isPixelMap", "isResource", "isInstanceOf"], "./SerializerBase")
+    imports.addFeatures(["int32"], "@koalaui/common")
+    if (printer.language == Language.TS)
+        imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
+    imports.print(printer, '')
     writeSerializer(library, printer)
     return `${cStyleCopyright}
-import { SerializerBase, Tags, RuntimeType, runtimeType, isPixelMap, isResource, isInstanceOf } from "./SerializerBase"
-import { int32 } from "@koalaui/common"
-import { unsafeCast } from "../shared/generated-utils"
 
 ${printer.getOutput().join("\n")}
 

@@ -10,6 +10,7 @@ export class PeerNode extends IncrementalNode {
     private static currentId: int32 = 1000
 
     constructor(type: ArkUINodeType, component: Object|undefined, flags: int32) {
+        super()
         this.peer = NativePeerNode.create(type, this.id, flags)
     }
     applyAttributes(attrs: Object) {}

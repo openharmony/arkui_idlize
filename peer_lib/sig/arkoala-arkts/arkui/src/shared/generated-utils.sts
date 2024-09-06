@@ -2,13 +2,6 @@
  * TODO: move to compat
  */
 
-/**
- * Only to workaround non-int enums
- */
-export function unsafeCast<T>(value: Object|undefined|string|null|(() => Object)| Void): T {
-    return value as T
-}
-
 export enum GestureName {
     Tap,
     LongPress,

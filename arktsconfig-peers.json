@@ -6,7 +6,7 @@
             "@arkoala/arkui": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src", "./"],
             "@arkoala/arkui/*": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/*", "./*"],
             "@koalaui/arkoala": ["./out/arkts-peers/generated/sig/arkoala-arkts/framework/src"],
-            "@koalaui/interop": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/interop"],
+            "@koalaui/interop": ["./external/interop/src/arkts"],
             "@koalaui/common": ["./external/incremental/common/src"],
             "@koalaui/compat": ["./external/incremental/compat/src/arkts"],
             "@koalaui/runtime": ["./external/incremental/runtime/src"]

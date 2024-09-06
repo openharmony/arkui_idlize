@@ -39,6 +39,11 @@ export class ImportsCollector {
         dependencies.add(feature)
     }
 
+    addFeatures(features: string[], module: string) {
+        for (const feature of features) 
+            this.addFeature(feature, module)
+    }
+
     print(printer: LanguageWriter, currentModule: string) {
         const currentModuleDir = path.dirname(currentModule)
         this.moduleToFeatures.forEach((features, module) => {
