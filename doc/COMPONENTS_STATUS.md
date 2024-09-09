@@ -25,6 +25,7 @@
 |`color`| Function | wx480581 Tuzhilkin Ivan| done |
 |`strokeWidth`| Function | wx480581 Tuzhilkin Ivan| done |
 |`lineCap`| Function | wx480581 Tuzhilkin Ivan| done |
+|*FormLink*| *Component* | dWX731080 Dmitry A Smirnov| In Progress |
 |*Line*|*Component*|dwx480579 Sergey| blocked |
 |`setLineOptions`|Function|dwx480579 Sergey| done |
 |`startPoint`|Function|dwx480579 Sergey| blocked |
