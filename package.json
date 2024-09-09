@@ -11,19 +11,22 @@
     "peer_lib/**/*",
     "templates/**/*"
   ],
+  "workspaces": [
+    "webidl2.js"
+  ],
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
     "@types/node": "^18.0.0",
-    "@types/webidl2": "^24.4.1",
     "commander": "^10.0.0",
     "comment-parser": "^1.4.1",
     "cross-env": "^7.0.3",
     "node-addon-api": "^8.0.0",
     "node-api-headers": "^1.1.0",
     "typescript": "^4.9.5",
-    "webidl2": "^24.4.1"
+    "webidl2": "file:webidl2.js",
+    "@types/webidl2": "file:webidl2.js/types"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -46,6 +49,7 @@
     "prepare": "cd external/incremental && npm i && cd ../interop && npm i && cd ../arkoala && npm i",
     "download:sdk": "node ./download-sdk.mjs",
     "upload": "npm run compile && node tools/publish.mjs",
+    "webidl2": "cd ./webidl2.js && npm i && npm run build",
     "setup-out": "node tools/setup/setup.mjs",
     "compile": "npm run download:sdk && rollup -c",
     "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out",
