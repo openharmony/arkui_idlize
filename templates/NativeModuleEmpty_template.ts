@@ -105,8 +105,8 @@ export class NativeModuleEmpty extends NativeModuleEmptyIntegrated implements Na
     _ShowCrash(messagePtr: KStringPtr): void {}
 
     _TestCallIntNoArgs(arg1: KInt): KInt { return -1 }
-    _TestCallIntInt32ArraySum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt { return -1 }
-    _TestCallVoidInt32ArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): void {}
+    _TestCallIntIntArraySum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt { return -1 }
+    _TestCallVoidIntArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): void {}
     _TestCallIntRecursiveCallback(arg1: KInt, arg2: Uint8Array, arg3: KInt): KInt { return -1 }
     _TestCallIntMemory(arg1: KInt, arg2: KInt): KInt { return -1 }
 

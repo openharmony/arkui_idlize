@@ -513,7 +513,7 @@ function checkNativeCallback() {
         return args32.reduce((acc, val) => acc + val, 0)
     })
     const arr2 = new Int32Array([100, 200, 300, -1000])
-    assertEquals("NativeCallback Int32Array sum", -400, nativeModule()._TestCallIntInt32ArraySum(id2, arr2, arr2.length))
+    assertEquals("NativeCallback Int32Array sum", -400, nativeModule()._TestCallIntIntArraySum(id2, arr2, arr2.length))
 
     const id3 = wrapCallback((args: Uint8Array, length: number): number => {
         const args32 = new Int32Array(args.buffer)
@@ -523,7 +523,7 @@ function checkNativeCallback() {
         return 0
     })
     const arr3 = new Int32Array([100, 200, 300, -1000])
-    nativeModule()._TestCallVoidInt32ArrayPrefixSum(id3, arr3, arr3.length)
+    nativeModule()._TestCallVoidIntArrayPrefixSum(id3, arr3, arr3.length)
     assertEquals("NativeCallback Int32Array PrefixSum [0]", 100, arr3[0])
     assertEquals("NativeCallback Int32Array PrefixSum [1]", 300, arr3[1])
     assertEquals("NativeCallback Int32Array PrefixSum [2]", 600, arr3[2])

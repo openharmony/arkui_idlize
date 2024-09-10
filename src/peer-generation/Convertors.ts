@@ -18,7 +18,6 @@ import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters"
 import { mapType, TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
-import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 
 function castToInt8(value: string, lang: Language): string {
     switch (lang) {
@@ -258,6 +257,8 @@ export class NullConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
+    public readonly enumTypeName = identName(this.enumType.name)!
+
     constructor(param: string,
                 private enumType: ts.EnumDeclaration,
                 public readonly isStringEnum: boolean) {
@@ -265,18 +266,15 @@ export class EnumConvertor extends BaseArgConvertor {
             [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
     }
-    enumTypeName(): string {
-        return identName(this.enumType.name)!
-    }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.writeEnumToInt(this, param)
+        return writer.makeCastEnumToInt(this, param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         if (this.isStringEnum) {
             value = printer.ordinalFromEnum(printer.makeString(value),
                 identName(this.enumType.name)!).asString()
         }
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [printer.writeEnumToInt(this, value)])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [printer.makeCastEnumToInt(this, value)])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         let readExpr = printer.makeMethodCall(`${param}Deserializer`, "readInt32", [])
@@ -296,6 +294,10 @@ export class EnumConvertor extends BaseArgConvertor {
     }
     // TODO: bit clumsy.
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        //TODO: move to LanguageWrites
+        if (writer.language == Language.ARKTS) {
+            return writer.makeString(`${value} instanceof ${this.enumTypeName}`)
+        }
         let low: number|undefined = undefined
         let high: number|undefined = undefined
         // TODO: proper enum value computation for cases where enum members have computed initializers.
@@ -455,7 +457,13 @@ export class UnionRuntimeTypeChecker {
             if (discriminator) return discriminator
         }
         return writer.makeNaryOp("||", convertor.runtimeTypes.map(it =>
-            writer.makeNaryOp("==", [writer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
+            writer.makeNaryOp("==", [
+                writer.makeUnionVariantCondition(
+                    convertor,
+                    value,
+                    `${value}_type`,
+                    RuntimeType[it],
+                    index)])))
     }
     reportConflicts(context: string) {
         if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
@@ -582,23 +590,28 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     private static knownTypes: Map<string, [string, boolean][]> = new Map([
         ["LinearGradient", [["angle", true], ["direction", true], ["colors", false], ["repeating", true]]]
     ])
-    public readonly customName: string
-    constructor(param: string, customName: string, tsType?: string) {
+    constructor(param: string,
+                public readonly customTypeName: string,
+                private readonly isGenericType: boolean,
+                tsType?: string) {
         super(tsType ?? "Object", [RuntimeType.OBJECT], false, true, param)
-        this.customName = customName
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, `writeCustomObject`, [`"${this.customName}"`, value])
+        printer.writeMethodCall(
+            `${param}Serializer`,
+            `writeCustomObject`,
+            [`"${this.customTypeName}"`, printer.makeCastCustomObject(value, this.isGenericType).asString()]
+        )
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const receiver = printer.getObjectAccessor(this, value)
         return printer.makeAssign(receiver, undefined,
                 printer.makeCast(printer.makeMethodCall(`${param}Deserializer`,
                         "readCustomObject",
-                        [printer.makeString(`"${this.customName}"`)]),
+                        [printer.makeString(`"${this.customTypeName}"`)]),
                     printer.makeType(this.tsTypeName, false, receiver)), false)
     }
     nativeType(impl: boolean): string {
@@ -611,10 +624,10 @@ export class CustomTypeConvertor extends BaseArgConvertor {
         return true
     }
     override getMembers(): string[] {
-        return CustomTypeConvertor.knownTypes.get(this.customName)?.map(it => it[0]) ?? super.getMembers()
+        return CustomTypeConvertor.knownTypes.get(this.customTypeName)?.map(it => it[0]) ?? super.getMembers()
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        const uniqueFields = CustomTypeConvertor.knownTypes.get(this.customName)?.filter(it => !duplicates.has(it[0]))
+        const uniqueFields = CustomTypeConvertor.knownTypes.get(this.customTypeName)?.filter(it => !duplicates.has(it[0]))
         return this.discriminatorFromFields(value, writer, uniqueFields, it => it[0], it => it[1])
     }
 }
@@ -691,7 +704,12 @@ export class AggregateConvertor extends BaseArgConvertor {
             .members
             .filter(ts.isPropertySignature)
             .map((member, index) => {
-                this.members[index] = [identName(member.name)!, member.questionToken != undefined]
+                let memberName = identName(member.name)!
+                if (table.language === Language.ARKTS ) {
+                    // 'template' is a keyword for C++
+                    memberName = memberName.replace("template", "template_")
+                }
+                this.members[index] = [memberName, member.questionToken != undefined]
                 return table.typeConvertor(param, member.type!, member.questionToken != undefined, typeNodeNameConvertor)
             })
     }
@@ -787,7 +805,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
         if (this.tsTypeName.endsWith("GestureInterface")) {
             const gestureType = this.tsTypeName.slice(0, -"GestureInterface".length)
             const castExpr = writer.makeCast(writer.makeString(value), new Type("GestureComponent<Object>"))
-            return writer.makeNaryOp("===", [
+            return writer.makeNaryOp(writer.language == Language.ARKTS ? "==" : "===", [
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
         }
@@ -877,7 +895,9 @@ abstract class CallbackConvertor extends FunctionConvertor {
 
         writer.writeStatement(
             writer.makeAssign(`${callbackName}`, undefined,
-                writer.makeLambda(new NamedMethodSignature(Type.Void, [new Type("Uint8Array"), new Type("int32")], ["args", "length"]),
+                writer.makeLambda(new NamedMethodSignature(Type.Void,
+                        [new Type(writer.mapType(new Type("Uint8Array"))), new Type(writer.mapType(new Type("int32")))],
+                        ["args", "length"]),
                     [
                         this.args.length > 0
                             ? writer.makeAssign("callbackDeserializer", new Type("Deserializer"),
@@ -1018,8 +1038,12 @@ export class TupleConvertor extends BaseArgConvertor {
 export class ArrayConvertor extends BaseArgConvertor {
     elementConvertor: ArgConvertor
     readonly isArrayType = ts.isArrayTypeNode(this.type) // Array type - Type[], otherwise - Array<Type>
-    constructor(param: string, public table: DeclarationTable, private type: ts.TypeNode, private elementType: ts.TypeNode) {
-        super(`Array<${mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
+    constructor(param: string,
+                public table: DeclarationTable,
+                private type: ts.TypeNode,
+                private elementType: ts.TypeNode,
+                private typeNodeNameConvertor: TypeNodeNameConvertor | undefined) {
+        super(`Array<${typeNodeNameConvertor?.convert(elementType) ?? mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -1078,7 +1102,7 @@ export class ArrayConvertor extends BaseArgConvertor {
             [writer.makeString(`${value} instanceof ${this.targetType(writer).name}`)])
     }
     elementTypeName(): string {
-        return mapType(this.elementType)
+        return this.typeNodeNameConvertor?.convert(this.elementType) ?? mapType(this.elementType)
     }
 }
 
@@ -1281,7 +1305,6 @@ export class TypeAliasConvertor extends ProxyConvertor {
         param: string,
         private table: DeclarationTable,
         declaration: ts.TypeAliasDeclaration,
-        private typeArguments: ts.NodeArray<ts.TypeNode> | undefined,
         typeNodeNameConvertor: TypeNodeNameConvertor | undefined
     ) {
         super(table.typeConvertor(param, declaration.type, false, typeNodeNameConvertor), identName(declaration.name))

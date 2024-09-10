@@ -157,8 +157,8 @@ export interface ComponentOps {
 
 export interface TestOps {
     _TestCallIntNoArgs(arg1: KInt): KInt
-    _TestCallIntInt32ArraySum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt
-    _TestCallVoidInt32ArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): void
+    _TestCallIntIntArraySum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt
+    _TestCallVoidIntArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): void
     _TestCallIntRecursiveCallback(arg1: KInt, arg2: Uint8Array, arg3: KInt): KInt
     _TestCallIntMemory(arg1: KInt, arg2: KInt): KInt
 }

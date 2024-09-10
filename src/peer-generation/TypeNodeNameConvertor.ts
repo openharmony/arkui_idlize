@@ -14,10 +14,13 @@
  */
 
 import * as ts from 'typescript'
-import { TypeNodeConvertor, convertTypeNode, convertDeclaration } from './TypeNodeConvertor'
-import { getDeclarationsByNode, snakeCaseToCamelCase } from "../util";
+import { convertDeclaration, convertTypeNode, TypeNodeConvertor } from './TypeNodeConvertor'
+import { capitalize, getDeclarationsByNode } from "../util";
 import { PeerLibrary } from "./PeerLibrary";
-import { DeclarationNameConvertor, findNodeSourceFile } from "./dependencies_collector";
+import {
+    DeclarationNameConvertor,
+    findNodeSourceFile
+} from "./dependencies_collector";
 
 export interface TypeNodeNameConvertor extends TypeNodeConvertor<string> {
     convert(node: ts.Node): string
@@ -167,11 +170,14 @@ export class TSTypeNodeNameConvertor implements
     convertIdentifier(node: ts.Identifier): string {
         return node.text
     }
-
+    convertStringLiteral(node: ts.StringLiteral): string {
+        return node.text
+    }
     convert(node: ts.Node): string {
         if (ts.isQualifiedName(node)) return this.convertQualifiedName(node)
         if (ts.isIdentifier(node)) return this.convertIdentifier(node)
         if (ts.isTypeNode(node)) return convertTypeNode(this, node)
+        if (ts.isStringLiteral(node)) return this.convertStringLiteral(node)
 
         throw new Error(`Unknown node type ${ts.SyntaxKind[node.kind]}`)
     }
@@ -203,23 +209,6 @@ export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
         return super.convertImport(node);
     }
 
-    convertTuple(node: ts.TupleTypeNode): string {
-        if (node.parent == undefined) {
-            return super.convertTuple(node);
-        }
-        //TODO: need to create an alias for ts.TupleTypeNode to prevent es2panda segmentation fault
-        const name = createTupleDeclName(node.elements
-            .map(e => this.convert(e))
-            .map(e => e.replaceAll("?", "Opt"))
-            .map(e => e.replace(/[\W_]+/g, ""))
-            .join("_"))
-        const genericsTypes = Array.from(
-            new Set(searchTypeParameters(node.parent)
-                ?.map(it => it.name.text)))
-            .join(",")
-        return `${name}${genericsTypes.length > 0 ? ''.concat('<', genericsTypes, '>') : ''}`
-    }
-
     convertUnknownKeyword(node: ts.TypeNode): string {
         return "Object"
     }
@@ -233,7 +222,7 @@ export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
         if (node?.parent?.parent !== undefined
             && ts.isTupleTypeNode(node.parent)
             && ts.isTypeReferenceNode(node.parent.parent)) {
-            return createUnionDeclName(unionTypes.join('_'))
+            return createUnionDeclName(createDeclNameFromNode(node, this))
         }
         return unionTypes.join(" | ");
     }
@@ -244,24 +233,18 @@ export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
             || ts.isTypeAliasDeclaration(node.parent)
             || ts.isParameter(node.parent)
         ) && ts.isStringLiteral(node.literal)) {
-            return createLiteralDeclName(node.literal.getText().replaceAll(/['"]+/g, ''))
+            return createLiteralDeclName(createDeclNameFromNode(node, this))
         } else {
             return super.convertLiteralType(node)
         }
     }
 
     convertTypeLiteral(node: ts.TypeLiteralNode): string {
-        return createLiteralDeclName(snakeCaseToCamelCase(node.members.map(it => {
-            if (ts.isIndexSignatureDeclaration(it)) {
-                return `${it.parameters.map(
-                    it => ts.isIdentifier(it.name) ? it.name.text : it.getText()
-                )}_${this.convert(it.type)}`
-            }
-            return it.name?.getText()
-        }).join('_')))
+        return createLiteralDeclName(createDeclNameFromNode(node, this))
     }
 
     convertTemplateLiteral(node: ts.TemplateLiteralTypeNode): string {
+        //TODO: need to use createDeclNameFromNode
         const typeSuffix = ts.isTypeAliasDeclaration(node.parent) ? node.parent.name.text : undefined
         return createTemplateLiteralDeclName(node.templateSpans
             .map(it => `${this.convert(it.type)}_${typeSuffix ?? it.literal.text}`).join('_'))
@@ -315,16 +298,16 @@ export class JavaTypeNodeNameConvertor extends TSTypeNodeNameConvertor {}
 export function createInterfaceDeclName(name: string): string {
     return `INTERFACE_${name}`
 }
-export function createTemplateLiteralDeclName(name: string): string {
+function createTemplateLiteralDeclName(name: string): string {
     return `TEMPLATE_LITERAL_${name}`
 }
 export function createLiteralDeclName(name: string): string {
     return `LITERAL_${name}`
 }
-export function createUnionDeclName(name: string): string {
+function createUnionDeclName(name: string): string {
     return `UNION_${name}`
 }
-export function createTupleDeclName(name: string): string {
+function createTupleDeclName(name: string): string {
     return `TUPLE_${name}`
 }
 
@@ -345,4 +328,39 @@ function getFirstNotParenthesizedNode(node: ts.Node): ts.Node {
         return getFirstNotParenthesizedNode(node.parent)
     }
     return node
+}
+
+function createDeclNameFromNode(node: ts.Node, nodeConvertor: TypeNodeNameConvertor): string {
+    const result: ts.Node[] = []
+    const nodes = [node]
+    while (nodes.length > 0) {
+        const node = nodes.shift()!
+        if (ts.isTypeLiteralNode(node)) {
+            nodes.push(...node.members.map(it => it))
+        } else if (ts.isIndexSignatureDeclaration(node)) {
+            nodes.push(...node.parameters.map(it => it), node.type)
+        } else if (ts.isPropertySignature(node)) {
+            result.push(node.name, node.type!)
+        } else if (ts.isTypeElement(node)) {
+            result.push(node.name!)
+        } else if (ts.isParameter(node)) {
+            result.push(node.name, node.type!)
+        } else if (ts.isUnionTypeNode(node)) {
+            nodes.push(...node.types.map(it => it))
+        } else if (ts.isTypeReferenceNode(node)) {
+            nodes.push(node.typeName)
+        } else if (ts.isIdentifier(node)) {
+            result.push(node)
+        } else if (ts.isLiteralTypeNode(node)) {
+            result.push(node.literal)
+        } else if (ts.isTupleTypeNode(node)) {
+            result.push(...node.elements.map(it => it))
+        } else {
+            throw `Unknown node: '${node.getText()}, kind: '${node.kind}'`
+        }
+    }
+    return result.filter(it => it != undefined)
+        .map(it => nodeConvertor.convert(it!))
+        .map(it => capitalize(it.replaceAll("?", "Opt").replace(/[\W_]+/g, "")))
+        .join("")
 }

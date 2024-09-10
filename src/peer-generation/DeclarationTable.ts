@@ -34,7 +34,7 @@ import { PeerLibrary } from "./PeerLibrary"
 import { CallbackInfo, collectCallbacks } from "./printers/EventsPrinter"
 import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
-import { TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
+import { searchTypeParameters, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 
 export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
     ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
@@ -523,7 +523,7 @@ export class DeclarationTable {
             return new OptionConvertor(param, this, type, typeNodeNameConvertor)
         }
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
-            return new CustomTypeConvertor(param, "Object")
+            return new CustomTypeConvertor(param, "Object", false)
         }
         if (type.kind == ts.SyntaxKind.UndefinedKeyword || type.kind == ts.SyntaxKind.VoidKeyword) {
             return new UndefinedConvertor(param)
@@ -563,7 +563,7 @@ export class DeclarationTable {
             return new AggregateConvertor(param, this, type, typeNodeNameConvertor)
         }
         if (ts.isArrayTypeNode(type)) {
-            return new ArrayConvertor(param, this, type, type.elementType)
+            return new ArrayConvertor(param, this, type, type.elementType, typeNodeNameConvertor)
         }
         if (ts.isLiteralTypeNode(type)) {
             if (type.literal.kind == ts.SyntaxKind.NullKeyword) {
@@ -599,11 +599,11 @@ export class DeclarationTable {
             type.kind == ts.SyntaxKind.UnknownKeyword ||
             ts.isIndexedAccessTypeNode(type)
         ) {
-            return new CustomTypeConvertor(param, "Any")
+            return new CustomTypeConvertor(param, "Any", false)
         }
         if (ts.isTypeParameterDeclaration(type)) {
             // TODO: unlikely correct.
-            return new CustomTypeConvertor(param, identName(type.name)!)
+            return new CustomTypeConvertor(param, identName(type.name)!, false)
         }
         console.log(type)
         throw new Error(`Cannot convert: ${asString(type)} ${type.getText()} ${type.kind}`)
@@ -617,24 +617,25 @@ export class DeclarationTable {
         this._currentContext = context
     }
 
-    private customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode): ArgConvertor | undefined {
+    private customConvertor(typeName: ts.EntityName | undefined, param: string, type: ts.TypeReferenceNode | ts.ImportTypeNode,
+                            typeNodeNameConvertor: TypeNodeNameConvertor | undefined): ArgConvertor | undefined {
         let name = getNameWithoutQualifiersRight(typeName)
         switch (name) {
             case `Dimension`:
             case `Length`:
                 return new LengthConvertor(name, param)
             case `Date`:
-                return new CustomTypeConvertor(param, name, name)
+                return new CustomTypeConvertor(param, name, false, name)
             case `AttributeModifier`:
                 return new PredefinedConvertor(param, "AttributeModifier<any>", "AttributeModifier", "CustomObject")
             case `AnimationRange`:
-                return new CustomTypeConvertor(param, "AnimationRange", "AnimationRange<number>")
+                return new CustomTypeConvertor(param, "AnimationRange", false, "AnimationRange<number>")
             case `ContentModifier`:
-                return new CustomTypeConvertor(param, "ContentModifier", "ContentModifier<any>")
+                return new CustomTypeConvertor(param, "ContentModifier", false, "ContentModifier<any>")
             case `Record`:
-                return new CustomTypeConvertor(param, "Record", "Record<string, string>")
+                return new CustomTypeConvertor(param, "Record", false, "Record<string, string>")
             case `Array`:
-                return new ArrayConvertor(param, this, type, type.typeArguments![0])
+                return new ArrayConvertor(param, this, type, type.typeArguments![0], typeNodeNameConvertor)
             case `Map`:
                 return new MapConvertor(param, this, type, type.typeArguments![0], type.typeArguments![1])
             case `Callback`:
@@ -661,12 +662,12 @@ export class DeclarationTable {
                          typeNodeNameConvertor: TypeNodeNameConvertor | undefined): ArgConvertor {
         const entityName = typeEntityName(type)
         if (!declaration) {
-            return this.customConvertor(entityName, param, type) ?? throwException(`Declaration not found for: ${type.getText()}`)
+            return this.customConvertor(entityName, param, type, typeNodeNameConvertor) ?? throwException(`Declaration not found for: ${type.getText()}`)
         }
         if (PeerGeneratorConfig.isConflictedDeclaration(declaration))
-            return new CustomTypeConvertor(param, identName(declaration.name)!)
+            return new CustomTypeConvertor(param, identName(declaration.name)!, false)
         const declarationName = identName(declaration.name)!
-        let customConvertor = this.customConvertor(entityName, param, type)
+        let customConvertor = this.customConvertor(entityName, param, type, typeNodeNameConvertor)
         if (customConvertor) {
             return customConvertor
         }
@@ -677,7 +678,7 @@ export class DeclarationTable {
             return new EnumConvertor(param, declaration.parent, this.isStringEnum(declaration.parent.members))
         }
         if (ts.isTypeAliasDeclaration(declaration)) {
-            return new TypeAliasConvertor(param, this, declaration, type.typeArguments, typeNodeNameConvertor)
+            return new TypeAliasConvertor(param, this, declaration, typeNodeNameConvertor)
         }
         if (ts.isInterfaceDeclaration(declaration)) {
             if (isMaterialized(declaration)) {
@@ -693,7 +694,9 @@ export class DeclarationTable {
         }
         if (ts.isTypeParameterDeclaration(declaration)) {
             // TODO: incorrect, we must use actual, not formal type parameter.
-            return new CustomTypeConvertor(param, identName(declaration.name)!)
+            const isGenericType = searchTypeParameters(declaration)
+                ?.find(it => ts.isIdentifier(it.name) && it.name.text == identName(declaration.name)!) !== undefined
+            return new CustomTypeConvertor(param, identName(declaration.name)!, isGenericType)
         }
         console.log(`${declaration.getText()}`)
         throw new Error(`Unknown kind: ${declaration.kind}`)

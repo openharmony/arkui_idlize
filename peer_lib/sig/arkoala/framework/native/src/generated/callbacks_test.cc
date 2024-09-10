@@ -54,7 +54,7 @@ KInt impl_TestCallIntNoArgs(KVMContext vmContext, KInt methodId) {
 }
 KOALA_INTEROP_CTX_1(TestCallIntNoArgs, KInt, KInt)
 
-KInt impl_TestCallIntInt32ArraySum(KVMContext vmContext, KInt methodId, int32_t* arr, KInt length) {
+KInt impl_TestCallIntIntArraySum(KVMContext vmContext, KInt methodId, int32_t* arr, KInt length) {
     return CallIntInts32(
         vmContext,
         methodId,
@@ -62,9 +62,9 @@ KInt impl_TestCallIntInt32ArraySum(KVMContext vmContext, KInt methodId, int32_t*
         reinterpret_cast<KInt*>(arr)
     );
 }
-KOALA_INTEROP_CTX_3(TestCallIntInt32ArraySum, KInt, KInt, int32_t*, KInt)
+KOALA_INTEROP_CTX_3(TestCallIntIntArraySum, KInt, KInt, int32_t*, KInt)
 
-void impl_TestCallVoidInt32ArrayPrefixSum(KVMContext vmContext, KInt methodId, int32_t* arr, KInt length) {
+void impl_TestCallVoidIntArrayPrefixSum(KVMContext vmContext, KInt methodId, int32_t* arr, KInt length) {
     return CallVoidInts32(
         vmContext,
         methodId,
@@ -72,7 +72,7 @@ void impl_TestCallVoidInt32ArrayPrefixSum(KVMContext vmContext, KInt methodId, i
         reinterpret_cast<KInt*>(arr)
     );
 }
-KOALA_INTEROP_CTX_V3(TestCallVoidInt32ArrayPrefixSum, KInt, int32_t*, KInt)
+KOALA_INTEROP_CTX_V3(TestCallVoidIntArrayPrefixSum, KInt, int32_t*, KInt)
 
 KInt impl_TestCallIntRecursiveCallback(KVMContext vmContext, KInt methodId, uint8_t* arr, KInt length) {
     reinterpret_cast<int32_t*>(arr)[0]++;

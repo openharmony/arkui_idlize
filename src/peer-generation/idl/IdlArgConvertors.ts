@@ -453,7 +453,7 @@ export class UnionRuntimeTypeChecker {
             if (discriminator) return discriminator
         }
         return writer.makeNaryOp("||", convertor.runtimeTypes.map(it =>
-            writer.makeNaryOp("==", [writer.makeUnionVariantCondition(`${value}_type`, RuntimeType[it], index)])))
+            writer.makeNaryOp("==", [writer.makeUnionVariantCondition(convertor, value, `${value}_type`, RuntimeType[it], index)])))
     }
     reportConflicts(context: string) {
         if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {

@@ -48,8 +48,8 @@ public class NativeModule {
   static native void _Test_List_OnScrollVisibleContentChange(byte[] valueArray, int valueSerializerLength);
   static native void _Test_TextPicker_OnAccept(byte[] valueArray, int valueSerializerLength);
   static native int _TestCallIntNoArgs(int arg);
-  static native int _TestCallIntInt32ArraySum(int arg1, int[] arg2, int arg3);
-  static native void _TestCallVoidInt32ArrayPrefixSum(int arg1, int[] arg2, int arg3);
+  static native int _TestCallIntIntArraySum(int arg1, int[] arg2, int arg3);
+  static native void _TestCallVoidIntArrayPrefixSum(int arg1, int[] arg2, int arg3);
   static native int _TestCallIntRecursiveCallback(int arg1, byte[] arg2, int arg3);
   static native int _TestCallIntMemory(int arg1, int arg2);
   static native int _CallExternalAPI(long env, int what, byte[] buffer, int length);
