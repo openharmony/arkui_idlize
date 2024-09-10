@@ -548,6 +548,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
         ["ComponentContent", ["isInstanceOf", "\"ComponentContent\""]],
         ["DrawableDescriptor", ["isInstanceOf", "\"DrawableDescriptor\""]],
         ["SymbolGlyphModifier", ["isInstanceOf", "\"SymbolGlyphModifier\""]],
+        ["Scene", ["isInstanceOf", "\"Scene\""]],
         ["PixelMap", ["isPixelMap"]],
         ["Resource", ["isResource"]]])
     private importedName: string
@@ -802,6 +803,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
         return this.table.targetStruct(this.declaration).getFields().map(it => it.name)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        // First, tricky special cases
         if (this.tsTypeName.endsWith("GestureInterface")) {
             const gestureType = this.tsTypeName.slice(0, -"GestureInterface".length)
             const castExpr = writer.makeCast(writer.makeString(value), new Type("GestureComponent<Object>"))
@@ -809,6 +811,12 @@ export class InterfaceConvertor extends BaseArgConvertor {
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
         }
+        if (this.tsTypeName === "CancelButtonSymbolOptions") {
+            return writer.makeNaryOp("&&", [
+                writer.makeString(`${value}.hasOwnProperty("icon")`),
+                writer.makeString(`isInstanceOf("SymbolGlyphModifier", ${value}.icon)`)])
+        }
+        // Try to figure out interface by examining field sets
         const uniqueFields = this.table
             .targetStruct(this.declaration)
             .getFields()
