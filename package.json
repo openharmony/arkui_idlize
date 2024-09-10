@@ -1,6 +1,6 @@
 {
   "name": "@azanat/idlize",
-  "version": "1.3.6+devel",
+  "version": "1.3.7+devel",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -9,7 +9,8 @@
     "stdlib.d.ts",
     "whitelist.json",
     "peer_lib/**/*",
-    "templates/**/*"
+    "templates/**/*",
+    "webidl2.js/**/*"
   ],
   "workspaces": [
     "webidl2.js"
@@ -48,7 +49,7 @@
   "scripts": {
     "prepare": "cd external/incremental && npm i && cd ../interop && npm i && cd ../arkoala && npm i",
     "download:sdk": "node ./download-sdk.mjs",
-    "upload": "npm run compile && node tools/publish.mjs",
+    "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs",
     "webidl2": "cd ./webidl2.js && npm i && npm run build",
     "setup-out": "node tools/setup/setup.mjs",
     "compile": "npm run download:sdk && rollup -c",
