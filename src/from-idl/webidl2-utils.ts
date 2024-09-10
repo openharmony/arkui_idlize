@@ -25,6 +25,14 @@ export function isInterface(node: webidl2.IDLRootType): node is webidl2.Interfac
     return node.type === "interface"
 }
 
+export function isImport(node: webidl2.IDLRootType): node is webidl2.ImportType {
+    return node.type === "import"
+}
+
+export function isPackage(node: webidl2.IDLRootType): node is webidl2.PackageType {
+    return node.type === "package"
+}
+
 export function isClass(node: webidl2.IDLRootType): node is webidl2.InterfaceType {
     return isInterface(node)
         && node.extAttrs.find(it => it.name === "Entity")?.rhs?.value === IDLEntity.Class

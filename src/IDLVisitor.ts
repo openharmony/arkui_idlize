@@ -20,7 +20,9 @@ import {
     createTypeParameterReference, createUndefinedType, createUnionType, createVoidType, IDLCallable, IDLCallback, IDLConstant, IDLConstructor,
     IDLEntity, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLTopType, IDLType, IDLTypedef,
     IDLAccessorAttribute, IDLExtendedAttributes, isConstant, isProperty, createAnyType,
-    getExtAttribute
+    getExtAttribute,
+    IDLPackage,
+    IDLImport
 } from "./idl"
 import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameOrNull, stringOrNone
@@ -58,7 +60,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private output: IDLEntry[] = []
     private currentScope:  IDLEntry[] = []
     scopes: IDLEntry[][] = []
-    imports: string[] = []
+    imports: string[] = [ "org.arkui.Base" ]
     exports: string[] = []
     namespaces: string[] = []
     globalConstants: IDLConstant[] = []
@@ -112,17 +114,21 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return result
     }
 
-    addMeta() {
-        const result: IDLEnum = {
-            kind: IDLKind.Enum,
-            name: `Metadata`,
-            extendedAttributes: [ {name: IDLExtendedAttributes.Synthetic } ],
-            elements: []
+    addMeta(): void {
+        let header = []
+        const packageInfo: IDLPackage = {
+            kind: IDLKind.Package,
+            name: "org.openharmony.arkui"
         }
-        this.makeEnumMember(result, "package", "org.openharmony.arkui")
-        this.makeEnumMember(result, "imports", this.imports.join("\n"))
-        this.makeEnumMember(result, "exports", this.exports.join("\n"))
-        this.output.unshift(result)
+        header.push(packageInfo)
+        this.imports.forEach(it => {
+            const importStatement: IDLImport = {
+                kind: IDLKind.Import,
+                name: it
+            }
+            header.push(importStatement)
+        })
+        this.output.splice(0, 0, ... header)
     }
 
     /** visit nodes finding exported classes */

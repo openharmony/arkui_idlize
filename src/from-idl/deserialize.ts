@@ -25,8 +25,8 @@ import { toString } from "./toString"
 import {
     createAnyType,
     createBooleanType,
-    createContainerType, createNullType, createNumberType, createStringType, createUndefinedType, createUnionType, createVoidType, hasExtAttribute, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLInterface, IDLKind,
-    IDLMethod, IDLModuleType, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
+    createContainerType, createNullType, createNumberType, createStringType, createUndefinedType, createUnionType, createVoidType, hasExtAttribute, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLImport, IDLInterface, IDLKind,
+    IDLMethod, IDLModuleType, IDLPackage, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
 } from "../idl"
 import { isDefined, stringOrNone } from "../util"
 
@@ -46,6 +46,12 @@ export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
     if (isEnum(node)) {
         return toIDLEnum(file, node)
     }
+    if (isPackage(node)) {
+        return toIDLPackage(node)
+    }
+    if (isImport(node)) {
+        return toIDLImport(node)
+    }
     if (isClass(node)) {
         return toIDLInterface(file, node)
     }
@@ -64,7 +70,6 @@ export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
     if (isNamespace(node)) {
         return toIDLNamespace(file, node)
     }
-
     throw new Error(`unexpected node type: ${toString(node)}`)
 }
 
@@ -72,8 +77,35 @@ export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
 function isNamespace(node: webidl2.IDLRootType): node is webidl2.NamespaceType {
     return node.type === 'namespace'
 }
+
+function isPackage(node: webidl2.IDLRootType): node is webidl2.PackageType {
+    return node.type === 'package'
+}
+
+function isImport(node: webidl2.IDLRootType): node is webidl2.ImportType {
+    return node.type === 'import'
+}
+
 function isCallable(node: webidl2.IDLInterfaceMemberType): boolean {
     return node.extAttrs.some(it => it.name == "Invoke")
+}
+
+function toIDLPackage(node: webidl2.PackageType): IDLPackage {
+    console.log(Object.keys(node))
+    const result: IDLPackage = {
+        kind: IDLKind.Package,
+        name: node.nameValue
+    }
+    return result
+}
+
+function toIDLImport(node: webidl2.ImportType): IDLImport {
+    // console.log(node)
+    const result: IDLImport = {
+        kind: IDLKind.Import,
+        name: node.nameValue
+    }
+    return result
 }
 
 function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface {

@@ -20,6 +20,8 @@ import { NodeArray, TypeNode } from "typescript";
 export enum IDLKind {
     Interface,
     Class,
+    Package,
+    Import,
     AnonymousInterface,
     Callback,
     Const,
@@ -44,6 +46,8 @@ export enum IDLKind {
 export enum IDLEntity {
     Class = "Class",
     Interface = "Interface",
+    Package = "Package",
+    Import = "Import",
     Intersection = "Intersection",
     Literal = "Literal",
     NamedTuple = "NamedTuple",
@@ -224,6 +228,14 @@ export interface IDLInterface extends IDLEntry {
     callables: IDLCallable[]
 }
 
+export interface IDLPackage extends IDLEntry {
+    name: string
+}
+
+export interface IDLImport extends IDLEntry {
+    name: string
+}
+
 export interface IDLCallback extends IDLEntry, IDLSignature {
     kind: IDLKind.Callback
     name: string
@@ -317,6 +329,12 @@ export function isTypeParameterType(type: IDLType): type is IDLTypeParameterType
 }
 export function isInterface(node: IDLEntry): node is IDLInterface {
     return node.kind === IDLKind.Interface
+}
+export function isPackage(type: IDLEntry): type is IDLPackage {
+    return type.kind == IDLKind.Package
+}
+export function isImport(type: IDLEntry): type is IDLImport {
+    return type.kind == IDLKind.Import
 }
 export function isAnonymousInterface(node: IDLEntry): node is IDLInterface {
     return node.kind === IDLKind.AnonymousInterface
@@ -538,11 +556,11 @@ function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNo
 }
 
 const attributesToQuote = new Set([
-    IDLExtendedAttributes.Documentation, 
-    IDLExtendedAttributes.DtsName, 
-    IDLExtendedAttributes.Import, 
-    IDLExtendedAttributes.Interfaces, 
-    IDLExtendedAttributes.TypeArguments, 
+    IDLExtendedAttributes.Documentation,
+    IDLExtendedAttributes.DtsName,
+    IDLExtendedAttributes.Import,
+    IDLExtendedAttributes.Interfaces,
+    IDLExtendedAttributes.TypeArguments,
     IDLExtendedAttributes.TypeParameters,
 ])
 
@@ -588,6 +606,18 @@ export function printModule(idl: IDLModuleType): stringOrNone[] {
     ]
 }
 
+export function printPackage(idl: IDLPackage): stringOrNone[] {
+    return [
+        `package "${idl.name}";`
+    ]
+}
+
+export function printImport(idl: IDLImport): stringOrNone[] {
+    return [
+        `import "${idl.name}";`
+    ]
+}
+
 export function printCallback(idl: IDLCallback): stringOrNone[] {
     return [
         ...printExtendedAttributes(idl, 0),
@@ -599,7 +629,7 @@ export function printScoped(idl: IDLEntry): stringOrNone[] {
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
     if (idl.kind == IDLKind.AnonymousInterface) return printInterface(idl as IDLInterface)
     if (idl.kind == IDLKind.TupleInterface) return printInterface(idl as IDLInterface)
-    return [`/* Unexpected scoped: ${idl.kind} ${idl.name} */`]
+    throw new Error(`Unexpected scoped: ${idl.kind} ${idl.name}`)
 }
 
 export function printInterface(idl: IDLInterface): stringOrNone[] {
@@ -684,7 +714,9 @@ export function printIDL(idl: IDLEntry, options?: Partial<IDLPrintOptions>): str
     if (idl.kind == IDLKind.Typedef) return printTypedef(idl as IDLTypedef)
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
     if (idl.kind == IDLKind.ModuleType) return printModule(idl as IDLModuleType)
-    return [`unexpected kind: ${idl.kind}`]
+    if (idl.kind == IDLKind.Package) return printPackage(idl as IDLPackage)
+    if (idl.kind == IDLKind.Import) return printImport(idl as IDLImport)
+    throw new Error(`unexpected kind: ${idl.kind}`)
 }
 
 export interface IDLPrintOptions {

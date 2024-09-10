@@ -17,11 +17,14 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     getVerbatimDts,
     hasExtAttribute,
     isCallback,
-    isClass, isConstructor, isContainerType, isEnum, isEnumType, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isSyntheticEntry, isTypeParameterType, isTypedef, isUnionType, IDLExtendedAttributes, 
-    IDLAccessorAttribute} from "../idl"
+    isClass, isConstructor, isContainerType, isEnum, isEnumType, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isSyntheticEntry, isTypeParameterType, isTypedef, isUnionType,
+    isPackage, isImport,
+    IDLExtendedAttributes,
+    IDLAccessorAttribute,
+    IDLImport,
+    IDLPackage} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
-
 
 export class CustomPrintVisitor  {
     output: string[] = []
@@ -36,6 +39,10 @@ export class CustomPrintVisitor  {
             this.printInterface(node)
         } else if (isMethod(node) || isConstructor(node)) {
             this.printMethod(node)
+        } else if (isPackage(node)) {
+            this.printPackage(node)
+        } else if (isImport(node)) {
+            this.printImport(node)
         } else if (isProperty(node)) {
             this.printProperty(node)
         } else if (isTypedef(node)) {
@@ -190,6 +197,14 @@ export class CustomPrintVisitor  {
         this.print(`${text}`)
     }
 
+    printImport(node: IDLImport) {
+        this.print(`// import ${node.name}`)
+    }
+
+    printPackage(node: IDLPackage) {
+        this.print(`// package ${node.name}`)
+    }
+
     openNamespace(names: string[] | undefined) {
         names?.forEach((it, idx) => {
             if (it) {
@@ -255,7 +270,7 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     if (type.name == "void_") return "void"
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) {
-        if (!sequenceToArrayInterface && type.name == "sequence") 
+        if (!sequenceToArrayInterface && type.name == "sequence")
             return `${type.elementType.map(it => printTypeForTS(it)).join(",")}[]`
         return `${mapContainerType(type.name)}<${type.elementType.map(it => printTypeForTS(it)).join(",")}>`
     }
