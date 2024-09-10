@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Language, identName, importTypeName } from "../util"
+import { Language, identName, identNameWithNamespace, importTypeName } from "../util"
 import { DeclarationTable, FieldRecord, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
@@ -257,14 +257,16 @@ export class NullConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    public readonly enumTypeName = identName(this.enumType.name)!
-
     constructor(param: string,
                 private enumType: ts.EnumDeclaration,
                 public readonly isStringEnum: boolean) {
         super(isStringEnum ?  "string" : "number",
             [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
+    }
+    enumTypeName(language: Language): string {
+        const prefix = language === Language.CPP ? PrimitiveType.ArkPrefix : ""
+        return `${prefix}${identNameWithNamespace(this.enumType, language)}`
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeCastEnumToInt(this, param)
@@ -277,9 +279,13 @@ export class EnumConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeInt32", [printer.makeCastEnumToInt(this, value)])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+        const isCpp = printer.language === Language.CPP
+        const name = this.enumTypeName(printer.language)
         let readExpr = printer.makeMethodCall(`${param}Deserializer`, "readInt32", [])
-        if (this.isStringEnum) {
-            readExpr = printer.enumFromOrdinal(readExpr, identName(this.enumType.name)!)
+        if (this.isStringEnum && !isCpp) {
+            readExpr = printer.enumFromOrdinal(readExpr, name)
+        } else {
+            readExpr = printer.makeCast(readExpr, new Type(name))
         }
         return printer.makeAssign(printer.getObjectAccessor(this, value), undefined, readExpr, false)
     }
@@ -296,7 +302,7 @@ export class EnumConvertor extends BaseArgConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         //TODO: move to LanguageWrites
         if (writer.language == Language.ARKTS) {
-            return writer.makeString(`${value} instanceof ${this.enumTypeName}`)
+            return writer.makeString(`${value} instanceof ${this.enumTypeName(writer.language)}`)
         }
         let low: number|undefined = undefined
         let high: number|undefined = undefined

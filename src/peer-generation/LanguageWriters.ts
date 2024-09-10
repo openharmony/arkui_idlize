@@ -1226,7 +1226,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     mapType(type: Type, convertor?: ArgConvertor): string {
         if (convertor instanceof EnumConvertor) {
-            return convertor.enumTypeName
+            return convertor.enumTypeName(this.language)
         }
         if (convertor instanceof AggregateConvertor && convertor.aliasName !== undefined) {
             return convertor.aliasName
@@ -1247,7 +1247,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     nativeReceiver(): string { return 'NativeModule' }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
         if (convertor instanceof EnumConvertor && !param.endsWith(".value")) {
-            return `(${param} as ${convertor.enumTypeName}).${convertor.isStringEnum ? 'ordinal' : 'value'}`
+            return `(${param} as ${convertor.enumTypeName(this.language)}).${convertor.isStringEnum ? 'ordinal' : 'value'}`
         }
         return super.makeUnsafeCast(convertor, param)
     }
@@ -1302,7 +1302,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
         if (convertor instanceof EnumConvertor) {
-            return this.makeString(`${valueName} instanceof ${convertor.enumTypeName}`)
+            return this.makeString(`${valueName} instanceof ${convertor.enumTypeName(this.language)}`)
         } else if (convertor instanceof StringConvertor && convertor.isLiteral()) {
             return this.makeString(`${valueName} instanceof ${convertor.tsTypeName}`)
         }

@@ -318,11 +318,12 @@ export function zip<A, B>(left: readonly A[], right: readonly B[]): [A, B][] {
     return left.map((_, i) => [left[i], right[i]])
 }
 
-export function identNameWithNamespace(node: ts.Node): string {
+export function identNameWithNamespace(node: ts.Node, language: Language): string {
     let parent = node.parent
     while (parent && !ts.isModuleDeclaration(parent)) parent = parent.parent
     if (parent) {
-        return `${identName(parent.name)}_${identName(node)}`
+        const separator = language === Language.CPP ? '_' : '.'
+        return `${identName(parent.name)}${separator}${identName(node)}`
     } else {
         return identName(node)!
     }
@@ -459,17 +460,22 @@ export function snakeCaseToCamelCase(input: string): string {
         .join("")
 }
 
+export function isUpperCase(s: string): boolean {
+    return s === s.toUpperCase()
+}
+
+function isLowerCase(s: string): boolean {
+    return s === s.toLowerCase()
+}
+
+function isDigit(s: string): boolean {
+    return s >= '0' && s <= '9'
+}
+
 export function camelCaseToUpperSnakeCase(input: string) {
 
-    function isDigit(s: string): boolean {
-        return s >= '0' && s <= '9'
-    }
-
     function boundaryFromLowerToUpperCase(s1: string, s2: string): string {
-        return s2 !== undefined
-            && (s1 === s1.toLowerCase() && !isDigit(s1))
-            && (s2 === s2.toUpperCase() || isDigit(s2))
-            ? '_' : ''
+        return s2 !== undefined && (isLowerCase(s1) && !isDigit(s1)) && (isUpperCase(s2)) ? '_' : ''
     }
 
     function toUpperSnakeCase(s: string): string {
