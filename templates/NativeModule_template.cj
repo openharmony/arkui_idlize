@@ -18,69 +18,81 @@ package idlize
 import std.collection.*
 
 foreign {
-    func _TestPerfNumber(value: Int32): Int32
+    func TestPerfNumber(value: Int32): Int32
 
     // Node API
-    func _CreateNode(type_: Int32, id: Int32, flags: Int32): Int64
-    func _DisposeNode(ptr: Int64): Unit
-    func _DumpTreeNode(ptr: Int64): Unit
-    func _AddChild(ptr: Int64, node: Int64): Unit
-    func _RemoveChild(ptr: Int64, node: Int64): Unit
-    func _InsertChildAfter(ptr: Int64, node: Int64, sibling: Int64): Int32
-    func _InsertChildBefore(ptr: Int64, node: Int64, sibling: Int64): Int32
-    func _InsertChildAt(ptr: Int64, node: Int64, position: Int32): Int32
-    func _MeasureNode(ptr: Int64, data: CPointer<Float32>): Int32
-    func _LayoutNode(ptr: Int64, data: CPointer<Float32>): Int32
-    func _DrawNode(ptr: Int64, data: CPointer<Float32>): Int32
-    func _MeasureLayoutAndDraw(ptr: Int64): Unit
+    func CreateNode(type_: Int32, id: Int32, flags: Int32): Int64
+    func DisposeNode(ptr: Int64): Unit
+    func DumpTreeNode(ptr: Int64): Unit
+    func AddChild(ptr: Int64, node: Int64): Unit
+    func RemoveChild(ptr: Int64, node: Int64): Unit
+    func InsertChildAfter(ptr: Int64, node: Int64, sibling: Int64): Int32
+    func InsertChildBefore(ptr: Int64, node: Int64, sibling: Int64): Int32
+    func InsertChildAt(ptr: Int64, node: Int64, position: Int32): Int32
+    func MeasureNode(ptr: Int64, data: CPointer<Float32>): Int32
+    func LayoutNode(ptr: Int64, data: CPointer<Float32>): Int32
+    func DrawNode(ptr: Int64, data: CPointer<Float32>): Int32
+    func MeasureLayoutAndDraw(ptr: Int64): Unit
 %GENERATED_NATIVE_FUNCTIONS%
 }
 
 public open class NativeModule {
-    public static func TestPerfNumber(arg1: Int32): Int32 {
-        return unsafe{_TestPerfNumber(arg1)}
-    }
-    public static func hello(): String {
-        return "hello"
+    public static func _TestPerfNumber(arg1: Int32): Int32 {
+        return unsafe{ TestPerfNumber(arg1) }
     }
 
 %GENERATED_METHODS%
 
     // Node API
     public static func _CreateNode(type_: Int32, id: Int32, flags: Int32): Int64 {
-        return unsafe{_CreateNode(type_, id, flags)}
+        return unsafe{ CreateNode(type_, id, flags) }
     }
     public static func _DisposeNode(ptr: Int64): Unit {
-        unsafe{_DisposeNode(ptr)}
+        unsafe{ DisposeNode(ptr) }
     }
     public static func _DumpTreeNode(ptr: Int64): Unit {
-        unsafe{_DumpTreeNode(ptr)}
+        unsafe{ DumpTreeNode(ptr) }
     }
     public static func _AddChild(ptr: Int64, node: Int64): Unit {
-        unsafe{_AddChild(ptr, node)}
+        unsafe{ AddChild(ptr, node) }
     }
     public static func _RemoveChild(ptr: Int64, node: Int64): Unit {
-        unsafe{_RemoveChild(ptr, node)}
+        unsafe{ RemoveChild(ptr, node) }
     }
     public static func _InsertChildAfter(ptr: Int64, node: Int64, sibling: Int64): Int32 {
-        return unsafe{_InsertChildAfter(ptr, node, sibling)}
+        return unsafe{ InsertChildAfter(ptr, node, sibling) }
     }
     public static func _InsertChildBefore(ptr: Int64, node: Int64, sibling: Int64): Int32 {
-        return unsafe{_InsertChildBefore(ptr, node, sibling)}
+        return unsafe{ InsertChildBefore(ptr, node, sibling) }
     }
     public static func _InsertChildAt(ptr: Int64, node: Int64, position: Int32): Int32 {
-        return unsafe{_InsertChildAt(ptr, node, position)}
+        return unsafe{ InsertChildAt(ptr, node, position) }
     }
     public static func _MeasureNode(ptr: Int64, data: ArrayList<Float32>): Int32 {
-        return unsafe{_MeasureNode(ptr, data)}
+        return unsafe{
+            let handle_1 = acquireArrayRawData(data.toArray())
+            let output = MeasureNode(ptr, handle_1.pointer)
+            releaseArrayRawData(handle_1)
+            return output
+        }
     }
     public static func _LayoutNode(ptr: Int64, data: ArrayList<Float32>): Int32 {
-        return unsafe{_LayoutNode(ptr, data)}
+        return unsafe{
+            let handle_1 = acquireArrayRawData(data.toArray())
+            let output = LayoutNode(ptr, handle_1.pointer)
+            releaseArrayRawData(handle_1)
+            return output
+        }
     }
     public static func _DrawNode(ptr: Int64, data: ArrayList<Float32>): Int32 {
-        return unsafe{_DrawNode(ptr, data)}
+        unsafe {
+            let handle_1 = acquireArrayRawData(data.toArray())
+            let output = DrawNode(ptr, handle_1.pointer)
+            releaseArrayRawData(handle_1)
+            return output
+        }
     }
     public static func _MeasureLayoutAndDraw(ptr: Int64): Unit {
-        unsafe{_MeasureLayoutAndDraw(ptr)}
+        unsafe{ MeasureLayoutAndDraw(ptr) }
     }
 }

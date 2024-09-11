@@ -21,7 +21,7 @@ import std.math.round
 func checkPerf(count: Int64) {
     var start = DateTime.now().nanosecond
     for (i in 0..count) {
-        NativeModule.TestPerfNumber(Int32(i))
+        NativeModule._TestPerfNumber(Int32(i))
     }
     var passed = DateTime.now().nanosecond - start
     println("NUMBER: ${Float64(passed) / 1000000.0}ms for ${count} iteration, ${round(Float64(passed) / Float64(count))}ms per 1M iterations")
@@ -37,7 +37,7 @@ func checkPerf(count: Int64) {
         // NativeModule._TestPerfNumberWithArray(data, data.length)
     }
     passed = DateTime.now().nanosecond - start
-    println("ARRAY: ${Float64(passed) / 1000000.0}ms for ${count} iteration, ${round(Float64(passed) / Float64(count))}ms per 1M iterations")
+    println("ARRAY: ${Float64(passed) / 1000000.0}ms for ${count} iteration, ${Int32(round(Float64(passed) / Float64(count)))}ms per 1M iterations")
 }
 
 func checkPerf2(count: Int64) {
@@ -53,7 +53,7 @@ func checkPerf2(count: Int64) {
             }
         }
         var passed = DateTime.now().nanosecond - start;
-        println("backdropBlur: ${passed} ns for ${count} iteration,  ${round(Float64(passed) / Float64(count))} ms per 1M iterations");
+        println("backdropBlur: ${passed} ns for ${count} iteration,  ${Int32(round(Float64(passed) / Float64(count)))} ms per 1M iterations");
     }
 
 

@@ -34,7 +34,7 @@ type MemberInfo = {
 }
 
 class CJType {
-    // Java type itself
+    // CJ type itself
     // string representation can contain special characters (e.g. String[])
     readonly type: Type
 
@@ -337,6 +337,8 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         const membersInfo: MemberInfo[] = sourceType.types.map((subType, index) => {
             return {name: `value${index}`, type: this.getTargetType(this.toTarget(subType), false)}
         })
+
+        writer.print('import std.collection.*')
 
         this.imports.printImportsForTypes(membersInfo.map(it => it.type), writer)
 

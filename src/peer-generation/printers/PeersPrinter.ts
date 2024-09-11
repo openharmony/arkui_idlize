@@ -472,7 +472,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
                 writer.writeStatement(writer.makeStatement(call))
             }
         } else {
-            writer.print('NativeModule.TestPerfNumber(1337)')
+            writer.print('NativeModule._TestPerfNumber(1337)')
         }
         scopes.reverse().forEach(it => {
             writer.popIndent()
