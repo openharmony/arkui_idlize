@@ -2,7 +2,13 @@
 
 ## IDL dialect
 
-We use WebIDL language with several custom extension attributes documented below.
+We use WebIDL language with several custom extension attributes documented below and some grammar extensions.
+
+## Grammar extensions
+
+  * `package "org.ohos.subsystem"` - describes package where interface belongs to, mapped to package name for languages with the package system
+  and used by `import`
+  * `import "org.ohos.subsystem.Component"` - described import from another interface definition
 
 ## Custom extended attributes
 
