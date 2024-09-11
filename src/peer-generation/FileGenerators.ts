@@ -144,17 +144,24 @@ export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let body = readTemplate('view_model_bridge.cc')
 
-    let createNodeSwitch: string[] = []
+    const createNodeSwitch = new IndentedPrinter()
+    const createNodeMethods = new IndentedPrinter()
 
-    const space = "            "
-    for(const file of library.files) {
-        for(const peer of file.peers.values()) {
+    createNodeMethods.pushIndent()
+    createNodeSwitch.pushIndent(3)
+    for (const file of library.files) {
+        for (const peer of file.peers.values()) {
+            const createNodeMethod = `create${peer.componentName}Node`
+            createNodeMethods.print(`Ark_NodeHandle ${createNodeMethod}(Ark_Int32 nodeId);`)
             const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(peer.componentName)}`
-            createNodeSwitch.push(`${space}case ${name}: return ViewModel::create${peer.componentName}Node(id);`)
+            createNodeSwitch.print(`case ${name}: return ViewModel::${createNodeMethod}(id);`)
         }
     }
+    createNodeSwitch.popIndent(3)
+    createNodeMethods.popIndent()
 
-    body = body.replaceAll("%CREATE_NODE_SWITCH%", createNodeSwitch.join("\n"))
+    body = body.replaceAll("%CREATE_NODE_METHODS%", createNodeMethods.getOutput().join("\n"))
+    body = body.replaceAll("%CREATE_NODE_SWITCH%", createNodeSwitch.getOutput().join("\n"))
     body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
 
     result.writeLines(body)
@@ -369,6 +376,7 @@ ${events.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI;
 
 typedef enum ${PeerGeneratorConfig.cppPrefix}Ark_NodeType {
+    ${PeerGeneratorConfig.cppPrefix}ARKUI_ROOT,
 ${nodeTypes.join(",\n")}
 } ${PeerGeneratorConfig.cppPrefix}Ark_NodeType;
 

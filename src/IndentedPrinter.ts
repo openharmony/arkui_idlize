@@ -25,11 +25,11 @@ export class IndentedPrinter {
         if (value != undefined) this.output.push(this.indented(value))
     }
 
-    pushIndent(): void {
-        this.indent++
+    pushIndent(level: number = 1): void {
+        this.indent += level
     }
-    popIndent(): void {
-        this.indent--
+    popIndent(level: number = 1): void {
+        this.indent -= level
     }
     indentDepth(): number {
         return this.indent
