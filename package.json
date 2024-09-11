@@ -20,14 +20,15 @@
   "dependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
     "@types/node": "^18.0.0",
+    "@types/webidl2": "file:webidl2.js/types",
     "commander": "^10.0.0",
     "comment-parser": "^1.4.1",
     "cross-env": "^7.0.3",
+    "minimist": "^1.2.8",
     "node-addon-api": "^8.0.0",
     "node-api-headers": "^1.1.0",
     "typescript": "^4.9.5",
-    "webidl2": "file:webidl2.js",
-    "@types/webidl2": "file:webidl2.js/types"
+    "webidl2": "file:webidl2.js"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -49,7 +50,7 @@
   "scripts": {
     "prepare": "cd external/incremental && npm i && cd ../interop && npm i && cd ../arkoala && npm i",
     "download:sdk": "node ./download-sdk.mjs",
-    "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs",
+    "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",
     "webidl2": "cd ./webidl2.js && npm i && npm run build",
     "setup-out": "node tools/setup/setup.mjs",
     "compile": "npm run download:sdk && rollup -c",
@@ -58,7 +59,7 @@
     "run:all": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/@internal/component/ets/ --verify-idl --common-to-attributes --docs=opt",
     "run2h": "npm run compile && node . --idl2h --input-dir ./idl",
     "run2dts": "npm run compile && node . --idl2dts --input-dir ./idl",
-    "dts2skoala":  "npm run compile && node . --dts2skoala --input-dir ./tests/skoala-subset/ ",
+    "dts2skoala": "npm run compile && node . --dts2skoala --input-dir ./tests/skoala-subset/ ",
     "check:skoala": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/skoala-subset/ --output-dir ./out/skoala-subset",
     "run2peer:target": "node --stack_trace_limit=200 . --api-version 99 --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir ./out/ts-peers/generated",
     "run2peer:arkoala": "npm run run2peer:target -- --generator-target arkoala --arkoala-destination out/ts-peers/generated/sig",

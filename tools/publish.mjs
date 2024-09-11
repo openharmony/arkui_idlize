@@ -17,10 +17,13 @@ import fs from "fs"
 import chalk from "chalk"
 import path from "path"
 import process from "process"
+import minimist from "minimist"
 import { execSync } from "child_process"
 
-var args = process.argv.slice(2)
-const dryRun = args.includes('--dry-run')
+var options = minimist(process.argv.slice(2))
+
+const dryRun = options['dry-run']
+const tag = options.tag ?? 'next'
 
 const CWD = process.cwd()
 const prebuiltPath = path.join(CWD, ".packages")
@@ -54,9 +57,9 @@ function publishToOpenlab() {
     let packageName = fs.readdirSync(prebuiltPath)[0]
     console.log(chalk.green(`> Publishing ${packageName}...`))
     if (dryRun) {
-        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --dry-run`)
+        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --dry-run --tag ${tag}`)
     } else {
-        execSync(`npm publish ${path.join(prebuiltPath, packageName)}`)
+        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --tag ${tag}`)
     }
 
 }
@@ -70,9 +73,9 @@ function publishToGitlab() {
     let packageName = fs.readdirSync(prebuiltPath)[0]
     console.log(chalk.green(`> Publishing ${packageName}...`))
     if (dryRun) {
-        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --dry-run`)
+        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --dry-run --tag ${tag}`)
     } else {
-        execSync(`npm publish ${path.join(prebuiltPath, packageName)}`)
+        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --tag ${tag}`)
     }
 
     setRegistry(keyIdlizeRegistry, idlizeRegistry)
