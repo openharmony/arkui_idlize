@@ -457,7 +457,7 @@ export class ArkTSTypeDepsCollector extends ImportsAggregateCollector {
         return [makeSyntheticTypeAliasDeclaration(
             ArkTSTypeDepsCollector.SYNTH_TYPE_FILE_NAME,
             this.typeToStringConvertor.convertTemplateLiteral(node),
-            ts.factory.createTypeReferenceNode("String"),
+            ts.factory.createTypeReferenceNode("string"),
         )]
     }
 

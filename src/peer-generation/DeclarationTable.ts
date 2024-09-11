@@ -557,7 +557,7 @@ export class DeclarationTable {
             return this.declarationConvertor(param, type, declaration, typeNodeNameConvertor)
         }
         if (ts.isEnumMember(type)) {
-            return new EnumConvertor(param, type.parent, this.isStringEnum(type.parent.members))
+            return new EnumConvertor(param, type.parent, this.isStringEnum(type.parent.members), this.language)
         }
         if (ts.isUnionTypeNode(type)) {
             return new UnionConvertor(param, this, type, typeNodeNameConvertor)
@@ -675,10 +675,10 @@ export class DeclarationTable {
             return customConvertor
         }
         if (ts.isEnumDeclaration(declaration)) {
-            return new EnumConvertor(param, declaration, this.isStringEnum(declaration.members))
+            return new EnumConvertor(param, declaration, this.isStringEnum(declaration.members), this.language)
         }
         if (ts.isEnumMember(declaration)) {
-            return new EnumConvertor(param, declaration.parent, this.isStringEnum(declaration.parent.members))
+            return new EnumConvertor(param, declaration.parent, this.isStringEnum(declaration.parent.members), this.language)
         }
         if (ts.isTypeAliasDeclaration(declaration)) {
             return new TypeAliasConvertor(param, this, declaration, typeNodeNameConvertor)

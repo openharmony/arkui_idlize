@@ -14,8 +14,8 @@
  */
 import { float32, int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
-import { Length, Resource } from "@arkoala/arkui/ArkUnitsInterfaces"
-import { NativeModule } from "@arkoala/arkui/NativeModule"
+import { Length, Resource } from "../ArkUnitsInterfaces"
+import { NativeModule } from "../NativeModule"
 
 /**
  * Value representing possible JS runtime object type.

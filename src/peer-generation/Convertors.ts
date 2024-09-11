@@ -259,10 +259,18 @@ export class NullConvertor extends BaseArgConvertor {
 export class EnumConvertor extends BaseArgConvertor {
     constructor(param: string,
                 private enumType: ts.EnumDeclaration,
-                public readonly isStringEnum: boolean) {
-        super(isStringEnum ?  "string" : "number",
-            [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
-            false, false, param)
+                public readonly isStringEnum: boolean,
+                language: Language) {
+        super(
+            // TODO generate enums as classes in TS too
+            language === Language.ARKTS 
+                ? identName(enumType.name)!
+                : isStringEnum ?  "string" : "number",
+            language === Language.ARKTS 
+                ? [RuntimeType.OBJECT]
+                : [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
+            false, false, param
+        )
     }
     enumTypeName(language: Language): string {
         const prefix = language === Language.CPP ? PrimitiveType.ArkPrefix : ""
@@ -306,10 +314,10 @@ export class EnumConvertor extends BaseArgConvertor {
     }
     // TODO: bit clumsy.
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        //TODO: move to LanguageWrites
-        if (writer.language == Language.ARKTS) {
-            return writer.makeString(`${value} instanceof ${this.enumTypeName(writer.language)}`)
-        }
+        if (Language.ARKTS == writer.language)
+            return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer, [
+                writer.makeString(`${value} instanceof ${this.enumTypeName(writer.language)}`)
+            ])
         let low: number|undefined = undefined
         let high: number|undefined = undefined
         // TODO: proper enum value computation for cases where enum members have computed initializers.
@@ -468,7 +476,8 @@ export class UnionRuntimeTypeChecker {
             this.discriminators.push([discriminator, convertor, index])
             if (discriminator) return discriminator
         }
-        return writer.makeNaryOp("||", convertor.runtimeTypes.map(it =>
+        const uniqRuntimeTypes = Array.from(new Set(convertor.runtimeTypes))
+        return writer.makeNaryOp("||", uniqRuntimeTypes.map(it =>
             writer.makeNaryOp("==", [
                 writer.makeUnionVariantCondition(
                     convertor,
@@ -501,11 +510,31 @@ export class UnionConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Do not use for union")
     }
+    private convertorWeight(a: ArgConvertor): number {
+        // TODO we have some Union<OtherUnion,OtherType,...> types, and that type emit discriminators like
+        // ```
+        // if (value_type === RuntimeType.Object) { ... } // discriminating sub-union
+        // else if (value_type === RuntimeType.Object && value instanceof OtherType) {} // discriminating other type
+        // else ...
+        // ```
+        // In that case TS type checker reports an error "We already checked `value_type === RuntimeType.Object` condition,
+        // it can not be true in the second `if` branch" - and he is true. So that sorting reordering types from 
+        // `Union|SomeType1|SomeType2` to `SomeType1|SomeType2|Union`, so issue is being solved at least at subset
+        // tests. But that still be a hack, should be reworked
+        if (a instanceof UnionConvertor)
+            return 1
+        if (a instanceof ProxyConvertor)
+            return this.convertorWeight(a.convertor)
+        return 0
+    }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(printer.makeAssign(`${value}_type`, Type.Int32, printer.makeUnionTypeDefaultInitializer(), true, false))
         printer.writeStatement(printer.makeUnionSelector(value, `${value}_type`))
-        this.memberConvertors.forEach((it, index) => {
-            const maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
+        const orderedConvertors = Array.from(this.memberConvertors)
+            .sort((a, b) => this.convertorWeight(a) - this.convertorWeight(b))
+        orderedConvertors.forEach((it, orderedIndex) => {
+            const index = this.memberConvertors.indexOf(it)
+            const maybeElse = (orderedIndex > 0 && orderedConvertors[orderedIndex - 1].runtimeTypes.length > 0) ? "else " : ""
             const conditions = this.unionChecker.makeDiscriminator(value, index, printer)
             printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
@@ -842,8 +871,6 @@ export class ClassConvertor extends InterfaceConvertor {
         super(name, param, declaration, table)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
-        if (this.tsTypeName === "SubTabBarStyle") return undefined
         return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
             [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
     }
@@ -1291,7 +1318,7 @@ export class PredefinedConvertor extends BaseArgConvertor {
 }
 
 class ProxyConvertor extends BaseArgConvertor {
-    constructor(protected convertor: ArgConvertor, suggestedName?: string) {
+    constructor(public convertor: ArgConvertor, suggestedName?: string) {
         super(suggestedName ?? convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
