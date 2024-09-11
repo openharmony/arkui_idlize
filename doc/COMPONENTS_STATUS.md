@@ -74,6 +74,7 @@
 |`selectable`|Function|iwx498619 Ilya Erokhin|done|
 |`selected`|Function|iwx498619 Ilya Erokhin|done|
 |`onSelect`|Function|iwx498619 Ilya Erokhin|done|
+|*Image*| *Component* | k00898293 Korobeinikov Evgeny | in progress |
 |*List*|*Component*|mWX997882 Morozov Sergey| in progress |
 |`setListOptions`|Function|mWX997882 Morozov Sergey| done |
 |`lanes`|Function|mWX997882 Morozov Sergey| done |
@@ -96,10 +97,13 @@
 |`enableScrollInteraction`|Function|mWX997882 Morozov Sergey| done |
 |`friction`|Function|mWX997882 Morozov Sergey| done |
 |`childrenMainSize`|Function|mWX997882 Morozov Sergey| blocked |
-|*Image*| *Component* | k00898293 Korobeinikov Evgeny | in progress |
+|`onItemDelete`|Function|Morozov Sergey mWX997882|Blocked|
+|`onItemMove`|Function|Morozov Sergey mWX997882|Blocked |
+|`onItemDragStart`|Function|Morozov Sergey mWX997882|Blocked |
+|`onScrollFrameBegin`|Function|Morozov Sergey mWX997882|Blocked |
 |*ListItem*| *Component* |mWX997882 Morozov Sergey| in progress |
 |*ListItemGroup*| *Component* |mWX997882 Morozov Sergey| in progress |
-|*LoadingProgress*|*Component*| wx480555 Samarin Sergey | in progress |
+|*LoadingProgress*|*Component*| wx480555 Samarin Sergey | done |
 |`setLoadingProgressOptions`|Function| wx480555 Samarin Sergey | done |
 |`color`|Function| wx480555 Samarin Sergey | done |
 |`enableLoading`|Function| wx480555 Samarin Sergey | done |
@@ -277,3 +281,5 @@
 |`sweepGradient`| Function | Roman Sedaikin | in progress |
 |`radialGradient`| Function | Roman Sedaikin | in progress |
 |`shadow`| Function | Roman Sedaikin | in progress |
+|*SwiperController*| *Class* | swx781919 Skroba Gleb | InProgress |
+|`showNext`| Function | swx781919 Skroba Gleb | done |
