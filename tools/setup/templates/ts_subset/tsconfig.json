@@ -20,5 +20,10 @@
             "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"],
             "@koalaui/arkoala": ["./generated/sig/arkoala/framework/src", "./"],
         },
-    }
+    },
+    "include": [
+        "generated/sig/arkoala/**/*",
+        "generated/tests/**/*"
+    ]
+
 }

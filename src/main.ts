@@ -103,7 +103,7 @@ const options = program
     .option('--dump-serialized', "Dump serialized data")
     .option('--call-log', "Call log")
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
-    .option('--language [ts|sts|java|cangjie]', 'Output language')
+    .option('--language [ts|ts|java|cangjie]', 'Output language')
     .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
     .option('--need-interfaces', 'Generate interfaces to resolve all .d.ts dependencies', false)
     .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
@@ -189,7 +189,7 @@ if (options.dts2skoala) {
                 if (!generatedIDLMap.has(fileName)) {
                     generatedIDLMap.set(fileName, [])
                 }
-                
+
                 generatedIDLMap.get(fileName)?.push(...entries)
             },
             onEnd: () => {
@@ -768,17 +768,17 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         'sig/arkoala/framework/native/src/generated/arkoala-macros.h',
         'sig/arkoala/arkui/src/peers/SerializerBase.ts',
         'sig/arkoala/arkui/src/peers/DeserializerBase.ts',
-        'sig/arkoala-arkts/arkui/src/interop.sts',
-        'sig/arkoala-arkts/arkui/src/runtime.sts',
-        'sig/arkoala-arkts/arkui/src/use_properties.sts',
-        'sig/arkoala-arkts/arkui/src/Finalizable.sts',
-        'sig/arkoala-arkts/arkui/src/CallbackRegistry.sts',
-        'sig/arkoala-arkts/arkui/src/ComponentBase.sts',
-        'sig/arkoala-arkts/arkui/src/PeerNode.sts',
-        'sig/arkoala-arkts/arkui/src/NativePeerNode.sts',
-        'sig/arkoala-arkts/arkui/src/peers/SerializerBase.sts',
-        'sig/arkoala-arkts/arkui/src/shared/ArkResource.sts',
-        'sig/arkoala-arkts/arkui/src/shared/dts-exports.sts',
-        'sig/arkoala-arkts/arkui/src/shared/generated-utils.sts',
+        'sig/arkoala-arkts/arkui/src/interop.ts',
+        'sig/arkoala-arkts/arkui/src/runtime.ts',
+        'sig/arkoala-arkts/arkui/src/use_properties.ts',
+        'sig/arkoala-arkts/arkui/src/Finalizable.ts',
+        'sig/arkoala-arkts/arkui/src/CallbackRegistry.ts',
+        'sig/arkoala-arkts/arkui/src/ComponentBase.ts',
+        'sig/arkoala-arkts/arkui/src/PeerNode.ts',
+        'sig/arkoala-arkts/arkui/src/NativePeerNode.ts',
+        'sig/arkoala-arkts/arkui/src/peers/SerializerBase.ts',
+        'sig/arkoala-arkts/arkui/src/shared/ArkResource.ts',
+        'sig/arkoala-arkts/arkui/src/shared/dts-exports.ts',
+        'sig/arkoala-arkts/arkui/src/shared/generated-utils.ts',
     ])
 }

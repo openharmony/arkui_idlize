@@ -22,7 +22,7 @@
         },
     },
     "include": [
-        "generated/**/*",
+        "generated/sig/arkoala/**/*",
         "sdk/**/*",
         "workaround/**/*"
     ]

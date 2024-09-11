@@ -21,7 +21,7 @@ import {execSync} from "node:child_process";
 
 export class Language {
     public static TS = new Language("TS", ".ts", true)
-    public static ARKTS = new Language("ArkTS", ".sts", true)
+    public static ARKTS = new Language("ArkTS", ".ts", true) // using .ts for ArkTS until we get rit of tsc preprocessing
     public static JAVA = new Language("Java", ".java", false)
     public static CPP = new Language("C++", ".cc", false)
     public static CJ = new Language("CangJie", ".cj", false)
@@ -30,6 +30,10 @@ export class Language {
 
     toString(): string {
         return this.name
+    }
+
+    get directory() {
+        return this.name.toLowerCase()
     }
 
     static fromString(name: string): Language {

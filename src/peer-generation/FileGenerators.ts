@@ -422,7 +422,7 @@ function readTemplate(name: string): string {
 }
 
 function readLangTemplate(name: string, lang: Language): string {
-    return fs.readFileSync(path.join(__dirname, `../templates/${name + lang.extension}`), 'utf8')
+    return fs.readFileSync(path.join(__dirname, `../templates/${lang.directory}/${name + lang.extension}`), 'utf8')
 }
 
 

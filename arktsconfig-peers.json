@@ -12,5 +12,5 @@
             "@koalaui/runtime": ["./external/incremental/runtime/src"]
         }
     },
-    "include": ["./out/arkts-peers/generated/**/*.sts"]
+    "include": ["./out/arkts-peers/generated/**/*.ts"]
 }
