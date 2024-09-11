@@ -269,6 +269,12 @@ export class EnumConvertor extends BaseArgConvertor {
         return `${prefix}${identNameWithNamespace(this.enumType, language)}`
     }
     convertorArg(param: string, writer: LanguageWriter): string {
+        if (writer.language === Language.CPP) {
+            return writer.makeCast(
+                writer.makeString(param),
+                new Type(this.enumTypeName(Language.CPP))
+            ).asString()
+        }
         return writer.makeCastEnumToInt(this, param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
@@ -290,7 +296,7 @@ export class EnumConvertor extends BaseArgConvertor {
         return printer.makeAssign(printer.getObjectAccessor(this, value), undefined, readExpr, false)
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.Int32.getText()
+        return `enum ${this.enumTypeName(Language.CPP)}`
     }
     interopType(language: Language): string {
         return language == Language.CPP ? PrimitiveType.Int32.getText() : "KInt"
