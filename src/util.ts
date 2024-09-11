@@ -557,6 +557,38 @@ export function className(node: ts.ClassDeclaration | ts.InterfaceDeclaration): 
     return nameOrNull(node.name) ?? throwException(`Nameless component ${asString(node)}`)
 }
 
+/**
+ * Add a prefix to an enum value which camel case name coincidence
+ * with the the same upper case name for an another enum value
+ */
+export function nameEnumValues(enumTarget: ts.EnumDeclaration): string[] {
+    const prefix = "LEGACY"
+    const nameToIndex = new Map<string, number>()
+    enumTarget.members
+        .map(it => identName(it.name)!)
+        .forEach((name, index) => {
+            let upperCaseName: string
+            if (isUpperCase(name)) {
+                upperCaseName = name
+                const i = nameToIndex.get(upperCaseName)
+                if (i !== undefined) {
+                    nameToIndex.set(`${prefix}_${upperCaseName}`, i)
+                }
+            } else {
+                upperCaseName = camelCaseToUpperSnakeCase(name)
+                if (nameToIndex.has(upperCaseName)) {
+                    upperCaseName = `${prefix}_${upperCaseName}`
+                }
+            }
+            nameToIndex.set(upperCaseName, index)
+        })
+    const enumValues = new Array<string>(nameToIndex.size)
+    for (const [name, index] of nameToIndex.entries()) {
+        enumValues[index] = name
+    }
+    return enumValues
+}
+
 export function groupBy<K, V>(values: V[], selector: (value: V) => K): Map<K, V[]> {
     const map = new Map<K, V[]>()
     values.forEach ( value => {

@@ -18,7 +18,8 @@ import { Language, asString, getDeclarationsByNode, getNameWithoutQualifiersRigh
      identName, isStatic, throwException, typeEntityName, identNameWithNamespace,
      isCommonMethodOrSubclass,
      camelCaseToUpperSnakeCase,
-     isUpperCase} from "../util"
+     nameEnumValues,
+    } from "../util"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
@@ -845,14 +846,14 @@ export class DeclarationTable {
         structs.print(`enum ${enumName}`)
         structs.print(`{`)
         structs.pushIndent()
-        target.members.forEach(it => {
+        const enumValues = nameEnumValues(target)
+        const enumPrefix = camelCaseToUpperSnakeCase(enumName)
+        target.members.forEach((it, index) => {
             let initializer = ""
             if (it.initializer && ts.isNumericLiteral(it.initializer)) {
                 initializer = ` = ${it.initializer.getText()}`
             }
-            let valueName = identName(it.name)!
-            valueName = isUpperCase(valueName) ? valueName : `DEPRECATED_${camelCaseToUpperSnakeCase(valueName)}`
-            structs.print(`${camelCaseToUpperSnakeCase(enumName)}_${valueName}${initializer},`)
+            structs.print(`${enumPrefix}_${enumValues[index]}${initializer},`)
         })
         structs.popIndent()
         structs.print(`};`)
