@@ -3,10 +3,10 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 112      | 74     | 1795     |
-| In Progress  | 14      | 0     | 48     |
-| Done         | 4      | 0     | 147     |
-| Blocked      | 4      | 0     | 10     |
+| Total        | 112      | 74     | 1819     |
+| In Progress  | 16      | 0     | 43     |
+| Done         | 7      | 0     | 184     |
+| Blocked      | 4      | 0     | 20     |
 
 
 | Name | Kind | Owner | Status |
@@ -127,6 +127,7 @@
 |`alignItems`| Function | | |
 |`justifyContent`| Function | | |
 |`pointLight`| Function | | |
+|`reverse`| Function | | |
 |*ColumnSplit*| *Component* | | |
 |`setColumnSplitOptions`| Function | | |
 |`resizeable`| Function | | |
@@ -263,6 +264,7 @@
 |`motionPath`| Function | | |
 |`shadow`| Function | Roman Sedaikin | in progress |
 |`blendMode`| Function | | |
+|`advancedBlendMode`| Function | | |
 |`clip`| Function | | |
 |`clipShape`| Function | | |
 |`mask`| Function | | |
@@ -318,6 +320,7 @@
 |`scrollBarColor`| Function | | |
 |`scrollBarWidth`| Function | | |
 |`edgeEffect`| Function | | |
+|`fadingEdge`| Function | | |
 |`nestedScroll`| Function | | |
 |`enableScrollInteraction`| Function | | |
 |`friction`| Function | | |
@@ -401,7 +404,7 @@
 |`onRouter`| Function | | |
 |`onUninstall`| Function | | |
 |`onLoad`| Function | | |
-|*FormLink*| *Component* | | |
+|*FormLink*| *Component* | dWX731080 Dmitry A Smirnov | In Progress |
 |`setFormLinkOptions`| Function | | |
 |*Gauge*| *Component* | | |
 |`setGaugeOptions`| Function | | |
@@ -416,13 +419,13 @@
 |`privacySensitive`| Function | | |
 |`contentModifier`| Function | | |
 |*Grid*| *Component* | iwx498619 Ilya Erokhin | in progress |
-|`setGridOptions`| Function | | |
+|`setGridOptions`| Function | iwx498619 Ilya Erokhin | blocked |
 |`columnsTemplate`| Function | iwx498619 Ilya Erokhin | done |
 |`rowsTemplate`| Function | iwx498619 Ilya Erokhin | done |
 |`columnsGap`| Function | iwx498619 Ilya Erokhin | done |
 |`rowsGap`| Function | iwx498619 Ilya Erokhin | done |
-|`scrollBarWidth`| Function | | |
-|`scrollBarColor`| Function | | |
+|`scrollBarWidth`| Function | iwx498619 Ilya Erokhin | done |
+|`scrollBarColor`| Function | iwx498619 Ilya Erokhin | blocked |
 |`scrollBar`| Function | iwx498619 Ilya Erokhin | done |
 |`onScrollBarUpdate`| Function | iwx498619 Ilya Erokhin | blocked |
 |`onScrollIndex`| Function | iwx498619 Ilya Erokhin | done |
@@ -434,23 +437,23 @@
 |`cellLength`| Function | iwx498619 Ilya Erokhin | done |
 |`layoutDirection`| Function | iwx498619 Ilya Erokhin | done |
 |`supportAnimation`| Function | iwx498619 Ilya Erokhin | done |
-|`onItemDragStart`| Function | iwx498619 Ilya Erokhin | in progress |
+|`onItemDragStart`| Function | iwx498619 Ilya Erokhin | blocked |
 |`onItemDragEnter`| Function | iwx498619 Ilya Erokhin | done |
 |`onItemDragMove`| Function | iwx498619 Ilya Erokhin | done |
 |`onItemDragLeave`| Function | iwx498619 Ilya Erokhin | done |
 |`onItemDrop`| Function | iwx498619 Ilya Erokhin | done |
-|`edgeEffect`| Function | iwx498619 Ilya Erokhin | in progress |
-|`nestedScroll`| Function | iwx498619 Ilya Erokhin | in progress |
+|`edgeEffect`| Function | iwx498619 Ilya Erokhin | done |
+|`nestedScroll`| Function | iwx498619 Ilya Erokhin | done |
 |`enableScrollInteraction`| Function | iwx498619 Ilya Erokhin | done |
-|`friction`| Function | | |
+|`friction`| Function | iwx498619 Ilya Erokhin | blocked |
 |`alignItems`| Function | | |
-|`onScroll`| Function | iwx498619 Ilya Erokhin | in progress |
+|`onScroll`| Function | iwx498619 Ilya Erokhin | done |
 |`onReachStart`| Function | iwx498619 Ilya Erokhin | done |
 |`onReachEnd`| Function | iwx498619 Ilya Erokhin | done |
 |`onScrollStart`| Function | iwx498619 Ilya Erokhin | done |
 |`onScrollStop`| Function | iwx498619 Ilya Erokhin | done |
-|`onScrollFrameBegin`| Function | iwx498619 Ilya Erokhin | in progress |
-|*GridItem*| *Component* | iwx498619 Ilya Erokhin | in progress |
+|`onScrollFrameBegin`| Function | iwx498619 Ilya Erokhin | blocked |
+|*GridItem*| *Component* | iwx498619 Ilya Erokhin | done |
 |`setGridItemOptions`| Function | iwx498619 Ilya Erokhin | done |
 |`rowStart`| Function | iwx498619 Ilya Erokhin | done |
 |`rowEnd`| Function | iwx498619 Ilya Erokhin | done |
@@ -528,27 +531,28 @@
 |`setLineOptions`| Function | dwx480579 Sergey | done |
 |`startPoint`| Function | dwx480579 Sergey | blocked |
 |`endPoint`| Function | dwx480579 Sergey | blocked |
-|*List*| *Component* | Morozov Sergey mWX997882 | in progress |
-|`setListOptions`| Function | Morozov Sergey mWX997882 | done |
-|`lanes`| Function | Morozov Sergey mWX997882 | done |
-|`alignListItem`| Function | Morozov Sergey mWX997882 | done |
-|`listDirection`| Function | Morozov Sergey mWX997882 | done |
-|`scrollBar`| Function | Morozov Sergey mWX997882 | done |
-|`edgeEffect`| Function | Morozov Sergey mWX997882 | done |
-|`contentStartOffset`| Function | Morozov Sergey mWX997882 | done |
-|`contentEndOffset`| Function | Morozov Sergey mWX997882 | done |
-|`divider`| Function | Morozov Sergey mWX997882 | done |
-|`editMode`| Function | Morozov Sergey mWX997882 | done |
-|`multiSelectable`| Function | Morozov Sergey mWX997882 | done |
-|`cachedCount`| Function | Morozov Sergey mWX997882 | done |
-|`chainAnimation`| Function | Morozov Sergey mWX997882 | done |
-|`chainAnimationOptions`| Function | Morozov Sergey mWX997882 | in progress |
-|`sticky`| Function | Morozov Sergey mWX997882 | done |
-|`scrollSnapAlign`| Function | Morozov Sergey mWX997882 | done |
-|`nestedScroll`| Function | Morozov Sergey mWX997882 | done |
-|`enableScrollInteraction`| Function | Morozov Sergey mWX997882 | done |
-|`friction`| Function | Morozov Sergey mWX997882 | done |
-|`childrenMainSize`| Function | Morozov Sergey mWX997882 | blocked |
+|*List*| *Component* | mWX997882 Morozov Sergey | in progress |
+|`setListOptions`| Function | mWX997882 Morozov Sergey | done |
+|`lanes`| Function | mWX997882 Morozov Sergey | done |
+|`alignListItem`| Function | mWX997882 Morozov Sergey | done |
+|`listDirection`| Function | mWX997882 Morozov Sergey | done |
+|`scrollBar`| Function | mWX997882 Morozov Sergey | done |
+|`edgeEffect`| Function | mWX997882 Morozov Sergey | done |
+|`contentStartOffset`| Function | mWX997882 Morozov Sergey | done |
+|`contentEndOffset`| Function | mWX997882 Morozov Sergey | done |
+|`divider`| Function | mWX997882 Morozov Sergey | done |
+|`editMode`| Function | mWX997882 Morozov Sergey | done |
+|`multiSelectable`| Function | mWX997882 Morozov Sergey | done |
+|`cachedCount`| Function | mWX997882 Morozov Sergey | done |
+|`chainAnimation`| Function | mWX997882 Morozov Sergey | done |
+|`chainAnimationOptions`| Function | mWX997882 Morozov Sergey | in progress |
+|`sticky`| Function | mWX997882 Morozov Sergey | done |
+|`scrollSnapAlign`| Function | mWX997882 Morozov Sergey | done |
+|`nestedScroll`| Function | mWX997882 Morozov Sergey | done |
+|`enableScrollInteraction`| Function | mWX997882 Morozov Sergey | done |
+|`friction`| Function | mWX997882 Morozov Sergey | done |
+|`childrenMainSize`| Function | mWX997882 Morozov Sergey | blocked |
+|`maintainVisibleContentPosition`| Function | | |
 |`onScroll`| Function | | |
 |`onScrollIndex`| Function | | |
 |`onScrollVisibleContentChange`| Function | | |
@@ -556,15 +560,15 @@
 |`onReachEnd`| Function | | |
 |`onScrollStart`| Function | | |
 |`onScrollStop`| Function | | |
-|`onItemDelete`| Function | | |
-|`onItemMove`| Function | | |
-|`onItemDragStart`| Function | | |
+|`onItemDelete`| Function | Morozov Sergey mWX997882 | Blocked |
+|`onItemMove`| Function | Morozov Sergey mWX997882 | Blocked |
+|`onItemDragStart`| Function | Morozov Sergey mWX997882 | Blocked |
 |`onItemDragEnter`| Function | | |
 |`onItemDragMove`| Function | | |
 |`onItemDragLeave`| Function | | |
 |`onItemDrop`| Function | | |
-|`onScrollFrameBegin`| Function | | |
-|*ListItem*| *Component* | | |
+|`onScrollFrameBegin`| Function | Morozov Sergey mWX997882 | Blocked |
+|*ListItem*| *Component* | mWX997882 Morozov Sergey | in progress |
 |`setListItemOptions`| Function | | |
 |`sticky`| Function | | |
 |`editable`| Function | | |
@@ -572,11 +576,11 @@
 |`selected`| Function | | |
 |`swipeAction`| Function | | |
 |`onSelect`| Function | | |
-|*ListItemGroup*| *Component* | | |
+|*ListItemGroup*| *Component* | mWX997882 Morozov Sergey | in progress |
 |`setListItemGroupOptions`| Function | | |
 |`divider`| Function | | |
 |`childrenMainSize`| Function | | |
-|*LoadingProgress*| *Component* | wx480555 Samarin Sergey | in progress |
+|*LoadingProgress*| *Component* | wx480555 Samarin Sergey | done |
 |`setLoadingProgressOptions`| Function | wx480555 Samarin Sergey | done |
 |`color`| Function | wx480555 Samarin Sergey | done |
 |`enableLoading`| Function | wx480555 Samarin Sergey | done |
@@ -597,12 +601,12 @@
 |`onFinish`| Function | | |
 |*MediaCachedImage*| *Component* | | |
 |`setMediaCachedImageOptions`| Function | | |
-|*Menu*| *Component* | wx997882 Sergey | blocked |
+|*Menu*| *Component* | mWX997882 Morozov Sergey | blocked |
 |`setMenuOptions`| Function | | |
-|`fontSize`| Function |  | done |
+|`fontSize`| Function | mWX997882 Morozov Sergey | done |
 |`font`| Function | | |
-|`fontColor`| Function |  | done |
-|`radius`| Function |  | done |
+|`fontColor`| Function | mWX997882 Morozov Sergey | done |
+|`radius`| Function | mWX997882 Morozov Sergey | done |
 |`menuItemDivider`| Function | | |
 |`menuItemGroupDivider`| Function | | |
 |`subMenuExpandingMode`| Function | mWX997882 Morozov Sergey | done |
@@ -634,11 +638,12 @@
 |`onWillHide`| Function | | |
 |`ignoreLayoutSafeArea`| Function | | |
 |`systemBarStyle`| Function | | |
+|`systemTransition`| Function | | |
 |*NavRouter*| *Component* | | |
 |`setNavRouterOptions`| Function | | |
 |`onStateChange`| Function | | |
 |`mode`| Function | | |
-|*Navigation*| *Component* | | |
+|*Navigation*| *Component* | iwx498619 Ilya Erokhin | in progress |
 |`setNavigationOptions`| Function | | |
 |`navBarWidth`| Function | | |
 |`navBarPosition`| Function | | |
@@ -779,6 +784,8 @@
 |`onCopy`| Function | | |
 |`editMenuOptions`| Function | | |
 |`enableKeyboardOnFocus`| Function | | |
+|`enableHapticFeedback`| Function | | |
+|`barState`| Function | | |
 |*RichText*| *Component* | | |
 |`setRichTextOptions`| Function | | |
 |`onStart`| Function | | |
@@ -790,6 +797,7 @@
 |`alignItems`| Function | | |
 |`justifyContent`| Function | | |
 |`pointLight`| Function | | |
+|`reverse`| Function | | |
 |*RowSplit*| *Component* | | |
 |`setRowSplitOptions`| Function | | |
 |`resizeable`| Function | | |
@@ -821,47 +829,48 @@
 |`initialOffset`| Function | | |
 |*ScrollBar*| *Component* | | |
 |`setScrollBarOptions`| Function | | |
-|*Search*| *Component* | ewx1298574 Roman | in progress |
+|`enableNestedScroll`| Function | | |
+|*Search*| *Component* | ewx1298574 Roman | In Progress |
 |`setSearchOptions`| Function |  | In progress / Test disabled |
-|`searchButton`| Function |  | Done , Test disabled |
-|`fontColor`| Function |  | done |
-|`searchIcon`| Function |  | Done, Tests disabled |
-|`cancelButton`| Function |  | done |
-|`textIndent`| Function |  | done |
-|`inputFilter`| Function |  | done |
-|`onEditChange`| Function |  | done |
-|`selectedBackgroundColor`| Function |  | done |
-|`caretStyle`| Function |  | done |
-|`placeholderColor`| Function |  | done |
-|`placeholderFont`| Function |  | in progress |
-|`textFont`| Function | | |
-|`enterKeyType`| Function | | |
-|`onSubmit`| Function |  | done |
-|`onChange`| Function |  | done |
-|`onTextSelectionChange`| Function |  | done |
-|`onContentScroll`| Function |  | done |
-|`onCopy`| Function |  | done |
-|`onCut`| Function |  | done |
-|`onPaste`| Function |  | blocked |
-|`copyOption`| Function |  | done |
-|`maxLength`| Function |  | done |
-|`textAlign`| Function | | |
-|`enableKeyboardOnFocus`| Function |  | done |
-|`selectionMenuHidden`| Function |  | done |
-|`minFontSize`| Function |  | done |
-|`maxFontSize`| Function |  | done |
-|`customKeyboard`| Function | | |
-|`decoration`| Function | | |
-|`letterSpacing`| Function |  | done |
-|`lineHeight`| Function | | |
-|`type`| Function | | |
-|`fontFeature`| Function | | |
-|`onWillInsert`| Function |  | done |
-|`onDidInsert`| Function |  | done |
-|`onWillDelete`| Function |  | done |
-|`onDidDelete`| Function |  | done |
-|`editMenuOptions`| Function |  | blocked |
-|`enablePreviewText`| Function |  | done |
+|`searchButton`| Function |  | Done/Test disabled |
+|`fontColor`| Function |  | Done |
+|`searchIcon`| Function |  | Done/ Tests disabled |
+|`cancelButton`| Function |  | Done |
+|`textIndent`| Function |  | Done |
+|`inputFilter`| Function |  | Done |
+|`onEditChange`| Function |  | Done |
+|`selectedBackgroundColor`| Function |  | Done |
+|`caretStyle`| Function |  | Done |
+|`placeholderColor`| Function |  | Done |
+|`placeholderFont`| Function |  | Done/Test disabled |
+|`textFont`| Function |  | Done/Test disabled |
+|`enterKeyType`| Function |  | Done |
+|`onSubmit`| Function |  | Done |
+|`onChange`| Function |  | Done |
+|`onTextSelectionChange`| Function |  | Done |
+|`onContentScroll`| Function |  | Done |
+|`onCopy`| Function |  | Done |
+|`onCut`| Function |  | Done |
+|`onPaste`| Function |  | Blocked |
+|`copyOption`| Function |  | Done |
+|`maxLength`| Function |  | Done |
+|`textAlign`| Function |  | Done |
+|`enableKeyboardOnFocus`| Function |  | Done |
+|`selectionMenuHidden`| Function |  | Done |
+|`minFontSize`| Function |  | Done |
+|`maxFontSize`| Function |  | Done |
+|`customKeyboard`| Function |  | Blocked |
+|`decoration`| Function |  | Done |
+|`letterSpacing`| Function |  | Done |
+|`lineHeight`| Function |  | Done |
+|`type`| Function |  | Done |
+|`fontFeature`| Function |  | Done |
+|`onWillInsert`| Function |  | Done |
+|`onDidInsert`| Function |  | Done |
+|`onWillDelete`| Function |  | Done |
+|`onDidDelete`| Function |  | Done |
+|`editMenuOptions`| Function |  | Blocked |
+|`enablePreviewText`| Function |  | Done |
 |*SecurityComponentMethod*| *Component* | | |
 |`iconSize`| Function | | |
 |`layoutDirection`| Function | | |
@@ -891,20 +900,20 @@
 |`selected`| Function | | |
 |`value`| Function | | |
 |`font`| Function | | |
-|`fontColor`| Function | wx480555 Samarin Sergey | done |
-|`selectedOptionBgColor`| Function | wx480555 Samarin Sergey | done |
+|`fontColor`| Function |  | done |
+|`selectedOptionBgColor`| Function |  | done |
 |`selectedOptionFont`| Function | | |
-|`selectedOptionFontColor`| Function | wx480555 Samarin Sergey | done |
+|`selectedOptionFontColor`| Function |  | done |
 |`optionBgColor`| Function | | |
-|`optionFont`| Function | wx480555 Samarin Sergey | done |
-|`optionFontColor`| Function | wx480555 Samarin Sergey | done |
+|`optionFont`| Function |  | done |
+|`optionFontColor`| Function |  | done |
 |`onSelect`| Function | | |
 |`space`| Function | | |
 |`arrowPosition`| Function | | |
 |`menuAlign`| Function | | |
 |`optionWidth`| Function | | |
 |`optionHeight`| Function | | |
-|`menuBackgroundColor`| Function | wx480555 Samarin Sergey | done |
+|`menuBackgroundColor`| Function |  | done |
 |`menuBackgroundBlurStyle`| Function | | |
 |`controlSize`| Function | | |
 |`menuItemContentModifier`| Function | | |
@@ -979,7 +988,7 @@
 |`prevLabel`| Function | | |
 |`nextLabel`| Function | | |
 |`status`| Function | | |
-|*Swiper*| *Component* | swx781919 Gleb | in progress |
+|*Swiper*| *Component* | swx781919 Gleb | done |
 |`setSwiperOptions`| Function |  | blocked |
 |`index`| Function |  | done |
 |`autoPlay`| Function |  | done |
@@ -1091,59 +1100,59 @@
 |`textSelectable`| Function | | |
 |`editMenuOptions`| Function | | |
 |`halfLeading`| Function | | |
-|*TextArea*| *Component* | | |
+|*TextArea*| *Component* | twx480581 Ivan Tuzhilkin | in progress |
 |`setTextAreaOptions`| Function | | |
-|`placeholderColor`| Function | | |
+|`placeholderColor`| Function |  | done |
 |`placeholderFont`| Function | | |
-|`enterKeyType`| Function | | |
-|`textAlign`| Function | | |
-|`caretColor`| Function | | |
-|`fontColor`| Function | | |
+|`enterKeyType`| Function |  | done |
+|`textAlign`| Function |  | done |
+|`caretColor`| Function |  | done |
+|`fontColor`| Function |  | done |
 |`fontSize`| Function | | |
 |`fontStyle`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
 |`textOverflow`| Function | | |
-|`textIndent`| Function | | |
+|`textIndent`| Function |  | done |
 |`inputFilter`| Function | | |
-|`caretStyle`| Function | | |
-|`selectedBackgroundColor`| Function | | |
-|`onSubmit`| Function | | |
-|`onChange`| Function | | |
+|`caretStyle`| Function |  | done |
+|`selectedBackgroundColor`| Function |  | done |
+|`onSubmit`| Function |  | done |
+|`onChange`| Function |  | done |
 |`onTextSelectionChange`| Function | | |
 |`onContentScroll`| Function | | |
-|`onEditChange`| Function | | |
+|`onEditChange`| Function |  | done |
 |`onCopy`| Function | | |
 |`onCut`| Function | | |
 |`onPaste`| Function | | |
 |`copyOption`| Function | | |
-|`enableKeyboardOnFocus`| Function | | |
-|`maxLength`| Function | | |
+|`enableKeyboardOnFocus`| Function |  | done |
+|`maxLength`| Function |  | done |
 |`showCounter`| Function | | |
 |`style`| Function | | |
 |`barState`| Function | | |
-|`selectionMenuHidden`| Function | | |
-|`minFontSize`| Function | | |
-|`maxFontSize`| Function | | |
+|`selectionMenuHidden`| Function |  | done |
+|`minFontSize`| Function |  | done |
+|`maxFontSize`| Function |  | done |
 |`heightAdaptivePolicy`| Function | | |
-|`maxLines`| Function | | |
+|`maxLines`| Function |  | done |
 |`wordBreak`| Function | | |
 |`lineBreakStrategy`| Function | | |
 |`customKeyboard`| Function | | |
 |`decoration`| Function | | |
 |`letterSpacing`| Function | | |
 |`lineSpacing`| Function | | |
-|`lineHeight`| Function | | |
-|`type`| Function | | |
-|`enableAutoFill`| Function | | |
+|`lineHeight`| Function |  | done |
+|`type`| Function |  | done |
+|`enableAutoFill`| Function |  | done |
 |`contentType`| Function | | |
-|`fontFeature`| Function | | |
-|`onWillInsert`| Function | | |
-|`onDidInsert`| Function | | |
-|`onWillDelete`| Function | | |
-|`onDidDelete`| Function | | |
+|`fontFeature`| Function |  | done |
+|`onWillInsert`| Function |  | done |
+|`onDidInsert`| Function |  | done |
+|`onWillDelete`| Function |  | done |
+|`onDidDelete`| Function |  | done |
 |`editMenuOptions`| Function | | |
-|`enablePreviewText`| Function | | |
+|`enablePreviewText`| Function |  | done |
 |*TextClock*| *Component* | | |
 |`setTextClockOptions`| Function | | |
 |`format`| Function | | |
@@ -1387,6 +1396,7 @@
 |`enableNativeEmbedMode`| Function | | |
 |`registerNativeEmbedRule`| Function | | |
 |`onNativeEmbedLifecycleChange`| Function | | |
+|`onNativeEmbedVisibilityChange`| Function | | |
 |`onNativeEmbedGestureEvent`| Function | | |
 |`copyOptions`| Function | | |
 |`onOverrideUrlLoading`| Function | | |
@@ -1400,6 +1410,8 @@
 |`onInterceptKeyboardAttach`| Function | | |
 |`onAdsBlocked`| Function | | |
 |`keyboardAvoidMode`| Function | | |
+|`editMenuOptions`| Function | | |
+|`enableHapticFeedback`| Function | | |
 |*WindowScene*| *Component* | | |
 |`setWindowSceneOptions`| Function | | |
 |`attractionEffect`| Function | | |
@@ -1619,6 +1631,7 @@
 |`scrollBy`| Function | | |
 |`isAtEnd`| Function | | |
 |`getItemRect`| Function | | |
+|`getItemIndex`| Function | | |
 |*ChildrenMainSize*| *Class* | | |
 |`splice`| Function | | |
 |`update`| Function | | |
@@ -1704,15 +1717,20 @@
 |`getLineCount`| Function | | |
 |`getGlyphPositionAtCoordinate`| Function | | |
 |`getLineMetrics`| Function | | |
+|`getRectsForRange`| Function | | |
 |*StyledString*| *Class* | | |
 |`getString`| Function | | |
 |`getStyles`| Function | | |
 |`equals`| Function | | |
 |`subStyledString`| Function | | |
+|`fromHtml`| Function | | |
+|`marshalling`| Function | | |
+|`unmarshalling`| Function | | |
 |`getLength`| Function | | |
 |*CustomSpan*| *Class* | | |
 |`onMeasure`| Function | | |
 |`onDraw`| Function | | |
+|`invalidate`| Function | | |
 |*RichEditorStyledStringController*| *Class* | | |
 |`setStyledString`| Function | | |
 |`getStyledString`| Function | | |
@@ -1751,8 +1769,8 @@
 |`setPosition`| Function | | |
 |`getMainAxisLength`| Function | | |
 |`setMainAxisLength`| Function | | |
-|*SwiperController*| *Class* | | |
-|`showNext`| Function | | |
+|*SwiperController*| *Class* | swx781919 Skroba Gleb | InProgress |
+|`showNext`| Function | swx781919 Skroba Gleb | done |
 |`showPrevious`| Function | | |
 |`changeIndex`| Function | | |
 |`finishAnimation`| Function | | |
