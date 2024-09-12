@@ -22,27 +22,38 @@ function waitVSync(): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, 100) )
 }
 
-export async function runEventLoop(env: pointer) {
-    let cb = wrapCallback((data: Uint8Array, length: int32) => {
-        let deserializer = new Deserializer(data.buffer, length)
-        let parameter = {
-            key: deserializer.readString(),
-            value: deserializer.readString()
-        }
-        console.log(`JS: key: ${parameter.key} value: ${parameter.value}`)
-    })
+export async function runEventLoop() {
     for (let i = 0; i < 5; i++) {
-        nativeModule()._RunVirtualMachine(env, i, cb)
+        nativeModule()._RunApplication(i, i * i)
         await waitVSync()
     }
 }
 
-export function checkLoader() {
-    console.log("checkLoader")
-    let classPath = __dirname + "/../out/java-subset/bin"
-    let libPath = __dirname + "/../native"
-    let env = nativeModule()._LoadVirtualMachine(libPath, classPath, 0)
-    setTimeout(async () => runEventLoop(env), 0)
+export function checkLoader(variant: string) {
+    let vm = -1
+    let classPath = ""
+    let nativePath = __dirname + "/../native"
+    
+    switch (variant) {
+        case 'java': {
+            vm = 1
+            classPath = __dirname + "/../out/java-subset/bin"
+            break
+        }
+        case 'panda': {
+            vm = 2
+            classPath = __dirname + "/../build/abc/subset/sig/arkoala-arkts/arkui/src"
+            break
+        }
+    }
+    let res = nativeModule()._LoadVirtualMachine(vm, classPath, nativePath)
+
+    if (res == 0) {
+        nativeModule()._StartApplication();
+        setTimeout(async () => runEventLoop(), 0)
+    } else {
+        throw new Error(`Cannot start VM: ${res}`)
+    }
 }
 
-checkLoader()
+checkLoader(process.argv.length > 1 ? process.argv[process.argv.length - 1] : "panda")

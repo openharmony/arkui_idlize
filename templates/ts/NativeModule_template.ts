@@ -83,8 +83,9 @@ export interface GraphicsOps {
 }
 
 export interface LoaderOps {
-    _LoadVirtualMachine(classPath: string, libPath: string, kind: KInt): pointer
-    _RunVirtualMachine(env: pointer, what: KInt, arg0: KInt): KInt
+    _LoadVirtualMachine(vmKind: KInt, appClassPath: String, appLibPath: String): KInt
+    _StartApplication(): KInt
+    _RunApplication(arg0: KInt, arg1: KInt): KInt
 }
 
 export interface NodeOps {

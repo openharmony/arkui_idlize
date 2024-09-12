@@ -14,23 +14,14 @@
  */
 package org.koalaui.arkoala;
 
-class JSAPIArgument {
-    JSAPIArgument(String name, String value) {
-        this.name = name;
-        this.value = value;
-    }
-    String name;
-    String value;
-}
-
 public class Application {
     Application() {}
 
     public static void main(String[] args) {
-        var app = Application.startApplication(0);
+        var app = Application.startApplication();
         try {
             for (int i = 0; i < 10; i++) {
-                app.loopIteration(0, i, 0);
+                app.loopIteration(i, 0);
                 Thread.sleep(100);
             }
         } catch (InterruptedException e) {
@@ -38,44 +29,30 @@ public class Application {
         }
     }
 
-    public static Application startApplication(long callbacks) {
-        NativeModule._SetCallbackMethod(callbacks);
+    public static Application startApplication() {
         return new Application().start();
     }
 
-    public void enter(long env, int what, int arg0) {
-        loopIteration(env, what, arg0);
+    public void enter(int arg0, int arg1) {
+        loopIteration(arg0, arg1);
     }
 
-    public void loopIteration(long env, int what, int arg0) {
-        if (what == 3 && env != 0) {
-            callJSAPI(env, new JSAPIArgument("test", "arg" + what), arg0);
-        }
-        checkEvents(what);
+    public void loopIteration(int arg0, int arg1) {
+        checkEvents(arg0);
         updateState();
         render();
     }
 
-    private void callJSAPI(long env, JSAPIArgument arg, int callback) {
-        var serializer = SerializerBase.get(Serializer::createSerializer, 0);
-        serializer.writeString(arg.name);
-        serializer.writeString(arg.value);
-        NativeModule._CallExternalAPI(env, callback, serializer.asArray(), serializer.currentPosition());
-    }
-
-    private byte[] buffer = new byte[256];
-
     void checkEvents(int what) {
-        System.out.println("checkEvents " + what);
-        NativeModule._CheckArkoalaGeneratedEvents(buffer, buffer.length);
+        System.out.println("JAVA: checkEvents " + what);
     }
 
     void updateState() {
-        System.out.println("updateState");
+        System.out.println("JAVA: updateState");
     }
 
     void render() {
-        System.out.println("render");
+        System.out.println("JAVA: render");
     }
 
     public Application start() {

@@ -110,6 +110,7 @@ export class NativeModuleEmpty extends NativeModuleEmptyIntegrated implements Na
     _TestCallIntRecursiveCallback(arg1: KInt, arg2: Uint8Array, arg3: KInt): KInt { return -1 }
     _TestCallIntMemory(arg1: KInt, arg2: KInt): KInt { return -1 }
 
-    _LoadVirtualMachine(classPath: string, libPath: string, kind: KInt): pointer { throw new Error("unsupported") }
-    _RunVirtualMachine(env: pointer, what: KInt): KInt { throw new Error("unsupported") }
+    _LoadVirtualMachine(vmKind: KInt, appClassPath: String, appLibPath: String): KInt { throw new Error("unsupported") }
+    _StartApplication(): KInt { throw new Error("unsupported") }
+    _RunApplication(arg0: KInt, arg1: KInt): KInt { throw new Error("unsupported") }
 }

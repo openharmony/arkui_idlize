@@ -38,10 +38,9 @@ export class NativeModule {
     return callCallback(id, args, length)
   }
 
-  static native _LoadVirtualMachine(classPath: String, libPath: String, kind: KInt): long;
-  static native _RunVirtualMachine(env: long, what: KInt, arg0: KInt): KInt;
-  static native _CallExternalAPI(env: long, what: KInt, buffer: KUint8ArrayPtr, len: KInt): KInt;
-  static native _SetCallbackMethod(method: long): void;
+  static native _LoadVirtualMachine(vmKind: int, appClassPath: String, appLibPath: String): int;
+  static native _StartApplication(): int;
+  static native _RunApplication(arg0: int, arg1: int): int;
 
 %GENERATED_METHODS%
 
