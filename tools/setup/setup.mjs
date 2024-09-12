@@ -33,7 +33,14 @@ function installExternal() {
 }
 
 function symlinkSdk() {
-    fs.symlinkSync(path.join(CWD, './interface_sdk-js/api/\@internal/component/ets'), path.join(CWD, options.out, 'sdk'))
+    const from = path.join(CWD, './interface_sdk-js/api/\@internal/component/ets')
+    const to = path.join(CWD, options.out, 'sdk')
+    try {
+        fs.symlinkSync(from, to)
+    } catch (e) {
+        console.log("Symlink failed, try to copy")
+        fs.cpSync(from, to, { recursive: true })
+    }
 }
 
 function main() {
