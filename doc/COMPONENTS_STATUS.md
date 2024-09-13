@@ -125,7 +125,27 @@
 |`radiusWidth`|Function|dwx480579 Sergey| done |
 |`radiusHeight`|Function|dwx480579 Sergey| done |
 |`radius`|Function|dwx480579 Sergey| done |
-| Scroll | *Component* | bwx1356458 Kirill Berezin | in progress |
+|*Scroll*| *Component* | bwx1356458 Kirill Berezin | in progress |
+|`setScrollOptions`| Function | bwx1356458 Kirill Berezin | in progress |
+|`scrollable`| Function | bwx1356458 Kirill Berezin | In progress |
+|`onScroll`| Function | bwx1356458 Kirill Berezin | in progress |
+|`onWillScroll`| Function | bwx1356458 Kirill Berezin | Blocked |
+|`onDidScroll`| Function | bwx1356458 Kirill Berezin | in progress |
+|`onScrollEdge`| Function | bwx1356458 Kirill Berezin | in progress |
+|`onScrollStart`| Function | bwx1356458 Kirill Berezin | in progress |
+|`onScrollEnd`| Function | bwx1356458 Kirill Berezin | in progress |
+|`onScrollStop`| Function | bwx1356458 Kirill Berezin | in progress |
+|`scrollBar`| Function | bwx1356458 Kirill Berezin | in progress |
+|`scrollBarColor`| Function | bwx1356458 Kirill Berezin | in progress |
+|`scrollBarWidth`| Function | bwx1356458 Kirill Berezin | in progress |
+|`edgeEffect`| Function | bwx1356458 Kirill Berezin | in progress |
+|`onScrollFrameBegin`| Function | bwx1356458 Kirill Berezin | Blocked |
+|`nestedScroll`| Function | bwx1356458 Kirill Berezin | in progress |
+|`enableScrollInteraction`| Function | bwx1356458 Kirill Berezin | In progress |
+|`friction`| Function | bwx1356458 Kirill Berezin | In progress |
+|`scrollSnap`| Function | bwx1356458 Kirill Berezin | in progress |
+|`enablePaging`| Function | bwx1356458 Kirill Berezin | in progress |
+|`initialOffset`| Function | bwx1356458 Kirill Berezin | in progress |
 |*Search*|*Component*|ewx1298574 Roman| In Progress|
 |`setSearchOptions`|Function| | In progress / Test disabled|
 |`searchButton`|Function| |Done/Test disabled|
