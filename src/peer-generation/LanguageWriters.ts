@@ -708,7 +708,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                         const memberName = `${this.enumEntity.name}.${member.name}`
                         writer.writeStatement(
                             writer.makeCondition(
-                                writer.makeNaryOp('==', [writer.makeString('arg0'), writer.makeString(`${memberName}.value`)]),
+                                writer.makeEquals([writer.makeString('arg0'), writer.makeString(`${memberName}.value`)]),
                                 writer.makeReturn(writer.makeString(memberName)))
                         )
                     })
@@ -1022,10 +1022,48 @@ export abstract class LanguageWriter {
         return keyword
     }
     compareLiteral(expr: LanguageExpression, literal: string): LanguageExpression {
-        return this.makeNaryOp('===', [expr, this.makeString(`"${literal}"`)])
+        return this.makeEquals([expr, this.makeString(`"${literal}"`)])
     }
     makeCastCustomObject(customName: string, _isGenericType: boolean): LanguageExpression {
         return this.makeString(customName)
+    }
+    makeHasOwnProperty(value: string,
+                       _valueTypeName: string,
+                       property: string,
+                       propertyTypeName?: string): LanguageExpression {
+        const expressions = [this.makeString(`${value}.hasOwnProperty("${property}")`)]
+        if (propertyTypeName) {
+            expressions.push(this.makeString(`isInstanceOf("${propertyTypeName}", ${value}.${property})`))
+        }
+        return this.makeNaryOp("&&", expressions)
+    }
+    discriminatorFromExpressions(value: string,
+                                 runtimeType: RuntimeType,
+                                 writer: LanguageWriter,
+                                 exprs: LanguageExpression[]) {
+        return writer.makeNaryOp("&&", [
+            writer.makeNaryOp("==", [writer.makeRuntimeType(runtimeType), writer.makeString(`${value}_type`)]),
+            ...exprs
+        ])
+    }
+    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
+        const ordinal = convertor.isStringEnum
+            ? this.ordinalFromEnum(
+                this.makeString(this.getObjectAccessor(convertor, value)),
+                convertor.enumTypeName(this.language)
+            )
+            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), Type.Number, convertor, index)
+        const {low, high} = convertor.extremumOfOrdinals()
+        return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], this, [
+            this.makeNaryOp(">=", [ordinal, this.makeString(low!.toString())]),
+            this.makeNaryOp("<=",  [ordinal, this.makeString(high!.toString())])
+        ])
+    }
+    makeNot(expr: LanguageExpression): LanguageExpression {
+        return this.makeString(`!${expr.asString()}`)
+    }
+    makeEquals(args: LanguageExpression[]): LanguageExpression {
+        return this.makeNaryOp("===", args)
     }
 }
 
@@ -1313,6 +1351,24 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             return this.makeCast(this.makeString(customName), new Type("Object"))
         }
         return super.makeCastCustomObject(customName, isGenericType);
+    }
+    makeHasOwnProperty(value: string,
+                       valueTypeName: string,
+                       property: string,
+                       propertyTypeName: string): LanguageExpression {
+        return this.makeNaryOp("&&", [
+            this.makeString(`${value} instanceof ${valueTypeName}`),
+            this.makeString(`${value}.${property} instanceof ${propertyTypeName}`)])
+    }
+    makeEquals(args: LanguageExpression[]): LanguageExpression {
+        // TODO: Error elimination: 'TypeError: Both operands have to be reference types'
+        // the '==' operator must be used when one of the operands is a reference
+        return super.makeNaryOp('==', args);
+    }
+    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
+        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, this, [
+            this.makeString(`${value} instanceof ${convertor.enumTypeName(this.language)}`)
+        ])
     }
 }
 

@@ -409,6 +409,9 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
 export class ArkTSTypeDepsCollector extends ImportsAggregateCollector {
     private readonly typeToStringConvertor = new ArkTSTypeNodeNameConvertor(this.peerLibrary)
     public static readonly SYNTH_TYPE_FILE_NAME = 'SyntheticDeclarations'
+    private readonly ALIAS_DECL_LIST = new Set([
+        "TextModifier"
+    ])
     constructor(
         peerLibrary: PeerLibrary,
         expandAliases: boolean,
@@ -483,8 +486,16 @@ export class ArkTSTypeDepsCollector extends ImportsAggregateCollector {
             this.peerLibrary.importTypesStubToSource.set(generatedName, node.getText())
         }
         let syntheticDeclaration: ts.Declaration
-
-        if (node.qualifier?.getText() === 'Resource') {
+        const qualifierName = node.qualifier !== undefined && ts.isIdentifier(node.qualifier)
+            ? node.qualifier.text
+            : undefined
+        if (qualifierName !== undefined && this.ALIAS_DECL_LIST.has(qualifierName)) {
+            syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
+                ArkTSTypeDepsCollector.SYNTH_TYPE_FILE_NAME,
+                qualifierName,
+                ts.factory.createTypeReferenceNode(generatedName),
+            )
+        } else if (qualifierName === "Resource") {
             syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
                 ArkTSTypeDepsCollector.SYNTH_TYPE_FILE_NAME,
                 generatedName,
