@@ -55,8 +55,7 @@ sources = [
     arkoala_dir / 'bridge_custom.cc',
     external_framework_dir / 'events.cc',
     arkoala_dir / 'all_events.cc',
-    arkoala_dir / 'library.cc',
-    external_interop_dir / 'vmloader.cc',
+    arkoala_dir / 'library.cc'
 ]
 if compile_events_test
     sources += [
@@ -243,10 +242,9 @@ shared_library(node_library_name,
     install: true,
     name_prefix: node_module_prefix,
     name_suffix: node_module_suffix,
-    include_directories: include_dirs + node_include_dirs + arkts_include_dirs + jni_include_dirs,
+    include_directories: include_dirs + node_include_dirs,
     install_dir: meson.current_source_dir(),
-    cpp_args: cflags + node_cflags + ['-DKOALA_ETS_NAPI', '-DKOALA_JNI'],
-    # vmloader requires etsapi.h or jni.h header and -DKOALA_ETS_NAPI or -DKOALA_JNI to load the corresponding VM
+    cpp_args: cflags + node_cflags,
     link_args: ldflags + node_ldflags,
     dependencies: []
 )
@@ -374,4 +372,25 @@ executable('test_converter',
     include_directories: include_dirs + [libace_dir + '/utility/generated']
 )
 endif
+endif
+
+
+if is_jni or is_arkts
+loader_include_dirs = include_dirs
+loader_cflags = cflags
+if is_jni
+loader_include_dirs += jni_include_dirs
+loader_cflags += jni_cflags
+endif
+if is_arkts
+loader_include_dirs += arkts_include_dirs
+loader_cflags += arkts_cflags
+endif
+shared_library('vmloader',
+    external_interop_dir / 'vmloader.cc',
+    install: true,
+    include_directories: loader_include_dirs,
+    install_dir: meson.current_source_dir(),
+    cpp_args: loader_cflags
+)
 endif

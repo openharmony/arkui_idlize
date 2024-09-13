@@ -33,7 +33,7 @@ export function checkLoader(variant: string) {
     let vm = -1
     let classPath = ""
     let nativePath = __dirname + "/../native"
-    
+
     switch (variant) {
         case 'java': {
             vm = 1
@@ -56,4 +56,4 @@ export function checkLoader(variant: string) {
     }
 }
 
-checkLoader(process.argv.length > 1 ? process.argv[process.argv.length - 1] : "panda")
+checkLoader(process.argv.length >= 1 ? process.argv[process.argv.length - 1] : "java")
