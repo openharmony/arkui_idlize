@@ -464,6 +464,12 @@ export function snakeCaseToCamelCase(input: string): string {
         .join("")
 }
 
+export function toCamelCase(input: string): string {
+    return input
+        .replace(/([-_][a-z])/g, group => group.toUpperCase().replace('-', '').replace('_', ''))
+        .replace(/^[A-Z]/, match => match.toLowerCase());
+}
+
 export function isUpperCase(s: string): boolean {
     return s === s.toUpperCase()
 }

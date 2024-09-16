@@ -198,12 +198,12 @@ if (options.dts2skoala) {
 
                     try {
                         printer.generate()
-                        console.log(`Code generation completed for ${fileName}.cc`)
+                        console.log(`Code generation completed for ${fileName}.h`)
                     } catch (error) {
                         if (error instanceof Error) {
-                            console.error(`Error during code generation for ${fileName}.cc: ${error.message}`)
+                            console.error(`Error during code generation for ${fileName}.h: ${error.message}`)
                         } else {
-                            console.error(`Unknown error during code generation for ${fileName}.cc:`, error)
+                            console.error(`Unknown error during code generation for ${fileName}.h:`, error)
                         }
                     }
                 })
