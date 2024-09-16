@@ -48,7 +48,7 @@
     "source-map-support": "^0.5.21"
   },
   "scripts": {
-    "prepare": "cd external/incremental && npm i && cd ../interop && npm i && cd ../arkoala && npm i",
+    "prepare": "npm i --prefix external --no-audit --no-fund",
     "download:sdk": "node ./download-sdk.mjs",
     "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",
     "webidl2": "cd ./webidl2.js && npm i && npm run build",

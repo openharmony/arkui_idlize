@@ -140,6 +140,13 @@ declare enum ScrollSizeMode {
     CONTINUOUS = 1,
 }
 
+declare enum SheetKeyboardAvoidMode {
+    NONE = 0,
+    TRANSLATE_AND_RESIZE = 1,
+    RESIZE_ONLY = 2,
+    TRANSLATE_AND_SCROLL = 3,
+}
+
 declare interface SheetOptions extends BindOptions {
     height?: SheetSize | Length;
     dragBar?: boolean;
@@ -166,6 +173,7 @@ declare interface SheetOptions extends BindOptions {
     onTypeDidChange?: Callback<SheetType>;
     expandSafeAreaInEmbeddedMode?: boolean;
     uiContext?: UIContext;
+    keyboardAvoidMode?: SheetKeyboardAvoidMode;
 }
 
 declare enum BlurStyle {
