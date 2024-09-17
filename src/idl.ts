@@ -294,25 +294,25 @@ export function forEachChild(node: IDLEntry, cb: (entry: IDLEntry) => void): voi
     }
 }
 
-export function isNullType(type: IDLType): type is IDLPrimitiveType {
+export function isNullType(type: IDLEntry): type is IDLPrimitiveType {
     return isPrimitiveType(type) && type.name === "null_"
 }
-export function isUndefinedType(type: IDLType): type is IDLPrimitiveType {
+export function isUndefinedType(type: IDLEntry): type is IDLPrimitiveType {
     return isPrimitiveType(type) && type.name === "undefined"
 }
-export function isVoidType(type: IDLType): type is IDLPrimitiveType {
+export function isVoidType(type: IDLEntry): type is IDLPrimitiveType {
     return isPrimitiveType(type) && type.name === "void_"
 }
-export function isPrimitiveType(type: IDLType): type is IDLPrimitiveType {
+export function isPrimitiveType(type: IDLEntry): type is IDLPrimitiveType {
     return type.kind == IDLKind.PrimitiveType
 }
-export function isContainerType(type: IDLType): type is IDLContainerType {
+export function isContainerType(type: IDLEntry): type is IDLContainerType {
     return type.kind == IDLKind.ContainerType
 }
-export function isReferenceType(type: IDLType): type is IDLReferenceType {
+export function isReferenceType(type: IDLEntry): type is IDLReferenceType {
     return type.kind == IDLKind.ReferenceType
 }
-export function isEnumType(type: IDLType): type is IDLEnumType {
+export function isEnumType(type: IDLEntry): type is IDLEnumType {
     return type.kind == IDLKind.EnumType
 }
 export function isEnum(type: IDLEntry): type is IDLEnum {
@@ -321,10 +321,10 @@ export function isEnum(type: IDLEntry): type is IDLEnum {
 export function isEnumMember(type: IDLEntry): type is IDLEnumMember {
     return type.kind == IDLKind.EnumMember
 }
-export function isUnionType(type: IDLType): type is IDLUnionType {
+export function isUnionType(type: IDLEntry): type is IDLUnionType {
     return type.kind == IDLKind.UnionType
 }
-export function isTypeParameterType(type: IDLType): type is IDLTypeParameterType {
+export function isTypeParameterType(type: IDLEntry): type is IDLTypeParameterType {
     return type.kind == IDLKind.TypeParameterType
 }
 export function isInterface(node: IDLEntry): node is IDLInterface {

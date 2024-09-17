@@ -40,15 +40,12 @@ class EnumMember {
 export class IdlPeerFile {
     readonly peers: Map<string, IdlPeerClass> = new Map()
     readonly enums: EnumEntity[] = []
-    // todo maybe declarations should be converted as same as enums - to
-    // structs detached from `ts` nodes
     readonly declarations: Set<idl.IDLEntry> = new Set()
     readonly importFeatures: ImportFeature[] = []
     readonly serializeImportFeatures: ImportFeature[] = []
     constructor(
         public readonly originalFilename: string,
-        // public readonly declarationTable: DeclarationTable,
-        public readonly entries: idl.IDLEntry[],///review access rights
+        public readonly entries: idl.IDLEntry[],
         private readonly componentsToGenerate: Set<string>,
     ) {}
 

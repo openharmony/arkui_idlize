@@ -81,6 +81,7 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
         overloads[0].originalParentName,
         targets,
         typeConvertors,
+        overloads[0].retConvertor,
         overloads[0].isCallSignature,
         method,
     )

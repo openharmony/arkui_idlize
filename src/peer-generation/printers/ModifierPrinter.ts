@@ -32,6 +32,9 @@ import { MaterializedClass, MaterializedMethod } from "../Materialized";
 import { Language, groupBy } from "../../util";
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { IdlPeerClass } from "../idl/IdlPeerClass";
+import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 
 class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     public readonly printer = new IndentedPrinter()
@@ -152,10 +155,10 @@ export class ModifierVisitor {
     modifierList = createLanguageWriter(Language.CPP)
 
     constructor(
-        protected library: PeerLibrary,
+        protected library: PeerLibrary | IdlPeerLibrary,
     ) { }
 
-    printDummyImplFunctionBody(method: PeerMethod) {
+    printDummyImplFunctionBody(method: PeerMethod | IdlPeerMethod) {
         let _ = this.dummy
         _.writeStatement(
             _.makeCondition(
@@ -176,24 +179,24 @@ export class ModifierVisitor {
         this.printReturnStatement(this.dummy, method, retVal)
     }
 
-    printModifierImplFunctionBody(method: PeerMethod) {
-        const visitor = new MethodSeparatorPrinter(
-            this.library.declarationTable,
-            method
-        )
-        visitor.visit()
-        // This is the entry point to delegate print.
-        // visitor.printer.getOutput().forEach(it => this.real.print(it))
+    printModifierImplFunctionBody(method: PeerMethod | IdlPeerMethod) {
+        if (this.library instanceof PeerLibrary) {
+            const visitor = new MethodSeparatorPrinter(
+                this.library.declarationTable,
+                method as PeerMethod
+            )
+            visitor.visit()
+        }
         this.printReturnStatement(this.real, method)
     }
 
-    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnValue: string | undefined = undefined) {
+    private printReturnStatement(printer: LanguageWriter, method: PeerMethod | IdlPeerMethod, returnValue: string | undefined = undefined) {
         if (!method.retConvertor.isVoid) {
             printer.print(`return ${returnValue ?? "0"};`)
         }
     }
 
-    printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
+    printMethodProlog(printer: LanguageWriter, method: PeerMethod | IdlPeerMethod) {
         const apiParameters = method.generateAPIParameters()
         printMethodDeclaration(printer.printer, method.retType, method.implName, apiParameters)
         printer.print("{")
@@ -205,7 +208,7 @@ export class ModifierVisitor {
         printer.print(`}`)
     }
 
-    printRealAndDummyModifier(method: PeerMethod) {
+    printRealAndDummyModifier(method: PeerMethod | IdlPeerMethod) {
         this.printMethodProlog(this.dummy, method)
         this.printMethodProlog(this.real, method)
         this.printDummyImplFunctionBody(method)
@@ -216,7 +219,7 @@ export class ModifierVisitor {
         this.modifiers.print(`${method.implNamespaceName}::${method.implName},`)
     }
 
-    printClassProlog(clazz: PeerClass) {
+    printClassProlog(clazz: PeerClass | IdlPeerClass) {
         const component = clazz.componentName
         const modifierStructImpl = `ArkUI${component}ModifierImpl`
 
@@ -229,7 +232,7 @@ export class ModifierVisitor {
         this.modifierList.print(`Get${component}Modifier,`)
     }
 
-    printClassEpilog(clazz: PeerClass) {
+    printClassEpilog(clazz: PeerClass | IdlPeerClass) {
         const name = clazz.componentName
         const modifierStructImpl = `ArkUI${name}ModifierImpl`
 
@@ -260,10 +263,12 @@ export class ModifierVisitor {
         this.dummy.print(`} // ${namespaceName}`)
     }
 
-    printPeerClassModifiers(clazz: PeerClass) {
+    printPeerClassModifiers(clazz: PeerClass | IdlPeerClass) {
         this.printClassProlog(clazz)
         // TODO: move to Object.groupBy when move to nodejs 21
-        const namespaces: Map<string, PeerMethod[]> = groupBy(clazz.methods, it => it.implNamespaceName)
+        const namespaces: Map<string, PeerMethod[] | IdlPeerMethod[]> = clazz instanceof PeerClass
+            ? groupBy(clazz.methods, it => it.implNamespaceName)
+            : groupBy(clazz.methods, it => it.implNamespaceName)
         Array.from(namespaces.keys()).forEach (namespaceName => {
             this.pushNamespace(namespaceName, false)
             namespaces.get(namespaceName)?.forEach(
@@ -286,7 +291,7 @@ class AccessorVisitor extends ModifierVisitor {
     accessors = createLanguageWriter(Language.CPP)
     accessorList = createLanguageWriter(Language.CPP)
 
-    constructor(library: PeerLibrary) {
+    constructor(library: PeerLibrary | IdlPeerLibrary) {
         super(library)
     }
 
@@ -381,7 +386,7 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
         this.onFileEnd()
     }
 
-    emitRealSync(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
+    emitRealSync(library: PeerLibrary | IdlPeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
         const modifierList = createLanguageWriter(Language.CPP)
         const accessorList = createLanguageWriter(Language.CPP)
         const getterDeclarations = createLanguageWriter(Language.CPP)
@@ -404,7 +409,7 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
     }
 }
 
-export function printRealAndDummyModifiers(peerLibrary: PeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
+export function printRealAndDummyModifiers(peerLibrary: PeerLibrary | IdlPeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
     const visitor = new ModifierVisitor(peerLibrary)
     visitor.printRealAndDummyModifiers()
     const dummy =
@@ -414,7 +419,7 @@ export function printRealAndDummyModifiers(peerLibrary: PeerLibrary): {dummy: La
     return {dummy, real}
 }
 
-export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
+export function printRealAndDummyAccessors(peerLibrary: PeerLibrary | IdlPeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
     const visitor = new AccessorVisitor(peerLibrary)
     peerLibrary.materializedClasses.forEach(c => visitor.printRealAndDummyAccessor(c))
 
@@ -439,7 +444,7 @@ export interface ModifierFileOptions {
     namespaces?: Namespaces
 }
 
-export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions) {
+export function printRealModifiersAsMultipleFiles(library: PeerLibrary | IdlPeerLibrary, libace: LibaceInstall, options: ModifierFileOptions) {
     const visitor = new MultiFileModifiersVisitor(library)
     visitor.printRealAndDummyModifiers()
     visitor.emitRealSync(library, libace, options)
@@ -504,7 +509,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.printTo(filePath)
 }
 
-function printApiImplFile(library: PeerLibrary, filePath: string, options: ModifierFileOptions) {
+function printApiImplFile(library: PeerLibrary | IdlPeerLibrary, filePath: string, options: ModifierFileOptions) {
     const writer = new CppLanguageWriter(new IndentedPrinter())
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)

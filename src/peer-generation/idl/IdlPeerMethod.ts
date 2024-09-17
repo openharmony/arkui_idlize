@@ -15,7 +15,7 @@
 
 
 import { capitalize, isDefined } from "../../util"
-import { ArgConvertor, OptionConvertor, RetConvertor } from "./IdlArgConvertors"
+import { ArgConvertor, RetConvertor } from "./IdlArgConvertors"
 import { Method, MethodModifier, mangleMethodName } from "../LanguageWriters"
 import { PrimitiveType } from "../DeclarationTable"
 import { IDLType } from "../../idl"
@@ -26,7 +26,7 @@ export class IdlPeerMethod {
         public originalParentName: string,
         public declarationTargets: IDLType[],
         public argConvertors: ArgConvertor[],
-        // public retConvertor: RetConvertor,
+        public retConvertor: RetConvertor,
         public isCallSignature: boolean,
         public method: Method,
     ) { }
@@ -58,7 +58,7 @@ export class IdlPeerMethod {
         return undefined
     }
     get retType(): string {
-        return /*this.maybeCRetType(this.retConvertor) ??*/ "void"
+        return this.maybeCRetType(this.retConvertor) ?? "void"
     }
     get receiverType(): string {
         return "Ark_NodeHandle"
@@ -98,9 +98,6 @@ export class IdlPeerMethod {
     }
 
     static markOverloads(methods: IdlPeerMethod[]): void {
-        // for (const peerMethod of methods)
-        //     peerMethod.isOverloaded = false
-
         for (const peerMethod of methods) {
             if (isDefined(peerMethod.overloadIndex)) continue
             const sameNamedMethods = methods.filter(it => it.method.name === peerMethod.method.name)
@@ -109,54 +106,3 @@ export class IdlPeerMethod {
         }
     }
 }
-
-// export class MethodSeparatorVisitor {
-//     constructor(
-//         protected readonly declarationTable: DeclarationTable,
-//         protected readonly method: PeerMethod,
-//     ) {}
-
-//     protected onPushUnionScope(argIndex: number, field: FieldRecord, selectorValue: number): void {}
-//     protected onPopUnionScope(argIndex: number) {}
-//     protected onPushOptionScope(argIndex: number, target: DeclarationTarget, exists: boolean): void {}
-//     protected onPopOptionScope(argIndex: number): void {}
-//     protected onVisitInseparableArg(argIndex: number) {}
-//     protected onVisitInseparable() {}
-
-//     private visitArg(argIndex: number): void {
-//         if (argIndex >= this.method.argConvertors.length) {
-//             this.onVisitInseparable()
-//             return
-//         }
-
-//         const visitor: StructVisitor = {
-//             visitUnionField: (field: FieldRecord, selectorValue: number) => {
-//                 this.onPushUnionScope(argIndex, field, selectorValue)
-//                 this.declarationTable.visitDeclaration(field.declaration, visitor)
-//                 this.onPopUnionScope(argIndex)
-//             },
-//             visitInseparable: () => {
-//                 this.onVisitInseparableArg(argIndex)
-//                 this.visitArg(argIndex + 1)
-//             }
-//         }
-//         if (this.method.argConvertors[argIndex] instanceof OptionConvertor) {
-//             // todo does we have optionals only on root?
-//             const conv = this.method.argConvertors[argIndex] as OptionConvertor
-//             const target = this.declarationTable.toTarget(conv.type)
-
-//             this.onPushOptionScope(argIndex, target, true)
-//             this.declarationTable.visitDeclaration(target, visitor)
-//             this.onPopOptionScope(argIndex)
-
-//             this.onPushOptionScope(argIndex, target, false)
-//             visitor.visitInseparable()
-//             this.onPopOptionScope(argIndex)
-//         } else
-//             this.declarationTable.visitDeclaration(this.method.declarationTargets[argIndex], visitor)
-//     }
-
-//     visit(): void {
-//         this.visitArg(0)
-//     }
-// }

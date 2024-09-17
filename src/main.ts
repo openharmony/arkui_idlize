@@ -61,7 +61,10 @@ import { printEvents, printEventsCArkoalaImpl, printEventsCLibaceImpl } from "./
 import { printGniSources } from "./peer-generation/printers/GniPrinter"
 import { printMesonBuild } from "./peer-generation/printers/MesonPrinter"
 import { printInterfaces } from "./peer-generation/printers/InterfacePrinter"
-import { printInterfaces as printIdlInterfaces } from "./peer-generation/idl/InterfacePrinter"
+import {
+    printInterfaces as printIdlInterfaces,
+    printFakeDeclarations as printIdlFakeDeclarations
+} from "./peer-generation/idl/InterfacePrinter"
 import { printConflictedDeclarations } from "./peer-generation/printers/ConflictedDeclarationsPrinter"
 import { printFakeDeclarations } from "./peer-generation/printers/FakeDeclarationsPrinter"
 import { printBuilderClasses } from "./peer-generation/printers/BuilderClassPrinter"
@@ -356,7 +359,6 @@ if (options.dts2peer) {
     PeerGeneratorConfig.needInterfaces = options.needInterfaces
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
-    const arkuiComponentsFiles: string[] = []
 
     if (options.viaIdl) {
         // For now, we only generate TS peers from IDL representation.
@@ -387,59 +389,16 @@ if (options.dts2peer) {
                     })
                     const peerProcessor = new IdlPeerProcessor(idlLibrary)
                     peerProcessor.process()
-                    // declarationTable.analyze(peerLibrary)
+                    idlLibrary.analyze()
 
-                    // Write out stuff
-                    const arkoala = options.arkoalaDestination ?
-                        new ArkoalaInstall(options.arkoalaDestination, lang, false) :
-                        new ArkoalaInstall(outDir, lang, true)
-                    arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
-
-                    const context = {
-                        language: lang,
-                        synthesizedTypes: undefined,
-                        imports: undefined
+                    if (options.generatorTarget == "arkoala" ||
+                        options.generatorTarget == "all") {
+                        generateArkoalaFromIdl(outDir, idlLibrary, lang)
                     }
-                    const peers = printPeers(idlLibrary, context, options.dumpSerialized ?? false)
-                    for (const [targetFile, peer] of peers) {
-                        const outPeerFile = arkoala.peer(targetFile)
-                        writeFile(outPeerFile, peer, true, "producing [idl]")
+                    if (options.generatorTarget == "libace" ||
+                        options.generatorTarget == "all") {
+                        generateLibaceFromIdl(outDir, idlLibrary)
                     }
-                    const components = printComponents(idlLibrary, context)
-                    for (const [targetFile, component] of components) {
-                        const outComponentFile = arkoala.component(targetFile)
-                        if (options.verbose) console.log(component)
-                        writeFile(outComponentFile, component, true, "producing [idl]")
-                        arkuiComponentsFiles.push(outComponentFile)
-                    }
-                    const materialized = printMaterialized(idlLibrary, context, options.dumpSerialized ?? false)
-                    for (const [targetFile, materializedClass] of materialized) {
-                        const outMaterializedFile = arkoala.materialized(targetFile)
-                        writeFile(outMaterializedFile, materializedClass, idlLibrary.language === Language.ARKTS, "producing [idl]")
-                    }
-                    writeFile(
-                        arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
-                        printNativeModuleEmpty(idlLibrary),
-                        true, "producing [idl]"
-                    )
-                    writeFile(
-                        arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
-                        printNativeModule(idlLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
-                        true, "producing [idl]"
-                    )
-                    if (PeerGeneratorConfig.needInterfaces) {
-                        const interfaces = printIdlInterfaces(idlLibrary, context)
-                        for (const [targetFile, data] of interfaces) {
-                            const outComponentFile = arkoala.interface(targetFile)
-                            writeFile(outComponentFile, data, false, "producing [idl]")
-                            arkuiComponentsFiles.push(outComponentFile)
-                        }
-                    }
-                    writeFile(
-                        arkoala.tsLib(new TargetFile("peer_events")),
-                        printEvents(idlLibrary),
-                        true
-                    )
                 }
             }
         )
@@ -471,14 +430,16 @@ if (options.dts2peer) {
                 peerProcessor.process()
                 declarationTable.analyze(peerLibrary)
 
-                if (options.generatorTarget == "arkoala" ||
-                    options.generatorTarget == "all") {
-                    generateArkoala(outDir, peerLibrary, lang, !options.viaIdl, arkuiComponentsFiles)
-                }
+                if (!options.viaIdl) {
+                    if (options.generatorTarget == "arkoala" ||
+                        options.generatorTarget == "all") {
+                        generateArkoala(outDir, peerLibrary, lang)
+                    }
 
-                if (options.generatorTarget == "libace" ||
-                    options.generatorTarget == "all") {
-                    generateLibace(outDir, peerLibrary)
+                    if (options.generatorTarget == "libace" ||
+                        options.generatorTarget == "all") {
+                        generateLibace(outDir, peerLibrary)
+                    }
                 }
 
                 if (options.generatorTarget == "tracker") {
@@ -528,6 +489,40 @@ function generateLibace(outDir: string, peerLibrary: PeerLibrary) {
     copyToLibace(path.join(__dirname, '..', 'peer_lib'), libace)
 }
 
+function generateLibaceFromIdl(outDir: string, peerLibrary: IdlPeerLibrary) {
+    const libace = options.libaceDestination ?
+        new LibaceInstall(options.libaceDestination, false) :
+        new LibaceInstall(outDir, true)
+
+    const gniSources = printGniSources(peerLibrary)
+    fs.writeFileSync(libace.gniComponents, gniFile(gniSources))
+
+    // printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
+    printRealModifiersAsMultipleFiles(peerLibrary, libace, {
+        namespaces: {
+            base: "OHOS::Ace::NG",
+            generated: "OHOS::Ace::NG::GeneratedModifier"
+        },
+        basicVersion: 1,
+        fullVersion: options.apiVersion,
+        extendedVersion: 6,
+    })
+
+    const converterNamespace = "OHOS::Ace::NG::Converter"
+    const { api, converterHeader } = printUserConverter(libace.userConverterHeader, converterNamespace, options.apiVersion, peerLibrary)
+    fs.writeFileSync(libace.generatedArkoalaApi, api)
+    fs.writeFileSync(libace.userConverterHeader, converterHeader)
+    const events = printEventsCLibaceImpl(peerLibrary, {namespace: "OHOS::Ace::NG::GeneratedEvents"})
+    fs.writeFileSync(libace.allEvents, events)
+
+    if (!options.libaceDestination) {
+        const mesonBuild = printMesonBuild(peerLibrary)
+        fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
+    }
+
+    copyToLibace(path.join(__dirname, '..', 'peer_lib'), libace)
+}
+
 function writeFile(filename: string, content: string, integrated: boolean = false, message?: string) {
     if (integrated || !options.onlyIntegrated) {
         if (message)
@@ -536,7 +531,7 @@ function writeFile(filename: string, content: string, integrated: boolean = fals
     }
 }
 
-function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Language, complete: boolean, interfaceFiles: string[]) {
+function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Language) {
     const arkoala = options.arkoalaDestination ?
         new ArkoalaInstall(options.arkoalaDestination, lang, false) :
         new ArkoalaInstall(outDir, lang, true)
@@ -546,21 +541,18 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     const arkuiComponentsFiles: string[] = []
     const context = createPrinterContext(peerLibrary.declarationTable)
 
-    // We might already have generated peers from IDL
-    if (complete) {
-        const peers = printPeers(peerLibrary, context, options.dumpSerialized ?? false)
-        for (const [targetFile, peer] of peers) {
-            const outPeerFile = arkoala.peer(targetFile)
-            writeFile(outPeerFile, peer, true, "producing")
-        }
+    const peers = printPeers(peerLibrary, context, options.dumpSerialized ?? false)
+    for (const [targetFile, peer] of peers) {
+        const outPeerFile = arkoala.peer(targetFile)
+        writeFile(outPeerFile, peer, true, "producing")
+    }
 
-        const components = printComponents(peerLibrary, context)
-        for (const [targetFile, component] of components) {
-            const outComponentFile = arkoala.component(targetFile)
-            writeFile(outComponentFile, component, true, "producing")
-            if (options.verbose) console.log(component)
-            arkuiComponentsFiles.push(outComponentFile)
-        }
+    const components = printComponents(peerLibrary, context)
+    for (const [targetFile, component] of components) {
+        const outComponentFile = arkoala.component(targetFile)
+        writeFile(outComponentFile, component, true, "producing")
+        if (options.verbose) console.log(component)
+        arkuiComponentsFiles.push(outComponentFile)
     }
 
     const builderClasses = printBuilderClasses(peerLibrary, context, options.dumpSerialized ?? false)
@@ -569,28 +561,24 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         fs.writeFileSync(outBuilderFile, builderClass)
     }
 
-    if (complete) {
-        const materialized = printMaterialized(peerLibrary, context, options.dumpSerialized ?? false)
-        for (const [targetFile, materializedClass] of materialized) {
-            const outMaterializedFile = arkoala.materialized(targetFile)
-            writeFile(outMaterializedFile, materializedClass, peerLibrary.declarationTable.language === Language.ARKTS)
-        }
+    const materialized = printMaterialized(peerLibrary, context, options.dumpSerialized ?? false)
+    for (const [targetFile, materializedClass] of materialized) {
+        const outMaterializedFile = arkoala.materialized(targetFile)
+        writeFile(outMaterializedFile, materializedClass, peerLibrary.declarationTable.language === Language.ARKTS)
     }
 
     // NativeModule
     if (lang === Language.TS) {
-        if (complete) {
-            writeFile(
-                arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
-                printNativeModuleEmpty(peerLibrary),
-                true
-            )
-            writeFile(
-                arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
-                printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
-                true
-            )
-        }
+        writeFile(
+            arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
+            printNativeModuleEmpty(peerLibrary),
+            true
+        )
+        writeFile(
+            arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
+            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
+            true
+        )
     }
     else if (lang === Language.JAVA) {
         writeFile(
@@ -613,15 +601,12 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
 
     if (lang == Language.TS) {
         // todo I think we want to generate them for ARKTS too
-        if (complete) {
-            const interfaces = printInterfaces(peerLibrary, context)
-            for (const [targetFile, data] of interfaces) {
-                const outComponentFile = arkoala.interface(targetFile)
-                writeFile(outComponentFile, data, false, "producing")
-                arkuiComponentsFiles.push(outComponentFile)
-            }
-        } else
-            arkuiComponentsFiles.push(...interfaceFiles)
+        const interfaces = printInterfaces(peerLibrary, context)
+        for (const [targetFile, data] of interfaces) {
+            const outComponentFile = arkoala.interface(targetFile)
+            writeFile(outComponentFile, data, false, "producing")
+            arkuiComponentsFiles.push(outComponentFile)
+        }
 
         const fakeDeclarations = printFakeDeclarations(peerLibrary)
         for (const [filename, data] of fakeDeclarations) {
@@ -638,18 +623,16 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),
-            true,
         )
         writeFile(
             arkoala.tsLib(new TargetFile('index')),
             makeArkuiModule(arkuiComponentsFiles),
         )
-        if (complete)
-            writeFile(
-                arkoala.tsLib(new TargetFile("peer_events")),
-                printEvents(peerLibrary),
-                true
-            )
+        writeFile(
+            arkoala.tsLib(new TargetFile("peer_events")),
+            printEvents(peerLibrary),
+            true
+        )
         writeFile(arkoala.peer(new TargetFile('Serializer')),
             makeTSSerializer(peerLibrary),
             true,
@@ -740,6 +723,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         const writer = makeCJSerializer(peerLibrary)
         writer.printTo(arkoala.cjLib(new TargetFile('Serializer', '')))
     }
+
     writeFile(arkoala.native(new TargetFile('bridge_generated.cc')), printBridgeCcGenerated(peerLibrary, options.callLog ?? false), true)
     writeFile(arkoala.native(new TargetFile('bridge_custom.cc')), printBridgeCcCustom(peerLibrary, options.callLog ?? false))
 
@@ -761,6 +745,10 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
     writeFile(arkoala.native(new TargetFile('all_events.cc'),), printEventsCArkoalaImpl(peerLibrary), true)
     writeFile(arkoala.native(new TargetFile('library.cc')), libraryCcDeclaration())
 
+    copyArkoalaFiles(arkoala)
+}
+
+function copyArkoalaFiles(arkoala: ArkoalaInstall) {
     copyToArkoala(path.join(__dirname, '..', 'peer_lib'), arkoala, !options.onlyIntegrated ? undefined : [
         'sig/arkoala/framework/native/src/generated/SerializerBase.h',
         'sig/arkoala/framework/native/src/generated/DeserializerBase.h',
@@ -781,4 +769,111 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         'sig/arkoala-arkts/arkui/src/shared/dts-exports.ts',
         'sig/arkoala-arkts/arkui/src/shared/generated-utils.ts',
     ])
+}
+
+function generateArkoalaFromIdl(outDir: string, peerLibrary: IdlPeerLibrary, lang: Language) {
+    const arkoala = options.arkoalaDestination ?
+        new ArkoalaInstall(options.arkoalaDestination, lang, false) :
+        new ArkoalaInstall(outDir, lang, true)
+    arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
+
+    const context = {
+        language: lang,
+        synthesizedTypes: undefined,
+        imports: undefined
+    }
+    const arkuiComponentsFiles: string[] = []
+
+    const peers = printPeers(peerLibrary, context, options.dumpSerialized ?? false)
+    for (const [targetFile, peer] of peers) {
+        const outPeerFile = arkoala.peer(targetFile)
+        writeFile(outPeerFile, peer, true, "producing [idl]")
+    }
+    const components = printComponents(peerLibrary, context)
+    for (const [targetFile, component] of components) {
+        const outComponentFile = arkoala.component(targetFile)
+        if (options.verbose) console.log(component)
+        writeFile(outComponentFile, component, true, "producing [idl]")
+        arkuiComponentsFiles.push(outComponentFile)
+    }
+    const builderClasses = printBuilderClasses(peerLibrary, context, options.dumpSerialized ?? false)
+    for (const [targetFile, builderClass] of builderClasses) {
+        const outBuilderFile = arkoala.builderClass(targetFile)
+        writeFile(outBuilderFile, builderClass, false, "producing [idl]")
+    }
+    const materialized = printMaterialized(peerLibrary, context, options.dumpSerialized ?? false)
+    for (const [targetFile, materializedClass] of materialized) {
+        const outMaterializedFile = arkoala.materialized(targetFile)
+        writeFile(outMaterializedFile, materializedClass, peerLibrary.language === Language.ARKTS, "producing [idl]")
+    }
+    writeFile(
+        arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
+        printNativeModuleEmpty(peerLibrary),
+        true, "producing [idl]"
+    )
+    writeFile(
+        arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
+        printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
+        true, "producing [idl]"
+    )
+    if (PeerGeneratorConfig.needInterfaces) {
+        const interfaces = printIdlInterfaces(peerLibrary, context)
+        for (const [targetFile, data] of interfaces) {
+            const outComponentFile = arkoala.interface(targetFile)
+            writeFile(outComponentFile, data, false, "producing [idl]")
+            arkuiComponentsFiles.push(outComponentFile)
+        }
+    }
+    const fakeDeclarations = printIdlFakeDeclarations(peerLibrary)
+    for (const [filename, data] of fakeDeclarations) {
+        const outComponentFile = arkoala.interface(new TargetFile(filename))
+        writeFile(outComponentFile, data, true, "producing [idl, fake]")
+        if (options.verbose) console.log(data)
+        arkuiComponentsFiles.push(outComponentFile)
+    }
+    writeFile(
+        arkoala.peer(new TargetFile('ArkUINodeType')),
+        printNodeTypes(peerLibrary)
+    )
+    writeFile(
+        arkoala.tsLib(new TargetFile('index')),
+        makeArkuiModule(arkuiComponentsFiles),
+    )
+    writeFile(
+        arkoala.tsLib(new TargetFile("peer_events")),
+        printEvents(peerLibrary),
+        true
+    )
+    writeFile(arkoala.peer(new TargetFile('Serializer')),
+        makeTSSerializer(peerLibrary),
+        true,
+    )
+    writeFile(arkoala.peer(new TargetFile('Deserializer')),
+        makeTSDeserializer(peerLibrary),
+        true,
+    )
+
+    // native code
+    writeFile(arkoala.native(new TargetFile('bridge_generated.cc')), printBridgeCcGenerated(peerLibrary, options.callLog ?? false), true)
+    writeFile(arkoala.native(new TargetFile('bridge_custom.cc')), printBridgeCcCustom(peerLibrary, options.callLog ?? false))
+
+    const { api, serializers } = printSerializers(options.apiVersion, peerLibrary)
+    writeFile(arkoala.native(new TargetFile('Serializers.h')), serializers, true)
+    writeFile(arkoala.native(new TargetFile('arkoala_api_generated.h')), api, true)
+
+    const modifiers = printRealAndDummyModifiers(peerLibrary)
+    const accessors = printRealAndDummyAccessors(peerLibrary)
+    writeFile(
+        arkoala.native(new TargetFile('dummy_impl.cc')),
+        dummyImplementations(modifiers.dummy, accessors.dummy, 1, options.apiVersion, 6).getOutput().join('\n'),
+    )
+    writeFile(
+        arkoala.native(new TargetFile('real_impl.cc')),
+        dummyImplementations(modifiers.real, accessors.real, 1, options.apiVersion, 6).getOutput().join('\n'),
+        true,
+    )
+    writeFile(arkoala.native(new TargetFile('all_events.cc'),), printEventsCArkoalaImpl(peerLibrary), true)
+    writeFile(arkoala.native(new TargetFile('library.cc')), libraryCcDeclaration())
+
+    copyArkoalaFiles(arkoala)
 }

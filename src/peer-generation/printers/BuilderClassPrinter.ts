@@ -8,6 +8,7 @@ import { PrinterContext } from "./PrinterContext";
 import { SuperElement } from "../Materialized";
 import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 
 interface BuilderClassFileVisitor {
     printFile(): void
@@ -37,7 +38,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         private readonly language: Language,
         private readonly builderClass: BuilderClass,
         private readonly dumpSerialized: boolean,
-        private readonly peerLibrary: PeerLibrary) { }
+        private readonly peerLibrary: PeerLibrary | IdlPeerLibrary) { }
 
     private printBuilderClass(builderClass: TSBuilderClass) {
         const writer = this.printer
@@ -47,7 +48,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         clazz.importFeatures.map(it => imports.addFeature(it.feature, it.module))
         if (clazz.superClass)
             imports.addFeature(clazz.superClass.name, "./" + renameClassToBuilderClass(clazz.superClass.name, writer.language, false))
-        const currentModule = removeExt(renameClassToBuilderClass(clazz.name, this.peerLibrary.declarationTable.language))
+        const currentModule = removeExt(renameClassToBuilderClass(clazz.name, this.peerLibrary.language))
         imports.print(this.printer, currentModule)
 
         const superType = clazz.superClass?.getSyperType()
@@ -230,7 +231,7 @@ class BuilderClassVisitor {
     readonly builderClasses: Map<TargetFile, string[]> = new Map()
 
     constructor(
-        private readonly library: PeerLibrary,
+        private readonly library: PeerLibrary | IdlPeerLibrary,
         private printerContext: PrinterContext, 
         private readonly dumpSerialized: boolean,
     ) { }
@@ -258,7 +259,7 @@ class BuilderClassVisitor {
     }
 }
 
-export function printBuilderClasses(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
+export function printBuilderClasses(peerLibrary: PeerLibrary | IdlPeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
     // TODO: support other output languages
     if (printerContext.language != Language.TS && printerContext.language != Language.ARKTS && printerContext.language != Language.JAVA) {
         return new Map()

@@ -22,7 +22,6 @@ export class IdlPeerClass implements PeerClassBase {
         public readonly file: IdlPeerFile,
         public readonly componentName: string,
         public readonly originalFilename: string,
-        // public readonly declarationTable: DeclarationTable
     ) { }
 
     setGenerationContext(context: string| undefined): void {}

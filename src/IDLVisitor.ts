@@ -249,7 +249,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     computeNamespaceAttribute(): IDLExtendedAttribute[] {
         const namespace = this.namespaces.join(',')
-        return namespace ? [{name: IDLExtendedAttributes.Namespace, value: `"${namespace}"`}] : []
+        return namespace ? [{name: IDLExtendedAttributes.Namespace, value: namespace}] : []
     }
 
     computeExtendedAttributes(

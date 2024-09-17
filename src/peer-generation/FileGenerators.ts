@@ -25,6 +25,7 @@ import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinte
 import { PeerLibrary } from "./PeerLibrary"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
 import { ImportsCollector } from "./ImportsCollector"
+import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -140,7 +141,7 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
     return result
 }
 
-export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
+export function appendViewModelBridge(library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let body = readTemplate('view_model_bridge.cc')
 
@@ -254,8 +255,8 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
-export function makeTSSerializer(library: PeerLibrary): string {
-    let printer = createLanguageWriter(library.declarationTable.language)
+export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary): string {
+    let printer = createLanguageWriter(library.language)
     const imports = new ImportsCollector()
     imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isPixelMap", "isResource", "isInstanceOf"], "./SerializerBase")
     imports.addFeatures(["int32"], "@koalaui/common")
@@ -279,7 +280,7 @@ export function makeCJSerializer(library: PeerLibrary): LanguageWriter {
     return result
 }
 
-export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
+export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
     const converter = createLanguageWriter(Language.CPP) as CppLanguageWriter
     converter.writeLines(cStyleCopyright)
     converter.writeLines(`/*
@@ -303,16 +304,18 @@ export function makeConverterHeader(path: string, namespace: string, library: Pe
     }
     converter.print("")
 
-    converter.pushNamespace(namespace, false)
-    converter.print("")
-    writeConvertors(library, converter)
-    converter.popNamespace(false)
+    if (library instanceof PeerLibrary) {
+        converter.pushNamespace(namespace, false)
+        converter.print("")
+        writeConvertors(library, converter)
+        converter.popNamespace(false)
+    }
     converter.print(`\n#endif // ${includeGuardDefine}`)
     converter.print("")
     return converter
 }
 
-export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
+export function makeCSerializers(library: PeerLibrary | IdlPeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
 
     const serializers = createLanguageWriter(Language.CPP)
     const writeToString = createLanguageWriter(Language.CPP)
@@ -320,7 +323,7 @@ export function makeCSerializers(library: PeerLibrary, structs: IndentedPrinter,
     writeSerializer(library, serializers)
     serializers.print("\n// Deserializers\n")
     writeDeserializer(library, serializers)
-    library.declarationTable.generateStructs(structs, typedefs, writeToString)
+    library.generateStructs(structs, typedefs, writeToString)
 
     return `
 #include "SerializerBase.h"
@@ -334,7 +337,7 @@ ${serializers.getOutput().join("\n")}
 `
 }
 
-export function makeTSDeserializer(library: PeerLibrary): string {
+export function makeTSDeserializer(library: PeerLibrary | IdlPeerLibrary): string {
     const deserializer = createLanguageWriter(Language.TS)
     writeDeserializer(library, deserializer)
     return `${cStyleCopyright}

@@ -52,7 +52,7 @@ export interface CallbackInfo extends CallbackInfoBase {
 export interface IdlCallbackInfo extends CallbackInfoBase {
     args: {name: string, type: idl.IDLType, nullable: boolean}[],
     returnType: idl.IDLType,
-    originTarget: idl.IDLType
+    originTarget: idl.IDLCallback | idl.IDLReferenceType
 }
 
 export function generateEventsBridgeSignature(language: Language): Method {
@@ -658,7 +658,7 @@ export function printEventsCArkoalaImpl(library: PeerLibrary | IdlPeerLibrary): 
     )
 }
 
-export function printEventsCLibaceImpl(library: PeerLibrary, options: { namespace: string}): string {
+export function printEventsCLibaceImpl(library: PeerLibrary | IdlPeerLibrary, options: { namespace: string}): string {
     const visitor = library instanceof PeerLibrary
         ? new CEventsVisitor(library, true) : new IdlCEventsVisitor(library, false)
     visitor.print()

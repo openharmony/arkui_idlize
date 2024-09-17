@@ -15,13 +15,14 @@
 
 import { IndentedPrinter } from "../../IndentedPrinter";
 import { makeNodeTypes } from "../FileGenerators";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { PeerLibrary } from "../PeerLibrary";
 
 class NodeTypesVisitor {
     readonly nodeTypes: IndentedPrinter = new IndentedPrinter()
 
     constructor(
-        private library: PeerLibrary,
+        private library: PeerLibrary | IdlPeerLibrary,
     ) {}
 
     print(): void {
@@ -33,7 +34,7 @@ class NodeTypesVisitor {
     }
 }
 
-export function printNodeTypes(peerLibrary: PeerLibrary): string {
+export function printNodeTypes(peerLibrary: PeerLibrary | IdlPeerLibrary): string {
     const visitor = new NodeTypesVisitor(peerLibrary)
     visitor.print()
     return makeNodeTypes(visitor.nodeTypes.getOutput())
