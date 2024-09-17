@@ -465,14 +465,10 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
             `_${method.originalParentName}_${method.overloadedName}`,
             params)
         
-        if (writer.language != Language.CJ) {
-            if (returnType != Type.Void) {
-                writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
-            } else {
-                writer.writeStatement(writer.makeStatement(call))
-            }
+        if (returnType != Type.Void) {
+            writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
         } else {
-            writer.print('NativeModule._TestPerfNumber(1337)')
+            writer.writeStatement(writer.makeStatement(call))
         }
         scopes.reverse().forEach(it => {
             writer.popIndent()

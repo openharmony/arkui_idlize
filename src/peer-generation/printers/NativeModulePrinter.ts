@@ -27,35 +27,32 @@ import { Language } from "../../util";
 class NativeModuleVisitor {
     readonly nativeModule: LanguageWriter
     readonly nativeModuleEmpty: LanguageWriter
-    readonly nativeFunctions?: LanguageWriter
+    nativeFunctions?: LanguageWriter
 
     constructor(
-        private readonly library: PeerLibrary | IdlPeerLibrary,
+        protected readonly library: PeerLibrary | IdlPeerLibrary,
     ) {
         this.nativeModule = createLanguageWriter(library.language)
         this.nativeModuleEmpty = createLanguageWriter(library.language)
-        if(library.language == Language.CJ) {
-            this.nativeFunctions = createLanguageWriter(library.language)
-        }
     }
 
-    private printPeerMethods(peer: PeerClass | IdlPeerClass) {
-        peer.methods.forEach(it => printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
+    protected printPeerMethods(peer: PeerClass | IdlPeerClass) {
+        peer.methods.forEach(it => this.printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
     }
 
-    private printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
+    protected printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
         this.library.materializedToGenerate.forEach(clazz => {
-            printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, Type.Pointer)
-            printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, Type.Pointer)
+            this.printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, Type.Pointer)
+            this.printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, Type.Pointer)
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
-                printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
+                this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
                     returnType?.isPrimitive() ? returnType : Type.Pointer)
             })
         })
     }
 
-    private printEventMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
+    protected printEventMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
         let method = generateEventsBridgeSignature(nativeModule.language)
         method = new Method(`_${method.name}`, method.signature, method.modifiers)
         nativeModule.writeNativeMethodDeclaration(method.name, method.signature)
@@ -63,6 +60,42 @@ class NativeModuleVisitor {
             writer.writePrintLog(method.name)
             writer.writeStatement(writer.makeReturn(new StringExpression(`0`)))
         })
+    }
+
+    printPeerMethod(clazz: PeerClassBase, method: PeerMethod | IdlPeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
+        returnType?: Type,
+        nativeFunctions?: LanguageWriter
+    ) {
+        const component = clazz.generatedName(method.isCallSignature)
+        clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
+        let serializerArgCreated = false
+        let args: ({name: string, type: string})[] = []
+        for (let i = 0; i < method.argConvertors.length; ++i) {
+            let it = method.argConvertors[i]
+            if (it.useArray) {
+                if (!serializerArgCreated) {
+                    const array = `thisSerializer`
+                    args.push({ name: `thisArray`, type: 'Uint8Array' }, { name: `thisLength`, type: 'int32' })
+                    serializerArgCreated = true
+                }
+            } else {
+                // TODO: use language as argument of interop type.
+                args.push({ name: `${it.param}`, type: it.interopType(nativeModule.language) })
+            }
+        }
+        let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: 'KPointer' }] : []
+        const parameters = NamedMethodSignature.make(returnType?.name ?? 'void', maybeReceiver.concat(args))
+        let name = `_${component}_${method.overloadedName}`
+
+        nativeModule.writeNativeMethodDeclaration(name, parameters)
+        
+        nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
+            printer.writePrintLog(name)
+            if (returnType !== undefined && returnType.name !== Type.Void.name) {
+                printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
+            }
+        })
+        clazz.setGenerationContext(undefined)
     }
 
     print(): void {
@@ -81,59 +114,65 @@ class NativeModuleVisitor {
     }
 }
 
-function printPeerMethod(clazz: PeerClassBase, method: PeerMethod | IdlPeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
-    returnType?: Type,
-    nativeFunctions?: LanguageWriter
-) {
-    const component = clazz.generatedName(method.isCallSignature)
-    clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
-    let serializerArgCreated = false
-    let args: ({name: string, type: string})[] = []
-    for (let i = 0; i < method.argConvertors.length; ++i) {
-        let it = method.argConvertors[i]
-        if (it.useArray) {
-            if (!serializerArgCreated) {
-                const array = `thisSerializer`
-                args.push({ name: `thisArray`, type: 'Uint8Array' }, { name: `thisLength`, type: 'int32' })
-                serializerArgCreated = true
-            }
-        } else {
-            // TODO: use language as argument of interop type.
-            args.push({ name: `${it.param}`, type: it.interopType(nativeModule.language) })
-        }
+class CJNativeModuleVisitor extends NativeModuleVisitor {
+    private arrayLikeTypes = new Set(['Uint8Array'])
+    private stringLikeTypes = new Set(['String'])
+
+    constructor(
+        protected readonly library: PeerLibrary | IdlPeerLibrary,
+    ) {
+        super(library)
+        this.nativeFunctions = createLanguageWriter(library.language)
     }
-    let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: 'KPointer' }] : []
-    const parameters = NamedMethodSignature.make(returnType?.name ?? 'void', maybeReceiver.concat(args))
-    let name = `_${component}_${method.overloadedName}`
-    if (nativeModule.language != Language.CJ) {
-        nativeModule.writeNativeMethodDeclaration(name, parameters)
-    } else {
+
+    override printPeerMethod(clazz: PeerClassBase, method: PeerMethod | IdlPeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
+        returnType?: Type,
+        nativeFunctions?: LanguageWriter
+    ) {
+        const component = clazz.generatedName(method.isCallSignature)
+        clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
+        let serializerArgCreated = false
+        let args: ({name: string, type: string})[] = []
+        for (let i = 0; i < method.argConvertors.length; ++i) {
+            let it = method.argConvertors[i]
+            if (it.useArray) {
+                if (!serializerArgCreated) {
+                    const array = `thisSerializer`
+                    args.push({ name: `thisArray`, type: 'Uint8Array' }, { name: `thisLength`, type: 'int32' })
+                    serializerArgCreated = true
+                }
+            } else {
+                // TODO: use language as argument of interop type.
+                args.push({ name: `${it.param}`, type: it.interopType(nativeModule.language) })
+            }
+        }
+        let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: 'KPointer' }] : []
+        const parameters = NamedMethodSignature.make(returnType?.name ?? 'void', maybeReceiver.concat(args))
+        let name = `_${component}_${method.overloadedName}`
         let nativeName = name.substring(1)
         nativeModule.writeMethodImplementation(new Method(name, parameters, [MethodModifier.PUBLIC, MethodModifier.STATIC]), (printer) => {
-            let functionCllArgs: Array<string> = []
-            const arrayLikeTypes = new Set(['Uint8Array'])
-            const stringLikeTypes = new Set(['String'])
-            printer.print('return unsafe {')
+            let functionCallArgs: Array<string> = []
+            printer.print('unsafe {')
             printer.pushIndent()
             for(let param of parameters.args) {
                 let ordinal = parameters.args.indexOf(param)
-                if (arrayLikeTypes.has(param.name)) {
-                    functionCllArgs.push(`handle_${ordinal}.pointer`)
+                if (this.arrayLikeTypes.has(param.name)) {
+                    functionCallArgs.push(`handle_${ordinal}.pointer`)
                     printer.print(`let handle_${ordinal} = acquireArrayRawData(${parameters.argsNames[ordinal]}.toArray())`)
-                } else if (stringLikeTypes.has(param.name)) {
-                    printer.print(`let ${parameters.argsNames[ordinal]} = unsafe { LibC.mallocCString(${parameters.argsNames[ordinal]}) }`)
-                    functionCllArgs.push(parameters.argsNames[ordinal])
+                } else if (this.stringLikeTypes.has(param.name)) {
+                    printer.print(`let ${parameters.argsNames[ordinal]} =  LibC.mallocCString(${parameters.argsNames[ordinal]})`)
+                    functionCallArgs.push(parameters.argsNames[ordinal])
                 } else {
-                    functionCllArgs.push(parameters.argsNames[ordinal])
+                    functionCallArgs.push(parameters.argsNames[ordinal])
                 }
             }
-            printer.print(`${new FunctionCallExpression(nativeName, functionCllArgs.map(it => printer.makeString(it))).asString()}`)
+            printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))).asString()}`)
             for(let param of parameters.args) {
                 let ordinal = parameters.args.indexOf(param)
-                if (arrayLikeTypes.has(param.name)) {
+                if (this.arrayLikeTypes.has(param.name)) {
                     printer.print(`releaseArrayRawData(handle_${ordinal})`)
-                } else if (stringLikeTypes.has(param.name)) {
-                    printer.print(`unsafe { LibC.free(${parameters.argsNames[ordinal]}) }`)
+                } else if (this.stringLikeTypes.has(param.name)) {
+                    printer.print(`LibC.free(${parameters.argsNames[ordinal]})`)
                 }
             }
             printer.popIndent()
@@ -142,20 +181,21 @@ function printPeerMethod(clazz: PeerClassBase, method: PeerMethod | IdlPeerMetho
         nativeFunctions!.pushIndent()
         nativeFunctions!.writeNativeMethodDeclaration(nativeName, parameters)
         nativeFunctions!.popIndent()
+
+        nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
+            printer.writePrintLog(name)
+            if (returnType !== undefined && returnType.name !== Type.Void.name) {
+                printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
+            }
+        })
+        clazz.setGenerationContext(undefined)
     }
-    
-    nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
-        printer.writePrintLog(name)
-        if (returnType !== undefined && returnType.name !== Type.Void.name) {
-            printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
-        }
-    })
-    clazz.setGenerationContext(undefined)
 }
+
 
 export function printNativeModule(peerLibrary: PeerLibrary | IdlPeerLibrary, nativeBridgePath: string): string {
     const lang = peerLibrary.language
-    const visitor = new NativeModuleVisitor(peerLibrary)
+    const visitor = (lang == Language.CJ) ? new CJNativeModuleVisitor(peerLibrary) : new NativeModuleVisitor(peerLibrary)
     visitor.print()
     return nativeModuleDeclaration(visitor.nativeModule, nativeBridgePath, false, lang, visitor.nativeFunctions)
 }

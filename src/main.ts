@@ -722,6 +722,14 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
 
         const writer = makeCJSerializer(peerLibrary)
         writer.printTo(arkoala.cjLib(new TargetFile('Serializer', '')))
+
+
+        writeFile(
+            arkoala.peer(new TargetFile('ArkUINodeType')),
+            printNodeTypes(peerLibrary),
+            true,
+        )
+
     }
 
     writeFile(arkoala.native(new TargetFile('bridge_generated.cc')), printBridgeCcGenerated(peerLibrary, options.callLog ?? false), true)

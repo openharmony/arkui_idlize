@@ -48,14 +48,14 @@ include_dirs = [
 ]
 
 sources = [
-    external_interop_dir / 'common-interop.cc',
     arkoala_dir / 'arkoala.cc',
-    arkoala_dir / 'custom.cc',
-    arkoala_dir / 'bridge_generated.cc',
-    arkoala_dir / 'bridge_custom.cc',
-    external_framework_dir / 'events.cc',
     arkoala_dir / 'all_events.cc',
-    arkoala_dir / 'library.cc'
+    arkoala_dir / 'bridge_custom.cc',
+    arkoala_dir / 'bridge_generated.cc',
+    arkoala_dir / 'custom.cc',
+    arkoala_dir / 'library.cc',
+    external_interop_dir / 'common-interop.cc',
+    external_framework_dir / 'events.cc',
 ]
 if compile_events_test
     sources += [
@@ -181,16 +181,6 @@ cj_sources = [
     external_interop_dir / 'cangjie/convertors-cj.cc',
     external_interop_dir / 'cangjie/convertors-cj.h',
 ]
-compilable_cj_sources = [
-    arkoala_dir / 'arkoala.cc',
-    arkoala_dir / 'bridge_custom.cc',
-    arkoala_dir / 'bridge_generated.cc',
-    arkoala_dir / 'library.cc',
-    arkoala_dir / 'dummy_impl.cc',
-    external_interop_dir / 'common-interop.cc',
-    external_interop_dir / 'cangjie/convertors-cj.cc',
-    external_interop_dir / 'cangjie/convertors-cj.h'
-]
 
 if is_jni
     jni_cflags = ['-DKOALA_USE_JAVA_VM', '-DKOALA_JNI']
@@ -222,7 +212,7 @@ endif
 
 if is_cj
 shared_library(cj_library_name,
-    compilable_cj_sources,
+    sources + cj_sources,
     override_options: [
         'b_lundef=false',
     ],
@@ -233,7 +223,8 @@ shared_library(cj_library_name,
     link_args: ldflags,
     dependencies: []
 )
-else
+endif
+
 shared_library(node_library_name,
     sources + node_sources,
     override_options: [
@@ -371,7 +362,6 @@ executable('test_converter',
     cpp_args: cflags,
     include_directories: include_dirs + [libace_dir + '/utility/generated']
 )
-endif
 endif
 
 

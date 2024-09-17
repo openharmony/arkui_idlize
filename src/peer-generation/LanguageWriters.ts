@@ -1787,7 +1787,7 @@ export class CJLanguageWriter extends LanguageWriter {
             case 'Length': return 'String'
             case 'void': return 'Unit'
             case 'double': return 'Float64'
-            case 'Uint8Array': return 'ArrayList<Int8>'
+            case 'Uint8Array': return 'ArrayList<UInt8>'
         }
         return super.mapType(type)
     }
@@ -1803,7 +1803,7 @@ export class CJLanguageWriter extends LanguageWriter {
             case 'Length': return 'CString'
             case 'void': return 'Unit'
             case 'double': return 'Float64'
-            case 'Uint8Array': return 'CPointer<Int8>'
+            case 'Uint8Array': return 'CPointer<UInt8>'
         }
         return super.mapType(type)
     }

@@ -135,6 +135,9 @@ class SerializerPrinter {
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(Type.Void, [], [])
                 break;
+            case Language.CJ:
+                ctorSignature = new NamedMethodSignature(Type.Void, [], [])
+                break;
         }
         const serializerDeclarations = generateSerializerDeclarationsTable(prefix, this.table)
         const serializerWriter = createLanguageWriter(this.writer.language)

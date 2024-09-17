@@ -35,15 +35,15 @@ foreign {
     func EndPerf(traceName: CString): Unit
     func DumpPerf(options: Int32): Int32
     func ManagedStringWrite(string: CString, buffer: CPointer<UInt8>, offset: Int32): Int32
-    // func SetEventsApi(): Unit
-    // func OnChildTouchTest(valueArray: CPointer<UInt8>, valueSerializerLength: Int32): Unit
-    // func OnScrollVisibleContentChange(valueArray: CPointer<UInt8>, valueSerializerLength: Int32): Unit
-    // func OnAccept(valueArray: CPointer<UInt8>, valueSerializerLength: Int32): Unit
-    // func TestCallIntNoArgs(arg: Int32): Int32
-    // func TestCallIntIntArraySum(arg1: Int32, arg2: CPointer<Int32>, arg3: Int32): Int32
-    // func TestCallVoidIntArrayPrefixSum(arg1: Int32, arg2: CPointer<Int32>, arg3: Int32): Unit
-    // func TestCallIntRecursiveCallback(arg1: Int32, arg2: CPointer<UInt8>, arg3: Int32): Int32
-    // func TestCallIntMemory(arg1: Int32, arg2: Int32): Int32
+    func SetEventsApi(): Unit
+    func OnChildTouchTest(valueArray: CPointer<UInt8>, valueSerializerLength: Int32): Unit
+    func OnScrollVisibleContentChange(valueArray: CPointer<UInt8>, valueSerializerLength: Int32): Unit
+    func OnAccept(valueArray: CPointer<UInt8>, valueSerializerLength: Int32): Unit
+    func TestCallIntNoArgs(arg: Int32): Int32
+    func TestCallIntIntArraySum(arg1: Int32, arg2: CPointer<Int32>, arg3: Int32): Int32
+    func TestCallVoidIntArrayPrefixSum(arg1: Int32, arg2: CPointer<Int32>, arg3: Int32): Unit
+    func TestCallIntRecursiveCallback(arg1: Int32, arg2: CPointer<UInt8>, arg3: Int32): Int32
+    func TestCallIntMemory(arg1: Int32, arg2: Int32): Int32
 
     // Node API
     func CreateNode(type_: Int32, id: Int32, flags: Int32): Int64
@@ -144,65 +144,65 @@ public open class NativeModule {
             return output
         }
     }
-    // public static func _SetEventsApi(): Unit {
-    //     unsafe { SetEventsApi() }
-    // }
-    // public static func _OnChildTouchTest(valueArray: ArrayList<UInt8>, valueSerializerLength: Int32): Unit {
-    //     unsafe {
-    //         let handle_1 = acquireArrayRawData(valueArray.toArray())
-    //         OnChildTouchTest(handle_1.pointer, valueSerializerLength)
-    //         releaseArrayRawData(handle_1)
-    //     }
-    // }
-    // public static func _OnScrollVisibleContentChange(valueArray: ArrayList<UInt8>, valueSerializerLength: Int32): Unit {
-    //     unsafe {
-    //         let handle_1 = acquireArrayRawData(valueArray.toArray())
-    //         OnChildTouchTest(handle_1.pointer, valueSerializerLength)
-    //         releaseArrayRawData(handle_1)
-    //     }
-    // }
-    // public static func _OnAccept(valueArray: ArrayList<UInt8>, valueSerializerLength: Int32): Unit {
-    //     unsafe {
-    //         let handle_1 = acquireArrayRawData(valueArray.toArray())
-    //         OnChildTouchTest(handle_1.pointer, valueSerializerLength)
-    //         releaseArrayRawData(handle_1)
-    //     }
-    // }
-    // public static func _TestCallIntNoArgs(arg: Int32): Int32 {
-    //     return unsafe {
-    //         TestCallIntNoArgs(arg)
-    //     }
-    // }
-    // public static func _TestCallIntIntArraySum(arg1: Int32, arg2: ArrayList<Int32>, arg3: Int32): Int32 {
-    //     unsafe {
-    //         let handle_1 = acquireArrayRawData(arg2.toArray())
-    //         let output = TestCallIntIntArraySum(arg1, handle_1.pointer, arg3)
-    //         releaseArrayRawData(handle_1)
-    //         return output
-    //     }
-    // }
-    // public static func _TestCallVoidIntArrayPrefixSum(arg1: Int32, arg2: ArrayList<Int32>, arg3: Int32): Unit {
-    //     unsafe {
-    //         let handle_1 = acquireArrayRawData(arg2.toArray())
-    //         let output = TestCallVoidIntArrayPrefixSum(arg1, handle_1.pointer, arg3)
-    //         releaseArrayRawData(handle_1)
-    //         return output
-    //     }
-    // }
-    // public static func _TestCallIntRecursiveCallback(arg1: Int32, arg2: ArrayList<UInt8>, arg3: Int32): Int32 {
-    //     unsafe {
-    //         let handle_1 = acquireArrayRawData(arg2.toArray())
-    //         let output = TestCallIntRecursiveCallback(arg1, handle_1.pointer, arg3)
-    //         releaseArrayRawData(handle_1)
-    //         return output
-    //     }
-    // }
-    // public static func _TestCallIntMemory(arg1: Int32, arg2: Int32): Int32 {
-    //     return unsafe {
-    //         TestCallIntMemory(arg1, arg2)
-    //     }
-    //     return 0
-    // }
+    public static func _SetEventsApi(): Unit {
+        unsafe { SetEventsApi() }
+    }
+    public static func _OnChildTouchTest(valueArray: ArrayList<UInt8>, valueSerializerLength: Int32): Unit {
+        unsafe {
+            let handle_1 = acquireArrayRawData(valueArray.toArray())
+            OnChildTouchTest(handle_1.pointer, valueSerializerLength)
+            releaseArrayRawData(handle_1)
+        }
+    }
+    public static func _OnScrollVisibleContentChange(valueArray: ArrayList<UInt8>, valueSerializerLength: Int32): Unit {
+        unsafe {
+            let handle_1 = acquireArrayRawData(valueArray.toArray())
+            OnChildTouchTest(handle_1.pointer, valueSerializerLength)
+            releaseArrayRawData(handle_1)
+        }
+    }
+    public static func _OnAccept(valueArray: ArrayList<UInt8>, valueSerializerLength: Int32): Unit {
+        unsafe {
+            let handle_1 = acquireArrayRawData(valueArray.toArray())
+            OnChildTouchTest(handle_1.pointer, valueSerializerLength)
+            releaseArrayRawData(handle_1)
+        }
+    }
+    public static func _TestCallIntNoArgs(arg: Int32): Int32 {
+        return unsafe {
+            TestCallIntNoArgs(arg)
+        }
+    }
+    public static func _TestCallIntIntArraySum(arg1: Int32, arg2: ArrayList<Int32>, arg3: Int32): Int32 {
+        unsafe {
+            let handle_1 = acquireArrayRawData(arg2.toArray())
+            let output = TestCallIntIntArraySum(arg1, handle_1.pointer, arg3)
+            releaseArrayRawData(handle_1)
+            return output
+        }
+    }
+    public static func _TestCallVoidIntArrayPrefixSum(arg1: Int32, arg2: ArrayList<Int32>, arg3: Int32): Unit {
+        unsafe {
+            let handle_1 = acquireArrayRawData(arg2.toArray())
+            let output = TestCallVoidIntArrayPrefixSum(arg1, handle_1.pointer, arg3)
+            releaseArrayRawData(handle_1)
+            return output
+        }
+    }
+    public static func _TestCallIntRecursiveCallback(arg1: Int32, arg2: ArrayList<UInt8>, arg3: Int32): Int32 {
+        unsafe {
+            let handle_1 = acquireArrayRawData(arg2.toArray())
+            let output = TestCallIntRecursiveCallback(arg1, handle_1.pointer, arg3)
+            releaseArrayRawData(handle_1)
+            return output
+        }
+    }
+    public static func _TestCallIntMemory(arg1: Int32, arg2: Int32): Int32 {
+        return unsafe {
+            TestCallIntMemory(arg1, arg2)
+        }
+        return 0
+    }
 
     // Node API
     public static func _CreateNode(type_: Int32, id: Int32, flags: Int32): Int64 {
