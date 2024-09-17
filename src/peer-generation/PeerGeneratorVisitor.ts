@@ -420,6 +420,11 @@ export class ArkTSTypeDepsCollector extends ImportsAggregateCollector {
         super(peerLibrary, expandAliases);
     }
 
+    override convertArray(node: ts.ArrayTypeNode): ts.Declaration[] {
+        this.peerLibrary.arrayTypeCheckeres.push(this.typeToStringConvertor.convert(node))
+        return super.convertArray(node)
+    }
+
     override convertLiteralType(node: ts.LiteralTypeNode): ts.Declaration[] {
         if ((ts.isUnionTypeNode(node.parent)
                 || ts.isTypeReferenceNode(node.parent)

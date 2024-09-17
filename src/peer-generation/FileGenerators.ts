@@ -26,6 +26,7 @@ import { PeerLibrary } from "./PeerLibrary"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
 import { ImportsCollector } from "./ImportsCollector"
 import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
+import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -270,6 +271,17 @@ ${printer.getOutput().join("\n")}
 
 export function createSerializer(): Serializer { return new Serializer() }
 `
+}
+
+export function makeTypeChecker(library: PeerLibrary): { arkts: string, ts: string } {
+    let arktsPrinter = createLanguageWriter(Language.ARKTS)
+    writeARKTSTypeCheckers(library, arktsPrinter)
+    let tsPrinter = createLanguageWriter(Language.TS)
+    writeTSTypeCheckers(library, tsPrinter)
+    return {
+        arkts: arktsPrinter.getOutput().join("\n"),
+        ts: tsPrinter.getOutput().join("\n"),
+    }
 }
 
 export function makeCJSerializer(library: PeerLibrary): LanguageWriter {

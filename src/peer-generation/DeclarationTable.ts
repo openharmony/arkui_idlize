@@ -107,7 +107,7 @@ export interface StructVisitor {
     visitInseparable(): void
 }
 
-class StructDescriptor {
+export class StructDescriptor {
     supers: DeclarationTarget[] = []
     deps = new Set<DeclarationTarget>()
     isPacked: boolean = false

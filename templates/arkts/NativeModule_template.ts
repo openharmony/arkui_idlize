@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { callCallback } from "./CallbackRegistry"
+import { callCallback } from "../CallbackRegistry"
 import { int32 } from "@koalaui/common"
 import { KInt, KPointer, KStringPtr, KUint8ArrayPtr } from "@koalaui/interop"
 

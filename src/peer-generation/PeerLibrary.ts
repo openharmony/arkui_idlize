@@ -59,6 +59,7 @@ export class PeerLibrary {
     readonly importTypesStubToSource: Map<string, string> = new Map()
     readonly componentsDeclarations: ComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<ts.Declaration> = new Set()
+    readonly arrayTypeCheckeres: string[] = []
 
     findPeerByComponentName(componentName: string): PeerClass | undefined {
         for (const file of this.files)

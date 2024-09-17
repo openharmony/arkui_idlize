@@ -14,7 +14,6 @@
  */
 
 import { pointer } from "@koalaui/interop"
-import { nativeModule } from "./NativeModule";
 
 export class Finalizable {
     public ptr: pointer

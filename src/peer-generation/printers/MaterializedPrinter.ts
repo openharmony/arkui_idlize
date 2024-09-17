@@ -82,9 +82,13 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         super(library, printerContext, clazz)
     }
 
+    protected collectImports(imports: ImportsCollector) {
+        this.clazz.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+    }
+
     private printImports() {
         const imports = new ImportsCollector()
-        this.clazz.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+        this.collectImports(imports)
         const currentModule = removeExt(renameClassToMaterialized(this.clazz.className, this.library.language))
         imports.print(this.printer, currentModule)
     }
@@ -358,6 +362,11 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
 }
 
 class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
+    protected collectImports(imports: ImportsCollector): void {
+        super.collectImports(imports)
+        imports.addFeature("TypeChecker", "#arkui")
+    }
+
     convertToPropertyType(field: MaterializedField): Type {
         return new Type(`${field.field.type.name}${field.isNullableOriginalTypeField ? "|undefined" : ""}`);
     }

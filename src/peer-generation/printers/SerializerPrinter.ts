@@ -40,6 +40,7 @@ function printSerializerImports(table: (ts.ClassDeclaration | ts.InterfaceDeclar
     if (writer.language === Language.ARKTS) {
         library.files.forEach(peer => peer.serializeImportFeatures
             .forEach(importFeature => convertorImportsCollector.addFeature(importFeature.feature, importFeature.module)))
+        convertorImportsCollector.addFeature("TypeChecker", "#arkui")
     }
     if ([Language.TS, Language.ARKTS].includes(writer.language))
         convertorImportsCollector.addFeature("KInt", "@koalaui/interop")

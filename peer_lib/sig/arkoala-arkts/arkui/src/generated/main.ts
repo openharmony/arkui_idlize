@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NativeModule, nativeModule } from "./NativeModule"
+import { NativeModule, nativeModule } from "#arkui"
 import { wrapCallback, callCallback } from "./CallbackRegistry"
 import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
@@ -40,7 +40,8 @@ import { BlurOptions,
          CustomBuilder,
          EdgeStyles,
          UIContext,
-         ScrollSizeMode } from "@arkoala/arkui/ArkCommonInterfaces"
+         ScrollSizeMode,
+         SheetKeyboardAvoidMode } from "@arkoala/arkui/ArkCommonInterfaces"
 import { Dimension,
          Length,
          LengthMetrics,
@@ -226,6 +227,7 @@ class SheetOptionsImpl implements SheetOptions {
     _onWillAppear: (() => void) | undefined
     _onWillDisappear: (() => void) | undefined
     _expandSafeAreaInEmbeddedMode: boolean | undefined
+    _keyboardAvoidMode: SheetKeyboardAvoidMode | undefined
 
     constructor(title?: SheetTitleOptions) {
         this._title = title
@@ -439,6 +441,13 @@ class SheetOptionsImpl implements SheetOptions {
     }
     set expandSafeAreaInEmbeddedMode(arg: boolean | undefined) {
         this._expandSafeAreaInEmbeddedMode = arg
+    }
+
+    get keyboardAvoidMode(): SheetKeyboardAvoidMode | undefined {
+        return this._keyboardAvoidMode
+    }
+    set keyboardAvoidMode(arg: SheetKeyboardAvoidMode | undefined) {
+        this._keyboardAvoidMode = arg
     }
 }
 

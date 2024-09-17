@@ -42,7 +42,7 @@ export function checkLoader(variant: string) {
         }
         case 'panda': {
             vm = 2
-            classPath = __dirname + "/../build/abc/subset/sig/arkoala-arkts/arkui/src"
+            classPath = __dirname + "/../build/abc/subset/sig/arkoala-arkts/arkui/src/generated"
             break
         }
     }

@@ -47,7 +47,7 @@ export class ImportsCollector {
     print(printer: LanguageWriter, currentModule: string) {
         const currentModuleDir = path.dirname(currentModule)
         this.moduleToFeatures.forEach((features, module) => {
-            if (!module.startsWith('@')) {
+            if (!module.startsWith('@') && !module.startsWith('#')) {
                 if (path.relative(currentModule, module) === "")
                     return
                 module = `./${path.relative(currentModuleDir, module)}`

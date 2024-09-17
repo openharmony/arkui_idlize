@@ -103,6 +103,8 @@ class PeerFileVisitor {
         }
         if (printer.language == Language.TS)
             imports.addFeature("unsafeCast", "./shared/generated-utils")
+        if (printer.language == Language.ARKTS)
+            imports.addFeature("TypeChecker", "#arkui")
         imports.addFeature("registerCallback", "./peers/SerializerBase")
         imports.addFeature("wrapCallback", "@koalaui/interop")
         if (this.library.language !== Language.ARKTS) {
@@ -222,7 +224,7 @@ class PeerFileVisitor {
             }
             case Language.ARKTS: {
                 return [...defaultPeerImports,
-                    `import { NativeModule } from "../NativeModule"`,]
+                    `import { NativeModule } from "#arkui"`,]
             }
             default: {
                 return []

@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 import { Language, identName, identNameWithNamespace, importTypeName } from "../util"
-import { DeclarationTable, FieldRecord, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters"
 import { mapType, TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
+import { makeArrayTypeCheckCall, makeInterfaceTypeCheckerCall } from "./printers/TypeCheckPrinter"
 
 function castToInt8(value: string, lang: Language): string {
     switch (lang) {
@@ -795,6 +796,8 @@ export class AggregateConvertor extends BaseArgConvertor {
         return this.members.map(it => it[0])
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        if (writer.language === Language.ARKTS)
+            return makeInterfaceTypeCheckerCall(value, this.aliasName!, this.members.map(it => it[0]), duplicates, writer)
         const uniqueFields = this.members.filter(it => !duplicates.has(it[0]))
         return this.discriminatorFromFields(value, writer, uniqueFields, it => it[0], it => it[1])
     }
@@ -833,6 +836,8 @@ export class InterfaceConvertor extends BaseArgConvertor {
         return this.table.targetStruct(this.declaration).getFields().map(it => it.name)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        if (writer.language === Language.ARKTS)
+            return makeInterfaceTypeCheckerCall(value, this.tsTypeName, this.table.targetStruct(this.declaration).getFields().map(it => it.name), duplicates, writer)
         // First, tricky special cases
         if (this.tsTypeName.endsWith("GestureInterface")) {
             const gestureType = this.tsTypeName.slice(0, -"GestureInterface".length)
@@ -1077,7 +1082,11 @@ export class ArrayConvertor extends BaseArgConvertor {
                 private type: ts.TypeNode,
                 private elementType: ts.TypeNode,
                 private typeNodeNameConvertor: TypeNodeNameConvertor | undefined) {
-        super(`Array<${typeNodeNameConvertor?.convert(elementType) ?? mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(
+            table.language === Language.ARKTS
+                ? typeNodeNameConvertor?.convert(type) ?? mapType(type)
+                : `Array<${typeNodeNameConvertor?.convert(elementType) ?? mapType(elementType)}>`,
+            [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = table.typeConvertor(param, elementType)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -1132,6 +1141,8 @@ export class ArrayConvertor extends BaseArgConvertor {
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        if (writer.language === Language.ARKTS && this.isArrayType)
+            return makeArrayTypeCheckCall(value, this.tsTypeName, writer)
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
             [writer.makeString(`${value} instanceof ${this.targetType(writer).name}`)])
     }

@@ -36,7 +36,8 @@ import {
     copyToLibace,
     libraryCcDeclaration,
     makeCJSerializer,
-    cStyleCopyright
+    cStyleCopyright,
+    makeTypeChecker
 } from "./peer-generation/FileGenerators"
 import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./peer-generation/printers/lang/JavaPrinters"
 import {
@@ -527,6 +528,7 @@ function writeFile(filename: string, content: string, integrated: boolean = fals
     if (integrated || !options.onlyIntegrated) {
         if (message)
             console.log(message, filename)
+        fs.mkdirSync(path.dirname(filename), { recursive: true })
         fs.writeFileSync(filename, content)
     }
 }
@@ -591,7 +593,13 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi")
         )
     }
-    else {
+    else if (lang === Language.ARKTS) {
+        writeFile(
+            arkoala.arktsLib(new TargetFile('NativeModule', 'arkts')),
+            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
+            true,
+        )
+    } else {
         writeFile(
             arkoala.langLib(new TargetFile('NativeModule')),
             printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
@@ -674,6 +682,14 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         )
         writeFile(arkoala.peer(new TargetFile('Serializer')),
             makeTSSerializer(peerLibrary),
+            true,
+        )
+        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')), 
+            makeTypeChecker(peerLibrary).arkts,
+            true,
+        )
+        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'ts')), 
+            makeTypeChecker(peerLibrary).ts,
             true,
         )
     }
@@ -764,18 +780,19 @@ function copyArkoalaFiles(arkoala: ArkoalaInstall) {
         'sig/arkoala/framework/native/src/generated/arkoala-macros.h',
         'sig/arkoala/arkui/src/peers/SerializerBase.ts',
         'sig/arkoala/arkui/src/peers/DeserializerBase.ts',
-        'sig/arkoala-arkts/arkui/src/interop.ts',
-        'sig/arkoala-arkts/arkui/src/runtime.ts',
-        'sig/arkoala-arkts/arkui/src/use_properties.ts',
-        'sig/arkoala-arkts/arkui/src/Finalizable.ts',
-        'sig/arkoala-arkts/arkui/src/CallbackRegistry.ts',
-        'sig/arkoala-arkts/arkui/src/ComponentBase.ts',
-        'sig/arkoala-arkts/arkui/src/PeerNode.ts',
-        'sig/arkoala-arkts/arkui/src/NativePeerNode.ts',
-        'sig/arkoala-arkts/arkui/src/peers/SerializerBase.ts',
-        'sig/arkoala-arkts/arkui/src/shared/ArkResource.ts',
-        'sig/arkoala-arkts/arkui/src/shared/dts-exports.ts',
-        'sig/arkoala-arkts/arkui/src/shared/generated-utils.ts',
+        'sig/arkoala-arkts/arkui/src/generated/use_properties.ts',
+        'sig/arkoala-arkts/arkui/src/generated/Finalizable.ts',
+        'sig/arkoala-arkts/arkui/src/generated/CallbackRegistry.ts',
+        'sig/arkoala-arkts/arkui/src/generated/ComponentBase.ts',
+        'sig/arkoala-arkts/arkui/src/generated/PeerNode.ts',
+        'sig/arkoala-arkts/arkui/src/generated/NativePeerNode.ts',
+        'sig/arkoala-arkts/arkui/src/generated/arkts/index.ts',
+        'sig/arkoala-arkts/arkui/src/generated/ts/index.ts',
+        'sig/arkoala-arkts/arkui/src/generated/ts/NativeModule.ts',
+        'sig/arkoala-arkts/arkui/src/generated/peers/SerializerBase.ts',
+        'sig/arkoala-arkts/arkui/src/generated/shared/ArkResource.ts',
+        'sig/arkoala-arkts/arkui/src/generated/shared/dts-exports.ts',
+        'sig/arkoala-arkts/arkui/src/generated/shared/generated-utils.ts',
     ])
 }
 

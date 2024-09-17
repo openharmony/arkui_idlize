@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { int32 } from "@koalaui/compat"
+import { int32 } from "@koalaui/common"
 import { KUint8ArrayPtr } from "@koalaui/interop"
 
 // todo: do we need an Uint8Array version?
@@ -39,7 +39,7 @@ class CallbackRegistry {
     constructor() {
         this.callbacks.set(0, new CallbackRecord(
             (args: KUint8ArrayPtr, length: int32): int32 => {
-                console.log(`Callback 0 called with args = ${args} and length = ${length}`)
+                // console.log(`Callback 0 called with args = ${args} and length = ${length}`)
                 throw new Error(`Null callback called`)
             }, false)
         )
@@ -53,7 +53,7 @@ class CallbackRegistry {
 
     call(id: int32, args: KUint8ArrayPtr, length: int32): int32 {
         if (!this.callbacks.has(id)) {
-            console.log(`Callback ${id} is not known`)
+            // console.log(`Callback ${id} is not known`)
             throw new Error(`Disposed or unwrapped callback called (id = ${id})`)
         }
         const record = this.callbacks.get(id)!

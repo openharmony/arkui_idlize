@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { float32, int32 } from "@koalaui/common"
-import { pointer } from "@koalaui/interop"
+import { float32, float64, int32, int8 } from "@koalaui/common"
+import { pointer, KUint8ArrayPtr, KBuffer } from "@koalaui/interop"
 import { Length, Resource } from "../ArkUnitsInterfaces"
-import { NativeModule } from "../NativeModule"
+import { NativeModule } from "#arkui"
 
 /**
  * Value representing possible JS runtime object type.
@@ -48,7 +48,7 @@ export class Tags {
     static OBJECT = 107
 }
 
-export function runtimeType(value: Object|String|number|undefined|null): int {
+export function runtimeType(value: Object|String|number|undefined|null): int32 {
     let type = typeof value
     if (type == "number") return RuntimeType.NUMBER
     if (type == "string") return RuntimeType.STRING
@@ -119,7 +119,7 @@ export class SerializerBase {
     private static cache = new SerializersCache(22)
 
     private position = 0
-    private buffer: byte[]
+    private buffer: KBuffer
 
     private static customSerializers: CustomSerializer | undefined = undefined
     static registerCustomSerializer(serializer: CustomSerializer) {
@@ -136,13 +136,13 @@ export class SerializerBase {
     resetCurrentPosition(): void { this.position = 0 }
 
     constructor() {
-        this.buffer = new byte[96]
+        this.buffer = new KBuffer(96)
     }
     static get<T extends SerializerBase>(factory: () => T, index: int32): T {
         return SerializerBase.cache.get<T>(factory, index)
     }
-    asArray(): byte[] {
-        return this.buffer
+    asArray(): KUint8ArrayPtr {
+        return this.buffer.buffer
     }
     length(): int32 {
         return this.position
@@ -156,9 +156,9 @@ export class SerializerBase {
         if (this.position > buffSize - value) {
             const minSize = this.position + value
             const resizedSize = Math.max(minSize, Math.round(3 * buffSize / 2))
-            let resizedBuffer = new byte[resizedSize]
+            let resizedBuffer = new KBuffer(resizedSize)
             for (let i = 0; i < this.buffer.length; i++) {
-                resizedBuffer[i] = this.buffer[i]
+                resizedBuffer.set(i, this.buffer.get(i))
             }
             this.buffer = resizedBuffer
         }
@@ -172,14 +172,14 @@ export class SerializerBase {
             }
             current = current!.next
         }
-        console.log(`Unsupported custom serialization for ${kind}, write undefined`)
+        // console.log(`Unsupported custom serialization for ${kind}, write undefined`)
         this.writeInt8(Tags.UNDEFINED as int32)
     }
     writeFunction(value: Object) {
         this.writeInt32(registerCallback(value))
     }
     writeTag(tag: int32): void {
-        this.buffer[this.position] = tag as byte
+        this.buffer.set(this.position, tag as int8)
         this.position++
     }
     writeNumber(value: number|undefined) {
@@ -189,7 +189,7 @@ export class SerializerBase {
             this.position++
             return
         }
-        if ((value as double) == Math.round(value)) {
+        if ((value as float64) == Math.round(value)) {
             this.writeTag(Tags.INT32)
             this.writeInt32(value as int32)
             return
@@ -200,14 +200,14 @@ export class SerializerBase {
     }
     writeInt8(value: int32) {
         this.checkCapacity(1)
-        this.buffer[this.position] = value as byte
+        this.buffer.set(this.position, value as int8)
         this.position += 1
     }
     private setInt32(position: int32, value: int32): void {
-        this.buffer[position + 0] = ((value      ) & 0xff) as byte
-        this.buffer[position + 1] = ((value >>  8) & 0xff) as byte
-        this.buffer[position + 2] = ((value >> 16) & 0xff) as byte
-        this.buffer[position + 3] = ((value >> 24) & 0xff) as byte
+        this.buffer.set(position + 0, ((value      ) & 0xff) as int8)
+        this.buffer.set(position + 1, ((value >>  8) & 0xff) as int8)
+        this.buffer.set(position + 2, ((value >> 16) & 0xff) as int8)
+        this.buffer.set(position + 3, ((value >> 24) & 0xff) as int8)
     }
     writeInt32(value: int32) {
         this.checkCapacity(4)
@@ -217,30 +217,33 @@ export class SerializerBase {
     writeFloat32(value: float32) {
         // TODO: this is wrong!
         this.checkCapacity(4)
-        this.buffer[this.position + 0] = ((value      ) & 0xff) as byte
-        this.buffer[this.position + 1] = ((value >>  8) & 0xff) as byte
-        this.buffer[this.position + 2] = ((value >> 16) & 0xff) as byte
-        this.buffer[this.position + 3] = ((value >> 24) & 0xff) as byte
+        this.buffer.set(this.position + 0, ((value      ) & 0xff) as int8)
+        this.buffer.set(this.position + 1, ((value >>  8) & 0xff) as int8)
+        this.buffer.set(this.position + 2, ((value >> 16) & 0xff) as int8)
+        this.buffer.set(this.position + 3, ((value >> 24) & 0xff) as int8)
         this.position += 4
     }
     writePointer(value: pointer) {
+        if (typeof value === "bigint")
+            // todo where it is possible to be called from?
+            throw new Error("Not implemented")
         this.checkCapacity(8)
-        this.buffer[this.position + 0] = ((value      ) & 0xff) as byte
-        this.buffer[this.position + 1] = ((value >>  8) & 0xff) as byte
-        this.buffer[this.position + 2] = ((value >> 16) & 0xff) as byte
-        this.buffer[this.position + 3] = ((value >> 24) & 0xff) as byte
-        this.buffer[this.position + 4] = ((value >> 32) & 0xff) as byte
-        this.buffer[this.position + 5] = ((value >> 40) & 0xff) as byte
-        this.buffer[this.position + 6] = ((value >> 48) & 0xff) as byte
-        this.buffer[this.position + 7] = ((value >> 56) & 0xff) as byte
+        this.buffer.set(this.position + 0, ((value      ) & 0xff) as int8)
+        this.buffer.set(this.position + 1, ((value >>  8) & 0xff) as int8)
+        this.buffer.set(this.position + 2, ((value >> 16) & 0xff) as int8)
+        this.buffer.set(this.position + 3, ((value >> 24) & 0xff) as int8)
+        this.buffer.set(this.position + 4, ((value >> 32) & 0xff) as int8)
+        this.buffer.set(this.position + 5, ((value >> 40) & 0xff) as int8)
+        this.buffer.set(this.position + 6, ((value >> 48) & 0xff) as int8)
+        this.buffer.set(this.position + 7, ((value >> 56) & 0xff) as int8)
         this.position += 8
     }
     writeBoolean(value: boolean|undefined) {
         this.checkCapacity(1)
         if (value == undefined) {
-            this.buffer[this.position] = RuntimeType.UNDEFINED as int32 as byte
+            this.buffer.set(this.position, RuntimeType.UNDEFINED as int32 as int8)
         } else {
-            this.buffer[this.position] = (value ? 1 : 0) as byte
+            this.buffer.set(this.position, (value ? 1 : 0) as int8)
         }
         this.position++
     }
@@ -249,7 +252,7 @@ export class SerializerBase {
     }
     writeString(value: string) {
         this.checkCapacity((4 + value.length * 4 + 1) as int32) // length, data
-        let encodedLength = NativeModule._ManagedStringWrite(value, this.buffer, this.position + 4)
+        let encodedLength = NativeModule._ManagedStringWrite(value, this.asArray(), this.position + 4)
         this.setInt32(this.position, encodedLength)
         this.position += encodedLength + 4
     }
