@@ -18,7 +18,11 @@ registry=https://repo.huaweicloud.com/repository/npm/
 strict-ssl=false
 lockfile=false
 @koalaui:registry=https://nexus.bz-openlab.ru:10443/repository/koala-npm/
-//nexus.bz-openlab.ru:10443/repository/koala-npm/:_auth=YOUR_KEY_HERE
+//nexus.bz-openlab.ru:10443/repository/koala-npm/:_auth=a29hbGEtcHViOnkzIW4wdGhlclAK
+```
+Using:
+```
+npx @azanat/idlize@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala --only-integrated
 ```
 
 Run:
