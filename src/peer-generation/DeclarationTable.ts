@@ -860,7 +860,9 @@ export class DeclarationTable {
 
         writeToString.print(`inline void WriteToString(string* result, enum ${enumName} value) {`)
         writeToString.pushIndent()
+        writeToString.print(`result->append("${enumName}(");`)
         writeToString.print(`WriteToString(result, (${PrimitiveType.Int32.getText()}) value);`)
+        writeToString.print(`result->append(")");`)
         writeToString.popIndent()
         writeToString.print(`}`)
 
@@ -1131,68 +1133,27 @@ export class DeclarationTable {
         let elementNativeType = convertor.nativeType(false)
         let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
 
-        printer.print(`inline void WriteToString(string* result, const ${name}* value, const std::string& ptrName = std::string()) {`)
-        printer.pushIndent()
-        printer.print(`result->append("{");`)
-        printer.print(`if (ptrName.empty()) {`)
-        printer.pushIndent()
-        printer.print(`int32_t count = value->length;`)
-        printer.print(`if (count > 0) result->append("{");`)
-        printer.print(`for (int i = 0; i < count; i++) {`)
-        printer.pushIndent()
-        printer.print(`if (i > 0) result->append(", ");`)
-        printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);`)
-        printer.popIndent()
-        printer.print(`}`)
-        printer.print(`if (count == 0) result->append("{}");`)
-        printer.print(`if (count > 0) result->append("}");`)
-        printer.popIndent()
-        printer.print(`} else {`)
-        printer.pushIndent()
-        printer.print(`result->append(ptrName + ".data()");`)
-        printer.popIndent()
-        printer.print(`}`)
-        printer.print(`result->append(", .length=");`)
-        printer.print(`result->append(std::to_string(value->length));`)
-        printer.print(`result->append("}");`)
-        printer.popIndent()
-        printer.print(`}`)
+        printer.print(
+`
+template <>
+inline void WriteToString(string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);
+
+inline void WriteToString(string* result, const ${name}* value) {
+    int32_t count = value->length;
+    
+    result->append("{.array=allocArray<${elementNativeType}, " + std::to_string(count) + ">({{");
+    for (int i = 0; i < count; i++) {
+        if (i > 0) result->append(", ");
+        WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);
     }
-
-    private generateStdArrayDefinition(name: string, target: DeclarationTarget, printer: LanguageWriter) {
-        if (target instanceof PrimitiveType) throw new Error("Impossible")
-        let elementType = ts.isArrayTypeNode(target)
-            ? target.elementType
-            : ts.isTypeReferenceNode(target) && target.typeArguments
-                ? target.typeArguments[0]
-                : undefined
-
-        if (!elementType) throw new Error("Impossible")
-        let convertor = this.typeConvertor("param", elementType)
-        let isPointerField = convertor.isPointerType()
-        let elementNativeType = convertor.nativeType(false)
-        let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
-
-        // Provide prototype of element printer.
-        printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);`)
-
-        // Printer.
-        printer.print(`inline void generateStdArrayDefinition(string* result, const ${name}* value) {`)
-        printer.pushIndent()
-        printer.print(`int32_t count = value->length;`)
-        printer.print(`result->append("std::array<${elementNativeType}, " + std::to_string(count) + ">{{");`)
-        printer.print(`for (int i = 0; i < count; i++) {`);
-        printer.pushIndent()
-        printer.print(`std::string tmp;`)
-        printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);`)
-        printer.print(`result->append(tmp);`);
-        printer.print(`result->append(", ");`)
-        printer.popIndent()
-        printer.print(`}`)
-        printer.print(`result->append("}}");`)
-        printer.popIndent()
-        printer.print(`}`)
+    result->append("}})");
+    
+    result->append(", .length=");
+    result->append(std::to_string(value->length));
+    
+    result->append("}");
+}
+`)
     }
 
     private generateMapWriteToString(name: string, target: DeclarationTarget, printer: LanguageWriter) {
@@ -1254,7 +1215,6 @@ export class DeclarationTable {
             isArray = identName(target.typeName) === "Array"
         }
         if (isArray) {
-            this.generateStdArrayDefinition(name, target, printer)
             this.generateArrayWriteToString(name, target, printer)
         } else if (isMap) {
             this.generateMapWriteToString(name, target, printer)

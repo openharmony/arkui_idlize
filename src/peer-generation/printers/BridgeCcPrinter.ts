@@ -15,7 +15,7 @@
 
 import { IndentedPrinter } from "../../IndentedPrinter";
 import { Language, capitalize, dropSuffix, isDefined } from "../../util";
-import { ArgConvertor, ArrayConvertor } from "../Convertors";
+import {ArgConvertor, EnumConvertor} from "../Convertors";
 import { PrimitiveType } from "../DeclarationTable";
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { createLanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
@@ -95,22 +95,13 @@ class BridgeCcVisitor {
         this.generatedApi.print('std::string _logData;')
         this.generatedApi.print('std::string _tmp;')
         this.generatedApi.print('static int _num = 0;')
-        this.generatedApi.print(`static int _array_num = 0;`);
         let varNames : string[] = new Array<string>()
         for (let i = 0; i < method.argConvertors.length; ++i) {
             let it = method.argConvertors[i]
             let name = this.generateApiArgument(it) // it.param + '_value'
-            if (it instanceof ArrayConvertor) {
-                this.generatedApi.print(`_tmp = "", generateStdArrayDefinition(&_tmp, ${name});`);
-                this.generatedApi.print(`_logData.append("  auto array" + std::to_string(_array_num) + " = " + _tmp + ";");`);
-                this.generatedApi.print(`_logData.append("\\n");`);
-                this.generatedApi.print(`_tmp = "", WriteToString(&_tmp, ${name}, "array" + std::to_string(_array_num));`)
-                this.generatedApi.print("_array_num += 1;")
-            } else {
-                this.generatedApi.print(`_tmp = "", WriteToString(&_tmp, ${name});`)
-            }
+            this.generatedApi.print(`_tmp = "", WriteToString(&_tmp, ${name});`)
             varNames.push(`var${BridgeCcVisitor.varCnt}`)
-            let ptrType = `const ${it.nativeType(false)}`
+            let ptrType = it instanceof EnumConvertor ? `const ${it.nativeType(false).replace("enum ", "")}` : `const ${it.nativeType(false)}`
             this.generatedApi.print(`_logData.append("  ${ptrType} ${varNames[i]}_" + std::to_string(_num) + " = " + _tmp + ";\\n");`)
             BridgeCcVisitor.varCnt += 1
         }

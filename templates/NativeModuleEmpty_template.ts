@@ -6,6 +6,12 @@ export class NativeModuleEmptyIntegrated implements NativeModuleIntegrated {
     _CleanCallbackDispatcher(): void {
         throw new Error("_CleanCallbackDispatcher")
     }
+    _StartNativeTest(testName: KStringPtr, index: KInt): void {
+        throw new Error("_StartNativeTest")
+    }
+    _StopNativeTest(index: KInt): void {
+        throw new Error("_StopNativeTest")
+    }
     _GetGroupedLog(index: KInt): KPointer {
         throw new Error("_GetResultString")
     }

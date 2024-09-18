@@ -53,6 +53,8 @@ export class NativeModule {
   static native _GetNodeFinalizer(): long;
   static native _GetPtrVectorSize(arg1: long): KInt;
   static native _GetPtrVectorElement(arg1: long, arg2: KInt): long;
+  static native _StartNativeTest(arg1: String, arg2: KInt): void;
+  static native _StopNativeTest(arg1: KInt): void;
   static native _GetGroupedLog(arg1: KInt): long;
   static native _StartGroupedLog(arg1: KInt): void;
   static native _StopGroupedLog(arg1: KInt): void;

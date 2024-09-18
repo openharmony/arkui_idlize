@@ -57,6 +57,8 @@ export interface InteropOps {
     _SetCallbackDispatcher(dispatcher: (id: int32, args: Uint8Array, length: int32) => int32): void
     _CleanCallbackDispatcher(): void
 
+    _StartNativeTest(testName: KStringPtr, index: KInt): void
+    _StopNativeTest(index: KInt): void
     _GetGroupedLog(index: KInt): KPointer
     _StartGroupedLog(index: KInt): void
     _StopGroupedLog(index: KInt): void

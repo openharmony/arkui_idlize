@@ -19,6 +19,14 @@ export function checkTestFailures() {
     }
 }
 
+export function startNativeTest(testName: string, group: number) {
+    nativeModule()._StartNativeTest(testName, group)
+}
+
+export function stopNativeTest(group: number) {
+    nativeModule()._StopNativeTest(group)
+}
+
 export function startNativeLog(group: number) {
     nativeModule()._StartGroupedLog(group)
 }
@@ -27,7 +35,7 @@ export function stopNativeLog(group: number) {
     nativeModule()._StopGroupedLog(group)
 }
 
-export function getNativeLog(group: number = TEST_GROUP_LOG): string {
+export function getNativeLog(group: number): string {
     return withStringResult(nativeModule()._GetGroupedLog(group))!
 }
 
@@ -35,7 +43,7 @@ export function checkResult(name: string, test: () => void, expected: string) {
     startNativeLog(TEST_GROUP_LOG)
     test()
     stopNativeLog(TEST_GROUP_LOG)
-    const out = getNativeLog()
+    const out = getNativeLog(TEST_GROUP_LOG)
     // remove out comments like /* some text */
     const actual =  out.replace(/\s?\/\*.*?\*\//g, "");
     if (reportTestFailures) {

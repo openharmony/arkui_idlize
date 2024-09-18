@@ -69,7 +69,8 @@ declare enum ThemeColorMode {
 }
 
 declare enum AdaptiveColor {
-    DEFAULT = 0,
+  DEFAULT = 0,
+  AVERAGE = 1,
 }
 
 declare interface BlurOptions {
