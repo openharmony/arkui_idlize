@@ -807,7 +807,7 @@ export class ClassConvertor extends InterfaceConvertor {
 }
 
 export class FunctionConvertor extends BaseArgConvertor {
-    constructor(private library: IdlPeerLibrary, param: string, protected type: idl.IDLCallback | idl.IDLReferenceType) {
+    constructor(private library: IdlPeerLibrary, param: string, protected type: idl.IDLReferenceType) {
         // TODO: pass functions as integers to native side.
         super("Function", [RuntimeType.FUNCTION], false, false, param)
     }
@@ -840,7 +840,7 @@ abstract class CallbackConvertor extends FunctionConvertor {
     constructor(
         library: IdlPeerLibrary,
         param: string,
-        type: idl.IDLCallback | idl.IDLReferenceType,
+        type: idl.IDLReferenceType,
         protected args: ArgConvertor[] = [],
         protected ret?: ArgConvertor) {
         super(library, param, type)
@@ -907,10 +907,13 @@ abstract class CallbackConvertor extends FunctionConvertor {
 }
 
 export class CallbackFunctionConvertor extends CallbackConvertor {
-    constructor(library: IdlPeerLibrary, param: string, type: idl.IDLCallback) {
+    constructor(library: IdlPeerLibrary, param: string, type: idl.IDLReferenceType) {
+        const decl = library.resolveTypeReference(type)
+        if (!(decl && idl.isCallback(decl)))
+            throw `Expected callback reference, got ${type.name}`
         super(library, param, type,
-            type.parameters.map(it => library.typeConvertor(it.name, it.type!)),
-            library.typeConvertor("", type.returnType!))
+            decl.parameters.map(it => library.typeConvertor(it.name, it.type!)),
+            library.typeConvertor("", decl.returnType!))
         this.tsTypeName = `(${this.args.map((it, i) => `arg_${i}: ${it.tsTypeName}`).join(", ")}) => ${this.ret!.tsTypeName}`
     }
 }

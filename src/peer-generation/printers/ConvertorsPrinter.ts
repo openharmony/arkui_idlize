@@ -1,4 +1,4 @@
-import { DeclarationTable } from "../DeclarationTable";
+import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { LanguageWriter } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 
@@ -6,13 +6,9 @@ export const SELECTOR_ID_PREFIX = "SELECTOR_ID_"
 
 class ConvertorsPrinter {
     constructor(
-        private readonly library: PeerLibrary,
+        private readonly library: PeerLibrary | IdlPeerLibrary,
         private readonly writer: LanguageWriter,
     ) {}
-
-    private get table(): DeclarationTable {
-        return this.library.declarationTable
-    }
 
     writeUnionConvertors() {
 
@@ -28,7 +24,7 @@ class ConvertorsPrinter {
         this.writer.print('void AssignOptionalTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        for (const [typename, selectors] of this.table.allUnionTypes()) {
+        for (const [typename, selectors] of this.library.allUnionTypes()) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignUnionTo(std::optional<T>& dst,`)
             this.writer.print(`                   const ${typename}& src)`)
@@ -37,7 +33,7 @@ class ConvertorsPrinter {
             this.writer.print(`switch (src.selector) {`)
             this.writer.pushIndent()
             selectors.forEach(selector => {
-                this.writer.print(`case ${SELECTOR_ID_PREFIX}${ selector.id - 1 }: AssignTo(dst, src.${ selector.name }); break;`)
+                this.writer.print(`case ${SELECTOR_ID_PREFIX}${selector.id}: AssignTo(dst, src.${selector.name}); break;`)
             })
             this.writer.print(`default:`)
             this.writer.print(`{`)
@@ -79,9 +75,8 @@ class ConvertorsPrinter {
         this.writer.popIndent()
         this.writer.print("}")
         this.writer.popIndent()
-        this.table.allUnionTypes()
         this.writer.pushIndent()
-        this.table.allOptionalTypes().forEach(optionalName => {
+        this.library.allOptionalTypes().forEach(optionalName => {
             this.writer.print(`ASSIGN_OPT(${optionalName})`)
         })
         //this.writer.popIndent()
@@ -94,7 +89,7 @@ class ConvertorsPrinter {
         this.writer.print('void AssignLiteralTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        for (const [name, fields] of this.table.allLiteralTypes()) {
+        for (const [name, fields] of this.library.allLiteralTypes()) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignLiteralTo(std::optional<T>& dst,`)
             this.writer.print(`                     const ${name}& src)`)
@@ -117,7 +112,7 @@ class ConvertorsPrinter {
     }
 }
 
-export function writeConvertors(library: PeerLibrary, writer: LanguageWriter) {
+export function writeConvertors(library: PeerLibrary | IdlPeerLibrary, writer: LanguageWriter) {
     const printer = new ConvertorsPrinter(library, writer)
     printer.print()
 }

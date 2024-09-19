@@ -18,28 +18,8 @@ import { getOrPut } from "../../util"
 import { IdlPeerClass } from "./IdlPeerClass"
 import { ImportFeature } from '../ImportsCollector'
 
-export class EnumEntity {
-    constructor(
-        public readonly name: string,
-        public readonly comment: string,
-        public readonly members: EnumMember[] = [],
-    ) {}
-    pushMember(name: string, comment: string, initializerText: string | undefined) {
-        this.members.push(new EnumMember(name, comment, initializerText))
-    }
-}
-
-class EnumMember {
-    constructor(
-        public readonly name: string,
-        public readonly comment: string,
-        public readonly initializerText: string | undefined,
-    ) {}
-}
-
 export class IdlPeerFile {
     readonly peers: Map<string, IdlPeerClass> = new Map()
-    readonly enums: EnumEntity[] = []
     readonly declarations: Set<idl.IDLEntry> = new Set()
     readonly importFeatures: ImportFeature[] = []
     readonly serializeImportFeatures: ImportFeature[] = []
@@ -49,6 +29,9 @@ export class IdlPeerFile {
         private readonly componentsToGenerate: Set<string>,
     ) {}
 
+    get enums(): idl.IDLEnum[] {
+        return this.entries.filter(it => idl.isEnum(it)) as idl.IDLEnum[]
+    }
     get peersToGenerate(): IdlPeerClass[] {
         const peers = Array.from(this.peers.values())
         if (!this.componentsToGenerate.size)
@@ -58,9 +41,5 @@ export class IdlPeerFile {
 
     getOrPutPeer(componentName: string) {
         return getOrPut(this.peers, componentName, () => new IdlPeerClass(this, componentName, this.originalFilename))
-    }
-
-    pushEnum(enumEntity: EnumEntity) {
-        this.enums.push(enumEntity)
     }
 }

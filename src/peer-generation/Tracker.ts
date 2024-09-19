@@ -20,12 +20,14 @@ import { IndentedPrinter } from "../IndentedPrinter";
 import { PeerClass } from "./PeerClass";
 import { MaterializedClass } from "./Materialized";
 import { EnumEntity } from './PeerFile';
+import { IdlPeerLibrary } from './idl/IdlPeerLibrary';
+import { IdlPeerClass } from './idl/IdlPeerClass';
 
 class TrackerVisitor {
     out = new IndentedPrinter()
 
     constructor(
-        protected library: PeerLibrary,
+        protected library: PeerLibrary | IdlPeerLibrary,
         protected track: Map<string, StatusRecord>
     ) { }
 
@@ -37,7 +39,7 @@ class TrackerVisitor {
         return '| |'
     }
 
-    printPeerClass(clazz: PeerClass): void {
+    printPeerClass(clazz: PeerClass | IdlPeerClass): void {
         let seen = new Set<string>()
         this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(clazz.componentName, "Component")}`)
         clazz.methods.forEach(method => {
@@ -149,7 +151,7 @@ function key(component: string, func: string): string {
     return `${component}:${func}`
 }
 
-export function generateTracker(outDir: string, peerLibrary: PeerLibrary, trackerStatus: string): void {
+export function generateTracker(outDir: string, peerLibrary: PeerLibrary | IdlPeerLibrary, trackerStatus: string): void {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
     let track = new Map<string, StatusRecord>()
     if (fs.existsSync(trackerStatus)) {

@@ -21,8 +21,8 @@ import { ArgConvertor, RetConvertor } from "./IdlArgConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { IdlPeerClass } from "./IdlPeerClass"
 import { IdlPeerMethod } from "./IdlPeerMethod"
-import { IdlPeerFile, EnumEntity } from "./IdlPeerFile"
-import { IdlPeerLibrary, ResourceDeclaration } from "./IdlPeerLibrary"
+import { IdlPeerFile } from "./IdlPeerFile"
+import { IdlPeerLibrary, ArkResource, ArkFunction } from "./IdlPeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
 import { convertDeclaration, convertType } from "./IdlTypeConvertor";
@@ -348,8 +348,8 @@ class PeersGenerator {
         if (idl.isReferenceType(type)) {
             if (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.Import)) {
                 switch (type.name) {
-                    case "Resource": return ResourceDeclaration
-                    case "Callback": return idl.createReferenceType("Function")
+                    case "Resource": return ArkResource
+                    case "Callback": return ArkFunction
                 }
             }
             const decl = this.library.resolveTypeReference(type)
@@ -614,17 +614,6 @@ export class IdlPeerProcessor {
         }
     }
 
-    private processEnum(decl: idl.IDLEnum) {
-        // TODO do we need this? Cannot we just put all IDLEnums from a peer file into Ark*Interface.ts?
-        const comment = decl.documentation ?? ""
-        const enumEntity = new EnumEntity(decl.name, comment)
-        decl.elements.forEach(child => {
-            const comment = child.documentation ?? ""
-            enumEntity.pushMember(child.name, comment, child.initializer?.toString())
-        })
-        this.library.findFileByOriginalFilename(decl.fileName ?? "MISSING_FILENAME")!.pushEnum(enumEntity)
-    }
-
     private generateActualComponents(): IdlComponentDeclaration[] {
         const components = this.library.componentsDeclarations
         if (!this.library.componentsToGenerate.size)
@@ -686,13 +675,8 @@ export class IdlPeerProcessor {
                 }
             }
 
-            if (!isActualDeclaration)
+            if (!isActualDeclaration || idl.isEnum(dep))
                 continue
-
-            if (idl.isEnum(dep)) {
-                this.processEnum(dep)
-                continue
-            }
 
             this.declDependenciesCollector.convert(dep).forEach(it => {
                 if (isSourceDecl(it) &&

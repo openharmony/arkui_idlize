@@ -53,6 +53,18 @@ export class PeerLibrary {
         this.declarationTable.generateStructs(structs, typedefs, writeToString)
     }
 
+    allUnionTypes(): Map<string, {id: number, name: string}[]> {
+        return this.declarationTable.allUnionTypes()
+    }
+
+    allLiteralTypes(): Map<string, string[]> {
+        return this.declarationTable.allLiteralTypes()
+    }
+
+    allOptionalTypes(): Set<string> {
+        return this.declarationTable.allOptionalTypes()
+    }
+
     readonly customComponentMethods: string[] = []
     // todo really dirty - we use it until we can generate interfaces
     // replacing import type nodes

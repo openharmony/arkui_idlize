@@ -814,13 +814,10 @@ export class DeclarationTable {
             }
 
             if (this.isMaybeWrapped(target, ts.isUnionTypeNode)) {
-                const selectors: Selector[] = []
-                this.targetStruct(target).getFields().forEach((field, index) => {
-                    if (index === 0) return
-                    selectors.push({ id: index, name: field.name })
-                })
-
-                unions.set(nameAssigned, selectors )
+                unions.set(nameAssigned,
+                    this.targetStruct(target).getFields().slice(1).map((field, index) => {
+                        return { id: index, name: field.name }
+                    }))
             }
         }
         return unions

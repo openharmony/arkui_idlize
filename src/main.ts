@@ -362,16 +362,13 @@ if (options.dts2peer) {
     const lang = Language.fromString(options.language ?? "ts")
 
     if (options.viaIdl) {
-        // For now, we only generate TS peers from IDL representation.
-        // In the future, more stuff will be generated from IDL, and more languages will be supported.
-        const tsCompileContext = new CompileContext()
         const idlLibrary = new IdlPeerLibrary(lang, toSet(options.generateInterface))
         // First convert DTS to IDL
         generate(
             options.inputDir,
             options.inputFile,
             generatedPeersDir,
-            (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options),
+            (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, new CompileContext(), options),
             {
                 compilerOptions: defaultCompilerOptions,
                 onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
@@ -400,38 +397,41 @@ if (options.dts2peer) {
                         options.generatorTarget == "all") {
                         generateLibaceFromIdl(outDir, idlLibrary)
                     }
+                    if (options.generatorTarget == "tracker") {
+                        generateTracker(outDir, idlLibrary, options.trackerStatus)
+                    }
                 }
             }
         )
-    }
-    if (options.apiPrefix !== undefined) {
-        PeerGeneratorConfig.cppPrefix = options.apiPrefix
-    }
-    const declarationTable = new DeclarationTable(options.language ?? "ts")
-    const peerLibrary = new PeerLibrary(declarationTable, toSet(options.generateInterface))
+    } else {
+        // Generate stuff the old way, directly from DTS files
+        if (options.apiPrefix !== undefined) {
+            PeerGeneratorConfig.cppPrefix = options.apiPrefix
+        }
+        const declarationTable = new DeclarationTable(options.language ?? "ts")
+        const peerLibrary = new PeerLibrary(declarationTable, toSet(options.generateInterface))
 
-    generate(
-        options.inputDir,
-        undefined,
-        generatedPeersDir,
-        (sourceFile, typeChecker) => new PeerGeneratorVisitor({
-            sourceFile: sourceFile,
-            typeChecker: typeChecker,
-            declarationTable,
-            peerLibrary
-        }),
-        {
-            compilerOptions: defaultCompilerOptions,
-            onBegin(outDir, typeChecker) {
-                declarationTable.typeChecker = typeChecker
-            },
-            onEnd(outDir: string) {
-                let lang = declarationTable.language
-                const peerProcessor = new PeerProcessor(peerLibrary)
-                peerProcessor.process()
-                declarationTable.analyze(peerLibrary)
+        generate(
+            options.inputDir,
+            undefined,
+            generatedPeersDir,
+            (sourceFile, typeChecker) => new PeerGeneratorVisitor({
+                sourceFile: sourceFile,
+                typeChecker: typeChecker,
+                declarationTable,
+                peerLibrary
+            }),
+            {
+                compilerOptions: defaultCompilerOptions,
+                onBegin(outDir, typeChecker) {
+                    declarationTable.typeChecker = typeChecker
+                },
+                onEnd(outDir: string) {
+                    let lang = declarationTable.language
+                    const peerProcessor = new PeerProcessor(peerLibrary)
+                    peerProcessor.process()
+                    declarationTable.analyze(peerLibrary)
 
-                if (!options.viaIdl) {
                     if (options.generatorTarget == "arkoala" ||
                         options.generatorTarget == "all") {
                         generateArkoala(outDir, peerLibrary, lang)
@@ -441,14 +441,14 @@ if (options.dts2peer) {
                         options.generatorTarget == "all") {
                         generateLibace(outDir, peerLibrary)
                     }
-                }
 
-                if (options.generatorTarget == "tracker") {
-                    generateTracker(outDir, peerLibrary, options.trackerStatus)
+                    if (options.generatorTarget == "tracker") {
+                        generateTracker(outDir, peerLibrary, options.trackerStatus)
+                    }
                 }
             }
-        }
-    )
+        )
+    }
     didJob = true
 }
 

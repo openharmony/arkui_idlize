@@ -26,6 +26,7 @@ import { PrinterContext } from '../printers/PrinterContext'
 import { convertDeclaration, DeclarationConvertor } from "./IdlTypeConvertor";
 import { makeSyntheticDeclarationsFiles } from './IdlSyntheticDeclarations'
 import { cStyleCopyright } from '../FileGenerators'
+import { EnumEntity } from '../PeerFile'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -120,12 +121,20 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         if (peerFile.enums.length != 0) {
             writer.print(`Object.assign(globalThis, {`)
             writer.pushIndent()
-            for (const enumEntity of peerFile.enums) {
-                writer.print(`${enumEntity.name}: ${enumEntity.name},`)
+            for (const e of peerFile.enums) {
+                writer.print(`${e.name}: ${e.name},`)
             }
             writer.popIndent()
             writer.print(`})`)
         }
+    }
+
+    private toEnumEntity(enumDecl: idl.IDLEnum): EnumEntity {
+        const entity = new EnumEntity(enumDecl.name, enumDecl.documentation ?? "")
+        for (let elem of enumDecl.elements) {
+            entity.pushMember(elem.name, elem.documentation ?? "", elem.initializer?.toString())
+        }
+        return entity
     }
 
     printInterfaces() {
@@ -134,7 +143,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
             const typeConvertor = new TSDeclConvertor(writer, this.peerLibrary)
             this.printImports(writer, file)
             file.declarations.forEach(it => convertDeclaration(typeConvertor, it))
-            file.enums.forEach(it => writer.writeStatement(writer.makeEnumEntity(it, true)))
+            file.enums.forEach(it => writer.writeStatement(writer.makeEnumEntity(this.toEnumEntity(it), true)))
             this.printAssignEnumsToGlobalScope(writer, file)
             this.interfaces.set(new TargetFile(this.generateFileBasename(file.originalFilename)), writer)
         }
