@@ -654,6 +654,7 @@ function main() {
 #include <array>
 #include <memory>
 #include <cassert>
+#include <cstddef>
 
 namespace OHOS::Ace::NG::GeneratedModifier {
     EXTERN_C IDLIZE_API_EXPORT const GENERATED_ArkUIAnyAPI* GENERATED_GetArkAnyAPI(GENERATED_Ark_APIVariantKind kind, int version);
