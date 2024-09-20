@@ -154,24 +154,32 @@ export function getExportedDeclarationNameByNode(typechecker: ts.TypeChecker, no
     return getExportedDeclarationNameByDecl(declarations[0])
 }
 
+function hasModifier(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined, modifier: ts.SyntaxKind): boolean {
+    return modifierLikes?.find(it => it.kind === modifier) != undefined
+}
+
 export function isReadonly(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined): boolean {
-    return modifierLikes?.find(it => it.kind == ts.SyntaxKind.ReadonlyKeyword) != undefined
+    return hasModifier(modifierLikes, ts.SyntaxKind.ReadonlyKeyword)
 }
 
 export function isExport(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined): boolean {
-    return modifierLikes?.find(it => it.kind == ts.SyntaxKind.ExportKeyword) != undefined
+    return hasModifier(modifierLikes, ts.SyntaxKind.ExportKeyword)
+}
+
+export function isAbstract(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined): boolean {
+    return hasModifier(modifierLikes, ts.SyntaxKind.AbstractKeyword)
 }
 
 export function isStatic(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined): boolean {
-    return modifierLikes?.find(it => it.kind == ts.SyntaxKind.StaticKeyword) != undefined
+    return hasModifier(modifierLikes, ts.SyntaxKind.StaticKeyword)
 }
 
 export function isPrivate(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined) {
-    return modifierLikes?.find(it => it.kind == ts.SyntaxKind.PrivateKeyword) != undefined
+    return hasModifier(modifierLikes, ts.SyntaxKind.PrivateKeyword)
 }
 
 export function isProtected(modifierLikes: ts.NodeArray<ts.ModifierLike> | undefined) {
-    return modifierLikes?.find(it => it.kind == ts.SyntaxKind.ProtectedKeyword) != undefined
+    return hasModifier(modifierLikes, ts.SyntaxKind.ProtectedKeyword)
 }
 
 export function getLineNumberString(sourceFile: ts.SourceFile, position: number): string {

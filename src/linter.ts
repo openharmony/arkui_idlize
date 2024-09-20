@@ -21,6 +21,7 @@ import {
     getDeclarationsByNode,
     getLineNumberString,
     identName,
+    isAbstract,
     isCommonMethodOrSubclass,
     nameOrNull,
     zip
@@ -122,7 +123,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (allInheritCount > 1) {
             this.report(clazz, LinterError.MULTIPLE_INHERITANCE, `Multiple inheritance for class ${asString(clazz.name)}`)
         }
-        if (clazz.members.every(ts.isConstructorDeclaration) && allInheritCount == 0) {
+        if (clazz.members.every(ts.isConstructorDeclaration) && allInheritCount == 0 && !isAbstract(clazz.modifiers)) {
             this.report(clazz, LinterError.INCORRECT_DATA_CLASS, `Data class ${identName(clazz.name)} declared wrong way: use class/interface with fields`)
         }
         clazz.members.forEach(child => {
@@ -499,7 +500,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
     }
 
     private checkEmpty(node: ts.InterfaceDeclaration | ts.ClassDeclaration) {
-        if (node.heritageClauses === undefined && node.members.length === 0) {
+        if (node.heritageClauses === undefined && node.members.length === 0 && !isAbstract(node.modifiers)) {
             this.report(
                 node,
                 LinterError.EMPTY_DECLARATION,
