@@ -23,6 +23,8 @@ import { EnumEntity } from './PeerFile';
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary';
 import { IdlPeerClass } from './idl/IdlPeerClass';
 
+const STATUSES = ["Total", "In Progress", "Done", "Blocked"]
+
 class TrackerVisitor {
     out = new IndentedPrinter()
 
@@ -66,53 +68,53 @@ class TrackerVisitor {
     }
 
     printStats() {
-        let allComponents = [0, 0, 0, 0]
-        let allMaterialized = [0, 0, 0, 0]
-        let allFunctions = [0, 0, 0, 0]
+        let allComponents = Array(STATUSES.length).fill(0)
+        let allMaterialized = Array(STATUSES.length).fill(0)
+        let allFunctions = Array(STATUSES.length).fill(0)
 
         this.library.files.forEach(file => {
             file.peers.forEach(component => {
-                allComponents[0]++
                 const compKey = key(component.componentName, "Component")
-                this.incStatus(compKey, "In Progress", 1, allComponents)
-                this.incStatus(compKey, "Done", 2, allComponents)
-                this.incStatus(compKey, "Blocked", 3, allComponents)
+                this.incAllStatus(compKey, allComponents)
                 component.methods.forEach(method => {
-                    allFunctions[0]++
                     const funcKey = key(component.componentName, method.method.name)
-                    this.incStatus(funcKey, "In Progress", 1, allFunctions)
-                    this.incStatus(funcKey, "Done", 2, allFunctions)
-                    this.incStatus(funcKey, "Blocked", 3, allFunctions)
+                    this.incAllStatus(funcKey, allFunctions)
                 })
             })
         })
         this.library.materializedClasses.forEach(clazz => {
-            allMaterialized[0]++
             const classKey = key(clazz.className, "Class")
-            this.incStatus(classKey, "In Progress", 1, allMaterialized)
-            this.incStatus(classKey, "Done", 2, allMaterialized)
-            this.incStatus(classKey, "Blocked", 3, allMaterialized)
+            this.incAllStatus(classKey, allMaterialized)
             clazz.methods.forEach(method => {
-                allFunctions[0]++
                 const funcKey = key(clazz.className, method.method.name)
-                this.incStatus(funcKey, "In Progress", 1, allFunctions)
-                this.incStatus(funcKey, "Done", 2, allFunctions)
-                this.incStatus(funcKey, "Blocked", 3, allFunctions)
+                this.incAllStatus(funcKey, allFunctions)
             })
         })
 
         this.out.print(`| Status       | Components | Classes | Functions |`)
         this.out.print(`| -----------  | ---------- | ------- | --------- |`)
-        this.out.print(`| Total        | ${allComponents[0]}      | ${allMaterialized[0]}     | ${allFunctions[0]}     |`)
-        this.out.print(`| In Progress  | ${allComponents[1]}      | ${allMaterialized[1]}     | ${allFunctions[1]}     |`)
-        this.out.print(`| Done         | ${allComponents[2]}      | ${allMaterialized[2]}     | ${allFunctions[2]}     |`)
-        this.out.print(`| Blocked      | ${allComponents[3]}      | ${allMaterialized[3]}     | ${allFunctions[3]}     |`)
+        STATUSES.forEach((status, i) => {
+            this.out.print(`| ${status.padEnd(12)} | ${allComponents[i]}      | ${allMaterialized[i]}     | ${allFunctions[i]}     |`)
+        })
     }
 
-    incStatus(key: string, status: string, index: number, counter: number[]) {
-        let track = this.track.get(key)
-        if (track && equalsIgnoreCase(track.status, status)) {
+    incAllStatus(key: string, counter: number[]) {
+        counter[0]++
+        const statusRecord = this.track.get(key)
+        if (!statusRecord) return
+        const updated = { flag: false }
+        STATUSES.slice(1).forEach((status, index) => {
+            this.incStatus(statusRecord, status, index + 1, counter, updated)
+        })
+        if (!updated.flag) {
+            console.log(`Unknown status "${statusRecord.status}" for key ${key}`)
+        }
+    }
+
+    incStatus(record: StatusRecord, status: string, index: number, counter: number[], updated: { flag: boolean }) {
+        if (record && startsIgnoreCase(record.status, status)) {
             counter[index]++
+            updated.flag = true
         }
     }
 
@@ -180,8 +182,8 @@ export function generateTracker(outDir: string, peerLibrary: PeerLibrary | IdlPe
     visitor.out.printTo(path.join(outDir, "COMPONENTS.md"))
 }
 
-function  equalsIgnoreCase(str1: string, str2: string): boolean {
-    return str1.toLowerCase() == str2.toLowerCase()
+function  startsIgnoreCase(str1: string, str2: string): boolean {
+    return str1.trim().toLowerCase().startsWith(str2.trim().toLowerCase())
 }
 
 function trimName(key: string): string {
