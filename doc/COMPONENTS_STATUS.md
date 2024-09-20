@@ -1,4 +1,4 @@
-| Component | Function | Owner | Status (done=implemented **with** UT, blocked UT=implemented **without** UT, blocked ArKoala/on review/in progress - by meaning|
+| Component | Function | Owner | Status (done=implemented **with** UT, blocked UT=implemented **without** UT, blocked ArKoala/in progress - by meaning|
 | --------- | -------- | ----- | ------ |
 |*Blank*| *Component* | Skroba Gleb | done |
 |`setBlankOptions`| Function | Skroba Gleb | done |
