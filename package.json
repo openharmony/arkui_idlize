@@ -112,6 +112,7 @@
     "run:dummy-panda:panda": "rimraf build && npm run make:arkts && bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-application.json && npm run compile:native-node-host-arkts-subset && LD_LIBRARY_PATH=./native PANDA_LIB_PATH=./build/abc/subset/sig/arkoala-arkts/arkui/src/generated/ bash ./external/incremental/tools/panda/arkts/ark --ark-boot-files ./build/abc/subset/sig/arkoala-arkts/arkui/src/generated ./build/abc/subset/sig/arkoala-arkts/arkui/src/generated/Application.abc",
     "run:app:java": "npm run compile:dummy-panda && node lib/loader.js java",
     "run:app:panda": "npm run rollup:host:subset && cross-env mode=subset rollup -c rollup.config.dummy-panda.mjs && npm run make:arkts && bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-application.json && npm run compile:native-node-host-arkts-subset && LD_LIBRARY_PATH=./native PANDA_HOME=./external/incremental/tools/panda/node_modules/@panda/sdk node lib/loader.js panda",
+    "run:es2panda": "npm run compile && npm run compile:dummy-panda && node lib/loader.js es2panda",
     "compile:native-ohos-subset-arm32": "npm run check:subset && node ./native/nativeBuild.mjs subset arm32",
     "compile:native-ohos-subset-arm64": "npm run check:subset && node ./native/nativeBuild.mjs subset arm64",
     "compile:native-ohos-full-arm32": "npm run check:peers && node ./native/nativeBuild.mjs full arm32",

@@ -35,8 +35,8 @@ const mode = process.env.mode
 
 console.log(`rollup args: mode = ${mode}`)
 const generatedDir = `out`
-const arkoalaArkuiSrcDir = `${generatedDir}/ts-subset/generated/sig/arkoala/arkui/src`
-const tsconfigFile = path.resolve(`${generatedDir}/ts-subset/tsconfig.json`)
+const arkoalaArkuiSrcDir = `peer_lib/sig/arkoala/arkui/src`
+const tsconfigFile = path.resolve(`tsconfig-loader.json`)
 const outDir = path.resolve('lib')
 
 const ENABLE_SOURCE_MAPS = true;  // Enable for debugging

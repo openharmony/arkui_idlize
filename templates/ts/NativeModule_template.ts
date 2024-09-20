@@ -85,7 +85,7 @@ export interface GraphicsOps {
 }
 
 export interface LoaderOps {
-    _LoadVirtualMachine(vmKind: KInt, appClassPath: String, appLibPath: String): KInt
+    _LoadVirtualMachine(vmKind: KInt, appClassPath: string, appLibPath: string): KInt
     _StartApplication(): KInt
     _RunApplication(arg0: KInt, arg1: KInt): KInt
 }

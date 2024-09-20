@@ -106,4 +106,6 @@ public class NativeModule {
   static native int _LoadVirtualMachine(int vmKind, String appClassPath, String appLibPath);
   static native int _StartApplication();
   static native int _RunApplication(int arg0, int arg1);
+  static native void _StartNativeTest(String testName, int index);
+  static native void _StopNativeTest(int index);
 }
