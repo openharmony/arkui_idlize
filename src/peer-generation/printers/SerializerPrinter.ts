@@ -171,6 +171,7 @@ class IdlSerializerPrinter {
     private generateSerializer(target: idl.IDLInterface, prefix: string = "") {
         const name = this.library.computeTargetName(target, false, prefix)
         const methodName = target.name
+        this.library.setCurrentContext(`write${methodName}()`)
         this.writer.writeMethodImplementation(
             new Method(`write${methodName}`,
                 new NamedMethodSignature(Type.Void, [new Type(name)], ["value"])),
@@ -187,6 +188,7 @@ class IdlSerializerPrinter {
                     typeConvertor.convertorSerialize(`value`, field, writer)
                 })
             })
+        this.library.setCurrentContext(undefined)
     }
 
     print() {

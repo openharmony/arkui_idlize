@@ -362,6 +362,7 @@ if (options.dts2peer) {
     const lang = Language.fromString(options.language ?? "ts")
 
     if (options.viaIdl) {
+        options.docs = "all"
         const idlLibrary = new IdlPeerLibrary(lang, toSet(options.generateInterface))
         // First convert DTS to IDL
         generate(

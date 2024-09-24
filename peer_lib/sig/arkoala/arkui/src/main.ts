@@ -235,9 +235,9 @@ function checkButton() {
                 title: { id: 43, type: 2000, bundleName: "MyApp", moduleName: "MyApp", params: ["param1", "param2"] }
             }
         }),
-        `bindSheet({.tag=ARK_TAG_OBJECT, .value=false}, {.selector=0, .value0={.id=4}}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=1, .value1={.id={.tag=102, .i32=43}, .type={.tag=102, .i32=2000}, .moduleName={.chars="MyApp", .length=5}, .bundleName={.chars="MyApp", .length=5}, .params={.tag=ARK_TAG_OBJECT, .value={{{.chars="param1", .length=6}, {.chars="param2", .length=6}}, .length=2}}}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .scrollSizeMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .expandSafeAreaInEmbeddedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}, .keyboardAvoidMode={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
+        `bindSheet({.tag=ARK_TAG_OBJECT, .value=false}, {.selector=0, .value0={.id=4}}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=1, .value1={.id={.tag=102, .i32=43}, .type={.tag=102, .i32=2000}, .moduleName={.chars="MyApp", .length=5}, .bundleName={.chars="MyApp", .length=5}, .params={.tag=ARK_TAG_OBJECT, .value={.array=allocArray<Ark_String, 2>({{{.chars="param1", .length=6}, {.chars="param2", .length=6}}}), .length=2}}}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .scrollSizeMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .expandSafeAreaInEmbeddedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}, .keyboardAvoidMode={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
-    checkResult("type", () => peer.typeAttribute(1), "type(1)")
+    checkResult("type", () => peer.typeAttribute(1), "type(Ark_ButtonType(1))")
     checkResult("labelStyle", () => peer.labelStyleAttribute({ maxLines: 3 }),
         "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
     checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
@@ -253,11 +253,10 @@ function checkCalendar() {
 
     let peer = ArkCalendarPickerPeer.create(ArkUINodeType.CalendarPicker)
     checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, { dx: 5, dy: 6 }),
-        `edgeAlign(2, {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5.000000, .unit=1, .resource=0}, .dy={.type=1, .value=6.000000, .unit=1, .resource=0}}})`
-    )
+        `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5.000000, .unit=1, .resource=0}, .dy={.type=1, .value=6.000000, .unit=1, .resource=0}}})`)
     checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2),
-       `edgeAlign(2, {.tag=ARK_TAG_UNDEFINED, .value={}})`
-    )
+        `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_UNDEFINED, .value={}})`)
+
     stopNativeTest(CALL_GROUP_LOG)
 }
 
@@ -290,7 +289,7 @@ function checkCommon() {
     }
     checkResult("Test backgroundBlurStyle for BackgroundBlurStyleOptions",
         () => peer.backgroundBlurStyleAttribute(0, backgroundBlurStyle),
-        `backgroundBlurStyle(0, {.tag=ARK_TAG_OBJECT, .value={.colorMode={.tag=ARK_TAG_OBJECT, .value=0}, .adaptiveColor={.tag=ARK_TAG_OBJECT, .value=0}, .scale={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=1}}, .blurOptions={.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=1}}}}, .policy={.tag=ARK_TAG_UNDEFINED, .value={}}, .inactiveColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .type={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
+        `backgroundBlurStyle(Ark_BlurStyle(0), {.tag=ARK_TAG_OBJECT, .value={.colorMode={.tag=ARK_TAG_OBJECT, .value=Ark_ThemeColorMode(0)}, .adaptiveColor={.tag=ARK_TAG_OBJECT, .value=Ark_AdaptiveColor(0)}, .scale={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=1}}, .blurOptions={.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=1}}}}, .policy={.tag=ARK_TAG_UNDEFINED, .value={}}, .inactiveColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .type={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with number",

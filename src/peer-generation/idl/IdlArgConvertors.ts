@@ -18,20 +18,7 @@ import { RuntimeType } from "./IdlPeerGeneratorVisitor"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "../LanguageWriters"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 import { PrimitiveType } from "../DeclarationTable"
-
-function castToInt8(value: string, lang: Language): string {///mv to LW
-    switch (lang) {
-        case Language.ARKTS: return `${value} as int32` // FIXME: is there int8 in ARKTS?
-        default: return value
-    }
-}
-
-function castToInt32(value: string, lang: Language): string {
-    switch (lang) {
-        case Language.ARKTS: return `${value} as int32`
-        default: return value
-    }
-}
+import { qualifiedName } from "./common"
 
 export interface ArgConvertor {
     param: string
@@ -176,14 +163,7 @@ export class BooleanConvertor extends BaseArgConvertor {
         super("boolean", [RuntimeType.BOOLEAN], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        switch (writer.language) {
-            case Language.CPP: return param
-            case Language.TS: return `+${param}`
-            case Language.ARKTS: return `${param} ? 1 : 0`
-            case Language.JAVA: return `${param} ? 1 : 0`
-            case Language.CJ: return `if (${param} { 1 } else { 0 })`
-            default: throw new Error("Unsupported language")
-        }
+        return writer.castToBoolean(param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, "writeBoolean", [value])
@@ -261,11 +241,12 @@ export class EnumConvertor extends BaseArgConvertor {
             [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
     }
-    enumTypeName(): string {
-        return this.enumType.name
+    private enumTypeName(language: Language): string {
+        const prefix = language === Language.CPP ? PrimitiveType.ArkPrefix : ""
+        return prefix + qualifiedName(this.enumType, language)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.JAVA ? `${param}.getIntValue()` : writer.makeUnsafeCast(this, param)
+        return writer.castToEnum(param, this.enumTypeName(writer.language))
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         if (this.isStringEnum) {
@@ -274,14 +255,15 @@ export class EnumConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeInt32", [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        let readExpr = printer.makeMethodCall(`${param}Deserializer`, "readInt32", [])
-        if (this.isStringEnum) {
-            readExpr = printer.enumFromOrdinal(readExpr, this.enumType.name)
-        }
-        return printer.makeAssign(this.getObjectAccessor(printer.language, value), undefined, readExpr, false)
+        const name = this.enumTypeName(printer.language)
+        const readExpr = printer.makeMethodCall(`${param}Deserializer`, "readInt32", [])
+        const enumExpr = this.isStringEnum && printer.language !== Language.CPP
+            ? printer.enumFromOrdinal(readExpr, name)
+            : printer.makeCast(readExpr, new Type(name))
+        return printer.makeAssign(this.getObjectAccessor(printer.language, value), undefined, enumExpr, false)
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.Int32.getText()
+        return this.enumTypeName(Language.CPP)
     }
     interopType(language: Language): string {
         return language == Language.CPP ? PrimitiveType.Int32.getText() : "KInt"
@@ -452,9 +434,9 @@ export class UnionRuntimeTypeChecker {
         return writer.makeNaryOp("||", convertor.runtimeTypes.map(it =>
             writer.makeNaryOp("==", [writer.makeUnionVariantCondition(convertor, value, `${value}_type`, RuntimeType[it], index)])))
     }
-    reportConflicts(context: string) {
+    reportConflicts(context: string | undefined) {
         if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
-            console.log(`WARNING: runtime type conflict in "${context}`)
+            console.log(`WARNING: runtime type conflict in ${context ?? "<unknown context>"}`)
             this.discriminators.forEach(([discr, conv, n]) =>
                 console.log(`   ${n} : ${conv.constructor.name} : ${discr ? discr.asString() : "<undefined>"}`))
         }
@@ -483,7 +465,7 @@ export class UnionConvertor extends BaseArgConvertor {
             const conditions = this.unionChecker.makeDiscriminator(value, index, printer)
             printer.print(`${maybeElse}if (${conditions.asString()}) {`)
             printer.pushIndent()
-            printer.writeMethodCall(`${param}Serializer`, "writeInt8", [castToInt8(index.toString(), printer.language)])
+            printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.castToInt(index.toString(), 8)])
             if (!(it instanceof UndefinedConvertor)) {
                 printer.writeStatement(
                         printer.makeAssign(`${value}_${index}`, undefined,
@@ -493,7 +475,7 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.popIndent()
             printer.print(`}`)
         })
-        this.unionChecker.reportConflicts("<unknown context>")
+        this.unionChecker.reportConflicts(this.library.getCurrentContext())
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         let selector = `selector`
@@ -637,7 +619,7 @@ export class OptionConvertor extends BaseArgConvertor {
         const serializedType = (printer.language == Language.JAVA ? undefined : Type.Int32)
         printer.writeStatement(printer.makeAssign(valueType, serializedType, printer.makeRuntimeType(RuntimeType.UNDEFINED), true, false))
         printer.runtimeType(this, valueType, value)
-        printer.writeMethodCall(`${param}Serializer`, "writeInt8", [castToInt8(valueType, printer.language)])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.castToInt(valueType, 8)])
         printer.print(`if (${printer.makeRuntimeTypeCondition(valueType, false, RuntimeType.UNDEFINED).asString()}) {`)
         printer.pushIndent()
         printer.writeStatement(printer.makeAssign(`${value}_value`, undefined, printer.makeValueFromOption(value, this.typeConvertor), true))
@@ -929,7 +911,7 @@ export class TupleConvertor extends BaseArgConvertor {
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
-            castToInt8(printer.makeRuntimeTypeGetterCall(value).asString(), printer.language)
+            printer.castToInt(printer.makeRuntimeTypeGetterCall(value).asString(), 8)
         ])
         this.memberConvertors.forEach((it, index) => {
             printer.writeStatement(
@@ -997,10 +979,10 @@ export class ArrayConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         // Array length.
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
-            castToInt8(printer.makeRuntimeTypeGetterCall(value).asString(), printer.language)])
+            printer.castToInt(printer.makeRuntimeTypeGetterCall(value).asString(), 8)])
         const valueLength = printer.makeArrayLength(value).asString()
         const loopCounter = "i"
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [castToInt32(valueLength, printer.language)])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [printer.castToInt(valueLength, 32)])
         printer.writeStatement(printer.makeLoop(loopCounter, valueLength))
         printer.pushIndent()
         printer.writeStatement(
@@ -1071,7 +1053,7 @@ export class MapConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         // Map size.
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [
-            castToInt8(printer.makeRuntimeTypeGetterCall(value).asString(), printer.language)])
+            printer.castToInt(printer.makeRuntimeTypeGetterCall(value).asString(), 8)])
         const mapSize = printer.makeMapSize(value)
         printer.writeMethodCall(`${param}Serializer`, "writeInt32", [mapSize.asString()])
         printer.writeStatement(printer.makeMapForEach(value, `${value}_key`, `${value}_value`, () => {

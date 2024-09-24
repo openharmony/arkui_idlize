@@ -27,7 +27,7 @@ import { PrimitiveType } from '../DeclarationTable';
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';
 import { LanguageWriter } from '../LanguageWriters';
-import { isImport } from './common';
+import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 
@@ -59,6 +59,14 @@ export class IdlPeerLibrary {
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
     readonly nameConvertorInstance = new TSTypeNameConvertor(this)
+
+    private context: string | undefined
+    getCurrentContext(): string | undefined {
+        return this.context
+    }
+    setCurrentContext(context: string | undefined) {
+        this.context = context
+    }
 
     findPeerByComponentName(componentName: string): IdlPeerClass | undefined {
         for (const file of this.files)
@@ -114,10 +122,6 @@ export class IdlPeerLibrary {
                 .filter(isDefined)
                 .flat()
                 .find(it => it.name === type.name)
-    }
-
-    // TODO temporary, needed for unification with PeerLibrary
-    setCurrentContext(context: string | undefined) {
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false, maybeCallback: boolean = false): ArgConvertor {
@@ -537,10 +541,6 @@ export const ArkResource: idl.IDLInterface = {
     ],
     methods: [],
     callables: [],
-}
-
-function isStringEnum(decl: idl.IDLEnum): boolean {
-    return decl.elements.some(e => e.type.name === "DOMString")
 }
 
 export function cleanPrefix(name: string, prefix: string): string {

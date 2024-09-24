@@ -14,9 +14,8 @@
  */
 
 import * as idl from "../../idl"
+import { Language } from "../../util"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "./IdlTypeConvertor"
-
-/// move common IDL stuff here
 
 export function isDeclaration(node: idl.IDLEntry): boolean {
     return idl.isClass(node) || idl.isInterface(node) || idl.isAnonymousInterface(node) || idl.isTupleInterface(node)
@@ -31,4 +30,16 @@ export function convert<T>(node: idl.IDLEntry, typeConvertor: TypeConvertor<T>, 
 
 export function isImport(decl: idl.IDLEntry): boolean {
     return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)
+}
+
+export function isStringEnum(decl: idl.IDLEnum): boolean {
+    return decl.elements.some(e => e.type.name === "DOMString")
+}
+
+export function qualifiedName(decl: idl.IDLEntry, language: Language): string {
+    const namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
+    const prefix = namespace
+        ? namespace + (language === Language.CPP ? '_' : '.')
+        : ""
+    return prefix + decl.name
 }

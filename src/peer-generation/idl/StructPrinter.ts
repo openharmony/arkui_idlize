@@ -15,10 +15,11 @@
 
 import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
+import { camelCaseToUpperSnakeCase } from "../../util"
 import { PrimitiveType } from "../DeclarationTable"
 import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { isImport } from "./common"
+import { isImport, isStringEnum } from "./common"
 import { cppEscape } from "./IdlArgConvertors"
 import { isBuilderClass, isMaterialized, RuntimeType } from "./IdlPeerGeneratorVisitor"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
@@ -77,21 +78,18 @@ export class StructPrinter {
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
             const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.ArkPrefix)
             if (idl.isEnum(target)) {
-                structs.print(`typedef ${PrimitiveType.Int32.getText()} ${nameAssigned};`)
-                if (!seenNames.has(nameOptional)) {
-                    seenNames.add(nameOptional)
-                    structs.print(`typedef struct ${nameOptional} {`)
-                    structs.pushIndent()
-                    structs.print(`enum ${PrimitiveType.Tag.getText()} tag;`)
-                    structs.print(`${nameAssigned} value;`)
-                    structs.popIndent()
-                    structs.print(`} ${nameOptional};`)
-                    this.writeOptional(nameOptional, writeToString, isPointer)
-                    this.writeRuntimeType(target, nameOptional, true, writeToString)
+                const stringEnum = isStringEnum(target)
+                structs.print(`typedef enum ${nameAssigned} {`)
+                structs.pushIndent()
+                for (let member of target.elements) {
+                    const memberName = member.documentation?.includes("@deprecated")
+                        ? member.name : camelCaseToUpperSnakeCase(member.name)
+                    const initializer = !stringEnum && member.initializer ? " = " + member.initializer : ""
+                    structs.print(`${camelCaseToUpperSnakeCase(nameAssigned)}_${memberName}${initializer},`)
                 }
-                continue
-            }
-            if (!noBasicDecl && !this.ignoreTarget(target)) {
+                structs.popIndent()
+                structs.print(`} ${nameAssigned};`)
+            } else if (!noBasicDecl && !this.ignoreTarget(target)) {
                 // TODO: fix it to define array type after its elements types
                 if (nameAssigned === `Array_GestureRecognizer`) {
                     structs.print(`typedef Ark_Materialized ${PrimitiveType.ArkPrefix}GestureRecognizer;`)
@@ -136,7 +134,7 @@ export class StructPrinter {
             if (isAccessor) {
                 structs.print(`typedef Ark_Materialized ${nameAssigned};`)
             }
-            let skipWriteToString = idl.isPrimitiveType(target) || idl.isEnum(target) || idl.isCallback(target)
+            let skipWriteToString = idl.isPrimitiveType(target) || idl.isCallback(target)
             if (!noBasicDecl && !skipWriteToString) {
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
             }
@@ -252,85 +250,29 @@ export class StructPrinter {
         printer.print(`}`)
     }
 
-    writeOptionalConvertor(nameOptional: string, printer: LanguageWriter, isPointer: boolean) {
-        printer.print(`template <>`)
-        printer.print(`inline void convertor(const ${nameOptional}* value) {`)
-        printer.pushIndent()
-        printer.print(`if (value->tag != ${PrimitiveType.UndefinedTag}) {`)
-        printer.pushIndent()
-        printer.print(`convertor(${isPointer ? "&" : ""}value->value);`)
-        printer.popIndent()
-        printer.print(`} else {`)
-        printer.pushIndent()
-        printer.print(`${PrimitiveType.Undefined.getText()} undefined = { 0 };`)
-        printer.print(`convertor(undefined);`)
-        printer.popIndent()
-        printer.print(`}`)
-        printer.popIndent()
-        printer.print(`}`)
-    }
-
     private generateArrayWriteToString(name: string, target: idl.IDLContainerType, printer: LanguageWriter) {
         let convertor = this.library.typeConvertor("param", target.elementType[0])
         let isPointerField = convertor.isPointerType()
         let elementNativeType = convertor.nativeType(false)
         let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
 
-        printer.print(`inline void WriteToString(string* result, const ${name}* value, const std::string& ptrName = std::string()) {`)
-        printer.pushIndent()
-        printer.print(`result->append("{");`)
-        printer.print(`if (ptrName.empty()) {`)
-        printer.pushIndent()
-        printer.print(`int32_t count = value->length;`)
-        printer.print(`if (count > 0) result->append("{");`)
-        printer.print(`for (int i = 0; i < count; i++) {`)
-        printer.pushIndent()
-        printer.print(`if (i > 0) result->append(", ");`)
-        printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);`)
-        printer.popIndent()
-        printer.print(`}`)
-        printer.print(`if (count == 0) result->append("{}");`)
-        printer.print(`if (count > 0) result->append("}");`)
-        printer.popIndent()
-        printer.print(`} else {`)
-        printer.pushIndent()
-        printer.print(`result->append(ptrName + ".data()");`)
-        printer.popIndent()
-        printer.print(`}`)
-        printer.print(`result->append(", .length=");`)
-        printer.print(`result->append(std::to_string(value->length));`)
-        printer.print(`result->append("}");`)
-        printer.popIndent()
-        printer.print(`}`)
+        printer.print(
+`
+template <>
+inline void WriteToString(string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);
+
+inline void WriteToString(string* result, const ${name}* value) {
+    int32_t count = value->length;
+    result->append("{.array=allocArray<${elementNativeType}, " + std::to_string(count) + ">({{");
+    for (int i = 0; i < count; i++) {
+        if (i > 0) result->append(", ");
+        WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);
     }
-
-    private generateStdArrayDefinition(name: string, target: idl.IDLContainerType, printer: LanguageWriter) {
-        if (target instanceof PrimitiveType) throw new Error("Impossible")
-        let convertor = this.library.typeConvertor("param", target.elementType[0])
-        let isPointerField = convertor.isPointerType()
-        let elementNativeType = convertor.nativeType(false)
-        let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
-
-        // Provide prototype of element printer.
-        printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);`)
-
-        // Printer.
-        printer.print(`inline void generateStdArrayDefinition(string* result, const ${name}* value) {`)
-        printer.pushIndent()
-        printer.print(`int32_t count = value->length;`)
-        printer.print(`result->append("std::array<${elementNativeType}, " + std::to_string(count) + ">{{");`)
-        printer.print(`for (int i = 0; i < count; i++) {`);
-        printer.pushIndent()
-        printer.print(`std::string tmp;`)
-        printer.print(`WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);`)
-        printer.print(`result->append(tmp);`);
-        printer.print(`result->append(", ");`)
-        printer.popIndent()
-        printer.print(`}`)
-        printer.print(`result->append("}}");`)
-        printer.popIndent()
-        printer.print(`}`)
+    result->append("}})");
+    result->append(", .length=");
+    result->append(std::to_string(value->length));
+    result->append("}");
+}`)
     }
 
     private generateMapWriteToString(name: string, target: idl.IDLContainerType, printer: LanguageWriter) {
@@ -376,11 +318,18 @@ export class StructPrinter {
         let access = isPointer ? "->" : "."
         if (idl.isContainerType(target)) {
             if (target.name === "sequence") {
-                this.generateStdArrayDefinition(name, target, printer)
                 this.generateArrayWriteToString(name, target, printer)
             } else if (target.name === "record") {
                 this.generateMapWriteToString(name, target, printer)
             }
+        } else if (idl.isEnum(target)) {
+            printer.print(`inline void WriteToString(string* result, ${name} value) {`)
+            printer.pushIndent()
+            printer.print(`result->append("${name}(");`)
+            printer.print(`WriteToString(result, (Ark_Int32) value);`)
+            printer.print(`result->append(")");`)
+            printer.popIndent()
+            printer.print(`}`)
         } else {
             printer.print(`template <>`)
             printer.print(`inline void WriteToString(string* result, const ${name}${isPointer ? "*" : ""} value) {`)

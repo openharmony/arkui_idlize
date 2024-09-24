@@ -277,7 +277,8 @@ abstract class CEventsVisitorBase {
         this.impl.print('};\n')
     }
 
-    private printEventImpl(event: CallbackInfo | IdlCallbackInfo) {
+    private printEventImpl(namespace: string, event: CallbackInfo | IdlCallbackInfo) {
+        this.library.setCurrentContext(`${namespace}.${event.methodName}Impl`)
         this.printEventMethodDeclaration(event)
         this.impl.print("{")
         this.impl.pushIndent()
@@ -293,6 +294,7 @@ abstract class CEventsVisitorBase {
         }
         this.impl.popIndent()
         this.impl.print('}')
+        this.library.setCurrentContext(undefined)
     }
 
     private printReceiver(componentName: string, callbacks: CallbackInfoBase[]) {
@@ -331,7 +333,7 @@ abstract class CEventsVisitorBase {
                 continue
             this.impl.pushNamespace(name, false)
             for (const callback of callbacks) {
-                this.printEventImpl(callback)
+                this.printEventImpl(name, callback)
             }
             this.impl.popNamespace(false)
         }

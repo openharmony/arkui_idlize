@@ -1065,6 +1065,9 @@ export abstract class LanguageWriter {
     makeEquals(args: LanguageExpression[]): LanguageExpression {
         return this.makeNaryOp("===", args)
     }
+    castToInt(value: string, bitness: 8|32): string{ return value }
+    castToBoolean(value: string): string { return value }
+    castToEnum(value: string, enumName: string): string { return value }
 }
 
 export class TSLanguageWriter extends LanguageWriter {
@@ -1241,6 +1244,7 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         return type.name
     }
+    override castToBoolean(value: string): string { return `+${value}` }
 }
 
 export class ETSLanguageWriter extends TSLanguageWriter {
@@ -1370,6 +1374,10 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             this.makeString(`${value} instanceof ${convertor.enumTypeName(this.language)}`)
         ])
     }
+    override castToInt(value: string, bitness: 8 | 32): string {
+        return `${value} as int32` // FIXME: is there int8 in ARKTS?
+    }
+    override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
 }
 
 abstract class CLikeLanguageWriter extends LanguageWriter {
@@ -1578,6 +1586,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeCastEnumToInt(convertor: EnumConvertor, enumName: string, _unsafe?: boolean): string {
         return `${enumName}.getIntValue()`
     }
+    override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
+    override castToEnum(value: string, enumName: string): string { return `${value}.getIntValue()` }
 }
 
 export class CJLanguageWriter extends LanguageWriter {
@@ -1813,6 +1823,7 @@ export class CJLanguageWriter extends LanguageWriter {
             default: return word
         }
     }
+    override castToBoolean(value: string): string { return `if (${value} { 1 } else { 0 })` }
 }
 
 export class CppLanguageWriter extends CLikeLanguageWriter {
@@ -2066,6 +2077,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
         return param
+    }
+    override castToEnum(value: string, enumName: string): string {
+        return `static_cast<${enumName}>(${value})`
     }
 }
 
