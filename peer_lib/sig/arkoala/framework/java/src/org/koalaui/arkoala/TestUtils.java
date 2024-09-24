@@ -40,7 +40,7 @@ public class TestUtils {
                 System.out.println(String.format("TEST %s PASS", name));
             } else {
                 failedTestsCount++;
-                System.out.println(String.format("TEST %s FAIL:\n  EXPECTED %s\n  ACTUAL %s", name, expected, actual));
+                System.out.println(String.format("TEST %s FAIL:\n  EXPECTED %s\n  ACTUAL   %s", name, expected, actual));
                 System.out.println(String.format("output: %s", out));
             }
         }

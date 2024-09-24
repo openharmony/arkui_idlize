@@ -106,7 +106,7 @@ public class Main {
             "color({.selector=1, .value1={.tag=103, .f32=5.50}})");
         TestUtils.checkResult("[Union + Enum] BlankPeer.color",
             () -> { blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(Ark_Color.White)); },
-            "color({.selector=0, .value0=0})");
+            "color({.selector=0, .value0=Ark_Color(0)})");
         var resource = new Resource();
         resource.id = 10;
         resource.type = 2000;
@@ -126,7 +126,7 @@ public class Main {
         var tuple1 = new Tuple_double_String_Ark_EnumDTS(5.5, "test", Ark_EnumDTS.ELEM_1);
         TestUtils.checkResult("[Tuple + Enum] TestPeer.testTupleNumberStringEnum",
             () -> { peer.testTupleNumberStringEnumAttribute(tuple1); },
-            "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.50}, .value1={.chars=\"test\", .length=4}, .value2=1})");
+            "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.50}, .value1={.chars=\"test\", .length=4}, .value2=Ark_EnumDTS(1)})");
 
         // optional
         var listPeer = ArkListPeer.create(ArkUINodeType.List, null, 0);
@@ -135,22 +135,22 @@ public class Main {
             "someOptional({.tag=ARK_TAG_OBJECT, .value=false})");
 
         // enum
-        TestUtils.checkResult("[Enum] ButtonPeer.type", () -> { buttonPeer.typeAttribute(Ark_ButtonType.Capsule); }, "type(0)");
+        TestUtils.checkResult("[Enum] ButtonPeer.type", () -> { buttonPeer.typeAttribute(Ark_ButtonType.Capsule); }, "type(Ark_ButtonType(0))");
         var sheetOptions = new SheetOptions();
         sheetOptions.mode = Ark_SheetMode.EMBEDDED;
         TestUtils.checkResult("[Enum + Interface] ButtonPeer.bindSheet",
             () -> { buttonPeer.bindSheetAttribute(false, sheetOptions); },
-            "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=1}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})");
+            "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=Ark_SheetMode(1)}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})");
 
         // array
         BooleanInterfaceDTS[] booleanInterface = { new BooleanInterfaceDTS(), new BooleanInterfaceDTS() };
         booleanInterface[0].valBool = true;
         TestUtils.checkResult("[Array] TestPeer.testBooleanInterfaceArray",
             () -> { peer.testBooleanInterfaceArrayAttribute(booleanInterface); },
-            "testBooleanInterfaceArray({{{.valBool=true}, {.valBool=false}}, .length=2})");
+            "testBooleanInterfaceArray({.array=allocArray<Ark_BooleanInterfaceDTS, 2>({{{.valBool=true}, {.valBool=false}}}), .length=2})");
         TestUtils.checkResult("[Array] TestPeer.testBooleanInterfaceArrayRef",
             () -> { peer.testBooleanInterfaceArrayRefAttribute(booleanInterface); },
-            "testBooleanInterfaceArrayRef({{{.valBool=true}, {.valBool=false}}, .length=2})");
+            "testBooleanInterfaceArrayRef({.array=allocArray<Ark_BooleanInterfaceDTS, 2>({{{.valBool=true}, {.valBool=false}}}), .length=2})");
         var dragPreviewOptions = new DragPreviewOptions();
         Ark_DragPreviewMode[] modes = { Ark_DragPreviewMode.DISABLE_SCALE, Ark_DragPreviewMode.ENABLE_DEFAULT_RADIUS };
         dragPreviewOptions.mode = new Union_Ark_DragPreviewMode_Array_Ark_DragPreviewMode(modes);
@@ -159,7 +159,7 @@ public class Main {
         dragInteractionOptions.defaultAnimationBeforeLifting = new Opt_Boolean(true);
         TestUtils.checkResult("[Array + Interface + Union] ButtonPeer.dragPreviewOptions",
             () -> { buttonPeer.dragPreviewOptionsAttribute(dragPreviewOptions, dragInteractionOptions); },
-            "dragPreviewOptions({.mode={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={{2, 4}, .length=2}}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=false}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_OBJECT, .value=true}}})");
+            "dragPreviewOptions({.mode={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.array=allocArray<enum Ark_DragPreviewMode, 2>({{Ark_DragPreviewMode(2), Ark_DragPreviewMode(4)}}), .length=2}}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=false}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_OBJECT, .value=true}}})");
 
         // map
         var dataInfo = new NativeEmbedDataInfo();
