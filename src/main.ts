@@ -113,7 +113,8 @@ const options = program
     .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
     .option('--version')
     .option('--generator-target <all|arkoala|libace|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
-    .option('--via-idl', 'Generate peers directly from .d.ts files (use with --dts2peer)', false)
+    .option('--idl', 'Generate peers from IDL (use with --dts2peer)', true)
+    .option('--no-idl', 'Generate peers directly from .d.ts files (use with --dts2peer)', false)
     .option('--arkoala-destination <path>', 'Location of arkoala repository')
     .option('--libace-destination <path>', 'Location of libace repository')
     .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
@@ -361,7 +362,7 @@ if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
-    if (options.viaIdl) {
+    if (options.idl) {
         options.docs = "all"
         const idlLibrary = new IdlPeerLibrary(lang, toSet(options.generateInterface))
         // First convert DTS to IDL
