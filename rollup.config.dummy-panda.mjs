@@ -34,8 +34,7 @@ function crossPathRelative(from, to) {
 const mode = process.env.mode
 
 console.log(`rollup args: mode = ${mode}`)
-const generatedDir = `out`
-const arkoalaArkuiSrcDir = `peer_lib/sig/arkoala/arkui/src`
+const arkoalaLoaderSrcDir = `peer_lib/sig/arkoala/loader`
 const tsconfigFile = path.resolve(`tsconfig-loader.json`)
 const outDir = path.resolve('lib')
 
@@ -43,7 +42,7 @@ const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 
 /** @type {import("rollup").RollupOptions} */
 export default {
-    input: `${arkoalaArkuiSrcDir}/loader.ts`,
+    input: `${arkoalaLoaderSrcDir}/loader.ts`,
     output: {
         file: "./lib/loader.js",
         format: "commonjs",

@@ -16,5 +16,5 @@
         "rootDirs": ["src"],
         "module": "CommonJS"
     },
-    "include": ["peer_lib/sig/arkoala/arkui/src/loader.ts"]
+    "include": ["peer_lib/sig/arkoala/loader/loader.ts"]
 }

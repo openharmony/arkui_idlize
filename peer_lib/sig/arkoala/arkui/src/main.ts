@@ -55,8 +55,6 @@ import {
 } from "./test_utils"
 import { nativeModule } from "@koalaui/arkoala"
 import { mkdirSync, writeFileSync } from "fs"
-import { checkLoader } from "./loader"
-
 
 if (!reportTestFailures) {
     console.log("WARNING: ignore test result")
