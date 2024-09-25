@@ -113,7 +113,7 @@ class SerializerPrinter {
                 struct.getFields().forEach(it => {
                     let field = `value_${it.name}`
                     writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.languageKeywordProtection(it.name)}`), true))
-                    let typeConvertor = this.table.typeConvertor(`value`, it.type!, it.optional, typeNodeNameConvertor)
+                    let typeConvertor = this.table.typeConvertor(`value`, it.type!, it.optional, undefined, typeNodeNameConvertor)
                     typeConvertor.convertorSerialize(`value`, field, writer)
                 })
             })

@@ -290,7 +290,7 @@ function generateArgConvertor(table: DeclarationTable,
     if (!param.type) throw new Error("Type is needed")
     let paramName = asString(param.name)
     let optional = param.questionToken !== undefined
-    return table.typeConvertor(paramName, param.type, optional, typeNodeNameConvertor)
+    return table.typeConvertor(paramName, param.type, optional, undefined, typeNodeNameConvertor)
 }
 
 function generateRetConvertor(typeNode?: ts.TypeNode): RetConvertor {
@@ -624,9 +624,9 @@ class PeersGenerator {
         parameters.forEach((param, index) => {
             if (param.type) {
                 this.declarationTable.requestType(
-                    `Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`,
                     param.type,
                     this.library.shouldGenerateComponent(peer.componentName),
+                    `Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`,
                 )
             }
         })
@@ -952,7 +952,7 @@ export class PeerProcessor {
         const name = identName(property.name)!
         this.declarationTable.setCurrentContext(`Materialized_${className}_${name}`)
         const declarationTarget = this.declarationTable.toTarget(property.type!)
-        const argConvertor = this.declarationTable.typeConvertor(name, property.type!, false, typeNodeNameConvertor)
+        const argConvertor = this.declarationTable.typeConvertor(name, property.type!, false, undefined, typeNodeNameConvertor)
         const retConvertor = generateRetConvertor(property.type!)
         const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
         this.declarationTable.setCurrentContext(undefined)
@@ -983,7 +983,7 @@ export class PeerProcessor {
         const declarationTargets = method.parameters.map(param =>
             this.declarationTable.toTarget(param.type ??
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
-        method.parameters.forEach(it => this.declarationTable.requestType(undefined, it.type!, isActualDeclaration))
+        method.parameters.forEach(it => this.declarationTable.requestType(it.type!, isActualDeclaration, undefined))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param, typeNodeConverter))
         const signature = generateSignature(method, typeNodeConverter, false)
         const modifiers = generateMethodModifiers(method)

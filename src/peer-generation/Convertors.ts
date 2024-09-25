@@ -492,7 +492,7 @@ export class UnionConvertor extends BaseArgConvertor {
         super(`object`, [], false, true, param)
         this.memberConvertors = type
             .types
-            .map(member => table.typeConvertor(param, member, false, typeNodeNameConvertor))
+            .map(member => table.typeConvertor(param, member, false, undefined, typeNodeNameConvertor))
         this.unionChecker = new UnionRuntimeTypeChecker(this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
         this.tsTypeName = this.memberConvertors.map(it => it.tsTypeName).join(" | ")
@@ -668,7 +668,7 @@ export class OptionConvertor extends BaseArgConvertor {
     private typeConvertor: ArgConvertor
     // TODO: be smarter here, and for smth like Length|undefined or number|undefined pass without serializer.
     constructor(param: string, private table: DeclarationTable, public type: ts.TypeNode, typeNodeNameConvertor?: TypeNodeNameConvertor) {
-        let typeConvertor = table.typeConvertor(param, type, false, typeNodeNameConvertor)
+        let typeConvertor = table.typeConvertor(param, type, false, undefined, typeNodeNameConvertor)
         let runtimeTypes = typeConvertor.runtimeTypes;
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
             runtimeTypes.push(RuntimeType.UNDEFINED)
@@ -742,7 +742,7 @@ export class AggregateConvertor extends BaseArgConvertor {
                     memberName = memberName.replace("template", "template_")
                 }
                 this.members[index] = [memberName, member.questionToken != undefined]
-                return table.typeConvertor(param, member.type!, member.questionToken != undefined, typeNodeNameConvertor)
+                return table.typeConvertor(param, member.type!, member.questionToken != undefined, undefined, typeNodeNameConvertor)
             })
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -1352,7 +1352,7 @@ export class TypeAliasConvertor extends ProxyConvertor {
         declaration: ts.TypeAliasDeclaration,
         typeNodeNameConvertor: TypeNodeNameConvertor | undefined
     ) {
-        super(table.typeConvertor(param, declaration.type, false, typeNodeNameConvertor), identName(declaration.name))
+        super(table.typeConvertor(param, declaration.type, false, undefined, typeNodeNameConvertor), identName(declaration.name))
     }
 }
 

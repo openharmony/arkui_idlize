@@ -30,12 +30,14 @@ import { LanguageWriter } from '../LanguageWriters';
 import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
+import { Library } from '../../Library';
+import { DeclarationProcessor } from '../../DeclarationProcesser';
 
 export type IdlPeerLibraryOutput = {
     outputC: string[]
 }
 
-export class IdlPeerLibrary {
+export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcessor<idl.IDLType, idl.IDLEntry> {
     public readonly files: IdlPeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {
@@ -239,7 +241,7 @@ export class IdlPeerLibrary {
         return undefined
     }
 
-    private typeMap = new Map<idl.IDLType, [idl.IDLEntry, string, boolean]>()
+    readonly typeMap = new Map<idl.IDLType, [idl.IDLEntry, string[], boolean]>()
 
     private cleanPrefix(name: string, prefix: string): string {
         return name.replace(prefix, "")
@@ -252,7 +254,7 @@ export class IdlPeerLibrary {
             this.requestType(type, false)
             declaration = this.typeMap.get(type)!
         }
-        let name = declaration[1]
+        let name = declaration[1][0]
         if (optional) {
             name = this.cleanPrefix(name, PrimitiveType.ArkPrefix)
         }
@@ -298,7 +300,7 @@ export class IdlPeerLibrary {
         let name = this.computeTargetName(decl, false)
         if (type.name === "Optional")
             name = "Opt_" + cleanPrefix(name, PrimitiveType.ArkPrefix)
-        this.typeMap.set(type, [decl, name, useToGenerate])
+        this.typeMap.set(type, [decl, [name], useToGenerate])
     }
 
     public get orderedDependencies(): idl.IDLEntry[] {

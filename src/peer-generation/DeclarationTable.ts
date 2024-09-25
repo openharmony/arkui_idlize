@@ -38,6 +38,7 @@ import { CallbackInfo, collectCallbacks } from "./printers/EventsPrinter"
 import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { searchTypeParameters, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
+import { DeclarationProcessor } from "../DeclarationProcesser"
 
 export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
     ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
@@ -93,7 +94,7 @@ export class PointerType extends PrimitiveType {
 export type DeclarationTarget =
     ts.ClassDeclaration | ts.InterfaceDeclaration | ts.EnumDeclaration
     | ts.UnionTypeNode | ts.TypeLiteralNode | ts.ImportTypeNode | ts.FunctionTypeNode | ts.TupleTypeNode | ts.NamedTupleMember
-    | ts.TemplateLiteralTypeNode | ts.TypeReferenceNode
+    | ts.TemplateLiteralTypeNode | ts.TypeReferenceNode | ts.NamedDeclaration
     | ts.ArrayTypeNode | ts.ParenthesizedTypeNode | ts.OptionalTypeNode | ts.LiteralTypeNode
     | PrimitiveType
 
@@ -130,8 +131,8 @@ export class StructDescriptor {
     }
 }
 
-export class DeclarationTable {
-    private typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[], boolean]>()
+export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, DeclarationTarget> {
+    readonly typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[], boolean]>()
     private toTargetConvertor: ToDeclarationTargetConvertor
     typeChecker: ts.TypeChecker | undefined = undefined
     public language: Language
@@ -155,7 +156,7 @@ export class DeclarationTable {
         return this.computeTargetName(this.toTarget(type), optional)
     }
 
-    requestType(name: string | undefined, type: ts.TypeNode, useToGenerate: boolean) {
+    requestType(type: ts.TypeNode, useToGenerate: boolean, name: string | undefined) {
         let declaration = this.typeMap.get(type)
         if (declaration) {
             declaration[2] ||= useToGenerate
@@ -185,6 +186,10 @@ export class DeclarationTable {
 
     computeTypeName(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean = false, idlPrefix: string = PrimitiveType.ArkPrefix): string {
         return this.computeTypeNameImpl(suggestedName, type, optional, idlPrefix)
+    }
+
+    toDeclaration(node: ts.TypeNode): DeclarationTarget {
+        return this.toTarget(node)
     }
 
     toTarget(node: ts.TypeNode): DeclarationTarget {
@@ -478,7 +483,7 @@ export class DeclarationTable {
         for (const callback of callbacks) {
             callback.args.forEach(arg => {
                 const useToGenerate = library.shouldGenerateComponent(callback.componentName)
-                this.requestType(undefined, arg.type, useToGenerate)
+                this.requestType(arg.type, useToGenerate, undefined)
             })
         }
 
@@ -520,6 +525,7 @@ export class DeclarationTable {
     typeConvertor(param: string,
                   type: ts.TypeNode,
                   isOptionalParam: boolean = false,
+                  maybeCallback: boolean = false,
                   typeNodeNameConvertor: TypeNodeNameConvertor | undefined = undefined): ArgConvertor {
         if (!type) throw new Error("Impossible")
         if (isOptionalParam) {
@@ -554,7 +560,7 @@ export class DeclarationTable {
         }
         if (ts.isTypeReferenceNode(type)) {
             const declaration = getDeclarationsByNode(this.typeChecker!, type.typeName)[0]
-            return this.declarationConvertor(param, type, declaration, typeNodeNameConvertor)
+            return this.declarationConvertor(param, type, declaration, undefined, typeNodeNameConvertor)
         }
         if (ts.isEnumMember(type)) {
             return new EnumConvertor(param, type.parent, this.isStringEnum(type.parent.members), this.language)
@@ -662,6 +668,7 @@ export class DeclarationTable {
     }
 
     declarationConvertor(param: string, type: ts.TypeReferenceNode, declaration: ts.NamedDeclaration | undefined,
+                        maybeCallback: boolean = false,
                          typeNodeNameConvertor: TypeNodeNameConvertor | undefined): ArgConvertor {
         const entityName = typeEntityName(type)
         if (!declaration) {
@@ -1520,7 +1527,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
             let name = identName(declaration.name)
             if (name === "GestureType")
                 name = PrimitiveType.ArkPrefix + name
-            this.table.requestType(name, node, false)
+            this.table.requestType(node, false, name)
             return convertTypeNode(this, node)
         }
         if (ts.isEnumMember(declaration)) {
