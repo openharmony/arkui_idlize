@@ -223,10 +223,6 @@ function idlCallbacksEquals(a: IdlCallbackInfo | undefined, b: IdlCallbackInfo |
 }
 
 export function collapseIdlEventsOverloads(library: IdlPeerLibrary, peer: IdlPeerClass): void {
-    if (1==1) {
-        console.log("WARNING: Events collapsing is disabled, waiting for IDL supporting native generation")
-        return
-    }
     const replacements: [IdlPeerMethod[], IdlPeerMethod][] = []
 
     for (const overloads of groupOverloads(peer.methods)) {

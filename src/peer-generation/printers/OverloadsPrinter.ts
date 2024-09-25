@@ -55,14 +55,15 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
     const targets: idl.IDLType[] = Array.from({length: maxArgsLength}, (_, argIndex) => {
         if (selectMaxMethodArgs?.includes(argIndex))
             return maxMethod.declarationTargets[argIndex]
-        return idl.createUnionType(overloads.flatMap(overload => {
+        const argTypes = overloads.flatMap(overload => {
             if (overload.declarationTargets.length <= argIndex)
                 return []
             const target = overload.declarationTargets[argIndex]
             if (idl.isUnionType(target))
                 return target.types
             return [target]
-        }))
+        })
+        return argTypes.length > 1 ? idl.createUnionType(argTypes) : argTypes[0]
     })
     const typeConvertors: IdlArgConvertor[] = targets.map((target, index) => {
         if (selectMaxMethodArgs?.includes(index)) {

@@ -448,6 +448,8 @@ export function createContainerType(container: string, element: IDLType[]): IDLC
 }
 
 export function createUnionType(types: IDLType[]): IDLUnionType {
+    if (types.length < 2)
+        throw new Error("IDLUnionType should contain at least 2 types")
     return {
         kind: IDLKind.UnionType,
         name: "or",
