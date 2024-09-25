@@ -1,0 +1,13 @@
+{
+    "name": "arkts_subset_unmemoized",
+    "files": [
+        "build/*.js"
+    ],
+    "scripts": {
+        "compile": "npx tsc -b ./tsconfig.json"
+    },
+    "dependencies": {
+        "@types/node": "^20.14.11",
+        "typescript": "^4.9.5"
+    }
+}
