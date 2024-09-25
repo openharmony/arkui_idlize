@@ -92,7 +92,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             this.addType(CJType.type, writer)
         }
         else if (ts.isOptionalTypeNode(target)) {
-            this.getTargetType(this.toTarget(target.type), true)
+            this.getTargetType(this.toTarget(target.type), false)
         }
         if (ts.isEnumDeclaration(target)) {
             const writer = createLanguageWriter(Language.CJ)
@@ -144,7 +144,8 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         if (!(target instanceof PrimitiveType)) {
             return false
         }
-        return target == PrimitiveType.Boolean || target == PrimitiveType.Number
+        return target == PrimitiveType.Boolean
+        // || target == PrimitiveType.Number
     }
 
     private enumName(name: ts.PropertyName): string {
@@ -200,12 +201,12 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     private optionalPrimitiveToCJType(primitiveType: PrimitiveType): CJType {
         if (primitiveType == PrimitiveType.Boolean) {
             const CJTypeName = `${PrimitiveType.OptionalPrefix}Boolean`
-            return CJType.fromTypeName(CJTypeName)
+            return CJType.fromTypeName(CJTypeName, false)
         }
-        if (primitiveType == PrimitiveType.Number) {
-            const CJTypeName = `${PrimitiveType.OptionalPrefix}Number`
-            return CJType.fromTypeName(CJTypeName)
-        }
+        // if (primitiveType == PrimitiveType.Number) {
+        //     const CJTypeName = `${PrimitiveType.OptionalPrefix}Number`
+        //     return CJType.fromTypeName(CJTypeName, false)
+        // }
         throw new Error(`Primitive type ${primitiveType.getText()} cannot be optional`)
     }
 
@@ -213,52 +214,22 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     private computeCJType(target: DeclarationTarget, optional: boolean, needReferenceType?: boolean): CJType {
         if (target instanceof PrimitiveType) {
             if (optional && this.isExplicitOptional(target)) {
-                // for now, the only explicit optionals in Java are Opt_Boolean and Opt_Number
+                // for now, the only explicit optionals in CJ are Opt_Boolean and Opt_Number
                 return this.optionalPrimitiveToCJType(target)
             }
             return this.primitiveToCJType(target, needReferenceType, optional)
         }
         if (ts.isTypeLiteralNode(target)) {
             throw unsupportedType(`TypeLiteralNode`)
-            /*if (target.members.some(ts.isIndexSignatureDeclaration)) {
-                // For indexed access we just replace the whole type to a custom accessor.
-                return `CustomMap`
-            }
-            return `Literal_${target.members.map(member => {
-                if (ts.isPropertySignature(member)) {
-                    let target = this.table.toTarget(member.type!)
-                    let field = identName(member.name)
-                    return `${field}_${this.computeCJType(target, member.questionToken != undefined)}`
-                } else {
-                    return undefined
-                }
-            })
-                .filter(it => it != undefined)
-                .join('_')}`*/
         }
         if (ts.isLiteralTypeNode(target)) {
             throw unsupportedType(`LiteralTypeNode`)
-            /*const literal = target.literal
-            if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
-                return PrimitiveType.String.getText()
-            }
-            if (ts.isNumericLiteral(literal)) {
-                return PrimitiveType.Number.getText()
-            }
-            if (literal.kind == ts.SyntaxKind.NullKeyword) {
-                // TODO: Is it correct to have undefined for null?
-                return PrimitiveType.Undefined.getText()
-            }*/
         }
         if (ts.isTemplateLiteralTypeNode(target)) {
             throw unsupportedType(`TemplateLiteralTypeNode`)
-            // TODO: likely incorrect
-            // return PrimitiveType.String.getText()
         }
         if (ts.isTypeParameterDeclaration(target)) {
             throw unsupportedType(`TypeParameterDeclaration`)
-            // TODO: likely incorrect
-            // return PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumDeclaration(target)) {
             const enumName = this.enumName(target.name)
@@ -314,7 +285,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             let name = identName(target.typeName)
             if (!target.typeArguments) throw new Error('Only type references with type arguments allowed here: ' + name)
             if (name == 'Optional')
-                return this.computeCJType(this.toTarget(target.typeArguments[0]), true)
+                return this.computeCJType(this.toTarget(target.typeArguments[0]), false)
             if (name == 'Array') {
                 const arrayElementType = this.computeCJType(this.toTarget(target.typeArguments[0]), false)
                 return new CJType(new Type(`${arrayElementType.type.name}[]`), `Array_${arrayElementType.alias}`)

@@ -23,8 +23,53 @@ public abstract class Ark_Object {
         return RuntimeType.STRING
     }
 
+    static func getRuntimeType(object: ?Float64): RuntimeType {
+        if(let Some(object) <- object) {
+            return RuntimeType.NUMBER
+        }
+        else {
+            return RuntimeType.UNDEFINED
+        }
+    }
+
+    static func getRuntimeType(object: ?Float32): RuntimeType {
+        if(let Some(object) <- object) {
+            return RuntimeType.NUMBER
+        }
+        else {
+            return RuntimeType.UNDEFINED
+        }
+    }
+
+    static func getRuntimeType(object: ?Int64): RuntimeType {
+        if(let Some(object) <- object) {
+            return RuntimeType.NUMBER
+        }
+        else {
+            return RuntimeType.UNDEFINED
+        }
+    }
+
+    static func getRuntimeType(object: ?Int32): RuntimeType {
+        if(let Some(object) <- object) {
+            return RuntimeType.NUMBER
+        }
+        else {
+            return RuntimeType.UNDEFINED
+        }
+    }
+
+    static func getRuntimeType(object: ?Bool): RuntimeType {
+        if(let Some(object) <- object) {
+            return RuntimeType.BOOLEAN
+        }
+        else {
+            return RuntimeType.UNDEFINED
+        }
+    }
+
     static func getRuntimeType<T>(object: T): RuntimeType where T <: Ark_Object {
-        return RuntimeType.OBJECT
+        return object.runtimeType()
     }
 
     static func getRuntimeType<T>(object: ArrayList<T>): RuntimeType {
@@ -47,5 +92,9 @@ public abstract class Ark_Object {
         else {
             return RuntimeType.UNDEFINED
         }
+    }
+
+    public open func runtimeType(): RuntimeType {
+        throw Exception("Runtimetime type has to be called by chiled class of Ark_Object")
     }
 }

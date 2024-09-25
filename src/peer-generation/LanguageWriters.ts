@@ -1441,7 +1441,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[] | undefined, optional: boolean, initExpr?: LanguageExpression): void {
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix}  ${type.name} ${name}${initExpr ? ` = ${initExpr.asString()}`  : ""};`)
+        this.printer.print(`${prefix} ${type.name} ${name}${initExpr ? ` = ${initExpr.asString()}`  : ""};`)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])

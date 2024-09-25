@@ -329,7 +329,11 @@ class CJInterfacesVisitor {
             const propertyDeclarationTarget = this.peerLibrary.declarationTable.toTarget(property.type)
             const optional = !!property.questionToken
             const propertyType = this.context.synthesizedTypes!.getTargetType(propertyDeclarationTarget, optional)
-            return {name: propertyName, type: propertyType, optional: optional}
+            return {
+                name: propertyName,
+                type: propertyType,
+                optional: optional
+            }
         }).filter((it): it is MemberInfo => !!it)
 
         this.context.imports?.printImportsForTypes(membersInfo.map(it => it.type), writer)

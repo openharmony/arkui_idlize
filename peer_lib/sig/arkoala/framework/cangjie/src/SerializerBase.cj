@@ -104,9 +104,7 @@ public open class SerializerBase {
     func resetCurrentPosition(): Unit { this.position = 0 }
 
     init() {
-        for(i in 0..96) {
-            this.buffer.append(0)
-        }
+        this.buffer = ArrayList<UInt8>(Array<UInt8>(96, item: 0))
     }
     static func get<T>(factory: () -> T, index: Int32): T where T <: SerializerBase {
         return SerializerBase.cache.getCached(factory, index)
@@ -154,17 +152,53 @@ public open class SerializerBase {
     func writeTag(tag: Int32): Unit {
         this.setBytes(this.position, tag)
     }
-    func writeNumber(value: Float32): Unit {
-        this.setBytes(this.position, value)
+    func writeNumber(value: ?Float32): Unit {
+        if (let Some(value) <- value) {
+            if(value == Float32(Int32(value))) {
+                this.writeNumber(Int32(value))
+            } else {
+                this.setBytes(this.position, Tag.FLOAT32.ordinal)
+                this.setBytes(this.position, value)
+            }
+        }
+        else {
+            this.buffer[Int64(this.position)] = UInt8(RuntimeType.UNDEFINED.ordinal)
+            this.position++
+        }
     }
-    func writeNumber(value: Float64): Unit {
-        this.setBytes(this.position, value)
+    func writeNumber(value: ?Float64): Unit {
+        if (let Some(value) <- value) {
+            if(value == Float64(Int32(value))) {
+                this.writeNumber(Int32(value))
+            } else {
+                this.setBytes(this.position, Tag.FLOAT32.ordinal)
+                this.setBytes(this.position, Float32(value))
+            }
+        }
+        else {
+            this.buffer[Int64(this.position)] = UInt8(RuntimeType.UNDEFINED.ordinal)
+            this.position++
+        }
     }
-    func writeNumber(value: Int64): Unit {
-        this.setBytes(this.position, value)
+    func writeNumber(value: ?Int32): Unit {
+        if (let Some(value) <- value) {
+            this.setBytes(this.position, Tag.INT32.ordinal)
+            this.setBytes(this.position, value)
+            }
+        else {
+            this.buffer[Int64(this.position)] = UInt8(RuntimeType.UNDEFINED.ordinal)
+            this.position++
+        }
     }
-    func writeNumber(value: Opt_Number): Unit {
-        this.writeNumber(value.value);
+    func writeNumber(value: ?Int64): Unit {
+        if (let Some(value) <- value) {
+            this.setBytes(this.position, Tag.INT32.ordinal)
+            this.setBytes(this.position, Int32(value))
+        }
+        else {
+            this.buffer[Int64(this.position)] = UInt8(RuntimeType.UNDEFINED.ordinal)
+            this.position++
+        }
     }
     func writeInt8(value: Int8): Unit {
         this.setBytes(this.position, value)

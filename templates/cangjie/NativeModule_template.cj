@@ -18,14 +18,14 @@ package idlize
 import std.collection.*
 
 foreign {
-    func StringMake(string: CString): Int64
-    func StringLength(ptr: Int32): Int32
-    func StringData(ptr: Int32, data: CPointer<UInt8>, arg2: Int32): Unit
-    func GetStringFinalizer(): Int32
-    func GetPtrVectorSize(ptr: Int32): Int32
-    func GetGroupedLog(kind: Int32): Int32
-    func GetPtrVectorElement(ptr: Int32, index: Int32): Int32
-    func InvokeFinalizer(fn: Int32, obj: Int32): Unit
+    func StringMake(string: CPointer<UInt8>): KPointer
+    func StringLength(ptr: KPointer): Int32
+    func StringData(ptr: KPointer, data: CPointer<UInt8>, arg2: Int32): Unit
+    func GetStringFinalizer(): KPointer
+    func GetPtrVectorSize(ptr: KPointer): Int32
+    func GetGroupedLog(kind: Int32): KPointer
+    func GetPtrVectorElement(ptr: KPointer, index: Int32): Int32
+    func InvokeFinalizer(obj: KPointer, fn: Int64): Unit
     func GetNodeFinalizer(): Int32
     func StartGroupedLog(index: Int32): Unit
     func StopGroupedLog(index: Int32): Unit
@@ -46,17 +46,17 @@ foreign {
     // func TestCallIntMemory(arg1: Int32, arg2: Int32): Int32
 
     // Node API
-    func CreateNode(type_: Int32, id: Int32, flags: Int32): Int64
-    func DisposeNode(ptr: Int64): Unit
-    func DumpTreeNode(ptr: Int64): Unit
-    func AddChild(ptr: Int64, node: Int64): Unit
-    func RemoveChild(ptr: Int64, node: Int64): Unit
-    func InsertChildAfter(ptr: Int64, node: Int64, sibling: Int64): Int32
-    func InsertChildBefore(ptr: Int64, node: Int64, sibling: Int64): Int32
-    func InsertChildAt(ptr: Int64, node: Int64, position: Int32): Int32
-    func MeasureNode(ptr: Int64, data: CPointer<Float32>): Int32
-    func LayoutNode(ptr: Int64, data: CPointer<Float32>): Int32
-    func DrawNode(ptr: Int64, data: CPointer<Float32>): Int32
+    func CreateNode(type_: Int32, id: Int32, flags: Int32): KPointer
+    func DisposeNode(ptr: KPointer): Unit
+    func DumpTreeNode(ptr: KPointer): Unit
+    func AddChild(ptr: KPointer, node: Int64): Unit
+    func RemoveChild(ptr: KPointer, node: Int64): Unit
+    func InsertChildAfter(ptr: KPointer, node: Int64, sibling: Int64): Int32
+    func InsertChildBefore(ptr: KPointer, node: Int64, sibling: Int64): Int32
+    func InsertChildAt(ptr: KPointer, node: Int64, position: Int32): Int32
+    func MeasureNode(ptr: KPointer, data: CPointer<Float32>): Int32
+    func LayoutNode(ptr: KPointer, data: CPointer<Float32>): Int32
+    func DrawNode(ptr: KPointer, data: CPointer<Float32>): Int32
     func MeasureLayoutAndDraw(ptr: Int64): Unit
 %GENERATED_NATIVE_FUNCTIONS%
 }
@@ -64,37 +64,39 @@ foreign {
 public open class NativeModule {
 
 %GENERATED_METHODS%
-    public static func _StringMake(string: String): Unit {
-        return unsafe {
-            let value = LibC.mallocCString(string)
-            StringMake(value)
-            LibC.free(value)
-        }
-    }
-    public static func _StringLength(ptr: Int32): Int32 {
-        return unsafe { StringLength(ptr) }
-    }
-    public static func _StringData(ptr: Int32, data: ArrayList<UInt8>, arg2: Int32): Unit {
+    public static func _StringMake(string: ArrayList<UInt8>): Unit {
         unsafe {
-            let handle_1 = acquireArrayRawData(data.toArray())
-            StringData(ptr, handle_1.pointer, arg2)
+            let handle_1 = acquireArrayRawData(string.toArray())
+            StringMake(handle_1.pointer)
             releaseArrayRawData(handle_1)
         }
     }
-    public static func _GetStringFinalizer(): Int32 {
+    public static func _StringLength(ptr: Int64): Int32 {
+        return unsafe { StringLength(ptr) }
+    }
+    public static func _StringData(ptr: Int64, data: ArrayList<UInt8>, arg2: Int32): ArrayList<UInt8> {
+        unsafe {
+            let handle_1 = acquireArrayRawData(data.toArray())
+            StringData(ptr, handle_1.pointer, arg2)
+            let outputData = ArrayList<UInt8>(handle_1.array)
+            releaseArrayRawData(handle_1)
+            return outputData
+        }
+    }
+    public static func _GetStringFinalizer(): Int64 {
         return unsafe { GetStringFinalizer() }
     }
-    public static func _GetPtrVectorSize(ptr: Int32): Int32 {
+    public static func _GetPtrVectorSize(ptr: Int64): Int32 {
         return unsafe { GetPtrVectorSize(ptr) } 
     }
-    public static func _GetGroupedLog(kind: Int32): Int32 {
+    public static func _GetGroupedLog(kind: Int32): Int64 {
         return unsafe { GetGroupedLog(kind) }
     }
-    public static func _GetPtrVectorElement(ptr: Int32, index: Int32): Int32 {
+    public static func _GetPtrVectorElement(ptr: Int64, index: Int32): Int32 {
         return unsafe { GetPtrVectorElement(ptr, index) }
     }
-    public static func _InvokeFinalizer(fn: Int32, obj: Int32): Unit {
-        return unsafe { InvokeFinalizer(fn, obj) }
+    public static func _InvokeFinalizer(obj: Int64, fn: Int64): Unit {
+        return unsafe { InvokeFinalizer(obj, fn) }
     }
     public static func _GetNodeFinalizer(): Int32 {
         return unsafe { GetNodeFinalizer() }

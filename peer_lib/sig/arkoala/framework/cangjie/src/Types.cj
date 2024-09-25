@@ -14,8 +14,4 @@
  */
 package idlize
 
-public abstract class Ark_ObjectBase <: Ark_Object {
-    public open func runtimeType(): RuntimeType {
-        return RuntimeType.OBJECT
-    }
-}
+type KPointer = Int64
