@@ -39,6 +39,7 @@ import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { searchTypeParameters, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 import { DeclarationProcessor } from "../DeclarationProcesser"
+import { PrimitiveType_ } from "../Library"
 
 export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
     ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
@@ -53,23 +54,25 @@ function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
 }
 
-export class PrimitiveType {
-    constructor(private name: string, public isPointer = false) { }
+export class PrimitiveType extends PrimitiveType_ {
+    constructor(name: string, isPointer = false) { 
+        super(name, isPointer)
+    }
     getText(table?: DeclarationTable): string { return this.name }
-    static ArkPrefix = "Ark_"
-    static String = new PrimitiveType(`${PrimitiveType.ArkPrefix}String`, true)
-    static Number = new PrimitiveType(`${PrimitiveType.ArkPrefix}Number`, true)
-    static Int32 = new PrimitiveType(`${PrimitiveType.ArkPrefix}Int32`)
-    static Tag = new PrimitiveType(`${PrimitiveType.ArkPrefix}Tag`)
-    static RuntimeType = new PrimitiveType(`${PrimitiveType.ArkPrefix}RuntimeType`)
-    static Boolean = new PrimitiveType(`${PrimitiveType.ArkPrefix}Boolean`)
-    static Function = new PrimitiveType(`${PrimitiveType.ArkPrefix}Function`, false)
-    static Materialized = new PrimitiveType(`${PrimitiveType.ArkPrefix}Materialized`, true)
-    static Undefined = new PrimitiveType(`${PrimitiveType.ArkPrefix}Undefined`)
-    static NativePointer = new PrimitiveType(`${PrimitiveType.ArkPrefix}NativePointer`)
-    static ObjectHandle = new PrimitiveType(`${PrimitiveType.ArkPrefix}ObjectHandle`)
-    static Length = new PrimitiveType(`${PrimitiveType.ArkPrefix}Length`, true)
-    static CustomObject = new PrimitiveType(`${PrimitiveType.ArkPrefix}CustomObject`, true)
+    static Prefix = "Ark_"
+    static String = new PrimitiveType(`${PrimitiveType.Prefix}String`, true)
+    static Number = new PrimitiveType(`${PrimitiveType.Prefix}Number`, true)
+    static Int32 = new PrimitiveType(`${PrimitiveType.Prefix}Int32`)
+    static Tag = new PrimitiveType(`${PrimitiveType.Prefix}Tag`)
+    static RuntimeType = new PrimitiveType(`${PrimitiveType.Prefix}RuntimeType`)
+    static Boolean = new PrimitiveType(`${PrimitiveType.Prefix}Boolean`)
+    static Function = new PrimitiveType(`${PrimitiveType.Prefix}Function`, false)
+    static Materialized = new PrimitiveType(`${PrimitiveType.Prefix}Materialized`, true)
+    static Undefined = new PrimitiveType(`${PrimitiveType.Prefix}Undefined`)
+    static NativePointer = new PrimitiveType(`${PrimitiveType.Prefix}NativePointer`)
+    static ObjectHandle = new PrimitiveType(`${PrimitiveType.Prefix}ObjectHandle`)
+    static Length = new PrimitiveType(`${PrimitiveType.Prefix}Length`, true)
+    static CustomObject = new PrimitiveType(`${PrimitiveType.Prefix}CustomObject`, true)
     private static pointersMap = new Map<DeclarationTarget, PointerType>()
     static pointerTo(target: DeclarationTarget) {
         if (PrimitiveType.pointersMap.has(target)) return PrimitiveType.pointersMap.get(target)!
@@ -79,6 +82,7 @@ export class PrimitiveType {
     }
     static UndefinedTag = "ARK_TAG_UNDEFINED"
     static UndefinedRuntime = "ARK_RUNTIME_UNDEFINED"
+    static ObjectTag = "ARK_TAG_OBJECT"
     static OptionalPrefix = "Opt_"
 }
 
@@ -149,7 +153,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         if (declaration !== undefined) {
             let name = declaration[1][0]
             if (optional) {
-                name = cleanPrefix(name, PrimitiveType.ArkPrefix)
+                name = cleanPrefix(name, PrimitiveType.Prefix)
             }
             return prefix + name
         }
@@ -184,7 +188,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         return false
     }
 
-    computeTypeName(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean = false, idlPrefix: string = PrimitiveType.ArkPrefix): string {
+    computeTypeName(suggestedName: string | undefined, type: ts.TypeNode, optional: boolean = false, idlPrefix: string = PrimitiveType.Prefix): string {
         return this.computeTypeNameImpl(suggestedName, type, optional, idlPrefix)
     }
 
@@ -196,7 +200,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         return convertTypeNode(this.toTargetConvertor, node)
     }
 
-    computeTargetName(target: DeclarationTarget, optional: boolean, idlPrefix: string = PrimitiveType.ArkPrefix): string {
+    computeTargetName(target: DeclarationTarget, optional: boolean, idlPrefix: string = PrimitiveType.Prefix): string {
         return this.computeTargetNameImpl(target, optional, idlPrefix)
     }
 
@@ -219,7 +223,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (target instanceof PrimitiveType) {
             const name = target.getText(this)
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isTypeLiteralNode(target)) {
             if (target.members.some(ts.isIndexSignatureDeclaration)) {
@@ -229,7 +233,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
 
             const parent = target.parent
             if (ts.isTypeAliasDeclaration(parent)) {
-                return `${PrimitiveType.ArkPrefix}${identName(parent.name)}`
+                return `${PrimitiveType.Prefix}${identName(parent.name)}`
             }
 
             return this.computeTargetTypeLiteralName(target, prefix)
@@ -238,11 +242,11 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
             const literal = target.literal
             if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
                 let name = PrimitiveType.String.getText()
-                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
             }
             if (ts.isNumericLiteral(literal)) {
                 let name = PrimitiveType.Number.getText()
-                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
                 // TODO: Is it correct to have undefined for null?
@@ -252,21 +256,21 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         if (ts.isTemplateLiteralTypeNode(target)) {
             // TODO: likely incorrect
             let name = PrimitiveType.String.getText()
-                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isTypeParameterDeclaration(target)) {
             // TODO: likely incorrect
             let name = PrimitiveType.CustomObject.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isEnumDeclaration(target)) {
             const name = this.enumName(target.name)
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isUnionTypeNode(target)) {
             const parent = target.parent
             if (ts.isTypeAliasDeclaration(parent)) {
-                return `${PrimitiveType.ArkPrefix}${identName(parent.name)}`
+                return `${PrimitiveType.Prefix}${identName(parent.name)}`
             }
             return prefix + `Union_${target.types.map(it => this.computeTargetName(this.toTarget(it), false, "")).join("_")}`
         }
@@ -274,13 +278,13 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
             let name = identName(target.name)
             if (name == "Function") {
                 const name = PrimitiveType.Function.getText()
-                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
             }
             return prefix + (optional ? "" : idlPrefix) + name
         }
         if (ts.isFunctionTypeNode(target)) {
             let name = PrimitiveType.Function.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isTupleTypeNode(target)) {
             return prefix + `Tuple_${target.elements.map(it => {
@@ -299,7 +303,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         }
         if (ts.isOptionalTypeNode(target)) {
             let name = this.computeTargetName(this.toTarget(target.type), false, "")
-            return `${PrimitiveType.OptionalPrefix}${cleanPrefix(name, PrimitiveType.ArkPrefix)}`
+            return `${PrimitiveType.OptionalPrefix}${cleanPrefix(name, PrimitiveType.Prefix)}`
         }
         if (ts.isParenthesizedTypeNode(target)) {
             return this.computeTargetName(this.toTarget(target.type), optional, idlPrefix)
@@ -322,7 +326,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
             }
             if (PeerGeneratorConfig.isKnownParametrized(name)) {
                 let name = PrimitiveType.CustomObject.getText()
-                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
             }
         }
         throw new Error(`Cannot compute target name: ${(target as any).getText()} ${(target as any).kind}`)
@@ -347,7 +351,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
             let declaration = this.toTarget(type)
             if (!(declaration instanceof PrimitiveType) && ts.isEnumDeclaration(declaration)) {
                 const name = this.enumName(declaration.name)
-                return (optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name
+                return (optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name
             }
             if (typeName === "Array") {
                 const elementTypeName = this.computeTypeNameImpl(undefined, type.typeArguments![0], false, "")
@@ -376,7 +380,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         if (ts.isOptionalTypeNode(type)) {
             if (suggestedName) return suggestedName
             const name = this.computeTypeNameImpl(undefined, type.type, false, "")
-            return PrimitiveType.OptionalPrefix + cleanPrefix(name, PrimitiveType.ArkPrefix)
+            return PrimitiveType.OptionalPrefix + cleanPrefix(name, PrimitiveType.Prefix)
         }
         if (ts.isTupleTypeNode(type)) {
             if (suggestedName) return suggestedName
@@ -411,11 +415,11 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             const name = PrimitiveType.String.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isFunctionTypeNode(type)) {
             const name = PrimitiveType.Function.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isArrayTypeNode(type)) {
             if (suggestedName) return suggestedName
@@ -423,7 +427,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
             const name = PrimitiveType.Number.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (
             type.kind == ts.SyntaxKind.UndefinedKeyword ||
@@ -434,39 +438,39 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
             const name = PrimitiveType.String.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
             const name = PrimitiveType.Boolean.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (type.kind == ts.SyntaxKind.ObjectKeyword ||
             type.kind == ts.SyntaxKind.UnknownKeyword) {
             const name = PrimitiveType.CustomObject.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
             const name = PrimitiveType.CustomObject.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isTypeParameterDeclaration(type)) {
             const name = PrimitiveType.CustomObject.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isIndexedAccessTypeNode(type)) {
             const name = PrimitiveType.CustomObject.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isEnumMember(type)) {
             const name = this.enumName(type.name)
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         throw new Error(`Cannot compute type name: ${type.getText()} ${type.kind}`)
     }
 
     public enumName(name: ts.PropertyName): string {
         // TODO: support namespaces in other declarations.
-        return `${PrimitiveType.ArkPrefix}${identNameWithNamespace(name, Language.CPP)}`
+        return `${PrimitiveType.Prefix}${identNameWithNamespace(name, Language.CPP)}`
     }
 
     public get orderedDependencies(): DeclarationTarget[] {
@@ -757,7 +761,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         const prefix = field.optional ? PrimitiveType.OptionalPrefix : ""
         let name = this.computeTargetName(field.declaration, false)
         if (field.optional) {
-            name = cleanPrefix(name, PrimitiveType.ArkPrefix)
+            name = cleanPrefix(name, PrimitiveType.Prefix)
         }
         const cKind = field.optional ? "" : this.cFieldKind(field.declaration)
         structs.print(`${cKind}${prefix}${name} ${field.name};`)
@@ -776,7 +780,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
                 throw new Error(`No assigned name for ${(target as ts.TypeNode).getText()} shall be ${this.computeTargetName(target, false)}`)
             }
             if (seenNames.has(nameAssigned)) continue
-            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.ArkPrefix)
+            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.Prefix)
             seenNames.add(nameOptional)
         }
         return seenNames
@@ -831,7 +835,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
     }
 
     private generateOptional(structs: IndentedPrinter, writeToString: LanguageWriter, target: DeclarationTarget, elemName: string, seenNames: Set<string>) {
-        const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(elemName, PrimitiveType.ArkPrefix)
+        const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(elemName, PrimitiveType.Prefix)
         if (!seenNames.has(nameOptional)) {
             seenNames.add(nameOptional)
             structs.print(`typedef struct ${nameOptional} {`)
@@ -895,7 +899,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
             let isPointer = this.isPointerDeclaration(target)
             let isAccessor = checkDeclarationTargetMaterialized(target)
             let noBasicDecl = isAccessor || (target instanceof PrimitiveType && noDeclaration.includes(target))
-            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.ArkPrefix)
+            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.Prefix)
             let isUnion = this.isMaybeWrapped(target, ts.isUnionTypeNode)
             if (!(target instanceof PrimitiveType) && ts.isEnumDeclaration(target)) {
                 this.generateEnum(structs, writeToString, target)
@@ -907,7 +911,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
 
                 // TODO: fix it to define array type after its elements types
                 if (nameAssigned === `Array_GestureRecognizer`) {
-                    structs.print(`typedef Ark_Materialized ${PrimitiveType.ArkPrefix}GestureRecognizer;`)
+                    structs.print(`typedef Ark_Materialized ${PrimitiveType.Prefix}GestureRecognizer;`)
                 }
 
                 this.printStructsCHead(nameAssigned, structDescriptor, structs, writeToString, seenNames)
@@ -1043,11 +1047,11 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         seenNames.add(aliasName)
         typedefs.print(`typedef ${declarationName} ${aliasName};`)
         // TODO: hacky
-        aliasName = cleanPrefix(aliasName, PrimitiveType.ArkPrefix)
+        aliasName = cleanPrefix(aliasName, PrimitiveType.Prefix)
         let optAliasName = `${PrimitiveType.OptionalPrefix}${aliasName}`
         if (!declarationName.startsWith(PrimitiveType.OptionalPrefix) && !seenNames.has(optAliasName)) {
             seenNames.add(optAliasName)
-            declarationName = cleanPrefix(declarationName, PrimitiveType.ArkPrefix)
+            declarationName = cleanPrefix(declarationName, PrimitiveType.Prefix)
             typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}${declarationName} ${optAliasName};`)
         }
     }
@@ -1526,7 +1530,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
             const node = declaration.type
             let name = identName(declaration.name)
             if (name === "GestureType")
-                name = PrimitiveType.ArkPrefix + name
+                name = PrimitiveType.Prefix + name
             this.table.requestType(node, false, name)
             return convertTypeNode(this, node)
         }

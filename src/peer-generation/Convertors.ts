@@ -268,7 +268,7 @@ export class EnumConvertor extends BaseArgConvertor {
         )
     }
     enumTypeName(language: Language): string {
-        const prefix = language === Language.CPP ? PrimitiveType.ArkPrefix : ""
+        const prefix = language === Language.CPP ? PrimitiveType.Prefix : ""
         return `${prefix}${identNameWithNamespace(this.enumType, language)}`
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -824,7 +824,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
                 printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(this.tsTypeName), []), false)
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.ArkPrefix + this.tsTypeName
+        return PrimitiveType.Prefix + this.tsTypeName
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -1268,7 +1268,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = printer.getObjectAccessor(this, value)
-        const prefix = printer.language === Language.CPP ? PrimitiveType.ArkPrefix : ""
+        const prefix = printer.language === Language.CPP ? PrimitiveType.Prefix : ""
         const readStatement = printer.makeCast(
             printer.makeMethodCall(`${param}Deserializer`, `readMaterialized`, []),
             new Type(this.table.computeTargetName(this.type, false, prefix)!),

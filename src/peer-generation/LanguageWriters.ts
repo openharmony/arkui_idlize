@@ -197,7 +197,7 @@ export class CJAssignStatement extends AssignStatement {
 export class CDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
     asString(): string {
-        return `${this.value} != ARK_TAG_UNDEFINED`
+        return `${this.value} != ${PrimitiveType.UndefinedTag}`
     }
 }
 
@@ -380,7 +380,7 @@ export class CppCastExpression implements LanguageExpression {
     constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
     asString(): string {
         if (this.type.name === PrimitiveType.Tag.getText()) {
-            return `${this.value.asString()} == ARK_RUNTIME_UNDEFINED ? ARK_TAG_UNDEFINED : ARK_TAG_OBJECT`
+            return `${this.value.asString()} == ${PrimitiveType.UndefinedRuntime} ? ${PrimitiveType.UndefinedTag} : ${PrimitiveType.ObjectTag}`
         }
         return this.unsafe
             ? `reinterpret_cast<${this.type.name}>(${this.value.asString()})`
@@ -495,7 +495,7 @@ class CppArrayResizeStatement implements LanguageStatement {
 class CppMapResizeStatement implements LanguageStatement {
     constructor(private keyType: string, private valueType: string, private map: string, private size: string, private deserializer: string) {}
     write(writer: LanguageWriter): void {
-        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(PrimitiveType.ArkPrefix, "")}_${this.valueType.replace(PrimitiveType.ArkPrefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
+        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(PrimitiveType.Prefix, "")}_${this.valueType.replace(PrimitiveType.Prefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
     }
 }
 

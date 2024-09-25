@@ -171,8 +171,8 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         [PrimitiveType.Tag, 'Tag'],
         [PrimitiveType.RuntimeType, 'RuntimeType'],
         [PrimitiveType.Boolean, 'Bool'],
-        [PrimitiveType.Undefined, `${PrimitiveType.ArkPrefix}Undefined`],
-        [PrimitiveType.Length, `${PrimitiveType.ArkPrefix}Length`],
+        [PrimitiveType.Undefined, `${PrimitiveType.Prefix}Undefined`],
+        [PrimitiveType.Length, `${PrimitiveType.Prefix}Length`],
         [PrimitiveType.CustomObject, 'Ark_CustomObject'],
         // TODO: add other primitive types
     ])

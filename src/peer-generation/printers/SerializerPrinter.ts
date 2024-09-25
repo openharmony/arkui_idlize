@@ -131,7 +131,7 @@ class SerializerPrinter {
                 break;
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
-                prefix = PrimitiveType.ArkPrefix
+                prefix = PrimitiveType.Prefix
                 break;
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(Type.Void, [], [])
@@ -202,7 +202,7 @@ class IdlSerializerPrinter {
                 break;
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
-                prefix = PrimitiveType.ArkPrefix
+                prefix = PrimitiveType.Prefix
                 break;
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(Type.Void, [], [])
@@ -278,7 +278,7 @@ class DeserializerPrinter {
         let prefix = ""
         if (this.writer.language == Language.CPP) {
             ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
-            prefix = PrimitiveType.ArkPrefix
+            prefix = PrimitiveType.Prefix
         }
         const serializerDeclarations = generateSerializerDeclarationsTable(prefix, this.table)
         printSerializerImports(serializerDeclarations, this.library, this.writer)
@@ -341,7 +341,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
         let prefix = ""
         if (this.writer.language == Language.CPP) {
             ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
-            prefix = PrimitiveType.ArkPrefix
+            prefix = PrimitiveType.Prefix
         }
         const serializerDeclarations = getSerializers(this.library)
         printIdlImports(this.library, this.writer)
