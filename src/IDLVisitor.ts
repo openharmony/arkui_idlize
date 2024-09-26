@@ -16,20 +16,19 @@ import * as ts from "typescript"
 import * as path from "path"
 import { parse } from 'comment-parser'
 import {
-    createBooleanType, createContainerType, createEnumType, createNullType, createNumberType, createReferenceType, createStringType, createTypedef,
-    createTypeParameterReference, createUndefinedType, createUnionType, createVoidType, IDLCallable, IDLCallback, IDLConstant, IDLConstructor,
+    createContainerType, createEnumType, createReferenceType,
+    createTypeParameterReference, createUnionType, IDLCallable, IDLCallback, IDLConstant, IDLConstructor,
     IDLEntity, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLTopType, IDLType, IDLTypedef,
-    IDLAccessorAttribute, IDLExtendedAttributes, isConstant, isProperty, createAnyType,
-    getExtAttribute,
-    IDLPackage,
-    IDLImport
+    IDLAccessorAttribute, IDLExtendedAttributes, getExtAttribute, IDLPackage, IDLImport,
+    IDLStringType, IDLNumberType, IDLUndefinedType, IDLNullType, IDLVoidType, IDLAnyType, IDLBooleanType
 } from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameOrNull, stringOrNone
+    asString, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameOrNull, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { OptionValues } from "commander"
+import { typeOrUnion } from "./peer-generation/idl/common"
 
 const typeMapper = new Map<string, string>(
     [
@@ -552,7 +551,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             parent,
             fileName: node.getSourceFile().fileName,
             documentation: getDocumentation(this.sourceFile, node, this.options.docs),
-            type: isString ? createStringType() : createNumberType(),
+            type: isString ? IDLStringType : IDLNumberType,
             initializer: initializer
         }
     }
@@ -623,39 +622,40 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     serializeType(type: ts.TypeNode | undefined, nameSuggestion: string): IDLType {
-        if (type == undefined) return createUndefinedType() // TODO: can we have implicit types in d.ts?
+        if (type == undefined) return IDLUndefinedType // TODO: can we have implicit types in d.ts?
 
         if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
-            return createUndefinedType()
+            return IDLUndefinedType
         }
         if (type.kind == ts.SyntaxKind.NullKeyword) {
-            return createNullType()
+            return IDLNullType
         }
         if (type.kind == ts.SyntaxKind.VoidKeyword) {
-            return createVoidType()
+            return IDLVoidType
         }
         if (type.kind == ts.SyntaxKind.UnknownKeyword) {
             return createReferenceType("unknown")
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
-            return createAnyType()
+            return IDLAnyType
         }
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
             return createReferenceType("object")
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
-            return createNumberType()
+            return IDLNumberType
         }
         if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-            return createBooleanType()
+            return IDLBooleanType
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
-            return createStringType()
+            return IDLStringType
         }
         if (ts.isUnionTypeNode(type)) {
-            return createUnionType(
-                type.types.map((it, index) => this.serializeType(it, `${nameSuggestion}_${index}`))
-            )
+            const types = type.types
+                .map((it, index) => this.serializeType(it, `${nameSuggestion}_${index}`))
+                .reduce<IDLType[]>((uniqueTypes, it) => uniqueTypes.concat(uniqueTypes.includes(it) ? []: [it]), [])
+            return typeOrUnion(types)
         }
         if (ts.isIntersectionTypeNode(type)) {
             const name = this.compileContext.uniqualize(`${nameSuggestion}_Intersection`)
@@ -713,7 +713,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
         if (ts.isIndexedAccessTypeNode(type)) {
             // TODO: plain wrong.
-            return createStringType()
+            return IDLStringType
         }
         if (ts.isTypeLiteralNode(type)) {
             const name = this.compileContext.uniqualize(`${nameSuggestion}_Object`)
@@ -724,19 +724,19 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (ts.isLiteralTypeNode(type)) {
             const literal = type.literal
             if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
-                return createStringType()
+                return IDLStringType
             }
             if (ts.isNumericLiteral(literal)) {
-                return createNumberType()
+                return IDLNumberType
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
                 // TODO: Is it correct to have undefined for null?
-                return createNullType()
+                return IDLNullType
             }
             throw new Error(`Non-representable type: ${asString(type)}`)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
-            return createStringType()
+            return IDLStringType
         }
         if (ts.isImportTypeNode(type)) {
             let originalText = `${type.getText(this.sourceFile)}`

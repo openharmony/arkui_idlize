@@ -179,7 +179,7 @@ function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argTyp
             componentName: peer.getComponentName(),
             methodName: method.overloadedName,
             args: hasData ? [{name: 'data', type: inputType, nullable: false}] : [],
-            returnType: typeArgs[1] ? idl.createReferenceType(typeArgs[1]) : idl.createVoidType(),
+            returnType: typeArgs[1] ? idl.createReferenceType(typeArgs[1]) : idl.IDLVoidType,
             originTarget: argType,
         }
     }

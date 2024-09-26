@@ -43,3 +43,7 @@ export function qualifiedName(decl: idl.IDLEntry, language: Language): string {
         : ""
     return prefix + decl.name
 }
+
+export function typeOrUnion(types: idl.IDLType[]): idl.IDLType {
+    return types.length === 1 ? types[0] : idl.createUnionType(types)
+}

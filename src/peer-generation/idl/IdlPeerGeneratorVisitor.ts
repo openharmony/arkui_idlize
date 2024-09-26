@@ -144,24 +144,8 @@ function mapCInteropRetType(type: idl.IDLType): string {
     if (idl.isTypeParameterType(type))
         /* ANOTHER HACK, fix */
         return "void"
-    if (idl.isEnumType(type))
+    if (idl.isEnumType(type) || idl.isUnionType(type))
         return PrimitiveType.NativePointer.getText()
-    if (idl.isUnionType(type)) {
-        console.log(`WARNING: unhandled union type: ${type.name}`)
-        // TODO: not really properly supported.
-        if (type.types[0].name == "void_") return "void"
-        if (type.types.length == 2) {
-            switch (type.types[1].name) {
-                case "undefined": return "void"
-                case "null_":
-                // NavPathStack | null
-                return mapCInteropRetType(type.types[0])
-            }
-        }
-        // TODO: return just type of the first elem
-        // for the materialized class getter with union type
-        return mapCInteropRetType(type.types[0])
-    }
     if (idl.isContainerType(type)) {
         if (type.name === "sequence") {
             /* HACK, fix */
@@ -195,10 +179,7 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
             addSyntheticDeclarationDependency(syntheticDeclaration, {feature: "ArkResource", module: "./shared/ArkResource"})
         } else {
             syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
-                'SyntheticDeclarations',
-                generatedName,
-                idl.createAnyType()
-            )
+                'SyntheticDeclarations', generatedName, idl.IDLAnyType)
         }
         return [
             ...super.convertImport(type, importClause),
@@ -300,7 +281,7 @@ class PeersGenerator {
              * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
              * valid and cannot be correctly processed and we want to stub this for now.
              */
-            prop.type = idl.createAnyType()
+            prop.type = idl.IDLAnyType
         }
         const decl = this.toDeclaration(prop.type)
         this.library.requestType(decl, this.library.shouldGenerateComponent(peer.componentName))
@@ -312,7 +293,7 @@ class PeersGenerator {
             originalParentName,
             [decl],
             [argConvertor],
-            generateRetConvertor(idl.createVoidType()), ///constant?,
+            generateRetConvertor(idl.IDLVoidType),
             false,
             new Method(prop.name, signature, []))
     }

@@ -436,9 +436,10 @@ export class UnionRuntimeTypeChecker {
     }
     reportConflicts(context: string | undefined) {
         if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
-            console.log(`WARNING: runtime type conflict in ${context ?? "<unknown context>"}`)
+            console.log(`FATAL: runtime type conflict in ${context ?? "<unknown context>"}`)
             this.discriminators.forEach(([discr, conv, n]) =>
                 console.log(`   ${n} : ${conv.constructor.name} : ${discr ? discr.asString() : "<undefined>"}`))
+            throw new Error()
         }
     }
 }

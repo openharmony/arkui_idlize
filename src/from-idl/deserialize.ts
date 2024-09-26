@@ -22,11 +22,10 @@ import {
     isSingleTypeDescription, isTypedef, isUnionTypeDescription
 } from "./webidl2-utils"
 import { toString } from "./toString"
-import {
-    createAnyType,
-    createBooleanType,
-    createContainerType, createNullType, createNumberType, createStringType, createUndefinedType, createUnionType, createVoidType, hasExtAttribute, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLImport, IDLInterface, IDLKind,
-    IDLMethod, IDLModuleType, IDLPackage, IDLParameter, IDLPrimitiveType, IDLProperty, IDLType, IDLTypedef
+import { createContainerType, createUnionType, IDLAnyType, IDLBooleanType, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLImport, IDLInterface, IDLKind,
+    IDLMethod, IDLModuleType, IDLNullType, IDLNumberType, IDLPackage, IDLParameter, IDLPrimitiveType, IDLProperty, IDLStringType, IDLType, IDLTypedef,
+    IDLUndefinedType,
+    IDLVoidType
 } from "../idl"
 import { isDefined, stringOrNone } from "../util"
 
@@ -163,13 +162,13 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
     }
     if (isSingleTypeDescription(type)) {
         switch (type.idlType) {
-            case "any": return createAnyType()
-            case "boolean": return createBooleanType()
-            case "null_": return createNullType()
-            case "number": return createNumberType()
-            case "DOMString": return createStringType()
-            case "undefined": return createUndefinedType()
-            case "void_": return createVoidType()
+            case "any": return IDLAnyType
+            case "boolean": return IDLBooleanType
+            case "null_": return IDLNullType
+            case "number": return IDLNumberType
+            case "DOMString": return IDLStringType
+            case "undefined": return IDLUndefinedType
+            case "void_": return IDLVoidType
         }
         const combinedExtAttrs = extAttrs
             ? type.extAttrs ? extAttrs.concat(type.extAttrs) : extAttrs
@@ -364,7 +363,7 @@ function toIDLEnum(file: string, node: webidl2.EnumType): IDLEnum {
             kind: IDLKind.EnumMember,
             name: it.value,
             parent: result,
-            type: createNumberType(),
+            type: IDLNumberType,
             initializer: undefined
         }
     })

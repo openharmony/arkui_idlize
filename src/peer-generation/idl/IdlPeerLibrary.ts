@@ -21,7 +21,7 @@ import { IdlPeerClass } from "./IdlPeerClass";
 import { IdlPeerFile } from "./IdlPeerFile";
 import { TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
-import { AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from '../DeclarationTable';
 import { DependencySorter } from './DependencySorter';
@@ -99,7 +99,7 @@ export class IdlPeerLibrary {
     }
 
     mapType(type: idl.IDLType | idl.IDLCallback | undefined): string {
-        return this.nameConvertorInstance.convert(type ?? idl.createVoidType())
+        return this.nameConvertorInstance.convert(type ?? idl.IDLVoidType)
     }
 
     resolveTypeReference(type: idl.IDLEnumType | idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
@@ -131,12 +131,12 @@ export class IdlPeerLibrary {
         if (idl.isPrimitiveType(type)) {
             switch (type.name) {
                 case "any": return new CustomTypeConvertor(param, "Any")
-                case "null_":
+                case "boolean": return new BooleanConvertor(param)
+                case "DOMString": return new StringConvertor(param)
+                case "null_": return new NullConvertor(param)
+                case "number": return new NumberConvertor(param)
                 case "undefined":
                 case "void_": return new UndefinedConvertor(param)
-                case "number": return new NumberConvertor(param)
-                case "DOMString": return new StringConvertor(param)
-                case "boolean": return new BooleanConvertor(param)
             }
         }
         if (idl.isReferenceType(type)) {
@@ -262,7 +262,7 @@ export class IdlPeerLibrary {
         switch (type.name) {
             case "any": return ArkCustomObject
             case "null_":
-            case "void_": return idl.createUndefinedType()
+            case "void_": return idl.IDLUndefinedType
             case "Callback": return ArkFunction
             case "Resource": return ArkResource
         }
@@ -501,7 +501,7 @@ export const ArkResource: idl.IDLInterface = {
         {
             name: "id",
             kind: idl.IDLKind.Property,
-            type: idl.createNumberType(),
+            type: idl.IDLNumberType,
             isReadonly: true,
             isStatic: false,
             isOptional: false,
@@ -509,7 +509,7 @@ export const ArkResource: idl.IDLInterface = {
         {
             name: "type",
             kind: idl.IDLKind.Property,
-            type: idl.createNumberType(),
+            type: idl.IDLNumberType,
             isReadonly: true,
             isStatic: false,
             isOptional: false,
@@ -517,7 +517,7 @@ export const ArkResource: idl.IDLInterface = {
         {
             name: "moduleName",
             kind: idl.IDLKind.Property,
-            type: idl.createStringType(),
+            type: idl.IDLStringType,
             isReadonly: true,
             isStatic: false,
             isOptional: false,
@@ -525,7 +525,7 @@ export const ArkResource: idl.IDLInterface = {
         {
             name: "bundleName",
             kind: idl.IDLKind.Property,
-            type: idl.createStringType(),
+            type: idl.IDLStringType,
             isReadonly: true,
             isStatic: false,
             isOptional: false,
@@ -533,7 +533,7 @@ export const ArkResource: idl.IDLInterface = {
         {
             name: "params",
             kind: idl.IDLKind.Property,
-            type: idl.createContainerType("sequence", [idl.createStringType()]),
+            type: idl.createContainerType("sequence", [idl.IDLStringType]),
             isReadonly: true,
             isStatic: false,
             isOptional: true,

@@ -381,37 +381,13 @@ function createPrimitiveType(name: string): IDLPrimitiveType {
     }
 }
 
-export function createStringType(): IDLPrimitiveType {
-    return createPrimitiveType("DOMString")
-}
-
-export function createNumberType(): IDLPrimitiveType {
-    return createPrimitiveType("number")
-}
-
-export function createBooleanType(): IDLPrimitiveType {
-    return createPrimitiveType("boolean")
-}
-
-export function createNullType(): IDLPrimitiveType {
-    return createPrimitiveType("null_")
-}
-
-export function createUndefinedType(): IDLPrimitiveType {
-    return createPrimitiveType("undefined")
-}
-
-export function createVoidType(): IDLPrimitiveType {
-    return createPrimitiveType("void_")
-}
-
-export function createAnyType(documentation?: string): IDLPrimitiveType {
-    return {
-        kind: IDLKind.PrimitiveType,
-        name: "any",
-        documentation: documentation
-    }
-}
+export const IDLAnyType: IDLPrimitiveType = createPrimitiveType("any")
+export const IDLBooleanType: IDLPrimitiveType = createPrimitiveType("boolean")
+export const IDLNullType: IDLPrimitiveType = createPrimitiveType("null_")
+export const IDLNumberType: IDLPrimitiveType = createPrimitiveType("number")
+export const IDLStringType: IDLPrimitiveType = createPrimitiveType("DOMString")
+export const IDLUndefinedType: IDLPrimitiveType = createPrimitiveType("undefined")
+export const IDLVoidType: IDLPrimitiveType = createPrimitiveType("void_")
 
 export function createReferenceType(name: string, typeArguments?: NodeArray<TypeNode>): IDLReferenceType {
     if (typeArguments) {
@@ -764,12 +740,12 @@ export function toIDLType(typeName: string): IDLType {
     if (arrayMatch)
         return createContainerType("sequence", [toIDLType(arrayMatch[1])])
     switch (typeName) {
-        case "boolean": return createBooleanType()
-        case "null": return createNullType()
-        case "number": return createNumberType()
-        case "string": return createStringType()
-        case "undefined": return createUndefinedType()
-        case "void": return createVoidType()
+        case "boolean": return IDLBooleanType
+        case "null": return IDLNullType
+        case "number": return IDLNumberType
+        case "string": return IDLStringType
+        case "undefined": return IDLUndefinedType
+        case "void": return IDLVoidType
         default: return createReferenceType(typeName)
     }
 }
