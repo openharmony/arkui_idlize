@@ -81,11 +81,10 @@ import { SkoalaCCodeGenerator } from "./peer-generation/printers/SkoalaPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
-    .option('--dts2h', 'Convert .d.ts to .h definitions')
     .option('--dts2test', 'Generate tests from .d.ts to .h')
     .option('--dts2peer', 'Convert .d.ts to peer drafts')
     .option('--ets2ts', 'Convert .ets to .ts')
-    .option('--input-dir <path>', 'Path to input dir')
+    .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--output-dir <path>', 'Path to output dir')
     .option('--input-file <name>', 'Name of file to convert, all files in input-dir if none')
     .option('--idl2dts', 'Convert IDL to .d.ts definitions')
@@ -142,16 +141,16 @@ let didJob = false
 if (options.dts2idl) {
     const tsCompileContext = new CompileContext()
     generate(
-        options.inputDir,
+        options.inputDir.split(','),
         options.inputFile,
         options.outputDir ?? "./idl",
         (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: IDLEntry[], outputDir, sourceFile) => {
-                console.log('producing', path.relative(options.inputDir, sourceFile.fileName))
+                console.log('producing', path.basename(sourceFile.fileName))
                 const outFile = path.join(outputDir,
-                    path.relative(options.inputDir, sourceFile.fileName).replace(".d.ts", ".idl"))
+                    path.basename(sourceFile.fileName).replace(".d.ts", ".idl"))
                 console.log("saved", outFile)
                 if (options.skipDocs) {
                     entries.forEach(it => forEachChild(
@@ -182,7 +181,7 @@ if (options.dts2skoala) {
     }
 
     generate(
-        options.inputDir,
+        options.inputDir.split(','),
         options.inputFile,
         outputDir,
         (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options),
@@ -220,32 +219,10 @@ if (options.dts2skoala) {
     didJob = true
 }
 
-if (options.dts2h) {
-    const allEntries = new Array<IDLEntry[]>()
-    const tsCompileContext = new CompileContext()
-    generate(
-        options.inputDir,
-        options.inputFile,
-        options.outputDir ?? "./headers",
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options.commonToAttributes ?? false),
-        {
-            compilerOptions: defaultCompilerOptions,
-            onSingleFile: (entries: IDLEntry[]) => allEntries.push(entries),
-        }
-    )
-    const outFile = path.join(options.outputDir ?? "./headers", "arkoala_api_generated.h")
-    console.log("producing", outFile)
-
-    const generated = toHeaderString(new TypeChecker(allEntries.flat()), allEntries, options.generateInterface)
-    if (options.verbose) console.log(generated)
-    fs.writeFileSync(outFile, generated)
-    didJob = true
-}
-
 if (options.linter) {
     const allEntries = new Array<LinterMessage[]>()
     generate(
-        options.inputDir,
+        options.inputDir.split(','),
         options.inputFile,
         options.outputDir,
         (sourceFile, typeChecker) => new LinterVisitor(sourceFile, typeChecker),
@@ -279,17 +256,20 @@ if (options.dts2test) {
                 .join(``)
         }
 
-        let inDir = path.resolve(options.inputDir)
-        testInterfaces = fs.readdirSync(inDir)
-            .filter(file => file.endsWith("d.ts"))
-            .map(file => file.substring(0, file.length - 5))
-            .map(fileNameToClass)
-            .join(',')
+        (options.inputDir as string).split(",").forEach(inputDir => {
+            let inDir = path.resolve(inputDir)
+            testInterfaces = testInterfaces.concat(
+                fs.readdirSync(inDir)
+                .filter(file => file.endsWith("d.ts"))
+                .map(file => file.substring(0, file.length - 5))
+                .map(fileNameToClass)
+                .join(','))
+            })
     }
 
     let lines: string[] = []
     generate(
-        options.inputDir,
+        options.inputDir.split(','),
         options.inputFile,
         options.outputDir ?? "./generated/tests",
         (sourceFile, typeChecker) => new TestGeneratorVisitor(sourceFile, typeChecker, testInterfaces, options.testMethod, options.testProperties),
@@ -332,31 +312,6 @@ if (options.idl2dts) {
     didJob = true
 }
 
-if (options.idl2h) {
-    const idlFiles = scanIDL(
-        options.inputDir,
-        options.inputFile
-    )
-    const typeChecker = new TypeChecker(idlFiles.flat())
-    const body = idlFiles
-        .flatMap(it => printHeader(typeChecker, it, toSet(options.generateInterface)))
-        .filter(isDefined)
-        .filter(it => it.length > 0)
-        .join("\n")
-    const generatedHeader = wrapWithPrologueAndEpilogue(body)
-    if (options.verbose) {
-        console.log(body)
-    }
-    const outputDir = options.outputDir ?? "./generated/headers"
-    if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true })
-    }
-    const outFile = path.join(outputDir, "arkoala_api_generated.h")
-    console.log("producing", outFile)
-    fs.writeFileSync(outFile, generatedHeader)
-    didJob = true
-}
-
 if (options.dts2peer) {
     PeerGeneratorConfig.needInterfaces = options.needInterfaces
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
@@ -367,7 +322,7 @@ if (options.dts2peer) {
         const idlLibrary = new IdlPeerLibrary(lang, toSet(options.generateInterface))
         // First convert DTS to IDL
         generate(
-            options.inputDir,
+            options.inputDir.split(','),
             options.inputFile,
             generatedPeersDir,
             (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, new CompileContext(), options),
@@ -414,7 +369,7 @@ if (options.dts2peer) {
         const peerLibrary = new PeerLibrary(declarationTable, toSet(options.generateInterface))
 
         generate(
-            options.inputDir,
+            options.inputDir.split(','),
             undefined,
             generatedPeersDir,
             (sourceFile, typeChecker) => new PeerGeneratorVisitor({
@@ -697,11 +652,11 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             makeTSSerializer(peerLibrary),
             true,
         )
-        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')), 
+        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')),
             makeTypeChecker(peerLibrary).arkts,
             true,
         )
-        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'ts')), 
+        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'ts')),
             makeTypeChecker(peerLibrary).ts,
             true,
         )

@@ -383,6 +383,7 @@ function createPrimitiveType(name: string): IDLPrimitiveType {
 
 export const IDLAnyType: IDLPrimitiveType = createPrimitiveType("any")
 export const IDLBooleanType: IDLPrimitiveType = createPrimitiveType("boolean")
+export const IDLBigintType: IDLPrimitiveType = createPrimitiveType("bigint")
 export const IDLNullType: IDLPrimitiveType = createPrimitiveType("null_")
 export const IDLNumberType: IDLPrimitiveType = createPrimitiveType("number")
 export const IDLStringType: IDLPrimitiveType = createPrimitiveType("DOMString")

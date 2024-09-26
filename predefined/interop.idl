@@ -1,0 +1,6 @@
+package "org.openharmony.idl";
+
+[GlobalScope]
+interface Interop {
+    undefined CleanCallbackDispatcher();
+}

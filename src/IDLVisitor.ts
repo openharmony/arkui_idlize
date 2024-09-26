@@ -20,7 +20,7 @@ import {
     createTypeParameterReference, createUnionType, IDLCallable, IDLCallback, IDLConstant, IDLConstructor,
     IDLEntity, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLTopType, IDLType, IDLTypedef,
     IDLAccessorAttribute, IDLExtendedAttributes, getExtAttribute, IDLPackage, IDLImport,
-    IDLStringType, IDLNumberType, IDLUndefinedType, IDLNullType, IDLVoidType, IDLAnyType, IDLBooleanType
+    IDLStringType, IDLNumberType, IDLUndefinedType, IDLNullType, IDLVoidType, IDLAnyType, IDLBooleanType, IDLBigintType
 } from "./idl"
 import {
     asString, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameOrNull, stringOrNone
@@ -88,7 +88,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (this.globalConstants.length > 0 || this.globalFunctions.length > 0) {
             this.output.push({
                 kind: IDLKind.Interface,
-                name: `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "")}`,
+                name: `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replace("@", "")}`,
                 extendedAttributes: [ {name: IDLExtendedAttributes.GlobalScope } ],
                 methods: this.globalFunctions,
                 constants: this.globalConstants,
@@ -142,11 +142,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             } else {
                 // This is a namespace, visit its children
                 if (node.body) {
-                    if (isExport(node.modifiers)) {
-                        this.namespaces.unshift(`Export ${node.name.getText()}`)
-                    } else {
-                        this.namespaces.unshift(node.name.getText())
-                    }
+                    this.namespaces.unshift(node.name.getText())
                     ts.forEachChild(node.body, (node) => this.visit(node));
                     this.namespaces.shift()
                 }
@@ -513,13 +509,14 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             documentation: getDocumentation(this.sourceFile, node, this.options.docs),
             elements: []
         }
+        let seenMembers = new Map<string, [string, boolean]>()
         result.elements = node.members
             .filter(ts.isEnumMember)
-            .map(it => this.serializeEnumMember(it, result))
+            .map(it => this.serializeEnumMember(it, result, seenMembers))
         return result
     }
 
-    serializeEnumMember(node: ts.EnumMember, parent: IDLEnum): IDLEnumMember {
+    serializeEnumMember(node: ts.EnumMember, parent: IDLEnum, seenMembers: Map<string, [string, boolean]>): IDLEnumMember {
         let isString = false
         let initializer: string|number|undefined = undefined
         if (!node.initializer) {
@@ -527,9 +524,17 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         } else if (ts.isStringLiteral(node.initializer)) {
             isString = true
             initializer = node.initializer.text
-        } else if (ts.isNumericLiteral(node.initializer)) {
+            seenMembers.set(nameOrNull(node.name)!, [initializer, true])
+        } else if (ts.isNumericLiteral(node.initializer) ||
+                (ts.isPrefixUnaryExpression(node.initializer)  &&
+                node.initializer.operator == ts.SyntaxKind.MinusToken  &&
+                ts.isNumericLiteral(node.initializer.operand))
+               ) {
             isString = false
-            initializer = node.initializer.text
+            initializer = ts.isPrefixUnaryExpression(node.initializer) ?
+                "-" + node.initializer.operand.getText() :
+                node.initializer.text
+            seenMembers.set(nameOrNull(node.name)!, [initializer, false])
         } else if (
             ts.isBinaryExpression(node.initializer) &&
             node.initializer.operatorToken.kind == ts.SyntaxKind.LessThanLessThanToken &&
@@ -539,10 +544,27 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             isString = false
             initializer = (+node.initializer.left.text) << (+node.initializer.right.text)
             // console.log(`Computed ${node.initializer.getText(this.sourceFile)} to `, initializer)
+        } else if (
+            ts.isBinaryExpression(node.initializer) &&
+            node.initializer.operatorToken.kind == ts.SyntaxKind.BarToken &&
+            ts.isNumericLiteral(node.initializer.right) &&
+            ts.isNumericLiteral(node.initializer.left)
+        ) {
+            isString = false
+            initializer = (+node.initializer.left.text) | (+node.initializer.right.text)
+        } else if (ts.isIdentifier(node.initializer)) {
+            // For cases where one enum member refers another one by value.
+            initializer = node.initializer.text
+            let init = seenMembers.get(initializer)
+            if (init) {
+                isString = init[1]
+                initializer = init[0]
+            }
         } else {
             isString = false
             initializer = node.initializer.getText(this.sourceFile)
-            console.log("Unrepresentable enum initializer: ", initializer)
+            //throw new Error(`Unrepresentable enum initializer: ${initializer} ${node.initializer.kind}`)
+            console.log(`WARNING: Unrepresentable enum initializer: ${initializer} ${node.initializer.kind}`)
         }
         return {
             kind: IDLKind.EnumMember,
@@ -632,6 +654,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
         if (type.kind == ts.SyntaxKind.VoidKeyword) {
             return IDLVoidType
+            // return IDLUndefinedType
         }
         if (type.kind == ts.SyntaxKind.UnknownKeyword) {
             return createReferenceType("unknown")
@@ -650,6 +673,9 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
         if (type.kind == ts.SyntaxKind.StringKeyword) {
             return IDLStringType
+        }
+        if (type.kind == ts.SyntaxKind.BigIntKeyword) {
+            return IDLBigintType
         }
         if (ts.isUnionTypeNode(type)) {
             const types = type.types
@@ -726,17 +752,29 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
                 return IDLStringType
             }
-            if (ts.isNumericLiteral(literal)) {
+            // Unary expressions for negative values.
+            if (ts.isNumericLiteral(literal) || ts.isPrefixUnaryExpression(literal)) {
                 return IDLNumberType
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
                 // TODO: Is it correct to have undefined for null?
                 return IDLNullType
             }
-            throw new Error(`Non-representable type: ${asString(type)}`)
+            if (literal.kind == ts.SyntaxKind.FalseKeyword || literal.kind == ts.SyntaxKind.TrueKeyword) {
+                return IDLBooleanType
+            }
+            throw new Error(`Non-representable type: ${asString(type)}: ${type.getText()} ${type.kind}`)
         }
         if (ts.isTemplateLiteralTypeNode(type)) {
             return IDLStringType
+        }
+        if (ts.isTypeOperatorNode(type)) {
+            console.log("WARNING: typeof is not supported properly, return string")
+            return IDLStringType
+        }
+        if (ts.isTypeQueryNode(type)) {
+            console.log(`WARNING: unsupported type query: ${type.getText()}`)
+            return IDLAnyType
         }
         if (ts.isImportTypeNode(type)) {
             let originalText = `${type.getText(this.sourceFile)}`
@@ -912,8 +950,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 parameters: method.parameters.map(it => this.serializeParameter(it, `${namePrefix}_indexSignature`))
             }
         }
-
-        const [methodName, escapedName] = escapeName(nameOrNull(method.name)!)
+        const [methodName, escapedName] = escapeName(nameOrNull(method.name) ?? "_unknown")
         this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedName, extendedAttributes)
         const returnType = this.serializeType(method.type, `${namePrefix}_${escapedName}_Type`)
         this.liftExtendedAttributes(returnType, extendedAttributes)

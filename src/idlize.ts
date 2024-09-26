@@ -18,30 +18,37 @@ import * as fs from "fs"
 import * as path from "path"
 import { GenerateOptions, GenericVisitor } from "./options"
 
+function readdir(dir: string): string[] {
+    return fs.readdirSync(dir)
+        .map(elem => path.join(dir, elem))
+}
+
 export function generate<T>(
-    inputDir: string,
+    inputDirs: string[],
     inputFile: string | undefined,
     outputDir: string,
     visitorFactory: (sourceFile: ts.SourceFile, typeChecker: ts.TypeChecker) => GenericVisitor<T>,
     options: GenerateOptions<T>
 ): void {
-    inputDir = path.resolve(inputDir)
+    let input = inputFile ? [
+        path.join(inputDirs[0], inputFile)
+    ] : inputDirs.flatMap(it => readdir(path.resolve(it)))
     // Build a program using the set of root file names in fileNames
-    let program = ts.createProgram(inputFile ? [
-        path.join(inputDir, inputFile)
-    ] : fs.readdirSync(inputDir)
-        .map(elem => path.join(inputDir, elem)).concat([path.join(__dirname, "../stdlib.d.ts")]), options.compilerOptions)
+    let program = ts.createProgram(
+        input.concat([path.join(__dirname, "../stdlib.d.ts")]
+    ), options.compilerOptions)
 
     // Get the checker, we will use it to find more about classes
     if (outputDir && !fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true })
 
     const typeChecker = program.getTypeChecker()
-    options.onBegin?.(outputDir,typeChecker)
+    options.onBegin?.(outputDir, typeChecker)
 
     // Visit every sourceFile in the program
+    let cared = inputDirs.map(it => path.resolve(it))
     for (const sourceFile of program.getSourceFiles()) {
-        if (path.resolve(sourceFile.fileName).indexOf(inputDir) == -1) {
-            // console.log("Ignore ", path.resolve(sourceFile.fileName) , "wrt", inputDir)
+        if (!cared.some(it => path.resolve(sourceFile.fileName).indexOf(it) >= 0)) {
+            // console.log("Ignore ", path.resolve(sourceFile.fileName) , "wrt", inputDirs)
             continue
         }
         if (inputFile && path.basename(sourceFile.fileName) != inputFile) {
