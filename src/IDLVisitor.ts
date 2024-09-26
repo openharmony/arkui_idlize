@@ -88,7 +88,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (this.globalConstants.length > 0 || this.globalFunctions.length > 0) {
             this.output.push({
                 kind: IDLKind.Interface,
-                name: `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replace("@", "")}`,
+                name: `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replaceAll("@", "").replaceAll(".", "_")}`,
                 extendedAttributes: [ {name: IDLExtendedAttributes.GlobalScope } ],
                 methods: this.globalFunctions,
                 constants: this.globalConstants,
