@@ -120,6 +120,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const componentFunctionName = `Ark${peer.componentName}`
         const peerClassName = componentToPeerClass(peer.componentName)
 
+        this.printer.print(`/** @memo:stable */`)
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeFieldDeclaration('peer', new Type(peerClassName), [FieldModifier.PROTECTED], true)
             const filteredMethods = (peer.methods as any[]).filter(it =>
