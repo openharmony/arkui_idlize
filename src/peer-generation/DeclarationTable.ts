@@ -39,7 +39,7 @@ import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { searchTypeParameters, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 import { DeclarationProcessor } from "../DeclarationProcesser"
-import { PrimitiveType_ } from "../Library"
+import { ArkPrimitiveType as PrimitiveType_ } from "../Library"
 
 export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
     ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
@@ -55,43 +55,18 @@ function cleanPrefix(name: string, prefix: string): string {
 }
 
 export class PrimitiveType extends PrimitiveType_ {
-    constructor(name: string, isPointer = false) { 
-        super(name, isPointer)
-    }
-    getText(table?: DeclarationTable): string { return this.name }
-    static Prefix = "Ark_"
-    static String = new PrimitiveType(`${PrimitiveType.Prefix}String`, true)
-    static Number = new PrimitiveType(`${PrimitiveType.Prefix}Number`, true)
-    static Int32 = new PrimitiveType(`${PrimitiveType.Prefix}Int32`)
-    static Tag = new PrimitiveType(`${PrimitiveType.Prefix}Tag`)
-    static RuntimeType = new PrimitiveType(`${PrimitiveType.Prefix}RuntimeType`)
-    static Boolean = new PrimitiveType(`${PrimitiveType.Prefix}Boolean`)
-    static Function = new PrimitiveType(`${PrimitiveType.Prefix}Function`, false)
-    static Materialized = new PrimitiveType(`${PrimitiveType.Prefix}Materialized`, true)
-    static Undefined = new PrimitiveType(`${PrimitiveType.Prefix}Undefined`)
-    static NativePointer = new PrimitiveType(`${PrimitiveType.Prefix}NativePointer`)
-    static ObjectHandle = new PrimitiveType(`${PrimitiveType.Prefix}ObjectHandle`)
-    static Length = new PrimitiveType(`${PrimitiveType.Prefix}Length`, true)
-    static CustomObject = new PrimitiveType(`${PrimitiveType.Prefix}CustomObject`, true)
     private static pointersMap = new Map<DeclarationTarget, PointerType>()
-    static pointerTo(target: DeclarationTarget) {
+    static pointerTo(name: string, target: DeclarationTarget) {
         if (PrimitiveType.pointersMap.has(target)) return PrimitiveType.pointersMap.get(target)!
-        let result = new PointerType(target)
+        let result = new PointerType(name, target)
         PrimitiveType.pointersMap.set(target, result)
         return result
     }
-    static UndefinedTag = "ARK_TAG_UNDEFINED"
-    static UndefinedRuntime = "ARK_RUNTIME_UNDEFINED"
-    static ObjectTag = "ARK_TAG_OBJECT"
-    static OptionalPrefix = "Opt_"
 }
 
 export class PointerType extends PrimitiveType {
-    constructor(public pointed: DeclarationTarget) {
-        super("", true)
-    }
-    getText(table: DeclarationTable): string {
-        return `${table.computeTargetName(this.pointed, false)}*`
+    constructor(name: string, public pointed: DeclarationTarget) {
+        super(name, true)
     }
 }
 
@@ -222,7 +197,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
     computeTargetNameImpl(target: DeclarationTarget, optional: boolean, idlPrefix: string): string {
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (target instanceof PrimitiveType) {
-            const name = target.getText(this)
+            const name = target.getText()
             return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (ts.isTypeLiteralNode(target)) {
@@ -773,7 +748,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         for (let target of this.orderedDependencies) {
             if (target instanceof PointerType) continue
             let nameAssigned = this.computeTargetName(target, false)
-            if (nameAssigned === PrimitiveType.Tag.getText(this)) {
+            if (nameAssigned === PrimitiveType.Tag.getText()) {
                 continue
             }
             if (!nameAssigned) {
@@ -791,7 +766,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         for (let target of this.orderedDependencies) {
 
             let nameAssigned = this.computeTargetName(target, false)
-            if (nameAssigned === PrimitiveType.Tag.getText(this)) {
+            if (nameAssigned === PrimitiveType.Tag.getText()) {
                 continue
             }
             if (!nameAssigned) {
@@ -817,7 +792,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         const unions = new Map<string, Selector[]>()
         for (let target of this.orderedDependencies) {
             let nameAssigned = this.computeTargetName(target, false)
-            if (nameAssigned === PrimitiveType.Tag.getText(this)) {
+            if (nameAssigned === PrimitiveType.Tag.getText()) {
                 continue
             }
             if (!nameAssigned) {
@@ -888,7 +863,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         let noDeclaration = [PrimitiveType.Int32, PrimitiveType.Tag, PrimitiveType.Number, PrimitiveType.Boolean, PrimitiveType.String]
         for (let target of this.orderedDependencies) {
             let nameAssigned = this.computeTargetName(target, false)
-            if (nameAssigned === PrimitiveType.Tag.getText(this)) {
+            if (nameAssigned === PrimitiveType.Tag.getText()) {
                 continue
             }
             if (!nameAssigned) {
@@ -1345,7 +1320,7 @@ inline void WriteToString(string* result, const ${name}* value) {
         else if (ts.isArrayTypeNode(target)) {
             result.isArray = true
             let element = this.toTarget(target.elementType)
-            result.addField(new FieldRecord(PrimitiveType.pointerTo(element), target, "array"))
+            result.addField(new FieldRecord(PrimitiveType.pointerTo(this.computeTargetName(element, false), element), target, "array"))
             result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "length"))
         }
         else if (ts.isInterfaceDeclaration(target)) {
@@ -1418,17 +1393,21 @@ inline void WriteToString(string* result, const ${name}* value) {
             } else if (name == "Array") {
                 let type = target.typeArguments[0]
                 result.isArray = true
-                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "array"))
+                let element = this.toTarget(type)
+                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.computeTargetName(element, false), element), undefined, "array"))
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "length"))
             } else if (name == "Map") {
                 let keyType = target.typeArguments[0]
                 let valueType = target.typeArguments[1]
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "size"))
-                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(keyType)), undefined, "keys"))
-                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(valueType)), undefined, "values"))
+                let keyElement = this.toTarget(keyType)
+                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.computeTargetName(keyElement, false), keyElement), undefined, "keys"))
+                let valueElement = this.toTarget(valueType)
+                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.computeTargetName(valueElement, false), valueElement), undefined, "values"))
             } else if (name == "ContentModifier") {
                 let type = target.typeArguments[0]
-                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.toTarget(type)), undefined, "config"))
+                let element = this.toTarget(type)
+                result.addField(new FieldRecord(PrimitiveType.pointerTo(this.computeTargetName(element, false), element), undefined, "config"))
             } else if (name == "Callback") {
                 result.addField(new FieldRecord(PrimitiveType.Int32, undefined, "id"))
             } else if (PeerGeneratorConfig.isKnownParametrized(name)) {

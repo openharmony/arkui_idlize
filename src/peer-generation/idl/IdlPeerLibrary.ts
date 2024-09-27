@@ -23,7 +23,7 @@ import { TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
 import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, OptionConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
-import { PrimitiveType } from '../DeclarationTable';
+import { ArkPrimitiveType as PrimitiveType } from '../../Library';
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';
 import { LanguageWriter } from '../LanguageWriters';
