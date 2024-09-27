@@ -21,7 +21,7 @@ import { IdlPeerClass } from "./IdlPeerClass";
 import { IdlPeerFile } from "./IdlPeerFile";
 import { TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
-import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, OptionConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { ArkPrimitiveType as PrimitiveType } from '../../Library';
 import { DependencySorter } from './DependencySorter';
@@ -32,7 +32,7 @@ import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { Library } from '../../Library';
 import { DeclarationProcessor } from '../../DeclarationProcesser';
-import { ArgConvertor, BooleanConvertor, UndefinedConvertor, CustomTypeConvertor, LengthConvertor, LengthConvertorScoped, NullConvertor, NumberConvertor, PredefinedConvertor } from '../ArgConvertors';
+import { ArgConvertor, BooleanConvertor, UndefinedConvertor, CustomTypeConvertor, LengthConvertor, LengthConvertorScoped, NumberConvertor, PredefinedConvertor, NullConvertor } from '../ArgConvertors';
 
 export type IdlPeerLibraryOutput = {
     outputC: string[]
