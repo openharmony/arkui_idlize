@@ -255,7 +255,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     ])
     constructor(param: string,
                 public readonly customTypeName: string,
-                private readonly isGenericType: boolean,
+                private readonly isGenericType: boolean = false,
                 tsType?: string) {
         super(tsType ?? "Object", [RuntimeType.OBJECT], false, true, param)
     }

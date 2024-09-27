@@ -18,7 +18,7 @@ import { capitalize, isDefined, Language, stringOrNone } from "../util";
 import {
     AggregateConvertor,
     ArrayConvertor,
-    CustomTypeConvertor,
+    // CustomTypeConvertor,
     EnumConvertor,
     MapConvertor,
     OptionConvertor,
@@ -33,7 +33,7 @@ import { createLiteralDeclName, mapType, TSTypeNodeNameConvertor } from "./TypeN
 import * as ts from "typescript"
 import * as fs from "fs"
 import { EnumEntity } from "./PeerFile";
-import { ArgConvertor, BaseArgConvertor } from "./ArgConvertors";
+import { ArgConvertor, BaseArgConvertor, CustomTypeConvertor } from "./ArgConvertors";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}

@@ -23,12 +23,12 @@ import { Language, asString, getDeclarationsByNode, getNameWithoutQualifiersRigh
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import {
-    AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, CallbackTypeReferenceConvertor, ClassConvertor, CustomTypeConvertor,
-    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor,
-    MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor,
-    ToStringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor
+    AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, CallbackTypeReferenceConvertor, ClassConvertor,
+    EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor,
+    MaterializedClassConvertor, OptionConvertor, StringConvertor,
+    ToStringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor
 } from "./Convertors"
-import { ArgConvertor, BooleanConvertor } from "./ArgConvertors"
+import { ArgConvertor, BooleanConvertor, LengthConvertor, NullConvertor, NumberConvertor, PredefinedConvertor, UndefinedConvertor, CustomTypeConvertor } from "./ArgConvertors"
 import { DependencySorter } from "./DependencySorter"
 import { checkDeclarationTargetMaterialized, isMaterialized } from "./Materialized"
 import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"

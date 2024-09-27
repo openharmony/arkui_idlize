@@ -14,7 +14,7 @@
  */
 
 import * as idl from "../../idl"
-import { UndefinedConvertor, UnionRuntimeTypeChecker } from "../Convertors"
+import { UnionRuntimeTypeChecker } from "../Convertors"
 import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters";
 import { PeerClass, PeerClassBase } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
@@ -24,7 +24,7 @@ import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { typeOrUnion } from "../idl/common";
 // import { ArgConvertor as IdlArgConvertor } from "../idl/IdlArgConvertors"
-import { ArgConvertor } from "../ArgConvertors";
+import { ArgConvertor, UndefinedConvertor } from '../ArgConvertors';
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))

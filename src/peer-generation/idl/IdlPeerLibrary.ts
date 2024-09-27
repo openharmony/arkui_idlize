@@ -21,7 +21,7 @@ import { IdlPeerClass } from "./IdlPeerClass";
 import { IdlPeerFile } from "./IdlPeerFile";
 import { TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
-import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, OptionConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from '../DeclarationTable';
 import { DependencySorter } from './DependencySorter';
@@ -32,7 +32,7 @@ import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { Library } from '../../Library';
 import { DeclarationProcessor } from '../../DeclarationProcesser';
-import { ArgConvertor, BooleanConvertor } from '../ArgConvertors';
+import { ArgConvertor, BooleanConvertor, UndefinedConvertor, CustomTypeConvertor, LengthConvertor, LengthConvertorScoped, NullConvertor, NumberConvertor, PredefinedConvertor } from '../ArgConvertors';
 
 export type IdlPeerLibraryOutput = {
     outputC: string[]
@@ -181,7 +181,7 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
         if (customConv)
             return customConv
         if (!declaration || isConflictingDeclaration(declaration))
-            return new CustomTypeConvertor(param, type.name, type.name) // assume some predefined type
+            return new CustomTypeConvertor(param, type.name, false, type.name) // assume some predefined type
 
         const declarationName = declaration.name!
         if (isImport(declaration)) {
@@ -230,11 +230,11 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
             case `Function`:
                 return new FunctionConvertor(this, param, type as idl.IDLReferenceType)
             case `AnimationRange`:
-                return new CustomTypeConvertor(param, "AnimationRange", "AnimationRange<number>")
+                return new CustomTypeConvertor(param, "AnimationRange", false, "AnimationRange<number>")
             case `ContentModifier`:
-                return new CustomTypeConvertor(param, "ContentModifier", "ContentModifier<any>")
+                return new CustomTypeConvertor(param, "ContentModifier", false, "ContentModifier<any>")
             case `Record`:
-                return new CustomTypeConvertor(param, "Record", "Record<string, string>")
+                return new CustomTypeConvertor(param, "Record", false, "Record<string, string>")
             case `Optional`:
                 const wrappedType = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)!
                 return new OptionConvertor(this, param, idl.toIDLType(wrappedType))
