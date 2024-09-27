@@ -3,10 +3,10 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 112      | 74     | 1827     |
-| In Progress  | 20      | 0     | 179     |
-| Done         | 13      | 1     | 132     |
-| Blocked      | 0      | 0     | 101     |
+| Total        | 112      | 74     | 1831     |
+| In Progress  | 16      | 0     | 110     |
+| Done         | 16      | 1     | 231     |
+| Blocked      | 5      | 0     | 99     |
 
 
 | Name | Kind | Owner | Status |
@@ -32,7 +32,6 @@
 |`popupItemFont`| Function | | |
 |`itemSize`| Function | | |
 |`font`| Function | | |
-|`alignStyle`| Function | | |
 |`onSelect`| Function | | |
 |`onRequestPopupData`| Function | | |
 |`onPopupSelect`| Function | | |
@@ -44,6 +43,7 @@
 |`popupBackgroundBlurStyle`| Function | | |
 |`popupTitleBackground`| Function | | |
 |`enableHapticFeedback`| Function | | |
+|`alignStyle`| Function | | |
 |*Animator*| *Component* | | |
 |`setAnimatorOptions`| Function | | |
 |`state`| Function | | |
@@ -65,8 +65,8 @@
 |*Blank*| *Component* | Skroba Gleb | done |
 |`setBlankOptions`| Function | Skroba Gleb | done |
 |`color`| Function | Skroba Gleb | done |
-|*Button*| *Component* |  |  |
-|`setButtonOptions`| Function | Evstigneev Roman | blocked Arkoala |
+|*Button*| *Component* | Evstigneev Roman |  |
+|`setButtonOptions`| Function | Evstigneev Roman | done |
 |`type`| Function | | |
 |`stateEffect`| Function | | |
 |`buttonStyle`| Function | | |
@@ -96,9 +96,9 @@
 |`onRequestData`| Function | | |
 |*CalendarPicker*| *Component* | | |
 |`setCalendarPickerOptions`| Function | | |
-|`edgeAlign`| Function | | |
 |`textStyle`| Function | | |
 |`onChange`| Function | | |
+|`edgeAlign`| Function | | |
 |*Canvas*| *Component* | | |
 |`setCanvasOptions`| Function | | |
 |`onReady`| Function | | |
@@ -122,12 +122,12 @@
 |`checkboxShape`| Function | Dudkin Sergey | done |
 |*Circle*| *Component* | Erokhin Ilya | done |
 |`setCircleOptions`| Function | Erokhin Ilya | done |
-|*Column*| *Component* | | |
-|`setColumnOptions`| Function | | |
-|`alignItems`| Function | | |
-|`justifyContent`| Function | | |
-|`pointLight`| Function | | |
-|`reverse`| Function | | |
+|*Column*| *Component* | Politov Mikhail | in progress |
+|`setColumnOptions`| Function | Politov Mikhail | in progress |
+|`alignItems`| Function | Politov Mikhail | in progress |
+|`justifyContent`| Function | Politov Mikhail | in progress |
+|`pointLight`| Function | Politov Mikhail | in progress |
+|`reverse`| Function | Politov Mikhail | in progress |
 |*ColumnSplit*| *Component* | | |
 |`setColumnSplitOptions`| Function | | |
 |`resizeable`| Function | | |
@@ -136,8 +136,6 @@
 |`width`| Function | Roman Sedaikin | done |
 |`height`| Function | Roman Sedaikin | done |
 |`drawModifier`| Function | | |
-|`customProperty`| Function | | |
-|`expandSafeArea`| Function | | |
 |`responseRegion`| Function | Roman Sedaikin | in progress |
 |`mouseResponseRegion`| Function | | |
 |`size`| Function | Roman Sedaikin | in progress |
@@ -146,15 +144,12 @@
 |`hitTestBehavior`| Function | Roman Sedaikin | in progress |
 |`onChildTouchTest`| Function | | |
 |`layoutWeight`| Function | Roman Sedaikin | in progress |
-|`padding`| Function | Roman Sedaikin, Erokhin Ilya | in progress |
-|`margin`| Function | Roman Sedaikin, Erokhin Ilya | in progress |
-|`background`| Function | | |
+|`padding`| Function | Erokhin Ilya | blocked |
+|`margin`| Function | Erokhin Ilya | blocked |
 |`backgroundColor`| Function | Roman Sedaikin | done |
 |`pixelRound`| Function | | |
-|`backgroundImage`| Function | | |
 |`backgroundImageSize`| Function | | |
 |`backgroundImagePosition`| Function | | |
-|`backgroundBlurStyle`| Function | | |
 |`backgroundEffect`| Function | | |
 |`backgroundImageResizable`| Function | | |
 |`foregroundEffect`| Function | | |
@@ -162,7 +157,6 @@
 |`backgroundFilter`| Function | | |
 |`foregroundFilter`| Function | | |
 |`compositingFilter`| Function | | |
-|`foregroundBlurStyle`| Function | Roman Sedaikin | in progress |
 |`opacity`| Function | Roman Sedaikin | done |
 |`border`| Function | Roman Sedaikin | in progress |
 |`borderStyle`| Function | Roman Sedaikin | in progress |
@@ -192,15 +186,8 @@
 |`groupDefaultFocus`| Function | | |
 |`focusOnTouch`| Function | | |
 |`focusBox`| Function | | |
-|`focusScopeId`| Function | | |
-|`focusScopePriority`| Function | | |
 |`animation`| Function | | |
 |`transition`| Function | | |
-|`gesture`| Function | Erokhin Ilya | blocked |
-|`priorityGesture`| Function | Erokhin Ilya | blocked |
-|`parallelGesture`| Function | Erokhin Ilya | blocked |
-|`blur`| Function | Roman Sedaikin | in progress |
-|`linearGradientBlur`| Function | | |
 |`motionBlur`| Function | | |
 |`brightness`| Function | | |
 |`contrast`| Function | | |
@@ -209,11 +196,9 @@
 |`saturate`| Function | | |
 |`sepia`| Function | | |
 |`invert`| Function | | |
-|`systemBarEffect`| Function | | |
 |`hueRotate`| Function | | |
 |`useShadowBatching`| Function | | |
 |`useEffect`| Function | | |
-|`backdropBlur`| Function | | |
 |`renderGroup`| Function | | |
 |`freeze`| Function | | |
 |`translate`| Function | | |
@@ -234,16 +219,14 @@
 |`alignSelf`| Function | Roman Sedaikin | in progress |
 |`displayPriority`| Function | Roman Sedaikin | in progress |
 |`zIndex`| Function | Roman Sedaikin | in progress |
-|`sharedTransition`| Function | | |
 |`direction`| Function | Roman Sedaikin | in progress |
 |`align`| Function | Roman Sedaikin | in progress |
 |`position`| Function | Roman Sedaikin | in progress |
 |`markAnchor`| Function | | |
-|`offset`| Function | Roman Sedaikin, Erokhin Ilya | in progress |
+|`offset`| Function | Erokhin Ilya | blocked |
 |`enabled`| Function | Roman Sedaikin | in progress |
 |`useSizeType`| Function | | |
 |`alignRules`| Function | | |
-|`chainMode`| Function | | |
 |`aspectRatio`| Function | Roman Sedaikin | in progress |
 |`clickEffect`| Function | | |
 |`onDragStart`| Function | | |
@@ -255,16 +238,12 @@
 |`allowDrop`| Function | | |
 |`draggable`| Function | | |
 |`dragPreview`| Function | | |
-|`dragPreviewOptions`| Function | | |
 |`onPreDrag`| Function | | |
-|`overlay`| Function | Roman Sedaikin | in progress |
 |`linearGradient`| Function | Roman Sedaikin | in progress |
 |`sweepGradient`| Function | Roman Sedaikin | in progress |
-|`radialGradient`| Function | Roman Sedaikin, Erokhin Ilya | in progress |
+|`radialGradient`| Function | Erokhin Ilya | in progress |
 |`motionPath`| Function | | |
 |`shadow`| Function | Roman Sedaikin | in progress |
-|`blendMode`| Function | | |
-|`advancedBlendMode`| Function | | |
 |`clip`| Function | | |
 |`clipShape`| Function | | |
 |`mask`| Function | | |
@@ -272,18 +251,11 @@
 |`key`| Function | | |
 |`id`| Function | | |
 |`geometryTransition`| Function | | |
-|`bindPopup`| Function | | |
-|`bindMenu`| Function | | |
-|`bindContextMenu`| Function | | |
-|`bindContentCover`| Function | | |
-|`bindSheet`| Function | | |
 |`stateStyles`| Function | | |
 |`restoreId`| Function | | |
-|`onVisibleAreaChange`| Function | | |
 |`sphericalEffect`| Function | | |
 |`lightUpEffect`| Function | | |
 |`pixelStretchEffect`| Function | | |
-|`keyboardShortcut`| Function | | |
 |`accessibilityGroup`| Function | | |
 |`accessibilityText`| Function | | |
 |`accessibilityTextHint`| Function | | |
@@ -301,26 +273,52 @@
 |`monopolizeEvents`| Function | | |
 |`onTouchIntercept`| Function | | |
 |`onSizeChange`| Function | | |
-|*CommonShapeMethod*| *Component* | | |
-|`stroke`| Function | | |
-|`fill`| Function | | |
-|`strokeDashOffset`| Function | | |
-|`strokeLineCap`| Function | | |
-|`strokeLineJoin`| Function | | |
-|`strokeMiterLimit`| Function | | |
-|`strokeOpacity`| Function | | |
-|`fillOpacity`| Function | | |
-|`strokeWidth`| Function | | |
-|`antiAlias`| Function | | |
-|`strokeDashArray`| Function | | |
+|`customProperty`| Function | | |
+|`expandSafeArea`| Function | | |
+|`background`| Function | | |
+|`backgroundImage`| Function | | |
+|`backgroundBlurStyle`| Function | | |
+|`foregroundBlurStyle`| Function | Roman Sedaikin | in progress |
+|`focusScopeId`| Function | | |
+|`focusScopePriority`| Function | | |
+|`gesture`| Function | Erokhin Ilya | blocked |
+|`priorityGesture`| Function | Erokhin Ilya | blocked |
+|`parallelGesture`| Function | Erokhin Ilya | blocked |
+|`blur`| Function | Roman Sedaikin | in progress |
+|`linearGradientBlur`| Function | | |
+|`systemBarEffect`| Function | | |
+|`backdropBlur`| Function | | |
+|`sharedTransition`| Function | Skroba Gleb | done |
+|`chainMode`| Function | | |
+|`dragPreviewOptions`| Function | | |
+|`overlay`| Function | Roman Sedaikin | in progress |
+|`blendMode`| Function | | |
+|`advancedBlendMode`| Function | | |
+|`bindPopup`| Function | | |
+|`bindMenu`| Function | | |
+|`bindContextMenu`| Function | | |
+|`bindContentCover`| Function | | |
+|`bindSheet`| Function | | |
+|`onVisibleAreaChange`| Function | | |
+|`keyboardShortcut`| Function | | |
+|*CommonShapeMethod*| *Component* | Skroba Gleb | in progress |
+|`stroke`| Function | Skroba Gleb | done |
+|`fill`| Function | Skroba Gleb | done |
+|`strokeDashOffset`| Function | Evstigneev Roman | done |
+|`strokeLineCap`| Function | Evstigneev Roman | done |
+|`strokeLineJoin`| Function | Evstigneev Roman | done |
+|`strokeMiterLimit`| Function | Evstigneev Roman | done |
+|`strokeOpacity`| Function | Evstigneev Roman | done |
+|`fillOpacity`| Function | Evstigneev Roman | done |
+|`strokeWidth`| Function | Evstigneev Roman | done |
+|`antiAlias`| Function | Evstigneev Roman | done |
+|`strokeDashArray`| Function |  | blocked Arkoala |
 |*Common*| *Component* | | |
 |`setCommonOptions`| Function | | |
 |*ScrollableCommonMethod*| *Component* | | |
 |`scrollBar`| Function | | |
 |`scrollBarColor`| Function | | |
 |`scrollBarWidth`| Function | | |
-|`edgeEffect`| Function | | |
-|`fadingEdge`| Function | | |
 |`nestedScroll`| Function | | |
 |`enableScrollInteraction`| Function | | |
 |`friction`| Function | | |
@@ -332,15 +330,17 @@
 |`onScrollStart`| Function | | |
 |`onScrollStop`| Function | | |
 |`flingSpeedLimit`| Function | | |
+|`edgeEffect`| Function | | |
+|`fadingEdge`| Function | | |
 |*Component3D*| *Component* | | |
 |`setComponent3DOptions`| Function | | |
 |`environment`| Function | | |
-|`customRender`| Function | | |
 |`shader`| Function | | |
 |`shaderImageTexture`| Function | | |
 |`shaderInputBuffer`| Function | | |
 |`renderWidth`| Function | | |
 |`renderHeight`| Function | | |
+|`customRender`| Function | | |
 |*ContainerSpan*| *Component* | | |
 |`setContainerSpanOptions`| Function | | |
 |`textBackgroundStyle`| Function | | |
@@ -380,9 +380,9 @@
 |`setEmbeddedComponentOptions`| Function | | |
 |`onTerminated`| Function | | |
 |`onError`| Function | | |
-|*Flex*| *Component* | | |
-|`setFlexOptions`| Function | | |
-|`pointLight`| Function | | |
+|*Flex*| *Component* | Kovalev Sergey | in progress |
+|`setFlexOptions`| Function | Kovalev Sergey | in progress |
+|`pointLight`| Function | Kovalev Sergey | in progress |
 |*FlowItem*| *Component* | | |
 |`setFlowItemOptions`| Function | | |
 |*FolderStack*| *Component* | | |
@@ -442,7 +442,6 @@
 |`onItemDragMove`| Function | Erokhin Ilya | done |
 |`onItemDragLeave`| Function | Erokhin Ilya | done |
 |`onItemDrop`| Function | Erokhin Ilya | done |
-|`edgeEffect`| Function | Erokhin Ilya | done |
 |`nestedScroll`| Function | Erokhin Ilya | done |
 |`enableScrollInteraction`| Function | Erokhin Ilya | done |
 |`friction`| Function | Erokhin Ilya | blocked |
@@ -453,6 +452,7 @@
 |`onScrollStart`| Function | Erokhin Ilya | done |
 |`onScrollStop`| Function | Erokhin Ilya | done |
 |`onScrollFrameBegin`| Function | Erokhin Ilya | blocked |
+|`edgeEffect`| Function | Erokhin Ilya | done |
 |*GridItem*| *Component* | Erokhin Ilya | done |
 |`setGridItemOptions`| Function | Erokhin Ilya | done |
 |`rowStart`| Function | Erokhin Ilya | done |
@@ -527,57 +527,57 @@
 |`onComplete`| Function | | |
 |`onError`| Function | | |
 |`alt`| Function | | |
-|*Line*| *Component* | Dudkin Sergey | in progress |
-|`setLineOptions`| Function | Dudkin Sergey | in progress |
+|*Line*| *Component* | Dudkin Sergey | blocked |
+|`setLineOptions`| Function | Dudkin Sergey | done |
 |`startPoint`| Function | Dudkin Sergey | blocked |
 |`endPoint`| Function | Dudkin Sergey | blocked |
-|*List*| *Component* | Morozov Sergey | in progress |
+|*List*| *Component* | Morozov Sergey | blocked Arkoala |
 |`setListOptions`| Function | Morozov Sergey | blocked Arkoala |
-|`lanes`| Function | Morozov Sergey | in progress |
-|`alignListItem`| Function | Morozov Sergey | in progress |
-|`listDirection`| Function | Morozov Sergey | in progress |
-|`scrollBar`| Function | Morozov Sergey | in progress |
-|`edgeEffect`| Function | Morozov Sergey | in progress |
-|`contentStartOffset`| Function | Morozov Sergey | in progress |
-|`contentEndOffset`| Function | Morozov Sergey | in progress |
+|`alignListItem`| Function | Morozov Sergey | done |
+|`listDirection`| Function | Morozov Sergey | done |
+|`scrollBar`| Function | Morozov Sergey | done |
+|`contentStartOffset`| Function | Morozov Sergey | done |
+|`contentEndOffset`| Function | Morozov Sergey | done |
 |`divider`| Function | Morozov Sergey | blocked Arkoala |
-|`editMode`| Function | Morozov Sergey | in progress |
-|`multiSelectable`| Function | Morozov Sergey | in progress |
-|`cachedCount`| Function | Morozov Sergey | in progress |
-|`chainAnimation`| Function | Morozov Sergey | in progress |
-|`chainAnimationOptions`| Function | Morozov Sergey | in progress |
-|`sticky`| Function | Morozov Sergey | in progress |
-|`scrollSnapAlign`| Function | Morozov Sergey | in progress |
-|`nestedScroll`| Function | Morozov Sergey | in progress |
-|`enableScrollInteraction`| Function | Morozov Sergey | in progress |
+|`editMode`| Function | Morozov Sergey | done |
+|`multiSelectable`| Function | Morozov Sergey | done |
+|`cachedCount`| Function | Morozov Sergey | done |
+|`chainAnimation`| Function | Morozov Sergey | done |
+|`chainAnimationOptions`| Function | Morozov Sergey | done |
+|`sticky`| Function | Morozov Sergey | done |
+|`scrollSnapAlign`| Function | Morozov Sergey | done |
+|`nestedScroll`| Function | Morozov Sergey | done |
+|`enableScrollInteraction`| Function | Morozov Sergey | done |
 |`friction`| Function | Morozov Sergey | blocked Arkoala |
 |`childrenMainSize`| Function | Morozov Sergey | blocked Arkoala |
-|`maintainVisibleContentPosition`| Function | Morozov Sergey | in progress |
-|`onScroll`| Function | Morozov Sergey | in progress |
-|`onScrollIndex`| Function | Morozov Sergey | in progress |
-|`onScrollVisibleContentChange`| Function | Morozov Sergey | in progress |
-|`onReachStart`| Function | Morozov Sergey | in progress |
-|`onReachEnd`| Function | Morozov Sergey | in progress |
-|`onScrollStart`| Function | Morozov Sergey | in progress |
-|`onScrollStop`| Function | Morozov Sergey | in progress |
+|`maintainVisibleContentPosition`| Function | Morozov Sergey | done |
+|`onScroll`| Function | Morozov Sergey | done |
+|`onScrollIndex`| Function | Morozov Sergey | done |
+|`onScrollVisibleContentChange`| Function | Morozov Sergey | done |
+|`onReachStart`| Function | Morozov Sergey | done |
+|`onReachEnd`| Function | Morozov Sergey | done |
+|`onScrollStart`| Function | Morozov Sergey | done |
+|`onScrollStop`| Function | Morozov Sergey | done |
 |`onItemDelete`| Function | Morozov Sergey | blocked Arkoala |
 |`onItemMove`| Function | Morozov Sergey | blocked Arkoala |
 |`onItemDragStart`| Function | Morozov Sergey | blocked Arkoala |
-|`onItemDragEnter`| Function | Morozov Sergey | in progress |
-|`onItemDragMove`| Function | Morozov Sergey | in progress |
-|`onItemDragLeave`| Function | Morozov Sergey | in progress |
-|`onItemDrop`| Function | Morozov Sergey | in progress |
+|`onItemDragEnter`| Function | Morozov Sergey | done |
+|`onItemDragMove`| Function | Morozov Sergey | done |
+|`onItemDragLeave`| Function | Morozov Sergey | done |
+|`onItemDrop`| Function | Morozov Sergey | done |
 |`onScrollFrameBegin`| Function | Morozov Sergey | blocked Arkoala |
-|*ListItem*| *Component* | Morozov Sergey | In Progress |
+|`lanes`| Function | Morozov Sergey | done |
+|`edgeEffect`| Function | Morozov Sergey | done |
+|*ListItem*| *Component* | Morozov Sergey | blocked Arkoala |
 |`setListItemOptions`| Function | Morozov Sergey | blocked Arkoala |
-|`sticky`| Function | Morozov Sergey | in progress |
-|`editable`| Function | Morozov Sergey | in progress |
-|`selectable`| Function | Morozov Sergey | in progress |
-|`selected`| Function | Morozov Sergey | in progress |
+|`sticky`| Function | Morozov Sergey | done |
+|`editable`| Function | Morozov Sergey | done |
+|`selectable`| Function | Morozov Sergey | done |
+|`selected`| Function | Morozov Sergey | done |
 |`swipeAction`| Function | Morozov Sergey | blocked Arkoala |
-|`onSelect`| Function | Morozov Sergey | in progress |
-|*ListItemGroup*| *Component* | Morozov Sergey | In Progress |
-|`setListItemGroupOptions`| Function | Morozov Sergey | In Progress |
+|`onSelect`| Function | Morozov Sergey | done |
+|*ListItemGroup*| *Component* | Morozov Sergey | blocked Arkoala |
+|`setListItemGroupOptions`| Function | Morozov Sergey | blocked Arkoala |
 |`divider`| Function | Morozov Sergey | blocked Arkoala |
 |`childrenMainSize`| Function | Morozov Sergey | blocked Arkoala |
 |*LoadingProgress*| *Component* | Samarin Sergey | done |
@@ -601,14 +601,14 @@
 |`onFinish`| Function | | |
 |*MediaCachedImage*| *Component* | | |
 |`setMediaCachedImageOptions`| Function | | |
-|*Menu*| *Component* | Morozov Sergey | in progress |
+|*Menu*| *Component* | Morozov Sergey | blocked Arkoala |
 |`setMenuOptions`| Function | | |
 |`fontSize`| Function | Morozov Sergey | in progress |
-|`font`| Function | | |
-|`fontColor`| Function | Morozov Sergey | in progress |
+|`font`| Function | Morozov Sergey | blocked Arkoala |
+|`fontColor`| Function | Morozov Sergey | blocked Arkoala |
 |`radius`| Function | Morozov Sergey | in progress |
-|`menuItemDivider`| Function | | |
-|`menuItemGroupDivider`| Function | | |
+|`menuItemDivider`| Function | Morozov Sergey | blocked Arkoala |
+|`menuItemGroupDivider`| Function | Morozov Sergey | blocked Arkoala |
 |`subMenuExpandingMode`| Function | Morozov Sergey | in progress |
 |*MenuItem*| *Component* | | |
 |`setMenuItemOptions`| Function | | |
@@ -623,7 +623,6 @@
 |`setMenuItemGroupOptions`| Function | | |
 |*NavDestination*| *Component* | | |
 |`setNavDestinationOptions`| Function | | |
-|`title`| Function | | |
 |`hideTitleBar`| Function | | |
 |`onShown`| Function | | |
 |`onHidden`| Function | | |
@@ -636,14 +635,15 @@
 |`onWillDisappear`| Function | | |
 |`onWillShow`| Function | | |
 |`onWillHide`| Function | | |
-|`ignoreLayoutSafeArea`| Function | | |
 |`systemBarStyle`| Function | | |
 |`recoverable`| Function | | |
 |`systemTransition`| Function | | |
-|*NavRouter*| *Component* | Evstigneev Roman | in progress |
-|`setNavRouterOptions`| Function | Evstigneev Roman | in progress |
-|`onStateChange`| Function | Evstigneev Roman | in progress |
-|`mode`| Function | Evstigneev Roman | in progress |
+|`title`| Function | | |
+|`ignoreLayoutSafeArea`| Function | | |
+|*NavRouter*| *Component* | Evstigneev Roman | done |
+|`setNavRouterOptions`| Function | Evstigneev Roman | blocked Arkoala/ blocked UT |
+|`onStateChange`| Function | Evstigneev Roman | done |
+|`mode`| Function | Evstigneev Roman | done |
 |*Navigation*| *Component* | Erokhin Ilya | done |
 |`setNavigationOptions`| Function | | |
 |`navBarWidth`| Function | Erokhin Ilya | blocked |
@@ -653,23 +653,23 @@
 |`mode`| Function | Erokhin Ilya | done |
 |`backButtonIcon`| Function | | |
 |`hideNavBar`| Function | Erokhin Ilya | done |
-|`title`| Function | | |
 |`subTitle`| Function | Erokhin Ilya | done |
 |`hideTitleBar`| Function | Erokhin Ilya | blocked |
 |`hideBackButton`| Function | Erokhin Ilya | done |
 |`titleMode`| Function | Erokhin Ilya | done |
 |`menus`| Function | | |
 |`toolBar`| Function | | |
-|`toolbarConfiguration`| Function | | |
 |`hideToolBar`| Function | Erokhin Ilya | blocked |
 |`onTitleModeChange`| Function | | |
 |`onNavBarStateChange`| Function | Erokhin Ilya | done |
 |`onNavigationModeChange`| Function | Erokhin Ilya | done |
 |`navDestination`| Function | | |
 |`customNavContentTransition`| Function | | |
-|`ignoreLayoutSafeArea`| Function | | |
 |`systemBarStyle`| Function | | |
 |`recoverable`| Function | Erokhin Ilya | done |
+|`title`| Function | | |
+|`toolbarConfiguration`| Function | | |
+|`ignoreLayoutSafeArea`| Function | | |
 |*Navigator*| *Component* | Skroba Gleb | done |
 |`setNavigatorOptions`| Function | Skroba Gleb | done |
 |`active`| Function | Skroba Gleb | done |
@@ -695,9 +695,9 @@
 |*PasteButton*| *Component* | | |
 |`setPasteButtonOptions`| Function | | |
 |`onClick`| Function | | |
-|*Path*| *Component* | Skroba Gleb | in progress |
-|`setPathOptions`| Function | Skroba Gleb | in progress |
-|`commands`| Function | Skroba Gleb | in progress |
+|*Path*| *Component* | Skroba Gleb | done |
+|`setPathOptions`| Function | Skroba Gleb | done |
+|`commands`| Function | Skroba Gleb | done |
 |*PatternLock*| *Component* | | |
 |`setPatternLockOptions`| Function | | |
 |`sideLength`| Function | | |
@@ -740,11 +740,11 @@
 |`starStyle`| Function | | |
 |`onChange`| Function | | |
 |`contentModifier`| Function | | |
-|*Rect*| *Component* | Dudkin Sergey | in progress |
-|`setRectOptions`| Function | Dudkin Sergey | in progress |
-|`radiusWidth`| Function | Dudkin Sergey | in progress |
-|`radiusHeight`| Function | Dudkin Sergey | in progress |
-|`radius`| Function | Dudkin Sergey | in progress |
+|*Rect*| *Component* | Dudkin Sergey | done |
+|`setRectOptions`| Function | Dudkin Sergey | done |
+|`radiusWidth`| Function | Dudkin Sergey | done |
+|`radiusHeight`| Function | Dudkin Sergey | done |
+|`radius`| Function | Dudkin Sergey | done |
 |*Refresh*| *Component* | | |
 |`setRefreshOptions`| Function | | |
 |`onStateChange`| Function | | |
@@ -754,7 +754,7 @@
 |`onOffsetChange`| Function | | |
 |`pullDownRatio`| Function | | |
 |*RelativeContainer*| *Component* | Dmitry A Smirnov | in progress |
-|`setRelativeContainerOptions`| Function | Dmitry A Smirnov | in progress |
+|`setRelativeContainerOptions`| Function | Dmitry A Smirnov | done |
 |`guideLine`| Function | Dmitry A Smirnov | in progress |
 |`barrier`| Function | Dmitry A Smirnov | in progress |
 |*RichEditor*| *Component* | | |
@@ -768,13 +768,10 @@
 |`aboutToDelete`| Function | | |
 |`onDeleteComplete`| Function | | |
 |`copyOptions`| Function | | |
-|`bindSelectionMenu`| Function | | |
-|`customKeyboard`| Function | | |
 |`onPaste`| Function | | |
 |`enableDataDetector`| Function | | |
 |`enablePreviewText`| Function | | |
 |`dataDetectorConfig`| Function | | |
-|`placeholder`| Function | | |
 |`caretColor`| Function | | |
 |`selectedBackgroundColor`| Function | | |
 |`onEditingChange`| Function | | |
@@ -788,18 +785,21 @@
 |`enableKeyboardOnFocus`| Function | | |
 |`enableHapticFeedback`| Function | | |
 |`barState`| Function | | |
+|`bindSelectionMenu`| Function | | |
+|`customKeyboard`| Function | | |
+|`placeholder`| Function | | |
 |*RichText*| *Component* | | |
 |`setRichTextOptions`| Function | | |
 |`onStart`| Function | | |
 |`onComplete`| Function | | |
 |*RootScene*| *Component* | | |
 |`setRootSceneOptions`| Function | | |
-|*Row*| *Component* | | |
-|`setRowOptions`| Function | | |
-|`alignItems`| Function | | |
-|`justifyContent`| Function | | |
-|`pointLight`| Function | | |
-|`reverse`| Function | | |
+|*Row*| *Component* | Andrey Khudenkikh | in progress |
+|`setRowOptions`| Function | Andrey Khudenkikh | in progress |
+|`alignItems`| Function | Andrey Khudenkikh | in progress |
+|`justifyContent`| Function | Andrey Khudenkikh | in progress |
+|`pointLight`| Function | Andrey Khudenkikh | in progress |
+|`reverse`| Function | Andrey Khudenkikh | in progress |
 |*RowSplit*| *Component* | | |
 |`setRowSplitOptions`| Function | | |
 |`resizeable`| Function | | |
@@ -812,7 +812,7 @@
 |`setScrollOptions`| Function | bwx1356458 Kirill Berezin | in progress |
 |`scrollable`| Function | bwx1356458 Kirill Berezin | In progress |
 |`onScroll`| Function | bwx1356458 Kirill Berezin | in progress |
-|`onWillScroll`| Function | bwx1356458 Kirill Berezin | blocked Arkoala |
+|`onWillScroll`| Function | bwx1356458 Kirill Berezin | blocked |
 |`onDidScroll`| Function | bwx1356458 Kirill Berezin | in progress |
 |`onScrollEdge`| Function | bwx1356458 Kirill Berezin | in progress |
 |`onScrollStart`| Function | bwx1356458 Kirill Berezin | in progress |
@@ -821,59 +821,59 @@
 |`scrollBar`| Function | bwx1356458 Kirill Berezin | in progress |
 |`scrollBarColor`| Function | bwx1356458 Kirill Berezin | in progress |
 |`scrollBarWidth`| Function | bwx1356458 Kirill Berezin | in progress |
-|`edgeEffect`| Function | bwx1356458 Kirill Berezin | in progress |
-|`onScrollFrameBegin`| Function | bwx1356458 Kirill Berezin | blocked Arkoala |
+|`onScrollFrameBegin`| Function | bwx1356458 Kirill Berezin | blocked |
 |`nestedScroll`| Function | bwx1356458 Kirill Berezin | in progress |
 |`enableScrollInteraction`| Function | bwx1356458 Kirill Berezin | In progress |
 |`friction`| Function | bwx1356458 Kirill Berezin | In progress |
 |`scrollSnap`| Function | bwx1356458 Kirill Berezin | in progress |
 |`enablePaging`| Function | bwx1356458 Kirill Berezin | in progress |
 |`initialOffset`| Function | bwx1356458 Kirill Berezin | in progress |
+|`edgeEffect`| Function | bwx1356458 Kirill Berezin | in progress |
 |*ScrollBar*| *Component* | | |
 |`setScrollBarOptions`| Function | | |
 |`enableNestedScroll`| Function | | |
 |*Search*| *Component* | Evstigneev Roman | In Progress |
 |`setSearchOptions`| Function | Evstigneev Roman | blocked Arkoala |
-|`searchButton`| Function | Evstigneev Roman | blocked UT |
 |`fontColor`| Function | Evstigneev Roman | blocked UT |
 |`searchIcon`| Function | Evstigneev Roman | blocked Arkoala |
 |`cancelButton`| Function | Evstigneev Roman | blocked UT |
 |`textIndent`| Function | Evstigneev Roman | blocked UT |
-|`inputFilter`| Function | Evstigneev Roman | blocked UT |
-|`onEditChange`| Function | Evstigneev Roman | in progress |
+|`onEditChange`| Function | Evstigneev Roman | done |
 |`selectedBackgroundColor`| Function | Evstigneev Roman | blocked UT |
 |`caretStyle`| Function | Evstigneev Roman | blocked UT |
 |`placeholderColor`| Function | Evstigneev Roman | blocked UT |
 |`placeholderFont`| Function | Evstigneev Roman | blocked Arkoala |
 |`textFont`| Function | Evstigneev Roman | blocked Arkoala |
-|`enterKeyType`| Function | Evstigneev Roman | in progress |
-|`onSubmit`| Function | Evstigneev Roman | in progress |
-|`onChange`| Function | Evstigneev Roman | in progress |
-|`onTextSelectionChange`| Function | Evstigneev Roman | in progress |
-|`onContentScroll`| Function | Evstigneev Roman | in progress |
-|`onCopy`| Function | Evstigneev Roman | in progress |
-|`onCut`| Function | Evstigneev Roman | in progress |
+|`enterKeyType`| Function | Evstigneev Roman | done |
+|`onSubmit`| Function | Evstigneev Roman | done |
+|`onChange`| Function | Evstigneev Roman | done |
+|`onTextSelectionChange`| Function | Evstigneev Roman | done |
+|`onContentScroll`| Function | Evstigneev Roman | done |
+|`onCopy`| Function | Evstigneev Roman | done |
+|`onCut`| Function | Evstigneev Roman | done |
 |`onPaste`| Function | Evstigneev Roman | blocked Arkoala |
 |`copyOption`| Function | Evstigneev Roman | blocked UT |
-|`maxLength`| Function | Evstigneev Roman | in progress |
-|`textAlign`| Function | Evstigneev Roman | in progress |
-|`enableKeyboardOnFocus`| Function | Evstigneev Roman | in progress |
-|`selectionMenuHidden`| Function | Evstigneev Roman | in progress |
-|`minFontSize`| Function | Evstigneev Roman | in progress |
-|`maxFontSize`| Function | Evstigneev Roman | in progress |
-|`customKeyboard`| Function | Evstigneev Roman | blocked Arkoala |
-|`decoration`| Function | Evstigneev Roman | in progress |
+|`maxLength`| Function | Evstigneev Roman | done |
+|`textAlign`| Function | Evstigneev Roman | done |
+|`enableKeyboardOnFocus`| Function | Evstigneev Roman | done |
+|`selectionMenuHidden`| Function | Evstigneev Roman | done |
+|`minFontSize`| Function | Evstigneev Roman | done |
+|`maxFontSize`| Function | Evstigneev Roman | done |
+|`decoration`| Function | Evstigneev Roman | done |
 |`letterSpacing`| Function | Evstigneev Roman | blocked UT |
 |`lineHeight`| Function | Evstigneev Roman | blocked UT |
-|`type`| Function | Evstigneev Roman | in progress |
-|`fontFeature`| Function | Evstigneev Roman | in progress |
+|`type`| Function | Evstigneev Roman | done |
+|`fontFeature`| Function | Evstigneev Roman | done |
 |`onWillInsert`| Function | Evstigneev Roman | blocked Arkoala |
-|`onDidInsert`| Function | Evstigneev Roman | in progress |
+|`onDidInsert`| Function | Evstigneev Roman | done |
 |`onWillDelete`| Function | Evstigneev Roman | blocked Arkoala |
-|`onDidDelete`| Function | Evstigneev Roman | in progress |
+|`onDidDelete`| Function | Evstigneev Roman | done |
 |`editMenuOptions`| Function | Evstigneev Roman | blocked Arkoala |
-|`enablePreviewText`| Function | Evstigneev Roman | in progress |
-|`enableHapticFeedback`| Function |  |  |
+|`enablePreviewText`| Function | Evstigneev Roman | done |
+|`enableHapticFeedback`| Function | Evstigneev Roman | in progress |
+|`searchButton`| Function | Evstigneev Roman | blocked UT |
+|`inputFilter`| Function | Evstigneev Roman | blocked UT |
+|`customKeyboard`| Function | Evstigneev Roman | blocked Arkoala |
 |*SecurityComponentMethod*| *Component* | | |
 |`iconSize`| Function | | |
 |`layoutDirection`| Function | | |
@@ -899,28 +899,28 @@
 |`size`| Function | | |
 |`constraintSize`| Function | | |
 |*Select*| *Component* | Samarin Sergey | in progress |
-|`setSelectOptions`| Function | | |
-|`selected`| Function | Samarin Sergey | in progress |
+|`setSelectOptions`| Function | Samarin Sergey | in progress |
+|`selected`| Function | Samarin Sergey | done |
 |`value`| Function | Samarin Sergey | in progress |
-|`font`| Function | Samarin Sergey | blocked UT |
-|`fontColor`| Function | Samarin Sergey | blocked UT |
-|`selectedOptionBgColor`| Function | Samarin Sergey | blocked UT |
-|`selectedOptionFont`| Function | Samarin Sergey | blocked UT |
-|`selectedOptionFontColor`| Function | Samarin Sergey | blocked UT |
-|`optionBgColor`| Function | Samarin Sergey | blocked UT |
-|`optionFont`| Function | Samarin Sergey | blocked UT |
-|`optionFontColor`| Function | Samarin Sergey | blocked UT |
-|`onSelect`| Function | Samarin Sergey | in progress |
-|`space`| Function | Samarin Sergey | in progress |
-|`arrowPosition`| Function | Samarin Sergey | in progress |
-|`menuAlign`| Function | Samarin Sergey | in progress |
+|`font`| Function | Samarin Sergey | in progress |
+|`fontColor`| Function | Samarin Sergey | done |
+|`selectedOptionBgColor`| Function | Samarin Sergey | done |
+|`selectedOptionFont`| Function | Samarin Sergey | in progress |
+|`selectedOptionFontColor`| Function | Samarin Sergey | done |
+|`optionBgColor`| Function | Samarin Sergey | done |
+|`optionFont`| Function | Samarin Sergey | in progress |
+|`optionFontColor`| Function | Samarin Sergey | done |
+|`onSelect`| Function | Samarin Sergey | done |
+|`space`| Function | Samarin Sergey | done |
+|`arrowPosition`| Function | Samarin Sergey | done |
 |`optionWidth`| Function | Samarin Sergey | in progress |
-|`optionHeight`| Function | Samarin Sergey | in progress |
-|`menuBackgroundColor`| Function | Samarin Sergey | blocked UT |
-|`menuBackgroundBlurStyle`| Function | Samarin Sergey | in progress |
-|`controlSize`| Function | Samarin Sergey | in progress |
-|`menuItemContentModifier`| Function | Samarin Sergey | in progress |
+|`optionHeight`| Function | Samarin Sergey | done |
+|`menuBackgroundColor`| Function | Samarin Sergey | done |
+|`menuBackgroundBlurStyle`| Function | Samarin Sergey | done |
+|`controlSize`| Function | Samarin Sergey | done |
+|`menuItemContentModifier`| Function | Samarin Sergey | blocked |
 |`divider`| Function | Samarin Sergey | in progress |
+|`menuAlign`| Function | Samarin Sergey | done |
 |*Shape*| *Component* | | |
 |`setShapeOptions`| Function | | |
 |`viewPort`| Function | | |
@@ -944,7 +944,6 @@
 |`minLabel`| Function | | |
 |`maxLabel`| Function | | |
 |`showSteps`| Function | | |
-|`showTips`| Function | | |
 |`trackThickness`| Function | | |
 |`onChange`| Function | | |
 |`blockBorderColor`| Function | | |
@@ -959,6 +958,7 @@
 |`minResponsiveDistance`| Function | | |
 |`contentModifier`| Function | | |
 |`slideRange`| Function | | |
+|`showTips`| Function | | |
 |*BaseSpan*| *Component* | | |
 |`textBackgroundStyle`| Function | | |
 |`baselineOffset`| Function | | |
@@ -997,21 +997,17 @@
 |`autoPlay`| Function | Skroba Gleb | done |
 |`interval`| Function | Skroba Gleb | done |
 |`indicator`| Function | Skroba Gleb | done |
-|`displayArrow`| Function | Skroba Gleb | done |
 |`loop`| Function | Skroba Gleb | done |
 |`duration`| Function | Skroba Gleb | done |
 |`vertical`| Function | Skroba Gleb | done |
 |`itemSpace`| Function | Skroba Gleb | done |
 |`displayMode`| Function | Skroba Gleb | done |
 |`cachedCount`| Function | Skroba Gleb | done |
-|`displayCount`| Function | Skroba Gleb | done |
 |`effectMode`| Function | Skroba Gleb | done |
 |`disableSwipe`| Function | Skroba Gleb | done |
 |`curve`| Function | Skroba Gleb | done |
 |`onChange`| Function | Skroba Gleb | done |
 |`indicatorStyle`| Function | Skroba Gleb | done |
-|`prevMargin`| Function | Skroba Gleb | done |
-|`nextMargin`| Function | Skroba Gleb | done |
 |`onAnimationStart`| Function | Skroba Gleb | done |
 |`onAnimationEnd`| Function | Skroba Gleb | done |
 |`onGestureSwipe`| Function | Skroba Gleb | done |
@@ -1019,6 +1015,10 @@
 |`customContentTransition`| Function | Skroba Gleb | blocked |
 |`onContentDidScroll`| Function | Skroba Gleb | blocked UT |
 |`indicatorInteractive`| Function | Skroba Gleb | done |
+|`displayArrow`| Function | Skroba Gleb | done |
+|`displayCount`| Function | Skroba Gleb | done |
+|`prevMargin`| Function | Skroba Gleb | done |
+|`nextMargin`| Function | Skroba Gleb | done |
 |*SymbolGlyph*| *Component* | | |
 |`setSymbolGlyphOptions`| Function | | |
 |`fontSize`| Function | | |
@@ -1036,31 +1036,31 @@
 |`renderingStrategy`| Function | | |
 |*Tabs*| *Component* | Ivan Tuzhilkin | in progress |
 |`setTabsOptions`| Function | Ivan Tuzhilkin | blocked |
-|`vertical`| Function | Ivan Tuzhilkin | in progress |
-|`barPosition`| Function | Ivan Tuzhilkin | in progress |
-|`scrollable`| Function | Ivan Tuzhilkin | in progress |
+|`vertical`| Function | Ivan Tuzhilkin | done |
+|`barPosition`| Function | Ivan Tuzhilkin | done |
+|`scrollable`| Function | Ivan Tuzhilkin | done |
 |`barMode`| Function | Ivan Tuzhilkin | in progress |
 |`barWidth`| Function | Ivan Tuzhilkin | blocked |
 |`barHeight`| Function | Ivan Tuzhilkin | blocked |
-|`animationDuration`| Function | Ivan Tuzhilkin | in progress |
-|`animationMode`| Function | Ivan Tuzhilkin | in progress |
-|`edgeEffect`| Function | Ivan Tuzhilkin | in progress |
+|`animationDuration`| Function | Ivan Tuzhilkin | blocked UT |
+|`animationMode`| Function | Ivan Tuzhilkin | done |
+|`edgeEffect`| Function | Ivan Tuzhilkin | done |
 |`onChange`| Function | Ivan Tuzhilkin | in progress |
 |`onTabBarClick`| Function | Ivan Tuzhilkin | in progress |
 |`onAnimationStart`| Function | Ivan Tuzhilkin | in progress |
 |`onAnimationEnd`| Function | Ivan Tuzhilkin | in progress |
 |`onGestureSwipe`| Function | Ivan Tuzhilkin | in progress |
-|`fadingEdge`| Function | Ivan Tuzhilkin | in progress |
+|`fadingEdge`| Function | Ivan Tuzhilkin | done |
 |`divider`| Function | Ivan Tuzhilkin | blocked |
-|`barOverlap`| Function | Ivan Tuzhilkin | in progress |
+|`barOverlap`| Function | Ivan Tuzhilkin | done |
 |`barBackgroundColor`| Function | Ivan Tuzhilkin | blocked |
 |`barGridAlign`| Function | Ivan Tuzhilkin | blocked |
 |`customContentTransition`| Function | Ivan Tuzhilkin | blocked |
-|`barBackgroundBlurStyle`| Function | Ivan Tuzhilkin | in progress |
+|`barBackgroundBlurStyle`| Function | Ivan Tuzhilkin | done |
 |`onContentWillChange`| Function | Ivan Tuzhilkin | in progress |
-|*TabContent*| *Component* | Ivan Tuzhilkin | in progress |
-|`setTabContentOptions`| Function | Ivan Tuzhilkin | blocked |
-|`tabBar`| Function | Ivan Tuzhilkin | blocked |
+|*TabContent*| *Component* | Roman Evstigneev | in progress |
+|`setTabContentOptions`| Function | Roman Evstigneev | in progress |
+|`tabBar`| Function | Roman Evstigneev | in progress |
 |`onWillShow`| Function | | |
 |`onWillHide`| Function | | |
 |*Text*| *Component* | k00660564 Kirill Kirichenko | in progress |
@@ -1092,11 +1092,9 @@
 |`wordBreak`| Function | | |
 |`lineBreakStrategy`| Function | | |
 |`onCopy`| Function | | |
-|`selection`| Function | | |
 |`ellipsisMode`| Function | | |
 |`enableDataDetector`| Function | | |
 |`dataDetectorConfig`| Function | | |
-|`bindSelectionMenu`| Function | | |
 |`onTextSelectionChange`| Function | | |
 |`fontFeature`| Function | | |
 |`privacySensitive`| Function | | |
@@ -1104,6 +1102,8 @@
 |`editMenuOptions`| Function | | |
 |`halfLeading`| Function | | |
 |`enableHapticFeedback`| Function | | |
+|`selection`| Function | | |
+|`bindSelectionMenu`| Function | | |
 |*TextArea*| *Component* | Ivan Tuzhilkin | in progress |
 |`setTextAreaOptions`| Function | Ivan Tuzhilkin | in progress |
 |`placeholderColor`| Function | Ivan Tuzhilkin | blocked UT |
@@ -1118,9 +1118,8 @@
 |`fontFamily`| Function | Ivan Tuzhilkin | in progress |
 |`textOverflow`| Function | Ivan Tuzhilkin | in progress |
 |`textIndent`| Function | Ivan Tuzhilkin | blocked UT |
-|`inputFilter`| Function | Ivan Tuzhilkin | done |
 |`caretStyle`| Function | Ivan Tuzhilkin | blocked UT |
-|`selectedBackgroundColor`| Function |  | blocked UT |
+|`selectedBackgroundColor`| Function | Ivan Tuzhilkin | blocked UT |
 |`onSubmit`| Function | Ivan Tuzhilkin | done |
 |`onChange`| Function | Ivan Tuzhilkin | done |
 |`onTextSelectionChange`| Function | Ivan Tuzhilkin | done |
@@ -1132,7 +1131,6 @@
 |`copyOption`| Function | Ivan Tuzhilkin | done |
 |`enableKeyboardOnFocus`| Function | Ivan Tuzhilkin | done |
 |`maxLength`| Function | Ivan Tuzhilkin | done |
-|`showCounter`| Function | Ivan Tuzhilkin | in progress |
 |`style`| Function | Ivan Tuzhilkin | in progress |
 |`barState`| Function | Ivan Tuzhilkin | in progress |
 |`selectionMenuHidden`| Function | Ivan Tuzhilkin | done |
@@ -1142,7 +1140,6 @@
 |`maxLines`| Function | Ivan Tuzhilkin | done |
 |`wordBreak`| Function | Ivan Tuzhilkin | in progress |
 |`lineBreakStrategy`| Function | Ivan Tuzhilkin | in progress |
-|`customKeyboard`| Function | Ivan Tuzhilkin | blocked Arkoala |
 |`decoration`| Function | Ivan Tuzhilkin | blocked UT |
 |`letterSpacing`| Function | Ivan Tuzhilkin | blocked UT |
 |`lineSpacing`| Function | Ivan Tuzhilkin | blocked Arkoala |
@@ -1158,6 +1155,9 @@
 |`editMenuOptions`| Function | Ivan Tuzhilkin | blocked Arkoala |
 |`enablePreviewText`| Function | Ivan Tuzhilkin | done |
 |`enableHapticFeedback`| Function | | |
+|`inputFilter`| Function | Ivan Tuzhilkin | done |
+|`showCounter`| Function | Ivan Tuzhilkin | in progress |
+|`customKeyboard`| Function | Ivan Tuzhilkin | blocked Arkoala |
 |*TextClock*| *Component* | | |
 |`setTextClockOptions`| Function | | |
 |`format`| Function | | |
@@ -1193,7 +1193,6 @@
 |`fontStyle`| Function | | |
 |`fontWeight`| Function | | |
 |`fontFamily`| Function | | |
-|`inputFilter`| Function | | |
 |`onCopy`| Function | | |
 |`onCut`| Function | | |
 |`onPaste`| Function | | |
@@ -1215,8 +1214,6 @@
 |`maxLines`| Function | | |
 |`wordBreak`| Function | | |
 |`lineBreakStrategy`| Function | | |
-|`customKeyboard`| Function | | |
-|`showCounter`| Function | | |
 |`cancelButton`| Function | | |
 |`selectAll`| Function | | |
 |`minFontSize`| Function | | |
@@ -1237,6 +1234,9 @@
 |`editMenuOptions`| Function | | |
 |`enablePreviewText`| Function | | |
 |`enableHapticFeedback`| Function | | |
+|`inputFilter`| Function | | |
+|`customKeyboard`| Function | | |
+|`showCounter`| Function | | |
 |*TextPicker*| *Component* | | |
 |`setTextPickerOptions`| Function | | |
 |`defaultPickerItemHeight`| Function | | |
@@ -1400,7 +1400,6 @@
 |`layoutMode`| Function | | |
 |`nestedScroll`| Function | | |
 |`enableNativeEmbedMode`| Function | | |
-|`registerNativeEmbedRule`| Function | | |
 |`onNativeEmbedLifecycleChange`| Function | | |
 |`onNativeEmbedVisibilityChange`| Function | | |
 |`onNativeEmbedGestureEvent`| Function | | |
@@ -1418,6 +1417,7 @@
 |`keyboardAvoidMode`| Function | | |
 |`editMenuOptions`| Function | | |
 |`enableHapticFeedback`| Function | | |
+|`registerNativeEmbedRule`| Function | | |
 |*WindowScene*| *Component* | | |
 |`setWindowSceneOptions`| Function | | |
 |`attractionEffect`| Function | | |
@@ -1477,11 +1477,6 @@
 |`invalidate`| Function | | |
 |*ICurve*| *Class* | | |
 |`interpolate`| Function | | |
-|*PanGestureOptions*| *Class* | | |
-|`setDirection`| Function | | |
-|`setDistance`| Function | | |
-|`setFingers`| Function | | |
-|`getDirection`| Function | | |
 |*ProgressMask*| *Class* | | |
 |`updateProgress`| Function | | |
 |`updateColor`| Function | | |
@@ -1503,6 +1498,11 @@
 |`getState`| Function | | |
 |`getEventTargetInfo`| Function | | |
 |`isValid`| Function | | |
+|*PanGestureOptions*| *Class* | | |
+|`setDirection`| Function | | |
+|`setDistance`| Function | | |
+|`setFingers`| Function | | |
+|`getDirection`| Function | | |
 |*EventTargetInfo*| *Class* | | |
 |`getId`| Function | | |
 |*ContentModifier*| *Class* | | |
@@ -1562,10 +1562,13 @@
 |`setFilter`| Function | | |
 |`getImageSmoothingEnabled`| Function | | |
 |`setImageSmoothingEnabled`| Function | | |
+|`getImageSmoothingQuality`| Function | | |
 |`setImageSmoothingQuality`| Function | | |
+|`getLineCap`| Function | | |
 |`setLineCap`| Function | | |
 |`getLineDashOffset`| Function | | |
 |`setLineDashOffset`| Function | | |
+|`getLineJoin`| Function | | |
 |`setLineJoin`| Function | | |
 |`getLineWidth`| Function | | |
 |`setLineWidth`| Function | | |
@@ -1579,10 +1582,13 @@
 |`setShadowOffsetX`| Function | | |
 |`getShadowOffsetY`| Function | | |
 |`setShadowOffsetY`| Function | | |
+|`getDirection`| Function | | |
 |`setDirection`| Function | | |
 |`getFont`| Function | | |
 |`setFont`| Function | | |
+|`getTextAlign`| Function | | |
 |`setTextAlign`| Function | | |
+|`getTextBaseline`| Function | | |
 |`setTextBaseline`| Function | | |
 |*CanvasPath*| *Class* | | |
 |`arc`| Function | | |
@@ -1594,12 +1600,10 @@
 |`moveTo`| Function | | |
 |`quadraticCurveTo`| Function | | |
 |`rect`| Function | | |
-|*ImageBitmap*| *Class* | | |
-|`close`| Function | | |
-|`getHeight`| Function | | |
-|`getWidth`| Function | | |
-|*Path2D*| *Class* | | |
-|`addPath`| Function | | |
+|*CanvasGradient*| *Class* | | |
+|`addColorStop`| Function | | |
+|*CanvasPattern*| *Class* | | |
+|`setTransform`| Function | | |
 |*Matrix2D*| *Class* | | |
 |`identity`| Function | | |
 |`invert`| Function | | |
@@ -1619,10 +1623,12 @@
 |`setTranslateX`| Function | | |
 |`getTranslateY`| Function | | |
 |`setTranslateY`| Function | | |
-|*CanvasGradient*| *Class* | | |
-|`addColorStop`| Function | | |
-|*CanvasPattern*| *Class* | | |
-|`setTransform`| Function | | |
+|*ImageBitmap*| *Class* | | |
+|`close`| Function | | |
+|`getHeight`| Function | | |
+|`getWidth`| Function | | |
+|*Path2D*| *Class* | | |
+|`addPath`| Function | | |
 |*DrawingRenderingContext*| *Class* | | |
 |`invalidate`| Function | | |
 |*ImageAnalyzerController*| *Class* | | |
@@ -1641,6 +1647,7 @@
 |*ChildrenMainSize*| *Class* | | |
 |`splice`| Function | | |
 |`update`| Function | | |
+|`getChildDefaultSize`| Function | | |
 |*NavigationTransitionProxy*| *Class* | | |
 |`finishTransition`| Function | | |
 |`cancelTransition`| Function | | |
@@ -1729,9 +1736,7 @@
 |`getStyles`| Function | | |
 |`equals`| Function | | |
 |`subStyledString`| Function | | |
-|`fromHtml`| Function | | |
 |`marshalling`| Function | | |
-|`unmarshalling`| Function | | |
 |`getLength`| Function | | |
 |*CustomSpan*| *Class* | | |
 |`onMeasure`| Function | | |
