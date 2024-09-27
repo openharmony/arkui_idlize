@@ -123,16 +123,17 @@ function generateRetConvertor(type?: idl.IDLType): RetConvertor {
 // TODO convert to convertor ;)
 function mapCInteropRetType(type: idl.IDLType): string {
     if (idl.isPrimitiveType(type)) {
-        switch (type.name) {
-            case "boolean": return PrimitiveType.Boolean.getText()
-            case "number": return PrimitiveType.Int32.getText()
-            case "DOMString":
+        switch (type) {
+            case idl.IDLBooleanType: return PrimitiveType.Boolean.getText()
+            case idl.IDLNumberType: return PrimitiveType.Int32.getText()
+            case idl.IDLStringType:
                 /* HACK, fix */
                 // return `KStringPtr`
                 return "void"
-            case "void_":
-            case "any":
-            case "undefined": return "void"
+            case idl.IDLVoidType:
+            case idl.IDLAnyType:
+            case idl.IDLUndefinedType:
+                return "void"
         }
     }
     if (idl.isReferenceType(type)) {
@@ -695,7 +696,7 @@ function needImportFeature(language: Language, decl: idl.IDLEntry): boolean {
 function convertDeclToFeature(library: IdlPeerLibrary, node: idl.IDLEntry): ImportFeature {
     if (isSyntheticDeclaration(node))
         return {
-            feature: convertDeclaration(DeclarationNameConvertor.I, node), 
+            feature: convertDeclaration(DeclarationNameConvertor.I, node),
             module: `./${syntheticDeclarationFilename(node)}`
         }
     if (isConflictingDeclaration(node)) {

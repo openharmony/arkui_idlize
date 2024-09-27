@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl';
+import * as idl from '../../idl'
 import { BuilderClass } from '../BuilderClass';
 import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
@@ -71,7 +71,7 @@ export class IdlPeerLibrary {
     findPeerByComponentName(componentName: string): IdlPeerClass | undefined {
         for (const file of this.files)
             for (const peer of file.peers.values())
-                if (peer.componentName == componentName) 
+                if (peer.componentName == componentName)
                     return peer
         return undefined
     }
@@ -129,14 +129,15 @@ export class IdlPeerLibrary {
             return new OptionConvertor(this, param, type)
         }
         if (idl.isPrimitiveType(type)) {
-            switch (type.name) {
-                case "any": return new CustomTypeConvertor(param, "Any")
-                case "boolean": return new BooleanConvertor(param)
-                case "DOMString": return new StringConvertor(param)
-                case "null_": return new NullConvertor(param)
-                case "number": return new NumberConvertor(param)
-                case "undefined":
-                case "void_": return new UndefinedConvertor(param)
+            switch (type) {
+                case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any")
+                case idl.IDLBooleanType: return new BooleanConvertor(param)
+                case idl.IDLStringType: return new StringConvertor(param)
+                case idl.IDLNullType: return new NullConvertor(param)
+                case idl.IDLNumberType: return new NumberConvertor(param)
+                case idl.IDLUndefinedType:
+                case idl.IDLVoidType: return new UndefinedConvertor(param)
+                default: throw new Error(`Unconverted ${type}`)
             }
         }
         if (idl.isReferenceType(type)) {
@@ -260,9 +261,9 @@ export class IdlPeerLibrary {
 
     toDeclaration(type: idl.IDLType): idl.IDLEntry {
         switch (type.name) {
-            case "any": return ArkCustomObject
-            case "null_":
-            case "void_": return idl.IDLUndefinedType
+            case idl.IDLAnyType.name: return ArkCustomObject
+            case idl.IDLNullType.name:
+            case idl.IDLVoidType.name: return idl.IDLUndefinedType
             case "Callback": return ArkFunction
             case "Resource": return ArkResource
         }
@@ -357,13 +358,13 @@ export class IdlPeerLibrary {
     computeTargetNameImpl(target: idl.IDLEntry, optional: boolean, idlPrefix: string): string {
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (idl.isPrimitiveType(target)) {
-            let name = target.name
-            switch (name) {
-                case "any": return "CustomObject"
-                case "DOMString": name = "String"; break
-                case "null_": name = "null"; break///?
-                case "void_": name = "void"; break
-                default: name = capitalize(name); break
+            let name: string = ""
+            switch (target) {
+                case idl.IDLAnyType: return "CustomObject"
+                case idl.IDLStringType: name = "String"; break
+                case idl.IDLNullType: name = "null"; break
+                case idl.IDLVoidType: name = "void"; break
+                default: name = capitalize(target.name); break
             }
             return (optional ? prefix : idlPrefix) + name
         }

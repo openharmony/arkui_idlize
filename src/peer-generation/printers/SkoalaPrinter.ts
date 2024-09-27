@@ -1,6 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
-import { IDLEntry, IDLMethod, IDLInterface, isInterface, isClass, printType } from "../../idl"
+import * as idl from '../../idl'
+import { IDLEntry, IDLMethod, IDLInterface, isInterface, isClass, printType, IDLVoidType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { capitalize, toCamelCase } from "../../util"
 export class SkoalaCCodeGenerator {
@@ -48,7 +49,7 @@ export class SkoalaCCodeGenerator {
     }
 
     private visitMethod(method: IDLMethod, parentNode: IDLInterface, printer: IndentedPrinter): void {
-        const returnType = method.returnType ? this.convertType(method.returnType.name) : "void"
+        const returnType = method.returnType ? this.convertType(method.returnType) : "void"
 
         const capitalizedMethodName = capitalize(method.name)
         const methodNameWithPrefix = `impl_skoala_${parentNode.name}__1n${capitalizedMethodName}`
@@ -62,7 +63,7 @@ export class SkoalaCCodeGenerator {
 
         const pointerName = `${toCamelCase(parentNode.name)}Ptr`
 
-        const isStaticMethod = method.isStatic || false 
+        const isStaticMethod = method.isStatic || false
 
         if (!isStaticMethod) {
             parametersList.push(`KNativePointer ${pointerName}`)
@@ -73,7 +74,7 @@ export class SkoalaCCodeGenerator {
                 if (!param.type) {
                     throw new Error(`Parameter type is not defined for parameter ${param.name} in method ${method.name}`);
                 }
-                const typeName = this.convertType(param.type.name)
+                const typeName = this.convertType(param.type)
                 return `${typeName} ${param.name}`
             })
 
@@ -85,18 +86,17 @@ export class SkoalaCCodeGenerator {
         printer.print("")
     }
 
-    private convertType(idlType: string): string {
-        const typeMapping: { [key: string]: string } = {
-            "float32": "float",
-            "int32": "int",
-            "uint32": "unsigned int",
-            "boolean": "bool",
-            "DOMString": "char*",
-            "void_": "void",
-            "KNativePointer": "KNativePointer", 
+    private convertType(idlType: idl.IDLType): string {
+        switch (idlType.name) {
+            case "float32": return "float"
+            case "int32": return "int"
+            case "uint32": return "unsigned int"
+            case idl.IDLBooleanType.name: return "bool"
+            case idl.IDLStringType.name: return "char*"
+            case idl.IDLVoidType.name: return "void"
+            case "KNativePointer": return "KNativePointer"
+            default: return "void*"
         }
-
-        return typeMapping[idlType] || "void*"
     }
 
     private saveCCode(cCode: string): void {

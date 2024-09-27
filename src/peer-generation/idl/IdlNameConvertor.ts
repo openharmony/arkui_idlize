@@ -84,10 +84,10 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor {
         return type.name///?
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type.name) {
-            case "DOMString": return "string"
-            case "null_": return "null"
-            case "void_": return "void"
+        switch (type) {
+            case idl.IDLStringType: return "string"
+            case idl.IDLNullType: return "null"
+            case idl.IDLVoidType: return "void"
         }
         return type.name
     }

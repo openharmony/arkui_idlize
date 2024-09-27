@@ -168,7 +168,7 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
             case "number": return IDLNumberType
             case "DOMString": return IDLStringType
             case "undefined": return IDLUndefinedType
-            case "void_": return IDLVoidType
+            case "void": return IDLVoidType
         }
         const combinedExtAttrs = extAttrs
             ? type.extAttrs ? extAttrs.concat(type.extAttrs) : extAttrs

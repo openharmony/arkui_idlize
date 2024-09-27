@@ -22,7 +22,8 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLExtendedAttributes,
     IDLAccessorAttribute,
     IDLImport,
-    IDLPackage} from "../idl"
+    IDLPackage,
+    IDLVoidType} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 
@@ -267,7 +268,7 @@ export function printTypeForTS(type: IDLType | undefined, undefinedToVoid?: bool
     if (type.name == "DOMString") return "string"
     if (isCommonMethod && type.name == "this") return "T"
     if (type.name == "null_") return "null"
-    if (type.name == "void_") return "void"
+    if (type.name == IDLVoidType.name) return "void"
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) {
         if (!sequenceToArrayInterface && type.name == "sequence")

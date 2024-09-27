@@ -301,7 +301,7 @@ export function isUndefinedType(type: IDLEntry): type is IDLPrimitiveType {
     return isPrimitiveType(type) && type.name === "undefined"
 }
 export function isVoidType(type: IDLEntry): type is IDLPrimitiveType {
-    return isPrimitiveType(type) && type.name === "void_"
+    return isPrimitiveType(type) && type.name === IDLVoidType.name
 }
 export function isPrimitiveType(type: IDLEntry): type is IDLPrimitiveType {
     return type.kind == IDLKind.PrimitiveType
@@ -384,11 +384,13 @@ function createPrimitiveType(name: string): IDLPrimitiveType {
 export const IDLAnyType: IDLPrimitiveType = createPrimitiveType("any")
 export const IDLBooleanType: IDLPrimitiveType = createPrimitiveType("boolean")
 export const IDLBigintType: IDLPrimitiveType = createPrimitiveType("bigint")
-export const IDLNullType: IDLPrimitiveType = createPrimitiveType("null_")
+// TODO: use void (need to fix IDL parser)
+export const IDLNullType: IDLPrimitiveType = createPrimitiveType("Null")
 export const IDLNumberType: IDLPrimitiveType = createPrimitiveType("number")
 export const IDLStringType: IDLPrimitiveType = createPrimitiveType("DOMString")
 export const IDLUndefinedType: IDLPrimitiveType = createPrimitiveType("undefined")
-export const IDLVoidType: IDLPrimitiveType = createPrimitiveType("void_")
+// TODO: use void (need to fix IDL parser)
+export const IDLVoidType: IDLPrimitiveType = createPrimitiveType("Void")
 
 export function createReferenceType(name: string, typeArguments?: NodeArray<TypeNode>): IDLReferenceType {
     if (typeArguments) {
