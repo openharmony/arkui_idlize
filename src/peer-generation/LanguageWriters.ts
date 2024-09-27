@@ -17,9 +17,7 @@ import { IndentedPrinter } from "../IndentedPrinter";
 import { capitalize, isDefined, Language, stringOrNone } from "../util";
 import {
     AggregateConvertor,
-    ArgConvertor,
     ArrayConvertor,
-    BaseArgConvertor,
     CustomTypeConvertor,
     EnumConvertor,
     MapConvertor,
@@ -35,6 +33,7 @@ import { createLiteralDeclName, mapType, TSTypeNodeNameConvertor } from "./TypeN
 import * as ts from "typescript"
 import * as fs from "fs"
 import { EnumEntity } from "./PeerFile";
+import { ArgConvertor, BaseArgConvertor } from "./ArgConvertors";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}

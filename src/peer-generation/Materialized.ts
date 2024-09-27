@@ -14,7 +14,8 @@
  */
 
 import * as ts from "typescript"
-import { ArgConvertor, RetConvertor } from "./Convertors"
+import { RetConvertor } from "./Convertors"
+import { ArgConvertor } from "./ArgConvertors"
 import { Field, Method, MethodModifier, MethodSignature, Type } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
 import { heritageDeclarations, identName } from "../util"

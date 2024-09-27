@@ -31,8 +31,9 @@ import {
 } from "../util"
 import { GenericVisitor } from "../options"
 import {
-    ArgConvertor, RetConvertor,
+    RetConvertor,
 } from "./Convertors"
+import { ArgConvertor } from "./ArgConvertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import {

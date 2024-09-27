@@ -21,7 +21,7 @@ import { IdlPeerClass } from "./IdlPeerClass";
 import { IdlPeerFile } from "./IdlPeerFile";
 import { TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
-import { AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from '../DeclarationTable';
 import { DependencySorter } from './DependencySorter';
@@ -32,6 +32,7 @@ import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { Library } from '../../Library';
 import { DeclarationProcessor } from '../../DeclarationProcesser';
+import { ArgConvertor, BooleanConvertor } from '../ArgConvertors';
 
 export type IdlPeerLibraryOutput = {
     outputC: string[]

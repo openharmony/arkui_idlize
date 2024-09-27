@@ -1,4 +1,4 @@
-import { ArgConvertor } from "./peer-generation/Convertors"
+import { ArgConvertor } from "./peer-generation/ArgConvertors"
 import { TypeNodeConvertor } from "./peer-generation/TypeNodeConvertor"
 import { Language } from "./util"
 

@@ -19,6 +19,7 @@ import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters"
 import { mapType, TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
 import { makeArrayTypeCheckCall, makeInterfaceTypeCheckerCall } from "./printers/TypeCheckPrinter"
+import { ArgConvertor, BaseArgConvertor } from "./ArgConvertors"
 
 function castToInt8(value: string, lang: Language): string {
     switch (lang) {
@@ -36,66 +37,66 @@ function castToInt32(value: string, lang: Language): string {
     }
 }
 
-export interface ArgConvertor {
-    param: string
-    tsTypeName: string
-    isScoped: boolean
-    useArray: boolean
-    runtimeTypes: RuntimeType[]
-    scopeStart?(param: string, language: Language): string
-    scopeEnd?(param: string, language: Language): string
-    convertorArg(param: string, writer: LanguageWriter): string
-    convertorSerialize(param: string, value: string, writer: LanguageWriter): void
-    convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
-    interopType(language: Language): string
-    nativeType(impl: boolean): string
-    targetType(writer: LanguageWriter): Type
-    isPointerType(): boolean
-    unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined
-    getMembers(): string[]
-}
+// export interface ArgConvertor {
+//     param: string
+//     tsTypeName: string
+//     isScoped: boolean
+//     useArray: boolean
+//     runtimeTypes: RuntimeType[]
+//     scopeStart?(param: string, language: Language): string
+//     scopeEnd?(param: string, language: Language): string
+//     convertorArg(param: string, writer: LanguageWriter): string
+//     convertorSerialize(param: string, value: string, writer: LanguageWriter): void
+//     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
+//     interopType(language: Language): string
+//     nativeType(impl: boolean): string
+//     targetType(writer: LanguageWriter): Type
+//     isPointerType(): boolean
+//     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined
+//     getMembers(): string[]
+// }
 
-export abstract class BaseArgConvertor implements ArgConvertor {
-    constructor(
-        public tsTypeName: string,
-        public runtimeTypes: RuntimeType[],
-        public isScoped: boolean,
-        public useArray: boolean,
-        public param: string
-    ) { }
+// export abstract class BaseArgConvertor implements ArgConvertor {
+//     constructor(
+//         public tsTypeName: string,
+//         public runtimeTypes: RuntimeType[],
+//         public isScoped: boolean,
+//         public useArray: boolean,
+//         public param: string
+//     ) { }
 
-    nativeType(impl: boolean): string {
-        throw new Error("Define")
-    }
-    isPointerType(): boolean {
-        throw new Error("Define")
-    }
-    interopType(language: Language): string {
-        throw new Error("Define")
-    }
-    targetType(writer: LanguageWriter): Type {
-        return new Type(writer.mapType(new Type(this.tsTypeName), this))
-    }
-    scopeStart?(param: string, language: Language): string
-    scopeEnd?(param: string, language: Language): string
-    abstract convertorArg(param: string, writer: LanguageWriter): string
-    abstract convertorSerialize(param: string, value: string, writer: LanguageWriter): void
-    abstract convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
-    unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined {
-        return undefined
-    }
-    getMembers(): string[] { return [] }
-    protected discriminatorFromFields<T>(value: string, writer: LanguageWriter,
-        uniqueFields: T[] | undefined, nameAccessor: (field: T) => string, optionalAccessor: (field: T) => boolean)
-    {
-        if (!uniqueFields || uniqueFields.length === 0) return undefined
-        const firstNonOptional = uniqueFields.find(it => !optionalAccessor(it))
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer, [
-            writer.makeDiscriminatorFromFields(this, value,
-                firstNonOptional ? [nameAccessor(firstNonOptional)] : uniqueFields.map(it => nameAccessor(it)))
-        ])
-    }
-}
+//     nativeType(impl: boolean): string {
+//         throw new Error("Define")
+//     }
+//     isPointerType(): boolean {
+//         throw new Error("Define")
+//     }
+//     interopType(language: Language): string {
+//         throw new Error("Define")
+//     }
+//     targetType(writer: LanguageWriter): Type {
+//         return new Type(writer.mapType(new Type(this.tsTypeName), this))
+//     }
+//     scopeStart?(param: string, language: Language): string
+//     scopeEnd?(param: string, language: Language): string
+//     abstract convertorArg(param: string, writer: LanguageWriter): string
+//     abstract convertorSerialize(param: string, value: string, writer: LanguageWriter): void
+//     abstract convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
+//     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined {
+//         return undefined
+//     }
+//     getMembers(): string[] { return [] }
+//     protected discriminatorFromFields<T>(value: string, writer: LanguageWriter,
+//         uniqueFields: T[] | undefined, nameAccessor: (field: T) => string, optionalAccessor: (field: T) => boolean)
+//     {
+//         if (!uniqueFields || uniqueFields.length === 0) return undefined
+//         const firstNonOptional = uniqueFields.find(it => !optionalAccessor(it))
+//         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer, [
+//             writer.makeDiscriminatorFromFields(this, value,
+//                 firstNonOptional ? [nameAccessor(firstNonOptional)] : uniqueFields.map(it => nameAccessor(it)))
+//         ])
+//     }
+// }
 
 export class StringConvertor extends BaseArgConvertor {
     private readonly literalValue?: string
@@ -169,37 +170,37 @@ export class ToStringConvertor extends BaseArgConvertor {
     }
 }
 
-export class BooleanConvertor extends BaseArgConvertor {
-    constructor(param: string) {
-        super("boolean", [RuntimeType.BOOLEAN], false, false, param)
-    }
-    convertorArg(param: string, writer: LanguageWriter): string {
-        switch (writer.language) {
-            case Language.CPP: return param
-            case Language.TS: return `+${param}`
-            case Language.ARKTS: return `${param} ? 1 : 0`
-            case Language.JAVA: return `${param} ? 1 : 0`
-            case Language.CJ: return `if (${param}) { 1 } else { 0 }`
-            default: throw new Error("Unsupported language")
-        }
-    }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, "writeBoolean", [value])
-    }
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = printer.getObjectAccessor(this, value)
-        return printer.makeAssign(accessor, undefined, printer.makeString(`${param}Deserializer.readBoolean()`), false)
-    }
-    nativeType(impl: boolean): string {
-        return PrimitiveType.Boolean.getText()
-    }
-    interopType(language: Language): string {
-        return language == Language.CPP ? PrimitiveType.Boolean.getText() : "KInt"
-    }
-    isPointerType(): boolean {
-        return false
-    }
-}
+// export class BooleanConvertor extends BaseArgConvertor_ {
+//     constructor(param: string) {
+//         super("boolean", [RuntimeType.BOOLEAN], false, false, param)
+//     }
+//     convertorArg(param: string, writer: LanguageWriter): string {
+//         switch (writer.language) {
+//             case Language.CPP: return param
+//             case Language.TS: return `+${param}`
+//             case Language.ARKTS: return `${param} ? 1 : 0`
+//             case Language.JAVA: return `${param} ? 1 : 0`
+//             case Language.CJ: return `if (${param}) { 1 } else { 0 }`
+//             default: throw new Error("Unsupported language")
+//         }
+//     }
+//     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+//         printer.writeMethodCall(`${param}Serializer`, "writeBoolean", [value])
+//     }
+//     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+//         const accessor = printer.getObjectAccessor(this, value)
+//         return printer.makeAssign(accessor, undefined, printer.makeString(`${param}Deserializer.readBoolean()`), false)
+//     }
+//     nativeType(impl: boolean): string {
+//         return PrimitiveType.Boolean.getText()
+//     }
+//     interopType(language: Language): string {
+//         return language == Language.CPP ? PrimitiveType.Boolean.getText() : "KInt"
+//     }
+//     isPointerType(): boolean {
+//         return false
+//     }
+// }
 
 export class UndefinedConvertor extends BaseArgConvertor {
     constructor(param: string) {

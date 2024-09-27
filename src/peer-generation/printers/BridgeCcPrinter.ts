@@ -15,7 +15,8 @@
 
 import { IndentedPrinter } from "../../IndentedPrinter";
 import { Language, capitalize, dropSuffix, isDefined } from "../../util";
-import {ArgConvertor, EnumConvertor} from "../Convertors";
+import { EnumConvertor} from "../Convertors";
+import { ArgConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../DeclarationTable";
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { createLanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";

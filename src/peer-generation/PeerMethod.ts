@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 import { capitalize } from "../util"
-import { ArgConvertor, OptionConvertor, RetConvertor } from "./Convertors"
+import { OptionConvertor, RetConvertor } from "./Convertors"
+import { ArgConvertor } from "./ArgConvertors"
 import { Method, MethodModifier, mangleMethodName } from "./LanguageWriters"
 import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType, StructVisitor } from "./DeclarationTable"
 
