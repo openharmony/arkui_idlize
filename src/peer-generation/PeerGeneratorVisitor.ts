@@ -30,10 +30,7 @@ import {
     Language,
 } from "../util"
 import { GenericVisitor } from "../options"
-import {
-    RetConvertor,
-} from "./Convertors"
-import { ArgConvertor } from "./ArgConvertors"
+import { ArgConvertor, RetConvertor } from "./ArgConvertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
 import {

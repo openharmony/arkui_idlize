@@ -1019,9 +1019,3 @@ export class TypeAliasConvertor extends ProxyConvertor {
         super(table.typeConvertor(param, declaration.type, false, undefined, typeNodeNameConvertor), identName(declaration.name))
     }
 }
-
-export interface RetConvertor {
-    isVoid: boolean
-    nativeType: () => string
-    macroSuffixPart: () => string
-}

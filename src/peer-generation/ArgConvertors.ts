@@ -15,6 +15,12 @@ export enum RuntimeType {
     MATERIALIZED = 9,
 }
 
+export interface RetConvertor {
+    isVoid: boolean
+    nativeType: () => string
+    macroSuffixPart: () => string
+}
+
 export interface ArgConvertor {
     param: string
     tsTypeName: string

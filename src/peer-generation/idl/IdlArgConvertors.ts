@@ -911,12 +911,6 @@ export class TypeAliasConvertor extends ProxyConvertor {
     }
 }
 
-export interface RetConvertor {
-    isVoid: boolean
-    nativeType: () => string
-    macroSuffixPart: () => string
-}
-
 export function cppEscape(name: string) {
     return name === "template" ? "template_" : name
 }

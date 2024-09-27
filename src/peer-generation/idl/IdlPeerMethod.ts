@@ -15,8 +15,7 @@
 
 
 import { capitalize, isDefined } from "../../util"
-import { RetConvertor } from "./IdlArgConvertors"
-import { ArgConvertor } from "../ArgConvertors"
+import { ArgConvertor, RetConvertor } from "../ArgConvertors"
 import { Method, MethodModifier, mangleMethodName } from "../LanguageWriters"
 import { PrimitiveType } from "../DeclarationTable"
 import { IDLType } from "../../idl"
