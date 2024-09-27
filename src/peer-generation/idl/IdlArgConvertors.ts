@@ -19,7 +19,7 @@ import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement,
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 import { PrimitiveType } from "../DeclarationTable"
 import { qualifiedName } from "./common"
-import { ArgConvertor, BaseArgConvertor, UndefinedConvertor } from "../ArgConvertors"
+import { ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "../ArgConvertors"
 
 
 export class StringConvertor extends BaseArgConvertor {
@@ -151,60 +151,6 @@ export class EnumConvertor extends BaseArgConvertor {
     }
 }
 
-export class UnionRuntimeTypeChecker {
-    private conflictingConvertors: Set<ArgConvertor> = new Set()
-    private duplicateMembers: Set<string> = new Set()
-    private discriminators: [LanguageExpression | undefined, ArgConvertor, number][] = []
-
-    constructor(private convertors: ArgConvertor[]) {
-        this.checkConflicts()
-    }
-    private checkConflicts() {
-        const runtimeTypeConflicts: Map<RuntimeType, ArgConvertor[]> = new Map()
-        this.convertors.forEach(conv => {
-            conv.runtimeTypes.forEach(rtType => {
-                const convertors = runtimeTypeConflicts.get(rtType)
-                if (convertors) convertors.push(conv)
-                else runtimeTypeConflicts.set(rtType, [conv])
-            })
-        })
-        runtimeTypeConflicts.forEach((convertors, rtType) => {
-            if (convertors.length > 1) {
-                const allMembers: Set<string> = new Set()
-                if (rtType === RuntimeType.OBJECT) {
-                    convertors.forEach(convertor => {
-                        convertor.getMembers().forEach(member => {
-                            if (allMembers.has(member)) this.duplicateMembers.add(member)
-                            allMembers.add(member)
-                        })
-                    })
-                }
-                convertors.forEach(convertor => {
-                    this.conflictingConvertors.add(convertor)
-                })
-            }
-        })
-    }
-    makeDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression {
-        const convertor = this.convertors[index]
-        if (this.conflictingConvertors.has(convertor) && writer.language.needsUnionDiscrimination) {
-            const discriminator = convertor.unionDiscriminator(value, index, writer, this.duplicateMembers)
-            this.discriminators.push([discriminator, convertor, index])
-            if (discriminator) return discriminator
-        }
-        return writer.makeNaryOp("||", convertor.runtimeTypes.map(it =>
-            writer.makeNaryOp("==", [writer.makeUnionVariantCondition(convertor, value, `${value}_type`, RuntimeType[it], index)])))
-    }
-    reportConflicts(context: string | undefined) {
-        if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
-            console.log(`FATAL: runtime type conflict in ${context ?? "<unknown context>"}`)
-            this.discriminators.forEach(([discr, conv, n]) =>
-                console.log(`   ${n} : ${conv.constructor.name} : ${discr ? discr.asString() : "<undefined>"}`))
-            throw new Error()
-        }
-    }
-}
-
 export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
     private unionChecker: UnionRuntimeTypeChecker
@@ -237,7 +183,7 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.popIndent()
             printer.print(`}`)
         })
-        this.unionChecker.reportConflicts(this.library.getCurrentContext())
+        this.unionChecker.reportConflicts(this.library.getCurrentContext() ?? "<unknown context>")
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         let selector = `selector`
@@ -872,36 +818,6 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
             [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
-    }
-}
-
-class ProxyConvertor extends BaseArgConvertor {
-    constructor(protected convertor: ArgConvertor, suggestedName?: string) {
-        super(suggestedName ?? convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
-    }
-    convertorArg(param: string, writer: LanguageWriter): string {
-        return this.convertor.convertorArg(param, writer)
-    }
-    convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        return this.convertor.convertorDeserialize(param, value, writer)
-    }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        this.convertor.convertorSerialize(param, value, printer)
-    }
-    nativeType(impl: boolean): string {
-        return this.convertor.nativeType(impl)
-    }
-    interopType(language: Language): string {
-        return this.convertor.interopType(language)
-    }
-    isPointerType(): boolean {
-        return this.convertor.isPointerType()
-    }
-    unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return this.convertor.unionDiscriminator(value, index, writer, duplicates)
-    }
-    getMembers(): string[] {
-        return this.convertor.getMembers()
     }
 }
 
