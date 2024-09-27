@@ -16,12 +16,13 @@
 import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { camelCaseToUpperSnakeCase } from "../../util"
+import { RuntimeType } from "../ArgConvertors"
 import { PrimitiveType } from "../DeclarationTable"
 import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isImport, isStringEnum } from "./common"
 import { cppEscape } from "./IdlArgConvertors"
-import { isBuilderClass, isMaterialized, RuntimeType } from "./IdlPeerGeneratorVisitor"
+import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 
 export class StructPrinter {

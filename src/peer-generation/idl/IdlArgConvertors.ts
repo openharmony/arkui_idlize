@@ -14,12 +14,11 @@
  */
 import * as idl from "../../idl"
 import { Language } from "../../util"
-import { RuntimeType } from "./IdlPeerGeneratorVisitor"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "../LanguageWriters"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 import { PrimitiveType } from "../DeclarationTable"
 import { qualifiedName } from "./common"
-import { ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "../ArgConvertors"
+import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "../ArgConvertors"
 
 
 export class StringConvertor extends BaseArgConvertor {

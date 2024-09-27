@@ -14,12 +14,11 @@
  */
 import { Language, identName, identNameWithNamespace, importTypeName } from "../util"
 import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
-import { RuntimeType } from "./PeerGeneratorVisitor"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters"
 import { mapType, TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
 import { makeArrayTypeCheckCall, makeInterfaceTypeCheckerCall } from "./printers/TypeCheckPrinter"
-import { ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "./ArgConvertors"
+import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "./ArgConvertors"
 
 function castToInt8(value: string, lang: Language): string {
     switch (lang) {

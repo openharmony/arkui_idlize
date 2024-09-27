@@ -28,11 +28,10 @@ import {
     MaterializedClassConvertor, OptionConvertor, StringConvertor,
     ToStringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor
 } from "./Convertors"
-import { ArgConvertor, BooleanConvertor, LengthConvertor, NullConvertor, NumberConvertor, PredefinedConvertor, UndefinedConvertor, CustomTypeConvertor } from "./ArgConvertors"
+import { RuntimeType, ArgConvertor, BooleanConvertor, LengthConvertor, NullConvertor, NumberConvertor, PredefinedConvertor, UndefinedConvertor, CustomTypeConvertor } from "./ArgConvertors"
 import { DependencySorter } from "./DependencySorter"
 import { checkDeclarationTargetMaterialized, isMaterialized } from "./Materialized"
-import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
-import { RuntimeType } from "./PeerGeneratorVisitor"
+    import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters"
 import { TypeNodeConvertor, convertTypeNode } from "./TypeNodeConvertor"
 import { PeerLibrary } from "./PeerLibrary"
 import { CallbackInfo, collectCallbacks } from "./printers/EventsPrinter"

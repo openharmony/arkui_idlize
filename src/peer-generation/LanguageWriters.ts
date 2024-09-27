@@ -27,13 +27,12 @@ import {
     UnionConvertor
 } from "./Convertors";
 import { FieldRecord, PrimitiveType } from "./DeclarationTable";
-import { RuntimeType } from "./PeerGeneratorVisitor";
 import { createLiteralDeclName, mapType, TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 
 import * as ts from "typescript"
 import * as fs from "fs"
 import { EnumEntity } from "./PeerFile";
-import { ArgConvertor, BaseArgConvertor, CustomTypeConvertor } from "./ArgConvertors";
+import { RuntimeType, ArgConvertor, BaseArgConvertor, CustomTypeConvertor } from "./ArgConvertors";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}

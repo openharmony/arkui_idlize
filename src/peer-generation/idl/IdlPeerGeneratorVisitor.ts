@@ -36,19 +36,6 @@ import { PrimitiveType } from "../DeclarationTable"
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convert } from "./common"
 
-export enum RuntimeType {
-    UNEXPECTED = -1,
-    NUMBER = 1,
-    STRING = 2,
-    OBJECT = 3,
-    BOOLEAN = 4,
-    UNDEFINED = 5,
-    BIGINT = 6,
-    FUNCTION = 7,
-    SYMBOL = 8,
-    MATERIALIZED = 9,
-}
-
 /**
  * Theory of operations.
  *
