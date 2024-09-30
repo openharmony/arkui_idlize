@@ -15,7 +15,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
-import { PrimitiveType } from "./DeclarationTable"
+import { ArkPrimitiveType } from "./ArkPrimitiveType"
 import { Language, camelCaseToUpperSnakeCase } from "../util"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
@@ -381,7 +381,7 @@ ${accessors.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
-    ${PrimitiveType.Int32.getText()} version;
+    ${ArkPrimitiveType.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
@@ -401,7 +401,7 @@ ${node_api}
  * layout checks.
  */
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
-    ${PrimitiveType.Int32.getText()} version;
+    ${ArkPrimitiveType.Int32.getText()} version;
     const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* (*getNodeModifiers)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* (*getAccessors)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
@@ -411,7 +411,7 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
 } ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {
-    ${PrimitiveType.Int32.getText()} version;
+    ${ArkPrimitiveType.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI;
 `
 }

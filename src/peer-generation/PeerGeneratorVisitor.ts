@@ -32,7 +32,8 @@ import {
 import { GenericVisitor } from "../options"
 import { ArgConvertor, RetConvertor } from "./ArgConvertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTable } from "./DeclarationTable"
+import { ArkPrimitiveType } from "./ArkPrimitiveType"
 import {
     singleParentDeclaration,
 } from "./inheritance"
@@ -293,10 +294,10 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         return `void`
     }
     if (type.kind == ts.SyntaxKind.NumberKeyword) {
-        return PrimitiveType.Int32.getText()
+        return ArkPrimitiveType.Int32.getText()
     }
     if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-        return PrimitiveType.Boolean.getText()
+        return ArkPrimitiveType.Boolean.getText()
     }
     if (ts.isTypeReferenceNode(type)) {
         let name = identName(type.typeName)!
@@ -305,8 +306,8 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         switch (name) {
             /* ANOTHER HACK, fix */
             case "T": return "void"
-            case "UIContext": return PrimitiveType.NativePointer.getText()
-            default: return PrimitiveType.NativePointer.getText()
+            case "UIContext": return ArkPrimitiveType.NativePointer.getText()
+            default: return ArkPrimitiveType.NativePointer.getText()
         }
     }
     if (type.kind == ts.SyntaxKind.StringKeyword) {
@@ -870,7 +871,7 @@ export class PeerProcessor {
         let constructor = isClass ? target.members.find(ts.isConstructorDeclaration) : undefined
         typeNodeConvertor = createTypeNodeConvertor(this.library, typeNodeConvertor, this.declDependenciesCollector, importFeatures)
         let mConstructor = this.makeMaterializedMethod(name, constructor, isActualDeclaration, typeNodeConvertor)
-        const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
+        const finalizerReturnType = {isVoid: false, nativeType: () => ArkPrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
         let mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]), 0)
         let mFields = isClass
@@ -954,7 +955,7 @@ export class PeerProcessor {
         this.declarationTable.setCurrentContext(`Materialized_${parentName}_${methodName}`)
 
         const retConvertor = method === undefined || ts.isConstructorDeclaration(method)
-            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
+            ? { isVoid: false, isStruct: false, nativeType: () => ArkPrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
             : generateRetConvertor(method.type)
 
         if (method === undefined) {

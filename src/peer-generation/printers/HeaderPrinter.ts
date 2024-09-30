@@ -21,7 +21,8 @@ import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { CallbackInfo, collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
-import { DeclarationTable, PrimitiveType } from "../DeclarationTable";
+import { DeclarationTable } from "../DeclarationTable";
+import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { NamedMethodSignature, Type, printMethodDeclaration } from "../LanguageWriters";
 import { camelCaseToUpperSnakeCase } from "../../util";
 import { LibaceInstall } from "../../Install";
@@ -34,7 +35,7 @@ export function generateEventReceiverName(componentName: string) {
 }
 
 export function generateEventSignature(table: DeclarationTable, event: CallbackInfo): NamedMethodSignature {
-    const nodeType = new Type(table.computeTargetName(PrimitiveType.Int32, false))
+    const nodeType = new Type(table.computeTargetName(ArkPrimitiveType.Int32, false))
     const argsTypes = event.args.map(it => new Type(
         'const ' + table.typeConvertor(it.name, it.type, it.nullable).nativeType(false),
         it.nullable,

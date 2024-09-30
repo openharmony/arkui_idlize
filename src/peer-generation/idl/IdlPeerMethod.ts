@@ -17,7 +17,7 @@
 import { capitalize, isDefined } from "../../util"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
 import { Method, MethodModifier, mangleMethodName } from "../LanguageWriters"
-import { PrimitiveType } from "../DeclarationTable"
+import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { IDLType } from "../../idl"
 
 export class IdlPeerMethod {
@@ -93,7 +93,7 @@ export class IdlPeerMethod {
         if (!this.hasReceiver()) return undefined
         return {
             argName: "node",
-            argType: PrimitiveType.NativePointer.getText()
+            argType: ArkPrimitiveType.NativePointer.getText()
         }
     }
 

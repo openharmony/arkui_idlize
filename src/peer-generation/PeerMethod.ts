@@ -16,7 +16,8 @@ import { capitalize } from "../util"
 import { OptionConvertor } from "./Convertors"
 import { ArgConvertor, RetConvertor } from "./ArgConvertors"
 import { Method, MethodModifier, mangleMethodName } from "./LanguageWriters"
-import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType, StructVisitor } from "./DeclarationTable"
+import { DeclarationTable, DeclarationTarget, FieldRecord, StructVisitor } from "./DeclarationTable"
+import { ArkPrimitiveType } from "./ArkPrimitiveType"
 
 export class PeerMethod {
     constructor(
@@ -102,7 +103,7 @@ export class PeerMethod {
         if (!this.hasReceiver()) return undefined
         return {
             argName: "node",
-            argType: PrimitiveType.NativePointer.getText()
+            argType: ArkPrimitiveType.NativePointer.getText()
         }
     }
 

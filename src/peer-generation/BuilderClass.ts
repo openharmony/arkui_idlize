@@ -17,7 +17,9 @@ import * as ts from "typescript"
 import { heritageDeclarations, identName, isReadonly, isStatic, Language } from "../util"
 import { Field, FieldModifier, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
-import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTable, DeclarationTarget, FieldRecord } from "./DeclarationTable"
+import { ArkPrimitiveType } from "./ArkPrimitiveType"
+
 import {
     collectDeclarationDeps,
     createTypeNodeConvertor,
@@ -109,9 +111,9 @@ export function initCustomBuilderClasses() {
             [], // fields
             [new BuilderMethod(new Method("constructor", new MethodSignature(Type.Void, [])), [])],
             [
-                ...["left", "top", "right", "bottom"].map(it => builderMethod(it, "Length", PrimitiveType.Length)),
-                ...["start", "end"].map(it => builderMethod(it, "LengthMetrics", PrimitiveType.CustomObject)),
-                new BuilderMethod(new Method("dot", new MethodSignature(new Type("DotIndicator"), []), [MethodModifier.STATIC]), [PrimitiveType.CustomObject]),
+                ...["left", "top", "right", "bottom"].map(it => builderMethod(it, "Length", ArkPrimitiveType.Length)),
+                ...["start", "end"].map(it => builderMethod(it, "LengthMetrics", ArkPrimitiveType.CustomObject)),
+                new BuilderMethod(new Method("dot", new MethodSignature(new Type("DotIndicator"), []), [MethodModifier.STATIC]), [ArkPrimitiveType.CustomObject]),
             ],
             [], // imports
         )

@@ -19,7 +19,8 @@ import { Field, Method, MethodModifier, MethodSignature, Type } from "./Language
 import { PeerMethod } from "./PeerMethod"
 import { heritageDeclarations, identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
-import { DeclarationTarget, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTarget } from "./DeclarationTable"
+import { ArkPrimitiveType } from "./ArkPrimitiveType"
 import { ImportFeature } from "./ImportsCollector"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { isBuilderClass } from "./BuilderClass"
@@ -29,7 +30,7 @@ export function checkTSDeclarationMaterialized(declaration: ts.Declaration): boo
 }
 
 export function checkDeclarationTargetMaterialized(declaration: DeclarationTarget): boolean {
-    return !(declaration instanceof PrimitiveType) && (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) && isMaterialized(declaration)
+    return !(declaration instanceof ArkPrimitiveType) && (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) && isMaterialized(declaration)
 }
 
 export function isMaterialized(declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): boolean {

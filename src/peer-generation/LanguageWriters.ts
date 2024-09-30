@@ -26,7 +26,8 @@ import {
     TupleConvertor,
     UnionConvertor
 } from "./Convertors";
-import { FieldRecord, PrimitiveType } from "./DeclarationTable";
+import { FieldRecord } from "./DeclarationTable";
+import { ArkPrimitiveType } from "./ArkPrimitiveType"
 import { createLiteralDeclName, mapType, TSTypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 
 import * as ts from "typescript"
@@ -192,10 +193,10 @@ export class CJAssignStatement extends AssignStatement {
         }
 }
 
-export class CDefinedExpression implements LanguageExpression {
+export class CDefinedExpression implements LanguageExpression { //
     constructor(private value: string) { }
     asString(): string {
-        return `${this.value} != ${PrimitiveType.UndefinedTag}`
+        return `${this.value} != ${ArkPrimitiveType.UndefinedTag}`
     }
 }
 
@@ -374,11 +375,11 @@ export class JavaCastExpression implements LanguageExpression {
     }
 }
 
-export class CppCastExpression implements LanguageExpression {
+export class CppCastExpression implements LanguageExpression { //
     constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
     asString(): string {
-        if (this.type.name === PrimitiveType.Tag.getText()) {
-            return `${this.value.asString()} == ${PrimitiveType.UndefinedRuntime} ? ${PrimitiveType.UndefinedTag} : ${PrimitiveType.ObjectTag}`
+        if (this.type.name === ArkPrimitiveType.Tag.getText()) {
+            return `${this.value.asString()} == ${ArkPrimitiveType.UndefinedRuntime} ? ${ArkPrimitiveType.UndefinedTag} : ${ArkPrimitiveType.ObjectTag}`
         }
         return this.unsafe
             ? `reinterpret_cast<${this.type.name}>(${this.value.asString()})`
@@ -490,10 +491,10 @@ class CppArrayResizeStatement implements LanguageStatement {
     }
 }
 
-class CppMapResizeStatement implements LanguageStatement {
+class CppMapResizeStatement implements LanguageStatement { //
     constructor(private keyType: string, private valueType: string, private map: string, private size: string, private deserializer: string) {}
     write(writer: LanguageWriter): void {
-        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(PrimitiveType.Prefix, "")}_${this.valueType.replace(PrimitiveType.Prefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
+        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(ArkPrimitiveType.Prefix, "")}_${this.valueType.replace(ArkPrimitiveType.Prefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
     }
 }
 
@@ -800,6 +801,7 @@ export abstract class LanguageWriter {
     abstract makeCast(value: LanguageExpression, type: Type, unsafe: boolean): LanguageExpression
     abstract writePrintLog(message: string): void
     abstract makeUndefined(): LanguageExpression
+    ///////////////////////////////////
     abstract makeMapKeyTypeName(c: MapConvertor): string
     abstract makeMapValueTypeName(c: MapConvertor): string
     abstract makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement
@@ -1500,7 +1502,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
     }
-    mapType(type: Type): string {
+    mapType(type: Type): string { //
         switch (type.name) {
             case 'KPointer': return 'long'
             case 'Uint8Array': return 'byte[]'
@@ -1535,7 +1537,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
     }
-    makeRuntimeTypeGetterCall(value: string): LanguageExpression {
+    makeRuntimeTypeGetterCall(value: string): LanguageExpression { //
         return this.makeMethodCall("Ark_Object", "getRuntimeType", [this.makeString(value)])
     }
     makeMapKeyTypeName(c: MapConvertor): string {
@@ -1710,7 +1712,7 @@ export class CJLanguageWriter extends LanguageWriter {
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}.ordinal`)
     }
-    makeRuntimeTypeGetterCall(value: string): LanguageExpression {
+    makeRuntimeTypeGetterCall(value: string): LanguageExpression { //
         let methodCall = this.makeMethodCall("Ark_Object", "getRuntimeType", [this.makeString(value)])
         return this.makeString(methodCall.asString() + '.ordinal')
     }
@@ -1975,7 +1977,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeDefinedCheck(value: string): LanguageExpression {
         return new CDefinedExpression(value);
     }
-    mapType(type: Type): string {
+    mapType(type: Type): string { //
         switch (type.name) {
             case 'KPointer': return 'void*'
             case 'Uint8Array': return 'byte[]'
@@ -1988,7 +1990,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             case 'Function': return `Ark_Function`
             case 'Length': return 'Ark_Length'
             // TODO: oh no
-            case 'Array<string[]>' : return `Array_Array_${PrimitiveType.String.getText()}`
+            case 'Array<string[]>' : return `Array_Array_${ArkPrimitiveType.String.getText()}`
         }
         if (type.name.startsWith("Array<")) {
             const typeSpec = type.name.match(/<(.*)>/)!
@@ -2021,8 +2023,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         }
         return value
     }
-    makeUndefined(): LanguageExpression {
-        return this.makeString(`${PrimitiveType.Undefined.getText()}()`)
+    makeUndefined(): LanguageExpression { //
+        return this.makeString(`${ArkPrimitiveType.Undefined.getText()}()`)
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`ARK_RUNTIME_${RuntimeType[rt]}`)
@@ -2041,10 +2043,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         ], false)
     }
     getTagType(): Type {
-        return new Type(PrimitiveType.Tag.getText())
+        return new Type(ArkPrimitiveType.Tag.getText())
     }
     getRuntimeType(): Type {
-        return new Type(PrimitiveType.RuntimeType.getText())
+        return new Type(ArkPrimitiveType.RuntimeType.getText())
     }
     makeType(typeName: string, nullable: boolean, receiver?: string): Type {
         // make deducing type from receiver

@@ -14,7 +14,8 @@
  */
 
 import { IndentedPrinter } from "../../IndentedPrinter";
-import { DeclarationTable, DeclarationTarget, FieldRecord, PrimitiveType } from "../DeclarationTable";
+import { DeclarationTable, DeclarationTarget, FieldRecord } from "../DeclarationTable";
+import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { accessorStructList,
          cStyleCopyright,
          completeModifiersContent,
@@ -55,7 +56,7 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     private readonly accessChain: {name: string, type: DeclarationTarget, isPointerType: boolean}[][]
     private generateAccessTo(argIndex: number, fieldName?: string) {
         const argAccessChain = this.accessChain[argIndex]
-        if (argAccessChain[argAccessChain.length - 1].type === PrimitiveType.Undefined) {
+        if (argAccessChain[argAccessChain.length - 1].type === ArkPrimitiveType.Undefined) {
             return `{}`
         }
         let resultAccess = argAccessChain[0].name
@@ -94,17 +95,17 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
     protected override onPushOptionScope(argIndex: number, target: DeclarationTarget, exists: boolean): void {
         super.onPushOptionScope(argIndex, target, exists)
         if (exists) {
-            this.printer.print(`if (${this.generateAccessTo(argIndex, 'tag')} != ${PrimitiveType.UndefinedTag}) {`)
+            this.printer.print(`if (${this.generateAccessTo(argIndex, 'tag')} != ${ArkPrimitiveType.UndefinedTag}) {`)
             this.accessChain[argIndex].push({
                 name: "value",
                 type: target,
                 isPointerType: false,
             })
         } else {
-            this.printer.print(`if (${this.generateAccessTo(argIndex, 'tag')} == ${PrimitiveType.UndefinedTag}) {`)
+            this.printer.print(`if (${this.generateAccessTo(argIndex, 'tag')} == ${ArkPrimitiveType.UndefinedTag}) {`)
             this.accessChain[argIndex].push({
                 name: "UNDEFINED",
-                type: PrimitiveType.Undefined,
+                type: ArkPrimitiveType.Undefined,
                 isPointerType: false,
             })
         }
@@ -131,7 +132,7 @@ class MethodSeparatorPrinter extends MethodSeparatorVisitor {
         const type = this.declarationTable.computeTargetName(arg.type, false)
         const maybePointer = arg.isPointerType
             ? '*'
-            : arg.type !== PrimitiveType.Undefined ? '&' : ''
+            : arg.type !== ArkPrimitiveType.Undefined ? '&' : ''
         this.printer.print(`const ${type} ${maybePointer}${this.generateInseparableFieldName(argIndex)} = ${this.generateAccessTo(argIndex)};`)
     }
 
