@@ -31,7 +31,7 @@ import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { Library } from '../../Library';
-import { DeclarationProcessor } from '../../DeclarationProcesser';
+import { DeclarationProcessor } from '../../DeclarationProcessor';
 import { ArgConvertor, BooleanConvertor, UndefinedConvertor, CustomTypeConvertor, LengthConvertor, LengthConvertorScoped, NumberConvertor, PredefinedConvertor, NullConvertor } from '../ArgConvertors';
 
 export type IdlPeerLibraryOutput = {

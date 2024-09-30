@@ -38,7 +38,7 @@ import { CallbackInfo, collectCallbacks } from "./printers/EventsPrinter"
 import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { searchTypeParameters, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
-import { DeclarationProcessor } from "../DeclarationProcesser"
+import { DeclarationProcessor } from "../DeclarationProcessor"
 import { ArkPrimitiveType as PrimitiveType_ } from "../Library"
 
 export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
