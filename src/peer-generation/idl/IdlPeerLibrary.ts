@@ -107,7 +107,7 @@ export class IdlPeerLibrary {
         const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier);
         if (qualifier) {
             // This is a namespace or enum member. Try enum first
-            const parent = this.resolveTypeReference(idl.createReferenceType(qualifier), entries)///oh oh, just entries.find?
+            const parent = entries.find(it => it.name === qualifier)
             if (parent && idl.isEnum(parent))
                 return parent.elements.find(it => it.name === type.name)
             // Else try namespaces
@@ -339,10 +339,6 @@ export class IdlPeerLibrary {
         new StructPrinter(this).generateStructs(structs, typedefs, writeToString)
     }
 
-    computeTargetName(target: idl.IDLEntry, optional: boolean, idlPrefix: string = PrimitiveType.ArkPrefix): string {
-        return this.computeTargetNameImpl(target, optional, idlPrefix)///inline
-    }
-
     computeTargetTypeLiteralName(decl: idl.IDLInterface, prefix: string): string {
         const map = new Map<string, string[]>()
         for (const prop of decl.properties) {
@@ -355,14 +351,14 @@ export class IdlPeerLibrary {
         return prefix + `Literal_${names.join('_')}`
     }
 
-    computeTargetNameImpl(target: idl.IDLEntry, optional: boolean, idlPrefix: string): string {
+    computeTargetName(target: idl.IDLEntry, optional: boolean, idlPrefix: string = PrimitiveType.ArkPrefix): string {
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (idl.isPrimitiveType(target)) {
             let name: string = ""
             switch (target) {
                 case idl.IDLAnyType: return "CustomObject"
                 case idl.IDLStringType: name = "String"; break
-                case idl.IDLNullType: name = "null"; break
+                case idl.IDLNullType: name = "Null"; break
                 case idl.IDLVoidType: name = "void"; break
                 default: name = capitalize(target.name); break
             }

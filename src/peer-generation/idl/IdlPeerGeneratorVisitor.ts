@@ -738,8 +738,7 @@ function createTypeDependenciesCollector(library: IdlPeerLibrary): TypeDependenc
 export function isConflictingDeclaration(decl: idl.IDLEntry): boolean {/// stolen from PGConfig
     if (!PeerGeneratorConfig.needInterfaces) return false
     // duplicate type declarations with different signatures
-    if (/*idl.isInterface(decl) && */decl.name === 'OnWillScrollCallback')///anon iface?
-        return true
+    if (idl.isTypedef(decl) && decl.name === 'OnWillScrollCallback') return true
     // has same named class and interface
     if ((idl.isInterface(decl)) && decl.name === 'LinearGradient') return true
     // just has ugly dependency WrappedBuilder - there is conflict in generic types

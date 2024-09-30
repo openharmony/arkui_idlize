@@ -66,8 +66,6 @@ export class StructPrinter {
         let noDeclaration = ["Int32", "Tag", "number", "boolean", "DOMString"]
         for (let target of this.library.orderedDependencies) {
             let nameAssigned = this.library.computeTargetName(target, false)
-            if (nameAssigned === PrimitiveType.Tag.getText())
-                continue
             if (!nameAssigned) {
                 throw new Error(`No assigned name for an ${idl.IDLKind[target.kind!]}`)
             }
@@ -407,9 +405,10 @@ inline void WriteToString(string* result, const ${name}* value) {
 }
 
 export function collectProperties(decl: idl.IDLInterface, library: IdlPeerLibrary): idl.IDLProperty[] {
-    const superType = idl.getSuperType(decl) as idl.IDLReferenceType
+    const superType = idl.getSuperType(decl)
+    const superDecl = superType ? library.resolveTypeReference(superType as idl.IDLReferenceType) : undefined
     return [
-        ...(superType ? (library.resolveTypeReference(superType) as idl.IDLInterface)?.properties : []),
+        ...(superDecl ? collectProperties(superDecl as idl.IDLInterface, library) : []),
         ...decl.properties,
         ...collectBuilderProperties(decl)
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
