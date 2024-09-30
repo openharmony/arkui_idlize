@@ -12,11 +12,11 @@
 | @ohos.router           | Class     |           |             |                 |               |               |           |          |
 | `back`                 | Function  |           | ENC, WON    | K. Kirichenko   |               | K. Kirichenko |           | High     |
 | CustomDialogController | Class     |           | HEL         |                 |               |               |           | Low      |
-| `builder`              | Function  |           |             |                 |               |               |           |          |
-| `autoCancel`           | Function  |           |             |                 |               |               |           |          |
+| `builder`              | Function  |           |             |                 |     N\A       |               |           |          |
+| `autoCancel`           | Function  |           |             |                 |     N\A       |               |           |          |
 | `alignment`            | Function  |           |             |                 |               |               |           |          |
 | `offset`               | Function  |           |             |                 |               |               |           |          |
-| `customStyle`          | Function  |           |             |                 |               |               |           |          |
+| `customStyle`          | Function  |           |             |                 |     N\A       |               |           |          |
 | Rect                   | Component | No        | HEL         | Dudkin Sergey   | done          |               |           | High     |
 | Navigator              | Component | No        | HEL         | Skroba Gleb     | done          |               |           | High     |
 | `setNavigatorOptions`  | Function  |           | HEL         | Skroba Gleb     | done          |               |           | High     |
@@ -70,7 +70,7 @@
 | `shadow`               | Function  |           |             | R. Sedaikin     | Done/No test  | R. Sedaikin   | Done      | High     |
 | `onClick`              | Function  |           | ENC,WON,HEL | G. Skroba       | Progress      |               | Done      | High+    |
 | `fill`                 | Function  |           | HEL         |                 |               |               |           | Low      |
-| `animateTo`            | Function  |           | HEL         |                 |               |               |           | Medium   |
+| `animateTo`(animation) | Function  |           | HEL         |                 |               |               |           | Medium   |
 | `animationDuration`    | Function  |           | HEL         |                 |               |               |           | Medium   |
 | `backgroundColor($r)`  | Function  |           | HEL         |                 |               |               |           | Low      |
 | `@Styles function`     | Decorator |           | HEL         |                 |               |               |           | Low      |
@@ -85,7 +85,7 @@
 | Swiper                 | Component | No        |             | Skroba Gleb     | Done          |               |           |          |
 | `indicatorStyle`       | Function  |           | WON         | Skroba Gleb     | Done          |               |           | Low      |
 | `priorityGesture`      | Function  |           | WON         | Ilya Erokhin    | blocked       |               |           | Medium   |
-| Text                   | Component | No        |             | K. Kirichenko   |               |               |           |          |
+| Text                   | Component | No        |             | K. Kirichenko   | Progress      |               |           |          |
 | `ctor($r)`             | Function  |           | HEL         |                 |               |               |           | High     |
 | Shape                  | Component | No        | HEL         | ?               |               |               |           | High     |
 | Path                   | Component | No        | HEL         | Skroba Gleb     | Done          |               |           | High     |
