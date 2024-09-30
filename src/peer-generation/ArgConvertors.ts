@@ -36,7 +36,7 @@ export interface RetConvertor {
     macroSuffixPart: () => string
 }
 
-export interface ArgConvertor {
+export interface ArgConvertor { // todo: 
     param: string
     tsTypeName: string
     isScoped: boolean

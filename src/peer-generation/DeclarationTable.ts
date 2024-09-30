@@ -647,8 +647,8 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
     }
 
     declarationConvertor(param: string, type: ts.TypeReferenceNode, declaration: ts.NamedDeclaration | undefined,
-                        maybeCallback: boolean = false,
-                         typeNodeNameConvertor: TypeNodeNameConvertor | undefined): ArgConvertor {
+        maybeCallback: boolean = false,
+        typeNodeNameConvertor?: TypeNodeNameConvertor): ArgConvertor {
         const entityName = typeEntityName(type)
         if (!declaration) {
             return this.customConvertor(entityName, param, type, typeNodeNameConvertor) ?? throwException(`Declaration not found for: ${type.getText()}`)
