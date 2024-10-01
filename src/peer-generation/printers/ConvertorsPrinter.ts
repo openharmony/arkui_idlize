@@ -92,7 +92,7 @@ class ConvertorsPrinter {
         for (const [name, fields] of this.library.allLiteralTypes()) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignLiteralTo(std::optional<T>& dst,`)
-            this.writer.print(`                     const ${name}& src)`)
+            this.writer.print(`                     const ${this.writer.escapeKeyword(name)}& src)`)
             this.writer.print("{")
             this.writer.pushIndent()
             if (fields.length > 0) {

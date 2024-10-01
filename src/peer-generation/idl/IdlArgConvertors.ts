@@ -699,7 +699,7 @@ export class AggregateConvertor extends BaseArgConvertor {
             printer.makeAssign(typedStruct, typedStructType, printer.makeString(accessor),true, false),
             ...this.memberConvertors.map((it, index) =>
                 // TODO: maybe use accessor?
-                it.convertorDeserialize(param, `${typedStruct}.${cppEscape(this.members[index][0])}`, printer))]
+                it.convertorDeserialize(param, `${typedStruct}.${printer.escapeKeyword(this.members[index][0])}`, printer))]
         if (printer.language !== Language.CPP) { /// refac into LW.getObjectAccessor()
             const accessorInitExpr = this.members.length > 0
                 ? printer.makeCast(printer.makeString("{}"), typedStructType)
@@ -1250,8 +1250,4 @@ export interface RetConvertor {
     isVoid: boolean
     nativeType: () => string
     macroSuffixPart: () => string
-}
-
-export function cppEscape(name: string) {
-    return name === "template" ? "template_" : name
 }

@@ -346,7 +346,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 writer.writeMethodImplementation(
                     new Method(`getValue${index}`, new MethodSignature(memberInfo.type, []), [MethodModifier.PUBLIC]),
                     () => {
-                        writer.print(`if (let Some(${writer.languageKeywordProtection(memberInfo.name)}) <- ${writer.languageKeywordProtection(memberInfo.name)}) {`)
+                        writer.print(`if (let Some(${writer.escapeKeyword(memberInfo.name)}) <- ${writer.escapeKeyword(memberInfo.name)}) {`)
                         writer.pushIndent()
                         writer.writeStatement(
                             writer.makeReturn(

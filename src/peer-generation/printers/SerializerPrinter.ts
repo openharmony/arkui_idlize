@@ -112,7 +112,7 @@ class SerializerPrinter {
                 }
                 struct.getFields().forEach(it => {
                     let field = `value_${it.name}`
-                    writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.languageKeywordProtection(it.name)}`), true))
+                    writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.escapeKeyword(it.name)}`), true))
                     let typeConvertor = this.table.typeConvertor(`value`, it.type!, it.optional, typeNodeNameConvertor)
                     typeConvertor.convertorSerialize(`value`, field, writer)
                 })
@@ -183,7 +183,7 @@ class IdlSerializerPrinter {
                 }
                 properties.forEach(it => {
                     let field = `value_${it.name}`
-                    writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.languageKeywordProtection(it.name)}`), true))
+                    writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.escapeKeyword(it.name)}`), true))
                     let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
                     typeConvertor.convertorSerialize(`value`, field, writer)
                 })
@@ -256,7 +256,7 @@ class DeserializerPrinter {
                 }
                 struct.getFields().forEach(it => {
                     let typeConvertor = this.table.typeConvertor(`value`, it.type!, it.optional)
-                    writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, writer))
+                    writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value.${writer.escapeKeyword(it.name)}`, writer))
                 })
             } else {
                 if (writer.language === Language.CPP) {
@@ -320,7 +320,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                 }
                 properties.forEach(it => {
                     let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
-                    writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value.${it.name}`, writer))
+                    writer.writeStatement(typeConvertor.convertorDeserialize(`value`, `value.${writer.escapeKeyword(it.name)}`, writer))
                 })
             } else {
                 if (writer.language === Language.CPP) {

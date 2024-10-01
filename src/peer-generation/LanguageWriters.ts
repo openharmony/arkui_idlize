@@ -35,6 +35,7 @@ import { createLiteralDeclName, mapType, TSTypeNodeNameConvertor } from "./TypeN
 import * as ts from "typescript"
 import * as fs from "fs"
 import { EnumEntity } from "./PeerFile";
+import { CJKeywords, cppKeywords } from "../languageSpecificKeywords";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}
@@ -1018,7 +1019,7 @@ export abstract class LanguageWriter {
             .map(it => this.mapFieldModifier(it)).join(" ")
         return prefix ? prefix : ""
     }
-    languageKeywordProtection(keyword: string): string {
+    escapeKeyword(keyword: string): string {
         return keyword
     }
     compareLiteral(expr: LanguageExpression, literal: string): LanguageExpression {
@@ -1616,8 +1617,8 @@ export class CJLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
-        receiver = this.languageKeywordProtection(receiver)
-        params = params.map(argName => this.languageKeywordProtection(argName))
+        receiver = this.escapeKeyword(receiver)
+        params = params.map(argName => this.escapeKeyword(argName))
         if (nullable) {
             this.printer.print(`if (let Some(${receiver}) <- ${receiver}) { ${receiver}.${method}(${params.join(", ")}) }`)
         } else {
@@ -1661,7 +1662,7 @@ export class CJLanguageWriter extends LanguageWriter {
         printer.print(`return unsafe { ${name}(${signature.args.map((it, index) => `${signature.argName(index)}`).join(", ")}) }`)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
-        this.print(`func ${name}(${signature.args.map((it, index) => `${this.languageKeywordProtection(signature.argName(index))}: ${it.nullable ? '?' : ''}${this.mapCType(it)}`).join(", ")}): ${this.mapCType(signature.returnType)}`)
+        this.print(`func ${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${it.nullable ? '?' : ''}${this.mapCType(it)}`).join(", ")}): ${this.mapCType(signature.returnType)}`)
     }
     makeCastEnumToInt(convertor: EnumConvertor, enumName: string, _unsafe?: boolean): string {
         return `${enumName}.getIntValue()`
@@ -1673,7 +1674,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString(`${array}.size`)
     }
     makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName: string): LanguageExpression {
-        varName = this.languageKeywordProtection(varName)
+        varName = this.escapeKeyword(varName)
         return this.makeString(`let Some(${varName}) <- ${varName}`)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
@@ -1817,11 +1818,8 @@ export class CJLanguageWriter extends LanguageWriter {
         }
         return super.mapType(type)
     }
-    languageKeywordProtection(word: string): string {
-        switch (word) {
-            case 'type': return 'type_'
-            default: return word
-        }
+    escapeKeyword(word: string): string {
+        return CJKeywords.has(word) ? word + "_" : word
     }
     override castToBoolean(value: string): string { return `if (${value} { 1 } else { 0 })` }
 }
@@ -2080,6 +2078,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     override castToEnum(value: string, enumName: string): string {
         return `static_cast<${enumName}>(${value})`
+    }
+    override escapeKeyword(name: string): string {
+        return cppKeywords.has(name) ? name + "_" : name
     }
 }
 

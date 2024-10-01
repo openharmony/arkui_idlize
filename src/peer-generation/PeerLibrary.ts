@@ -49,7 +49,7 @@ export class PeerLibrary {
         return this.declarationTable.language
     }
 
-    generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         this.declarationTable.generateStructs(structs, typedefs, writeToString)
     }
 

@@ -325,7 +325,7 @@ export function makeConverterHeader(path: string, namespace: string, library: Pe
     return converter
 }
 
-export function makeCSerializers(library: PeerLibrary | IdlPeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
+export function makeCSerializers(library: PeerLibrary | IdlPeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
     const serializers = createLanguageWriter(Language.CPP)
     const writeToString = createLanguageWriter(Language.CPP)
@@ -442,7 +442,7 @@ function readLangTemplate(name: string, lang: Language): string {
 export function makeAPI(
     apiVersion: string,
     headers: string[], modifiers: string[], accessors: string[], events: string[], nodeTypes: string[],
-    structs: IndentedPrinter, typedefs: IndentedPrinter
+    structs: LanguageWriter, typedefs: IndentedPrinter
 ): string {
 
     let prologue = readTemplate('arkoala_api_prologue.h')

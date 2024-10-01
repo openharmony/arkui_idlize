@@ -117,8 +117,6 @@ export class StructDescriptor {
     addField(field: FieldRecord) {
         if (!this.seenFields.has(field.name)) {
             this.seenFields.add(field.name)
-            // TODO: kind of wrong
-            if (field.name == `template`) field.name = `template_`
             this.fields.push(field)
         }
     }
@@ -705,7 +703,7 @@ export class DeclarationTable {
         throw new Error(`Unknown kind: ${declaration.kind}`)
     }
 
-    private printStructsCHead(name: string, descriptor: StructDescriptor, structs: IndentedPrinter, writeToString: LanguageWriter, seenNames: Set<string>) {
+    private printStructsCHead(name: string, descriptor: StructDescriptor, structs: LanguageWriter, writeToString: LanguageWriter, seenNames: Set<string>) {
         if (descriptor.isArray) {
             // Forward declaration of element type.
             let elementTypePointer = descriptor.getFields()[0].declaration
@@ -731,7 +729,7 @@ export class DeclarationTable {
     }
 
 
-    private printStructsCTail(name: string, needPacked: boolean, structs: IndentedPrinter) {
+    private printStructsCTail(name: string, needPacked: boolean, structs: LanguageWriter) {
         structs.popIndent()
         if (needPacked) {
             structs.print(`#ifdef _MSC_VER`)
@@ -746,14 +744,14 @@ export class DeclarationTable {
         }
     }
 
-    private printStructField(structs: IndentedPrinter, field: FieldRecord) {
+    private printStructField(structs: LanguageWriter, field: FieldRecord) {
         const prefix = field.optional ? PrimitiveType.OptionalPrefix : ""
         let name = this.computeTargetName(field.declaration, false)
         if (field.optional) {
             name = cleanPrefix(name, PrimitiveType.ArkPrefix)
         }
         const cKind = field.optional ? "" : this.cFieldKind(field.declaration)
-        structs.print(`${cKind}${prefix}${name} ${field.name};`)
+        structs.print(`${cKind}${prefix}${name} ${structs.escapeKeyword(field.name)};`)
     }
 
     allOptionalTypes(): Set<string> {
@@ -823,7 +821,7 @@ export class DeclarationTable {
         return unions
     }
 
-    private generateOptional(structs: IndentedPrinter, writeToString: LanguageWriter, target: DeclarationTarget, elemName: string, seenNames: Set<string>) {
+    private generateOptional(structs: LanguageWriter, writeToString: LanguageWriter, target: DeclarationTarget, elemName: string, seenNames: Set<string>) {
         const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(elemName, PrimitiveType.ArkPrefix)
         if (!seenNames.has(nameOptional)) {
             seenNames.add(nameOptional)
@@ -838,7 +836,7 @@ export class DeclarationTable {
         }
     }
 
-    private generateEnum(structs: IndentedPrinter, writeToString: LanguageWriter, target: ts.EnumDeclaration) {
+    private generateEnum(structs: LanguageWriter, writeToString: LanguageWriter, target: ts.EnumDeclaration) {
         const enumName = this.enumName(target.name)
         structs.print(`enum ${enumName}`)
         structs.print(`{`)
@@ -871,7 +869,7 @@ export class DeclarationTable {
         writeToString.print(`}`)
     }
 
-    generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         const seenNames = new Set<string>()
         seenNames.clear()
         let noDeclaration = [PrimitiveType.Int32, PrimitiveType.Tag, PrimitiveType.Number, PrimitiveType.Boolean, PrimitiveType.String]
@@ -1226,12 +1224,13 @@ inline void WriteToString(string* result, const ${name}* value) {
                 printer.print(`result->append(std::to_string(value->selector));`);
                 printer.print(`result->append(", ");`);
                 this.targetStruct(target).getFields().forEach((field, index) => {
-                    let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                    const fieldName = printer.escapeKeyword(field.name)
+                    const isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                     if (index != 0) printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     printer.print(`if (value${access}selector == ${index - 1}) {`)
                     printer.pushIndent()
-                    printer.print(`result->append(".${field.name}=");`);
-                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.print(`result->append(".${fieldName}=");`);
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${fieldName});`)
                     printer.popIndent()
                     printer.print(`}`)
                 })
@@ -1245,24 +1244,26 @@ inline void WriteToString(string* result, const ${name}* value) {
                 printer.print(`result->append("{");`)
                 const fields = this.targetStruct(target).getFields()
                 fields.forEach((field, index) => {
+                    const fieldName = printer.escapeKeyword(field.name)
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                     if (index > 0) printer.print(`result->append(", ");`)
-                    printer.print(`result->append(".${field.name}=");`)
-                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.print(`result->append(".${fieldName}=");`)
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${fieldName});`)
                 })
                 printer.print(`result->append("}");`)
             } else if (isOptional) {
                 printer.print(`result->append("{");`)
                 const fields = this.targetStruct(target).getFields()
                 fields.forEach((field, index) => {
+                    const fieldName = printer.escapeKeyword(field.name)
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     if (index > 0) printer.print(`result->append(", ");`)
-                    printer.print(`result->append("${field.name}: ");`)
+                    printer.print(`result->append("${fieldName}: ");`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${fieldName});`)
                     if (index == 0) {
-                        printer.print(`if (value${access}${field.name} != ${PrimitiveType.UndefinedTag}) {`)
+                        printer.print(`if (value${access}${fieldName} != ${PrimitiveType.UndefinedTag}) {`)
                         printer.pushIndent()
                     }
                     if (index == fields.length - 1) {
@@ -1274,11 +1275,12 @@ inline void WriteToString(string* result, const ${name}* value) {
             } else {
                 printer.print(`result->append("{");`)
                 this.targetStruct(target).getFields().forEach((field, index) => {
+                    const fieldName = printer.escapeKeyword(field.name)
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     if (index > 0) printer.print(`result->append(", ");`)
-                    printer.print(`result->append(".${field.name}=");`)
+                    printer.print(`result->append(".${fieldName}=");`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${fieldName});`)
                 })
                 printer.print(`result->append("}");`)
             }

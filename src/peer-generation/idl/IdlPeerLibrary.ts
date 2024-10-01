@@ -21,7 +21,7 @@ import { IdlPeerClass } from "./IdlPeerClass";
 import { IdlPeerFile } from "./IdlPeerFile";
 import { TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
-import { AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CallbackFunctionConvertor, ClassConvertor, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from '../DeclarationTable';
 import { DependencySorter } from './DependencySorter';
@@ -335,7 +335,7 @@ export class IdlPeerLibrary {
         this._orderedDependenciesToGenerate = toGenerateOrderer.getToposorted()
     }
 
-    generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         new StructPrinter(this).generateStructs(structs, typedefs, writeToString)
     }
 
@@ -458,7 +458,7 @@ export class IdlPeerLibrary {
             this.allTypes(idl.isAnonymousInterface)
                 .map(it => [
                     this.computeTargetName(it, false),
-                    it.properties.map(p => cppEscape(p.name))])
+                    it.properties.map(p => p.name)])
         return new Map(data)
     }
 
