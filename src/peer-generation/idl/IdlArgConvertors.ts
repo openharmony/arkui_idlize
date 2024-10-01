@@ -1113,8 +1113,9 @@ export class MapConvertor extends BaseArgConvertor {
     }
     private makeTypeName(type: idl.IDLType, language: Language): string {///refac into LW
         switch (language) {
-            case Language.TS: return this.library.mapType(this.keyType)
-            case Language.CPP: return this.library.getTypeName(this.keyType)
+            case Language.TS: return this.library.mapType(type)
+            case Language.CPP: return this.library.getTypeName(type)
+            case Language.JAVA: return this.library.mapType(type)
             default: throw `Unsupported language ${language}`
         }
     }

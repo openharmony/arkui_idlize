@@ -24,8 +24,11 @@ export class JavaImportTable implements ImportTable {
         this.setPeerLibImports()
     }
 
-    getImportsForType(type: Type): string[] {
-        return this.imports.get(this.encode(type)) ?? []
+    getImportsForTypes(types: Type[]): string[] {
+        const allImports = new Set(types.flatMap(it => {
+            return this.imports.get(this.encode(it)) ?? []
+        }))
+        return Array.from(allImports)
     }
 
     setImportsForType(type: Type, imports: string[]): void {
@@ -49,7 +52,7 @@ export class JavaImportTable implements ImportTable {
     }
 
     private encode(type: Type): string {
-        return `${type.name}/${type.nullable}`
+        return `${type.name}`
     }
 
     private setPeerLibImports(): void {

@@ -121,22 +121,109 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
     private readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language)
 
     constructor(
+        private readonly library: IdlPeerLibrary | PeerLibrary,
         private readonly printerContext: PrinterContext,
         private readonly builderClass: BuilderClass,
         private readonly dumpSerialized: boolean,
     ) { }
 
-    private synthesizeField(method: BuilderMethod): BuilderField {
+    private synthesizeFieldTS(method: BuilderMethod): BuilderField {
         const fieldType = this.printerContext.synthesizedTypes!.getTargetType(method.declarationTargets[0], true)
         return new BuilderField(
             new Field(syntheticName(method.method.name), fieldType),
             method.declarationTargets[0])
     }
 
-    private convertBuilderMethod(method: BuilderMethod, returnType: Type, newMethodName?: string): BuilderMethod {
+    private convertBuilderMethodTS(method: BuilderMethod, returnType: Type, newMethodName?: string): BuilderMethod {
         const oldSignature = method.method.signature as NamedMethodSignature
         const types = method.declarationTargets.map(it => this.printerContext.synthesizedTypes!.getTargetType(it, true))
         const signature = new NamedMethodSignature(returnType, types, oldSignature.argsNames, oldSignature.defaults);
+        return new BuilderMethod(
+            new Method(
+                newMethodName ?? method.method.name,
+                signature,
+                method.method.modifiers,
+                method.method.generics,
+            ),
+            method.declarationTargets
+        )
+    }
+
+    private processBuilderClassTS(clazz: BuilderClass): BuilderClass {
+        const syntheticFields = clazz.methods
+            .filter(it => !it.method.modifiers?.includes(MethodModifier.STATIC))
+            .map(it => this.synthesizeFieldTS(it))
+        const fields = [...clazz.fields, ...syntheticFields]
+
+        const returnType = new Type(clazz.name)
+        const constructors = clazz.constructors.map(it => this.convertBuilderMethodTS(it, returnType, clazz.name))
+        const methods = clazz.methods.map(it => this.convertBuilderMethodTS(it, returnType))
+    
+        return new BuilderClass(
+            clazz.name,
+            clazz.generics,
+            clazz.isInterface,
+            clazz.superClass,
+            fields,
+            constructors,
+            methods,
+            clazz.importFeatures
+        )
+    }
+
+    private printPackage(): void {
+        this.printer.print(`package ${ARKOALA_PACKAGE};\n`)
+    }
+
+    private printBuilderClassTS(clazz: BuilderClass) {
+        const writer = this.printer
+        clazz = this.processBuilderClassTS(clazz)
+
+        this.printPackage()
+
+        writer.writeClass(clazz.name, writer => {
+
+            clazz.fields.forEach(field => {
+                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, field.field.type.nullable)
+            })
+
+            clazz.constructors
+                .forEach(ctor => {
+                    writer.writeConstructorImplementation(ctor.method.name, ctor.method.signature, writer => {})
+                })
+
+            clazz.methods
+                .filter(method => method.method.modifiers?.includes(MethodModifier.STATIC))
+                .forEach(staticMethod => {
+                    writer.writeMethodImplementation(staticMethod.method, writer => {
+                        const sig = staticMethod.method.signature
+                        const args = sig.args.map((_, i) => sig.argName(i)).join(", ")
+                        writer.writeStatement(writer.makeReturn(writer.makeString(`new ${clazz.name}(${args})`)))
+                    })
+                })
+
+            clazz.methods
+                .filter(method => !method.method.modifiers?.includes(MethodModifier.STATIC))
+                .forEach(method => {
+                    writer.writeMethodImplementation(method.method, writer => {
+                        const argName = method.method.signature.argName(0)
+                        const fieldName = syntheticName(method.method.name)
+                        writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
+                        writer.writeStatement(writer.makeReturn(writer.makeString("this")))
+                    })
+                })
+        })
+    }
+
+    private synthesizeField(method: BuilderMethod): BuilderField {
+        return new BuilderField(
+            new Field(syntheticName(method.method.name), method.method.signature.args[0]),
+            method.declarationTargets[0])
+    }
+
+    private convertBuilderMethod(method: BuilderMethod, returnType: Type, newMethodName?: string): BuilderMethod {
+        const oldSignature = method.method.signature as NamedMethodSignature
+        const signature = new NamedMethodSignature(returnType, oldSignature.args, oldSignature.argsNames, oldSignature.defaults);
         return new BuilderMethod(
             new Method(
                 newMethodName ?? method.method.name,
@@ -168,10 +255,6 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             methods,
             clazz.importFeatures
         )
-    }
-
-    private printPackage(): void {
-        this.printer.print(`package ${ARKOALA_PACKAGE};\n`)
     }
 
     private printBuilderClass(clazz: BuilderClass) {
@@ -215,6 +298,10 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 
     printFile(): void {
+        if (this.library instanceof PeerLibrary) {
+            this.printBuilderClassTS(this.builderClass)
+            return
+        }
         this.printBuilderClass(this.builderClass)
     }
 
@@ -246,7 +333,7 @@ class BuilderClassVisitor {
                 visitor = new TSBuilderClassFileVisitor(language, clazz, this.dumpSerialized, this.library)
             }
             else if ([Language.JAVA].includes(language)) {
-                visitor = new JavaBuilderClassFileVisitor(this.printerContext, clazz, this.dumpSerialized)
+                visitor = new JavaBuilderClassFileVisitor(this.library, this.printerContext, clazz, this.dumpSerialized)
             }
             else {
                 throw new Error(`Unsupported language ${language.toString()} in BuilderClassPrinter`)

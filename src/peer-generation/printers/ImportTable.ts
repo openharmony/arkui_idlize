@@ -16,7 +16,7 @@
 import { LanguageWriter, Type } from "../LanguageWriters";
 
 export interface ImportTable {
-    getImportsForType(type: Type): string[]
+    getImportsForTypes(types: Type[]): string[]
     setImportsForType(type: Type, imports: string[]): void
     printImportsForTypes(types: Type[], printer: LanguageWriter): void
 }

@@ -18,15 +18,10 @@
 
 package org.koalaui.arkoala;
 
-import java.util.Set;
-
-public abstract class CustomSerializer {
-    protected Set<String> supported;
-    CustomSerializer(Set<String> supported) {
-        this.supported = supported;
-    }
-    boolean supports(String kind) {
-        return supported.contains(kind);
-    }
-    abstract void serialize(SerializerBase serializer, Ark_CustomObject value, String kind);
+class Resource extends Ark_CustomObject {
+    public double id;
+    public double type;
+    public String moduleName;
+    public String bundleName;
+    public String[] params;
 }

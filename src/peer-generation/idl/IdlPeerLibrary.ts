@@ -19,7 +19,7 @@ import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
 import { IdlPeerClass } from "./IdlPeerClass";
 import { IdlPeerFile } from "./IdlPeerFile";
-import { TSTypeNameConvertor } from './IdlNameConvertor';
+import { IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
 import { AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CallbackFunctionConvertor, ClassConvertor, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
@@ -33,6 +33,15 @@ import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 
 export type IdlPeerLibraryOutput = {
     outputC: string[]
+}
+
+function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor {
+    const language = library.language
+    if (language == Language.TS)
+        return new TSTypeNameConvertor(library)
+    if (language == Language.JAVA)
+        return new JavaTypeNameConvertor(library)
+    throw new Error(`Convertor from IDL to ${language} not implemented`)
 }
 
 export class IdlPeerLibrary {
@@ -58,7 +67,7 @@ export class IdlPeerLibrary {
     readonly importTypesStubToSource: Map<string, string> = new Map()
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
-    readonly nameConvertorInstance = new TSTypeNameConvertor(this)
+    readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this)
 
     private context: string | undefined
     getCurrentContext(): string | undefined {

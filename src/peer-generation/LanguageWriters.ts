@@ -36,6 +36,7 @@ import * as ts from "typescript"
 import * as fs from "fs"
 import { EnumEntity } from "./PeerFile";
 import { CJKeywords, cppKeywords } from "../languageSpecificKeywords";
+import { convertJavaOptional } from "./printers/lang/Java";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}
@@ -371,9 +372,9 @@ export class TSCastExpression implements LanguageExpression {
 }
 
 export class JavaCastExpression implements LanguageExpression {
-    constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
+    constructor(public value: LanguageExpression, public type: string, private unsafe = false) {}
     asString(): string {
-        return `(${this.type.name})(${this.value.asString()})`
+        return `(${this.type})(${this.value.asString()})`
     }
 }
 
@@ -1442,7 +1443,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[] | undefined, optional: boolean, initExpr?: LanguageExpression): void {
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} ${type.name} ${name}${initExpr ? ` = ${initExpr.asString()}`  : ""};`)
+        this.printer.print(`${prefix} ${this.mapType(type)} ${name}${initExpr ? ` = ${initExpr.asString()}` : ""};`)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
@@ -1479,7 +1480,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(`${map}.size()`)
     }
     makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
-        return new JavaCastExpression(value, type, unsafe)
+        return new JavaCastExpression(value, this.mapType(type), unsafe)
     }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new CLikeExpressionStatement(expr)
@@ -1504,6 +1505,10 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.print(`System.out.println("${message}")`)
     }
     mapType(type: Type): string {
+        if (type.nullable) {
+            const optionalType = convertJavaOptional(type.name)
+            if (optionalType != type.name) return optionalType
+        }
         switch (type.name) {
             case 'KPointer': return 'long'
             case 'Uint8Array': return 'byte[]'

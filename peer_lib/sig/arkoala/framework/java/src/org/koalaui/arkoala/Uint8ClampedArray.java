@@ -12,6 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+// WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
+
 package org.koalaui.arkoala;
 
-public class Uint8ClampedArray {}
+public class Uint8ClampedArray extends Ark_CustomObject {}

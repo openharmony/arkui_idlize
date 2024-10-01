@@ -799,16 +799,6 @@ function generateArkoalaFromIdl(outDir: string, peerLibrary: IdlPeerLibrary, lan
         const outMaterializedFile = arkoala.materialized(targetFile)
         writeFile(outMaterializedFile, materializedClass, peerLibrary.language === Language.ARKTS, "producing [idl]")
     }
-    writeFile(
-        arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
-        printNativeModuleEmpty(peerLibrary),
-        true, "producing [idl]"
-    )
-    writeFile(
-        arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
-        printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
-        true, "producing [idl]"
-    )
     if (PeerGeneratorConfig.needInterfaces) {
         const interfaces = printIdlInterfaces(peerLibrary, context)
         for (const [targetFile, data] of interfaces) {
@@ -818,33 +808,63 @@ function generateArkoalaFromIdl(outDir: string, peerLibrary: IdlPeerLibrary, lan
         }
     }
     const fakeDeclarations = printIdlFakeDeclarations(peerLibrary)
-    for (const [filename, data] of fakeDeclarations) {
-        const outComponentFile = arkoala.interface(new TargetFile(filename))
+    for (const [targetFile, data] of fakeDeclarations) {
+        const outComponentFile = arkoala.interface(targetFile)
         writeFile(outComponentFile, data, true, "producing [idl, fake]")
         if (options.verbose) console.log(data)
         arkuiComponentsFiles.push(outComponentFile)
     }
-    writeFile(
-        arkoala.peer(new TargetFile('ArkUINodeType')),
-        printNodeTypes(peerLibrary)
-    )
-    writeFile(
-        arkoala.tsLib(new TargetFile('index')),
-        makeArkuiModule(arkuiComponentsFiles),
-    )
-    writeFile(
-        arkoala.tsLib(new TargetFile("peer_events")),
-        printEvents(peerLibrary),
-        true
-    )
-    writeFile(arkoala.peer(new TargetFile('Serializer')),
-        makeTSSerializer(peerLibrary),
-        true,
-    )
-    writeFile(arkoala.peer(new TargetFile('Deserializer')),
-        makeTSDeserializer(peerLibrary),
-        true,
-    )
+
+    if (peerLibrary.language == Language.TS) {
+        writeFile(
+            arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
+            printNativeModuleEmpty(peerLibrary),
+            true, "producing [idl]"
+        )
+        writeFile(
+            arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
+            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
+            true, "producing [idl]"
+        )
+        writeFile(
+            arkoala.peer(new TargetFile('ArkUINodeType')),
+            printNodeTypes(peerLibrary)
+        )
+        writeFile(
+            arkoala.tsLib(new TargetFile('index')),
+            makeArkuiModule(arkuiComponentsFiles),
+        )
+        writeFile(
+            arkoala.tsLib(new TargetFile("peer_events")),
+            printEvents(peerLibrary),
+            true
+        )
+        writeFile(arkoala.peer(new TargetFile('Serializer')),
+            makeTSSerializer(peerLibrary),
+            true,
+        )
+        writeFile(arkoala.peer(new TargetFile('Deserializer')),
+            makeTSDeserializer(peerLibrary),
+            true,
+        )
+    }
+
+    if (peerLibrary.language == Language.JAVA) {
+        writeFile(
+            arkoala.javaLib(new TargetFile('NativeModule', ARKOALA_PACKAGE_PATH)),
+            printNativeModule(peerLibrary, options.nativeBridgeDir),
+            true, "producing [idl]"
+        )
+
+        const nodeTypes = makeJavaNodeTypes(peerLibrary)
+        nodeTypes.writer.printTo(arkoala.javaLib(nodeTypes.targetFile))
+
+        const arkComponents = makeJavaArkComponents(peerLibrary, context)
+        arkComponents.writer.printTo(arkoala.javaLib(arkComponents.targetFile))
+
+        const serializer = makeJavaSerializer(peerLibrary)
+        serializer.writer.printTo(arkoala.javaLib(serializer.targetFile))
+    }
 
     // native code
     writeFile(arkoala.native(new TargetFile('bridge_generated.cc')), printBridgeCcGenerated(peerLibrary, options.callLog ?? false), true)
