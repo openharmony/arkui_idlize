@@ -342,7 +342,12 @@
 |`customContentTransition`| Function | Skroba Gleb |blocked |
 |`onContentDidScroll`| Function | Skroba Gleb| blocked UT |
 |`indicatorInteractive`| Function | Skroba Gleb| done |
-|*Text*| *Component* | k00660564 Kirill Kirichenko | in progress |
+|*Text*| *Component* | Kirill Kirichenko | done |
+|`setTextOptions`| Function | Kirill Kirichenko | in progress |
+|`setEnableDataDetector`| Function | Kirill Kirichenko | in progress |
+|`setDataDetectorConfig`| Function | Kirill Kirichenko | in progress |
+|`setBindSelectionMenu`| Function | Kirill Kirichenko | in progress |
+|`setEditMenuOptions`| Function | Kirill Kirichenko | in progress |
 |*TextArea*|*Component*|Ivan Tuzhilkin|in progress|
 |`placeholderColor`|Function|Ivan Tuzhilkin|blocked UT|
 |`placeholderFont`|Function|Ivan Tuzhilkin|blocked UT|
