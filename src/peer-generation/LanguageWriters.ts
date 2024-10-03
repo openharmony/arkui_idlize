@@ -37,6 +37,7 @@ import * as fs from "fs"
 import { EnumEntity } from "./PeerFile";
 import { CJKeywords, cppKeywords } from "../languageSpecificKeywords";
 import { convertJavaOptional } from "./printers/lang/Java";
+import { IDLBigintType, IDLBooleanType, IDLNumberType, IDLParameter, IDLStringType, IDLType, IDLVoidType, isPrimitiveType, isUndefinedType, isUnionType } from "../idl";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}
@@ -46,11 +47,26 @@ export class Type {
     static Pointer = new Type('KPointer')
     static This = new Type('this')
     static Void = new Type('void')
+    static String = new Type('string')
 
     private static PRIMITIVE_TYPES = new Set(
-        [Type.Boolean, Type.Int32, Type.Number, Type.Pointer, Type.Void]
+        [Type.Boolean, Type.Int32, Type.Number, Type.Pointer, Type.Void, Type.String]
             .map(it => it.name)
     )
+
+    static fromName(name: string): Type {
+        if (this.PRIMITIVE_TYPES.has(name)) {
+            switch (name) {
+                case Type.Int32.name: return Type.Int32
+                case Type.Boolean.name: return Type.Boolean
+                case Type.Number.name: return Type.Number
+                case Type.Pointer.name: return Type.Pointer
+                case Type.Void.name: return Type.Void
+                case Type.String.name: return Type.String
+            }
+        }
+        return new Type(name)
+    }
 
     toString(): string {
         return `${this.name}${this.nullable ? "?" : ""}`
@@ -497,7 +513,7 @@ class CppArrayResizeStatement implements LanguageStatement {
 class CppMapResizeStatement implements LanguageStatement {
     constructor(private keyType: string, private valueType: string, private map: string, private size: string, private deserializer: string) {}
     write(writer: LanguageWriter): void {
-        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(PrimitiveType.ArkPrefix, "")}_${this.valueType.replace(PrimitiveType.ArkPrefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
+        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(PrimitiveType.Prefix, "")}_${this.valueType.replace(PrimitiveType.Prefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
     }
 }
 
@@ -975,8 +991,25 @@ export abstract class LanguageWriter {
     getOutput(): string[] {
         return this.printer.getOutput()
     }
+    // TODO: remove it!
     mapType(type: Type, convertor?: ArgConvertor): string {
         return type.name
+    }
+    mapIDLType(type: IDLType): string {
+        if (isPrimitiveType(type)) {
+            switch (type) {
+                case IDLNumberType: return this.mapType(Type.Int32)
+                case IDLBooleanType: return this.mapType(Type.Boolean)
+                case IDLVoidType: return this.mapType(Type.Void)
+                case IDLStringType: return this.mapType(Type.String)
+                default: throw new Error(`Unmapped IDL type: ${type.name}`)
+            }
+        }
+        return this.mapType(new Type(type.name))
+    }
+    makeSignature(returnType: IDLType, parameters: IDLParameter[]): MethodSignature {
+        return new MethodSignature(Type.fromName(this.mapIDLType(returnType)),
+            parameters.map(it => Type.fromName(this.mapIDLType(it.type!))))
     }
     mapFieldModifier(modifier: FieldModifier): string {
         return `${FieldModifier[modifier].toLowerCase()}`
@@ -1835,7 +1868,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
         const superClasses = (superClass ? [superClass] : []).concat(interfaces ?? [])
-        const extendsClause = superClasses ? ` : ${superClasses.map(c => `public ${c}`).join(", ")}` : ''
+        const extendsClause = superClasses.length > 0 ? ` : ${superClasses.map(c => `public ${c}`).join(", ")}` : ''
         this.printer.print(`class ${name}${extendsClause} {`)
         this.pushIndent()
         op(this)
@@ -1985,13 +2018,13 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             case 'KPointer': return 'void*'
             case 'Uint8Array': return 'byte[]'
             case 'int32':
-            case 'KInt': return 'int32_t'
+            case 'KInt': return `${PrimitiveType.Prefix}Int32`
             case 'string':
-            case 'KStringPtr': return 'Ark_String'
-            case 'number': return 'Ark_Number'
-            case 'boolean': return 'Ark_Boolean'
-            case 'Function': return `Ark_Function`
-            case 'Length': return 'Ark_Length'
+            case 'KStringPtr': return `${PrimitiveType.Prefix}String`
+            case 'number': return `${PrimitiveType.Prefix}Number`
+            case 'boolean': return `${PrimitiveType.Prefix}Boolean`
+            case 'Function': return `${PrimitiveType.Prefix}Function`
+            case 'Length': return `${PrimitiveType.Prefix}Length`
             // TODO: oh no
             case 'Array<string[]>' : return `Array_Array_${PrimitiveType.String.getText()}`
         }
@@ -2005,6 +2038,13 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         }
         return super.mapType(type)
     }
+    mapIDLType(type: IDLType): string {
+        if (isUnionType(type)) {
+            return `Union_${type.types.map(it => this.mapIDLType(it)).join("_")}`
+        }
+        return super.mapIDLType(type)
+    }
+
     makeSetUnionSelector(value: string, index: string): LanguageStatement {
         return this.makeAssign(`${value}.selector`, undefined, this.makeString(index), false)
     }

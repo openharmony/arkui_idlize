@@ -38,7 +38,7 @@ class CJType {
     // string representation can contain special characters (e.g. String[])
     readonly type: Type
 
-    // synthetic identifier for internal use cases: naming classes/files etc. 
+    // synthetic identifier for internal use cases: naming classes/files etc.
     // string representation contains only letters, numbers and underscores (e.g. Array_String)
     readonly alias: string
 
@@ -55,7 +55,7 @@ class CJType {
 export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     // maps type name in CJ (e.g. `Union_double_String`) to its definition (LanguageWriter containing `package X; class Union_double_String {...}`)
     private readonly types = new Map<Type, LanguageWriter>()
-    
+
     constructor(private readonly table: DeclarationTable, private readonly imports: ImportTable) {}
 
     getDefinitions(): Map<TargetFile, string> {
@@ -171,8 +171,8 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         [PrimitiveType.Tag, 'Tag'],
         [PrimitiveType.RuntimeType, 'RuntimeType'],
         [PrimitiveType.Boolean, 'Bool'],
-        [PrimitiveType.Undefined, `${PrimitiveType.ArkPrefix}Undefined`],
-        [PrimitiveType.Length, `${PrimitiveType.ArkPrefix}Length`],
+        [PrimitiveType.Undefined, `${PrimitiveType.Prefix}Undefined`],
+        [PrimitiveType.Length, `${PrimitiveType.Prefix}Length`],
         [PrimitiveType.CustomObject, 'Ark_CustomObject'],
         // TODO: add other primitive types
     ])

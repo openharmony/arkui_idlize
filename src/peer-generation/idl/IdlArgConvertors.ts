@@ -242,7 +242,7 @@ export class EnumConvertor extends BaseArgConvertor {
             false, false, param)
     }
     private enumTypeName(language: Language): string {
-        const prefix = language === Language.CPP ? PrimitiveType.ArkPrefix : ""
+        const prefix = language === Language.CPP ? PrimitiveType.Prefix : ""
         return prefix + qualifiedName(this.enumType, language)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -746,7 +746,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
                 printer.makeMethodCall(`${param}Deserializer`, `read${this.tsTypeName}`, []), false)
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.ArkPrefix + this.tsTypeName
+        return PrimitiveType.Prefix + this.tsTypeName
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -1017,7 +1017,7 @@ export class ArrayConvertor extends BaseArgConvertor {
         return new BlockStatement(statements, true)
     }
     nativeType(impl: boolean): string {
-        const typeName = cleanPrefix(this.library.getTypeName(this.elementType, false), PrimitiveType.ArkPrefix)
+        const typeName = cleanPrefix(this.library.getTypeName(this.elementType, false), PrimitiveType.Prefix)
         return `Array_${typeName}`
     }
     interopType(language: Language): string {
@@ -1092,8 +1092,8 @@ export class MapConvertor extends BaseArgConvertor {
     }
 
     nativeType(impl: boolean): string {
-        const keyTypeName = cleanPrefix(this.library.getTypeName(this.keyType, false), PrimitiveType.ArkPrefix)
-        const valueTypeName = cleanPrefix(this.library.getTypeName(this.valueType, false), PrimitiveType.ArkPrefix)
+        const keyTypeName = cleanPrefix(this.library.getTypeName(this.keyType, false), PrimitiveType.Prefix)
+        const valueTypeName = cleanPrefix(this.library.getTypeName(this.valueType, false), PrimitiveType.Prefix)
         return `Map_${keyTypeName}_${valueTypeName}`
     }
     interopType(language: Language): string {
@@ -1164,7 +1164,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = this.getObjectAccessor(printer.language, value)
-        const prefix = printer.language === Language.CPP ? PrimitiveType.ArkPrefix : ""
+        const prefix = printer.language === Language.CPP ? PrimitiveType.Prefix : ""
         const readStatement = printer.makeCast(
             printer.makeMethodCall(`${param}Deserializer`, `readMaterialized`, []),
             new Type(`${prefix}${this.type.name}`),

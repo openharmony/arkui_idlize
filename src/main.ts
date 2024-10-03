@@ -78,6 +78,7 @@ import { IdlPeerLibrary } from "./peer-generation/idl/IdlPeerLibrary"
 import { IdlPeerFile } from "./peer-generation/idl/IdlPeerFile"
 import { IdlPeerGeneratorVisitor, IdlPeerProcessor } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
 import { SkoalaCCodeGenerator } from "./peer-generation/printers/SkoalaPrinter"
+import { generateOhos } from "./peer-generation/OhosGenerator"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -356,6 +357,9 @@ if (options.dts2peer) {
                     }
                     if (options.generatorTarget == "tracker") {
                         generateTracker(outDir, idlLibrary, options.trackerStatus)
+                    }
+                    if (options.generatorTarget == "ohos") {
+                        generateOhos(outDir, idlLibrary)
                     }
                 }
             }

@@ -26,7 +26,7 @@ import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from '../DeclarationTable';
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';
-import { LanguageWriter } from '../LanguageWriters';
+import { LanguageWriter, MethodSignature, Type } from '../LanguageWriters';
 import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
@@ -263,7 +263,7 @@ export class IdlPeerLibrary {
         }
         let name = declaration[1]
         if (optional) {
-            name = this.cleanPrefix(name, PrimitiveType.ArkPrefix)
+            name = this.cleanPrefix(name, PrimitiveType.Prefix)
         }
         return prefix + name
     }
@@ -306,7 +306,7 @@ export class IdlPeerLibrary {
         const decl = this.toDeclaration(type)
         let name = this.computeTargetName(decl, false)
         if (type.name === "Optional")
-            name = "Opt_" + cleanPrefix(name, PrimitiveType.ArkPrefix)
+            name = "Opt_" + cleanPrefix(name, PrimitiveType.Prefix)
         this.typeMap.set(type, [decl, name, useToGenerate])
     }
 
@@ -360,7 +360,7 @@ export class IdlPeerLibrary {
         return prefix + `Literal_${names.join('_')}`
     }
 
-    computeTargetName(target: idl.IDLEntry, optional: boolean, idlPrefix: string = PrimitiveType.ArkPrefix): string {
+    computeTargetName(target: idl.IDLEntry, optional: boolean, idlPrefix: string = PrimitiveType.Prefix): string {
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (idl.isPrimitiveType(target)) {
             let name: string = ""
@@ -381,11 +381,11 @@ export class IdlPeerLibrary {
         if (idl.isTypeParameterType(target)) {
             // TODO: likely incorrect
             let name = PrimitiveType.CustomObject.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (idl.isEnum(target) || idl.isEnumType(target)) {
             const name = this.enumName(target)
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
         if (idl.isUnionType(target)) {
             return prefix + `Union_${target.types.map(it => this.computeTargetName(it, false, "")).join("_")}`
@@ -422,7 +422,7 @@ export class IdlPeerLibrary {
                 return "Union_Color_Number_String_Resource"///hack
             if (PeerGeneratorConfig.isKnownParametrized(name)) {
                 const name = PrimitiveType.CustomObject.getText()
-                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.ArkPrefix) : name)
+                return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
             }
             return (optional ? prefix : idlPrefix) + name
         }
@@ -446,7 +446,7 @@ export class IdlPeerLibrary {
     private enumName(target: idl.IDLEnum | idl.IDLEnumType): string {
         // TODO: support namespaces in other declarations.
         const namespace = idl.getExtAttribute(target, idl.IDLExtendedAttributes.Namespace)
-        return `${PrimitiveType.ArkPrefix}${namespace ? namespace + "_" : ""}${target.name}`
+        return `${PrimitiveType.Prefix}${namespace ? namespace + "_" : ""}${target.name}`
     }
 
     private allTypes<T extends idl.IDLEntry>(predicate: (e: idl.IDLEntry) => e is T): T[] {

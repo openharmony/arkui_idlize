@@ -73,7 +73,7 @@ export class StructPrinter {
             let isPointer = this.isPointerDeclaration(target)
             let isAccessor = (idl.isClass(target) || idl.isInterface(target)) && isMaterialized(target)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
-            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.ArkPrefix)
+            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.Prefix)
             if (idl.isEnum(target)) {
                 const stringEnum = isStringEnum(target)
                 structs.print(`typedef enum ${nameAssigned} {`)
@@ -89,7 +89,7 @@ export class StructPrinter {
             } else if (!noBasicDecl && !this.ignoreTarget(target)) {
                 // TODO: fix it to define array type after its elements types
                 if (nameAssigned === `Array_GestureRecognizer`) {
-                    structs.print(`typedef Ark_Materialized ${PrimitiveType.ArkPrefix}GestureRecognizer;`)
+                    structs.print(`typedef Ark_Materialized ${PrimitiveType.Prefix}GestureRecognizer;`)
                 }
 
                 this.printStructsCHead(nameAssigned, target, structs)

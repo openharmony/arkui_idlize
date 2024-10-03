@@ -43,6 +43,8 @@ interface Set<T> {}
 // Temporary
 interface Optional<T> {}
 interface Record<T1, T2> {}
+interface DataView {}
+
 // TODO: temporary
 type bool = boolean
 
