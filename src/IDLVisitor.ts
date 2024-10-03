@@ -59,7 +59,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private output: IDLEntry[] = []
     private currentScope:  IDLEntry[] = []
     scopes: IDLEntry[][] = []
-    imports: string[] = [ "org.arkui.Base" ]
+    imports: string[] = []
     exports: string[] = []
     namespaces: string[] = []
     globalConstants: IDLConstant[] = []
@@ -117,7 +117,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         let header = []
         const packageInfo: IDLPackage = {
             kind: IDLKind.Package,
-            name: "org.openharmony.arkui"
+            name: this.detectPackageName(this.sourceFile),
         }
         header.push(packageInfo)
         this.imports.forEach(it => {
@@ -128,6 +128,14 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             header.push(importStatement)
         })
         this.output.splice(0, 0, ... header)
+    }
+
+    detectPackageName(sourceFile: ts.SourceFile): string {
+        let ns = sourceFile.statements.find(it => ts.isModuleDeclaration(it)) as ts.ModuleDeclaration
+        if (ns) {
+            return `${ns.name.text}`
+        }
+        return "arkui"
     }
 
     /** visit nodes finding exported classes */

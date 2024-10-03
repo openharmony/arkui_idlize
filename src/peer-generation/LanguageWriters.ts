@@ -37,7 +37,7 @@ import * as fs from "fs"
 import { EnumEntity } from "./PeerFile";
 import { CJKeywords, cppKeywords } from "../languageSpecificKeywords";
 import { convertJavaOptional } from "./printers/lang/Java";
-import { IDLBigintType, IDLBooleanType, IDLNumberType, IDLParameter, IDLStringType, IDLType, IDLVoidType, isPrimitiveType, isUndefinedType, isUnionType } from "../idl";
+import { IDLBigintType, IDLBooleanType, IDLNumberType, IDLParameter, IDLStringType, IDLType, IDLVoidType, isContainerType, isPrimitiveType, isReferenceType, isUndefinedType, isUnionType } from "../idl";
 
 export class Type {
     constructor(public name: string, public nullable = false) {}
@@ -2041,6 +2041,12 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     mapIDLType(type: IDLType): string {
         if (isUnionType(type)) {
             return `Union_${type.types.map(it => this.mapIDLType(it)).join("_")}`
+        }
+        if (isContainerType(type) && type.name == "Promise") {
+            return `Promise_${this.mapIDLType(type.elementType[0])}`
+        }
+        if (isContainerType(type) && type.name == "sequence") {
+            return `Array_${this.mapIDLType(type.elementType[0])}`
         }
         return super.mapIDLType(type)
     }

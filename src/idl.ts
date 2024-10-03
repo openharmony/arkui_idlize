@@ -431,7 +431,7 @@ export function createUnionType(types: IDLType[]): IDLUnionType {
         throw new Error("IDLUnionType should contain at least 2 types")
     return {
         kind: IDLKind.UnionType,
-        name: "or",
+        name: types.map(it => it.name).join("|"),
         types: types
     }
 }

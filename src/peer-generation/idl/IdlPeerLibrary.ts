@@ -407,6 +407,7 @@ export class IdlPeerLibrary {
                 case "record": return prefix + `Map_` +
                     this.computeTargetName(target.elementType[0], false, "") + "_" +
                     this.computeTargetName(target.elementType[1], false, "")
+                case "Promise": return prefix + `Promise_` + this.computeTargetName(target.elementType[0], false)
             }
         }
         if (idl.isReferenceType(target)) {
