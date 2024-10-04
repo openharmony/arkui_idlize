@@ -73,6 +73,7 @@ export class IdlComponentDeclaration {
     ) {}
 }
 
+const PREDEFINED_PACKAGE = 'org.openharmony.idlize.predefined'
 export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
     private readonly sourceFile: string
 
@@ -105,6 +106,46 @@ export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
                 new IdlComponentDeclaration(componentName, compInterface, component))
         }
     }
+}
+
+export class IdlPredefinedGeneratorVisitor implements GenericVisitor<void> {
+    readonly peerLibrary: IdlPeerLibrary
+    readonly peerFile: IdlPeerFile
+
+    constructor(options: IdlPeerGeneratorVisitorOptions) {
+        this.peerLibrary = options.peerLibrary
+        this.peerFile = options.peerFile
+    }
+
+    static create(options: IdlPeerGeneratorVisitorOptions) {
+        return new IdlPredefinedGeneratorVisitor(options)
+    }
+
+    visitWholeFile(): void {
+        if (this.isPredefinedPackage(this.peerFile)) {
+            this.peerFile.entries
+                .filter(it => idl.isInterface(it))
+                .forEach(it => this.visitPredefinedDeclaration(it as idl.IDLInterface))
+        }
+    }
+
+    visitPredefinedDeclaration(declaration: idl.IDLInterface) {
+        this.peerLibrary.predefinedDeclarations.push(declaration)
+    }
+
+    isPredefinedPackage(file:IdlPeerFile): boolean {
+        const packageDeclarations = file.entries.filter(entry => idl.isPackage(entry))
+        if (packageDeclarations.length !== 1) {
+            return false
+        }
+        const [ pkg ] = packageDeclarations
+        let pkgName = pkg.name ?? ''
+        if (pkgName.startsWith('"')) {
+            pkgName = pkgName.substring(1, pkgName.length - 1)
+        }
+        return pkgName === PREDEFINED_PACKAGE
+    }
+
 }
 
 function generateArgConvertor(library: IdlPeerLibrary, param: idl.IDLParameter, maybeCallback: boolean): ArgConvertor {
@@ -795,7 +836,6 @@ export class IdlPeerProcessor {
             peerGenerator.generatePeer(component)
         const allDeclarations = this.generateDeclarations(this.library.componentsDeclarations)
         const actualDeclarations = this.generateDeclarations(this.generateActualComponents())
-
         for (const dep of allDeclarations) {
             if (isSyntheticDeclaration(dep))
                 continue

@@ -45,6 +45,7 @@ function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor 
 }
 
 export class IdlPeerLibrary {
+    public readonly predefinedFiles: IdlPeerFile[] = []
     public readonly files: IdlPeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {
@@ -55,6 +56,8 @@ export class IdlPeerLibrary {
     public get materializedToGenerate(): MaterializedClass[] {
         return Array.from(this.materializedClasses.values()).filter(it => it.needBeGenerated)
     }
+
+    public readonly predefinedDeclarations: idl.IDLInterface[] = []
 
     constructor(
         public language: Language,

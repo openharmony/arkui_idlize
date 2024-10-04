@@ -10,6 +10,8 @@ import {
 } from "@koalaui/interop"
 import { callCallback } from "@koalaui/interop"
 
+type KLong = number
+
 export type NodePointer = pointer
 export type PipelineContext = pointer
 
@@ -57,27 +59,7 @@ export interface InteropOps {
     _SetCallbackDispatcher(dispatcher: (id: int32, args: Uint8Array, length: int32) => int32): void
     _CleanCallbackDispatcher(): void
 
-    _StartNativeTest(testName: KStringPtr, index: KInt): void
-    _StopNativeTest(index: KInt): void
-    _GetGroupedLog(index: KInt): KPointer
-    _StartGroupedLog(index: KInt): void
-    _StopGroupedLog(index: KInt): void
-    _GetStringFinalizer(): KPointer
-    _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void
-    _GetNodeFinalizer(): KPointer
-    _StringLength(ptr: KPointer): KInt
-    _StringData(ptr: KPointer, buffer: KUint8ArrayPtr, length: KInt): void
-    _StringMake(value: KStringPtr): KPointer
-    _ManagedStringWrite(value: KStringPtr, buffer: KUint8ArrayPtr, offset: KInt): KInt
-    _Test_SetEventsApi(): void
-    _Test_Common_OnChildTouchTest(valueArray: Uint8Array, valueSerializerLength: KInt): void
-    _Test_List_OnScrollVisibleContentChange(valueArray: Uint8Array, valueSerializerLength: KInt): void
-    _Test_TextPicker_OnAccept(valueArray: Uint8Array, valueSerializerLength: KInt): void
-    _TestPerfNumber(value: KInt): KInt
-    _TestPerfNumberWithArray(value: KUint8ArrayPtr, length: KInt): void
-    _StartPerf(traceName: KStringPtr): void
-    _EndPerf(traceName: KStringPtr): void
-    _DumpPerf(options: KInt): KPointer
+%GENERATED_PREDEFINED_Interop%
 }
 
 export interface GraphicsOps {
@@ -85,73 +67,11 @@ export interface GraphicsOps {
 }
 
 export interface LoaderOps {
-    _LoadVirtualMachine(vmKind: KInt, appClassPath: string, appLibPath: string): KInt
-    _StartApplication(): KInt
-    _RunApplication(arg0: KInt, arg1: KInt): KInt
+%GENERATED_PREDEFINED_Loader%
 }
 
 export interface NodeOps {
-    _CreateNode(type: KInt, id: KInt, flags: KInt): NodePointer
-    _GetNodeByViewStack(): NodePointer
-    _DisposeNode(ptr: NodePointer): void
-
-    _AddChild(parent: NodePointer, child: NodePointer): KInt
-    _RemoveChild(parent: NodePointer, child: NodePointer): void
-    _InsertChildAfter(parent: NodePointer, child: NodePointer, sibling: NodePointer): KInt
-    _InsertChildBefore(parent: NodePointer, child: NodePointer, sibling: NodePointer): KInt
-    _InsertChildAt(parent: NodePointer, child: NodePointer,  position: KInt): KInt
-    _ApplyModifierFinish(ptr: NodePointer): void
-    _MarkDirty(ptr: NodePointer, flag: KUInt): void
-    _IsBuilderNode(ptr: NodePointer): KBoolean
-    _ConvertLengthMetricsUnit(value: KFloat, originUnit: KInt, targetUnit: KInt): KFloat
-    // #endregion
-
-    // getUtilsModifier
-    // getCanvasRenderingContext2DModifier
-
-    // setCallbackMethod
-    // setCustomMethodFlag
-
-    // registerCustomNodeAsyncEvent
-    // unregisterCustomNodeAsyncEvent
-    // registerCustomNodeAsyncEventReceiver
-
-    // #region EXTENDED NODE
-    _SetCustomCallback(node: NodePointer, callbackId: KInt): void
-    _MeasureLayoutAndDraw(root: NodePointer): void
-    _MeasureNode(root: NodePointer, data: KFloat32ArrayPtr): KInt
-    _LayoutNode(root: NodePointer, data: KFloat32ArrayPtr): KInt
-    _DrawNode(root: NodePointer, data: KFloat32ArrayPtr): KInt
-
-    // setAttachNodePtr
-    // getAttachNodePtr
-
-    _SetMeasureWidth(root: NodePointer, value: KInt): void
-    _GetMeasureWidth(root: NodePointer): KInt
-    _SetMeasureHeight(root: NodePointer, value: KInt): void
-    _GetMeasureHeight(root: NodePointer): KInt
-    _SetX(root: NodePointer, value: KInt): void
-    _GetX(root: NodePointer): KInt
-    _SetY(root: NodePointer, value: KInt): void
-    _GetY(root: NodePointer): KInt
-
-    // getLayoutConstraint
-
-    _SetAlignment(root: NodePointer, value: KInt): void
-    _GetAlignment(root: NodePointer): KInt
-
-    _IndexerChecker(node: NodePointer): KInt
-
-    _SetRangeUpdater(node: NodePointer, updaterId: KInt): void
-    _SetLazyItemIndexer(node: NodePointer, indexerId: KInt): KInt
-
-    _GetPipelineContext(nodePtr:NodePointer): PipelineContext
-
-    _SetVsyncCallback(pipelineContext: PipelineContext, callbackId: KInt): KInt
-    _UnblockVsyncWait(pipelineContext: PipelineContext): KInt
-
-    _SetChildTotalCount(ptr: NodePointer, value: KInt): void
-    _ShowCrash(messagePtr: KStringPtr): void
+%GENERATED_PREDEFINED_Node%
 }
 
 export interface ComponentOps {
@@ -159,11 +79,7 @@ export interface ComponentOps {
 }
 
 export interface TestOps {
-    _TestCallIntNoArgs(arg1: KInt): KInt
-    _TestCallIntIntArraySum(arg1: KInt, arg2: Int32Array, arg3: KInt): KInt
-    _TestCallVoidIntArrayPrefixSum(arg1: KInt, arg2: Int32Array, arg3: KInt): void
-    _TestCallIntRecursiveCallback(arg1: KInt, arg2: Uint8Array, arg3: KInt): KInt
-    _TestCallIntMemory(arg1: KInt, arg2: KInt): KInt
+%GENERATED_PREDEFINED_Test%
 }
 
 export interface NativeModuleIntegrated extends InteropOps, /*GraphicsOps, NodeOps,*/ ComponentOps {}

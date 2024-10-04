@@ -87,15 +87,22 @@ import {
 } from "@koalaui/interop"
 `.trim()
 
-export function nativeModuleDeclaration(methods: LanguageWriter, nativeBridgePath: string, useEmpty: boolean, language: Language, nativeMethods?: LanguageWriter): string {
+export function nativeModuleDeclaration(methods: LanguageWriter, predefinedMethods: Map<string, LanguageWriter>, nativeBridgePath: string, useEmpty: boolean, language: Language, nativeMethods?: LanguageWriter): string {
+    
+    let text = readLangTemplate("NativeModule_template" + language.extension, language)
+        .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
+        .replace("%USE_EMPTY%", useEmpty.toString())
+        .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))
+        .replaceAll("%GENERATED_NATIVE_FUNCTIONS%", nativeMethods ? nativeMethods.getOutput().join('\n') : "")
+    
+    for (const [title, printer] of predefinedMethods) {
+        text = text.replaceAll(`%GENERATED_PREDEFINED_${title}%`, printer.getOutput().join('\n'))
+    }
+    
     return `
   ${language == Language.TS ? importTsInteropTypes : ""}
 
-${readLangTemplate("NativeModule_template" + language.extension, language)
-    .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
-    .replace("%USE_EMPTY%", useEmpty.toString())
-    .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))
-    .replaceAll("%GENERATED_NATIVE_FUNCTIONS%", nativeMethods ? nativeMethods.getOutput().join('\n') : "")}
+${text}
 `
 }
 

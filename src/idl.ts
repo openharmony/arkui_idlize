@@ -79,6 +79,7 @@ export enum IDLExtendedAttributes {
     GlobalScope = "GlobalScope",
     Namespace = "Namespace",
     Deprecated = "Deprecated",
+    NativeModule = "NativeModule"
 }
 
 export enum IDLAccessorAttribute {
@@ -378,6 +379,42 @@ function createPrimitiveType(name: string): IDLPrimitiveType {
     return {
         kind: IDLKind.PrimitiveType,
         name: name
+    }
+}
+
+export const IDLTypes = {
+    ptr: createPrimitiveType('ptr'),
+    
+    void: createPrimitiveType("void"),
+
+    bool: createPrimitiveType('bool'),
+    i8: createPrimitiveType('i8'),
+    u8: createPrimitiveType('u8'),
+    i16: createPrimitiveType('i16'),
+    u16: createPrimitiveType('u16'),
+    i32: createPrimitiveType('i32'),
+    u32: createPrimitiveType('u32'),
+    i64: createPrimitiveType('i64'),
+    u64: createPrimitiveType('u64'),
+    
+    f32: createPrimitiveType('f32'),
+    f64: createPrimitiveType('f64'),
+
+    str: createPrimitiveType('str')
+}
+
+type KeyToStringMapper<T extends object> = { [x in keyof T]: string }
+type IDLTypesMapper = KeyToStringMapper<typeof IDLTypes>
+
+type TypeMapHelper = (x:string) => [boolean, string]
+export function createPrimitiveTypeMapper(mapper:IDLTypesMapper): TypeMapHelper {
+    return (input:string) => {
+        for (const key in IDLTypes) {
+            if (IDLTypes[key as keyof typeof IDLTypes].name === input) {
+                return [true, mapper[key as keyof IDLTypesMapper]]
+            }
+        }
+        return [false, input]
     }
 }
 
