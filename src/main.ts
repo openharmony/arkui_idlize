@@ -645,6 +645,7 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),
+            true,
         )
         writeFile(
             arkoala.tsLib(new TargetFile('index')),
@@ -844,12 +845,12 @@ function generateArkoalaFromIdl(outDir: string, peerLibrary: IdlPeerLibrary, lan
     const builderClasses = printBuilderClasses(peerLibrary, context, options.dumpSerialized ?? false)
     for (const [targetFile, builderClass] of builderClasses) {
         const outBuilderFile = arkoala.builderClass(targetFile)
-        writeFile(outBuilderFile, builderClass, false, "producing [idl]")
+        writeFile(outBuilderFile, builderClass, true, "producing [idl]")
     }
     const materialized = printMaterialized(peerLibrary, context, options.dumpSerialized ?? false)
     for (const [targetFile, materializedClass] of materialized) {
         const outMaterializedFile = arkoala.materialized(targetFile)
-        writeFile(outMaterializedFile, materializedClass, peerLibrary.language === Language.ARKTS, "producing [idl]")
+        writeFile(outMaterializedFile, materializedClass, true, "producing [idl]")
     }
     if (PeerGeneratorConfig.needInterfaces) {
         const interfaces = printIdlInterfaces(peerLibrary, context)
@@ -880,7 +881,8 @@ function generateArkoalaFromIdl(outDir: string, peerLibrary: IdlPeerLibrary, lan
         )
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
-            printNodeTypes(peerLibrary)
+            printNodeTypes(peerLibrary),
+            true,
         )
         writeFile(
             arkoala.tsLib(new TargetFile('index')),

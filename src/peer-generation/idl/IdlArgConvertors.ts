@@ -761,7 +761,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
         // First, tricky special cases
         if (this.tsTypeName.endsWith("GestureInterface")) {
             const gestureType = this.tsTypeName.slice(0, -"GestureInterface".length)
-            const castExpr = writer.makeCast(writer.makeString(value), new Type("GestureComponent<Object>"))
+            const castExpr = writer.makeCast(writer.makeString(value), new Type("GestureComponent<Object>"), true)
             return writer.makeNaryOp("===", [
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
