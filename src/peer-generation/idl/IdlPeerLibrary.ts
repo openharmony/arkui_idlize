@@ -37,7 +37,7 @@ export type IdlPeerLibraryOutput = {
 
 function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor {
     const language = library.language
-    if (language == Language.TS)
+    if ([Language.TS, Language.ARKTS].includes(language))
         return new TSTypeNameConvertor(library)
     if (language == Language.JAVA)
         return new JavaTypeNameConvertor(library)
