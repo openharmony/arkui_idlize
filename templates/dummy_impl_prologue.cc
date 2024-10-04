@@ -71,7 +71,7 @@ std::array<Ark_Int64, MAX_NODE_TYPE> drawNodeDelay = {};
 
 void CheckType(GENERATED_Ark_NodeType type) {
     if (type >= MAX_NODE_TYPE) {
-        LOGE("Error: GENERATED_Ark_NodeType value is too big, change MAX_NODE_TYPE accordingly");
+        LOG("Error: GENERATED_Ark_NodeType value is too big, change MAX_NODE_TYPE accordingly");
         throw "Error";
     }
 }
