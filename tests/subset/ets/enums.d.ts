@@ -59,3 +59,8 @@ declare enum ColoringStrategy {
 declare enum EmbeddedType {
   EMBEDDED_UI_EXTENSION = 0,
 }
+
+declare enum Axis {
+  Vertical,
+  Horizontal,
+}

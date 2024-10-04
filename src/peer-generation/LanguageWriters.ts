@@ -166,7 +166,8 @@ export class EtsAssignStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
             const typeSpec = ""
-            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
+            const initValue = this.expression !== undefined ? this.expression : writer.makeUndefined()
+            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName}${typeSpec} = ${initValue.asString()}`)
         } else {
             writer.print(`${this.variableName} = ${this.expression.asString()}`)
         }
@@ -1103,6 +1104,12 @@ export abstract class LanguageWriter {
     castToInt(value: string, bitness: 8|32): string{ return value }
     castToBoolean(value: string): string { return value }
     castToEnum(value: string, enumName: string): string { return value }
+    makeCallIsObject(value: string): LanguageExpression {
+        return this.makeString(`typeof ${value} === "object"`)
+    }
+    makeCallIsArrayBuffer(value: string): LanguageExpression {
+        return this.makeString(`${value} instanceof ArrayBuffer`)
+    }
 }
 
 export class TSLanguageWriter extends LanguageWriter {
@@ -1413,6 +1420,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return `${value} as int32` // FIXME: is there int8 in ARKTS?
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
+    override makeCallIsObject(value: string): LanguageExpression {
+        return this.makeString(`${value} instanceof Object`)
+    }
 }
 
 abstract class CLikeLanguageWriter extends LanguageWriter {

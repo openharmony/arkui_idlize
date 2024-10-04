@@ -78,6 +78,15 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         this.file.peersToGenerate.forEach(peer => {
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             imports.addFeature("remember", "@koalaui/runtime")
+            imports.addFeature("ArkUINodeType", "./peers/ArkUINodeType")
+            imports.addFeature("runtimeType", "./peers/SerializerBase")
+            imports.addFeature("RuntimeType", "./peers/SerializerBase")
+            imports.addFeature("isPixelMap", "./peers/SerializerBase")
+            imports.addFeature("isResource", "./peers/SerializerBase")
+            imports.addFeature("isInstanceOf", "./peers/SerializerBase")
+            imports.addFeature('ComponentBase', './ComponentBase')
+            this.populateImports(imports)
+
             if (peer.originalParentFilename) {
                 const parentBasename = renameDtsToComponent(path.basename(peer.originalParentFilename), this.language, false)
                 imports.addFeature(generateArkComponentName(peer.parentComponentName!), `./${parentBasename}`)
@@ -87,15 +96,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             peer.attributesTypes.forEach((attrType) =>
                 imports.addFeature(attrType.typeName, peerModule)
             )
-            imports.addFeature("ArkUINodeType", "./peers/ArkUINodeType")
-            imports.addFeature("runtimeType", "./peers/SerializerBase")
-            imports.addFeature("RuntimeType", "./peers/SerializerBase")
-            imports.addFeature("isPixelMap", "./peers/SerializerBase")
-            imports.addFeature("isResource", "./peers/SerializerBase")
-            imports.addFeature("isInstanceOf", "./peers/SerializerBase")
-            imports.addFeature('ComponentBase', './ComponentBase')
-            if (this.printer.language == Language.TS)
-                imports.addFeature('unsafeCast', './shared/generated-utils')
+
             for (const method of peer.methods) {
                 for (const argType of method.declarationTargets)
                     if (convertToCallback(peer, method, argType))
@@ -108,6 +109,10 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         })
         this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(this.printer, removeExt(this.targetBasename))
+    }
+
+    protected populateImports(imports: ImportsCollector) {
+        imports.addFeature('unsafeCast', './shared/generated-utils')
     }
 
     private printComponent(peer: PeerClass | IdlPeerClass) {
@@ -158,6 +163,12 @@ export function ${componentFunctionName}(
     })
 }
 `)
+    }
+}
+
+class ArkTsComponentFileVisitor extends TSComponentFileVisitor {
+    protected populateImports(imports: ImportsCollector) {
+        imports.addFeature('TypeChecker', '#arkui')
     }
 }
 
@@ -282,8 +293,11 @@ class ComponentsVisitor {
             if (!file.peersToGenerate.length)
                 continue
             let visitor: ComponentFileVisitor
-            if ([Language.TS, Language.ARKTS].includes(this.language)) {
+            if (this.language == Language.TS) {
                 visitor = new TSComponentFileVisitor(this.peerLibrary, file)
+            }
+            else if (this.language == Language.ARKTS) {
+                visitor = new ArkTsComponentFileVisitor(this.peerLibrary, file)
             }
             else if (this.language == Language.JAVA) {
                 visitor = new JavaComponentFileVisitor(this.peerLibrary, file, this.printerContext)
