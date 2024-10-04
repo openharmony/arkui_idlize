@@ -65,16 +65,12 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
                         if (superType) {
                             writer.writeSuperCall([])
                         }
-                        /*
-                        const typeFiledName = syntheticName("type")
-                        writer.writeStatement(writer.makeAssign(`this.${typeFiledName}`, undefined, writer.makeString(`"${clazz.name}"`), false))
                         ctor.signature.args
                             .forEach((it, i) => {
                                 const argName = ctor.signature.argName(i)
                                 const fieldName = syntheticName(argName)
                                 writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
                             })
-                        */
                     })
                 })
 
@@ -407,19 +403,16 @@ function processTSBuilderClass(clazz: TSBuilderClass): TSBuilderClass {
         }
     }
 
-    // generate synthetic properties for the constructor parameters
-    // const ctorSig = constructors[0].signature
-    // const ctorFields = ctorSig.args
-    //     .map((type, i) => new Field(syntheticName(ctorSig.argName(i)), type))
+    const ctorFields = constructors.flatMap(cons => {
+        const ctorSig = cons.signature
+        return ctorSig.args.map((type, index) => new Field(syntheticName(ctorSig.argName(index)), new Type(type.name, true)))
+    })
 
     const syntheticFields = methods
         .filter(it => !it.modifiers?.includes(MethodModifier.STATIC))
         .map(it => toSyntheticField(it))
 
-    const typeField = new Field(syntheticName("type"), new Type("string"))
-    // TBD: Add type field and constructor fields for serialization
-    const fields = [...clazz.fields, ...syntheticFields]
-    //const fields = [typeField, ...clazz.fields, ...ctorFields, ...syntheticFields]
+    const fields = [...clazz.fields, ...ctorFields, ...syntheticFields]
 
     return new TSBuilderClass(
         clazz.name,

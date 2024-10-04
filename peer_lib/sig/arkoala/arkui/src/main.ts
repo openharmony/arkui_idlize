@@ -26,6 +26,7 @@ import { ArkSideBarContainerPeer } from "@arkoala/arkui/peers/ArkSidebarPeer"
 import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
 import { ArkTabContentPeer } from "@arkoala/arkui/peers/ArkTabContentPeer"
 import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleBuilder"
+import { BottomTabBarStyle } from "@arkoala/arkui/ArkBottomTabBarStyleBuilder"
 import { CanvasRenderingContext2D } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
@@ -345,17 +346,27 @@ function checkTabContent() {
     startNativeTest(checkTabContent.name, CALL_GROUP_LOG)
 
     let peer = ArkTabContentPeer.create(ArkUINodeType.TabContent)
-    let subTabBarStyle: SubTabBarStyle = new SubTabBarStyle("Resource").id("testID")
-    assertEquals("SubTabBarStyle id", "testID", subTabBarStyle._id)
+    const subTabBarStyle: SubTabBarStyle = new SubTabBarStyle("ContentResource").id("subId")
+    assertEquals("SubTabBarStyle content", "ContentResource", subTabBarStyle._content)
+    assertEquals("SubTabBarStyle id", "subId", subTabBarStyle._id)
 
-    // TBD: Check that id field is passed to native
     checkResult("new SubTabBarStyle()",
-        () => peer.tabBar1Attribute(subTabBarStyle = new SubTabBarStyle("abc")),
+        () => peer.tabBar1Attribute(subTabBarStyle),
+        `tabBar({.selector=0, .value0={._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_UNDEFINED, .value={}}, ._id={.tag=ARK_TAG_OBJECT, .value={.chars="subId", .length=5}}}})`)
+
+    checkResult("SubTabBarStyle.of()",
+        () => peer.tabBar1Attribute(SubTabBarStyle.of("content2")),
         `tabBar({.selector=0, .value0={._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_UNDEFINED, .value={}}, ._id={.tag=ARK_TAG_UNDEFINED, .value={}}}})`)
 
+    const bottomTabBarStyle: BottomTabBarStyle = new BottomTabBarStyle("Icon", "Text").padding(10).id("bottomId")
+    assertEquals("BottomTabBarStyle icon", "Icon", bottomTabBarStyle._icon)
+    assertEquals("BottomTabBarStyle text", "Text", bottomTabBarStyle._text)
+    assertEquals("BottomTabBarStyle id", "bottomId", bottomTabBarStyle._id)
+    assertEquals("BottomTabBarStyle padding", 10, bottomTabBarStyle._padding)
 
-    // TBD: check SubTabBarStyle is created from static method
-    // subTabBarStyle = SubTabBarStyle.of("Resource2")
+    checkResult("new SubTabBarStyle()",
+        () => peer.tabBar1Attribute(bottomTabBarStyle),
+        `tabBar({.selector=0, .value0={._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.type=1, .value=10.000000, .unit=1, .resource=0}}}, ._id={.tag=ARK_TAG_OBJECT, .value={.chars="bottomId", .length=8}}}})`)
 
     stopNativeTest(CALL_GROUP_LOG)
 }
