@@ -41,3 +41,7 @@ export const CJKeywords = new Set([
     'open', 'operator', 'foreign', 'inout',
     'prop', 'mut', 'unsafe', 'get', 'set'
 ])
+
+export const IDLKeywords = new Set([
+    'sequence', 'record', 'or', 'toString'
+])
