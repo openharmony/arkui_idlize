@@ -58,6 +58,7 @@ export enum LinterError {
     UNION_CONTAINS_ENUM,
     EVENT_HANDLER_WITH_FUNCTIONAL_PARAM_TYPE,
     CALLBACK_WITH_FUNCTIONAL_PARAM_TYPE,
+    CALLBACK_WITH_NON_VOID_RETURN_TYPE,
 }
 
 export interface LinterMessage {
@@ -210,9 +211,14 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         if (ts.isTypeReferenceNode(type)) {
             if (this.inParamCheck) {
                 const declarations = getDeclarationsByNode(this.typeChecker, type.typeName)
-                if (declarations.length > 0 && ts.isClassDeclaration(declarations[0])
-                    && isCommonMethodOrSubclass(this.typeChecker, declarations[0])) {
-                    this.report(type, LinterError.USE_COMPONENT_AS_PARAM, `Component ${identName(declarations[0].name)} used as parameter`)
+                if (declarations.length > 0) {
+                    const decl = declarations[0]
+                    if (ts.isClassDeclaration(decl) && isCommonMethodOrSubclass(this.typeChecker, decl)) {
+                        this.report(type, LinterError.USE_COMPONENT_AS_PARAM, `Component ${identName(decl.name)} used as parameter`)
+                    }
+                    if (ts.isInterfaceDeclaration(decl)) {
+                        this.checkCallback(type)
+                    }
                 }
             }
             if (ts.isQualifiedName(type.typeName)) {
@@ -276,6 +282,19 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         }
     }
 
+    checkCallback(type: ts.TypeReferenceNode) {
+        if ("Callback" === `${identName(type)}`) {
+            const typeArgs = type.typeArguments
+            if (typeArgs && typeArgs.length > 1) {
+                const returnType = typeArgs[1]
+                if (returnType.kind !== ts.SyntaxKind.VoidKeyword) {
+                    this.report(type, LinterError.CALLBACK_WITH_NON_VOID_RETURN_TYPE,
+                        `Callback<${typeArgs.map(it => identName(it)).join(", ")}> has non void return type`)
+                }
+            }
+        }
+    }
+
     checkHandler(type: ts.FunctionTypeNode) {
         const prop = type.parent
         const method = type.parent.parent
@@ -292,8 +311,10 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             return
         }
 
+        let clazzName: string | undefined
+
         if (ts.isClassDeclaration(clazz) || ts.isInterfaceDeclaration(clazz)) {
-            const clazzName = identName(clazz.name)
+            clazzName = identName(clazz.name)
             type.parameters.forEach(it => {
                 if (it.type && this.isInvalidHandlerParamType(it.type)) {
                     const error = ts.isClassDeclaration(clazz!) && isCommonMethodOrSubclass(this.typeChecker, clazz!)
@@ -304,6 +325,14 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
                         `Callback ${clazzName}.${memberName} has functional type for param ${paramName}`)
                 }
             })
+        }
+
+        const returnType = identName(type.type)
+        if (returnType !== "void") {
+            const params = type.parameters.map(it => `${identName(it.name)}: ${identName(it.type)}`)
+            this.report(type, LinterError.CALLBACK_WITH_NON_VOID_RETURN_TYPE,
+                `Callback ` + (clazzName ? `for member ${clazzName}.${memberName} ` : ``) +
+                `has non void return type: (${params.join(", ")}) => ${returnType}`)
         }
     }
 

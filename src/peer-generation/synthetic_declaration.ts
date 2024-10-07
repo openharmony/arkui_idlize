@@ -74,6 +74,10 @@ export function syntheticDeclarationFilename(node: ts.Declaration): string {
     throw "Declaration is not synthetic"
 }
 
+export function getSyntheticDeclarationList(): ts.Declaration[] {
+    return Array.from(syntheticDeclarations.values()).map(it => it.node)
+}
+
 export function makeSyntheticDeclarationsFiles(): Map<string, {dependencies: ImportFeature[], declarations: ts.Declaration[]}> {
     const files = new Map<string, {dependencies: ImportFeature[], declarations: ts.Declaration[]}>()
     for (const decl of syntheticDeclarations.values()) {

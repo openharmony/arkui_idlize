@@ -25,7 +25,6 @@ import { DeclarationTable } from "../DeclarationTable";
 import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { NamedMethodSignature, Type, printMethodDeclaration } from "../LanguageWriters";
 import { camelCaseToUpperSnakeCase } from "../../util";
-import { LibaceInstall } from "../../Install";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
@@ -206,7 +205,7 @@ export function printUserConverter(headerPath: string, namespace: string, apiVer
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new IndentedPrinter()
+    const structs = createLanguageWriter(Language.CPP)
     const typedefs = new IndentedPrinter()
 
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
@@ -225,7 +224,7 @@ export function printSerializers(apiVersion: string|undefined, peerLibrary: Peer
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new IndentedPrinter()
+    const structs = createLanguageWriter(Language.CPP)
     const typedefs = new IndentedPrinter()
 
     const serializers = makeCSerializers(peerLibrary, structs, typedefs)

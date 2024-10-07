@@ -156,7 +156,7 @@ export class SerializerBase {
         if (this.position > buffSize - value) {
             const minSize = this.position + value
             const resizedSize = Math.max(minSize, Math.round(3 * buffSize / 2))
-            let resizedBuffer = new KBuffer(resizedSize)
+            let resizedBuffer = new KBuffer(resizedSize as int32)
             for (let i = 0; i < this.buffer.length; i++) {
                 resizedBuffer.set(i, this.buffer.get(i))
             }
@@ -266,7 +266,7 @@ export class SerializerBase {
         } else if (valueType == RuntimeType.STRING) {
             this.writeString(value as string)
         } else if (valueType == RuntimeType.OBJECT) {
-         //   this.writeInt32((value as Resource).id as int32)
+           this.writeInt32((value as Resource).id as int32)
         }
     }
 }

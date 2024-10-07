@@ -15,10 +15,10 @@
 
 import * as ts from 'typescript'
 import { identName, Language } from '../../../util'
-import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from '../../LanguageWriters'
+import { LanguageWriter, Type, createLanguageWriter } from '../../LanguageWriters'
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
-import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from '../lang/Java'
-import { JavaEnum, printJavaEnum } from "../lang/JavaPrinters"
+import { ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, convertJavaOptional } from '../lang/Java'
+import { JavaEnum, JavaTuple, JavaUnion } from "../lang/JavaPrinters"
 import { TargetFile } from '../TargetFile'
 import { DeclarationTable, DeclarationTarget } from '../../DeclarationTable'
 import { ArkPrimitiveType } from "../../ArkPrimitiveType"
@@ -30,22 +30,17 @@ function unsupportedType(type: string): Error {
     return new Error(`Unimplemented type in java: ${type}`)
 }
 
-type MemberInfo = {
-    name: string,
-    type: Type,
-}
-
 class JavaType {
     // Java type itself
     // string representation can contain special characters (e.g. String[])
     readonly type: Type
 
-    // synthetic identifier for internal use cases: naming classes/files etc. 
+    // synthetic identifier for internal use cases: naming classes/files etc.
     // string representation contains only letters, numbers and underscores (e.g. Array_String)
     readonly alias: string
 
-    static fromTypeName(typeName: string): JavaType {
-        return new JavaType(new Type(typeName), typeName)
+    static fromTypeName(typeName: string, optional: boolean): JavaType {
+        return new JavaType(new Type(typeName, optional), optional ? convertJavaOptional(typeName) : typeName)
     }
 
     constructor(type: Type, alias: string) {
@@ -57,7 +52,7 @@ class JavaType {
 export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     // maps type name in Java (e.g. `Union_double_String`) to its definition (LanguageWriter containing `package X; class Union_double_String {...}`)
     private readonly types = new Map<Type, LanguageWriter>()
-    
+
     constructor(private readonly table: DeclarationTable, private readonly imports: ImportTable) {}
 
     getDefinitions(): Map<TargetFile, string> {
@@ -142,13 +137,6 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         return this.table.toTarget(node)
     }
 
-    private isExplicitOptional(target: DeclarationTarget) {
-        if (!(target instanceof ArkPrimitiveType)) {
-            return false
-        }
-        return target == ArkPrimitiveType.Boolean || target == ArkPrimitiveType.Number
-    }
-
     private enumName(name: ts.PropertyName): string {
         return this.table.enumName(name)
     }
@@ -162,7 +150,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         else {
             throw unsupportedType('Import:Other') //return PrimitiveType.CustomObject
         }
-        return JavaType.fromTypeName(javaTypeName)
+        return JavaType.fromTypeName(javaTypeName, false)
     }
 
     private readonly primitiveToJavaMap = new Map([
@@ -188,99 +176,51 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         ['char', 'Character'],
     ])
 
-    private primitiveToJavaType(primitiveType: ArkPrimitiveType, needReferenceType?: boolean): JavaType {
+    private primitiveToJavaType(primitiveType: ArkPrimitiveType, optional: boolean, needReferenceType?: boolean): JavaType {
         if (this.primitiveToJavaMap.has(primitiveType)) {
             let javaTypeName = this.primitiveToJavaMap.get(primitiveType)!
             if (needReferenceType && this.primitiveToReferenceTypeMap.has(javaTypeName)) {
                 javaTypeName = this.primitiveToReferenceTypeMap.get(javaTypeName)!
             }
-            return JavaType.fromTypeName(javaTypeName)
+            return JavaType.fromTypeName(javaTypeName, optional)
         }
         throw unsupportedType(`primitive type ${primitiveType.getText()}`)
     }
 
-    private optionalPrimitiveToJavaType(primitiveType: ArkPrimitiveType): JavaType {
-        if (primitiveType == ArkPrimitiveType.Boolean) {
-            const javaTypeName = `${ArkPrimitiveType.OptionalPrefix}Boolean`
-            return JavaType.fromTypeName(javaTypeName)
-        }
-        if (primitiveType == ArkPrimitiveType.Number) {
-            const javaTypeName = `${ArkPrimitiveType.OptionalPrefix}Number`
-            return JavaType.fromTypeName(javaTypeName)
-        }
-        throw new Error(`Primitive type ${primitiveType.getText()} cannot be optional`)
-    }
-
-
     private computeJavaType(target: DeclarationTarget, optional: boolean, needReferenceType?: boolean): JavaType {
         if (target instanceof ArkPrimitiveType) {
-            if (optional && this.isExplicitOptional(target)) {
-                // for now, the only explicit optionals in Java are Opt_Boolean and Opt_Number
-                return this.optionalPrimitiveToJavaType(target)
-            }
-            return this.primitiveToJavaType(target, needReferenceType)
+            return this.primitiveToJavaType(target, optional, needReferenceType)
         }
         if (ts.isTypeLiteralNode(target)) {
             throw unsupportedType(`TypeLiteralNode`)
-            /*if (target.members.some(ts.isIndexSignatureDeclaration)) {
-                // For indexed access we just replace the whole type to a custom accessor.
-                return `CustomMap`
-            }
-            return `Literal_${target.members.map(member => {
-                if (ts.isPropertySignature(member)) {
-                    let target = this.table.toTarget(member.type!)
-                    let field = identName(member.name)
-                    return `${field}_${this.computeJavaType(target, member.questionToken != undefined)}`
-                } else {
-                    return undefined
-                }
-            })
-                .filter(it => it != undefined)
-                .join('_')}`*/
+
         }
         if (ts.isLiteralTypeNode(target)) {
             throw unsupportedType(`LiteralTypeNode`)
-            /*const literal = target.literal
-            if (ts.isStringLiteral(literal) || ts.isNoSubstitutionTemplateLiteral(literal) || ts.isRegularExpressionLiteral(literal)) {
-                return PrimitiveType.String.getText()
-            }
-            if (ts.isNumericLiteral(literal)) {
-                return PrimitiveType.Number.getText()
-            }
-            if (literal.kind == ts.SyntaxKind.NullKeyword) {
-                // TODO: Is it correct to have undefined for null?
-                return PrimitiveType.Undefined.getText()
-            }*/
         }
         if (ts.isTemplateLiteralTypeNode(target)) {
             throw unsupportedType(`TemplateLiteralTypeNode`)
-            // TODO: likely incorrect
-            // return PrimitiveType.String.getText()
         }
         if (ts.isTypeParameterDeclaration(target)) {
             throw unsupportedType(`TypeParameterDeclaration`)
-            // TODO: likely incorrect
-            // return PrimitiveType.CustomObject.getText()
         }
         if (ts.isEnumDeclaration(target)) {
             const enumName = this.enumName(target.name)
-            return JavaType.fromTypeName(enumName)
+            return JavaType.fromTypeName(enumName, false)
         }
         if (ts.isUnionTypeNode(target)) {
             const memberTypes = target.types.map(it => this.computeJavaType(this.toTarget(it), false))
             const unionName = `Union_${memberTypes.map(it => it.alias, false).join('_')}`
-            return JavaType.fromTypeName(unionName)
+            return JavaType.fromTypeName(unionName, optional)
         }
         if (ts.isInterfaceDeclaration(target) || ts.isClassDeclaration(target)) {
             let name = identName(target.name)
             if (name == 'Function')
                 throw unsupportedType(`InterfaceDeclaration/ClassDeclaration:Function`)
-                //return PrimitiveType.Function.getText()
-            return JavaType.fromTypeName(name ?? '')
+            return JavaType.fromTypeName(name ?? '', optional)
         }
         if (ts.isFunctionTypeNode(target)) {
             throw unsupportedType(`FunctionTypeNode`)
-            // return PrimitiveType.Function.getText()
         }
         if (ts.isTupleTypeNode(target)) {
             const elementTypes = target.elements.map(it => {
@@ -291,7 +231,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 }
             })
             const tupleName = `Tuple_${elementTypes.map(it => it.alias, false).join('_')}`
-            return JavaType.fromTypeName(tupleName)
+            return JavaType.fromTypeName(tupleName, optional)
         }
         if (ts.isArrayTypeNode(target)) {
             const arrayElementType = this.computeJavaType(this.toTarget(target.elementType), false)
@@ -306,11 +246,9 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         }
         if (ts.isParenthesizedTypeNode(target)) {
             throw unsupportedType(`ParenthesizedTypeNode`)
-            // return this.computeTargetName(this.toTarget(target.type), optional)
         }
         if (ts.isEnumMember(target)) {
             throw unsupportedType(`EnumMember`)
-            // return this.computeTargetName((target as any).parent as DeclarationTarget, optional)
         }
         if (ts.isTypeReferenceNode(target)) {
             let name = identName(target.typeName)
@@ -336,96 +274,36 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
     private printUnionImplementation(sourceType: ts.UnionTypeNode, javaType: JavaType, writer: LanguageWriter) {
-        const membersInfo: MemberInfo[] = sourceType.types.map((subType, index) => {
-            return {name: `value${index}`, type: this.getTargetType(this.toTarget(subType), false)}
-        })
-
-        this.imports.printImportsForTypes(membersInfo.map(it => it.type), writer)
-
-        writer.writeClass(javaType.alias, () => {
-            const intType = new Type('int')
-            const selector = 'selector'
-            writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
-            writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
-                writer.writeStatement(
-                    writer.makeReturn(
-                        writer.makeString(selector)
-                    )
-                )
-            })
-
-            const param = 'param'
-            for (const [index, memberInfo] of membersInfo.entries()) {
-                writer.writeFieldDeclaration(memberInfo.name, memberInfo.type, [FieldModifier.PRIVATE], false)
-
-                writer.writeConstructorImplementation(
-                    javaType.alias,
-                    new NamedMethodSignature(Type.Void, [memberInfo.type], [param]),
-                    () => {
-                        writer.writeStatement(
-                            writer.makeAssign(memberInfo.name, undefined, writer.makeString(param), false)
-                        )
-                        writer.writeStatement(
-                            writer.makeAssign(selector, undefined, writer.makeString(index.toString()), false)
-                        )
-                    }
-                )
-
-                writer.writeMethodImplementation(
-                    new Method(`getValue${index}`, new MethodSignature(memberInfo.type, []), [MethodModifier.PUBLIC]),
-                    () => {
-                        writer.writeStatement(
-                            writer.makeReturn(
-                                writer.makeString(memberInfo.name)
-                            )
-                        )
-                    }
-                )
-            }
-        }, ARK_OBJECTBASE)
+        const memberTypes = sourceType.types.map(subType => this.getTargetType(this.toTarget(subType), false))
+        const imports = this.imports.getImportsForTypes(memberTypes).map(it => { return {feature: it, module: ''} })
+        const javaUnion = new JavaUnion(sourceType, javaType.alias, memberTypes, imports)
+        javaUnion.print(writer)
     }
 
     private printTupleImplementation(sourceType: ts.TupleTypeNode, javaType: JavaType, writer: LanguageWriter) {
-        const membersInfo: MemberInfo[] = sourceType.elements.map((subType, index) => {
-            return {name: `value${index}`, type: this.getTargetType(this.toTarget(subType), false)}
+        const memberTypes = sourceType.elements.map(subType => {
+            return this.getTargetType(this.toTarget(subType), ts.isNamedTupleMember(subType) ? subType.questionToken != undefined : false)
         })
-
-        const argTypes: Type[] = membersInfo.map(it => it.type)
-        const memberNames: string[] = membersInfo.map(it => it.name)
-        this.imports.printImportsForTypes(argTypes, writer)
-
-        writer.writeClass(javaType.alias, () => {
-            for (const memberInfo of membersInfo) {
-                writer.writeFieldDeclaration(memberInfo.name, memberInfo.type, [FieldModifier.PUBLIC], false)
-            }
-
-            const signature = new MethodSignature(Type.Void, argTypes)
-            writer.writeConstructorImplementation(javaType.alias, signature, () => {
-                for (let i = 0; i < memberNames.length; i++) {
-                    writer.writeStatement(
-                        writer.makeAssign(memberNames[i], argTypes[i], writer.makeString(signature.argName(i)), false)
-                    )
-                }
-            })
-        }, ARK_OBJECTBASE)
+        const imports = this.imports.getImportsForTypes(memberTypes).map(it => { return {feature: it, module: ''} })
+        const javaTuple = new JavaTuple(sourceType, javaType.alias, memberTypes, imports)
+        javaTuple.print(writer)
     }
 
     private printEnumImplementation(sourceType: ts.EnumDeclaration, javaType: JavaType, writer: LanguageWriter) {
-        const members: {name: string, id: number}[] = []
-        let memberValue = 0
+        const members: {name: string, id: string | number | undefined}[] = []
         for (const member of sourceType.members) {
+            let id: string | number | undefined
             if (member.initializer) {
                 if (ts.isNumericLiteral(member.initializer)) {
-                    memberValue = parseInt(member.initializer.getText())
+                    id = parseInt(member.initializer.getText())
                 }
                 else {
-                    throw new Error(`This type of enum member inititalizer is not supported yet in Java: ${member.initializer.getFullText()}`)
+                    id = member.initializer.getText()
                 }
             }
-            members.push({name: member.name.getText(), id: memberValue})
-            memberValue += 1
+            members.push({name: member.name.getText(), id: id})
         }
-        const javaEnum = new JavaEnum(javaType.alias, members)
-        printJavaEnum(javaEnum, writer)
+        const javaEnum = new JavaEnum(sourceType, javaType.alias, members)
+        javaEnum.print(writer)
     }
 }

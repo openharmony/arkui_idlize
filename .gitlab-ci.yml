@@ -20,16 +20,6 @@ variables:
         - npm i --no-audit --no-fund
 
 
-pg check peers dts:
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - !reference [.setup, script]
-  script:
-    - npm run check:peers:dts
-
 idlize sanity:
   stage: test
   tags:

@@ -117,23 +117,10 @@ can be passed with `--linter-whitelist whitelist.json`.
 cd idlize
 npm i
 npm run compile
-node . --dts2idl --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/component
+node . --dts2idl --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/component --output-dir ./idl
 ```
 
 Results are in `./idl/` folder.
-
-### C headers generator
-
- Tool producing set of C interface definitions from .d.ts interface definitions.
- Still in progress, will produce incorrect C now.
-
-```bash
-cd idlize
-npm i
-npm run compile
-node . --idl2h --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/component
-```
-Results are in `./headers/arkoala_api.h`.
 
 ### Typescript declaration files generator
 
@@ -143,22 +130,7 @@ Tool producing set of typescript declaration files from .idl interface definitio
 cd idlize
 npm i
 npm run compile
-node . --idl2dts --input-dir ./test/from-idl/idl
+node . --idl2dts --input-dir ./test/from-idl/idl --output-dir ./dts
 ```
-By default, results are in `./dts`.
 
-### Tests
-
-Use the `IDLIZE_SEED` environment variable to set a predefined seed for the random generator used in tests.
-Set the `IDLIZE_SEED` environment variable to `RANDOM` to use a random seed.
-
-Configure and run the subset fuzzing tests:
-```bash
-npm run configure:native-node-host-subset
-npm run check:subset:fuzz
-```
-To test a specific test or method in fuzzing tests use `--test-interface` and `--test-method`
-options in the `check:subset:fuzz` task:
-```bash
-node . --dts2test --input-dir ./tests/subset/ets  --output-dir ./generated/fuzz --test-interface Test --test-method testBoolean
-```
+Results are in `./dts` folder.

@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+
+// WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
+
 package org.koalaui.arkoala;
 
 import java.util.concurrent.LinkedBlockingDeque;

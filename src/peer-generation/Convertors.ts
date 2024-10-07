@@ -190,6 +190,107 @@ export class EnumConvertor extends BaseArgConvertor {
     }
 }
 
+export class LengthConvertorScoped extends BaseArgConvertor {
+    constructor(name: string, param: string, language: Language) {
+        super(name,
+            [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT],
+            false,
+            language == Language.ARKTS,
+            param)
+    }
+    scopeStart(param: string): string {
+        return `withLengthArray(${param}, (${param}Ptr) => {`
+    }
+    scopeEnd(param: string): string {
+        return '})'
+    }
+    convertorArg(param: string, writer: LanguageWriter): string {
+        return param
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.writeStatement(
+            printer.makeStatement(
+                printer.makeMethodCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
+            )
+        )
+    }
+    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+        return printer.makeAssign(value, undefined,
+            printer.makeString(`${param}Deserializer.readLength()`), false)
+    }
+    nativeType(impl: boolean): string {
+        return ArkPrimitiveType.Length.getText()
+    }
+    interopType(language: Language): string {
+        switch (language) {
+            case Language.CPP: return ArkPrimitiveType.ObjectHandle.getText()
+            case Language.TS: case Language.ARKTS: return 'object'
+            case Language.JAVA: return 'Object'
+            case Language.CJ: return 'Object'
+            default: throw new Error("Unsupported language")
+        }
+    }
+    isPointerType(): boolean {
+        return true
+    }
+}
+
+export class LengthConvertor extends BaseArgConvertor {
+    constructor(name: string, param: string, language: Language) {
+        super(name,
+            [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT],
+            false,
+            language == Language.ARKTS,
+            param)
+    }
+    convertorArg(param: string, writer: LanguageWriter): string {
+        switch (writer.language) {
+            case Language.CPP: return `(const ${ArkPrimitiveType.Length.getText()}*)&${param}`
+            case Language.JAVA: return `${param}.value`
+            case Language.CJ: return `${param}.value`
+            default: return param
+        }
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.writeStatement(
+            printer.makeStatement(
+                printer.makeMethodCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
+            )
+        )
+    }
+    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+        const receiver = printer.getObjectAccessor(this, value)
+        return printer.makeAssign(receiver, undefined,
+            printer.makeCast(
+                printer.makeString(`${param}Deserializer.readLength()`),
+                printer.makeType(this.tsTypeName, false, receiver), false), false)
+    }
+    nativeType(impl: boolean): string {
+        return ArkPrimitiveType.Length.getText()
+    }
+    interopType(language: Language): string {
+        switch (language) {
+            case Language.CPP: return 'KLength'
+            case Language.TS: case Language.ARKTS: return 'string|number|object'
+            case Language.JAVA: return 'String'
+            case Language.CJ: return 'String'
+            default: throw new Error("Unsupported language")
+        }
+    }
+    isPointerType(): boolean {
+        return true
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return writer.makeNaryOp("||", [
+            writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.NUMBER), writer.makeString(`${value}_type`)]),
+            writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.STRING), writer.makeString(`${value}_type`)]),
+            writer.makeNaryOp("&&", [
+                writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeString(`${value}_type`)]),
+                writer.makeCallIsResource(value)
+            ])])
+    }
+}
+
 export class UnionConvertor extends BaseArgConvertor {
     private memberConvertors: ArgConvertor[]
     private unionChecker: UnionRuntimeTypeChecker
@@ -456,8 +557,11 @@ export class AggregateConvertor extends BaseArgConvertor {
         return this.members.map(it => it[0])
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        if (writer.language === Language.ARKTS)
-            return makeInterfaceTypeCheckerCall(value, this.aliasName!, this.members.map(it => it[0]), duplicates, writer)
+        if (writer.language === Language.ARKTS) {
+            return makeInterfaceTypeCheckerCall(value,
+                this.aliasName !== undefined ? this.aliasName : this.tsTypeName,
+                this.members.map(it => it[0]), duplicates, writer)
+        }
         const uniqueFields = this.members.filter(it => !duplicates.has(it[0]))
         return this.discriminatorFromFields(value, writer, uniqueFields, it => it[0], it => it[1])
     }

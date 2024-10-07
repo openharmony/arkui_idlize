@@ -34,7 +34,7 @@ import {
 } from "../LanguageWriters";
 import { MaterializedMethod } from "../Materialized";
 import { tsCopyrightAndWarning } from "../FileGenerators";
-import { ARK_MATERIALIZEDBASE_EMPTY_PARAMETER, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -42,6 +42,8 @@ import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerFile } from "../idl/IdlPeerFile";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
+import { collectJavaImports } from "./lang/JavaIdlUtils";
+import { printJavaImports } from "./lang/JavaPrinters";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -166,7 +168,7 @@ class PeerFileVisitor {
 
     protected printPeerMethod(method: PeerMethod | IdlPeerMethod, printer: LanguageWriter) {
         this.library.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
-        writePeerMethod(printer, method, this.printerContext, this.dumpSerialized, "Attribute", "this.peer.ptr")
+        writePeerMethod(printer, method, method instanceof IdlPeerMethod, this.printerContext, this.dumpSerialized, "Attribute", "this.peer.ptr")
         this.library.setCurrentContext(undefined)
     }
 
@@ -235,8 +237,8 @@ class PeerFileVisitor {
 
 class JavaPeerFileVisitor extends PeerFileVisitor {
     constructor(
-        protected readonly library: PeerLibrary,
-        protected readonly file: PeerFile,
+        protected readonly library: PeerLibrary | IdlPeerLibrary,
+        protected readonly file: PeerFile | IdlPeerFile,
         printerContext: PrinterContext,
         dumpSerialized: boolean,
     ) {
@@ -249,7 +251,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
         }
     }
 
-    protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
+    protected printApplyMethod(peer: PeerClass | IdlPeerClass, printer: LanguageWriter) {
         // TODO: attributes
         // const name = peer.originalClassName!
         // const typeParam = componentToAttributesClass(peer.componentName)
@@ -266,17 +268,26 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
     }
 
     printFile(): void {
+        const isIDL = this.library instanceof IdlPeerLibrary
         this.file.peers.forEach(peer => {
             let printer = createLanguageWriter(this.library.language)
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ARKOALA_PACKAGE_PATH), printer)
 
-            const allTypesInPeer = peer.methods.flatMap((method) => {
-                return method.declarationTargets.map(target => this.printerContext.synthesizedTypes!.getTargetType(target, false))
-            })
-
             this.printPackage(printer)
-            this.printerContext.imports?.printImportsForTypes(allTypesInPeer, printer)
+
+            if (isIDL) {
+                const idlPeer = peer as IdlPeerClass
+                const imports = collectJavaImports(idlPeer.methods.flatMap(method => method.declarationTargets))
+                printJavaImports(printer, imports)
+            }
+            else {
+                const allTypesInPeer = (peer as PeerClass).methods.flatMap((method) => {
+                    return method.declarationTargets.map(target => this.printerContext.synthesizedTypes!.getTargetType(target, false))
+                })
+                this.printerContext.imports?.printImportsForTypes(allTypesInPeer, printer)
+            }
+
             this.printPeer(peer, printer)
 
             // TODO: attributes
@@ -340,7 +351,7 @@ class PeersVisitor {
             if (!file.peersToGenerate.length)
                 continue
             const visitor = this.printerContext.language == Language.JAVA
-                ? new JavaPeerFileVisitor(this.library as PeerLibrary, file as PeerFile, this.printerContext, this.dumpSerialized)
+                ? new JavaPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
                 : this.printerContext.language == Language.CJ
                     ? new CJPeerFileVisitor(this.library as PeerLibrary, file as PeerFile, this.printerContext, this.dumpSerialized)
                     : new PeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
@@ -380,27 +391,28 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
     })
 }
 
-export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | IdlPeerMethod, printerContext: PrinterContext, dumpSerialized: boolean,
+export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | IdlPeerMethod, isIDL: boolean, printerContext: PrinterContext, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: Type = Type.Void, generics?: string[]
 ) {
-    const isTsLike = [Language.ARKTS, Language.TS].includes(printerContext.language)
-    const isJava = printerContext.language == Language.JAVA
+    const isTsLike = [Language.ARKTS, Language.TS].includes(printer.language)
+    const isJava = printer.language == Language.JAVA
     const isCJ = printerContext.language == Language.CJ
 
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod: Method
-    if (isTsLike) {
+    if (isTsLike || (isJava && isIDL)) {
         peerMethod = new Method(
             `${method.overloadedName}${methodPostfix}`,
             new NamedMethodSignature(returnType, signature.args, signature.argsNames),
             method.method.modifiers, method.method.generics)
     }
     else if (isJava) {
+        // TODO: remove after switching to IDL
         const args = (method as PeerMethod).declarationTargets.map((declarationTarget, index) => {
             return printerContext.synthesizedTypes!.getTargetType(declarationTarget, signature.args[index].nullable)
         })
         peerMethod = new Method(
-            `${method.method.name}${methodPostfix}`,
+            `${method.overloadedName}${methodPostfix}`,
             new NamedMethodSignature(returnType, args, signature.argsNames),
             method.method.modifiers, method.method.generics)
     }
@@ -479,7 +491,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
         // TODO: refactor
         if (returnType != Type.Void) {
             let result: LanguageStatement[] = [writer.makeReturn(writer.makeString(returnValName))]
-            if (method.hasReceiver() && returnType === Type.This) {
+            if (returnsThis(method, returnType)) {
                 result = [writer.makeReturn(writer.makeString("this"))]
             } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
                 // const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
@@ -501,6 +513,11 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
             }
         }
     })
+}
+
+function returnsThis(method: PeerMethod | IdlPeerMethod, returnType: Type) {
+    return method.hasReceiver() &&
+        (returnType === Type.This || returnType.name === method.originalParentName)
 }
 
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,

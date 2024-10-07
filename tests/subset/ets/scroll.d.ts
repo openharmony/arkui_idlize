@@ -34,6 +34,10 @@ declare class Scroller {
 
     animation?: ScrollAnimationOptions | boolean;
   });
+
+  scrollPage(value: { next: boolean });
+
+  scrollPage(value: { next: boolean; direction?: Axis });
 }
 
 interface ScrollInterface {

@@ -23,6 +23,7 @@ export const ARK_OBJECTBASE = 'Ark_ObjectBase'
 export const ARK_BASE = 'ArkBase'
 export const ARK_UI_NODE_TYPE = 'ArkUINodeType'
 export const ARK_MATERIALIZEDBASE = 'Ark_MaterializedBase'
+export const ARK_CUSTOM_OBJECT = 'Ark_CustomObject'
 export const ARK_MATERIALIZEDBASE_EMPTY_PARAMETER = `${ARK_MATERIALIZEDBASE}.EmptyParameter`
 export const INT_VALUE_GETTER = 'IntValueGetter'
 export const COMPONENT_BASE = 'ComponentBase'
@@ -30,3 +31,19 @@ export const COMPONENT_BASE = 'ComponentBase'
 function getPackagePath(javaPackage: string): string {
     return javaPackage.replaceAll('.', '/')
 }
+
+export function convertJavaOptional(type: string) {
+    switch (type) {
+        case 'boolean': return 'Opt_Boolean'
+        case 'double': return 'Opt_Number'
+        default: return type
+    }
+}
+
+export const javaCustomTypeMapping = new Map<string, string>([
+    ['Dimension', 'Ark_Length'],
+    ['Length', 'Ark_Length'],
+    ['ContentModifier', ARK_CUSTOM_OBJECT],
+    ['Date', ARK_CUSTOM_OBJECT],
+    ['Optional', 'Optional'],
+])

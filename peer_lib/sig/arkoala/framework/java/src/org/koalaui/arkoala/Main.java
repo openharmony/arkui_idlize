@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+
+// WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
+
 package org.koalaui.arkoala;
 
 import java.time.Duration;
@@ -100,21 +103,26 @@ public class Main {
             "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=5}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})");
 
         // union
-        var blankPeer = ArkBlankPeer.create(ArkUINodeType.Blank, null, 0);
-        TestUtils.checkResult("[Union] BlankPeer.color",
-            () -> { blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(5.5)); },
-            "color({.selector=1, .value1={.tag=103, .f32=5.50}})");
-        TestUtils.checkResult("[Union + Enum] BlankPeer.color",
-            () -> { blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(Ark_Color.White)); },
-            "color({.selector=0, .value0=Ark_Color(0)})");
+        labelStyle.maxLines = null;
+        labelStyle.font = new Font();
+        labelStyle.font.weight = new Union_Ark_FontWeight_double_String("param");
+        TestUtils.checkResult("[Union] ButtonPeer.labelStyle",
+            () -> { buttonPeer.labelStyleAttribute(labelStyle); },
+            "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=2, .value2={.chars=\"param\", .length=5}}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
+        labelStyle.font.weight = new Union_Ark_FontWeight_double_String(Ark_FontWeight.Bold);
+        TestUtils.checkResult("[Union + Enum] ButtonPeer.labelStyle",
+            () -> { buttonPeer.labelStyleAttribute(labelStyle); },
+            "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=Ark_FontWeight(4)}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
         var resource = new Resource();
         resource.id = 10;
         resource.type = 2000;
         resource.moduleName = "module_name";
         resource.bundleName = "bundle_name";
-        TestUtils.checkResult("[Union + Resource] BlankPeer.color",
-            () -> { blankPeer.colorAttribute(new Union_Ark_Color_double_String_Resource(resource)); },
-            "color({.selector=3, .value3={.id={.tag=102, .i32=10}, .type={.tag=102, .i32=2000}, .moduleName={.chars=\"module_name\", .length=11}, .bundleName={.chars=\"bundle_name\", .length=11}, .params={.tag=ARK_TAG_UNDEFINED, .value={}}}})");
+        labelStyle.font.weight = null;
+        labelStyle.font.family = new Union_String_Resource(resource);
+        TestUtils.checkResult("[Union + Resource] ButtonPeer.labelStyle",
+            () -> { buttonPeer.labelStyleAttribute(labelStyle); },
+            "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_UNDEFINED, .value={}}, .family={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.id={.tag=102, .i32=10}, .type={.tag=102, .i32=2000}, .moduleName={.chars=\"module_name\", .length=11}, .bundleName={.chars=\"bundle_name\", .length=11}, .params={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
 
         // tuple
         var peer = ArkTestPeer.create(ArkUINodeType.Test, null, 0);
@@ -157,9 +165,10 @@ public class Main {
         dragPreviewOptions.numberBadge = new Union_boolean_double(false);
         var dragInteractionOptions = new DragInteractionOptions();
         dragInteractionOptions.defaultAnimationBeforeLifting = new Opt_Boolean(true);
+        // this test is expected to fail in case of generation from d.ts
         TestUtils.checkResult("[Array + Interface + Union] ButtonPeer.dragPreviewOptions",
             () -> { buttonPeer.dragPreviewOptionsAttribute(dragPreviewOptions, dragInteractionOptions); },
-            "dragPreviewOptions({.mode={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.array=allocArray<enum Ark_DragPreviewMode, 2>({{Ark_DragPreviewMode(2), Ark_DragPreviewMode(4)}}), .length=2}}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=false}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_OBJECT, .value=true}}})");
+            "dragPreviewOptions({.mode={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.array=allocArray<Ark_DragPreviewMode, 2>({{Ark_DragPreviewMode(2), Ark_DragPreviewMode(4)}}), .length=2}}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=false}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_OBJECT, .value=true}}})");
 
         // map
         var dataInfo = new NativeEmbedDataInfo();

@@ -19,7 +19,6 @@ import { ArkPrimitiveType } from "./ArkPrimitiveType"
 import { Language, camelCaseToUpperSnakeCase } from "../util"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { PeerEventKind } from "./printers/EventsPrinter"
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
 import { PeerLibrary } from "./PeerLibrary"
@@ -88,15 +87,22 @@ import {
 } from "@koalaui/interop"
 `.trim()
 
-export function nativeModuleDeclaration(methods: LanguageWriter, nativeBridgePath: string, useEmpty: boolean, language: Language, nativeMethods?: LanguageWriter): string {
+export function nativeModuleDeclaration(methods: LanguageWriter, predefinedMethods: Map<string, LanguageWriter>, nativeBridgePath: string, useEmpty: boolean, language: Language, nativeMethods?: LanguageWriter): string {
+    
+    let text = readLangTemplate("NativeModule_template" + language.extension, language)
+        .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
+        .replace("%USE_EMPTY%", useEmpty.toString())
+        .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))
+        .replaceAll("%GENERATED_NATIVE_FUNCTIONS%", nativeMethods ? nativeMethods.getOutput().join('\n') : "")
+    
+    for (const [title, printer] of predefinedMethods) {
+        text = text.replaceAll(`%GENERATED_PREDEFINED_${title}%`, printer.getOutput().join('\n'))
+    }
+    
     return `
   ${language == Language.TS ? importTsInteropTypes : ""}
 
-${readLangTemplate("NativeModule_template", language)
-    .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
-    .replace("%USE_EMPTY%", useEmpty.toString())
-    .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))
-    .replaceAll("%GENERATED_NATIVE_FUNCTIONS%", nativeMethods ? nativeMethods.getOutput().join('\n') : "")}
+${text}
 `
 }
 
@@ -293,7 +299,7 @@ export function makeCJSerializer(library: PeerLibrary): LanguageWriter {
 }
 
 export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
-    const converter = createLanguageWriter(Language.CPP) as CppLanguageWriter
+    const converter = new CppLanguageWriter(new IndentedPrinter())
     converter.writeLines(cStyleCopyright)
     converter.writeLines(`/*
  * ${warning}
@@ -325,7 +331,7 @@ export function makeConverterHeader(path: string, namespace: string, library: Pe
     return converter
 }
 
-export function makeCSerializers(library: PeerLibrary | IdlPeerLibrary, structs: IndentedPrinter, typedefs: IndentedPrinter): string {
+export function makeCSerializers(library: PeerLibrary | IdlPeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
     const serializers = createLanguageWriter(Language.CPP)
     const writeToString = createLanguageWriter(Language.CPP)
@@ -434,15 +440,14 @@ function readTemplate(name: string): string {
     return template
 }
 
-function readLangTemplate(name: string, lang: Language): string {
-    return fs.readFileSync(path.join(__dirname, `../templates/${lang.directory}/${name + lang.extension}`), 'utf8')
+export function readLangTemplate(name: string, lang: Language): string {
+    return fs.readFileSync(path.join(__dirname, `../templates/${lang.directory}/${name}`), 'utf8')
 }
-
 
 export function makeAPI(
     apiVersion: string,
     headers: string[], modifiers: string[], accessors: string[], events: string[], nodeTypes: string[],
-    structs: IndentedPrinter, typedefs: IndentedPrinter
+    structs: LanguageWriter, typedefs: IndentedPrinter
 ): string {
 
     let prologue = readTemplate('arkoala_api_prologue.h')
@@ -518,7 +523,7 @@ export function makeArkuiModule(componentsFiles: string[]): string {
 }
 
 export function makeMaterializedPrologue(lang: Language): string {
-    let prologue = readLangTemplate('materialized_class_prologue', lang)
+    let prologue = readLangTemplate('materialized_class_prologue' + lang.extension, lang)
     return `
 ${prologue}
 

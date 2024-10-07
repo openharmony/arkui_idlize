@@ -20,7 +20,8 @@ import {
     createTypeParameterReference, createUnionType, IDLCallable, IDLCallback, IDLConstant, IDLConstructor,
     IDLEntity, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLTopType, IDLType, IDLTypedef,
     IDLAccessorAttribute, IDLExtendedAttributes, getExtAttribute, IDLPackage, IDLImport,
-    IDLStringType, IDLNumberType, IDLUndefinedType, IDLNullType, IDLVoidType, IDLAnyType, IDLBooleanType, IDLBigintType
+    IDLStringType, IDLNumberType, IDLUndefinedType, IDLNullType, IDLVoidType, IDLAnyType, IDLBooleanType, IDLBigintType,
+    isContainerType
 } from "./idl"
 import {
     asString, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameOrNull, stringOrNone
@@ -29,6 +30,7 @@ import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { OptionValues } from "commander"
 import { typeOrUnion } from "./peer-generation/idl/common"
+import { IDLKeywords } from "./languageSpecificKeywords"
 
 const typeMapper = new Map<string, string>(
     [
@@ -41,6 +43,14 @@ const typeMapper = new Map<string, string>(
         ["\"auto\"", "string"]
     ]
 )
+
+function escapeIdl(name: string): string {
+    if (IDLKeywords.has(name))
+        return `${name}_`
+    else
+        return name
+}
+
 
 export class CompileContext {
     typeNames: Set<string> = new Set()
@@ -59,7 +69,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private output: IDLEntry[] = []
     private currentScope:  IDLEntry[] = []
     scopes: IDLEntry[][] = []
-    imports: string[] = [ "org.arkui.Base" ]
+    imports: IDLImport[] = []
     exports: string[] = []
     namespaces: string[] = []
     globalConstants: IDLConstant[] = []
@@ -117,17 +127,19 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         let header = []
         const packageInfo: IDLPackage = {
             kind: IDLKind.Package,
-            name: "org.openharmony.arkui"
+            name: this.detectPackageName(this.sourceFile),
         }
         header.push(packageInfo)
-        this.imports.forEach(it => {
-            const importStatement: IDLImport = {
-                kind: IDLKind.Import,
-                name: it
-            }
-            header.push(importStatement)
-        })
+        this.imports.forEach(it => header.push(it))
         this.output.splice(0, 0, ... header)
+    }
+
+    detectPackageName(sourceFile: ts.SourceFile): string {
+        let ns = sourceFile.statements.find(it => ts.isModuleDeclaration(it)) as ts.ModuleDeclaration
+        if (ns) {
+            return `${ns.name.text}`
+        }
+        return "arkui"
     }
 
     /** visit nodes finding exported classes */
@@ -156,10 +168,18 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         } else if (ts.isVariableStatement(node)) {
             this.globalConstants.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
         } else if (ts.isImportDeclaration(node)) {
-            this.imports.push(node.getText())
+            this.imports.push(this.serializeImport(node))
         } else if (ts.isExportDeclaration(node)) {
             this.exports.push(node.getText())
         }
+    }
+
+    serializeImport(node: ts.ImportDeclaration): IDLImport {
+        const result: IDLImport = {
+            kind: IDLKind.Import,
+            name: node.moduleSpecifier.getText().replaceAll('"', '').replaceAll("'", ""),
+        }
+        return result
     }
 
     serializeAmbientModuleDeclaration(node: ts.ModuleDeclaration): IDLModuleType {
@@ -681,6 +701,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             const types = type.types
                 .map((it, index) => this.serializeType(it, `${nameSuggestion}_${index}`))
                 .reduce<IDLType[]>((uniqueTypes, it) => uniqueTypes.concat(uniqueTypes.includes(it) ? []: [it]), [])
+            let aPromise = types.find(it => isContainerType(it) && it.name == "Promise")
+            if (aPromise) {
+                console.log(`WARNING: ${type.getText()} is a union of Promises. This is not supported by the IDL.`)
+                return aPromise
+            }
+            if (types.find(it => it.name == "any")) return IDLAnyType
             return typeOrUnion(types)
         }
         if (ts.isIntersectionTypeNode(type)) {
@@ -707,6 +733,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             let isEnum = ts.isEnumDeclaration(declaration[0])
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
             const transformedType = typeMapper.get(rawType) ?? rawType
+            // TODO: support Record here as well.
             if (rawType == "Array" || rawType == "Promise" || rawType == "Map") {
                 return createContainerType(transformedType, type.typeArguments!.map((it, index) => this.serializeType(it, `${nameSuggestion}_Param${index}`)))
             }
@@ -897,7 +924,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const name = nameOrNull(parameter.name)!
         return {
             kind: IDLKind.Parameter,
-            name: name,
+            name: escapeIdl(name),
             type: this.serializeType(parameter.type, `${namePrefix}_${name}`),
             isVariadic: !!parameter.dotDotDotToken,
             isOptional: !!parameter.questionToken
@@ -1036,7 +1063,7 @@ function sanitize(type: stringOrNone): stringOrNone {
 function escapeName(name: string) : [string, string] {
     if (name.startsWith("$")) return [name, name.replace("$", "dollar_")]
     if (name.startsWith("_")) return [name, name.replace("_", "bottom_")]
-    return [name, name]
+    return [name, escapeIdl(name)]
 }
 
 function escapeAmbientModuleContent(sourceFile: ts.SourceFile, node: ts.Node) : string {

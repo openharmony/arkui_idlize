@@ -17,28 +17,32 @@ import * as idl from '../../idl'
 import { BuilderClass } from '../BuilderClass';
 import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
-import { IdlPeerClass } from "./IdlPeerClass";
 import { IdlPeerFile } from "./IdlPeerFile";
-import { TSTypeNameConvertor } from './IdlNameConvertor';
+import { IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
-import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, cppEscape, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArgConvertor, ArrayConvertor, BooleanConvertor, CallbackFunctionConvertor, ClassConvertor, CustomTypeConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, LengthConvertor, MapConvertor, MaterializedClassConvertor, NullConvertor, NumberConvertor, OptionConvertor, PredefinedConvertor, StringConvertor, TupleConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';
-import { LanguageWriter } from '../LanguageWriters';
+import { LanguageWriter, MethodSignature, Type } from '../LanguageWriters';
 import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { Library } from '../../Library';
 import { DeclarationProcessor } from '../../DeclarationProcessor';
-import { ArgConvertor, BooleanConvertor, UndefinedConvertor, CustomTypeConvertor, LengthConvertor, LengthConvertorScoped, NumberConvertor, PredefinedConvertor, NullConvertor } from '../ArgConvertors';
 
-export type IdlPeerLibraryOutput = {
-    outputC: string[]
+function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor {
+    const language = library.language
+    if ([Language.TS, Language.ARKTS].includes(language))
+        return new TSTypeNameConvertor(library)
+    if (language == Language.JAVA)
+        return new JavaTypeNameConvertor(library)
+    throw new Error(`Convertor from IDL to ${language} not implemented`)
 }
 
 export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcessor<idl.IDLType, idl.IDLEntry> {
+    public readonly predefinedFiles: IdlPeerFile[] = []
     public readonly files: IdlPeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {
@@ -49,6 +53,8 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
     public get materializedToGenerate(): MaterializedClass[] {
         return Array.from(this.materializedClasses.values()).filter(it => it.needBeGenerated)
     }
+
+    public readonly predefinedDeclarations: idl.IDLInterface[] = []
 
     constructor(
         public language: Language,
@@ -61,7 +67,7 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
     readonly importTypesStubToSource: Map<string, string> = new Map()
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
-    readonly nameConvertorInstance = new TSTypeNameConvertor(this)
+    readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this)
 
     private context: string | undefined
     getCurrentContext(): string | undefined {
@@ -69,14 +75,6 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
     }
     setCurrentContext(context: string | undefined) {
         this.context = context
-    }
-
-    findPeerByComponentName(componentName: string): IdlPeerClass | undefined {
-        for (const file of this.files)
-            for (const peer of file.peers.values())
-                if (peer.componentName == componentName)
-                    return peer
-        return undefined
     }
 
     findFileByOriginalFilename(filename: string): IdlPeerFile | undefined {
@@ -110,21 +108,24 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
         const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier);
         if (qualifier) {
             // This is a namespace or enum member. Try enum first
-            const parent = this.resolveTypeReference(idl.createReferenceType(qualifier), entries)///oh oh, just entries.find?
+            const parent = entries.find(it => it.name === qualifier)
             if (parent && idl.isEnum(parent))
                 return parent.elements.find(it => it.name === type.name)
             // Else try namespaces
             return entries.find(it =>
                 it.name === type.name && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === qualifier)
         }
-        const result = entries.find(it =>
-            it.name === type.name && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Namespace))
-        return result ??
-            entries
+
+        const candidates = entries.filter(it => it.name === type.name)
+        switch (candidates.length) {
+            case 0: return entries
                 .map(it => it.scope)
                 .filter(isDefined)
                 .flat()
                 .find(it => it.name === type.name)
+            case 1: return candidates[0]
+            default: return candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import))
+        }
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false, maybeCallback: boolean = false): ArgConvertor {
@@ -338,7 +339,7 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
         this._orderedDependenciesToGenerate = toGenerateOrderer.getToposorted()
     }
 
-    generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         new StructPrinter(this).generateStructs(structs, typedefs, writeToString)
     }
 
@@ -365,7 +366,7 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
             switch (target) {
                 case idl.IDLAnyType: return "CustomObject"
                 case idl.IDLStringType: name = "String"; break
-                case idl.IDLNullType: name = "null"; break
+                case idl.IDLNullType: name = "Null"; break
                 case idl.IDLVoidType: name = "void"; break
                 default: name = capitalize(target.name); break
             }
@@ -405,6 +406,7 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
                 case "record": return prefix + `Map_` +
                     this.computeTargetName(target.elementType[0], false, "") + "_" +
                     this.computeTargetName(target.elementType[1], false, "")
+                case "Promise": return prefix + `Promise_` + this.computeTargetName(target.elementType[0], false)
             }
         }
         if (idl.isReferenceType(target)) {
@@ -465,7 +467,7 @@ export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcesso
             this.allTypes(idl.isAnonymousInterface)
                 .map(it => [
                     this.computeTargetName(it, false),
-                    it.properties.map(p => cppEscape(p.name))])
+                    it.properties.map(p => p.name)])
         return new Map(data)
     }
 

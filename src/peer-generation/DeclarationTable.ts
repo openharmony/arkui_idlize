@@ -97,8 +97,6 @@ export class StructDescriptor {
     addField(field: FieldRecord) {
         if (!this.seenFields.has(field.name)) {
             this.seenFields.add(field.name)
-            // TODO: kind of wrong
-            if (field.name == `template`) field.name = `template_`
             this.fields.push(field)
         }
     }
@@ -611,7 +609,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         switch (name) {
             case `Dimension`:
             case `Length`:
-                return new LengthConvertor(name, param)
+                return new LengthConvertor(name, param, this.language)
             case `Date`:
                 return new CustomTypeConvertor(param, name, false, name)
             case `AttributeModifier`:
@@ -691,7 +689,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         throw new Error(`Unknown kind: ${declaration.kind}`)
     }
 
-    private printStructsCHead(name: string, descriptor: StructDescriptor, structs: IndentedPrinter, writeToString: LanguageWriter, seenNames: Set<string>) {
+    private printStructsCHead(name: string, descriptor: StructDescriptor, structs: LanguageWriter, writeToString: LanguageWriter, seenNames: Set<string>) {
         if (descriptor.isArray) {
             // Forward declaration of element type.
             let elementTypePointer = descriptor.getFields()[0].declaration
@@ -717,7 +715,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
     }
 
 
-    private printStructsCTail(name: string, needPacked: boolean, structs: IndentedPrinter) {
+    private printStructsCTail(name: string, needPacked: boolean, structs: LanguageWriter) {
         structs.popIndent()
         if (needPacked) {
             structs.print(`#ifdef _MSC_VER`)
@@ -739,7 +737,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
             name = cleanPrefix(name, ArkPrimitiveType.Prefix)
         }
         const cKind = field.optional ? "" : this.cFieldKind(field.declaration)
-        structs.print(`${cKind}${prefix}${name} ${field.name};`)
+        structs.print(`${cKind}${prefix}${name} ${structs.escapeKeyword(field.name)};`)
     }
 
     allOptionalTypes(): Set<string> {
@@ -824,7 +822,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         }
     }
 
-    private generateEnum(structs: IndentedPrinter, writeToString: LanguageWriter, target: ts.EnumDeclaration) {
+    private generateEnum(structs: LanguageWriter, writeToString: LanguageWriter, target: ts.EnumDeclaration) {
         const enumName = this.enumName(target.name)
         structs.print(`enum ${enumName}`)
         structs.print(`{`)
@@ -857,7 +855,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         writeToString.print(`}`)
     }
 
-    generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         const seenNames = new Set<string>()
         seenNames.clear()
         let noDeclaration = [ArkPrimitiveType.Int32, ArkPrimitiveType.Tag, ArkPrimitiveType.Number, ArkPrimitiveType.Boolean, ArkPrimitiveType.String]
@@ -1123,17 +1121,17 @@ inline void WriteToString(string* result, const ${elementNativeType}${isPointerF
 
 inline void WriteToString(string* result, const ${name}* value) {
     int32_t count = value->length;
-    
+
     result->append("{.array=allocArray<${elementNativeType}, " + std::to_string(count) + ">({{");
     for (int i = 0; i < count; i++) {
         if (i > 0) result->append(", ");
         WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);
     }
     result->append("}})");
-    
+
     result->append(", .length=");
     result->append(std::to_string(value->length));
-    
+
     result->append("}");
 }
 `)
@@ -1212,12 +1210,13 @@ inline void WriteToString(string* result, const ${name}* value) {
                 printer.print(`result->append(std::to_string(value->selector));`);
                 printer.print(`result->append(", ");`);
                 this.targetStruct(target).getFields().forEach((field, index) => {
-                    let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
+                    const fieldName = printer.escapeKeyword(field.name)
+                    const isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                     if (index != 0) printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     printer.print(`if (value${access}selector == ${index - 1}) {`)
                     printer.pushIndent()
-                    printer.print(`result->append(".${field.name}=");`);
-                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.print(`result->append(".${fieldName}=");`);
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${fieldName});`)
                     printer.popIndent()
                     printer.print(`}`)
                 })
@@ -1231,22 +1230,24 @@ inline void WriteToString(string* result, const ${name}* value) {
                 printer.print(`result->append("{");`)
                 const fields = this.targetStruct(target).getFields()
                 fields.forEach((field, index) => {
+                    const fieldName = printer.escapeKeyword(field.name)
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
                     if (index > 0) printer.print(`result->append(", ");`)
-                    printer.print(`result->append(".${field.name}=");`)
-                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.print(`result->append(".${fieldName}=");`)
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${fieldName});`)
                 })
                 printer.print(`result->append("}");`)
             } else if (isOptional) {
                 printer.print(`result->append("{");`)
                 const fields = this.targetStruct(target).getFields()
                 fields.forEach((field, index) => {
+                    const fieldName = printer.escapeKeyword(field.name)
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     if (index > 0) printer.print(`result->append(", ");`)
-                    printer.print(`result->append("${field.name}: ");`)
+                    printer.print(`result->append("${fieldName}: ");`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${fieldName});`)
                     if (index == 0) {
                         printer.print(`if (value${access}${field.name} != ${ArkPrimitiveType.UndefinedTag}) {`)
                         printer.pushIndent()
@@ -1260,11 +1261,12 @@ inline void WriteToString(string* result, const ${name}* value) {
             } else {
                 printer.print(`result->append("{");`)
                 this.targetStruct(target).getFields().forEach((field, index) => {
+                    const fieldName = printer.escapeKeyword(field.name)
                     printer.print(`// ${this.computeTargetName(field.declaration, false)}`)
                     if (index > 0) printer.print(`result->append(", ");`)
-                    printer.print(`result->append(".${field.name}=");`)
+                    printer.print(`result->append(".${fieldName}=");`)
                     let isPointerField = this.isPointerDeclaration(field.declaration, field.optional)
-                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
+                    printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${fieldName});`)
                 })
                 printer.print(`result->append("}");`)
             }
@@ -1559,6 +1561,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
 }
 
 function isCallback(type: ts.TypeNode, table: DeclarationTable): boolean {
+    /*
         const m = type.parent.parent
         if (ts.isMethodDeclaration(m)) {
             const c = m.parent
@@ -1566,5 +1569,6 @@ function isCallback(type: ts.TypeNode, table: DeclarationTable): boolean {
                 return true
             }
         }
+    */
     return false
 }

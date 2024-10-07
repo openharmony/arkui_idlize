@@ -9,16 +9,21 @@
 
 | Name                   | Kind      | Generated | Demo        | Owner/libace    | Status/libace | Owner/ts      | Status/ts | Priority |
 |------------------------|-----------|-----------|-------------|-----------------|---------------|---------------|-----------|----------|
-| @ohos.router           | Class     |           |             |                 |               |               |           |          |
+| @ohos.router           | Class     |           |             | K. Kirichenko   |               |               |           |          |
 | `back`                 | Function  |           | ENC, WON    | K. Kirichenko   |               | K. Kirichenko |           | High     |
-| CustomDialogController | Class     |           | HEL         |                 |               |               |           | Low      |
-| `builder`              | Function  |           |             |                 |               |               |           |          |
-| `autoCancel`           | Function  |           |             |                 |               |               |           |          |
-| `alignment`            | Function  |           |             |                 |               |               |           |          |
-| `offset`               | Function  |           |             |                 |               |               |           |          |
-| `customStyle`          | Function  |           |             |                 |               |               |           |          |
-| Rect                   | Component | No        | HEL         | ?               |               |               |           | High     |
-| Navigator              | Component | No        | HEL         | ?               |               |               |           | High     |
+| CustomDialogController | Class     |           | HEL         | ?               |               |               |           | Low      |
+| `builder`              | Function  |           |             | ?               |     N\A       |               |           |          |
+| `autoCancel`           | Function  |           |             | ?               |     N\A       |               |           |          |
+| `alignment`            | Function  |           |             | ?               |               |               |           |          |
+| `offset`               | Function  |           |             | ?               |               |               |           |          |
+| `customStyle`          | Function  |           |             | ?               |     N\A       |               |           |          |
+| Rect                   | Component | No        | HEL         | Dudkin Sergey   | done          |               |           | High     |
+| Navigator              | Component | No        | HEL         | Skroba Gleb     | done          |               |           | High     |
+| `setNavigatorOptions`  | Function  |           | HEL         | Skroba Gleb     | done          |               |           | High     |
+| `active`               | Function  |           | HEL         | Skroba Gleb     | done          |               |           | High     |
+| `type`                 | Function  |           | HEL         | Skroba Gleb     | done          |               |           | High     |
+| `target`               | Function  |           | HEL         | Skroba Gleb     | done          |               |           | High     |
+| `params`               | Function  |           | HEL         | Skroba Gleb     | blocked       |               |           | High     |
 | Progress               | Component | Yes       | HEL         | ?               |               |               | ?         | Medium   |
 | Common                 | Component | Yes       |             | R. Sedaikin     | Progress      | R. Sedaikin   | Done      |          |
 | `width`                | Function  |           | ENC,WON,HEL | R. Sedaikin     | Done/No test  | R. Sedaikin   | Done      | High+    |
@@ -64,26 +69,26 @@
 | `radialGradient`       | Function  |           |  ENC        | R. Sedaikin     | Done/No test  | R. Sedaikin   | Done      | High     |
 | `shadow`               | Function  |           |             | R. Sedaikin     | Done/No test  | R. Sedaikin   | Done      | High     |
 | `onClick`              | Function  |           | ENC,WON,HEL | G. Skroba       | Progress      |               | Done      | High+    |
-| `fill`                 | Function  |           | HEL         |                 |               |               |           | Low      |
-| `animateTo`            | Function  |           | HEL         |                 |               |               |           | Medium   |
-| `animationDuration`    | Function  |           | HEL         |                 |               |               |           | Medium   |
-| `backgroundColor($r)`  | Function  |           | HEL         |                 |               |               |           | Low      |
-| `@Styles function`     | Decorator |           | HEL         |                 |               |               |           | Low      |
-| Button                 | Component | Yes       |             |                 |               |               |           |          |
+| `fill`                 | Function  |           | HEL         | Ilya Erokhin    | Progress      |               |           | Low      |
+| `animateTo`(animation) | Function  |           | HEL         | Ilya Erokhin    | Progress      |               |           | Medium   |
+| `animationDuration`    | Function  |           | HEL         | Ivan Tuzhilkin  | Blocked       |               |           | Medium   |
+| `backgroundColor($r)`  | Function  |           | HEL         | G. Skroba       | Done          |               |           | Low      |
+| `@Styles function`     | Decorator |           | HEL         | ?               |               |               |           | Low      |
+| Button                 | Component | Yes       |             | Evstigneev Roman| Progress      |               |           |          |
 | `radialGradient`       | Function  |           | ENC         | K. Kirichenko   |               |               |           | Medium   |
 | `ctor($r)`             | Function  |           | ENC         | K. Kirichenko   |               |               |           | High     |
 | Image                  | Component | Yes       |             |                 |               |               |           |          |
 | `ctor(URL)`            | Function  |           | ENC         | E. Korobeynikov |               |               |           | Medium   |
 | `ctor($rawfile)`       | Function  |           | ENC, WON    | A. Tarasov      | Done          |               | Done      | High     |
-| `objectFit`            | Function  |           | WON         | ?               |               |               |           | Medium   |
-| `sharedTransition`     | Function  |           | HEL         | ?               |               |               |           | Medium   |
-| Swiper                 | Component | No        |             |                 |               |               |           |          |
-| `indicatorStyle`       | Function  |           | WON         | ?               |               |               |           | Low      |
-| `priorityGesture`      | Function  |           | WON         | ?               |               |               |           | Medium   |
-| Text                   | Component | No        |             | K. Kirichenko   |               |               |           |          |
+| `objectFit`            | Function  |           | WON         | E. Korobeynikov |               |               |           | Medium   |
+| `sharedTransition`     | Function  |           | HEL         | Skroba Gleb     | Done          |               |           | Medium   |
+| Swiper                 | Component | No        |             | Skroba Gleb     | Done          |               |           |          |
+| `indicatorStyle`       | Function  |           | WON         | Skroba Gleb     | Done          |               |           | Low      |
+| `priorityGesture`      | Function  |           | WON         | Ilya Erokhin    | blocked       |               |           | Medium   |
+| Text                   | Component | No        |             | K. Kirichenko   | Progress      |               |           |          |
 | `ctor($r)`             | Function  |           | HEL         |                 |               |               |           | High     |
-| Shape                  | Component | No        | HEL         | ?               |               |               |           | High     |
-| Path                   | Component | No        | HEL         | ?               |               |               |           | High     |
-| Tabs                   | Component | No        | HEL         | ?               |               |               |           | High     |
-| TabContent             | Function  | No        |             | ?               |               |               |           | High     |
-| `tabBar`               | Function  |           | HEL         | ?               |               |               |           | High     |
+| Shape                  | Component | No        | HEL         | Dudkin Sergey   | Progress      |               |           | High     |
+| Path                   | Component | No        | HEL         | Skroba Gleb     | Done          |               |           | High     |
+| Tabs                   | Component | No        | HEL         | Ivan Tuzhilkin  | Progress      |               |           | High     |
+| TabContent             | Function  | No        |             | Roman Evstigneev| Progress      |               |           | High     |
+| `tabBar`               | Function  |           | HEL         | Roman Evstigneev| Progress      |               |           | High     |

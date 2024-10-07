@@ -22,7 +22,6 @@ import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isImport, isStringEnum } from "./common"
-import { cppEscape } from "./IdlArgConvertors"
 import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 
@@ -38,7 +37,7 @@ export class StructPrinter {
         return true
     }
 
-    private printStructsCHead(name: string, target: idl.IDLEntry, structs: IndentedPrinter) {
+    private printStructsCHead(name: string, target: idl.IDLEntry, structs: LanguageWriter) {
         // if (descriptor.isArray) {
         //     // Forward declaration of element type.
         //     let elementTypePointer = descriptor.getFields()[0].declaration
@@ -57,12 +56,12 @@ export class StructPrinter {
     }
 
 
-    private printStructsCTail(name: string, structs: IndentedPrinter) {
+    private printStructsCTail(name: string, structs: LanguageWriter) {
         structs.popIndent()
         structs.print(`} ${name};`)
     }
 
-    generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         const seenNames = new Set<string>()
         seenNames.clear()
         let noDeclaration = ["Int32", "Tag", "number", "boolean", "DOMString"]
@@ -99,7 +98,7 @@ export class StructPrinter {
 
                 this.printStructsCHead(nameAssigned, target, structs)
                 if (idl.isUnionType(target)) {
-                    structs.print("Ark_Int32 selector;")
+                    structs.print(`${PrimitiveType.Prefix}Int32 selector;`)
                     structs.print("union {")
                     structs.pushIndent()
                     target.types.forEach((it, index) =>
@@ -112,7 +111,7 @@ export class StructPrinter {
                         structs.print(`void *handle;`) // avoid empty structs
                     }
                     properties.forEach(it =>
-                        structs.print(`${this.library.getTypeName(it.type, it.isOptional)} ${cppEscape(it.name)};`))
+                        structs.print(`${this.library.getTypeName(it.type, it.isOptional)} ${structs.escapeKeyword(it.name)};`))
                 } else if (idl.isContainerType(target)) {
                     let fieldNames: string[] = []
                     switch (target.name) {
@@ -389,7 +388,7 @@ inline void WriteToString(string* result, const ${name}* value) {
                         if (index > 0) printer.print(`result->append(", ");`)
                         printer.print(`result->append(".${field.name}=");`)
                         let isPointerField = this.isPointerDeclaration(field.type, field.isOptional)
-                        printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${cppEscape(field.name)});`)
+                        printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${printer.escapeKeyword(field.name)});`)
                     })
                 printer.print(`result->append("}");`)
             }
@@ -409,9 +408,10 @@ inline void WriteToString(string* result, const ${name}* value) {
 }
 
 export function collectProperties(decl: idl.IDLInterface, library: IdlPeerLibrary): idl.IDLProperty[] {
-    const superType = idl.getSuperType(decl) as idl.IDLReferenceType
+    const superType = idl.getSuperType(decl)
+    const superDecl = superType ? library.resolveTypeReference(superType as idl.IDLReferenceType) : undefined
     return [
-        ...(superType ? (library.resolveTypeReference(superType) as idl.IDLInterface)?.properties : []),
+        ...(superDecl ? collectProperties(superDecl as idl.IDLInterface, library) : []),
         ...decl.properties,
         ...collectBuilderProperties(decl)
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))

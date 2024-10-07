@@ -24,12 +24,14 @@ import { Language } from '../util';
 import { IndentedPrinter } from '../IndentedPrinter';
 import { LanguageWriter } from './LanguageWriters';
 import { Library } from '../Library';
+import * as idl from '../idl'
 
 export type PeerLibraryOutput = {
     outputC: string[]
 }
 
 export class PeerLibrary implements Library<PeerFile> {
+    public readonly predefinedDeclarations: idl.IDLInterface[] = []
     public readonly files: PeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {
@@ -50,7 +52,7 @@ export class PeerLibrary implements Library<PeerFile> {
         return this.declarationTable.language
     }
 
-    generateStructs(structs: IndentedPrinter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         this.declarationTable.generateStructs(structs, typedefs, writeToString)
     }
 

@@ -272,5 +272,16 @@ export function extractBuilderFields(target: ts.InterfaceDeclaration | ts.ClassD
         }
     })
 
+    if (isClass) {
+        target.members
+            .filter(ts.isConstructorDeclaration)
+            .forEach(cons => {
+                cons.parameters.forEach(param => {
+                    const type = param.type!
+                    const name = `_${identName(param.name)}`
+                    records.push(new FieldRecord(table.toTarget(type), type, name, true))
+                })
+            })
+    }
     return records
 }

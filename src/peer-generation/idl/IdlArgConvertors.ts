@@ -364,7 +364,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
             printer.makeAssign(typedStruct, typedStructType, printer.makeString(accessor),true, false),
             ...this.memberConvertors.map((it, index) =>
                 // TODO: maybe use accessor?
-                it.convertorDeserialize(param, `${typedStruct}.${cppEscape(this.members[index][0])}`, printer))]
+                it.convertorDeserialize(param, `${typedStruct}.${printer.escapeKeyword(this.members[index][0])}`, printer))]
         if (printer.language !== Language.CPP) { /// refac into LW.getObjectAccessor()
             const accessorInitExpr = this.members.length > 0
                 ? printer.makeCast(printer.makeString("{}"), typedStructType)
@@ -426,7 +426,7 @@ export class InterfaceConvertor extends BaseArgConvertor { //
         // First, tricky special cases
         if (this.tsTypeName.endsWith("GestureInterface")) {
             const gestureType = this.tsTypeName.slice(0, -"GestureInterface".length)
-            const castExpr = writer.makeCast(writer.makeString(value), new Type("GestureComponent<Object>"))
+            const castExpr = writer.makeCast(writer.makeString(value), new Type("GestureComponent<Object>"), true)
             return writer.makeNaryOp("===", [
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
@@ -778,8 +778,9 @@ export class MapConvertor extends BaseArgConvertor { //
     }
     private makeTypeName(type: idl.IDLType, language: Language): string {///refac into LW
         switch (language) {
-            case Language.TS: return this.library.mapType(this.keyType)
-            case Language.CPP: return this.library.getTypeName(this.keyType)
+            case Language.TS: return this.library.mapType(type)
+            case Language.CPP: return this.library.getTypeName(type)
+            case Language.JAVA: return this.library.mapType(type)
             default: throw `Unsupported language ${language}`
         }
     }
@@ -828,4 +829,10 @@ export class TypeAliasConvertor extends ProxyConvertor { //
 
 export function cppEscape(name: string) {
     return name === "template" ? "template_" : name
+}
+
+export interface RetConvertor {
+    isVoid: boolean
+    nativeType: () => string
+    macroSuffixPart: () => string
 }

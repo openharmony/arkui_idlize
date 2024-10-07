@@ -90,7 +90,6 @@ function isCallable(node: webidl2.IDLInterfaceMemberType): boolean {
 }
 
 function toIDLPackage(node: webidl2.PackageType): IDLPackage {
-    console.log(Object.keys(node))
     const result: IDLPackage = {
         kind: IDLKind.Package,
         name: node.nameValue

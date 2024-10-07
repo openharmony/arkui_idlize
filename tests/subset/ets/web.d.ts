@@ -1,3 +1,11 @@
+declare class WebResourceResponse {
+    setResponseData(data: string | number | Resource | ArrayBuffer): void;
+}
+
+declare interface OnHttpErrorReceiveEvent {
+    response: WebResourceResponse;
+}
+
 declare interface NativeEmbedInfo {
     params?: Map<string, string>;
 }
@@ -27,6 +35,7 @@ declare class WebAttribute extends CommonMethod<WebAttribute> {
     onRenderExited(callback: Callback<OnRenderExitedEvent>): WebAttribute;
     /* @deprecated */
     onRenderExited(callback: (event?: { detail: object }) => boolean): WebAttribute;
+    onHttpErrorReceive(callback: Callback<OnHttpErrorReceiveEvent>): WebAttribute;
 }
 
 declare const Web: WebInterface;

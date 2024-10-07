@@ -1,0 +1,9 @@
+package "org.openharmony.idlize.predefined";
+
+interface Test {
+    i32 TestCallIntNoArgs(i32 arg0);
+    i32 TestCallIntIntArraySum(i32 arg0, sequence<i32> arg1, i32 arg2);
+    void TestCallVoidIntArrayPrefixSum(i32 arg0, sequence<i32> arr, i32 arg2);
+    i32 TestCallIntRecursiveCallback(i32 arg0, sequence<u8> arr, i32 arg2);
+    i32 TestCallIntMemory(i32 arg0, i32 arg1);
+};

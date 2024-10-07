@@ -40,7 +40,7 @@ export class ImportsCollector {
     }
 
     addFeatures(features: string[], module: string) {
-        for (const feature of features) 
+        for (const feature of features)
             this.addFeature(feature, module)
     }
 
@@ -62,7 +62,7 @@ export type ImportFeature = { feature: string, module: string }
 export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration): ImportFeature {
     if (isSyntheticDeclaration(node))
         return {
-            feature: convertDeclaration(DeclarationNameConvertor.I, node), 
+            feature: convertDeclaration(DeclarationNameConvertor.I, node),
             module: `./${syntheticDeclarationFilename(node)}`
         }
     if (PeerGeneratorConfig.isConflictedDeclaration(node)) {

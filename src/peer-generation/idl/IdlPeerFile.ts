@@ -14,7 +14,6 @@
  */
 
 import * as idl from "../../idl"
-import { getOrPut } from "../../util"
 import { IdlPeerClass } from "./IdlPeerClass"
 import { ImportFeature } from '../ImportsCollector'
 
@@ -29,6 +28,13 @@ export class IdlPeerFile {
         private readonly componentsToGenerate: Set<string>,
     ) {}
 
+
+    public packageName(): string {
+        let packageTag = this.entries.find(it => idl.isPackage(it)) as idl.IDLPackage
+        if (packageTag) return packageTag.name
+        return ""
+    }
+
     get enums(): idl.IDLEnum[] {
         return this.entries.filter(it => idl.isEnum(it)) as idl.IDLEnum[]
     }
@@ -37,9 +43,5 @@ export class IdlPeerFile {
         if (!this.componentsToGenerate.size)
             return peers
         return peers.filter(it => this.componentsToGenerate.has(it.componentName))
-    }
-
-    getOrPutPeer(componentName: string) {
-        return getOrPut(this.peers, componentName, () => new IdlPeerClass(this, componentName, this.originalFilename))
     }
 }

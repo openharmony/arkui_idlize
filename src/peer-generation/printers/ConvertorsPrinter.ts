@@ -34,7 +34,7 @@ class ConvertorsPrinter {
             this.writer.print(`switch (src.selector) {`)
             this.writer.pushIndent()
             selectors.forEach(selector => {
-                this.writer.print(`case ${SELECTOR_ID_PREFIX}${selector.id}: AssignTo(dst, src.${selector.name}); break;`)
+                this.writer.print(`case ${SELECTOR_ID_PREFIX}${selector.id}: AssignTo(dst, src.${this.writer.escapeKeyword(selector.name)}); break;`)
             })
             this.writer.print(`default:`)
             this.writer.print(`{`)
@@ -93,11 +93,11 @@ class ConvertorsPrinter {
         for (const [name, fields] of this.library.allLiteralTypes()) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignLiteralTo(std::optional<T>& dst,`)
-            this.writer.print(`                     const ${name}& src)`)
+            this.writer.print(`                     const ${this.writer.escapeKeyword(name)}& src)`)
             this.writer.print("{")
             this.writer.pushIndent()
             if (fields.length > 0) {
-                this.writer.print(`AssignTo(dst, src.${fields[0]});`)
+                this.writer.print(`AssignTo(dst, src.${this.writer.escapeKeyword(fields[0])});`)
             }
             this.writer.popIndent()
             this.writer.print(`}`)

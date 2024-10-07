@@ -1,11 +1,25 @@
 import * as ts from "typescript"
 import { convertDeclToFeature, ImportFeature, ImportsCollector } from "../ImportsCollector";
 import { PeerLibrary } from "../PeerLibrary";
-import { DeclarationNameConvertor } from "../dependencies_collector";
+import {
+    DeclarationNameConvertor
+} from "../dependencies_collector";
 import { convertDeclaration } from "../TypeNodeConvertor";
 import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
 import { Language } from "../../util";
 import { StructDescriptor } from "../DeclarationTable";
+import { getSyntheticDeclarationList } from "../synthetic_declaration";
+
+const builtInInterfaceTypes = new Map<string,
+    (writer: LanguageWriter, value: string) => LanguageExpression>([
+        ["Resource",
+            (writer: LanguageWriter, value: string) => writer.makeCallIsResource(value)],
+        ["Object",
+            (writer: LanguageWriter, value: string) => writer.makeCallIsObject(value)],
+        ["ArrayBuffer",
+            (writer: LanguageWriter, value: string) => writer.makeCallIsArrayBuffer(value)]
+    ],
+)
 
 export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
     imports.addFeature("TypeChecker", "#arkui")
@@ -26,13 +40,8 @@ export function makeInterfaceTypeCheckerCall(
     duplicates: Set<string>, 
     writer: LanguageWriter,
 ): LanguageExpression {
-    if (interfaceName == "Resource") {
-        // todo stub or not?
-        return writer.makeCallIsResource(valueAccessor)
-    }
-    if (interfaceName == "Object") {
-        // todo stub or not?
-        return writer.makeString(`${valueAccessor} instanceof Object`)
+    if (builtInInterfaceTypes.has(interfaceName)) {
+        return builtInInterfaceTypes.get(interfaceName)!(writer, valueAccessor)
     }
     return writer.makeMethodCall(
         "TypeChecker",
@@ -101,9 +110,22 @@ abstract class TypeCheckerPrinter {
             }
         }
 
+        // Collecting of synthetic types. This is necessary for the arkts
+        getSyntheticDeclarationList()
+            .filter(ts.isInterfaceDeclaration)
+            .forEach(it => {
+                importFeatures.push(convertDeclToFeature(this.library, it))
+                interfaces.push({
+                    name: convertDeclaration(DeclarationNameConvertor.I, it),
+                    descriptor: this.library.declarationTable.targetStruct(it)
+                })
+        })
+
+        // Imports leads to error: "SyntaxError: Cannot find imported element 'TypeChecker'"
+        // To resolve this error need to use the patched panda sdk(npm run panda:sdk:build) or remove './' from paths in arktsconfig.json
         this.writeImports(importFeatures)
         this.writer.writeClass("TypeChecker", writer => {
-            for (const struct of interfaces) 
+            for (const struct of interfaces)
                 this.writeInterfaceChecker(struct.name, struct.descriptor)
             const writtenTypes = new Set()
             for (const arrayType of this.library.arrayTypeCheckeres) {
