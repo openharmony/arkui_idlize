@@ -11,7 +11,8 @@
     "peer_lib/**/*",
     "templates/**/*",
     "webidl2.js/dist/**/*",
-    "webidl2.js/package.json"
+    "webidl2.js/package.json",
+    "predefined/**/*"
   ],
   "workspaces": [
     "webidl2.js"
