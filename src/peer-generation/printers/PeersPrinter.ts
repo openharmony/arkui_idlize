@@ -491,7 +491,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
         // TODO: refactor
         if (returnType != Type.Void) {
             let result: LanguageStatement[] = [writer.makeReturn(writer.makeString(returnValName))]
-            if (method.hasReceiver() && returnType === Type.This) {
+            if (returnsThis(method, returnType)) {
                 result = [writer.makeReturn(writer.makeString("this"))]
             } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
                 // const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
@@ -513,6 +513,11 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
             }
         }
     })
+}
+
+function returnsThis(method: PeerMethod | IdlPeerMethod, returnType: Type) {
+    return method.hasReceiver() &&
+        (returnType === Type.This || returnType.name === method.originalParentName)
 }
 
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,

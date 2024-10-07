@@ -347,8 +347,12 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
             printPeerFinalizer(clazz, writer)
 
             clazz.methods.forEach(method => {
+                /// Fix 'this' return type. Refac to LW?
+                let returnType = method.method.signature.returnType
+                if (returnType === Type.This)
+                    returnType = new Type(method.originalParentName)
                 this.library.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
-                writePeerMethod(writer, method, true, this.printerContext, this.dumpSerialized, '', 'this.peer.ptr', method.method.signature.returnType)
+                writePeerMethod(writer, method, true, this.printerContext, this.dumpSerialized, '', 'this.peer.ptr', returnType)
                 this.library.setCurrentContext(undefined)
             })
         }, superClassName, undefined, clazz.generics)

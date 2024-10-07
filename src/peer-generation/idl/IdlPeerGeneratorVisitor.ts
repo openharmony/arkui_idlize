@@ -74,6 +74,7 @@ export class IdlComponentDeclaration {
 }
 
 const PREDEFINED_PACKAGE = 'org.openharmony.idlize.predefined'
+
 export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
     private readonly sourceFile: string
 
@@ -397,9 +398,8 @@ class JavaDeclarationCollector extends DeclarationDependenciesCollector {
         return super.convertInterface(decl)
     }
     convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
-        if (javaCustomTypeMapping.has(decl.name)) {
-            throw new Error(`convertTypedef for custom mapped type: ${decl.name}`)
-        }
+        if (javaCustomTypeMapping.has(decl.name))
+            return []
         return super.convertTypedef(decl)
     }
 
@@ -643,7 +643,7 @@ export class IdlPeerProcessor {
         this.serializeDepsCollector = createSerializeDeclDependenciesCollector(this.library)
     }
 
-    private processBuilder(target: idl.IDLInterface, isActualDeclaration: boolean) {
+    private processBuilder(target: idl.IDLInterface) {
         let name = target.name!
         if (this.library.builderClasses.has(name)) {
             return
@@ -653,16 +653,16 @@ export class IdlPeerProcessor {
             return
         }
 
-        const builderClass = this.toBuilderClass(name, target, isActualDeclaration)
+        const builderClass = this.toBuilderClass(name, target)
         this.library.builderClasses.set(name, builderClass)
     }
 
-    private toBuilderClass(name: string, target: idl.IDLInterface, needBeGenerated: boolean) {
+    private toBuilderClass(name: string, target: idl.IDLInterface) {
         const isIface = idl.isInterface(target)
         const fields = target.properties.map(it => this.toBuilderField(it))
         const constructors = target.constructors.map(method => this.toBuilderMethod(method))
         const methods = this.getBuilderMethods(target)
-        return new BuilderClass(name, undefined, isIface, undefined, fields, constructors, methods, [], needBeGenerated)
+        return new BuilderClass(name, undefined, isIface, undefined, fields, constructors, methods, [])
     }
 
     private toBuilderField(prop: idl.IDLProperty): BuilderField {
@@ -692,7 +692,7 @@ export class IdlPeerProcessor {
         return new BuilderMethod(new Method(methodName, signature, modifiers/*, generics*/), [])
     }
 
-    private processMaterialized(decl: idl.IDLInterface, isActualDeclaration: boolean) {
+    private processMaterialized(decl: idl.IDLInterface) {
         const name = decl.name
         if (this.library.materializedClasses.has(name)) {
             return
@@ -714,7 +714,7 @@ export class IdlPeerProcessor {
         const generics = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.TypeParameters)?.split(",")
 
         const constructor = idl.isClass(decl) ? decl.constructors[0] : undefined
-        const mConstructor = this.makeMaterializedMethod(decl, constructor, isActualDeclaration)
+        const mConstructor = this.makeMaterializedMethod(decl, constructor)
         const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
         const mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]), 0)
@@ -724,7 +724,7 @@ export class IdlPeerProcessor {
             .map(it => this.makeMaterializedField(it))
         const mMethods = decl.methods
             // TODO: Properly handle methods with return Promise<T> type
-            .map(method => this.makeMaterializedMethod(decl, method, isActualDeclaration))
+            .map(method => this.makeMaterializedMethod(decl, method))
             .filter(it => !PeerGeneratorConfig.ignoreReturnTypes.has(it.method.signature.returnType.name))
 
         mFields.forEach(f => {
@@ -750,7 +750,7 @@ export class IdlPeerProcessor {
         })
         this.library.materializedClasses.set(name,
             new MaterializedClass(name, idl.isInterface(decl), superClass, generics,
-                mFields, mConstructor, mFinalizer, importFeatures, mMethods, isActualDeclaration))
+                mFields, mConstructor, mFinalizer, importFeatures, mMethods))
     }
 
     private makeMaterializedField(prop: idl.IDLProperty): MaterializedField {
@@ -762,7 +762,7 @@ export class IdlPeerProcessor {
             argConvertor, retConvertor)
     }
 
-    private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined, isActualDeclaration: boolean) {
+    private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined) {
         const methodName = method === undefined || idl.isConstructor(method) ? "ctor" : method.name
         const retConvertor = method === undefined || idl.isConstructor(method)
             ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
@@ -775,7 +775,7 @@ export class IdlPeerProcessor {
         }
 
         const generics = undefined // method.typeParameters?.map(it => it.getText())
-        method.parameters.forEach(it => this.library.requestType(it.type!, isActualDeclaration))
+        method.parameters.forEach(it => this.library.requestType(it.type!, true))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, false))
         const signature = generateSignature(this.library, method)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
@@ -793,22 +793,12 @@ export class IdlPeerProcessor {
         }
     }
 
-    private generateActualComponents(): IdlComponentDeclaration[] {
-        const components = this.library.componentsDeclarations
-        if (!this.library.componentsToGenerate.size)
-            return components
-        const entryComponents = components.filter(it => this.library.shouldGenerateComponent(it.name))
-        return components.filter(component => entryComponents.includes(component))
-    }
-
     private generateDeclarations(components: IdlComponentDeclaration[]): Set<idl.IDLEntry> {
         const deps: Set<idl.IDLEntry> = new Set(
-            components.flatMap(it => {
-                const decls = [it.attributesDeclarations]
-                if (it.interfaceDeclaration)
-                    decls.push(it.interfaceDeclaration)
-                return decls
-            }))
+        this.library.files
+            .flatMap(it => it.entries)
+            .filter(it => !idl.isPackage(it) && !idl.isImport(it) && !idl.isModuleType(it))
+            .filter(it => !this.ignoreDeclaration(it, this.library.language)))
         const depsCopy = Array.from(deps)
         for (const dep of depsCopy) {
             this.collectDepsRecursive(dep, deps)
@@ -828,6 +818,12 @@ export class IdlPeerProcessor {
         return deps
     }
 
+    private ignoreDeclaration(decl: idl.IDLEntry, language: Language): boolean {
+        return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope) ||
+            language === Language.JAVA && idl.isInterface(decl) && isMaterialized(decl) ||
+            PeerGeneratorConfig.ignoreEntry(decl.name!, language)
+    }
+
     process(): void {
         initCustomBuilderClasses()
         new ComponentsCompleter(this.library).process()
@@ -835,25 +831,23 @@ export class IdlPeerProcessor {
         for (const component of this.library.componentsDeclarations)
             peerGenerator.generatePeer(component)
         const allDeclarations = this.generateDeclarations(this.library.componentsDeclarations)
-        const actualDeclarations = this.generateDeclarations(this.generateActualComponents())
         for (const dep of allDeclarations) {
             if (isSyntheticDeclaration(dep))
                 continue
             const file = this.library.findFileByOriginalFilename(dep.fileName!)!
             const isPeerDecl = idl.isInterface(dep) && this.library.isComponentDeclaration(dep)
-            const isActualDeclaration = actualDeclarations.has(dep)
 
             if (!isPeerDecl && (idl.isClass(dep) || idl.isInterface(dep))) {
                 if (isBuilderClass(dep)) {
-                    this.processBuilder(dep, isActualDeclaration)
+                    this.processBuilder(dep)
                     continue
                 } else if (isMaterialized(dep)) {
-                    this.processMaterialized(dep, isActualDeclaration)
+                    this.processMaterialized(dep)
                     continue
                 }
             }
 
-            if (!isActualDeclaration || idl.isEnum(dep))
+            if (idl.isEnum(dep))
                 continue
 
             this.declDependenciesCollector.convert(dep).forEach(it => {

@@ -14,7 +14,6 @@
  */
 
 import * as idl from "../../idl"
-import { getOrPut } from "../../util"
 import { IdlPeerClass } from "./IdlPeerClass"
 import { ImportFeature } from '../ImportsCollector'
 
@@ -44,9 +43,5 @@ export class IdlPeerFile {
         if (!this.componentsToGenerate.size)
             return peers
         return peers.filter(it => this.componentsToGenerate.has(it.componentName))
-    }
-
-    getOrPutPeer(componentName: string) {
-        return getOrPut(this.peers, componentName, () => new IdlPeerClass(this, componentName, this.originalFilename))
     }
 }

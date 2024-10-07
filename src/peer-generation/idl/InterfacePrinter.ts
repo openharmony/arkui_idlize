@@ -169,28 +169,39 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         throw new Error("Enums are processed separately")
     }
     convertTypedef(node: idl.IDLTypedef): void {
-        if (idl.isUnionType(node.type)) {
-            this.onNewDeclaration(this.makeUnion(node.name, node.type))
+        this.convertTypedefTarget(node.name, node.type)
+    }
+    private convertTypedefTarget(name: string, type: idl.IDLEntry) {
+        if (idl.isUnionType(type)) {
+            this.onNewDeclaration(this.makeUnion(name, type))
             return
         }
-        if (idl.isEnumType(node.type)) {
-            this.onNewDeclaration(this.makeEnum(node.name, node.type))
+        if (idl.isEnumType(type)) {
+            this.onNewDeclaration(this.makeEnum(name, type))
             return
         }
-        if (idl.isInterface(node.type)) {
-            this.onNewDeclaration(this.makeInterface(node.name, node.type))
+        if (idl.isInterface(type) || idl.isAnonymousInterface(type)) {
+            this.onNewDeclaration(this.makeInterface(name, type))
             return
         }
-        if (idl.isTupleInterface(node.type)) {
-            this.onNewDeclaration(this.makeTuple(node.name, node.type))
+        if (idl.isTupleInterface(type)) {
+            this.onNewDeclaration(this.makeTuple(name, type))
+            return
+        }
+        if (idl.isReferenceType(type)) {
+            const target = this.peerLibrary.resolveTypeReference(type)
+            this.convertTypedefTarget(name, target!)
+            return
+        }
+        if (idl.isPrimitiveType(type)) {
             return
         }
         // ignore imports since they are replaced with synthetic declarations
-        const importAttr = idl.getExtAttribute(node.type, idl.IDLExtendedAttributes.Import)
+        const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
         if (importAttr) {
             return
         }
-        throw new Error(`Unsupported typedef: ${node.name}, kind=${node.type.kind}`)
+        throw new Error(`Unsupported typedef: ${name}, kind=${type.kind}`)
     }
     convertInterface(node: idl.IDLInterface): void {
         const decl = node.kind == idl.IDLKind.TupleInterface

@@ -14,6 +14,7 @@
  */
 
 import * as ts from 'typescript'
+import { Language } from '../util'
 
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]
@@ -62,6 +63,7 @@ export class PeerGeneratorConfig {
         "DigitIndicator",
     ]
 
+
     private static ignoreStandardNames = [
         // standard exclusion
         "Attribute",
@@ -93,6 +95,59 @@ export class PeerGeneratorConfig {
     public static ignoreReturnTypes = new Set<string>([
         "Promise"
     ])
+
+    private static ignoredEntriesCommon = new Set([
+        // Predefined types
+        "Dimension",
+        "Length",
+        "Optional",
+
+        // common
+        "AppStorage",
+        "CustomComponent",  // pulls in Layoutable, LayoutChild
+        "DataAddOperation",
+        "DataChangeListener",  // causes discrimination code failure
+        "DataChangeOperation",
+        "DataDeleteOperation",
+        "DataExchangeOperation",
+        "DataMoveOperation",
+        "DataOperation",
+        "DataOperationType",
+        "DataReloadOperation",
+        "EntryOptions",
+        "Environment",
+        "GestureGroupHandler",
+        "IDataSource",
+        "Layoutable",
+        "LayoutChild",
+        "LazyForEachInterface",  // pulls in DataChangeListener
+        "LocalStorage",
+        "OffscreenCanvas",
+        "OffscreenCanvasRenderingContext2D",
+        "PersistentStorage",
+        "Storage",  // escape method name `delete` in C++ code
+        "SubscribedAbstractProperty",
+        "SyncedPropertyOneWay",
+        "SyncedPropertyTwoWay",
+        "UIExtensionProxy",
+    ])
+
+    private static ignoredEntriesJava = new Set([
+        "AnimationRange",
+        "EventTargetInfo",
+        "GestureRecognizer",
+        "GestureRecognizerJudgeBeginCallback",
+        "Matrix2D",
+        "ScrollAnimationOptions",
+        "SheetDismiss",
+        "SubTabBarStyle",
+        "TextPickerDialog",
+    ])
+
+    static ignoreEntry(name: string, language: Language) {
+        return PeerGeneratorConfig.ignoredEntriesCommon.has(name) ||
+            language === Language.JAVA && PeerGeneratorConfig.ignoredEntriesJava.has(name)
+    }
 
     public static isMaterializedIgnored(name: string) {
         if (this.isStandardNameIgnored(name)) return true
