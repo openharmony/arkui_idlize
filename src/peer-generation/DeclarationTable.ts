@@ -1571,6 +1571,7 @@ class ToDeclarationTargetConvertor implements TypeNodeConvertor<DeclarationTarge
 }
 
 function isCallback(type: ts.TypeNode, table: DeclarationTable): boolean {
+    /*
         const m = type.parent.parent
         if (ts.isMethodDeclaration(m)) {
             const c = m.parent
@@ -1578,5 +1579,6 @@ function isCallback(type: ts.TypeNode, table: DeclarationTable): boolean {
                 return true
             }
         }
+    */
     return false
 }
