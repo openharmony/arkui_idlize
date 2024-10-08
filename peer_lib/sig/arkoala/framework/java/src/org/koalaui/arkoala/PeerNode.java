@@ -27,7 +27,7 @@ public class PeerNode extends IncrementalNode {
     private int id = currentId++;
 
     public NativePeerNode peer;
-    public PeerNode(ArkUINodeType type, ComponentBase component, int flags) {
+    public PeerNode(ArkUINodeType type, int flags, String name) {
         super(PEER_NODE_TYPE);
         peer = NativePeerNode.create(type, id, flags);
     }

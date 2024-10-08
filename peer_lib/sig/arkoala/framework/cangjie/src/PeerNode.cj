@@ -27,7 +27,7 @@ public open class PeerNode {
 
     private static var currentId: Int32 = 1000
 
-    public PeerNode(nodeType: ArkUINodeType, component: ?ComponentBase, flags: Int32) {
+    public PeerNode(nodeType: ArkUINodeType, flags: Int32, name: String) {
         this.peer = NativePeerNode.create(nodeType, PeerNode.getId(), flags)
     }
     func applyAttributes(attrs: HashMap<String, Object>): Unit {}
