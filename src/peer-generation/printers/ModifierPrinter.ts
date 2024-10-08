@@ -350,15 +350,20 @@ class MultiFileModifiersVisitorState {
     modifierList = createLanguageWriter(Language.CPP)
     modifiers = createLanguageWriter(Language.CPP)
     getterDeclarations = createLanguageWriter(Language.CPP)
+    hasModifiers = false
+    hasAccessors = false
 }
 
 class MultiFileModifiersVisitor extends AccessorVisitor {
     private stateByFile = new Map<string, MultiFileModifiersVisitorState>()
+    private hasModifiers = false
+    private hasAccessors = false
 
     printPeerClassModifiers(clazz: PeerClass): void {
         this.onFileStart(clazz.componentName)
+        this.hasModifiers = true
         super.printPeerClassModifiers(clazz)
-        this.onFileEnd()
+        this.onFileEnd(clazz.componentName)
     }
 
     onFileStart(className: string) {
@@ -375,15 +380,22 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
         this.modifiers = state.modifiers
         this.modifierList = state.modifierList
         this.getterDeclarations = state.getterDeclarations
+        this.hasModifiers = false
+        this.hasAccessors = false
     }
 
-    onFileEnd() {
+    onFileEnd(className: string) {
+        const slug = makeFileNameFromClassName(className)
+        const state = this.stateByFile.get(slug)!
+        state.hasModifiers = this.hasModifiers
+        state.hasAccessors = this.hasAccessors
     }
 
     printRealAndDummyAccessor(clazz: MaterializedClass): void {
         this.onFileStart(clazz.className)
+        this.hasAccessors = true
         super.printRealAndDummyAccessor(clazz)
-        this.onFileEnd()
+        this.onFileEnd(clazz.className)
     }
 
     emitRealSync(library: PeerLibrary | IdlPeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
@@ -392,8 +404,10 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
         const getterDeclarations = createLanguageWriter(Language.CPP)
 
         for (const [slug, state] of this.stateByFile) {
-            const filePath = libace.modifierCpp(slug)
-            printModifiersImplFile(filePath, slug, state, options)
+            if (state.hasModifiers)
+                printModifiersImplFile(libace.modifierCpp(slug), state, options)
+            if (state.hasAccessors)
+                printModifiersImplFile(libace.accessorCpp(slug), state, options)
             modifierList.concat(state.modifierList)
             accessorList.concat(state.accessorList)
             getterDeclarations.concat(state.getterDeclarations)
@@ -450,7 +464,7 @@ export function printRealModifiersAsMultipleFiles(library: PeerLibrary | IdlPeer
     visitor.emitRealSync(library, libace, options)
 }
 
-function printModifiersImplFile(filePath: string, slug: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
+function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
     const writer = new CppLanguageWriter(new IndentedPrinter())
     writer.writeLines(cStyleCopyright)
 

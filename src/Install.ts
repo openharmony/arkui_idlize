@@ -120,6 +120,9 @@ export class LibaceInstall extends Install {
     modifierCpp(component: string) {
         return this.implementation(`${component}_modifier.cpp`)
     }
+    accessorCpp(component: string) {
+        return this.implementation(`${component}_accessor.cpp`)
+    }
     delegateHeader(component: string) {
         return this.interface(`${component}_delegate.h`)
     }

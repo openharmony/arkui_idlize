@@ -17,7 +17,7 @@ import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./Convertors"
 import { Field, Method, MethodModifier, MethodSignature, Type } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
-import { heritageDeclarations, identName } from "../util"
+import { capitalize, heritageDeclarations, identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
 import { DeclarationTarget, PrimitiveType } from "./DeclarationTable"
 import { ImportFeature } from "./ImportsCollector"
@@ -77,6 +77,10 @@ export class MaterializedMethod extends PeerMethod {
 
     override get peerMethodName() {
         return this.overloadedName
+    }
+
+    override get implNamespaceName(): string {
+        return `${capitalize(this.originalParentName)}Accessor`
     }
 
     override get toStringName(): string {
