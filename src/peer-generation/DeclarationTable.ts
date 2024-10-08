@@ -609,7 +609,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         switch (name) {
             case `Dimension`:
             case `Length`:
-                return new LengthConvertor(name, param, this.language)
+                return new LengthConvertor(name, param)
             case `Date`:
                 return new CustomTypeConvertor(param, name, false, name)
             case `AttributeModifier`:
@@ -730,7 +730,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         }
     }
 
-    private printStructField(structs: IndentedPrinter, field: FieldRecord) {
+    private printStructField(structs: LanguageWriter, field: FieldRecord) {
         const prefix = field.optional ? ArkPrimitiveType.OptionalPrefix : ""
         let name = this.computeTargetName(field.declaration, false)
         if (field.optional) {
@@ -807,7 +807,7 @@ export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, Decla
         return unions
     }
 
-    private generateOptional(structs: IndentedPrinter, writeToString: LanguageWriter, target: DeclarationTarget, elemName: string, seenNames: Set<string>) {
+    private generateOptional(structs: LanguageWriter, writeToString: LanguageWriter, target: DeclarationTarget, elemName: string, seenNames: Set<string>) {
         const nameOptional = ArkPrimitiveType.OptionalPrefix + cleanPrefix(elemName, ArkPrimitiveType.Prefix)
         if (!seenNames.has(nameOptional)) {
             seenNames.add(nameOptional)

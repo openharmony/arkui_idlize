@@ -23,8 +23,8 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { CallbackInfo, collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
 import { DeclarationTable } from "../DeclarationTable";
 import { ArkPrimitiveType } from "../ArkPrimitiveType"
-import { NamedMethodSignature, Type, printMethodDeclaration } from "../LanguageWriters";
-import { camelCaseToUpperSnakeCase } from "../../util";
+import { NamedMethodSignature, Type, createLanguageWriter, printMethodDeclaration } from "../LanguageWriters";
+import { camelCaseToUpperSnakeCase, Language } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
