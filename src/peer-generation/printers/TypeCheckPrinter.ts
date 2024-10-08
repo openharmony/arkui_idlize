@@ -154,6 +154,8 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
         ), writer => {
+            //TODO: hack for now
+            typeName = typeName === "Callback" ? "Callback<void, void>" : typeName
             const statement = writer.makeReturn(writer.makeString(`value instanceof ${typeName}`))
             writer.writeStatement(statement)
         })

@@ -142,7 +142,22 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             })
         }, parentComponentClassName)
 
+        this.printComponentFunction(
+            componentClassName,
+            componentFunctionName,
+            mappedCallableParams?.join(", ") ?? "",
+            peerClassName,
+            callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : "",
+            peer.componentName)
+    }
 
+    protected printComponentFunction(
+        componentClassName: string,
+        componentFunctionName: string,
+        mappedCallableParams: string,
+        peerClassName: string,
+        callableMethodName: string | undefined,
+        peerComponentName: string) {
         this.printer.print(`
 /** @memo */
 export function ${componentFunctionName}(
@@ -150,25 +165,42 @@ export function ${componentFunctionName}(
   style: ((attributes: ${componentClassName}) => void) | undefined,
   /** @memo */
   content_: (() => void) | undefined,
-  ${mappedCallableParams?.join(", ") ?? ""}
+  ${mappedCallableParams}
 ) {
     const receiver = remember(() => {
         return new ${componentClassName}()
     })
-    NodeAttach<${peerClassName}>((): ${peerClassName} => ${peerClassName}.create(ArkUINodeType.${peer.componentName}, receiver), (_: ${peerClassName}) => {
-        ${callableMethod ? `receiver.${callableMethod.name}(${mappedCallableParamsValues})` : ""}
+    NodeAttach<${peerClassName}>((): ${peerClassName} => ${peerClassName}.create(ArkUINodeType.${peerComponentName}, receiver), (_: ${peerClassName}) => {
+        ${callableMethodName}
         style?.(receiver)
         content_?.()
         receiver.applyAttributesFinish()
     })
-}
-`)
+}`)
     }
 }
 
 class ArkTsComponentFileVisitor extends TSComponentFileVisitor {
     protected populateImports(imports: ImportsCollector) {
         imports.addFeature('TypeChecker', '#arkui')
+    }
+
+    protected printComponentFunction(componentClassName: string,
+                                     componentFunctionName: string,
+                                     mappedCallableParams: string,
+                                     peerClassName: string,
+                                     callableMethodName: string | undefined,
+                                     peerComponentName: string) {
+        // Error fix: Class 'ArkTest' is already defined with different type
+        // "ArkTest" - already used in ArkTS
+        if (componentFunctionName !== "ArkTest") {
+            super.printComponentFunction(componentClassName,
+                componentFunctionName,
+                mappedCallableParams,
+                peerClassName,
+                callableMethodName,
+                peerComponentName);
+        }
     }
 }
 

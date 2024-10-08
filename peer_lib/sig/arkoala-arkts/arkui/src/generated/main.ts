@@ -209,20 +209,20 @@ class SheetOptionsImpl implements SheetOptions {
     _showClose: boolean | Resource| undefined
     _preferType: SheetType| undefined
     _shouldDismiss: ((sheetDismiss: SheetDismiss) => void) | undefined
-    _onWillDismiss: Callback<DismissSheetAction>| undefined
-    _onWillSpringBackWhenDismiss: Callback<SpringBackAction>| undefined
+    _onWillDismiss: Callback<DismissSheetAction, void>| undefined
+    _onWillSpringBackWhenDismiss: Callback<SpringBackAction, void>| undefined
     _enableOutsideInteractive: boolean| undefined
     _width: Dimension| undefined
     _borderWidth: Dimension | EdgeWidths | LocalizedEdgeWidths| undefined
     _borderColor: ResourceColor | EdgeColors | LocalizedEdgeColors| undefined
     _borderStyle: BorderStyle | EdgeStyles| undefined
     _shadow: ShadowOptions | ShadowStyle| undefined
-    _onHeightDidChange: Callback<number>| undefined
+    _onHeightDidChange: Callback<number, void>| undefined
     _mode: SheetMode| undefined
     _scrollSizeMode?: ScrollSizeMode | undefined
-    _onDetentsDidChange: Callback<number>| undefined
-    _onWidthDidChange: Callback<number>| undefined
-    _onTypeDidChange: Callback<SheetType>| undefined
+    _onDetentsDidChange: Callback<number, void>| undefined
+    _onWidthDidChange: Callback<number, void>| undefined
+    _onTypeDidChange: Callback<SheetType, void>| undefined
     _uiContext: UIContext| undefined
     _backgroundColor: ResourceColor | undefined
     _onAppear: (() => void) | undefined
@@ -243,10 +243,10 @@ class SheetOptionsImpl implements SheetOptions {
         this._title = arg
     }
 
-    get onWillDismiss(): Callback<DismissSheetAction>| undefined {
+    get onWillDismiss(): Callback<DismissSheetAction, void>| undefined {
         return this._onWillDismiss
     }
-    set onWillDismiss(arg: Callback<DismissSheetAction>| undefined) {
+    set onWillDismiss(arg: Callback<DismissSheetAction, void>| undefined) {
         this._onWillDismiss = arg
     }
 
@@ -306,10 +306,10 @@ class SheetOptionsImpl implements SheetOptions {
         this._shouldDismiss = arg
     }
 
-    get onWillSpringBackWhenDismiss(): Callback<SpringBackAction>| undefined {
+    get onWillSpringBackWhenDismiss(): Callback<SpringBackAction, void>| undefined {
         return this._onWillSpringBackWhenDismiss
     }
-    set onWillSpringBackWhenDismiss(arg: Callback<SpringBackAction>| undefined) {
+    set onWillSpringBackWhenDismiss(arg: Callback<SpringBackAction, void>| undefined) {
         this._onWillSpringBackWhenDismiss = arg
     }
 
@@ -355,10 +355,10 @@ class SheetOptionsImpl implements SheetOptions {
         this._shadow = arg
     }
 
-    get onHeightDidChange(): Callback<number>| undefined {
+    get onHeightDidChange(): Callback<number, void>| undefined {
         return this._onHeightDidChange
     }
-    set onHeightDidChange(arg: Callback<number>| undefined) {
+    set onHeightDidChange(arg: Callback<number, void>| undefined) {
         this._onHeightDidChange = arg
     }
 
@@ -376,24 +376,24 @@ class SheetOptionsImpl implements SheetOptions {
         this._scrollSizeMode = arg
     }
 
-    get onDetentsDidChange(): Callback<number>| undefined {
+    get onDetentsDidChange(): Callback<number, void>| undefined {
         return this._onDetentsDidChange
     }
-    set onDetentsDidChange(arg: Callback<number>| undefined) {
+    set onDetentsDidChange(arg: Callback<number, void>| undefined) {
         this._onDetentsDidChange = arg
     }
 
-    get onWidthDidChange(): Callback<number>| undefined {
+    get onWidthDidChange(): Callback<number, void>| undefined {
         return this._onWidthDidChange
     }
-    set onWidthDidChange(arg: Callback<number>| undefined) {
+    set onWidthDidChange(arg: Callback<number, void>| undefined) {
         this._onWidthDidChange = arg
     }
 
-    get onTypeDidChange(): Callback<SheetType>| undefined {
+    get onTypeDidChange(): Callback<SheetType, void>| undefined {
         return this._onTypeDidChange
     }
-    set onTypeDidChange(arg: Callback<SheetType>| undefined) {
+    set onTypeDidChange(arg: Callback<SheetType, void>| undefined) {
         this._onTypeDidChange = arg
     }
 

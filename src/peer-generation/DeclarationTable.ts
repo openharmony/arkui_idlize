@@ -640,7 +640,10 @@ export class DeclarationTable {
             case `Map`:
                 return new MapConvertor(param, this, type, type.typeArguments![0], type.typeArguments![1])
             case `Callback`:
-                if (ts.isTypeReferenceNode(type) && isCallback(type, this)) {
+                //TODO: will be changed after callbacks have been reworked
+                if (ts.isTypeReferenceNode(type)
+                    && isCallback(type, this)
+                    && this.language !== Language.ARKTS) {
                     return new CallbackTypeReferenceConvertor(param, this, type)
                 }
                 return new FunctionConvertor(param, this, type)
