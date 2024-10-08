@@ -148,6 +148,16 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
     return result
 }
 
+export function getNodeTypes(library: PeerLibrary | IdlPeerLibrary): string[] {
+    const components = [...PeerGeneratorConfig.customNodeTypes]
+    for (const file of library.files) {
+        for (const peer of file.peers.values()) {
+            components.push(peer.componentName)
+        }
+    }
+    return components.sort()
+}
+
 export function appendViewModelBridge(library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let body = readTemplate('view_model_bridge.cc')
@@ -157,13 +167,11 @@ export function appendViewModelBridge(library: PeerLibrary | IdlPeerLibrary): La
 
     createNodeMethods.pushIndent()
     createNodeSwitch.pushIndent(3)
-    for (const file of library.files) {
-        for (const peer of file.peers.values()) {
-            const createNodeMethod = `create${peer.componentName}Node`
-            createNodeMethods.print(`Ark_NodeHandle ${createNodeMethod}(Ark_Int32 nodeId);`)
-            const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(peer.componentName)}`
-            createNodeSwitch.print(`case ${name}: return ViewModel::${createNodeMethod}(id);`)
-        }
+    for (const component of getNodeTypes(library)) {
+        const createNodeMethod = `create${component}Node`
+        createNodeMethods.print(`Ark_NodeHandle ${createNodeMethod}(Ark_Int32 nodeId);`)
+        const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(component)}`
+        createNodeSwitch.print(`case ${name}: return ViewModel::${createNodeMethod}(id);`)
     }
     createNodeSwitch.popIndent(3)
     createNodeMethods.popIndent()
@@ -395,7 +403,6 @@ ${events.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI;
 
 typedef enum ${PeerGeneratorConfig.cppPrefix}Ark_NodeType {
-    ${PeerGeneratorConfig.cppPrefix}ARKUI_ROOT,
 ${nodeTypes.join(",\n")}
 } ${PeerGeneratorConfig.cppPrefix}Ark_NodeType;
 

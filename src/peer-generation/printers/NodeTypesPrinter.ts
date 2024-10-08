@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter } from "../../IndentedPrinter";
-import { makeNodeTypes } from "../FileGenerators";
+import { getNodeTypes, makeNodeTypes } from "../FileGenerators";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { PeerLibrary } from "../PeerLibrary";
 
@@ -26,10 +26,8 @@ class NodeTypesVisitor {
     ) {}
 
     print(): void {
-        for (const file of this.library.files) {
-            for (const peer of file.peers.values()) {
-                this.nodeTypes.print(peer.componentName)
-            }
+        for (const nodeType of getNodeTypes(this.library)) {
+            this.nodeTypes.print(nodeType)
         }
     }
 }

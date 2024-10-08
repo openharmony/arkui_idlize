@@ -15,7 +15,7 @@
 
 
 import { IndentedPrinter } from "../../IndentedPrinter";
-import { makeAPI, makeCSerializers, makeConverterHeader } from "../FileGenerators";
+import { getNodeTypes, makeAPI, makeCSerializers, makeConverterHeader } from "../FileGenerators";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
@@ -167,11 +167,9 @@ class HeaderVisitor {
 
     private printNodeTypes() {
         this.nodeTypesList.pushIndent()
-        for (const file of this.library.files) {
-            for (const peer of file.peers.values()) {
-                const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(peer.componentName)}`
-                this.nodeTypesList.print(name)
-            }
+        for (const nodeType of getNodeTypes(this.library)) {
+            const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(nodeType)}`
+            this.nodeTypesList.print(name)
         }
         this.nodeTypesList.popIndent()
     }

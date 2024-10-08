@@ -1,5 +1,4 @@
 namespace ViewModel {
-    Ark_NodeHandle createRootNode(Ark_Int32 nodeId);
 %CREATE_NODE_METHODS%
     void SetCallbackMethod(ArkUIAPICallbackMethod* method);
 } // namespace ViewModel
@@ -14,7 +13,6 @@ namespace Bridge {
         }
 
         switch (type) {
-            case %CPP_PREFIX%ARKUI_ROOT: return ViewModel::createRootNode(id);
 %CREATE_NODE_SWITCH%
             default: return nullptr;
         }

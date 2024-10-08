@@ -19,6 +19,7 @@ import { Language } from '../util'
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]
     public static customComponent = ["CustomComponent"]
+    public static customNodeTypes = ["Root", "ComponentRoot", "CustomNode"]
 
     public static ignoreSerialization = [
         "Array", "Callback", "ErrorCallback", "Length", "AttributeModifier",
