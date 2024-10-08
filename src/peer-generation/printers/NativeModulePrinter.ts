@@ -120,10 +120,21 @@ class NativeModuleVisitor {
     }
     
     makeMethodFromIdl(inputMethod:idl.IDLMethod, printer: LanguageWriter): Method {
-        const signature = printer.makeNamedSignature(
+        let signature = printer.makeNamedSignature(
             inputMethod.returnType, 
             inputMethod.parameters
         )
+        if (this.library.language === Language.TS) {
+            function patchType(type:Type): Type {
+                if (type.isPrimitive() && type.name === 'boolean') {
+                    return Type.Number
+                }
+                return type
+            }
+            const patchedSignatureArgs = signature.args.map(patchType)
+            const patchedReturnType = patchType(signature.returnType)
+            signature = new NamedMethodSignature(patchedReturnType, patchedSignatureArgs, signature.argsNames, signature.defaults)
+        }
         return new Method('_' + inputMethod.name, signature)
     }
 
@@ -137,7 +148,7 @@ class NativeModuleVisitor {
         this.nativeModuleEmpty.writeMethodImplementation(method, (printer) => {
             printer.writePrintLog(method.name)
             if (method.signature.returnType !== undefined && method.signature.returnType.name !== 'void') {
-                printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(inputMethod.returnType))))
+                printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(inputMethod.returnType, true))))
             }
         })
     }
@@ -180,8 +191,8 @@ class NativeModuleVisitor {
 
 class CJNativeModuleVisitor extends NativeModuleVisitor {
     private arrayLikeTypes = new Set([
-        'Uint8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'Vec_u8', 'Vec_i32', 'Vec_f32'])
-    private stringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string', 'str'])
+        'Uint8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr'])
+    private stringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string'])
 
     constructor(
         protected readonly library: PeerLibrary | IdlPeerLibrary,
@@ -251,7 +262,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             printer.writePrintLog(name)
             if (returnType !== undefined 
                 && returnType.name !== Type.Void.name
-                && returnType.name !== idl.IDLTypes.void.name
+                && returnType.name !== idl.IDLVoidType.name
                 && returnType.name !== 'Void'
             ) {
                 printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
@@ -334,7 +345,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             printer.writePrintLog(method.name)
             if (inputMethod.returnType !== undefined 
                 && inputMethod.returnType.name !== Type.Void.name 
-                && inputMethod.returnType.name !== idl.IDLTypes.void.name
+                && inputMethod.returnType.name !== idl.IDLVoidType.name
                 && inputMethod.returnType.name !== 'Void'
             ) {
                 printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(inputMethod.returnType))))
@@ -357,11 +368,11 @@ export function printNativeModuleEmpty(peerLibrary: PeerLibrary | IdlPeerLibrary
     return nativeModuleEmptyDeclaration(visitor.nativeModuleEmpty.getOutput())
 }
 
-function getReturnValue(type: idl.IDLType | Type): string {
+function getReturnValue(type: idl.IDLType | Type, isTSSpecial = false): string {
 
-    const pointers = new Set(['ptr'])
+    const pointers = new Set(['pointer'])
     const integrals = new Set([
-        'bool',
+        'boolean',
         'i8',  'u8',
         'i16', 'u16',
         'i32', 'u32',
@@ -371,9 +382,15 @@ function getReturnValue(type: idl.IDLType | Type): string {
         ...integrals, 'f32', 'f64'
     ])
     const strings = new Set([
-        'str'
+        'String'
     ])
 
+    if (type.name === 'boolean') {
+        if (isTSSpecial) {
+            return '0'
+        }
+        return 'false'
+    }
     if (pointers.has(type.name)) {
         return '-1'
     }

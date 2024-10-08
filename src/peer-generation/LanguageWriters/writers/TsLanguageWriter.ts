@@ -18,8 +18,8 @@ import { Language } from "../../../util"
 import { ArrayConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { FieldRecord } from "../../DeclarationTable"
 import { mapType, TSTypeNodeNameConvertor } from "../../TypeNodeNameConvertor"
-import { AssignStatement, ExpressionStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
-import { createPrimitiveTypeMapper, IDLContainerType, IDLTypes } from '../../../idl'
+import { AssignStatement, ExpressionStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
+import { IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType } from '../../../idl'
 import * as ts from 'typescript'
 import { ArgConvertor, RuntimeType } from "../../ArgConvertors"
 
@@ -350,9 +350,9 @@ export class TSLanguageWriter extends LanguageWriter {
         switch (type.name) {
             case 'sequence': {
                 switch (type.elementType[0].name) {
-                    case IDLTypes.u8.name: return 'Uint8Array'
-                    case IDLTypes.i32.name: return 'Int32Array'
-                    case IDLTypes.f32.name: return 'Float32Array'
+                    case IDLU8Type.name: return 'Uint8Array'
+                    case IDLI32Type.name: return 'Int32Array'
+                    case IDLF32Type.name: return 'Float32Array'
                 }
             }
         }
@@ -361,28 +361,31 @@ export class TSLanguageWriter extends LanguageWriter {
     mapType(type: Type, convertor?: ArgConvertor): string {
         switch (type.name) {
             case 'Function': return 'Object'
-
-            case 'Vec_u8': return 'Uint8Array'
-            case 'Vec_i32': return 'Int32Array'
-            case 'Vec_f32': return 'Float32Array'
         }
-        const mapper = createPrimitiveTypeMapper({
-            ptr: 'number | bigint',
-            void: 'void',
-            bool: 'number', // boolean ?
-            i8: 'number',
-            u8: 'number',
-            i16: 'number',
-            u16: 'number',
-            i32: 'number',
-            u32: 'number',
-            i64: 'number', // bigint ?
-            u64: 'number',
-            f32: 'number',
-            f64: 'number',
-            str: 'string'
-        })
-        return mapper(type.name)[1]
+        return super.mapType(type)
+    }
+    mapIDLPrimitiveType(type: IDLPrimitiveType): string {
+        switch (type) {
+            case IDLPointerType: return 'number | bigint'
+            case IDLVoidType: return 'void'
+
+            case IDLI8Type:
+            case IDLU8Type:
+            case IDLI16Type:
+            case IDLU16Type:
+            case IDLI32Type:
+            case IDLU32Type:
+            case IDLI64Type:
+            case IDLU64Type:
+            case IDLF32Type:
+            case IDLF64Type:
+            case IDLNumberType:
+                return 'number'
+
+            case IDLStringType:
+                return 'string'
+        }
+        return super.mapIDLPrimitiveType(type)
     }
     override castToBoolean(value: string): string { return `+${value}` }
     override makeCallIsObject(value: string): LanguageExpression {

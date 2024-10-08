@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLBooleanType, IDLContainerType, IDLNumberType, IDLParameter, IDLPrimitiveType, IDLStringType, IDLType, IDLUnionType, IDLVoidType, isContainerType, isPrimitiveType, isUnionType } from "../../idl"
+import { IDLBooleanType, IDLContainerType, IDLNumberType, IDLParameter, IDLPrimitiveType, IDLStringType, IDLType, IDLUndefinedType, IDLUnionType, IDLVoidType, isContainerType, isPrimitiveType, isUnionType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { Language, stringOrNone } from "../../util"
 import { EnumConvertor, MapConvertor } from "../Convertors"

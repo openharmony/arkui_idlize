@@ -318,14 +318,17 @@ if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
+    type LibraryWithPredefines = { 
+        predefinedFiles: IdlPeerFile[]
+    }
 
-    function addToLibrary(library: { files: IdlPeerFile[], componentsToGenerate: Set<string> }, dir: string) {
+    function scanPredefinedDirectory(library: LibraryWithPredefines, dir: string) {
         fs.readdirSync(dir).forEach(it => {
             const idlFile = path.resolve(path.join(dir, it))
             const content = fs.readFileSync(path.resolve(path.join(dir, it))).toString()
             const nodes = webidl2.parse(content).map(it => toIDLNode(idlFile, it))
-            library.files.push(
-                new IdlPeerFile(idlFile, nodes, library.componentsToGenerate)
+            library.predefinedFiles.push(
+                new IdlPeerFile(idlFile, nodes, new Set())
             )
         })
     }
@@ -336,12 +339,7 @@ if (options.dts2peer) {
         options.docs = "all"
         const idlLibrary = new IdlPeerLibrary(lang, toSet(options.generateInterface))
         // collect predefined files
-        addToLibrary({
-            get files() {
-                return idlLibrary.predefinedFiles
-            },
-            componentsToGenerate: new Set()
-        }, PREDEFINED_PATH)
+        scanPredefinedDirectory(idlLibrary, PREDEFINED_PATH)
         // process predefined files
         idlLibrary.predefinedFiles.forEach(file => {
             IdlPredefinedGeneratorVisitor.create({ 
@@ -403,11 +401,10 @@ if (options.dts2peer) {
 
         /* ---------- stub while we migrating to idl --------- */
         const kindOfLibrary = {
-            files: [] as IdlPeerFile[],
-            componentsToGenerate: new Set<string>()
+            predefinedFiles: [] as IdlPeerFile[]
         }
-        addToLibrary(kindOfLibrary, PREDEFINED_PATH)
-        for (const file of kindOfLibrary.files) {
+        scanPredefinedDirectory(kindOfLibrary, PREDEFINED_PATH)
+        for (const file of kindOfLibrary.predefinedFiles) {
             const pkgs = file.entries.filter(isPackage)
             if (pkgs.length !== 1 || pkgs[0]?.name !== `"org.openharmony.idlize.predefined"`) {
                 continue

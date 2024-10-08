@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import * as idl from '../../idl'
-import { IDLEntry, IDLMethod, IDLInterface, isInterface, isClass, printType, IDLVoidType } from "../../idl"
+import { IDLEntry, IDLMethod, IDLInterface, isInterface, isClass, printType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { capitalize, toCamelCase } from "../../util"
 export class SkoalaCCodeGenerator {

@@ -382,52 +382,25 @@ function createPrimitiveType(name: string): IDLPrimitiveType {
     }
 }
 
-export const IDLTypes = {
-    ptr: createPrimitiveType('ptr'),
-    
-    void: createPrimitiveType("void"),
-
-    bool: createPrimitiveType('bool'),
-    i8: createPrimitiveType('i8'),
-    u8: createPrimitiveType('u8'),
-    i16: createPrimitiveType('i16'),
-    u16: createPrimitiveType('u16'),
-    i32: createPrimitiveType('i32'),
-    u32: createPrimitiveType('u32'),
-    i64: createPrimitiveType('i64'),
-    u64: createPrimitiveType('u64'),
-    
-    f32: createPrimitiveType('f32'),
-    f64: createPrimitiveType('f64'),
-
-    str: createPrimitiveType('str')
-}
-
-type KeyToStringMapper<T extends object> = { [x in keyof T]: string }
-type IDLTypesMapper = KeyToStringMapper<typeof IDLTypes>
-
-type TypeMapHelper = (x:string) => [boolean, string]
-export function createPrimitiveTypeMapper(mapper:IDLTypesMapper): TypeMapHelper {
-    return (input:string) => {
-        for (const key in IDLTypes) {
-            if (IDLTypes[key as keyof typeof IDLTypes].name === input) {
-                return [true, mapper[key as keyof IDLTypesMapper]]
-            }
-        }
-        return [false, input]
-    }
-}
-
-export const IDLAnyType: IDLPrimitiveType = createPrimitiveType("any")
-export const IDLBooleanType: IDLPrimitiveType = createPrimitiveType("boolean")
-export const IDLBigintType: IDLPrimitiveType = createPrimitiveType("bigint")
-// TODO: use void (need to fix IDL parser)
-export const IDLNullType: IDLPrimitiveType = createPrimitiveType("Null")
-export const IDLNumberType: IDLPrimitiveType = createPrimitiveType("number")
-export const IDLStringType: IDLPrimitiveType = createPrimitiveType("DOMString")
-export const IDLUndefinedType: IDLPrimitiveType = createPrimitiveType("undefined")
-// TODO: use void (need to fix IDL parser)
-export const IDLVoidType: IDLPrimitiveType = createPrimitiveType("Void")
+export const IDLPointerType = createPrimitiveType('pointer')
+export const IDLVoidType = createPrimitiveType('void')
+export const IDLBooleanType = createPrimitiveType('boolean')
+export const IDLI8Type = createPrimitiveType('i8')
+export const IDLU8Type = createPrimitiveType('u8')
+export const IDLI16Type = createPrimitiveType('i16')
+export const IDLU16Type = createPrimitiveType('u16')
+export const IDLI32Type = createPrimitiveType('i32')
+export const IDLU32Type = createPrimitiveType('u32')
+export const IDLI64Type = createPrimitiveType('i64')
+export const IDLU64Type = createPrimitiveType('u64')  
+export const IDLF32Type = createPrimitiveType('f32')
+export const IDLF64Type = createPrimitiveType('f64')
+export const IDLBigintType = createPrimitiveType("bigint")
+export const IDLNumberType = createPrimitiveType('number')
+export const IDLStringType = createPrimitiveType('String')
+export const IDLAnyType = createPrimitiveType('any')
+export const IDLNullType = createPrimitiveType('null')
+export const IDLUndefinedType = createPrimitiveType('undefined')
 
 export function createReferenceType(name: string, typeArguments?: NodeArray<TypeNode>): IDLReferenceType {
     if (typeArguments) {
@@ -464,7 +437,7 @@ export function createContainerType(container: string, element: IDLType[]): IDLC
         container = "record"
     }
     if (element[0].name == "PropertyKey") {
-        element[0].name = "DOMString"
+        element[0].name = IDLStringType.name
     }
     return {
         kind: IDLKind.ContainerType,
@@ -694,7 +667,7 @@ function hasSuperType(idl: IDLInterface) {
 
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
     const type = printType(idl.type)
-    const initializer = type === "DOMString"
+    const initializer = type === IDLStringType.name
         ? `"${(idl.initializer as string).replaceAll('"', "'")}"`
         : idl.initializer
     return [

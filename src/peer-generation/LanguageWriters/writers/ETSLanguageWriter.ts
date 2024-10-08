@@ -18,7 +18,7 @@ import { capitalize, Language } from "../../../util"
 import { AggregateConvertor, ArrayConvertor, EnumConvertor, OptionConvertor, StringConvertor } from "../../Convertors"
 import { FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, Type } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { createPrimitiveTypeMapper, IDLContainerType, IDLTypes  } from '../../../idl'
+import { IDLBooleanType, IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType  } from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
 import { createLiteralDeclName } from "../../TypeNodeNameConvertor"
 import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
@@ -126,9 +126,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         switch (type.name) {
             case 'sequence': {
                 switch (type.elementType[0].name) {
-                    case IDLTypes.u8.name: return 'KUint8ArrayPtr'
-                    case IDLTypes.i32.name: return 'KInt32ArrayPtr'
-                    case IDLTypes.f32.name: return 'KFloat32ArrayPtr'
+                    case IDLU8Type.name: return 'KUint8ArrayPtr'
+                    case IDLI32Type.name: return 'KInt32ArrayPtr'
+                    case IDLF32Type.name: return 'KFloat32ArrayPtr'
                 }
             }
         }
@@ -148,31 +148,37 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         switch (type.name) {
             case 'Uint8Array': return 'KUint8ArrayPtr'
-            case 'Vec_u8': return 'KUint8ArrayPtr'
-            case 'Vec_i32': return 'KInt32ArrayPtr'
-            case 'Vec_f32': return 'KFloat32ArrayPtr'
-        }
-        const mapper = createPrimitiveTypeMapper({
-            ptr: 'KPointer',
-            void: 'void',
-            bool: 'KBoolean',
-            i8: 'KInt',
-            u8: 'KInt',
-            i16: 'KInt',
-            u16: 'KInt',
-            i32: 'KInt',
-            u32: 'KUInt',
-            i64: 'KLong',
-            u64: 'KLong', // ??
-            f32: 'KFloat',
-            f64: 'number',
-            str: 'KStringPtr'
-        })
-        const [ success, resultType ] = mapper(type.name)
-        if (success) {
-            return resultType
         }
         return super.mapType(type)
+    }
+    mapIDLPrimitiveType(type: IDLPrimitiveType): string {
+        switch (type) {
+            case IDLPointerType: return 'KPointer'
+            case IDLVoidType: return 'void'
+            case IDLBooleanType: return 'KBoolean'
+            
+            case IDLI8Type:
+            case IDLU8Type:
+            case IDLI16Type:
+            case IDLU16Type:
+            case IDLI32Type:
+            case IDLU32Type:
+                return 'KInt'
+
+            case IDLI64Type:
+            case IDLU64Type:
+                return 'KLong'
+
+            case IDLF32Type:
+                return 'KFloat'
+
+            case IDLF64Type:
+            case IDLNumberType:
+                return 'number'
+
+            case IDLStringType: return 'KStringPtr'
+        }
+        return super.mapIDLPrimitiveType(type)
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]

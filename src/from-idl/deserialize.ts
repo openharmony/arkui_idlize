@@ -22,8 +22,12 @@ import {
     isSingleTypeDescription, isTypedef, isUnionTypeDescription
 } from "./webidl2-utils"
 import { toString } from "./toString"
-import { createContainerType, createUnionType, IDLAnyType, IDLBooleanType, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLImport, IDLInterface, IDLKind,
-    IDLMethod, IDLModuleType, IDLNullType, IDLNumberType, IDLPackage, IDLParameter, IDLPrimitiveType, IDLProperty, IDLStringType, IDLType, IDLTypedef,
+import { createContainerType, createUnionType, IDLAnyType, IDLBooleanType, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLImport, IDLInterface, IDLKind,
+    IDLMethod, IDLModuleType, IDLNullType, IDLNumberType, IDLPackage, IDLParameter, IDLPointerType, IDLPrimitiveType, IDLProperty, IDLStringType, IDLType, IDLTypedef,
+    IDLU16Type,
+    IDLU32Type,
+    IDLU64Type,
+    IDLU8Type,
     IDLUndefinedType,
     IDLVoidType
 } from "../idl"
@@ -161,13 +165,25 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
     }
     if (isSingleTypeDescription(type)) {
         switch (type.idlType) {
-            case "any": return IDLAnyType
-            case "boolean": return IDLBooleanType
-            case "null_": return IDLNullType
-            case "number": return IDLNumberType
-            case "DOMString": return IDLStringType
-            case "undefined": return IDLUndefinedType
-            case "void": return IDLVoidType
+            case IDLAnyType.name: return IDLAnyType
+            case IDLBooleanType.name: return IDLBooleanType
+            case IDLNullType.name: return IDLNullType
+            case IDLNumberType.name: return IDLNumberType
+            case IDLStringType.name: return IDLStringType
+            case IDLUndefinedType.name: return IDLUndefinedType
+            case IDLVoidType.name: return IDLVoidType
+            case IDLI8Type.name: return IDLI8Type
+            case IDLU8Type.name: return IDLU8Type
+            case IDLI16Type.name: return IDLI16Type
+            case IDLU16Type.name: return IDLU16Type
+            case IDLI32Type.name: return IDLI32Type
+            case IDLU32Type.name: return IDLU32Type
+            case IDLI64Type.name: return IDLI64Type
+            case IDLU64Type.name: return IDLU64Type
+            case IDLF32Type.name: return IDLF32Type
+            case IDLF64Type.name: return IDLF64Type
+            case IDLPointerType.name: return IDLPointerType
+
         }
         const combinedExtAttrs = extAttrs
             ? type.extAttrs ? extAttrs.concat(type.extAttrs) : extAttrs

@@ -33,7 +33,7 @@ export function isImport(decl: idl.IDLEntry): boolean {
 }
 
 export function isStringEnum(decl: idl.IDLEnum): boolean {
-    return decl.elements.some(e => e.type.name === "DOMString")
+    return decl.elements.some(e => e.type === idl.IDLStringType)
 }
 
 export function qualifiedName(decl: idl.IDLEntry, language: Language): string {

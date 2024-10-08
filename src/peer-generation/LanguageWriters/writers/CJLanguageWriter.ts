@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createPrimitiveTypeMapper, IDLContainerType, IDLParameter, IDLType, isContainerType, isPrimitiveType } from "../../../idl"
+import { IDLBooleanType, IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLParameter, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType, isContainerType, isPrimitiveType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { CJKeywords } from "../../../languageSpecificKeywords"
 import { isDefined, Language } from "../../../util"
@@ -314,8 +314,8 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     mapCIDLType(type:IDLType): string {
         if (isPrimitiveType(type)) {
-            switch (type.name) {
-                case 'str': return 'CString'
+            switch (type) {
+                case IDLStringType: return 'CString'
             }
         }
         if (isContainerType(type)) {
@@ -324,6 +324,25 @@ export class CJLanguageWriter extends LanguageWriter {
             }
         }
         return this.mapIDLType(type)
+    }
+    mapIDLPrimitiveType(type: IDLPrimitiveType): string {
+        switch (type) {
+            case IDLPointerType: return 'Int64'
+            case IDLVoidType: return 'Unit'
+            case IDLBooleanType:  return 'Bool'
+            case IDLI8Type: return 'Int8'
+            case IDLU8Type: return 'UInt8'
+            case IDLI16Type: return 'Int16'
+            case IDLU16Type: return 'UInt16'
+            case IDLI32Type: return 'Int32'
+            case IDLU32Type: return 'UInt32'
+            case IDLI64Type: return 'Int64'
+            case IDLU64Type: return 'UInt64'
+            case IDLF32Type: return 'Float32'
+            case IDLF64Type: case IDLNumberType: return 'Float64'
+            case IDLStringType: return 'String'
+        }
+        return super.mapIDLPrimitiveType(type)
     }
     mapType(type: Type): string {
         switch (type.name) {
@@ -356,38 +375,6 @@ export class CJLanguageWriter extends LanguageWriter {
             
             //  Other
             case 'Length': return 'String'
-
-            /////////////////////////////
-            // NEW ONES 
-
-            // Array like
-            case 'Vec_u8': return 'ArrayList<UInt8>'
-            case 'Vec_i32': return 'ArrayList<Int32>'
-            case 'Vec_f32': return 'ArrayList<Float32>'
-        }
-        const mapper = createPrimitiveTypeMapper({
-            ptr: 'Int64',
-    
-            void: 'Unit',
-
-            bool: 'Bool',
-            i8: 'Int8',
-            u8: 'UInt8',
-            i16: 'Int16',
-            u16: 'UInt16',
-            i32: 'Int32',
-            u32: 'UInt32',
-            i64: 'Int64',
-            u64: 'UInt64',
-            
-            f32: 'Float32',
-            f64: 'Float64',
-
-            str: 'String'
-        })
-        const [ success, resultType ] = mapper(type.name)
-        if (success) {
-            return resultType
         }
         return super.mapType(type)
     }
@@ -424,38 +411,6 @@ export class CJLanguageWriter extends LanguageWriter {
             
             //  Other
             case 'Length': return 'CString'
-
-            /////////////////////////////
-            // NEW ONES 
-
-            // Array like
-            case 'Vec_u8': return 'CPointer<UInt8>'
-            case 'Vec_i32': return 'CPointer<Int32>'
-            case 'Vec_f32': return 'CPointer<Float32>'
-        }
-        const mapper = createPrimitiveTypeMapper({
-            ptr: 'Int64',
-    
-            void: 'Unit',
-
-            bool: 'Bool',
-            i8: 'Int8',
-            u8: 'UInt8',
-            i16: 'Int16',
-            u16: 'UInt16',
-            i32: 'Int32',
-            u32: 'UInt32',
-            i64: 'Int64',
-            u64: 'UInt64',
-            
-            f32: 'Float32',
-            f64: 'Float64',
-
-            str: 'CString'
-        })
-        const [ success, resultType ] = mapper(type.name)
-        if (success) {
-            return resultType
         }
         return super.mapType(type)
     }

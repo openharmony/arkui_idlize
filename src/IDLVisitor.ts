@@ -20,8 +20,15 @@ import {
     createTypeParameterReference, createUnionType, IDLCallable, IDLCallback, IDLConstant, IDLConstructor,
     IDLEntity, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLTopType, IDLType, IDLTypedef,
     IDLAccessorAttribute, IDLExtendedAttributes, getExtAttribute, IDLPackage, IDLImport,
-    IDLStringType, IDLNumberType, IDLUndefinedType, IDLNullType, IDLVoidType, IDLAnyType, IDLBooleanType, IDLBigintType,
-    isContainerType
+    isContainerType,
+    IDLStringType,
+    IDLNumberType,
+    IDLUndefinedType,
+    IDLNullType,
+    IDLVoidType,
+    IDLAnyType,
+    IDLBooleanType,
+    IDLBigintType,
 } from "./idl"
 import {
     asString, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isCommonMethodOrSubclass, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameOrNull, stringOrNone
@@ -36,7 +43,7 @@ const typeMapper = new Map<string, string>(
     [
         ["object", "Object"],
         ["Array", "sequence"],
-        ["string", "DOMString"],
+        ["string",IDLStringType.name],
         ["Map", "record"],
         // TODO: rethink that
         ["\"2d\"", "string"],
@@ -116,7 +123,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             name,
             kind: IDLKind.EnumMember,
             parent,
-            type: { name: "DOMString", kind: IDLKind.PrimitiveType },
+            type: IDLStringType,
             initializer: value
         }
         parent.elements.push(result)
