@@ -16,7 +16,8 @@
 import * as ts from 'typescript'
 import * as idl from '../../idl'
 import { Language } from "../../util";
-import { DeclarationTable, DeclarationTarget, PrimitiveType } from "../DeclarationTable";
+import { DeclarationTable, DeclarationTarget } from "../DeclarationTable";
+import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { checkDeclarationTargetMaterialized } from '../Materialized';
@@ -62,10 +63,10 @@ function canSerializeTarget(declaration: ts.ClassDeclaration | ts.InterfaceDecla
     })
 }
 
-function ignoreSerializeTarget(table: DeclarationTable, target: DeclarationTarget): target is PrimitiveType | ts.EnumDeclaration {
+function ignoreSerializeTarget(table: DeclarationTable, target: DeclarationTarget): target is ArkPrimitiveType | ts.EnumDeclaration {
     const name = table.computeTargetName(target, false, "")
     if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return true
-    if (target instanceof PrimitiveType) return true
+    if (target instanceof ArkPrimitiveType) return true
     if (ts.isEnumDeclaration(target)) return true
     if (ts.isFunctionTypeNode(target)) return true
     if (ts.isImportTypeNode(target)) return true
@@ -85,7 +86,7 @@ class SerializerPrinter {
     }
 
     private translateSerializerType(name: string, target: DeclarationTarget): string {
-        if (target instanceof PrimitiveType) throw new Error("Unexpected")
+        if (target instanceof ArkPrimitiveType) throw new Error("Unexpected")
         if (ts.isInterfaceDeclaration(target) && target.typeParameters != undefined) {
             if (target.typeParameters.length != 1) throw new Error("Unexpected")
             return `${name}<object>`
@@ -113,7 +114,7 @@ class SerializerPrinter {
                 struct.getFields().forEach(it => {
                     let field = `value_${it.name}`
                     writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.escapeKeyword(it.name)}`), true))
-                    let typeConvertor = this.table.typeConvertor(`value`, it.type!, it.optional, typeNodeNameConvertor)
+                    let typeConvertor = this.table.typeConvertor(`value`, it.type!, it.optional, undefined, typeNodeNameConvertor)
                     typeConvertor.convertorSerialize(`value`, field, writer)
                 })
             })
@@ -131,7 +132,7 @@ class SerializerPrinter {
                 break;
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
-                prefix = PrimitiveType.Prefix
+                prefix = ArkPrimitiveType.Prefix
                 break;
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(Type.Void, [], [])
@@ -202,7 +203,7 @@ class IdlSerializerPrinter {
                 break;
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*")], ["data"])
-                prefix = PrimitiveType.Prefix
+                prefix = ArkPrimitiveType.Prefix
                 break;
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(Type.Void, [], [])
@@ -278,7 +279,7 @@ class DeserializerPrinter {
         let prefix = ""
         if (this.writer.language == Language.CPP) {
             ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
-            prefix = PrimitiveType.Prefix
+            prefix = ArkPrimitiveType.Prefix
         }
         const serializerDeclarations = generateSerializerDeclarationsTable(prefix, this.table)
         printSerializerImports(serializerDeclarations, this.library, this.writer)
@@ -341,7 +342,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
         let prefix = ""
         if (this.writer.language == Language.CPP) {
             ctorSignature = new NamedMethodSignature(Type.Void, [new Type("uint8_t*"), Type.Int32], ["data", "length"])
-            prefix = PrimitiveType.Prefix
+            prefix = ArkPrimitiveType.Prefix
         }
         const serializerDeclarations = getSerializers(this.library)
         printIdlImports(this.library, this.writer)

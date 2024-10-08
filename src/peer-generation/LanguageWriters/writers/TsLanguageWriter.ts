@@ -15,13 +15,13 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../util"
-import { ArgConvertor, ArrayConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
+import { ArrayConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { FieldRecord } from "../../DeclarationTable"
-import { RuntimeType } from "../../PeerGeneratorVisitor"
 import { mapType, TSTypeNodeNameConvertor } from "../../TypeNodeNameConvertor"
 import { AssignStatement, ExpressionStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
 import { createPrimitiveTypeMapper, IDLContainerType, IDLTypes } from '../../../idl'
 import * as ts from 'typescript'
+import { ArgConvertor, RuntimeType } from "../../ArgConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //

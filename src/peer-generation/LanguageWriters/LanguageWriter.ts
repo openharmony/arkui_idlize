@@ -16,10 +16,10 @@
 import { IDLBooleanType, IDLContainerType, IDLNumberType, IDLParameter, IDLPrimitiveType, IDLStringType, IDLType, IDLUnionType, IDLVoidType, isContainerType, isPrimitiveType, isUnionType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { Language, stringOrNone } from "../../util"
-import { ArgConvertor, EnumConvertor, MapConvertor } from "../Convertors"
+import { EnumConvertor, MapConvertor } from "../Convertors"
+import { ArgConvertor, RuntimeType } from "../ArgConvertors"
 import { FieldRecord } from "../DeclarationTable"
 import { EnumEntity } from "../PeerFile"
-import { RuntimeType } from "../PeerGeneratorVisitor"
 import * as fs from "fs"
 
 ////////////////////////////////////////////////////////////////

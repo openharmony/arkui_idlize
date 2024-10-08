@@ -17,7 +17,7 @@ import * as idl from "../../idl"
 import { posix as path } from "path"
 import { serializerBaseMethods, isDefined, Language, renameDtsToInterfaces, renameClassToBuilderClass, renameClassToMaterialized, capitalize, throwException } from "../../util"
 import { GenericVisitor } from "../../options"
-import { ArgConvertor, RetConvertor } from "./IdlArgConvertors"
+import { ArgConvertor, RetConvertor } from "../ArgConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { IdlPeerClass } from "./IdlPeerClass"
 import { IdlPeerMethod } from "./IdlPeerMethod"
@@ -32,24 +32,11 @@ import { initCustomBuilderClasses, BuilderClass, isCustomBuilderClass, BuilderMe
 import { isRoot } from "../inheritance";
 import { ImportFeature } from "../ImportsCollector";
 import { DeclarationNameConvertor } from "./IdlNameConvertor";
-import { PrimitiveType } from "../DeclarationTable"
+import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convert } from "./common"
 import { collectJavaImportsForDeclaration } from "../printers/lang/JavaIdlUtils"
 import { ARK_CUSTOM_OBJECT, javaCustomTypeMapping } from "../printers/lang/Java"
-
-export enum RuntimeType {
-    UNEXPECTED = -1,
-    NUMBER = 1,
-    STRING = 2,
-    OBJECT = 3,
-    BOOLEAN = 4,
-    UNDEFINED = 5,
-    BIGINT = 6,
-    FUNCTION = 7,
-    SYMBOL = 8,
-    MATERIALIZED = 9,
-}
 
 /**
  * Theory of operations.
@@ -168,8 +155,8 @@ function generateRetConvertor(type?: idl.IDLType): RetConvertor {
 function mapCInteropRetType(type: idl.IDLType): string {
     if (idl.isPrimitiveType(type)) {
         switch (type) {
-            case idl.IDLBooleanType: return PrimitiveType.Boolean.getText()
-            case idl.IDLNumberType: return PrimitiveType.Int32.getText()
+            case idl.IDLBooleanType: return ArkPrimitiveType.Boolean.getText()
+            case idl.IDLNumberType: return ArkPrimitiveType.Int32.getText()
             case idl.IDLStringType:
                 /* HACK, fix */
                 // return `KStringPtr`
@@ -184,20 +171,20 @@ function mapCInteropRetType(type: idl.IDLType): string {
         /* HACK, fix */
         if (type.name.endsWith("Attribute"))
             return "void"
-        return PrimitiveType.NativePointer.getText()
+        return ArkPrimitiveType.NativePointer.getText()
     }
     if (idl.isTypeParameterType(type))
         /* ANOTHER HACK, fix */
         return "void"
     if (idl.isEnumType(type) || idl.isUnionType(type))
-        return PrimitiveType.NativePointer.getText()
+        return ArkPrimitiveType.NativePointer.getText()
     if (idl.isContainerType(type)) {
         if (type.name === "sequence") {
             /* HACK, fix */
             // return array by some way
             return "void"
         } else
-            return PrimitiveType.NativePointer.getText()
+            return ArkPrimitiveType.NativePointer.getText()
     }
     throw `mapCInteropType failed for ${idl.IDLKind[type.kind]} ${type.name}`
 }
@@ -669,7 +656,7 @@ export class IdlPeerProcessor {
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
         return new BuilderField(
             new Field(prop.name, new Type(this.library.mapType(prop.type), prop.isOptional), modifiers),
-            PrimitiveType.Boolean) // sorry, don't really need this param but still have to provide something
+            ArkPrimitiveType.Boolean) // sorry, don't really need this param but still have to provide something
     }
 
     private getBuilderMethods(target: idl.IDLInterface): BuilderMethod[] {
@@ -715,7 +702,7 @@ export class IdlPeerProcessor {
 
         const constructor = idl.isClass(decl) ? decl.constructors[0] : undefined
         const mConstructor = this.makeMaterializedMethod(decl, constructor)
-        const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
+        const finalizerReturnType = {isVoid: false, nativeType: () => ArkPrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
         const mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]), 0)
         const mFields = decl.properties
@@ -765,7 +752,7 @@ export class IdlPeerProcessor {
     private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined) {
         const methodName = method === undefined || idl.isConstructor(method) ? "ctor" : method.name
         const retConvertor = method === undefined || idl.isConstructor(method)
-            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
+            ? { isVoid: false, isStruct: false, nativeType: () => ArkPrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
             : generateRetConvertor(method.returnType)
 
         if (method === undefined) {

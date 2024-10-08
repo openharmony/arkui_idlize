@@ -15,13 +15,13 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { capitalize, Language } from "../../../util"
-import { AggregateConvertor, ArgConvertor, ArrayConvertor, CustomTypeConvertor, EnumConvertor, OptionConvertor, StringConvertor } from "../../Convertors"
+import { AggregateConvertor, ArrayConvertor, EnumConvertor, OptionConvertor, StringConvertor } from "../../Convertors"
 import { FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, Type } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
 import { createPrimitiveTypeMapper, IDLContainerType, IDLTypes  } from '../../../idl'
-import { RuntimeType } from "../../PeerGeneratorVisitor"
 import { EnumEntity } from "../../PeerFile"
 import { createLiteralDeclName } from "../../TypeNodeNameConvertor"
+import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //

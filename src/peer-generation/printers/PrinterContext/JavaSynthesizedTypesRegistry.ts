@@ -20,7 +20,8 @@ import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
 import { ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, convertJavaOptional } from '../lang/Java'
 import { JavaEnum, JavaTuple, JavaUnion } from "../lang/JavaPrinters"
 import { TargetFile } from '../TargetFile'
-import { DeclarationTable, DeclarationTarget, PrimitiveType } from '../../DeclarationTable'
+import { DeclarationTable, DeclarationTarget } from '../../DeclarationTable'
+import { ArkPrimitiveType } from "../../ArkPrimitiveType"
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { ImportTable } from '../ImportTable'
 
@@ -71,7 +72,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             return javaType.type
         }
 
-        if (target instanceof PrimitiveType) {
+        if (target instanceof ArkPrimitiveType) {
             return javaType.type
         }
 
@@ -153,15 +154,15 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
     private readonly primitiveToJavaMap = new Map([
-        [PrimitiveType.String, 'String'],
-        [PrimitiveType.Number, 'double'],
-        [PrimitiveType.Int32, 'int'],
-        [PrimitiveType.Tag, 'Tag'],
-        [PrimitiveType.RuntimeType, 'RuntimeType'],
-        [PrimitiveType.Boolean, 'boolean'],
-        [PrimitiveType.Undefined, `${PrimitiveType.Prefix}Undefined`],
-        [PrimitiveType.Length, `${PrimitiveType.Prefix}Length`],
-        [PrimitiveType.CustomObject, ARK_CUSTOM_OBJECT],
+        [ArkPrimitiveType.String, 'String'],
+        [ArkPrimitiveType.Number, 'double'],
+        [ArkPrimitiveType.Int32, 'int'],
+        [ArkPrimitiveType.Tag, 'Tag'],
+        [ArkPrimitiveType.RuntimeType, 'RuntimeType'],
+        [ArkPrimitiveType.Boolean, 'boolean'],
+        [ArkPrimitiveType.Undefined, `${ArkPrimitiveType.Prefix}Undefined`],
+        [ArkPrimitiveType.Length, `${ArkPrimitiveType.Prefix}Length`],
+        [ArkPrimitiveType.CustomObject, 'Ark_CustomObject'],
         // TODO: add other primitive types
     ])
 
@@ -175,7 +176,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         ['char', 'Character'],
     ])
 
-    private primitiveToJavaType(primitiveType: PrimitiveType, optional: boolean, needReferenceType?: boolean): JavaType {
+    private primitiveToJavaType(primitiveType: ArkPrimitiveType, optional: boolean, needReferenceType?: boolean): JavaType {
         if (this.primitiveToJavaMap.has(primitiveType)) {
             let javaTypeName = this.primitiveToJavaMap.get(primitiveType)!
             if (needReferenceType && this.primitiveToReferenceTypeMap.has(javaTypeName)) {
@@ -187,7 +188,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
     private computeJavaType(target: DeclarationTarget, optional: boolean, needReferenceType?: boolean): JavaType {
-        if (target instanceof PrimitiveType) {
+        if (target instanceof ArkPrimitiveType) {
             return this.primitiveToJavaType(target, optional, needReferenceType)
         }
         if (ts.isTypeLiteralNode(target)) {

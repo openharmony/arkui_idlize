@@ -15,8 +15,9 @@
 
 import { IndentedPrinter } from "../../IndentedPrinter";
 import { Language, capitalize, dropSuffix, isDefined } from "../../util";
-import {ArgConvertor, EnumConvertor} from "../Convertors";
-import { PrimitiveType } from "../DeclarationTable";
+import { EnumConvertor} from "../Convertors";
+import { ArgConvertor } from "../ArgConvertors";
+import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { createLanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
@@ -131,7 +132,7 @@ class BridgeCcVisitor {
     }
 
     private generateCParameterTypes(argConvertors: ArgConvertor[], hasReceiver: boolean): string[] {
-        const receiver = hasReceiver ? [PrimitiveType.NativePointer.getText()] : []
+        const receiver = hasReceiver ? [ArkPrimitiveType.NativePointer.getText()] : []
         let ptrCreated = false;
         for (let i = 0; i < argConvertors.length; ++i) {
             let it = argConvertors[i]
@@ -164,7 +165,7 @@ class BridgeCcVisitor {
     }
 
     private generateCParameters(method: PeerMethod | IdlPeerMethod, argConvertors: ArgConvertor[]): string[] {
-        let maybeReceiver = method.hasReceiver() ? [`${PrimitiveType.NativePointer.getText()} thisPtr`] : []
+        let maybeReceiver = method.hasReceiver() ? [`${ArkPrimitiveType.NativePointer.getText()} thisPtr`] : []
         let ptrCreated = false;
         for (let i = 0; i < argConvertors.length; ++i) {
             let it = argConvertors[i]

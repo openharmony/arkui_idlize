@@ -16,7 +16,8 @@
 import * as ts from "typescript"
 import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
-import { DeclarationTarget, PrimitiveType } from "../DeclarationTable"
+import { DeclarationTarget } from "../DeclarationTable"
+import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { BlockStatement, CppLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, NamedMethodSignature, printMethodDeclaration, StringExpression, TSLanguageWriter, Type } from "../LanguageWriters"
 import { PeerClassBase } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
@@ -29,8 +30,9 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { ImportsCollector } from "../ImportsCollector"
 import { IdlPeerMethod } from "../idl/IdlPeerMethod"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
-import { ArgConvertor } from "../Convertors"
-import { ArgConvertor as IdlArgConvertor } from "../idl/IdlArgConvertors"
+// import { ArgConvertor } from "../Convertors"
+// import { ArgConvertor as IdlArgConvertor } from "../idl/IdlArgConvertors"
+import { ArgConvertor } from "../ArgConvertors"
 import { createTypeNodeConvertor } from "../PeerGeneratorVisitor";
 import { IdlPeerClass } from "../idl/IdlPeerClass"
 import { collapseIdlPeerMethods, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter"
@@ -131,7 +133,7 @@ export function convertToCallback(peer: PeerClassBase, method: PeerMethod | IdlP
 }
 
 function convertTargetToCallback(peer: PeerClassBase, method: PeerMethod, target: DeclarationTarget): CallbackInfo | undefined {
-    if (target instanceof PrimitiveType)
+    if (target instanceof ArkPrimitiveType)
         return undefined
     if (ts.isFunctionTypeNode(target))
         return {
@@ -396,7 +398,7 @@ abstract class TSEventsVisitorBase {
         protected readonly library: PeerLibrary | IdlPeerLibrary,
     ) {}
 
-    protected abstract typeConvertor(param: string, type: ts.TypeNode | idl.IDLType, isOptional: boolean): ArgConvertor | IdlArgConvertor
+    protected abstract typeConvertor(param: string, type: ts.TypeNode | idl.IDLType, isOptional: boolean): ArgConvertor
     protected abstract mapType(type: ts.TypeNode | idl.IDLType): string
 
     private printImports() {
@@ -621,7 +623,7 @@ class IdlTSEventsVisitor extends TSEventsVisitorBase {
         super(library)
     }
 
-    protected typeConvertor(param: string, type: idl.IDLType, isOptional: boolean): IdlArgConvertor {
+    protected typeConvertor(param: string, type: idl.IDLType, isOptional: boolean): ArgConvertor {
         return this.library.typeConvertor(param, type, isOptional)
     }
 

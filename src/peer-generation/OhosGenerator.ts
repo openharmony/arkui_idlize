@@ -21,8 +21,8 @@ import { CppLanguageWriter, Method, MethodSignature, Type } from './LanguageWrit
 import { hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLInterface, IDLParameter, IDLType, IDLVoidType, isCallback, isClass, isConstructor, isEnum, isEnumType, isInterface, isMethod, isPrimitiveType, isReferenceType, isUnionType } from '../idl'
 import { readLangTemplate } from './FileGenerators'
 import { capitalize, Language } from '../util'
-import { PrimitiveType } from './DeclarationTable'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
+import { ArkPrimitiveType } from './ArkPrimitiveType'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -51,10 +51,10 @@ class OHOSVisitor {
         this.library.requestType(type, true)
 
         if (OHOSVisitor.knownBasicTypes.has(type.name))
-            return `${PrimitiveType.Prefix}${type.name}`
+            return `${ArkPrimitiveType.Prefix}${type.name}`
 
         if (isReferenceType(type) || isEnum(type) || isEnumType(type)) {
-            return `${PrimitiveType.Prefix}${this.libraryName}_${type.name!}`
+            return `${ArkPrimitiveType.Prefix}${this.libraryName}_${type.name!}`
         }
         return this.hWriter.mapIDLType(type)
     }
@@ -65,7 +65,7 @@ class OHOSVisitor {
     }
 
     private writeData(clazz: IDLInterface) {
-        let name = `${PrimitiveType.Prefix}${this.libraryName}_${clazz.name}`
+        let name = `${ArkPrimitiveType.Prefix}${this.libraryName}_${clazz.name}`
         let _ = this.hWriter
         _.print(`typedef struct ${name} {`)
         _.pushIndent()
@@ -79,7 +79,7 @@ class OHOSVisitor {
     private writeCallback(callback: IDLCallback) {
         let _ = this.hWriter
         // Stub for now, fix.
-        _.print(`typedef void* ${PrimitiveType.Prefix}${this.libraryName}_${callback.name};`)
+        _.print(`typedef void* ${ArkPrimitiveType.Prefix}${this.libraryName}_${callback.name};`)
     }
 
     private impls = new Map<string, SignatureDescriptor>()
@@ -150,12 +150,12 @@ class OHOSVisitor {
 
     private modifierName(clazz: IDLInterface): string {
         if (hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)) {
-            return `${PrimitiveType.Prefix}${this.libraryName}_Modifier`
+            return `${ArkPrimitiveType.Prefix}${this.libraryName}_Modifier`
         }
-        return `${PrimitiveType.Prefix}${this.libraryName}_${clazz.name}Modifier`
+        return `${ArkPrimitiveType.Prefix}${this.libraryName}_${clazz.name}Modifier`
     }
     private handleType(name: string): string {
-        return `${PrimitiveType.Prefix}${this.libraryName}_${name}Handle`
+        return `${ArkPrimitiveType.Prefix}${this.libraryName}_${name}Handle`
     }
 
     private writeImpls() {
@@ -183,9 +183,9 @@ class OHOSVisitor {
         // Create API.
         let api = this.libraryName
         let _c = writer
-        _c.print(`const ${PrimitiveType.Prefix}${api}_API* Get${api}APIImpl(int version) {`)
+        _c.print(`const ${ArkPrimitiveType.Prefix}${api}_API* Get${api}APIImpl(int version) {`)
         _c.pushIndent()
-        _c.print(`const static ${PrimitiveType.Prefix}${api}_API api = {`)
+        _c.print(`const static ${ArkPrimitiveType.Prefix}${api}_API api = {`)
         _c.pushIndent()
         _c.print(`1, // version`)
         this.interfaces.forEach(it => {
@@ -197,11 +197,11 @@ class OHOSVisitor {
         _c.print(`return &api;`)
         _c.popIndent()
         _c.print(`}`)
-        let name = `${PrimitiveType.Prefix}${api}_API`
+        let name = `${ArkPrimitiveType.Prefix}${api}_API`
         let _h = this.hWriter
         _h.print(`typedef struct ${name} {`)
         _h.pushIndent()
-        _h.print(`${PrimitiveType.Prefix}Int32 version;`)
+        _h.print(`${ArkPrimitiveType.Prefix}Int32 version;`)
         this.interfaces.forEach(it => {
             _h.print(`const ${this.modifierName(it)}* (*${this.apiName(it)})();`)
         })
@@ -280,7 +280,7 @@ class OHOSVisitor {
                 _.print(`typedef enum {`)
                 _.pushIndent()
                 declaration.elements.forEach(it => {
-                    _.print(`${PrimitiveType.Prefix}${this.libraryName}_${it.name},`)
+                    _.print(`${ArkPrimitiveType.Prefix}${this.libraryName}_${it.name},`)
                 })
                 _.popIndent()
                 _.print(`} ${this.mapType(type)};`)
@@ -289,7 +289,7 @@ class OHOSVisitor {
     }
 
     execute(outDir: string) {
-        PrimitiveType.Prefix = "OH_"
+        ArkPrimitiveType.Prefix = "OH_"
 
         if (this.library.files.length == 0)
             throw new Error("No files in library")

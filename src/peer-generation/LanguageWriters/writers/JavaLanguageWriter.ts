@@ -15,13 +15,13 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../util"
-import { ArgConvertor, BaseArgConvertor, EnumConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
+import { EnumConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { convertJavaOptional } from "../../printers/lang/Java"
 import { AssignStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, Type } from "../LanguageWriter"
 import { CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
 import { createPrimitiveTypeMapper, IDLContainerType } from '../../../idl'
-import { RuntimeType } from "../../PeerGeneratorVisitor"
 import { LambdaExpression } from "./TsLanguageWriter"
+import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //

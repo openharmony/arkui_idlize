@@ -30,11 +30,10 @@ import {
     Language,
 } from "../util"
 import { GenericVisitor } from "../options"
-import {
-    ArgConvertor, RetConvertor,
-} from "./Convertors"
+import { ArgConvertor, RetConvertor } from "./ArgConvertors"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { DeclarationTable, PrimitiveType } from "./DeclarationTable"
+import { DeclarationTable } from "./DeclarationTable"
+import { ArkPrimitiveType } from "./ArkPrimitiveType"
 import {
     singleParentDeclaration,
 } from "./inheritance"
@@ -73,19 +72,6 @@ import {
     toBuilderClass
 } from "./BuilderClass";
 import { Lazy, lazy } from "./lazy";
-
-export enum RuntimeType {
-    UNEXPECTED = -1,
-    NUMBER = 1,
-    STRING = 2,
-    OBJECT = 3,
-    BOOLEAN = 4,
-    UNDEFINED = 5,
-    BIGINT = 6,
-    FUNCTION = 7,
-    SYMBOL = 8,
-    MATERIALIZED = 9,
-}
 
 /**
  * Theory of operations.
@@ -290,7 +276,7 @@ function generateArgConvertor(table: DeclarationTable,
     if (!param.type) throw new Error("Type is needed")
     let paramName = asString(param.name)
     let optional = param.questionToken !== undefined
-    return table.typeConvertor(paramName, param.type, optional, typeNodeNameConvertor)
+    return table.typeConvertor(paramName, param.type, optional, undefined, typeNodeNameConvertor)
 }
 
 function generateRetConvertor(typeNode?: ts.TypeNode): RetConvertor {
@@ -308,10 +294,10 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         return `void`
     }
     if (type.kind == ts.SyntaxKind.NumberKeyword) {
-        return PrimitiveType.Int32.getText()
+        return ArkPrimitiveType.Int32.getText()
     }
     if (type.kind == ts.SyntaxKind.BooleanKeyword) {
-        return PrimitiveType.Boolean.getText()
+        return ArkPrimitiveType.Boolean.getText()
     }
     if (ts.isTypeReferenceNode(type)) {
         let name = identName(type.typeName)!
@@ -320,8 +306,8 @@ function mapCInteropRetType(type: ts.TypeNode): string {
         switch (name) {
             /* ANOTHER HACK, fix */
             case "T": return "void"
-            case "UIContext": return PrimitiveType.NativePointer.getText()
-            default: return PrimitiveType.NativePointer.getText()
+            case "UIContext": return ArkPrimitiveType.NativePointer.getText()
+            default: return ArkPrimitiveType.NativePointer.getText()
         }
     }
     if (type.kind == ts.SyntaxKind.StringKeyword) {
@@ -624,9 +610,9 @@ class PeersGenerator {
         parameters.forEach((param, index) => {
             if (param.type) {
                 this.declarationTable.requestType(
-                    `Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`,
                     param.type,
                     this.library.shouldGenerateComponent(peer.componentName),
+                    `Type_${originalParentName}_${methodName}${methodIndex == 0 ? "" : methodIndex.toString()}_Arg${index}`,
                 )
             }
         })
@@ -885,7 +871,7 @@ export class PeerProcessor {
         let constructor = isClass ? target.members.find(ts.isConstructorDeclaration) : undefined
         typeNodeConvertor = createTypeNodeConvertor(this.library, typeNodeConvertor, this.declDependenciesCollector, importFeatures)
         let mConstructor = this.makeMaterializedMethod(name, constructor, isActualDeclaration, typeNodeConvertor)
-        const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
+        const finalizerReturnType = {isVoid: false, nativeType: () => ArkPrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
         let mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]), 0)
         let mFields = isClass
@@ -952,7 +938,7 @@ export class PeerProcessor {
         const name = identName(property.name)!
         this.declarationTable.setCurrentContext(`Materialized_${className}_${name}`)
         const declarationTarget = this.declarationTable.toTarget(property.type!)
-        const argConvertor = this.declarationTable.typeConvertor(name, property.type!, false, typeNodeNameConvertor)
+        const argConvertor = this.declarationTable.typeConvertor(name, property.type!, false, undefined, typeNodeNameConvertor)
         const retConvertor = generateRetConvertor(property.type!)
         const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
         this.declarationTable.setCurrentContext(undefined)
@@ -969,7 +955,7 @@ export class PeerProcessor {
         this.declarationTable.setCurrentContext(`Materialized_${parentName}_${methodName}`)
 
         const retConvertor = method === undefined || ts.isConstructorDeclaration(method)
-            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
+            ? { isVoid: false, isStruct: false, nativeType: () => ArkPrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
             : generateRetConvertor(method.type)
 
         if (method === undefined) {
@@ -983,7 +969,7 @@ export class PeerProcessor {
         const declarationTargets = method.parameters.map(param =>
             this.declarationTable.toTarget(param.type ??
                 throwException(`Expected a type for ${asString(param)} in ${asString(method)}`)))
-        method.parameters.forEach(it => this.declarationTable.requestType(undefined, it.type!, isActualDeclaration))
+        method.parameters.forEach(it => this.declarationTable.requestType(it.type!, isActualDeclaration, undefined))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.declarationTable, param, typeNodeConverter))
         const signature = generateSignature(method, typeNodeConverter, false)
         const modifiers = generateMethodModifiers(method)
