@@ -149,13 +149,13 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
 }
 
 export function getNodeTypes(library: PeerLibrary | IdlPeerLibrary): string[] {
-    const components = [...PeerGeneratorConfig.customNodeTypes]
+    const components:string[] = []
     for (const file of library.files) {
         for (const peer of file.peers.values()) {
             components.push(peer.componentName)
         }
     }
-    return components.sort()
+    return [...PeerGeneratorConfig.customNodeTypes, ...components.sort()]
 }
 
 export function appendViewModelBridge(library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
