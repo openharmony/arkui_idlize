@@ -17,14 +17,13 @@ import * as path from "path"
 import { parse } from 'comment-parser'
 import {
     createContainerType, createEnumType, createReferenceType,
-    createTypeParameterReference, createUnionType, IDLCallable, IDLCallback, IDLConstant, IDLConstructor,
+    createTypeParameterReference, IDLCallable, IDLCallback, IDLConstant, IDLConstructor,
     IDLEntity, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLFunction, IDLInterface, IDLKind, IDLMethod, IDLModuleType, IDLParameter, IDLProperty, IDLTopType, IDLType, IDLTypedef,
     IDLAccessorAttribute, IDLExtendedAttributes, getExtAttribute, IDLPackage, IDLImport,
     isContainerType,
     IDLStringType,
     IDLNumberType,
     IDLUndefinedType,
-    IDLNullType,
     IDLVoidType,
     IDLAnyType,
     IDLBooleanType,
@@ -677,7 +676,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return IDLUndefinedType
         }
         if (type.kind == ts.SyntaxKind.NullKeyword) {
-            return IDLNullType
+            return IDLUndefinedType
         }
         if (type.kind == ts.SyntaxKind.VoidKeyword) {
             return IDLVoidType
@@ -705,7 +704,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return IDLBigintType
         }
         if (ts.isUnionTypeNode(type)) {
-            const types = type.types
+            let types = type.types
                 .map((it, index) => this.serializeType(it, `${nameSuggestion}_${index}`))
                 .reduce<IDLType[]>((uniqueTypes, it) => uniqueTypes.concat(uniqueTypes.includes(it) ? []: [it]), [])
             let aPromise = types.find(it => isContainerType(it) && it.name == "Promise")
@@ -713,7 +712,16 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 console.log(`WARNING: ${type.getText()} is a union of Promises. This is not supported by the IDL.`)
                 return aPromise
             }
-            if (types.find(it => it.name == "any")) return IDLAnyType
+            if (types.find(it => it.name == "any")) {
+                console.log(`WARNING: ${type.getText()} is union with 'any', just make it 'any'.`)
+                return IDLAnyType
+            }
+
+            if (types.find(it => it == IDLVoidType)) {
+                console.log(`WARNING: ${type.getText()} is union with 'void', which is not supported, remove 'void' variant`)
+                // TODO: remove void from union when original SDK is removed from compilation.
+                // types = types.filter(it => it != IDLVoidType)
+            }
             return typeOrUnion(types)
         }
         if (ts.isIntersectionTypeNode(type)) {
@@ -792,7 +800,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
                 // TODO: Is it correct to have undefined for null?
-                return IDLNullType
+                return IDLUndefinedType
             }
             if (literal.kind == ts.SyntaxKind.FalseKeyword || literal.kind == ts.SyntaxKind.TrueKeyword) {
                 return IDLBooleanType
