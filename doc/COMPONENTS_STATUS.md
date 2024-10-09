@@ -385,13 +385,13 @@
 |*Scroll*| *Component* | Kirill Berezin | in progress |
 |`setScrollOptions`| Function | Kirill Berezin | in progress |
 |`scrollable`| Function | Kirill Berezin | In progress |
-|`onScroll`| Function | Kirill Berezin | in progress |
+|`onScroll`| Function | Kirill Berezin | Done |
 |`onWillScroll`| Function | Kirill Berezin |blocked |
 |`onDidScroll`| Function | Kirill Berezin | in progress |
 |`onScrollEdge`| Function | Kirill Berezin | in progress |
-|`onScrollStart`| Function | Kirill Berezin | in progress |
-|`onScrollEnd`| Function | Kirill Berezin | in progress |
-|`onScrollStop`| Function | Kirill Berezin | in progress |
+|`onScrollStart`| Function | Kirill Berezin | Done |
+|`onScrollEnd`| Function | Kirill Berezin | Done |
+|`onScrollStop`| Function | Kirill Berezin | Done |
 |`scrollBar`| Function | Kirill Berezin | in progress |
 |`scrollBarColor`| Function | Kirill Berezin | in progress |
 |`scrollBarWidth`| Function | Kirill Berezin | in progress |
@@ -401,8 +401,8 @@
 |`enableScrollInteraction`| Function | Kirill Berezin | In progress |
 |`friction`| Function | Kirill Berezin | In progress |
 |`scrollSnap`| Function | Kirill Berezin | in progress |
-|`enablePaging`| Function | Kirill Berezin | in progress |
-|`initialOffset`| Function | Kirill Berezin | in progress |
+|`enablePaging`| Function | Kirill Berezin | Done |
+|`initialOffset`| Function | Kirill Berezin | Done |
 |*Scroller*| *Class* | Erokhin Ilya | done |
 |`CtorImpl`| Function | Erokhin Ilya | done |
 |`GetFinalizerImpl`| Function | Erokhin Ilya | done |
