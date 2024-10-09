@@ -18,6 +18,7 @@ variables:
         - npm config set @koalaui:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
         - npm config set //nexus.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
         - npm i --no-audit --no-fund
+        - npm i --prefix external --no-audit --no-fund
 
 
 idlize sanity:
