@@ -23,14 +23,13 @@ import { BuilderClass } from './BuilderClass';
 import { Language } from '../util';
 import { IndentedPrinter } from '../IndentedPrinter';
 import { LanguageWriter } from './LanguageWriters';
-import { Library } from '../Library';
 import * as idl from '../idl'
 
 export type PeerLibraryOutput = {
     outputC: string[]
 }
 
-export class PeerLibrary implements Library<PeerFile> {
+export class PeerLibrary {
     public readonly predefinedDeclarations: idl.IDLInterface[] = []
     public readonly files: PeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()

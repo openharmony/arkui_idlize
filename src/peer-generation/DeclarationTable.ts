@@ -38,9 +38,7 @@ import { CallbackInfo, collectCallbacks } from "./printers/EventsPrinter"
 import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { searchTypeParameters, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
-import { DeclarationProcessor } from "../DeclarationProcessor"
 import { ArkPrimitiveType } from "./ArkPrimitiveType"
-
 export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
     ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
     ts.factory.createPropertySignature(undefined, "type", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
@@ -108,7 +106,7 @@ export class StructDescriptor {
     }
 }
 
-export class DeclarationTable implements DeclarationProcessor<ts.TypeNode, DeclarationTarget> {
+export class DeclarationTable {
     readonly typeMap = new Map<ts.TypeNode, [DeclarationTarget, string[], boolean]>()
     private toTargetConvertor: ToDeclarationTargetConvertor
     typeChecker: ts.TypeChecker | undefined = undefined

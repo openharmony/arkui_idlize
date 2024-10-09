@@ -29,8 +29,6 @@ import { LanguageWriter, MethodSignature, Type } from '../LanguageWriters';
 import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
-import { Library } from '../../Library';
-import { DeclarationProcessor } from '../../DeclarationProcessor';
 import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NullConvertor, NumberConvertor, UndefinedConvertor } from '../ArgConvertors';
 
 function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor {
@@ -42,7 +40,7 @@ function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor 
     throw new Error(`Convertor from IDL to ${language} not implemented`)
 }
 
-export class IdlPeerLibrary implements Library<IdlPeerFile>, DeclarationProcessor<idl.IDLType, idl.IDLEntry> {
+export class IdlPeerLibrary {
     public readonly predefinedFiles: IdlPeerFile[] = []
     public readonly files: IdlPeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
