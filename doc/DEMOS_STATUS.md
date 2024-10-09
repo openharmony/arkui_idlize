@@ -18,7 +18,7 @@
 | `offset`                  | Function   |           |             | ?                |               |               |           |          |
 | `customStyle`             | Function   |           |             | ?                | N\A           |               |           |          |
 | Rect                      | Component  | No        | HEL         | Dudkin Sergey    | done          |               |           | High     |
-| `radius`                  | Function   |           | WON         | ?                |               |               |           |          |
+| `radius`                  | Function   |           | WON         | Dudkin Sergey    | done          |               |           |          |
 | Navigator                 | Component  | No        | HEL         | Skroba Gleb      | done          |               |           | High     |
 | `setNavigatorOptions`     | Function   |           | HEL         | Skroba Gleb      | done          |               |           | High     |
 | `active`                  | Function   |           | HEL         | Skroba Gleb      | done          |               |           | High     |
@@ -72,20 +72,20 @@
 | `radialGradient`          | Function   |           | ENC         | R. Sedaikin      | Done/No test  | R. Sedaikin   | Done      | High     |
 | `shadow`                  | Function   |           |             | R. Sedaikin      | Done/No test  | R. Sedaikin   | Done      | High     |
 | `onClick`                 | Function   |           | ENC,WON,HEL | G. Skroba        | Progress      |               | Done      | High+    |
-| `fill`                    | Function   |           | HEL         | Ilya Erokhin     | Progress      |               |           | Low      |
-| `animateTo`               | Function   |           | HEL, ENC    | Ilya Erokhin     | Progress      |               |           | Medium   |
+| `fill`                    | Function   |           | HEL         | G. Skroba        | Done          |               |           | Low      |
+| `animateTo`               | Function   |           | HEL, ENC    | Ilya Erokhin     | Blocked       |               |           | Medium   |
 | `animation`               | Function   |           | HEL, ENC    | Ilya Erokhin     | Progress      |               |           | Medium   |
 | `animationDuration`       | Function   |           | HEL         | Ivan Tuzhilkin   | Blocked       |               |           | Medium   |
 | `backgroundColor($r)`     | Function   |           | HEL         | G. Skroba        | Done          |               |           | Low      |
-| `backgroundImage`         | Function   |           | WON         | ?                |               |               |           | Medium   |
-| `backgroundImageSize`     | Function   |           | WON         | ?                |               |               |           | Medium   |
-| `backgroundImagePosition` | Function   |           | WON         | ?                |               |               |           | Medium   |
-| `clip`                    | Function   |           | HEL, WON    | ?                |               |               |           | High     |
-| `scale`                   | Function   |           | HEL         | ?                |               |               |           | Medium   |
-| `translate`               | Function   |           | HEL         | ?                |               |               |           | High     |
-| `id`                      | Function   |           | HEL         | ?                |               |               |           | High     |
-| `onVisibleAreaChange`     | Function   |           | WON         | ?                |               |               |           | High     |
-| `gesture`                 | Function   |           | WON         | ?                |               |               |           | Medium   |
+| `backgroundImage`         | Function   |           | WON         | Ilya Erokhin     | Progress      |               |           | Medium   |
+| `backgroundImageSize`     | Function   |           | WON         | Ilya Erokhin     | Progress      |               |           | Medium   |
+| `backgroundImagePosition` | Function   |           | WON         | Ilya Erokhin     | Progress      |               |           | Medium   |
+| `clip`                    | Function   |           | HEL, WON    | Ilya Erokhin     | Progress      |               |           | High     |
+| `scale`                   | Function   |           | HEL         | Ilya Erokhin     | Progress      |               |           | Medium   |
+| `translate`               | Function   |           | HEL         | Ilya Erokhin     | Progress      |               |           | High     |
+| `id`                      | Function   |           | HEL         | Ilya Erokhin     | Progress      |               |           | High     |
+| `onVisibleAreaChange`     | Function   |           | WON         | Ilya Erokhin     | Progress      |               |           | High     |
+| `gesture`                 | Function   |           | WON         | Ilya Erokhin     | Progress      |               |           | Medium   |
 | `@Styles function`        | Decorator  |           | HEL         | N/A              | N/A           | A. Tarasov    |           | Low      |
 | Button                    | Component  | Yes       |             | Evstigneev Roman | Progress      |               |           |          |
 | `radialGradient`          | Function   |           | ENC         | K. Kirichenko    |               |               |           | Medium   |
@@ -95,62 +95,62 @@
 | `ctor($rawfile)`          | Function   |           | ENC, WON    | A. Tarasov       | Done          |               | Done      | High     |
 | `objectFit`               | Function   |           | WON         | E. Korobeynikov  |               |               |           | Medium   |
 | `sharedTransition`        | Function   |           | HEL         | Skroba Gleb      | Done          |               |           | Medium   |
-| `autoResize`              | Function   |           | HEL         | ?                |               |               |           | Medium   |
-| `fillColor`               | Function   |           | HEL         | ?                |               |               |           | Medium   |
-| `onFinish`                | Function   |           | ENC         | ?                |               |               |           | Medium   |
-| `onError`                 | Function   |           | ENC         | ?                |               |               |           | Medium   |
+| `autoResize`              | Function   |           | HEL         | Evstigneev Roman | Progress      |               |           | Medium   |
+| `fillColor`               | Function   |           | HEL         | Evstigneev Roman | Progress      |               |           | Medium   |
+| `onFinish`                | Function   |           | ENC         | Evstigneev Roman | Progress      |               |           | Medium   |
+| `onError`                 | Function   |           | ENC         | Evstigneev Roman | Progress      |               |           | Medium   |
 | Swiper                    | Component  | No        |             | Skroba Gleb      | Done          |               |           |          |
-| `itemSpace`               | Component  |           | HEL         | ?                |               |               |           | Medium   |
-| `indicator`               | Function   |           | HEL, WON    | ?                |               |               |           | Medium   |
-| `displayCount`            | Function   |           | HEL         | ?                |               |               |           | Medium   |
+| `itemSpace`               | Component  |           | HEL         | Skroba Gleb      | Done          |               |           | Medium   |
+| `indicator`               | Function   |           | HEL, WON    | Skroba Gleb      | Done          |               |           | Medium   |
+| `displayCount`            | Function   |           | HEL         | Skroba Gleb      | Done          |               |           | Medium   |
 | `indicatorStyle`          | Function   |           | WON         | Skroba Gleb      | Done          |               |           | Low      |
 | `priorityGesture`         | Function   |           | WON         | Ilya Erokhin     | blocked       |               |           | Medium   |
 | Text                      | Component  | No        |             | K. Kirichenko    | Progress      |               |           |          |
 | `ctor($r)`                | Function   |           | HEL         |                  |               |               |           | High     |
-| Shape                     | Component  |           | HEL         | Dudkin Sergey    | Progress      |               |           | High     |
-| `fill`                    | Function   |           | HEL         | ?                |               |               |           | High     |
-| `fillOpacity`             | Function   |           | HEL         | ?                |               |               |           | Medium   |
-| `stroke`                  | Function   |           | HEL         | ?                |               |               |           | High     |
-| `strokeWidth`             | Function   |           | HEL         | ?                |               |               |           | High     |
-| `strokeDashArray`         | Function   |           | HEL         | ?                |               |               |           | High     |
+| Shape                     | Component  |           | HEL         | Dudkin Sergey    | Done          |               |           | High     |
+| `fill`                    | Function   |           | HEL         | Dudkin Sergey    | Done          |               |           | High     |
+| `fillOpacity`             | Function   |           | HEL         | Dudkin Sergey    | Done          |               |           | Medium   |
+| `stroke`                  | Function   |           | HEL         | Dudkin Sergey    | Done          |               |           | High     |
+| `strokeWidth`             | Function   |           | HEL         | Dudkin Sergey    | Done          |               |           | High     |
+| `strokeDashArray`         | Function   |           | HEL         | Dudkin Sergey    | Blocked       |               |           | High     |
 | Path                      | Component  | No        |             | Skroba Gleb      | Done          |               |           | High     |
-| `commands`                | Function   |           | HEL         | ?                |               |               |           | High     |
+| `commands`                | Function   |           | HEL         | Skroba Gleb      | Done          |               |           | High     |
 | Tabs                      | Component  | No        | HEL         | Ivan Tuzhilkin   | Progress      |               |           | High     |
-| `animationDuration`       | Function   |           | HEL         | ?                |               |               |           | High     |
-| `barMode`                 | Function   |           | HEL         | ?                |               |               |           | High     |
-| `onChange`                | Function   |           | HEL         | ?                |               |               |           | High     |
-| `vertical`                | Function   |           | HEL         | ?                |               |               |           | High     |
-| `barWidth`                | Function   |           | HEL         | ?                |               |               |           | High     |
-| `barHeight`               | Function   |           | HEL         | ?                |               |               |           | High     |
+| `animationDuration`       | Function   |           | HEL         | Ivan Tuzhilkin   | Blocked       |               |           | High     |
+| `barMode`                 | Function   |           | HEL         | Ivan Tuzhilkin   | Done          |               |           | High     |
+| `onChange`                | Function   |           | HEL         | Ivan Tuzhilkin   | Done          |               |           | High     |
+| `vertical`                | Function   |           | HEL         | Ivan Tuzhilkin   | Done          |               |           | High     |
+| `barWidth`                | Function   |           | HEL         | Ivan Tuzhilkin   | Done          |               |           | High     |
+| `barHeight`               | Function   |           | HEL         | Ivan Tuzhilkin   | Done          |               |           | High     |
 | TabContent                | Function   | No        |             | Roman Evstigneev | Progress      |               |           | High     |
 | `tabBar`                  | Function   |           | HEL         | Roman Evstigneev | Progress      |               |           | High     |
-| Divider                   | Component  |           |             |                  |               |               |           |          |
-| `strokeWidth`             | Function   |           | HEL         | ?                |               |               |           | Low      |
-| `color`                   | Function   |           | HEL         | ?                |               |               |           | Low      |
-| Grid                      | Component  |           |             |                  |               |               |           |          |
-| `columnsTemplate`         | Function   |           | HEL         | ?                |               |               |           | High     |
-| `columnsGap`              | Function   |           | HEL         | ?                |               |               |           | High     |
-| `rowsGap`                 | Function   |           | HEL         | ?                |               |               |           | High     |
-| Canvas                    | Component  |           |             |                  |               |               |           |          |
-| `onReady`                 | Function   |           | HEL         | ?                |               |               |           | Medium   |
-| TextPicker                | Component  |           |             |                  |               |               |           |          |
-| `onChange`                | Function   |           | HEL         | ?                |               |               |           | Medium   |
-| Scroll                    | Component  |           |             |                  |               |               |           |          |
-| `scrollable`              | Function   |           | WON         | ?                |               |               |           | Medium   |
-| `scrollBar`               | Function   |           | WON         | ?                |               |               |           | Medium   |
-| `onScroll`                | Function   |           | WON         | ?                |               |               |           | Medium   |
+| Divider                   | Component  |           |             | Ivan Tuzhilkin   | Done          |               |           |          |
+| `strokeWidth`             | Function   |           | HEL         | Ivan Tuzhilkin   | Done          |               |           | Low      |
+| `color`                   | Function   |           | HEL         | Ivan Tuzhilkin   | Done          |               |           | Low      |
+| Grid                      | Component  |           |             | Ilya Erokhin     | Done          |               |           |          |
+| `columnsTemplate`         | Function   |           | HEL         | Ilya Erokhin     | Done          |               |           | High     |
+| `columnsGap`              | Function   |           | HEL         | Ilya Erokhin     | Done          |               |           | High     |
+| `rowsGap`                 | Function   |           | HEL         | Ilya Erokhin     | Done          |               |           | High     |
+| Canvas                    | Component  |           |             | Ivan Tuzhilkin   | Progress      |               |           |          |
+| `onReady`                 | Function   |           | HEL         | Ivan Tuzhilkin   | Progress      |               |           | Medium   |
+| TextPicker                | Component  |           |             | Ivan Tuzhilkin   | Progress      |               |           |          |
+| `onChange`                | Function   |           | HEL         | Ivan Tuzhilkin   | Progress      |               |           | Medium   |
+| Scroll                    | Component  |           |             | Kirill Berezin   | Progress      |               |           |          |
+| `scrollable`              | Function   |           | WON         | Kirill Berezin   | Progress      |               |           | Medium   |
+| `scrollBar`               | Function   |           | WON         | Kirill Berezin   | Progress      |               |           | Medium   |
+| `onScroll`                | Function   |           | WON         | Kirill Berezin   | Progress      |               |           | Medium   |
 | `onScrollEdge`            | Function   |           | WON         | ?                |               |               |           | Medium   |
-| Video                     | Component  |           |             |                  |               |               |           |          |
-| `autoPlay`                | Function   |           | WON         | ?                |               |               |           | Low      |
-| Search                    | Component  |           |             |                  |               |               |           |          |
-| `placeholderColor`        | Function   |           | WON         | ?                |               |               |           | Low      |
-| `placeholderFont`         | Function   |           | WON         | ?                |               |               |           | Low      |
-| `textFont`                | Function   |           | WON         | ?                |               |               |           | Low      |
-| `onSubmit`                | Function   |           | WON         | ?                |               |               |           | Low      |
-| List                      | Component  |           |             |                  |               |               |           |          |
-| `lanes`                   | Function   |           | WON         | ?                |               |               |           | Medium   |
-| Line                      | Component  |           |             |                  |               |               |           |          |
-| `startPoint`              | Function   |           | WON         | ?                |               |               |           | Medium   |
-| `endPoint`                | Function   |           | WON         | ?                |               |               |           | Medium   |
-| LoadingProgress           | Component  |           |             |                  |               |               |           |          |
-| `color`                   | Function   |           | ENC         | ?                |               |               |           | Low      |
+| Video                     | Component  |           |             | Ivan Tuzhilkin   | Progress      |               |           |          |
+| `autoPlay`                | Function   |           | WON         | Ivan Tuzhilkin   | Progress      |               |           | Low      |
+| Search                    | Component  |           |             | Roman Evstigneev | Progress      |               |           |          |
+| `placeholderColor`        | Function   |           | WON         | Roman Evstigneev | Done          |               |           | Low      |
+| `placeholderFont`         | Function   |           | WON         | Roman Evstigneev | Done          |               |           | Low      |
+| `textFont`                | Function   |           | WON         | Roman Evstigneev | Done          |               |           | Low      |
+| `onSubmit`                | Function   |           | WON         | Roman Evstigneev | Done          |               |           | Low      |
+| List                      | Component  |           |             | Morozov Sergey   | Progress      |               |           |          |
+| `lanes`                   | Function   |           | WON         | Morozov Sergey   | Done          |               |           | Medium   |
+| Line                      | Component  |           |             |                  | Blocked       |               |           |          |
+| `startPoint`              | Function   |           | WON         | Dudkin Sergey    | Blocked       |               |           | Medium   |
+| `endPoint`                | Function   |           | WON         | Dudkin Sergey    | Blocked       |               |           | Medium   |
+| LoadingProgress           | Component  |           |             | Samarin Sergey   |               |               |           |          |
+| `color`                   | Function   |           | ENC         | Samarin Sergey   | Blocked       |               |           | Low      |
