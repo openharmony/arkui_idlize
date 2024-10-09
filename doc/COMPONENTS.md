@@ -3,10 +3,10 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 112      | 74     | 1831     |
-| In Progress  | 29      | 1     | 272     |
-| Done         | 17      | 1     | 235     |
-| Blocked      | 5      | 0     | 106     |
+| Total        | 113      | 96     | 1897     |
+| In Progress  | 25      | 0     | 196     |
+| Done         | 19      | 2     | 304     |
+| Blocked      | 7      | 0     | 116     |
 
 
 | Name | Kind | Owner | Status |
@@ -17,32 +17,32 @@
 |`onDisconnect`| Function | | |
 |*AlphabetIndexer*| *Component* | Ekaterina Stepanova | in progress |
 |`setAlphabetIndexerOptions`| Function | Ekaterina Stepanova | in progress |
-|`onSelected`| Function | Ekaterina Stepanova | in progress |
-|`color`| Function | Ekaterina Stepanova | in progress |
-|`selectedColor`| Function | Ekaterina Stepanova | in progress |
-|`popupColor`| Function | Ekaterina Stepanova | in progress |
-|`selectedBackgroundColor`| Function | Ekaterina Stepanova | in progress |
-|`popupBackground`| Function | Ekaterina Stepanova | in progress |
-|`popupSelectedColor`| Function | Ekaterina Stepanova | in progress |
-|`popupUnselectedColor`| Function | Ekaterina Stepanova | in progress |
-|`popupItemBackgroundColor`| Function | Ekaterina Stepanova | in progress |
-|`usingPopup`| Function | Ekaterina Stepanova | in progress |
-|`selectedFont`| Function | Ekaterina Stepanova | in progress |
-|`popupFont`| Function | Ekaterina Stepanova | in progress |
-|`popupItemFont`| Function | Ekaterina Stepanova | in progress |
+|`onSelected`| Function | Ekaterina Stepanova | done |
+|`color`| Function | Ekaterina Stepanova | done |
+|`selectedColor`| Function | Ekaterina Stepanova | done |
+|`popupColor`| Function | Ekaterina Stepanova | done |
+|`selectedBackgroundColor`| Function | Ekaterina Stepanova | done |
+|`popupBackground`| Function | Ekaterina Stepanova | done |
+|`popupSelectedColor`| Function | Ekaterina Stepanova | done |
+|`popupUnselectedColor`| Function | Ekaterina Stepanova | done |
+|`popupItemBackgroundColor`| Function | Ekaterina Stepanova | done |
+|`usingPopup`| Function | Ekaterina Stepanova | done |
+|`selectedFont`| Function | Ekaterina Stepanova | done |
+|`popupFont`| Function | Ekaterina Stepanova | done |
+|`popupItemFont`| Function | Ekaterina Stepanova | done |
 |`itemSize`| Function | Ekaterina Stepanova | in progress |
-|`font`| Function | Ekaterina Stepanova | in progress |
+|`font`| Function | Ekaterina Stepanova | done |
 |`onSelect`| Function | Ekaterina Stepanova | in progress |
 |`onRequestPopupData`| Function | Ekaterina Stepanova | in progress |
 |`onPopupSelect`| Function | Ekaterina Stepanova | in progress |
 |`selected`| Function | Ekaterina Stepanova | in progress |
 |`popupPosition`| Function | Ekaterina Stepanova | in progress |
-|`autoCollapse`| Function | Ekaterina Stepanova | in progress |
+|`autoCollapse`| Function | Ekaterina Stepanova | done |
 |`popupItemBorderRadius`| Function | Ekaterina Stepanova | in progress |
 |`itemBorderRadius`| Function | Ekaterina Stepanova | in progress |
 |`popupBackgroundBlurStyle`| Function | Ekaterina Stepanova | in progress |
 |`popupTitleBackground`| Function | Ekaterina Stepanova | in progress |
-|`enableHapticFeedback`| Function | Ekaterina Stepanova | in progress |
+|`enableHapticFeedback`| Function | Ekaterina Stepanova | done |
 |`alignStyle`| Function | Ekaterina Stepanova | in progress |
 |*Animator*| *Component* | Lobah Mikhail | in progress |
 |`setAnimatorOptions`| Function | Lobah Mikhail | in progress |
@@ -67,18 +67,18 @@
 |`color`| Function | Skroba Gleb | done |
 |*Button*| *Component* | Evstigneev Roman | in progress |
 |`setButtonOptions`| Function | Evstigneev Roman | done |
-|`type`| Function | Evstigneev Roman | in progress |
-|`stateEffect`| Function | Evstigneev Roman | in progress |
-|`buttonStyle`| Function | Evstigneev Roman | in progress |
-|`controlSize`| Function | Evstigneev Roman | in progress |
-|`role`| Function | Evstigneev Roman | in progress |
-|`fontColor`| Function | Evstigneev Roman | in progress |
-|`fontSize`| Function | Evstigneev Roman | in progress |
-|`fontWeight`| Function | Evstigneev Roman | in progress |
-|`fontStyle`| Function | Evstigneev Roman | in progress |
-|`fontFamily`| Function | Evstigneev Roman | in progress |
-|`contentModifier`| Function | Evstigneev Roman | in progress |
-|`labelStyle`| Function | Evstigneev Roman | in progress |
+|`type`| Function | Evstigneev Roman | done |
+|`stateEffect`| Function | Evstigneev Roman | done |
+|`buttonStyle`| Function | Evstigneev Roman | done |
+|`controlSize`| Function | Evstigneev Roman | done |
+|`role`| Function | Evstigneev Roman | done |
+|`fontColor`| Function | Evstigneev Roman | blocked UT |
+|`fontSize`| Function | Evstigneev Roman | blocked UT |
+|`fontWeight`| Function | Evstigneev Roman | blocked UT |
+|`fontStyle`| Function | Evstigneev Roman | done |
+|`fontFamily`| Function | Evstigneev Roman | done |
+|`contentModifier`| Function | Evstigneev Roman | blocked Arkoala |
+|`labelStyle`| Function | Evstigneev Roman | done |
 |*Calendar*| *Component* | | |
 |`setCalendarOptions`| Function | | |
 |`showLunar`| Function | | |
@@ -123,11 +123,11 @@
 |*Circle*| *Component* | Erokhin Ilya | done |
 |`setCircleOptions`| Function | Erokhin Ilya | done |
 |*Column*| *Component* | Politov Mikhail | in progress |
-|`setColumnOptions`| Function | Politov Mikhail | in progress |
-|`alignItems`| Function | Politov Mikhail | in progress |
-|`justifyContent`| Function | Politov Mikhail | in progress |
+|`setColumnOptions`| Function | Politov Mikhail | done |
+|`alignItems`| Function | Politov Mikhail | done |
+|`justifyContent`| Function | Politov Mikhail | done |
 |`pointLight`| Function | Politov Mikhail | in progress |
-|`reverse`| Function | Politov Mikhail | in progress |
+|`reverse`| Function | Politov Mikhail | done |
 |*ColumnSplit*| *Component* | | |
 |`setColumnSplitOptions`| Function | | |
 |`resizeable`| Function | | |
@@ -144,8 +144,8 @@
 |`hitTestBehavior`| Function | Roman Sedaikin | in progress |
 |`onChildTouchTest`| Function | | |
 |`layoutWeight`| Function | Roman Sedaikin | in progress |
-|`padding`| Function | Erokhin Ilya | blocked |
-|`margin`| Function | Erokhin Ilya | blocked |
+|`padding`| Function | Erokhin Ilya | blocked ArKoala |
+|`margin`| Function | Erokhin Ilya | blocked ArKoala |
 |`backgroundColor`| Function | Roman Sedaikin | done |
 |`pixelRound`| Function | | |
 |`backgroundImageSize`| Function | | |
@@ -223,7 +223,7 @@
 |`align`| Function | Roman Sedaikin | in progress |
 |`position`| Function | Roman Sedaikin | in progress |
 |`markAnchor`| Function | | |
-|`offset`| Function | Erokhin Ilya | blocked |
+|`offset`| Function | Erokhin Ilya | blocked ArKoala |
 |`enabled`| Function | Roman Sedaikin | in progress |
 |`useSizeType`| Function | | |
 |`alignRules`| Function | | |
@@ -262,6 +262,8 @@
 |`accessibilityDescription`| Function | | |
 |`accessibilityLevel`| Function | | |
 |`accessibilityVirtualNode`| Function | | |
+|`accessibilityChecked`| Function | | |
+|`accessibilitySelected`| Function | | |
 |`obscured`| Function | | |
 |`reuseId`| Function | | |
 |`renderFit`| Function | | |
@@ -281,9 +283,9 @@
 |`foregroundBlurStyle`| Function | Roman Sedaikin | in progress |
 |`focusScopeId`| Function | | |
 |`focusScopePriority`| Function | | |
-|`gesture`| Function | Erokhin Ilya | blocked |
-|`priorityGesture`| Function | Erokhin Ilya | blocked |
-|`parallelGesture`| Function | Erokhin Ilya | blocked |
+|`gesture`| Function | Erokhin Ilya | blocked ArKoala |
+|`priorityGesture`| Function | Erokhin Ilya | blocked ArKoala |
+|`parallelGesture`| Function | Erokhin Ilya | blocked ArKoala |
 |`blur`| Function | Roman Sedaikin | in progress |
 |`linearGradientBlur`| Function | | |
 |`systemBarEffect`| Function | | |
@@ -358,14 +360,14 @@
 |`strokeWidth`| Function | Sergey Morozov | In Progress |
 |`trackShadow`| Function | Sergey Morozov | In Progress |
 |`contentModifier`| Function | Sergey Morozov | In Progress |
-|*DatePicker*| *Component* |  | In Progress |
-|`setDatePickerOptions`| Function |  | In Progress |
-|`lunar`| Function |  | In Progress |
-|`disappearTextStyle`| Function |  | In Progress |
-|`textStyle`| Function |  | In Progress |
-|`selectedTextStyle`| Function |  | In Progress |
-|`onChange`| Function |  | In Progress |
-|`onDateChange`| Function |  | In Progress |
+|*DatePicker*| *Component* | Vadim Voronov | In Progress |
+|`setDatePickerOptions`| Function | Vadim Voronov | In Progress |
+|`lunar`| Function | Vadim Voronov | In Progress |
+|`disappearTextStyle`| Function | Vadim Voronov | In Progress |
+|`textStyle`| Function | Vadim Voronov | In Progress |
+|`selectedTextStyle`| Function | Vadim Voronov | In Progress |
+|`onChange`| Function | Vadim Voronov | In Progress |
+|`onDateChange`| Function | Vadim Voronov | In Progress |
 |*Divider*| *Component* | Ivan Tuzhilkin | done |
 |`setDividerOptions`| Function | Ivan Tuzhilkin | done |
 |`vertical`| Function | Ivan Tuzhilkin | done |
@@ -419,15 +421,15 @@
 |`privacySensitive`| Function | | |
 |`contentModifier`| Function | | |
 |*Grid*| *Component* | Erokhin Ilya | done |
-|`setGridOptions`| Function | Erokhin Ilya | blocked |
+|`setGridOptions`| Function | Erokhin Ilya | blocked ArKoala |
 |`columnsTemplate`| Function | Erokhin Ilya | done |
 |`rowsTemplate`| Function | Erokhin Ilya | done |
-|`columnsGap`| Function | Erokhin Ilya | in progress |
-|`rowsGap`| Function | Erokhin Ilya | in progress |
+|`columnsGap`| Function | Erokhin Ilya | done |
+|`rowsGap`| Function | Erokhin Ilya | done |
 |`scrollBarWidth`| Function | Erokhin Ilya | done |
 |`scrollBarColor`| Function | Erokhin Ilya | done |
 |`scrollBar`| Function | Erokhin Ilya | done |
-|`onScrollBarUpdate`| Function | Erokhin Ilya | blocked |
+|`onScrollBarUpdate`| Function | Erokhin Ilya | blocked ArKoala |
 |`onScrollIndex`| Function | Erokhin Ilya | done |
 |`cachedCount`| Function | Erokhin Ilya | done |
 |`editMode`| Function | Erokhin Ilya | done |
@@ -437,21 +439,21 @@
 |`cellLength`| Function | Erokhin Ilya | done |
 |`layoutDirection`| Function | Erokhin Ilya | done |
 |`supportAnimation`| Function | Erokhin Ilya | done |
-|`onItemDragStart`| Function | Erokhin Ilya | blocked |
+|`onItemDragStart`| Function | Erokhin Ilya | blocked ArKoala |
 |`onItemDragEnter`| Function | Erokhin Ilya | done |
 |`onItemDragMove`| Function | Erokhin Ilya | done |
 |`onItemDragLeave`| Function | Erokhin Ilya | done |
 |`onItemDrop`| Function | Erokhin Ilya | done |
 |`nestedScroll`| Function | Erokhin Ilya | done |
 |`enableScrollInteraction`| Function | Erokhin Ilya | done |
-|`friction`| Function | Erokhin Ilya | in progress |
+|`friction`| Function | Erokhin Ilya | done |
 |`alignItems`| Function | | |
 |`onScroll`| Function | Erokhin Ilya | done |
 |`onReachStart`| Function | Erokhin Ilya | done |
 |`onReachEnd`| Function | Erokhin Ilya | done |
 |`onScrollStart`| Function | Erokhin Ilya | done |
 |`onScrollStop`| Function | Erokhin Ilya | done |
-|`onScrollFrameBegin`| Function | Erokhin Ilya | blocked |
+|`onScrollFrameBegin`| Function | Erokhin Ilya | blocked ArKoala |
 |`edgeEffect`| Function | Erokhin Ilya | done |
 |*GridItem*| *Component* | Erokhin Ilya | done |
 |`setGridItemOptions`| Function | Erokhin Ilya | done |
@@ -610,17 +612,17 @@
 |`menuItemDivider`| Function | Morozov Sergey | blocked Arkoala |
 |`menuItemGroupDivider`| Function | Morozov Sergey | blocked Arkoala |
 |`subMenuExpandingMode`| Function | Morozov Sergey | done |
-|*MenuItem*| *Component* | Morozov Sergey | in progress |
+|*MenuItem*| *Component* | Morozov Sergey | blocked Arkoala |
 |`setMenuItemOptions`| Function | Morozov Sergey | blocked Arkoala |
-|`selected`| Function | Morozov Sergey | in progress |
-|`selectIcon`| Function | Morozov Sergey | blocked Arkola |
-|`onChange`| Function | Morozov Sergey | in progress |
-|`contentFont`| Function | Morozov Sergey | in progress |
+|`selected`| Function | Morozov Sergey | done |
+|`selectIcon`| Function | Morozov Sergey | blocked Arkoala |
+|`onChange`| Function | Morozov Sergey | done |
+|`contentFont`| Function | Morozov Sergey | done |
 |`contentFontColor`| Function | Morozov Sergey | blocked UT |
-|`labelFont`| Function | Morozov Sergey | in progress |
+|`labelFont`| Function | Morozov Sergey | done |
 |`labelFontColor`| Function | Morozov Sergey | blocked UT |
-|*MenuItemGroup*| *Component* | Sergey Morozov | In Progress |
-|`setMenuItemGroupOptions`| Function | Sergey Morozov | In Progress |
+|*MenuItemGroup*| *Component* | Sergey Morozov | blocked Arkoala |
+|`setMenuItemGroupOptions`| Function | Sergey Morozov | blocked Arkoala |
 |*NavDestination*| *Component* | | |
 |`setNavDestinationOptions`| Function | | |
 |`hideTitleBar`| Function | | |
@@ -639,6 +641,8 @@
 |`recoverable`| Function | | |
 |`systemTransition`| Function | | |
 |`title`| Function | | |
+|`toolbarConfiguration`| Function | | |
+|`hideToolBar`| Function | | |
 |`ignoreLayoutSafeArea`| Function | | |
 |*NavRouter*| *Component* | Evstigneev Roman | done |
 |`setNavRouterOptions`| Function | Evstigneev Roman | blocked Arkoala |
@@ -753,20 +757,20 @@
 |`pullToRefresh`| Function | | |
 |`onOffsetChange`| Function | | |
 |`pullDownRatio`| Function | | |
-|*RelativeContainer*| *Component* | Dmitry A Smirnov | in progress |
+|*RelativeContainer*| *Component* | Dmitry A Smirnov | done |
 |`setRelativeContainerOptions`| Function | Dmitry A Smirnov | done |
-|`guideLine`| Function | Dmitry A Smirnov | in progress |
-|`barrier`| Function | Dmitry A Smirnov | in progress |
+|`guideLine`| Function | Dmitry A Smirnov | done |
+|`barrier`| Function | Dmitry A Smirnov | done |
 |*RichEditor*| *Component* | Dudkin Sergey | in progress |
 |`setRichEditorOptions`| Function | Dudkin Sergey | in progress |
-|`onReady`| Function | Dudkin Sergey | in progress |
-|`onSelect`| Function | Dudkin Sergey | in progress |
-|`onSelectionChange`| Function | Dudkin Sergey | in progress |
-|`aboutToIMEInput`| Function | Dudkin Sergey | in progress |
-|`onIMEInputComplete`| Function | Dudkin Sergey | in progress |
-|`onDidIMEInput`| Function | Dudkin Sergey | in progress |
-|`aboutToDelete`| Function | Dudkin Sergey | in progress |
-|`onDeleteComplete`| Function | Dudkin Sergey | in progress |
+|`onReady`| Function | Dudkin Sergey | done |
+|`onSelect`| Function | Dudkin Sergey | done |
+|`onSelectionChange`| Function | Dudkin Sergey | done |
+|`aboutToIMEInput`| Function | Dudkin Sergey | done |
+|`onIMEInputComplete`| Function | Dudkin Sergey | done |
+|`onDidIMEInput`| Function | Dudkin Sergey | done |
+|`aboutToDelete`| Function | Dudkin Sergey | done |
+|`onDeleteComplete`| Function | Dudkin Sergey | done |
 |`copyOptions`| Function | Dudkin Sergey | in progress |
 |`onPaste`| Function | Dudkin Sergey | in progress |
 |`enableDataDetector`| Function | Dudkin Sergey | in progress |
@@ -798,8 +802,8 @@
 |`setRowOptions`| Function | Andrey Khudenkikh | in progress |
 |`alignItems`| Function | Andrey Khudenkikh | in progress |
 |`justifyContent`| Function | Andrey Khudenkikh | in progress |
-|`pointLight`| Function | Andrey Khudenkikh | in progress |
-|`reverse`| Function | Andrey Khudenkikh | in progress |
+|`pointLight`| Function | Andrey Khudenkikh | blocked |
+|`reverse`| Function | Andrey Khudenkikh | blocked |
 |*RowSplit*| *Component* | | |
 |`setRowSplitOptions`| Function | | |
 |`resizeable`| Function | | |
@@ -901,27 +905,27 @@
 |*Select*| *Component* | Samarin Sergey | in progress |
 |`setSelectOptions`| Function | Samarin Sergey | blocked |
 |`selected`| Function | Samarin Sergey | done |
-|`value`| Function | Samarin Sergey | in progress |
-|`font`| Function | Samarin Sergey | in progress |
+|`value`| Function | Samarin Sergey | done |
+|`font`| Function | Samarin Sergey | done |
 |`fontColor`| Function | Samarin Sergey | done |
 |`selectedOptionBgColor`| Function | Samarin Sergey | done |
-|`selectedOptionFont`| Function | Samarin Sergey | in progress |
+|`selectedOptionFont`| Function | Samarin Sergey | done |
 |`selectedOptionFontColor`| Function | Samarin Sergey | done |
 |`optionBgColor`| Function | Samarin Sergey | done |
-|`optionFont`| Function | Samarin Sergey | in progress |
+|`optionFont`| Function | Samarin Sergey | done |
 |`optionFontColor`| Function | Samarin Sergey | done |
 |`onSelect`| Function | Samarin Sergey | done |
 |`space`| Function | Samarin Sergey | done |
 |`arrowPosition`| Function | Samarin Sergey | done |
-|`optionWidth`| Function | Samarin Sergey | in progress |
+|`optionWidth`| Function | Samarin Sergey | done |
 |`optionHeight`| Function | Samarin Sergey | done |
 |`menuBackgroundColor`| Function | Samarin Sergey | done |
 |`menuBackgroundBlurStyle`| Function | Samarin Sergey | done |
 |`controlSize`| Function | Samarin Sergey | done |
 |`menuItemContentModifier`| Function | Samarin Sergey | blocked |
-|`divider`| Function | Samarin Sergey | in progress |
+|`divider`| Function | Samarin Sergey | done |
 |`menuAlign`| Function | Samarin Sergey | done |
-|*Shape*| *Component* | Dudkin Sergey | in progress |
+|*Shape*| *Component* | Dudkin Sergey | done |
 |`setShapeOptions`| Function | | |
 |`viewPort`| Function | | |
 |`stroke`| Function | | |
@@ -1019,6 +1023,14 @@
 |`displayCount`| Function | Skroba Gleb | done |
 |`prevMargin`| Function | Skroba Gleb | done |
 |`nextMargin`| Function | Skroba Gleb | done |
+|*IndicatorComponent*| *Component* | | |
+|`setIndicatorComponentOptions`| Function | | |
+|`initialIndex`| Function | | |
+|`count`| Function | | |
+|`style`| Function | | |
+|`loop`| Function | | |
+|`vertical`| Function | | |
+|`onChange`| Function | | |
 |*SymbolGlyph*| *Component* | | |
 |`setSymbolGlyphOptions`| Function | | |
 |`fontSize`| Function | | |
@@ -1039,17 +1051,17 @@
 |`vertical`| Function | Ivan Tuzhilkin | done |
 |`barPosition`| Function | Ivan Tuzhilkin | done |
 |`scrollable`| Function | Ivan Tuzhilkin | done |
-|`barMode`| Function | Ivan Tuzhilkin | in progress |
+|`barMode`| Function | Ivan Tuzhilkin | done |
 |`barWidth`| Function | Ivan Tuzhilkin | blocked |
 |`barHeight`| Function | Ivan Tuzhilkin | blocked |
 |`animationDuration`| Function | Ivan Tuzhilkin | blocked UT |
 |`animationMode`| Function | Ivan Tuzhilkin | done |
 |`edgeEffect`| Function | Ivan Tuzhilkin | done |
-|`onChange`| Function | Ivan Tuzhilkin | in progress |
-|`onTabBarClick`| Function | Ivan Tuzhilkin | in progress |
-|`onAnimationStart`| Function | Ivan Tuzhilkin | in progress |
-|`onAnimationEnd`| Function | Ivan Tuzhilkin | in progress |
-|`onGestureSwipe`| Function | Ivan Tuzhilkin | in progress |
+|`onChange`| Function | Ivan Tuzhilkin | done |
+|`onTabBarClick`| Function | Ivan Tuzhilkin | done |
+|`onAnimationStart`| Function | Ivan Tuzhilkin | done |
+|`onAnimationEnd`| Function | Ivan Tuzhilkin | done |
+|`onGestureSwipe`| Function | Ivan Tuzhilkin | done |
 |`fadingEdge`| Function | Ivan Tuzhilkin | done |
 |`divider`| Function | Ivan Tuzhilkin | blocked |
 |`barOverlap`| Function | Ivan Tuzhilkin | done |
@@ -1057,6 +1069,7 @@
 |`barGridAlign`| Function | Ivan Tuzhilkin | blocked |
 |`customContentTransition`| Function | Ivan Tuzhilkin | blocked |
 |`barBackgroundBlurStyle`| Function | Ivan Tuzhilkin | done |
+|`barBackgroundEffect`| Function | | |
 |`onContentWillChange`| Function | Ivan Tuzhilkin | blocked |
 |*TabContent*| *Component* | Evstigneev Roman | in progress |
 |`setTabContentOptions`| Function | Evstigneev Roman | done |
@@ -1426,6 +1439,7 @@
 |`onLoad`| Function | | |
 |`onDestroy`| Function | | |
 |`enableAnalyzer`| Function | | |
+|`enableSecure`| Function | | |
 |*SideBarContainer*| *Component* | Dmitry A Smirnov | in progress |
 |`setSideBarContainerOptions`| Function | Dmitry A Smirnov | in progress |
 |`showSideBar`| Function | Dmitry A Smirnov | in progress |
@@ -1470,50 +1484,33 @@
 |`indicatorStyle`| Function | | |
 |`indicatorLoop`| Function | | |
 |`onChange`| Function | | |
-|*DrawModifier*| *Class* | | |
-|`drawBehind`| Function | | |
-|`drawContent`| Function | | |
-|`drawFront`| Function | | |
-|`invalidate`| Function | | |
-|*ICurve*| *Class* | | |
-|`interpolate`| Function | | |
-|*ProgressMask*| *Class* | | |
-|`updateProgress`| Function | | |
-|`updateColor`| Function | | |
-|`enableBreathingAnimation`| Function | | |
-|*AttributeModifier*| *Class* | | |
-|`applyNormalAttribute`| Function | | |
-|`applyPressedAttribute`| Function | | |
-|`applyFocusedAttribute`| Function | | |
-|`applyDisabledAttribute`| Function | | |
-|`applySelectedAttribute`| Function | | |
-|*GestureModifier*| *Class* | | |
-|`applyGesture`| Function | | |
-|*GestureRecognizer*| *Class* | | |
-|`getTag`| Function | | |
-|`getType`| Function | | |
-|`isBuiltIn`| Function | | |
-|`setEnabled`| Function | | |
-|`isEnabled`| Function | | |
-|`getState`| Function | | |
-|`getEventTargetInfo`| Function | | |
-|`isValid`| Function | | |
-|*PanGestureOptions*| *Class* | | |
-|`setDirection`| Function | | |
-|`setDistance`| Function | | |
-|`setFingers`| Function | | |
-|`getDirection`| Function | | |
-|*EventTargetInfo*| *Class* | | |
-|`getId`| Function | | |
-|*ContentModifier*| *Class* | | |
-|`applyContent`| Function | | |
+|*ActionSheet*| *Class* | | |
+|`show`| Function | | |
+|*AlertDialog*| *Class* | | |
+|`show`| Function | | |
 |*CalendarController*| *Class* | | |
 |`backToToday`| Function | | |
 |`goTo`| Function | | |
-|*CanvasRenderingContext2D*| *Class* | | |
-|`toDataURL`| Function | | |
-|`startImageAnalyzer`| Function | | |
-|`stopImageAnalyzer`| Function | | |
+|*CalendarPickerDialog*| *Class* | | |
+|`show`| Function | | |
+|*CanvasGradient*| *Class* | | |
+|`addColorStop`| Function | | |
+|*CanvasPath*| *Class* | | |
+|`arc`| Function | | |
+|`arcTo`| Function | | |
+|`bezierCurveTo`| Function | | |
+|`closePath`| Function | | |
+|`ellipse`| Function | | |
+|`lineTo`| Function | | |
+|`moveTo`| Function | | |
+|`quadraticCurveTo`| Function | | |
+|`rect`| Function | | |
+|*Path2D*| *Class* | | |
+|`addPath`| Function | | |
+|*CanvasPattern*| *Class* | | |
+|`setTransform`| Function | | |
+|*ImageBitmap*| *Class* | | |
+|`close`| Function | | |
 |`getHeight`| Function | | |
 |`getWidth`| Function | | |
 |*CanvasRenderer*| *Class* | | |
@@ -1590,20 +1587,113 @@
 |`setTextAlign`| Function | | |
 |`getTextBaseline`| Function | | |
 |`setTextBaseline`| Function | | |
-|*CanvasPath*| *Class* | | |
-|`arc`| Function | | |
-|`arcTo`| Function | | |
-|`bezierCurveTo`| Function | | |
-|`closePath`| Function | | |
-|`ellipse`| Function | | |
-|`lineTo`| Function | | |
-|`moveTo`| Function | | |
-|`quadraticCurveTo`| Function | | |
-|`rect`| Function | | |
-|*CanvasGradient*| *Class* | | |
-|`addColorStop`| Function | | |
-|*CanvasPattern*| *Class* | | |
-|`setTransform`| Function | | |
+|*CanvasRenderingContext2D*| *Class* | | |
+|`toDataURL`| Function | | |
+|`startImageAnalyzer`| Function | | |
+|`stopImageAnalyzer`| Function | | |
+|`on`| Function | | |
+|`off`| Function | | |
+|`getHeight`| Function | | |
+|`getWidth`| Function | | |
+|*DrawingRenderingContext*| *Class* | | |
+|`invalidate`| Function | | |
+|*IMonitor*| *Class* | | |
+|`value`| Function | | |
+|`setDirty`| Function | | |
+|*AnimatableArithmetic*| *Class* | | |
+|`plus`| Function | | |
+|`subtract`| Function | | |
+|`multiply`| Function | | |
+|`equals`| Function | | |
+|*ICurve*| *Class* | | |
+|`interpolate`| Function | | |
+|*DrawModifier*| *Class* | | |
+|`drawBehind`| Function | | |
+|`drawContent`| Function | | |
+|`drawFront`| Function | | |
+|`invalidate`| Function | | |
+|*PixelMapMock*| *Class* | | |
+|`release`| Function | | |
+|*ProgressMask*| *Class* | | |
+|`updateProgress`| Function | | |
+|`updateColor`| Function | | |
+|`enableBreathingAnimation`| Function | | |
+|*AttributeModifier*| *Class* | | |
+|`applyNormalAttribute`| Function | | |
+|`applyPressedAttribute`| Function | | |
+|`applyFocusedAttribute`| Function | | |
+|`applyDisabledAttribute`| Function | | |
+|`applySelectedAttribute`| Function | | |
+|*ContentModifier*| *Class* | | |
+|`applyContent`| Function | | |
+|*Measurable*| *Class* | | |
+|`measure`| Function | | |
+|`getMargin`| Function | | |
+|`getPadding`| Function | | |
+|`getBorderWidth`| Function | | |
+|*View*| *Class* | | |
+|`create`| Function | | |
+|*TextContentControllerBase*| *Class* | | |
+|`getCaretOffset`| Function | | |
+|`getTextContentRect`| Function | | |
+|`getTextContentLineCount`| Function | | |
+|*DynamicNode*| *Class* | | |
+|`onMove`| Function | | |
+|*ChildrenMainSize*| *Class* | | |
+|`splice`| Function | | |
+|`update`| Function | | |
+|`getChildDefaultSize`| Function | | |
+|*GestureModifier*| *Class* | | |
+|`applyGesture`| Function | | |
+|*AbstractProperty*| *Class* | | |
+|`get`| Function | | |
+|`set`| Function | | |
+|`info`| Function | | |
+|*IPropertySubscriber*| *Class* | | |
+|`id`| Function | | |
+|`aboutToBeDeleted`| Function | | |
+|*ISinglePropertyChangeSubscriber*| *Class* | | |
+|`hasChanged`| Function | | |
+|*SubscribaleAbstract*| *Class* | | |
+|`notifyPropertyHasChanged`| Function | | |
+|`addOwningProperty`| Function | | |
+|`removeOwningProperty`| Function | | |
+|`removeOwningPropertyById`| Function | | |
+|*ContextMenu*| *Class* | | |
+|`close`| Function | | |
+|*CustomDialogController*| *Class* | | |
+|`open`| Function | | |
+|`close`| Function | | |
+|*DatePickerDialog*| *Class* | | |
+|`show`| Function | | |
+|*PanGestureOptions*| *Class* | | |
+|`setDirection`| Function | | |
+|`setDistance`| Function | | |
+|`setFingers`| Function | | |
+|`getDirection`| Function | | |
+|*ScrollableTargetInfo*| *Class* | | |
+|`isBegin`| Function | | |
+|`isEnd`| Function | | |
+|*EventTargetInfo*| *Class* | | |
+|`getId`| Function | | |
+|*GestureRecognizer*| *Class* | | |
+|`getTag`| Function | | |
+|`getType`| Function | | |
+|`isBuiltIn`| Function | | |
+|`setEnabled`| Function | | |
+|`isEnabled`| Function | | |
+|`getState`| Function | | |
+|`getEventTargetInfo`| Function | | |
+|`isValid`| Function | | |
+|*PanRecognizer*| *Class* | | |
+|`getPanGestureOptions`| Function | | |
+|*ImageAnalyzerController*| *Class* | | |
+|`getImageAnalyzerSupportTypes`| Function | | |
+|*ListScroller*| *Class* | | |
+|`getItemRectInGroup`| Function | | |
+|`scrollToItemInGroup`| Function | | |
+|`closeAllSwipeActions`| Function | | |
+|`getVisibleListContentInfo`| Function | | |
 |*Matrix2D*| *Class* | | |
 |`identity`| Function | | |
 |`invert`| Function | | |
@@ -1623,39 +1713,12 @@
 |`setTranslateX`| Function | | |
 |`getTranslateY`| Function | | |
 |`setTranslateY`| Function | | |
-|*ImageBitmap*| *Class* | | |
-|`close`| Function | | |
-|`getHeight`| Function | | |
-|`getWidth`| Function | | |
-|*Path2D*| *Class* | | |
-|`addPath`| Function | | |
-|*DrawingRenderingContext*| *Class* | | |
-|`invalidate`| Function | | |
-|*ImageAnalyzerController*| *Class* | | |
-|`getImageAnalyzerSupportTypes`| Function | | |
-|*Scroller*| *Class* | Erokhin Ilya | in progress |
-|`scrollTo`| Function | Erokhin Ilya | in progress |
-|`scrollEdge`| Function | Erokhin Ilya | in progress |
-|`fling`| Function | Erokhin Ilya | in progress |
-|`scrollPage`| Function | | |
-|`currentOffset`| Function | Erokhin Ilya | in progress |
-|`scrollToIndex`| Function | Erokhin Ilya | in progress |
-|`scrollBy`| Function | Erokhin Ilya | in progress |
-|`isAtEnd`| Function | Erokhin Ilya | in progress |
-|`getItemRect`| Function | Erokhin Ilya | in progress |
-|`getItemIndex`| Function | Erokhin Ilya | in progress |
-|*ChildrenMainSize*| *Class* | | |
-|`splice`| Function | | |
-|`update`| Function | | |
-|`getChildDefaultSize`| Function | | |
-|*NavigationTransitionProxy*| *Class* | | |
-|`finishTransition`| Function | | |
-|`cancelTransition`| Function | | |
-|`updateTransition`| Function | | |
-|`setFrom`| Function | | |
-|`setTo`| Function | | |
-|`getIsInteractive`| Function | | |
-|`setIsInteractive`| Function | | |
+|*NavDestinationContext*| *Class* | | |
+|`getConfigInRouteMap`| Function | | |
+|`setPathInfo`| Function | | |
+|`setPathStack`| Function | | |
+|`getNavDestinationId`| Function | | |
+|`setNavDestinationId`| Function | | |
 |*NavPathStack*| *Class* | | |
 |`pushPath`| Function | | |
 |`pushDestination`| Function | | |
@@ -1680,18 +1743,28 @@
 |`size`| Function | | |
 |`disableAnimation`| Function | | |
 |`setInterception`| Function | | |
-|*NavDestinationContext*| *Class* | | |
-|`getConfigInRouteMap`| Function | | |
-|`setPathInfo`| Function | | |
-|`setPathStack`| Function | | |
-|`getNavDestinationId`| Function | | |
-|`setNavDestinationId`| Function | | |
+|*NavigationTransitionProxy*| *Class* | | |
+|`finishTransition`| Function | | |
+|`cancelTransition`| Function | | |
+|`updateTransition`| Function | | |
+|`setFrom`| Function | | |
+|`setTo`| Function | | |
+|`getIsInteractive`| Function | | |
+|`setIsInteractive`| Function | | |
 |*PatternLockController*| *Class* | | |
 |`reset`| Function | | |
 |`setChallengeResult`| Function | | |
-|*EditMenuOptions*| *Class* | | |
-|`onCreateMenu`| Function | | |
-|`onMenuItemClick`| Function | | |
+|*RichEditorBaseController*| *Class* | | |
+|`getCaretOffset`| Function | | |
+|`setCaretOffset`| Function | | |
+|`closeSelectionMenu`| Function | | |
+|`getTypingStyle`| Function | | |
+|`setTypingStyle`| Function | | |
+|`setSelection`| Function | | |
+|`isEditing`| Function | | |
+|`stopEditing`| Function | | |
+|`getLayoutManager`| Function | | |
+|`getPreviewText`| Function | | |
 |*RichEditorController*| *Class* | | |
 |`addTextSpan`| Function | | |
 |`addImageSpan`| Function | | |
@@ -1705,71 +1778,31 @@
 |`getSelection`| Function | | |
 |`fromStyledString`| Function | | |
 |`toStyledString`| Function | | |
-|*RichEditorBaseController*| *Class* | | |
-|`getCaretOffset`| Function | | |
-|`setCaretOffset`| Function | | |
-|`closeSelectionMenu`| Function | | |
-|`getTypingStyle`| Function | | |
-|`setTypingStyle`| Function | | |
-|`setSelection`| Function | | |
-|`isEditing`| Function | | |
-|`stopEditing`| Function | | |
-|`getLayoutManager`| Function | | |
-|`getPreviewText`| Function | | |
-|*TextEditControllerEx*| *Class* | | |
-|`isEditing`| Function | | |
-|`stopEditing`| Function | | |
-|`setCaretOffset`| Function | | |
-|`getCaretOffset`| Function | | |
-|`getPreviewText`| Function | | |
-|*TextBaseController*| *Class* | | |
-|`setSelection`| Function | | |
-|`closeSelectionMenu`| Function | | |
-|`getLayoutManager`| Function | | |
-|*LayoutManager*| *Class* | | |
-|`getLineCount`| Function | | |
-|`getGlyphPositionAtCoordinate`| Function | | |
-|`getLineMetrics`| Function | | |
-|`getRectsForRange`| Function | | |
-|*StyledString*| *Class* | | |
-|`getString`| Function | | |
-|`getStyles`| Function | | |
-|`equals`| Function | | |
-|`subStyledString`| Function | | |
-|`marshalling`| Function | | |
-|`getLength`| Function | | |
-|*CustomSpan*| *Class* | | |
-|`onMeasure`| Function | | |
-|`onDraw`| Function | | |
-|`invalidate`| Function | | |
 |*RichEditorStyledStringController*| *Class* | | |
 |`setStyledString`| Function | | |
 |`getStyledString`| Function | | |
 |`getSelection`| Function | | |
 |`onContentChanged`| Function | | |
-|*StyledStringController*| *Class* | | |
-|`setStyledString`| Function | | |
-|`getStyledString`| Function | | |
-|*MutableStyledString*| *Class* | | |
-|`replaceString`| Function | | |
-|`insertString`| Function | | |
-|`removeString`| Function | | |
-|`replaceStyle`| Function | | |
-|`setStyle`| Function | | |
-|`removeStyle`| Function | | |
-|`removeStyles`| Function | | |
-|`clearStyles`| Function | | |
-|`replaceStyledString`| Function | | |
-|`insertStyledString`| Function | | |
-|`appendStyledString`| Function | | |
+|*Scroller*| *Class* | Erokhin Ilya | done |
+|`scrollTo`| Function | Erokhin Ilya | done |
+|`scrollEdge`| Function | Erokhin Ilya | done |
+|`fling`| Function | Erokhin Ilya | done |
+|`scrollPage`| Function | | |
+|`currentOffset`| Function | Erokhin Ilya | blocked ArKoala |
+|`scrollToIndex`| Function | Erokhin Ilya | blocked ArKoala |
+|`scrollBy`| Function | Erokhin Ilya | done |
+|`isAtEnd`| Function | Erokhin Ilya | done |
+|`getItemRect`| Function | Erokhin Ilya | blocked ArKoala |
+|`getItemIndex`| Function | Erokhin Ilya | done |
 |*SearchController*| *Class* | | |
 |`caretPosition`| Function | | |
 |`stopEditing`| Function | | |
 |`setTextSelection`| Function | | |
-|*TextContentControllerBase*| *Class* | | |
-|`getCaretOffset`| Function | | |
-|`getTextContentRect`| Function | | |
-|`getTextContentLineCount`| Function | | |
+|*SwiperController*| *Class* | Skroba Gleb | done |
+|`showNext`| Function | Skroba Gleb | done |
+|`showPrevious`| Function | Skroba Gleb | done |
+|`changeIndex`| Function | Skroba Gleb | done |
+|`finishAnimation`| Function | Skroba Gleb | blocked |
 |*SwiperContentTransitionProxy*| *Class* | | |
 |`finishTransition`| Function | | |
 |`getSelectedIndex`| Function | | |
@@ -1780,20 +1813,21 @@
 |`setPosition`| Function | | |
 |`getMainAxisLength`| Function | | |
 |`setMainAxisLength`| Function | | |
-|*SwiperController*| *Class* | Skroba Gleb | done |
-|`showNext`| Function | Skroba Gleb | done |
-|`showPrevious`| Function | Skroba Gleb | done |
-|`changeIndex`| Function | Skroba Gleb | done |
-|`finishAnimation`| Function | Skroba Gleb | blocked |
+|*IndicatorComponentController*| *Class* | | |
+|`showNext`| Function | | |
+|`showPrevious`| Function | | |
+|`changeIndex`| Function | | |
+|*TabsController*| *Class* | | |
+|`changeIndex`| Function | | |
+|`preloadItems`| Function | | |
+|`setTabBarTranslate`| Function | | |
+|`setTabBarOpacity`| Function | | |
 |*TabContentTransitionProxy*| *Class* | | |
 |`finishTransition`| Function | | |
 |`getFrom`| Function | | |
 |`setFrom`| Function | | |
 |`getTo`| Function | | |
 |`setTo`| Function | | |
-|*TabsController*| *Class* | | |
-|`changeIndex`| Function | | |
-|`preloadItems`| Function | | |
 |*TextController*| *Class* | | |
 |`closeSelectionMenu`| Function | | |
 |`setStyledString`| Function | | |
@@ -1805,14 +1839,39 @@
 |*TextClockController*| *Class* | | |
 |`start`| Function | | |
 |`stop`| Function | | |
+|*TextBaseController*| *Class* | | |
+|`setSelection`| Function | | |
+|`closeSelectionMenu`| Function | | |
+|`getLayoutManager`| Function | | |
+|*TextEditControllerEx*| *Class* | | |
+|`isEditing`| Function | | |
+|`stopEditing`| Function | | |
+|`setCaretOffset`| Function | | |
+|`getCaretOffset`| Function | | |
+|`getPreviewText`| Function | | |
+|*StyledStringController*| *Class* | | |
+|`setStyledString`| Function | | |
+|`getStyledString`| Function | | |
+|*LayoutManager*| *Class* | | |
+|`getLineCount`| Function | | |
+|`getGlyphPositionAtCoordinate`| Function | | |
+|`getLineMetrics`| Function | | |
+|`getRectsForRange`| Function | | |
+|*EditMenuOptions*| *Class* | | |
+|`onCreateMenu`| Function | | |
+|`onMenuItemClick`| Function | | |
 |*TextInputController*| *Class* | | |
 |`caretPosition`| Function | | |
 |`setTextSelection`| Function | | |
 |`stopEditing`| Function | | |
+|*TextPickerDialog*| *Class* | | |
+|`show`| Function | | |
 |*TextTimerController*| *Class* | | |
 |`start`| Function | | |
 |`pause`| Function | | |
 |`reset`| Function | | |
+|*TimePickerDialog*| *Class* | | |
+|`show`| Function | | |
 |*VideoController*| *Class* | | |
 |`start`| Function | | |
 |`pause`| Function | | |
@@ -1821,79 +1880,36 @@
 |`requestFullscreen`| Function | | |
 |`exitFullscreen`| Function | | |
 |`reset`| Function | | |
-|*WebController*| *Class* | | |
-|`onInactive`| Function | | |
-|`onActive`| Function | | |
-|`zoom`| Function | | |
-|`clearHistory`| Function | | |
-|`runJavaScript`| Function | | |
-|`loadData`| Function | | |
-|`loadUrl`| Function | | |
-|`refresh`| Function | | |
-|`stop`| Function | | |
-|`registerJavaScriptProxy`| Function | | |
-|`deleteJavaScriptRegister`| Function | | |
-|`getHitTest`| Function | | |
-|`requestFocus`| Function | | |
-|`accessBackward`| Function | | |
-|`accessForward`| Function | | |
-|`accessStep`| Function | | |
-|`backward`| Function | | |
-|`forward`| Function | | |
-|`getCookieManager`| Function | | |
-|*WebCookie*| *Class* | | |
-|`setCookie`| Function | | |
-|`saveCookie`| Function | | |
-|*JsGeolocation*| *Class* | | |
-|`invoke`| Function | | |
-|*JsResult*| *Class* | | |
-|`handleCancel`| Function | | |
-|`handleConfirm`| Function | | |
-|`handlePromptConfirm`| Function | | |
-|*ConsoleMessage*| *Class* | | |
-|`getMessage`| Function | | |
-|`getSourceId`| Function | | |
-|`getLineNumber`| Function | | |
-|`getMessageLevel`| Function | | |
-|*WebResourceRequest*| *Class* | | |
-|`getRequestHeader`| Function | | |
-|`getRequestUrl`| Function | | |
-|`isRequestGesture`| Function | | |
-|`isMainFrame`| Function | | |
-|`isRedirect`| Function | | |
-|`getRequestMethod`| Function | | |
-|*WebResourceError*| *Class* | | |
-|`getErrorInfo`| Function | | |
-|`getErrorCode`| Function | | |
-|*WebResourceResponse*| *Class* | | |
-|`getResponseData`| Function | | |
-|`getResponseDataEx`| Function | | |
-|`getResponseEncoding`| Function | | |
-|`getResponseMimeType`| Function | | |
-|`getReasonMessage`| Function | | |
-|`getResponseHeader`| Function | | |
-|`getResponseCode`| Function | | |
-|`setResponseData`| Function | | |
-|`setResponseEncoding`| Function | | |
-|`setResponseMimeType`| Function | | |
-|`setReasonMessage`| Function | | |
-|`setResponseHeader`| Function | | |
-|`setResponseCode`| Function | | |
-|`setResponseIsReady`| Function | | |
-|`getResponseIsReady`| Function | | |
-|*FileSelectorResult*| *Class* | | |
-|`handleFileList`| Function | | |
+|*WebKeyboardController*| *Class* | | |
+|`insertText`| Function | | |
+|`deleteForward`| Function | | |
+|`deleteBackward`| Function | | |
+|`sendFunctionKey`| Function | | |
+|`close`| Function | | |
+|*FullScreenExitHandler*| *Class* | | |
+|`exitFullScreen`| Function | | |
 |*FileSelectorParam*| *Class* | | |
 |`getTitle`| Function | | |
 |`getMode`| Function | | |
 |`getAcceptType`| Function | | |
 |`isCapture`| Function | | |
-|*FullScreenExitHandler*| *Class* | | |
-|`exitFullScreen`| Function | | |
+|*JsResult*| *Class* | | |
+|`handleCancel`| Function | | |
+|`handleConfirm`| Function | | |
+|`handlePromptConfirm`| Function | | |
+|*FileSelectorResult*| *Class* | | |
+|`handleFileList`| Function | | |
 |*HttpAuthHandler*| *Class* | | |
 |`confirm`| Function | | |
 |`cancel`| Function | | |
 |`isHttpAuthInfoSaved`| Function | | |
+|*SslErrorHandler*| *Class* | | |
+|`handleConfirm`| Function | | |
+|`handleCancel`| Function | | |
+|*ClientAuthenticationHandler*| *Class* | | |
+|`confirm`| Function | | |
+|`cancel`| Function | | |
+|`ignore`| Function | | |
 |*PermissionRequest*| *Class* | | |
 |`deny`| Function | | |
 |`getOrigin`| Function | | |
@@ -1903,6 +1919,11 @@
 |`getOrigin`| Function | | |
 |`grant`| Function | | |
 |`deny`| Function | | |
+|*DataResubmissionHandler*| *Class* | | |
+|`resend`| Function | | |
+|`cancel`| Function | | |
+|*ControllerHandler*| *Class* | | |
+|`setWebController`| Function | | |
 |*WebContextMenuParam*| *Class* | | |
 |`x`| Function | | |
 |`y`| Function | | |
@@ -1923,26 +1944,64 @@
 |`paste`| Function | | |
 |`cut`| Function | | |
 |`selectAll`| Function | | |
-|*SslErrorHandler*| *Class* | | |
-|`handleConfirm`| Function | | |
-|`handleCancel`| Function | | |
-|*ClientAuthenticationHandler*| *Class* | | |
-|`confirm`| Function | | |
-|`cancel`| Function | | |
-|`ignore`| Function | | |
-|*ControllerHandler*| *Class* | | |
-|`setWebController`| Function | | |
-|*DataResubmissionHandler*| *Class* | | |
-|`resend`| Function | | |
-|`cancel`| Function | | |
+|*ConsoleMessage*| *Class* | | |
+|`getMessage`| Function | | |
+|`getSourceId`| Function | | |
+|`getLineNumber`| Function | | |
+|`getMessageLevel`| Function | | |
+|*WebResourceRequest*| *Class* | | |
+|`getRequestHeader`| Function | | |
+|`getRequestUrl`| Function | | |
+|`isRequestGesture`| Function | | |
+|`isMainFrame`| Function | | |
+|`isRedirect`| Function | | |
+|`getRequestMethod`| Function | | |
+|*WebResourceResponse*| *Class* | | |
+|`getResponseData`| Function | | |
+|`getResponseDataEx`| Function | | |
+|`getResponseEncoding`| Function | | |
+|`getResponseMimeType`| Function | | |
+|`getReasonMessage`| Function | | |
+|`getResponseHeader`| Function | | |
+|`getResponseCode`| Function | | |
+|`setResponseData`| Function | | |
+|`setResponseEncoding`| Function | | |
+|`setResponseMimeType`| Function | | |
+|`setReasonMessage`| Function | | |
+|`setResponseHeader`| Function | | |
+|`setResponseCode`| Function | | |
+|`setResponseIsReady`| Function | | |
+|`getResponseIsReady`| Function | | |
+|*WebResourceError*| *Class* | | |
+|`getErrorInfo`| Function | | |
+|`getErrorCode`| Function | | |
+|*JsGeolocation*| *Class* | | |
+|`invoke`| Function | | |
+|*WebCookie*| *Class* | | |
+|`setCookie`| Function | | |
+|`saveCookie`| Function | | |
 |*EventResult*| *Class* | | |
 |`setGestureEventResult`| Function | | |
-|*WebKeyboardController*| *Class* | | |
-|`insertText`| Function | | |
-|`deleteForward`| Function | | |
-|`deleteBackward`| Function | | |
-|`sendFunctionKey`| Function | | |
-|`close`| Function | | |
+|*WebController*| *Class* | | |
+|`onInactive`| Function | | |
+|`onActive`| Function | | |
+|`zoom`| Function | | |
+|`clearHistory`| Function | | |
+|`runJavaScript`| Function | | |
+|`loadData`| Function | | |
+|`loadUrl`| Function | | |
+|`refresh`| Function | | |
+|`stop`| Function | | |
+|`registerJavaScriptProxy`| Function | | |
+|`deleteJavaScriptRegister`| Function | | |
+|`getHitTest`| Function | | |
+|`requestFocus`| Function | | |
+|`accessBackward`| Function | | |
+|`accessForward`| Function | | |
+|`accessStep`| Function | | |
+|`backward`| Function | | |
+|`forward`| Function | | |
+|`getCookieManager`| Function | | |
 |*XComponentController*| *Class* | | |
 |`getXComponentSurfaceId`| Function | | |
 |`getXComponentContext`| Function | | |
@@ -1962,6 +2021,29 @@
 |`update`| Function | | |
 |`values`| Function | | |
 |`length`| Function | | |
+|*StyledString*| *Class* | | |
+|`getString`| Function | | |
+|`getStyles`| Function | | |
+|`equals`| Function | | |
+|`subStyledString`| Function | | |
+|`marshalling`| Function | | |
+|`getLength`| Function | | |
+|*MutableStyledString*| *Class* | | |
+|`replaceString`| Function | | |
+|`insertString`| Function | | |
+|`removeString`| Function | | |
+|`replaceStyle`| Function | | |
+|`setStyle`| Function | | |
+|`removeStyle`| Function | | |
+|`removeStyles`| Function | | |
+|`clearStyles`| Function | | |
+|`replaceStyledString`| Function | | |
+|`insertStyledString`| Function | | |
+|`appendStyledString`| Function | | |
+|*CustomSpan*| *Class* | | |
+|`onMeasure`| Function | | |
+|`onDraw`| Function | | |
+|`invalidate`| Function | | |
 |*LinearIndicatorController*| *Class* | | |
 |`setProgress`| Function | | |
 |`start`| Function | | |
