@@ -180,7 +180,7 @@ export class ModifierVisitor {
         this.printReturnStatement(this.dummy, method, retVal)
     }
 
-    printModifierImplFunctionBody(method: PeerMethod | IdlPeerMethod) {
+    printModifierImplFunctionBody(method: PeerMethod | IdlPeerMethod, clazz: PeerClass | IdlPeerClass | undefined = undefined) {
         if (this.library instanceof PeerLibrary) {
             const visitor = new MethodSeparatorPrinter(
                 this.library.declarationTable,
@@ -188,12 +188,60 @@ export class ModifierVisitor {
             )
             visitor.visit()
         }
+        this.printBodyImplementation(this.real, method, clazz)
         this.printReturnStatement(this.real, method)
     }
 
     private printReturnStatement(printer: LanguageWriter, method: PeerMethod | IdlPeerMethod, returnValue: string | undefined = undefined) {
         if (!method.retConvertor.isVoid) {
             printer.print(`return ${returnValue ?? "0"};`)
+        }
+    }
+
+    private printBodyImplementation(printer: LanguageWriter, method: PeerMethod | IdlPeerMethod,
+        clazz: PeerClass | IdlPeerClass | undefined = undefined) {
+        const apiParameters = method.generateAPIParameters()
+        if (apiParameters.at(0)?.includes(PrimitiveType.NativePointer.getText())) {
+            this.real.print(`auto frameNode = reinterpret_cast<FrameNode *>(node);`)
+            this.real.print(`CHECK_NULL_VOID(frameNode);`)
+            if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
+                .includes(PrimitiveType.String.getText())) {
+                this.real.print(`CHECK_NULL_VOID(${
+                    method.argConvertors.at(0)?.param
+                });`)
+                this.real.print(`[[maybe_unused]]`)
+                this.real.print(`auto convValue = Converter::Convert<std::string>(*${
+                    method.argConvertors.at(0)?.param
+                });`)
+            } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
+                .includes(PrimitiveType.OptionalPrefix) && method.argConvertors.at(0)?.isPointerType()) {
+                this.real.print(`//auto convValue = ${method.argConvertors.at(0)?.param} ? ` +
+                    `Converter::OptConvert<type>(*${method.argConvertors.at(0)?.param}) : std::nullopt;`)
+            } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.isPointerType()) {
+                this.real.print(`CHECK_NULL_VOID(${
+                    method.argConvertors.at(0)?.param
+                });`)
+                this.real.print(`//auto convValue = Converter::OptConvert<type_name>(*${
+                    method.argConvertors.at(0)?.param
+                });`)
+            } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
+                .includes(PrimitiveType.Boolean.getText())) {
+                this.real.print(`[[maybe_unused]]`)
+                this.real.print(`auto convValue = Converter::Convert<bool>(${
+                    method.argConvertors.at(0)?.param
+                });`)
+            } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
+                .includes(PrimitiveType.Function.getText())) {
+                this.real.print(`//auto convValue = [frameNode](input values) { code }`)
+            } else {
+                this.real.print(`//auto convValue = Converter::Convert<type>(${
+                    method.argConvertors.at(0)?.param
+                });`)
+                this.real.print(`//auto convValue = Converter::OptConvert<type>(${
+                    method.argConvertors.at(0)?.param
+                }); // for enums `)
+            }
+            this.real.print(`//${clazz?.componentName}ModelNG::Set${method.implName.replace("Impl", "")}(frameNode, convValue);`)
         }
     }
 
@@ -209,11 +257,11 @@ export class ModifierVisitor {
         printer.print(`}`)
     }
 
-    printRealAndDummyModifier(method: PeerMethod | IdlPeerMethod) {
+    printRealAndDummyModifier(method: PeerMethod | IdlPeerMethod, clazz: PeerClass | IdlPeerClass) {
         this.printMethodProlog(this.dummy, method)
         this.printMethodProlog(this.real, method)
         this.printDummyImplFunctionBody(method)
-        this.printModifierImplFunctionBody(method)
+        this.printModifierImplFunctionBody(method, clazz)
         this.printMethodEpilog(this.dummy)
         this.printMethodEpilog(this.real)
 
@@ -273,7 +321,7 @@ export class ModifierVisitor {
         Array.from(namespaces.keys()).forEach (namespaceName => {
             this.pushNamespace(namespaceName, false)
             namespaces.get(namespaceName)?.forEach(
-                method => this.printRealAndDummyModifier(method)
+                method => this.printRealAndDummyModifier(method, clazz)
             )
             this.popNamespace(namespaceName, false)
         })
@@ -469,6 +517,8 @@ function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisit
     const writer = new CppLanguageWriter(new IndentedPrinter())
     writer.writeLines(cStyleCopyright)
 
+    writer.writeInclude(`core/components_ng/base/frame_node.h`)
+    writer.writeInclude(`core/interfaces/arkoala/utility/converter.h`)
     writer.writeInclude(`arkoala_api_generated.h`)
     writer.print("")
 
