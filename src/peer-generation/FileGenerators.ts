@@ -15,7 +15,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
-import { ArkPrimitiveType } from "./ArkPrimitiveType"
+import { PrimitiveType } from "./ArkPrimitiveType"
 import { Language, camelCaseToUpperSnakeCase } from "../util"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, Type } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
@@ -88,17 +88,17 @@ import {
 `.trim()
 
 export function nativeModuleDeclaration(methods: LanguageWriter, predefinedMethods: Map<string, LanguageWriter>, nativeBridgePath: string, useEmpty: boolean, language: Language, nativeMethods?: LanguageWriter): string {
-    
+
     let text = readLangTemplate("NativeModule_template" + language.extension, language)
         .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
         .replace("%USE_EMPTY%", useEmpty.toString())
         .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))
         .replaceAll("%GENERATED_NATIVE_FUNCTIONS%", nativeMethods ? nativeMethods.getOutput().join('\n') : "")
-    
+
     for (const [title, printer] of predefinedMethods) {
         text = text.replaceAll(`%GENERATED_PREDEFINED_${title}%`, printer.getOutput().join('\n'))
     }
-    
+
     return `
   ${language == Language.TS ? importTsInteropTypes : ""}
 
@@ -395,7 +395,7 @@ ${accessors.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
-    ${ArkPrimitiveType.Int32.getText()} version;
+    ${PrimitiveType.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
@@ -414,7 +414,7 @@ ${node_api}
  * layout checks.
  */
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
-    ${ArkPrimitiveType.Int32.getText()} version;
+    ${PrimitiveType.Int32.getText()} version;
     const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* (*getNodeModifiers)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* (*getAccessors)();
     const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
@@ -424,7 +424,7 @@ typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
 } ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {
-    ${ArkPrimitiveType.Int32.getText()} version;
+    ${PrimitiveType.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI;
 `
 }

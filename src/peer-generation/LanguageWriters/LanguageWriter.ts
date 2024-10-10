@@ -569,6 +569,7 @@ export abstract class LanguageWriter {
             case IDLBooleanType: return this.mapType(Type.Boolean)
             case IDLVoidType: return this.mapType(Type.Void)
             case IDLStringType: return this.mapType(Type.String)
+            case IDLUndefinedType: return this.mapType(Type.Void)
             default: throw new Error(`Unmapped IDL type: ${type.name}`)
         }
     }

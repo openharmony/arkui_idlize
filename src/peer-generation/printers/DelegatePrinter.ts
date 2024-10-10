@@ -17,7 +17,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { IndentedPrinter } from "../../IndentedPrinter";
 import { DeclarationTable, DeclarationTarget, FieldRecord } from "../DeclarationTable";
-import { ArkPrimitiveType } from "../ArkPrimitiveType"
+import { PrimitiveType } from "../ArkPrimitiveType"
 import { cStyleCopyright, completeDelegatesImpl, makeFileNameFromClassName, makeIncludeGuardDefine, warning } from "../FileGenerators";
 import { PeerLibrary } from "../PeerLibrary";
 import { MethodSeparatorVisitor, PeerMethod } from "../PeerMethod";
@@ -59,7 +59,7 @@ export class DelegateSignatureBuilder {
         const arg = this.args[argIndex]
         arg.push({
             argName: arg[arg.length - 1].argName,
-            argType: this.declarationTable.computeTargetName(exists ? target : ArkPrimitiveType.Undefined, false),
+            argType: this.declarationTable.computeTargetName(exists ? target : PrimitiveType.Undefined, false),
             isPointerType: false,
             exists: exists,
         })

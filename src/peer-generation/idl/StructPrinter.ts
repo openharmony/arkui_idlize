@@ -18,7 +18,7 @@ import { IndentedPrinter } from "../../IndentedPrinter"
 import { camelCaseToUpperSnakeCase } from "../../util"
 import { RuntimeType } from "../ArgConvertors"
 // import { ArkPrimitiveType } from "../DeclarationTable"
-import { ArkPrimitiveType } from "../ArkPrimitiveType"
+import { PrimitiveType } from "../ArkPrimitiveType"
 import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isImport, isStringEnum } from "./common"
@@ -67,7 +67,7 @@ export class StructPrinter {
         let noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name]
         for (let target of this.library.orderedDependencies) {
             let nameAssigned = this.library.computeTargetName(target, false)
-            if (nameAssigned === ArkPrimitiveType.Tag.getText())
+            if (nameAssigned === PrimitiveType.Tag.getText())
                 continue
             if (!nameAssigned) {
                 throw new Error(`No assigned name for an ${idl.IDLKind[target.kind!]}`)
@@ -77,7 +77,7 @@ export class StructPrinter {
             let isPointer = this.isPointerDeclaration(target)
             let isAccessor = (idl.isClass(target) || idl.isInterface(target)) && isMaterialized(target)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
-            const nameOptional = ArkPrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, ArkPrimitiveType.Prefix)
+            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.Prefix)
             if (idl.isEnum(target)) {
                 const stringEnum = isStringEnum(target)
                 structs.print(`typedef enum ${nameAssigned} {`)
@@ -93,12 +93,12 @@ export class StructPrinter {
             } else if (!noBasicDecl && !this.ignoreTarget(target)) {
                 // TODO: fix it to define array type after its elements types
                 if (nameAssigned === `Array_GestureRecognizer`) {
-                    structs.print(`typedef Ark_Materialized ${ArkPrimitiveType.Prefix}GestureRecognizer;`)
+                    structs.print(`typedef Ark_Materialized ${PrimitiveType.Prefix}GestureRecognizer;`)
                 }
 
                 this.printStructsCHead(nameAssigned, target, structs)
                 if (idl.isUnionType(target)) {
-                    structs.print(`${ArkPrimitiveType.Prefix}Int32 selector;`)
+                    structs.print(`${PrimitiveType.Prefix}Int32 selector;`)
                     structs.print("union {")
                     structs.pushIndent()
                     target.types.forEach((it, index) =>
@@ -144,7 +144,7 @@ export class StructPrinter {
             seenNames.add(nameOptional)
             if (nameAssigned !== "Optional" && nameAssigned !== "RelativeIndexable") {
                 this.printStructsCHead(nameOptional, target, structs)
-                structs.print(`enum ${ArkPrimitiveType.Tag.getText()} tag;`)
+                structs.print(`enum ${PrimitiveType.Tag.getText()} tag;`)
                 structs.print(`${nameAssigned} value;`)
                 this.printStructsCTail(nameOptional, structs)
                 this.writeOptional(nameOptional, writeToString, isPointer)
@@ -152,7 +152,7 @@ export class StructPrinter {
             }
         }
         // TODO: hack, remove me!
-        typedefs.print(`typedef ${ArkPrimitiveType.OptionalPrefix}Length ${ArkPrimitiveType.OptionalPrefix}Dimension;`)
+        typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Length ${PrimitiveType.OptionalPrefix}Dimension;`)
     }
 
     private writeRuntimeType(target: idl.IDLEntry, targetTypeName: string, isOptional: boolean, writer: LanguageWriter) {
@@ -233,16 +233,16 @@ export class StructPrinter {
         printer.print(`template <>`)
         printer.print(`inline void WriteToString(string* result, const ${nameOptional}* value) {`)
         printer.print(`result->append("{.tag=");`)
-        printer.print(`result->append(tagNameExact((${ArkPrimitiveType.Tag.getText()})(value->tag)));`)
+        printer.print(`result->append(tagNameExact((${PrimitiveType.Tag.getText()})(value->tag)));`)
         printer.print(`result->append(", .value=");`)
         printer.pushIndent()
-        printer.print(`if (value->tag != ${ArkPrimitiveType.UndefinedTag}) {`)
+        printer.print(`if (value->tag != ${PrimitiveType.UndefinedTag}) {`)
         printer.pushIndent()
         printer.print(`WriteToString(result, ${isPointer ? "&" : ""}value->value);`)
         printer.popIndent()
         printer.print(`} else {`)
         printer.pushIndent()
-        printer.print(`${ArkPrimitiveType.Undefined.getText()} undefined = { 0 };`)
+        printer.print(`${PrimitiveType.Undefined.getText()} undefined = { 0 };`)
         printer.print(`WriteToString(result, undefined);`)
         printer.popIndent()
         printer.print(`}`)
@@ -373,7 +373,7 @@ inline void WriteToString(string* result, const ${name}* value) {
                         const isPointerField = this.isPointerDeclaration(field.type, field.isOptional)
                         printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                         if (index == 0) {
-                            printer.print(`if (value${access}${field.name} != ${ArkPrimitiveType.UndefinedTag}) {`)
+                            printer.print(`if (value${access}${field.name} != ${PrimitiveType.UndefinedTag}) {`)
                             printer.pushIndent()
                         }
                     })

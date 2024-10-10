@@ -13,25 +13,25 @@
  * limitations under the License.
  */
 
-export class ArkPrimitiveType {
+export class PrimitiveType {
     constructor(protected name: string, public isPointer = false) { }
-    getText(): string { return ArkPrimitiveType.Prefix + this.name }
+    getText(): string { return PrimitiveType.Prefix + this.name }
     static Prefix = "Ark_"
-    static String = new ArkPrimitiveType(`String`, true)
-    static Number = new ArkPrimitiveType(`Number`, true)
-    static Int32 = new ArkPrimitiveType(`Int32`)
-    static RuntimeType = new ArkPrimitiveType(`RuntimeType`)
-    static Boolean = new ArkPrimitiveType(`Boolean`)
-    static Function = new ArkPrimitiveType(`Function`, false)
-    static Undefined = new ArkPrimitiveType(`Undefined`)
-    static NativePointer = new ArkPrimitiveType(`NativePointer`)
+    static String = new PrimitiveType(`String`, true)
+    static Number = new PrimitiveType(`Number`, true)
+    static Int32 = new PrimitiveType(`Int32`)
+    static RuntimeType = new PrimitiveType(`RuntimeType`)
+    static Boolean = new PrimitiveType(`Boolean`)
+    static Function = new PrimitiveType(`Function`, false)
+    static Undefined = new PrimitiveType(`Undefined`)
+    static NativePointer = new PrimitiveType(`NativePointer`)
 
-    static Tag = new ArkPrimitiveType(`Tag`)
-    static Materialized = new ArkPrimitiveType(`Materialized`, true)
-    static ObjectHandle = new ArkPrimitiveType(`ObjectHandle`)
-    static Length = new ArkPrimitiveType(`Length`, true)
-    static CustomObject = new ArkPrimitiveType(`CustomObject`, true)
-    
+    static Tag = new PrimitiveType(`Tag`)
+    static Materialized = new PrimitiveType(`Materialized`, true)
+    static ObjectHandle = new PrimitiveType(`ObjectHandle`)
+    static Length = new PrimitiveType(`Length`, true)
+    static CustomObject = new PrimitiveType(`CustomObject`, true)
+
     static UndefinedTag = "ARK_TAG_UNDEFINED"
     static UndefinedRuntime = "ARK_RUNTIME_UNDEFINED"
     static ObjectTag = "ARK_TAG_OBJECT"

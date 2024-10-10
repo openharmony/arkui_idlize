@@ -20,7 +20,7 @@ import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
 import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../lang/Java'
 import { TargetFile } from '../TargetFile'
 import { DeclarationTable, DeclarationTarget } from '../../DeclarationTable'
-import { ArkPrimitiveType } from "../../ArkPrimitiveType"
+import { PrimitiveType } from "../../ArkPrimitiveType"
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { ImportTable } from '../ImportTable'
 
@@ -76,7 +76,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             return CJType.type
         }
 
-        if (target instanceof ArkPrimitiveType) {
+        if (target instanceof PrimitiveType) {
             return CJType.type
         }
 
@@ -142,10 +142,10 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
     private isExplicitOptional(target: DeclarationTarget) {
-        if (!(target instanceof ArkPrimitiveType)) {
+        if (!(target instanceof PrimitiveType)) {
             return false
         }
-        return target == ArkPrimitiveType.Boolean
+        return target == PrimitiveType.Boolean
         // || target == PrimitiveType.Number
     }
 
@@ -166,15 +166,15 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     }
 
     private readonly primitiveToCJMap = new Map([
-        [ArkPrimitiveType.String, 'String'],
-        [ArkPrimitiveType.Number, 'Float64'],
-        [ArkPrimitiveType.Int32, 'Int32'],
-        [ArkPrimitiveType.Tag, 'Tag'],
-        [ArkPrimitiveType.RuntimeType, 'RuntimeType'],
-        [ArkPrimitiveType.Boolean, 'Bool'],
-        [ArkPrimitiveType.Undefined, `${ArkPrimitiveType.Prefix}Undefined`],
-        [ArkPrimitiveType.Length, `${ArkPrimitiveType.Prefix}Length`],
-        [ArkPrimitiveType.CustomObject, 'Ark_CustomObject'],
+        [PrimitiveType.String, 'String'],
+        [PrimitiveType.Number, 'Float64'],
+        [PrimitiveType.Int32, 'Int32'],
+        [PrimitiveType.Tag, 'Tag'],
+        [PrimitiveType.RuntimeType, 'RuntimeType'],
+        [PrimitiveType.Boolean, 'Bool'],
+        [PrimitiveType.Undefined, `${PrimitiveType.Prefix}Undefined`],
+        [PrimitiveType.Length, `${PrimitiveType.Prefix}Length`],
+        [PrimitiveType.CustomObject, 'Ark_CustomObject'],
         // TODO: add other primitive types
     ])
 
@@ -188,7 +188,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         ['char', 'Character'],
     ])
 
-    private primitiveToCJType(primitiveType: ArkPrimitiveType, needReferenceType?: boolean, optional?: boolean): CJType {
+    private primitiveToCJType(primitiveType: PrimitiveType, needReferenceType?: boolean, optional?: boolean): CJType {
         if (this.primitiveToCJMap.has(primitiveType)) {
             let CJTypeName = this.primitiveToCJMap.get(primitiveType)!
             if (needReferenceType && this.primitiveToReferenceTypeMap.has(CJTypeName)) {
@@ -199,9 +199,9 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         throw unsupportedType(`primitive type ${primitiveType.getText()}`)
     }
 
-    private optionalPrimitiveToCJType(primitiveType: ArkPrimitiveType): CJType {
-        if (primitiveType == ArkPrimitiveType.Boolean) {
-            const CJTypeName = `${ArkPrimitiveType.OptionalPrefix}Boolean`
+    private optionalPrimitiveToCJType(primitiveType: PrimitiveType): CJType {
+        if (primitiveType == PrimitiveType.Boolean) {
+            const CJTypeName = `${PrimitiveType.OptionalPrefix}Boolean`
             return CJType.fromTypeName(CJTypeName, false)
         }
         // if (primitiveType == PrimitiveType.Number) {
@@ -213,7 +213,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
 
 
     private computeCJType(target: DeclarationTarget, optional: boolean, needReferenceType?: boolean): CJType {
-        if (target instanceof ArkPrimitiveType) {
+        if (target instanceof PrimitiveType) {
             if (optional && this.isExplicitOptional(target)) {
                 // for now, the only explicit optionals in CJ are Opt_Boolean and Opt_Number
                 return this.optionalPrimitiveToCJType(target)

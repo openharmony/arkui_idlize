@@ -17,7 +17,7 @@ import * as ts from "typescript"
 import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { DeclarationTarget } from "../DeclarationTable"
-import { ArkPrimitiveType } from "../ArkPrimitiveType"
+import { PrimitiveType } from "../ArkPrimitiveType"
 import { BlockStatement, CppLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, NamedMethodSignature, printMethodDeclaration, StringExpression, TSLanguageWriter, Type } from "../LanguageWriters"
 import { PeerClassBase } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
@@ -133,7 +133,7 @@ export function convertToCallback(peer: PeerClassBase, method: PeerMethod | IdlP
 }
 
 function convertTargetToCallback(peer: PeerClassBase, method: PeerMethod, target: DeclarationTarget): CallbackInfo | undefined {
-    if (target instanceof ArkPrimitiveType)
+    if (target instanceof PrimitiveType)
         return undefined
     if (ts.isFunctionTypeNode(target))
         return {
@@ -211,7 +211,7 @@ function idlCallbacksEquals(a: IdlCallbackInfo | undefined, b: IdlCallbackInfo |
     if (!a || !b)
         return a === b
 
-    if (a.args.length != b.args.length) 
+    if (a.args.length != b.args.length)
         return false
     for (let i = 0; i < a.args.length; i++) {
         if (!idlTypesEquals(a.args[i].type, b.args[i].type))

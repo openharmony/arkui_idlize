@@ -14,7 +14,7 @@
  */
 import { Language, identName, identNameWithNamespace, importTypeName } from "../util"
 import { DeclarationTable } from "./DeclarationTable"
-import { ArkPrimitiveType } from "./ArkPrimitiveType"
+import { PrimitiveType } from "./ArkPrimitiveType"
 import * as ts from "typescript"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters"
 import { mapType, TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
@@ -46,7 +46,7 @@ export class StringConvertor extends BaseArgConvertor {
         }
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? `(const ${ArkPrimitiveType.String.getText()}*)&${param}` :
+        return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` :
             this.isLiteral() ? `${param}.toString()` : param
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
@@ -60,7 +60,7 @@ export class StringConvertor extends BaseArgConvertor {
             false)
     }
     nativeType(impl: boolean): string {
-        return ArkPrimitiveType.String.getText()
+        return PrimitiveType.String.getText()
     }
     interopType(language: Language): string {
         return "KStringPtr"
@@ -89,7 +89,7 @@ export class ToStringConvertor extends BaseArgConvertor {
         super("string", [RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? `(const ${ArkPrimitiveType.String.getText()}*)&${param}` : `(${param}).toString()`
+        return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` : `(${param}).toString()`
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         writer.writeMethodCall(`${param}Serializer`, `writeString`, [
@@ -99,7 +99,7 @@ export class ToStringConvertor extends BaseArgConvertor {
         return printer.makeAssign(value, undefined, printer.makeString(`${param}Deserializer.readString()`), false)
     }
     nativeType(impl: boolean): string {
-        return ArkPrimitiveType.String.getText()
+        return PrimitiveType.String.getText()
     }
     interopType(language: Language): string {
         return "KStringPtr"
@@ -126,7 +126,7 @@ export class EnumConvertor extends BaseArgConvertor {
         )
     }
     enumTypeName(language: Language): string {
-        const prefix = language === Language.CPP ? ArkPrimitiveType.Prefix : ""
+        const prefix = language === Language.CPP ? PrimitiveType.Prefix : ""
         return `${prefix}${identNameWithNamespace(this.enumType, language)}`
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -160,7 +160,7 @@ export class EnumConvertor extends BaseArgConvertor {
         return `enum ${this.enumTypeName(Language.CPP)}`
     }
     interopType(language: Language): string {
-        return language == Language.CPP ? ArkPrimitiveType.Int32.getText() : "KInt"
+        return language == Language.CPP ? PrimitiveType.Int32.getText() : "KInt"
     }
     isPointerType(): boolean {
         return false
@@ -219,11 +219,11 @@ export class LengthConvertorScoped extends BaseArgConvertor {
             printer.makeString(`${param}Deserializer.readLength()`), false)
     }
     nativeType(impl: boolean): string {
-        return ArkPrimitiveType.Length.getText()
+        return PrimitiveType.Length.getText()
     }
     interopType(language: Language): string {
         switch (language) {
-            case Language.CPP: return ArkPrimitiveType.ObjectHandle.getText()
+            case Language.CPP: return PrimitiveType.ObjectHandle.getText()
             case Language.TS: case Language.ARKTS: return 'object'
             case Language.JAVA: return 'Object'
             case Language.CJ: return 'Object'
@@ -245,7 +245,7 @@ export class LengthConvertor extends BaseArgConvertor {
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         switch (writer.language) {
-            case Language.CPP: return `(const ${ArkPrimitiveType.Length.getText()}*)&${param}`
+            case Language.CPP: return `(const ${PrimitiveType.Length.getText()}*)&${param}`
             case Language.JAVA: return `${param}.value`
             case Language.CJ: return `${param}.value`
             default: return param
@@ -266,7 +266,7 @@ export class LengthConvertor extends BaseArgConvertor {
                 printer.makeType(this.tsTypeName, false, receiver), false), false)
     }
     nativeType(impl: boolean): string {
-        return ArkPrimitiveType.Length.getText()
+        return PrimitiveType.Length.getText()
     }
     interopType(language: Language): string {
         switch (language) {
@@ -364,7 +364,7 @@ export class UnionConvertor extends BaseArgConvertor {
     }
     nativeType(impl: boolean): string {
         return impl
-            ? `struct { ${ArkPrimitiveType.Int32.getText()} selector; union { ` +
+            ? `struct { ${PrimitiveType.Int32.getText()} selector; union { ` +
             `${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")}` +
             `}; }`
             : this.table.getTypeName(this.type)
@@ -408,7 +408,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     nativeType(impl: boolean): string {
         // return this.importedName
         // treat ImportType as CustomObject
-        return ArkPrimitiveType.CustomObject.getText()
+        return PrimitiveType.CustomObject.getText()
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -471,11 +471,11 @@ export class OptionConvertor extends BaseArgConvertor {
     }
     nativeType(impl: boolean): string {
         return impl
-            ? `struct { ${ArkPrimitiveType.Tag.getText()} tag; ${this.table.getTypeName(this.type, false)} value; }`
+            ? `struct { ${PrimitiveType.Tag.getText()} tag; ${this.table.getTypeName(this.type, false)} value; }`
             : this.table.getTypeName(this.type, true)
     }
     interopType(language: Language): string {
-        return language == Language.CPP ? ArkPrimitiveType.NativePointer.getText() : "KNativePointer"
+        return language == Language.CPP ? PrimitiveType.NativePointer.getText() : "KNativePointer"
     }
     isPointerType(): boolean {
         return true
@@ -588,7 +588,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
                 printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(this.tsTypeName), []), false)
     }
     nativeType(impl: boolean): string {
-        return ArkPrimitiveType.Prefix + this.tsTypeName
+        return PrimitiveType.Prefix + this.tsTypeName
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -654,10 +654,10 @@ export class FunctionConvertor extends BaseArgConvertor {
             , false)
     }
     nativeType(impl: boolean): string {
-        return ArkPrimitiveType.Function.getText()
+        return PrimitiveType.Function.getText()
     }
     interopType(language: Language): string {
-        return language == Language.CPP ? ArkPrimitiveType.Int32.getText() : "KInt"
+        return language == Language.CPP ? PrimitiveType.Int32.getText() : "KInt"
     }
     isPointerType(): boolean {
         return false
@@ -1002,7 +1002,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = printer.getObjectAccessor(this, value)
-        const prefix = printer.language === Language.CPP ? ArkPrimitiveType.Prefix : ""
+        const prefix = printer.language === Language.CPP ? PrimitiveType.Prefix : ""
         const readStatement = printer.makeCast(
             printer.makeMethodCall(`${param}Deserializer`, `readMaterialized`, []),
             new Type(this.table.computeTargetName(this.type, false, prefix)!),
@@ -1010,7 +1010,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         return printer.makeAssign(accessor, undefined, readStatement, false)
     }
     nativeType(impl: boolean): string {
-        return ArkPrimitiveType.Materialized.getText()
+        return PrimitiveType.Materialized.getText()
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")

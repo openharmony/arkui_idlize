@@ -18,7 +18,7 @@ import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../util"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
-import { ArkPrimitiveType } from "../../ArkPrimitiveType"
+import { PrimitiveType } from "../../ArkPrimitiveType"
 import { ArrayConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { AssignStatement, BlockStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, StringExpression, Type } from "../LanguageWriter"
 import { CDefinedExpression, CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
@@ -30,7 +30,7 @@ import { CDefinedExpression, CLikeExpressionStatement, CLikeLanguageWriter, CLik
 export class CppCastExpression implements LanguageExpression {
     constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
     asString(): string {
-        if (this.type.name === ArkPrimitiveType.Tag.getText()) {
+        if (this.type.name === PrimitiveType.Tag.getText()) {
             return `${this.value.asString()} == ARK_RUNTIME_UNDEFINED ? ARK_TAG_UNDEFINED : ARK_TAG_OBJECT`
         }
         return this.unsafe
@@ -75,7 +75,7 @@ class CppArrayResizeStatement implements LanguageStatement {
 class CppMapResizeStatement implements LanguageStatement {
     constructor(private keyType: string, private valueType: string, private map: string, private size: string, private deserializer: string) {}
     write(writer: LanguageWriter): void {
-        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(ArkPrimitiveType.Prefix, "")}_${this.valueType.replace(ArkPrimitiveType.Prefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
+        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(PrimitiveType.Prefix, "")}_${this.valueType.replace(PrimitiveType.Prefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
     }
 }
 
@@ -252,15 +252,15 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             case 'KPointer': return 'void*'
             case 'Uint8Array': return 'byte[]'
             case 'int32':
-            case 'KInt': return `${ArkPrimitiveType.Prefix}Int32`
+            case 'KInt': return `${PrimitiveType.Prefix}Int32`
             case 'string':
-            case 'KStringPtr': return `${ArkPrimitiveType.Prefix}String`
-            case 'number': return `${ArkPrimitiveType.Prefix}Number`
-            case 'boolean': return `${ArkPrimitiveType.Prefix}Boolean`
-            case 'Function': return `${ArkPrimitiveType.Prefix}Function`
-            case 'Length': return `${ArkPrimitiveType.Prefix}Length`
+            case 'KStringPtr': return `${PrimitiveType.Prefix}String`
+            case 'number': return `${PrimitiveType.Prefix}Number`
+            case 'boolean': return `${PrimitiveType.Prefix}Boolean`
+            case 'Function': return `${PrimitiveType.Prefix}Function`
+            case 'Length': return `${PrimitiveType.Prefix}Length`
             // TODO: oh no
-            case 'Array<string[]>' : return `Array_Array_${ArkPrimitiveType.String.getText()}`
+            case 'Array<string[]>' : return `Array_Array_${PrimitiveType.String.getText()}`
         }
         if (type.name.startsWith("Array<")) {
             const typeSpec = type.name.match(/<(.*)>/)!
@@ -306,7 +306,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return value
     }
     makeUndefined(): LanguageExpression {
-        return this.makeString(`${ArkPrimitiveType.Undefined.getText()}()`)
+        return this.makeString(`${PrimitiveType.Undefined.getText()}()`)
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`ARK_RUNTIME_${RuntimeType[rt]}`)
@@ -325,10 +325,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         ], false)
     }
     getTagType(): Type {
-        return new Type(ArkPrimitiveType.Tag.getText())
+        return new Type(PrimitiveType.Tag.getText())
     }
     getRuntimeType(): Type {
-        return new Type(ArkPrimitiveType.RuntimeType.getText())
+        return new Type(PrimitiveType.RuntimeType.getText())
     }
     makeType(typeName: string, nullable: boolean, receiver?: string): Type {
         // make deducing type from receiver
