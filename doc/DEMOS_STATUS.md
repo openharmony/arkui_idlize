@@ -75,7 +75,7 @@
 | `fill`                    | Function   |           | HEL         | G. Skroba        | Done          |               |           | Low      |
 | `animateTo`               | Function   |           | HEL, ENC    | Ilya Erokhin     | Blocked       |               |           | Medium   |
 | `animation`               | Function   |           | HEL, ENC    | Ilya Erokhin     | Progress      |               |           | Medium   |
-| `animationDuration`       | Function   |           | HEL         | Ivan Tuzhilkin   | Blocked       |               |           | Medium   |
+| `sharedTransition`        | Function   |           | HEL         | Skroba Gleb      | Done          |               |           | Medium   |
 | `backgroundColor($r)`     | Function   |           | HEL         | G. Skroba        | Done          |               |           | Low      |
 | `backgroundImage`         | Function   |           | WON         | Ilya Erokhin     | Progress      |               |           | Medium   |
 | `backgroundImageSize`     | Function   |           | WON         | Ilya Erokhin     | Progress      |               |           | Medium   |
@@ -94,7 +94,6 @@
 | `ctor(URL)`               | Function   |           | ENC         | E. Korobeynikov  |               |               |           | Medium   |
 | `ctor($rawfile)`          | Function   |           | ENC, WON    | A. Tarasov       | Done          |               | Done      | High     |
 | `objectFit`               | Function   |           | WON         | E. Korobeynikov  |               |               |           | Medium   |
-| `sharedTransition`        | Function   |           | HEL         | Skroba Gleb      | Done          |               |           | Medium   |
 | `autoResize`              | Function   |           | HEL         | Evstigneev Roman | Progress      |               |           | Medium   |
 | `fillColor`               | Function   |           | HEL         | Evstigneev Roman | Progress      |               |           | Medium   |
 | `onFinish`                | Function   |           | ENC         | Evstigneev Roman | Progress      |               |           | Medium   |
