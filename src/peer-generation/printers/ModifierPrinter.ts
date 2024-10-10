@@ -201,11 +201,11 @@ export class ModifierVisitor {
     private printBodyImplementation(printer: LanguageWriter, method: PeerMethod | IdlPeerMethod,
         clazz: PeerClass | IdlPeerClass | undefined = undefined) {
         const apiParameters = method.generateAPIParameters()
-        if (apiParameters.at(0)?.includes(ArkPrimitiveType.NativePointer.getText())) {
+        if (apiParameters.at(0)?.includes(PrimitiveType.NativePointer.getText())) {
             this.real.print(`auto frameNode = reinterpret_cast<FrameNode *>(node);`)
             this.real.print(`CHECK_NULL_VOID(frameNode);`)
             if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
-                .includes(ArkPrimitiveType.String.getText())) {
+                .includes(PrimitiveType.String.getText())) {
                 this.real.print(`CHECK_NULL_VOID(${
                     method.argConvertors.at(0)?.param
                 });`)
@@ -214,7 +214,7 @@ export class ModifierVisitor {
                     method.argConvertors.at(0)?.param
                 });`)
             } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
-                .includes(ArkPrimitiveType.OptionalPrefix) && method.argConvertors.at(0)?.isPointerType()) {
+                .includes(PrimitiveType.OptionalPrefix) && method.argConvertors.at(0)?.isPointerType()) {
                 this.real.print(`//auto convValue = ${method.argConvertors.at(0)?.param} ? ` +
                     `Converter::OptConvert<type>(*${method.argConvertors.at(0)?.param}) : std::nullopt;`)
             } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.isPointerType()) {
@@ -225,13 +225,13 @@ export class ModifierVisitor {
                     method.argConvertors.at(0)?.param
                 });`)
             } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
-                .includes(ArkPrimitiveType.Boolean.getText())) {
+                .includes(PrimitiveType.Boolean.getText())) {
                 this.real.print(`[[maybe_unused]]`)
                 this.real.print(`auto convValue = Converter::Convert<bool>(${
                     method.argConvertors.at(0)?.param
                 });`)
             } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
-                .includes(ArkPrimitiveType.Function.getText())) {
+                .includes(PrimitiveType.Function.getText())) {
                 this.real.print(`//auto convValue = [frameNode](input values) { code }`)
             } else {
                 this.real.print(`//auto convValue = Converter::Convert<type>(${
