@@ -11,7 +11,7 @@
 |---------------------------|------------|-----------|-------------|------------------|---------------|---------------|-----------|----------|
 | @ohos.router              | Class      |           |             | K. Kirichenko    |               |               |           |          |
 | `back`                    | Function   |           | ENC, WON    | K. Kirichenko    |               | K. Kirichenko |           | High     |
-| CustomDialogController    | Class      |           | HEL         | ?                |               |               |           | Low      |
+| CustomDialogController    | Class      |           | HEL         | Ilya Erokhin     | Blocked       |               |           | Low      |
 | `builder`                 | Function   |           |             | ?                | N\A           |               |           |          |
 | `autoCancel`              | Function   |           |             | ?                | N\A           |               |           |          |
 | `alignment`               | Function   |           |             | ?                |               |               |           |          |
@@ -25,7 +25,7 @@
 | `type`                    | Function   |           | HEL         | Skroba Gleb      | done          |               |           | High     |
 | `target`                  | Function   |           | HEL         | Skroba Gleb      | done          |               |           | High     |
 | `params`                  | Function   |           | HEL         | Skroba Gleb      | blocked       |               |           | High     |
-| Progress                  | Component  | Yes       |             |                  |               |               |           |          |
+| Progress                  | Component  | Yes       |             | Ilya Erokhin     | Blocked       |               |           |          |
 | `style`                   | Function   |           | HEL         | ?                |               |               |           | Medium   |
 | `color`                   | Function   |           | HEL         | ?                |               |               |           | Medium   |
 | Common                    | Component  | Yes       |             | R. Sedaikin      | Progress      | R. Sedaikin   | Done      |          |
