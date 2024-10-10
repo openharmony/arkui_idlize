@@ -4,9 +4,9 @@
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
 | Total        | 113      | 96     | 1897     |
-| In Progress  | 41      | 0     | 354     |
-| Done         | 19      | 2     | 338     |
-| Blocked      | 12      | 0     | 115     |
+| In Progress  | 42      | 0     | 417     |
+| Done         | 19      | 2     | 294     |
+| Blocked      | 12      | 0     | 118     |
 
 
 | Name | Kind | Owner | Status |
@@ -17,32 +17,32 @@
 |`onDisconnect`| Function | Ivan Tuzhilkin | in progress |
 |*AlphabetIndexer*| *Component* | Ekaterina Stepanova | in progress |
 |`setAlphabetIndexerOptions`| Function | Ekaterina Stepanova | in progress |
-|`onSelected`| Function | Ekaterina Stepanova | done |
-|`color`| Function | Ekaterina Stepanova | done |
-|`selectedColor`| Function | Ekaterina Stepanova | done |
-|`popupColor`| Function | Ekaterina Stepanova | done |
-|`selectedBackgroundColor`| Function | Ekaterina Stepanova | done |
-|`popupBackground`| Function | Ekaterina Stepanova | done |
-|`popupSelectedColor`| Function | Ekaterina Stepanova | done |
-|`popupUnselectedColor`| Function | Ekaterina Stepanova | done |
-|`popupItemBackgroundColor`| Function | Ekaterina Stepanova | done |
-|`usingPopup`| Function | Ekaterina Stepanova | done |
-|`selectedFont`| Function | Ekaterina Stepanova | done |
-|`popupFont`| Function | Ekaterina Stepanova | done |
-|`popupItemFont`| Function | Ekaterina Stepanova | done |
+|`onSelected`| Function | Ekaterina Stepanova | in progress |
+|`color`| Function | Ekaterina Stepanova | in progress |
+|`selectedColor`| Function | Ekaterina Stepanova | in progress |
+|`popupColor`| Function | Ekaterina Stepanova | in progress |
+|`selectedBackgroundColor`| Function | Ekaterina Stepanova | in progress |
+|`popupBackground`| Function | Ekaterina Stepanova | in progress |
+|`popupSelectedColor`| Function | Ekaterina Stepanova | in progress |
+|`popupUnselectedColor`| Function | Ekaterina Stepanova | in progress |
+|`popupItemBackgroundColor`| Function | Ekaterina Stepanova | in progress |
+|`usingPopup`| Function | Ekaterina Stepanova | in progress |
+|`selectedFont`| Function | Ekaterina Stepanova | in progress |
+|`popupFont`| Function | Ekaterina Stepanova | in progress |
+|`popupItemFont`| Function | Ekaterina Stepanova | in progress |
 |`itemSize`| Function | Ekaterina Stepanova | in progress |
-|`font`| Function | Ekaterina Stepanova | done |
+|`font`| Function | Ekaterina Stepanova | in progress |
 |`onSelect`| Function | Ekaterina Stepanova | in progress |
 |`onRequestPopupData`| Function | Ekaterina Stepanova | in progress |
 |`onPopupSelect`| Function | Ekaterina Stepanova | in progress |
 |`selected`| Function | Ekaterina Stepanova | in progress |
 |`popupPosition`| Function | Ekaterina Stepanova | in progress |
-|`autoCollapse`| Function | Ekaterina Stepanova | done |
+|`autoCollapse`| Function | Ekaterina Stepanova | in progress |
 |`popupItemBorderRadius`| Function | Ekaterina Stepanova | in progress |
 |`itemBorderRadius`| Function | Ekaterina Stepanova | in progress |
 |`popupBackgroundBlurStyle`| Function | Ekaterina Stepanova | in progress |
 |`popupTitleBackground`| Function | Ekaterina Stepanova | in progress |
-|`enableHapticFeedback`| Function | Ekaterina Stepanova | done |
+|`enableHapticFeedback`| Function | Ekaterina Stepanova | in progress |
 |`alignStyle`| Function | Ekaterina Stepanova | in progress |
 |*Animator*| *Component* | Lobah Mikhail | in progress |
 |`setAnimatorOptions`| Function | Lobah Mikhail | in progress |
@@ -123,11 +123,11 @@
 |*Circle*| *Component* | Erokhin Ilya | done |
 |`setCircleOptions`| Function | Erokhin Ilya | done |
 |*Column*| *Component* | Politov Mikhail | in progress |
-|`setColumnOptions`| Function | Politov Mikhail | done |
-|`alignItems`| Function | Politov Mikhail | done |
-|`justifyContent`| Function | Politov Mikhail | done |
+|`setColumnOptions`| Function | Politov Mikhail | in progress |
+|`alignItems`| Function | Politov Mikhail | in progress |
+|`justifyContent`| Function | Politov Mikhail | in progress |
 |`pointLight`| Function | Politov Mikhail | in progress |
-|`reverse`| Function | Politov Mikhail | done |
+|`reverse`| Function | Politov Mikhail | in progress |
 |*ColumnSplit*| *Component* | Dmitry A Smirnov | in progress |
 |`setColumnSplitOptions`| Function | Dmitry A Smirnov | in progress |
 |`resizeable`| Function | Dmitry A Smirnov | in progress |
@@ -353,12 +353,12 @@
 |`enableDec`| Function | Erokhin Ilya | done |
 |`enableInc`| Function | Erokhin Ilya | done |
 |*DataPanel*| *Component* | Sergey Morozov | blocked Arkoala |
-|`setDataPanelOptions`| Function | Sergey Morozov | In Progress |
-|`closeEffect`| Function | Sergey Morozov | In Progress |
-|`valueColors`| Function | Sergey Morozov | In Progress |
-|`trackBackgroundColor`| Function | Sergey Morozov | In Progress |
-|`strokeWidth`| Function | Sergey Morozov | In Progress |
-|`trackShadow`| Function | Sergey Morozov | In Progress |
+|`setDataPanelOptions`| Function | Sergey Morozov | in progress |
+|`closeEffect`| Function | Sergey Morozov | in progress |
+|`valueColors`| Function | Sergey Morozov | blocked Arkoala |
+|`trackBackgroundColor`| Function | Sergey Morozov | in progress |
+|`strokeWidth`| Function | Sergey Morozov | in progress |
+|`trackShadow`| Function | Sergey Morozov | blocked Arkoala |
 |`contentModifier`| Function | Sergey Morozov | blocked Arkoala |
 |*DatePicker*| *Component* | Vadim Voronov | In Progress |
 |`setDatePickerOptions`| Function | Vadim Voronov | In Progress |
@@ -383,7 +383,7 @@
 |`onTerminated`| Function | | |
 |`onError`| Function | | |
 |*Flex*| *Component* | Kovalev Sergey | in progress |
-|`setFlexOptions`| Function | Kovalev Sergey | done |
+|`setFlexOptions`| Function | Kovalev Sergey | in progress |
 |`pointLight`| Function | Kovalev Sergey | blocked |
 |*FlowItem*| *Component* | | |
 |`setFlowItemOptions`| Function | | |
@@ -763,14 +763,14 @@
 |`barrier`| Function | Dmitry A Smirnov | done |
 |*RichEditor*| *Component* | Dudkin Sergey | in progress |
 |`setRichEditorOptions`| Function | Dudkin Sergey | in progress |
-|`onReady`| Function | Dudkin Sergey | done |
-|`onSelect`| Function | Dudkin Sergey | done |
-|`onSelectionChange`| Function | Dudkin Sergey | done |
-|`aboutToIMEInput`| Function | Dudkin Sergey | done |
-|`onIMEInputComplete`| Function | Dudkin Sergey | done |
-|`onDidIMEInput`| Function | Dudkin Sergey | done |
-|`aboutToDelete`| Function | Dudkin Sergey | done |
-|`onDeleteComplete`| Function | Dudkin Sergey | done |
+|`onReady`| Function | Dudkin Sergey | in progress |
+|`onSelect`| Function | Dudkin Sergey | in progress |
+|`onSelectionChange`| Function | Dudkin Sergey | in progress |
+|`aboutToIMEInput`| Function | Dudkin Sergey | in progress |
+|`onIMEInputComplete`| Function | Dudkin Sergey | in progress |
+|`onDidIMEInput`| Function | Dudkin Sergey | in progress |
+|`aboutToDelete`| Function | Dudkin Sergey | in progress |
+|`onDeleteComplete`| Function | Dudkin Sergey | in progress |
 |`copyOptions`| Function | Dudkin Sergey | in progress |
 |`onPaste`| Function | Dudkin Sergey | in progress |
 |`enableDataDetector`| Function | Dudkin Sergey | in progress |
@@ -799,9 +799,9 @@
 |*RootScene*| *Component* | | |
 |`setRootSceneOptions`| Function | | |
 |*Row*| *Component* | Andrey Khudenkikh | blocked |
-|`setRowOptions`| Function | Andrey Khudenkikh | done |
-|`alignItems`| Function | Andrey Khudenkikh | done |
-|`justifyContent`| Function | Andrey Khudenkikh | done |
+|`setRowOptions`| Function | Andrey Khudenkikh | in progress |
+|`alignItems`| Function | Andrey Khudenkikh | in progress |
+|`justifyContent`| Function | Andrey Khudenkikh | in progress |
 |`pointLight`| Function | Andrey Khudenkikh | blocked |
 |`reverse`| Function | Andrey Khudenkikh | blocked |
 |*RowSplit*| *Component* | | |
@@ -838,16 +838,16 @@
 |`enableNestedScroll`| Function | | |
 |*Search*| *Component* | Evstigneev Roman | In Progress |
 |`setSearchOptions`| Function | Evstigneev Roman | in progress |
-|`fontColor`| Function | Evstigneev Roman | done |
+|`fontColor`| Function | Evstigneev Roman | in progress |
 |`searchIcon`| Function | Evstigneev Roman | blocked Arkoala |
 |`cancelButton`| Function | Evstigneev Roman | blocked Arkoala |
-|`textIndent`| Function | Evstigneev Roman | done |
+|`textIndent`| Function | Evstigneev Roman | in progress |
 |`onEditChange`| Function | Evstigneev Roman | done |
-|`selectedBackgroundColor`| Function | Evstigneev Roman | done |
-|`caretStyle`| Function | Evstigneev Roman | done |
-|`placeholderColor`| Function | Evstigneev Roman | done |
-|`placeholderFont`| Function | Evstigneev Roman | done |
-|`textFont`| Function | Evstigneev Roman | done |
+|`selectedBackgroundColor`| Function | Evstigneev Roman | in progress |
+|`caretStyle`| Function | Evstigneev Roman | in progress |
+|`placeholderColor`| Function | Evstigneev Roman | in progress |
+|`placeholderFont`| Function | Evstigneev Roman | in progress |
+|`textFont`| Function | Evstigneev Roman | in progress |
 |`enterKeyType`| Function | Evstigneev Roman | done |
 |`onSubmit`| Function | Evstigneev Roman | done |
 |`onChange`| Function | Evstigneev Roman | done |
@@ -864,8 +864,8 @@
 |`minFontSize`| Function | Evstigneev Roman | done |
 |`maxFontSize`| Function | Evstigneev Roman | done |
 |`decoration`| Function | Evstigneev Roman | done |
-|`letterSpacing`| Function | Evstigneev Roman | done |
-|`lineHeight`| Function | Evstigneev Roman | done |
+|`letterSpacing`| Function | Evstigneev Roman | in progress |
+|`lineHeight`| Function | Evstigneev Roman | in progress |
 |`type`| Function | Evstigneev Roman | done |
 |`fontFeature`| Function | Evstigneev Roman | done |
 |`onWillInsert`| Function | Evstigneev Roman | blocked Arkoala |
@@ -874,9 +874,9 @@
 |`onDidDelete`| Function | Evstigneev Roman | done |
 |`editMenuOptions`| Function | Evstigneev Roman | blocked Arkoala |
 |`enablePreviewText`| Function | Evstigneev Roman | done |
-|`enableHapticFeedback`| Function | Evstigneev Roman | done |
-|`searchButton`| Function | Evstigneev Roman | done |
-|`inputFilter`| Function | Evstigneev Roman | done |
+|`enableHapticFeedback`| Function | Evstigneev Roman | in progress |
+|`searchButton`| Function | Evstigneev Roman | in progress |
+|`inputFilter`| Function | Evstigneev Roman | in progress |
 |`customKeyboard`| Function | Evstigneev Roman | blocked Arkoala |
 |*SecurityComponentMethod*| *Component* | Samarin Sergey | in progress |
 |`iconSize`| Function | Samarin Sergey | in progress |
@@ -940,29 +940,29 @@
 |`strokeWidth`| Function | | |
 |`antiAlias`| Function | | |
 |`mesh`| Function | | |
-|*Slider*| *Component* | | |
-|`setSliderOptions`| Function | | |
-|`blockColor`| Function | | |
-|`trackColor`| Function | | |
-|`selectedColor`| Function | | |
-|`minLabel`| Function | | |
-|`maxLabel`| Function | | |
-|`showSteps`| Function | | |
-|`trackThickness`| Function | | |
-|`onChange`| Function | | |
-|`blockBorderColor`| Function | | |
-|`blockBorderWidth`| Function | | |
-|`stepColor`| Function | | |
-|`trackBorderRadius`| Function | | |
-|`selectedBorderRadius`| Function | | |
-|`blockSize`| Function | | |
-|`blockStyle`| Function | | |
-|`stepSize`| Function | | |
-|`sliderInteractionMode`| Function | | |
-|`minResponsiveDistance`| Function | | |
-|`contentModifier`| Function | | |
-|`slideRange`| Function | | |
-|`showTips`| Function | | |
+|*Slider*| *Component* | Sergey Morozov | In Progress |
+|`setSliderOptions`| Function | Sergey Morozov | In Progress |
+|`blockColor`| Function | Sergey Morozov | In Progress |
+|`trackColor`| Function | Sergey Morozov | In Progress |
+|`selectedColor`| Function | Sergey Morozov | In Progress |
+|`minLabel`| Function | Sergey Morozov | In Progress |
+|`maxLabel`| Function | Sergey Morozov | In Progress |
+|`showSteps`| Function | Sergey Morozov | In Progress |
+|`trackThickness`| Function | Sergey Morozov | In Progress |
+|`onChange`| Function | Sergey Morozov | In Progress |
+|`blockBorderColor`| Function | Sergey Morozov | In Progress |
+|`blockBorderWidth`| Function | Sergey Morozov | In Progress |
+|`stepColor`| Function | Sergey Morozov | In Progress |
+|`trackBorderRadius`| Function | Sergey Morozov | In Progress |
+|`selectedBorderRadius`| Function | Sergey Morozov | In Progress |
+|`blockSize`| Function | Sergey Morozov | In Progress |
+|`blockStyle`| Function | Sergey Morozov | In Progress |
+|`stepSize`| Function | Sergey Morozov | In Progress |
+|`sliderInteractionMode`| Function | Sergey Morozov | In Progress |
+|`minResponsiveDistance`| Function | Sergey Morozov | In Progress |
+|`contentModifier`| Function | Sergey Morozov | In Progress |
+|`slideRange`| Function | Sergey Morozov | In Progress |
+|`showTips`| Function | Sergey Morozov | In Progress |
 |*BaseSpan*| *Component* | | |
 |`textBackgroundStyle`| Function | | |
 |`baselineOffset`| Function | | |
@@ -1047,7 +1047,7 @@
 |`effectStrategy`| Function | | |
 |`renderingStrategy`| Function | | |
 |*Tabs*| *Component* | Ivan Tuzhilkin | in progress |
-|`setTabsOptions`| Function | Ivan Tuzhilkin | in progress |
+|`setTabsOptions`| Function | Ivan Tuzhilkin | blocked |
 |`vertical`| Function | Ivan Tuzhilkin | done |
 |`barPosition`| Function | Ivan Tuzhilkin | done |
 |`scrollable`| Function | Ivan Tuzhilkin | done |
