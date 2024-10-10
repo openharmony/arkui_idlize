@@ -386,7 +386,9 @@ export class IdlPeerLibrary {
             return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, ArkPrimitiveType.Prefix) : name)
         }
         if (idl.isUnionType(target)) {
-            return prefix + `Union_${target.types.map(it => this.computeTargetName(it, false, "")).join("_")}`
+            return target.name
+                ? (optional ? prefix : idlPrefix) + target.name
+                : prefix + `Union_${target.types.map(it => this.computeTargetName(it, false, "")).join("_")}`
         }
         if (idl.isInterface(target) || idl.isClass(target)) {
             return (optional ? prefix : idlPrefix) + target.name
@@ -417,8 +419,6 @@ export class IdlPeerLibrary {
             if (name == "Callback") {
                 return (optional ? prefix : idlPrefix) + "Function"
             }
-            if (name === "ResourceColor")
-                return "Union_Color_Number_String_Resource"///hack
             if (PeerGeneratorConfig.isKnownParametrized(name)) {
                 const name = ArkPrimitiveType.CustomObject.getText()
                 return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, ArkPrimitiveType.Prefix) : name)

@@ -446,12 +446,12 @@ export function createContainerType(container: string, element: IDLType[]): IDLC
     }
 }
 
-export function createUnionType(types: IDLType[]): IDLUnionType {
+export function createUnionType(types: IDLType[], name?: string): IDLUnionType {
     if (types.length < 2)
         throw new Error("IDLUnionType should contain at least 2 types")
     return {
         kind: IDLKind.UnionType,
-        name: types.map(it => it.name).join("|"),
+        name: name ?? types.map(it => it.name).join(" or "),
         types: types
     }
 }
