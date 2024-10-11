@@ -116,11 +116,10 @@ export class StructPrinter {
                     let fieldNames: string[] = []
                     switch (target.name) {
                         case "sequence":
-                            structs.print("Ark_Int32 length;")
                             fieldNames = ["array"]
                             break
                         case "record":
-                            structs.print("Ark_Int32 size;")
+                            structs.print(`${PrimitiveType.Int32.getText()} size;`)
                             fieldNames = ["keys", "values"]
                             break
                     }
@@ -129,6 +128,11 @@ export class StructPrinter {
                             ? "" : "struct "
                         structs.print(`${structKeyword}${this.library.getTypeName(it)}* ${fieldNames[index]};`)
                     })
+                    switch (target.name) {
+                        case "sequence":
+                            structs.print(`${PrimitiveType.Int32.getText()} length;`)
+                            break
+                    }
                 }
                 this.printStructsCTail(nameAssigned, structs)
             }
@@ -327,7 +331,7 @@ inline void WriteToString(string* result, const ${name}* value) {
             printer.print(`inline void WriteToString(string* result, ${name} value) {`)
             printer.pushIndent()
             printer.print(`result->append("${name}(");`)
-            printer.print(`WriteToString(result, (Ark_Int32) value);`)
+            printer.print(`WriteToString(result, (${PrimitiveType.Int32.getText()}) value);`)
             printer.print(`result->append(")");`)
             printer.popIndent()
             printer.print(`}`)
