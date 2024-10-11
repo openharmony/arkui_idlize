@@ -35,7 +35,8 @@ import {
     copyToLibace,
     libraryCcDeclaration,
     makeCJSerializer,
-    makeTypeChecker
+    makeTypeChecker,
+    makeTypeCheckerFromDTS
 } from "./peer-generation/FileGenerators"
 import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./peer-generation/printers/lang/JavaPrinters"
 import {
@@ -703,11 +704,11 @@ function generateArkoala(outDir: string, peerLibrary: PeerLibrary, lang: Languag
             true,
         )
         writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')),
-            makeTypeChecker(peerLibrary).arkts,
+            makeTypeCheckerFromDTS(peerLibrary).arkts,
             true,
         )
         writeFile(arkoala.arktsLib(new TargetFile('type_check', 'ts')),
-            makeTypeChecker(peerLibrary).ts,
+            makeTypeCheckerFromDTS(peerLibrary).ts,
             true,
         )
     }
@@ -900,6 +901,39 @@ function generateArkoalaFromIdl(outDir: string, peerLibrary: IdlPeerLibrary, lan
         )
     }
 
+    if (peerLibrary.language === Language.ARKTS) {
+        writeFile(
+            arkoala.arktsLib(new TargetFile('NativeModule', 'arkts')),
+            printNativeModule(peerLibrary, options.nativeBridgeDir ?? "../../../../../../../native/NativeBridgeNapi"),
+            true,
+        )
+        writeFile(
+            arkoala.peer(new TargetFile('ArkUINodeType')),
+            printNodeTypes(peerLibrary),
+            true,
+        )
+        writeFile(
+            arkoala.arktsLib(new TargetFile("peer_events")),
+            printEvents(peerLibrary),
+            true
+        )
+        writeFile(
+            arkoala.arktsLib(new TargetFile('index')),
+            makeArkuiModule(arkuiComponentsFiles),
+        )
+        writeFile(arkoala.peer(new TargetFile('Serializer')),
+            makeTSSerializer(peerLibrary),
+            true,
+        )
+        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')),
+            makeTypeChecker(peerLibrary).arkts,
+            true,
+        )
+        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'ts')),
+            makeTypeChecker(peerLibrary).ts,
+            true,
+        )
+    }
     if (peerLibrary.language == Language.JAVA) {
         writeFile(
             arkoala.javaLib(new TargetFile('NativeModule', ARKOALA_PACKAGE_PATH)),

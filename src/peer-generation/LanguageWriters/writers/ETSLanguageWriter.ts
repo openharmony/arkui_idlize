@@ -18,10 +18,11 @@ import { capitalize, Language } from "../../../util"
 import { AggregateConvertor, ArrayConvertor, EnumConvertor, OptionConvertor, StringConvertor } from "../../Convertors"
 import { FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, Type } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { IDLBooleanType, IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType  } from '../../../idl'
+import { IDLBooleanType, IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType  } from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
 import { createLiteralDeclName } from "../../TypeNodeNameConvertor"
 import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
+import { makeArrayTypeCheckCall } from "../../printers/TypeCheckPrinter"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -266,8 +267,14 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // the '==' operator must be used when one of the operands is a reference
         return super.makeNaryOp('==', args);
     }
+    override arrayDiscriminatorFromTypeOrExpressions(value: string,
+                                                     checkedType: string,
+                                                     runtimeType: RuntimeType,
+                                                     exprs: LanguageExpression[]): LanguageExpression {
+        return makeArrayTypeCheckCall(value, checkedType, this)
+    }
     makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
-        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, this, [
+        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
             this.makeString(`${value} instanceof ${convertor.enumTypeName(this.language)}`)
         ])
     }

@@ -95,7 +95,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     {
         if (!uniqueFields || uniqueFields.length === 0) return undefined
         const firstNonOptional = uniqueFields.find(it => !optionalAccessor(it))
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer, [
+        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
             writer.makeDiscriminatorFromFields(this, value,
                 firstNonOptional ? [nameAccessor(firstNonOptional)] : uniqueFields.map(it => nameAccessor(it)))
         ])

@@ -26,6 +26,7 @@ import { ArkoalaInstall, LibaceInstall } from "../Install"
 import { ImportsCollector } from "./ImportsCollector"
 import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
+import { writeARKTSTypeCheckerFromDTS, writeTSTypeCheckerFromDTS } from "./printers/TypeCheckFromDTSPrinter"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -287,7 +288,19 @@ export function createSerializer(): Serializer { return new Serializer() }
 `
 }
 
-export function makeTypeChecker(library: PeerLibrary): { arkts: string, ts: string } {
+// TODO: remove after full switching to IDL
+export function makeTypeCheckerFromDTS(library: PeerLibrary): { arkts: string, ts: string } {
+    let arktsPrinter = createLanguageWriter(Language.ARKTS)
+    writeARKTSTypeCheckerFromDTS(library, arktsPrinter)
+    let tsPrinter = createLanguageWriter(Language.TS)
+    writeTSTypeCheckerFromDTS(library, tsPrinter)
+    return {
+        arkts: arktsPrinter.getOutput().join("\n"),
+        ts: tsPrinter.getOutput().join("\n"),
+    }
+}
+
+export function makeTypeChecker(library: IdlPeerLibrary): { arkts: string, ts: string } {
     let arktsPrinter = createLanguageWriter(Language.ARKTS)
     writeARKTSTypeCheckers(library, arktsPrinter)
     let tsPrinter = createLanguageWriter(Language.TS)

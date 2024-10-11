@@ -18,7 +18,7 @@ import { BuilderClass } from '../BuilderClass';
 import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
 import { IdlPeerFile } from "./IdlPeerFile";
-import { IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor } from './IdlNameConvertor';
+import { ArkTSTypeNameConvertor, IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined, Language } from '../../util';
 import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
@@ -33,10 +33,12 @@ import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, N
 
 function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor {
     const language = library.language
-    if ([Language.TS, Language.ARKTS].includes(language))
+    if (language == Language.TS)
         return new TSTypeNameConvertor(library)
     if (language == Language.JAVA)
         return new JavaTypeNameConvertor(library)
+    if (language == Language.ARKTS)
+        return new ArkTSTypeNameConvertor(library)
     throw new Error(`Convertor from IDL to ${language} not implemented`)
 }
 
@@ -67,6 +69,7 @@ export class IdlPeerLibrary {
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
     readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this)
+    readonly seenArrayTypes: string[] = []
 
     private context: string | undefined
     getCurrentContext(): string | undefined {

@@ -669,12 +669,17 @@ export abstract class LanguageWriter {
     }
     discriminatorFromExpressions(value: string,
                                  runtimeType: RuntimeType,
-                                 writer: LanguageWriter,
-                                 exprs: LanguageExpression[]) {
-        return writer.makeNaryOp("&&", [
-            writer.makeNaryOp("==", [writer.makeRuntimeType(runtimeType), writer.makeString(`${value}_type`)]),
+                                 exprs: LanguageExpression[]): LanguageExpression {
+        return this.makeNaryOp("&&", [
+            this.makeNaryOp("==", [this.makeRuntimeType(runtimeType), this.makeString(`${value}_type`)]),
             ...exprs
         ])
+    }
+    arrayDiscriminatorFromTypeOrExpressions(value: string,
+                                 checkedType: string,
+                                 runtimeType: RuntimeType,
+                                 exprs: LanguageExpression[]): LanguageExpression {
+        return this.discriminatorFromExpressions(value, runtimeType, exprs)
     }
     makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
         const ordinal = convertor.isStringEnum
@@ -684,7 +689,7 @@ export abstract class LanguageWriter {
             )
             : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), Type.Number, convertor, index)
         const {low, high} = convertor.extremumOfOrdinals()
-        return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], this, [
+        return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], [
             this.makeNaryOp(">=", [ordinal, this.makeString(low!.toString())]),
             this.makeNaryOp("<=",  [ordinal, this.makeString(high!.toString())])
         ])

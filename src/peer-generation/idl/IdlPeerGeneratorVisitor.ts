@@ -250,6 +250,20 @@ class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
     }
 }
 
+class ArkTSTypeDependenciesCollector extends ImportsAggregateCollector {
+    constructor(peerLibrary: IdlPeerLibrary, expandAliases: boolean) {
+        super(peerLibrary, expandAliases)
+    }
+
+    override convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
+        if (type.name == 'sequence') {
+            this.peerLibrary.seenArrayTypes.push(this.peerLibrary.getTypeName(type))
+        }
+        return super.convertContainer(type)
+    }
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Java
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -839,21 +853,19 @@ export class IdlPeerProcessor {
 
             this.declDependenciesCollector.convert(dep).forEach(it => {
                 if (isSourceDecl(it) &&
-                    (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it)) &&
-                    needImportFeature(this.library.language, it))
+                    (PeerGeneratorConfig.needInterfaces || isSyntheticDeclaration(it)))
                 {
                     file.importFeatures.push(convertDeclToFeature(this.library, it))
                 }
             })
             this.serializeDepsCollector.convert(dep).forEach(it => {
                 if (isSourceDecl(it) &&
-                    PeerGeneratorConfig.needInterfaces &&
-                    needImportFeature(this.library.language, it))
+                    PeerGeneratorConfig.needInterfaces)
                 {
                     file.serializeImportFeatures.push(convertDeclToFeature(this.library, it))
                 }
             })
-            if (PeerGeneratorConfig.needInterfaces && needImportFeature(this.library.language, dep)) {
+            if (PeerGeneratorConfig.needInterfaces) {
                 file.declarations.add(dep)
                 file.importFeatures.push(convertDeclToFeature(this.library, dep))
             }
@@ -861,16 +873,7 @@ export class IdlPeerProcessor {
     }
 }
 
-function needImportFeature(language: Language, decl: idl.IDLEntry): boolean {
-    if (language === Language.ARKTS) {
-        if (idl.isInterface(decl) && isMaterialized(decl))
-            return false
-        return idl.isEnum(decl) || idl.isInterface(decl) || idl.isTypedef(decl)
-    }
-    return true;
-}
-
-function convertDeclToFeature(library: IdlPeerLibrary, node: idl.IDLEntry): ImportFeature {
+export function convertDeclToFeature(library: IdlPeerLibrary, node: idl.IDLEntry): ImportFeature {
     if (isSyntheticDeclaration(node))
         return {
             feature: convertDeclaration(DeclarationNameConvertor.I, node),
@@ -906,22 +909,20 @@ function convertDeclToFeature(library: IdlPeerLibrary, node: idl.IDLEntry): Impo
 }
 
 function createTypeDependenciesCollector(library: IdlPeerLibrary): TypeDependenciesCollector {
-    if (library.language === Language.TS) {
-        return new ImportsAggregateCollector(library, false)
-    }
-    if (library.language === Language.JAVA) {
-        return new JavaTypeDependenciesCollector(library, true)
+    switch (library.language) {
+        case Language.TS: return new ImportsAggregateCollector(library, false)
+        case Language.ARKTS: return new ArkTSTypeDependenciesCollector(library, false)
+        case Language.JAVA: return new JavaTypeDependenciesCollector(library, true)
     }
     // TODO: support other languages
     return new ImportsAggregateCollector(library, false)
 }
 
 function createDeclDependenciesCollector(library: IdlPeerLibrary, typeDependenciesCollector: TypeDependenciesCollector): DeclarationDependenciesCollector {
-    if (library.language === Language.TS) {
-        return new FilteredDeclarationCollector(library, typeDependenciesCollector)
-    }
-    if (library.language == Language.JAVA) {
-        return new JavaDeclarationCollector(library, typeDependenciesCollector)
+    switch (library.language) {
+        case Language.TS: return new FilteredDeclarationCollector(library, typeDependenciesCollector)
+        case Language.ARKTS: return new FilteredDeclarationCollector(library, typeDependenciesCollector)
+        case Language.JAVA: return new JavaDeclarationCollector(library, typeDependenciesCollector)
     }
     // TODO: support other languages
     return new FilteredDeclarationCollector(library, typeDependenciesCollector)
@@ -929,11 +930,10 @@ function createDeclDependenciesCollector(library: IdlPeerLibrary, typeDependenci
 
 function createSerializeDeclDependenciesCollector(library: IdlPeerLibrary): DeclarationDependenciesCollector {
     const expandAliases = true
-    if (library.language === Language.TS) {
-        return new FilteredDeclarationCollector(library, new ImportsAggregateCollector(library, expandAliases))
-    }
-    if (library.language == Language.JAVA) {
-        return new JavaDeclarationCollector(library, new JavaTypeDependenciesCollector(library, expandAliases))
+    switch (library.language) {
+        case Language.TS: return new FilteredDeclarationCollector(library, new ImportsAggregateCollector(library, expandAliases))
+        case Language.ARKTS: return new FilteredDeclarationCollector(library, new ArkTSTypeDependenciesCollector(library, expandAliases))
+        case Language.JAVA: return new JavaDeclarationCollector(library, new JavaTypeDependenciesCollector(library, expandAliases))
     }
     // TODO: support other languages
     return new FilteredDeclarationCollector(library, new ImportsAggregateCollector(library, expandAliases))

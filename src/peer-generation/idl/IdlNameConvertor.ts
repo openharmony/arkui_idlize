@@ -138,6 +138,23 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     static readonly I = new DeclarationNameConvertor()
 }
 
+
+export class ArkTSTypeNameConvertor extends TSTypeNameConvertor {
+    override convertContainer(type: idl.IDLContainerType): string {
+        if (type.name === "sequence") {
+            return `${this.convert(type.elementType[0])}[]`
+        }
+        return super.convertContainer(type)
+    }
+    override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLAnyType: return "object"
+        }
+        return super.convertPrimitiveType(type)
+    }
+}
+
+
 class JavaTypeAlias {
     // Java type itself
     // string representation can contain special characters (e.g. String[])

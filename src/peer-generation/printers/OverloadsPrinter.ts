@@ -101,9 +101,14 @@ export function groupOverloads<T extends PeerMethod | IdlPeerMethod>(peerMethods
 }
 
 export class OverloadsPrinter {
-    private static undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
+    private static undefinedConvertor: UndefinedConvertor | undefined
 
-    constructor(private printer: LanguageWriter, private language: Language, private isComponent: boolean = true) {}
+    constructor(private printer: LanguageWriter, private language: Language, private isComponent: boolean = true) {
+        // TODO: UndefinedConvertor is not known during static initialization because of cyclic dependencies
+        if (!OverloadsPrinter.undefinedConvertor) {
+            OverloadsPrinter.undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
+        }
+    }
 
     printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: (PeerMethod | IdlPeerMethod)[]) {
         const orderedMethods = Array.from(peerMethods)

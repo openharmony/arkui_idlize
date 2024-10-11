@@ -143,7 +143,7 @@ export class EnumConvertor extends BaseArgConvertor { //
         const ordinal = this.isStringEnum
             ? writer.ordinalFromEnum(writer.makeString(this.getObjectAccessor(writer.language, value)), this.enumType.name)
             : writer.makeUnionVariantCast(this.getObjectAccessor(writer.language, value), Type.Number, this, index)
-        return writer.discriminatorFromExpressions(value, this.runtimeTypes[0], writer, [
+        return writer.discriminatorFromExpressions(value, this.runtimeTypes[0], [
             writer.makeNaryOp(">=", [ordinal, writer.makeString(low!.toString())]),
             writer.makeNaryOp("<=",  [ordinal, writer.makeString(high!.toString())])
         ])
@@ -259,7 +259,7 @@ export class ImportTypeConvertor extends BaseArgConvertor { //
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         const handler = ImportTypeConvertor.knownTypes.get(this.importedName)
         return handler
-            ? writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+            ? writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
                 [writer.makeString(`${handler[0]}(${handler.slice(1).concat(value).join(", ")})`)])
             : undefined
     }
@@ -449,7 +449,7 @@ export class ClassConvertor extends InterfaceConvertor { //
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
         if (this.tsTypeName === "SubTabBarStyle") return undefined
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
             [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
     }
 }
@@ -692,7 +692,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+        return writer.arrayDiscriminatorFromTypeOrExpressions(value, this.library.getTypeName(this.type), RuntimeType.OBJECT,
             [writer.makeString(`${value} instanceof ${this.targetType(writer).name}`)])
     }
     elementTypeName(): string {
@@ -768,7 +768,7 @@ export class MapConvertor extends BaseArgConvertor { //
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
             [writer.makeString(`${value} instanceof Map`)])
     }
     override getObjectAccessor(language: Language, value: string, args?: Record<string, string>): string {
@@ -816,7 +816,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor { //
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, writer,
+        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
             [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
     }
 }

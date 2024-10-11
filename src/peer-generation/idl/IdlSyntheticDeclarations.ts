@@ -58,6 +58,10 @@ export function syntheticDeclarationFilename(node: idl.IDLEntry): string {
     throw "Declaration is not synthetic"
 }
 
+export function getSyntheticDeclarationList(): idl.IDLEntry[] {
+    return Array.from(syntheticDeclarations.values()).map(it => it.node)
+}
+
 export function makeSyntheticDeclarationsFiles(): Map<string, {dependencies: ImportFeature[], declarations: idl.IDLEntry[]}> {
     const files = new Map<string, {dependencies: ImportFeature[], declarations: idl.IDLEntry[]}>()
     for (const decl of syntheticDeclarations.values()) {
