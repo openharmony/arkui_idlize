@@ -66,6 +66,9 @@ export class PointerType extends PrimitiveType {
     constructor(name: string, public pointed: DeclarationTarget) {
         super(name, true)
     }
+    override getText(): string {
+        return `${this.name}*`
+    }
 }
 
 export type DeclarationTarget =
