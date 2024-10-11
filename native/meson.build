@@ -368,7 +368,8 @@ endif
 
 if is_jni or is_arkts
 loader_include_dirs = include_dirs
-loader_cflags = cflags
+loader_cflags = cflags + [ '-DKOALA_DYNAMIC_LOADER' ]
+loader_ldflags = []
 if is_jni
 loader_include_dirs += jni_include_dirs
 loader_cflags += jni_cflags
@@ -377,11 +378,15 @@ if is_arkts
 loader_include_dirs += arkts_include_dirs
 loader_cflags += arkts_cflags
 endif
+if os != 'windows'
+loader_ldflags += ['-ldl']
+endif
 shared_library('vmloader',
     external_interop_dir / 'vmloader.cc',
     install: true,
     include_directories: loader_include_dirs,
     install_dir: meson.current_source_dir(),
-    cpp_args: loader_cflags
+    cpp_args: loader_cflags,
+    link_args: loader_ldflags
 )
 endif
