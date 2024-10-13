@@ -481,7 +481,14 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     serializeObjectType(node: ts.TypeLiteralNode, name?: string, typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>): IDLInterface {
         const properties = this.pickProperties(node.members)
-        name ??= `Literal_${properties.map(it => `${it.name}_${this.computeTypeName(it.type)}`).join("_")}`
+        const typeMap = new Map<string, string[]>()
+        for (const prop of properties) {
+            const type = this.computeTypeName(prop.type)
+            const values = typeMap.has(type) ? typeMap.get(type)! : []
+            values.push(prop.name)
+            typeMap.set(type, values)
+        }
+        name ??= `Literal_${Array.from(typeMap.keys()).map(key => `${key}_${typeMap.get(key)!.join('_')}`).join('_')}`
         return {
             name, properties,
             kind: IDLKind.AnonymousInterface,
