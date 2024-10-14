@@ -43,6 +43,7 @@ import * as webidl2 from "webidl2"
 import { toIDLNode } from "./from-idl/deserialize"
 import { generateArkoala, generateArkoalaFromIdl, generateLibace, generateLibaceFromIdl } from "./peer-generation/arkoala"
 import { Language } from "./Language"
+import { loadPlugin } from "./peer-generation/plugin-api"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -367,6 +368,15 @@ if (options.dts2peer) {
                     }
                     if (options.generatorTarget == "ohos") {
                         generateOhos(outDir, idlLibrary)
+                    }
+
+                    if (options.plugin) {
+                        loadPlugin(options.plugin)
+                            .then(plugin => plugin.process({outDir: outDir}, idlLibrary))
+                            .then(result => {
+                                console.log(`Plugin ${options.plugin} process returned ${result}`)
+                            })
+                            .catch(error => console.error(`Plugin ${options.plugin} not found: ${error}`))
                     }
                 }
             }
