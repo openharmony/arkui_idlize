@@ -1,4 +1,4 @@
-import { Language, removeExt, renameClassToBuilderClass, renameClassToMaterialized } from "../../util"
+import { removeExt, renameClassToBuilderClass, renameClassToMaterialized } from "../../util"
 import { LanguageWriter, MethodModifier, Method, Type, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary"
 import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES, BuilderMethod, BuilderField } from "../BuilderClass";
@@ -9,6 +9,7 @@ import { SuperElement } from "../Materialized";
 import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { Language } from "../../Language";
 
 interface BuilderClassFileVisitor {
     printFile(): void
@@ -154,7 +155,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
         const returnType = new Type(clazz.name)
         const constructors = clazz.constructors.map(it => this.convertBuilderMethodTS(it, returnType, clazz.name))
         const methods = clazz.methods.map(it => this.convertBuilderMethodTS(it, returnType))
-    
+
         return new BuilderClass(
             clazz.name,
             clazz.generics,
@@ -230,7 +231,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             method.declarationTargets
         )
     }
-    
+
     private processBuilderClass(clazz: BuilderClass): BuilderClass {
         const syntheticFields = clazz.methods
             .filter(it => !it.method.modifiers?.includes(MethodModifier.STATIC))
@@ -240,7 +241,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
         const returnType = new Type(clazz.name)
         const constructors = clazz.constructors.map(it => this.convertBuilderMethod(it, returnType, clazz.name))
         const methods = clazz.methods.map(it => this.convertBuilderMethod(it, returnType))
-    
+
         return new BuilderClass(
             clazz.name,
             clazz.generics,
@@ -315,7 +316,7 @@ class BuilderClassVisitor {
 
     constructor(
         private readonly library: PeerLibrary | IdlPeerLibrary,
-        private printerContext: PrinterContext, 
+        private printerContext: PrinterContext,
         private readonly dumpSerialized: boolean,
     ) { }
 

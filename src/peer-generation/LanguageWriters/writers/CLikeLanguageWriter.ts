@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
-import { Language } from "../../../util"
+import { Language } from "../../../Language"
 import { ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ReturnStatement } from "../LanguageWriter"
 
 ////////////////////////////////////////////////////////////////

@@ -16,7 +16,7 @@
 import * as path from "path"
 import { PeerFile } from "../PeerFile";
 import { PeerLibrary } from "../PeerLibrary";
-import { Language, renameDtsToPeer, throwException } from "../../util";
+import { renameDtsToPeer, throwException } from "../../util";
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { PeerClass, PeerClassBase } from "../PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "../inheritance";
@@ -44,6 +44,7 @@ import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
+import { Language } from "../../Language";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -478,7 +479,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
             // here we write methods
             `_${method.originalParentName}_${method.overloadedName}`,
             params)
-        
+
         if (returnType != Type.Void) {
             writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
         } else {

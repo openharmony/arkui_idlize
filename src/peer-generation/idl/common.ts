@@ -14,7 +14,7 @@
  */
 
 import * as idl from "../../idl"
-import { Language } from "../../util"
+import { Language } from "../../Language"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "./IdlTypeConvertor"
 
 export function isDeclaration(node: idl.IDLEntry): boolean {

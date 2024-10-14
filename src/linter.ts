@@ -22,52 +22,14 @@ import {
     getLineNumberString,
     identName,
     isAbstract,
-    isCommonMethodOrSubclass,
     nameOrNull,
     zip
 } from "./util"
 import { LinterWhitelist } from "./LinterWhitelist"
 import { cppKeywords } from "./languageSpecificKeywords"
+import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
+import { LinterError, LinterMessage } from "./LinterMessage"
 
-export enum LinterError {
-    NONE,
-    TYPE_LITERAL,
-    ENUM_WITH_INIT,
-    COMPUTED_PROPERTY_NAME,
-    TUPLE_TYPE,
-    INDEXED_ACCESS_TYPE,
-    TEMPLATE_LITERAL,
-    IMPORT_TYPE,
-    MULTIPLE_INHERITANCE,
-    UNSUPPORTED_TYPE_PARAMETER,
-    PARAMETER_INITIALIZER,
-    DUPLICATE_INTERFACE,
-    INDEX_SIGNATURE,
-    NAMESPACE,
-    NUMBER_TYPE,
-    PRIVATE_VISIBILITY,
-    TOP_LEVEL_FUNCTIONS,
-    ANY_KEYWORD,
-    TYPE_ELEMENT_TYPE,
-    INTERFACE_METHOD_TYPE_INCONSISTENT_WITH_PARENT,
-    USE_COMPONENT_AS_PARAM,
-    METHOD_OVERLOADING,
-    CPP_KEYWORDS,
-    INCORRECT_DATA_CLASS,
-    EMPTY_DECLARATION,
-    UNION_CONTAINS_ENUM,
-    EVENT_HANDLER_WITH_FUNCTIONAL_PARAM_TYPE,
-    CALLBACK_WITH_FUNCTIONAL_PARAM_TYPE,
-    CALLBACK_WITH_NON_VOID_RETURN_TYPE,
-}
-
-export interface LinterMessage {
-    file: ts.SourceFile
-    pos: string
-    message: string,
-    error: LinterError
-    node: ts.Node
-}
 
 const suppressed = new Set([
     LinterError.UNION_CONTAINS_ENUM,

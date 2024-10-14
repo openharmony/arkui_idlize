@@ -15,7 +15,7 @@
 
 import * as idl from "../../idl"
 import { posix as path } from "path"
-import { serializerBaseMethods, isDefined, Language, renameDtsToInterfaces, renameClassToBuilderClass, renameClassToMaterialized, capitalize, throwException } from "../../util"
+import { serializerBaseMethods, isDefined, renameDtsToInterfaces, renameClassToBuilderClass, renameClassToMaterialized, capitalize, throwException } from "../../util"
 import { GenericVisitor } from "../../options"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -37,6 +37,7 @@ import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convert } from "./common"
 import { collectJavaImportsForDeclaration } from "../printers/lang/JavaIdlUtils"
 import { ARK_CUSTOM_OBJECT, javaCustomTypeMapping } from "../printers/lang/Java"
+import { Language } from "../../Language"
 
 /**
  * Theory of operations.

@@ -14,16 +14,17 @@
  */
 
 import * as idl from "../../idl"
-import { Method, MethodSignature, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters";
-import { PeerClass, PeerClassBase } from "../PeerClass";
+import { Method, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters/LanguageWriter";
+import { PeerClassBase } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
-import { isDefined, Language } from "../../util";
+import { isDefined } from "../../util";
 import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { typeOrUnion } from "../idl/common";
 // import { ArgConvertor as IdlArgConvertor } from "../idl/IdlArgConvertors"
 import { ArgConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from '../ArgConvertors';
+import { Language } from "../../Language";
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
@@ -72,9 +73,9 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
             return convertor
         }
         return library.typeConvertor(
-            method.signature.argName(index), 
-            target, 
-            method.signature.args[index].nullable, 
+            method.signature.argName(index),
+            target,
+            method.signature.args[index].nullable,
             true
         )
     })

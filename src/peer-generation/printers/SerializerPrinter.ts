@@ -15,7 +15,7 @@
 
 import * as ts from 'typescript'
 import * as idl from '../../idl'
-import { Language } from "../../util";
+import { Language } from "../../Language";
 import { DeclarationTable, DeclarationTarget } from "../DeclarationTable";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";

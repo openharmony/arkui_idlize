@@ -18,7 +18,7 @@ import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
 import { FieldModifier, LanguageWriter, createLanguageWriter, Type, MethodModifier, MethodSignature } from '../LanguageWriters'
 import { ArkTSTypeNodeNameConvertor, isCallable, mapType } from '../TypeNodeNameConvertor'
-import { identName, Language, removeExt, renameDtsToInterfaces } from '../../util'
+import { identName, removeExt, renameDtsToInterfaces } from '../../util'
 import { ImportFeature, ImportsCollector } from '../ImportsCollector'
 import { PeerFile } from '../PeerFile'
 import { IndentedPrinter } from "../../IndentedPrinter"
@@ -30,6 +30,7 @@ import { createTypeNodeConvertor, generateMethodModifiers, generateSignature } f
 import { isMaterialized } from "../Materialized";
 import { ResourceDeclaration } from '../DeclarationTable'
 import { JavaDataClass } from './lang/JavaPrinters'
+import { Language } from '../../Language'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>

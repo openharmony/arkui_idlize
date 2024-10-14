@@ -15,12 +15,13 @@
 
 import { IDLBooleanType, IDLContainerType, IDLNumberType, IDLParameter, IDLPrimitiveType, IDLStringType, IDLType, IDLUndefinedType, IDLUnionType, IDLVoidType, isContainerType, isPrimitiveType, isUnionType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
-import { Language, stringOrNone } from "../../util"
+import { stringOrNone } from "../../util"
 import { EnumConvertor, MapConvertor } from "../Convertors"
 import { ArgConvertor, RuntimeType } from "../ArgConvertors"
 import { FieldRecord } from "../DeclarationTable"
 import { EnumEntity } from "../PeerFile"
 import * as fs from "fs"
+import { Language } from "../../Language"
 
 ////////////////////////////////////////////////////////////////
 //                           TYPE                             //
@@ -709,4 +710,36 @@ export abstract class LanguageWriter {
     makeCallIsArrayBuffer(value: string): LanguageExpression {
         return this.makeString(`${value} instanceof ArrayBuffer`)
     }
+}
+
+export function mangleMethodName(method: Method, id?: number): string {
+    return `${method.name}${id ?? ""}`
+}
+
+export function printMethodDeclaration(printer: IndentedPrinter, retType: string, methodName: string, apiParameters: string[], postfix: string = "") {
+    if (apiParameters.length > 1) {
+        const methodTypeName = `${retType} ${methodName}`
+        const indent = ` `.repeat(methodTypeName.length + 1)
+        printer.print(`${methodTypeName}(${apiParameters[0]},`)
+        for (let i = 1; i < apiParameters.length; i++) {
+            printer.print(indent + apiParameters[i] + ((i === apiParameters.length - 1) ? `)${postfix}` : ","))
+        }
+    } else {
+        const signature = `${retType} ${methodName}(${apiParameters.join(", ")})${postfix}`
+        printer.print(signature)
+    }
+}
+
+export function copyMethod(method: Method, overrides: {
+    name?: string,
+    signature?: MethodSignature,
+    modifiers?: MethodModifier[],
+    generics?: string[],
+ }) {
+    return new Method(
+        overrides.name ?? method.name,
+        overrides.signature ?? method.signature,
+        overrides.modifiers ?? method.modifiers,
+        overrides.generics ?? method.generics,
+    )
 }

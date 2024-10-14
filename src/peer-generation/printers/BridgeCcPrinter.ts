@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../IndentedPrinter";
-import { Language, capitalize, dropSuffix, isDefined } from "../../util";
+import { capitalize, dropSuffix, isDefined } from "../../util";
 import { EnumConvertor} from "../Convertors";
 import { ArgConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../ArkPrimitiveType"
@@ -25,6 +24,7 @@ import { PeerMethod } from "../PeerMethod";
 import { CUSTOM_API, CustomAPI } from "../CustomAPI"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
+import { Language } from "../../Language";
 
 //const VM_CONTEXT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_VMContext`)
 

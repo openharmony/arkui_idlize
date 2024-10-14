@@ -16,35 +16,7 @@
 import * as path from 'path'
 import * as ts from "typescript"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
-import { isRoot } from "./peer-generation/inheritance";
-
-export class Language {
-    public static TS = new Language("TS", ".ts", true)
-    public static ARKTS = new Language("ArkTS", ".ts", true) // using .ts for ArkTS until we get rit of tsc preprocessing
-    public static JAVA = new Language("Java", ".java", false)
-    public static CPP = new Language("C++", ".cc", false)
-    public static CJ = new Language("CangJie", ".cj", false)
-
-    private constructor(public name: string, public extension: string, public needsUnionDiscrimination: boolean) {}
-
-    toString(): string {
-        return this.name
-    }
-
-    get directory() {
-        return this.name.toLowerCase()
-    }
-
-    static fromString(name: string): Language {
-        switch (name) {
-            case "arkts": return Language.ARKTS
-            case "java": return Language.JAVA
-            case "ts": return Language.TS
-            case "cangjie": return Language.CJ
-            default: throw new Error(`Unsupported language ${name}`)
-        }
-    }
-}
+import { Language } from './Language';
 
 export interface NameWithType {
     name?: ts.DeclarationName
@@ -205,20 +177,6 @@ export function dropSuffix(text: string, suffix: string): string {
 }
 
 export type stringOrNone = string | undefined
-
-export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
-    let name = identName(decl.name)!
-    let isSubclass = isRoot(name)
-    decl.heritageClauses?.forEach(it => {
-        heritageDeclarations(typeChecker, it).forEach(it => {
-            let name = asString(it.name)
-            isSubclass = isSubclass || isRoot(name)
-            if (!ts.isClassDeclaration(it)) return isSubclass
-            isSubclass = isSubclass || isCommonMethodOrSubclass(typeChecker, it)
-        })
-    })
-    return isSubclass
-}
 
 export function isCustomComponentClass(decl: ts.ClassDeclaration) {
     return PeerGeneratorConfig.customComponent.includes(identName(decl.name)!)

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import * as idl from "../../idl"
-import { Language } from "../../util"
+import { Language } from "../../Language"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "../LanguageWriters"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 import { PrimitiveType } from "../ArkPrimitiveType"

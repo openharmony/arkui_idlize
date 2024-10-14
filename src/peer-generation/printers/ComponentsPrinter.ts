@@ -14,7 +14,7 @@
  */
 
 import * as path from "path"
-import { Language, removeExt, renameDtsToComponent } from "../../util";
+import { removeExt, renameDtsToComponent } from "../../util";
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { PeerClass } from "../PeerClass";
 import { PeerFile } from "../PeerFile";
@@ -34,6 +34,7 @@ import { IdlPeerFile } from "../idl/IdlPeerFile";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
+import { Language } from "../../Language";
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -306,7 +307,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
         result.print(`package ${ARKOALA_PACKAGE};\n`)
         this.printerContext.imports!.printImportsForTypes(usedTypes, result)
         result.concat(printer)
- 
+
         this.results.push(new ComponentPrintResult(new TargetFile(componentClassName + Language.JAVA.extension, ARKOALA_PACKAGE_PATH), result))
     }
 }

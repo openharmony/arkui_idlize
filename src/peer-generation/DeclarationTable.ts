@@ -14,9 +14,8 @@
  */
 
 import * as ts from "typescript"
-import { Language, asString, getDeclarationsByNode, getNameWithoutQualifiersRight, heritageDeclarations,
+import { asString, getDeclarationsByNode, getNameWithoutQualifiersRight, heritageDeclarations,
      identName, isStatic, throwException, typeEntityName, identNameWithNamespace,
-     isCommonMethodOrSubclass,
      camelCaseToUpperSnakeCase,
      nameEnumValues,
     } from "../util"
@@ -26,7 +25,7 @@ import {
     AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, CallbackTypeReferenceConvertor, ClassConvertor,
     EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor,
     MaterializedClassConvertor, OptionConvertor, StringConvertor,
-    ToStringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor
+    TupleConvertor, TypeAliasConvertor, UnionConvertor
 } from "./Convertors"
 import { RuntimeType, ArgConvertor, BooleanConvertor, LengthConvertor, NullConvertor, NumberConvertor, PredefinedConvertor, UndefinedConvertor, CustomTypeConvertor } from "./ArgConvertors"
 import { DependencySorter } from "./DependencySorter"
@@ -39,6 +38,7 @@ import { EnumMember, NodeArray } from "typescript";
 import { extractBuilderFields } from "./BuilderClass"
 import { searchTypeParameters, TypeNodeNameConvertor } from "./TypeNodeNameConvertor";
 import { PrimitiveType } from "./ArkPrimitiveType"
+import { Language } from "../Language"
 export const ResourceDeclaration = ts.factory.createInterfaceDeclaration(undefined, "Resource", undefined, undefined, [
     ts.factory.createPropertySignature(undefined, "id", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),
     ts.factory.createPropertySignature(undefined, "type", undefined, ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)),

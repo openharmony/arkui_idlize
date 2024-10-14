@@ -14,7 +14,7 @@
  */
 
 import * as ts from 'typescript'
-import { Language } from '../util'
+import { Language } from '../Language'
 
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]
@@ -27,9 +27,9 @@ export class PeerGeneratorConfig {
     ]
     public static ignorePeerMethod = ["attributeModifier"]
     public static ignoreComponents = [
-        "Particle", 
-        "Progress", 
-        "ForEach", 
+        "Particle",
+        "Progress",
+        "ForEach",
         "LazyForEach",
         "ContentSlot",
     ]
@@ -175,7 +175,7 @@ export class PeerGeneratorConfig {
         if (ts.isTypeAliasDeclaration(node) && node.name.text === 'OnWillScrollCallback') return true
         // has same named class and interface
         if ((ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node)) && node.name?.text === 'LinearGradient') return true
-        // just has ugly dependency WrappedBuilder - there is conflict in generic types 
+        // just has ugly dependency WrappedBuilder - there is conflict in generic types
         if (ts.isInterfaceDeclaration(node) && node.name.text === 'ContentModifier') return true
         // complicated type arguments
         if (ts.isClassDeclaration(node) && node.name?.text === 'TransitionEffect') return true

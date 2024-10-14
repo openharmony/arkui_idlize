@@ -18,7 +18,7 @@ import { createLanguageWriter, LanguageWriter } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 import { DeclarationNameConvertor } from "../dependencies_collector";
 import { convertDeclaration } from '../TypeNodeConvertor';
-import { Language } from "../../util";
+import { Language } from "../../Language";
 
 class ConflictedDeclarationsVisitor {
     readonly writer = createLanguageWriter(this.library.declarationTable.language)

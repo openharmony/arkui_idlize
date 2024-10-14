@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
-import { capitalize, Language } from "../../../util"
+import { capitalize } from "../../../util"
 import { AggregateConvertor, ArrayConvertor, EnumConvertor, OptionConvertor, StringConvertor } from "../../Convertors"
 import { FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, Type } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
@@ -23,6 +23,7 @@ import { EnumEntity } from "../../PeerFile"
 import { createLiteralDeclName } from "../../TypeNodeNameConvertor"
 import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
 import { makeArrayTypeCheckCall } from "../../printers/TypeCheckPrinter"
+import { Language } from "../../../Language"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -157,7 +158,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             case IDLPointerType: return 'KPointer'
             case IDLVoidType: return 'void'
             case IDLBooleanType: return 'KBoolean'
-            
+
             case IDLI8Type:
             case IDLU8Type:
             case IDLI16Type:

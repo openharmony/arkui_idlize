@@ -26,8 +26,7 @@ import {
     throwException,
     getComment,
     isReadonly,
-    getDeclarationsByNode,
-    Language,
+    getDeclarationsByNode
 } from "../util"
 import { GenericVisitor } from "../options"
 import { ArgConvertor, RetConvertor } from "./ArgConvertors"
@@ -72,6 +71,7 @@ import {
     toBuilderClass
 } from "./BuilderClass";
 import { Lazy, lazy } from "./lazy";
+import { Language } from "../Language";
 
 /**
  * Theory of operations.

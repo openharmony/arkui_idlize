@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Language } from '../../util';
+import { Language } from '../../Language';
 import { ImportTable } from './ImportTable';
 import { SynthesizedTypesRegistry } from './SynthesizedTypesRegistry';
 

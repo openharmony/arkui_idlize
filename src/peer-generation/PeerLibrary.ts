@@ -20,7 +20,7 @@ import { PeerClass } from "./PeerClass";
 import { PeerFile } from "./PeerFile";
 import { ComponentDeclaration } from './PeerGeneratorVisitor';
 import { BuilderClass } from './BuilderClass';
-import { Language } from '../util';
+import { Language } from '../Language';
 import { IndentedPrinter } from '../IndentedPrinter';
 import { LanguageWriter } from './LanguageWriters';
 import * as idl from '../idl'
@@ -78,7 +78,7 @@ export class PeerLibrary {
     findPeerByComponentName(componentName: string): PeerClass | undefined {
         for (const file of this.files)
             for (const peer of file.peers.values())
-                if (peer.componentName == componentName) 
+                if (peer.componentName == componentName)
                     return peer
         return undefined
     }
@@ -89,7 +89,7 @@ export class PeerLibrary {
 
     findComponentByDeclaration(node: ts.Declaration): ComponentDeclaration | undefined {
         return this.componentsDeclarations.find(it => {
-            return it.interfaceDeclaration === node || it.attributesDeclarations === node 
+            return it.interfaceDeclaration === node || it.attributesDeclarations === node
         })
     }
 

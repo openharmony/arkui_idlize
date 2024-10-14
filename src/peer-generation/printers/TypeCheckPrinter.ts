@@ -1,12 +1,13 @@
 import * as idl from "../../idl"
 import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
-import { Language, throwException } from "../../util";
+import { throwException } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { convertDeclToFeature } from "../idl/IdlPeerGeneratorVisitor";
 import { getSyntheticDeclarationList } from "../idl/IdlSyntheticDeclarations";
 import { convertDeclaration } from "../idl/IdlTypeConvertor";
 import { DeclarationNameConvertor } from "../idl/IdlNameConvertor";
+import { Language } from "../../Language";
 
 const builtInInterfaceTypes = new Map<string,
     (writer: LanguageWriter, value: string) => LanguageExpression>([
@@ -25,17 +26,17 @@ export function importTypeChecker(library: IdlPeerLibrary, imports: ImportsColle
 
 export function makeEnumTypeCheckerCall(valueAccessor: string, enumName: string, writer: LanguageWriter): LanguageExpression {
     return writer.makeMethodCall(
-        "TypeChecker", 
+        "TypeChecker",
         generateTypeCheckerName(enumName),
         [writer.makeString(valueAccessor)]
     )
 }
 
 export function makeInterfaceTypeCheckerCall(
-    valueAccessor: string, 
-    interfaceName: string, 
-    allFields: string[], 
-    duplicates: Set<string>, 
+    valueAccessor: string,
+    interfaceName: string,
+    allFields: string[],
+    duplicates: Set<string>,
     writer: LanguageWriter,
 ): LanguageExpression {
     if (builtInInterfaceTypes.has(interfaceName)) {
@@ -51,14 +52,14 @@ export function makeInterfaceTypeCheckerCall(
 }
 
 export function makeArrayTypeCheckCall(
-    valueAccessor: string, 
+    valueAccessor: string,
     checkedType: string,
     writer: LanguageWriter,
 ) {
     return writer.makeMethodCall(
         "TypeChecker",
         generateTypeCheckerName(checkedType),
-        // isBrackets ? generateTypeCheckerNameBracketsArray(typeName) : generateTypeCheckerNameArray(typeName), 
+        // isBrackets ? generateTypeCheckerNameBracketsArray(typeName) : generateTypeCheckerNameArray(typeName),
         [writer.makeString(valueAccessor)
     ])
 }
@@ -179,8 +180,8 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         const argsNames = Array.from({length: fieldsCount}, (_, index) => `arg${index}`)
         this.writer.writeMethodImplementation(new Method(
             checkerName,
-            new NamedMethodSignature(Type.Boolean, 
-                [new Type('object|string|number|undefined|null'), ...argsNames.map(_ => Type.Boolean)], 
+            new NamedMethodSignature(Type.Boolean,
+                [new Type('object|string|number|undefined|null'), ...argsNames.map(_ => Type.Boolean)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
         ), writer => {
@@ -213,8 +214,8 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         const argsNames = descriptor.getFields().map(it => `duplicated_${it.name}`)
         this.writer.writeMethodImplementation(new Method(
             generateTypeCheckerName(name),
-            new NamedMethodSignature(Type.Boolean, 
-                [new Type('object|string|number|undefined|null'), ...argsNames.map(_ => Type.Boolean)], 
+            new NamedMethodSignature(Type.Boolean,
+                [new Type('object|string|number|undefined|null'), ...argsNames.map(_ => Type.Boolean)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
         ), writer => {

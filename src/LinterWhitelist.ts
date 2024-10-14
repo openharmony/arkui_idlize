@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { LinterError, LinterMessage } from "./linter";
+import { LinterError, LinterMessage } from "./LinterMessage";
 
 import * as fs from "fs"
 import { identName } from "./util";

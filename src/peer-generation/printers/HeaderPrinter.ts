@@ -23,11 +23,13 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { CallbackInfo, collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
 import { DeclarationTable } from "../DeclarationTable";
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { NamedMethodSignature, Type, createLanguageWriter, printMethodDeclaration } from "../LanguageWriters";
-import { camelCaseToUpperSnakeCase, Language } from "../../util";
+import { NamedMethodSignature, printMethodDeclaration, Type } from "../LanguageWriters/LanguageWriter";
+import { camelCaseToUpperSnakeCase } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
+import { Language } from "../../Language";
+import { CppCastExpression, CppLanguageWriter } from "../LanguageWriters/writers/CppLanguageWriter";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -191,7 +193,7 @@ class HeaderVisitor {
     }
 }
 
-export function printUserConverter(headerPath: string, namespace: string, apiVersion: string|undefined, peerLibrary: PeerLibrary | IdlPeerLibrary) :
+export function printUserConverter(headerPath: string, namespace: string, apiVersion: number, peerLibrary: PeerLibrary | IdlPeerLibrary) :
         {api: string, converterHeader: string}
 {
     const apiHeader = new IndentedPrinter()
@@ -203,16 +205,16 @@ export function printUserConverter(headerPath: string, namespace: string, apiVer
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = createLanguageWriter(Language.CPP)
+    const structs = new CppLanguageWriter(new IndentedPrinter())
     const typedefs = new IndentedPrinter()
 
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
     makeCSerializers(peerLibrary, structs, typedefs)
-    const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
+    const api = makeAPI(apiVersion.toString(), apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
     return {api, converterHeader}
 }
 
-export function printSerializers(apiVersion: string|undefined, peerLibrary: PeerLibrary | IdlPeerLibrary): {api: string, serializers: string} {
+export function printSerializers(apiVersion: number, peerLibrary: PeerLibrary | IdlPeerLibrary): {api: string, serializers: string} {
     const apiHeader = new IndentedPrinter()
     const modifierList = new IndentedPrinter()
     const accessorList = new IndentedPrinter()
@@ -222,11 +224,11 @@ export function printSerializers(apiVersion: string|undefined, peerLibrary: Peer
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = createLanguageWriter(Language.CPP)
+    const structs = new CppLanguageWriter(new IndentedPrinter())
     const typedefs = new IndentedPrinter()
 
     const serializers = makeCSerializers(peerLibrary, structs, typedefs)
-    const api = makeAPI(apiVersion ?? "0", apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
+    const api = makeAPI(apiVersion.toString(), apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
 
     return {api, serializers}
 }

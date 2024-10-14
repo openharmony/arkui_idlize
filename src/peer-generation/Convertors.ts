@@ -12,14 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Language, identName, identNameWithNamespace, importTypeName } from "../util"
+import { identName, identNameWithNamespace, importTypeName } from "../util"
 import { DeclarationTable } from "./DeclarationTable"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import * as ts from "typescript"
-import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters"
+import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "./LanguageWriters/LanguageWriter"
 import { mapType, TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
 import { makeArrayTypeCheckCall, makeInterfaceTypeCheckerCall } from "./printers/TypeCheckPrinter"
 import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "./ArgConvertors"
+import { Language } from "../Language"
 
 function castToInt8(value: string, lang: Language): string {
     switch (lang) {

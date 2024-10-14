@@ -15,8 +15,9 @@
 
 import * as ts from 'typescript'
 import { DeclarationConvertor, TypeNodeConvertor, convertDeclaration, convertTypeNode } from "./TypeNodeConvertor";
-import {getDeclarationsByNode, Language} from '../util';
+import {getDeclarationsByNode} from '../util';
 import { mapType } from './TypeNodeNameConvertor';
+import { Language } from '../Language';
 
 export class TypeDependenciesCollector implements TypeNodeConvertor<ts.Declaration[]> {
     constructor(protected readonly typeChecker: ts.TypeChecker, private readonly language: Language) {}
@@ -139,7 +140,7 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<ts
         ]
     }
     protected convertHeritageClause(clause: ts.HeritageClause): ts.Declaration[] {
-        return clause.types.flatMap(expression => this.convertExpression(expression))       
+        return clause.types.flatMap(expression => this.convertExpression(expression))
     }
     private convertMember(member: ts.TypeElement | ts.ClassElement): ts.Declaration[] {
         if (ts.isPropertyDeclaration(member) ||

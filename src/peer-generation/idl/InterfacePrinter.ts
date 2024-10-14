@@ -17,7 +17,7 @@ import * as idl from '../../idl'
 import * as path from 'path'
 import { IdlPeerLibrary } from "./IdlPeerLibrary"
 import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from '../LanguageWriters'
-import { Language, removeExt, renameDtsToInterfaces, throwException } from '../../util'
+import { removeExt, renameDtsToInterfaces, throwException } from '../../util'
 import { ImportsCollector } from '../ImportsCollector'
 import { IdlPeerFile } from './IdlPeerFile'
 import { IndentedPrinter } from "../../IndentedPrinter"
@@ -30,6 +30,7 @@ import { EnumEntity } from '../PeerFile'
 import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../printers/lang/Java'
 import { printJavaImports } from '../printers/lang/JavaPrinters'
 import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
+import { Language } from '../../Language'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -337,18 +338,18 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
                     writer.makeString(`new ${alias}(${it.numberId})`)
                 )
             })
-    
+
             const value = 'value'
             const intType = new Type('int')
             writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
-    
+
             const signature = new MethodSignature(Type.Void, [intType])
             writer.writeConstructorImplementation(alias, signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
                 )
             })
-    
+
             const getIntValue = new Method('getIntValue', new MethodSignature(intType, []), [MethodModifier.PUBLIC])
             writer.writeMethodImplementation(getIntValue, () => {
                 writer.writeStatement(

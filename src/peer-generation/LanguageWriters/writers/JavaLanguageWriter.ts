@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
-import { Language } from "../../../util"
+import { Language } from "../../../Language"
 import { EnumConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { convertJavaOptional } from "../../printers/lang/Java"
 import { AssignStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
@@ -203,30 +203,30 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         switch (type.name) {
 
             /////////////////////////////
-            // OLD ONES 
+            // OLD ONES
 
             // other
             case 'Length': return 'String'
 
             // Pointer
             case 'KPointer': return 'long'
-        
+
             // Integral
             case 'boolean': case 'KBoolean': return 'boolean'
             case 'KUInt': return 'int'
             case 'int32': case 'KInt': return 'int'
             case 'int64': case 'KLong': return 'long'
-            
+
             // Number
             case 'number': return 'double'
             case 'float32': case 'KFloat': return 'float'
-            
+
             // Array like
             case 'Uint8Array': return 'byte[]'
             case 'KUint8ArrayPtr': return 'byte[]'
             case 'KInt32ArrayPtr': return 'int[]'
             case 'KFloat32ArrayPtr': return 'float[]'
-            
+
             // String like
             case 'KStringPtr': return 'String'
             case 'string': return 'String'

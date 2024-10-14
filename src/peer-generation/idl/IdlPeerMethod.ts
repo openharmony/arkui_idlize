@@ -16,9 +16,10 @@
 
 import { capitalize, isDefined } from "../../util"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
-import { Method, MethodModifier, mangleMethodName } from "../LanguageWriters"
+import { Method, MethodModifier } from "../LanguageWriters"
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { IDLType } from "../../idl"
+import { mangleMethodName } from "../LanguageWriters/LanguageWriter"
 
 export class IdlPeerMethod {
     private overloadIndex?: number

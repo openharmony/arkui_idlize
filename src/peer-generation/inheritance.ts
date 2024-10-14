@@ -15,7 +15,7 @@
 
 
 import * as ts from "typescript";
-import { getDeclarationsByNode } from "../util";
+import { asString, getDeclarationsByNode, heritageDeclarations, identName } from "../util";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 
 export enum InheritanceRole {
@@ -46,6 +46,20 @@ export function determineParentRole(name: string|undefined, parent: string | und
 
 export function isCommonMethod(name: string): boolean {
     return name === "CommonMethod"
+}
+
+export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
+    let name = identName(decl.name)!
+    let isSubclass = isRoot(name)
+    decl.heritageClauses?.forEach(it => {
+        heritageDeclarations(typeChecker, it).forEach(it => {
+            let name = asString(it.name)
+            isSubclass = isSubclass || isRoot(name)
+            if (!ts.isClassDeclaration(it)) return isSubclass
+            isSubclass = isSubclass || isCommonMethodOrSubclass(typeChecker, it)
+        })
+    })
+    return isSubclass
 }
 
 export function isRoot(name: string): boolean {

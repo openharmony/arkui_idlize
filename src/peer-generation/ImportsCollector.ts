@@ -15,7 +15,7 @@
 
 import * as ts from 'typescript'
 import { posix as path } from "path"
-import { getOrPut, Language, nameOrNull, renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces, renameDtsToPeer } from "../util";
+import { getOrPut, nameOrNull, renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces, renameDtsToPeer } from "../util";
 import { LanguageWriter } from "./LanguageWriters";
 import { PeerLibrary } from './PeerLibrary';
 import { isMaterialized } from './Materialized';
@@ -24,6 +24,7 @@ import { PeerGeneratorConfig } from './PeerGeneratorConfig';
 import { convertDeclaration, DeclarationConvertor } from './TypeNodeConvertor';
 import { syntheticDeclarationFilename, isSyntheticDeclaration } from './synthetic_declaration';
 import { isBuilderClass } from './BuilderClass';
+import { Language } from '../Language';
 
 export type ImportsCollectorFilter = (feature: string, module: string) => boolean
 

@@ -20,47 +20,29 @@ import { ETSLanguageWriter } from "./writers/ETSLanguageWriter";
 import { JavaLanguageWriter } from "./writers/JavaLanguageWriter";
 import { CppLanguageWriter } from "./writers/CppLanguageWriter";
 import { CJLanguageWriter } from "./writers/CJLanguageWriter";
-import { Language } from "../../util";
+import { Language } from "../../Language";
 
 //////////////////////////////////////////////////////////////////
-// REEXPORTS 
+// REEXPORTS
 
-export { 
+export {
     Field,
-    FieldModifier, 
-    Method, 
-    MethodModifier, 
-    MethodSignature, 
+    FieldModifier,
+    Method,
+    MethodModifier,
+    MethodSignature,
     ExpressionStatement,
-    NamedMethodSignature, 
-    Type, BlockStatement, 
-    BranchStatement, 
-    LanguageExpression, 
+    NamedMethodSignature,
+    Type, BlockStatement,
+    BranchStatement,
+    LanguageExpression,
     FunctionCallExpression,
-    LanguageStatement, 
+    LanguageStatement,
     LanguageWriter,
     StringExpression,
     PrinterLike
 } from './LanguageWriter'
 export { CppLanguageWriter, TSLanguageWriter }
-
-export function mangleMethodName(method: Method, id?: number): string {
-    return `${method.name}${id ?? ""}`
-}
-
-export function copyMethod(method: Method, overrides: {
-    name?: string,
-    signature?: MethodSignature,
-    modifiers?: MethodModifier[],
-    generics?: string[],
- }) {
-    return new Method(
-        overrides.name ?? method.name,
-        overrides.signature ?? method.signature,
-        overrides.modifiers ?? method.modifiers,
-        overrides.generics ?? method.generics,
-    )
-}
 
 export function createLanguageWriter(language: Language): LanguageWriter {
     switch (language) {
@@ -70,19 +52,5 @@ export function createLanguageWriter(language: Language): LanguageWriter {
         case Language.CPP: return new CppLanguageWriter(new IndentedPrinter())
         case Language.CJ: return new CJLanguageWriter(new IndentedPrinter())
         default: throw new Error(`Language ${language.toString()} is not supported`)
-    }
-}
-
-export function printMethodDeclaration(printer: IndentedPrinter, retType: string, methodName: string, apiParameters: string[], postfix: string = "") {
-    if (apiParameters.length > 1) {
-        const methodTypeName = `${retType} ${methodName}`
-        const indent = ` `.repeat(methodTypeName.length + 1)
-        printer.print(`${methodTypeName}(${apiParameters[0]},`)
-        for (let i = 1; i < apiParameters.length; i++) {
-            printer.print(indent + apiParameters[i] + ((i === apiParameters.length - 1) ? `)${postfix}` : ","))
-        }
-    } else {
-        const signature = `${retType} ${methodName}(${apiParameters.join(", ")})${postfix}`
-        printer.print(signature)
     }
 }

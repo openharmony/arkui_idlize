@@ -22,10 +22,10 @@ import { PeerMethod } from "../PeerMethod";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
-import { Language } from "../../util";
+import { Language } from "../../Language";
 import * as idl from '../../idl'
 
-class NativeModuleVisitor { 
+class NativeModuleVisitor {
     readonly nativeModulePredefined: Map<string, LanguageWriter>
     readonly nativeModule: LanguageWriter
     readonly nativeModuleEmpty: LanguageWriter
@@ -101,7 +101,7 @@ class NativeModuleVisitor {
         let name = `_${component}_${method.overloadedName}`
 
         nativeModule.writeNativeMethodDeclaration(name, parameters)
-        
+
         nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
             printer.writePrintLog(name)
             if (returnType !== undefined && returnType.name !== Type.Void.name) {
@@ -118,10 +118,10 @@ class NativeModuleVisitor {
         }
         return true
     }
-    
+
     makeMethodFromIdl(inputMethod:idl.IDLMethod, printer: LanguageWriter): Method {
         let signature = printer.makeNamedSignature(
-            inputMethod.returnType, 
+            inputMethod.returnType,
             inputMethod.parameters
         )
         if (this.library.language === Language.TS) {
@@ -142,7 +142,7 @@ class NativeModuleVisitor {
         if (!this.shouldPrintPredefineMethod(inputMethod)) {
             return
         }
-        
+
         const method = this.makeMethodFromIdl(inputMethod, printer)
         printer.writeNativeMethodDeclaration(method.name, method.signature)
         this.nativeModuleEmpty.writeMethodImplementation(method, (printer) => {
@@ -159,8 +159,8 @@ class NativeModuleVisitor {
         for (const declaration of this.library.predefinedDeclarations) {
             const writer = createLanguageWriter(this.library.language)
             this.nativeModulePredefined.set(
-                declaration.name, 
-                writer               
+                declaration.name,
+                writer
             )
             writer.pushIndent()
             for (const method of declaration.methods) {
@@ -260,7 +260,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
 
         nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
             printer.writePrintLog(name)
-            if (returnType !== undefined 
+            if (returnType !== undefined
                 && returnType.name !== Type.Void.name
                 && returnType.name !== idl.IDLVoidType.name
                 && returnType.name !== 'Void'
@@ -277,7 +277,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
         }
         const method = this.makeMethodFromIdl(inputMethod, printer)
         method.modifiers = [MethodModifier.PUBLIC, MethodModifier.STATIC]
-        
+
         const foreightMethodName = method.name.substring(1)
         const func = printer.makeNativeMethodNamedSignature(inputMethod.returnType, inputMethod.parameters)
 
@@ -293,9 +293,9 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
                     const varName = `handle_${ordinal}`
                     callParameters.push(`${varName}.pointer`)
                     printer.writeStatement(printer.makeAssign(
-                        varName, 
-                        undefined, 
-                        printer.makeString(`acquireArrayRawData(${paramName}.toArray())`), 
+                        varName,
+                        undefined,
+                        printer.makeString(`acquireArrayRawData(${paramName}.toArray())`),
                         true
                     ))
                     cleanUpStmnts.push(`releaseArrayRawData(${varName})`)
@@ -343,8 +343,8 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
 
         this.nativeModuleEmpty.writeMethodImplementation(method, (printer) => {
             printer.writePrintLog(method.name)
-            if (inputMethod.returnType !== undefined 
-                && inputMethod.returnType.name !== Type.Void.name 
+            if (inputMethod.returnType !== undefined
+                && inputMethod.returnType.name !== Type.Void.name
                 && inputMethod.returnType.name !== idl.IDLVoidType.name
                 && inputMethod.returnType.name !== 'Void'
             ) {

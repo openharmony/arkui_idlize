@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Language } from '../../../util';
+import { Language } from '../../../Language';
 import { DeclarationTable } from '../../DeclarationTable';
 import { ImportTable as ImportTable } from '../ImportTable';
 import { PrinterContext } from '../PrinterContext';
@@ -33,7 +33,7 @@ class PrinterContextImpl implements PrinterContext {
     get imports(): ImportTable | undefined {
         return this._imports
     }
-        
+
     constructor(table: DeclarationTable) {
         if (table.language == Language.JAVA) {
             this._imports = new JavaImportTable()

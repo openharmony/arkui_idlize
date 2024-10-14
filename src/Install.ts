@@ -15,7 +15,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { Language } from './util'
+import { Language } from './Language'
 import { TargetFile } from './peer-generation/printers/TargetFile'
 
 class Install {

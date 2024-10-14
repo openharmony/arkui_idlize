@@ -14,16 +14,17 @@
  */
 
 import * as ts from 'typescript'
-import { identName, Language } from '../../../util'
+import { identName } from '../../../util'
 import { LanguageWriter, Type, createLanguageWriter } from '../../LanguageWriters'
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
-import { ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, convertJavaOptional } from '../lang/Java'
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, convertJavaOptional } from '../lang/Java'
 import { JavaEnum, JavaTuple, JavaUnion } from "../lang/JavaPrinters"
 import { TargetFile } from '../TargetFile'
 import { DeclarationTable, DeclarationTarget } from '../../DeclarationTable'
 import { PrimitiveType } from "../../ArkPrimitiveType"
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { ImportTable } from '../ImportTable'
+import { Language } from '../../../Language'
 
 
 function unsupportedType(type: string): Error {

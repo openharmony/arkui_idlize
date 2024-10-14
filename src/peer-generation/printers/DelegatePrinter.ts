@@ -20,11 +20,12 @@ import { DeclarationTable, DeclarationTarget, FieldRecord } from "../Declaration
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { cStyleCopyright, completeDelegatesImpl, makeFileNameFromClassName, makeIncludeGuardDefine, warning } from "../FileGenerators";
 import { PeerLibrary } from "../PeerLibrary";
-import { MethodSeparatorVisitor, PeerMethod } from "../PeerMethod";
+import { PeerMethod } from "../PeerMethod";
 import { PeerClass } from "../PeerClass";
 import { MaterializedClass } from "../Materialized";
 import { CppLanguageWriter, PrinterLike } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
+import { MethodSeparatorVisitor } from "../MethodSeparator";
 
 export class DelegateSignatureBuilder {
     constructor(

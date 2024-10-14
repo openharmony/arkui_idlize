@@ -16,7 +16,7 @@
 import { IDLType, isContainerType, isUnionType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
-import { Language } from "../../../util"
+import { Language } from "../../../Language"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { PrimitiveType } from "../../ArkPrimitiveType"
 import { ArrayConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
