@@ -521,26 +521,26 @@
 |`barrier`| Function | Dmitry A Smirnov | done ||
 |*RichEditor*| *Component* | Dudkin Sergey| in progress||
 |`setRichEditorOptions`| Function | Dudkin Sergey| in progress||
-|`onReady`| Function | Dudkin Sergey| devDone||
-|`onSelect`| Function | Dudkin Sergey| devDone||
-|`onSelectionChange`| Function | Dudkin Sergey| devDone||
-|`aboutToIMEInput`| Function | Dudkin Sergey| devDone||
+|`onReady`| Function | Dudkin Sergey| in progress||
+|`onSelect`| Function | Dudkin Sergey| in progress||
+|`onSelectionChange`| Function | Dudkin Sergey| in progress||
+|`aboutToIMEInput`| Function | Dudkin Sergey| in progress||
 |`onIMEInputComplete`| Function | Dudkin Sergey| blocked| I don't know how to convert FONT_FEATURES_LIST into Ark_String|
-|`onDidIMEInput`| Function | Dudkin Sergey| devDone||
-|`aboutToDelete`| Function | Dudkin Sergey| devDone||
-|`onDeleteComplete`| Function | Dudkin Sergey| devDone||
+|`onDidIMEInput`| Function | Dudkin Sergey| in progress||
+|`aboutToDelete`| Function | Dudkin Sergey| in progress||
+|`onDeleteComplete`| Function | Dudkin Sergey| in progress||
 |`copyOptions`| Function | Dudkin Sergey| in progress||
-|`onPaste`| Function | Dudkin Sergey| devDone||
+|`onPaste`| Function | Dudkin Sergey| in progress||
 |`enableDataDetector`| Function | Dudkin Sergey| in progress||
 |`enablePreviewText`| Function | Dudkin Sergey| in progress||
 |`dataDetectorConfig`| Function | Dudkin Sergey| in progress||
 |`caretColor`| Function | Dudkin Sergey| in progress||
 |`selectedBackgroundColor`| Function | Dudkin Sergey| in progress||
-|`onEditingChange`| Function | Dudkin Sergey| devDone||
+|`onEditingChange`| Function | Dudkin Sergey| in progress||
 |`enterKeyType`| Function | Dudkin Sergey| in progress||
-|`onSubmit`| Function | Dudkin Sergey| devDone||
-|`onWillChange`| Function | Dudkin Sergey| devDone||
-|`onDidChange`| Function | Dudkin Sergey| devDone||
+|`onSubmit`| Function | Dudkin Sergey| in progress||
+|`onWillChange`| Function | Dudkin Sergey| in progress||
+|`onDidChange`| Function | Dudkin Sergey| in progress||
 |`onCut`| Function | Dudkin Sergey| blocked| Ark_CutEvent param is always empty now|
 |`onCopy`| Function | Dudkin Sergey| blocked| Ark_CopyEvent param is always empty now|
 |`editMenuOptions`| Function | Dudkin Sergey| in progress||
@@ -551,9 +551,9 @@
 |`customKeyboard`| Function | Dudkin Sergey| in progress||
 |`placeholder`| Function | Dudkin Sergey| in progress||
 |*Row*| *Component* | Andrey Khudenkikh | blocked ||
-|`setRowOptions`| Function | Andrey Khudenkikh | devDone ||
-|`alignItems`| Function | Andrey Khudenkikh | devDone ||
-|`justifyContent`| Function | Andrey Khudenkikh | devDone ||
+|`setRowOptions`| Function | Andrey Khudenkikh | in progress||
+|`alignItems`| Function | Andrey Khudenkikh | in progress||
+|`justifyContent`| Function | Andrey Khudenkikh | in progress||
 |`pointLight`| Function | Andrey Khudenkikh | blocked ||
 |`reverse`| Function | Andrey Khudenkikh | blocked ||
 |*SaveButton*| *Component* | Samarin Sergey| in progress ||
