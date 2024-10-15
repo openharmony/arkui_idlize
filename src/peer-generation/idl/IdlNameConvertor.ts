@@ -208,7 +208,7 @@ class JavaTypeAliasConvertor implements TypeConvertor<JavaTypeAlias> {
     }
     convertCallback(type: idl.IDLCallback): JavaTypeAlias {
         // TODO
-        return JavaTypeAlias.fromTypeName(`???Callback`, false)
+        return JavaTypeAlias.fromTypeName(`Callback`, false)
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): JavaTypeAlias {
         return JavaTypeAlias.fromTypeName(type.name, false)
@@ -291,7 +291,7 @@ class JavaTypeAliasConvertor implements TypeConvertor<JavaTypeAlias> {
         // TODO
         //const params = decl.parameters.map(it => `${it.isVariadic ? "..." : ""}${it.name}: ${this.library.mapType(it.type)}`)
         //`((${params.join(", ")}) => ${this.library.mapType(decl.returnType)})`
-        return JavaTypeAlias.fromTypeName('???Callback', false)
+        return JavaTypeAlias.fromTypeName('Callback', false)
     }
 
     // Tuple + ??? AnonymousClass 
