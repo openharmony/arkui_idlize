@@ -100,20 +100,9 @@ class HeaderVisitor {
             let accessorName = `${PeerGeneratorConfig.cppPrefix}ArkUI${name}Accessor`
             this.api.print(`typedef struct ${peerName} ${peerName};`)
             this.api.print(`typedef struct ${accessorName} {`)
-            this.api.pushIndent()
-
-            let names = new Set<string>();
+            this.api.pushIndent();
             [clazz.ctor, clazz.finalizer].concat(clazz.methods)
-                .forEach(method => {
-                    // TBD: handle methods with the same name like SubTabBarStyle
-                    // of(content: ResourceStr) and
-                    // of(content: ResourceStr | ComponentContent)
-                    if (names.has(method.overloadedName)) {
-                        return
-                    }
-                    names.add(method.overloadedName)
-                    this.api.print(`${method.retType} (*${method.overloadedName})(${method.generateAPIParameters().join(", ")});`)
-                })
+                .forEach(method => this.printMethod(method))
             this.api.popIndent()
             this.api.print(`} ${accessorName};\n`)
         }
