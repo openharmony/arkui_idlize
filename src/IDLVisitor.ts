@@ -63,7 +63,7 @@ const MaxSyntheticTypeLength = 60
 
 class NameSuggestion {
     protected constructor(
-        readonly name: string, 
+        readonly name: string,
         readonly forced: boolean = false,
     ) {}
 
@@ -104,10 +104,18 @@ export class CompileContext {
     }
 }
 
+class Scope {
+    entries: IDLEntry[] = []
+    add(entry: IDLEntry) {
+        this.entries.push(entry)
+    }
+}
+
 export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private output: IDLEntry[] = []
-    private currentScope:  IDLEntry[] = []
-    scopes: IDLEntry[][] = []
+    private currentScope = new Scope()
+    private scopes: Scope[] = []
+    private seenNames = new Set<string>()
     imports: IDLImport[] = []
     exports: string[] = []
     namespaces: string[] = []
@@ -116,13 +124,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     startScope() {
         this.scopes.push(this.currentScope)
-        this.currentScope = []
+        this.currentScope = new Scope()
     }
 
-    endScope() {
+    endScope(): IDLEntry[] {
         const result = this.currentScope
         this.currentScope = this.scopes.pop()!
-        return result
+        return result.entries
     }
 
     constructor(
@@ -293,7 +301,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             (ts.isIdentifier(it.expression)) ?
                 ts.idText(it.expression) :
                     `NON_IDENTIFIER_HERITAGE ${asString(it)}`
-            return createReferenceType(name, it.typeArguments)
+            return createReferenceType(escapeIdl(name), it.typeArguments)
         })
     }
 
@@ -543,7 +551,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const syntheticName = `Tuple_${properties.map(it => this.computeTypeName(it.type)).join("_")}`
         const selectedName = selectName(nameSuggestion, syntheticName)
         return {
-            name: selectedName, 
+            name: selectedName,
             properties,
             kind: IDLKind.TupleInterface,
             fileName: node.getSourceFile().fileName,
@@ -561,7 +569,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const syntheticName = `Intersection_${inheritance.map(it => this.computeTypeName(it)).join("_")}`
         const selectedName = selectName(nameSuggestion, syntheticName)
         return {
-            name: selectedName, 
+            name: selectedName,
             inheritance,
             kind: IDLKind.AnonymousInterface,
             fileName: node.getSourceFile().fileName,
@@ -661,7 +669,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const syntheticName = this.generateSyntheticFunctionName(parameters, returnType)
         const selectedName = selectName(nameSuggestion, syntheticName)
         return {
-            name: selectedName, 
+            name: selectedName,
             parameters, returnType,
             kind: IDLKind.Callback,
             fileName: signature.getSourceFile().fileName,
@@ -689,6 +697,32 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return `Callback_${names.join("_")}`
     }
 
+    serializeCallback(rawType: string, type: ts.TypeReferenceNode): IDLCallback {
+        const types = type.typeArguments!.map(it => this.serializeType(it))
+        const returnType = types[0]
+        const parameters = types.splice(1).map((it, index) => {
+            let param = {
+                kind: IDLKind.Parameter,
+                name: `parameter_${index}`,
+                type: it,
+                isVariadic: false,
+                isOptional: false
+                } as IDLParameter
+            return param
+        })
+        let isAsync = rawType == "AsyncCallback"
+        let extendedAttributes = isAsync ? [{name: IDLExtendedAttributes.Async}] : []
+        let name = `${isAsync ? "Async" : ""}Callback_${parameters.map(it => it.type!).concat(returnType).map(it => this.computeTypeName(it)).join("_")}`
+        return {
+            name,
+            parameters,
+            returnType,
+            kind: IDLKind.Callback,
+            fileName: type.getSourceFile().fileName,
+            extendedAttributes,
+        };
+    }
+
     serializeAccessor(accessor: ts.GetAccessorDeclaration | ts.SetAccessorDeclaration, nameSuggestion: NameSuggestion | undefined): IDLProperty {
         const [accessorType, accessorAttr, readonly] = ts.isGetAccessorDeclaration(accessor)
             ? [accessor.type, IDLAccessorAttribute.Getter, true]
@@ -710,7 +744,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     addToScope(entry: IDLEntry) {
         entry.extendedAttributes ??= []
         entry.extendedAttributes.push({ name: IDLExtendedAttributes.Synthetic })
-        this.currentScope.push(entry)
+        let name = entry.name
+        if (!name || !this.seenNames.has(name)) {
+            if (name) this.seenNames.add(name)
+            this.currentScope.add(entry)
+        }
     }
 
     isTypeParameterReference(type: ts.TypeNode): boolean {
@@ -797,7 +835,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             let types = type.types
                 .map((it, index) => this.serializeType(it, nameSuggestion?.extend(`u${index}`)))
                 .reduce<IDLType[]>((uniqueTypes, it) => uniqueTypes.concat(uniqueTypes.includes(it) ? []: [it]), [])
-            
+
             const syntheticUnionName = `Union_${types.map(it => this.computeTypeName(it)).join("_")}`
             const selectedUnionName = selectName(nameSuggestion, syntheticUnionName)
             let aPromise = types.find(it => isContainerType(it) && it.name == "Promise")
@@ -841,8 +879,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
             const transformedType = typeMapper.get(rawType) ?? rawType
             // TODO: support Record here as well.
-            if (rawType == "Array" || rawType == "Promise" || rawType == "Map") {
+            if (rawType == "Array" || rawType == "Promise" || rawType == "Map" /*|| rawType == "Record"*/) {
                 return createContainerType(transformedType, type.typeArguments!.map(it => this.serializeType(it)))
+            }
+            if (rawType == "Callback" || rawType == "AsyncCallback") {
+                const funcType = this.serializeCallback(rawType, type)
+                this.addToScope(funcType)
+                return createReferenceType(funcType.name)
             }
             if (isEnum) {
                 return createEnumType(transformedType)
@@ -851,8 +894,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 const typeArgumentsLength = type.typeArguments?.length ?? 0
                 const callback = this.serializeSyntheticFunctionType(
                     type.getSourceFile().fileName,
-                    typeArgumentsLength > 0 && type.typeArguments![0].kind != ts.SyntaxKind.VoidKeyword 
-                        ? [ts.factory.createParameterDeclaration(undefined, undefined, 'value', undefined, type.typeArguments![0])] 
+                    typeArgumentsLength > 0 && type.typeArguments![0].kind != ts.SyntaxKind.VoidKeyword
+                        ? [ts.factory.createParameterDeclaration(undefined, undefined, 'value', undefined, type.typeArguments![0])]
                         : [],
                     typeArgumentsLength > 1 ? type.typeArguments![1] : ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
                     nameSuggestion,

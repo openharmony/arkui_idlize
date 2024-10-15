@@ -33,6 +33,7 @@ export enum IDLKind {
     Enum,
     EnumMember,
     Typedef,
+    TupleInterface,
     PrimitiveType,
     ContainerType,
     ReferenceType,
@@ -40,7 +41,6 @@ export enum IDLKind {
     UnionType,
     TypeParameterType,
     ModuleType,
-    TupleInterface
 }
 
 export enum IDLEntity {
@@ -79,7 +79,8 @@ export enum IDLExtendedAttributes {
     GlobalScope = "GlobalScope",
     Namespace = "Namespace",
     Deprecated = "Deprecated",
-    NativeModule = "NativeModule"
+    NativeModule = "NativeModule",
+    Async = "Async",
 }
 
 export enum IDLAccessorAttribute {
