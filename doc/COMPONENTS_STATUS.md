@@ -50,7 +50,7 @@
 |`onFinish`| Function | Lobah Mikhail| in progress||
 |`onFrame`| Function | Lobah Mikhail| in progress||
 |*Badge*| *Component* |Vadim Voronov |In Progress ||
-|`setBadgeOptions`| Function |Vadim Voronov |In Progress ||
+|`setBadgeOptions`| Function |Vadim Voronov |In Progress |https://gitee.com/openharmony/arkui_ace_engine/issues/IAX28D?from=project-issue|
 |*Blank*| *Component* | Skroba Gleb | done ||
 |`setBlankOptions`| Function | Skroba Gleb | done ||
 |`color`| Function | Skroba Gleb | done ||
@@ -117,8 +117,8 @@
 |`justifyContent`| Function | Politov Mikhail | in progress ||
 |`pointLight`| Function | Politov Mikhail |in progress ||
 |`reverse`| Function | Politov Mikhail | in progress ||
-|*ColumnSplit*| *Component* | Dmitry A Smirnov| in progress||
-|`setColumnSplitOptions`| Function | Dmitry A Smirnov| in progress||
+|*ColumnSplit*| *Component* | Dmitry A Smirnov| in progress|https://gitee.com/openharmony/arkui_ace_engine/issues/IAX2ZN|
+|`setColumnSplitOptions`| Function | Dmitry A Smirnov| done||
 |`resizeable`| Function | Dmitry A Smirnov| in progress||
 |`divider`| Function | Dmitry A Smirnov| in progress||
 |*CommonMethod*|*Component*|Skroba Gleb,Erokhin Ilya | in progress ||
@@ -133,13 +133,13 @@
 |`backgroundColor`|Function|Skroba Gleb| done ||
 |`animateTo`| Function | Erokhin Ilya | blocked ArKoala |https://gitee.com/nikolay-igotti/idlize/issues/IAUUE7|
 |`backgroundImage`| Function | Erokhin Ilya | in progress ||
-|`backgroundImageSize`| Function | Erokhin Ilya | in progress ||
-|`backgroundImagePosition`| Function | Erokhin Ilya | in progress ||
+|`backgroundImageSize`| Function | Erokhin Ilya | done ||
+|`backgroundImagePosition`| Function | Erokhin Ilya | done ||
 |`clip`| Function | Erokhin Ilya | blocked |https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH|
-|`scale`| Function | Erokhin Ilya | in progress ||
-|`translate`| Function | Erokhin Ilya | in progress ||
-|`id`| Function | Erokhin Ilya | in progress ||
-|`onVisibleAreaChange`| Function | Erokhin Ilya | in progress ||
+|`scale`| Function | Erokhin Ilya | done ||
+|`translate`| Function | Erokhin Ilya | done ||
+|`id`| Function | Erokhin Ilya | done ||
+|`onVisibleAreaChange`| Function | Erokhin Ilya | done ||
 |`animation`| Function | Erokhin Ilya | in progress ||
 |*CommonShapeMethod*|*Component*|Skroba Gleb| in progress||
 |`stroke`|Function| Skroba Gleb | done ||
@@ -197,7 +197,7 @@
 |`trackShadow`| Function |Morozov Sergey |blocked Arkoala |https://gitee.com/nikolay-igotti/idlize/issues/IAW4DU|
 |`contentModifier`| Function | Morozov Sergey |blocked Arkoala ||
 |*DatePicker*| *Component* | Vadim Voronov |In Progress ||
-|`setDatePickerOptions`| Function | Vadim Voronov|In Progress ||
+|`setDatePickerOptions`| Function | Vadim Voronov| blocked Arkoala ||
 |`lunar`| Function |Vadim Voronov |In Progress ||
 |`disappearTextStyle`| Function | Vadim Voronov|In Progress ||
 |`textStyle`| Function |Vadim Voronov |In Progress ||
@@ -357,7 +357,7 @@
 |`divider`|Function|Morozov Sergey|done||
 |`childrenMainSize`|Function|Morozov Sergey|blocked Arkoala||
 |*LocationButton*| *Component* |Samarin Sergey| in progress ||
-|`setLocationButtonOptions`| Function |Samarin Sergey| in progress ||
+|`setLocationButtonOptions`| Function |Samarin Sergey| done ||
 |`onClick`| Function |Samarin Sergey| in progress ||
 |*Marquee*| *Component* | Andrey Khudenkikh| in progress ||
 |`setMarqueeOptions`| Function | Andrey Khudenkikh| in progress ||
@@ -465,7 +465,7 @@
 |`onChange`| Function |Pavelyev Ivan|in progress ||
 |`onHeightChange`| Function |Pavelyev Ivan|in progress ||
 |*PasteButton*| *Component* | Samarin Sergey| in progress ||
-|`setPasteButtonOptions`| Function | Samarin Sergey| in progress ||
+|`setPasteButtonOptions`| Function | Samarin Sergey| done ||
 |`onClick`| Function | Samarin Sergey| in progress ||
 |*Path*| *Component* | Skroba Gleb | done ||
 |`setPathOptions`| Function | Skroba Gleb | done ||
@@ -521,28 +521,28 @@
 |`barrier`| Function | Dmitry A Smirnov | done ||
 |*RichEditor*| *Component* | Dudkin Sergey| in progress||
 |`setRichEditorOptions`| Function | Dudkin Sergey| in progress||
-|`onReady`| Function | Dudkin Sergey| in progress||
-|`onSelect`| Function | Dudkin Sergey| in progress||
-|`onSelectionChange`| Function | Dudkin Sergey| in progress||
-|`aboutToIMEInput`| Function | Dudkin Sergey| in progress||
-|`onIMEInputComplete`| Function | Dudkin Sergey| in progress||
-|`onDidIMEInput`| Function | Dudkin Sergey| in progress||
-|`aboutToDelete`| Function | Dudkin Sergey| in progress||
-|`onDeleteComplete`| Function | Dudkin Sergey| in progress||
+|`onReady`| Function | Dudkin Sergey| devDone||
+|`onSelect`| Function | Dudkin Sergey| devDone||
+|`onSelectionChange`| Function | Dudkin Sergey| devDone||
+|`aboutToIMEInput`| Function | Dudkin Sergey| devDone||
+|`onIMEInputComplete`| Function | Dudkin Sergey| blocked| I don't know how to convert FONT_FEATURES_LIST into Ark_String|
+|`onDidIMEInput`| Function | Dudkin Sergey| devDone||
+|`aboutToDelete`| Function | Dudkin Sergey| devDone||
+|`onDeleteComplete`| Function | Dudkin Sergey| devDone||
 |`copyOptions`| Function | Dudkin Sergey| in progress||
-|`onPaste`| Function | Dudkin Sergey| in progress||
+|`onPaste`| Function | Dudkin Sergey| devDone||
 |`enableDataDetector`| Function | Dudkin Sergey| in progress||
 |`enablePreviewText`| Function | Dudkin Sergey| in progress||
 |`dataDetectorConfig`| Function | Dudkin Sergey| in progress||
 |`caretColor`| Function | Dudkin Sergey| in progress||
 |`selectedBackgroundColor`| Function | Dudkin Sergey| in progress||
-|`onEditingChange`| Function | Dudkin Sergey| in progress||
+|`onEditingChange`| Function | Dudkin Sergey| devDone||
 |`enterKeyType`| Function | Dudkin Sergey| in progress||
-|`onSubmit`| Function | Dudkin Sergey| in progress||
-|`onWillChange`| Function | Dudkin Sergey| in progress||
-|`onDidChange`| Function | Dudkin Sergey| in progress||
-|`onCut`| Function | Dudkin Sergey| in progress||
-|`onCopy`| Function | Dudkin Sergey| in progress||
+|`onSubmit`| Function | Dudkin Sergey| devDone||
+|`onWillChange`| Function | Dudkin Sergey| devDone||
+|`onDidChange`| Function | Dudkin Sergey| devDone||
+|`onCut`| Function | Dudkin Sergey| blocked| Ark_CutEvent param is always empty now|
+|`onCopy`| Function | Dudkin Sergey| blocked| Ark_CopyEvent param is always empty now|
 |`editMenuOptions`| Function | Dudkin Sergey| in progress||
 |`enableKeyboardOnFocus`| Function | Dudkin Sergey| in progress||
 |`enableHapticFeedback`| Function | Dudkin Sergey| in progress||
@@ -551,13 +551,13 @@
 |`customKeyboard`| Function | Dudkin Sergey| in progress||
 |`placeholder`| Function | Dudkin Sergey| in progress||
 |*Row*| *Component* | Andrey Khudenkikh | blocked ||
-|`setRowOptions`| Function | Andrey Khudenkikh | in progress ||
-|`alignItems`| Function | Andrey Khudenkikh | in progress ||
-|`justifyContent`| Function | Andrey Khudenkikh | in progress ||
+|`setRowOptions`| Function | Andrey Khudenkikh | devDone ||
+|`alignItems`| Function | Andrey Khudenkikh | devDone ||
+|`justifyContent`| Function | Andrey Khudenkikh | devDone ||
 |`pointLight`| Function | Andrey Khudenkikh | blocked ||
 |`reverse`| Function | Andrey Khudenkikh | blocked ||
 |*SaveButton*| *Component* | Samarin Sergey| in progress ||
-|`setSaveButtonOptions`| Function | Samarin Sergey| in progress ||
+|`setSaveButtonOptions`| Function | Samarin Sergey| done ||
 |`onClick`| Function | Samarin Sergey| in progress ||
 |*Scroll*| *Component* | Kirill Berezin | in progress ||
 |`setScrollOptions`| Function | Kirill Berezin | in progress ||
@@ -592,11 +592,11 @@
 |`getItemRect`| Function | Erokhin Ilya | blocked ArKoala |https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0|
 |`getItemIndex`| Function | Erokhin Ilya | done ||
 |*Search*|*Component*| Evstigneev Roman |In Progress||
-|`setSearchOptions`|Function| Evstigneev Roman | in progress ||
+|`setSearchOptions`|Function| Evstigneev Roman | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IAXCOP |
 |`searchButton`|Function| Evstigneev Roman | in progress ||
 |`fontColor`|Function| Evstigneev Roman | in progress ||
-|`searchIcon`|Function| Evstigneev Roman |blocked Arkoala||
-|`cancelButton`|Function| Evstigneev Roman |blocked Arkoala ||
+|`searchIcon`|Function| Evstigneev Roman |blocked AceEngine| https://gitee.com/openharmony/arkui_ace_engine/issues/IAWF91 |
+|`cancelButton`|Function| Evstigneev Roman |blocked Arkoala | |
 |`textIndent`|Function| Evstigneev Roman | in progress ||
 |`inputFilter`|Function| Evstigneev Roman | in progress ||
 |`onEditChange`|Function| Evstigneev Roman |done||
@@ -635,7 +635,7 @@
 |`enableHapticFeedback`|Function|Evstigneev Roman| in progress ||
 |*SecurityComponentMethod*| *Component* | Samarin Sergey|in progress ||
 |`iconSize`| Function |Samarin Sergey|in progress ||
-|`layoutDirection`| Function |Samarin Sergey|in progress ||
+|`layoutDirection`| Function |Samarin Sergey|done ||
 |`position`| Function |Samarin Sergey|in progress ||
 |`markAnchor`| Function |Samarin Sergey|in progress ||
 |`offset`| Function |Samarin Sergey|in progress ||
@@ -811,6 +811,115 @@
 |`wordBreak`|Function|Tuzhilkin Ivan|in progress||
 |`lineBreakStrategy`|Function|Tuzhilkin Ivan|in progress||
 |`EnableHapticFeedback`|Function|Tuzhilkin Ivan|in progress||
+|*TextClock*| *Component* | |in progress||
+|`setTextClockOptions`| Function | |in progress||
+|`format`| Function | |in progress||
+|`onDateChange`| Function | |in progress||
+|`fontColor`| Function | |in progress||
+|`fontSize`| Function | |in progress||
+|`fontStyle`| Function | |in progress||
+|`fontWeight`| Function | |in progress||
+|`fontFamily`| Function | |in progress||
+|`textShadow`| Function | |in progress||
+|`fontFeature`| Function | |in progress||
+|`contentModifier`| Function | |in progress||
+|`dateTimeOptions`| Function | |in progress||
+|*TextInput*| *Component* | Spirin Andrey | in progress ||
+|`setTextInputOptions`| Function | Spirin Andrey | in progress ||
+|`type`| Function | Spirin Andrey | in progress ||
+|`contentType`| Function | Spirin Andrey | in progress ||
+|`placeholderColor`| Function | Spirin Andrey | in progress ||
+|`textOverflow`| Function | Spirin Andrey | in progress ||
+|`textIndent`| Function | Spirin Andrey | in progress ||
+|`placeholderFont`| Function | Spirin Andrey | in progress ||
+|`enterKeyType`| Function | Spirin Andrey | in progress ||
+|`caretColor`| Function | Spirin Andrey | in progress ||
+|`onEditChanged`| Function | Spirin Andrey | in progress ||
+|`onEditChange`| Function | Spirin Andrey | in progress ||
+|`onSubmit`| Function | Spirin Andrey | in progress ||
+|`onChange`| Function | Spirin Andrey | in progress ||
+|`onTextSelectionChange`| Function | Spirin Andrey | in progress ||
+|`onContentScroll`| Function | Spirin Andrey | in progress ||
+|`maxLength`| Function | Spirin Andrey | in progress ||
+|`fontColor`| Function | Spirin Andrey | in progress ||
+|`fontSize`| Function | Spirin Andrey | in progress ||
+|`fontStyle`| Function | Spirin Andrey | in progress ||
+|`fontWeight`| Function | Spirin Andrey | in progress ||
+|`fontFamily`| Function | Spirin Andrey | in progress ||
+|`onCopy`| Function | Spirin Andrey | in progress ||
+|`onCut`| Function | Spirin Andrey | in progress ||
+|`onPaste`| Function | Spirin Andrey | in progress ||
+|`copyOption`| Function | Spirin Andrey | in progress ||
+|`showPasswordIcon`| Function | Spirin Andrey | in progress ||
+|`textAlign`| Function | Spirin Andrey | in progress ||
+|`style`| Function | Spirin Andrey | in progress ||
+|`caretStyle`| Function | Spirin Andrey | in progress ||
+|`selectedBackgroundColor`| Function | Spirin Andrey | in progress ||
+|`caretPosition`| Function | Spirin Andrey | in progress ||
+|`enableKeyboardOnFocus`| Function | Spirin Andrey | in progress ||
+|`passwordIcon`| Function | Spirin Andrey | in progress ||
+|`showError`| Function | Spirin Andrey | in progress ||
+|`showUnit`| Function | Spirin Andrey | in progress ||
+|`showUnderline`| Function | Spirin Andrey | in progress ||
+|`underlineColor`| Function | Spirin Andrey | in progress ||
+|`selectionMenuHidden`| Function | Spirin Andrey | in progress ||
+|`barState`| Function | Spirin Andrey | in progress ||
+|`maxLines`| Function | Spirin Andrey | in progress ||
+|`wordBreak`| Function | Spirin Andrey | in progress ||
+|`lineBreakStrategy`| Function | Spirin Andrey | in progress ||
+|`cancelButton`| Function | Spirin Andrey | in progress ||
+|`selectAll`| Function | Spirin Andrey | in progress ||
+|`minFontSize`| Function | Spirin Andrey | in progress ||
+|`maxFontSize`| Function | Spirin Andrey | in progress ||
+|`heightAdaptivePolicy`| Function | Spirin Andrey | in progress ||
+|`enableAutoFill`| Function | Spirin Andrey | in progress ||
+|`decoration`| Function | Spirin Andrey | in progress ||
+|`letterSpacing`| Function | Spirin Andrey | in progress ||
+|`lineHeight`| Function | Spirin Andrey | in progress ||
+|`passwordRules`| Function | Spirin Andrey | in progress ||
+|`fontFeature`| Function | Spirin Andrey | in progress ||
+|`showPassword`| Function | Spirin Andrey | in progress ||
+|`onSecurityStateChange`| Function | Spirin Andrey | in progress ||
+|`onWillInsert`| Function | Spirin Andrey | in progress ||
+|`onDidInsert`| Function | Spirin Andrey | in progress ||
+|`onWillDelete`| Function | Spirin Andrey | in progress ||
+|`onDidDelete`| Function | Spirin Andrey | in progress ||
+|`editMenuOptions`| Function | Spirin Andrey | in progress ||
+|`enablePreviewText`| Function | Spirin Andrey | in progress ||
+|`enableHapticFeedback`| Function | Spirin Andrey | in progress ||
+|`inputFilter`| Function | Spirin Andrey | in progress ||
+|`customKeyboard`| Function | Spirin Andrey | in progress ||
+|`showCounter`| Function | Spirin Andrey | in progress ||
+|*TextPicker*| *Component* | |in progress ||
+|`setTextPickerOptions`| Function | Tuzhilkin Ivan|in progress ||
+|`defaultPickerItemHeight`| Function | |in progress ||
+|`canLoop`| Function | |in progress ||
+|`disappearTextStyle`| Function | |in progress ||
+|`textStyle`| Function | |in progress ||
+|`selectedTextStyle`| Function | |in progress ||
+|`onAccept`| Function | | in progress ||
+|`onCancel`| Function | |in progress ||
+|`onChange`| Function | Tuzhilkin Ivan|in progress ||
+|`selectedIndex`| Function | |in progress ||
+|`divider`| Function | |in progress ||
+|`gradientHeight`| Function | |in progress ||
+|*TimePicker*| *Component* | Ekaterina Stepanova|in progress ||
+|`setTimePickerOptions`| Function |Ekaterina Stepanova|in progress ||
+|`useMilitaryTime`| Function |Ekaterina Stepanova|in progress ||
+|`loop`| Function |Ekaterina Stepanova|in progress ||
+|`disappearTextStyle`| Function |Ekaterina Stepanova|in progress ||
+|`textStyle`| Function |Ekaterina Stepanova|in progress ||
+|`selectedTextStyle`| Function |Ekaterina Stepanova|in progress ||
+|`dateTimeOptions`| Function |Ekaterina Stepanova|in progress ||
+|`onChange`| Function |Ekaterina Stepanova|in progress ||
+|`enableHapticFeedback`| Function |Ekaterina Stepanova|in progress ||
+|*Toggle*| *Component* | |in progress ||
+|`setToggleOptions`| Function | |in progress ||
+|`onChange`| Function | |in progress ||
+|`contentModifier`| Function | |in progress ||
+|`selectedColor`| Function | |in progress ||
+|`switchPointColor`| Function | |in progress ||
+|`switchStyle`| Function | |in progress ||
 |*CommonMethod*| *Component* | Roman Sedaikin | in progress ||
 |`width`| Function | Roman Sedaikin | done ||
 |`height`| Function | Roman Sedaikin | done ||
@@ -853,13 +962,28 @@
 |`linearGradient`| Function | Roman Sedaikin | in progress ||
 |`sweepGradient`| Function | Roman Sedaikin | in progress ||
 |`shadow`| Function | Roman Sedaikin | in progress ||
+|*SearchController*| *Class* |Evstigneev Roman |in progress ||
+|`caretPosition`| Function |Evstigneev Roman |in progress ||
+|`stopEditing`| Function |Evstigneev Roman |in progress ||
+|`setTextSelection`| Function |Evstigneev Roman |in progress ||
 |*SwiperController*| *Class* | Skroba Gleb | done ||
 |`showNext`| Function | Skroba Gleb | done ||
 |`showPrevious`| Function | Skroba Gleb | done ||
 |`changeIndex`| Function | Skroba Gleb | done ||
 |`finishAnimation`| Function | Skroba Gleb |blocked||
+|*TabsController*| *Class* | | |
+|`changeIndex`| Function |Skroba Gleb | in progress ||
+|`preloadItems`| Function |Skroba Gleb | in progress ||
+|`setTabBarTranslate`| Function |Skroba Gleb | in progress ||
+|`setTabBarOpacity`| Function |Skroba Gleb | in progress ||
+|*TabContentTransitionProxy*| *Class* | | |
+|`finishTransition`| Function | | |
+|`getFrom`| Function | | |
+|`setFrom`| Function | | |
+|`getTo`| Function | | |
+|`setTo`| Function | | |
 |*Tabs*| *Component* | Tuzhilkin Ivan | in progress ||
-|`setTabsOptions`| Function | Tuzhilkin Ivan | blocked | required implementation of TabsContentModifier|
+|`setTabsOptions`| Function | Tuzhilkin Ivan | blocked | required implementation of TabsController|
 |`vertical`| Function | Tuzhilkin Ivan | done ||
 |`barPosition`| Function | Tuzhilkin Ivan | done ||
 |`scrollable`| Function | Tuzhilkin Ivan | done ||
