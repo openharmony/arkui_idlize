@@ -15,7 +15,7 @@
 import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
 import { SerializerBase } from "@arkoala/arkui/peers/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
-import { Serializer } from "@arkoala/arkui/peers/Serializer"
+import { Serializer, createSerializer } from "@arkoala/arkui/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
@@ -72,7 +72,7 @@ function checkSerdeResult(name: string, value: any, expected: any) {
 }
 
 function checkSerdeBaseLength() {
-    const ser = new SerializerBase()
+    const ser = SerializerBase.hold(createSerializer)
     ser.writeLength("10px")
     ser.writeLength("11vp")
     ser.writeLength("12%")
@@ -84,18 +84,20 @@ function checkSerdeBaseLength() {
     checkSerdeResult("DeserializerBase.readLength, unit %", des.readLength(), "12%")
     checkSerdeResult("DeserializerBase.readLength, unit lpx", des.readLength(), "13lpx")
     checkSerdeResult("DeserializerBase.readLength, number", des.readLength(), 14)
+    ser.release()
 }
 
 function checkSerdeBaseText() {
-    const ser = new SerializerBase()
+    const ser = SerializerBase.hold(createSerializer)
     const text = "test text serialization/deserialization"
     ser.writeString(text)
     const des = new DeserializerBase(ser.asArray().buffer, ser.length())
     checkSerdeResult("DeserializerBase.readString", des.readString(), text)
+    ser.release()
 }
 
 function checkSerdeBasePrimitive() {
-    const ser = new SerializerBase()
+    const ser = SerializerBase.hold(createSerializer)
     ser.writeNumber(10)
     ser.writeNumber(10.5)
     ser.writeNumber(undefined)
@@ -103,10 +105,11 @@ function checkSerdeBasePrimitive() {
     checkSerdeResult("DeserializerBase.readNumber, int", des.readNumber(), 10)
     checkSerdeResult("DeserializerBase.readNumber, float", des.readNumber(), 10.5)
     checkSerdeResult("DeserializerBase.readNumber, undefined", des.readNumber(), undefined)
+    ser.release()
 }
 
 function checkSerdeBaseCustomObject() {
-    const ser = new SerializerBase()
+    const ser = SerializerBase.hold(createSerializer)
     const pixelMap: PixelMap = {
         isEditable: true,
         isStrideAlignment: true,
@@ -116,6 +119,7 @@ function checkSerdeBaseCustomObject() {
     checkSerdeResult("DeserializerBase.readCustomObject, PixelMap",
         JSON.stringify(pixelMap),
         JSON.stringify(des.readCustomObject("PixelMap") as PixelMap))
+    ser.release()
 }
 
 function checkNodeAPI() {
@@ -202,23 +206,26 @@ function checkCallback() {
     assertTrue("Register callback 2", id2 != -1)
     assertTrue("Callback ids are different", id1 != id2)
 
-    const serializer = new Serializer()
+    const serializer = SerializerBase.hold(createSerializer)
     assertEquals("Call callback 1", 1001, callCallback(id1, serializer.asArray(), serializer.length()))
     assertEquals("Call callback 2", 1002, callCallback(id2, serializer.asArray(), serializer.length()))
     assertThrows("Call disposed callback 1", () => { callCallback(id1, serializer.asArray(), serializer.length()) })
     assertThrows("Call disposed callback 2", () => { callCallback(id2, serializer.asArray(), serializer.length()) })
+    serializer.release()
 }
 
 function checkWriteFunction() {
-    const s = new Serializer()
+    const s = SerializerBase.hold(createSerializer)
     s.writeFunction((value: number, flag: boolean) => flag ? value + 10 : value - 10)
     // TBD: id is small number
     const id = s.asArray()[0]
-    const args = new Serializer()
+    s.release()
+    const args = SerializerBase.hold(createSerializer)
     args.writeNumber(20)
     args.writeBoolean(true)
     // TBD: callCallback() result should be 30
     assertEquals("Write function", 42, callCallback(id, args.asArray(), args.length()))
+    args.release()
 }
 
 function checkButton() {
@@ -290,7 +297,7 @@ function checkCommon() {
     }
     checkResult("Test backgroundBlurStyle for BackgroundBlurStyleOptions",
         () => peer.backgroundBlurStyleAttribute(0, backgroundBlurStyle),
-        `backgroundBlurStyle(Ark_BlurStyle(0), {.tag=ARK_TAG_OBJECT, .value={.colorMode={.tag=ARK_TAG_OBJECT, .value=Ark_ThemeColorMode(0)}, .adaptiveColor={.tag=ARK_TAG_OBJECT, .value=Ark_AdaptiveColor(0)}, .scale={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=1}}, .blurOptions={.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=1}}}}, .policy={.tag=ARK_TAG_UNDEFINED, .value={}}, .inactiveColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .type={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
+        `backgroundBlurStyle(Ark_BlurStyle(0), {.tag=ARK_TAG_OBJECT, .value={.colorMode={.tag=ARK_TAG_OBJECT, .value=Ark_ThemeColorMode(0)}, .adaptiveColor={.tag=ARK_TAG_OBJECT, .value=Ark_AdaptiveColor(0)}, .scale={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=1}}, .blurOptions={.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=1}}}}, .policy={.tag=ARK_TAG_UNDEFINED, .value={}}, .inactiveColor={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with number",
@@ -411,10 +418,11 @@ function checkPerf1(count: number) {
 
     start = performance.now()
     for (let i = 0; i < count; i++) {
-        let serializer = new SerializerBase()
+        let serializer = SerializerBase.hold(createSerializer)
         serializer.writeNumber(0)
         let data = serializer.asArray()
         module._TestPerfNumberWithArray(data, data.length)
+        serializer.release()
     }
     passed = performance.now() - start
     console.log(`ARRAY: ${passed}ms for ${Math.round(count)} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
@@ -446,11 +454,12 @@ function setEventsAPI() {
 
 function checkEvent_Primitive() {
     const BufferSize = 60 * 4
-    const serializer = new SerializerBase()
+    const serializer = SerializerBase.hold(createSerializer)
     serializer.writeInt32(1) //nodeId
     serializer.writeString("testString") //arg1
     serializer.writeNumber(22) //arg2
     nativeModule()._Test_TextPicker_OnAccept(serializer.asArray(), serializer.length())
+    serializer.release()
 
     const buffer = new Uint8Array(BufferSize)
     const checkResult = nativeModule()._CheckArkoalaGeneratedEvents(buffer, BufferSize)
@@ -470,13 +479,14 @@ function checkEvent_Primitive() {
 
 function checkEvent_Interface_Optional() {
     const bufferSize = 60 * 4
-    const serializer = new Serializer()
+    const serializer = SerializerBase.hold(createSerializer)
     const eventStart = { index: 11, itemIndexInGroup: 1 }
     const eventEnd = { index: 22 }
     serializer.writeInt32(1) //nodeId
     serializer.writeVisibleListContentInfo(eventStart);
     serializer.writeVisibleListContentInfo(eventEnd);
     nativeModule()._Test_List_OnScrollVisibleContentChange(serializer.asArray(), serializer.length())
+    serializer.release()
 
     const buffer = new Uint8Array(bufferSize)
     const checkResult = nativeModule()._CheckArkoalaGeneratedEvents(buffer, bufferSize)
@@ -498,7 +508,7 @@ function checkEvent_Interface_Optional() {
 
 function checkEvent_Array_Class() {
     const bufferSize = 60 * 4
-    const serializer = new Serializer()
+    const serializer = SerializerBase.hold(createSerializer)
     const eventParam: TouchTestInfo[] = [
         {
             windowX: 10, windowY: 11, parentX: 12, parentY: 13, x: 14, y: 15, id: "one",
@@ -519,6 +529,7 @@ function checkEvent_Array_Class() {
         serializer.writeTouchTestInfo(eventParam[i]);
     }
     nativeModule()._Test_Common_OnChildTouchTest(serializer.asArray(), serializer.length())
+    serializer.release()
 
     const buffer = new Uint8Array(bufferSize)
     const checkResult = nativeModule()._CheckArkoalaGeneratedEvents(buffer, bufferSize)

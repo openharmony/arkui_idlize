@@ -24,25 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
 
-class SerializersCache {
-    SerializerBase[] cache;
-
-    SerializersCache(int maxCount) {
-        cache = new SerializerBase[22];
-    }
-    @SuppressWarnings("unchecked")
-    <T extends SerializerBase> T getCached(Supplier<T> factory, int index) {
-        var result = this.cache[index];
-        if (result != null) {
-            result.resetCurrentPosition();
-            return (T)result;
-        }
-        result = factory.get();
-        this.cache[index] = result;
-        return (T)result;
-    }
-}
-
 public class SerializerBase {
 
     private static List<CustomSerializer> customSerializers = new LinkedList<CustomSerializer>();
@@ -52,18 +33,28 @@ public class SerializerBase {
 
     // TODO: use allocateDirect
     private ByteBuffer buffer = ByteBuffer.allocate(96).order(ByteOrder.LITTLE_ENDIAN);
+    private boolean isHolding = false;
 
-    private static SerializersCache cache = new SerializersCache(22);
+    private static SerializerBase cache = null;
 
-    static <T extends SerializerBase> T get(Supplier<T> factory, int index) {
-        return SerializerBase.cache.getCached(factory, index);
+    @SuppressWarnings("unchecked")
+    static <T extends SerializerBase> T hold(Supplier<T> factory) {
+        if (SerializerBase.cache == null)
+            SerializerBase.cache = factory.get();
+        SerializerBase serializer = SerializerBase.cache;
+        if (serializer.isHolding)
+            return null;
+        serializer.isHolding = true;
+        return (T) serializer;
+    }
+    public void release() {
+        this.isHolding = false;
+        // todo handle release resources
+        this.buffer.position(0);
     }
 
     public SerializerBase() {}
 
-    void resetCurrentPosition() {
-        this.buffer.position(0);
-    }
     public byte[] asArray() {
         return buffer.array();
     }

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { float32, float64, int32, int8 } from "@koalaui/common"
-import { pointer, KUint8ArrayPtr, KBuffer } from "@koalaui/interop"
+import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceManager } from "@koalaui/interop"
 import { Length, Resource } from "../ArkUnitsInterfaces"
 import { NativeModule } from "#arkui"
 
@@ -98,26 +98,10 @@ export abstract class CustomSerializer {
     next: CustomSerializer | undefined = undefined
 }
 
-class SerializersCache {
-    cache: Array<SerializerBase|undefined>
-    constructor(maxCount: number) {
-        this.cache = new Array<SerializerBase|undefined>(maxCount)
-    }
-    get<T extends SerializerBase>(factory: () => T, index: int32): T {
-        let result = this.cache[index]
-        if (result) {
-            result.resetCurrentPosition()
-            return result as T
-        }
-        result = factory()
-        this.cache[index] = result
-        return result as T
-    }
-}
-
 export class SerializerBase {
-    private static cache = new SerializersCache(22)
+    private static cache: SerializerBase | undefined
 
+    private isHolding: boolean = false
     private position = 0
     private buffer: KBuffer
 
@@ -138,8 +122,19 @@ export class SerializerBase {
     constructor() {
         this.buffer = new KBuffer(96)
     }
-    static get<T extends SerializerBase>(factory: () => T, index: int32): T {
-        return SerializerBase.cache.get<T>(factory, index)
+    static hold<T extends SerializerBase>(factory: () => T): T {
+        if (!this.cache)
+            this.cache = factory()
+        const serializer = SerializerBase.cache as T
+        if (serializer.isHolding)
+            throw new Error("Serializer is already being held. Check if you had released is before")
+        serializer.isHolding = true
+        return serializer
+    }
+    public release() {
+        this.isHolding = false
+        this.releaseResources()
+        this.position = 0
     }
     asArray(): KUint8ArrayPtr {
         return this.buffer.buffer
@@ -162,6 +157,18 @@ export class SerializerBase {
             }
             this.buffer = resizedBuffer
         }
+    }
+    private heldResources: ResourceId[] = []
+    writeResource(resource: object) {
+        const resourceId = ResourceManager.registerAndHold(resource)
+        this.heldResources.push(resourceId)
+        this.writeInt32(resourceId)
+    }
+    private releaseResources() {
+        for (const resourceId of this.heldResources)
+            ResourceManager.release(resourceId)
+        // todo think about effective array clearing/pushing
+        this.heldResources = []
     }
     writeCustomObject(kind: string, value: object) {
         let current = SerializerBase.customSerializers

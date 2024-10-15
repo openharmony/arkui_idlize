@@ -166,7 +166,7 @@ export class ExpressionStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         const text = this.expression.asString()
         if (text.length > 0) {
-            writer.print(`${this.expression.asString()}`)
+            writer.print(`${this.expression.asString()};`)
         }
     }
 }

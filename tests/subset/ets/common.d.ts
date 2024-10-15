@@ -259,7 +259,6 @@ declare enum BlurType {
 declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {
     policy?: BlurStyleActivePolicy;
     inactiveColor?: ResourceColor;
-    type?: BlurType;
 }
 
 declare interface SizeResult {

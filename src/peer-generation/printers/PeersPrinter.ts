@@ -22,6 +22,7 @@ import { PeerClass, PeerClassBase } from "../PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "../inheritance";
 import { PeerMethod } from "../PeerMethod";
 import {
+    ExpressionStatement,
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
@@ -441,8 +442,8 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
                 if (!serializerCreated) {
                     writer.writeStatement(
                         writer.makeAssign(`thisSerializer`, new Type('Serializer'),
-                            writer.makeMethodCall('SerializerBase', 'get', [
-                                writer.makeSerializerCreator(), writer.makeString(index.toString())
+                            writer.makeMethodCall('SerializerBase', 'hold', [
+                                writer.makeSerializerCreator()
                             ]), true)
                     )
                     serializerCreated = true
@@ -485,6 +486,9 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
         } else {
             writer.writeStatement(writer.makeStatement(call))
         }
+        if (serializerPushed)
+            writer.writeStatement(new ExpressionStatement(
+                writer.makeMethodCall('thisSerializer', 'release', [])))
         scopes.reverse().forEach(it => {
             writer.popIndent()
             writer.print(it.scopeEnd!(it.param, writer.language))
