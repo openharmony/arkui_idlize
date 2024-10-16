@@ -31,7 +31,7 @@ import {
     isPrimitiveType,
 } from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameOrNull, stringOrNone
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameEnumValues, nameOrNull, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -586,6 +586,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         let extendedAttributes = this.computeNamespaceAttribute()
         this.computeDeprecatedExtendAttributes(node, extendedAttributes)
         this.computeExportAttribute(node, extendedAttributes)
+        let names = nameEnumValues(node)
         const result: IDLEnum = {
             kind: IDLKind.Enum,
             name: ts.idText(node.name),
@@ -597,11 +598,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         let seenMembers = new Map<string, [string, boolean]>()
         result.elements = node.members
             .filter(ts.isEnumMember)
-            .map(it => this.serializeEnumMember(it, result, seenMembers))
+            .map((it, index) => this.serializeEnumMember(it, result, seenMembers, names[index]))
         return result
     }
 
-    serializeEnumMember(node: ts.EnumMember, parent: IDLEnum, seenMembers: Map<string, [string, boolean]>): IDLEnumMember {
+    serializeEnumMember(node: ts.EnumMember, parent: IDLEnum, seenMembers: Map<string, [string, boolean]>, name: string): IDLEnumMember {
         let isString = false
         let initializer: string|number|undefined = undefined
         if (!node.initializer) {
@@ -648,13 +649,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         } else {
             isString = false
             initializer = node.initializer.getText(this.sourceFile)
-            //throw new Error(`Unrepresentable enum initializer: ${initializer} ${node.initializer.kind}`)
-            console.log(`WARNING: Unrepresentable enum initializer: ${initializer} ${node.initializer.kind}`)
+            //throw new Error(`Unpresentable enum initializer: ${initializer} ${node.initializer.kind}`)
+            console.log(`WARNING: Unpresentable enum initializer: ${initializer} ${node.initializer.kind}`)
         }
         return {
             kind: IDLKind.EnumMember,
             extendedAttributes: this.computeDeprecatedExtendAttributes(node),
-            name: nameOrNull(node.name)!,
+            name,
             parent,
             fileName: node.getSourceFile().fileName,
             documentation: getDocumentation(this.sourceFile, node, this.options.docs),
