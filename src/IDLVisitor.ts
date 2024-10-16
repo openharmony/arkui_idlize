@@ -692,13 +692,14 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         };
     }
 
-    private generateSyntheticFunctionName(parameters: IDLParameter[], returnType: IDLType): string {
-        const names = parameters.map(it => `${it.name}_${this.computeTypeName(it.type!)}`).concat(this.computeTypeName(returnType))
-        return `Callback_${names.join("_")}`
+    private generateSyntheticFunctionName(parameters: IDLParameter[], returnType: IDLType, isAsync: boolean = false): string {
+        let prefix = isAsync ? "AsyncCallback" : "Callback"
+        const names = parameters.map(it => `${this.computeTypeName(it.type!)}`).concat(this.computeTypeName(returnType))
+        return `${prefix}_${names.join("_")}`
     }
 
-    serializeCallback(rawType: string, type: ts.TypeReferenceNode): IDLCallback {
-        const types = type.typeArguments!.map(it => this.serializeType(it))
+    serializeCallback(rawType: string, type: ts.TypeReferenceNode, nameSuggestion: NameSuggestion | undefined): IDLCallback {
+        const types = type.typeArguments!.map(it => this.serializeType(it, nameSuggestion))
         const returnType = types[0]
         const parameters = types.splice(1).map((it, index) => {
             let param = {
@@ -712,7 +713,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         })
         let isAsync = rawType == "AsyncCallback"
         let extendedAttributes = isAsync ? [{name: IDLExtendedAttributes.Async}] : []
-        let name = `${isAsync ? "Async" : ""}Callback_${parameters.map(it => it.type!).concat(returnType).map(it => this.computeTypeName(it)).join("_")}`
+        let name = this.generateSyntheticFunctionName(parameters, returnType, isAsync)
         return {
             name,
             parameters,
@@ -879,11 +880,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
             const transformedType = typeMapper.get(rawType) ?? rawType
             // TODO: support Record here as well.
-            if (rawType == "Array" || rawType == "Promise" || rawType == "Map" /*|| rawType == "Record"*/) {
-                return createContainerType(transformedType, type.typeArguments!.map(it => this.serializeType(it)))
+            if (rawType == "Array" || rawType == "Promise" || rawType == "Map"/* || rawType == "Record"*/) {
+                return createContainerType(transformedType, type.typeArguments!.map(it => this.serializeType(it, nameSuggestion)))
             }
             if (rawType == "Callback" || rawType == "AsyncCallback") {
-                const funcType = this.serializeCallback(rawType, type)
+                const funcType = this.serializeCallback(rawType, type, NameSuggestion.make("Callback"))
                 this.addToScope(funcType)
                 return createReferenceType(funcType.name)
             }
