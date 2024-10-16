@@ -297,8 +297,8 @@
 |`gridColOffset`| Function |Lobah Mikhail| in progress||
 |`order`| Function |Lobah Mikhail| in progress||
 |*Image*| *Component* | Korobeinikov Evgeny | in progress ||
-|`setImageOptions`| Function |Korobeinikov Evgeny| in progress ||
-|`objectFit`| Function |Korobeinikov Evgeny| in progress ||
+|`setImageOptions`| Function |Berezin Kirill| in progress ||
+|`objectFit`| Function |Berezin Kirill| in progress ||
 |`fillColor`| Function | Evstigneev Roman | in progress | |
 |`autoResize`| Function | Evstigneev Roman | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`onError`| Function | Evstigneev Roman | in progress | |

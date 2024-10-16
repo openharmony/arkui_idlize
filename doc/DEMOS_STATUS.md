@@ -97,9 +97,9 @@
 | `radialGradient`          | Function  |           | ENC         | K. Kirichenko    |               |               |           | Medium   |
 | `ctor($r)`                | Function  |           | ENC         | K. Kirichenko    |               |               |           | High     |
 | Image                     | Component | Yes       |             |                  |               |               |           |          |
-| `ctor(URL)`               | Function  |           | ENC         | E. Korobeynikov  |               |               |           | Medium   |
+| `ctor(URL)`               | Function  |           | ENC         | Kirill Berezin   | In progress   |               |           | Medium   |
 | `ctor($rawfile)`          | Function  |           | ENC, WON    | A. Tarasov       | Done          |               | Done      | High     |
-| `objectFit`               | Function  |           | WON         | E. Korobeynikov  |               |               |           | Medium   |
+| `objectFit`               | Function  |           | WON         | Kirill Berezin   | Done/No test  |               |           | Medium   |
 | `autoResize`              | Function  |           | HEL         | Evstigneev Roman | Progress      |               |           | Medium   |
 | `fillColor`               | Function  |           | HEL         | Evstigneev Roman | Progress      |               |           | Medium   |
 | `onFinish`                | Function  |           | ENC         | Evstigneev Roman | Progress      |               |           | Medium   |
@@ -145,8 +145,8 @@
 | Scroll                    | Component |           |             | Kirill Berezin   | Progress      |               |           |          |
 | `scrollable`              | Function  |           | WON         | Kirill Berezin   | Progress      |               |           | Medium   |
 | `scrollBar`               | Function  |           | WON         | Kirill Berezin   | Progress      |               |           | Medium   |
-| `onScroll`                | Function  |           | WON         | Kirill Berezin   | Progress      |               |           | Medium   |
-| `onScrollEdge`            | Function  |           | WON         | ?                |               |               |           | Medium   |
+| `onScroll`                | Function  |           | WON         | Kirill Berezin   | Done          |               |           | Medium   |
+| `onScrollEdge`            | Function  |           | WON         | Kirill Berezin   | Progress      |               |           | Medium   |
 | Video                     | Component |           |             | Ivan Tuzhilkin   | Progress      |               |           |          |
 | `controller, src`         | Options   |           | WON         | ?                |               |               |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Ivan Tuzhilkin   | Progress      |               |           | Low      |
