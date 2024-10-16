@@ -340,7 +340,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         let result: IDLExtendedAttribute[] = this.computeExtendedAttributes(node, node.typeParameters)
         let name = identName(node.name)
         if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
-            result.push({name: IDLExtendedAttributes.Component, value: PeerGeneratorConfig.mapComponentName(name)})
+            result.push({name: IDLExtendedAttributes.Component, value: `"${PeerGeneratorConfig.mapComponentName(name)}"`})
         }
         if (inheritance.length) {
             let typeParams = getExtAttribute(inheritance[0], IDLExtendedAttributes.TypeArguments)
@@ -699,7 +699,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     serializeCallback(rawType: string, type: ts.TypeReferenceNode, nameSuggestion: NameSuggestion | undefined): IDLCallback {
-        const types = type.typeArguments!.map(it => this.serializeType(it, nameSuggestion))
+        const types = type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`T${index}`)))
         const returnType = types[0]
         const parameters = types.splice(1).map((it, index) => {
             let param = {
@@ -880,8 +880,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
             const transformedType = typeMapper.get(rawType) ?? rawType
             // TODO: support Record here as well.
-            if (rawType == "Array" || rawType == "Promise" || rawType == "Map"/* || rawType == "Record"*/) {
-                return createContainerType(transformedType, type.typeArguments!.map(it => this.serializeType(it, nameSuggestion)))
+            if (rawType == "Array" || rawType == "Promise" || rawType == "Map" /* || rawType == "Record" */) {
+                return createContainerType(transformedType, type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`p${index}`))))
             }
             if (rawType == "Callback" || rawType == "AsyncCallback") {
                 const funcType = this.serializeCallback(rawType, type, NameSuggestion.make("Callback"))
@@ -1104,10 +1104,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     isCommonMethodUsedAsProperty(member: ts.ClassElement | ts.TypeElement): member is (ts.MethodDeclaration | ts.MethodSignature) {
+        let className = (ts.isClassDeclaration(member.parent)) ? identName(member.parent.name) : undefined
+        let returnType = (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) ? identName(member.type) : undefined
         return (this.options.commonToAttributes ?? true) &&
             (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) &&
             this.isCommonAttributeMethod(member) &&
-            member.parameters.length == 1
+            member.parameters.length == 1 && (returnType == "T" || returnType == className)
     }
 
     computeTypeParametersAttribute(typeParameters: ts.NodeArray<ts.TypeParameterDeclaration> | undefined, attributes: IDLExtendedAttribute[] = []) {
@@ -1127,23 +1129,23 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         this.computeTypeParametersAttribute(method.typeParameters, extendedAttributes)
         this.computeDeprecatedExtendAttributes(method, extendedAttributes)
         this.computeExportAttribute(method, extendedAttributes)
+        const [methodName, escapedName] = escapeName(nameOrNull(method.name) ?? "_unknown")
+        nameSuggestion = nameSuggestion?.extend(escapedName) ?? NameSuggestion.make(escapedName)
         if (ts.isIndexSignatureDeclaration(method)) {
             extendedAttributes.push({name: IDLExtendedAttributes.IndexSignature })
             return {
                 kind: IDLKind.Method,
                 name: "indexSignature",
                 documentation: getDocumentation(this.sourceFile, method, this.options.docs),
-                returnType: this.serializeType(method.type),
+                returnType: this.serializeType(method.type, nameSuggestion),
                 extendedAttributes: extendedAttributes,
                 isStatic: false,
                 isOptional: false,
                 parameters: method.parameters.map(it => this.serializeParameter(it))
             }
         }
-        const [methodName, escapedName] = escapeName(nameOrNull(method.name) ?? "_unknown")
-        nameSuggestion = nameSuggestion?.extend(escapedName) ?? NameSuggestion.make(escapedName)
         this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedName, extendedAttributes)
-        const returnType = this.serializeType(method.type, nameSuggestion?.extend('ret'))
+        const returnType = this.serializeType(method.type, nameSuggestion.extend('ret'))
         this.liftExtendedAttributes(returnType, extendedAttributes)
         return {
             kind: IDLKind.Method,
