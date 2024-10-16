@@ -109,7 +109,7 @@ public class Main {
         TestUtils.checkResult("[Union] ButtonPeer.labelStyle",
             () -> { buttonPeer.labelStyleAttribute(labelStyle); },
             "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=2, .value2={.chars=\"param\", .length=5}}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
-        labelStyle.font.weight = new Union_Ark_FontWeight_double_String(Ark_FontWeight.Bold);
+        labelStyle.font.weight = new Union_Ark_FontWeight_double_String(Ark_FontWeight.BOLD);
         TestUtils.checkResult("[Union + Enum] ButtonPeer.labelStyle",
             () -> { buttonPeer.labelStyleAttribute(labelStyle); },
             "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=Ark_FontWeight(4)}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
@@ -143,7 +143,7 @@ public class Main {
             "someOptional({.tag=ARK_TAG_OBJECT, .value=false})");
 
         // enum
-        TestUtils.checkResult("[Enum] ButtonPeer.type", () -> { buttonPeer.typeAttribute(Ark_ButtonType.Capsule); }, "type(Ark_ButtonType(0))");
+        TestUtils.checkResult("[Enum] ButtonPeer.type", () -> { buttonPeer.typeAttribute(Ark_ButtonType.CAPSULE); }, "type(Ark_ButtonType(0))");
         var sheetOptions = new SheetOptions();
         sheetOptions.mode = Ark_SheetMode.EMBEDDED;
         TestUtils.checkResult("[Enum + Interface] ButtonPeer.bindSheet",
