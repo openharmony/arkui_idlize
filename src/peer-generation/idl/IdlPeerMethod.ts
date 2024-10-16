@@ -98,12 +98,15 @@ export class IdlPeerMethod {
         }
     }
 
-    static markOverloads(methods: IdlPeerMethod[]): void {
+    static markAndGroupOverloads(methods: IdlPeerMethod[]): IdlPeerMethod[] {
+        let groupedMethods: IdlPeerMethod[] = []
         for (const peerMethod of methods) {
             if (isDefined(peerMethod.overloadIndex)) continue
             const sameNamedMethods = methods.filter(it => it.method.name === peerMethod.method.name)
             if (sameNamedMethods.length > 1)
                 sameNamedMethods.forEach((it, index) => it.overloadIndex = index)
+            groupedMethods = groupedMethods.concat(sameNamedMethods)
         }
+        return groupedMethods
     }
 }

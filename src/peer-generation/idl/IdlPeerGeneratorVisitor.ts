@@ -591,8 +591,8 @@ class PeersGenerator {
         const peerMethods = iface.callables
             .map(it => this.processMethodOrCallable(it, peer, false, iface?.name))
             .filter(isDefined)
-        IdlPeerMethod.markOverloads(peerMethods)
-        peer.methods.push(...peerMethods)
+        const overloadedMethods = IdlPeerMethod.markAndGroupOverloads(peerMethods)
+        peer.methods.push(...overloadedMethods)
     }
 
     private fillClass(peer: IdlPeerClass, clazz: idl.IDLInterface) {
@@ -610,8 +610,8 @@ class PeersGenerator {
             ...clazz.properties.map(it => this.processProperty(it, peer, maybeCallback)),
             ...clazz.methods.map(it => this.processMethodOrCallable(it, peer, maybeCallback)),
             ].filter(isDefined)
-        IdlPeerMethod.markOverloads(peerMethods)
-        peer.methods.push(...peerMethods)
+        const overloadedMethods = IdlPeerMethod.markAndGroupOverloads(peerMethods)
+        peer.methods.push(...overloadedMethods)
 
         this.createComponentAttributesDeclaration(clazz, peer)
     }
