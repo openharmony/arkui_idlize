@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "build/abc/subset",
+        "outDir": "out/abc-subset",
         "rootDir": "./out/arkts-subset/generated",
         "paths": {
             "#arkui": ["./out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/arkts"],

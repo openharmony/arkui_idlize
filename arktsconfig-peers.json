@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "build/abc/peers",
+        "outDir": "out/abc-peers",
         "rootDir": "./out/arkts-peers/generated",
         "paths": {
             "#arkui": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/arkts"],
