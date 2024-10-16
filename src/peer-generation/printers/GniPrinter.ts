@@ -36,7 +36,7 @@ export class GniVisitor {
 
     printMaterializedClassSourcePaths(clazz: MaterializedClass) {
         const className = makeFileNameFromClassName(clazz.className)
-        this.gni.print(`"../arkoala/implementation/${className}_modifier.cpp",`)
+        this.gni.print(`"../arkoala/implementation/${className}_accessor.cpp",`)
     }
 
     // TODO: have a proper Peer module visitor
