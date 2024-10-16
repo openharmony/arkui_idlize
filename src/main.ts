@@ -364,7 +364,7 @@ if (options.dts2peer) {
                         }, idlLibrary)
                     }
                     if (options.generatorTarget == "tracker") {
-                        generateTracker(outDir, idlLibrary, options.trackerStatus)
+                        generateTracker(outDir, idlLibrary, options.trackerStatus, options.verbose)
                     }
                     if (options.generatorTarget == "ohos") {
                         generateOhos(outDir, idlLibrary)
@@ -453,7 +453,7 @@ if (options.dts2peer) {
                     }
 
                     if (options.generatorTarget == "tracker") {
-                        generateTracker(outDir, peerLibrary, options.trackerStatus)
+                        generateTracker(outDir, peerLibrary, options.trackerStatus, options.verbose)
                     }
                 }
             }
