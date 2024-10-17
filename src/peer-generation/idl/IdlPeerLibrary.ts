@@ -321,10 +321,11 @@ export class IdlPeerLibrary {
     analyze() {///stolen from DeclTable
         const callbacks = collectCallbacks(this) as IdlCallbackInfo[]
         for (const callback of callbacks) {
+            const useToGenerate = this.shouldGenerateComponent(callback.componentName)
             callback.args.forEach(arg => {
-                const useToGenerate = this.shouldGenerateComponent(callback.componentName)
                 this.requestType(arg.type, useToGenerate)
             })
+            this.requestType(callback.returnType, useToGenerate)
         }
 
         let orderer = new DependencySorter(this)
