@@ -716,8 +716,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     serializeCallback(rawType: string, type: ts.TypeReferenceNode, nameSuggestion: NameSuggestion | undefined): IDLCallback {
         const types = type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`T${index}`)))
-        const returnType = types[0]
-        const parameters = types.splice(1).map((it, index) => {
+        const returnType = types[types.length - 1]
+        const parameters = types.splice(0, types.length - 1).map((it, index) => {
             let param = {
                 kind: IDLKind.Parameter,
                 name: `parameter_${index}`,
