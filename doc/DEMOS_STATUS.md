@@ -13,8 +13,8 @@
 
 | Name                      | Kind      | Generated | Demo        | Owner/libace        | Status/libace    | Owner/ts          | Status/ts | Priority |
 |---------------------------|-----------|-----------|-------------|---------------------|------------------|-------------------|-----------|----------|
-| @ohos.router              | Class     |           |             | Kirill Kirichenko   |                  |                   |           |          |
-| `back`                    | Function  |           | ENC, WON    | Kirill Kirichenko   |                  | Kirill Kirichenko |           | High     |
+| @ohos.router              | Class     |           |             | Kirill Kirichenko   | done             |                   |           |          |
+| `back`                    | Function  |           | ENC, WON    | Kirill Kirichenko   | done             | Kirill Kirichenko |           | High     |
 | CustomDialogController    | Class     |           | HEL         | Erokhin Ilya        | Blocked          |                   |           | Low      |
 | `builder`                 | Function  |           |             | ?                   | N\A              |                   |           |          |
 | `autoCancel`              | Function  |           |             | ?                   | N\A              |                   |           |          |
@@ -99,7 +99,7 @@
 | Button                    | Component | Yes       |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `stateEffect, type`       | Options   |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
 | `radialGradient`          | Function  |           | ENC         | Kirill Kirichenko   |                  |                   |           | Medium   |
-| `ctor($r)`                | Function  |           | ENC         | Kirill Kirichenko   |                  |                   |           | High     |
+| `ctor($r)`                | Function  |           | ENC         | Kirill Kirichenko   | done             |                   |           | High     |
 | Image                     | Component | Yes       |             |                     |                  |                   |           |          |
 | `ctor(URL)`               | Function  |           | ENC         | Kirill Berezin      | In progress      |                   |           | Medium   |
 | `ctor($rawfile)`          | Function  |           | ENC, WON    | Anton Tarasov       | done             |                   | done      | High     |
@@ -114,8 +114,8 @@
 | `displayCount`            | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Medium   |
 | `indicatorStyle`          | Function  |           | WON         | Skroba Gleb         | done             |                   |           | Low      |
 | `priorityGesture`         | Function  |           | WON         | Erokhin Ilya        | blocked          |                   |           | Medium   |
-| Text                      | Component | No        |             | Kirill Kirichenko   | in progress      |                   |           |          |
-| `ctor($r)`                | Function  |           | HEL         |                     |                  |                   |           | High     |
+| Text                      | Component | Yes       |             | Kirill Kirichenko   | in progress      |                   |           |          |
+| `ctor($r)`                | Function  |           | HEL         | Kirill Kirichenko   | done             |                   |           | High     |
 | Shape                     | Component |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
 | `fill`                    | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `fillOpacity`             | Function  |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
@@ -165,5 +165,5 @@
 | Line                      | Component |           |             |                     | Blocked          |                   |           |          |
 | `startPoint`              | Function  |           | WON         | Dudkin Sergey       | Blocked          |                   |           | Medium   |
 | `endPoint`                | Function  |           | WON         | Dudkin Sergey       | Blocked          |                   |           | Medium   |
-| LoadingProgress           | Component |           |             | Samarin Sergey      |                  |                   |           |          |
+| LoadingProgress           | Component |           |             | Samarin Sergey      |                  |                   |           |    Low      |
 | `color`                   | Function  |           | ENC         | Samarin Sergey      | blocked ut       |                   |           | Low      |
