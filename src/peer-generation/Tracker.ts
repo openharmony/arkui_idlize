@@ -202,7 +202,8 @@ function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = fa
         /^\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|.*$/
 
     const componentsAliases = new Map([
-        ["Shape", "CommonShapeMethod"]
+        ["Shape", "CommonShapeMethod"],
+        ["Common", "CommonMethod"]
     ])
 
     let component = "unknown"
@@ -231,6 +232,7 @@ function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = fa
         const match = row.match(pattern)
         if (match) {
             const groups = match.splice(1)
+
             const name = groups[0].trim()
             const kind = groups[1].trim()
             const generated = groups[2].trim()
@@ -250,13 +252,13 @@ function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = fa
                 if (!record) {
                     const alias = componentsAliases.get(component)
                     if (alias) {
-                        record = track.get(key(alias, kind))
+                        record = track.get(key(alias, func))
                     }
                 }
                 if (record) {
                     const newOwner = record.owner
                     const newStatus = record.status.toLowerCase()
-                    if (ownerLibace !== newOwner || statusLibace !== newStatus) {
+                    if (ownerLibace !== newOwner && needUpdateStatus(statusLibace, newStatus)) {
                         if (verbose) {
                             if (!verbosePrinted) {
                                 console.log("> Updates in DEMOS_STATUS.md:")
@@ -279,11 +281,21 @@ function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = fa
     fs.writeFileSync(file, newContent)
 }
 
+function needUpdateStatus(oldStatus: string, newStatus: string) {
+    if (oldStatus === newStatus || newStatus.length === 0) {
+        return false
+    }
+    if (oldStatus === "done/no test" && newStatus === "in progress") {
+        return false
+    }
+    return true
+}
+
 function rowForDemosStatus(values: Array<string>, lengths: Array<number>) {
     let row = "|"
     for (let i = 0; i < values.length; i++) {
         const spacesNum = lengths[i] - values[i].length
-        row += " " + values[i] + " ".repeat(spacesNum - 1) + "|"
+        row += " " + values[i] + " ".repeat(Math.max(0, spacesNum - 1)) + "|"
     }
     return row
 }

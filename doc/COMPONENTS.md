@@ -3,9 +3,9 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 113      | 96     | 1898     |
+| Total        | 113      | 96     | 1910     |
 | In Progress  | 46      | 1     | 484     |
-| Done         | 19      | 2     | 332     |
+| Done         | 19      | 2     | 333     |
 | Blocked      | 13      | 0     | 130     |
 
 
@@ -145,6 +145,7 @@
 |`onChildTouchTest`| Function | | |
 |`layoutWeight`| Function | Roman Sedaikin | in progress |
 |`padding`| Function | Erokhin Ilya | blocked ArKoala |
+|`safeAreaPadding`| Function | | |
 |`margin`| Function | Erokhin Ilya | blocked ArKoala |
 |`backgroundColor`| Function | Roman Sedaikin | done |
 |`pixelRound`| Function | | |
@@ -332,6 +333,7 @@
 |`onScrollStart`| Function | Samarin Sergey | in progress |
 |`onScrollStop`| Function | Samarin Sergey | in progress |
 |`flingSpeedLimit`| Function | Samarin Sergey | in progress |
+|`clipContent`| Function | | |
 |`edgeEffect`| Function | Samarin Sergey | in progress |
 |`fadingEdge`| Function | Samarin Sergey | blocked |
 |*Component3D*| *Component* | Kovalev Sergey | in progress |
@@ -480,12 +482,12 @@
 |`setHyperlinkOptions`| Function | | |
 |`color`| Function | | |
 |*Image*| *Component* | Korobeinikov Evgeny | in progress |
-|`setImageOptions`| Function | Korobeinikov Evgeny | in progress |
+|`setImageOptions`| Function | Berezin Kirill | in progress |
 |`alt`| Function | | |
 |`matchTextDirection`| Function | | |
 |`fitOriginalSize`| Function | | |
 |`fillColor`| Function | Evstigneev Roman | in progress |
-|`objectFit`| Function | Korobeinikov Evgeny | in progress |
+|`objectFit`| Function | Berezin Kirill | in progress |
 |`objectRepeat`| Function | | |
 |`autoResize`| Function | Evstigneev Roman | blocked UT |
 |`renderMode`| Function | | |
@@ -671,6 +673,7 @@
 |`customNavContentTransition`| Function | Erokhin Ilya | in progress |
 |`systemBarStyle`| Function | Erokhin Ilya | in progress |
 |`recoverable`| Function | Erokhin Ilya | done |
+|`enableDragBar`| Function | | |
 |`title`| Function | Erokhin Ilya | blocked |
 |`toolbarConfiguration`| Function | Erokhin Ilya | in progress |
 |`ignoreLayoutSafeArea`| Function | Erokhin Ilya | in progress |
@@ -1105,6 +1108,8 @@
 |`wordBreak`| Function | | |
 |`lineBreakStrategy`| Function | | |
 |`onCopy`| Function | | |
+|`caretColor`| Function | | |
+|`selectedBackgroundColor`| Function | | |
 |`ellipsisMode`| Function | | |
 |`enableDataDetector`| Function | | |
 |`dataDetectorConfig`| Function | | |
@@ -1431,6 +1436,7 @@
 |`editMenuOptions`| Function | | |
 |`enableHapticFeedback`| Function | | |
 |`registerNativeEmbedRule`| Function | | |
+|`bindSelectionMenu`| Function | | |
 |*WindowScene*| *Component* | | |
 |`setWindowSceneOptions`| Function | | |
 |`attractionEffect`| Function | | |
@@ -1725,6 +1731,7 @@
 |`pushPathByName`| Function | | |
 |`pushDestinationByName`| Function | | |
 |`replacePath`| Function | | |
+|`replaceDestination`| Function | | |
 |`replacePathByName`| Function | | |
 |`removeByIndexes`| Function | | |
 |`removeByName`| Function | | |
@@ -1937,6 +1944,8 @@
 |`getInputFieldType`| Function | | |
 |`isEditable`| Function | | |
 |`getEditStateFlags`| Function | | |
+|`getPreviewWidth`| Function | | |
+|`getPreviewHeight`| Function | | |
 |*WebContextMenuResult*| *Class* | | |
 |`closeContextMenu`| Function | | |
 |`copyImage`| Function | | |
@@ -2026,6 +2035,7 @@
 |`getStyles`| Function | | |
 |`equals`| Function | | |
 |`subStyledString`| Function | | |
+|`toHtml`| Function | | |
 |`marshalling`| Function | | |
 |`getLength`| Function | | |
 |*MutableStyledString*| *Class* | | |
