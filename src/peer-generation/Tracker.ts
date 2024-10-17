@@ -153,6 +153,10 @@ function key(component: string, func: string): string {
     return `${component}:${func}`
 }
 
+function optionsFunction(component: string) {
+    return `set${component}Options`
+}
+
 export function generateTracker(outDir: string, peerLibrary: PeerLibrary | IdlPeerLibrary, trackerStatus: string, verbose: boolean = false): void {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
     let track = new Map<string, StatusRecord>()
@@ -194,6 +198,19 @@ function trimName(key: string): string {
     key = trim(key, '*')
     key = trim(key, '`')
     return key
+}
+
+class DemosStatusVerboseLogger {
+    private static readonly HEADER = "> Updates in DEMOS_STATUS.md:"
+    private static headerLogged: boolean = false
+
+    static log(msg: string) {
+        if (!this.headerLogged) {
+            this.headerLogged = true
+            console.log(this.HEADER)
+        }
+        console.log("> " + msg)
+    }
 }
 
 function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = false) {
@@ -246,9 +263,13 @@ function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = fa
             if (kind === "Component" || kind === "Class") {
                 component = name
 
-            } else if (kind === "Function") {
+            } else if (kind === "Function" || kind === "Options") {
                 const func = name.split("`")[1]
-                let record = track.get(key(component, func))
+
+                let record = kind === "Function" ?
+                    track.get(key(component, func)) :
+                    track.get(key(component, optionsFunction(component)))
+
                 if (!record) {
                     const alias = componentsAliases.get(component)
                     if (alias) {
@@ -256,20 +277,14 @@ function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = fa
                     }
                 }
                 if (record) {
-                    const newOwner = record.owner
-                    const newStatus = record.status.toLowerCase()
-                    if (ownerLibace !== newOwner && needUpdateStatus(statusLibace, newStatus)) {
+                    if (needUpdateOwner(ownerLibace, record.owner) || needUpdateStatus(statusLibace, record.status)) {
                         if (verbose) {
-                            if (!verbosePrinted) {
-                                console.log("> Updates in DEMOS_STATUS.md:")
-                            }
-                            verbosePrinted = true
-                            console.log("> " + component + "." + func)
-                            console.log(">   old:", ownerLibace, statusLibace)
-                            console.log(">   new:", newOwner, newStatus)
+                            DemosStatusVerboseLogger.log(kind === "Function" ? `${component}.${func}` : `${component}({${func}})`)
+                            DemosStatusVerboseLogger.log(`  old: ${ownerLibace}, ${statusLibace}`)
+                            DemosStatusVerboseLogger.log(`  new: ${record.owner}, ${record.status}`)
                         }
                         newContent += rowForDemosStatus([
-                            name, kind, generated, demos, newOwner, newStatus, ownerTs, statusTs, priority
+                            name, kind, generated, demos, record.owner, record.status, ownerTs, statusTs, priority
                         ], lengths) + "\n"
                         continue
                     }
@@ -281,7 +296,17 @@ function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = fa
     fs.writeFileSync(file, newContent)
 }
 
+function needUpdateOwner(oldOwner: string, newOwner: string) {
+    const oldOwnerNames = oldOwner.split(" ")
+    if (oldOwnerNames.length > 1) {
+        return !(newOwner.includes(oldOwnerNames[0]) && newOwner.includes(oldOwnerNames[1]))
+    }
+    return oldOwner !== newOwner
+}
+
 function needUpdateStatus(oldStatus: string, newStatus: string) {
+    oldStatus = oldStatus.toLowerCase()
+    newStatus = newStatus.toLowerCase()
     if (oldStatus === newStatus || newStatus.length === 0) {
         return false
     }

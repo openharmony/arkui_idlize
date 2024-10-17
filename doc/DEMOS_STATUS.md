@@ -22,11 +22,11 @@
 | `offset`                  | Function  |           |             | ?                   |                  |                   |           |          |
 | `customStyle`             | Function  |           |             | ?                   | N\A              |                   |           |          |
 | Rect                      | Component | No        | HEL         | Dudkin Sergey       | done             |                   |           | High     |
-| `height, width`           | Options   |           | WON         | ?                   |                  |                   |           | High     |
-| `height, radius, width`   | Options   |           | WON         | ?                   |                  |                   |           | High     |
+| `height, width`           | Options   |           | WON         | Dudkin Sergey       | done             |                   |           | High     |
+| `height, radius, width`   | Options   |           | WON         | Dudkin Sergey       | done             |                   |           | High     |
 | `radius`                  | Function  |           | WON         | Dudkin Sergey       | done             |                   |           |          |
 | Navigator                 | Component | No        | HEL         | Skroba Gleb         | done             |                   |           | High     |
-| `target`                  | Options   |           | HEL         | ?                   |                  |                   |           | High     |
+| `target`                  | Options   |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `setNavigatorOptions`     | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `active`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `type`                    | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
@@ -38,8 +38,8 @@
 | `style`                   | Function  |           | HEL         | ?                   |                  |                   |           | Medium   |
 | `color`                   | Function  |           | HEL         | ?                   |                  |                   |           | Medium   |
 | Common                    | Component | Yes       |             | Roman Sedaikin      | in progress      | Roman Sedaikin    | done      |          |
-| `width`                   | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | High+    |
-| `height`                  | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | High+    |
+| `width`                   | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
+| `height`                  | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
 | `size`                    | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
 | `constraintSize`          | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
 | `offset`                  | Function  |           | WON         | Erokhin Ilya        | blocked arkoala  | Roman Sedaikin    | done      | High     |
@@ -47,7 +47,7 @@
 | `padding`                 | Function  |           | HEL         | Erokhin Ilya        | blocked arkoala  | Roman Sedaikin    | done      | Medium   |
 | `margin`                  | Function  |           | ENC,WON,HEL | Erokhin Ilya        | blocked arkoala  | Roman Sedaikin    | done      | Medium   |
 | `foregroundColor`         | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `opacity`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
+| `opacity`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `blur`                    | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
 | `visibility`              | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
 | `enabled`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
@@ -80,24 +80,24 @@
 | `sweepGradient`           | Function  |           | ENC         | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | High     |
 | `radialGradient`          | Function  |           | ENC         | Erokhin Ilya        | done             | Roman Sedaikin    | done      | High     |
 | `shadow`                  | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | High     |
-| `onClick`                 | Function  |           | ENC,WON,HEL | Skroba Gleb         | in progress      |                   | done      | High+    |
+| `onClick`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | in progress      |                   | done      | High+    |
 | `fill`                    | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Low      |
-| `animateTo`               | Function  |           | HEL, ENC    | Erokhin Ilya        | Blocked          |                   |           | Medium   |
+| `animateTo`               | Function  |           | HEL, ENC    | Erokhin Ilya        | blocked ArKoala  |                   |           | Medium   |
 | `animation`               | Function  |           | HEL, ENC    | Erokhin Ilya        | in progress      |                   |           | Medium   |
 | `sharedTransition`        | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Medium   |
 | `backgroundColor($r)`     | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Low      |
 | `backgroundImage`         | Function  |           | WON         | Erokhin Ilya        | in progress      |                   |           | Medium   |
-| `backgroundImageSize`     | Function  |           | WON         | Erokhin Ilya        | in progress      |                   |           | Medium   |
-| `backgroundImagePosition` | Function  |           | WON         | Erokhin Ilya        | in progress      |                   |           | Medium   |
-| `clip`                    | Function  |           | HEL, WON    | Erokhin Ilya        | in progress      |                   |           | High     |
-| `scale`                   | Function  |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
-| `translate`               | Function  |           | HEL         | Erokhin Ilya        | in progress      |                   |           | High     |
-| `id`                      | Function  |           | HEL         | Erokhin Ilya        | in progress      |                   |           | High     |
-| `onVisibleAreaChange`     | Function  |           | WON         | Erokhin Ilya        | in progress      |                   |           | High     |
-| `gesture`                 | Function  |           | WON         | Erokhin Ilya        | in progress      |                   |           | Medium   |
+| `backgroundImageSize`     | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Medium   |
+| `backgroundImagePosition` | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Medium   |
+| `clip`                    | Function  |           | HEL, WON    | Erokhin Ilya        | blocked          |                   |           | High     |
+| `scale`                   | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
+| `translate`               | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | High     |
+| `id`                      | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | High     |
+| `onVisibleAreaChange`     | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | High     |
+| `gesture`                 | Function  |           | WON         | Erokhin Ilya        | blocked ArKoala  |                   |           | Medium   |
 | `@Styles function`        | Decorator |           | HEL         | N/A                 | N/A              | A. Tarasov        |           | Low      |
 | Button                    | Component | Yes       |             | Evstigneev Roman    | in progress      |                   |           |          |
-| `stateEffect, type`       | Options   |           | HEL         | ?                   |                  |                   |           | Medium   |
+| `stateEffect, type`       | Options   |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
 | `radialGradient`          | Function  |           | ENC         | Kirill Kirichenko   |                  |                   |           | Medium   |
 | `ctor($r)`                | Function  |           | ENC         | Kirill Kirichenko   |                  |                   |           | High     |
 | Image                     | Component | Yes       |             |                     |                  |                   |           |          |
@@ -117,15 +117,15 @@
 | Text                      | Component | No        |             | Kirill Kirichenko   | in progress      |                   |           |          |
 | `ctor($r)`                | Function  |           | HEL         |                     |                  |                   |           | High     |
 | Shape                     | Component |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
-| `fill`                    | Function  |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
-| `fillOpacity`             | Function  |           | HEL         | Dudkin Sergey       | done             |                   |           | Medium   |
-| `stroke`                  | Function  |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
-| `strokeWidth`             | Function  |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
+| `fill`                    | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
+| `fillOpacity`             | Function  |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
+| `stroke`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
+| `strokeWidth`             | Function  |           | HEL         | Evstigneev Roman    | done             |                   |           | High     |
 | `strokeDashArray`         | Function  |           | HEL         | Evstigneev Roman    | blocked arkoala  |                   |           | High     |
 | Path                      | Component | No        |             | Skroba Gleb         | done             |                   |           | High     |
 | `commands`                | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | Tabs                      | Component | No        | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | High     |
-| `barPosition`             | Options   |           | HEL         | ?                   |                  |                   |           | High     |
+| `barPosition`             | Options   |           | HEL         | Tuzhilkin Ivan      | blocked          |                   |           | High     |
 | `animationDuration`       | Function  |           | HEL         | Tuzhilkin Ivan      | blocked ut       |                   |           | High     |
 | `barMode`                 | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
 | `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
@@ -144,7 +144,7 @@
 | Canvas                    | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
 | `onReady`                 | Function  |           | HEL         | Vadim Voronov       | in progress      |                   |           | Medium   |
 | TextPicker                | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
-| `range, selected`         | Options   |           | HEL         | ?                   |                  |                   |           | Medium   |
+| `range, selected`         | Options   |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | Medium   |
 | `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | Medium   |
 | Scroll                    | Component |           |             | Kirill Berezin      | in progress      |                   |           |          |
 | `scrollable`              | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
@@ -155,12 +155,12 @@
 | `controller, src`         | Options   |           | WON         | ?                   |                  |                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Tuzhilkin Ivan      | in progress      |                   |           | Low      |
 | Search                    | Component |           |             | Evstigneev Roman    | in progress      |                   |           |          |
-| `placeholderColor`        | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
-| `placeholderFont`         | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
-| `textFont`                | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
+| `placeholderColor`        | Function  |           | WON         | Evstigneev Roman    | in progress      |                   |           | Low      |
+| `placeholderFont`         | Function  |           | WON         | Evstigneev Roman    | in progress      |                   |           | Low      |
+| `textFont`                | Function  |           | WON         | Evstigneev Roman    | in progress      |                   |           | Low      |
 | `onSubmit`                | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
 | List                      | Component |           |             | Morozov Sergey      | in progress      |                   |           |          |
-| `space`                   | Options   |           | WON         | ?                   |                  |                   |           | Medium   |
+| `space`                   | Options   |           | WON         | Morozov Sergey      | blocked Arkoala  |                   |           | Medium   |
 | `lanes`                   | Function  |           | WON         | Morozov Sergey      | done             |                   |           | Medium   |
 | Line                      | Component |           |             |                     | Blocked          |                   |           |          |
 | `startPoint`              | Function  |           | WON         | Dudkin Sergey       | Blocked          |                   |           | Medium   |
