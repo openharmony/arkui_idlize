@@ -133,11 +133,16 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         return result.entries
     }
 
+    private defaultPackage: string
+    private convertRecordType: boolean
+
     constructor(
         private sourceFile: ts.SourceFile,
         private typeChecker: ts.TypeChecker,
-        private compileContext: CompileContext,
-        private options: OptionValues) { }
+        private options: OptionValues) {
+        this.defaultPackage = options.defaultIdlPackage as string ?? "arkui"
+        this.convertRecordType = options.convertRecordType as boolean ?? false
+    }
 
     visitWholeFile(): IDLEntry[] {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
@@ -184,9 +189,17 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     detectPackageName(sourceFile: ts.SourceFile): string {
         let ns = sourceFile.statements.find(it => ts.isModuleDeclaration(it)) as ts.ModuleDeclaration
         if (ns) {
-            return `${ns.name.text}`
+            let name = ns.name.text
+            if (name.startsWith("./")) name = name.substring(2)
+            return name
         }
-        return "arkui"
+        let sourceFileName = path.basename(sourceFile.fileName)
+        if (sourceFileName.startsWith("@ohos")) {
+            let result = sourceFileName.split(".")
+            return result.splice(0, result.length - 3).join(".")
+        }
+        if (sourceFile.fileName.indexOf("\@internal/component") != -1) return "@ohos.arkui"
+        return this.defaultPackage
     }
 
     /** visit nodes finding exported classes */
@@ -222,9 +235,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     serializeImport(node: ts.ImportDeclaration): IDLImport {
+        let name = node.moduleSpecifier.getText().replaceAll('"', '').replaceAll("'", "")
+        //if (name.startsWith("./")) name = name.substring(2)
         const result: IDLImport = {
             kind: IDLKind.Import,
-            name: node.moduleSpecifier.getText().replaceAll('"', '').replaceAll("'", ""),
+            name
         }
         return result
     }
@@ -842,7 +857,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             const selectedUnionName = selectName(nameSuggestion, syntheticUnionName)
             let aPromise = types.find(it => isContainerType(it) && it.name == "Promise")
             if (aPromise) {
-                console.log(`WARNING: ${type.getText()} is a union of Promises. This is not supported by the IDL.`)
+                console.log(`WARNING: ${type.getText()} is a union of Promises. This is not supported by the IDL, use only Promise.`)
                 return aPromise
             }
             if (types.find(it => it.name == "any")) {
@@ -881,7 +896,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
             const transformedType = typeMapper.get(rawType) ?? rawType
             // TODO: support Record here as well.
-            if (rawType == "Array" || rawType == "Promise" || rawType == "Map" /* || rawType == "Record" */) {
+            if (rawType == "Array" || rawType == "Promise" || rawType == "Map" || (this.convertRecordType && rawType == "Record")) {
                 return createContainerType(transformedType, type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`p${index}`))))
             }
             if (rawType == "Callback" || rawType == "AsyncCallback") {

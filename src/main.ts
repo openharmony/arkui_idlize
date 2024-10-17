@@ -84,6 +84,8 @@ const options = program
     .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
     .option('--tracker-status <file>', 'Tracker status file)')
     .option('--plugin <file>', 'File with generator\'s plugin')
+    .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
+    .option('--convert-record-type', 'If Record to be converted to IDL record')
     .parse()
     .opts()
 
@@ -112,7 +114,7 @@ if (options.dts2idl) {
         options.inputDir.split(','),
         options.inputFile,
         options.outputDir ?? "./idl",
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options),
+        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: IDLEntry[], outputDir, sourceFile) => {
@@ -152,7 +154,7 @@ if (options.dts2skoala) {
         options.inputDir.split(','),
         options.inputFile,
         outputDir,
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, tsCompileContext, options),
+        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: IDLEntry[], outputDirectory, sourceFile) => {
@@ -320,7 +322,7 @@ if (options.dts2peer) {
             options.inputDir.split(','),
             options.inputFile,
             generatedPeersDir,
-            (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, new CompileContext(), options),
+            (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options),
             {
                 compilerOptions: defaultCompilerOptions,
                 onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
