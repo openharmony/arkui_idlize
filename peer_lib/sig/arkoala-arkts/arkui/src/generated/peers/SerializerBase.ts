@@ -123,13 +123,13 @@ export class SerializerBase {
         this.buffer = new KBuffer(96)
     }
     static hold<T extends SerializerBase>(factory: () => T): T {
-        if (!this.cache)
-            this.cache = factory()
-        const serializer = SerializerBase.cache as T
+        if (!SerializerBase.cache)
+            SerializerBase.cache = factory()
+        const serializer = SerializerBase.cache!
         if (serializer.isHolding)
             throw new Error("Serializer is already being held. Check if you had released is before")
         serializer.isHolding = true
-        return serializer
+        return serializer as T
     }
     public release() {
         this.isHolding = false
@@ -158,7 +158,7 @@ export class SerializerBase {
             this.buffer = resizedBuffer
         }
     }
-    private heldResources: ResourceId[] = []
+    private heldResources: Array<ResourceId> = new Array<ResourceId>()
     writeResource(resource: object) {
         const resourceId = ResourceManager.registerAndHold(resource)
         this.heldResources.push(resourceId)
@@ -168,7 +168,7 @@ export class SerializerBase {
         for (const resourceId of this.heldResources)
             ResourceManager.release(resourceId)
         // todo think about effective array clearing/pushing
-        this.heldResources = []
+        this.heldResources = new Array<ResourceId>()
     }
     writeCustomObject(kind: string, value: object) {
         let current = SerializerBase.customSerializers
