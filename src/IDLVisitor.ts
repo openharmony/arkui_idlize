@@ -881,12 +881,23 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return createTypeParameterReference(nameOrNull((type as ts.TypeReferenceNode).typeName) ?? "UNEXPECTED_TYPE_PARAMETER")
         }
         if (ts.isTypeReferenceNode(type)) {
+            let declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
+            // Treat enum member type 'value: EnumName.MemberName`
+            // as enum type 'value: EnumName`.
+            if (ts.isQualifiedName(type.typeName)) {
+                if (declaration && declaration.length > 0) {
+                    const decl = declaration[0]
+                    if (ts.isEnumMember(decl)) {
+                        const enumName = identName(decl.parent.name)!
+                        return createEnumType(enumName)
+                    }
+                }
+            }
             if (ts.isQualifiedName(type.typeName)) {
                 const result = createReferenceType(type.typeName.right.getText())
                 result.extendedAttributes = [{name: IDLExtendedAttributes.Qualifier, value: type.typeName.left.getText()}]
                 return result
             }
-            let declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
             if (declaration.length == 0) {
                 let name = type.typeName.getText(type.typeName.getSourceFile())
                 this.warn(`Do not know type ${name}`)
