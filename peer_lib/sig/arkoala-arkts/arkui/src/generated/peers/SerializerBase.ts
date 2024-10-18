@@ -99,7 +99,7 @@ export abstract class CustomSerializer {
 }
 
 export class SerializerBase {
-    private static cache: SerializerBase | undefined
+    private static cache: SerializerBase | undefined = undefined
 
     private isHolding: boolean = false
     private position = 0
@@ -123,7 +123,7 @@ export class SerializerBase {
         this.buffer = new KBuffer(96)
     }
     static hold<T extends SerializerBase>(factory: () => T): T {
-        if (!SerializerBase.cache)
+        if (SerializerBase.cache === undefined)
             SerializerBase.cache = factory()
         const serializer = SerializerBase.cache!
         if (serializer.isHolding)
