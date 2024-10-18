@@ -663,7 +663,7 @@ export function printEventsCArkoalaImpl(library: PeerLibrary | IdlPeerLibrary): 
 
 export function printEventsCLibaceImpl(library: PeerLibrary | IdlPeerLibrary, options: { namespace: string}): string {
     const visitor = library instanceof PeerLibrary
-        ? new CEventsVisitor(library, true) : new IdlCEventsVisitor(library, false)
+        ? new CEventsVisitor(library, true) : new IdlCEventsVisitor(library, true)
     visitor.print()
     return makeCEventsLibaceImpl(
         visitor.impl,
