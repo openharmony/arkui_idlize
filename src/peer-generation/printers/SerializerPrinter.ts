@@ -21,17 +21,17 @@ import { PrimitiveType } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { checkDeclarationTargetMaterialized } from '../Materialized';
-import { convertDeclToFeature, ImportsCollector } from '../ImportsCollector';
+import { convertDeclToFeature as convertDeclToFeatureDTS, ImportsCollector } from '../ImportsCollector';
 import { PeerLibrary } from '../PeerLibrary';
-import { createTypeDependenciesCollector, createTypeNodeConvertor, isSourceDecl } from "../PeerGeneratorVisitor";
-import { isSyntheticDeclaration } from "../synthetic_declaration";
+import { createTypeDependenciesCollector, createTypeNodeConvertor, isSourceDecl as isSourceDeclDTS } from "../PeerGeneratorVisitor";
+import { isSyntheticDeclaration as isSyntheticDeclarationDTS } from "../synthetic_declaration";
 import { DeclarationDependenciesCollector } from "../dependencies_collector";
 import { isBuilderClass } from "../BuilderClass";
 import { lazy, lazyThrow } from '../lazy';
 import { TypeNodeNameConvertor } from "../TypeNodeNameConvertor";
 import { IdlPeerLibrary } from '../idl/IdlPeerLibrary';
-import { isMaterialized } from '../idl/IdlPeerGeneratorVisitor';
-import { makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
+import { convertDeclToFeature, isMaterialized, isSourceDecl } from '../idl/IdlPeerGeneratorVisitor';
+import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
 import { collectProperties } from '../idl/StructPrinter';
 
 function printSerializerImports(table: (ts.ClassDeclaration | ts.InterfaceDeclaration)[],
@@ -210,7 +210,7 @@ class IdlSerializerPrinter {
                 break;
         }
         const serializerDeclarations = getSerializers(this.library)
-        printIdlImports(this.library, this.writer)
+        printIdlImports(this.library, serializerDeclarations, this.writer)
         // just a separator
         this.writer.print("")
         this.writer.writeClass(className, writer => {
@@ -345,7 +345,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             prefix = PrimitiveType.Prefix
         }
         const serializerDeclarations = getSerializers(this.library)
-        printIdlImports(this.library, this.writer)
+        printIdlImports(this.library, serializerDeclarations, this.writer)
         this.writer.print("")
         this.writer.writeClass(className, writer => {
             if (ctorSignature) {
@@ -386,12 +386,12 @@ class TSSerializerDependenciesCollector implements SerializerDependenciesCollect
     collect(decl: ts.Declaration) {
         this.declDependenciesCollector.convert(decl).forEach(it => {
             if (this.isBuilderClassDeclaration(it)) {
-                const feature = convertDeclToFeature(this.library, it)
+                const feature = convertDeclToFeatureDTS(this.library, it)
                 this.collector.addFeature(feature.feature, feature.module)
             }
         })
         if (this.isBuilderClassDeclaration(decl)) {
-            const feature = convertDeclToFeature(this.library, decl)
+            const feature = convertDeclToFeatureDTS(this.library, decl)
             this.collector.addFeature(feature.feature, feature.module)
         }
     }
@@ -413,13 +413,13 @@ class ArkTSSerializerDependenciesCollector implements SerializerDependenciesColl
 
     collect(decl: ts.Declaration): void {
         this.declDependenciesCollector.convert(decl).forEach(it => {
-            if (isSourceDecl(it) || isSyntheticDeclaration(it)) {
-                const feature = convertDeclToFeature(this.library, it)
+            if (isSourceDeclDTS(it) || isSyntheticDeclarationDTS(it)) {
+                const feature = convertDeclToFeatureDTS(this.library, it)
                 this.collector.addFeature(feature.feature, feature.module)
             }
         })
-        if (decl.parent && isSourceDecl(decl)) {
-            const feature = convertDeclToFeature(this.library, decl)
+        if (decl.parent && isSourceDeclDTS(decl)) {
+            const feature = convertDeclToFeatureDTS(this.library, decl)
             this.collector.addFeature(feature.feature, feature.module)
         }
     }
@@ -479,15 +479,32 @@ function isParameterized(node: idl.IDLEntry) {
         || ["Record", "Required"].includes(node.name!)
 }
 
-function printIdlImports(library: IdlPeerLibrary, writer: LanguageWriter) {
+function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: idl.IDLInterface[], writer: LanguageWriter) {
+    const collector = new ImportsCollector()
+
     if (writer.language === Language.TS) {
-        const collector = new ImportsCollector()
         for (let [module, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
             declarations.forEach(it => collector.addFeature(it.name!, module))
         }
+
         for (let builder of library.builderClasses.keys()) {
             collector.addFeature(builder, `Ark${builder}Builder`)
         }
-        collector.print(writer, `./peers/Serializer.${writer.language.extension}`)
     }
+    else if (writer.language === Language.ARKTS) {
+        collector.addFeature("TypeChecker", "#arkui")
+
+        library.files.forEach(peer => peer.serializeImportFeatures
+            .forEach(importFeature => collector.addFeature(importFeature.feature, importFeature.module)))
+
+        serializerDeclarations.filter(it => isSyntheticDeclaration(it) || it.fileName)
+            .map(it => convertDeclToFeature(library, it))
+            .forEach(it => collector.addFeature(it.feature, it.module))
+
+        for (let builder of library.builderClasses.keys()) {
+            collector.addFeature(builder, `Ark${builder}Builder`)
+        }
+    }
+
+    collector.print(writer, `./peers/Serializer.${writer.language.extension}`)
 }

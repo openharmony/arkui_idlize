@@ -193,6 +193,9 @@ function mapCInteropRetType(type: idl.IDLType): string {
 
 
 class ImportsAggregateCollector extends TypeDependenciesCollector {
+    // TODO: dirty hack, need to rework
+    private readonly declarationCollector: FilteredDeclarationCollector = new FilteredDeclarationCollector(this.library, this)
+
     constructor(
         protected readonly peerLibrary: IdlPeerLibrary,
         private readonly expandAliases: boolean,
@@ -223,8 +226,15 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
 
     override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const declarations = super.convertTypeReference(type)
-        const result = [...declarations]
-        for (const decl of declarations) {
+        const syntheticDeclarations = declarations.filter(it => idl.isSyntheticEntry(it))
+        const realDeclarations = declarations.filter(it => !idl.isSyntheticEntry(it))
+
+        const result = [...realDeclarations]
+
+        // such declarations are not processed by FilteredDeclarationCollector
+        result.push(...syntheticDeclarations.flatMap(decl => convertDeclaration(this.declarationCollector, decl)))
+
+        for (const decl of realDeclarations) {
             // expand type aliaces because we have serialization inside peers methods
             if (this.expandAliases && idl.isTypedef(decl))
                 result.push(...this.convert(decl.type))
@@ -252,9 +262,13 @@ class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
     }
 }
 
-class ArkTSTypeDependenciesCollector extends ImportsAggregateCollector {
-    constructor(peerLibrary: IdlPeerLibrary, expandAliases: boolean) {
-        super(peerLibrary, expandAliases)
+class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
+    override convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
+        const decl = this.library.resolveTypeReference(type)
+        if (decl !== undefined) {
+            return [decl]
+        }
+        return []
     }
 
     override convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
@@ -265,6 +279,7 @@ class ArkTSTypeDependenciesCollector extends ImportsAggregateCollector {
     }
 }
 
+class ArkTSFilteredDeclarationCollector extends FilteredDeclarationCollector {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Java
@@ -417,19 +432,6 @@ class JavaDeclarationCollector extends DeclarationDependenciesCollector {
     }
 }
 
-class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
-    convertEnum(type: IDLEnumType): IDLEntry[] {
-        const decl = this.library.resolveTypeReference(type)
-        if (decl !== undefined) {
-            return [decl]
-        }
-        return []
-    }
-}
-
-class ArkTSFilteredDeclarationCollector extends FilteredDeclarationCollector {
-
-}
 
 class ComponentsCompleter {
     constructor(
@@ -938,7 +940,7 @@ function createSerializeDeclDependenciesCollector(library: IdlPeerLibrary): Decl
     const expandAliases = true
     switch (library.language) {
         case Language.TS: return new FilteredDeclarationCollector(library, new ImportsAggregateCollector(library, expandAliases))
-        case Language.ARKTS: return new ArkTSFilteredDeclarationCollector(library, new ArkTSTypeDependenciesCollector(library, expandAliases))
+        case Language.ARKTS: return new ArkTSFilteredDeclarationCollector(library, new ArkTSImportsAggregateCollector(library, expandAliases))
         case Language.JAVA: return new JavaDeclarationCollector(library, new JavaTypeDependenciesCollector(library, expandAliases))
     }
     // TODO: support other languages
