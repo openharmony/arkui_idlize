@@ -505,16 +505,25 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
     }
 
-    serializeObjectType(node: ts.TypeLiteralNode, nameSuggestion: NameSuggestion, typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>): IDLInterface {
-        const properties = this.pickProperties(node.members, nameSuggestion ?? NameSuggestion.make("UNDEFINED"))
+    synthesizeTypeLiteralName(properties: IDLProperty[]): string {
+        const prefix = `Literal`
+        if (properties.length === 0) {
+            return `${prefix}_Empty`
+        }
         const typeMap = new Map<string, string[]>()
         for (const prop of properties) {
             const type = this.computeTypeName(prop.type)
-            const values = typeMap.has(type) ? typeMap.get(type)! : []
-            values.push(prop.name)
-            typeMap.set(type, values)
+            typeMap.set(type, [...typeMap.get(type) ?? [], prop.name])
         }
-        const syntheticName = `Literal_${Array.from(typeMap.keys()).map(key => `${key}_${typeMap.get(key)!.join('_')}`).join('_')}`
+        const literalName = Array.from(typeMap.entries())
+            .map(([key, values]) => `${key}_${values.sort().join("_")}`)
+            .join("_")
+        return `${prefix}_${literalName}`
+    }
+
+    serializeObjectType(node: ts.TypeLiteralNode, nameSuggestion: NameSuggestion, typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>): IDLInterface {
+        const properties = this.pickProperties(node.members, nameSuggestion ?? NameSuggestion.make("UNDEFINED"))
+        const syntheticName = this.synthesizeTypeLiteralName(properties)
         const selectedName = selectName(nameSuggestion, syntheticName)
         return {
             name: selectedName,
