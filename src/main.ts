@@ -32,18 +32,18 @@ import { defaultCompilerOptions, toSet } from "./util"
 import { initRNG } from "./rand_utils"
 import { DeclarationTable } from "./peer-generation/DeclarationTable"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
-import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig";
+import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { generateTracker } from "./peer-generation/Tracker"
 import { IdlPeerLibrary } from "./peer-generation/idl/IdlPeerLibrary"
 import { IdlPeerFile } from "./peer-generation/idl/IdlPeerFile"
 import { IdlPeerGeneratorVisitor, IdlPeerProcessor, IdlPredefinedGeneratorVisitor } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
-import { SkoalaCCodeGenerator } from "./peer-generation/printers/SkoalaPrinter"
 import { generateOhos } from "./peer-generation/OhosGenerator"
 import * as webidl2 from "webidl2"
 import { toIDLNode } from "./from-idl/deserialize"
 import { generateArkoala, generateArkoalaFromIdl, generateLibace, generateLibaceFromIdl } from "./peer-generation/arkoala"
 import { Language } from "./Language"
 import { loadPlugin } from "./peer-generation/plugin-api"
+import { SkoalaDeserializerPrinter } from "./peer-generation/printers/SkoalaDeserializerPrinter"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -167,20 +167,11 @@ if (options.dts2skoala) {
                 generatedIDLMap.get(fileName)?.push(...entries)
             },
             onEnd: () => {
-                generatedIDLMap.forEach((entries, fileName) => {
-                    const printer = new SkoalaCCodeGenerator(entries, outputDir, fileName)
-
-                    try {
-                        printer.generate()
-                        console.log(`Code generation completed for ${fileName}.h`)
-                    } catch (error) {
-                        if (error instanceof Error) {
-                            console.error(`Error during code generation for ${fileName}.h: ${error.message}`)
-                        } else {
-                            console.error(`Unknown error during code generation for ${fileName}.h:`, error)
-                        }
-                    }
-                })
+                try {
+                    SkoalaDeserializerPrinter.generateDeserializer(outputDir, generatedIDLMap)
+                } catch (error) {
+                    console.error("Error during deserializer generation:", error)
+                }
 
                 console.log("All files processed.")
             }
