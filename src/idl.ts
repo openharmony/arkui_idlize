@@ -524,14 +524,14 @@ export function nameWithType(
     return `${optional}${type}${variadic} ${escapeKeyword(idl.name!)}`
 }
 
-function printConstant(idl: IDLConstant): stringOrNone[] {
+export function printConstant(idl: IDLConstant): stringOrNone[] {
     return [
         ...printExtendedAttributes(idl, 1),
         indentedBy(`const ${nameWithType(idl)} = ${idl.value};`, 1)
     ]
 }
 
-function printProperty(idl: IDLProperty): stringOrNone[] {
+export function printProperty(idl: IDLProperty): stringOrNone[] {
     const staticMod = idl.isStatic ? "static " : ""
     const readonlyMod = idl.isReadonly ? "readonly " : ""
 
@@ -557,7 +557,7 @@ function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNo
     return attrSpec ? [indentedBy(`[${attrSpec}]`, indentLevel)] : []
 }
 
-const attributesToQuote = new Set([
+export const attributesToQuote = new Set([
     IDLExtendedAttributes.Documentation,
     IDLExtendedAttributes.DtsName,
     IDLExtendedAttributes.Import,
@@ -663,7 +663,7 @@ export function getSuperType(idl: IDLInterface) {
     return parent && parent !== IDLTopType ? parent : undefined
 }
 
-function hasSuperType(idl: IDLInterface) {
+export function hasSuperType(idl: IDLInterface) {
     return isDefined(getSuperType(idl))
 }
 

@@ -187,7 +187,7 @@ export class TSLanguageWriter extends LanguageWriter {
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        const genericsClause = generics ? `<${generics.join(", ")}>` : ''
+        const genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
         this.printer.print(`export${isDeclared ? " declare" : ""} class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)

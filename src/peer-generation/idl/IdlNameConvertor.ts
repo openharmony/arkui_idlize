@@ -19,13 +19,14 @@ import { IdlPeerLibrary } from './IdlPeerLibrary'
 import { DeclarationConvertor, TypeConvertor, convertType } from './IdlTypeConvertor'
 import { Type } from '../LanguageWriters'
 import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../printers/lang/Java'
+import { IDLInterface, IDLPrimitiveType, IDLProperty, isAnonymousInterface } from "../../idl";
 
 export interface IdlTypeNameConvertor {
     convert(type: idl.IDLType): string
 }
 
 export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<string> {
-    constructor(private library: IdlPeerLibrary) {}
+    constructor(protected library: IdlPeerLibrary) {}
     convertUnion(type: idl.IDLUnionType): string {
         return type.types.map(it => this.convert(it)).join(" | ")
     }
@@ -76,7 +77,7 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
         if (typeSpec === `ContentModifier`)
-            typeArgs = [`any`] //this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
+            typeArgs = [this.convert(idl.IDLAnyType)] //this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
         if (typeSpec === `Optional`)
             return `${typeArgs} | undefined`
         const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
@@ -105,11 +106,13 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<
         return `((${params.join(", ")}) => ${this.library.mapType(decl.returnType)})`
     }
 
-    private productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
+    protected productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
         return `${
                 isTuple ? "[" : "{"
             } ${
-                decl.properties.map(it => {
+                decl.properties
+                    .map(it => isTuple ? this.processTupleType(it) : it)
+                    .map(it => {
                     const type = this.library.mapType(it.type)
                     return it.isOptional
                         ? includeFieldNames ? `${it.name}?: ${type}` : `(${type})?`
@@ -118,6 +121,10 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<
             } ${
                 isTuple ? "]" : "}"
             }`
+    }
+
+    protected processTupleType(idlProperty: IDLProperty): IDLProperty {
+        return idlProperty
     }
 }
 
@@ -137,23 +144,6 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
 
     static readonly I = new DeclarationNameConvertor()
 }
-
-
-export class ArkTSTypeNameConvertor extends TSTypeNameConvertor {
-    override convertContainer(type: idl.IDLContainerType): string {
-        if (type.name === "sequence") {
-            return `${this.convert(type.elementType[0])}[]`
-        }
-        return super.convertContainer(type)
-    }
-    override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLAnyType: return "object"
-        }
-        return super.convertPrimitiveType(type)
-    }
-}
-
 
 class JavaTypeAlias {
     // Java type itself
@@ -311,5 +301,40 @@ export class JavaTypeNameConvertor implements IdlTypeNameConvertor {
         // if (ts.isIdentifier(type)) return this.convertIdentifier(type)
         const typeAlias = convertType(this.typeAliasConvertor, type)
         return typeAlias.type.nullable ? convertJavaOptional(typeAlias.type.name) : typeAlias.type.name
+    }
+}
+
+export class ArkTSTypeNameConvertor extends TSTypeNameConvertor {
+    override convertContainer(type: idl.IDLContainerType): string {
+        if (type.name === "sequence") {
+            return `${this.convert(type.elementType[0])}[]`
+        }
+        return super.convertContainer(type)
+    }
+
+    convertPrimitiveType(type: IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLVoidType: return "void"
+            case idl.IDLAnyType: return "object"
+        }
+        return super.convertPrimitiveType(type);
+    }
+
+    protected productType(decl: IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
+        if (isAnonymousInterface(decl)) {
+            return decl.name
+        }
+        return super.productType(decl, isTuple, includeFieldNames);
+    }
+
+    protected processTupleType(idlProperty: IDLProperty): IDLProperty {
+        if (idlProperty.isOptional) {
+            return {
+                ...idlProperty,
+                isOptional: false,
+                type: idl.createUnionType([idlProperty.type, idl.IDLUndefinedType])
+            }
+        }
+        return idlProperty
     }
 }

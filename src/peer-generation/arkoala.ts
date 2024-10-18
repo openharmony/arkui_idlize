@@ -27,7 +27,8 @@ import {
     copyToLibace,
     libraryCcDeclaration,
     makeCJSerializer,
-    makeTypeCheckerFromDTS
+    makeTypeCheckerFromDTS,
+    makeTypeChecker
 } from "./FileGenerators"
 import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./printers/lang/JavaPrinters"
 import { PeerLibrary } from "./PeerLibrary"
@@ -59,6 +60,7 @@ import { Language } from "../Language"
 import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { printDeclarations } from "./printers/DeclarationPrinter"
+import { printConflictedDeclarationsIdl } from "./idl/ConflictedDeclarationsPrinterIdl";
 
 export function generateLibace(config: {
     libaceDestination: string | undefined,
@@ -696,9 +698,60 @@ export function generateArkoalaFromIdl(config: {
                 message: "producing [idl]"
             }
         )
-    }
-
-    if (peerLibrary.language == Language.JAVA) {
+    } else if (peerLibrary.language === Language.ARKTS) {
+        writeFile(
+            arkoala.peer(new TargetFile('ArkUINodeType')),
+            printNodeTypes(peerLibrary),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
+        writeFile(
+            arkoala.arktsLib(new TargetFile('ConflictedDeclarations')),
+            printConflictedDeclarationsIdl(peerLibrary),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
+        writeFile(
+            arkoala.arktsLib(new TargetFile('index')),
+            makeArkuiModule(arkuiComponentsFiles),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+            }
+        )
+        writeFile(
+            arkoala.arktsLib(new TargetFile("peer_events")),
+            printEvents(peerLibrary),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+            }
+        )
+        writeFile(arkoala.peer(new TargetFile('Serializer')),
+            makeTSSerializer(peerLibrary),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+            }
+        )
+        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')),
+            makeTypeChecker(peerLibrary).arkts,
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
+        writeFile(arkoala.arktsLib(new TargetFile('type_check', 'ts')),
+            makeTypeChecker(peerLibrary).ts,
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
+    } else if (peerLibrary.language == Language.JAVA) {
         writeFile(
             arkoala.javaLib(new TargetFile('NativeModule', ARKOALA_PACKAGE_PATH)),
             printNativeModule(peerLibrary, config.nativeBridgeFile ?? "NativeBridge"),

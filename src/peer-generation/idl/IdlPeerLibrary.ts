@@ -18,7 +18,12 @@ import { BuilderClass } from '../BuilderClass';
 import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
 import { IdlPeerFile } from "./IdlPeerFile";
-import { ArkTSTypeNameConvertor, IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor } from './IdlNameConvertor';
+import {
+    ArkTSTypeNameConvertor,
+    IdlTypeNameConvertor,
+    JavaTypeNameConvertor,
+    TSTypeNameConvertor
+} from './IdlNameConvertor';
 import { capitalize, isDefined } from '../../util';
 import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
@@ -71,7 +76,7 @@ export class IdlPeerLibrary {
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
     readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this)
-    readonly seenArrayTypes: string[] = []
+    readonly seenArrayTypes: Map<string, idl.IDLType> = new Map()
 
     private context: string | undefined
     getCurrentContext(): string | undefined {

@@ -17,3 +17,50 @@ declare enum Color {
     White,
     Black,
 }
+
+declare enum Curve {
+  Linear,
+  Ease,
+}
+
+declare enum TextHeightAdaptivePolicy {
+  MAX_LINES_FIRST,
+  MIN_FONT_SIZE_FIRST,
+  LAYOUT_CONSTRAINT_FIRST,
+}
+
+declare enum TextOverflow {
+  None,
+  Clip,
+  Ellipsis,
+  MARQUEE,
+}
+
+declare enum FontWeight {
+  Lighter,
+  Normal,
+  Regular,
+  Medium,
+  Bold,
+  Bolder,
+}
+
+declare enum FontStyle {
+  Normal,
+  Italic,
+}
+
+declare enum ColoringStrategy {
+  INVERT = 'invert',
+  AVERAGE = 'average',
+  PRIMARY = 'primary',
+}
+
+declare enum EmbeddedType {
+  EMBEDDED_UI_EXTENSION = 0,
+}
+
+declare enum Axis {
+  Vertical,
+  Horizontal,
+}

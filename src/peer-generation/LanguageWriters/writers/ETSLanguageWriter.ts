@@ -62,10 +62,17 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
             let isTypeString = true
             this.enumEntity.members.forEach((member, index) => {
                 writer.print(member.comment.length > 0 ? member.comment : undefined)
-                const initText = member.initializerText ?? `${index}`
+                const initText = member.initializerText?.replaceAll('"', '').replaceAll("'", "") ?? `${index}`
                 isTypeString &&= isNaN(Number(initText))
-                writer.writeFieldDeclaration(member.name, new Type(this.enumEntity.name), [FieldModifier.STATIC], false,
-                    writer.makeString(`new ${this.enumEntity.name}(${initText}${isTypeString ? `,${index}` : ""})`))
+                const ctorArgs = [
+                    isTypeString ? `"${initText}"` : initText,
+                    isTypeString ? index : undefined
+                ].filter(it => it !== undefined)
+                writer.writeFieldDeclaration(member.name,
+                    new Type(this.enumEntity.name),
+                    [FieldModifier.STATIC, FieldModifier.READONLY],
+                    false,
+                    writer.makeString(`new ${this.enumEntity.name}(${ctorArgs.join(",")})`))
             })
             const typeName = isTypeString ? "string" : "KInt"
             let argTypes = [new Type(typeName)]

@@ -124,7 +124,7 @@ abstract class TypeCheckerPrinter {
         imports.print(this.writer, 'arkts/type_check')
     }
     protected abstract writeInterfaceChecker(name: string, descriptor: StructDescriptor): void
-    protected abstract writeArrayChecker(typeName: string): void
+    protected abstract writeArrayChecker(typeName: string, type: idl.IDLType): void
 
     print() {
         const importFeatures: ImportFeature[] = []
@@ -161,9 +161,15 @@ abstract class TypeCheckerPrinter {
         this.writer.writeClass("TypeChecker", writer => {
             for (const struct of interfaces)
                 this.writeInterfaceChecker(struct.name, struct.descriptor)
-            const arrayTypes = Array.from(new Set(this.library.seenArrayTypes)).sort((a, b) => a.localeCompare(b))
-            for (const arrayType of arrayTypes) {
-                this.writeArrayChecker(arrayType)
+
+            const arrayTypes = Array.from(this.library.seenArrayTypes).sort((a, b) => a[0].localeCompare(b[0]))
+            const processed: Set<string> = new Set()
+            for (const [alias, type] of arrayTypes) {
+                if (processed.has(alias)) {
+                    continue
+                }
+                this.writeArrayChecker(alias, type)
+                processed.add(alias)
             }
         })
     }
@@ -196,8 +202,8 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         this.writeInstanceofChecker(name, generateTypeCheckerName(name), descriptor.getFields().length)
     }
 
-    protected writeArrayChecker(typeName: string): void {
-        this.writeInstanceofChecker(typeName, generateTypeCheckerName(typeName), 0)
+    protected writeArrayChecker(typeName: string, type: idl.IDLType): void {
+        this.writeInstanceofChecker(this.library.mapType(type), generateTypeCheckerName(typeName), 0)
     }
 }
 
@@ -237,7 +243,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         })
     }
 
-    protected writeArrayChecker(typeName: string) {
+    protected writeArrayChecker(typeName: string, type: idl.IDLType) {
         const checkerName = generateTypeCheckerName(typeName)
         this.writer.writeMethodImplementation(new Method(
             checkerName,
