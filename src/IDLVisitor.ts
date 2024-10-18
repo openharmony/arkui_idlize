@@ -432,11 +432,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     pickProperties(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): IDLProperty[] {
         return members
             .filter(it => (ts.isPropertySignature(it) || ts.isPropertyDeclaration(it) || this.isCommonMethodUsedAsProperty(it)) && !isPrivate(it.modifiers))
+            .filter(it => !isIgnored(it.name))
             .map(it => this.serializeProperty(it, nameSuggestion))
     }
     pickMethods(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): IDLMethod[] {
         return members
-            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it) && !isPrivate(it.modifiers))
+            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !isPrivate(it.modifiers))
+            .filter(it => !isIgnored(it.name))
             .map(it => this.serializeMethod(it as ts.MethodDeclaration | ts.MethodSignature, nameSuggestion))
     }
     pickCallables(members: ReadonlyArray<ts.TypeElement>, nameSuggestion: NameSuggestion): IDLCallable[] {
@@ -1278,4 +1280,8 @@ function dedupDocumentation(documentation: string): string {
             return false
         })
         .join('\n')
+}
+
+function isIgnored(name: ts.PropertyName | undefined): boolean {
+    return name !== undefined && PeerGeneratorConfig.ignorePeerMethod.includes(identName(name)!)
 }

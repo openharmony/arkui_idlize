@@ -242,7 +242,7 @@ export class ModifierVisitor {
                 });`)
                 this.real.print(`//auto convValue = Converter::OptConvert<type>(${
                     method.argConvertors.at(0)?.param
-                }); // for enums `)
+                }); // for enums`)
             }
             this.real.print(`//${clazz?.componentName}ModelNG::Set${method.implName.replace("Impl", "")}(frameNode, convValue);`)
         }
