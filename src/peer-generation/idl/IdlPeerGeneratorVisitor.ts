@@ -795,12 +795,16 @@ export class IdlPeerProcessor {
         }
     }
 
-    private generateDeclarations(components: IdlComponentDeclaration[]): Set<idl.IDLEntry> {
+    private collectDeclarations(): Set<idl.IDLEntry> {
+        const ignoredComponents = new Set(
+            PeerGeneratorConfig.ignoreComponents.flatMap(comp =>
+                [comp + "Attribute", comp + "Interface"]))
         const deps: Set<idl.IDLEntry> = new Set(
-        this.library.files
-            .flatMap(it => it.entries)
-            .filter(it => !idl.isPackage(it) && !idl.isImport(it) && !idl.isModuleType(it))
-            .filter(it => !this.ignoreDeclaration(it, this.library.language)))
+            this.library.files
+                .flatMap(it => it.entries)
+                .filter(it => !idl.isPackage(it) && !idl.isImport(it) && !idl.isModuleType(it))
+                .filter(it => !ignoredComponents.has(it.name!))
+                .filter(it => !this.ignoreDeclaration(it, this.library.language)))
         const depsCopy = Array.from(deps)
         for (const dep of depsCopy) {
             this.collectDepsRecursive(dep, deps)
@@ -817,6 +821,7 @@ export class IdlPeerProcessor {
                 this.library.conflictedDeclarations.add(dep)
             }
         }
+        this.library.declarations.push(...deps)
         return deps
     }
 
@@ -832,7 +837,7 @@ export class IdlPeerProcessor {
         const peerGenerator = new PeersGenerator(this.library)
         for (const component of this.library.componentsDeclarations)
             peerGenerator.generatePeer(component)
-        const allDeclarations = this.generateDeclarations(this.library.componentsDeclarations)
+        const allDeclarations = this.collectDeclarations()
         for (const dep of allDeclarations) {
             if (isSyntheticDeclaration(dep))
                 continue

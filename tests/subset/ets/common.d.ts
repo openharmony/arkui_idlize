@@ -371,6 +371,13 @@ declare enum GradientDirection {
     None,
 }
 
+declare interface LinearGradient {
+    angle?: number | string;
+    direction?: GradientDirection;
+    colors: Array<[ResourceColor, number]>;
+    repeating?: boolean;
+}
+
 declare class AttributeModifier<T> {}
 
 declare class CommonMethod<T> {

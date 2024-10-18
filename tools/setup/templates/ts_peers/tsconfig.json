@@ -23,7 +23,6 @@
     },
     "include": [
         "generated/sig/arkoala/**/*",
-        "sdk/**/*",
         "workaround/**/*"
     ]
 }

@@ -58,6 +58,7 @@ import { createPrinterContext } from "./printers/PrinterContext/PrinterContextIm
 import { Language } from "../Language"
 import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
+import { printDeclarations } from "./printers/DeclarationPrinter"
 
 export function generateLibace(config: {
     libaceDestination: string | undefined,
@@ -616,6 +617,14 @@ export function generateArkoalaFromIdl(config: {
             })
             arkuiComponentsFiles.push(outComponentFile)
         }
+    }
+    const declarations = printDeclarations(peerLibrary)
+    for (const [targetFile, data] of declarations) {
+        const outComponentFile = arkoala.interface(targetFile)
+        writeFile(outComponentFile, data, {
+            onlyIntegrated: config.onlyIntegrated,
+            integrated: false
+        })
     }
     const fakeDeclarations = printIdlFakeDeclarations(peerLibrary)
     for (const [targetFile, data] of fakeDeclarations) {

@@ -23,7 +23,7 @@ import {
 } from "./webidl2-utils"
 import { toString } from "./toString"
 import { createContainerType, createUnionType, IDLAnyType, IDLBooleanType, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLImport, IDLInterface, IDLKind,
-    IDLMethod, IDLModuleType, IDLNullType, IDLNumberType, IDLPackage, IDLParameter, IDLPointerType, IDLPrimitiveType, IDLProperty, IDLStringType, IDLType, IDLTypedef,
+    IDLMethod, IDLModuleType, IDLNullType, IDLNumberType, IDLPackage, IDLParameter, IDLPointerType, IDLPrimitiveType, IDLProperty, IDLReferenceType, IDLStringType, IDLType, IDLTypedef,
     IDLU16Type,
     IDLU32Type,
     IDLU64Type,
@@ -41,8 +41,8 @@ function addSyntheticType(name: string, type: IDLType) {
     syntheticTypes.set(name, type)
 }
 
-export function resolveSyntheticType(name: string | undefined): IDLType | undefined {
-    return name ? syntheticTypes.get(name) : undefined
+export function resolveSyntheticType(type: IDLReferenceType): IDLEntry | undefined {
+    return type.name ? syntheticTypes.get(type.name) : undefined
 }
 
 export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {

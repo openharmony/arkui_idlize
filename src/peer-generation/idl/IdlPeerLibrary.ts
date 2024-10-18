@@ -67,6 +67,7 @@ export class IdlPeerLibrary {
     // todo really dirty - we use it until we can generate interfaces
     // replacing import type nodes
     readonly importTypesStubToSource: Map<string, string> = new Map()
+    readonly declarations: idl.IDLEntry[] = []
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
     readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this)
@@ -120,15 +121,9 @@ export class IdlPeerLibrary {
         }
 
         const candidates = entries.filter(it => it.name === type.name)
-        switch (candidates.length) {
-            case 0: return entries
-                .map(it => it.scope)
-                .filter(isDefined)
-                .flat()
-                .find(it => it.name === type.name)
-            case 1: return candidates[0]
-            default: return candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import))
-        }
+        return candidates.length == 1
+            ? candidates[0]
+            : candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import))
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false, maybeCallback: boolean = false): ArgConvertor {

@@ -562,6 +562,7 @@ const attributesToQuote = new Set([
     IDLExtendedAttributes.DtsName,
     IDLExtendedAttributes.Import,
     IDLExtendedAttributes.Interfaces,
+    IDLExtendedAttributes.ParentTypeArguments,
     IDLExtendedAttributes.TypeArguments,
     IDLExtendedAttributes.TypeParameters,
 ])
