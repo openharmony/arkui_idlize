@@ -513,7 +513,7 @@ export abstract class LanguageWriter {
     makeArrayResize(array: string, typeName: string, length: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(this.makeString(`${array} = [] as ${typeName}`))
     }
-    makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
+    makeMapResize(mapTypeName: string, keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression("// TODO: TS map resize"))
     }
     makeMapSize(map: string): LanguageExpression {
@@ -575,7 +575,7 @@ export abstract class LanguageWriter {
         }
     }
     mapIDLContainerType(type:IDLContainerType, args:string[]): string {
-        return `${type.name}__${args.join('_')}`
+        return `${type.name}_${args.join('_')}`
     }
     mapIDLUnionType(_:IDLUnionType, args:string[]): string {
         return `${args.join(' | ')}`

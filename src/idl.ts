@@ -402,6 +402,8 @@ export const IDLStringType = createPrimitiveType('String')
 export const IDLAnyType = createPrimitiveType('any')
 export const IDLNullType = createPrimitiveType('Null')
 export const IDLUndefinedType = createPrimitiveType('undefined')
+export const IDLUnknownType = createPrimitiveType('unknown')
+export const IDLObjectType = createReferenceType('Object')
 
 export function createReferenceType(name: string, typeArguments?: NodeArray<TypeNode>): IDLReferenceType {
     if (typeArguments) {
@@ -770,7 +772,10 @@ export function toIDLType(typeName: string): IDLType {
         case "number": return IDLNumberType
         case "string": return IDLStringType
         case "undefined": return IDLUndefinedType
+        case "unknown": return IDLUnknownType
         case "void": return IDLVoidType
+        case "Object": return IDLObjectType
+        case "any": return IDLAnyType
         default: return createReferenceType(typeName)
     }
 }

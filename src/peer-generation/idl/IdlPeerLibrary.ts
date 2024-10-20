@@ -18,19 +18,14 @@ import { BuilderClass } from '../BuilderClass';
 import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
 import { IdlPeerFile } from "./IdlPeerFile";
-import {
-    ArkTSTypeNameConvertor,
-    IdlTypeNameConvertor,
-    JavaTypeNameConvertor,
-    TSTypeNameConvertor
-} from './IdlNameConvertor';
-import { capitalize, isDefined } from '../../util';
+import { ArkTSTypeNameConvertor, IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor } from './IdlNameConvertor';
+import { capitalize } from '../../util';
 import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';
-import { LanguageWriter, MethodSignature, Type } from '../LanguageWriters';
+import { LanguageWriter } from '../LanguageWriters';
 import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
@@ -59,6 +54,14 @@ export class IdlPeerLibrary {
     public readonly materializedClasses: Map<string, MaterializedClass> = new Map()
     public get materializedToGenerate(): MaterializedClass[] {
         return Array.from(this.materializedClasses.values()).filter(it => it.needBeGenerated)
+    }
+
+    public makeCMapName(keyType: idl.IDLType, valueType: idl.IDLType): string {
+        return `Map_${this.computeTargetName(keyType, false, "")}_${this.computeTargetName(valueType, false, "")}`
+    }
+
+    public makeCArrayName(elementType: idl.IDLType): string {
+        return `Array_${this.computeTargetName(elementType, false, "")}`
     }
 
     public readonly predefinedDeclarations: idl.IDLInterface[] = []
@@ -108,7 +111,7 @@ export class IdlPeerLibrary {
         return !this.componentsToGenerate.size || this.componentsToGenerate.has(name)
     }
 
-    mapType(type: idl.IDLType | idl.IDLCallback | undefined): string {
+    mapType(type: idl.IDLType | undefined): string {
         return this.nameConvertorInstance.convert(type ?? idl.IDLVoidType)
     }
 
@@ -137,22 +140,24 @@ export class IdlPeerLibrary {
         }
         if (idl.isPrimitiveType(type)) {
             switch (type) {
-                case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any")
                 case idl.IDLBooleanType: return new BooleanConvertor(param)
                 case idl.IDLStringType: return new StringConvertor(param)
                 case idl.IDLNullType: return new NullConvertor(param)
                 case idl.IDLNumberType: return new NumberConvertor(param)
                 case idl.IDLUndefinedType:
                 case idl.IDLVoidType: return new UndefinedConvertor(param)
-                default: throw new Error(`Unconverted ${type}`)
+                case idl.IDLUnknownType:
+                case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any")
+                default: throw new Error(`Unconverted primitive ${type.name}`)
             }
         }
         if (idl.isReferenceType(type)) {
+            switch (type) {
+                case idl.IDLObjectType: return new CustomTypeConvertor(param, "Object")
+            }
             switch (type.name) {
                 case "Callback": return new FunctionConvertor(this, param, type)
                 case "Resource": return new InterfaceConvertor("Resource", param, ArkResource)
-                case "object": return new CustomTypeConvertor(param, "Object")
-                case "unknown": return new CustomTypeConvertor(param, "Any")
             }
             if (isImport(type))
                 return new ImportTypeConvertor(param, type)
@@ -260,6 +265,7 @@ export class IdlPeerLibrary {
             declaration = this.typeMap.get(type)!
         }
         let name = declaration[1][0]
+
         if (optional) {
             name = this.cleanPrefix(name, PrimitiveType.Prefix)
         }
@@ -267,12 +273,19 @@ export class IdlPeerLibrary {
     }
 
     toDeclaration(type: idl.IDLType): idl.IDLEntry {
+        switch (type) {
+            case idl.IDLAnyType: return ArkCustomObject
+            case idl.IDLNullType: return idl.IDLNullType
+            case idl.IDLVoidType: return idl.IDLVoidType
+            case idl.IDLUndefinedType: return idl.IDLUndefinedType
+            case idl.IDLUnknownType: return ArkCustomObject
+            case idl.IDLObjectType: return ArkCustomObject
+        }
         switch (type.name) {
-            case idl.IDLAnyType.name: return ArkCustomObject
-            case idl.IDLNullType.name:
-            case idl.IDLVoidType.name: return idl.IDLUndefinedType
             case "Callback": return ArkFunction
             case "Resource": return ArkResource
+            case "object":
+            case "Object": return ArkCustomObject
         }
         if (isImport(type))
             return ArkCustomObject
@@ -287,6 +300,7 @@ export class IdlPeerLibrary {
                     return this.toDeclaration(wrappedType)
             }
             const decl = this.resolveTypeReference(type)
+            if (!decl) console.log(`WARNING: undeclared type ${type.name}`)
             return !decl ? ArkCustomObject  // assume some builtin type
                 : idl.isCallback(decl) ? ArkFunction
                 : idl.isTypedef(decl) ? this.toDeclaration(decl.type)
@@ -296,6 +310,7 @@ export class IdlPeerLibrary {
     }
 
     requestType(type: idl.IDLType, useToGenerate: boolean) {
+        if (type == idl.IDLVoidType) return
         let declaration = this.typeMap.get(type)
         if (declaration) {
             declaration[2] ||= useToGenerate
@@ -368,7 +383,7 @@ export class IdlPeerLibrary {
         if (idl.isPrimitiveType(target)) {
             let name: string = ""
             switch (target) {
-                case idl.IDLAnyType: return "CustomObject"
+                case idl.IDLAnyType: name = "CustomObject"; break
                 case idl.IDLStringType: name = "String"; break
                 case idl.IDLNullType: name = "Null"; break
                 case idl.IDLVoidType: name = "void"; break
@@ -408,15 +423,15 @@ export class IdlPeerLibrary {
         }
         if (idl.isContainerType(target)) {
             switch (target.name) {
-                case "sequence": return prefix + `Array_` + this.computeTargetName(target.elementType[0], false, "")
-                case "record": return prefix + `Map_` +
-                    this.computeTargetName(target.elementType[0], false, "") + "_" +
-                    this.computeTargetName(target.elementType[1], false, "")
-                case "Promise": return prefix + `Promise_` + this.computeTargetName(target.elementType[0], false)
+                case "sequence": return prefix + this.makeCArrayName(target.elementType[0])
+                case "record": return prefix + this.makeCMapName(target.elementType[0], target.elementType[1])
+                case "Promise": return prefix + `Promise_` + this.computeTargetName(target.elementType[0], false, "")
+                default: throw new Error(`Unknown container type ${target.name}`)
             }
         }
         if (idl.isReferenceType(target)) {
             const name = target.name
+            // TODO: move to IDL generation phase
             if (name == "Optional") {
                 const typeArg = idl.getExtAttribute(target, idl.IDLExtendedAttributes.TypeArguments)!
                 return this.computeTargetName(idl.toIDLType(typeArg), true, idlPrefix)

@@ -73,9 +73,9 @@ class CppArrayResizeStatement implements LanguageStatement {
 }
 
 class CppMapResizeStatement implements LanguageStatement {
-    constructor(private keyType: string, private valueType: string, private map: string, private size: string, private deserializer: string) {}
+    constructor(private mapTypeName: string, private keyType: string, private valueType: string, private map: string, private size: string, private deserializer: string) {}
     write(writer: LanguageWriter): void {
-        writer.print(`${this.deserializer}.resizeMap<Map_${this.keyType.replace(PrimitiveType.Prefix, "")}_${this.valueType.replace(PrimitiveType.Prefix, "")}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
+        writer.print(`${this.deserializer}.resizeMap<${this.mapTypeName}, ${this.keyType}, ${this.valueType}>(&${this.map}, ${this.size});`)
     }
 }
 
@@ -235,8 +235,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeArrayResize(array: string, typeName: string, length: string, deserializer: string): LanguageStatement {
         return new CppArrayResizeStatement(array, length, deserializer)
     }
-    makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
-        return new CppMapResizeStatement(keyType, valueType, map, size, deserializer)
+    makeMapResize(mapTypeName: string, keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
+        return new CppMapResizeStatement(mapTypeName, keyType, valueType, map, size, deserializer)
     }
     makeCast(expr: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
         return new CppCastExpression(expr, type, unsafe)
@@ -247,6 +247,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeDefinedCheck(value: string): LanguageExpression {
         return new CDefinedExpression(value);
     }
+    // TODO: remove this!
     mapType(type: Type): string {
         switch (type.name) {
             case 'KPointer': return 'void*'
@@ -276,12 +277,13 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         if (isUnionType(type)) {
             return `Union_${type.types.map(it => this.mapIDLType(it)).join("_")}`
         }
+        /*
         if (isContainerType(type) && type.name == "Promise") {
             return `Promise_${this.mapIDLType(type.elementType[0])}`
         }
         if (isContainerType(type) && type.name == "sequence") {
             return `Array_${this.mapIDLType(type.elementType[0])}`
-        }
+        } */
         return super.mapIDLType(type)
     }
     makeSetUnionSelector(value: string, index: string): LanguageStatement {

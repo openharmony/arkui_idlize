@@ -29,6 +29,8 @@ import {
     IDLBooleanType,
     IDLBigintType,
     isPrimitiveType,
+    IDLUnknownType,
+    IDLObjectType,
 } from "./idl"
 import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameEnumValues, nameOrNull, stringOrNone
@@ -120,14 +122,12 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     globalConstants: IDLConstant[] = []
     globalFunctions: IDLMethod[] = []
     private defaultPackage: string
-    private convertRecordType: boolean
 
     constructor(
         private sourceFile: ts.SourceFile,
         private typeChecker: ts.TypeChecker,
         private options: OptionValues) {
         this.defaultPackage = options.defaultIdlPackage as string ?? "arkui"
-        this.convertRecordType = options.convertRecordType as boolean ?? false
     }
 
     visitWholeFile(): IDLEntry[] {
@@ -816,13 +816,13 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             // return IDLUndefinedType
         }
         if (type.kind == ts.SyntaxKind.UnknownKeyword) {
-            return createReferenceType("unknown")
+            return IDLUnknownType
         }
         if (type.kind == ts.SyntaxKind.AnyKeyword) {
             return IDLAnyType
         }
         if (type.kind == ts.SyntaxKind.ObjectKeyword) {
-            return createReferenceType("object")
+            return IDLObjectType
         }
         if (type.kind == ts.SyntaxKind.NumberKeyword) {
             return IDLNumberType
@@ -855,8 +855,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
             if (types.find(it => it == IDLVoidType)) {
                 console.log(`WARNING: ${type.getText()} is union with 'void', which is not supported, remove 'void' variant`)
-                // TODO: remove void from union when original SDK is removed from compilation.
-                // types = types.filter(it => it != IDLVoidType)
+                types = types.filter(it => it != IDLVoidType)
             }
             return typeOrUnion(types, selectedUnionName)
         }
@@ -894,8 +893,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             let isEnum = ts.isEnumDeclaration(declaration[0])
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
             const transformedType = typeMapper.get(rawType) ?? rawType
-            // TODO: support Record here as well.
-            if (rawType == "Array" || rawType == "Promise" || rawType == "Map" || (this.convertRecordType && rawType == "Record")) {
+            if (rawType == "Array" || rawType == "Promise" || rawType == "Map" || rawType == "Record") {
                 return createContainerType(transformedType, type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`p${index}`))))
             }
             if (rawType == "Callback" || rawType == "AsyncCallback") {

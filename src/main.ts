@@ -85,7 +85,6 @@ const options = program
     .option('--tracker-status <file>', 'Tracker status file)')
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
-    .option('--convert-record-type', 'If Record to be converted to IDL record')
     .parse()
     .opts()
 

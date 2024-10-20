@@ -250,7 +250,7 @@ export class CJLanguageWriter extends LanguageWriter {
         }
         return new TsObjectAssignStatement(object, undefined, false)
     }
-    makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
+    makeMapResize(mapType: string, keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
         return this.makeAssign(map, undefined, this.makeString(`new Map<${keyType}, ${valueType}>()`), false)
     }
     makeMapKeyTypeName(c: MapConvertor): string {

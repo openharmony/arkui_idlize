@@ -60,6 +60,7 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<
                 return this.callbackType(decl)
             }
             const entity = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity)
+
             if (entity) {
                 const isTuple = entity === idl.IDLEntity.Tuple
                 return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
@@ -71,13 +72,11 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<
         if (qualifier) {
             typeSpec = `${qualifier}.${typeSpec}`
         }
-        if (typeSpec === 'Style')
-            return "Object" //this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.ObjectKeyword))
         let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
         if (typeSpec === `ContentModifier`)
-            typeArgs = [this.convert(idl.IDLAnyType)] //this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
+            typeArgs = [this.convert(idl.IDLAnyType)]
         if (typeSpec === `Optional`)
             return `${typeArgs} | undefined`
         const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
@@ -150,7 +149,7 @@ class JavaTypeAlias {
     // string representation can contain special characters (e.g. String[])
     readonly type: Type
 
-    // synthetic identifier for internal use cases: naming classes/files etc. 
+    // synthetic identifier for internal use cases: naming classes/files etc.
     // string representation contains only letters, numbers and underscores (e.g. Array_String)
     readonly alias: string
 
@@ -208,7 +207,7 @@ class JavaTypeAliasConvertor implements TypeConvertor<JavaTypeAlias> {
         if (importAttr) {
             return this.convertImport(type, importAttr)
         }
-            
+
         // resolve synthetic types
         const decl = this.library.resolveTypeReference(type)!
         if (decl && idl.isSyntheticEntry(decl)) {
@@ -242,11 +241,11 @@ class JavaTypeAliasConvertor implements TypeConvertor<JavaTypeAlias> {
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): JavaTypeAlias {
         switch (type) {
+            case idl.IDLAnyType: return JavaTypeAlias.fromTypeName(ARK_CUSTOM_OBJECT, false)
             case idl.IDLStringType: return JavaTypeAlias.fromTypeName('String', false)
             case idl.IDLNumberType: return JavaTypeAlias.fromTypeName('double', false)
             case idl.IDLBooleanType: return JavaTypeAlias.fromTypeName('boolean', false)
             case idl.IDLUndefinedType: return JavaTypeAlias.fromTypeName('Ark_Undefined', false)
-            case idl.IDLAnyType: return JavaTypeAlias.fromTypeName(ARK_CUSTOM_OBJECT, false)
             case idl.IDLI8Type: return JavaTypeAlias.fromTypeName('byte', false)
             case idl.IDLU8Type: return JavaTypeAlias.fromTypeName('byte', false)
             case idl.IDLI16Type: return JavaTypeAlias.fromTypeName('short', false)
@@ -284,7 +283,7 @@ class JavaTypeAliasConvertor implements TypeConvertor<JavaTypeAlias> {
         return JavaTypeAlias.fromTypeName('Callback', false)
     }
 
-    // Tuple + ??? AnonymousClass 
+    // Tuple + ??? AnonymousClass
     private productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): JavaTypeAlias {
         // // TODO: other types
         if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')

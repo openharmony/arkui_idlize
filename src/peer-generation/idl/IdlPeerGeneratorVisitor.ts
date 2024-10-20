@@ -160,11 +160,11 @@ function mapCInteropRetType(type: idl.IDLType): string {
             case idl.IDLBooleanType: return PrimitiveType.Boolean.getText()
             case idl.IDLNumberType: return PrimitiveType.Int32.getText()
             case idl.IDLStringType:
+            case idl.IDLAnyType:
                 /* HACK, fix */
                 // return `KStringPtr`
                 return "void"
             case idl.IDLVoidType:
-            case idl.IDLAnyType:
             case idl.IDLUndefinedType:
                 return "void"
         }

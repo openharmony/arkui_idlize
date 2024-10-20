@@ -23,12 +23,13 @@ import {
 } from "./webidl2-utils"
 import { toString } from "./toString"
 import { createContainerType, createUnionType, IDLAnyType, IDLBooleanType, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLImport, IDLInterface, IDLKind,
-    IDLMethod, IDLModuleType, IDLNullType, IDLNumberType, IDLPackage, IDLParameter, IDLPointerType, IDLPrimitiveType, IDLProperty, IDLReferenceType, IDLStringType, IDLType, IDLTypedef,
+    IDLMethod, IDLModuleType, IDLNullType, IDLNumberType, IDLObjectType, IDLPackage, IDLParameter, IDLPointerType, IDLPrimitiveType, IDLProperty, IDLReferenceType, IDLStringType, IDLType, IDLTypedef,
     IDLU16Type,
     IDLU32Type,
     IDLU64Type,
     IDLU8Type,
     IDLUndefinedType,
+    IDLUnknownType,
     IDLVoidType
 } from "../idl"
 import { isDefined, stringOrNone } from "../util"
@@ -172,6 +173,8 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
             case IDLStringType.name: return IDLStringType
             case IDLUndefinedType.name: return IDLUndefinedType
             case IDLVoidType.name: return IDLVoidType
+            case IDLObjectType.name: return IDLObjectType
+            case IDLUnknownType.name: return IDLUnknownType
             case IDLI8Type.name: return IDLI8Type
             case IDLU8Type.name: return IDLU8Type
             case IDLI16Type.name: return IDLI16Type

@@ -92,7 +92,7 @@ export class PeerMethod {
     generateAPIParameters(): string[] {
         const args = this.argConvertors.map(it => {
             let isPointer = it.isPointerType()
-            return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
+            return `${isPointer ? "const ": ""}/*OLD ${it.constructor.name}}*/${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
         })
         const receiver = this.generateReceiver()
         if (receiver) return [`${receiver.argType} ${receiver.argName}`, ...args]

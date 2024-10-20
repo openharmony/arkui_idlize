@@ -359,6 +359,7 @@ export class LengthConvertor extends BaseArgConvertor {
 }
 
 export class CustomTypeConvertor extends BaseArgConvertor {
+    // TODO: remove
     private static knownTypes: Map<string, [string, boolean][]> = new Map([
         ["LinearGradient", [["angle", true], ["direction", true], ["colors", false], ["repeating", true]]]
     ])

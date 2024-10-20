@@ -377,7 +377,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
     nativeType(impl: boolean): string {
         return impl
             ? `struct { ${this.memberConvertors.map((it, index) => `${it.nativeType(true)} value${index};`).join(" ")} } `
-            : this.library.computeTargetName(this.decl, false)
+            : this.library.getTypeName(this.decl, false)
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -616,7 +616,7 @@ export class TupleConvertor extends BaseArgConvertor { //
     nativeType(impl: boolean): string {
         return impl
             ? `struct { ${this.memberConvertors.map((it, index) => `${it.nativeType(false)} value${index};`).join(" ")} } `
-            : this.library.computeTargetName(this.decl, false)
+            : this.library.getTypeName(this.decl, false)
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -682,8 +682,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
         return new BlockStatement(statements, true)
     }
     nativeType(impl: boolean): string {
-        const typeName = cleanPrefix(this.library.getTypeName(this.elementType, false), PrimitiveType.Prefix)
-        return `Array_${typeName}`
+        return this.library.makeCArrayName(this.elementType)
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -731,6 +730,7 @@ export class MapConvertor extends BaseArgConvertor { //
         // Map size.
         const runtimeType = `runtimeType`
         const mapSize = `mapSize`
+        const mapTypeName = this.library.makeCMapName(this.keyType, this.valueType)
         const keyTypeName = this.makeTypeName(this.keyType, printer.language)
         const valueTypeName = this.makeTypeName(this.valueType, printer.language)
         const counterVar = `i`
@@ -743,7 +743,7 @@ export class MapConvertor extends BaseArgConvertor { //
                 printer.makeCast(printer.makeString(`${param}Deserializer.readInt8()`), printer.getRuntimeType()), true),
             printer.makeCondition(printer.makeRuntimeTypeDefinedCheck(runtimeType), new BlockStatement([
                 printer.makeAssign(mapSize, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
-                printer.makeMapResize(keyTypeName, valueTypeName, value, mapSize, `${param}Deserializer`),
+                printer.makeMapResize(mapTypeName, keyTypeName, valueTypeName, value, mapSize, `${param}Deserializer`),
                 printer.makeLoop(counterVar, mapSize, new BlockStatement([
                     printer.makeAssign(tmpKey, new Type(keyTypeName), undefined, true, false),
                     this.keyConvertor.convertorDeserialize(param, tmpKey, printer),
@@ -757,9 +757,7 @@ export class MapConvertor extends BaseArgConvertor { //
     }
 
     nativeType(impl: boolean): string {
-        const keyTypeName = cleanPrefix(this.library.getTypeName(this.keyType, false), PrimitiveType.Prefix)
-        const valueTypeName = cleanPrefix(this.library.getTypeName(this.valueType, false), PrimitiveType.Prefix)
-        return `Map_${keyTypeName}_${valueTypeName}`
+        return this.library.makeCMapName(this.keyType, this.valueType)
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -779,7 +777,7 @@ export class MapConvertor extends BaseArgConvertor { //
     private makeTypeName(type: idl.IDLType, language: Language): string {///refac into LW
         switch (language) {
             case Language.TS: return this.library.mapType(type)
-            case Language.CPP: return this.library.getTypeName(type)
+            case Language.CPP: return this.library.getTypeName(type, false)
             case Language.JAVA: return this.library.mapType(type)
             default: throw `Unsupported language ${language}`
         }

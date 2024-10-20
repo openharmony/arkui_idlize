@@ -64,7 +64,7 @@ export class StructPrinter {
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         const seenNames = new Set<string>()
         seenNames.clear()
-        let noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name]
+        let noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
         for (let target of this.library.orderedDependencies) {
             let nameAssigned = this.library.computeTargetName(target, false)
             if (nameAssigned === PrimitiveType.Tag.getText())
@@ -95,7 +95,6 @@ export class StructPrinter {
                 if (nameAssigned === `Array_GestureRecognizer`) {
                     structs.print(`typedef Ark_Materialized ${PrimitiveType.Prefix}GestureRecognizer;`)
                 }
-
                 this.printStructsCHead(nameAssigned, target, structs)
                 if (idl.isUnionType(target)) {
                     structs.print(`${PrimitiveType.Prefix}Int32 selector;`)
