@@ -24,7 +24,7 @@ const builtInInterfaceTypes = new Map<string,
 )
 
 export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
-    imports.addFeature("TypeChecker", "#arkui")
+    imports.addFeature("TypeChecker", "#components")
 }
 
 export function makeEnumTypeCheckerCall(valueAccessor: string, enumName: string, writer: LanguageWriter): LanguageExpression {

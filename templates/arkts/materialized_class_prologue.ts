@@ -1,5 +1,5 @@
 import { Finalizable } from "./Finalizable"
 import { createSerializer, Serializer } from "./peers/Serializer"
 import { isPixelMap, isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase, registerCallback } from "./peers/SerializerBase"
-import { NativeModule } from "#arkui"
+import { NativeModule } from "#components"
 import { wrapCallback } from "@koalaui/interop"

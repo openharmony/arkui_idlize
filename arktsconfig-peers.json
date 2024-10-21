@@ -3,7 +3,7 @@
         "outDir": "out/abc-peers",
         "rootDir": "./out/arkts-peers/generated",
         "paths": {
-            "#arkui": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/arkts"],
+            "#components": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/arkts"],
             "@arkoala/arkui": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated", "./"],
             "@arkoala/arkui/*": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/*", "./*"],
             "@koalaui/arkoala": ["./out/arkts-peers/generated/sig/arkoala-arkts/framework/src"],

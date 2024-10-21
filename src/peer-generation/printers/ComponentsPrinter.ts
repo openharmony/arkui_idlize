@@ -183,7 +183,7 @@ export function ${componentFunctionName}(
 
 class ArkTsComponentFileVisitor extends TSComponentFileVisitor {
     protected populateImports(imports: ImportsCollector) {
-        imports.addFeature('TypeChecker', '#arkui')
+        imports.addFeature('TypeChecker', '#components')
     }
 
     protected printComponentFunction(componentClassName: string,

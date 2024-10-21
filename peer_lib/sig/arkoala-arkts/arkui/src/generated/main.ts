@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NativeModule, nativeModule } from "#arkui"
+import { NativeModule, nativeModule } from "#components"
 import { wrapCallback, callCallback } from "./CallbackRegistry"
 import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
