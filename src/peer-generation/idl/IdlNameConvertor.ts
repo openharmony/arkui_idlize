@@ -315,6 +315,7 @@ export class ArkTSTypeNameConvertor extends TSTypeNameConvertor {
         switch (type) {
             case idl.IDLVoidType: return "void"
             case idl.IDLAnyType: return "object"
+            case idl.IDLUnknownType: return "object";
         }
         return super.convertPrimitiveType(type);
     }

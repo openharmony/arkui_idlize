@@ -620,14 +620,6 @@ export function generateArkoalaFromIdl(config: {
             arkuiComponentsFiles.push(outComponentFile)
         }
     }
-    const declarations = printDeclarations(peerLibrary)
-    for (const [targetFile, data] of declarations) {
-        const outComponentFile = arkoala.interface(targetFile)
-        writeFile(outComponentFile, data, {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: false
-        })
-    }
     const fakeDeclarations = printIdlFakeDeclarations(peerLibrary)
     for (const [targetFile, data] of fakeDeclarations) {
         const outComponentFile = arkoala.interface(targetFile)
@@ -642,6 +634,14 @@ export function generateArkoalaFromIdl(config: {
     }
 
     if (peerLibrary.language == Language.TS) {
+        const declarations = printDeclarations(peerLibrary)
+        for (const [targetFile, data] of declarations) {
+            const outComponentFile = arkoala.interface(targetFile)
+            writeFile(outComponentFile, data, {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: false
+            })
+        }
         writeFile(
             arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
             printNativeModuleEmpty(peerLibrary),
@@ -749,6 +749,15 @@ export function generateArkoalaFromIdl(config: {
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
+            }
+        )
+        writeFile(
+            arkoala.arktsLib(new TargetFile('NativeModule', 'arkts')),
+            printNativeModule(peerLibrary, config.nativeBridgeFile ?? "../../../../../../../native/NativeBridgeNapi"),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+                message: "producing [idl]"
             }
         )
     } else if (peerLibrary.language == Language.JAVA) {
