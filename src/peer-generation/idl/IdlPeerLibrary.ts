@@ -83,25 +83,17 @@ export class IdlPeerLibrary {
     readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this)
     readonly seenArrayTypes: Map<string, idl.IDLType> = new Map()
 
-    public onAllFilesPushed() {
-        for (const file of this.files) {
-            for (let i = 0; i < file.entries.length; i++) {
-                for (const replacement of PeerGeneratorConfig.idlReplacements) {
-                    if (file.entries[i].name === replacement.name)
-                        file.entries[i] = replacement
-                }
-            }
-        }
-    }
-
     readonly continuationCallbacks: idl.IDLCallback[] = []
     private createContinuationCallbacks(): void {
         const callbacks = collectUniqueCallbacks(this)
         for (const callback of callbacks) {
             this.createContinuationCallbackIfNeeded(callback.returnType)
+            this.requestType(this.createContinuationCallbackReference(callback.returnType), true)
         }
     }
     private createContinuationCallbackIfNeeded(continuationType: idl.IDLType): void {
+        if (idl.isContainerType(continuationType) && continuationType.name == "Promise")
+            return this.createContinuationCallbackIfNeeded(continuationType.elementType[0])
         const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
         const continuationReference = this.createContinuationCallbackReference(continuationType)
         const maybeResolved = this.resolveTypeReference(continuationReference)
@@ -111,6 +103,8 @@ export class IdlPeerLibrary {
         this.continuationCallbacks.push(callback)
     }
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType {
+        if (idl.isContainerType(continuationType) && continuationType.name == "Promise")
+            return this.createContinuationCallbackReference(continuationType.elementType[0])
         const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
         const syntheticName = generateSyntheticFunctionName(
             (type) => cleanPrefix(this.getTypeName(type), PrimitiveType.Prefix),

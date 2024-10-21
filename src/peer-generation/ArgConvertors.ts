@@ -229,7 +229,7 @@ export class UndefinedConvertor extends BaseArgConvertor {
                 printer.makeUndefined(), false)
     }
     nativeType(impl: boolean): string {
-        return "Undefined"
+        return `${PrimitiveType.Prefix}Undefined`
     }
     interopType(language: Language): string {
         return PrimitiveType.NativePointer.getText()
@@ -249,7 +249,7 @@ export class VoidConvertor extends UndefinedConvertor {
                 printer.makeVoid(), false)
     }
     nativeType(impl: boolean): string {
-        return "Void"
+        return `${PrimitiveType.Prefix}Void`
     }
 }
 

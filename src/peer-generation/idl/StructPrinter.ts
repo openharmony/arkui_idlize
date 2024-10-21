@@ -15,11 +15,12 @@
 
 import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
+import { Language } from "../../Language"
 import { camelCaseToUpperSnakeCase } from "../../util"
 import { RuntimeType } from "../ArgConvertors"
 // import { ArkPrimitiveType } from "../DeclarationTable"
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters"
+import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isImport, isStringEnum } from "./common"
 import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
@@ -28,8 +29,10 @@ import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 export function generateCallbackAPIArguments(library: IdlPeerLibrary, callback: idl.IDLCallback): string[] {
     const args: string[] = [`const Ark_Int32 resourceId`]
     args.push(...callback.parameters.map(it => {
+        const target = library.toDeclaration(it.type!)
         const type = library.typeConvertor(it.name, it.type!, it.isOptional)
-        return `const ${type.nativeType(false)} ${type.param}`
+        const constPrefix = !idl.isEnum(target) ? "const " : ""
+        return `${constPrefix}${type.nativeType(false)} ${type.param}`
     }))
     if (!idl.isVoidType(callback.returnType)) {
         const type = library.typeConvertor(`continuation`, 
@@ -76,6 +79,9 @@ export class StructPrinter {
     }
 
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+        const enumsDeclarations = createLanguageWriter(Language.CPP)
+        const forwardDeclarations = createLanguageWriter(Language.CPP)
+        const concreteDeclarations = createLanguageWriter(Language.CPP)
         const seenNames = new Set<string>()
         seenNames.clear()
         let noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
@@ -91,41 +97,41 @@ export class StructPrinter {
             let isPointer = this.isPointerDeclaration(target)
             let isAccessor = (idl.isClass(target) || idl.isInterface(target)) && isMaterialized(target)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
-            const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.Prefix)
             if (idl.isEnum(target) || idl.isEnumMember(target)) {
                 const enumTarget = idl.isEnumMember(target) ? target.parent : target
                 const stringEnum = isStringEnum(enumTarget)
-                structs.print(`typedef enum ${nameAssigned} {`)
-                structs.pushIndent()
+                enumsDeclarations.print(`typedef enum ${nameAssigned} {`)
+                enumsDeclarations.pushIndent()
                 for (let member of enumTarget.elements) {
                     const memberName = member.documentation?.includes("@deprecated")
                         ? member.name : camelCaseToUpperSnakeCase(member.name)
                     const initializer = !stringEnum && member.initializer ? " = " + member.initializer : ""
-                    structs.print(`${camelCaseToUpperSnakeCase(nameAssigned)}_${memberName}${initializer},`)
+                    enumsDeclarations.print(`${camelCaseToUpperSnakeCase(nameAssigned)}_${memberName}${initializer},`)
                 }
-                structs.popIndent()
-                structs.print(`} ${nameAssigned};`)
+                enumsDeclarations.popIndent()
+                enumsDeclarations.print(`} ${nameAssigned};`)
+                this.writeRuntimeType(target, nameAssigned, false, writeToString)
+                this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
+                this.printOptionalIfNeeded(undefined, enumsDeclarations, writeToString, target, seenNames)
             } else if (!noBasicDecl && !this.ignoreTarget(target)) {
-                // TODO: fix it to define array type after its elements types
-                if (nameAssigned === `Array_GestureRecognizer`) {
-                    structs.print(`typedef Ark_Materialized ${PrimitiveType.Prefix}GestureRecognizer;`)
-                }
-                this.printStructsCHead(nameAssigned, target, structs)
+                forwardDeclarations.print(`typedef struct ${nameAssigned} ${nameAssigned};`)
+                this.printStructsCHead(nameAssigned, target, concreteDeclarations)
                 if (idl.isUnionType(target)) {
-                    structs.print(`${PrimitiveType.Prefix}Int32 selector;`)
-                    structs.print("union {")
-                    structs.pushIndent()
+                    concreteDeclarations.print(`${PrimitiveType.Prefix}Int32 selector;`)
+                    concreteDeclarations.print("union {")
+                    concreteDeclarations.pushIndent()
                     target.types.forEach((it, index) =>
-                        structs.print(`${this.library.getTypeName(it, false)} value${index};`))
-                    structs.popIndent()
-                    structs.print("};")
+                        concreteDeclarations.print(`${this.library.getTypeName(it, false)} value${index};`))
+                    concreteDeclarations.popIndent()
+                    concreteDeclarations.print("};")
                 } else if (idl.isClass(target) || idl.isInterface(target) || idl.isAnonymousInterface(target) || idl.isTupleInterface(target)) {
                     const properties = collectProperties(target, this.library)
                     if (properties.length === 0) {
-                        structs.print(`void *handle;`) // avoid empty structs
+                        concreteDeclarations.print(`void *handle;`) // avoid empty structs
                     }
-                    properties.forEach(it =>
-                        structs.print(`${this.library.getTypeName(it.type, it.isOptional)} ${structs.escapeKeyword(it.name)};`))
+                    properties.forEach(it => {
+                        concreteDeclarations.print(`${this.library.getTypeName(it.type, it.isOptional)} ${concreteDeclarations.escapeKeyword(it.name)};`)
+                    })
                 } else if (idl.isContainerType(target)) {
                     let fieldNames: string[] = []
                     switch (target.name) {
@@ -133,50 +139,65 @@ export class StructPrinter {
                             fieldNames = ["array"]
                             break
                         case "record":
-                            structs.print(`${PrimitiveType.Int32.getText()} size;`)
+                            concreteDeclarations.print(`${PrimitiveType.Int32.getText()} size;`)
                             fieldNames = ["keys", "values"]
                             break
                     }
                     target.elementType.forEach((it, index) => {
-                        const itTarget = this.library.toDeclaration(it)
-                        const targetMaterialized = (idl.isInterface(itTarget) || idl.isClass(itTarget)) && isMaterialized(itTarget)
-                        const structKeyword = idl.isPrimitiveType(itTarget) || idl.isEnum(itTarget) || targetMaterialized
-                            ? "" : "struct "
-                        structs.print(`${structKeyword}${this.library.getTypeName(it)}* ${fieldNames[index]};`)
+                        concreteDeclarations.print(`${this.library.getTypeName(it)}* ${fieldNames[index]};`)
                     })
                     switch (target.name) {
                         case "sequence":
-                            structs.print(`${PrimitiveType.Int32.getText()} length;`)
+                            concreteDeclarations.print(`${PrimitiveType.Int32.getText()} length;`)
                             break
                     }
                 } else if (idl.isCallback(target)) {
-                    structs.print(`struct Ark_CallbackResource resource;`)
+                    concreteDeclarations.print(`Ark_CallbackResource resource;`)
                     const args = generateCallbackAPIArguments(this.library, target)
-                    structs.print(`void (*call)(${args.join(', ')});`)
+                    concreteDeclarations.print(`void (*call)(${args.join(', ')});`)
                 }
-                this.printStructsCTail(nameAssigned, structs)
-            }
-            if (isAccessor) {
-                structs.print(`typedef Ark_Materialized ${nameAssigned};`)
-            }
-            let skipWriteToString = idl.isPrimitiveType(target)
-            if (!noBasicDecl && !skipWriteToString) {
+                this.printStructsCTail(nameAssigned, concreteDeclarations)
+                this.writeRuntimeType(target, nameAssigned, false, writeToString)
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
-            }
-            this.writeRuntimeType(target, nameAssigned, false, writeToString)
-            if (seenNames.has(nameOptional)) continue
-            seenNames.add(nameOptional)
-            if (nameAssigned !== "Optional" && nameAssigned !== "RelativeIndexable") {
-                this.printStructsCHead(nameOptional, target, structs)
-                structs.print(`enum ${PrimitiveType.Tag.getText()} tag;`)
-                structs.print(`${nameAssigned} value;`)
-                this.printStructsCTail(nameOptional, structs)
-                this.writeOptional(nameOptional, writeToString, isPointer)
-                this.writeRuntimeType(target, nameOptional, true, writeToString)
+                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
+            } else if (isAccessor) {
+                forwardDeclarations.print(`typedef ${PrimitiveType.Materialized.getText()} ${nameAssigned};`)
+                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
+            } else {
+                if (!noBasicDecl && !idl.isPrimitiveType(target))
+                    this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
+                this.writeRuntimeType(target, nameAssigned, false, writeToString)
+                this.printOptionalIfNeeded(undefined, concreteDeclarations, writeToString, target, seenNames)
             }
         }
+        structs.concat(forwardDeclarations)
+        structs.concat(enumsDeclarations)
+        structs.concat(concreteDeclarations)
         // TODO: hack, remove me!
         typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Length ${PrimitiveType.OptionalPrefix}Dimension;`)
+    }
+
+    private printOptionalIfNeeded(
+        forwardDeclarations: LanguageWriter | undefined, 
+        concreteDeclarations: LanguageWriter, 
+        writeToString: LanguageWriter, 
+        target: idl.IDLEntry, 
+        seenNames: Set<String>,
+    ) {
+        const isPointer = this.isPointerDeclaration(target)
+        const nameAssigned = this.library.computeTargetName(target, false)
+        const nameOptional = this.library.computeTargetName(target, true)
+        if (seenNames.has(nameOptional)) return
+        seenNames.add(nameOptional)
+        if (nameAssigned !== "Optional" && nameAssigned !== "RelativeIndexable") {
+            forwardDeclarations?.print(`typedef struct ${nameOptional} ${nameOptional};`)
+            this.printStructsCHead(nameOptional, target, concreteDeclarations)
+            concreteDeclarations.print(`${PrimitiveType.Tag.getText()} tag;`)
+            concreteDeclarations.print(`${nameAssigned} value;`)
+            this.printStructsCTail(nameOptional, concreteDeclarations)
+            this.writeOptional(nameOptional, writeToString, isPointer)
+            this.writeRuntimeType(target, nameOptional, true, writeToString)
+        }
     }
 
     private writeRuntimeType(target: idl.IDLEntry, targetTypeName: string, isOptional: boolean, writer: LanguageWriter) {
@@ -348,7 +369,8 @@ inline void WriteToString(string* result, const ${name}* value) {
                 this.generateMapWriteToString(name, target, printer)
             }
         } else if (idl.isEnum(target)) {
-            printer.print(`inline void WriteToString(string* result, ${name} value) {`)
+            printer.print(`template <>`)
+            printer.print(`inline void WriteToString(string* result, const ${name} value) {`)
             printer.pushIndent()
             printer.print(`result->append("${name}(");`)
             printer.print(`WriteToString(result, (${PrimitiveType.Int32.getText()}) value);`)

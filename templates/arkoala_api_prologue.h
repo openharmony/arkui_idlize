@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-enum Ark_Tag
+typedef enum Ark_Tag
 {
   ARK_TAG_UNDEFINED = 101,
   ARK_TAG_INT32 = 102,
@@ -46,9 +46,9 @@ enum Ark_Tag
   ARK_TAG_LENGTH = 105,
   ARK_TAG_RESOURCE = 106,
   ARK_TAG_OBJECT = 107,
-};
+} Ark_Tag;
 
-enum Ark_RuntimeType
+typedef enum Ark_RuntimeType
 {
   ARK_RUNTIME_UNEXPECTED = -1,
   ARK_RUNTIME_NUMBER = 1,
@@ -60,7 +60,7 @@ enum Ark_RuntimeType
   ARK_RUNTIME_FUNCTION = 7,
   ARK_RUNTIME_SYMBOL = 8,
   ARK_RUNTIME_MATERIALIZED = 9,
-};
+} Ark_RuntimeType;
 
 typedef float Ark_Float32;
 typedef double Ark_Float64;

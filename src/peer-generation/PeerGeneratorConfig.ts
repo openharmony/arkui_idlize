@@ -15,7 +15,6 @@
 
 import * as ts from 'typescript'
 import { Language } from '../Language'
-import * as idl from '../idl'
 
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]
@@ -75,22 +74,6 @@ export class PeerGeneratorConfig {
         "DotIndicator",
         "DigitIndicator",
     ]
-
-    private static _idlReplacements: idl.IDLEntry[] | undefined
-    public static get idlReplacements(): idl.IDLEntry[] {
-        if (!this._idlReplacements) {
-            this._idlReplacements = [
-                // TODO there is recursive dependency, so entities can not be toposorted. Stub until 
-                // toposorting issue will be fixed
-                idl.createInterface("UnifiedData", idl.IDLKind.Class, [], [], [], [
-                    idl.createProperty("stubProperty", idl.IDLBooleanType)
-                ], [], [], [
-                    { name: idl.IDLExtendedAttributes.Entity, value: idl.IDLEntity.Class }
-                ])
-            ]
-        }
-        return this._idlReplacements
-    }
 
     private static ignoreStandardNames = [
         // standard exclusion

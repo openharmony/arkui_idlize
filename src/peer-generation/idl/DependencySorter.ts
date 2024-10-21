@@ -28,7 +28,7 @@ class TypeDependencies extends TypeDependenciesCollector {
         return type.types.map(it => this.library.toDeclaration(it))
     }
     convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
-        return type.elementType.map(it => this.library.toDeclaration(it))
+        return []
     }
     convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
         return []
@@ -65,12 +65,7 @@ class DeclDependencies extends DeclarationDependenciesCollector {
         return [this.library.toDeclaration(node)]
     }
     convertCallback(node: idl.IDLCallback): idl.IDLEntry[] {
-        const continuation = idl.isVoidType(node.returnType) 
-            ? [] 
-            : [this.library.createContinuationCallbackReference(node.returnType)]
-        return node.parameters.map(it => it.type).filter(isDefined)
-            .concat(...continuation)
-            .flatMap(it => this.library.toDeclaration(it))
+        return []
     }
 }
 
@@ -93,17 +88,22 @@ export class DependencySorter {
         let deps = convert(target, this.typeConvertor, this.declConvertor)
         deps.forEach(it => this.fillDependencies(it, seen))
 
+        // Require structs but do not make dependencies to them from `target`
         if (idl.isContainerType(target)) {
-            // break dependencies on pointer types
-            const pointerTypeNames = target.elementType
-                .filter(it => !idl.isEnum(this.library.toDeclaration(it)) && it.name !== "GestureRecognizer")
-                .map(it => it.name)
-            deps = deps.filter(it => !pointerTypeNames.includes(it.name!))
+            for (const type of target.elementType)
+                this.addDep(this.library.toDeclaration(type))
         }
+        if (idl.isCallback(target)) {
+            for (const parameter of target.parameters)
+                this.addDep(this.library.toDeclaration(parameter.type!))
+            this.addDep(this.library.toDeclaration(target.returnType))
+        }
+
         this.adjMap.set(target, deps)
     }
 
     addDep(declaration: idl.IDLEntry) {
+        if (this.dependencies.has(declaration)) return
         let seen = new Set<idl.IDLEntry>()///one for all deps?
         this.dependencies.add(declaration)
         this.fillDependencies(declaration, seen)
