@@ -172,11 +172,11 @@ export class SerializerBase {
     static hold<T extends SerializerBase>(factory: () => T): T {
         if (!this.cache)
             this.cache = factory()
-        const serializer = SerializerBase.cache as T
+        const serializer = SerializerBase.cache!
         if (serializer.isHolding)
             throw new Error("Serializer is already being held. Check if you had released is before")
         serializer.isHolding = true
-        return serializer
+        return serializer as T
     }
     public release() {
         this.isHolding = false
@@ -207,10 +207,12 @@ export class SerializerBase {
         }
     }
     private heldResources: ResourceId[] = []
-    writeResource(resource: object) {
+    writeCallbackResource(resource: object) {
         const resourceId = ResourceManager.registerAndHold(resource)
         this.heldResources.push(resourceId)
         this.writeInt32(resourceId)
+        this.writePointer(nativeModule()._GetManagedResourceHolder())
+        this.writePointer(nativeModule()._GetManagedResourceReleaser())
     }
     private releaseResources() {
         for (const resourceId of this.heldResources)
@@ -259,7 +261,7 @@ export class SerializerBase {
     }
     writePointer(value: pointer) {
         this.checkCapacity(8)
-        this.view.setBigInt64(this.position, BigInt(value), true)
+        this.view.setBigInt64(this.position, BigInt(value ?? 0), true)
         this.position += 8
     }
     writeFloat32(value: float32) {

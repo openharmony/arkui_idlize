@@ -20,7 +20,7 @@ import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } fro
 import { IdlPeerFile } from "./IdlPeerFile";
 import { ArkTSTypeNameConvertor, IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize } from '../../util';
-import { AggregateConvertor, ArrayConvertor, CallbackFunctionConvertor, ClassConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { DependencySorter } from './DependencySorter';
@@ -29,8 +29,10 @@ import { LanguageWriter } from '../LanguageWriters';
 import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
-import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NullConvertor, NumberConvertor, UndefinedConvertor } from '../ArgConvertors';
+import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NullConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from '../ArgConvertors';
 import { Language } from '../../Language';
+import { generateSyntheticFunctionName } from '../../IDLVisitor';
+import { collectUniqueCallbacks } from '../printers/CallbacksPrinter';
 
 function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor {
     const language = library.language
@@ -81,6 +83,43 @@ export class IdlPeerLibrary {
     readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this)
     readonly seenArrayTypes: Map<string, idl.IDLType> = new Map()
 
+    public onAllFilesPushed() {
+        for (const file of this.files) {
+            for (let i = 0; i < file.entries.length; i++) {
+                for (const replacement of PeerGeneratorConfig.idlReplacements) {
+                    if (file.entries[i].name === replacement.name)
+                        file.entries[i] = replacement
+                }
+            }
+        }
+    }
+
+    readonly continuationCallbacks: idl.IDLCallback[] = []
+    private createContinuationCallbacks(): void {
+        const callbacks = collectUniqueCallbacks(this)
+        for (const callback of callbacks) {
+            this.createContinuationCallbackIfNeeded(callback.returnType)
+        }
+    }
+    private createContinuationCallbackIfNeeded(continuationType: idl.IDLType): void {
+        const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
+        const continuationReference = this.createContinuationCallbackReference(continuationType)
+        const maybeResolved = this.resolveTypeReference(continuationReference)
+        if (maybeResolved)
+            return
+        const callback = idl.createCallback(continuationReference.name, continuationParameters, idl.IDLVoidType)
+        this.continuationCallbacks.push(callback)
+    }
+    createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType {
+        const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
+        const syntheticName = generateSyntheticFunctionName(
+            (type) => cleanPrefix(this.getTypeName(type), PrimitiveType.Prefix),
+            continuationParameters,
+            idl.IDLVoidType,
+        )
+        return idl.createReferenceType(syntheticName)
+    }
+
     private context: string | undefined
     getCurrentContext(): string | undefined {
         return this.context
@@ -116,7 +155,7 @@ export class IdlPeerLibrary {
     }
 
     resolveTypeReference(type: idl.IDLEnumType | idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
-        entries ??= this.files.flatMap(it => it.entries)
+        entries ??= this.files.flatMap(it => it.entries).concat(this.continuationCallbacks)
         const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier);
         if (qualifier) {
             // This is a namespace or enum member. Try enum first
@@ -144,8 +183,8 @@ export class IdlPeerLibrary {
                 case idl.IDLStringType: return new StringConvertor(param)
                 case idl.IDLNullType: return new NullConvertor(param)
                 case idl.IDLNumberType: return new NumberConvertor(param)
-                case idl.IDLUndefinedType:
-                case idl.IDLVoidType: return new UndefinedConvertor(param)
+                case idl.IDLUndefinedType: return new UndefinedConvertor(param)
+                case idl.IDLVoidType: return new VoidConvertor(param)
                 case idl.IDLUnknownType:
                 case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any")
                 default: throw new Error(`Unconverted primitive ${type.name}`)
@@ -156,8 +195,8 @@ export class IdlPeerLibrary {
                 case idl.IDLObjectType: return new CustomTypeConvertor(param, "Object")
             }
             switch (type.name) {
-                case "Callback": return new FunctionConvertor(this, param, type)
                 case "Resource": return new InterfaceConvertor("Resource", param, ArkResource)
+                case "Callback": return new FunctionConvertor(this, param, type)
             }
             if (isImport(type))
                 return new ImportTypeConvertor(param, type)
@@ -203,9 +242,7 @@ export class IdlPeerLibrary {
             return new EnumConvertor(param, declaration.parent, isStringEnum(declaration.parent))
         }
         if (idl.isCallback(declaration)) {
-            return maybeCallback
-                ? new CallbackFunctionConvertor(this, param, type as idl.IDLReferenceType)
-                : new FunctionConvertor(this, param, type as idl.IDLReferenceType)
+            return new CallbackConvertor(this, param, declaration)
         }
         if (idl.isTypedef(declaration)) {
             return new TypeAliasConvertor(this, param, declaration)
@@ -302,7 +339,6 @@ export class IdlPeerLibrary {
             const decl = this.resolveTypeReference(type)
             if (!decl) console.log(`WARNING: undeclared type ${type.name}`)
             return !decl ? ArkCustomObject  // assume some builtin type
-                : idl.isCallback(decl) ? ArkFunction
                 : idl.isTypedef(decl) ? this.toDeclaration(decl.type)
                 : decl
         }
@@ -310,7 +346,6 @@ export class IdlPeerLibrary {
     }
 
     requestType(type: idl.IDLType, useToGenerate: boolean) {
-        if (type == idl.IDLVoidType) return
         let declaration = this.typeMap.get(type)
         if (declaration) {
             declaration[2] ||= useToGenerate
@@ -334,13 +369,13 @@ export class IdlPeerLibrary {
     private _orderedDependenciesToGenerate: idl.IDLEntry[] = []
 
     analyze() {///stolen from DeclTable
-        const callbacks = collectCallbacks(this) as IdlCallbackInfo[]
+        this.createContinuationCallbacks()
+        const callbacks = collectUniqueCallbacks(this)
         for (const callback of callbacks) {
-            const useToGenerate = this.shouldGenerateComponent(callback.componentName)
-            callback.args.forEach(arg => {
-                this.requestType(arg.type, useToGenerate)
+            callback.parameters.forEach(arg => {
+                this.requestType(arg.type!, true)
             })
-            this.requestType(callback.returnType, useToGenerate)
+            this.requestType(callback.returnType, true)
         }
 
         let orderer = new DependencySorter(this)
@@ -386,7 +421,7 @@ export class IdlPeerLibrary {
                 case idl.IDLAnyType: name = "CustomObject"; break
                 case idl.IDLStringType: name = "String"; break
                 case idl.IDLNullType: name = "Null"; break
-                case idl.IDLVoidType: name = "void"; break
+                case idl.IDLVoidType: name = "Void"; break
                 default: name = capitalize(target.name); break
             }
             return (optional ? prefix : idlPrefix) + name
@@ -414,7 +449,7 @@ export class IdlPeerLibrary {
             return (optional ? prefix : idlPrefix) + target.name
         }
         if (idl.isCallback(target)) {
-            return (optional ? prefix : idlPrefix) + "Function"
+            return (optional ? prefix : idlPrefix) + target.name
         }
         if (idl.isTupleInterface(target)) {
             return target.name
@@ -435,9 +470,6 @@ export class IdlPeerLibrary {
             if (name == "Optional") {
                 const typeArg = idl.getExtAttribute(target, idl.IDLExtendedAttributes.TypeArguments)!
                 return this.computeTargetName(idl.toIDLType(typeArg), true, idlPrefix)
-            }
-            if (name == "Callback") {
-                return (optional ? prefix : idlPrefix) + "Function"
             }
             if (PeerGeneratorConfig.isKnownParametrized(name)) {
                 const name = PrimitiveType.CustomObject.getText()

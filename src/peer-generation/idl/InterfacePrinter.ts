@@ -200,7 +200,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             this.onNewDeclaration(this.makeUnion(name, type))
             return
         }
-        if (idl.isEnumType(type)) {
+        if (idl.isEnum(type)) {
             this.onNewDeclaration(this.makeEnum(name, type))
             return
         }
@@ -319,11 +319,10 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         return new JavaDeclaration(alias, writer)
     }
 
-    private makeEnum(alias: string, type: idl.IDLEnumType): JavaDeclaration {
+    private makeEnum(alias: string, enumDecl: idl.IDLEnum): JavaDeclaration {
         const writer = createLanguageWriter(Language.JAVA)
         this.printPackage(writer)
 
-        const enumDecl = this.peerLibrary.resolveTypeReference(type) as idl.IDLEnum
         const initializers = enumDecl.elements.map(it => {
             return {name: it.name, id: isNaN(parseInt(it.initializer as string, 10)) ? it.initializer : parseInt(it.initializer as string, 10)}
         })

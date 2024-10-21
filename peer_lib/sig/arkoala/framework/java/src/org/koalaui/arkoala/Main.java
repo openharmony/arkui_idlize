@@ -105,11 +105,11 @@ public class Main {
         // union
         labelStyle.maxLines = null;
         labelStyle.font = new Font();
-        labelStyle.font.weight = new Union_Ark_FontWeight_double_String("param");
+        labelStyle.font.weight = new Union_FontWeight_double_String("param");
         TestUtils.checkResult("[Union] ButtonPeer.labelStyle",
             () -> { buttonPeer.labelStyleAttribute(labelStyle); },
             "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=2, .value2={.chars=\"param\", .length=5}}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
-        labelStyle.font.weight = new Union_Ark_FontWeight_double_String(Ark_FontWeight.BOLD);
+        labelStyle.font.weight = new Union_FontWeight_double_String(FontWeight.BOLD);
         TestUtils.checkResult("[Union + Enum] ButtonPeer.labelStyle",
             () -> { buttonPeer.labelStyleAttribute(labelStyle); },
             "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=Ark_FontWeight(4)}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
@@ -131,7 +131,7 @@ public class Main {
         TestUtils.checkResult("[Tuple] TestPeer.backdropBlur",
             () -> { peer.backdropBlurAttribute(42, options); },
             "backdropBlur({.tag=102, .i32=42}, {.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=2}}}})");
-        var tuple1 = new Tuple_double_String_Ark_EnumDTS(5.5, "test", Ark_EnumDTS.ELEM_1);
+        var tuple1 = new Tuple_double_String_EnumDTS(5.5, "test", EnumDTS.ELEM_1);
         TestUtils.checkResult("[Tuple + Enum] TestPeer.testTupleNumberStringEnum",
             () -> { peer.testTupleNumberStringEnumAttribute(tuple1); },
             "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.50}, .value1={.chars=\"test\", .length=4}, .value2=Ark_EnumDTS(1)})");
@@ -143,9 +143,9 @@ public class Main {
             "someOptional({.tag=ARK_TAG_OBJECT, .value=false})");
 
         // enum
-        TestUtils.checkResult("[Enum] ButtonPeer.type", () -> { buttonPeer.typeAttribute(Ark_ButtonType.CAPSULE); }, "type(Ark_ButtonType(0))");
+        TestUtils.checkResult("[Enum] ButtonPeer.type", () -> { buttonPeer.typeAttribute(ButtonType.CAPSULE); }, "type(Ark_ButtonType(0))");
         var sheetOptions = new SheetOptions();
-        sheetOptions.mode = Ark_SheetMode.EMBEDDED;
+        sheetOptions.mode = SheetMode.EMBEDDED;
         TestUtils.checkResult("[Enum + Interface] ButtonPeer.bindSheet",
             () -> { buttonPeer.bindSheetAttribute(false, sheetOptions); },
             "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=Ark_SheetMode(1)}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})");
@@ -160,8 +160,8 @@ public class Main {
             () -> { peer.testBooleanInterfaceArrayRefAttribute(booleanInterface); },
             "testBooleanInterfaceArrayRef({.array=allocArray<Ark_BooleanInterfaceDTS, 2>({{{.valBool=true}, {.valBool=false}}}), .length=2})");
         var dragPreviewOptions = new DragPreviewOptions();
-        Ark_DragPreviewMode[] modes = { Ark_DragPreviewMode.DISABLE_SCALE, Ark_DragPreviewMode.ENABLE_DEFAULT_RADIUS };
-        dragPreviewOptions.mode = new Union_Ark_DragPreviewMode_Array_Ark_DragPreviewMode(modes);
+        DragPreviewMode[] modes = { DragPreviewMode.DISABLE_SCALE, DragPreviewMode.ENABLE_DEFAULT_RADIUS };
+        dragPreviewOptions.mode = new Union_DragPreviewMode_Array_DragPreviewMode(modes);
         dragPreviewOptions.numberBadge = new Union_boolean_double(false);
         var dragInteractionOptions = new DragInteractionOptions();
         dragInteractionOptions.defaultAnimationBeforeLifting = new Opt_Boolean(true);

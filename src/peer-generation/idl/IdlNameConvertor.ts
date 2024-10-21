@@ -67,6 +67,13 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<
             }
         }
 
+        if (decl && idl.isEnumMember(decl) && decl.parent) {
+            // when `interface A { field?: MyEnum.Value1 }` is generated, it is not possible
+            // to deserialize A, because there is no such type information in declaration target
+            // (can not cast MyEnum to exact MyEnum.Value1)
+            return decl.parent?.name
+        }
+
         let typeSpec = type.name ?? "MISSING_TYPE_NAME"
         const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier)
         if (qualifier) {

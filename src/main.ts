@@ -320,6 +320,7 @@ if (options.dts2peer) {
                     idlLibrary.files.push(file)
                 },
                 onEnd(outDir) {
+                    idlLibrary.onAllFilesPushed()
                     // Visit IDL peer files
                     idlLibrary.files.forEach(file => {
                         const visitor = new IdlPeerGeneratorVisitor({

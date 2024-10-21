@@ -133,6 +133,10 @@ typedef struct Ark_Undefined {
   Ark_Int32 dummy; // Empty structs are forbidden in C.
 } Ark_Undefined;
 
+typedef struct Ark_Void {
+  Ark_Int32 dummy; // Empty structs are forbidden in C.
+} Ark_Void;
+
 typedef struct Ark_Function {
   Ark_Int32 id;
 } Ark_Function;
@@ -156,3 +160,9 @@ enum %CPP_PREFIX%Ark_APIVariantKind {
     %CPP_PREFIX%EXTENDED = 13,
     %CPP_PREFIX%COUNT = %CPP_PREFIX%EXTENDED + 1
 };
+
+typedef struct Ark_CallbackResource {
+  Ark_Int32 resourceId;
+  void (*hold)(Ark_Int32 resourceId);
+  void (*release)(Ark_Int32 resourceId);
+} Ark_CallbackResource;

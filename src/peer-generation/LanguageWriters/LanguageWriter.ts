@@ -448,6 +448,9 @@ export abstract class LanguageWriter {
     makeNull(): LanguageExpression {
         return new StringExpression("null")
     }
+    makeVoid(): LanguageExpression {
+        return this.makeUndefined()
+    }
     makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName?: string): LanguageExpression {
         const op = equals ? "==" : "!="
         return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(typeVarName)])

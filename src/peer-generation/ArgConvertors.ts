@@ -239,6 +239,20 @@ export class UndefinedConvertor extends BaseArgConvertor {
     }
 }
 
+export class VoidConvertor extends UndefinedConvertor {
+    convertorArg(param: string, writer: LanguageWriter): string {
+        return writer.makeVoid().asString()
+    }
+    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+        const accessor = this.getObjectAccessor(printer.language, value, undefined, printer)
+        return printer.makeAssign(accessor, undefined,
+                printer.makeVoid(), false)
+    }
+    nativeType(impl: boolean): string {
+        return "Void"
+    }
+}
+
 export class NullConvertor extends BaseArgConvertor {
     constructor(param: string) {
         super("null", [RuntimeType.OBJECT], false, false, param)

@@ -14,6 +14,7 @@
  */
 
 import * as idl from "../../idl";
+import { isDefined } from "../../util";
 import { convert } from "./common";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
 import { IdlPeerLibrary } from "./IdlPeerLibrary";
@@ -61,10 +62,15 @@ class DeclDependencies extends DeclarationDependenciesCollector {
         return []
     }
     convertTypedef(node: idl.IDLTypedef): idl.IDLEntry[] {
-        return this.typeDependencies.convert(node.type)
+        return [this.library.toDeclaration(node)]
     }
     convertCallback(node: idl.IDLCallback): idl.IDLEntry[] {
-        return []
+        const continuation = idl.isVoidType(node.returnType) 
+            ? [] 
+            : [this.library.createContinuationCallbackReference(node.returnType)]
+        return node.parameters.map(it => it.type).filter(isDefined)
+            .concat(...continuation)
+            .flatMap(it => this.library.toDeclaration(it))
     }
 }
 
@@ -90,7 +96,7 @@ export class DependencySorter {
         if (idl.isContainerType(target)) {
             // break dependencies on pointer types
             const pointerTypeNames = target.elementType
-                .filter(it => !idl.isEnumType(it) && it.name !== "GestureRecognizer")
+                .filter(it => !idl.isEnum(this.library.toDeclaration(it)) && it.name !== "GestureRecognizer")
                 .map(it => it.name)
             deps = deps.filter(it => !pointerTypeNames.includes(it.name!))
         }

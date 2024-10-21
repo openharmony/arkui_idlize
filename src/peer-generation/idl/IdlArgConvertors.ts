@@ -14,11 +14,13 @@
  */
 import * as idl from "../../idl"
 import { Language } from "../../Language"
-import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, NamedMethodSignature, Type } from "../LanguageWriters"
+import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, MethodSignature, NamedMethodSignature, StringExpression, Type } from "../LanguageWriters"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { qualifiedName } from "./common"
 import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "../ArgConvertors"
+import { generateCallbackAPIArguments } from "./StructPrinter"
+import { CppCastExpression } from "../LanguageWriters/writers/CppLanguageWriter"
 
 
 export class StringConvertor extends BaseArgConvertor {
@@ -484,86 +486,135 @@ export class FunctionConvertor extends BaseArgConvertor { //
     }
 }
 
-abstract class CallbackConvertor extends FunctionConvertor { //
+export class CallbackConvertor extends BaseArgConvertor {
     constructor(
-        library: IdlPeerLibrary,
+        private readonly library: IdlPeerLibrary,
         param: string,
-        type: idl.IDLReferenceType,
-        protected args: ArgConvertor[] = [],
-        protected ret?: ArgConvertor) {
-        super(library, param, type)
+        private readonly decl: idl.IDLCallback,
+    ) {
+        super(library.mapType(decl), [RuntimeType.FUNCTION], false, true, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        if (writer.language == Language.CPP)
-            return super.convertorArg(param, writer)
-        this.wrapCallback(param, param, writer)
-        return `${param}_callbackId`
+        throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         if (writer.language == Language.CPP) {
-            super.convertorSerialize(param, value, writer)
+            writer.writeMethodCall(`${param}Serializer`, "writeCallbackResource", [`${value}.resource`])
+            writer.writeMethodCall(`${param}Serializer`, "writePointer", [new CppCastExpression(
+                new StringExpression(`${value}.call`), new Type("void*"), true).asString()])
             return
         }
-        this.wrapCallback(param, value, writer)
-        writer.writeMethodCall(`${param}Serializer`, "writeInt32", [`${value}_callbackId`])
+        // TODO
+        // this.wrapCallback(param, value, writer)
+        writer.writeMethodCall(`${param}Serializer`, "writeCallbackResource", [`${value}`])
+        writer.writeMethodCall(`${param}Serializer`, "writePointer", [
+            writer.makeNativeCall(`_GetManagerCallbackCaller`, []).asString()
+        ])
     }
-    wrapCallback(param: string, value: string, writer: LanguageWriter): void {
-        const callbackName = `${value}_callback`
-        const argList: string[] = []
-        writer.writeStatement(
-            writer.makeAssign(`${callbackName}`, undefined,
-                writer.makeLambda(
-                    new NamedMethodSignature(Type.Void, [new Type("Uint8Array"), new Type("int32")], ["args", "length"]),
-                    [
-                        this.args.length > 0
-                            ? writer.makeAssign("callbackDeserializer", new Type("Deserializer"),
-                                writer.makeMethodCall("Deserializer", "get",
-                                    [writer.makeString("createDeserializer"), writer.makeString("args"), writer.makeString("length")]),
-                                true, true)
-                            : [],
-                        // deserialize arguments
-                        ...this.args.map(it => {
-                            const argName = `${it.param}Arg`
-                            const isUndefined = it.runtimeTypes.includes(RuntimeType.UNDEFINED)
-                            argList.push(`${argName}${isUndefined ? "" : "!"}`)
-                            return [
-                                writer.makeAssign(argName, new Type(it.tsTypeName), undefined, true, false),
-                                it.convertorDeserialize("callback", argName, writer)
-                            ]
-
-                        }),
-                        // call lambda with deserialized arguments
-                        writer.makeStatement(
-                            writer.makeFunctionCall(value, argList.map(it => writer.makeString(it)))),
-                        // TBD: return value from the callback
-                        writer.makeReturn(
-                            writer.makeString("0"))
-
-                    ].flat()
-
-                ),
-                true, true
-            )
-        )
-        writer.writeStatement(
-            writer.makeAssign(`${callbackName}Id`, Type.Int32,
-                writer.makeFunctionCall("wrapCallback", [writer.makeString(`${callbackName}`)]),
-                true, true
-            )
-        )
+    convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
+        if (writer.language == Language.CPP) {
+            return writer.makeBlock([
+                writer.makeAssign(`${value}.resource`, undefined, writer.makeMethodCall(`${param}Deserializer`, `readCallbackResource`, []), false),
+                writer.makeAssign(`${value}.call`, undefined, new CppCastExpression(
+                    writer.makeMethodCall(`${param}Deserializer`, `readPointer`, []), 
+                    new Type(`void(*)(${generateCallbackAPIArguments(this.library, this.decl).join(", ")})`),
+                    true
+                ), false),
+            ])
+        }
+        // TODO correct read from resource
+        return writer.makeAssign(value, undefined, writer.makeLambda(new MethodSignature(
+            new Type(this.library.mapType(this.decl.returnType)),
+            this.decl.parameters.map(it => new Type(this.library.mapType(it.type!))),
+        ), [writer.makeThrowError("Not implemented")]), false)
     }
-}
-
-export class CallbackFunctionConvertor extends CallbackConvertor { //
-    constructor(library: IdlPeerLibrary, param: string, type: idl.IDLReferenceType) {
-        const decl = library.resolveTypeReference(type)
-        if (!(decl && idl.isCallback(decl)))
-            throw `Expected callback reference, got ${type.name}`
-        super(library, param, type,
-            decl.parameters.map(it => library.typeConvertor(it.name, it.type!)),
-            library.typeConvertor("", decl.returnType!))
-        this.tsTypeName = `(${this.args.map((it, i) => `arg_${i}: ${it.tsTypeName}`).join(", ")}) => ${this.ret!.tsTypeName}`
+    nativeType(impl: boolean): string {
+        return PrimitiveType.Prefix + this.decl.name
     }
+    isPointerType(): boolean {
+        return true
+    }
+    // wrapCallback(param: string, value: string, writer: LanguageWriter): void {
+    //     const callbackName = `${value}_callback`
+    //     const statements: LanguageStatement[] = []
+    //     if (this.parameters.length > 0 || !idl.isVoidType(this.retType))
+    //         statements.push(writer.makeAssign("callbackDeserializer", new Type("Deserializer"),
+    //             writer.makeMethodCall("Deserializer", "get",
+    //                 [writer.makeString("createDeserializer"), writer.makeString("args"), writer.makeString("length")]),
+    //             true, true))
+    //     // deserialize arguments
+    //     statements.push(...this.parameters.flatMap(parameter => {
+    //         const convertor = this.library.typeConvertor(parameter.name, parameter.type!, parameter.isOptional)
+    //         const argName = `${convertor.param}Arg`
+    //         const isUndefined = convertor.runtimeTypes.includes(RuntimeType.UNDEFINED)
+    //         argList.push(`${argName}${isUndefined ? "" : "!"}`)
+    //         return [
+    //             writer.makeAssign(argName, new Type(convertor.tsTypeName), undefined, true, false),
+    //             convertor.convertorDeserialize("callback", argName, writer)
+    //         ]
+    //     }))
+    //     const 
+    //     if (!idl.isVoidType(this.retType)) {
+    //         const retCallbackParameters = [idl.createParameter(`value`, this.retType)]
+    //         const retCallbackName = generateSyntheticFunctionName(
+    //             (type) => this.library.mapType(type),
+    //             retCallbackParameters,
+    //             idl.IDLVoidType
+    //         )
+    //         const syntheticReturnCallback = idl.createCallback(retCallbackName, retCallbackParameters, idl.IDLVoidType)
+    //         const convertor = this.library.typeConvertor(`continuation`, syntheticReturnCallback, false)
+    //         const argName = `${convertor.param}Arg`
+    //         statements.push(...[
+    //             writer.makeAssign(argName, new Type(convertor.tsTypeName), undefined, true, false),
+    //             convertor.convertorDeserialize("callback", argName, writer)
+    //         ])
+    //     }
+
+
+    //     const argList: string[] = []
+    //     writer.writeStatement(
+    //         writer.makeAssign(`${callbackName}`, undefined,
+    //             writer.makeLambda(
+    //                 new NamedMethodSignature(Type.Void, [new Type("Uint8Array"), new Type("int32")], ["args", "length"]),
+    //                 [
+    //                     this.parameters.length > 0 || !idl.isVoidType(this.retType)
+    //                         ? writer.makeAssign("callbackDeserializer", new Type("Deserializer"),
+    //                             writer.makeMethodCall("Deserializer", "get",
+    //                                 [writer.makeString("createDeserializer"), writer.makeString("args"), writer.makeString("length")]),
+    //                             true, true)
+    //                         : [],
+    //                     // deserialize arguments
+    //                     ...this.parameters.map(parameter => {
+    //                         const convertor = this.library.typeConvertor(parameter.name, parameter.type!, parameter.isOptional)
+    //                         const argName = `${convertor.param}Arg`
+    //                         const isUndefined = convertor.runtimeTypes.includes(RuntimeType.UNDEFINED)
+    //                         argList.push(`${argName}${isUndefined ? "" : "!"}`)
+    //                         return [
+    //                             writer.makeAssign(argName, new Type(convertor.tsTypeName), undefined, true, false),
+    //                             convertor.convertorDeserialize("callback", argName, writer)
+    //                         ]
+
+    //                     }),
+    //                     // call lambda with deserialized arguments
+    //                     writer.makeStatement(
+    //                         writer.makeFunctionCall(value, argList.map(it => writer.makeString(it)))),
+    //                     // TBD: return value from the callback
+    //                     writer.makeReturn(
+    //                         writer.makeString("0"))
+
+    //                 ].flat()
+
+    //             ),
+    //             true, true
+    //         )
+    //     )
+    //     writer.writeStatement(
+    //         writer.makeAssign(`${callbackName}Id`, Type.Int32,
+    //             writer.makeFunctionCall("wrapCallback", [writer.makeString(`${callbackName}`)]),
+    //             true, true
+    //         )
+    //     )
+    // }
 }
 
 export class TupleConvertor extends BaseArgConvertor { //

@@ -310,6 +310,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeUndefined(): LanguageExpression {
         return this.makeString(`${PrimitiveType.Undefined.getText()}()`)
     }
+    makeVoid(): LanguageExpression {
+        return this.makeString(`${PrimitiveType.Void.getText()}()`)
+    }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`ARK_RUNTIME_${RuntimeType[rt]}`)
     }

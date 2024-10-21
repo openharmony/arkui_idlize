@@ -24,4 +24,7 @@ interface Interop {
     void StartPerf(String str1);
     void EndPerf(String str1);
     pointer DumpPerf(i32 arg);
+    pointer GetManagerCallbackCaller();
+    pointer GetManagedResourceHolder();
+    pointer GetManagedResourceReleaser();
 };

@@ -459,6 +459,67 @@ export function createUnionType(types: IDLType[], name?: string): IDLUnionType {
     }
 }
 
+export function createInterface(
+    name: string,
+    kind: IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface | IDLKind.TupleInterface,
+    inheritance: IDLType[] = [],
+    constructors: IDLConstructor[] = [],
+    constants: IDLConstant[] = [],
+    properties: IDLProperty[] = [],
+    methods: IDLMethod[] = [],
+    callables: IDLCallable[] = [],
+    extendedAttributes: IDLExtendedAttribute[] = [],
+): IDLInterface {
+    return {
+        name,
+        kind,
+        inheritance,
+        constructors,
+        constants,
+        properties,
+        methods,
+        callables,
+        extendedAttributes,
+    }
+}
+
+export function createProperty(
+    name: string,
+    type: IDLType,
+    isReadonly: boolean = false,
+    isStatic: boolean = false,
+    isOptional: boolean = false,
+): IDLProperty {
+    return {
+        name,
+        kind: IDLKind.Property,
+        type,
+        isReadonly,
+        isStatic,
+        isOptional,
+    }
+}
+
+export function createParameter(name: string, type: IDLType | undefined): IDLParameter {
+    return {
+        kind: IDLKind.Parameter,
+        name: name,
+        type: type,
+        isOptional: false,
+        isVariadic: false,
+    }
+}
+
+export function createCallback(name: string, parameters: IDLParameter[], returnType: IDLType, extendedAttributes?: IDLExtendedAttribute[]): IDLCallback {
+    return {
+        kind: IDLKind.Callback,
+        name: name,
+        parameters: parameters,
+        returnType: returnType,
+        extendedAttributes: extendedAttributes
+    }
+}
+
 export function createTypeParameterReference(name: string): IDLTypeParameterType {
     return {
         kind: IDLKind.TypeParameterType,

@@ -25,6 +25,20 @@ import { isImport, isStringEnum } from "./common"
 import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 
+export function generateCallbackAPIArguments(library: IdlPeerLibrary, callback: idl.IDLCallback): string[] {
+    const args: string[] = [`const Ark_Int32 resourceId`]
+    args.push(...callback.parameters.map(it => {
+        const type = library.typeConvertor(it.name, it.type!, it.isOptional)
+        return `const ${type.nativeType(false)} ${type.param}`
+    }))
+    if (!idl.isVoidType(callback.returnType)) {
+        const type = library.typeConvertor(`continuation`, 
+            library.createContinuationCallbackReference(callback.returnType)!, false)
+        args.push(`const ${type.nativeType(false)} ${type.param}`)
+    }
+    return args
+}
+
 export class StructPrinter {
     constructor(private library: IdlPeerLibrary) {}
 
@@ -78,11 +92,12 @@ export class StructPrinter {
             let isAccessor = (idl.isClass(target) || idl.isInterface(target)) && isMaterialized(target)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
             const nameOptional = PrimitiveType.OptionalPrefix + cleanPrefix(nameAssigned, PrimitiveType.Prefix)
-            if (idl.isEnum(target)) {
-                const stringEnum = isStringEnum(target)
+            if (idl.isEnum(target) || idl.isEnumMember(target)) {
+                const enumTarget = idl.isEnumMember(target) ? target.parent : target
+                const stringEnum = isStringEnum(enumTarget)
                 structs.print(`typedef enum ${nameAssigned} {`)
                 structs.pushIndent()
-                for (let member of target.elements) {
+                for (let member of enumTarget.elements) {
                     const memberName = member.documentation?.includes("@deprecated")
                         ? member.name : camelCaseToUpperSnakeCase(member.name)
                     const initializer = !stringEnum && member.initializer ? " = " + member.initializer : ""
@@ -123,7 +138,9 @@ export class StructPrinter {
                             break
                     }
                     target.elementType.forEach((it, index) => {
-                        const structKeyword = idl.isPrimitiveType(it) || idl.isEnumType(it) || it.name === "GestureRecognizer"
+                        const itTarget = this.library.toDeclaration(it)
+                        const targetMaterialized = (idl.isInterface(itTarget) || idl.isClass(itTarget)) && isMaterialized(itTarget)
+                        const structKeyword = idl.isPrimitiveType(itTarget) || idl.isEnum(itTarget) || targetMaterialized
                             ? "" : "struct "
                         structs.print(`${structKeyword}${this.library.getTypeName(it)}* ${fieldNames[index]};`)
                     })
@@ -132,13 +149,17 @@ export class StructPrinter {
                             structs.print(`${PrimitiveType.Int32.getText()} length;`)
                             break
                     }
+                } else if (idl.isCallback(target)) {
+                    structs.print(`struct Ark_CallbackResource resource;`)
+                    const args = generateCallbackAPIArguments(this.library, target)
+                    structs.print(`void (*call)(${args.join(', ')});`)
                 }
                 this.printStructsCTail(nameAssigned, structs)
             }
             if (isAccessor) {
                 structs.print(`typedef Ark_Materialized ${nameAssigned};`)
             }
-            let skipWriteToString = idl.isPrimitiveType(target) || idl.isCallback(target)
+            let skipWriteToString = idl.isPrimitiveType(target)
             if (!noBasicDecl && !skipWriteToString) {
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
             }
@@ -334,7 +355,19 @@ inline void WriteToString(string* result, const ${name}* value) {
             printer.print(`result->append(")");`)
             printer.popIndent()
             printer.print(`}`)
-        } else {
+        } else if (idl.isCallback(target)) {
+            printer.print(`template <>`)
+            printer.print(`inline void WriteToString(string* result, const ${name}${isPointer ? "*" : ""} value) {`)
+            printer.pushIndent()
+            printer.print(`result->append("{");`)
+            printer.print(`result->append(".resource=");`)
+            printer.print(`WriteToString(result, &value${access}resource);`)
+            printer.print(`result->append(", .call=0");`)
+            printer.print(`result->append("}");`)
+            printer.popIndent()
+            printer.print(`}`)
+        }
+        else {
             printer.print(`template <>`)
             printer.print(`inline void WriteToString(string* result, const ${name}${isPointer ? "*" : ""} value) {`)
             printer.pushIndent()
@@ -345,7 +378,7 @@ inline void WriteToString(string* result, const ${name}* value) {
                 printer.print(`result->append(std::to_string(value->selector));`);
                 printer.print(`result->append(", ");`);
                 target.types.forEach((type, index) => {
-                    const isPointerField = this.isPointerDeclaration(type)
+                    const isPointerField = this.isPointerDeclaration(this.library.toDeclaration(type))
                     printer.print(`// ${this.library.getTypeName(type, false)}`)
                     printer.print(`if (value${access}selector == ${index}) {`)
                     printer.pushIndent()
@@ -360,7 +393,7 @@ inline void WriteToString(string* result, const ${name}* value) {
                 collectProperties(target, this.library)
                     .forEach((field, index) => {
                         printer.print(`// ${this.library.getTypeName(field.type)} ${field.name}`)
-                        let isPointerField = this.isPointerDeclaration(field.type, field.isOptional)
+                        let isPointerField = this.isPointerDeclaration(this.library.toDeclaration(field.type), field.isOptional)
                         if (index > 0) printer.print(`result->append(", ");`)
                         printer.print(`result->append(".${field.name}=");`)
                         printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
@@ -373,7 +406,7 @@ inline void WriteToString(string* result, const ${name}* value) {
                         printer.print(`// ${this.library.getTypeName(field.type)} ${field.name}`)
                         if (index > 0) printer.print(`result->append(", ");`)
                         printer.print(`result->append("${field.name}: ");`)
-                        const isPointerField = this.isPointerDeclaration(field.type, field.isOptional)
+                        const isPointerField = this.isPointerDeclaration(this.library.toDeclaration(field.type), field.isOptional)
                         printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${field.name});`)
                         if (index == 0) {
                             printer.print(`if (value${access}${field.name} != ${PrimitiveType.UndefinedTag}) {`)
@@ -390,7 +423,7 @@ inline void WriteToString(string* result, const ${name}* value) {
                         printer.print(`// ${this.library.getTypeName(field.type)} ${field.name}`)
                         if (index > 0) printer.print(`result->append(", ");`)
                         printer.print(`result->append(".${field.name}=");`)
-                        let isPointerField = this.isPointerDeclaration(field.type, field.isOptional)
+                        let isPointerField = this.isPointerDeclaration(this.library.toDeclaration(field.type), field.isOptional)
                         printer.print(`WriteToString(result, ${isPointerField ? "&" : ""}value${access}${printer.escapeKeyword(field.name)});`)
                     })
                 printer.print(`result->append("}");`)
@@ -404,7 +437,6 @@ inline void WriteToString(string* result, const ${name}* value) {
         if (PeerGeneratorConfig.ignoreSerialization.includes(target.name!)) return true
         if (idl.isPrimitiveType(target)) return true
         if (idl.isEnum(target)) return true
-        if (idl.isCallback(target)) return true
         if (isImport(target)) return true
         return false
     }

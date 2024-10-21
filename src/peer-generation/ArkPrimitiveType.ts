@@ -24,6 +24,7 @@ export class PrimitiveType {
     static Boolean = new PrimitiveType(`Boolean`)
     static Function = new PrimitiveType(`Function`, false)
     static Undefined = new PrimitiveType(`Undefined`)
+    static Void = new PrimitiveType(`Void`)
     static NativePointer = new PrimitiveType(`NativePointer`)
 
     static Tag = new PrimitiveType(`Tag`)
