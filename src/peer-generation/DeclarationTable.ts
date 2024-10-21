@@ -610,7 +610,7 @@ export class DeclarationTable {
         switch (name) {
             case `Dimension`:
             case `Length`:
-                return new LengthConvertor(name, param)
+                return new LengthConvertor(name, param, this.language)
             case `Date`:
                 return new CustomTypeConvertor(param, name, false, name)
             case `AttributeModifier`:

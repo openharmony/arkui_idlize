@@ -321,8 +321,9 @@ export class LengthConvertorScoped extends BaseArgConvertor {
 }
 
 export class LengthConvertor extends BaseArgConvertor {
-    constructor(name: string, param: string) {
-        super(name, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
+    constructor(name: string, param: string, language: Language) {
+        // length convertor is only optimized for NAPI interop
+        super(name, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, language != Language.TS, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         switch (writer.language) {

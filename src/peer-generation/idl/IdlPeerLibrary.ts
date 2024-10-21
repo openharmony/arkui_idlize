@@ -272,7 +272,7 @@ export class IdlPeerLibrary {
         switch (typeName) {
             case `Dimension`:
             case `Length`:
-                return new LengthConvertor(typeName, param)
+                return new LengthConvertor(typeName, param, this.language)
             case `Function`:
                 return new FunctionConvertor(this, param, type as idl.IDLReferenceType)
             case `AnimationRange`:
