@@ -955,7 +955,7 @@ export class MapConvertor extends BaseArgConvertor {
                 printer.makeCast(printer.makeString(`${param}Deserializer.readInt8()`), printer.getRuntimeType()), true),
             printer.makeCondition(printer.makeRuntimeTypeDefinedCheck(runtimeType), new BlockStatement([
                 printer.makeAssign(mapSize, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
-                printer.makeMapResize(`Map_${keyTypeName}_${valueTypeName}`, keyTypeName, valueTypeName, value, mapSize, `${param}Deserializer`),
+                printer.makeMapResize(this.nativeType(false), keyTypeName, valueTypeName, value, mapSize, `${param}Deserializer`),
                 printer.makeLoop(counterVar, mapSize, new BlockStatement([
                     printer.makeAssign(tmpKey, new Type(keyTypeName), undefined, true, false),
                     this.keyConvertor.convertorDeserialize(param, tmpKey, printer),
