@@ -26,17 +26,7 @@ export class PeerGeneratorConfig {
         "Number", "String", "Function", "Optional", "RelativeIndexable",
     ]
 
-    public static ignorePeerMethod = [
-        "attributeModifier",
-        /**
-         * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
-         * ScrollAttribute extends ScrollableCommonMethod and overrides this method as
-         * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
-         * valid and cannot be correctly processed for now.
-         */
-        "onWillScroll",
-        "onDidScroll"
-    ]
+    public static ignorePeerMethod = ["attributeModifier"]
 
     public static ignoreComponents = [
         "Particle",
@@ -98,8 +88,6 @@ export class PeerGeneratorConfig {
         // constant values need to be generated
         // "equals(id: TextMenuItemId): boolean" method leads to the "cycle detected" message
         "TextMenuItemId",
-        "BaseSpan",
-        "CommonTransition",
     ]
 
     public static ArkTsIgnoredMethods = ["testTupleNumberStringEnum", "testTupleOptional", "testTupleUnion"]

@@ -493,6 +493,17 @@ class PeersGenerator {
     private processProperty(prop: idl.IDLProperty,
         peer: IdlPeerClass, maybeCallback: boolean, parentName?: string): IdlPeerMethod | undefined
     {
+        if (PeerGeneratorConfig.ignorePeerMethod.includes(prop.name))
+            return
+        if (prop.name === "onWillScroll") {
+            /**
+             * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
+             * ScrollAttribute extends ScrollableCommonMethod and overrides this method as
+             * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
+             * valid and cannot be correctly processed and we want to stub this for now.
+             */
+            prop.type = idl.IDLAnyType
+        }
         const decl = this.toDeclaration(prop.type)
         this.library.requestType(decl, this.library.shouldGenerateComponent(peer.componentName))
         const originalParentName = parentName ?? peer.originalClassName!
@@ -511,6 +522,8 @@ class PeersGenerator {
     private processMethodOrCallable(method: idl.IDLMethod | idl.IDLCallable,
         peer: IdlPeerClass, maybeCallback: boolean, parentName?: string): IdlPeerMethod | undefined
     {
+        if (PeerGeneratorConfig.ignorePeerMethod.includes(method.name!))
+            return
         const isCallSignature = !idl.isMethod(method)
         // Some method have other parents as part of their names
         // Such as the ones coming from the friend interfaces
@@ -600,8 +613,8 @@ class PeersGenerator {
         const peerMethods = iface.callables
             .map(it => this.processMethodOrCallable(it, peer, false, iface?.name))
             .filter(isDefined)
-        IdlPeerMethod.markOverloads(peerMethods)
-        peer.methods.push(...peerMethods)
+        const overloadedMethods = IdlPeerMethod.markAndGroupOverloads(peerMethods)
+        peer.methods.push(...overloadedMethods)
     }
 
     private fillClass(peer: IdlPeerClass, clazz: idl.IDLInterface) {
@@ -615,11 +628,12 @@ class PeersGenerator {
             peer.parentComponentName = parentComponent.name
         }
         const maybeCallback = isCommonMethodOrSubclass(this.library, clazz)
-        const peerMethods = clazz.methods
-            .map(it => this.processMethodOrCallable(it, peer, maybeCallback))
-            .filter(isDefined)
-        IdlPeerMethod.markOverloads(peerMethods)
-        peer.methods.push(...peerMethods)
+        const peerMethods = [
+            ...clazz.properties.map(it => this.processProperty(it, peer, maybeCallback)),
+            ...clazz.methods.map(it => this.processMethodOrCallable(it, peer, maybeCallback)),
+            ].filter(isDefined)
+        const overloadedMethods = IdlPeerMethod.markAndGroupOverloads(peerMethods)
+        peer.methods.push(...overloadedMethods)
 
         this.createComponentAttributesDeclaration(clazz, peer)
     }
