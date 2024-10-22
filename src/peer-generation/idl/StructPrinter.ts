@@ -478,20 +478,32 @@ function collectBuilderProperties(decl: idl.IDLInterface): idl.IDLProperty[] {
     if (!isBuilderClass(decl)) {
         return []
     }
-    return decl.methods
-        .filter(m => !m.isStatic && m.parameters.length === 1)
-        .map(m => {
+    return [
+        ...decl.constructors
+            .flatMap(cons =>
+                cons.parameters.map(param => {
+                    return { name: param.name, type: param.type }
+                })),
+        ...decl.methods
+            .filter(m => !m.isStatic && m.parameters.length === 1)
+            .map(m => {
+                return { name: m.name, type: m.parameters[0].type! }
+            })
+    ]
+        .map(it => {
             return {
                 kind: idl.IDLKind.Property,
-                name: "_" + m.name,
-                type: m.parameters[0].type!,
+                name: "_" + it.name,
+                type: it.type,
                 isReadonly: false,
                 isStatic: false,
-                isOptional: true,
-            }
+                isOptional: true
+            } as idl.IDLProperty
         })
         // filter out duplicates (SubTabBarStyle._padding)
+        .reverse()
         .filter((prop, index, array) => {
             return index === array.findIndex(it => it.name === prop.name);
-        }) as idl.IDLProperty[]
+        })
+        .reverse()
 }
