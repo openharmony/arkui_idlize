@@ -640,7 +640,7 @@ export function generateArkoalaFromIdl(config: {
             const outComponentFile = arkoala.interface(targetFile)
             writeFile(outComponentFile, data, {
                 onlyIntegrated: config.onlyIntegrated,
-                integrated: false
+                integrated: true
             })
         }
         writeFile(
@@ -797,6 +797,7 @@ export function generateArkoalaFromIdl(config: {
         printBridgeCcGenerated(peerLibrary, config.callLog ?? false),
         {
             onlyIntegrated: config.onlyIntegrated,
+            integrated: true,
         })
     writeFile(
         arkoala.native(new TargetFile('bridge_custom.cc')),
