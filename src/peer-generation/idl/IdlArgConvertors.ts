@@ -96,18 +96,18 @@ export class EnumConvertor extends BaseArgConvertor { //
             [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
     }
-    private enumTypeName(language: Language): string {
+    enumTypeName(language: Language): string {
         const prefix = language === Language.CPP ? PrimitiveType.Prefix : ""
         return prefix + qualifiedName(this.enumType, language)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.castToEnum(param, this.enumTypeName(writer.language))
+        return writer.makeEnumCast(this, param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         if (this.isStringEnum) {
             value = printer.ordinalFromEnum(printer.makeString(value), this.enumType.name).asString()
         }
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [value])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [printer.makeEnumCast(this, value)])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const name = this.enumTypeName(printer.language)
@@ -128,27 +128,20 @@ export class EnumConvertor extends BaseArgConvertor { //
     }
     // TODO: bit clumsy.
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        let low: number|undefined = undefined
-        let high: number|undefined = undefined
-        // TODO: proper enum value computation for cases where enum members have computed initializers.
+        return writer.makeDiscriminatorConvertor(this, value, index)
+    }
+    extremumOfOrdinals(): {low: number, high: number} {
+        let low: number = Number.MAX_VALUE
+        let high: number = Number.MIN_VALUE
         this.enumType.elements.forEach((member, index) => {
             let value = index
-            if (member.initializer) {
-                let tsValue = member.initializer
-                // if (ts.isLiteralExpression(tsValue) && !this.isStringEnum) {
-                //     value = parseInt(tsValue.text)
-                // }
+            if (member.initializer && !this.isStringEnum) {
+                value = parseInt(member.initializer.toString())
             }
-            if (low === undefined || low > value) low = value
-            if (high === undefined || high < value) high = value
+            if (low > value) low = value
+            if (high < value) high = value
         })
-        const ordinal = this.isStringEnum
-            ? writer.ordinalFromEnum(writer.makeString(this.getObjectAccessor(writer.language, value)), this.enumType.name)
-            : writer.makeUnionVariantCast(this.getObjectAccessor(writer.language, value), Type.Number, this, index)
-        return writer.discriminatorFromExpressions(value, this.runtimeTypes[0], [
-            writer.makeNaryOp(">=", [ordinal, writer.makeString(low!.toString())]),
-            writer.makeNaryOp("<=",  [ordinal, writer.makeString(high!.toString())])
-        ])
+        return {low, high}
     }
 }
 
@@ -687,7 +680,7 @@ export class TupleConvertor extends BaseArgConvertor { //
 export class ArrayConvertor extends BaseArgConvertor { //
     elementConvertor: ArgConvertor
     constructor(private library: IdlPeerLibrary, param: string, private type: idl.IDLType, private elementType: idl.IDLType) {
-        super(`Array<${library.mapType(elementType)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(library.mapType(type), [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = library.typeConvertor(param, elementType)
     }
     convertorArg(param: string, writer: LanguageWriter): string {

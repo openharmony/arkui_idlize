@@ -19,8 +19,9 @@ import { Language } from "../../../Language"
 import { CJKeywords } from "../../../languageSpecificKeywords"
 import { isDefined } from "../../../util"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
-import { EnumConvertor, MapConvertor } from "../../Convertors"
+import { EnumConvertor as EnumConvertorDTS, MapConvertor } from "../../Convertors"
 import { FieldRecord } from "../../DeclarationTable"
+import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { EnumEntity } from "../../PeerFile"
 import { mapType } from "../../TypeNodeNameConvertor"
 import { AssignStatement, ExpressionStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
@@ -185,7 +186,11 @@ export class CJLanguageWriter extends LanguageWriter {
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.print(`func ${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${it.nullable ? '?' : ''}${this.mapCType(it)}`).join(", ")}): ${this.mapCType(signature.returnType)}`)
     }
-    makeCastEnumToInt(convertor: EnumConvertor, enumName: string, _unsafe?: boolean): string {
+    override makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, _unsafe?: boolean): string {
+        return `${enumName}.getIntValue()`
+    }
+    override makeEnumCast(convertor: EnumConvertor, enumName: string, _unsafe?: boolean): string {
+        // TODO: remove after switching to IDL
         return `${enumName}.getIntValue()`
     }
     makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {

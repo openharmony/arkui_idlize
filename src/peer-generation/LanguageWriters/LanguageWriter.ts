@@ -16,12 +16,13 @@
 import { IDLBooleanType, IDLContainerType, IDLNumberType, IDLParameter, IDLPrimitiveType, IDLStringType, IDLType, IDLUndefinedType, IDLUnionType, IDLVoidType, isContainerType, isPrimitiveType, isUnionType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { stringOrNone } from "../../util"
-import { EnumConvertor, MapConvertor } from "../Convertors"
+import { EnumConvertor as EnumConvertorDTS, MapConvertor } from "../Convertors"
 import { ArgConvertor, RuntimeType } from "../ArgConvertors"
 import { FieldRecord } from "../DeclarationTable"
 import { EnumEntity } from "../PeerFile"
 import * as fs from "fs"
 import { Language } from "../../Language"
+import { EnumConvertor } from "../idl/IdlArgConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                           TYPE                             //
@@ -402,7 +403,8 @@ export abstract class LanguageWriter {
     abstract get supportedFieldModifiers(): FieldModifier[]
     abstract enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression
-
+    abstract makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, unsafe?: boolean): string // TODO: remove after switching to IDL
+    abstract makeEnumCast(convertor: EnumConvertor, enumName: string, unsafe?: boolean): string
 
     concat(other: PrinterLike): this {
         other.getOutput().forEach(it => this.print(it))
@@ -429,12 +431,6 @@ export abstract class LanguageWriter {
     writeStatement(stmt: LanguageStatement) {
         //this.printer.print(stmt.asString())
         stmt.write(this)
-    }
-    makeCastEnumToInt(convertor: EnumConvertor, enumName: string, unsafe?: boolean): string {
-        if (unsafe) {
-            return this.makeUnsafeCast(convertor, enumName)
-        }
-        return enumName
     }
     makeTag(tag: string): string {
         return "Tag." + tag
@@ -685,7 +681,7 @@ export abstract class LanguageWriter {
                                  exprs: LanguageExpression[]): LanguageExpression {
         return this.discriminatorFromExpressions(value, runtimeType, exprs)
     }
-    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
+    makeDiscriminatorConvertor(convertor: EnumConvertorDTS | EnumConvertor, value: string, index: number): LanguageExpression {
         const ordinal = convertor.isStringEnum
             ? this.ordinalFromEnum(
                 this.makeString(this.getObjectAccessor(convertor, value)),
@@ -706,7 +702,6 @@ export abstract class LanguageWriter {
     }
     castToInt(value: string, bitness: 8|32): string{ return value }
     castToBoolean(value: string): string { return value }
-    castToEnum(value: string, enumName: string): string { return value }
     makeCallIsObject(value: string): LanguageExpression {
         return this.makeString(`typeof ${value} === "object"`)
     }

@@ -19,9 +19,10 @@ import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { PrimitiveType } from "../../ArkPrimitiveType"
-import { ArrayConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
+import { ArrayConvertor, EnumConvertor as EnumConvertorDTS, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { AssignStatement, BlockStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, StringExpression, Type } from "../LanguageWriter"
 import { CDefinedExpression, CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
+import { EnumConvertor } from "../../idl/IdlArgConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -365,8 +366,12 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
         return param
     }
-    override castToEnum(value: string, enumName: string): string {
-        return `static_cast<${enumName}>(${value})`
+    override makeCastEnumToInt(convertor: EnumConvertorDTS, value: string, _unsafe?: boolean): string {
+        // TODO: remove after switching to IDL
+        return `static_cast<${convertor.enumTypeName(this.language)}>(${value})`
+    }
+    override makeEnumCast(convertor: EnumConvertor, value: string, _unsafe?: boolean): string {
+        return `static_cast<${convertor.enumTypeName(this.language)}>(${value})`
     }
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name

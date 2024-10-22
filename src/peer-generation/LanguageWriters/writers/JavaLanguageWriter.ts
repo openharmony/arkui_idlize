@@ -15,13 +15,14 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
-import { EnumConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
+import { EnumConvertor as EnumConvertorDTS, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { convertJavaOptional } from "../../printers/lang/Java"
 import { AssignStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
 import { CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
 import { IDLBooleanType, IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType } from '../../../idl'
 import { LambdaExpression } from "./TsLanguageWriter"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
+import { EnumConvertor } from "../../idl/IdlArgConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -320,9 +321,12 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeSerializerCreator() {
         return this.makeString('Serializer::createSerializer');
     }
-    makeCastEnumToInt(convertor: EnumConvertor, enumName: string, _unsafe?: boolean): string {
+    override makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, _unsafe?: boolean): string {
+        // TODO: remove after switching to IDL
+        return `${enumName}.getIntValue()`
+    }
+    override makeEnumCast(convertor: EnumConvertor, enumName: string, _unsafe?: boolean): string {
         return `${enumName}.getIntValue()`
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
-    override castToEnum(value: string, enumName: string): string { return `${value}.getIntValue()` }
 }

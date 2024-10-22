@@ -15,13 +15,14 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
-import { ArrayConvertor, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
+import { ArrayConvertor, EnumConvertor as EnumConvertorDTS, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { FieldRecord } from "../../DeclarationTable"
 import { mapType, TSTypeNodeNameConvertor } from "../../TypeNodeNameConvertor"
 import { AssignStatement, ExpressionStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
 import { IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType } from '../../../idl'
 import * as ts from 'typescript'
 import { ArgConvertor, RuntimeType } from "../../ArgConvertors"
+import { EnumConvertor } from "../../idl/IdlArgConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -345,6 +346,19 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, new Type('string')).asString()})`);
+    }
+    override makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, unsafe?: boolean): string {
+        // TODO: remove after switching to IDL
+        if (unsafe) {
+            return this.makeUnsafeCast(convertor, enumName)
+        }
+        return enumName
+    }
+    override makeEnumCast(convertor: EnumConvertor, enumName: string, unsafe?: boolean): string {
+        if (unsafe) {
+            return this.makeUnsafeCast(convertor, enumName)
+        }
+        return enumName
     }
     mapIDLContainerType(type: IDLContainerType, args: string[]): string {
         switch (type.name) {
