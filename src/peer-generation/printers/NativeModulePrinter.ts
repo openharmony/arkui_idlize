@@ -254,9 +254,11 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             printer.popIndent()
             printer.print('}')
         })
-        nativeFunctions!.pushIndent()
-        nativeFunctions!.writeNativeMethodDeclaration(nativeName, parameters)
-        nativeFunctions!.popIndent()
+        if (nativeFunctions) {
+            nativeFunctions!.pushIndent()
+            nativeFunctions!.writeNativeMethodDeclaration(nativeName, parameters)
+            nativeFunctions!.popIndent()
+        }
 
         nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
             printer.writePrintLog(name)

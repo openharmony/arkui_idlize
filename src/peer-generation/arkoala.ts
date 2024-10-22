@@ -26,11 +26,11 @@ import {
     mesonBuildFile,
     copyToLibace,
     libraryCcDeclaration,
-    makeCJSerializer,
     makeTypeCheckerFromDTS,
     makeTypeChecker,
     makeCallbacksKinds
 } from "./FileGenerators"
+import { makeCJSerializer, makeCJNodeTypes } from "./printers/lang/CJPrinters"
 import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./printers/lang/JavaPrinters"
 import { PeerLibrary } from "./PeerLibrary"
 import { printRealAndDummyAccessors, printRealModifiersAsMultipleFiles } from "./printers/ModifierPrinter"
@@ -462,9 +462,8 @@ export function generateArkoala(config: {
             fs.writeFileSync(outComponentFile, data)
         }
 
-        const writer = makeCJSerializer(peerLibrary)
-        writer.printTo(arkoala.cjLib(new TargetFile('Serializer', '')))
-
+        const serializer = makeCJSerializer(peerLibrary)
+        serializer.writer.printTo(arkoala.cjLib(serializer.targetFile))
 
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
@@ -548,6 +547,7 @@ function copyArkoalaFiles(config: {
     ])
 }
 
+//
 export function generateArkoalaFromIdl(config: {
             outDir: string,
             arkoalaDestination: string|undefined,
@@ -564,6 +564,7 @@ export function generateArkoalaFromIdl(config: {
         new ArkoalaInstall(config.arkoalaDestination, config.lang, false) :
         new ArkoalaInstall(config.outDir, config.lang, true)
     arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
+    arkoala.createDirs(['', ''].map(dir => path.join(arkoala.cjDir, dir)))
 
     const context = {
         language: config.lang,
@@ -797,6 +798,27 @@ export function generateArkoalaFromIdl(config: {
 
         const serializer = makeJavaSerializer(peerLibrary)
         serializer.writer.printTo(arkoala.javaLib(serializer.targetFile))
+    }
+
+    if (peerLibrary.language == Language.CJ) {
+        writeFile(
+            arkoala.cjLib(new TargetFile('NativeModule', '')),
+            printNativeModule(peerLibrary, config.nativeBridgeFile ?? "NativeBridge"),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+                message: "producing [idl]"
+            }
+        )
+
+        const nodeTypes = makeCJNodeTypes(peerLibrary)
+        nodeTypes.writer.printTo(arkoala.cjLib(nodeTypes.targetFile))
+
+        // const arkComponents = makeJavaArkComponents(peerLibrary, context)
+        // arkComponents.writer.printTo(arkoala.javaLib(arkComponents.targetFile))
+
+        const serializer = makeCJSerializer(peerLibrary)
+        serializer.writer.printTo(arkoala.cjLib(serializer.targetFile))
     }
 
     // native code

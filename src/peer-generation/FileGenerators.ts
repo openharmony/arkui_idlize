@@ -320,14 +320,6 @@ export function makeTypeChecker(library: IdlPeerLibrary): { arkts: string, ts: s
     }
 }
 
-export function makeCJSerializer(library: PeerLibrary): LanguageWriter {
-    let result = createLanguageWriter(library.declarationTable.language)
-    result.print(`package idlize\n`)
-    writeSerializer(library, result)
-    result.print('public func createSerializer(): Serializer { return Serializer() }')
-    return result
-}
-
 export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
     const converter = new CppLanguageWriter(new IndentedPrinter())
     converter.writeLines(cStyleCopyright)

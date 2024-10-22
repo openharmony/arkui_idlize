@@ -307,7 +307,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 class CJPeerFileVisitor extends PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
-        protected readonly file: PeerFile,
+        protected readonly file: PeerFile | IdlPeerFile,
         printerContext: PrinterContext,
         dumpSerialized: boolean,
     ) {
@@ -324,17 +324,25 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     }
 
     printFile(): void {
-        const printer = createLanguageWriter(this.library.declarationTable.language)
+        const isIDL = this.library instanceof IdlPeerLibrary
+        const printer = createLanguageWriter(this.library.language)
         this.file.peers.forEach(peer => {
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ''), printer)
 
-            const allTypesInPeer = peer.methods.flatMap((method) => {
-                return method.declarationTargets.map(target => this.printerContext.synthesizedTypes!.getTargetType(target, false))
-            })
-
             this.printPackage(printer)
-            this.printerContext.imports?.printImportsForTypes(allTypesInPeer, printer)
+
+            if (isIDL) {
+                const idlPeer = peer as IdlPeerClass
+                const imports = collectJavaImports(idlPeer.methods.flatMap(method => method.declarationTargets))
+                printJavaImports(printer, imports)
+            }
+            else {
+                // const allTypesInPeer = peer.methods.flatMap((method) => {
+                //     return method.declarationTargets.map(target => this.printerContext.synthesizedTypes!.getTargetType(target, false))
+                // })
+                // this.printerContext.imports?.printImportsForTypes(allTypesInPeer, printer)
+            }
             this.printPeer(peer, printer)
         })
     }
@@ -403,7 +411,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
 
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod: Method
-    if (isTsLike || (isJava && isIDL)) {
+    if (isTsLike || (isJava && isIDL) || (isCJ && isIDL)) {
         peerMethod = new Method(
             `${method.overloadedName}${methodPostfix}`,
             new NamedMethodSignature(returnType, signature.args, signature.argsNames),

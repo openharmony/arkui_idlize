@@ -124,6 +124,16 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
+    writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void {
+        this.printer.print(`public enum ${name}{`)
+        this.pushIndent()
+        for (const member of members) {
+            this.print('|'.concat(member.name))
+        }
+        op(this)
+        this.popIndent()
+        this.printer.print(`}`)
+    }
     writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
         let extendsClause = superInterfaces ? ` <: ${superInterfaces.join(" & ")}` : ''
         this.printer.print(`interface ${name}${extendsClause} {`)
@@ -255,7 +265,7 @@ export class CJLanguageWriter extends LanguageWriter {
         }
         return new TsObjectAssignStatement(object, undefined, false)
     }
-    makeMapResize(mapType: string, keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
+    makeMapResize(keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
         return this.makeAssign(map, undefined, this.makeString(`new Map<${keyType}, ${valueType}>()`), false)
     }
     makeMapKeyTypeName(c: MapConvertor): string {
@@ -311,6 +321,9 @@ export class CJLanguageWriter extends LanguageWriter {
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         this.writeStatement(this.makeAssign(valueType, undefined,
             this.makeRuntimeTypeGetterCall(value), false))
+    }
+    makeSerializerCreator() {
+        return this.makeString('createSerializer');
     }
     mapIDLContainerType(type: IDLContainerType, args: string[]): string {
         switch (type.name) {
@@ -423,5 +436,5 @@ export class CJLanguageWriter extends LanguageWriter {
     escapeKeyword(word: string): string {
         return CJKeywords.has(word) ? word + "_" : word
     }
-    override castToBoolean(value: string): string { return `if (${value} { 1 } else { 0 })` }
+    override castToBoolean(value: string): string { return `${value}` }
 }

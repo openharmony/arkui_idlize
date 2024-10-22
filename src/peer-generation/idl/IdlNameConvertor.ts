@@ -345,3 +345,101 @@ export class ArkTSTypeNameConvertor extends TSTypeNameConvertor {
         return idlProperty
     }
 }
+export class CJTypeNameConvertor implements IdlTypeNameConvertor {
+    private readonly typeAliasConvertor = new CJTypeAliasConvertor(this.library)
+    constructor(private readonly library: IdlPeerLibrary) {}
+    convert(type: idl.IDLType): string {
+        const typeAlias = convertType(this.typeAliasConvertor, type)
+        return typeAlias.type.nullable ? convertJavaOptional(typeAlias.type.name) : typeAlias.type.name
+    }
+}
+
+export class CJTypeAliasConvertor implements TypeConvertor<CJTypeAlias> {
+    constructor(private readonly library: IdlPeerLibrary) {}
+
+    convertUnion(type: idl.IDLUnionType): CJTypeAlias {
+        const CJTypeAliases = type.types.map(it => convertType(this, it))
+        const result = CJTypeAlias.fromTypeName(`Union_${CJTypeAliases.map(it => it.alias).join("_")}`, false)
+        return result
+    }
+    convertContainer(type: idl.IDLContainerType): CJTypeAlias {
+        switch (type.name) {
+            case "sequence": {
+                const cjTypeAlias = convertType(this, type.elementType[0])
+                return new CJTypeAlias(new Type(`ArrayList<${cjTypeAlias.type}>`), `Array_${cjTypeAlias.alias}`)
+            }
+            case "record": {
+                const cjTypeAliases = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
+                const result = new JavaTypeAlias(new Type(`Map<${cjTypeAliases[0].type}, ${cjTypeAliases[1].type}>`), `Map_${cjTypeAliases[0].alias}_${cjTypeAliases[1].alias}`)
+                return result
+            }
+            case "Promise":
+            default:
+                throw new Error(`IDL type '${type.name}' not supported`)
+        }
+    }
+    convertEnum(type: idl.IDLEnumType): CJTypeAlias {
+        // TODO: remove prefix after full migration to IDL
+        return CJTypeAlias.fromTypeName(`Ark_${type.name}`, false)
+    }
+    convertImport(type: idl.IDLReferenceType, importClause: string): CJTypeAlias {
+        return CJTypeAlias.fromTypeName(type.name, false)
+    }
+    convertTypeReference(type: idl.IDLReferenceType): CJTypeAlias {
+        return CJTypeAlias.fromTypeName(type.name, false)
+    }
+    convertTypeParameter(type: idl.IDLTypeParameterType): CJTypeAlias {
+        // TODO
+        return CJTypeAlias.fromTypeName(type.name, false)
+    }
+    convertPrimitiveType(type: idl.IDLPrimitiveType): CJTypeAlias {
+        switch (type) {
+            case idl.IDLStringType: return CJTypeAlias.fromTypeName('String', false)
+            case idl.IDLNumberType: return CJTypeAlias.fromTypeName('Float64', false)
+            case idl.IDLBooleanType: return CJTypeAlias.fromTypeName('Bool', false)
+            case idl.IDLUndefinedType: return CJTypeAlias.fromTypeName('Ark_Undefined', false)
+            case idl.IDLAnyType: return CJTypeAlias.fromTypeName(ARK_CUSTOM_OBJECT, false)
+            case idl.IDLI8Type: return CJTypeAlias.fromTypeName('Int8', false)
+            case idl.IDLU8Type: return CJTypeAlias.fromTypeName('UInt8', false)
+            case idl.IDLI16Type: return CJTypeAlias.fromTypeName('Int16', false)
+            case idl.IDLU16Type: return CJTypeAlias.fromTypeName('UInt16', false)
+            case idl.IDLI32Type: return CJTypeAlias.fromTypeName('Int32', false)
+            case idl.IDLU32Type: return CJTypeAlias.fromTypeName('UInt32', false)
+            case idl.IDLI64Type: return CJTypeAlias.fromTypeName('Int64', false)
+            case idl.IDLU64Type: return CJTypeAlias.fromTypeName('UInt64', false)
+            case idl.IDLF32Type: return CJTypeAlias.fromTypeName('Float32', false)
+            case idl.IDLF64Type: return CJTypeAlias.fromTypeName('Float64', false)
+            case idl.IDLPointerType: return CJTypeAlias.fromTypeName('Int64', false)
+        }
+        throw new Error(`Unsupported IDL primitive ${type.name}`)
+    }
+    private maybeConvertPrimitiveType(cjType: CJTypeAlias): CJTypeAlias {
+        // if (this.javaPrimitiveToReferenceTypeMap.has(javaType.type.name)) {
+        //     return this.javaPrimitiveToReferenceTypeMap.get(javaType.type.name)!
+        // }
+        return cjType
+    }
+}
+
+class CJTypeAlias {
+    // CJ type itself
+    // string representation can contain special characters (e.g. String[])
+    readonly type: Type
+
+    // synthetic identifier for internal use cases: naming classes/files etc. 
+    // string representation contains only letters, numbers and underscores (e.g. Array_String)
+    readonly alias: string
+
+    static fromTypeName(typeName: string, optional: boolean): CJTypeAlias {
+        return new CJTypeAlias(new Type(typeName, optional), optional ? convertJavaOptional(typeName) : typeName)
+    }
+
+    static fromTypeAlias(typeAlias: CJTypeAlias, optional: boolean): CJTypeAlias {
+        return new CJTypeAlias(new Type(typeAlias.type.name, optional), optional ? convertJavaOptional(typeAlias.alias) : typeAlias.alias)
+    }
+
+    constructor(type: Type, alias: string) {
+        this.type = type
+        this.alias = alias
+    }
+}

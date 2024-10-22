@@ -302,6 +302,17 @@ export class ArkTSTypeNodeNameConvertor extends TSTypeNodeNameConvertor {
 }
 
 // CJ printers does not use this in fact
+// export class CJTypeNodeNameConvertor implements IdlTypeNameConvertor {
+//     private readonly typeAliasConvertor = new JavaTypeAliasConvertor(this.library)
+//     constructor(private readonly library: IdlPeerLibrary) {}
+//     convert(type: idl.IDLType): string {
+//         // if (ts.isQualifiedName(type)) return this.convertQualifiedName(type)
+//         // if (ts.isIdentifier(type)) return this.convertIdentifier(type)
+//         const typeAlias = convertType(this.typeAliasConvertor, type)
+//         return typeAlias.type.nullable ? convertJavaOptional(typeAlias.type.name) : typeAlias.type.name
+//     }
+// }
+
 export class CJTypeNodeNameConvertor extends TSTypeNodeNameConvertor {}
 
 // Java printers does not use this in fact

@@ -18,8 +18,8 @@ import { BuilderClass } from '../BuilderClass';
 import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
 import { IdlPeerFile } from "./IdlPeerFile";
-import { ArkTSTypeNameConvertor, IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor } from './IdlNameConvertor';
-import { capitalize } from '../../util';
+import { ArkTSTypeNameConvertor, IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor, CJTypeNameConvertor } from './IdlNameConvertor';
+import { capitalize, isDefined } from '../../util';
 import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from "../ArkPrimitiveType"
@@ -42,6 +42,8 @@ function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor 
         return new JavaTypeNameConvertor(library)
     if (language == Language.ARKTS)
         return new ArkTSTypeNameConvertor(library)
+    if (language == Language.CJ)
+        return new CJTypeNameConvertor(library)
     throw new Error(`Convertor from IDL to ${language} not implemented`)
 }
 

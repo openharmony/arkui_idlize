@@ -24,6 +24,7 @@ import { componentToPeerClass } from "../PeersPrinter"
 import { PrinterContext } from "../PrinterContext"
 import { writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
+import { IdlSyntheticTypeBase } from "./CommonUtils"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_UI_NODE_TYPE, ARK_BASE, ARK_OBJECTBASE, INT_VALUE_GETTER } from "./Java"
 import { collectJavaImports } from "./JavaIdlUtils"
 
@@ -233,28 +234,6 @@ export function makeJavaArkComponents(library: PeerLibrary | IdlPeerLibrary, pri
     result.concat(writer)
 
     return { targetFile: new TargetFile(ark, ARKOALA_PACKAGE_PATH), writer: result }
-}
-
-interface IdlSyntheticType {
-    getName(): string
-    setName(name: string): void
-    isMadeFrom(source: Object): boolean
-    print(writer: LanguageWriter): void
-}
-
-abstract class IdlSyntheticTypeBase implements IdlSyntheticType {
-    public name: string = ''
-    constructor(public readonly source: Object | undefined) {}
-    getName(): string {
-        return this.name
-    }
-    setName(name: string): void {
-        this.name = name
-    }
-    isMadeFrom(object: Object): boolean {
-        return object === this.source
-    }
-    abstract print(writer: LanguageWriter): void
 }
 
 export class JavaUnion extends IdlSyntheticTypeBase {
