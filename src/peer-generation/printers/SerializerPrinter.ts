@@ -474,8 +474,7 @@ function getSerializers(library: IdlPeerLibrary): idl.IDLInterface[] {
 }
 
 function isParameterized(node: idl.IDLEntry) {
-    return node.name !== "TransitionEffect"  // parameterized but we still need it
-        && idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)
+    return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)
         || ["Record", "Required"].includes(node.name!)
 }
 

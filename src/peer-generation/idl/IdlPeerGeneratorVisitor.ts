@@ -58,7 +58,7 @@ export class IdlComponentDeclaration {
     constructor(
         public readonly name: string,
         public readonly interfaceDeclaration: idl.IDLInterface | undefined,
-        public readonly attributesDeclarations: idl.IDLInterface,
+        public readonly attributeDeclaration: idl.IDLInterface,
     ) {}
 }
 
@@ -446,7 +446,7 @@ class ComponentsCompleter {
 
     public process(): void {
         for (let i = 0; i < this.library.componentsDeclarations.length; i++) {
-            const attributes = this.library.componentsDeclarations[i].attributesDeclarations
+            const attributes = this.library.componentsDeclarations[i].attributeDeclaration
             const parent = idl.getSuperType(attributes)
             if (!parent)
                 continue
@@ -474,7 +474,7 @@ class ComponentsCompleter {
     }
 
     private isSubclassComponent(a: IdlComponentDeclaration, b: IdlComponentDeclaration) {
-        return this.isSubclass(a.attributesDeclarations, b.attributesDeclarations)
+        return this.isSubclass(a.attributeDeclaration, b.attributeDeclaration)
     }
 
     private isSubclass(component: idl.IDLInterface, maybeParent: idl.IDLInterface): boolean {
@@ -625,7 +625,7 @@ class PeersGenerator {
     }
 
     public generatePeer(component: IdlComponentDeclaration): void {
-        const sourceFile = component.attributesDeclarations.fileName
+        const sourceFile = component.attributeDeclaration.fileName
         if (!sourceFile)
             throw new Error("Expected parent of attributes to be a SourceFile")
         const file = this.library.findFileByOriginalFilename(sourceFile)
@@ -634,7 +634,7 @@ class PeersGenerator {
         const peer = new IdlPeerClass(file, component.name, sourceFile)
         if (component.interfaceDeclaration)
             this.fillInterface(peer, component.interfaceDeclaration)
-        this.fillClass(peer, component.attributesDeclarations)
+        this.fillClass(peer, component.attributeDeclaration)
         collapseIdlEventsOverloads(this.library, peer)
         file.peers.set(component.name, peer)
     }
@@ -804,14 +804,16 @@ export class IdlPeerProcessor {
     }
 
     private collectDeclarations(): Set<idl.IDLEntry> {
-        const ignoredComponents = new Set(
-            PeerGeneratorConfig.ignoreComponents.flatMap(comp =>
-                [comp + "Attribute", comp + "Interface"]))
+        const ignoredDeclarations = new Set<string>()
+        PeerGeneratorConfig.ignoreComponents.forEach(it => {
+            ignoredDeclarations.add(it + "Attribute")
+            ignoredDeclarations.add(it + "Interface")
+        })
         const deps: Set<idl.IDLEntry> = new Set(
             this.library.files
                 .flatMap(it => it.entries)
                 .filter(it => !idl.isPackage(it) && !idl.isImport(it) && !idl.isModuleType(it))
-                .filter(it => !ignoredComponents.has(it.name!))
+                .filter(it => !ignoredDeclarations.has(it.name!))
                 .filter(it => !this.ignoreDeclaration(it, this.library.language)))
         const depsCopy = Array.from(deps)
         for (const dep of depsCopy) {
@@ -829,7 +831,15 @@ export class IdlPeerProcessor {
                 this.library.conflictedDeclarations.add(dep)
             }
         }
-        this.library.declarations.push(...deps)
+
+        const componentDeclarations = new Set(
+            this.library.componentsDeclarations
+                .filter(it => it.interfaceDeclaration)
+                .filter(it => it.attributeDeclaration.inheritance[0]?.name !== "CommonShapeMethod")
+                .flatMap(it => [it.attributeDeclaration.name, it.interfaceDeclaration!.name]))
+        Array.from(deps)
+            .filter(it => !componentDeclarations.has(it.name!))
+            .forEach(it => this.library.declarations.push(it))
         return deps
     }
 

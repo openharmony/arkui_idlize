@@ -22,7 +22,7 @@ import { generate } from "./idlize"
 import { IDLEntry, forEachChild, toIDLString, isInterface, isPackage } from "./idl"
 import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
-import { CompileContext, IDLVisitor } from "./IDLVisitor"
+import { IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import {
     PeerGeneratorVisitor,
@@ -108,7 +108,6 @@ if (process.env.npm_package_version) {
 let didJob = false
 
 if (options.dts2idl) {
-    const tsCompileContext = new CompileContext()
     generate(
         options.inputDir.split(','),
         options.inputFile,
@@ -141,7 +140,6 @@ if (options.dts2idl) {
 }
 
 if (options.dts2skoala) {
-    const tsCompileContext = new CompileContext()
     const generatedIDLMap = new Map<string, IDLEntry[]>()
     const outputDir: string = options.outputDir ?? "./generated/skoala"
 

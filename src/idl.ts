@@ -15,7 +15,6 @@
 
 import * as webidl2 from "webidl2"
 import { indentedBy, isDefined, stringOrNone } from "./util";
-import { NodeArray, TypeNode } from "typescript";
 
 export enum IDLKind {
     Interface,
@@ -405,23 +404,18 @@ export const IDLUndefinedType = createPrimitiveType('undefined')
 export const IDLUnknownType = createPrimitiveType('unknown')
 export const IDLObjectType = createReferenceType('Object')
 
-export function createReferenceType(name: string, typeArguments?: NodeArray<TypeNode>): IDLReferenceType {
+export function createReferenceType(name: string, typeArguments?: (string | undefined)[]): IDLReferenceType {
+    const result: IDLReferenceType = {
+        name,
+        kind: IDLKind.ReferenceType
+    }
     if (typeArguments) {
-        return {
-            kind: IDLKind.ReferenceType,
-            name: name,
-            extendedAttributes: [{
-                name: IDLExtendedAttributes.TypeArguments,
-                value: typeArguments!
-                    .map(it => it.getText())
-                    .join(",")
-            }]
-        }
+        result.extendedAttributes = [{
+            name: IDLExtendedAttributes.TypeArguments,
+            value: typeArguments.join(",")
+        }]
     }
-    return {
-        kind: IDLKind.ReferenceType,
-        name: name
-    }
+    return result
 }
 
 export function createEnumType(name: string): IDLEnumType {

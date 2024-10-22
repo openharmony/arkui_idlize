@@ -39,7 +39,6 @@ export class PeerGeneratorConfig {
 
     public static ignoreComponents = [
         "Particle",
-        "Progress",
         "ForEach",
         "LazyForEach",
         "ContentSlot",
@@ -95,7 +94,6 @@ export class PeerGeneratorConfig {
         "Configuration",
         "UIGestureEvent",
         "GestureHandler",           // class with generics
-        "TransitionEffect",         // Generics `Type` and `Effect` types are used in static ctor
         // constant values need to be generated
         // "equals(id: TextMenuItemId): boolean" method leads to the "cycle detected" message
         "TextMenuItemId",

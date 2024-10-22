@@ -31,6 +31,7 @@ import {
     isPrimitiveType,
     IDLUnknownType,
     IDLObjectType,
+    createUnionType,
 } from "./idl"
 import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameEnumValues, nameOrNull, stringOrNone
@@ -99,29 +100,36 @@ export function generateSyntheticFunctionName(computeTypeName: (type: IDLType) =
     return `${prefix}_${names.join("_")}`
 }
 
-export class CompileContext {
-    typeNames: Set<string> = new Set()
+const TypeParameterMap: Map<string, Map<string, IDLType>> = new Map([
+    ["TransitionEffect", new Map<string, IDLType>([
+        ["Type", IDLStringType],
+        ["Effect", createReferenceType("TransitionEffects")]])],
+    ["ProgressOptions", new Map([
+        ["Type", createReferenceType("ProgressType")]])],
+    ["ProgressInterface", new Map([
+        ["Type", createReferenceType("ProgressType")]])],
+    ["ProgressAttribute", new Map<string, IDLType>([
+        ["Type", createReferenceType("ProgressType")],
+        ["Style", createUnionType([
+            createReferenceType("LinearStyleOptions"),
+            createReferenceType("RingStyleOptions"),
+            createReferenceType("CapsuleStyleOptions"),
+            createReferenceType("ProgressStyleOptions")],
+            "Union_LinearStyleOptions_RingStyleOptions_CapsuleStyleOptions_ProgressStyleOptions")]])],
+])
 
-    uniqualize(typeName: string): string {
-        let name = typeName
-        for (let i = 0; this.typeNames.has(name); i++) {
-            name = `${typeName}${i}`
-        }
-        this.typeNames.add(name)
-        return name
-    }
-}
+class Context {
+    typeParameterMap: Map<string, IDLType | undefined> | undefined
 
-class Scope {
-    entries: IDLEntry[] = []
-    add(entry: IDLEntry) {
-        this.entries.push(entry)
+    enter(entityName: string) {
+        this.typeParameterMap = TypeParameterMap.get(entityName)
     }
 }
 
 export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     private output: IDLEntry[] = []
     private seenNames = new Set<string>()
+    private context = new Context()
     imports: IDLImport[] = []
     exports: string[] = []
     namespaces: string[] = []
@@ -306,7 +314,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 (ts.isIdentifier(it.expression)) ?
                     ts.idText(it.expression) :
                     `NON_IDENTIFIER_HERITAGE ${asString(it)}`
-            return createReferenceType(escapeIdl(name), it.typeArguments)
+            return createReferenceType(escapeIdl(name), this.mapTypeArgs(it.typeArguments, name))
         })
     }
 
@@ -416,6 +424,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         if (!hasSuperClass) inheritance.unshift(IDLTopType)
         const nameSuggestion = NameSuggestion.make(getExportedDeclarationNameByDecl(node) ?? "UNDEFINED")
         const childNameSuggestion = nameSuggestion.prependType()
+        this.context.enter(nameSuggestion.name)
         return {
             kind: IDLKind.Class,
             extendedAttributes: this.computeComponentExtendedAttributes(node, inheritance),
@@ -496,6 +505,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         const inheritance = this.serializeInheritance(node.heritageClauses)
         const nameSuggestion = NameSuggestion.make(getExportedDeclarationNameByDecl(node) ?? "UNDEFINED")
         const childNameSuggestion = nameSuggestion.prependType()
+        this.context.enter(nameSuggestion.name)
         return {
             kind: IDLKind.Interface,
             name: nameSuggestion.name,
@@ -765,14 +775,11 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
     }
 
-    isTypeParameterReference(type: ts.TypeNode): boolean {
-        if (!ts.isTypeReferenceNode(type)) return false
-        const name = type.typeName
-
-        const declaration = getDeclarationsByNode(this.typeChecker, name)[0]
-        if (!declaration) return false
-        if (ts.isTypeParameterDeclaration(declaration)) return true
-        return false
+    isTypeParameterReference(type: ts.TypeNode): type is ts.TypeReferenceNode {
+        if (!ts.isTypeReferenceNode(type))
+            return false
+        const declaration = getDeclarationsByNode(this.typeChecker, type.typeName)[0]
+        return declaration && ts.isTypeParameterDeclaration(declaration)
     }
 
     isKnownParametrizedType(type: ts.TypeNode): boolean {
@@ -809,6 +816,23 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             }
         }
         return type.name
+    }
+
+    /**
+     * Here we keep TS type names, but translate type arguments using `Context.typeParameterMap`
+     */
+    private mapTypeArgs(typeArgs: ts.NodeArray<ts.TypeNode> | undefined, typeName: string): string[] | undefined {
+        if (TypeParameterMap.has(typeName))
+            // Type parameters were erased for this type
+            return undefined
+        return typeArgs?.map(arg => {
+            if (this.isTypeParameterReference(arg)) {
+                const paramName = nameOrNull(arg.typeName)!
+                const substName = this.context.typeParameterMap?.get(paramName)?.name
+                return substName ?? paramName
+            }
+            return arg.getText()
+        })
     }
 
     serializeType(type: ts.TypeNode | undefined, nameSuggestion?: NameSuggestion): IDLType {
@@ -854,7 +878,9 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return createReferenceType(intersectionType.name)
         }
         if (this.isTypeParameterReference(type)) {
-            return createTypeParameterReference(nameOrNull((type as ts.TypeReferenceNode).typeName) ?? "UNEXPECTED_TYPE_PARAMETER")
+            const typeParamName = nameOrNull(type.typeName)
+            const substType = this.context.typeParameterMap?.get(typeParamName!)
+            return substType ?? createTypeParameterReference(typeParamName ?? "UNEXPECTED_TYPE_PARAMETER")
         }
         if (ts.isTypeReferenceNode(type)) {
             let declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
@@ -877,7 +903,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             if (declaration.length == 0) {
                 let name = type.typeName.getText(type.typeName.getSourceFile())
                 this.warn(`Do not know type ${name}`)
-                return createReferenceType(name, type.typeArguments)
+                return createReferenceType(name, this.mapTypeArgs(type.typeArguments, name))
             }
             let isEnum = ts.isEnumDeclaration(declaration[0])
             const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
@@ -906,7 +932,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 this.addSyntheticType(callback)
                 return createReferenceType(callback.name)
             }
-            return createReferenceType(transformedType, type.typeArguments);
+            return createReferenceType(transformedType, this.mapTypeArgs(type.typeArguments, transformedType));
         }
         if (ts.isThisTypeNode(type)) {
             return createReferenceType("this")
@@ -973,7 +999,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             let where = type.argument.getText(type.getSourceFile()).split("/").map(it => it.replaceAll("'", ""))
             let what = asString(type.qualifier)
             let typeName = sanitize(what == "default" ? where[where.length - 1] : what)!
-            let result = createReferenceType(typeName, type.typeArguments)
+            let result = createReferenceType(typeName, this.mapTypeArgs(type.typeArguments, typeName))
             result.extendedAttributes ??= []
             result.extendedAttributes.push({ name: IDLExtendedAttributes.Import, value: originalText })
             return result
@@ -1138,7 +1164,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
     }
 
     computeTypeParametersAttribute(typeParameters: ts.NodeArray<ts.TypeParameterDeclaration> | undefined, attributes: IDLExtendedAttribute[] = []) {
-        if (typeParameters) {
+        if (typeParameters && !this.context.typeParameterMap) {
             attributes.push({
                 name: IDLExtendedAttributes.TypeParameters,
                 value: typeParameters.map(it => it.getText()).join(",")

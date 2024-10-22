@@ -69,7 +69,7 @@ npm i
 npm run check:peers:run
 ```
 
-The output is in `generated/peers` directory
+The output is in `out/ts-peers` directory
 
 #### To test with a simple subset sdk
 
@@ -79,7 +79,7 @@ npm i
 npm run check:subset:run
 ```
 
-The output is in `generated/subset` directory
+The output is in `out/ts-subset` directory
 
 ### .d.ts linter
 

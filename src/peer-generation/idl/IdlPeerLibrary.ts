@@ -128,12 +128,12 @@ export class IdlPeerLibrary {
 
     findComponentByDeclaration(iface: idl.IDLInterface): IdlComponentDeclaration | undefined {
         return this.componentsDeclarations.find(it =>
-            it.interfaceDeclaration === iface || it.attributesDeclarations === iface)
+            it.interfaceDeclaration === iface || it.attributeDeclaration === iface)
     }
 
     findComponentByType(type: idl.IDLType): IdlComponentDeclaration | undefined {
         return this.componentsDeclarations.find(it =>
-            it.interfaceDeclaration?.name === type.name || it.attributesDeclarations.name === type.name)
+            it.interfaceDeclaration?.name === type.name || it.attributeDeclaration.name === type.name)
     }
 
     isComponentDeclaration(iface: idl.IDLInterface): boolean {
