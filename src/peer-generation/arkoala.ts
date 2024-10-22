@@ -61,6 +61,7 @@ import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { printDeclarations } from "./printers/DeclarationPrinter"
 import { printConflictedDeclarationsIdl } from "./idl/ConflictedDeclarationsPrinterIdl";
+import { printNativeModuleRecorder } from "./printers/NativeModuleRecorderPrinter"
 
 export function generateLibace(config: {
     libaceDestination: string | undefined,
@@ -654,6 +655,15 @@ export function generateArkoalaFromIdl(config: {
         writeFile(
             arkoala.tsArkoalaLib(new TargetFile('NativeModule')),
             printNativeModule(peerLibrary, config.nativeBridgeFile ?? "../../../../../../../native/NativeBridgeNapi"),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+                message: "producing [idl]"
+            }
+        )
+        writeFile(
+            arkoala.tsLib(new TargetFile('NativeModuleRecorder')),
+            printNativeModuleRecorder(peerLibrary),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true,
