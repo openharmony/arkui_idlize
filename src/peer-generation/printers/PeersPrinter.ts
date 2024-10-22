@@ -104,6 +104,7 @@ class PeerFileVisitor {
             this.file.serializeImportFeatures.forEach(it => imports.addFeature(it.feature, it.module))
             imports.addFeature('GestureName', './shared/generated-utils')
             imports.addFeature('GestureComponent', './shared/generated-utils')
+            imports.addFeature('CallbackKind', './peers/CallbackKind')
         }
         if (printer.language == Language.TS)
             imports.addFeature("unsafeCast", "./shared/generated-utils")

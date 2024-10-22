@@ -21,6 +21,7 @@ import { qualifiedName } from "./common"
 import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "../ArgConvertors"
 import { generateCallbackAPIArguments } from "./StructPrinter"
 import { CppCastExpression } from "../LanguageWriters/writers/CppLanguageWriter"
+import { CallbackKind } from "../printers/CallbacksPrinter"
 
 
 export class StringConvertor extends BaseArgConvertor {
@@ -497,11 +498,9 @@ export class CallbackConvertor extends BaseArgConvertor {
                 new StringExpression(`${value}.call`), new Type("void*"), true).asString()])
             return
         }
-        // TODO
-        // this.wrapCallback(param, value, writer)
         writer.writeMethodCall(`${param}Serializer`, "writeCallbackResource", [`${value}`])
         writer.writeMethodCall(`${param}Serializer`, "writePointer", [
-            writer.makeNativeCall(`_GetManagerCallbackCaller`, []).asString()
+            writer.makeNativeCall(`_GetManagerCallbackCaller`, [writer.makeString(`${CallbackKind}.${this.decl.name}`)]).asString()
         ])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
@@ -515,11 +514,8 @@ export class CallbackConvertor extends BaseArgConvertor {
                 ), false),
             ])
         }
-        // TODO correct read from resource
-        return writer.makeAssign(value, undefined, writer.makeLambda(new MethodSignature(
-            new Type(this.library.mapType(this.decl.returnType)),
-            this.decl.parameters.map(it => new Type(this.library.mapType(it.type!), it.isOptional)),
-        ), [writer.makeThrowError("Not implemented")]), false)
+        return writer.makeAssign(value, undefined, writer.makeString(
+            `${param}Deserializer.read${this.library.computeTargetName(this.decl, false, "")}()`), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Prefix + this.decl.name
@@ -527,87 +523,6 @@ export class CallbackConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
-    // wrapCallback(param: string, value: string, writer: LanguageWriter): void {
-    //     const callbackName = `${value}_callback`
-    //     const statements: LanguageStatement[] = []
-    //     if (this.parameters.length > 0 || !idl.isVoidType(this.retType))
-    //         statements.push(writer.makeAssign("callbackDeserializer", new Type("Deserializer"),
-    //             writer.makeMethodCall("Deserializer", "get",
-    //                 [writer.makeString("createDeserializer"), writer.makeString("args"), writer.makeString("length")]),
-    //             true, true))
-    //     // deserialize arguments
-    //     statements.push(...this.parameters.flatMap(parameter => {
-    //         const convertor = this.library.typeConvertor(parameter.name, parameter.type!, parameter.isOptional)
-    //         const argName = `${convertor.param}Arg`
-    //         const isUndefined = convertor.runtimeTypes.includes(RuntimeType.UNDEFINED)
-    //         argList.push(`${argName}${isUndefined ? "" : "!"}`)
-    //         return [
-    //             writer.makeAssign(argName, new Type(convertor.tsTypeName), undefined, true, false),
-    //             convertor.convertorDeserialize("callback", argName, writer)
-    //         ]
-    //     }))
-    //     const 
-    //     if (!idl.isVoidType(this.retType)) {
-    //         const retCallbackParameters = [idl.createParameter(`value`, this.retType)]
-    //         const retCallbackName = generateSyntheticFunctionName(
-    //             (type) => this.library.mapType(type),
-    //             retCallbackParameters,
-    //             idl.IDLVoidType
-    //         )
-    //         const syntheticReturnCallback = idl.createCallback(retCallbackName, retCallbackParameters, idl.IDLVoidType)
-    //         const convertor = this.library.typeConvertor(`continuation`, syntheticReturnCallback, false)
-    //         const argName = `${convertor.param}Arg`
-    //         statements.push(...[
-    //             writer.makeAssign(argName, new Type(convertor.tsTypeName), undefined, true, false),
-    //             convertor.convertorDeserialize("callback", argName, writer)
-    //         ])
-    //     }
-
-
-    //     const argList: string[] = []
-    //     writer.writeStatement(
-    //         writer.makeAssign(`${callbackName}`, undefined,
-    //             writer.makeLambda(
-    //                 new NamedMethodSignature(Type.Void, [new Type("Uint8Array"), new Type("int32")], ["args", "length"]),
-    //                 [
-    //                     this.parameters.length > 0 || !idl.isVoidType(this.retType)
-    //                         ? writer.makeAssign("callbackDeserializer", new Type("Deserializer"),
-    //                             writer.makeMethodCall("Deserializer", "get",
-    //                                 [writer.makeString("createDeserializer"), writer.makeString("args"), writer.makeString("length")]),
-    //                             true, true)
-    //                         : [],
-    //                     // deserialize arguments
-    //                     ...this.parameters.map(parameter => {
-    //                         const convertor = this.library.typeConvertor(parameter.name, parameter.type!, parameter.isOptional)
-    //                         const argName = `${convertor.param}Arg`
-    //                         const isUndefined = convertor.runtimeTypes.includes(RuntimeType.UNDEFINED)
-    //                         argList.push(`${argName}${isUndefined ? "" : "!"}`)
-    //                         return [
-    //                             writer.makeAssign(argName, new Type(convertor.tsTypeName), undefined, true, false),
-    //                             convertor.convertorDeserialize("callback", argName, writer)
-    //                         ]
-
-    //                     }),
-    //                     // call lambda with deserialized arguments
-    //                     writer.makeStatement(
-    //                         writer.makeFunctionCall(value, argList.map(it => writer.makeString(it)))),
-    //                     // TBD: return value from the callback
-    //                     writer.makeReturn(
-    //                         writer.makeString("0"))
-
-    //                 ].flat()
-
-    //             ),
-    //             true, true
-    //         )
-    //     )
-    //     writer.writeStatement(
-    //         writer.makeAssign(`${callbackName}Id`, Type.Int32,
-    //             writer.makeFunctionCall("wrapCallback", [writer.makeString(`${callbackName}`)]),
-    //             true, true
-    //         )
-    //     )
-    // }
 }
 
 export class TupleConvertor extends BaseArgConvertor { //

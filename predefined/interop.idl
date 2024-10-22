@@ -24,7 +24,10 @@ interface Interop {
     void StartPerf(String str1);
     void EndPerf(String str1);
     pointer DumpPerf(i32 arg);
-    pointer GetManagerCallbackCaller();
+    pointer GetManagerCallbackCaller(i32 callbackKind);
     pointer GetManagedResourceHolder();
     pointer GetManagedResourceReleaser();
+    void CallCallback(i32 callbackKind, pointer caller, i32 resourceId, sequence<u8> args, i32 argsSize);
+    void CallCallbackResourceHolder(pointer holder, i32 resourceId);
+    void CallCallbackResourceReleaser(pointer releaser, i32 resourceId);
 };

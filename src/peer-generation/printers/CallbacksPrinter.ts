@@ -2,7 +2,11 @@ import * as idl from "../../idl"
 import { generateSyntheticFunctionName, NameSuggestion, selectName } from "../../IDLVisitor";
 import { PrimitiveType } from "../ArkPrimitiveType";
 import { cleanPrefix, IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { LanguageWriter } from "../LanguageWriters";
+import { EnumEntity, EnumMember } from "../PeerFile";
+import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 
+export const CallbackKind = "CallbackKind"
 
 function collectEntryCallbacks(library: IdlPeerLibrary, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
@@ -43,6 +47,23 @@ export function collectUniqueCallbacks(library: IdlPeerLibrary) {
             }
         }
     }
-    foundCallbacks.push(...library.continuationCallbacks)
-    return foundCallbacks.sort((a, b) => a.name.localeCompare(b.name))
+    for (const callback of library.continuationCallbacks) {
+        if (foundCallbacksNames.has(callback.name))
+            continue
+        foundCallbacksNames.add(callback.name)
+        foundCallbacks.push(callback)
+    }
+    return foundCallbacks
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .filter(it => !PeerGeneratorConfig.ignoredCallbacks.has(it.name))
+}
+
+export function printCallbacksKinds(library: IdlPeerLibrary, writer: LanguageWriter): void {
+    writer.writeStatement(writer.makeEnumEntity(new EnumEntity(
+        CallbackKind,
+        "",
+        collectUniqueCallbacks(library).map((it, index) => {
+            return new EnumMember(it.name, "", index.toString())
+        })
+    ), true))
 }

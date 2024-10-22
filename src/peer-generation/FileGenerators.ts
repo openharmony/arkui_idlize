@@ -28,6 +28,7 @@ import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { writeARKTSTypeCheckerFromDTS, writeTSTypeCheckerFromDTS } from "./printers/TypeCheckFromDTSPrinter"
 import { Language } from "../Language"
+import { printCallbacksKinds } from "./printers/CallbacksPrinter"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -281,6 +282,7 @@ export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary): string 
     if (printer.language == Language.TS) {
         imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
         imports.addFeatures(["nativeModule"], "@koalaui/arkoala")
+        imports.addFeatures(["CallbackKind"], "CallbackKind")
     } 
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["nativeModule"], "#components")
@@ -385,10 +387,14 @@ export function makeTSDeserializer(library: PeerLibrary | IdlPeerLibrary): strin
     const deserializer = createLanguageWriter(Language.TS)
     writeDeserializer(library, deserializer)
     return `${cStyleCopyright}
-import { runtimeType, Tags, RuntimeType } from "./SerializerBase"
-import { DeserializerBase } from "./DeserializerBase"
+import { runtimeType, Tags, RuntimeType, SerializerBase } from "./SerializerBase"
+import { DeserializerBase, CallbackResource } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
+import { CallbackKind } from "./CallbackKind"
+import { Serializer, createSerializer } from "./Serializer"
+import { nativeModule } from "@koalaui/arkoala"
+import { KPointer } from "@koalaui/interop"
 
 ${deserializer.getOutput().join("\n")}
 
@@ -631,6 +637,12 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
 
     writer.popNamespace(false)
     return writer.getOutput().join('\n')
+}
+
+export function makeCallbacksKinds(library: IdlPeerLibrary, language: Language): string {
+    const writer = createLanguageWriter(language)
+    printCallbacksKinds(library, writer)
+    return writer.getOutput().join("\n")
 }
 
 export function gniFile(gniSources: string): string {

@@ -17,6 +17,12 @@ import {pointer} from "@koalaui/interop"
 import {RuntimeType, Tags} from "./SerializerBase";
 // import { Length } from "@arkoala/arkui"
 
+export interface CallbackResource {
+    resourceId: int32
+    hold: pointer
+    release: pointer
+}
+
 export class DeserializerBase {
     private position = 0
     private readonly buffer: ArrayBuffer
@@ -168,6 +174,14 @@ export class DeserializerBase {
                 return this.readFloat32()
         }
         return undefined
+    }
+
+    readCallbackResource(): CallbackResource {
+        return {
+            resourceId: this.readInt32(),
+            hold: this.readPointer(),
+            release: this.readPointer(),
+        }
     }
 
     static lengthUnitFromInt(unit: int32): string {

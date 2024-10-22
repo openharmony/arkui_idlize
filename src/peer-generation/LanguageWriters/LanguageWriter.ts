@@ -144,6 +144,14 @@ export interface LanguageStatement {
     write(writer: LanguageWriter): void
 }
 
+export class ProxyStatement implements LanguageStatement {
+    constructor(private cb: (writer: LanguageWriter) => void) {}
+
+    write(writer: LanguageWriter): void {
+        this.cb(writer)
+    }
+}
+
 export class AssignStatement implements LanguageStatement {
     constructor(public variableName: string,
                 public type: Type | undefined,

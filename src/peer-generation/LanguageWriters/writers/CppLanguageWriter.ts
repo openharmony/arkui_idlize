@@ -23,6 +23,7 @@ import { ArrayConvertor, EnumConvertor as EnumConvertorDTS, MapConvertor, Option
 import { AssignStatement, BlockStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, StringExpression, Type } from "../LanguageWriter"
 import { CDefinedExpression, CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
+import { EnumEntity } from "../../PeerFile"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -90,6 +91,20 @@ class CppMapForEachStatement implements LanguageStatement {
         this.op()
         writer.popIndent()
         writer.print(`}`)
+    }
+}
+
+class CppEnumEntityStatement implements LanguageStatement {
+    constructor(private _enum: EnumEntity) {}
+    write(writer: LanguageWriter): void {
+        writer.print(`typedef enum ${this._enum.name} {`)
+        writer.pushIndent()
+        for (let i = 0; i < this._enum.members.length; i++) {
+            const member = this._enum.members[i]
+            writer.print(`${member.name} = ${member.initializerText ?? i},`)
+        }
+        writer.popIndent()
+        writer.print(`} ${this._enum.name};`)
     }
 }
 
@@ -375,5 +390,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name
+    }
+    makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
+        return new CppEnumEntityStatement(enumEntity)
     }
 }

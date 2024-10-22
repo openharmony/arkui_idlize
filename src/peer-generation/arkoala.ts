@@ -28,7 +28,8 @@ import {
     libraryCcDeclaration,
     makeCJSerializer,
     makeTypeCheckerFromDTS,
-    makeTypeChecker
+    makeTypeChecker,
+    makeCallbacksKinds
 } from "./FileGenerators"
 import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./printers/lang/JavaPrinters"
 import { PeerLibrary } from "./PeerLibrary"
@@ -708,6 +709,13 @@ export function generateArkoalaFromIdl(config: {
                 message: "producing [idl]"
             }
         )
+        writeFile(arkoala.peer(new TargetFile('CallbackKind')),
+            makeCallbacksKinds(peerLibrary, peerLibrary.language),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
     } else if (peerLibrary.language === Language.ARKTS) {
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
@@ -840,6 +848,12 @@ export function generateArkoalaFromIdl(config: {
     writeFile(arkoala.native(new TargetFile('library.cc')), libraryCcDeclaration(),
         {
             onlyIntegrated: config.onlyIntegrated,
+        })
+
+    writeFile(arkoala.native(new TargetFile('callback_kind.h')), makeCallbacksKinds(peerLibrary, Language.CPP),
+        {
+            onlyIntegrated: config.onlyIntegrated,
+            integrated: true
         })
 
     copyArkoalaFiles({onlyIntegrated: config.onlyIntegrated}, arkoala)

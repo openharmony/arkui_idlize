@@ -30,7 +30,7 @@ export class EnumEntity {
     }
 }
 
-class EnumMember {
+export class EnumMember {
     constructor(
         public readonly name: string,
         public readonly comment: string,
