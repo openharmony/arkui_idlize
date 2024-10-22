@@ -518,7 +518,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         // TODO correct read from resource
         return writer.makeAssign(value, undefined, writer.makeLambda(new MethodSignature(
             new Type(this.library.mapType(this.decl.returnType)),
-            this.decl.parameters.map(it => new Type(this.library.mapType(it.type!))),
+            this.decl.parameters.map(it => new Type(this.library.mapType(it.type!), it.isOptional)),
         ), [writer.makeThrowError("Not implemented")]), false)
     }
     nativeType(impl: boolean): string {

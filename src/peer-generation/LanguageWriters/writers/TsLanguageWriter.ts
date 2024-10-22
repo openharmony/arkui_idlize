@@ -63,7 +63,11 @@ export class TSLambdaExpression extends LambdaExpression {
         return false
     }
     asString(): string {
-        const params = this.signature.args.map((it, i) => `${this.signature.argName(i)}: ${it.name}`)
+        const params = this.signature.args.map((it, i) => {
+            const maybeOptional = it.nullable ? "?" : ""
+            return `${this.signature.argName(i)}${maybeOptional}: ${it.name}`
+        })
+            
         return `(${params.join(", ")}): ${this.signature.returnType.name} => { ${this.bodyAsString()} }`
     }
 }

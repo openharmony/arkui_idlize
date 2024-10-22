@@ -35,6 +35,7 @@ export class PeerGeneratorConfig {
          * valid and cannot be correctly processed for now.
          */
         "onWillScroll",
+        "onDidScroll"
     ]
 
     public static ignoreComponents = [
