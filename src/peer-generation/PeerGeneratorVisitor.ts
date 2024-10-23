@@ -1051,7 +1051,7 @@ export class PeerProcessor {
     }
 
     process(): void {
-        initCustomBuilderClasses()
+        initCustomBuilderClasses(this.library.language)
         new ComponentsCompleter(this.library).process()
         const typeNodeConvertor = createTypeNodeConvertor(this.library)
         const peerGenerator = new PeersGenerator(this.library, typeNodeConvertor, this.declDependenciesCollector)

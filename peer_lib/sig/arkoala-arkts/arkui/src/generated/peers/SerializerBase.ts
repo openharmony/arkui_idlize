@@ -164,6 +164,13 @@ export class SerializerBase {
         this.heldResources.push(resourceId)
         this.writeInt32(resourceId)
     }
+    writeCallbackResource(resource: object) {
+        const resourceId = ResourceManager.registerAndHold(resource)
+        this.heldResources.push(resourceId)
+        this.writeInt32(resourceId)
+        this.writePointer(NativeModule._GetManagedResourceHolder())
+        this.writePointer(NativeModule._GetManagedResourceReleaser())
+    }
     private releaseResources() {
         for (const resourceId of this.heldResources)
             ResourceManager.release(resourceId)

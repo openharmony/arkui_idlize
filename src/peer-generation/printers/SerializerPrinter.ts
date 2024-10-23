@@ -418,7 +418,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                 }),
                 ...continuation,
                 new ExpressionStatement(writer.makeNativeCall(`_CallCallback`, [
-                    writer.makeString(`${CallbackKind}.${target.name}`),
+                    writer.makeString(`${CallbackKind}.${target.name}${writer.language == Language.ARKTS ? ".value" : ""}`),
                     writer.makeString(callName),
                     writer.makeString(`${resourceName}.resourceId`),
                     writer.makeString(`${argsSerializer}Serializer.asArray()`),

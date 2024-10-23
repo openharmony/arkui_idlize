@@ -500,7 +500,8 @@ export class CallbackConvertor extends BaseArgConvertor {
         }
         writer.writeMethodCall(`${param}Serializer`, "writeCallbackResource", [`${value}`])
         writer.writeMethodCall(`${param}Serializer`, "writePointer", [
-            writer.makeNativeCall(`_GetManagerCallbackCaller`, [writer.makeString(`${CallbackKind}.${this.decl.name}`)]).asString()
+            writer.makeNativeCall(`_GetManagerCallbackCaller`,
+                [writer.makeString(`${CallbackKind}.${this.decl.name}${writer.language == Language.ARKTS ? ".value" : ""}`)]).asString()
         ])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {

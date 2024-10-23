@@ -31,6 +31,7 @@ import { ImportFeature } from "./ImportsCollector"
 import { TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
 import { DeclarationDependenciesCollector } from "./dependencies_collector";
 import { PeerLibrary } from "./PeerLibrary";
+import { Language } from "../Language";
 
 export function isBuilderClass(declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): boolean {
 
@@ -105,7 +106,10 @@ export class BuilderClass {
 export const CUSTOM_BUILDER_CLASSES: BuilderClass[] = []
 const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set()
 
-export function initCustomBuilderClasses() {
+export function initCustomBuilderClasses(language: Language) {
+    if (language === Language.ARKTS) {
+        return
+    }
     CUSTOM_BUILDER_CLASSES.push(
         new BuilderClass("Indicator", ["T"], false, undefined,
             [], // fields

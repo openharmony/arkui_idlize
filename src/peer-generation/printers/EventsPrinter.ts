@@ -27,7 +27,6 @@ import { generateEventReceiverName, generateEventSignature } from "./HeaderPrint
 import { asString, identName } from "../../util"
 import { mapType } from "../TypeNodeNameConvertor"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { ImportsCollector } from "../ImportsCollector"
 import { IdlPeerMethod } from "../idl/IdlPeerMethod"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 // import { ArgConvertor } from "../Convertors"
@@ -39,6 +38,7 @@ import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { Language } from "../../Language"
 import { CppLanguageWriter } from "../LanguageWriters/writers/CppLanguageWriter"
 import { TSLanguageWriter } from "../LanguageWriters/writers/TsLanguageWriter"
+import { ImportsCollector } from "../ImportsCollector";
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -410,8 +410,17 @@ abstract class TSEventsVisitorBase {
         imports.addFeature("int32", "@koalaui/common")
         if ([Language.TS].includes(this.library.language))
             imports.addFeature("Deserializer", "./peers/Deserializer")
+
+        // Hack: fixes duplicate features from different modules
+        // TODO: Need to collect the only required types
+        const seenFeatures = new Set<string>()
         for (const file of this.library.files) {
-            file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+            file.importFeatures.forEach(it => {
+                if (!seenFeatures.has(it.feature)) {
+                    imports.addFeature(it.feature, it.module)
+                    seenFeatures.add(it.feature)
+                }
+            })
         }
         imports.print(this.printer, '')
     }
@@ -634,9 +643,11 @@ class IdlTSEventsVisitor extends TSEventsVisitorBase {
         return this.library.mapType(type)
     }
 
-    protected override printParseFunction(infos: (CallbackInfo | IdlCallbackInfo)[]): void {
-        if (this.library.language !== Language.ARKTS)
-            super.printParseFunction(infos)
+    protected printParseFunction(infos: (CallbackInfo | IdlCallbackInfo)[]) {
+        // Disable event functions printing until deserializer is ready
+        if (this.library.language !== Language.ARKTS) {
+            super.printParseFunction(infos);
+        }
     }
 }
 

@@ -320,9 +320,17 @@ class BuilderClassVisitor {
         private readonly dumpSerialized: boolean,
     ) { }
 
+    customBuildersToGenerate(): BuilderClass[] {
+        return CUSTOM_BUILDER_CLASSES
+    }
+
     printBuilderClasses(): void {
-        const builderClasses = [...CUSTOM_BUILDER_CLASSES, ...this.library.buildersToGenerate.values()]
+        const builderClasses = [
+            ...this.customBuildersToGenerate(),
+            ...this.library.buildersToGenerate.values()
+        ]
         console.log(`Builder classes: ${builderClasses.length}`)
+
         const language = this.printerContext.language
         for (const clazz of builderClasses) {
             let visitor: BuilderClassFileVisitor

@@ -14,8 +14,26 @@
  */
 import { ImportFeature } from '../ImportsCollector'
 import * as idl from '../../idl';
+import { convertDeclToFeature, isSourceDecl } from "./IdlPeerGeneratorVisitor";
+import { DeclarationDependenciesCollector } from "./IdlDependenciesCollector";
+import { IdlPeerLibrary } from "./IdlPeerLibrary";
 
 const syntheticDeclarations: Map<string, {node: idl.IDLEntry, filename: string, dependencies: ImportFeature[]}> = new Map()
+
+export function makeSyntheticDeclCompletely(srcDecl: idl.IDLEntry,
+                                            newDecl: idl.IDLEntry,
+                                            library: IdlPeerLibrary,
+                                            declConvertor: DeclarationDependenciesCollector,
+                                            targetFilename: string) {
+    const synthDecl = makeSyntheticDeclaration(targetFilename, srcDecl.name!, () => newDecl);
+    // Collect dependencies types
+    declConvertor.convert(srcDecl).forEach(it => {
+        if (isSourceDecl(it)) {
+            addSyntheticDeclarationDependency(synthDecl, convertDeclToFeature(library, it))
+        }
+    })
+    return synthDecl
+}
 
 export function makeSyntheticDeclaration(targetFilename: string, declName: string, factory: () => idl.IDLEntry): idl.IDLEntry {
     if (!syntheticDeclarations.has(declName))

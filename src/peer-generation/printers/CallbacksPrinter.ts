@@ -59,6 +59,9 @@ export function collectUniqueCallbacks(library: IdlPeerLibrary) {
 }
 
 export function printCallbacksKinds(library: IdlPeerLibrary, writer: LanguageWriter): void {
+    writer.print("import { KInt } from '@koalaui/interop'")
+    writer.print("\n")
+
     writer.writeStatement(writer.makeEnumEntity(new EnumEntity(
         CallbackKind,
         "",
