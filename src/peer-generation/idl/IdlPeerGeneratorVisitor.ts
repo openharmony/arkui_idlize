@@ -649,7 +649,7 @@ class PeersGenerator {
     {
         if (PeerGeneratorConfig.ignorePeerMethod.includes(prop.name))
             return
-        if (prop.name === "onWillScroll") {
+        if (prop.name === "onWillScroll" || prop.name === "onDidScroll") {
             /**
              * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
              * ScrollAttribute extends ScrollableCommonMethod and overrides this method as

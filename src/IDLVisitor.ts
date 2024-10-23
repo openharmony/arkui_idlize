@@ -357,7 +357,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
         }
         if (inheritance) {
             let intTypeParams = inheritance.map(it => getExtAttribute(it, IDLExtendedAttributes.TypeArguments) ?? "").join(",")
-            result.push({ name: IDLExtendedAttributes.ParentTypeArguments, value: intTypeParams })
+            if (intTypeParams != "") result.push({ name: IDLExtendedAttributes.ParentTypeArguments, value: intTypeParams })
         }
         this.computeExportAttribute(node, result)
         return this.computeDeprecatedExtendAttributes(node, result)
