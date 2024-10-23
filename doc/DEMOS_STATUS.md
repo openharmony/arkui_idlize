@@ -14,8 +14,6 @@
 | Name                      | Kind      | Generated | Demo        | Owner/libace        | Status/libace    | Owner/ts          | Status/ts | Priority |
 |---------------------------|-----------|-----------|-------------|---------------------|------------------|-------------------|-----------|----------|
 | @ohos.router              | Class     |           |             | Kirill Kirichenko   | done             |                   |           |          |
-| `back`                    | Function  |           | ENC, WON    | Kirill Kirichenko   | done             | Kirill Kirichenko |           | High     
-| `pageTransition`          | Function  |           | ENC, WON    | Kirill Kirichenko   | In Progress      | Kirill Kirichenko |           | High     
 | CustomDialogController    | Class     |           | HEL         | Erokhin Ilya        | Blocked          |                   |           | Low      |
 | `builder`                 | Function  |           |             | ?                   | N\A              |                   |           |          |
 | `autoCancel`              | Function  |           |             | ?                   | N\A              |                   |           |          |
@@ -153,7 +151,7 @@
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
 | `onScrollEdge`            | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | Video                     | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
-| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | in progress      |                   |           | Low      |
+| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked          |                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | in progress      |                   |           | Low      |
 | Search                    | Component |           |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `placeholderColor`        | Function  |           | WON         | Evstigneev Roman    | in progress      |                   |           | Low      |
