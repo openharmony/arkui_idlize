@@ -779,6 +779,13 @@ export function generateArkoalaFromIdl(config: {
                 message: "producing [idl]"
             }
         )
+        writeFile(arkoala.peer(new TargetFile('CallbackKind')),
+            makeCallbacksKinds(peerLibrary, peerLibrary.language),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
     } else if (peerLibrary.language == Language.JAVA) {
         writeFile(
             arkoala.javaLib(new TargetFile('NativeModule', ARKOALA_PACKAGE_PATH)),

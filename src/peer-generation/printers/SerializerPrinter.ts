@@ -50,7 +50,6 @@ function printSerializerImports(table: (ts.ClassDeclaration | ts.InterfaceDeclar
     }
     if ([Language.TS, Language.ARKTS].includes(writer.language)) {
         convertorImportsCollector.addFeature("KInt", "@koalaui/interop")
-        convertorImportsCollector.addFeature('CallbackKind', './peers/CallbackKind')
     }
     const serializerCollector = createSerializerDependenciesCollector(writer.language, convertorImportsCollector, library)
     if (serializerCollector != undefined) {
