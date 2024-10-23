@@ -27,3 +27,19 @@ declare class CommonMethod<T> {
 
     backdropBlur(value: number, options?: BlurOptions): T;
 }
+
+declare interface Rectangle {
+
+    x?: Length;
+
+    y?: Length;
+
+    width?: Length;
+
+    height?: Length;
+}
+
+declare enum BlurStyle {
+    Thin = 0
+}
+

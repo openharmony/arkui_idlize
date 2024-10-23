@@ -25,11 +25,26 @@ import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { EnumEntity } from "../../PeerFile"
 import { mapType } from "../../TypeNodeNameConvertor"
 import { AssignStatement, ExpressionStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
-import { TSCastExpression, TsObjectAssignStatement, TsObjectDeclareStatement, TsTupleAllocStatement } from "./TsLanguageWriter"
+import { LambdaExpression, TSCastExpression, TsObjectAssignStatement, TsObjectDeclareStatement, TsTupleAllocStatement } from "./TsLanguageWriter"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
 ////////////////////////////////////////////////////////////////
+
+class CJLambdaExpression extends LambdaExpression {
+    constructor(
+        signature: MethodSignature,
+        body?: LanguageStatement[]) {
+        super(signature, body)
+    }
+    protected get statementHasSemicolon(): boolean {
+        return true
+    }
+    asString(): string {
+        const params = this.signature.args.map((it, i) => `${it.name} ${this.signature.argName(i)}`)
+        return `(${params.join(", ")}) -> { ${this.bodyAsString()} }`
+    }
+}
 
 export class CJCheckDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
@@ -153,6 +168,7 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
+        name = this.escapeKeyword(name)
         let prefix = this.makeFieldModifiersList(modifiers)
         this.printer.print(`${prefix} var ${name}: ${optional ? '?' : ''}${this.mapType(type)}${init}`)
     }
@@ -214,7 +230,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString(`let Some(${varName}) <- ${varName}`)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
-        throw new Error(`TBD`)
+        return new CJLambdaExpression(signature, body)
     }
     makeThrowError(message: string): LanguageStatement {
         throw new Error(`TBD`)
@@ -436,5 +452,10 @@ export class CJLanguageWriter extends LanguageWriter {
     escapeKeyword(word: string): string {
         return CJKeywords.has(word) ? word + "_" : word
     }
-    override castToBoolean(value: string): string { return `${value}` }
+    override castToInt(value: string, bitness: 8|32): string {
+        return `Int${bitness}(${value})`
+    }
+    override castToBoolean(value: string): string {
+        return `if (${value}) { Int32(1) } else { Int32(0) }`
+    }
 }

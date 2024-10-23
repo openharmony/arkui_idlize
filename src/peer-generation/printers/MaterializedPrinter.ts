@@ -474,6 +474,90 @@ class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
     }
 }
 
+class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
+    constructor(
+        protected readonly library: PeerLibrary | IdlPeerLibrary,
+        protected readonly printerContext: PrinterContext,
+        protected readonly clazz: MaterializedClass,
+        protected readonly dumpSerialized: boolean,
+    ) {
+        super(library, printerContext, clazz)
+    }
+
+    private printPackage(): void {
+        this.printer.print(`package idlize\n`)
+    }
+
+    private printMaterializedClass(clazz: MaterializedClass) {
+        this.printPackage()
+
+        const emptyParameterType = new Type(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
+        const finalizableType = new Type('Finalizable')
+        const superClassName = clazz.superClass?.getSyperType() ?? ARK_MATERIALIZEDBASE
+
+        this.printer.writeClass(clazz.className, writer => {
+            const pointerType = Type.Pointer
+            this.library.setCurrentContext(`${clazz.className}.constructor`)
+            writePeerMethod(writer, clazz.ctor, true, this.printerContext, this.dumpSerialized, '', '', pointerType)
+            this.library.setCurrentContext(undefined)
+
+            // // constructor with a special parameter to use in static methods
+            // const emptySignature = new MethodSignature(Type.Void, [emptyParameterType])
+            // writer.writeConstructorImplementation(clazz.className, emptySignature, writer => {
+            //     writer.writeSuperCall([emptySignature.argName(0)]);
+            // })
+
+            // const ctorSig = clazz.ctor.method.signature as NamedMethodSignature
+
+            // // generate a constructor with zero parameters for static methods
+            // // in case there is no alredy defined one
+            // if (ctorSig.args.length > 0) {
+            //     writer.writeConstructorImplementation(clazz.className, new MethodSignature(Type.Void, []), writer => {
+            //         writer.writeSuperCall([`(${ARK_MATERIALIZEDBASE_EMPTY_PARAMETER})null`]);
+            //     })
+            // }
+
+            // writer.writeConstructorImplementation(clazz.className, ctorSig, writer => {
+            //     writer.writeSuperCall([`(${emptyParameterType.name})null`]);
+
+            //     const args = ctorSig.argsNames.map(it => writer.makeString(it))
+            //     writer.writeStatement(
+            //         writer.makeAssign('ctorPtr', Type.Pointer,
+            //             writer.makeMethodCall(clazz.className, 'ctor', args),
+            //             true))
+
+            //     writer.writeStatement(writer.makeAssign(
+            //         'this.peer',
+            //         finalizableType,
+            //         writer.makeString(`new Finalizable(ctorPtr, ${clazz.className}.getFinalizer())`),
+            //         false
+            //     ))
+            // })
+
+            printPeerFinalizer(clazz, writer)
+
+            // clazz.methods.forEach(method => {
+            //     /// Fix 'this' return type. Refac to LW?
+            //     let returnType = method.method.signature.returnType
+            //     if (returnType === Type.This)
+            //         returnType = new Type(method.originalParentName)
+            //     this.library.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
+            //     writePeerMethod(writer, method, true, this.printerContext, this.dumpSerialized, '', 'this.peer.ptr', returnType)
+            //     this.library.setCurrentContext(undefined)
+            // })
+        }, superClassName, undefined, clazz.generics)
+    }
+
+    visit(): void {
+        this.printMaterializedClass(this.clazz)
+    }
+
+    getTargetFile(): TargetFile {
+        return new TargetFile(this.clazz.className + this.printerContext.language.extension, '')
+    }
+}
+
+
 class MaterializedVisitor {
     readonly materialized: Map<TargetFile, string[]> = new Map()
 
@@ -496,22 +580,23 @@ class MaterializedVisitor {
             } else if (this.printerContext.language == Language.JAVA) {
                 visitor = new JavaMaterializedFileVisitor(
                     this.library, this.printerContext, clazz, this.dumpSerialized)
+            } else if (this.printerContext.language == Language.CJ) {
+                visitor = new CJMaterializedFileVisitor(
+                    this.library, this.printerContext, clazz, this.dumpSerialized)
             } else {
                 throw new Error(`Unsupported language ${this.printerContext.language} in MaterializedPrinter.ts`)
             }
 
             visitor.visit()
             this.materialized.set(visitor.getTargetFile(), visitor.getOutput())
+            for (let i in this.library.materializedClasses) {
+                console.log("hello")
+            }
         }
     }
 }
 
 export function printMaterialized(peerLibrary: PeerLibrary | IdlPeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
-
-    // TODO: support other output languages
-    if (![Language.ARKTS, Language.TS, Language.JAVA].includes(printerContext.language))
-        return new Map()
-
     const visitor = new MaterializedVisitor(peerLibrary, printerContext, dumpSerialized)
     visitor.printMaterialized()
     const result = new Map<TargetFile, string>()

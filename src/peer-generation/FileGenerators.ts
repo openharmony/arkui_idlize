@@ -97,7 +97,6 @@ export function nativeModuleDeclaration(methods: LanguageWriter, predefinedMetho
         .replace("%USE_EMPTY%", useEmpty.toString())
         .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))
         .replaceAll("%GENERATED_NATIVE_FUNCTIONS%", nativeMethods ? nativeMethods.getOutput().join('\n') : "")
-
     for (const [title, printer] of predefinedMethods) {
         text = text.replaceAll(`%GENERATED_PREDEFINED_${title}%`, printer.getOutput().join('\n'))
     }

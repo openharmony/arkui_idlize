@@ -307,7 +307,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 
 class CJPeerFileVisitor extends PeerFileVisitor {
     constructor(
-        protected readonly library: PeerLibrary,
+        protected readonly library: PeerLibrary | IdlPeerLibrary,
         protected readonly file: PeerFile | IdlPeerFile,
         printerContext: PrinterContext,
         dumpSerialized: boolean,
@@ -338,12 +338,6 @@ class CJPeerFileVisitor extends PeerFileVisitor {
                 const imports = collectJavaImports(idlPeer.methods.flatMap(method => method.declarationTargets))
                 printJavaImports(printer, imports)
             }
-            else {
-                // const allTypesInPeer = peer.methods.flatMap((method) => {
-                //     return method.declarationTargets.map(target => this.printerContext.synthesizedTypes!.getTargetType(target, false))
-                // })
-                // this.printerContext.imports?.printImportsForTypes(allTypesInPeer, printer)
-            }
             this.printPeer(peer, printer)
         })
     }
@@ -365,7 +359,7 @@ class PeersVisitor {
             const visitor = this.printerContext.language == Language.JAVA
                 ? new JavaPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
                 : this.printerContext.language == Language.CJ
-                    ? new CJPeerFileVisitor(this.library as PeerLibrary, file as PeerFile, this.printerContext, this.dumpSerialized)
+                    ? new CJPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
                     : new PeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
             visitor.printFile()
             visitor.printers.forEach((printer, targetFile) => {

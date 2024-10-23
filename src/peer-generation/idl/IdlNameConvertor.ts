@@ -20,6 +20,7 @@ import { DeclarationConvertor, TypeConvertor, convertType } from './IdlTypeConve
 import { Type } from '../LanguageWriters'
 import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../printers/lang/Java'
 import { IDLInterface, IDLPrimitiveType, IDLProperty, isAnonymousInterface } from "../../idl";
+import { cjCustomTypeMapping } from '../printers/lang/Cangjie'
 
 export interface IdlTypeNameConvertor {
     convert(type: idl.IDLType): string
@@ -370,7 +371,7 @@ export class CJTypeAliasConvertor implements TypeConvertor<CJTypeAlias> {
             }
             case "record": {
                 const cjTypeAliases = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
-                const result = new JavaTypeAlias(new Type(`Map<${cjTypeAliases[0].type}, ${cjTypeAliases[1].type}>`), `Map_${cjTypeAliases[0].alias}_${cjTypeAliases[1].alias}`)
+                const result = new CJTypeAlias(new Type(`Map<${cjTypeAliases[0].type}, ${cjTypeAliases[1].type}>`), `Map_${cjTypeAliases[0].alias}_${cjTypeAliases[1].alias}`)
                 return result
             }
             case "Promise":
@@ -386,7 +387,33 @@ export class CJTypeAliasConvertor implements TypeConvertor<CJTypeAlias> {
         return CJTypeAlias.fromTypeName(type.name, false)
     }
     convertTypeReference(type: idl.IDLReferenceType): CJTypeAlias {
-        return CJTypeAlias.fromTypeName(type.name, false)
+        const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
+        if (importAttr) {
+            return this.convertImport(type, importAttr)
+        }
+
+        // resolve synthetic types
+        const decl = this.library.resolveTypeReference(type)!
+        if (decl && idl.isSyntheticEntry(decl)) {
+            if (idl.isCallback(decl)) {
+                return this.callbackType(decl)
+            }
+            const entity = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity)
+            if (entity) {
+                const isTuple = entity === idl.IDLEntity.Tuple
+                return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
+            }
+        }
+
+        let typeSpec = type.name ?? "MISSING_TYPE_NAME"
+        if (cjCustomTypeMapping.has(typeSpec)) {
+            typeSpec = cjCustomTypeMapping.get(typeSpec)!
+        }
+        let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
+        if (typeSpec === `Optional`) {
+            return CJTypeAlias.fromTypeName(typeArgs![0], true)
+        }
+        return CJTypeAlias.fromTypeName(typeSpec, false)
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): CJTypeAlias {
         // TODO
@@ -413,10 +440,30 @@ export class CJTypeAliasConvertor implements TypeConvertor<CJTypeAlias> {
         }
         throw new Error(`Unsupported IDL primitive ${type.name}`)
     }
+    private readonly cjPrimitiveToReferenceTypeMap = new Map([
+        ['byte', JavaTypeAlias.fromTypeName('Byte', false)],
+        ['short', JavaTypeAlias.fromTypeName('Short', false)],
+        ['int', JavaTypeAlias.fromTypeName('Integer', false)],
+        ['float', JavaTypeAlias.fromTypeName('Float', false)],
+        ['double', JavaTypeAlias.fromTypeName('Double', false)],
+        ['boolean', JavaTypeAlias.fromTypeName('Boolean', false)],
+        ['char', JavaTypeAlias.fromTypeName('Character', false)],
+    ])
+    private callbackType(decl: idl.IDLCallback): JavaTypeAlias {
+        // TODO
+        return CJTypeAlias.fromTypeName('Callback', false)
+    }
+    // Tuple + ??? AnonymousClass
+    private productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): JavaTypeAlias {
+        // // TODO: other types
+        if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')
+        const cjTypeAliases = decl.properties.map(it => CJTypeAlias.fromTypeAlias(convertType(this, it.type), it.isOptional))
+        return CJTypeAlias.fromTypeName(`Tuple_${cjTypeAliases.map(it => it.alias, false).join('_')}`, false)
+    }
     private maybeConvertPrimitiveType(cjType: CJTypeAlias): CJTypeAlias {
-        // if (this.javaPrimitiveToReferenceTypeMap.has(javaType.type.name)) {
-        //     return this.javaPrimitiveToReferenceTypeMap.get(javaType.type.name)!
-        // }
+        if (this.cjPrimitiveToReferenceTypeMap.has(cjType.type.name)) {
+            return this.cjPrimitiveToReferenceTypeMap.get(cjType.type.name)!
+        }
         return cjType
     }
 }

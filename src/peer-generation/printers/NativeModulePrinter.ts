@@ -53,7 +53,7 @@ class NativeModuleVisitor {
         peer.methods.forEach(it => this.printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
     }
 
-    protected printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
+    protected printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter, nativeFunctions?: LanguageWriter) {
         this.library.materializedToGenerate.forEach(clazz => {
             this.printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, Type.Pointer)
             this.printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, Type.Pointer)
@@ -182,7 +182,7 @@ class NativeModuleVisitor {
                 this.printPeerMethods(peer)
             }
         }
-        this.printMaterializedMethods(this.nativeModule, this.nativeModuleEmpty)
+        this.printMaterializedMethods(this.nativeModule, this.nativeModuleEmpty, this.nativeFunctions)
         if(!(this.nativeModule.language == Language.CJ)) this.printEventMethods(this.nativeModule, this.nativeModuleEmpty)
         this.nativeModule.popIndent()
         this.nativeModuleEmpty.popIndent()
@@ -242,7 +242,21 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
                     functionCallArgs.push(parameters.argsNames[ordinal])
                 }
             }
-            printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))).asString()}`)
+            const resultVarName = 'result'
+            let shouldReturn = false
+            if (returnType?.name === 'void') {
+                printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))).asString()}`)
+            } else {
+                printer.writeStatement(
+                    printer.makeAssign(
+                        resultVarName,
+                        undefined,
+                        new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))),
+                        true
+                    )
+                )
+                shouldReturn = true
+            }
             for(let param of parameters.args) {
                 let ordinal = parameters.args.indexOf(param)
                 if (this.arrayLikeTypes.has(param.name)) {
@@ -250,6 +264,10 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
                 } else if (this.stringLikeTypes.has(param.name)) {
                     printer.print(`LibC.free(${parameters.argsNames[ordinal]})`)
                 }
+            }
+
+            if (shouldReturn) {
+                printer.writeStatement(printer.makeReturn(printer.makeString(resultVarName)))
             }
             printer.popIndent()
             printer.print('}')
@@ -271,6 +289,29 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             }
         })
         clazz.setGenerationContext(undefined)
+    }
+
+    override printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter, nativeFunctions?: LanguageWriter) {
+        this.library.materializedToGenerate.forEach(clazz => {
+            this.printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, Type.Pointer)
+            this.printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, Type.Pointer)
+            const component = clazz.generatedName(false)
+            if (nativeFunctions) {
+                nativeFunctions!.pushIndent()
+                nativeFunctions!.writeNativeMethodDeclaration(`${component}_${clazz.ctor.method.name}`, clazz.finalizer.method.signature)
+                nativeFunctions!.writeNativeMethodDeclaration(`${component}_${clazz.finalizer.method.name}`, clazz.finalizer.method.signature)
+                nativeFunctions!.popIndent()
+            }
+            // clazz.methods.forEach(method => {
+            //     const returnType = method.tsReturnType()
+            //     this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
+            //         returnType?.isPrimitive() ? returnType : Type.Pointer, nativeFunctions)                
+            // })
+            clazz.methods.forEach(method => {
+                const returnType = method.tsReturnType()
+                this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty, Type.Pointer, nativeFunctions)                
+            })
+        })
     }
 
     override printPredefinedMethod(inputMethod:idl.IDLMethod, printer:LanguageWriter) {

@@ -457,9 +457,15 @@ class CJDeclarationCollector extends DeclarationDependenciesCollector {
         return super.convertInterface(decl)
     }
     convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
-        if (cjCustomTypeMapping.has(decl.name))
+        if (cjCustomTypeMapping.has(decl.name)) {
             return []
+        }
         return super.convertTypedef(decl)
+    }
+    convertEnum(decl: idl.IDLEnum): idl.IDLEntry[] {
+        const enumName = decl.name
+        makeSyntheticTypeAliasDeclaration(enumName, enumName, decl)
+        return super.convertEnum(decl)
     }
 
     protected override convertSupertype(type: idl.IDLType): idl.IDLEntry[] {
