@@ -633,6 +633,11 @@ class IdlTSEventsVisitor extends TSEventsVisitorBase {
     protected mapType(type: idl.IDLType): string {
         return this.library.mapType(type)
     }
+
+    protected override printParseFunction(infos: (CallbackInfo | IdlCallbackInfo)[]): void {
+        if (this.library.language !== Language.ARKTS)
+            super.printParseFunction(infos)
+    }
 }
 
 export function printEvents(library: PeerLibrary | IdlPeerLibrary): string {
