@@ -593,6 +593,35 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
 }
 
 
+interface DependencyFilter {
+    shouldAdd(node: idl.IDLEntry): boolean
+}
+
+class EmptyDependencyFilter implements DependencyFilter {
+    shouldAdd(node: idl.IDLEntry): boolean {
+        return true
+    }
+}
+
+class SyntheticDependencyConfigurableFilter implements DependencyFilter {
+    constructor(
+        private readonly library: IdlPeerLibrary,
+        private readonly config: {
+            skipAnonymousInterfaces?: boolean,
+            skipCallbacks?: boolean,
+            skipTuples?: boolean,
+        },
+    ) {}
+    shouldAdd(node: idl.IDLEntry): boolean {
+        if (!idl.isSyntheticEntry(node)) return true
+        if (this.config.skipAnonymousInterfaces && node.kind == idl.IDLKind.AnonymousInterface) return false
+        if (this.config.skipCallbacks && node.kind == idl.IDLKind.Callback) return false
+        if (this.config.skipTuples && node.kind == idl.IDLKind.TupleInterface) return false
+        return true
+    }
+}
+
+
 class ComponentsCompleter {
     constructor(
         private readonly library: IdlPeerLibrary,
@@ -812,6 +841,7 @@ export class IdlPeerProcessor {
     private readonly typeDependenciesCollector: TypeDependenciesCollector
     private readonly declDependenciesCollector: DeclarationDependenciesCollector
     private readonly serializeDepsCollector: DeclarationDependenciesCollector
+    private readonly dependencyFilter: DependencyFilter
 
     constructor(
         private readonly library: IdlPeerLibrary,
@@ -819,6 +849,7 @@ export class IdlPeerProcessor {
         this.typeDependenciesCollector = createTypeDependenciesCollector(this.library)
         this.declDependenciesCollector = createDeclDependenciesCollector(this.library, this.typeDependenciesCollector)
         this.serializeDepsCollector = createSerializeDeclDependenciesCollector(this.library)
+        this.dependencyFilter = createDependencyFilter(this.library)
     }
 
     private processBuilder(target: idl.IDLInterface) {
@@ -1058,7 +1089,7 @@ export class IdlPeerProcessor {
                     file.serializeImportFeatures.push(convertDeclToFeature(this.library, it))
                 }
             })
-            if (PeerGeneratorConfig.needInterfaces) {
+            if (PeerGeneratorConfig.needInterfaces && this.dependencyFilter.shouldAdd(dep)) {
                 file.declarations.add(dep)
                 file.importFeatures.push(convertDeclToFeature(this.library, dep))
             }
@@ -1133,6 +1164,17 @@ function createSerializeDeclDependenciesCollector(library: IdlPeerLibrary): Decl
     }
     // TODO: support other languages
     return new FilteredDeclarationCollector(library, new ImportsAggregateCollector(library, expandAliases))
+}
+
+function createDependencyFilter(library: IdlPeerLibrary): DependencyFilter {
+    switch (library.language) {
+        case Language.TS: return new SyntheticDependencyConfigurableFilter(library, { skipAnonymousInterfaces: true, skipCallbacks: true, skipTuples: true })
+        case Language.ARKTS: return new SyntheticDependencyConfigurableFilter(library, { skipAnonymousInterfaces: false, skipCallbacks: true, skipTuples: true })
+        case Language.JAVA: return new EmptyDependencyFilter()
+        case Language.CJ: return new EmptyDependencyFilter()
+    }
+    // TODO: support other languages
+    return new EmptyDependencyFilter()
 }
 
 
