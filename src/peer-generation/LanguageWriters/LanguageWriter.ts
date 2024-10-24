@@ -413,7 +413,7 @@ export abstract class LanguageWriter {
     abstract enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression
     abstract makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, unsafe?: boolean): string // TODO: remove after switching to IDL
-    abstract makeEnumCast(convertor: EnumConvertor, enumName: string, unsafe?: boolean): string
+    abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string
 
     concat(other: PrinterLike): this {
         other.getOutput().forEach(it => this.print(it))
@@ -627,7 +627,7 @@ export abstract class LanguageWriter {
     makeType(typeName: string, nullable: boolean, receiver?: string): Type {
         return new Type(typeName, nullable)
     }
-    makeUnsafeCast(convertor: ArgConvertor, param: string): string {
+    makeUnsafeCast(_convertor: ArgConvertor | undefined, param: string): string {
         return `unsafeCast<int32>(${param})`
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {

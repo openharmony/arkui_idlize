@@ -429,7 +429,9 @@ class ArkTSDeclConvertor extends TSDeclConvertor {
         if (this.IGNORES_TYPES.includes(node.name)) {
             return
         }
-        super.convertTypedef(node);
+        const type = this.peerLibrary.mapType(node.type)
+        const typeParams = this.printTypeParameters(node.extendedAttributes)
+        this.writer.print(`export declare type ${node.name}${typeParams} = ${type};`)
     }
 
     convertCallback(node: idl.IDLCallback) {
@@ -458,6 +460,15 @@ class ArkTSDeclConvertor extends TSDeclConvertor {
         this.writer.print('export ' + this.replaceImportTypeNodes(result))
     }
 
+    private iDLTypedEntryPrinter<T extends idl.IDLTypedEntry>(type: T,
+                                                              printer: (_: T) => stringOrNone[],
+                                                              seenNames: Set<string>) {
+        if (type?.name != undefined && !seenNames.has(type.name)) {
+            seenNames.add(type.name!)
+            return printer(type)
+        }
+    }
+
     private printInterface(idlInterface: idl.IDLInterface): stringOrNone[] {
         idlInterface.methods.map((it: idl.IDLMethod) => {
             let result = it.scope
@@ -473,20 +484,13 @@ class ArkTSDeclConvertor extends TSDeclConvertor {
         const seenFields = new Set<string>()
         return ([`interface ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(idlInterface.constants
-                .map(it => { seenFields.add(it.name); return it})
-                .map(it => this.printConstant(it)).flat())
+                .map(it => this.iDLTypedEntryPrinter(it, it => this.printConstant(it), seenFields)).flat())
             .concat(idlInterface.properties
-                .filter(it => !seenFields.has(it.name))
-                .map(it => { seenFields.add(it.name); return it})
-                .map(it => this.printProperty(it)).flat())
+                .map(it => this.iDLTypedEntryPrinter(it, it => this.printProperty(it), seenFields) ).flat())
             .concat(idlInterface.methods
-                .filter(it => !seenFields.has(it.name))
-                .map(it => { seenFields.add(it.name); return it})
-                .map(it => this.printMethod(it)).flat())
+                .map(it => this.iDLTypedEntryPrinter(it, it => this.printMethod(it), seenFields) ).flat())
             .concat(idlInterface.callables
-                .filter(it => !seenFields.has(it.name!))
-                .map(it => { seenFields.add(it.name!); return it})
-                .map(it => this.printFunction(it)).flat())
+                .map(it => this.iDLTypedEntryPrinter(it, it => this.printFunction(it), seenFields) ).flat())
             .concat(["}"])
     }
 

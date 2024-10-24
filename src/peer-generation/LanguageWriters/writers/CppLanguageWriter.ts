@@ -24,6 +24,7 @@ import { AssignStatement, BlockStatement, FieldModifier, LanguageExpression, Lan
 import { CDefinedExpression, CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { EnumEntity } from "../../PeerFile"
+import { throwException } from "../../../util";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -385,8 +386,11 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         // TODO: remove after switching to IDL
         return `static_cast<${convertor.enumTypeName(this.language)}>(${value})`
     }
-    override makeEnumCast(convertor: EnumConvertor, value: string, _unsafe?: boolean): string {
-        return `static_cast<${convertor.enumTypeName(this.language)}>(${value})`
+    override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
+        if (convertor == undefined) {
+            throwException("Need pass EnumConvertor")
+        }
+        return `static_cast<${convertor!.enumTypeName(this.language)}>(${value})`
     }
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name

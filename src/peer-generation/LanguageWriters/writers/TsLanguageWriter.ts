@@ -361,7 +361,7 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         return enumName
     }
-    override makeEnumCast(convertor: EnumConvertor, enumName: string, unsafe?: boolean): string {
+    override makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string {
         if (unsafe) {
             return this.makeUnsafeCast(convertor, enumName)
         }

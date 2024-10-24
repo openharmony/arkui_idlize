@@ -325,7 +325,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         // TODO: remove after switching to IDL
         return `${enumName}.getIntValue()`
     }
-    override makeEnumCast(convertor: EnumConvertor, enumName: string, _unsafe?: boolean): string {
+    override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: EnumConvertor | undefined): string {
         return `${enumName}.getIntValue()`
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }

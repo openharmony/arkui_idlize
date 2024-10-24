@@ -32,6 +32,8 @@ import { TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
 import { DeclarationDependenciesCollector } from "./dependencies_collector";
 import { PeerLibrary } from "./PeerLibrary";
 import { Language } from "../Language";
+import { IdlPeerLibrary } from "./idl/IdlPeerLibrary";
+import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
 
 export function isBuilderClass(declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): boolean {
 
@@ -106,10 +108,7 @@ export class BuilderClass {
 export const CUSTOM_BUILDER_CLASSES: BuilderClass[] = []
 const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set()
 
-export function initCustomBuilderClasses(language: Language) {
-    if (language === Language.ARKTS) {
-        return
-    }
+export function initCustomBuilderClasses(library: PeerLibrary | IdlPeerLibrary) {
     CUSTOM_BUILDER_CLASSES.push(
         new BuilderClass("Indicator", ["T"], false, undefined,
             [], // fields
@@ -122,7 +121,17 @@ export function initCustomBuilderClasses(language: Language) {
             [], // imports
         )
     )
-    CUSTOM_BUILDER_CLASSES.forEach(it => CUSTOM_BUILDER_CLASSES_SET.add(it.name))
+
+    CUSTOM_BUILDER_CLASSES.forEach(it => {
+        if (library instanceof IdlPeerLibrary && library.language === Language.ARKTS) {
+            it.importFeatures.push(
+                ...it.methods.flatMap(it => [...it.method.signature.args, it.method.signature.returnType])
+                    .map(it => convertTypeToFeature(library, it))
+                    .filter((it) : it is ImportFeature => it !== undefined)
+            )
+        }
+        CUSTOM_BUILDER_CLASSES_SET.add(it.name)
+    })
 }
 
 export function isCustomBuilderClass(name: string) {

@@ -886,14 +886,11 @@ export class IdlPeerProcessor {
         const methods = this.getBuilderMethods(target)
         if (this.library.language === Language.ARKTS) {
             // this is necessary because getBuilderMethods embeds supertype types
-            methods.forEach(method => {
-                method.method.signature.args.forEach(it => {
-                    const type = this.library.resolveTypeReference(idl.createReferenceType(it.name))
-                    if (type !== undefined) {
-                        importFeatures.push(convertDeclToFeature(this.library, type))
-                    }
-                })
-            })
+            importFeatures.push(
+                ...methods.flatMap(it => [...it.method.signature.args, it.method.signature.returnType])
+                    .map(it => convertTypeToFeature(this.library, it))
+                    .filter((it) : it is ImportFeature => it !== undefined)
+            )
         }
         return new BuilderClass(name, undefined, isIface, undefined, fields, constructors, methods, importFeatures)
     }
@@ -1108,7 +1105,7 @@ export class IdlPeerProcessor {
     }
 
     process(): void {
-        initCustomBuilderClasses(this.library.language)
+        initCustomBuilderClasses(this.library)
         new ComponentsCompleter(this.library).process()
         const peerGenerator = new PeersGenerator(this.library)
         for (const component of this.library.componentsDeclarations)
@@ -1351,4 +1348,12 @@ export function isMaterialized(declaration: idl.IDLInterface): boolean {
 export function checkTSDeclarationMaterialized(decl: idl.IDLEntry): boolean {
     return (idl.isInterface(decl) || idl.isClass(decl) || idl.isAnonymousInterface(decl) || idl.isTupleInterface(decl))
             && isMaterialized(decl)
+}
+
+export function convertTypeToFeature(library: IdlPeerLibrary, type: Type): ImportFeature | undefined {
+    const typeReference = library.resolveTypeReference(idl.createReferenceType(type.name))
+    if (typeReference !== undefined) {
+        return convertDeclToFeature(library, typeReference)
+    }
+    return undefined
 }

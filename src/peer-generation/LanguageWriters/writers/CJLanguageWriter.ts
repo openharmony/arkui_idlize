@@ -215,7 +215,7 @@ export class CJLanguageWriter extends LanguageWriter {
     override makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, _unsafe?: boolean): string {
         return `${enumName}.getIntValue()`
     }
-    override makeEnumCast(convertor: EnumConvertor, enumName: string, _unsafe?: boolean): string {
+    override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: EnumConvertor | undefined): string {
         // TODO: remove after switching to IDL
         return `${enumName}.getIntValue()`
     }

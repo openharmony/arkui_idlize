@@ -13,22 +13,35 @@
  * limitations under the License.
  */
 
-declare interface VisibleListContentInfo {
-    index: number
-    itemIndexInGroup?: number
+declare class Matrix2D {
+
+  scaleX?: number;
+
+  rotateY?: number;
+
+  rotateX?: number;
+
+  scaleY?: number;
+
+  translateX?: number;
+
+  translateY?: number;
+
+  identity(): Matrix2D;
+
+  invert(): Matrix2D;
+
+  multiply(other?: Matrix2D): Matrix2D;
+
+  rotate(rx?: number, ry?: number): Matrix2D;
+
+  rotate(degree: number, rx?: number, ry?: number): Matrix2D;
+
+  translate(tx?: number, ty?: number): Matrix2D;
+
+  scale(sx?: number, sy?: number): Matrix2D;
+
+  constructor();
+
+  constructor(unit: LengthMetricsUnit);
 }
-
-declare type OnScrollVisibleContentChangeCallback = (start: VisibleListContentInfo, end: VisibleListContentInfo) => void;
-declare type Optional<T> = T | undefined
-
-declare interface ListInterface { 
-    (): ListAttribute
-}
-
-declare class ListAttribute extends ScrollableCommonMethod<ListAttribute> {
-    someOptional(param: Optional<boolean>): ListAttribute
-
-    onScrollVisibleContentChange(handler: OnScrollVisibleContentChangeCallback): ListAttribute;
-}
-
-declare const List: ListInterface

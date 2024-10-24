@@ -250,8 +250,8 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeCast(this.makeString(`${value}.${convertor.isStringEnum ? "ordinal" : "value"}`),
             new Type('int32')).asString();
     }
-    override makeEnumCast(convertor: EnumConvertor, value: string, _unsafe?: boolean): string {
-        return this.makeCast(this.makeString(`${value}.${convertor.isStringEnum ? "ordinal" : "value"}`),
+    override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
+        return this.makeCast(this.makeString(`${value}.${convertor?.isStringEnum ? "ordinal" : "value" ?? "value"}`),
             new Type('int32')).asString();
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
