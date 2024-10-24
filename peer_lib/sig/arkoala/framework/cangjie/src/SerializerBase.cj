@@ -56,7 +56,7 @@ public abstract class CustomSerializer {
         this.supported = supported
     }
     public func supports(kind: String): Bool { return this.supported.contains(kind) }
-    public func serialize(serializer: SerializerBase, value: Object, kind: String): Unit
+    public func serialize(serializer: SerializerBase, value: Object, kind: String): Unit {}
     var next: ?CustomSerializer = Option.None
 }
 

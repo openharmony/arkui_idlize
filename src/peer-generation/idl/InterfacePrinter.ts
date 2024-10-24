@@ -389,7 +389,6 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
 
         const imports = collectJavaImports(type.properties.map(it => it.type))
         printJavaImports(writer, imports)
-
         // TODO: *Attribute classes are empty for now
         const members = this.peerLibrary.isComponentDeclaration(type) ? []
             : type.properties.map(it => {
@@ -714,7 +713,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             const param = 'param'
             for (const [index, memberType] of members.entries()) {
                 const memberName = `value${index}`
-                writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], false)
+                writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], true, writer.makeString(`None<${memberType.name}>`))
 
                 writer.writeConstructorImplementation(
                     'init',
@@ -732,11 +731,15 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                 writer.writeMethodImplementation(
                     new Method(`getValue${index}`, new MethodSignature(memberType, []), [MethodModifier.PUBLIC]),
                     () => {
+                        writer.print(`if (let Some(${memberName}) <- ${memberName}) {`)
+                        writer.pushIndent()
                         writer.writeStatement(
                             writer.makeReturn(
                                 writer.makeString(memberName)
                             )
                         )
+                        writer.print(`} else { throw Exception("Wrong selector value inside Union ${alias}") }`)
+                        writer.popIndent()
                     }
                 )
             }
@@ -831,6 +834,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeInterface(alias: string, type: idl.IDLInterface): CJDeclaration {
+        // fix
         const writer = createLanguageWriter(Language.CJ)
         this.printPackage(writer)
 
@@ -839,11 +843,20 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         // TODO: *Attribute classes are empty for now
         const members = this.peerLibrary.isComponentDeclaration(type) ? []
             : type.properties.map(it => {
-                return {name: it.name, type: new Type(this.peerLibrary.mapType(it.type), it.isOptional), modifiers: [FieldModifier.PUBLIC]}
+                return {name: writer.escapeKeyword(it.name), type: new Type(this.peerLibrary.mapType(it.type), it.isOptional), modifiers: [FieldModifier.PUBLIC]}
             })
         writer.writeClass(alias, () => {
             members.forEach(it => {
-                writer.writeFieldDeclaration(it.name, it.type, it.modifiers, false)
+                writer.print(`mut prop ${it.name}: ${it.type.nullable ? '?' : ''}${it.type.name} {`)
+                writer.pushIndent()
+                writer.print(`get() {`)
+                writer.pushIndent()
+                writer.print(`return ${it.name}`)
+                writer.popIndent()
+                writer.print(`}`)
+                writer.print(`set(x) { this.${it.name} = x }`)
+                writer.popIndent()
+                writer.print(`}`)
             })
         }, idl.getSuperType(type)?.name ?? ARK_OBJECTBASE)
 
