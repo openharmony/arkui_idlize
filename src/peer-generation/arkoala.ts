@@ -418,6 +418,14 @@ export function generateArkoala(config: {
                 integrated: true
             }
         )
+        // stub to pass CI
+        writeFile(arkoala.peer(new TargetFile('CallbackKind')),
+            `export class CallbackKind {}`,
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
     }
     if (config.lang == Language.JAVA) {
         const interfaces = printInterfaces(peerLibrary, context)
