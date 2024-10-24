@@ -32,7 +32,7 @@ export function printDeclarations(peerLibrary: IdlPeerLibrary): Map<TargetFile, 
         visitor.visit(decl)
         const text = visitor.output.join("\n")
         if (text)
-            result.set(new TargetFile(filename), tsCopyrightAndWarning(text))
+            result.set(new TargetFile(filename), text)
     }
     return result
 }

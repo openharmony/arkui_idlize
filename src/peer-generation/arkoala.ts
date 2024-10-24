@@ -28,7 +28,8 @@ import {
     libraryCcDeclaration,
     makeTypeCheckerFromDTS,
     makeTypeChecker,
-    makeCallbacksKinds
+    makeCallbacksKinds,
+    tsCopyrightAndWarning
 } from "./FileGenerators"
 import { makeCJSerializer, makeCJNodeTypes } from "./printers/lang/CJPrinters"
 import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./printers/lang/JavaPrinters"
@@ -63,6 +64,7 @@ import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { printDeclarations } from "./printers/DeclarationPrinter"
 import { printConflictedDeclarationsIdl } from "./idl/ConflictedDeclarationsPrinterIdl";
 import { printNativeModuleRecorder } from "./printers/NativeModuleRecorderPrinter"
+import { IndentedPrinter } from "../IndentedPrinter"
 
 export function generateLibace(config: {
     libaceDestination: string | undefined,
@@ -646,13 +648,17 @@ export function generateArkoalaFromIdl(config: {
 
     if (peerLibrary.language == Language.TS) {
         const declarations = printDeclarations(peerLibrary)
+        const index = new IndentedPrinter()
+        index.print(tsCopyrightAndWarning(""))
         for (const [targetFile, data] of declarations) {
             const outComponentFile = arkoala.interface(targetFile)
-            writeFile(outComponentFile, data, {
+            writeFile(outComponentFile, tsCopyrightAndWarning(data), {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
             })
+            index.print(data)
         }
+        index.printTo(path.join(arkoala.langDir(), "index-full.d.ts"))
         writeFile(
             arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
             printNativeModuleEmpty(peerLibrary),
