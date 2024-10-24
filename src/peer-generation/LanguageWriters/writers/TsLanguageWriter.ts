@@ -387,7 +387,7 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     mapIDLPrimitiveType(type: IDLPrimitiveType): string {
         switch (type) {
-            case IDLPointerType: return 'number | bigint'
+            case IDLPointerType: return 'pointer'
             case IDLVoidType: return 'void'
 
             case IDLI8Type:

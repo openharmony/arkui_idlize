@@ -378,6 +378,8 @@ export interface PrinterLike {
 export abstract class LanguageWriter {
     constructor(public printer: IndentedPrinter, public language: Language) {}
 
+    nativeModuleAccessor = 'nativeModule'
+
     indentDepth(): number {
         return this.printer.indentDepth()
     }
@@ -478,7 +480,9 @@ export abstract class LanguageWriter {
     makeBlock(statements: LanguageStatement[], inScope: boolean = true) {
         return new BlockStatement(statements, inScope)
     }
-    nativeReceiver(): string { return 'nativeModule()' }
+    nativeReceiver(): string {
+        return this.nativeModuleAccessor + "()"
+    }
     makeDefinedCheck(value: string): LanguageExpression {
         return new CheckDefinedExpression(value)
     }

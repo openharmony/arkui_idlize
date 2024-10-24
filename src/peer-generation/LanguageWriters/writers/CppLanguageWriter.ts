@@ -34,7 +34,7 @@ export class CppCastExpression implements LanguageExpression {
     constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
     asString(): string {
         if (this.type.name === PrimitiveType.Tag.getText()) {
-            return `${this.value.asString()} == ARK_RUNTIME_UNDEFINED ? ARK_TAG_UNDEFINED : ARK_TAG_OBJECT`
+            return `${this.value.asString()} == ${PrimitiveType.UndefinedRuntime} ? ${PrimitiveType.UndefinedTag} : ${PrimitiveType.ObjectTag}`
         }
         return this.unsafe
             ? `reinterpret_cast<${this.type.name}>(${this.value.asString()})`
@@ -202,7 +202,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
 
     override makeTag(tag: string): string {
-        return "ARK_TAG_" + tag
+        return PrimitiveType.Prefix.toLocaleUpperCase() + "TAG_" + tag
     }
     override makeRef(varName: string): string {
         return `${varName}&`
@@ -331,7 +331,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(`${PrimitiveType.Void.getText()}()`)
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
-        return this.makeString(`ARK_RUNTIME_${RuntimeType[rt]}`)
+        return this.makeString(`${PrimitiveType.Prefix.toUpperCase()}RUNTIME_${RuntimeType[rt]}`)
     }
     makeMapKeyTypeName(c: MapConvertor): string {
         return c.table.computeTargetName(c.table.toTarget(c.keyType), false)

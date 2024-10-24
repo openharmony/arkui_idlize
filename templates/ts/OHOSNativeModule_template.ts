@@ -1,6 +1,4 @@
-type Pointer = bigint
-type int32 = number
-type EventType = number // actually enum
+import { pointer, int32, EventType } from "./types"
 
 %NATIVE_MODULE_CONTENT%
 

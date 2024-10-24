@@ -98,7 +98,7 @@ export class EnumConvertor extends BaseArgConvertor { //
             false, false, param)
     }
     enumTypeName(language: Language): string {
-        const prefix = language === Language.CPP ? PrimitiveType.Prefix : ""
+        const prefix = language === Language.CPP ? PrimitiveType.Prefix + PrimitiveType.LibraryPrefix : ""
         return prefix + qualifiedName(this.enumType, language)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -520,7 +520,7 @@ export class CallbackConvertor extends BaseArgConvertor {
             `${param}Deserializer.read${this.library.computeTargetName(this.decl, false, "")}()`), false)
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.Prefix + this.decl.name
+        return PrimitiveType.Prefix + PrimitiveType.LibraryPrefix + this.decl.name
     }
     isPointerType(): boolean {
         return true

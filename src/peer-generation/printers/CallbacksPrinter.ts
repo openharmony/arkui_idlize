@@ -60,7 +60,7 @@ export function collectUniqueCallbacks(library: IdlPeerLibrary) {
         .filter(it => !PeerGeneratorConfig.ignoredCallbacks.has(it.name))
 }
 
-function printCallbacksKindsImports(library: IdlPeerLibrary, writer: LanguageWriter) {
+export function printCallbacksKindsImports(library: IdlPeerLibrary, writer: LanguageWriter) {
     if (library.language === Language.ARKTS) {
         const imports = new ImportsCollector()
         imports.addFeatures(['KInt'], '@koalaui/interop')
@@ -69,7 +69,6 @@ function printCallbacksKindsImports(library: IdlPeerLibrary, writer: LanguageWri
 }
 
 export function printCallbacksKinds(library: IdlPeerLibrary, writer: LanguageWriter): void {
-    printCallbacksKindsImports(library, writer)
     writer.writeStatement(writer.makeEnumEntity(new EnumEntity(
         CallbackKind,
         "",

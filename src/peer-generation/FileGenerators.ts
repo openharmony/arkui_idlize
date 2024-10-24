@@ -28,7 +28,8 @@ import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { writeARKTSTypeCheckerFromDTS, writeTSTypeCheckerFromDTS } from "./printers/TypeCheckFromDTSPrinter"
 import { Language } from "../Language"
-import { printCallbacksKinds } from "./printers/CallbacksPrinter"
+import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/CallbacksPrinter"
+import { makeCJSerializer } from "./printers/lang/CJPrinters"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -273,8 +274,9 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
-export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary): string {
+export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary, prefix?: string, declarationPath?: string): LanguageWriter {
     let printer = createLanguageWriter(library.language)
+    printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
     imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isPixelMap", "isResource", "isInstanceOf"], "./SerializerBase")
     imports.addFeatures(["int32"], "@koalaui/common")
@@ -288,13 +290,32 @@ export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary): string 
         imports.addFeatures(["CallbackKind"], "CallbackKind")
     }
     imports.print(printer, '')
-    writeSerializer(library, printer)
-    return `${cStyleCopyright}
-
-${printer.getOutput().join("\n")}
-
+    writeSerializer(library, printer, prefix, declarationPath)
+    printer.writeLines(`
 export function createSerializer(): Serializer { return new Serializer() }
-`
+`)
+    return printer
+}
+
+export function makeSerializerForOhos(library: PeerLibrary | IdlPeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): LanguageWriter {
+    // TODO Add Java and migrate arkoala code
+    if (library.language == Language.TS || library.language == Language.ARKTS) {
+        let printer = createLanguageWriter(library.language)
+        printer.nativeModuleAccessor = nativeModule.name
+        printer.writeLines(cStyleCopyright)
+        const imports = new ImportsCollector()
+        imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isInstanceOf"], "./SerializerBase")
+        imports.addFeatures(["int32"], "./types")
+        imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
+        imports.print(printer, '')
+        writeSerializer(library, printer, undefined, declarationPath)
+        printer.writeLines(`
+export function createSerializer(): Serializer { return new Serializer() }
+`)
+        return printer
+    } else {
+        throw new Error(`unsupported language ${library.language}`)
+    }
 }
 
 // TODO: remove after full switching to IDL
@@ -633,6 +654,7 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
 
 export function makeCallbacksKinds(library: IdlPeerLibrary, language: Language): string {
     const writer = createLanguageWriter(language)
+    printCallbacksKindsImports(library, writer)
     printCallbacksKinds(library, writer)
     return writer.getOutput().join("\n")
 }

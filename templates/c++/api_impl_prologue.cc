@@ -14,4 +14,6 @@
  */
 
 #include <stdio.h>
-#include "xml.h"
+#include "SerializerBase.h"
+#include "DeserializerBase.h"
+#include "%API_HEADER_PATH%"

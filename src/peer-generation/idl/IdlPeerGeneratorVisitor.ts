@@ -355,7 +355,7 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
 
     override convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
         // TODO: remove prefix after full migration to IDL
-        const enumName = `Ark_${type.name}`
+        const enumName = `${PrimitiveType.Prefix}${type.name}`
         this.onNewSyntheticTypeAlias(enumName, type)
 
         return super.convertEnum(type)
@@ -546,7 +546,7 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
 
     override convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
         // TODO: remove prefix after full migration to IDL
-        const enumName = `Ark_${type.name}`
+        const enumName = `${PrimitiveType.Prefix}${type.name}`
         this.onNewSyntheticTypeAlias(enumName, type)
 
         return super.convertEnum(type)

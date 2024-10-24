@@ -17,6 +17,7 @@ export class PrimitiveType {
     constructor(protected name: string, public isPointer = false) { }
     getText(): string { return PrimitiveType.Prefix + this.name }
     static Prefix = "Ark_"
+    static LibraryPrefix = ""
     static String = new PrimitiveType(`String`, true)
     static Number = new PrimitiveType(`Number`, true)
     static Int32 = new PrimitiveType(`Int32`)

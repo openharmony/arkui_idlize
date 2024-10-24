@@ -15,6 +15,7 @@
 
 import * as idl from "../../idl"
 import { Language } from "../../Language"
+import { PrimitiveType } from "../ArkPrimitiveType"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "./IdlTypeConvertor"
 
 export function isDeclaration(node: idl.IDLEntry): boolean {

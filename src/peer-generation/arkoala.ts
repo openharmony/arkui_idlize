@@ -65,6 +65,7 @@ import { printDeclarations } from "./printers/DeclarationPrinter"
 import { printConflictedDeclarationsIdl } from "./idl/ConflictedDeclarationsPrinterIdl";
 import { printNativeModuleRecorder } from "./printers/NativeModuleRecorderPrinter"
 import { IndentedPrinter } from "../IndentedPrinter"
+import { LanguageWriter } from "./LanguageWriters"
 
 export function generateLibace(config: {
     libaceDestination: string | undefined,
@@ -142,7 +143,7 @@ export function generateLibaceFromIdl(config: {
     copyToLibace(path.join(__dirname, '..', 'peer_lib'), libace)
 }
 
-function writeFile(filename: string, content: string, config: {
+function writeFile(filename: string, content: string | LanguageWriter, config: { // TODO make content a string or a writer only
         onlyIntegrated: boolean,
         integrated?: boolean,
         message?: string
@@ -151,6 +152,9 @@ function writeFile(filename: string, content: string, config: {
         if (config.message)
             console.log(config.message, filename)
         fs.mkdirSync(path.dirname(filename), { recursive: true })
+        if (typeof content !== "string") {
+            content = content.getOutput().join("\n")
+        }
         fs.writeFileSync(filename, content)
         return true
     }

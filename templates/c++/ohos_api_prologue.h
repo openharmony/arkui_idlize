@@ -12,6 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef %INCLUDE_GUARD_DEFINE%
+#define %INCLUDE_GUARD_DEFINE%
+
 #include <stdint.h>
 
 /* clang-format off */
@@ -55,6 +58,21 @@ typedef int8_t OH_Boolean;
 typedef const char* OH_CharPtr;
 typedef void* OH_NativePointer;
 typedef const char* OH_String;
+typedef struct OH_CallbackResource {
+  OH_Int32 resourceId;
+  void (*hold)(OH_Int32 resourceId);
+  void (*release)(OH_Int32 resourceId);
+} OH_CallbackResource;
+typedef struct OH_Number {
+  OH_Int8 tag;
+  union {
+    OH_Float32 f32;
+    OH_Int32 i32;
+  };
+} OH_Number;
+typedef struct OH_Materialized {
+  OH_NativePointer ptr;
+} OH_Materialized;
 
 // TODO: wrong, provide real definitions.
 typedef void* OH_ArrayBuffer;

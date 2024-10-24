@@ -27,7 +27,7 @@ import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 
 export function generateCallbackAPIArguments(library: IdlPeerLibrary, callback: idl.IDLCallback): string[] {
-    const args: string[] = [`const Ark_Int32 resourceId`]
+    const args: string[] = [`const ${PrimitiveType.Int32.getText()} resourceId`]
     args.push(...callback.parameters.map(it => {
         const target = library.toDeclaration(it.type!)
         const type = library.typeConvertor(it.name, it.type!, it.isOptional)
@@ -152,7 +152,7 @@ export class StructPrinter {
                             break
                     }
                 } else if (idl.isCallback(target)) {
-                    concreteDeclarations.print(`Ark_CallbackResource resource;`)
+                    concreteDeclarations.print(`${PrimitiveType.Prefix}CallbackResource resource;`)
                     const args = generateCallbackAPIArguments(this.library, target)
                     concreteDeclarations.print(`void (*call)(${args.join(', ')});`)
                 }
