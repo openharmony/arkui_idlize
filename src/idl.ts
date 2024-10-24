@@ -64,7 +64,6 @@ export enum IDLExtendedAttributes {
     Import = "Import",
     IndexSignature = "IndexSignature",
     Optional = "Optional",
-    Qualifier = "Qualifier",
     TypeArguments = "TypeArguments",
     TypeParameters = "TypeParameters",
     ParentTypeArguments = "ParentTypeArguments",

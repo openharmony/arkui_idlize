@@ -314,10 +314,6 @@ export class CustomPrintVisitor {
             return IDLAnyType.name
         }
         let typeSpec = node.name ?? "MISSING_TYPE_NAME"
-        const qualifier = getExtAttribute(node, IDLExtendedAttributes.Qualifier)
-        if (qualifier) {
-            typeSpec = `${qualifier}.${typeSpec}`
-        }
         const typeParams = getExtAttribute(node, typeAttribute)
         if (typeParams) {
             typeSpec = `${typeSpec}<${typeParams}>`

@@ -29,7 +29,6 @@ We use WebIDL language with several custom extension attributes documented below
    * `InterfaceTypeArguments` - concrete types used as values for implemented interface type parameters
    * `Namespace` - namespace name for given node
    * `Optional` - if given attribute is optional
-   * `Qualifier` - prefix for a reference type, such as a namespace
    * `ParentTypeArguments` - concrete types used as values for extended class type parameters
    * `Protected` - if given attribute is protected
    * `TypeParameters` - type parameters for a parameterized type

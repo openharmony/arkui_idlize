@@ -43,5 +43,5 @@ export const CJKeywords = new Set([
 ])
 
 export const IDLKeywords = new Set([
-    'sequence', 'record', 'or', 'toString', 'Int8Array'
+    'sequence', 'record', 'or', 'toString', 'Int8Array', 'interface', 'number', 'undefined'
 ])

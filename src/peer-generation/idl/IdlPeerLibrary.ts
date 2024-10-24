@@ -152,8 +152,8 @@ export class IdlPeerLibrary {
 
     resolveTypeReference(type: idl.IDLEnumType | idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
         entries ??= this.files.flatMap(it => it.entries).concat(this.continuationCallbacks)
-        const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier);
-        if (qualifier) {
+        if (type.name.indexOf(".") >= 0) {
+            const qualifier = type.name.split(".").slice(0, -2).join(".")
             // This is a namespace or enum member. Try enum first
             const parent = entries.find(it => it.name === qualifier)
             if (parent && idl.isEnum(parent))

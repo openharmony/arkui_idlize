@@ -76,10 +76,6 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<
         }
 
         let typeSpec = type.name ?? "MISSING_TYPE_NAME"
-        const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier)
-        if (qualifier) {
-            typeSpec = `${qualifier}.${typeSpec}`
-        }
         let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
@@ -233,10 +229,6 @@ class JavaTypeAliasConvertor implements TypeConvertor<JavaTypeAlias> {
         if (javaCustomTypeMapping.has(typeSpec)) {
             typeSpec = javaCustomTypeMapping.get(typeSpec)!
         }
-        // const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier)
-        // if (qualifier) {
-        //     typeSpec = `${qualifier}.${typeSpec}`
-        // }
         let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
         if (typeSpec === `Optional`) {
             return JavaTypeAlias.fromTypeName(typeArgs![0], true)
@@ -473,7 +465,7 @@ class CJTypeAlias {
     // string representation can contain special characters (e.g. String[])
     readonly type: Type
 
-    // synthetic identifier for internal use cases: naming classes/files etc. 
+    // synthetic identifier for internal use cases: naming classes/files etc.
     // string representation contains only letters, numbers and underscores (e.g. Array_String)
     readonly alias: string
 
