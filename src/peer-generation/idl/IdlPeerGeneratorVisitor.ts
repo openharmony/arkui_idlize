@@ -22,7 +22,7 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { IdlPeerClass } from "./IdlPeerClass"
 import { IdlPeerMethod } from "./IdlPeerMethod"
 import { IdlPeerFile } from "./IdlPeerFile"
-import { IdlPeerLibrary, ArkResource, ArkFunction } from "./IdlPeerLibrary"
+import { IdlPeerLibrary, ArkFunction } from "./IdlPeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
 import { convertDeclaration } from "./IdlTypeConvertor";
@@ -216,16 +216,8 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
         if (!this.peerLibrary.importTypesStubToSource.has(generatedName)) {
             this.peerLibrary.importTypesStubToSource.set(generatedName, type.name)
         }
-        let syntheticDeclaration: idl.IDLEntry
-
-        if (type.name === 'Resource') {
-            syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
-                'SyntheticDeclarations', generatedName, idl.createReferenceType("ArkResource"))
-            addSyntheticDeclarationDependency(syntheticDeclaration, {feature: "ArkResource", module: "./shared/ArkResource"})
-        } else {
-            syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
+        let syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
                 'SyntheticDeclarations', generatedName, idl.IDLAnyType)
-        }
         return [
             ...super.convertImport(type, importClause),
             syntheticDeclaration
@@ -363,10 +355,7 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
 
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const generatedName = this.library.mapType(type)
-        if (generatedName != 'Resource') {
-            this.onNewSyntheticInterface(generatedName, ARK_CUSTOM_OBJECT)
-        }
-
+        this.onNewSyntheticInterface(generatedName, ARK_CUSTOM_OBJECT)
         return super.convertImport(type, importClause)
     }
 
@@ -554,10 +543,7 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
 
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const generatedName = this.library.mapType(type)
-        if (generatedName != 'Resource') {
-            this.onNewSyntheticInterface(generatedName, ARK_CUSTOM_OBJECT)
-        }
-
+        this.onNewSyntheticInterface(generatedName, ARK_CUSTOM_OBJECT)
         return super.convertImport(type, importClause)
     }
 
@@ -743,12 +729,6 @@ class PeersGenerator {
 
     private toDeclaration(type: idl.IDLType): idl.IDLType {
         if (idl.isReferenceType(type)) {
-            if (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.Import)) {
-                switch (type.name) {
-                    case "Resource": return ArkResource
-                    case "Callback": return ArkFunction
-                }
-            }
             const decl = this.library.resolveTypeReference(type)
             // Currently we're only interested in callbacks for EventsPrinter. In the future, who knows
             if (decl && idl.isCallback(decl))
@@ -1114,7 +1094,8 @@ export class IdlPeerProcessor {
         for (const dep of allDeclarations) {
             if (isSyntheticDeclaration(dep))
                 continue
-            const file = this.library.findFileByOriginalFilename(dep.fileName!)!
+            const file = this.library.findFileByOriginalFilename(dep.fileName!)
+            if (!file) throw new Error(`Cannot find file ${dep.fileName}`)
             const isPeerDecl = idl.isInterface(dep) && this.library.isComponentDeclaration(dep)
 
             if (!isPeerDecl && (idl.isClass(dep) || idl.isInterface(dep))) {

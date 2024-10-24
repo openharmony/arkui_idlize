@@ -67,8 +67,6 @@ declare class SubTabBarStyle {
 
     labelStyle(value: LabelStyle): SubTabBarStyle;
 
-    padding(value: Padding | Dimension): SubTabBarStyle;
-
     padding(padding: LocalizedPadding): SubTabBarStyle;
 
     id(value: string): SubTabBarStyle;

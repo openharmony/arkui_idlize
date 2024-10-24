@@ -44,8 +44,6 @@ export class TSTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): string {
         ///feed importClause into TS parser?
-        if (importClause.includes("want?: import('../api/@ohos.app.ability.Want').default;"))
-            return "IMPORT_Callback_code_number_want_IMPORT_default_FROM_api_ohos_app_ability_Want_FROM_api_ohos_base"
         const match = importClause.match(/import *\((['"`])(.+)\1\)\.(.+)/)
         if (!match)
             throw new Error(`Cannot parse import clause ${importClause}`)

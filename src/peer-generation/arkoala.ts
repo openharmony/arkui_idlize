@@ -656,13 +656,15 @@ export function generateArkoalaFromIdl(config: {
         index.print(tsCopyrightAndWarning(""))
         for (const [targetFile, data] of declarations) {
             const outComponentFile = arkoala.interface(targetFile)
-            writeFile(outComponentFile, tsCopyrightAndWarning(data), {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true
-            })
-            index.print(data)
+            if (false)
+                writeFile(outComponentFile, tsCopyrightAndWarning(data), {
+                    onlyIntegrated: config.onlyIntegrated,
+                    integrated: true
+                })
+            else
+                index.print(data)
         }
-        index.printTo(path.join(arkoala.langDir(), "index-full.d.ts.incl"))
+        index.printTo(path.join(arkoala.langDir(), "index-full.d.ts"))
         writeFile(
             arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
             printNativeModuleEmpty(peerLibrary),

@@ -510,7 +510,7 @@ export class CallbackConvertor extends BaseArgConvertor {
             return writer.makeBlock([
                 writer.makeAssign(`${value}.resource`, undefined, writer.makeMethodCall(`${param}Deserializer`, `readCallbackResource`, []), false),
                 writer.makeAssign(`${value}.call`, undefined, new CppCastExpression(
-                    writer.makeMethodCall(`${param}Deserializer`, `readPointer`, []), 
+                    writer.makeMethodCall(`${param}Deserializer`, `readPointer`, []),
                     new Type(`void(*)(${generateCallbackAPIArguments(this.library, this.decl).join(", ")})`),
                     true
                 ), false),

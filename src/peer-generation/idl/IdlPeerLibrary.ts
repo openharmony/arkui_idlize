@@ -19,9 +19,8 @@ import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
 import { IdlPeerFile } from "./IdlPeerFile";
 import { ArkTSTypeNameConvertor, IdlTypeNameConvertor, JavaTypeNameConvertor, TSTypeNameConvertor, CJTypeNameConvertor } from './IdlNameConvertor';
-import { capitalize, isDefined } from '../../util';
+import { capitalize } from '../../util';
 import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
-import { collectCallbacks, IdlCallbackInfo } from '../printers/EventsPrinter';
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';
@@ -187,13 +186,8 @@ export class IdlPeerLibrary {
             }
         }
         if (idl.isReferenceType(type)) {
-            switch (type) {
-                case idl.IDLObjectType: return new CustomTypeConvertor(param, "Object")
-            }
-            switch (type.name) {
-                case "Resource": return new InterfaceConvertor("Resource", param, ArkResource)
-                case "Callback": return new FunctionConvertor(this, param, type)
-            }
+            if (type == idl.IDLObjectType)
+                return new CustomTypeConvertor(param, "Object")
             if (isImport(type))
                 return new ImportTypeConvertor(param, type)
         }
@@ -315,14 +309,13 @@ export class IdlPeerLibrary {
             case idl.IDLObjectType: return ArkCustomObject
         }
         switch (type.name) {
-            case "Callback": return ArkFunction
-            case "Resource": return ArkResource
             case "object":
             case "Object": return ArkCustomObject
         }
         if (isImport(type))
             return ArkCustomObject
         if (idl.isReferenceType(type) || idl.isEnumType(type)) {
+            // TODO: remove all this!
             switch (type.name) {
                 case `Dimension`: case `Length`: return ArkLength
                 case `AnimationRange`:
@@ -483,9 +476,8 @@ export class IdlPeerLibrary {
     }
 
     private mapImportTypeName(type: idl.IDLEntry): string {
+        console.log(`Import type: ${type.name}`)
         switch (type.name) {
-            case "Resource": return "Resource"
-            case "Callback": return PrimitiveType.Function.getText()
             default: return PrimitiveType.CustomObject.getText()
         }
     }
@@ -542,58 +534,6 @@ export const ArkLength: idl.IDLPrimitiveType = {
 export const ArkCustomObject: idl.IDLPrimitiveType = {
     kind: idl.IDLKind.PrimitiveType,
     name: "CustomObject"
-}
-
-export const ArkResource: idl.IDLInterface = {
-    name: "Resource",
-    kind: idl.IDLKind.Interface,
-    inheritance: [],
-    constructors: [],
-    constants: [],
-    properties: [
-        {
-            name: "id",
-            kind: idl.IDLKind.Property,
-            type: idl.IDLNumberType,
-            isReadonly: true,
-            isStatic: false,
-            isOptional: false,
-        },
-        {
-            name: "type",
-            kind: idl.IDLKind.Property,
-            type: idl.IDLNumberType,
-            isReadonly: true,
-            isStatic: false,
-            isOptional: false,
-        },
-        {
-            name: "moduleName",
-            kind: idl.IDLKind.Property,
-            type: idl.IDLStringType,
-            isReadonly: true,
-            isStatic: false,
-            isOptional: false,
-        },
-        {
-            name: "bundleName",
-            kind: idl.IDLKind.Property,
-            type: idl.IDLStringType,
-            isReadonly: true,
-            isStatic: false,
-            isOptional: false,
-        },
-        {
-            name: "params",
-            kind: idl.IDLKind.Property,
-            type: idl.createContainerType("sequence", [idl.IDLStringType]),
-            isReadonly: true,
-            isStatic: false,
-            isOptional: true,
-        },
-    ],
-    methods: [],
-    callables: [],
 }
 
 export function cleanPrefix(name: string, prefix: string): string {

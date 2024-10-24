@@ -11,8 +11,6 @@ import { Language } from "../../Language";
 
 const builtInInterfaceTypes = new Map<string,
     (writer: LanguageWriter, value: string) => LanguageExpression>([
-        ["Resource",
-            (writer: LanguageWriter, value: string) => writer.makeCallIsResource(value)],
         ["Object",
             (writer: LanguageWriter, value: string) => writer.makeCallIsObject(value)],
         ["ArrayBuffer",

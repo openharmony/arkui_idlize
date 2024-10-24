@@ -26,6 +26,10 @@ public interface Ark_Object {
         return object.getRuntimeType();
     }
 
+    public static RuntimeType getRuntimeType(double value) {
+        return RuntimeType.NUMBER;
+    }
+
     public static RuntimeType getRuntimeType(String object) {
         if (object == null) { return RuntimeType.UNDEFINED; }
         return RuntimeType.STRING;

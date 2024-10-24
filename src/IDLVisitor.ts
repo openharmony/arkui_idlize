@@ -721,6 +721,10 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
 
     serializeCallback(rawType: string, type: ts.TypeReferenceNode, nameSuggestion: NameSuggestion | undefined): IDLCallback {
         const types = type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`T${index}`)))
+        return this.serializeCallbackImpl(rawType, types, nameSuggestion, type.getSourceFile().fileName)
+    }
+
+    private serializeCallbackImpl(rawType: string, types: IDLType[], nameSuggestion: NameSuggestion | undefined, fileName: string): IDLCallback {
         let isAsync = rawType == "AsyncCallback"
         let returnType: IDLType
         let parameters: IDLParameter[]
@@ -750,7 +754,7 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             parameters,
             returnType,
             kind: IDLKind.Callback,
-            fileName: type.getSourceFile().fileName,
+            fileName,
             extendedAttributes,
         };
     }
@@ -929,12 +933,8 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
                 return createReferenceType(funcType.name)
             }
             if (isEnum) {
-                // TODO: hack!
-                // if (rawType == "Tag") return IDLNumberType
                 return createReferenceType(transformedType)
             }
-            // TODO: hack!
-            // if (rawType == "PRIKeyType") return IDLStringType
             return createReferenceType(transformedType, this.mapTypeArgs(type.typeArguments, transformedType));
         }
         if (ts.isThisTypeNode(type)) {
@@ -997,10 +997,19 @@ export class IDLVisitor implements GenericVisitor<IDLEntry[]> {
             return IDLAnyType
         }
         if (ts.isImportTypeNode(type)) {
-            let originalText = `${type.getText(this.sourceFile)}`
-            this.warn(`import type: ${originalText}`)
             let where = type.argument.getText(type.getSourceFile()).split("/").map(it => it.replaceAll("'", ""))
             let what = asString(type.qualifier)
+            if (what == "Callback" || what == "AsyncCallback") {
+                let funcType = this.serializeCallbackImpl(
+                    what, [this.serializeType(type.typeArguments![0], nameSuggestion?.extend(`Import`))],
+                    NameSuggestion.make(what),
+                    type.getSourceFile().fileName
+                )
+                this.addSyntheticType(funcType)
+                return createReferenceType(funcType.name)
+            }
+            let originalText = `${type.getText(this.sourceFile)}`
+            this.warn(`import type: ${originalText}`)
             let typeName = sanitize(what == "default" ? where[where.length - 1] : what)!
             let result = createReferenceType(typeName, this.mapTypeArgs(type.typeArguments, typeName))
             result.extendedAttributes ??= []

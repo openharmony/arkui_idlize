@@ -79,7 +79,7 @@ public class Main {
         long passed = System.currentTimeMillis() - start;
         System.out.println("backdropBlur: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
     }
-    
+
     static void checkPerf3(int count) {
         var peer = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
         var testLength_10_lpx = new Ark_Length("10lpx");
@@ -122,7 +122,8 @@ public class Main {
         labelStyle.font.family = new Union_String_Resource(resource);
         TestUtils.checkResult("[Union + Resource] ButtonPeer.labelStyle",
             () -> { buttonPeer.labelStyleAttribute(labelStyle); },
-            "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_UNDEFINED, .value={}}, .family={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.id={.tag=102, .i32=10}, .type={.tag=102, .i32=2000}, .moduleName={.chars=\"module_name\", .length=11}, .bundleName={.chars=\"bundle_name\", .length=11}, .params={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
+            "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_UNDEFINED, .value={}}, .family={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.bundleName={.chars=\"bundle_name\", .length=11}, .moduleName={.chars=\"module_name\", .length=11}, .id={.tag=102, .i32=10}, .params={.tag=ARK_TAG_UNDEFINED, .value={}}, .type={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})"
+            );
 
         // tuple
         var peer = ArkTestPeer.create(ArkUINodeType.Test, null, 0);

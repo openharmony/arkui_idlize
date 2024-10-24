@@ -353,7 +353,7 @@ export class LengthConvertor extends BaseArgConvertor {
     interopType(language: Language): string {
         switch (language) {
             case Language.CPP: return 'KLength'
-            case Language.TS: case Language.ARKTS: return 'string|number|object'
+            case Language.TS: case Language.ARKTS: return 'Length'
             case Language.JAVA: return 'String'
             case Language.CJ: return 'String'
             default: throw new Error("Unsupported language")

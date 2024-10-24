@@ -154,7 +154,7 @@ public class SerializerBase {
         this.buffer.put(RuntimeType.STRING.value);
         this.writeString(value.value);
     }
-    public void writeCustomObject(String kind, Ark_CustomObject value) {
+    public void writeCustomObject(String kind, Object value) {
         for (var serializer: customSerializers) {
             if (serializer.supports(kind)) {
                 serializer.serialize(this, value, kind);

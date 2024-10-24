@@ -124,7 +124,7 @@ export class CustomPrintVisitor {
                 typeSpec += ` ${keyword} ${interfaceList}`
             }
             let isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
-            this.print(`${isExport ? "export ": ""}${namespace ? "" : "declare "}${entity!.toLowerCase()} ${typeSpec} {`)
+            this.print(`${namespace ? "" : "declare "}${entity!.toLowerCase()} ${typeSpec} {`)
             this.currentInterface = node
             this.pushIndent()
             node.constructors.map(it => this.visit(it))
@@ -203,11 +203,6 @@ export class CustomPrintVisitor {
         this.closeNamespace(namespace)
     }
     printTypedef(node: IDLTypedef | IDLCallback) {
-        // Special case: Resource is redefined by us
-        if (isTypedef(node) && isReferenceType(node.type) && node.type.name === "ArkResource") {
-            this.print("import { ArkResource } from './shared/ArkResource'")
-            this.print("\n")
-        }
         const text = isCallback(node) ? this.callback(node)
             : hasExtAttribute(node, IDLExtendedAttributes.Import) ? IDLAnyType.name
             : this.printTypeForTS(node.type)
