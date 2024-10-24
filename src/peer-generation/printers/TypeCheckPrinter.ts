@@ -1,6 +1,6 @@
 import * as idl from "../../idl"
 import { ImportFeature, ImportsCollector } from "../ImportsCollector";
-import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
+import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, Type } from "../LanguageWriters";
 import { throwException } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { convertDeclToFeature } from "../idl/IdlPeerGeneratorVisitor";
@@ -14,9 +14,10 @@ const builtInInterfaceTypes = new Map<string,
         ["Object",
             (writer: LanguageWriter, value: string) => writer.makeCallIsObject(value)],
         ["ArrayBuffer",
-            (writer: LanguageWriter, value: string) => writer.makeCallIsArrayBuffer(value)]
-    ],
-)
+            (writer: LanguageWriter, value: string) => writer.makeCallIsArrayBuffer(value)],
+        ["Resource",
+            (writer: LanguageWriter, value: string) => writer.makeCallIsResource(value)],
+    ])
 
 export function importTypeChecker(library: IdlPeerLibrary, imports: ImportsCollector): void {
     imports.addFeature("TypeChecker", "#components")
