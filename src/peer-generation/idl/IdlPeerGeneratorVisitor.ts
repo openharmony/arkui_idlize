@@ -1004,7 +1004,7 @@ export class IdlPeerProcessor {
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
         return new MaterializedField(
             new Field(prop.name, new Type(this.library.mapType(prop.type)), modifiers),
-            argConvertor, retConvertor)
+            argConvertor, retConvertor, undefined, prop.isOptional)
     }
 
     private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined) {

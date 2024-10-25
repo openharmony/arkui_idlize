@@ -258,7 +258,6 @@ declare enum BlurType {
 declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {
     policy?: BlurStyleActivePolicy;
     inactiveColor?: ResourceColor;
-    type?: BlurType;
 }
 
 declare interface SizeResult {
@@ -369,6 +368,13 @@ declare enum GradientDirection {
     RightTop,
     RightBottom,
     None,
+}
+
+declare interface LinearGradient {
+    angle?: number | string;
+    direction?: GradientDirection;
+    colors: Array<[ResourceColor, number]>;
+    repeating?: boolean;
 }
 
 declare class AttributeModifier<T> {}

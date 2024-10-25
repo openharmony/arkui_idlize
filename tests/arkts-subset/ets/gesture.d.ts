@@ -78,12 +78,17 @@ declare namespace GestureControl {
 
 declare type GestureType =
   TapGestureInterface
-  | LongPressGestureInterface
-  | PanGestureInterface
-  | PinchGestureInterface
-  | SwipeGestureInterface
-  | RotationGestureInterface
-  | GestureGroupInterface;
+  | LongPressGestureInterface;
+
+interface TapGestureInterface {
+    onAction(event: (event: BaseGestureEvent) => void): TapGestureInterface;
+}
+
+interface LongPressGestureInterface extends GestureInterface<LongPressGestureInterface> {
+    onAction(event: (event: BaseGestureEvent) => void): LongPressGestureInterface;
+    onActionEnd(event: (event: BaseGestureEvent) => void): LongPressGestureInterface;
+    onActionCancel(event: () => void): LongPressGestureInterface;
+}
 
 interface BaseGestureEvent extends BaseEvent {
 
