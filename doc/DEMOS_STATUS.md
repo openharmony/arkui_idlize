@@ -14,6 +14,8 @@
 | Name                      | Kind      | Generated | Demo        | Owner/libace        | Status/libace    | Owner/ts          | Status/ts | Priority |
 |---------------------------|-----------|-----------|-------------|---------------------|------------------|-------------------|-----------|----------|
 | @ohos.router              | Class     |           |             | Kirill Kirichenko   | done             |                   |           |          |
+| `back`                    | Function  |           | ENC, WON    | Kirill Kirichenko   | done             | Kirill Kirichenko |           | High     |
+| `pageTransition`          | Function  |           | ENC, WON    | Kirill Kirichenko   | in progress      | Kirill Kirichenko |           | High     |
 | CustomDialogController    | Class     |           | HEL         | Erokhin Ilya        | Blocked          |                   |           | Low      |
 | `builder`                 | Function  |           |             | ?                   | N\A              |                   |           |          |
 | `autoCancel`              | Function  |           |             | ?                   | N\A              |                   |           |          |
