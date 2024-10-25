@@ -59,7 +59,7 @@
 | `focusable`               | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
 | `onAppear`                | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
 | `onDisappear`             | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `responseRegion`          | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
+| `responseRegion`          | Function  |           |             | Skroba Gleb         | done             | Roman Sedaikin    | done      | Medium   |
 | `layoutWeight`            | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
 | `foregroundBlurStyle`     | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
 | `border`                  | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
@@ -106,9 +106,9 @@
 | `ctor($rawfile)`          | Function  |           | ENC, WON    | Anton Tarasov       | done             |                   | done      | High     |
 | `objectFit`               | Function  |           | WON         | Kirill Berezin      | Done/No test     |                   |           | Medium   |
 | `autoResize`              | Function  |           | HEL         | Evstigneev Roman    | blocked ut       |                   |           | Medium   |
-| `fillColor`               | Function  |           | HEL         | Evstigneev Roman    | in progress      |                   |           | Medium   |
-| `onFinish`                | Function  |           | ENC         | Evstigneev Roman    | in progress      |                   |           | Medium   |
-| `onError`                 | Function  |           | ENC         | Evstigneev Roman    | in progress      |                   |           | Medium   |
+| `fillColor`               | Function  |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
+| `onFinish`                | Function  |           | ENC         | Evstigneev Roman    | done             |                   |           | Medium   |
+| `onError`                 | Function  |           | ENC         | Evstigneev Roman    | done             |                   |           | Medium   |
 | Swiper                    | Component | No        |             | Skroba Gleb         | done             |                   |           |          |
 | `itemSpace`               | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Medium   |
 | `indicator`               | Function  |           | HEL, WON    | Skroba Gleb         | done             |                   |           | Medium   |
@@ -143,7 +143,7 @@
 | `columnsGap`              | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | High     |
 | `rowsGap`                 | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | High     |
 | Canvas                    | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
-| `onReady`                 | Function  |           | HEL         | Vadim Voronov       | in progress      |                   |           | Medium   |
+| `onReady`                 | Function  |           | HEL         | Vadim Voronov       | done             |                   |           | Medium   |
 | TextPicker                | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
 | `range, selected`         | Options   |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | Medium   |
 | `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | Medium   |
@@ -154,7 +154,7 @@
 | `onScrollEdge`            | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | Video                     | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
 | `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked          |                   |           | Low      |
-| `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | in progress      |                   |           | Low      |
+| `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
 | Search                    | Component |           |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `placeholderColor`        | Function  |           | WON         | Evstigneev Roman    | in progress      |                   |           | Low      |
 | `placeholderFont`         | Function  |           | WON         | Evstigneev Roman    | in progress      |                   |           | Low      |
