@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
+import { createReferenceType, IDLType, IDLVoidType } from "../../../idl"
 import { IdlPeerLibrary } from "../../idl/IdlPeerLibrary"
 import { IdlPeerMethod } from "../../idl/IdlPeerMethod"
 import { ImportFeature } from "../../ImportsCollector"
-import { LanguageWriter, createLanguageWriter, Type, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "../../LanguageWriters"
+import { LanguageWriter, createLanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "../../LanguageWriters"
 import { PeerLibrary } from "../../PeerLibrary"
 import { PeerMethod } from "../../PeerMethod"
+import { getReferenceResolver } from "../../ReferenceResolver"
 import { generateArkComponentName } from "../ComponentsPrinter"
 import { componentToPeerClass } from "../PeersPrinter"
 import { PrinterContext } from "../PrinterContext"
@@ -28,7 +30,7 @@ import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_UI_NODE_TYPE, ARK_OBJECTBASE
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 
 export function makeCJSerializer(library: PeerLibrary | IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    let writer = createLanguageWriter(library.language)
+    let writer = createLanguageWriter(library.language, getReferenceResolver(library))
     writer.print(`package idlize\n`)
     writeSerializer(library, writer)
     writer.print('public func createSerializer(): Serializer { return Serializer() }')
@@ -45,7 +47,7 @@ export function makeCJNodeTypes(library: PeerLibrary | IdlPeerLibrary): { target
     })
     const nodeTypesEnum = new CJEnum(undefined, ARK_UI_NODE_TYPE, componentNames.map((it, index) => { return { name: it, id: index } }))
 
-    let writer = createLanguageWriter(library.language)
+    let writer = createLanguageWriter(library.language, getReferenceResolver(library))
     writer.print(`package ${ARKOALA_PACKAGE};\n`)
     nodeTypesEnum.print(writer)
 
@@ -53,7 +55,7 @@ export function makeCJNodeTypes(library: PeerLibrary | IdlPeerLibrary): { target
 }
 
 export class CJTuple extends IdlSyntheticTypeBase {
-    constructor(source: Object | undefined, readonly name: string, public readonly members: Type[], public readonly imports: ImportFeature[]) {
+    constructor(source: Object | undefined, readonly name: string, public readonly members: IDLType[], public readonly imports: ImportFeature[]) {
         super(source)
     }
 
@@ -64,7 +66,7 @@ export class CJTuple extends IdlSyntheticTypeBase {
                 writer.writeFieldDeclaration(memberNames[i], this.members[i], [FieldModifier.PUBLIC], false)
             }
 
-            const signature = new MethodSignature(Type.Void, this.members)
+            const signature = new MethodSignature(IDLVoidType, this.members)
             writer.writeConstructorImplementation(this.name, signature, () => {
                 for (let i = 0; i < memberNames.length; i++) {
                     writer.writeStatement(
@@ -77,13 +79,13 @@ export class CJTuple extends IdlSyntheticTypeBase {
 }
 
 export class CJUnion extends IdlSyntheticTypeBase {
-    constructor(source: Object | undefined, public name: string, public readonly members: Type[], public readonly imports: ImportFeature[]) {
+    constructor(source: Object | undefined, public name: string, public readonly members: IDLType[], public readonly imports: ImportFeature[]) {
         super(source)
     }
 
     print(writer: LanguageWriter): void {
         writer.writeClass(this.name, () => {
-            const intType = new Type('int')
+            const intType = createReferenceType('int')
             const selector = 'selector'
             writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
             writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
@@ -101,7 +103,7 @@ export class CJUnion extends IdlSyntheticTypeBase {
 
                 writer.writeConstructorImplementation(
                     this.name,
-                    new NamedMethodSignature(Type.Void, [memberType], [param]),
+                    new NamedMethodSignature(IDLVoidType, [memberType], [param]),
                     () => {
                         writer.writeStatement(
                             writer.makeAssign(memberName, undefined, writer.makeString(param), false)

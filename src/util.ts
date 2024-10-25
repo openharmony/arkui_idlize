@@ -578,3 +578,20 @@ export function groupBy<K, V>(values: V[], selector: (value: V) => K): Map<K, V[
 export function removeExt(filename: string) {
     return filename.replaceAll(path.extname(filename), '')
 }
+
+export function flip<A, B, R>(f:(a:A, b:B) => R) {
+    return (b:B, a:A) => f(a, b)
+}
+
+export function carry<A, B, R>(f:(a:A, b:B) => R) {
+    return (a:A) => (b:B) => f(a, b)
+}
+
+function trace<A>(msg:string|((x:A) => string), x:A): A {
+    if (typeof msg === 'function') {
+        console.error(msg(x))
+    } else {
+        console.error(msg)
+    }    
+    return x
+}

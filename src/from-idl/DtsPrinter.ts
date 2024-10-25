@@ -33,7 +33,13 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     getSuperType,
     IDLReferenceType,
     IDLCallable,
-    IDLAnyType,} from "../idl"
+    IDLAnyType,
+    getIDLTypeName,
+    isIDLTypeName,
+    IDLContainerUtils,
+    IDLContainerType,
+    DebugUtils,
+    isType} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 
@@ -111,15 +117,15 @@ export class CustomPrintVisitor {
                 const superType = getSuperType(node)
                 const superTypeArg = parentTypeArgs?.shift()
                 if (superType) {
-                    const typeArgs = superTypeArg ? `<${superTypeArg}>` : ""
-                    typeSpec += ` extends ${superType.name}${typeArgs}`
+                    // const typeArgs = superTypeArg ? `<${superTypeArg}>` : ""
+                    typeSpec += ` extends ${this.printTypeForTS(superType)}`
                 }
                 interfaces = interfaces.slice(1)
                 keyword = "implements"
             }
             if (interfaces.length > 0) {
                 const interfaceList = zip(interfaces, parentTypeArgs ?? new Array(interfaces.length))
-                    .map(([iface, typeArg]) => iface.name + (typeArg ? `<${typeArg}>` : ""))
+                    .map(([iface, typeArg]) => getIDLTypeName(iface) + (typeArg ? `<${typeArg}>` : ""))
                     .join(", ")
                 typeSpec += ` ${keyword} ${interfaceList}`
             }
@@ -204,7 +210,7 @@ export class CustomPrintVisitor {
     }
     printTypedef(node: IDLTypedef | IDLCallback) {
         const text = isCallback(node) ? this.callback(node)
-            : hasExtAttribute(node, IDLExtendedAttributes.Import) ? IDLAnyType.name
+            : hasExtAttribute(node, IDLExtendedAttributes.Import) ? getIDLTypeName(IDLAnyType)
             : this.printTypeForTS(node.type)
         let isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
         const typeParamsAttr = getExtAttribute(node, IDLExtendedAttributes.TypeParameters)
@@ -276,19 +282,19 @@ export class CustomPrintVisitor {
         if (!type) throw new Error("Missing type")
         if (type === IDLUndefinedType && undefinedToVoid) return "void"
         if (type === IDLStringType) return "string"
-        if (isCommonMethod && type.name == "this") return "T"
+        if (isCommonMethod && isIDLTypeName(type, "this")) return "T"
         if (type === IDLNullType) return "null"
         if (type === IDLVoidType) return "void"
-        if (isPrimitiveType(type)) return type.name
+        if (isPrimitiveType(type)) return getIDLTypeName(type)
         if (isContainerType(type)) {
-            if (!sequenceToArrayInterface && type.name == "sequence")
+            if (!sequenceToArrayInterface && IDLContainerUtils.isSequence(type))
                 return `${type.elementType.map(it => this.printTypeForTS(it)).join(",")}[]`
-            return `${mapContainerType(type.name)}<${type.elementType.map(it => this.printTypeForTS(it)).join(",")}>`
+            return `${mapContainerType(type)}<${type.elementType.map(it => this.printTypeForTS(it)).join(",")}>`
         }
         if (isReferenceType(type)) return this.toTypeName(type, IDLExtendedAttributes.TypeArguments)
         if (isUnionType(type)) return `(${type.types.map(it => this.printTypeForTS(it)).join("|")})`
-        if (isEnumType(type)) return type.name
-        if (isTypeParameterType(type)) return type.name
+        if (isEnumType(type)) return getIDLTypeName(type)
+        if (isTypeParameterType(type)) return getIDLTypeName(type)
         throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
     }
 
@@ -306,9 +312,9 @@ export class CustomPrintVisitor {
             }
         }
         if (hasExtAttribute(node, IDLExtendedAttributes.Import)) {
-            return IDLAnyType.name
+            return getIDLTypeName(IDLAnyType)
         }
-        let typeSpec = node.name ?? "MISSING_TYPE_NAME"
+        let typeSpec = (isType(node) ? getIDLTypeName(node) : node.name) ?? "MISSING_TYPE_NAME"
         const typeParams = getExtAttribute(node, typeAttribute)
         if (typeParams) {
             typeSpec = `${typeSpec}<${typeParams}>`
@@ -345,13 +351,17 @@ export function idlToString(name: string, content: string): string {
     return printer.output.join("\n")
 }
 
-function mapContainerType(idlName: string): string {///belongs to LW?
-    switch (idlName) {
-        case "sequence": return "Array"
-        case "record": return "Map"
-        case "Promise": return "Promise"
-        default: throw new Error(`Unmapped container type: ${idlName}`)
+function mapContainerType(idlType: IDLContainerType): string {///belongs to LW?
+    if (IDLContainerUtils.isSequence(idlType)) {
+        return "Array"
     }
+    if (IDLContainerUtils.isRecord(idlType)) {
+        return "Map"
+    }
+    if (IDLContainerUtils.isPromise(idlType)) {
+        return "Promise"
+    }
+    throw new Error(`Unmapped container type: ${DebugUtils.debugPrintType(idlType)}`)
 }
 
 function getName(node: IDLEntry): stringOrNone {

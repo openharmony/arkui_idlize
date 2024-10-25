@@ -18,66 +18,46 @@ import { Language } from "../../../Language"
 import { ArrayConvertor, EnumConvertor as EnumConvertorDTS, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
 import { FieldRecord } from "../../DeclarationTable"
 import { mapType, TSTypeNodeNameConvertor } from "../../TypeNodeNameConvertor"
-import { AssignStatement, ExpressionStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, ReturnStatement, Type } from "../LanguageWriter"
-import { IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType } from '../../../idl'
+import { AssignStatement, ExpressionStatement, FieldModifier, LambdaExpression, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, ReturnStatement } from "../LanguageWriter"
+import * as idl from '../../../idl'
 import * as ts from 'typescript'
 import { ArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
+import { ReferenceResolver } from "../../ReferenceResolver"
+import { convertType, IdlTypeNameConvertor, TypeConvertor } from "../../idl/IdlTypeConvertor"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
 ////////////////////////////////////////////////////////////////
 
-// maybe FIX ME: dependency on TS writer
-export abstract class LambdaExpression implements LanguageExpression {
-    constructor(
-        protected signature: MethodSignature,
-        private body?: LanguageStatement[]) { }
-
-    protected abstract get statementHasSemicolon(): boolean
-    abstract asString(): string
-
-    bodyAsString(): string {
-        const writer = new TSLanguageWriter(new IndentedPrinter(), Language.TS)
-        if (this.body) {
-            for (const stmt of this.body) {
-                stmt.write(writer)
-            }
-        }
-
-        return writer.printer.getOutput()
-            .map(line => line.trim())
-            .filter(line => line !== "")
-            .map(line => line === "{" || line === "}" || this.statementHasSemicolon ? line : `${line};`)
-            .join(" ")
-    }
-}
-
 export class TSLambdaExpression extends LambdaExpression {
     constructor(
+        writer: LanguageWriter,
+        private convertor: IdlTypeNameConvertor,
         signature: MethodSignature,
+        resolver: ReferenceResolver,
         body?: LanguageStatement[]) {
-        super(signature, body)
+        super(writer, signature, resolver, body)
     }
     protected get statementHasSemicolon(): boolean {
         return false
     }
     asString(): string {
         const params = this.signature.args.map((it, i) => {
-            const maybeOptional = it.nullable ? "?" : ""
-            return `${this.signature.argName(i)}${maybeOptional}: ${it.name}`
+            const maybeOptional = idl.isOptionalType(it) ? "?" : ""
+            return `${this.signature.argName(i)}${maybeOptional}: ${this.convertor.convert(it)}`
         })
             
-        return `(${params.join(", ")}): ${this.signature.returnType.name} => { ${this.bodyAsString()} }`
+        return `(${params.join(", ")}): ${this.convertor.convert(this.signature.returnType)} => { ${this.bodyAsString()} }`
     }
 }
 
 export class TSCastExpression implements LanguageExpression {
-    constructor(public value: LanguageExpression, public type: Type, private unsafe = false) {}
+    constructor(public value: LanguageExpression, public type: string, private unsafe = false) {}
     asString(): string {
         return this.unsafe
-            ? `unsafeCast<${this.type.name}>(${this.value.asString()})`
-            : `(${this.value.asString()} as ${this.type.name})`
+            ? `unsafeCast<${this.type}>(${this.value.asString()})`
+            : `(${this.value.asString()} as ${this.type})`
     }
 }
 
@@ -127,7 +107,7 @@ export class TsTupleAllocStatement implements LanguageStatement {
 }
 
 export class TsObjectAssignStatement implements LanguageStatement {
-    constructor(private object: string, private type: Type | undefined, private isDeclare: boolean) {}
+    constructor(private object: string, private type: idl.IDLType | undefined, private isDeclare: boolean) {}
     write(writer: LanguageWriter): void {
         writer.writeStatement(writer.makeAssign(this.object,
             this.type,
@@ -138,11 +118,11 @@ export class TsObjectAssignStatement implements LanguageStatement {
 }
 
 export class TsObjectDeclareStatement implements LanguageStatement {
-    constructor(private object: string, private type: Type | undefined, private fields: readonly FieldRecord[]) {}
+    constructor(private object: string, private type: idl.IDLType | undefined, private fields: readonly FieldRecord[]) {}
     write(writer: LanguageWriter): void {
         const nameConvertor = new TsObjectDeclareNodeNameConvertor()
         // Constructing a new type with all optional fields
-        const objectType = new Type(`{${this.fields.map(it => {
+        const objectType = idl.toIDLType(`{${this.fields.map(it => {
             return `${it.name}?: ${nameConvertor.convert(it.type)}`
         }).join(",")}}`)
         new TsObjectAssignStatement(this.object, objectType, true).write(writer)
@@ -185,10 +165,85 @@ class TsObjectDeclareNodeNameConvertor extends TSTypeNodeNameConvertor {
 //                           WRITER                           //
 ////////////////////////////////////////////////////////////////
 
-export class TSLanguageWriter extends LanguageWriter {
-    constructor(printer: IndentedPrinter, language: Language = Language.TS) {
-        super(printer, language)
+export class TSLanguageWriter extends LanguageWriter implements TypeConvertor<string> {
+    constructor(printer: IndentedPrinter, resolver: ReferenceResolver, language: Language = Language.TS) {
+        super(printer, resolver, language)
     }
+
+    fork(): LanguageWriter {
+        return new TSLanguageWriter(new IndentedPrinter(), this.resolver, this.language)
+    }
+
+    /**** IdlTypeNameConvertor *******************************************/
+
+    convert(type: idl.IDLType | idl.IDLCallback): string {
+        return idl.isCallback(type)
+            ? this.mapCallback(type)
+            : convertType(this, type)
+    }
+
+    /***** TypeConvertor<string> *****************************************/
+    
+    convertOptional(type: idl.IDLOptionalType): string {
+        return this.mapIDLOptionalType(type)
+    }
+    convertUnion(type: idl.IDLUnionType): string {
+        return this.mapIDLUnionType(type)
+    }
+    convertContainer(type: idl.IDLContainerType): string {
+        return this.mapIDLContainerType(type)
+    }
+    convertEnum(type: idl.IDLEnumType): string {
+        return this.mapIDLEnumType(type)
+    }
+    convertImport(_: idl.IDLReferenceType, importClause: string): string {
+        if (importClause.includes("want?: import('../api/@ohos.app.ability.Want').default;"))
+            return "IMPORT_Callback_code_number_want_IMPORT_default_FROM_api_ohos_app_ability_Want_FROM_api_ohos_base"
+        const match = importClause.match(/import *\((['"`])(.+)\1\)\.(.+)/)
+        if (!match)
+            throw new Error(`Cannot parse import clause ${importClause}`)
+        const [where, what] = match.slice(2)
+        return `IMPORT_${what}_FROM_${where}`.match(/[a-zA-Z]+/g)!.join('_')
+    }
+    convertTypeReference(type: idl.IDLReferenceType): string {
+        return this.mapIDLReferenceType(type)
+    }
+    convertTypeParameter(type: idl.IDLTypeParameterType): string {
+        return idl.getIDLTypeName(type)
+    }
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        return this.mapIDLPrimitiveType(type)
+    }
+    protected processTupleType(idlProperty: idl.IDLProperty): idl.IDLProperty {
+        return idlProperty
+    }
+    protected mapCallback(decl: idl.IDLCallback): string {
+        const params = decl.parameters.map(it =>
+            `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${this.mapIDLType(it.type!)}`)
+        return `((${params.join(", ")}) => ${this.mapIDLType(decl.returnType)})`
+    }
+
+    protected productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
+        const name = `${
+                isTuple ? "[" : "{"
+            } ${
+                decl.properties
+                    .map(it => isTuple ? this.processTupleType(it) : it)
+                    .map(it => {
+                        const type = this.mapIDLType(it.type)
+                        return it.isOptional
+                            ? includeFieldNames ? `${it.name}?: ${type}` : `(${type})?`
+                            : includeFieldNames ? `${it.name}: ${type}` : `${type}`
+                }).join(", ")
+            } ${
+                isTuple ? "]" : "}"
+            }`
+        
+        return name
+    }
+
+    /**********************************************************************/
+
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
@@ -210,10 +265,10 @@ export class TSLanguageWriter extends LanguageWriter {
     writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void {
         throw new Error("WriteEnum for TS is not implemented")
     }
-    writeFieldDeclaration(name: string, type: Type, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
+    writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} ${name}${optional ? "?"  : ""}: ${type.name}${init}`)
+        this.printer.print(`${prefix} ${name}${optional ? "?"  : ""}: ${this.mapIDLType(type)}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
@@ -248,13 +303,15 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         prefix = prefix ? prefix.trim() + " " : ""
         const typeParams = generics ? `<${generics.join(", ")}>` : ""
-        this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${it.nullable ? "?" : ""}: ${this.mapType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
+        // FIXME: 
+        const isSetter = modifiers?.includes(MethodModifier.SETTER)
+        this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${it.optional && !isSetter ? "?" : ""}: ${this.mapIDLType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapIDLType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
-    makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
+    makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new AssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
-        return new TSLambdaExpression(signature, body)
+        return new TSLambdaExpression(this, this, signature, this.resolver, body)
     }
     makeThrowError(message: string): LanguageStatement {
         return new TSThrowErrorStatement(message)
@@ -274,8 +331,8 @@ export class TSLanguageWriter extends LanguageWriter {
     writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)
     }
-    makeCast(value: LanguageExpression, type: Type, unsafe = false): LanguageExpression {
-        return new TSCastExpression(value, type, unsafe)
+    makeCast(value: LanguageExpression, type: idl.IDLType, unsafe = false): LanguageExpression {
+        return new TSCastExpression(value, this.mapIDLType(/* FIXME: */ idl.maybeOptional(type, false)), unsafe)
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
         if (convertor instanceof OptionConvertor || convertor instanceof UnionConvertor) {
@@ -311,32 +368,32 @@ export class TSLanguageWriter extends LanguageWriter {
         if (fields.length > 0) {
             return this.makeAssign(object, undefined,
                 this.makeCast(this.makeString("{}"),
-                    new Type(`{${fields.map(it=>`${it.name}: ${mapType(it.type)}`).join(",")}}`)),
+                idl.toIDLType(`{${fields.map(it=>`${it.name}: ${mapType(it.type)}`).join(",")}}`)),
                 false)
         }
         return new TsObjectAssignStatement(object, undefined, false)
     }
-    makeMapResize(mapTypeName: string, keyType: string, valueType: string, map: string, size: string, deserializer: string): LanguageStatement {
-        return this.makeAssign(map, undefined, this.makeString(`new Map<${keyType}, ${valueType}>()`), false)
+    makeMapResize(mapTypeName: string, keyType: idl.IDLType, valueType: idl.IDLType, map: string, size: string, deserializer: string): LanguageStatement {
+        return this.makeAssign(map, undefined, this.makeString(`new Map<${this.convert(keyType)}, ${this.convert(valueType)}>()`), false)
     }
-    makeMapKeyTypeName(c: MapConvertor): string {
-        return c.keyConvertor.tsTypeName;
+    makeMapKeyTypeName(c: MapConvertor): idl.IDLType {
+        return c.keyConvertor.idlType;
     }
-    makeMapValueTypeName(c: MapConvertor): string {
-        return c.valueConvertor.tsTypeName;
+    makeMapValueTypeName(c: MapConvertor): idl.IDLType {
+        return c.valueConvertor.idlType;
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         // keyAccessor and valueAccessor are equal in TS
         return this.makeStatement(this.makeMethodCall(keyAccessor, "set", [this.makeString(key), this.makeString(value)]))
     }
-    makeObjectDeclare(name: string, type: Type, fields: readonly FieldRecord[]): LanguageStatement {
+    makeObjectDeclare(name: string, type: idl.IDLType, fields: readonly FieldRecord[]): LanguageStatement {
         return new TsObjectDeclareStatement(name, type, fields)
     }
-    getTagType(): Type {
-        return new Type("Tags");
+    getTagType(): idl.IDLType {
+        return idl.toIDLType("Tags");
     }
-    getRuntimeType(): Type {
-        return new Type("number");
+    getRuntimeType(): idl.IDLType {
+        return idl.IDLI32Type;
     }
     makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
         return this.makeAssign(receiver, undefined,
@@ -352,7 +409,7 @@ export class TSLanguageWriter extends LanguageWriter {
         return this.makeString(`Object.values(${enumType})[${value.asString()}]`);
     }
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
-        return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, new Type('string')).asString()})`);
+        return this.makeString(`Object.keys(${enumType}).indexOf(${this.makeCast(value, idl.IDLStringType).asString()})`);
     }
     override makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, unsafe?: boolean): string {
         // TODO: remove after switching to IDL
@@ -361,52 +418,112 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         return enumName
     }
-    override makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string {
+    override makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor): string {
         if (unsafe) {
             return this.makeUnsafeCast(convertor, enumName)
         }
         return enumName
     }
-    mapIDLContainerType(type: IDLContainerType, args: string[]): string {
-        switch (type.name) {
-            case 'sequence': {
-                switch (type.elementType[0].name) {
-                    case IDLU8Type.name: return 'Uint8Array'
-                    case IDLI32Type.name: return 'Int32Array'
-                    case IDLF32Type.name: return 'Float32Array'
+    mapIDLUnionType(type: idl.IDLUnionType): string {
+        return type.types.
+            map(it => {
+                if (false /* add check if it is function */) {
+                    return `(${this.mapIDLType(it)})`
                 }
+                return this.mapIDLType(it)
+            })
+            .join(' | ')
+    }
+    mapIDLReferenceType(type: idl.IDLReferenceType): string {
+        const decl = this.resolver.resolveTypeReference(type)!
+        if (decl && idl.isSyntheticEntry(decl)) {
+            if (idl.isCallback(decl)) {
+                return this.mapCallback(decl)
+            }
+            const entity = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity)
+            if (entity) {
+                const isTuple = entity === idl.IDLEntity.Tuple
+                return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
             }
         }
-        return super.mapIDLContainerType(type, args)
-    }
-    mapType(type: Type, convertor?: ArgConvertor): string {
-        switch (type.name) {
-            case 'Function': return 'Object'
-        }
-        return super.mapType(type)
-    }
-    mapIDLPrimitiveType(type: IDLPrimitiveType): string {
-        switch (type) {
-            case IDLPointerType: return 'pointer'
-            case IDLVoidType: return 'void'
 
-            case IDLI8Type:
-            case IDLU8Type:
-            case IDLI16Type:
-            case IDLU16Type:
-            case IDLI32Type:
-            case IDLU32Type:
-            case IDLI64Type:
-            case IDLU64Type:
-            case IDLF32Type:
-            case IDLF64Type:
-            case IDLNumberType:
+        // FIXME: isEnumMember is not TYPE!
+        if (decl && idl.isEnumMember(decl) && decl.parent) {
+            // when `interface A { field?: MyEnum.Value1 }` is generated, it is not possible
+            // to deserialize A, because there is no such type information in declaration target
+            // (can not cast MyEnum to exact MyEnum.Value1)
+            return decl.parent?.name
+        }
+
+        let typeSpec = idl.getIDLTypeName(type) 
+        let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
+        if (typeSpec === `AttributeModifier`)
+            typeArgs = [`object`]
+        if (typeSpec === `ContentModifier`)
+            typeArgs = [this.convert(idl.IDLAnyType)] //this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
+        if (typeSpec === `Optional`) {
+            return `${typeArgs} | undefined`
+        }
+        const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
+        return `${typeSpec}${maybeTypeArguments}`
+    }
+    mapIDLEnumType(type: idl.IDLEnumType): string {
+        const entity = this.resolver.toDeclaration(type)
+        if (idl.isEnum(entity)) {
+            return entity.elements.map(it => this.mapIDLType(it.type)).join(' | ')
+        }
+        return idl.getIDLTypeName(type)
+    }
+    mapIDLOptionalType(type: idl.IDLOptionalType): string {
+        return `${this.mapIDLType(type.element)} | undefined` 
+    }
+    mapIDLContainerType(type: idl.IDLContainerType): string {
+        if (idl.IDLContainerUtils.isSequence(type)) {
+            switch (type.elementType[0]) {
+                case idl.IDLU8Type: return 'Uint8Array'
+                case idl.IDLI32Type: return 'Int32Array'
+                case idl.IDLF32Type: return 'Float32Array'
+                default: return `Array<${this.mapIDLType(type.elementType[0])}>`
+            }
+        }
+        if (idl.IDLContainerUtils.isRecord(type)) {
+            return `Map<${this.mapIDLType(type.elementType[0])}, ${this.mapIDLType(type.elementType[1])}>`
+        }
+        if (idl.IDLContainerUtils.isPromise(type)) {
+            return `Promise<${this.mapIDLType(type.elementType[0])}>`
+        }
+        throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
+    }
+    mapIDLPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLUnknownType: return 'unknown'
+            case idl.IDLThisType: return 'this'
+            case idl.IDLAnyType: return 'any'
+            case idl.IDLUndefinedType: return 'undefined'
+            case idl.IDLNullType: return 'null'
+            case idl.IDLPointerType: return 'number | bigint'
+            case idl.IDLVoidType: return 'void'
+            case idl.IDLBooleanType: return 'boolean'
+
+            case idl.IDLI32Type:
+                return 'int32'
+
+            case idl.IDLI8Type:
+            case idl.IDLU8Type:
+            case idl.IDLI16Type:
+            case idl.IDLU16Type:
+            case idl.IDLU32Type:
+            case idl.IDLI64Type:
+            case idl.IDLU64Type:
+            case idl.IDLF32Type:
+            case idl.IDLF64Type:
+            case idl.IDLNumberType:
                 return 'number'
 
-            case IDLStringType:
+            case idl.IDLStringType:
                 return 'string'
         }
-        return super.mapIDLPrimitiveType(type)
+        throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }
     override castToBoolean(value: string): string { return `+${value}` }
     override makeCallIsObject(value: string): LanguageExpression {

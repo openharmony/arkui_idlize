@@ -15,7 +15,9 @@
 
 import { Language } from "../Language"
 import { PrimitiveType } from "./ArkPrimitiveType"
-import { LanguageExpression, LanguageStatement, LanguageWriter, Type } from "./LanguageWriters/LanguageWriter"
+import { toIDLNode } from "../from-idl/deserialize"
+import { IDLBooleanType, IDLLengthType, IDLNullType, IDLNumberType, IDLType, IDLUndefinedType, toIDLType } from "../idl"
+import { LanguageExpression, LanguageStatement, LanguageWriter } from "./LanguageWriters"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -38,7 +40,7 @@ export interface RetConvertor {
 
 export interface ArgConvertor { // todo:
     param: string
-    tsTypeName: string
+    idlType: IDLType
     isScoped: boolean
     useArray: boolean
     runtimeTypes: RuntimeType[]
@@ -49,7 +51,7 @@ export interface ArgConvertor { // todo:
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
     interopType(language: Language): string
     nativeType(impl: boolean): string
-    targetType(writer: LanguageWriter): Type
+    targetType(writer: LanguageWriter): string
     isPointerType(): boolean
     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined
     getMembers(): string[]
@@ -58,7 +60,7 @@ export interface ArgConvertor { // todo:
 
 export abstract class BaseArgConvertor implements ArgConvertor {
     constructor(
-        public tsTypeName: string,
+        public idlType: IDLType,
         public runtimeTypes: RuntimeType[],
         public isScoped: boolean,
         public useArray: boolean,
@@ -74,8 +76,8 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     interopType(language: Language): string {
         throw new Error("Define")
     }
-    targetType(writer: LanguageWriter): Type {
-        return new Type(writer.mapType(new Type(this.tsTypeName), this))
+    targetType(writer: LanguageWriter): string {
+        return writer.mapIDLType(this.idlType)
     }
     scopeStart?(param: string, language: Language): string
     scopeEnd?(param: string, language: Language): string
@@ -104,7 +106,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
 
 export class ProxyConvertor extends BaseArgConvertor {
     constructor(public convertor: ArgConvertor, suggestedName?: string) {
-        super(suggestedName ?? convertor.tsTypeName, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
+        super(suggestedName ? toIDLType(suggestedName) : convertor.idlType, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.convertor.convertorArg(param, writer)
@@ -192,7 +194,7 @@ export class UnionRuntimeTypeChecker {
 }
 export class BooleanConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("boolean", [RuntimeType.BOOLEAN], false, false, param)
+        super(IDLBooleanType, [RuntimeType.BOOLEAN], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.castToBoolean(param)
@@ -217,7 +219,7 @@ export class BooleanConvertor extends BaseArgConvertor {
 
 export class UndefinedConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("undefined", [RuntimeType.UNDEFINED], false, false, param)
+        super(IDLUndefinedType, [RuntimeType.UNDEFINED], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeUndefined().asString()
@@ -255,7 +257,7 @@ export class VoidConvertor extends UndefinedConvertor {
 
 export class NullConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("null", [RuntimeType.OBJECT], false, false, param)
+        super(IDLNullType, [RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeNull().asString()
@@ -281,7 +283,7 @@ export class NullConvertor extends BaseArgConvertor {
 
 export class LengthConvertorScoped extends BaseArgConvertor {
     constructor(param: string) {
-        super("Length", [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
+        super(IDLLengthType, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
     }
     scopeStart(param: string): string {
         return `withLengthArray(${param}, (${param}Ptr) => {`
@@ -323,7 +325,7 @@ export class LengthConvertorScoped extends BaseArgConvertor {
 export class LengthConvertor extends BaseArgConvertor {
     constructor(name: string, param: string, language: Language) {
         // length convertor is only optimized for NAPI interop
-        super(name, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, language != Language.TS, param)
+        super(toIDLType(name), [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, language !== Language.TS, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         switch (writer.language) {
@@ -345,7 +347,7 @@ export class LengthConvertor extends BaseArgConvertor {
         return printer.makeAssign(receiver, undefined,
             printer.makeCast(
                 printer.makeString(`${param}Deserializer.readLength()`),
-                printer.makeType(this.tsTypeName, false, receiver), false), false)
+                printer.makeType(this.idlType, false, receiver), false), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Length.getText()
@@ -382,7 +384,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
                 public readonly customTypeName: string,
                 private readonly isGenericType: boolean = false,
                 tsType?: string) {
-        super(tsType ?? "Object", [RuntimeType.OBJECT], false, true, param)
+        super(toIDLType(tsType ?? "Object"), [RuntimeType.OBJECT], false, true, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -401,7 +403,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
                 printer.makeCast(printer.makeMethodCall(`${param}Deserializer`,
                         "readCustomObject",
                         [printer.makeString(`"${this.customTypeName}"`)]),
-                    printer.makeType(this.tsTypeName, false, receiver)), false)
+                    printer.makeType(this.idlType, false, receiver)), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.CustomObject.getText()
@@ -425,7 +427,7 @@ export class NumberConvertor extends BaseArgConvertor {
     constructor(param: string) {
         // TODO: as we pass tagged values - request serialization to array for now.
         // Optimize me later!
-        super("number", [RuntimeType.NUMBER], false, false, param)
+        super(IDLNumberType, [RuntimeType.NUMBER], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ?  `(const ${PrimitiveType.Number.getText()}*)&${param}` : param
@@ -438,7 +440,7 @@ export class NumberConvertor extends BaseArgConvertor {
         return writer.makeAssign(receiver, undefined,
             writer.makeCast(
                 writer.makeString(`${param}Deserializer.readNumber()`),
-                writer.makeType(this.tsTypeName, false, receiver)), false)
+                writer.makeType(this.idlType, false, receiver)), false)
     }
     nativeType(): string {
         return PrimitiveType.Number.getText()
@@ -453,7 +455,7 @@ export class NumberConvertor extends BaseArgConvertor {
 
 export class PredefinedConvertor extends BaseArgConvertor {
     constructor(param: string, tsType: string, private convertorName: string, private cType: string) {
-        super(tsType, [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
+        super(toIDLType(tsType), [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("unused")

@@ -26,6 +26,7 @@ import { MaterializedClass } from "../Materialized";
 import { CppLanguageWriter, PrinterLike } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
 import { MethodSeparatorVisitor } from "../MethodSeparator";
+import { createEmptyReferenceResolver } from "../ReferenceResolver";
 
 export class DelegateSignatureBuilder {
     constructor(
@@ -292,7 +293,7 @@ export interface DelegateFileOptions {
 }
 
 function printDelegateImplementation(filePath: string, source: PrinterLike, options: DelegateFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter())
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver())
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
@@ -318,7 +319,7 @@ function printDelegateImplementation(filePath: string, source: PrinterLike, opti
 
 
 function printDelegateHeader(filePath: string, source: PrinterLike, options: DelegateFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter())
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver())
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
     writer.print("")

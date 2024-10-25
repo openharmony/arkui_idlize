@@ -24,6 +24,7 @@ import { Language } from '../Language';
 import { IndentedPrinter } from '../IndentedPrinter';
 import { LanguageWriter } from './LanguageWriters';
 import * as idl from '../idl'
+import { ReferenceResolver } from './ReferenceResolver';
 
 export type PeerLibraryOutput = {
     outputC: string[]

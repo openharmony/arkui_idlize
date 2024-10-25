@@ -24,7 +24,6 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
-    Type
 } from '../LanguageWriters'
 import {
     indentedBy,
@@ -47,8 +46,8 @@ import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER
 import { printJavaImports } from '../printers/lang/JavaPrinters'
 import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
 import { Language } from '../../Language'
-import { ArkTSTypeNameConvertor } from "./IdlNameConvertor";
 import { escapeKeyword } from "../../idl";
+import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -73,8 +72,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         throw "Enums are processed separately"
     }
     convertTypedef(node: idl.IDLTypedef): void {
-        let type = this.peerLibrary.mapType(node.type)
-        this.writer.print(`export declare type ${node.name} = ${type};`)
+        this.writer.print(`export declare type ${node.name} = ${this.writer.mapIDLType(node.type)};`)
     }
     protected replaceImportTypeNodes(text: string): string {///operate on stringOrNone[]
         for (const [stub, src] of [...this.peerLibrary.importTypesStubToSource.entries()].reverse()) {
@@ -136,6 +134,8 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         const imports = new ImportsCollector()
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.addFeature("KInt", "@koalaui/interop")
+        imports.addFeature("KBoolean", "@koalaui/interop")
+        imports.addFeature("KStringPtr", "@koalaui/interop")
         imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
     }
 
@@ -162,7 +162,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
 
     printInterfaces() {
         for (const file of this.peerLibrary.files.values()) {
-            const writer = createLanguageWriter(this.peerLibrary.language)
+            const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
             this.printImports(writer, file)
             const typeConvertor = this.createDeclarationConvertor(writer)
             file.declarations.forEach(it => convertDeclaration(typeConvertor, it))
@@ -213,7 +213,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             return
         }
         if (idl.isReferenceType(type)) {
-            const target = this.peerLibrary.resolveTypeReference(type)
+            const target = this.peerLibrary.resolveTypeReference(type, undefined, true)
             this.convertTypedefTarget(name, target!)
             return
         }
@@ -239,18 +239,16 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeUnion(alias: string, type: idl.IDLUnionType): JavaDeclaration {
-        const writer = createLanguageWriter(Language.JAVA)
+        const writer = createLanguageWriter(Language.JAVA, this.peerLibrary)
         this.printPackage(writer)
 
         const imports = collectJavaImports(type.types)
         printJavaImports(writer, imports)
 
-        const members = type.types.map(it => new Type(this.peerLibrary.mapType(it), false) )
         writer.writeClass(alias, () => {
-            const intType = new Type('int')
             const selector = 'selector'
-            writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
-            writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
+            writer.writeFieldDeclaration(selector, idl.IDLI32Type, [FieldModifier.PRIVATE], false)
+            writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(idl.IDLI32Type, []), [MethodModifier.PUBLIC]), () => {
                 writer.writeStatement(
                     writer.makeReturn(
                         writer.makeString(selector)
@@ -259,13 +257,13 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             })
 
             const param = 'param'
-            for (const [index, memberType] of members.entries()) {
+            for (const [index, memberType] of type.types.entries()) {
                 const memberName = `value${index}`
                 writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], false)
 
                 writer.writeConstructorImplementation(
                     alias,
-                    new NamedMethodSignature(Type.Void, [memberType], [param]),
+                    new NamedMethodSignature(idl.IDLVoidType, [memberType], [param]),
                     () => {
                         writer.writeStatement(
                             writer.makeAssign(memberName, undefined, writer.makeString(param), false)
@@ -293,20 +291,20 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeTuple(alias: string, type: idl.IDLInterface): JavaDeclaration {
-        const writer = createLanguageWriter(Language.JAVA)
+        const writer = createLanguageWriter(Language.JAVA, this.peerLibrary)
         this.printPackage(writer)
 
         const imports = collectJavaImports(type.properties.map(it => it.type))
         printJavaImports(writer, imports)
 
-        const members = type.properties.map(it => new Type(this.peerLibrary.mapType(it.type), it.isOptional))
+        const members = type.properties.map(it => idl.maybeOptional(it.type, it.isOptional))
         const memberNames: string[] = members.map((_, index) => `value${index}`)
         writer.writeClass(alias, () => {
             for (let i = 0; i < memberNames.length; i++) {
                 writer.writeFieldDeclaration(memberNames[i], members[i], [FieldModifier.PUBLIC], false)
             }
 
-            const signature = new MethodSignature(Type.Void, members)
+            const signature = new MethodSignature(idl.IDLVoidType, members)
             writer.writeConstructorImplementation(alias, signature, () => {
                 for (let i = 0; i < memberNames.length; i++) {
                     writer.writeStatement(
@@ -320,7 +318,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeEnum(alias: string, enumDecl: idl.IDLEnum): JavaDeclaration {
-        const writer = createLanguageWriter(Language.JAVA)
+        const writer = createLanguageWriter(Language.JAVA, this.peerLibrary)
         this.printPackage(writer)
 
         const initializers = enumDecl.elements.map(it => {
@@ -354,7 +352,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         }
 
         writer.writeClass(alias, () => {
-            const enumType = new Type(alias)
+            const enumType = idl.toIDLType(alias)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(`new ${alias}(${it.numberId})`)
@@ -362,17 +360,17 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             })
 
             const value = 'value'
-            const intType = new Type('int')
-            writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
+            const intType = idl.toIDLType('int')
+            writer.writeFieldDeclaration(value, idl.IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
 
-            const signature = new MethodSignature(Type.Void, [intType])
+            const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type])
             writer.writeConstructorImplementation(alias, signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
                 )
             })
 
-            const getIntValue = new Method('getIntValue', new MethodSignature(intType, []), [MethodModifier.PUBLIC])
+            const getIntValue = new Method('getIntValue', new MethodSignature(idl.IDLI32Type, []), [MethodModifier.PUBLIC])
             writer.writeMethodImplementation(getIntValue, () => {
                 writer.writeStatement(
                     writer.makeReturn(writer.makeString(value))
@@ -384,7 +382,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeInterface(alias: string, type: idl.IDLInterface): JavaDeclaration {
-        const writer = createLanguageWriter(Language.JAVA)
+        const writer = createLanguageWriter(Language.JAVA, this.peerLibrary)
         this.printPackage(writer)
 
         const imports = collectJavaImports(type.properties.map(it => it.type))
@@ -392,13 +390,14 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         // TODO: *Attribute classes are empty for now
         const members = this.peerLibrary.isComponentDeclaration(type) ? []
             : type.properties.map(it => {
-                return {name: it.name, type: new Type(this.peerLibrary.mapType(it.type), it.isOptional), modifiers: [FieldModifier.PUBLIC]}
+                return {name: it.name, type: idl.maybeOptional(it.type, it.isOptional), modifiers: [FieldModifier.PUBLIC]}
             })
+        const superType = idl.getSuperType(type)
         writer.writeClass(alias, () => {
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, it.type, it.modifiers, false)
             })
-        }, idl.getSuperType(type)?.name ?? ARK_OBJECTBASE)
+        }, (superType ? idl.getIDLTypeName(superType) : undefined) ?? ARK_OBJECTBASE)
 
         return new JavaDeclaration(alias, writer)
     }
@@ -420,7 +419,7 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
 }
 
 class ArkTSDeclConvertor extends TSDeclConvertor {
-    private typeNameConvertor = new ArkTSTypeNameConvertor(this.peerLibrary)
+    private typeNameConvertor = new ETSLanguageWriter(new IndentedPrinter(), this.peerLibrary)
     private readonly IGNORES_TYPES = ["GestureType"]
     private seenInterfaceNames = new Set<string>()
 
@@ -514,7 +513,7 @@ class ArkTSDeclConvertor extends TSDeclConvertor {
         return [idlInterface.name,
             this.printTypeParameters(idlInterface.extendedAttributes),
             idl.hasSuperType(idlInterface)
-                ? ` extends ${inheritanceType.name}${this.printTypeParameters(inheritanceType.extendedAttributes)}`
+                ? ` extends ${idl.getIDLTypeName(inheritanceType)}${this.printTypeParameters(inheritanceType.extendedAttributes)}`
                 : ""
         ].join("")
     }
@@ -666,7 +665,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             return
         }
         if (idl.isReferenceType(type)) {
-            const target = this.peerLibrary.resolveTypeReference(type)
+            const target = this.peerLibrary.resolveTypeReference(type, undefined, true)
             this.convertTypedefTarget(name, target!)
             return
         }
@@ -692,14 +691,14 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeUnion(alias: string, type: idl.IDLUnionType): CJDeclaration {
-        const writer = createLanguageWriter(Language.CJ)
+        const writer = createLanguageWriter(Language.CJ, this.peerLibrary)
         this.printPackage(writer)
 
         writer.print('import std.collection.*\n')
 
-        const members = type.types.map(it => new Type(this.peerLibrary.mapType(it), false) )
+        const members = type.types.map(it => it)
         writer.writeClass(alias, () => {
-            const intType = new Type('Int32')
+            const intType = idl.IDLI32Type
             const selector = 'selector'
             writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
             writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
@@ -713,11 +712,11 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             const param = 'param'
             for (const [index, memberType] of members.entries()) {
                 const memberName = `value${index}`
-                writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], true, writer.makeString(`None<${memberType.name}>`))
+                writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], true, writer.makeString(`None<${writer.convert(memberType)}>`))
 
                 writer.writeConstructorImplementation(
                     'init',
-                    new NamedMethodSignature(Type.Void, [memberType], [param]),
+                    new NamedMethodSignature(idl.IDLVoidType, [memberType], [param]),
                     () => {
                         writer.writeStatement(
                             writer.makeAssign(memberName, undefined, writer.makeString(param), false)
@@ -749,17 +748,17 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeTuple(alias: string, type: idl.IDLInterface): CJDeclaration {
-        const writer = createLanguageWriter(Language.CJ)
+        const writer = createLanguageWriter(Language.CJ, this.peerLibrary)
         this.printPackage(writer)
 
-        const members = type.properties.map(it => new Type(this.peerLibrary.mapType(it.type), it.isOptional))
+        const members = type.properties.map(it => idl.maybeOptional(it.type, it.isOptional))
         const memberNames: string[] = members.map((_, index) => `value${index}`)
         writer.writeClass(alias, () => {
             for (let i = 0; i < memberNames.length; i++) {
                 writer.writeFieldDeclaration(memberNames[i], members[i], [FieldModifier.PUBLIC], false)
             }
 
-            const signature = new MethodSignature(Type.Void, members)
+            const signature = new MethodSignature(idl.IDLVoidType, members)
             writer.writeConstructorImplementation(alias, signature, () => {
                 for (let i = 0; i < memberNames.length; i++) {
                     writer.writeStatement(
@@ -773,7 +772,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeEnum(alias: string, enumDecl: idl.IDLEnum): CJDeclaration {
-      const writer = createLanguageWriter(Language.CJ)
+      const writer = createLanguageWriter(Language.CJ, this.peerLibrary)
         this.printPackage(writer)
 
         writer.print('import std.collection.*\n')
@@ -804,7 +803,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             memberValue += 1
         }
         writer.writeClass(alias, () => {
-            const enumType = new Type(alias)
+            const enumType = idl.createReferenceType(alias)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(`${alias}(${it.numberId})`)
@@ -812,10 +811,10 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             })
 
             const value = 'value'
-            const intType = new Type('int32')
+            const intType = idl.IDLI32Type
             writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
 
-            const signature = new MethodSignature(Type.Void, [intType])
+            const signature = new MethodSignature(idl.IDLVoidType, [intType])
             writer.writeConstructorImplementation(alias, signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
@@ -834,8 +833,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeInterface(alias: string, type: idl.IDLInterface): CJDeclaration {
-        // fix
-        const writer = createLanguageWriter(Language.CJ)
+        const writer = createLanguageWriter(Language.CJ, this.peerLibrary)
         this.printPackage(writer)
 
         writer.print('import std.collection.*\n')
@@ -843,11 +841,11 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         // TODO: *Attribute classes are empty for now
         const members = this.peerLibrary.isComponentDeclaration(type) ? []
             : type.properties.map(it => {
-                return {name: writer.escapeKeyword(it.name), type: new Type(this.peerLibrary.mapType(it.type), it.isOptional), modifiers: [FieldModifier.PUBLIC]}
+                return {name: writer.escapeKeyword(it.name), type: idl.maybeOptional(it.type, it.isOptional), modifiers: [FieldModifier.PUBLIC]}
             })
         writer.writeClass(alias, () => {
             members.forEach(it => {
-                writer.print(`mut prop ${it.name}: ${it.type.nullable ? '?' : ''}${it.type.name} {`)
+                writer.print(`mut prop ${it.name}: ${it.type.optional ? '?' : ''}${writer.convert(it.type)} {`)
                 writer.pushIndent()
                 writer.print(`get() {`)
                 writer.pushIndent()
@@ -858,7 +856,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                 writer.popIndent()
                 writer.print(`}`)
             })
-        }, idl.getSuperType(type)?.name ?? ARK_OBJECTBASE)
+        }, writer.convert(idl.getSuperType(type) ?? idl.createReferenceType(ARK_OBJECTBASE)))
 
         return new CJDeclaration(alias, writer)
     }
@@ -923,7 +921,7 @@ export function printFakeDeclarations(library: IdlPeerLibrary): Map<TargetFile, 
     const lang = library.language
     const result = new Map<TargetFile, string>()
     for (const [filename, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
-        const writer = createLanguageWriter(lang)
+        const writer = createLanguageWriter(lang, library)
         const imports = new ImportsCollector()
         dependencies.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(writer, removeExt(filename))

@@ -17,7 +17,7 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { camelCaseToUpperSnakeCase } from "../util"
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, Type } from "./LanguageWriters"
+import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
@@ -30,6 +30,8 @@ import { writeARKTSTypeCheckerFromDTS, writeTSTypeCheckerFromDTS } from "./print
 import { Language } from "../Language"
 import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/CallbacksPrinter"
 import { makeCJSerializer } from "./printers/lang/CJPrinters"
+import { IDLVoidType, toIDLType } from "../idl"
+import { createEmptyReferenceResolver, getReferenceResolver } from "./ReferenceResolver"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -142,7 +144,7 @@ export function bridgeCcCustomDeclaration(customApi: string[]): string {
 }
 
 export function appendModifiersCommonPrologue(): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
     let body = readTemplate('impl_prologue.cc')
 
     body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
@@ -162,7 +164,7 @@ export function getNodeTypes(library: PeerLibrary | IdlPeerLibrary): string[] {
 }
 
 export function appendViewModelBridge(library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
     let body = readTemplate('view_model_bridge.cc')
 
     const createNodeSwitch = new IndentedPrinter()
@@ -188,7 +190,7 @@ export function appendViewModelBridge(library: PeerLibrary | IdlPeerLibrary): La
 }
 
 export function completeModifiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
     epilogue = epilogue
@@ -225,7 +227,7 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
 
-    let result = createLanguageWriter(Language.CPP)
+    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
     result.writeLines(prologue)
     result.print("namespace OHOS::Ace::NG::GeneratedModifier {")
     result.pushIndent()
@@ -238,7 +240,7 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
 }
 
 export function modifierStructList(lines: LanguageWriter): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
     result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers()`)
     result.print("{")
     result.pushIndent()
@@ -256,7 +258,7 @@ export function modifierStructList(lines: LanguageWriter): LanguageWriter {
 }
 
 export function accessorStructList(lines: LanguageWriter): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
     result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors()`)
     result.print("{")
     result.pushIndent()
@@ -275,7 +277,7 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
 }
 
 export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary, prefix?: string, declarationPath?: string): LanguageWriter {
-    let printer = createLanguageWriter(library.language)
+    let printer = createLanguageWriter(library.language, getReferenceResolver(library))
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
     imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isPixelMap", "isResource", "isInstanceOf"], "./SerializerBase")
@@ -288,6 +290,7 @@ export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary, prefix?:
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["NativeModule"], "#components")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
+        imports.addFeature('KStringPtr', '@koalaui/interop')
     }
     imports.print(printer, '')
     writeSerializer(library, printer, prefix, declarationPath)
@@ -300,7 +303,7 @@ export function createSerializer(): Serializer { return new Serializer() }
 export function makeSerializerForOhos(library: PeerLibrary | IdlPeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): LanguageWriter {
     // TODO Add Java and migrate arkoala code
     if (library.language == Language.TS || library.language == Language.ARKTS) {
-        let printer = createLanguageWriter(library.language)
+        let printer = createLanguageWriter(library.language, getReferenceResolver(library))
         printer.nativeModuleAccessor = nativeModule.name
         printer.writeLines(cStyleCopyright)
         const imports = new ImportsCollector()
@@ -320,9 +323,9 @@ export function createSerializer(): Serializer { return new Serializer() }
 
 // TODO: remove after full switching to IDL
 export function makeTypeCheckerFromDTS(library: PeerLibrary): { arkts: string, ts: string } {
-    let arktsPrinter = createLanguageWriter(Language.ARKTS)
+    let arktsPrinter = createLanguageWriter(Language.ARKTS, createEmptyReferenceResolver())
     writeARKTSTypeCheckerFromDTS(library, arktsPrinter)
-    let tsPrinter = createLanguageWriter(Language.TS)
+    let tsPrinter = createLanguageWriter(Language.TS, createEmptyReferenceResolver())
     writeTSTypeCheckerFromDTS(library, tsPrinter)
     return {
         arkts: arktsPrinter.getOutput().join("\n"),
@@ -331,9 +334,9 @@ export function makeTypeCheckerFromDTS(library: PeerLibrary): { arkts: string, t
 }
 
 export function makeTypeChecker(library: IdlPeerLibrary): { arkts: string, ts: string } {
-    let arktsPrinter = createLanguageWriter(Language.ARKTS)
+    let arktsPrinter = createLanguageWriter(Language.ARKTS, createEmptyReferenceResolver())
     writeARKTSTypeCheckers(library, arktsPrinter)
-    let tsPrinter = createLanguageWriter(Language.TS)
+    let tsPrinter = createLanguageWriter(Language.TS, createEmptyReferenceResolver())
     writeTSTypeCheckers(library, tsPrinter)
     return {
         arkts: arktsPrinter.getOutput().join("\n"),
@@ -342,7 +345,7 @@ export function makeTypeChecker(library: IdlPeerLibrary): { arkts: string, ts: s
 }
 
 export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
-    const converter = new CppLanguageWriter(new IndentedPrinter())
+    const converter = new CppLanguageWriter(new IndentedPrinter(), library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
     converter.writeLines(cStyleCopyright)
     converter.writeLines(`/*
  * ${warning}
@@ -376,8 +379,8 @@ export function makeConverterHeader(path: string, namespace: string, library: Pe
 
 export function makeCSerializers(library: PeerLibrary | IdlPeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
-    const serializers = createLanguageWriter(Language.CPP)
-    const writeToString = createLanguageWriter(Language.CPP)
+    const serializers = createLanguageWriter(Language.CPP, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
+    const writeToString = createLanguageWriter(Language.CPP, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
     serializers.print("\n// Serializers\n")
     writeSerializer(library, serializers)
     serializers.print("\n// Deserializers\n")
@@ -397,7 +400,7 @@ ${serializers.getOutput().join("\n")}
 }
 
 export function makeTSDeserializer(library: PeerLibrary | IdlPeerLibrary): string {
-    const deserializer = createLanguageWriter(Language.TS)
+    const deserializer = createLanguageWriter(Language.TS, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
     writeDeserializer(library, deserializer)
     return `${cStyleCopyright}
 import { runtimeType, Tags, RuntimeType, SerializerBase } from "./SerializerBase"
@@ -590,7 +593,7 @@ export function componentFileTemplate(content: string): string {
 }
 
 export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: LanguageWriter): string {
-    const writer = new CppLanguageWriter(new IndentedPrinter())
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver())
     writer.print(cStyleCopyright)
     writer.writeInclude("arkoala_api_generated.h")
     writer.writeInclude("events.h")
@@ -601,7 +604,7 @@ export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: 
     writer.concat(implData)
     writer.writeMethodImplementation(new Method(
         `GetArkUiEventsAPI`,
-        new MethodSignature(new Type(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`), []),
+        new MethodSignature(toIDLType(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`), []),
     ), (writer) => {
         writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()
@@ -615,7 +618,7 @@ export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: 
 }
 
 export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: PrinterLike, namespace: string): string {
-    const writer = new CppLanguageWriter(new IndentedPrinter())
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver())
     writer.writeLines(cStyleCopyright)
     writer.print("")
     writer.writeInclude(`arkoala_api_generated.h`)
@@ -627,14 +630,14 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
     writer.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;`)
     writer.writeMethodImplementation(new Method(
         `${PeerGeneratorConfig.cppPrefix}SetArkUiEventsAPI`,
-        new NamedMethodSignature(Type.Void, [new Type(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`)], [`api`]),
+        new NamedMethodSignature(IDLVoidType, [toIDLType(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`)], [`api`]),
     ), (writer) => {
         writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`api`), false))
     })
 
     writer.writeMethodImplementation(new Method(
         `${PeerGeneratorConfig.cppPrefix}GetArkUiEventsAPI`,
-        new MethodSignature(new Type(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`), []),
+        new MethodSignature(toIDLType(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`), []),
     ), (writer) => {
         writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()
@@ -653,7 +656,7 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
 }
 
 export function makeCallbacksKinds(library: IdlPeerLibrary, language: Language): string {
-    const writer = createLanguageWriter(language)
+    const writer = createLanguageWriter(language, library)
     printCallbacksKindsImports(library, writer)
     printCallbacksKinds(library, writer)
     return writer.getOutput().join("\n")

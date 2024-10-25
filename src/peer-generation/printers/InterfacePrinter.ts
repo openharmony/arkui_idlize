@@ -16,7 +16,7 @@
 import * as ts from 'typescript'
 import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
-import { FieldModifier, LanguageWriter, createLanguageWriter, Type, MethodModifier, MethodSignature } from '../LanguageWriters'
+import { FieldModifier, LanguageWriter, createLanguageWriter, MethodModifier, MethodSignature } from '../LanguageWriters'
 import { ArkTSTypeNodeNameConvertor, isCallable, mapType } from '../TypeNodeNameConvertor'
 import { identName, removeExt, renameDtsToInterfaces } from '../../util'
 import { ImportFeature, ImportsCollector } from '../ImportsCollector'
@@ -31,6 +31,8 @@ import { isMaterialized } from "../Materialized";
 import { ResourceDeclaration } from '../DeclarationTable'
 import { JavaDataClass } from './lang/JavaPrinters'
 import { Language } from '../../Language'
+import { getIDLTypeName, IDLType, IDLVoidType, maybeOptional, toIDLType } from '../../idl'
+import { getReferenceResolver } from '../ReferenceResolver'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -149,6 +151,8 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         const imports = new ImportsCollector()
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.addFeature("KInt", "@koalaui/interop")
+        imports.addFeature("KBoolean", "@koalaui/interop")
+        imports.addFeature("KStringPtr", "@koalaui/interop")
         imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
     }
 
@@ -167,7 +171,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
 
     printInterfaces() {
         for (const file of this.peerLibrary.files.values()) {
-            const writer = createLanguageWriter(this.peerLibrary.declarationTable.language)
+            const writer = createLanguageWriter(this.peerLibrary.declarationTable.language, getReferenceResolver(this.peerLibrary))
             const typeConvertor = new TSDeclConvertor(writer, this.peerLibrary)
             this.printImports(writer, file)
             file.declarations.forEach(it => convertDeclaration(typeConvertor, it))
@@ -214,14 +218,14 @@ class JavaInterfacesVisitor {
     }
 
     private printClassOrInterface(node: ts.ClassDeclaration | ts.InterfaceDeclaration, writer: LanguageWriter) {
-        type MemberInfo = {name: string, type: Type, modifiers: FieldModifier[]}
+        type MemberInfo = {name: string, type: IDLType, modifiers: FieldModifier[]}
         const members: MemberInfo[] = node.members.map(property => {
             if (!ts.isPropertyDeclaration(property) && !ts.isPropertySignature(property)) return
             if (!property.type) throw new Error(`Unexpected member type: ${property.type}`)
 
             const propertyDeclarationTarget = this.peerLibrary.declarationTable.toTarget(property.type)
             const propertyType = this.context.synthesizedTypes!.getTargetType(propertyDeclarationTarget, false)
-            return {name: this.getName(property), type: new Type(propertyType.name, !!property.questionToken), modifiers: [FieldModifier.PUBLIC]}
+            return {name: this.getName(property), type: maybeOptional(propertyType, property.questionToken !== undefined), modifiers: [FieldModifier.PUBLIC]}
         }).filter((it): it is MemberInfo => !!it)
         const imports: ImportFeature[] = this.context.imports?.getImportsForTypes(members.map(it => it.type)).map(it => { return {feature: it, module: ''} }) ?? []
         const javaDataClass = new JavaDataClass(node, this.getName(node), this.getSuperClass(node), members, imports)
@@ -237,7 +241,7 @@ class JavaInterfacesVisitor {
     }
 
     private addInterfaceDeclaration(it: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const writer = createLanguageWriter(Language.JAVA)
+        const writer = createLanguageWriter(Language.JAVA, getReferenceResolver(this.peerLibrary))
         this.printPackage(writer);
         this.printClassOrInterface(it, writer)
         this.addInterface(this.getName(it), writer)
@@ -306,7 +310,7 @@ class CJInterfacesVisitor {
     ])
 
     private printClassOrInterface(node: ts.ClassDeclaration | ts.InterfaceDeclaration, writer: LanguageWriter) {
-        type MemberInfo = {name: string, type: Type, optional: boolean}
+        type MemberInfo = {name: string, type: IDLType, optional: boolean}
         const membersInfo: MemberInfo[] = node.members.map(property => {
             if (!ts.isPropertyDeclaration(property) && !ts.isPropertySignature(property)) {
                 return
@@ -331,9 +335,9 @@ class CJInterfacesVisitor {
         const superClass = this.getSuperClass(node) ?? ARK_OBJECTBASE
         writer.writeClass(this.getName(node), () => {
             for (const member of membersInfo) {
-                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional, this.initialValue.get(member.type.name) ? writer.makeString(this.initialValue.get(member.type.name)!): undefined)
+                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional, this.initialValue.get(getIDLTypeName(member.type)) ? writer.makeString(this.initialValue.get(getIDLTypeName(member.type))!): undefined)
             }
-            writer.writeConstructorImplementation(this.getName(node), new MethodSignature(Type.Void, membersInfo.map(property => property.type)), (printer) => {
+            writer.writeConstructorImplementation(this.getName(node), new MethodSignature(IDLVoidType, membersInfo.map(property => property.type)), (printer) => {
                 for (let i in membersInfo) {
                     printer.writeStatement(printer.makeAssign(`this.${membersInfo[i].name}`, undefined, writer.makeString(`arg${i}`), false))
                 }
@@ -350,7 +354,7 @@ class CJInterfacesVisitor {
     }
 
     private addInterfaceDeclaration(it: ts.ClassDeclaration | ts.InterfaceDeclaration) {
-        const writer = createLanguageWriter(Language.CJ)
+        const writer = createLanguageWriter(Language.CJ, getReferenceResolver(this.peerLibrary))
         this.printPackage(writer);
         this.printLangImports(writer)
         this.printClassOrInterface(it, writer)
@@ -469,7 +473,7 @@ export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
                 const fields = this.peerLibrary.declarationTable.targetStruct(node).getFields()
                 if (fields.length > 0) {
                     fields.map(it => {
-                        writer.writeFieldDeclaration(it.name, new Type(this.mapType(it.type), it.optional), undefined, it.optional)
+                        writer.writeFieldDeclaration(it.name, maybeOptional(toIDLType(this.mapType(it.type)), it.optional), undefined, it.optional)
                     })
                 } else if (isMaterialized(node)) {
                     node.members.forEach(method => {
@@ -491,7 +495,7 @@ export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
                 members.map(it => {
                     if (ts.isPropertySignature(it)) {
                         writer.writeFieldDeclaration(it.name?.getText(),
-                            new Type(this.mapType(it.type), it?.questionToken != undefined), undefined, it?.questionToken != undefined)
+                            maybeOptional(toIDLType(this.mapType(it.type)), it?.questionToken != undefined), undefined, it?.questionToken != undefined)
                     }
                 })
             })
@@ -534,12 +538,14 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
         const imports = new ImportsCollector()
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.addFeature("KInt", "@koalaui/interop")
+        imports.addFeature("KBoolean", "@koalaui/interop")
+        imports.addFeature("KStringPtr", "@koalaui/interop")
         imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
     }
 
     override printInterfaces() {
         for (const file of this.peerLibrary.files.values()) {
-            const writer = createLanguageWriter(this.peerLibrary.declarationTable.language)
+            const writer = createLanguageWriter(this.peerLibrary.declarationTable.language, getReferenceResolver(this.peerLibrary))
             this.printImports(writer, file)
             file.enums.forEach(it => writer.writeStatement(writer.makeEnumEntity(it, true)))
             file.declarations.forEach(it => convertDeclaration(createDeclarationConvertor(writer, this.peerLibrary), it))

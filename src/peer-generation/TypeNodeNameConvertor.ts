@@ -182,7 +182,7 @@ export class TSTypeNodeNameConvertor implements
 }
 
 const nameConvertorInstance = new TSTypeNodeNameConvertor()
-export function mapType(type: ts.TypeNode | undefined): string {
+export function mapType(type?: ts.TypeNode): string {
     type ??= ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword)
     return nameConvertorInstance.convert(type)
 }

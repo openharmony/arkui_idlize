@@ -87,13 +87,13 @@ export class SkoalaCCodeGenerator {
     }
 
     private convertType(idlType: idl.IDLType): string {
-        switch (idlType.name) {
+        switch (idl.getIDLTypeName(idlType)) {
             case "float32": return "float"
             case "int32": return "int"
             case "uint32": return "unsigned int"
-            case idl.IDLBooleanType.name: return "bool"
-            case idl.IDLStringType.name: return "char*"
-            case idl.IDLVoidType.name: return "void"
+            case idl.getIDLTypeName(idl.IDLBooleanType): return "bool"
+            case idl.getIDLTypeName(idl.IDLStringType): return "char*"
+            case idl.getIDLTypeName(idl.IDLVoidType): return "void"
             case "KNativePointer": return "KNativePointer"
             default: return "void*"
         }

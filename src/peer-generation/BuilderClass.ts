@@ -15,7 +15,7 @@
 
 import * as ts from "typescript"
 import { heritageDeclarations, identName, isReadonly, isStatic } from "../util"
-import { Field, FieldModifier, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type } from "./LanguageWriters"
+import { Field, FieldModifier, Method, MethodModifier, MethodSignature, NamedMethodSignature } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { DeclarationTable, DeclarationTarget, FieldRecord } from "./DeclarationTable"
 import { PrimitiveType } from "./ArkPrimitiveType"
@@ -34,6 +34,7 @@ import { PeerLibrary } from "./PeerLibrary";
 import { Language } from "../Language";
 import { IdlPeerLibrary } from "./idl/IdlPeerLibrary";
 import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
+import { createReferenceType, IDLThisType, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../idl"
 
 export function isBuilderClass(declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): boolean {
 
@@ -72,8 +73,8 @@ export function isBuilderClass(declaration: ts.InterfaceDeclaration | ts.ClassDe
     */
 }
 
-function builderMethod(name: string, typeName: string, declarationTarget: DeclarationTarget): BuilderMethod {
-    const method = new Method(name, new NamedMethodSignature(Type.This, [new Type(typeName)], ["value"]))
+function builderMethod(name: string, type: IDLType, declarationTarget: DeclarationTarget): BuilderMethod {
+    const method = new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))
     return new BuilderMethod(method, [declarationTarget])
 }
 
@@ -112,11 +113,11 @@ export function initCustomBuilderClasses(library: PeerLibrary | IdlPeerLibrary) 
     CUSTOM_BUILDER_CLASSES.push(
         new BuilderClass("Indicator", ["T"], false, undefined,
             [], // fields
-            [new BuilderMethod(new Method("constructor", new MethodSignature(Type.Void, [])), [])],
+            [new BuilderMethod(new Method("constructor", new MethodSignature(IDLVoidType, [])), [])],
             [
-                ...["left", "top", "right", "bottom"].map(it => builderMethod(it, "Length", PrimitiveType.Length)),
-                ...["start", "end"].map(it => builderMethod(it, "LengthMetrics", PrimitiveType.CustomObject)),
-                new BuilderMethod(new Method("dot", new MethodSignature(new Type("DotIndicator"), []), [MethodModifier.STATIC]), [PrimitiveType.CustomObject]),
+                ...["left", "top", "right", "bottom"].map(it => builderMethod(it, createReferenceType("Length"), PrimitiveType.Length)),
+                ...["start", "end"].map(it => builderMethod(it, createReferenceType("LengthMetrics"), PrimitiveType.CustomObject)),
+                new BuilderMethod(new Method("dot", new MethodSignature(createReferenceType("DotIndicator"), []), [MethodModifier.STATIC]), [PrimitiveType.CustomObject]),
             ],
             [], // imports
         )
@@ -222,7 +223,7 @@ function toBuilderField(declarationTable: DeclarationTable,
     const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
     const isOptional = property.questionToken !== undefined
     const declarationTarget = declarationTable.toTarget(property.type!)
-    return new BuilderField(new Field(fieldName, new Type(typeNodeConvertor.convert(property.type!), isOptional), modifiers), declarationTarget)
+    return new BuilderField(new Field(fieldName, maybeOptional(toIDLType(typeNodeConvertor.convert(property.type!)), isOptional), modifiers), declarationTarget)
 }
 
 function toBuilderMethod(declarationTable: DeclarationTable,
@@ -232,7 +233,7 @@ function toBuilderMethod(declarationTable: DeclarationTable,
     const methodName = method === undefined || ts.isConstructorDeclaration(method) ? "constructor" : identName(method.name)!
 
     if (method === undefined) {
-        return new BuilderMethod(new Method(methodName, new NamedMethodSignature(Type.Void)), [])
+        return new BuilderMethod(new Method(methodName, new NamedMethodSignature(IDLVoidType)), [])
     }
 
     const generics = method.typeParameters?.map(it => it.getText())

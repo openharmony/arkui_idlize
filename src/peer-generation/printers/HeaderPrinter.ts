@@ -23,26 +23,26 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { CallbackInfo, collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
 import { DeclarationTable } from "../DeclarationTable";
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { NamedMethodSignature, printMethodDeclaration, Type } from "../LanguageWriters/LanguageWriter";
+import { CppLanguageWriter, NamedMethodSignature, createLanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { camelCaseToUpperSnakeCase } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
-import { Language } from "../../Language";
-import { CppCastExpression, CppLanguageWriter } from "../LanguageWriters/writers/CppLanguageWriter";
+import { getIDLTypeName, IDLVoidType, maybeOptional, toIDLType } from "../../idl";
+import { getReferenceResolver } from "../ReferenceResolver";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
 }
 
 export function generateEventSignature(table: DeclarationTable, event: CallbackInfo): NamedMethodSignature {
-    const nodeType = new Type(table.computeTargetName(PrimitiveType.Int32, false))
-    const argsTypes = event.args.map(it => new Type(
-        'const ' + table.typeConvertor(it.name, it.type, it.nullable).nativeType(false),
+    const nodeType = toIDLType(table.computeTargetName(PrimitiveType.Int32, false))
+    const argsTypes = event.args.map(it => maybeOptional(
+        toIDLType('const ' + table.typeConvertor(it.name, it.type, it.nullable).nativeType(false)),
         it.nullable,
     ))
     return new NamedMethodSignature(
-        new Type('void'),
+        IDLVoidType,
         [nodeType, ...argsTypes],
         ['nodeId', ...event.args.map(it => it.name)]
     )
@@ -121,9 +121,9 @@ class HeaderVisitor {
         for (const callback of callbacks) {
             const signature = generateEventSignature(library.declarationTable, callback)
             const args = signature.args.map((type, index) => {
-                return `${type.name} ${signature.argName(index)}`
+                return `${getIDLTypeName(type)} ${signature.argName(index)}`
             })
-            printMethodDeclaration(this.api, signature.returnType.name, `(*${callback.methodName})`, args, `;`)
+            printMethodDeclaration(this.api, getIDLTypeName(signature.returnType), `(*${callback.methodName})`, args, `;`)
         }
         this.api.popIndent()
         this.api.print(`} ${receiver};\n`)
@@ -194,7 +194,7 @@ export function printUserConverter(headerPath: string, namespace: string, apiVer
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter())
+    const structs = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(peerLibrary))
     const typedefs = new IndentedPrinter()
 
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
@@ -213,7 +213,7 @@ export function printSerializers(apiVersion: number, peerLibrary: PeerLibrary | 
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter())
+    const structs = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(peerLibrary))
     const typedefs = new IndentedPrinter()
 
     const serializers = makeCSerializers(peerLibrary, structs, typedefs)

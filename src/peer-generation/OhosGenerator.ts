@@ -17,8 +17,8 @@ import * as path from 'path'
 
 import { IndentedPrinter } from "../IndentedPrinter"
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
-import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodSignature, NamedMethodSignature, Type } from './LanguageWriters'
-import { hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLVoidType, isCallback, isClass, isConstructor, isEnum, isEnumType, isInterface, isMethod, isPrimitiveType, isReferenceType, isUnionType } from '../idl'
+import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
+import { createContainerType, createReferenceType, getIDLTypeName, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isEnum, isEnumType, isInterface, isMethod, isPrimitiveType, isReferenceType, isUnionType } from '../idl'
 import { makeCallbacksKinds, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { capitalize } from '../util'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
@@ -43,8 +43,8 @@ interface SignatureDescriptor {
 class OHOSVisitor {
 
 
-    hWriter = new CppLanguageWriter(new IndentedPrinter())
-    cppWriter = new CppLanguageWriter(new IndentedPrinter())
+    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library)
+    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library)
 
     peerWriter: LanguageWriter
     nativeWriter: LanguageWriter
@@ -58,17 +58,18 @@ class OHOSVisitor {
     callbackInterfaces = new Array<IDLInterface>()
 
     constructor(protected library: IdlPeerLibrary) {
-        this.peerWriter = createLanguageWriter(this.library.language)
-        this.nativeWriter = createLanguageWriter(this.library.language)
+        this.peerWriter = createLanguageWriter(this.library.language, this.library)
+        this.nativeWriter = createLanguageWriter(this.library.language, this.library)
     }
 
     private static knownBasicTypes = new Set(['ArrayBuffer', 'DataView'])
 
-    mapType(type: IDLType): string {
+    mapType(type: IDLType | IDLEnum): string {
         this.library.requestType(type, true)
 
-        if (OHOSVisitor.knownBasicTypes.has(type.name))
-            return `${PrimitiveType.Prefix}${type.name}`
+        const typeName = isEnum(type) ? type.name : getIDLTypeName(type)
+        if (OHOSVisitor.knownBasicTypes.has(typeName))
+            return `${PrimitiveType.Prefix}${typeName}`
 
         if (isReferenceType(type) || isEnum(type) || isEnumType(type)) {
             return `${PrimitiveType.Prefix}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
@@ -77,8 +78,7 @@ class OHOSVisitor {
     }
 
     makeSignature(returnType: IDLType, parameters: IDLParameter[]): MethodSignature {
-        return new MethodSignature(Type.fromName(this.mapType(returnType)),
-            parameters.map(it => Type.fromName(this.mapType(it.type!))))
+        return new MethodSignature(returnType, parameters.map(it => it.type!))
     }
 
     private writeData(clazz: IDLInterface) {
@@ -260,7 +260,7 @@ class OHOSVisitor {
         // if (isClass(entry)) this.writeClass(entry)
     }
 
-    private requestType(type: IDLType) {
+    private requestType(type: IDLType | IDLEnum) {
         this.library.requestType(type, true)
     }
 
@@ -343,7 +343,7 @@ class OHOSVisitor {
         this.data.forEach(data => {
             this.nativeWriter.writeClass(data.name, writer => {
                 data.properties.forEach(prop => {
-                    writer.writeFieldDeclaration(prop.name, Type.fromName(prop.type.name), [], false)
+                    writer.writeFieldDeclaration(prop.name, prop.type, [], false)
                 })
             })
         })
@@ -352,23 +352,23 @@ class OHOSVisitor {
                 // TODO remove duplicated code from NativeModuleVisitor::printPeerMethod (NativeModulePrinter.ts)
                 const maybeCallback = false
                 const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, maybeCallback))
-                const args: ({name: string, type: string})[] = [{ name: 'self', type: 'pointer' }]
+                const args: ({name: string, type: IDLType})[] = [{ name: 'self', type: IDLPointerType }]
                 let serializerArgCreated = false
                 for (let i = 0; i < argConvertors.length; ++i) {
                     let it = argConvertors[i]
                     if (it.useArray) {
                         if (!serializerArgCreated) {
                             args.push(
-                                { name: 'thisArray', type: 'Uint8Array' },
-                                { name: 'thisLength', type: 'int32' },
+                                { name: 'thisArray', type: createContainerType('sequence', [IDLU8Type]) },
+                                { name: 'thisLength', type: IDLI32Type },
                             )
                             serializerArgCreated = true
                         }
                     } else {
-                        args.push({ name: `${it.param}`, type: writer.mapIDLType(method.parameters[i].type!) })
+                        args.push({ name: `${it.param}`, type: method.parameters[i].type! })
                     }
                 }
-                const signature = NamedMethodSignature.make(writer.mapIDLType(method.returnType), args)
+                const signature = NamedMethodSignature.make(method.returnType, args)
                 writer.writeNativeMethodDeclaration(`_${this.libraryName}_${method.name}`, signature)
             })
             this.interfaces.forEach(it => {
@@ -386,8 +386,8 @@ class OHOSVisitor {
             })
             writer.writeNativeMethodDeclaration("_GetManagerCallbackCaller",
                 NamedMethodSignature.make(
-                    writer.mapIDLType(IDLPointerType),
-                    [{ name: "kind", type: "CallbackKind" }]
+                    IDLPointerType,
+                    [{ name: "kind", type: createReferenceType("CallbackKind") }]
                 )
             )
         })
@@ -417,7 +417,7 @@ class OHOSVisitor {
         })
         this.interfaces.forEach(int => {
             this.peerWriter.writeClass(`${int.name}`, writer => {
-                writer.writeFieldDeclaration('peer', Type.fromName('pointer'), [FieldModifier.PRIVATE], false)
+                writer.writeFieldDeclaration('peer', IDLPointerType, [FieldModifier.PRIVATE], false)
                 const ctors = int.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
                 if (ctors.length === 0) {
                     ctors.push({
@@ -454,7 +454,7 @@ class OHOSVisitor {
                             if (it.useArray) {
                                 if (!serializerCreated) {
                                     writer.writeStatement(
-                                        writer.makeAssign(`thisSerializer`, new Type('Serializer'),
+                                        writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
                                             writer.makeMethodCall('SerializerBase', 'hold', [
                                                 writer.makeSerializerCreator()
                                             ]), true)
@@ -516,7 +516,7 @@ class OHOSVisitor {
         writeSerializer(this.library, this.cppWriter, prefix)
         writeDeserializer(this.library, this.cppWriter, prefix)
         
-        let writer = new CppLanguageWriter(new IndentedPrinter())
+        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library)
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)
@@ -566,8 +566,8 @@ class OHOSVisitor {
         const callbackInterfaceNames = new Set<string>()
         this.callbacks.forEach(it => {
             it.parameters.forEach(param => {
-                if (this.interfaces.find(x => x.name === param.type!.name)) {
-                    callbackInterfaceNames.add(param.type!.name)
+                if (this.interfaces.find(x => x.name === getIDLTypeName(param.type!))) {
+                    callbackInterfaceNames.add(getIDLTypeName(param.type!))
                 }
             })
         })

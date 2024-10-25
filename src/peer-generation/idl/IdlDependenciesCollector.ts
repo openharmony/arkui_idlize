@@ -20,6 +20,9 @@ import { IdlPeerLibrary } from './IdlPeerLibrary';
 export class TypeDependenciesCollector implements TypeConvertor<idl.IDLEntry[]> {
     constructor(protected readonly library: IdlPeerLibrary) {}
 
+    convertOptional(type: idl.IDLOptionalType): idl.IDLEntry[] {
+        return [type]
+    }
     convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
         return type.types.flatMap(ty => convertType(this, ty))
     }
@@ -72,7 +75,10 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<id
                 ])
         ]
     }
-    protected convertSupertype(type: idl.IDLType): idl.IDLEntry[] {
+    protected convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLEntry[] {
+        if (idl.isInterface(type)) {
+            return this.typeDepsCollector.convert(idl.createReferenceType(type.name))
+        }
         return this.typeDepsCollector.convert(type)
     }
     convertEnum(decl: idl.IDLEnum): idl.IDLEntry[] {

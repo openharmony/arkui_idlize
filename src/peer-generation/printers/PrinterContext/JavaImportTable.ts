@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { LanguageWriter, Type } from "../../LanguageWriters";
+import { getIDLTypeName, IDLType, toIDLType } from "../../../idl";
+import { LanguageWriter } from "../../LanguageWriters";
 import { ImportTable } from "../ImportTable";
 import * as assert from "assert";
 
@@ -24,14 +25,14 @@ export class JavaImportTable implements ImportTable {
         this.setPeerLibImports()
     }
 
-    getImportsForTypes(types: Type[]): string[] {
+    getImportsForTypes(types: IDLType[]): string[] {
         const allImports = new Set(types.flatMap(it => {
             return this.imports.get(this.encode(it)) ?? []
         }))
         return Array.from(allImports)
     }
 
-    setImportsForType(type: Type, imports: string[]): void {
+    setImportsForType(type: IDLType, imports: string[]): void {
         const encodedType = this.encode(type)
         if (this.imports.has(encodedType)) {
             assert.deepStrictEqual(imports, this.imports.get(encodedType))
@@ -41,7 +42,7 @@ export class JavaImportTable implements ImportTable {
         }
     }
 
-    printImportsForTypes(types: Type[], printer: LanguageWriter): void {
+    printImportsForTypes(types: IDLType[], printer: LanguageWriter): void {
         const allImports = new Set(types.flatMap(it => {
             return this.imports.get(this.encode(it)) ?? []
         }))
@@ -51,13 +52,13 @@ export class JavaImportTable implements ImportTable {
         }
     }
 
-    private encode(type: Type): string {
-        return `${type.name}`
+    private encode(type: IDLType): string {
+        return `${getIDLTypeName(type)}`
     }
 
     private setPeerLibImports(): void {
-        this.setImportsForType(new Type('Finalizable'), ['org.koalaui.interop.Finalizable'])
-        this.setImportsForType(new Type('Consumer'), ['java.util.function.Consumer'])
-        this.setImportsForType(new Type('Supplier'), ['java.util.function.Supplier'])
+        this.setImportsForType(toIDLType('Finalizable'), ['org.koalaui.interop.Finalizable'])
+        this.setImportsForType(toIDLType('Consumer'), ['java.util.function.Consumer'])
+        this.setImportsForType(toIDLType('Supplier'), ['java.util.function.Supplier'])
     }
 }

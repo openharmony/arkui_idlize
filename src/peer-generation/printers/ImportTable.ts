@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-import { LanguageWriter, Type } from "../LanguageWriters";
+import { IDLType } from "../../idl";
+import { LanguageWriter } from "../LanguageWriters";
 
 export interface ImportTable {
-    getImportsForTypes(types: Type[]): string[]
-    setImportsForType(type: Type, imports: string[]): void
-    printImportsForTypes(types: Type[], printer: LanguageWriter): void
+    getImportsForTypes(types: IDLType[]): string[]
+    setImportsForType(type: IDLType, imports: string[]): void
+    printImportsForTypes(types: IDLType[], printer: LanguageWriter): void
 }

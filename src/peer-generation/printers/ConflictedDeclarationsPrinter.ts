@@ -19,9 +19,10 @@ import { PeerLibrary } from "../PeerLibrary";
 import { DeclarationNameConvertor } from "../dependencies_collector";
 import { convertDeclaration } from '../TypeNodeConvertor';
 import { Language } from "../../Language";
+import { createEmptyReferenceResolver } from '../ReferenceResolver';
 
 class ConflictedDeclarationsVisitor {
-    readonly writer = createLanguageWriter(this.library.declarationTable.language)
+    readonly writer = createLanguageWriter(this.library.declarationTable.language, createEmptyReferenceResolver())
 
     constructor(
         protected readonly library: PeerLibrary

@@ -14,7 +14,8 @@
  */
 
 import * as webidl2 from "webidl2"
-import { indentedBy, isDefined, stringOrNone } from "./util";
+import { indentedBy, isDefined, stringOrNone, throwException } from "./util";
+import { NodeArray, TypeNode } from "typescript";
 
 export enum IDLKind {
     Interface,
@@ -40,6 +41,7 @@ export enum IDLKind {
     UnionType,
     TypeParameterType,
     ModuleType,
+    OptionalType,
 }
 
 export enum IDLEntity {
@@ -101,15 +103,22 @@ export interface IDLEntry {
     scope?: IDLEntry[]
 }
 
+// compile-time garantee that no one can create IDLType outside this file
+const idlTypeName = Symbol("idlTypeName")
 export interface IDLType {
-    name: string
     kind: IDLKind
     fileName?: string
     extendedAttributes?: IDLExtendedAttribute[]
     documentation?: string
+    optional?: boolean
+
+    [idlTypeName]: string
 }
 
-export const IDLTopType = { name: "__Top__", kind: IDLKind.Interface }
+export const IDLTopType: IDLType = {
+    [idlTypeName]: "__Top__", 
+    kind: IDLKind.Interface 
+}
 
 export interface IDLTypedef extends IDLEntry {
     kind: IDLKind.Typedef
@@ -117,13 +126,27 @@ export interface IDLTypedef extends IDLEntry {
     type: IDLType
 }
 
+// compile-time garantee that no one can create IDLPrimitiveType outside this file
+const primitiveTypeAnchor = Symbol("primitiveTypeAnchor")
 export interface IDLPrimitiveType extends IDLType {
     kind: IDLKind.PrimitiveType
+    [primitiveTypeAnchor]: true
 }
+
+export interface IDLOptionalType extends IDLType {
+    optional: true
+    element: IDLType
+}
+
+export type IDLContainerKind = 
+      'sequence'
+    | 'record'
+    | 'Promise'
 
 export interface IDLContainerType extends IDLType {
     kind: IDLKind.ContainerType
     elementType: IDLType[]
+    [idlTypeName]: IDLContainerKind
 }
 
 export interface IDLReferenceType extends IDLType {
@@ -295,13 +318,13 @@ export function forEachChild(node: IDLEntry, cb: (entry: IDLEntry) => void): voi
 }
 
 export function isNullType(type: IDLEntry): type is IDLPrimitiveType {
-    return isPrimitiveType(type) && type.name === "null_"
+    return isPrimitiveType(type) && type[idlTypeName] === "null_"
 }
 export function isUndefinedType(type: IDLEntry): type is IDLPrimitiveType {
-    return isPrimitiveType(type) && type.name === "undefined"
+    return isPrimitiveType(type) && type[idlTypeName] === "undefined"
 }
 export function isVoidType(type: IDLEntry): type is IDLPrimitiveType {
-    return isPrimitiveType(type) && type.name === IDLVoidType.name
+    return isPrimitiveType(type) && type[idlTypeName] === IDLVoidType[idlTypeName]
 }
 export function isPrimitiveType(type: IDLEntry): type is IDLPrimitiveType {
     return type.kind == IDLKind.PrimitiveType
@@ -366,6 +389,9 @@ export function isConstant(node: IDLEntry): node is IDLConstant {
 export function isTypedef(node: IDLEntry): node is IDLTypedef {
     return node.kind === IDLKind.Typedef
 }
+export function isType(node: IDLEntry): node is IDLType {
+    return idlTypeName in node
+}
 
 export function isModuleType(node: IDLEntry): node is IDLModuleType {
     return node.kind === IDLKind.ModuleType
@@ -374,10 +400,26 @@ export function isSyntheticEntry(node: IDLEntry): boolean {
     return isDefined(node.extendedAttributes?.find(it => it.name === IDLExtendedAttributes.Synthetic))
 }
 
+export function isOptionalType(type: IDLType): type is IDLOptionalType {
+    return type.optional === true && 'element' in type
+}
+
 function createPrimitiveType(name: string): IDLPrimitiveType {
     return {
         kind: IDLKind.PrimitiveType,
-        name: name
+        [idlTypeName]: name,
+        [primitiveTypeAnchor]: true
+    }
+}
+
+function createOptionalType(element:IDLType): IDLOptionalType {
+    if (isOptionalType(element)) {
+        return element
+    }
+    return {
+        ...element,
+        optional: true,
+        element
     }
 }
 
@@ -398,46 +440,68 @@ export const IDLBigintType = createPrimitiveType("bigint")
 export const IDLNumberType = createPrimitiveType('number')
 export const IDLStringType = createPrimitiveType('String')
 export const IDLAnyType = createPrimitiveType('any')
-export const IDLNullType = createPrimitiveType('Null')
+export const IDLNullType = createPrimitiveType('null')
 export const IDLUndefinedType = createPrimitiveType('undefined')
 export const IDLUnknownType = createPrimitiveType('unknown')
 export const IDLObjectType = createReferenceType('Object')
+export const IDLThisType = createPrimitiveType('this')
 
+// Stub for IdlPeerLibrary 
+export const IDLFunctionType = createPrimitiveType('Function')
+export const IDLLengthType = createPrimitiveType('Length')
+export const IDLCustomObjectType = createPrimitiveType('CustomObject')
+
+export function createModuleType(name:string, extendedAttributes?: IDLExtendedAttribute[], fileName?:string): IDLModuleType {
+    return {
+        kind: IDLKind.ModuleType,
+        [idlTypeName]: name,
+        extendedAttributes,
+        fileName,
+    }
+}
 export function createReferenceType(name: string, typeArguments?: (string | undefined)[]): IDLReferenceType {
-    const result: IDLReferenceType = {
-        name,
-        kind: IDLKind.ReferenceType
-    }
     if (typeArguments) {
-        result.extendedAttributes = [{
-            name: IDLExtendedAttributes.TypeArguments,
-            value: typeArguments.join(",")
-        }]
+        return {
+            kind: IDLKind.ReferenceType,
+            [idlTypeName]: name,
+            extendedAttributes: [{
+                name: IDLExtendedAttributes.TypeArguments,
+                value: typeArguments.join(",")
+            }]
+        }
     }
-    return result
+    return {
+        kind: IDLKind.ReferenceType,
+        [idlTypeName]: name
+    }
 }
 
 export function createEnumType(name: string): IDLEnumType {
     return {
         kind: IDLKind.EnumType,
-        name: name
+        [idlTypeName]: name
     }
 }
 
-export function createContainerType(container: string, element: IDLType[]): IDLContainerType {
+export function entityToType(entity:IDLEntry): IDLType {
+    if (isType(entity)) {
+        return entity
+    }
+
+    return createReferenceType(entity.name ?? throwException("Can not convert!"))
+}
+
+export function createContainerType(container: IDLContainerKind, element: IDLType[]): IDLContainerType {
     if (container == "Promise") {
         // A bit ugly, but we cannot do that.
         element.forEach(it => { it.extendedAttributes = []})
     }
-    if (container == "Record") {
-        container = "record"
-    }
-    if (element[0].name == "PropertyKey") {
-        element[0].name = IDLStringType.name
+    if (element[0][idlTypeName] == "PropertyKey") {
+        element[0] = { ...element[0], [idlTypeName]: IDLStringType[idlTypeName] }
     }
     return {
         kind: IDLKind.ContainerType,
-        name: container,
+        [idlTypeName]: container,
         elementType: element
     }
 }
@@ -447,7 +511,7 @@ export function createUnionType(types: IDLType[], name?: string): IDLUnionType {
         throw new Error("IDLUnionType should contain at least 2 types")
     return {
         kind: IDLKind.UnionType,
-        name: name ?? types.map(it => it.name).join(" or "),
+        [idlTypeName]: name ?? types.map(it => it[idlTypeName]).join(" or "),
         types: types
     }
 }
@@ -516,7 +580,7 @@ export function createCallback(name: string, parameters: IDLParameter[], returnT
 export function createTypeParameterReference(name: string): IDLTypeParameterType {
     return {
         kind: IDLKind.TypeParameterType,
-        name: name
+        [idlTypeName]: name
     }
 }
 
@@ -542,18 +606,19 @@ export function unescapeKeyword(name: string): string {
     return name
 }
 
-export function printType(type: IDLType | undefined): string {
+export function printType(type: IDLType | IDLInterface | undefined): string {
     if (!type) throw new Error("Missing type")
-    if (isPrimitiveType(type)) return type.name
-    if (isContainerType(type)) return `${type.name}<${type.elementType.map(printType).join(", ")}>`
+    if (isInterface(type)) return type.name
+    if (isPrimitiveType(type)) return type[idlTypeName]
+    if (isContainerType(type)) return `${type[idlTypeName]}<${type.elementType.map(printType).join(", ")}>`
     if (isReferenceType(type)) {
         const attrs = quoteAttributeValues(type.extendedAttributes)
         const attrSpec = attrs ? `[${attrs}] ` : ""
-        return `${attrSpec}${type.name}`
+        return `${attrSpec}${type[idlTypeName]}`
     }
     if (isUnionType(type)) return `(${type.types.map(printType).join(" or ")})`
-    if (isEnumType(type)) return type.name
-    if (isTypeParameterType(type)) return type.name
+    if (isEnumType(type)) return type[idlTypeName]
+    if (isTypeParameterType(type)) return type[idlTypeName]
     throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
 }
 
@@ -661,7 +726,7 @@ export function printModule(idl: IDLModuleType): stringOrNone[] {
     // May changes later to deal with namespace. currently just VerbatimDts
     return [
         ...printExtendedAttributes(idl,0),
-        `namespace ${idl.name} {};`
+        `namespace ${idl[idlTypeName]} {};`
     ]
 }
 
@@ -725,7 +790,7 @@ export function hasSuperType(idl: IDLInterface) {
 
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
     const type = printType(idl.type)
-    const initializer = type === IDLStringType.name
+    const initializer = type === IDLStringType[idlTypeName]
         ? `"${(idl.initializer as string).replaceAll('"', "'")}"`
         : idl.initializer
     return [
@@ -814,22 +879,135 @@ export function getVerbatimDts(node: IDLEntry): stringOrNone {
     let value = getExtAttribute(node, IDLExtendedAttributes.VerbatimDts)
     return value ? value.substring(1, value.length - 1) : undefined
 }
+export function updateIDLType<T extends IDLType>(type:T, newName:string): T {
+    if (type[idlTypeName] === newName) {
+        return type
+    }
+    if (!isReferenceType(type)) {
+        // warning!!!
+        console.warn("WARNING: update not reference type!")
+    }
+    return { ...type, [idlTypeName]: newName }
+}
+export function isIDLTypeNameIn(type: IDLType, collection:string[] | Map<string, unknown> | Set<string>): boolean {
+    const isValidType = isTypeParameterType(type) || isReferenceType(type) || isEnumType(type) || isPrimitiveType(type)
+    if (!isValidType) {
+        return false
+    }
+    if (Array.isArray(collection)) {
+        return collection.includes(type[idlTypeName])
+    }
+    return collection.has(type[idlTypeName])
+} 
+export function isIDLTypeName(type: IDLType , name:string | undefined): boolean {
+    const isValidType = !isContainerType(type)
+    if (!isValidType) {
+        return false
+    }
+    if (!name) {
+        return false
+    }
+    return type[idlTypeName] === name
+}
 
+export const IDLContainerUtils = {
+    isRecord: (x:IDLContainerType) => x[idlTypeName] === 'record',
+    isSequence: (x:IDLContainerType) => x[idlTypeName] === 'sequence',
+    isPromise: (x:IDLContainerType) => x[idlTypeName] === 'Promise'
+}
+export function getIDLContainerTypeKind(type:IDLContainerType): IDLContainerKind {
+    return type[idlTypeName]
+} 
+type IDLTypePrinter<T> = (x:T, name:string) => string
+export function getIDLTypeName<T extends IDLType>(type:T, print?: IDLTypePrinter<T>): string {
+    if (isPrimitiveType(type) || isReferenceType(type) || isEnumType(type) || isTypeParameterType(type)) {
+        if (print) {
+           return print(type, type[idlTypeName])
+        }
+        return type[idlTypeName]
+    }
+    if (!print) {
+        throw new Error("Possible type data loss!")
+    }
+    return print(type, type[idlTypeName])
+}
+export function isIDLTypeNameWith(type:IDLType, predicate:(name:string) => boolean): boolean {
+    return predicate(type[idlTypeName])
+}
+export function updateIDLTypeWith<T extends IDLType>(type:T, action: (t:IDLType) => string): T {
+    return updateIDLType(type, action(type))
+}
+export function isIDLTypeSameName(a:IDLType, b:IDLType): boolean {
+    return a[idlTypeName] === b[idlTypeName]
+}
 ///don't like this. But type args are stored as strings, not as IDLType as they should
 export function toIDLType(typeName: string): IDLType {
-    const arrayMatch = typeName.match(/Array<(.*)>/)!
-    if (arrayMatch)
+    if (typeName.includes('import')) {
+        throw new Error(`FAIL ${typeName}`)
+    } 
+    if (typeName === 'sequence') {
+        throw new Error('FAIL')
+    }
+    const arrayMatch = typeName.match(/^Array<(.*)$>/)
+    if (arrayMatch) {
         return createContainerType("sequence", [toIDLType(arrayMatch[1])])
+    }
+    // TODO: mb match /Map<(.*), (.*)>/ and /(.*)\[\]]/
+
     switch (typeName) {
         case "boolean": return IDLBooleanType
         case "null": return IDLNullType
         case "number": return IDLNumberType
         case "string": return IDLStringType
+        case "String": return IDLStringType
         case "undefined": return IDLUndefinedType
         case "unknown": return IDLUnknownType
         case "void": return IDLVoidType
         case "Object": return IDLObjectType
         case "any": return IDLAnyType
+        case "i8": return IDLI8Type
+        case "u8": return IDLU8Type
+        case "i16": return IDLI16Type
+        case "u16": return IDLU16Type
+        case "i32": return IDLI32Type
+        case "u32": return IDLU32Type
+        case "i64": return IDLI64Type
+        case "u64": return IDLU64Type
+        case "pointer": return IDLPointerType
+        case "this": return IDLThisType
         default: return createReferenceType(typeName)
+    }
+}
+
+export function maybeOptional(type: IDLType, optional?: boolean): IDLType {
+    if (optional === undefined) {
+        return type
+    }
+    if (optional) {
+        if (isOptionalType(type)) {
+            return type
+        }
+        return createOptionalType(type)
+    }
+
+    if (isOptionalType(type)) {
+        return type.element
+    }
+    return type
+}
+
+export const DebugUtils = {
+    debugPrintType: (type:IDLType): string => {
+        if (isContainerType(type)) {
+            return `[IDLType, name: '${type[idlTypeName]}', kind: '${IDLKind[type.kind]}', elements: [${type.elementType.map(DebugUtils.debugPrintType).join(', ')}]]`
+        }
+        return `[IDLType, name: '${type[idlTypeName]}', kind: '${IDLKind[type.kind]}]'`
+    },
+    easyGetName: (type:IDLType, name:string): string => {
+        if (isContainerType(type)) {
+            console.warn("Try to loose type info", name, type)
+            throw new Error("Try to loose type info")
+        }
+        return name
     }
 }

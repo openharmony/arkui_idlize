@@ -14,8 +14,8 @@
  */
 
 import * as idl from "../../idl"
-import { Method, Type, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters/LanguageWriter";
-import { PeerClassBase } from "../PeerClass";
+import { Method, MethodSignature, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters";
+import { PeerClass, PeerClassBase } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { isDefined } from "../../util";
 import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
@@ -28,15 +28,24 @@ import { Language } from "../../Language";
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
-        throw "Can not process defaults in collapsed method"
+        throw new Error("Can not process defaults in collapsed method")
     const maxArgLength = Math.max(...methods.map(it => it.signature.args.length))
     const maxMethod = methods.find(it => it.signature.args.length === maxArgLength)!
-    const collapsedArgs: Type[] = Array.from({length: maxArgLength}, (_, argIndex) => {
+    const collapsedArgs: idl.IDLType[] = Array.from({length: maxArgLength}, (_, argIndex) => {
         if (selectMaxMethodArgs?.includes(argIndex))
             return maxMethod.signature.args[argIndex]
-        const name = methods.map(it => it.signature.args[argIndex]?.name).filter(isDefined).join(' | ')
-        const optional = methods.some(it => it.signature.args[argIndex]?.nullable ?? true)
-        return new Type(name, optional)
+        const types = methods.map(it => it.signature.args[argIndex]).filter(isDefined)
+        const optional = methods.some(it => {
+            if (argIndex < it.signature.args.length) {
+                return it.signature.args[argIndex].optional ?? false
+            } else {
+                return true
+            }
+        })
+        if (types.length > 1) {
+            return idl.maybeOptional(idl.createUnionType(types), optional)
+        }
+        return idl.maybeOptional(types[0], optional)
     })
     return new Method(
         methods[0].name,
@@ -56,11 +65,11 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
     const maxMethod = overloads.find(it => it.declarationTargets.length === maxArgsLength)!
     const targets: idl.IDLType[] = Array.from({length: maxArgsLength}, (_, argIndex) => {
         if (selectMaxMethodArgs?.includes(argIndex))
-            return maxMethod.declarationTargets[argIndex]
+            return idl.entityToType(maxMethod.declarationTargets[argIndex])
         return typeOrUnion(overloads.flatMap(overload => {
             if (overload.declarationTargets.length <= argIndex)
                 return []
-            const target = overload.declarationTargets[argIndex]
+            const target = idl.entityToType(overload.declarationTargets[argIndex])
             if (idl.isUnionType(target))
                 return target.types
             return [target]
@@ -73,9 +82,9 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
             return convertor
         }
         return library.typeConvertor(
-            method.signature.argName(index),
-            target,
-            method.signature.args[index].nullable,
+            method.signature.argName(index), 
+            target, 
+            method.signature.args[index].optional, 
             true
         )
     })
@@ -160,7 +169,7 @@ export class OverloadsPrinter {
             const castedArgName = `${argName}_casted`
             const castedType = peerMethod.method.signature.args[index]
             if (this.language == Language.ARKTS
-                && collapsedMethod.signature.args[index].nullable) {
+                && collapsedMethod.signature.args[index].optional) {
                 this.printer.writeStatement(
                     this.printer.makeCondition(this.printer.makeNaryOp("==",
                             [this.printer.makeString(argName), this.printer.makeString("undefined")]),
@@ -168,7 +177,7 @@ export class OverloadsPrinter {
                     )
                 )
             }
-            this.printer.print(`const ${castedArgName} = ${argName} as (${this.printer.mapType(castedType)})`)
+            this.printer.print(`const ${castedArgName} = ${argName} as (${this.printer.mapIDLType(castedType)})`)
             return castedArgName
         })
         const isStatic = collapsedMethod.modifiers?.includes(MethodModifier.STATIC)
@@ -192,9 +201,9 @@ export class OverloadsPrinter {
             })
 
         const returnType = collapsedMethod.signature.returnType
-        if (returnType === Type.This || returnType === Type.Void) {
+        if (returnType === idl.IDLThisType || returnType === idl.IDLVoidType) {
             this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
-            if (returnType === Type.This) {
+            if (returnType === idl.IDLThisType) {
                 this.printer.print(`return this`)
             }
         } else {

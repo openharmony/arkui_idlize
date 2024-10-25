@@ -4,12 +4,15 @@ import { ImportFeature } from "../../ImportsCollector"
 import {  } from "../../TypeNodeConvertor"
 
 class CJImportsCollector implements TypeConvertor<ImportFeature[]> {
+    convertOptional(type: idl.IDLOptionalType): ImportFeature[] {
+        throw new Error("Unimplemented")
+    }
     convertUnion(type: idl.IDLUnionType): ImportFeature[] {
         return []
     }
     convertContainer(type: idl.IDLContainerType): ImportFeature[] {
         const result = type.elementType.flatMap(ty => convertType(this, ty))
-        if (type.name == "record") {
+        if (idl.IDLContainerUtils.isRecord(type)) {
             result.push({feature: "java.util.Map", module: ""})
         }
         return result

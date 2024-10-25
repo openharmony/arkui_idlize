@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { Type } from '../LanguageWriters'
 import { TargetFile } from './TargetFile'
 import { DeclarationTarget } from '../DeclarationTable'
+import { IDLType } from '../../idl'
 
 export interface SynthesizedTypesRegistry {
     getDefinitions(): Map<TargetFile, string>
-    getTargetType(target: DeclarationTarget, optional: boolean): Type
+    getTargetType(target: DeclarationTarget, optional: boolean): IDLType
 }

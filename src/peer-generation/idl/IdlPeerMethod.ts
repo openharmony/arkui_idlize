@@ -18,14 +18,14 @@ import { capitalize, isDefined } from "../../util"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
 import { Method, MethodModifier } from "../LanguageWriters"
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { IDLType } from "../../idl"
+import { IDLCallback, IDLEntry, IDLType } from "../../idl"
 import { mangleMethodName } from "../LanguageWriters/LanguageWriter"
 
 export class IdlPeerMethod {
     private overloadIndex?: number
     constructor(
         public originalParentName: string,
-        public declarationTargets: IDLType[],
+        public declarationTargets: IDLEntry[],
         public argConvertors: ArgConvertor[],
         public retConvertor: RetConvertor,
         public isCallSignature: boolean,

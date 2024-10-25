@@ -14,13 +14,14 @@
  */
 
 import * as idl from "../../idl"
+import { IDLEntry, IDLType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { Language } from "../../Language"
 import { camelCaseToUpperSnakeCase } from "../../util"
 import { RuntimeType } from "../ArgConvertors"
 // import { ArkPrimitiveType } from "../DeclarationTable"
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters"
+import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isImport, isStringEnum } from "./common"
 import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
@@ -48,9 +49,9 @@ export class StructPrinter {
     private isPointerDeclaration(target: idl.IDLEntry, isOptional: boolean = false): boolean {
         if (isOptional) return true
         if (idl.isPrimitiveType(target))
-            return [idl.IDLAnyType.name, idl.IDLStringType.name, idl.IDLNumberType.name, "Length", "CustomObject"].includes(target.name)
+            return [idl.getIDLTypeName(idl.IDLAnyType), idl.getIDLTypeName(idl.IDLStringType), idl.getIDLTypeName(idl.IDLNumberType), "Length", "CustomObject"].includes(idl.getIDLTypeName(target))
         if (idl.isEnum(target) || idl.isEnumType(target)) return false
-        if (idl.isReferenceType(target) && target.name === "GestureType") return false
+        if (idl.isReferenceType(target) && idl.getIDLTypeName(target) === "GestureType") return false
         return true
     }
 
@@ -79,13 +80,13 @@ export class StructPrinter {
     }
 
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
-        const enumsDeclarations = createLanguageWriter(Language.CPP)
-        const forwardDeclarations = createLanguageWriter(Language.CPP)
-        const concreteDeclarations = createLanguageWriter(Language.CPP)
+        const enumsDeclarations = createLanguageWriter(Language.CPP, this.library)
+        const forwardDeclarations = createLanguageWriter(Language.CPP, this.library)
+        const concreteDeclarations = createLanguageWriter(Language.CPP, this.library)
         const seenNames = new Set<string>()
         seenNames.clear()
-        let noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
-        for (let target of this.library.orderedDependencies) {
+        const noDeclaration = ["Int32", "Tag", idl.getIDLTypeName(idl.IDLNumberType), idl.getIDLTypeName(idl.IDLBooleanType), idl.getIDLTypeName(idl.IDLStringType), idl.getIDLTypeName(idl.IDLVoidType)]
+        for (const target of this.library.orderedDependencies) {
             let nameAssigned = this.library.computeTargetName(target, false)
             if (nameAssigned === PrimitiveType.Tag.getText())
                 continue
@@ -134,22 +135,18 @@ export class StructPrinter {
                     })
                 } else if (idl.isContainerType(target)) {
                     let fieldNames: string[] = []
-                    switch (target.name) {
-                        case "sequence":
-                            fieldNames = ["array"]
-                            break
-                        case "record":
-                            concreteDeclarations.print(`${PrimitiveType.Int32.getText()} size;`)
+                    if (idl.IDLContainerUtils.isSequence(target)) {
+                        fieldNames = ["array"]
+                    }
+                    if (idl.IDLContainerUtils.isRecord(target)) {
+                        concreteDeclarations.print(`${PrimitiveType.Int32.getText()} size;`)
                             fieldNames = ["keys", "values"]
-                            break
                     }
                     target.elementType.forEach((it, index) => {
                         concreteDeclarations.print(`${this.library.getTypeName(it)}* ${fieldNames[index]};`)
                     })
-                    switch (target.name) {
-                        case "sequence":
-                            concreteDeclarations.print(`${PrimitiveType.Int32.getText()} length;`)
-                            break
+                    if (idl.IDLContainerUtils.isSequence(target)) {
+                        concreteDeclarations.print(`${PrimitiveType.Int32.getText()} length;`)
                     }
                 } else if (idl.isCallback(target)) {
                     concreteDeclarations.print(`${PrimitiveType.Prefix}CallbackResource resource;`)
@@ -201,20 +198,20 @@ export class StructPrinter {
     }
 
     private writeRuntimeType(target: idl.IDLEntry, targetTypeName: string, isOptional: boolean, writer: LanguageWriter) {
-        const resultType = new Type("Ark_RuntimeType")
+        const resultType = idl.toIDLType("Ark_RuntimeType")
         const op = this.writeRuntimeTypeOp(target, targetTypeName, resultType, isOptional, writer)
         if (op) {
             writer.print("template <>")
             writer.writeMethodImplementation(
                 new Method("runtimeType",
-                    new NamedMethodSignature(resultType, [new Type(`const ${targetTypeName}&`)], ["value"]),
+                    new NamedMethodSignature(resultType, [idl.toIDLType(`const ${targetTypeName}&`)], ["value"]),
                     [MethodModifier.INLINE]),
                 op)
         }
     }
 
     private writeRuntimeTypeOp(
-        target: idl.IDLEntry, targetTypeName: string, resultType: Type, isOptional: boolean, writer: LanguageWriter
+        target: IDLEntry, targetTypeName: string, resultType: IDLType, isOptional: boolean, writer: LanguageWriter
     ) : ((writer: LanguageWriter) => void) | undefined
     {
         let result: LanguageExpression
@@ -237,7 +234,12 @@ export class StructPrinter {
                 writer.print("}")
             }
         } else {
-            switch (target.name) {
+            const targetName = idl.isType(target) 
+                ? idl.isContainerType(target)
+                    ? undefined
+                    : idl.getIDLTypeName(target)
+                : target.name
+            switch (targetName) {
                 case "boolean":
                     result = writer.makeRuntimeType(RuntimeType.BOOLEAN)
                     break
@@ -250,13 +252,13 @@ export class StructPrinter {
                     result = writer.makeRuntimeType(RuntimeType.FUNCTION)
                     break
                 case "Int32":
-                case idl.IDLNumberType.name:
+                case idl.getIDLTypeName(idl.IDLNumberType):
                     result = writer.makeRuntimeType(RuntimeType.NUMBER)
                     break
                 case "Length":
                     result = writer.makeCast(writer.makeString("value.type"), resultType)
                     break
-                case idl.IDLStringType.name:
+                case idl.getIDLTypeName(idl.IDLStringType):
                     result = writer.makeRuntimeType(RuntimeType.STRING)
                     break
                 case "undefined":
@@ -363,9 +365,9 @@ inline void WriteToString(string* result, const ${name}* value) {
     private generateWriteToString(name: string, target: idl.IDLEntry, printer: LanguageWriter, isPointer: boolean) {
         let access = isPointer ? "->" : "."
         if (idl.isContainerType(target)) {
-            if (target.name === "sequence") {
+            if (idl.IDLContainerUtils.isSequence(target)) {
                 this.generateArrayWriteToString(name, target, printer)
-            } else if (target.name === "record") {
+            } else if (idl.IDLContainerUtils.isRecord(target)) {
                 this.generateMapWriteToString(name, target, printer)
             }
         } else if (idl.isEnum(target)) {

@@ -18,7 +18,7 @@ import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { DeclarationTarget } from "../DeclarationTable"
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { BlockStatement, ExpressionStatement, FieldModifier, LanguageWriter, Method, NamedMethodSignature, printMethodDeclaration, StringExpression, Type } from "../LanguageWriters/LanguageWriter"
+import { BlockStatement, ExpressionStatement, FieldModifier, LanguageWriter, Method, NamedMethodSignature, StringExpression } from "../LanguageWriters"
 import { PeerClassBase } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
 import { PeerMethod } from "../PeerMethod"
@@ -39,6 +39,9 @@ import { Language } from "../../Language"
 import { CppLanguageWriter } from "../LanguageWriters/writers/CppLanguageWriter"
 import { TSLanguageWriter } from "../LanguageWriters/writers/TsLanguageWriter"
 import { ImportsCollector } from "../ImportsCollector";
+import { printMethodDeclaration } from "../LanguageWriters/LanguageWriter"
+import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver"
+import { isImport } from "../idl/common"
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -68,15 +71,15 @@ export function generateEventsBridgeSignature(language: Language): Method {
         case Language.CJ:
         case Language.TS:
             signature = new NamedMethodSignature(
-                new Type(`KInt`),
-                [new Type(`Uint8Array`), new Type(`KInt`)],
+                idl.toIDLType(`KInt`),
+                [idl.toIDLType(`Uint8Array`), idl.toIDLType(`KInt`)],
                 [`result`, `size`],
             )
             break;
         case Language.CPP:
             signature = new NamedMethodSignature(
-                new Type(`KInt`),
-                [new Type(`KUint*`), new Type(`KInt`)],
+                idl.toIDLType(`KInt`),
+                [idl.toIDLType(`KUint*`), idl.toIDLType(`KInt`)],
                 [`result`, `size`],
             )
             break;
@@ -98,7 +101,7 @@ export function groupCallbacks(callbacks: (CallbackInfo | IdlCallbackInfo)[]): M
 }
 
 export function collectCallbacks(library: PeerLibrary | IdlPeerLibrary): (CallbackInfo | IdlCallbackInfo)[] {
-    let callbacks = []
+    const callbacks = []
     for (const file of library.files) {
         for (const peer of file.peers.values()) {
             for (const method of peer.methods) {
@@ -125,10 +128,10 @@ export function canProcessCallback(callback: CallbackInfoBase): boolean {
 }
 
 type CallbackInfoType<T> = T extends PeerMethod ? CallbackInfo : T extends IdlPeerMethod ? IdlCallbackInfo : never
-type ParameterInfoType<T> = T extends PeerMethod ? DeclarationTarget : T extends IdlPeerMethod ? idl.IDLType : never
+type ParameterInfoType<T> = T extends PeerMethod ? DeclarationTarget : T extends IdlPeerMethod ? (idl.IDLEntry) : never
 
 export function convertToCallback<T extends PeerMethod | IdlPeerMethod>(peer: PeerClassBase, method: T, target: ParameterInfoType<T>): CallbackInfoType<T> | undefined
-export function convertToCallback(peer: PeerClassBase, method: PeerMethod | IdlPeerMethod, target: DeclarationTarget | idl.IDLType): CallbackInfoType<PeerMethod> | CallbackInfoType<IdlPeerMethod> | undefined {
+export function convertToCallback(peer: PeerClassBase, method: PeerMethod | IdlPeerMethod, target: DeclarationTarget | idl.IDLEntry): CallbackInfoType<PeerMethod> | CallbackInfoType<IdlPeerMethod> | undefined {
     if (method instanceof PeerMethod)
         return convertTargetToCallback(peer, method, target as ParameterInfoType<PeerMethod>) as CallbackInfoType<PeerMethod>
     else if (method instanceof IdlPeerMethod)
@@ -163,29 +166,35 @@ function convertTargetToCallback(peer: PeerClassBase, method: PeerMethod, target
     }
 }
 
-function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argType: idl.IDLType): IdlCallbackInfo | undefined {
-    if (idl.isCallback(argType))
+function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argType: idl.IDLEntry): IdlCallbackInfo | undefined {
+    if (idl.isCallback(argType)) {
         return {
             componentName: peer.getComponentName(),
             methodName: method.overloadedName,
-            args: argType.parameters.map(it => {return {
+            args: argType.parameters.map(it => ({
                 name: it.name,
                 type: it.type!,
                 nullable: it.isOptional
-            }}),
+            })),
             returnType: argType.returnType,
             originTarget: argType,
         }
-    if (idl.isReferenceType(argType) && argType.name === "Callback") {
-        const typeArgs = idl.getExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)!.split(",")
-        const inputType = idl.toIDLType(typeArgs[0])
-        const hasData = !idl.isVoidType(inputType)
-        return {
-            componentName: peer.getComponentName(),
-            methodName: method.overloadedName,
-            args: hasData ? [{name: 'data', type: inputType, nullable: false}] : [],
-            returnType: typeArgs[1] ? idl.createReferenceType(typeArgs[1]) : idl.IDLVoidType,
-            originTarget: argType,
+    }
+    if (idl.isReferenceType(argType)) {
+        if (isImport(argType)) {
+            return undefined
+        }
+        if (idl.isIDLTypeName(argType, 'Callback') && idl.hasExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)) {
+            const typeArgs = idl.getExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)!.split(",").map(it => it.trim())
+            const inputType = idl.toIDLType(typeArgs[0])
+            const hasData = !idl.isVoidType(inputType)
+            return {
+                componentName: peer.getComponentName(),
+                methodName: method.overloadedName,
+                args: hasData ? [{name: 'data', type: inputType, nullable: false}] : [],
+                returnType: typeArgs[1] ? idl.createReferenceType(typeArgs[1]) : idl.IDLVoidType,
+                originTarget: argType,
+            }
         }
     }
     return undefined
@@ -201,7 +210,7 @@ export function callbackEventNameByInfo(info: CallbackInfoBase): string {
 
 function idlTypesEquals(a: idl.IDLType, b: idl.IDLType): boolean {
     if (a.kind !== b.kind ||
-        a.name !== b.name)
+        !idl.isIDLTypeSameName(a, b))
         return false
     if (idl.isUnionType(a) && idl.isUnionType(b)) {
         return a.types.every(it => b.types.some(other => idlTypesEquals(it, other))) &&
@@ -255,8 +264,8 @@ export function collapseIdlEventsOverloads(library: IdlPeerLibrary, peer: IdlPee
 }
 
 abstract class CEventsVisitorBase {
-    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter())
-    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter())
+    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
+    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
 
     constructor(
         protected readonly library: PeerLibrary | IdlPeerLibrary,
@@ -358,9 +367,9 @@ class CEventsVisitor extends CEventsVisitorBase {
     protected override printEventMethodDeclaration(event: CallbackInfo) {
         const signature = generateEventSignature(this.library.declarationTable, event)
         const args = signature.args.map((type, index) => {
-            return `${type.name} ${signature.argName(index)}`
+            return `${idl.getIDLTypeName(type)} ${signature.argName(index)}`
         })
-        printMethodDeclaration(this.impl.printer, signature.returnType.name, `${event.methodName}Impl`, args)
+        printMethodDeclaration(this.impl.printer, idl.getIDLTypeName(signature.returnType), `${event.methodName}Impl`, args)
     }
 
     protected override printSerializers(event: CallbackInfo) {
@@ -395,14 +404,14 @@ class IdlCEventsVisitor extends CEventsVisitorBase {
 }
 
 abstract class TSEventsVisitorBase {
-    readonly printer: LanguageWriter = new TSLanguageWriter(new IndentedPrinter())
+    readonly printer: LanguageWriter = new TSLanguageWriter(new IndentedPrinter(), getReferenceResolver(this.library))
 
     constructor(
         protected readonly library: PeerLibrary | IdlPeerLibrary,
     ) {}
 
     protected abstract typeConvertor(param: string, type: ts.TypeNode | idl.IDLType, isOptional: boolean): ArgConvertor
-    protected abstract mapType(type: ts.TypeNode | idl.IDLType): string
+    protected abstract mapType(type: ts.TypeNode | idl.IDLType | idl.IDLCallback): idl.IDLType
 
     private printImports() {
         const imports = new ImportsCollector()
@@ -440,14 +449,14 @@ interface PeerEvent {
                     : `${PeerEventKind}`
                 writer.writeFieldDeclaration(
                     'kind',
-                    new Type(kindType, false),
+                    idl.maybeOptional(idl.toIDLType(kindType), false),
                     [FieldModifier.READONLY],
                     false,
                 )
                 info.args.forEach(arg => {
                     writer.writeFieldDeclaration(
                         arg.name,
-                        new Type(this.mapType(arg.type), arg.nullable),
+                        idl.maybeOptional(this.mapType(arg.type), arg.nullable),
                         [FieldModifier.READONLY],
                         arg.nullable,
                     )
@@ -488,13 +497,13 @@ interface PeerEvent {
         this.printer.pushIndent()
         this.printer.writeStatement(this.printer.makeAssign(
             'kind',
-            new Type(PeerEventKind),
+            idl.toIDLType(PeerEventKind),
             new StringExpression(`eventDeserializer.readInt32()`),
             true,
         ))
         this.printer.writeStatement(this.printer.makeAssign(
             'nodeId',
-            Type.Number,
+            idl.IDLNumberType,
             new StringExpression(`eventDeserializer.readInt32()`),
             true,
         ))
@@ -508,7 +517,7 @@ interface PeerEvent {
                         return `${arg.name}?: any`
                     }),
                 ]
-                const constructorType = new Type(`{ ${constructorTypeArgs.join(', ')} }`)
+                const constructorType = idl.toIDLType(`{ ${constructorTypeArgs.join(', ')} }`)
 
                 return {
                     expr: this.printer.makeNaryOp('===', [
@@ -530,7 +539,7 @@ interface PeerEvent {
                         }),
                         this.printer.makeReturn(this.printer.makeCast(
                             new StringExpression(`event`),
-                            new Type(callbackEventNameByInfo(info)),
+                            idl.toIDLType(callbackEventNameByInfo(info)),
                         ))
                     ], false),
                 }
@@ -548,9 +557,10 @@ interface PeerEvent {
         const contentOp = (writer: LanguageWriter) => {
             for (const info of infos) {
                 writer.writeFieldDeclaration(callbackIdByInfo(info),
-                    new Type(this.mapType(info.originTarget)),
+                    this.mapType( info.originTarget),
                     undefined,
-                    true)
+                    true
+                )
             }
         }
         if (this.library.language == Language.ARKTS)
@@ -611,8 +621,9 @@ class ArkTSEventsVisitor extends TSEventsVisitorBase {
         //TODO: Not implemented yet
     }
 
-    protected mapType(type: ts.TypeNode): string {
-        return this.typeNodeConvertor.convert(type)
+    protected mapType(type: ts.TypeNode): idl.IDLType {
+        const text = this.typeNodeConvertor.convert(type)
+        return idl.toIDLType(text)
     }
 }
 
@@ -625,8 +636,8 @@ class TSEventsVisitor extends TSEventsVisitorBase {
         return this.library.declarationTable.typeConvertor(param, type, isOptional)
     }
 
-    protected mapType(type: ts.TypeNode): string {
-        return mapType(type)
+    protected mapType(type: ts.TypeNode): idl.IDLType {
+        return idl.toIDLType(mapType(type))
     }
 }
 
@@ -639,8 +650,8 @@ class IdlTSEventsVisitor extends TSEventsVisitorBase {
         return this.library.typeConvertor(param, type, isOptional)
     }
 
-    protected mapType(type: idl.IDLType): string {
-        return this.library.mapType(type)
+    protected mapType(type: idl.IDLType): idl.IDLType {
+        return type
     }
 
     protected printParseFunction(infos: (CallbackInfo | IdlCallbackInfo)[]) {

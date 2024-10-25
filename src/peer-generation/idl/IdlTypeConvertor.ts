@@ -15,7 +15,12 @@
 
 import * as idl from '../../idl'
 
+export interface IdlTypeNameConvertor {
+    convert(type: idl.IDLType | idl.IDLCallback): string
+}
+
 export interface TypeConvertor<T> {
+    convertOptional(type: idl.IDLOptionalType): T
     convertUnion(type: idl.IDLUnionType): T
     convertContainer(type: idl.IDLContainerType): T
     convertEnum(type: idl.IDLEnumType): T
@@ -26,6 +31,7 @@ export interface TypeConvertor<T> {
 }
 
 export function convertType<T>(convertor: TypeConvertor<T>, type: idl.IDLType): T {
+    if (idl.isOptionalType(type)) return convertor.convertOptional(type)
     if (idl.isUnionType(type)) return convertor.convertUnion(type)
     if (idl.isContainerType(type)) return convertor.convertContainer(type)
     if (idl.isEnumType(type)) return convertor.convertEnum(type)

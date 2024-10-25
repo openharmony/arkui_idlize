@@ -7,10 +7,12 @@ import {
     DeclarationNameConvertor
 } from "../dependencies_collector";
 import { convertDeclaration } from "../TypeNodeConvertor";
-import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
+import { createLanguageWriter, generateTypeCheckerName, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { Language } from "../../Language";
 import { StructDescriptor } from "../DeclarationTable";
 import { getSyntheticDeclarationList } from "../synthetic_declaration";
+import { IDLBooleanType, toIDLType } from "../../idl";
+import { getReferenceResolver } from "../ReferenceResolver";
 
 const builtInInterfaceTypes = new Map<string,
     (writer: LanguageWriter, value: string) => LanguageExpression>([
@@ -65,11 +67,6 @@ export function makeArrayTypeCheckCall(
     ])
 }
 
-export function generateTypeCheckerName(typeName: string): string {
-    typeName = typeName.replaceAll('[]', 'BracketsArray')
-    return `is${typeName.replaceAll('[]', 'Brackets')}`
-}
-
 abstract class TypeCheckerPrinter {
     constructor(
         protected readonly library: PeerLibrary,
@@ -78,6 +75,8 @@ abstract class TypeCheckerPrinter {
 
     protected writeImports(features: ImportFeature[]): void {
         const imports = new ImportsCollector()
+        imports.addFeature('KBoolean', '@koalaui/interop')
+        imports.addFeature('KStringPtr', '@koalaui/interop')
         for (const feature of features) {
             imports.addFeature(feature.feature, feature.module)
         }
@@ -142,15 +141,15 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
         library: PeerLibrary
     ) {
-        super(library, createLanguageWriter(Language.ARKTS))
+        super(library, createLanguageWriter(Language.ARKTS, getReferenceResolver(library)))
     }
 
     private writeInstanceofChecker(typeName: string, checkerName: string, fieldsCount: number) {
         const argsNames = Array.from({length: fieldsCount}, (_, index) => `arg${index}`)
         this.writer.writeMethodImplementation(new Method(
             checkerName,
-            new NamedMethodSignature(Type.Boolean,
-                [new Type('object|string|number|undefined|null'), ...argsNames.map(_ => Type.Boolean)],
+            new NamedMethodSignature(IDLBooleanType,
+                [toIDLType('object|string|number|undefined|null'), ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
         ), writer => {
@@ -174,7 +173,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
         library: PeerLibrary
     ) {
-        super(library, createLanguageWriter(Language.TS))
+        super(library, createLanguageWriter(Language.TS, getReferenceResolver(library)))
     }
 
     protected writeInterfaceChecker(name: string, descriptor: StructDescriptor): void {
@@ -183,8 +182,8 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         const argsNames = descriptor.getFields().map(it => `duplicated_${it.name}`)
         this.writer.writeMethodImplementation(new Method(
             generateTypeCheckerName(name),
-            new NamedMethodSignature(Type.Boolean,
-                [new Type('object|string|number|undefined|null'), ...argsNames.map(_ => Type.Boolean)],
+            new NamedMethodSignature(IDLBooleanType,
+                [toIDLType('object|string|number|undefined|null'), ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
         ), writer => {
@@ -210,7 +209,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         const checkerName = generateTypeCheckerName(typeName)
         this.writer.writeMethodImplementation(new Method(
             checkerName,
-            new NamedMethodSignature(Type.Boolean, [new Type('object|string|number|undefined|null')], ['value']),
+            new NamedMethodSignature(IDLBooleanType, [toIDLType('object|string|number|undefined|null')], ['value']),
             [MethodModifier.STATIC],
         ), writer => {
             writer.writeStatement(writer.makeReturn(writer.makeString(`Array.isArray(value)`)))

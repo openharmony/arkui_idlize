@@ -22,7 +22,7 @@ import { PeerLibrary } from "../PeerLibrary";
 import { isCommonMethod } from "../inheritance";
 import { componentToPeerClass } from "./PeersPrinter";
 import { OverloadsPrinter, collapseSameNamedMethods, groupOverloads } from "./OverloadsPrinter";
-import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, Type, createLanguageWriter } from "../LanguageWriters";
+import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, createLanguageWriter } from "../LanguageWriters";
 import { convertToCallback } from "./EventsPrinter";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -35,6 +35,8 @@ import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
+import { IDLType, IDLVoidType, toIDLType } from "../../idl";
+import { createEmptyReferenceResolver } from "../ReferenceResolver";
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -51,7 +53,7 @@ interface ComponentFileVisitor {
 
 class TSComponentFileVisitor implements ComponentFileVisitor {
     private readonly language = this.library.language
-    private readonly printer = createLanguageWriter(this.language)
+    private readonly printer = createLanguageWriter(this.language, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
     private readonly overloadsPrinter = new OverloadsPrinter(this.printer, this.library.language)
 
     constructor(
@@ -77,6 +79,9 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     private printImports(): void {
         const imports = new ImportsCollector()
         this.file.peersToGenerate.forEach(peer => {
+            imports.addFeature('int32', '@koalaui/common')
+            imports.addFeature("KStringPtr", "@koalaui/interop")
+            imports.addFeature("KBoolean", "@koalaui/interop")
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             imports.addFeature("remember", "@koalaui/runtime")
             imports.addFeature("ArkUINodeType", "./peers/ArkUINodeType")
@@ -119,7 +124,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     private printComponent(peer: PeerClass | IdlPeerClass) {
         const callableMethods = (peer.methods as any[]).filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
-        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${it.nullable ? "?" : ""}: ${it.name}`)
+        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${it.optional ? "?" : ""}: ${this.printer.mapIDLType(it)}`)
         const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
         const componentClassName = generateArkComponentName(peer.componentName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
@@ -128,7 +133,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 
         this.printer.print(`/** @memo:stable */`)
         this.printer.writeClass(componentClassName, (writer) => {
-            writer.writeFieldDeclaration('peer', new Type(peerClassName), [FieldModifier.PROTECTED], true)
+            writer.writeFieldDeclaration('peer', toIDLType(peerClassName), [FieldModifier.PROTECTED], true)
             const filteredMethods = (peer.methods as any[]).filter(it =>
                 this.language !== Language.ARKTS || !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(it.overloadedName))
             for (const grouped of groupOverloads(filteredMethods))
@@ -136,7 +141,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
                 writer.print(`attributeModifier(modifier: AttributeModifier<object>): this { throw new Error("not implemented") }`)
-            const attributesSignature = new MethodSignature(Type.Void, [])
+            const attributesSignature = new MethodSignature(IDLVoidType, [])
             writer.writeMethodImplementation(new Method('applyAttributesFinish', attributesSignature, [MethodModifier.PUBLIC]), (writer) => {
                 writer.print('// we calls this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', 'applyAttributesFinish', [])
@@ -229,11 +234,11 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
         }
 
         const componentClassName = generateArkComponentName(peer.componentName)
-        const componentType = new Type(componentClassName)
+        const componentType = toIDLType(componentClassName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : COMPONENT_BASE
         const peerClassName = componentToPeerClass(peer.componentName)
 
-        const result = createLanguageWriter(Language.JAVA)
+        const result = createLanguageWriter(Language.JAVA, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
         result.print(`package ${ARKOALA_PACKAGE};\n`)
         const imports = collectJavaImports(peer.methods.flatMap(method => method.declarationTargets))
         printJavaImports(result, imports)
@@ -255,7 +260,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
                 })
             })
 
-            const attributesSignature = new MethodSignature(Type.Void, [])
+            const attributesSignature = new MethodSignature(IDLVoidType, [])
             const applyAttributesFinish = 'applyAttributesFinish'
             writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesSignature, [MethodModifier.PUBLIC]), (writer) => {
                 writer.writeMethodCall('super', applyAttributesFinish, [])
@@ -267,19 +272,19 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
 
     // TODO: remove after migrating to IDL
     private printComponentFromTS(peer: PeerClass) {
-        const usedTypes: Type[] = []
+        const usedTypes: IDLType[] = []
         const componentClassName = generateArkComponentName(peer.componentName)
-        const componentType = new Type(componentClassName)
+        const componentType = toIDLType(componentClassName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : COMPONENT_BASE
         const peerClassName = componentToPeerClass(peer.componentName)
 
-        const printer = createLanguageWriter(Language.JAVA)
+        const printer = createLanguageWriter(Language.JAVA, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
 
         printer.writeClass(componentClassName, (writer) => {
             peer.methods.forEach(peerMethod => {
                 const originalSignature = peerMethod.method.signature as NamedMethodSignature
                 const types = peerMethod.declarationTargets.map((declarationTarget, index) => {
-                    return this.printerContext.synthesizedTypes!.getTargetType(declarationTarget, originalSignature.args[index].nullable)
+                    return this.printerContext.synthesizedTypes!.getTargetType(declarationTarget, !!originalSignature.args[index].optional)
                 })
                 usedTypes.push(...types)
                 const signature = new NamedMethodSignature(componentType, types, originalSignature.argsNames)
@@ -296,14 +301,14 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
                 })
             })
 
-            const attributesSignature = new MethodSignature(Type.Void, [])
+            const attributesSignature = new MethodSignature(IDLVoidType, [])
             const applyAttributesFinish = 'applyAttributesFinish'
             writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesSignature, [MethodModifier.PUBLIC]), (writer) => {
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
         }, parentComponentClassName)
 
-        const result = createLanguageWriter(Language.JAVA)
+        const result = createLanguageWriter(Language.JAVA, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
         result.print(`package ${ARKOALA_PACKAGE};\n`)
         this.printerContext.imports!.printImportsForTypes(usedTypes, result)
         result.concat(printer)

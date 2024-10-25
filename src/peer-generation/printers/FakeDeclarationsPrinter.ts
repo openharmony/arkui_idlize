@@ -21,14 +21,17 @@ import { ImportsCollector } from "../ImportsCollector";
 import { cStyleCopyright } from "../FileGenerators";
 import { removeExt } from "../../util";
 import { convertDeclaration } from "../TypeNodeConvertor";
+import { getReferenceResolver } from "../ReferenceResolver";
 
 export function printFakeDeclarations(library: PeerLibrary): Map<string, string> {
     const lang = library.declarationTable.language
     const result = new Map<string, string>()
     for (const [filename, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
-        const writer = createLanguageWriter(lang)
+        const writer = createLanguageWriter(lang, getReferenceResolver(library))
         writer.print(cStyleCopyright)
         const imports = new ImportsCollector()
+        imports.addFeature('KBoolean', '@koalaui/interop')
+        imports.addFeature('KStringPtr', '@koalaui/interop')
         dependencies.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(writer, removeExt(filename))
         const convertor = createDeclarationConvertor(writer, library)

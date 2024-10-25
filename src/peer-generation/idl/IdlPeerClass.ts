@@ -13,9 +13,19 @@
  * limitations under the License.
  */
 
+import { IDLType } from "../../idl"
 import { PeerClassBase } from "../PeerClass"
 import { IdlPeerFile } from "./IdlPeerFile"
 import { IdlPeerMethod } from "./IdlPeerMethod"
+
+
+// actually field
+class IdlPeerAttributeField {
+    constructor (
+        public name:string,
+        public type:IDLType,
+    ) {}
+}
 
 export class IdlPeerClass implements PeerClassBase {
     constructor(
@@ -41,7 +51,7 @@ export class IdlPeerClass implements PeerClassBase {
     originalParentName: string | undefined = undefined
     originalParentFilename: string | undefined = undefined
     parentComponentName: string | undefined = undefined
-    attributesFields: string[] = []
+    attributesFields: IdlPeerAttributeField[] = []
     attributesTypes: {typeName: string, content: string}[] = []
     hasGenericType: boolean = false
 }

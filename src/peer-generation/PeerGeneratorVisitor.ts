@@ -41,7 +41,7 @@ import { PeerMethod } from "./PeerMethod"
 import { PeerFile, EnumEntity } from "./PeerFile"
 import { PeerLibrary } from "./PeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, extractSuperElement, checkTSDeclarationMaterialized, isMaterialized } from "./Materialized"
-import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "./LanguageWriters";
+import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters";
 import {
     ArkTSTypeNodeNameConvertor,
     CJTypeNodeNameConvertor,
@@ -72,6 +72,7 @@ import {
 } from "./BuilderClass";
 import { Lazy, lazy } from "./lazy";
 import { Language } from "../Language";
+import { getIDLTypeName, IDLPointerType, IDLThisType, IDLVoidType, maybeOptional, toIDLType } from "../idl";
 
 /**
  * Theory of operations.
@@ -260,11 +261,11 @@ export function generateSignature(method: ts.ConstructorDeclaration | ts.MethodD
 
     const parent = method.parent
     const parentName = ts.isClassDeclaration(parent) || ts.isInterfaceDeclaration(parent) ? identName(parent.name) : ""
-    const returnType = returnName === "void" || returnName === "" ? Type.Void
-        : isComponent || (returnName === parentName && !isStatic(method.modifiers)) ? Type.This : new Type(returnName)
+    const returnType = returnName === "void" || returnName === "" ? IDLVoidType
+        : isComponent || (returnName === parentName && !isStatic(method.modifiers)) ? IDLThisType : toIDLType(returnName)
     return new NamedMethodSignature(returnType,
         parameters
-            .map(it => new Type(typeNodeConvertor.convert(it.type!), it.questionToken != undefined)),
+            .map(it => maybeOptional(toIDLType(typeNodeConvertor.convert(it.type!)), it.questionToken != undefined)),
         parameters
             .map(it => identName(it.name)!),
     )
@@ -704,7 +705,7 @@ class PeersGenerator {
             // at which producing 'SyntaxError: Invalid Type' error
             const peerMethod = peer.methods.find((method) => method.overloadedName == methodName)
             if (peerMethod !== undefined) {
-                peerMethod.method.signature.args = [new Type(argumentTypeName)]
+                peerMethod.method.signature.args = [toIDLType(argumentTypeName)]
             }
             return argumentTypeName
         }
@@ -873,7 +874,7 @@ export class PeerProcessor {
         let mConstructor = this.makeMaterializedMethod(name, constructor, isActualDeclaration, typeNodeConvertor)
         const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
         let mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
-            new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]), 0)
+            new Method("getFinalizer", new NamedMethodSignature(IDLPointerType, [], [], []), [MethodModifier.STATIC]), 0)
         let mFields = isClass
             ? target.members
                 .filter(ts.isPropertyDeclaration)
@@ -907,8 +908,8 @@ export class PeerProcessor {
 
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
             if (!isReadOnly) {
-                const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
-                const retConvertor = { isVoid: true, nativeType: () => Type.Void.name, macroSuffixPart: () => "V" }
+                const setSignature = new NamedMethodSignature(IDLVoidType, [field.type], [field.name])
+                const retConvertor = { isVoid: true, nativeType: () => getIDLTypeName(IDLVoidType), macroSuffixPart: () => "V" }
                 const setAccessor = new MaterializedMethod(name, [f.declarationTarget!], [f.argConvertor], retConvertor, false,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]), 0
                 )
@@ -943,7 +944,7 @@ export class PeerProcessor {
         const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
         this.declarationTable.setCurrentContext(undefined)
         return new MaterializedField(
-            new Field(name, new Type(mapType(property.type)), modifiers),
+            new Field(name, toIDLType(mapType(property.type)), modifiers),
             argConvertor, retConvertor, declarationTarget, property.questionToken !== undefined)
     }
 
@@ -960,7 +961,7 @@ export class PeerProcessor {
 
         if (method === undefined) {
             // interface or class without constructors
-            const ctor = new Method("ctor", new NamedMethodSignature(Type.Void, [], []), [MethodModifier.STATIC])
+            const ctor = new Method("ctor", new NamedMethodSignature(IDLVoidType, [], []), [MethodModifier.STATIC])
             this.declarationTable.setCurrentContext(undefined)
             return new MaterializedMethod(parentName, [], [], retConvertor, false, ctor, 0)
         }

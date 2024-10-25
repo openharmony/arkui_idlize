@@ -21,10 +21,12 @@ import { JavaLanguageWriter } from "./writers/JavaLanguageWriter";
 import { CppLanguageWriter } from "./writers/CppLanguageWriter";
 import { CJLanguageWriter } from "./writers/CJLanguageWriter";
 import { Language } from "../../Language";
+import { ReferenceResolver } from "../ReferenceResolver";
 
 //////////////////////////////////////////////////////////////////
 // REEXPORTS
 
+export { generateTypeCheckerName, makeArrayTypeCheckCall } from './writers/ETSLanguageWriter'
 export {
     Field,
     FieldModifier,
@@ -32,25 +34,26 @@ export {
     MethodModifier,
     MethodSignature,
     ExpressionStatement,
-    NamedMethodSignature,
-    Type, BlockStatement,
-    BranchStatement,
-    LanguageExpression,
+    NamedMethodSignature, 
+    BlockStatement, 
+    BranchStatement, 
+    LanguageExpression, 
     FunctionCallExpression,
     LanguageStatement,
     LanguageWriter,
     StringExpression,
-    PrinterLike
+    PrinterLike,
+    printMethodDeclaration
 } from './LanguageWriter'
 export { CppLanguageWriter, TSLanguageWriter }
 
-export function createLanguageWriter(language: Language): LanguageWriter {
+export function createLanguageWriter(language: Language, resolver:ReferenceResolver): LanguageWriter {
     switch (language) {
-        case Language.TS: return new TSLanguageWriter(new IndentedPrinter())
-        case Language.ARKTS: return new ETSLanguageWriter(new IndentedPrinter())
-        case Language.JAVA: return new JavaLanguageWriter(new IndentedPrinter())
-        case Language.CPP: return new CppLanguageWriter(new IndentedPrinter())
-        case Language.CJ: return new CJLanguageWriter(new IndentedPrinter())
+        case Language.TS: return new TSLanguageWriter(new IndentedPrinter(), resolver, Language.TS)
+        case Language.ARKTS: return new ETSLanguageWriter(new IndentedPrinter(), resolver)
+        case Language.JAVA: return new JavaLanguageWriter(new IndentedPrinter(), resolver)
+        case Language.CPP: return new CppLanguageWriter(new IndentedPrinter(), resolver)
+        case Language.CJ: return new CJLanguageWriter(new IndentedPrinter(), resolver)
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

@@ -18,19 +18,21 @@ import { EnumConvertor} from "../Convertors";
 import { ArgConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
-import { createLanguageWriter, Method, NamedMethodSignature, Type } from "../LanguageWriters";
+import { createLanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { CUSTOM_API, CustomAPI } from "../CustomAPI"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { Language } from "../../Language";
+import { getIDLTypeName, IDLBooleanType, IDLNumberType, IDLVoidType } from "../../idl";
+import { createEmptyReferenceResolver } from "../ReferenceResolver";
 
 //const VM_CONTEXT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_VMContext`)
 
 class BridgeCcVisitor {
-    readonly generatedApi = createLanguageWriter(Language.CPP)
-    readonly customApi = createLanguageWriter(Language.CPP)
+    readonly generatedApi = createLanguageWriter(Language.CPP, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
+    readonly customApi = createLanguageWriter(Language.CPP, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
 
     constructor(
         private readonly library: PeerLibrary | IdlPeerLibrary,
@@ -116,7 +118,7 @@ class BridgeCcVisitor {
         }
         method.argConvertors.forEach((it, index) => {
             if (it.nativeType(false) != "Ark_Number"
-                && (it.tsTypeName == "number" || it.tsTypeName == "boolean")) {
+                && (it.idlType === IDLNumberType || it.idlType === IDLBooleanType)) {
                 this.generatedApi.print(`_logData.append("${varNames[index]}_" + std::to_string(_num));`)
             } else {
                 this.generatedApi.print(`_logData.append("&${varNames[index]}_" + std::to_string(_num));`)
@@ -223,23 +225,23 @@ class BridgeCcVisitor {
                 const type = c.getCastType(it)
                 const name = sig.argsNames[index];
                 let castName = name
-                if (c.getArgType(it).name !== type.name) {
+                if (getIDLTypeName(c.getArgType(it)) !== getIDLTypeName(type)) {
                     castName = `${name}Cast`
-                    const cast = it.name.endsWith("Enum") ? `${type.name}(${name})` : `(${type.name}) ${name}`
-                    this.customApi.print(`${type.name} ${castName} = ${cast};`)
+                    const cast = getIDLTypeName(it).endsWith("Enum") ? `${getIDLTypeName(type)}(${name})` : `(${getIDLTypeName(type)}) ${name}`
+                    this.customApi.print(`${getIDLTypeName(type)} ${castName} = ${cast};`)
                 }
                 castNames = castNames.concat(castName)
             })
-            const ret = sig.returnType === Type.Void ? "" : "return "
+            const ret = sig.returnType === IDLVoidType ? "" : "return "
             this.customApi.print(`${ret}GetArkUI${c.apiName}()->${m.name}(${castNames.join(", ")});`)
         })
-        const v = sig.returnType === Type.Void ? "V" : "";
+        const v = sig.returnType === IDLVoidType ? "V" : "";
         let args = c.withContext ? argsType.slice(1) : argsType
         const size = args.length
-        args = sig.returnType === Type.Void ? args : [retType, ...args]
+        args = sig.returnType === IDLVoidType ? args : [retType, ...args]
         const comma = args.length > 0 ? ", " : ""
         const CTX = c.withContext ? "_CTX" : ""
-        this.customApi.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}${comma}${args.map(it => it.name).join(", ")})\n`)
+        this.customApi.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}${comma}${args.map(it => getIDLTypeName(it)).join(", ")})\n`)
     }
 
     print(): void {

@@ -14,7 +14,7 @@
  */
 import * as idl from "../../idl"
 import { Language } from "../../Language"
-import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, MethodSignature, NamedMethodSignature, StringExpression, Type } from "../LanguageWriters"
+import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, MethodSignature, NamedMethodSignature, StringExpression } from "../LanguageWriters"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { qualifiedName } from "./common"
@@ -27,7 +27,7 @@ import { CallbackKind } from "../printers/CallbacksPrinter"
 export class StringConvertor extends BaseArgConvertor {
     private literalValue?: string
     constructor(param: string) {
-        super("string", [RuntimeType.STRING], false, false, param)
+        super(idl.IDLStringType, [RuntimeType.STRING], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` : param
@@ -38,9 +38,12 @@ export class StringConvertor extends BaseArgConvertor {
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
         const receiver = this.getObjectAccessor(writer.language, value)
         return writer.makeAssign(receiver, undefined,
-            writer.makeCast(writer.makeString(`${param}Deserializer.readString()`),
-                writer.makeType(this.tsTypeName, false, receiver)),
-            false)
+            writer.makeCast(
+                writer.makeString(`${param}Deserializer.readString()`),
+                writer.makeType(this.idlType, false, receiver)
+            ),
+            false
+        )
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.String.getText()
@@ -56,9 +59,9 @@ export class StringConvertor extends BaseArgConvertor {
             ? writer.makeString(`${value} === "${this.literalValue}"`)
             : undefined
     }
-    targetType(writer: LanguageWriter): Type {
+    targetType(writer: LanguageWriter): string {
         if (this.literalValue) {
-            return new Type("string")
+            return writer.mapIDLType(idl.toIDLType("string"))
         }
         return super.targetType(writer);
     }
@@ -66,7 +69,7 @@ export class StringConvertor extends BaseArgConvertor {
 
 export class ToStringConvertor extends BaseArgConvertor {
     constructor(param: string) {
-        super("string", [RuntimeType.OBJECT], false, false, param)
+        super(idl.IDLStringType, [RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` : `(${param}).toString()`
@@ -93,7 +96,7 @@ export class EnumConvertor extends BaseArgConvertor { //
     constructor(param: string,
                 private enumType: idl.IDLEnum,
                 public readonly isStringEnum: boolean) {
-        super(isStringEnum ?  "string" : "number",
+        super(isStringEnum ?  idl.IDLStringType : idl.IDLNumberType,
             [isStringEnum ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
     }
@@ -115,7 +118,7 @@ export class EnumConvertor extends BaseArgConvertor { //
         const readExpr = printer.makeMethodCall(`${param}Deserializer`, "readInt32", [])
         const enumExpr = this.isStringEnum && printer.language !== Language.CPP
             ? printer.enumFromOrdinal(readExpr, name)
-            : printer.makeCast(readExpr, new Type(name))
+            : printer.makeCast(readExpr, idl.toIDLType(name))
         return printer.makeAssign(this.getObjectAccessor(printer.language, value), undefined, enumExpr, false)
     }
     nativeType(impl: boolean): string {
@@ -151,17 +154,20 @@ export class UnionConvertor extends BaseArgConvertor { //
     private unionChecker: UnionRuntimeTypeChecker
 
     constructor(private library: IdlPeerLibrary, param: string, private type: idl.IDLUnionType) {
-        super(`object`, [], false, true, param)
+        super(idl.toIDLType(`object`), [], false, true, param)
         this.memberConvertors = type.types.map(member => library.typeConvertor(param, member))
         this.unionChecker = new UnionRuntimeTypeChecker(this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
-        this.tsTypeName = this.memberConvertors.map(it => it.tsTypeName).join(" | ")
+        this.idlType = idl.createUnionType(
+            this.memberConvertors.map(it => it.idlType),
+            // this.memberConvertors.map(it => idl.getIDLTypeName(it.idlType)).join(" | ")
+        )
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Do not use for union")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeStatement(printer.makeAssign(`${value}_type`, Type.Int32, printer.makeUnionTypeDefaultInitializer(), true, false))
+        printer.writeStatement(printer.makeAssign(`${value}_type`, idl.IDLI32Type, printer.makeUnionTypeDefaultInitializer(), true, false))
         printer.writeStatement(printer.makeUnionSelector(value, `${value}_type`))
         this.memberConvertors.forEach((it, index) => {
             const maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
@@ -182,7 +188,7 @@ export class UnionConvertor extends BaseArgConvertor { //
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         let selector = `selector`
-        const selectorAssign = printer.makeAssign(selector, Type.Int32,
+        const selectorAssign = printer.makeAssign(selector, idl.IDLI32Type,
             printer.makeString(`${param}Deserializer.readInt8()`), true)
         const branches: BranchStatement[] = this.memberConvertors.map((it, index) => {
             const receiver = this.getObjectAccessor(printer.language, value, {index: `${index}`})
@@ -226,9 +232,9 @@ export class ImportTypeConvertor extends BaseArgConvertor { //
         ["PixelMap", ["isPixelMap"]],
         ["Resource", ["isResource"]]])
     private importedName: string
-    constructor(param: string, type: idl.IDLReferenceType) {
-        super("Object", [RuntimeType.OBJECT], false, true, param)
-        this.importedName = type.name
+    constructor(param: string, importedName: string) {
+        super(idl.toIDLType("Object"), [RuntimeType.OBJECT], false, true, param)
+        this.importedName = importedName
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -270,7 +276,7 @@ export class OptionConvertor extends BaseArgConvertor { //
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
             runtimeTypes.push(RuntimeType.UNDEFINED)
         }
-        super(`${conv.tsTypeName}|undefined`, runtimeTypes, conv.isScoped, true, param)
+        super(idl.maybeOptional(conv.idlType, true), runtimeTypes, conv.isScoped, true, param)
         this.typeConvertor = conv
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -278,7 +284,7 @@ export class OptionConvertor extends BaseArgConvertor { //
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         const valueType = `${value}_type`
-        const serializedType = (printer.language == Language.JAVA ? undefined : Type.Int32)
+        const serializedType = (printer.language == Language.JAVA ? undefined : idl.IDLI32Type)
         printer.writeStatement(printer.makeAssign(valueType, serializedType, printer.makeRuntimeType(RuntimeType.UNDEFINED), true, false))
         printer.runtimeType(this, valueType, value)
         printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.castToInt(valueType, 8)])
@@ -327,7 +333,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
     public readonly aliasName: string | undefined
 
     constructor(private library: IdlPeerLibrary, param: string, type: idl.IDLType, private decl: idl.IDLInterface) {
-        super(library.mapType(type), [RuntimeType.OBJECT], false, true, param)
+        super(type, [RuntimeType.OBJECT], false, true, param)
         // this.aliasName = ts.isTypeAliasDeclaration(this.type.parent) ? identName(this.type.parent.name) : undefined
         this.memberConvertors = decl
             .properties
@@ -354,7 +360,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
         // Typed structs may refer each other, so use indent level to discriminate.
         // Somewhat ugly, but works.
         const typedStruct = `typedStruct${printer.indentDepth()}`
-        const typedStructType = new Type(printer.makeRef(printer.makeType(this.tsTypeName, false, accessor).name))
+        const typedStructType = printer.makeRef(printer.makeType(this.idlType, false, accessor))
         printer.pushIndent()
         const statements = [
             printer.makeAssign(typedStruct, typedStructType, printer.makeString(accessor),true, false),
@@ -392,22 +398,22 @@ export class AggregateConvertor extends BaseArgConvertor { //
 
 export class InterfaceConvertor extends BaseArgConvertor { //
     constructor(name: string, param: string, private declaration?: idl.IDLInterface) {
-        super(name, [RuntimeType.OBJECT], false, true, param)
+        super(idl.toIDLType(name), [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, `write${this.tsTypeName}`, [value])
+        printer.writeMethodCall(`${param}Serializer`, `write${printer.mapIDLType(this.idlType)}`, [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = this.getObjectAccessor(printer.language, value)
         return printer.makeAssign(accessor, undefined,
-                printer.makeMethodCall(`${param}Deserializer`, `read${this.tsTypeName}`, []), false)
+                printer.makeMethodCall(`${param}Deserializer`, `read${printer.mapIDLType(this.idlType)}`, []), false)
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.Prefix + this.tsTypeName
+        return PrimitiveType.Prefix + idl.getIDLTypeName(this.idlType)
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -420,14 +426,14 @@ export class InterfaceConvertor extends BaseArgConvertor { //
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         // First, tricky special cases
-        if (this.tsTypeName.endsWith("GestureInterface")) {
-            const gestureType = this.tsTypeName.slice(0, -"GestureInterface".length)
-            const castExpr = writer.makeCast(writer.makeString(value), new Type("GestureComponent<Object>"), true)
+        if (idl.getIDLTypeName(this.idlType).endsWith("GestureInterface")) {
+            const gestureType = idl.getIDLTypeName(this.idlType).slice(0, -"GestureInterface".length)
+            const castExpr = writer.makeCast(writer.makeString(value), idl.toIDLType("GestureComponent<Object>"), true)
             return writer.makeNaryOp("===", [
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
         }
-        if (this.tsTypeName === "CancelButtonSymbolOptions") {
+        if (idl.getIDLTypeName(this.idlType) === "CancelButtonSymbolOptions") {
             return writer.makeNaryOp("&&", [
                 writer.makeString(`${value}.hasOwnProperty("icon")`),
                 writer.makeString(`isInstanceOf("SymbolGlyphModifier", ${value}.icon)`)])
@@ -444,16 +450,16 @@ export class ClassConvertor extends InterfaceConvertor { //
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
-        if (this.tsTypeName === "SubTabBarStyle") return undefined
+        if (idl.getIDLTypeName(this.idlType) === "SubTabBarStyle") return undefined
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
+            [writer.makeString(`${value} instanceof ${writer.mapIDLType(this.idlType)}`)])
     }
 }
 
 export class FunctionConvertor extends BaseArgConvertor { //
     constructor(private library: IdlPeerLibrary, param: string, protected type: idl.IDLReferenceType) {
         // TODO: pass functions as integers to native side.
-        super("Function", [RuntimeType.FUNCTION], false, false, param)
+        super(idl.toIDLType("Function"), [RuntimeType.FUNCTION], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `makeArkFunctionFromId(${param})` : `registerCallback(${param})`
@@ -466,8 +472,10 @@ export class FunctionConvertor extends BaseArgConvertor { //
         return writer.makeAssign(accessor, undefined,
             writer.makeCast(
                 writer.makeString(`${param}Deserializer.readFunction()`),
-                writer.makeType(this.library.mapType(this.type), true, accessor)),
-            false)
+                writer.makeType(this.type, true, accessor)
+            ),
+            false
+        )
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Function.getText()
@@ -486,7 +494,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         param: string,
         private readonly decl: idl.IDLCallback,
     ) {
-        super(library.mapType(decl), [RuntimeType.FUNCTION], false, true, param)
+        super(idl.toIDLType(library.mapType(decl)), [RuntimeType.FUNCTION], false, true, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -495,7 +503,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         if (writer.language == Language.CPP) {
             writer.writeMethodCall(`${param}Serializer`, "writeCallbackResource", [`${value}.resource`])
             writer.writeMethodCall(`${param}Serializer`, "writePointer", [new CppCastExpression(
-                new StringExpression(`${value}.call`), new Type("void*"), true).asString()])
+                writer, new StringExpression(`${value}.call`), idl.toIDLType("void*"), true).asString()])
             return
         }
         writer.writeMethodCall(`${param}Serializer`, "writeCallbackResource", [`${value}`])
@@ -510,8 +518,9 @@ export class CallbackConvertor extends BaseArgConvertor {
             return writer.makeBlock([
                 writer.makeAssign(`${value}.resource`, undefined, writer.makeMethodCall(`${param}Deserializer`, `readCallbackResource`, []), false),
                 writer.makeAssign(`${value}.call`, undefined, new CppCastExpression(
+                    writer,
                     writer.makeMethodCall(`${param}Deserializer`, `readPointer`, []),
-                    new Type(`void(*)(${generateCallbackAPIArguments(this.library, this.decl).join(", ")})`),
+                    idl.createReferenceType(`void(*)(${generateCallbackAPIArguments(this.library, this.decl).join(", ")})`),
                     true
                 ), false),
             ])
@@ -529,7 +538,7 @@ export class CallbackConvertor extends BaseArgConvertor {
 
 export class TupleConvertor extends BaseArgConvertor { //
     constructor(private library: IdlPeerLibrary, param: string, private decl: idl.IDLInterface) {
-        super(`[${decl.properties.map(it => library.mapType(it.type)).join(",")}]`, [RuntimeType.OBJECT], false, true, param)
+        super(idl.toIDLType(`[${decl.properties.map(it => library.mapType(it.type)).join(", ")}]`), [RuntimeType.OBJECT], false, true, param)
         this.memberConvertors = decl.properties.map(it => library.typeConvertor(param, it.type, it.isOptional))
     }
     private memberConvertors: ArgConvertor[]
@@ -555,12 +564,14 @@ export class TupleConvertor extends BaseArgConvertor { //
             const tmpTupleId = `tmpTupleItem${index}`
             tmpTupleIds.push(tmpTupleId)
             const receiver = this.getObjectAccessor(printer.language, value, {index: `${index}`})
-            // need to remove the mark '?' from Optional type
-            const tsTypeName = this.library.mapType(this.decl.properties[index].type).replace("?", "")
             statements.push(
                 printer.makeAssign(tmpTupleId,
                     // makeType - creating the correct type for TS(using tsTypeName) or C++(use decltype(receiver))
-                    printer.makeType(tsTypeName, true, receiver),undefined, true, false),
+                    printer.makeType(this.decl.properties[index].type, true, receiver), // printer.makeType(this.idlType, true, receiver), 
+                    undefined, 
+                    true, 
+                    false
+                ),
                 it.convertorDeserialize(param, tmpTupleId, printer)
             )
         })
@@ -597,7 +608,7 @@ export class TupleConvertor extends BaseArgConvertor { //
 export class ArrayConvertor extends BaseArgConvertor { //
     elementConvertor: ArgConvertor
     constructor(private library: IdlPeerLibrary, param: string, private type: idl.IDLType, private elementType: idl.IDLType) {
-        super(library.mapType(type), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createContainerType('sequence', [elementType]), [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = library.typeConvertor(param, elementType)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -629,7 +640,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
             // read length
             printer.makeAssign(arrayLength, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
             // prepare object
-            printer.makeArrayResize(arrayAccessor, this.library.mapType(this.type), arrayLength, `${param}Deserializer`),
+            printer.makeArrayResize(arrayAccessor, this.type, arrayLength, `${param}Deserializer`),
             // store
             printer.makeLoop(forCounterName, arrayLength,
                 this.elementConvertor.convertorDeserialize(param, accessor, printer)),
@@ -652,11 +663,11 @@ export class ArrayConvertor extends BaseArgConvertor { //
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.arrayDiscriminatorFromTypeOrExpressions(value, this.library.getTypeName(this.type), RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${this.targetType(writer).name}`)])
+        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
+            [writer.makeString(`${value} instanceof ${this.targetType(writer)}`)])
     }
     elementTypeName(): string {
-        return this.library.mapType(this.elementType)
+        return idl.getIDLTypeName(this.elementType)
     }
     override getObjectAccessor(language: Language, value: string, args?: Record<string, string>): string {
         const array = language === Language.CPP ? ".array" : ""
@@ -668,7 +679,15 @@ export class MapConvertor extends BaseArgConvertor { //
     keyConvertor: ArgConvertor
     valueConvertor: ArgConvertor
     constructor(private library: IdlPeerLibrary, param: string, type: idl.IDLType, public keyType: idl.IDLType, public valueType: idl.IDLType) {
-        super(`Map<${library.mapType(keyType)}, ${library.mapType(valueType)}>`, [RuntimeType.OBJECT], false, true, param)
+        super(
+            idl.createContainerType(
+                'record', [keyType, valueType]
+            ), 
+            [RuntimeType.OBJECT], 
+            false, 
+            true, 
+            param
+        )
         this.keyConvertor = library.typeConvertor(param, keyType)
         this.valueConvertor = library.typeConvertor(param, valueType)
     }
@@ -704,11 +723,11 @@ export class MapConvertor extends BaseArgConvertor { //
                 printer.makeCast(printer.makeString(`${param}Deserializer.readInt8()`), printer.getRuntimeType()), true),
             printer.makeCondition(printer.makeRuntimeTypeDefinedCheck(runtimeType), new BlockStatement([
                 printer.makeAssign(mapSize, undefined, printer.makeString(`${param}Deserializer.readInt32()`), true),
-                printer.makeMapResize(mapTypeName, keyTypeName, valueTypeName, value, mapSize, `${param}Deserializer`),
+                printer.makeMapResize(mapTypeName, idl.toIDLType(keyTypeName), idl.toIDLType(valueTypeName), value, mapSize, `${param}Deserializer`),
                 printer.makeLoop(counterVar, mapSize, new BlockStatement([
-                    printer.makeAssign(tmpKey, new Type(keyTypeName), undefined, true, false),
+                    printer.makeAssign(tmpKey, idl.toIDLType(keyTypeName), undefined, true, false),
                     this.keyConvertor.convertorDeserialize(param, tmpKey, printer),
-                    printer.makeAssign(tmpValue, new Type(valueTypeName), undefined, true, false),
+                    printer.makeAssign(tmpValue,  idl.toIDLType(valueTypeName), undefined, true, false),
                     this.valueConvertor.convertorDeserialize(param, tmpValue, printer),
                     printer.makeMapInsert(keyAccessor, tmpKey, valueAccessor, tmpValue),
                 ], false)),
@@ -747,7 +766,7 @@ export class MapConvertor extends BaseArgConvertor { //
 
 export class MaterializedClassConvertor extends BaseArgConvertor { //
     constructor(private library: IdlPeerLibrary, name: string, param: string, private type: idl.IDLInterface) {
-        super(name, [RuntimeType.OBJECT], false, true, param)
+        super(idl.toIDLType(name), [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -761,7 +780,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor { //
         const prefix = printer.language === Language.CPP ? PrimitiveType.Prefix : ""
         const readStatement = printer.makeCast(
             printer.makeMethodCall(`${param}Deserializer`, `readMaterialized`, []),
-            new Type(`${prefix}${this.type.name}`),
+            idl.toIDLType(`${prefix}${this.type.name}`)
         )
         return printer.makeAssign(accessor, undefined, readStatement, false)
     }
@@ -776,7 +795,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor { //
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${this.tsTypeName}`)])
+            [writer.makeString(`${value} instanceof ${writer.mapIDLType(this.idlType)}`)])
     }
 }
 

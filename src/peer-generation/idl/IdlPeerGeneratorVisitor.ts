@@ -24,8 +24,8 @@ import { IdlPeerMethod } from "./IdlPeerMethod"
 import { IdlPeerFile } from "./IdlPeerFile"
 import { IdlPeerLibrary, ArkFunction } from "./IdlPeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
-import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature, Type } from "../LanguageWriters";
-import { convertDeclaration } from "./IdlTypeConvertor";
+import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
+import { convertDeclaration, convertType } from "./IdlTypeConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
 import {
     addSyntheticDeclarationDependency,
@@ -47,6 +47,7 @@ import { ARK_CUSTOM_OBJECT, javaCustomTypeMapping } from "../printers/lang/Java"
 import { Language } from "../../Language"
 import { createInterfaceDeclName } from "../TypeNodeNameConvertor";
 import { cjCustomTypeMapping } from "../printers/lang/Cangjie"
+import { IDLEntry, IDLEnumType, IDLType, maybeOptional } from "../../idl";
 
 /**
  * Theory of operations.
@@ -179,7 +180,7 @@ function mapCInteropRetType(type: idl.IDLType): string {
     }
     if (idl.isReferenceType(type)) {
         /* HACK, fix */
-        if (type.name.endsWith("Attribute"))
+        if (idl.getIDLTypeName(type).endsWith("Attribute"))
             return "void"
         return PrimitiveType.NativePointer.getText()
     }
@@ -189,14 +190,14 @@ function mapCInteropRetType(type: idl.IDLType): string {
     if (idl.isEnumType(type) || idl.isUnionType(type))
         return PrimitiveType.NativePointer.getText()
     if (idl.isContainerType(type)) {
-        if (type.name === "sequence") {
+        if (idl.IDLContainerUtils.isSequence(type)) {
             /* HACK, fix */
             // return array by some way
             return "void"
         } else
             return PrimitiveType.NativePointer.getText()
     }
-    throw `mapCInteropType failed for ${idl.IDLKind[type.kind]} ${type.name}`
+    throw `mapCInteropType failed for ${idl.IDLKind[type.kind]} ${idl.getIDLTypeName(type)}`
 }
 
 
@@ -214,7 +215,7 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const generatedName = this.peerLibrary.mapType(type)
         if (!this.peerLibrary.importTypesStubToSource.has(generatedName)) {
-            this.peerLibrary.importTypesStubToSource.set(generatedName, type.name)
+            this.peerLibrary.importTypesStubToSource.set(generatedName, idl.getIDLTypeName(type))
         }
         let syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
                 'SyntheticDeclarations', generatedName, idl.IDLAnyType)
@@ -258,7 +259,7 @@ class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
                 ? []
                 : super.convertSupertype(type)
         }
-        throw new Error(`Expected reference type, got ${type.kind} ${type.name}`)
+        throw new Error(`Expected reference type, got ${type.kind} ${idl.getIDLTypeName(type)}`)
     }
 }
 
@@ -272,7 +273,7 @@ class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
     }
 
     override convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
-        if (type.name == 'sequence') {
+        if (idl.IDLContainerUtils.isSequence(type)) {
             this.peerLibrary.seenArrayTypes.set(this.peerLibrary.getTypeName(type), type)
         }
         return super.convertContainer(type)
@@ -296,7 +297,7 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
 
     private ignoredTypes: Set<idl.IDLType> = new Set()
 
-    private onNewSyntheticTypeAlias(alias: string, type: idl.IDLType): void {
+    private onNewSyntheticTypeAlias(alias: string, type: idl.IDLType | idl.IDLInterface): void {
         makeSyntheticTypeAliasDeclaration(alias, alias, type)
     }
 
@@ -311,17 +312,19 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
             methods: [],
             callables: [],
         }
+        const superClassType = this.library.addSyntheticInterface(superClass)
         const clazz: idl.IDLInterface = {
             name: alias,
             kind: idl.IDLKind.Interface,
-            inheritance: [superclassName ? superClass : idl.IDLTopType],
+            inheritance: [superclassName ? superClassType : idl.IDLTopType],
             constructors: [],
             constants: [],
             properties: [],
             methods: [],
-            callables: [],
+            callables: []
         }
-        this.onNewSyntheticTypeAlias(alias, clazz)
+        const clazzType = this.library.addSyntheticInterface(clazz)
+        this.onNewSyntheticTypeAlias(alias, clazzType)
     }
 
     private addIgnoredType(type: idl.IDLType): void {
@@ -347,7 +350,7 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
 
     override convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
         // TODO: remove prefix after full migration to IDL
-        const enumName = `${PrimitiveType.Prefix}${type.name}`
+        const enumName = `${PrimitiveType.Prefix}${idl.getIDLTypeName(type)}`
         this.onNewSyntheticTypeAlias(enumName, type)
 
         return super.convertEnum(type)
@@ -360,7 +363,7 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
     }
 
     override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
-        if (javaCustomTypeMapping.has(type.name)) {
+        if (javaCustomTypeMapping.has(idl.getIDLTypeName(type))) {
             return []
         }
 
@@ -393,9 +396,9 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
         // TODO: other types
         if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')
 
-        if (!this.ignoredType(decl)) {
+        if (!this.ignoredType(type)) {
             const typeName = this.library.mapType(type)
-            this.onNewSyntheticTypeAlias(typeName, decl)
+            this.onNewSyntheticTypeAlias(typeName, type)
         }
 
         return decl.properties.flatMap(it => this.convert(it.type))
@@ -431,7 +434,7 @@ class JavaDeclarationCollector extends DeclarationDependenciesCollector {
                 ? []
                 : super.convertSupertype(type)
         }
-        throw new Error(`Expected reference type, got ${type.kind} ${type.name}`)
+        throw new Error(`Expected reference type, got ${type.kind} ${idl.getIDLTypeName(type)}`)
     }
 }
 
@@ -470,7 +473,7 @@ class CJDeclarationCollector extends DeclarationDependenciesCollector {
                 ? []
                 : super.convertSupertype(type)
         }
-        throw new Error(`Expected reference type, got ${type.kind} ${type.name}`)
+        throw new Error(`Expected reference type, got ${type.kind} ${idl.DebugUtils.debugPrintType(type)}`)
     }
 }
 
@@ -482,7 +485,7 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
         super(library)
     }
 
-    private ignoredTypes: Set<idl.IDLType> = new Set()
+    private ignoredTypes: Set<idl.IDLType | idl.IDLInterface> = new Set()
 
     private onNewSyntheticTypeAlias(alias: string, type: idl.IDLType): void {
         makeSyntheticTypeAliasDeclaration(alias, alias, type)
@@ -499,24 +502,26 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
             methods: [],
             callables: [],
         }
+        const superClassType = this.library.addSyntheticInterface(superClass)
         const clazz: idl.IDLInterface = {
             name: alias,
             kind: idl.IDLKind.Interface,
-            inheritance: [superclassName ? superClass : idl.IDLTopType],
+            inheritance: [superclassName ? superClassType : idl.IDLTopType],
             constructors: [],
             constants: [],
             properties: [],
             methods: [],
             callables: [],
         }
-        this.onNewSyntheticTypeAlias(alias, clazz)
+        const clazzType = this.library.addSyntheticInterface(clazz)
+        this.onNewSyntheticTypeAlias(alias, clazzType)
     }
 
     private addIgnoredType(type: idl.IDLType): void {
         this.ignoredTypes.add(type)
     }
 
-    private ignoredType(type: idl.IDLType): boolean {
+    private ignoredType(type: idl.IDLType | idl.IDLInterface): boolean {
         return this.ignoredTypes.has(type)
     }
 
@@ -535,7 +540,7 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
 
     override convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
         // TODO: remove prefix after full migration to IDL
-        const enumName = `${PrimitiveType.Prefix}${type.name}`
+        const enumName = `${PrimitiveType.Prefix}${idl.getIDLTypeName(type)}`
         this.onNewSyntheticTypeAlias(enumName, type)
 
         return super.convertEnum(type)
@@ -548,7 +553,7 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
     }
 
     override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
-        if (cjCustomTypeMapping.has(type.name)) {
+        if (idl.isIDLTypeNameIn(type, cjCustomTypeMapping)) {
             return []
         }
 
@@ -583,7 +588,8 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
 
         if (!this.ignoredType(decl)) {
             const typeName = this.library.mapType(type)
-            this.onNewSyntheticTypeAlias(typeName, decl)
+            const ref = idl.createReferenceType(decl.name)
+            this.onNewSyntheticTypeAlias(typeName, ref)
         }
 
         return decl.properties.flatMap(it => this.convert(it.type))
@@ -661,7 +667,7 @@ class ComponentsCompleter {
     private isSubclass(component: idl.IDLInterface, maybeParent: idl.IDLInterface): boolean {
         const parentDecl = idl.getSuperType(component)
         return isDefined(parentDecl) && (
-            parentDecl.name === maybeParent.name ||
+            idl.getIDLTypeName(parentDecl) === maybeParent.name ||
             idl.isClass(parentDecl) && this.isSubclass(parentDecl, maybeParent))
     }
 }
@@ -686,11 +692,10 @@ class PeersGenerator {
             prop.type = idl.IDLAnyType
         }
         const decl = this.toDeclaration(prop.type)
-        this.library.requestType(decl, this.library.shouldGenerateComponent(peer.componentName))
+        this.library.requestType(prop.type, this.library.shouldGenerateComponent(peer.componentName))
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional, maybeCallback)
-        const argType = new Type(this.library.mapType(prop.type), prop.isOptional)
-        const signature = new NamedMethodSignature(Type.This, [argType], ["value"])
+        const signature = new NamedMethodSignature(idl.IDLThisType, [maybeOptional(prop.type, prop.isOptional)], ["value"])
         return new IdlPeerMethod(
             originalParentName,
             [decl],
@@ -714,7 +719,7 @@ class PeersGenerator {
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, maybeCallback))
         const declarationTargets = method.parameters.map(param => {
             const decl = this.toDeclaration(param.type ?? throwException(`Expected a type for ${param.name} in ${method.name}`))
-            this.library.requestType(decl, this.library.shouldGenerateComponent(peer.componentName))
+            this.library.requestType(param.type!, this.library.shouldGenerateComponent(peer.componentName))
             return decl
         })
         const signature = generateSignature(this.library, method)
@@ -727,7 +732,7 @@ class PeersGenerator {
             new Method(methodName, signature, method.isStatic ? [MethodModifier.STATIC] : []))
     }
 
-    private toDeclaration(type: idl.IDLType): idl.IDLType {
+    private toDeclaration(type: idl.IDLType): idl.IDLEntry { 
         if (idl.isReferenceType(type)) {
             const decl = this.library.resolveTypeReference(type)
             // Currently we're only interested in callbacks for EventsPrinter. In the future, who knows
@@ -754,8 +759,11 @@ class PeersGenerator {
             return
         }
         seenAttributes.add(propName)
-        const type = this.fixTypeLiteral(propName, property.type, peer)
-        peer.attributesFields.push(`${propName}?: ${type}`)
+        // const type = this.fixTypeLiteral(propName, property.type, peer)
+        peer.attributesFields.push({
+            name: propName,
+            type: property.type
+        })
     }
 
     /**
@@ -775,7 +783,7 @@ class PeersGenerator {
                     content: `export interface ${fixedTypeName} {\n${attributeDeclarations}\n}`})
                 const peerMethod = peer.methods.find((method) => method.overloadedName == name)
                 if (peerMethod !== undefined) {
-                    peerMethod.method.signature.args = [new Type(fixedTypeName)]
+                    peerMethod.method.signature.args = [idl.toIDLType(fixedTypeName)]
                 }
                 return fixedTypeName
             }
@@ -798,7 +806,7 @@ class PeersGenerator {
         if (parent) {
             const parentComponent = this.library.findComponentByType(parent)!
             const parentDecl = this.library.resolveTypeReference(parent as idl.IDLReferenceType)
-            peer.originalParentName = parent.name
+            peer.originalParentName = idl.getIDLTypeName(parent)
             peer.originalParentFilename = parentDecl?.fileName
             peer.parentComponentName = parentComponent.name
         }
@@ -878,7 +886,7 @@ export class IdlPeerProcessor {
     private toBuilderField(prop: idl.IDLProperty): BuilderField {
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
         return new BuilderField(
-            new Field(prop.name, new Type(this.library.mapType(prop.type), prop.isOptional), modifiers),
+            new Field(prop.name, idl.maybeOptional(prop.type, prop.isOptional), modifiers),
             PrimitiveType.Boolean) // sorry, don't really need this param but still have to provide something
     }
 
@@ -894,7 +902,7 @@ export class IdlPeerProcessor {
 
     private toBuilderMethod(method: idl.IDLConstructor | idl.IDLMethod | undefined): BuilderMethod {
         if (!method)
-            return new BuilderMethod(new Method("constructor", new NamedMethodSignature(Type.Void)), [])
+            return new BuilderMethod(new Method("constructor", new NamedMethodSignature(idl.IDLVoidType)), [])
         const methodName = idl.isConstructor(method) ? "constructor" : method.name
         // const generics = method.typeParameters?.map(it => it.getText())
         const signature = generateSignature(this.library, method)
@@ -950,7 +958,7 @@ export class IdlPeerProcessor {
         const superClassType = idl.getSuperType(decl)
         const superClass = superClassType ?
             new SuperElement(
-                superClassType.name,
+                idl.getIDLTypeName(superClassType),
                 idl.getExtAttribute(superClassType, idl.IDLExtendedAttributes.TypeArguments)?.split(","))
             : undefined
 
@@ -962,7 +970,7 @@ export class IdlPeerProcessor {
         const mConstructor = this.makeMaterializedMethod(decl, constructor)
         const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
         const mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
-            new Method("getFinalizer", new NamedMethodSignature(Type.Pointer, [], [], []), [MethodModifier.STATIC]), 0)
+            new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]), 0)
         const mFields = decl.properties
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
             .filter(it => idl.getExtAttribute(it, idl.IDLExtendedAttributes.Accessor) !== idl.IDLAccessorAttribute.Setter)
@@ -970,14 +978,15 @@ export class IdlPeerProcessor {
         const mMethods = decl.methods
             // TODO: Properly handle methods with return Promise<T> type
             .map(method => this.makeMaterializedMethod(decl, method))
-            .filter(it => !PeerGeneratorConfig.ignoreReturnTypes.has(it.method.signature.returnType.name))
+            .filter(it => !idl.isIDLTypeNameIn(it.method.signature.returnType, PeerGeneratorConfig.ignoreReturnTypes))
 
         mFields.forEach(f => {
             const field = f.field
+            const idlType = field.type
             // TBD: use deserializer to get complex type from native
             const isSimpleType = !f.argConvertor.useArray // type needs to be deserialized from the native
             if (isSimpleType) {
-                const getSignature = new NamedMethodSignature(field.type, [], [])
+                const getSignature = new NamedMethodSignature(idlType, [], [])
                 const getAccessor = new MaterializedMethod(
                     name, [], [], f.retConvertor, false,
                     new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE]), 0)
@@ -985,8 +994,8 @@ export class IdlPeerProcessor {
             }
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
             if (!isReadOnly) {
-                const setSignature = new NamedMethodSignature(Type.Void, [field.type], [field.name])
-                const retConvertor = { isVoid: true, nativeType: () => Type.Void.name, macroSuffixPart: () => "V" }
+                const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idlType], [field.name])
+                const retConvertor = { isVoid: true, nativeType: () => idl.getIDLTypeName(idl.IDLVoidType), macroSuffixPart: () => "V" }
                 const setAccessor = new MaterializedMethod(
                     name, [], [f.argConvertor], retConvertor, false,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]), 0)
@@ -1003,7 +1012,7 @@ export class IdlPeerProcessor {
         const retConvertor = generateRetConvertor(prop.type!)
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
         return new MaterializedField(
-            new Field(prop.name, new Type(this.library.mapType(prop.type)), modifiers),
+            new Field(prop.name, prop.type, modifiers),
             argConvertor, retConvertor, undefined, prop.isOptional)
     }
 
@@ -1015,7 +1024,7 @@ export class IdlPeerProcessor {
 
         if (method === undefined) {
             // interface or class without constructors
-            const ctor = new Method("ctor", new NamedMethodSignature(Type.Void, [], []), [MethodModifier.STATIC])
+            const ctor = new Method("ctor", new NamedMethodSignature(idl.IDLVoidType, [], []), [MethodModifier.STATIC])
             return new MaterializedMethod(decl.name, [], [], retConvertor, false, ctor, 0)
         }
 
@@ -1070,7 +1079,7 @@ export class IdlPeerProcessor {
         const componentDeclarations = new Set(
             this.library.componentsDeclarations
                 .filter(it => it.interfaceDeclaration)
-                .filter(it => it.attributeDeclaration.inheritance[0]?.name !== "CommonShapeMethod")
+                .filter(it => it.attributeDeclaration.inheritance.length > 0 && !idl.isIDLTypeName(it.attributeDeclaration.inheritance[0], "CommonShapeMethod"))
                 .flatMap(it => [it.attributeDeclaration.name, it.interfaceDeclaration!.name]))
         Array.from(deps)
             .filter(it => !componentDeclarations.has(it.name!))
@@ -1293,12 +1302,12 @@ export function isSourceDecl(node: idl.IDLEntry): boolean {
 }
 
 function generateSignature(library: IdlPeerLibrary, method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor): NamedMethodSignature {
-    const returnName = method.returnType!.name
-    const returnType = idl.isVoidType(method.returnType!) ? Type.Void
-        : idl.isConstructor(method) || !method.isStatic ? Type.This : new Type(returnName)
+    const returnType = idl.isVoidType(method.returnType!) ? idl.IDLVoidType
+        : idl.isConstructor(method) || !method.isStatic ? idl.IDLThisType : method.returnType!
     return new NamedMethodSignature(returnType,
-        method.parameters.map(it => new Type(library.mapType(it.type!), it.isOptional)),
-        method.parameters.map(it => it.name))
+        method.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
+        method.parameters.map(it => it.name)
+    )
 }
 
 function getMethodIndex(clazz: idl.IDLInterface, method: idl.IDLSignature | undefined): number {
@@ -1331,8 +1340,10 @@ export function checkTSDeclarationMaterialized(decl: idl.IDLEntry): boolean {
             && isMaterialized(decl)
 }
 
-export function convertTypeToFeature(library: IdlPeerLibrary, type: Type): ImportFeature | undefined {
-    const typeReference = library.resolveTypeReference(idl.createReferenceType(type.name))
+export function convertTypeToFeature(library: IdlPeerLibrary, type: IDLType): ImportFeature | undefined {
+    const typeReference = idl.isReferenceType(type) || idl.isEnumType(type)
+        ? library.resolveTypeReference(type)
+        : undefined
     if (typeReference !== undefined) {
         return convertDeclToFeature(library, typeReference)
     }

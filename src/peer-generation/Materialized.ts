@@ -15,7 +15,7 @@
 
 import * as ts from "typescript"
 import { ArgConvertor, RetConvertor } from "./ArgConvertors"
-import { Field, Method, MethodModifier, MethodSignature, Type } from "./LanguageWriters"
+import { Field, Method, MethodModifier, MethodSignature } from "./LanguageWriters"
 import { PeerMethod } from "./PeerMethod"
 import { capitalize, heritageDeclarations, identName } from "../util"
 import { PeerClassBase } from "./PeerClass"
@@ -24,6 +24,7 @@ import { PrimitiveType } from "./ArkPrimitiveType"
 import { ImportFeature } from "./ImportsCollector"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { isBuilderClass } from "./BuilderClass"
+import { getIDLTypeName, IDLThisType, IDLType, maybeOptional, toIDLType } from "../idl"
 
 export function checkTSDeclarationMaterialized(declaration: ts.Declaration): boolean {
     return (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) && isMaterialized(declaration)
@@ -119,9 +120,9 @@ export class MaterializedMethod extends PeerMethod {
         }
     }
 
-    tsReturnType(): Type | undefined {
+    tsReturnType(): IDLType | undefined {
         const returnType = this.method.signature.returnType
-        return this.hasReceiver() && returnType.name === this.originalParentName ? Type.This : returnType
+        return this.hasReceiver() && getIDLTypeName(returnType) === this.originalParentName ? IDLThisType : maybeOptional(returnType, returnType.optional)
     }
 }
 

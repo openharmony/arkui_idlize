@@ -21,7 +21,7 @@ import * as idl from "../../idl";
 import { Language } from "../../Language";
 
 class ConflictedDeclarationsVisitorIdl {
-    readonly writer = createLanguageWriter(this.library.language)
+    readonly writer = createLanguageWriter(this.library.language, this.library)
 
     constructor(
         protected readonly library: IdlPeerLibrary

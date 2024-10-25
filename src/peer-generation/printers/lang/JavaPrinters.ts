@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
+import { IDLI32Type, IDLType, IDLVoidType, toIDLType } from "../../../idl"
 import { IdlPeerLibrary } from "../../idl/IdlPeerLibrary"
 import { IdlPeerMethod } from "../../idl/IdlPeerMethod"
 import { ImportFeature } from "../../ImportsCollector"
-import { LanguageWriter, createLanguageWriter, Type, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "../../LanguageWriters"
+import { LanguageWriter, createLanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "../../LanguageWriters"
 import { PeerLibrary } from "../../PeerLibrary"
 import { PeerMethod } from "../../PeerMethod"
+import { getReferenceResolver } from "../../ReferenceResolver"
 import { generateArkComponentName } from "../ComponentsPrinter"
 import { componentToPeerClass } from "../PeersPrinter"
 import { PrinterContext } from "../PrinterContext"
@@ -30,7 +32,7 @@ import { collectJavaImports } from "./JavaIdlUtils"
 
 
 export function makeJavaSerializer(library: PeerLibrary | IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    let writer = createLanguageWriter(library.language)
+    let writer = createLanguageWriter(library.language, getReferenceResolver(library))
     writer.print(`package ${ARKOALA_PACKAGE};\n`)
     writeSerializer(library, writer)
     return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
@@ -51,7 +53,7 @@ function makeJavaNodeTypesOld(library: PeerLibrary): { targetFile: TargetFile, w
     })
     const nodeTypesEnum = new JavaEnum(undefined, ARK_UI_NODE_TYPE, componentNames.map((it, index) => { return { name: it, id: index } }))
 
-    let writer = createLanguageWriter(library.declarationTable.language)
+    let writer = createLanguageWriter(library.declarationTable.language, getReferenceResolver(library))
     writer.print(`package ${ARKOALA_PACKAGE};\n`)
     nodeTypesEnum.print(writer)
 
@@ -68,7 +70,7 @@ export function makeJavaNodeTypes(library: PeerLibrary | IdlPeerLibrary): { targ
     })
     const nodeTypesEnum = new JavaEnum(undefined, ARK_UI_NODE_TYPE, componentNames.map((it, index) => { return { name: it, id: index } }))
 
-    let writer = createLanguageWriter(library.language)
+    let writer = createLanguageWriter(library.language, library)
     writer.print(`package ${ARKOALA_PACKAGE};\n`)
     nodeTypesEnum.print(writer)
 
@@ -82,17 +84,17 @@ function makeJavaArkComponentsOld(library: PeerLibrary, printerContext: PrinterC
     const receiver = 'receiver'
     const create = 'create'
     const update = 'update'
-    const usedTypes: Type[] = [new Type('Consumer'), new Type('Supplier')]
-    const writer = createLanguageWriter(library.declarationTable.language)
+    const usedTypes: IDLType[] = [toIDLType('Consumer'), toIDLType('Supplier')]
+    const writer = createLanguageWriter(library.declarationTable.language, getReferenceResolver(library))
 
     writer.writeClass(ark, writer => {
         library.files.forEach(file => {
             file.peersToGenerate.forEach(peer => {
                 const arkComponent = generateArkComponentName(peer.componentName)
                 const arkPeer = componentToPeerClass(peer.componentName)
-                const arkPeerType = new Type(`${arkPeer}`)
+                const arkPeerType = toIDLType(`${arkPeer}`)
 
-                const paramTypes = [new Type(`Consumer<${arkComponent}>`), new Type('Runnable')]
+                const paramTypes = [toIDLType(`Consumer<${arkComponent}>`), toIDLType('Runnable')]
                 const paramNames = ['style', 'content']
                 const callableMethods = peer.methods.filter(it => it.isCallSignature)
                 let callableMethod: PeerMethod | undefined
@@ -103,30 +105,30 @@ function makeJavaArkComponentsOld(library: PeerLibrary, printerContext: PrinterC
                     callableMethod = callableMethods[0]
                     const callableSignature = callableMethod.method.signature
                     callableMethod.declarationTargets.forEach((it, index) => {
-                        const javaType = printerContext.synthesizedTypes!.getTargetType(it, callableSignature.args[index].nullable)
+                        const javaType = printerContext.synthesizedTypes!.getTargetType(it, !!callableSignature.args[index].optional)
                         usedTypes.push(javaType)
                         paramTypes.push(javaType)
                         paramNames.push(callableSignature.argName(index))
                     })
                 }
 
-                const signature = new NamedMethodSignature(Type.Void, paramTypes, paramNames)
+                const signature = new NamedMethodSignature(IDLVoidType, paramTypes, paramNames)
                 const method = new Method(`Ark${peer.componentName}`, signature, [MethodModifier.PUBLIC, MethodModifier.STATIC])
                 writer.writeMethodImplementation(method, writer => {
                     writer.writeStatement(
                         writer.makeAssign(receiver, undefined, writer.makeFunctionCall('remember', [
-                            writer.makeLambda(new MethodSignature(new Type(arkComponent), []), [
+                            writer.makeLambda(new MethodSignature(toIDLType(arkComponent), []), [
                                 writer.makeReturn(writer.makeString(`new ${arkComponent}()`))
                             ])
                         ]), true))
                     writer.writeStatement(
-                        writer.makeAssign(create, new Type(`Supplier<${arkPeer}>`),
+                        writer.makeAssign(create, toIDLType(`Supplier<${arkPeer}>`),
                             writer.makeLambda(new MethodSignature(arkPeerType, []), [
                                 writer.makeReturn(writer.makeString(`${arkPeer}.create(${ARK_UI_NODE_TYPE}.${peer.componentName}, ${receiver}, 0)`))
                             ]), true))
                     writer.writeStatement(
-                        writer.makeAssign(update, new Type(`Consumer<${arkPeer}>`),
-                            writer.makeLambda(new NamedMethodSignature(Type.Void, [arkPeerType], ['peer']), (callableMethod ?
+                        writer.makeAssign(update, toIDLType(`Consumer<${arkPeer}>`),
+                            writer.makeLambda(new NamedMethodSignature(IDLVoidType, [arkPeerType], ['peer']), (callableMethod ?
                                 [writer.makeStatement(writer.makeMethodCall(receiver, callableMethod.method.name,
                                     signature.argsNames.slice(2).map(it => writer.makeString(it))))] : []).concat(
                                         writer.makeCondition(writer.makeDefinedCheck(signature.argName(0)),
@@ -145,7 +147,7 @@ function makeJavaArkComponentsOld(library: PeerLibrary, printerContext: PrinterC
         })
     }, ARK_BASE)
 
-    const result = createLanguageWriter(library.declarationTable.language)
+    const result = createLanguageWriter(library.declarationTable.language, getReferenceResolver(library))
     result.print(`package ${ARKOALA_PACKAGE};\n`)
     printerContext.imports!.printImportsForTypes(usedTypes, result)
     result.concat(writer)
@@ -167,16 +169,16 @@ export function makeJavaArkComponents(library: PeerLibrary | IdlPeerLibrary, pri
         {feature: 'java.util.function.Consumer', module: ''},
         {feature: 'java.util.function.Supplier', module: ''},
     ]
-    const writer = createLanguageWriter(library.language)
+    const writer = createLanguageWriter(library.language, getReferenceResolver(library))
 
     writer.writeClass(ark, writer => {
         library.files.forEach(file => {
             file.peersToGenerate.forEach(peer => {
                 const arkComponent = generateArkComponentName(peer.componentName)
                 const arkPeer = componentToPeerClass(peer.componentName)
-                const arkPeerType = new Type(`${arkPeer}`)
+                const arkPeerType = toIDLType(`${arkPeer}`)
 
-                const paramTypes = [new Type(`Consumer<${arkComponent}>`), new Type('Runnable')]
+                const paramTypes = [toIDLType(`Consumer<${arkComponent}>`), toIDLType('Runnable')]
                 const paramNames = ['style', 'content']
                 const callableMethods = peer.methods.filter(it => it.isCallSignature)
                 let callableMethod: IdlPeerMethod | undefined
@@ -193,23 +195,23 @@ export function makeJavaArkComponents(library: PeerLibrary | IdlPeerLibrary, pri
                     })
                 }
 
-                const signature = new NamedMethodSignature(Type.Void, paramTypes, paramNames)
+                const signature = new NamedMethodSignature(IDLVoidType, paramTypes, paramNames)
                 const method = new Method(`Ark${peer.componentName}`, signature, [MethodModifier.PUBLIC, MethodModifier.STATIC])
                 writer.writeMethodImplementation(method, writer => {
                     writer.writeStatement(
                         writer.makeAssign(receiver, undefined, writer.makeFunctionCall('remember', [
-                            writer.makeLambda(new MethodSignature(new Type(arkComponent), []), [
+                            writer.makeLambda(new MethodSignature(toIDLType(arkComponent), []), [
                                 writer.makeReturn(writer.makeString(`new ${arkComponent}()`))
                             ])
                         ]), true))
                     writer.writeStatement(
-                        writer.makeAssign(create, new Type(`Supplier<${arkPeer}>`),
+                        writer.makeAssign(create, toIDLType(`Supplier<${arkPeer}>`),
                             writer.makeLambda(new MethodSignature(arkPeerType, []), [
                                 writer.makeReturn(writer.makeString(`${arkPeer}.create(${ARK_UI_NODE_TYPE}.${peer.componentName}, ${receiver}, 0)`))
                             ]), true))
                     writer.writeStatement(
-                        writer.makeAssign(update, new Type(`Consumer<${arkPeer}>`),
-                            writer.makeLambda(new NamedMethodSignature(Type.Void, [arkPeerType], ['peer']), (callableMethod ?
+                        writer.makeAssign(update, toIDLType(`Consumer<${arkPeer}>`),
+                            writer.makeLambda(new NamedMethodSignature(IDLVoidType, [arkPeerType], ['peer']), (callableMethod ?
                                 [writer.makeStatement(writer.makeMethodCall(receiver, callableMethod.method.name,
                                     signature.argsNames.slice(2).map(it => writer.makeString(it))))] : []).concat(
                                         writer.makeCondition(writer.makeDefinedCheck(signature.argName(0)),
@@ -228,7 +230,7 @@ export function makeJavaArkComponents(library: PeerLibrary | IdlPeerLibrary, pri
         })
     }, ARK_BASE)
 
-    const result = createLanguageWriter(library.language)
+    const result = createLanguageWriter(library.language, getReferenceResolver(library))
     result.print(`package ${ARKOALA_PACKAGE};\n`)
     printJavaImports(result, imports)
     result.concat(writer)
@@ -237,7 +239,7 @@ export function makeJavaArkComponents(library: PeerLibrary | IdlPeerLibrary, pri
 }
 
 export class JavaUnion extends IdlSyntheticTypeBase {
-    constructor(source: Object | undefined, public name: string, public readonly members: Type[], public readonly imports: ImportFeature[]) {
+    constructor(source: Object | undefined, public name: string, public readonly members: IDLType[], public readonly imports: ImportFeature[]) {
         super(source)
     }
 
@@ -245,7 +247,7 @@ export class JavaUnion extends IdlSyntheticTypeBase {
         printJavaImports(writer, this.imports)
 
         writer.writeClass(this.name, () => {
-            const intType = new Type('int')
+            const intType = IDLI32Type
             const selector = 'selector'
             writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
             writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
@@ -263,7 +265,7 @@ export class JavaUnion extends IdlSyntheticTypeBase {
 
                 writer.writeConstructorImplementation(
                     this.name,
-                    new NamedMethodSignature(Type.Void, [memberType], [param]),
+                    new NamedMethodSignature(IDLVoidType, [memberType], [param]),
                     () => {
                         writer.writeStatement(
                             writer.makeAssign(memberName, undefined, writer.makeString(param), false)
@@ -290,7 +292,7 @@ export class JavaUnion extends IdlSyntheticTypeBase {
 }
 
 export class JavaTuple extends IdlSyntheticTypeBase {
-    constructor(source: Object | undefined, readonly name: string, public readonly members: Type[], public readonly imports: ImportFeature[]) {
+    constructor(source: Object | undefined, readonly name: string, public readonly members: IDLType[], public readonly imports: ImportFeature[]) {
         super(source)
     }
 
@@ -303,7 +305,7 @@ export class JavaTuple extends IdlSyntheticTypeBase {
                 writer.writeFieldDeclaration(memberNames[i], this.members[i], [FieldModifier.PUBLIC], false)
             }
 
-            const signature = new MethodSignature(Type.Void, this.members)
+            const signature = new MethodSignature(IDLVoidType, this.members)
             writer.writeConstructorImplementation(this.name, signature, () => {
                 for (let i = 0; i < memberNames.length; i++) {
                     writer.writeStatement(
@@ -348,7 +350,7 @@ export class JavaEnum extends IdlSyntheticTypeBase {
 
     print(writer: LanguageWriter): void {
         writer.writeClass(this.name, () => {
-            const enumType = new Type(this.name)
+            const enumType = toIDLType(this.name)
             this.members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(`new ${this.name}(${it.numberId})`)
@@ -356,10 +358,10 @@ export class JavaEnum extends IdlSyntheticTypeBase {
             })
     
             const value = 'value'
-            const intType = new Type('int')
+            const intType = IDLI32Type
             writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
     
-            const signature = new MethodSignature(Type.Void, [intType])
+            const signature = new MethodSignature(IDLVoidType, [intType])
             writer.writeConstructorImplementation(this.name, signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
@@ -381,7 +383,7 @@ export class JavaDataClass extends IdlSyntheticTypeBase {
         source: Object | undefined,
         readonly name: string,
         public readonly baseClass: string | undefined,
-        public readonly members: {name: string, type: Type, modifiers: FieldModifier[]}[],
+        public readonly members: {name: string, type: IDLType, modifiers: FieldModifier[]}[],
         public readonly imports: ImportFeature[],
     ) {
         super(source)

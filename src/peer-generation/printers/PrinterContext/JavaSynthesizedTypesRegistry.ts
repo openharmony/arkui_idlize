@@ -15,7 +15,7 @@
 
 import * as ts from 'typescript'
 import { identName } from '../../../util'
-import { LanguageWriter, Type, createLanguageWriter } from '../../LanguageWriters'
+import { LanguageWriter, createLanguageWriter } from '../../LanguageWriters'
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, convertJavaOptional } from '../lang/Java'
 import { JavaEnum, JavaTuple, JavaUnion } from "../lang/JavaPrinters"
@@ -25,6 +25,8 @@ import { PrimitiveType } from "../../ArkPrimitiveType"
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { ImportTable } from '../ImportTable'
 import { Language } from '../../../Language'
+import { getIDLTypeName, IDLType, maybeOptional, toIDLType } from '../../../idl'
+import { createEmptyReferenceResolver } from '../../ReferenceResolver'
 
 
 function unsupportedType(type: string): Error {
@@ -34,17 +36,17 @@ function unsupportedType(type: string): Error {
 class JavaType {
     // Java type itself
     // string representation can contain special characters (e.g. String[])
-    readonly type: Type
+    readonly type: IDLType
 
     // synthetic identifier for internal use cases: naming classes/files etc.
     // string representation contains only letters, numbers and underscores (e.g. Array_String)
     readonly alias: string
 
     static fromTypeName(typeName: string, optional: boolean): JavaType {
-        return new JavaType(new Type(typeName, optional), optional ? convertJavaOptional(typeName) : typeName)
+        return new JavaType(maybeOptional(toIDLType(typeName), optional), optional ? convertJavaOptional(typeName) : typeName)
     }
 
-    constructor(type: Type, alias: string) {
+    constructor(type: IDLType, alias: string) {
         this.type = type
         this.alias = alias
     }
@@ -52,7 +54,7 @@ class JavaType {
 
 export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     // maps type name in Java (e.g. `Union_double_String`) to its definition (LanguageWriter containing `package X; class Union_double_String {...}`)
-    private readonly types = new Map<Type, LanguageWriter>()
+    private readonly types = new Map<IDLType, LanguageWriter>()
 
     constructor(private readonly table: DeclarationTable, private readonly imports: ImportTable) {}
 
@@ -60,14 +62,14 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         const result = new Map<TargetFile, string>()
         for (const [type, writer] of this.types) {
             result.set(
-                new TargetFile(type.name, ARKOALA_PACKAGE_PATH),
+                new TargetFile(getIDLTypeName(type), ARKOALA_PACKAGE_PATH),
                 writer.getOutput().join('\n')
             )
         }
         return result
     }
 
-    getTargetType(target: DeclarationTarget, optional: boolean): Type {
+    getTargetType(target: DeclarationTarget, optional: boolean): IDLType {
         const javaType = this.computeJavaType(target, optional)
         if (this.hasType(javaType.type)) {
             return javaType.type
@@ -78,13 +80,13 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         }
 
         if (ts.isUnionTypeNode(target)) {
-            const writer = createLanguageWriter(Language.JAVA)
+            const writer = createLanguageWriter(Language.JAVA, createEmptyReferenceResolver())
             this.printPackage(writer)
             this.printUnionImplementation(target, javaType, writer)
             this.addType(javaType.type, writer)
         }
         else if (ts.isTupleTypeNode(target)) {
-            const writer = createLanguageWriter(Language.JAVA)
+            const writer = createLanguageWriter(Language.JAVA, createEmptyReferenceResolver())
             this.printPackage(writer)
             this.printTupleImplementation(target, javaType, writer)
             this.addType(javaType.type, writer)
@@ -93,7 +95,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             this.getTargetType(this.toTarget(target.type), true)
         }
         if (ts.isEnumDeclaration(target)) {
-            const writer = createLanguageWriter(Language.JAVA)
+            const writer = createLanguageWriter(Language.JAVA, createEmptyReferenceResolver())
             this.printPackage(writer)
             this.printEnumImplementation(target, javaType, writer)
             this.addType(javaType.type, writer)
@@ -126,11 +128,11 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         writer.print(`package ${ARKOALA_PACKAGE};\n`)
     }
 
-    private addType(type: Type, writer: LanguageWriter) {
+    private addType(type: IDLType, writer: LanguageWriter) {
         this.types.set(type, writer)
     }
 
-    private hasType(type: Type): boolean {
+    private hasType(type: IDLType): boolean {
         return this.types.has(type)
     }
 
@@ -236,7 +238,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         }
         if (ts.isArrayTypeNode(target)) {
             const arrayElementType = this.computeJavaType(this.toTarget(target.elementType), false)
-            return new JavaType(new Type(`${arrayElementType.type.name}[]`), `Array_${arrayElementType.alias}`)
+            return new JavaType(toIDLType(`${getIDLTypeName(arrayElementType.type)}[]`), `Array_${arrayElementType.alias}`)
         }
         if (ts.isImportTypeNode(target)) {
             return this.mapImportType(target)
@@ -258,11 +260,11 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 return this.computeJavaType(this.toTarget(target.typeArguments[0]), true)
             if (name == 'Array') {
                 const arrayElementType = this.computeJavaType(this.toTarget(target.typeArguments[0]), false)
-                return new JavaType(new Type(`${arrayElementType.type.name}[]`), `Array_${arrayElementType.alias}`)
+                return new JavaType(toIDLType(`${getIDLTypeName(arrayElementType.type)}[]`), `Array_${arrayElementType.alias}`)
             }
             if (name == 'Map') {
                 const javaTypes = target.typeArguments.slice(0, 2).map(it => this.computeJavaType(this.toTarget(it), false, true))
-                return new JavaType(new Type(`Map<${javaTypes[0].type.name}, ${javaTypes[1].type.name}>`), `Map_${javaTypes[0].alias}_${javaTypes[1].alias}`)
+                return new JavaType(toIDLType(`Map<${getIDLTypeName(javaTypes[0].type)}, ${getIDLTypeName(javaTypes[1].type)}>`), `Map_${javaTypes[0].alias}_${javaTypes[1].alias}`)
             }
             if (name == 'Callback')
                 throw unsupportedType(`TypeReferenceNode:Callback`)

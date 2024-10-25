@@ -16,15 +16,15 @@
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { capitalize } from "../../../util"
 import { AggregateConvertor, ArrayConvertor, EnumConvertor as EnumConvertorDTS, OptionConvertor, StringConvertor } from "../../Convertors"
-import { FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, Type } from "../LanguageWriter"
+import { FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { IDLBooleanType, IDLContainerType, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLStringType, IDLType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType  } from '../../../idl'
+import { createUnionType, getIDLTypeName, IDLAnyType, IDLBooleanType, IDLContainerType, IDLContainerUtils, IDLF32Type, IDLF64Type, IDLFunctionType, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLInterface, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLProperty, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUndefinedType, IDLUnknownType, IDLVoidType, isAnonymousInterface, isIDLTypeName, toIDLType  } from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
 import { createLiteralDeclName } from "../../TypeNodeNameConvertor"
 import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
-import { makeArrayTypeCheckCall } from "../../printers/TypeCheckPrinter"
 import { Language } from "../../../Language"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
+import { ReferenceResolver } from "../../ReferenceResolver"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -32,7 +32,7 @@ import { EnumConvertor } from "../../idl/IdlArgConvertors"
 
 export class EtsAssignStatement implements LanguageStatement {
     constructor(public variableName: string,
-                public type: Type | undefined,
+                public type: IDLType | undefined,
                 public expression: LanguageExpression,
                 public isDeclared: boolean = true,
                 protected isConst: boolean = true) { }
@@ -70,30 +70,30 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                     isTypeString ? index : undefined
                 ].filter(it => it !== undefined)
                 writer.writeFieldDeclaration(member.name,
-                    new Type(this.enumEntity.name),
+                    toIDLType(this.enumEntity.name),
                     [FieldModifier.STATIC, FieldModifier.READONLY],
                     false,
                     writer.makeString(`new ${this.enumEntity.name}(${ctorArgs.join(",")})`))
             })
             const typeName = isTypeString ? "string" : "KInt"
-            let argTypes = [new Type(typeName)]
+            let argTypes = [toIDLType(typeName)]
             let argNames = ["value"]
             if (isTypeString) {
-                argTypes.push(new Type("KInt"))
+                argTypes.push(toIDLType("KInt"))
                 argNames.push("ordinal")
             }
             writer.writeConstructorImplementation(this.enumEntity.name,
-                new NamedMethodSignature(Type.Void, argTypes, argNames), (writer) => {
+                new NamedMethodSignature(IDLVoidType, argTypes, argNames), (writer) => {
                     writer.writeStatement(writer.makeAssign("this.value", undefined, writer.makeString("value"), false))
                     if (isTypeString) {
                         writer.writeStatement(writer.makeAssign("this.ordinal", undefined, writer.makeString("ordinal"), false))
                     }
             })
-            writer.writeFieldDeclaration("value", new Type(typeName), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
+            writer.writeFieldDeclaration("value", toIDLType(typeName), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             if (isTypeString) {
-                writer.writeFieldDeclaration("ordinal", new Type("KInt"), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
+                writer.writeFieldDeclaration("ordinal", IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             }
-            writer.writeMethodImplementation(new Method("of", new MethodSignature(new Type(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
+            writer.writeMethodImplementation(new Method("of", new MethodSignature(toIDLType(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {
                     this.enumEntity.members.forEach((member) => {
                         const memberName = `${this.enumEntity.name}.${member.name}`
@@ -110,21 +110,84 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
 }
 
 ////////////////////////////////////////////////////////////////
+//                           UTILS                            //
+////////////////////////////////////////////////////////////////
+
+export function generateTypeCheckerName(typeName: string): string {
+    typeName = typeName.replaceAll('[]', 'BracketsArray')
+    return `is${typeName.replaceAll('[]', 'Brackets')}`
+}
+
+export function makeArrayTypeCheckCall(
+    valueAccessor: string, 
+    typeName: IDLType,
+    writer: LanguageWriter,
+) {
+    return writer.makeMethodCall(
+        "TypeChecker",
+        generateTypeCheckerName(getIDLTypeName(typeName)),
+        // isBrackets ? generateTypeCheckerNameBracketsArray(typeName) : generateTypeCheckerNameArray(typeName), 
+        [writer.makeString(valueAccessor)
+    ])
+}
+
+////////////////////////////////////////////////////////////////
 //                           WRITER                           //
 ////////////////////////////////////////////////////////////////
 
 export class ETSLanguageWriter extends TSLanguageWriter {
-    constructor(printer: IndentedPrinter) {
-        super(printer, Language.ARKTS)
+    constructor(printer: IndentedPrinter, resolver:ReferenceResolver) {
+        super(printer, resolver, Language.ARKTS)
+    }
+    fork(): LanguageWriter {
+        return new ETSLanguageWriter(new IndentedPrinter(), this.resolver)
+    }
+    override convertContainer(type: IDLContainerType): string {
+        if (IDLContainerUtils.isSequence(type)) {
+            switch (type.elementType[0]) {
+                case IDLU8Type: return 'KUint8ArrayPtr'
+                case IDLI32Type: return 'KInt32ArrayPtr'
+                case IDLF32Type: return 'KFloat32ArrayPtr'
+            }
+            return `${this.convert(type.elementType[0])}[]`
+        }
+        return super.convertContainer(type)
+    }
+    override convertPrimitiveType(type: IDLPrimitiveType): string {
+        switch (type) {
+            case IDLVoidType: return "void"
+            case IDLAnyType: return "object"
+            case IDLUnknownType: return "object"
+        }
+        return this.mapIDLPrimitiveType(type)
+    }
+    protected override productType(decl: IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
+        if (isAnonymousInterface(decl)) {
+            return decl.name
+        }
+        return super.productType(decl, isTuple, includeFieldNames)
+    }
+    protected override processTupleType(idlProperty: IDLProperty): IDLProperty {
+        if (idlProperty.isOptional) {
+            return {
+                ...idlProperty,
+                isOptional: false,
+                type: createUnionType([idlProperty.type, IDLUndefinedType])
+            }
+        }
+        return idlProperty
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
+        if (signature.returnType === IDLThisType) {
+            throw new Error('static method can not return this!')
+        }
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
-    makeAssign(variableName: string, type: Type | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
+    makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
-        return new TSLambdaExpression(signature, body)
+        return new TSLambdaExpression(this, this, signature, this.resolver, body)
     }
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, op)
@@ -132,43 +195,31 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeMapSize(map: string): LanguageExpression {
         return this.makeString(`${super.makeMapSize(map).asString()} as int32`) // TODO: cast really needed?
     }
-    mapIDLContainerType(type: IDLContainerType, args: string[]): string {
-        switch (type.name) {
-            case 'sequence': {
-                switch (type.elementType[0].name) {
-                    case IDLU8Type.name: return 'KUint8ArrayPtr'
-                    case IDLI32Type.name: return 'KInt32ArrayPtr'
-                    case IDLF32Type.name: return 'KFloat32ArrayPtr'
-                }
+    mapIDLContainerType(type: IDLContainerType): string {
+        if (IDLContainerUtils.isSequence(type)) {
+            switch (type.elementType[0]) {
+                case IDLU8Type: return 'KUint8ArrayPtr'
+                case IDLI32Type: return 'KInt32ArrayPtr'
+                case IDLF32Type: return 'KFloat32ArrayPtr'
             }
+            return `${this.mapIDLType(type.elementType[0])}[]`
         }
-        return super.mapIDLContainerType(type, args)
+        return super.mapIDLContainerType(type)
     }
-    mapType(type: Type, convertor?: ArgConvertor): string {
-        if (convertor instanceof EnumConvertorDTS || convertor instanceof EnumConvertor) {
-            return convertor.enumTypeName(this.language)
+    mapIDLReferenceType(type: IDLReferenceType): string {
+        if (isIDLTypeName(type, 'Function')) {
+            return 'Object'
         }
-        if (convertor instanceof AggregateConvertor && convertor.aliasName !== undefined) {
-            return convertor.aliasName
-        }
-        if (convertor instanceof ArrayConvertor) {
-            return convertor.isArrayType
-                ? `${convertor.elementTypeName()}[]`
-                : `Array<${convertor.elementTypeName()}>`
-        }
-        switch (type.name) {
-            case 'Uint8Array': return 'KUint8ArrayPtr'
-        }
-        return super.mapType(type)
+        return super.mapIDLReferenceType(type)
     }
     mapIDLPrimitiveType(type: IDLPrimitiveType): string {
         switch (type) {
             case IDLPointerType: return 'KPointer'
             case IDLVoidType: return 'void'
-            case IDLBooleanType: return 'KBoolean'
-
-            case IDLI8Type:
+            case IDLBooleanType: return 'boolean'
+            
             case IDLU8Type:
+            case IDLI8Type:
             case IDLI16Type:
             case IDLU16Type:
             case IDLI32Type:
@@ -187,6 +238,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 return 'number'
 
             case IDLStringType: return 'KStringPtr'
+            case IDLFunctionType: return 'Object'
         }
         return super.mapIDLPrimitiveType(type)
     }
@@ -208,17 +260,17 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             super.runtimeType(param, valueType, value);
         }
     }
-    makeUnionVariantCast(value: string, type: Type, convertor: ArgConvertor, index?: number): LanguageExpression {
-        return this.makeString(`${value} as ${type.name}`)
+    makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index?: number): LanguageExpression {
+        return this.makeString(`${value} as ${type}`)
     }
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         return value;
     }
-    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => Type}, value: string, accessors: string[]): LanguageExpression {
+    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string}, value: string, accessors: string[]): LanguageExpression {
         if (convertor instanceof CustomTypeConvertor) {
             return this.makeString(`${value} instanceof ${convertor.customTypeName}`)
         }
-        return this.makeString(`${value} instanceof ${convertor.targetType(this).name}`)
+        return this.makeString(`${value} instanceof ${convertor.targetType(this)}`)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         if (destinationConvertor instanceof EnumConvertorDTS || destinationConvertor instanceof EnumConvertor) {
@@ -248,23 +300,23 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     override makeCastEnumToInt(convertor: EnumConvertorDTS, value: string, _unsafe?: boolean): string {
         // TODO: remove after switching to IDL
         return this.makeCast(this.makeString(`${value}.${convertor.isStringEnum ? "ordinal" : "value"}`),
-            new Type('int32')).asString();
+            IDLI32Type).asString();
     }
     override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
-        return this.makeCast(this.makeString(`${value}.${convertor?.isStringEnum ? "ordinal" : "value" ?? "value"}`),
-            new Type('int32')).asString();
+        return this.makeCast(this.makeString(`${value}.${convertor?.isStringEnum ? "ordinal" : "value"}`),
+            IDLI32Type).asString();
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
         if (convertor instanceof EnumConvertorDTS || convertor instanceof EnumConvertor) {
             return this.makeString(`${valueName} instanceof ${convertor.enumTypeName(this.language)}`)
         } else if (convertor instanceof StringConvertor && convertor.isLiteral()) {
-            return this.makeString(`${valueName} instanceof ${convertor.tsTypeName}`)
+            return this.makeString(`${valueName} instanceof ${this.mapIDLType(convertor.idlType)}`)
         }
         return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index);
     }
     makeCastCustomObject(customName: string, isGenericType: boolean): LanguageExpression {
         if (isGenericType) {
-            return this.makeCast(this.makeString(customName), new Type("Object"))
+            return this.makeCast(this.makeString(customName), toIDLType("Object"))
         }
         return super.makeCastCustomObject(customName, isGenericType);
     }
@@ -285,7 +337,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                                                      checkedType: string,
                                                      runtimeType: RuntimeType,
                                                      exprs: LanguageExpression[]): LanguageExpression {
-        return makeArrayTypeCheckCall(value, checkedType, this)
+        return makeArrayTypeCheckCall(value, toIDLType(checkedType), this)
     }
     makeDiscriminatorConvertor(convertor: EnumConvertorDTS, value: string, index: number): LanguageExpression {
         return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [

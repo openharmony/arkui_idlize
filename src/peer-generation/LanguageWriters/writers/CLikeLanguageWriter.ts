@@ -15,6 +15,7 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
+import { ReferenceResolver } from "../../ReferenceResolver"
 import { ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ReturnStatement } from "../LanguageWriter"
 
 ////////////////////////////////////////////////////////////////
@@ -70,8 +71,8 @@ class CLikeThrowErrorStatement implements LanguageStatement {
 ////////////////////////////////////////////////////////////////
 
 export abstract class CLikeLanguageWriter extends LanguageWriter {
-    protected constructor(printer: IndentedPrinter, language: Language) {
-        super(printer, language)
+    protected constructor(printer: IndentedPrinter, resolver: ReferenceResolver, language: Language) {
+        super(printer, resolver, language)
     }
     makeThrowError(message: string): LanguageStatement {
         return new CLikeThrowErrorStatement(message)
@@ -98,6 +99,6 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}${this.mapType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapType(it)} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
+        this.print(`${prefix}${this.mapIDLType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapIDLType(it)} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
     }
 }

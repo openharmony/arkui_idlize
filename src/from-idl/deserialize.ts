@@ -22,7 +22,7 @@ import {
     isSingleTypeDescription, isTypedef, isUnionTypeDescription
 } from "./webidl2-utils"
 import { toString } from "./toString"
-import { createContainerType, createUnionType, IDLAnyType, IDLBooleanType, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLImport, IDLInterface, IDLKind,
+import { createContainerType, createModuleType, createReferenceType, createUnionType, getIDLTypeName, IDLAnyType, IDLBooleanType, IDLCallable, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLEnumMember, IDLExtendedAttribute, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLImport, IDLInterface, IDLKind,
     IDLMethod, IDLModuleType, IDLNullType, IDLNumberType, IDLObjectType, IDLPackage, IDLParameter, IDLPointerType, IDLPrimitiveType, IDLProperty, IDLReferenceType, IDLStringType, IDLType, IDLTypedef,
     IDLU16Type,
     IDLU32Type,
@@ -32,7 +32,7 @@ import { createContainerType, createUnionType, IDLAnyType, IDLBooleanType, IDLCa
     IDLUnknownType,
     IDLVoidType
 } from "../idl"
-import { isDefined, stringOrNone } from "../util"
+import { isDefined, stringOrNone, typeName } from "../util"
 
 const syntheticTypes = new Map<string, IDLType>()
 
@@ -43,7 +43,7 @@ function addSyntheticType(name: string, type: IDLType) {
 }
 
 export function resolveSyntheticType(type: IDLReferenceType): IDLEntry | undefined {
-    return type.name ? syntheticTypes.get(type.name) : undefined
+    return syntheticTypes.get(getIDLTypeName(type))
 }
 
 export function toIDLNode(file: string, node: webidl2.IDLRootType): IDLEntry {
@@ -138,7 +138,7 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
             .map(it => toIDLCallable(file, it)),
     }
     if (node.extAttrs.find(it => it.name === "Synthetic"))
-        addSyntheticType(node.name, result)
+        addSyntheticType(node.name, createReferenceType(result.name))
     return result
 }
 
@@ -152,12 +152,11 @@ function extractTypeArguments(extAttrs: webidl2.ExtendedAttribute[] | undefined)
 
 function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extAttrs?: webidl2.ExtendedAttribute[]): IDLType {
     if (typeof type === "string") {
-        return {
-            name: type,
-            fileName: file,
-            kind: IDLKind.ReferenceType,
-            extendedAttributes: extractTypeArguments(extAttrs)
-        }
+        // is it IDLStringType?
+        const refType = createReferenceType(type)
+        refType.fileName = file
+        refType.extendedAttributes = extractTypeArguments(extAttrs)
+        return refType
     }
     if (isUnionTypeDescription(type)) {
         return createUnionType(type.idlType
@@ -166,37 +165,37 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
     }
     if (isSingleTypeDescription(type)) {
         switch (type.idlType) {
-            case IDLAnyType.name: return IDLAnyType
-            case IDLBooleanType.name: return IDLBooleanType
-            case IDLNullType.name: return IDLNullType
-            case IDLNumberType.name: return IDLNumberType
-            case IDLStringType.name: return IDLStringType
-            case IDLUndefinedType.name: return IDLUndefinedType
-            case IDLVoidType.name: return IDLVoidType
-            case IDLObjectType.name: return IDLObjectType
-            case IDLUnknownType.name: return IDLUnknownType
-            case IDLI8Type.name: return IDLI8Type
-            case IDLU8Type.name: return IDLU8Type
-            case IDLI16Type.name: return IDLI16Type
-            case IDLU16Type.name: return IDLU16Type
-            case IDLI32Type.name: return IDLI32Type
-            case IDLU32Type.name: return IDLU32Type
-            case IDLI64Type.name: return IDLI64Type
-            case IDLU64Type.name: return IDLU64Type
-            case IDLF32Type.name: return IDLF32Type
-            case IDLF64Type.name: return IDLF64Type
-            case IDLPointerType.name: return IDLPointerType
+            case getIDLTypeName(IDLUnknownType): return IDLUnknownType
+            case getIDLTypeName(IDLObjectType): return IDLObjectType
+            case getIDLTypeName(IDLAnyType): return IDLAnyType
+            case getIDLTypeName(IDLBooleanType): return IDLBooleanType
+            case getIDLTypeName(IDLNullType): return IDLNullType
+            case getIDLTypeName(IDLNumberType): return IDLNumberType
+            case getIDLTypeName(IDLStringType): return IDLStringType
+            case getIDLTypeName(IDLUndefinedType): return IDLUndefinedType
+            case getIDLTypeName(IDLVoidType): return IDLVoidType
+            case getIDLTypeName(IDLI8Type): return IDLI8Type
+            case getIDLTypeName(IDLU8Type): return IDLU8Type
+            case getIDLTypeName(IDLI16Type): return IDLI16Type
+            case getIDLTypeName(IDLU16Type): return IDLU16Type
+            case getIDLTypeName(IDLI32Type): return IDLI32Type
+            case getIDLTypeName(IDLU32Type): return IDLU32Type
+            case getIDLTypeName(IDLI64Type): return IDLI64Type
+            case getIDLTypeName(IDLU64Type): return IDLU64Type
+            case getIDLTypeName(IDLF32Type): return IDLF32Type
+            case getIDLTypeName(IDLF64Type): return IDLF64Type
+            case getIDLTypeName(IDLPointerType): return IDLPointerType
 
         }
         const combinedExtAttrs = extAttrs
             ? type.extAttrs ? extAttrs.concat(type.extAttrs) : extAttrs
             : type.extAttrs
-        return {
-            name: type.idlType,
-            fileName: file,
-            kind: IDLKind.ReferenceType,
-            extendedAttributes: toExtendedAttributes(combinedExtAttrs)
-        }
+        const idlRefType = createReferenceType(
+            type.idlType
+        )
+        idlRefType.fileName = file
+        idlRefType.extendedAttributes = toExtendedAttributes(combinedExtAttrs)
+        return idlRefType
     }
     if (isSequenceTypeDescription(type) || isPromiseTypeDescription(type) || isRecordTypeDescription(type)) {
         return createContainerType(
@@ -270,7 +269,7 @@ function toIDLCallback(file: string, node: webidl2.CallbackType): IDLCallback {
         returnType: toIDLType(file, node.idlType)
     }
     if (node.extAttrs.find(it => it.name === "Synthetic"))
-        addSyntheticType(node.name, result)
+        addSyntheticType(node.name, createReferenceType(result.name))
     return result
 }
 
@@ -299,13 +298,11 @@ function toIDLDictionary(file: string, node: webidl2.DictionaryType): IDLEnum {
 }
 
 function toIDLNamespace(file: string, node: webidl2.NamespaceType): IDLModuleType {
-
-    return {
-        kind: IDLKind.ModuleType,
-        name: node.name,
-        extendedAttributes: toExtendedAttributes(node.extAttrs),
-        fileName: file
-    }
+    return createModuleType(
+        node.name,
+        toExtendedAttributes(node.extAttrs),
+        file
+    )
 }
 
 function toIDLProperty(file: string, node: webidl2.AttributeMemberType): IDLProperty {

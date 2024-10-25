@@ -1,5 +1,5 @@
 import { removeExt, renameClassToBuilderClass, renameClassToMaterialized } from "../../util"
-import { LanguageWriter, MethodModifier, Method, Type, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
+import { LanguageWriter, MethodModifier, Method, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary"
 import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES, BuilderMethod, BuilderField } from "../BuilderClass";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
@@ -10,6 +10,8 @@ import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { Language } from "../../Language";
+import { getIDLTypeName, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../../idl";
+import { createEmptyReferenceResolver } from "../ReferenceResolver";
 
 interface BuilderClassFileVisitor {
     printFile(): void
@@ -33,7 +35,7 @@ class TSBuilderClass {
 
 class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
-    private readonly printer: LanguageWriter = createLanguageWriter(this.language)
+    private readonly printer: LanguageWriter = createLanguageWriter(this.language, this.peerLibrary instanceof IdlPeerLibrary ? this.peerLibrary : createEmptyReferenceResolver())
 
     constructor(
         private readonly language: Language,
@@ -46,6 +48,8 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         const clazz = processTSBuilderClass(builderClass)
 
         const imports = new ImportsCollector()
+        imports.addFeature('KBoolean', '@koalaui/interop')
+        imports.addFeature('KStringPtr', '@koalaui/interop')
         clazz.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         // hack to pass CI, remove condition after switching to IDL
         if (!(this.peerLibrary instanceof PeerLibrary)) {
@@ -60,7 +64,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
-                writer.writeFieldDeclaration(field.name, field.type, field.modifiers, field.type.nullable)
+                writer.writeFieldDeclaration(field.name, field.type, field.modifiers, !!field.type.optional)
             })
 
             clazz.constructors
@@ -84,7 +88,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
                     writer.writeMethodImplementation(staticMethod, writer => {
                         const sig = staticMethod.signature
                         const args = sig.args.map((_, i) => sig.argName(i)).join(", ")
-                        const obj = sig.returnType.name
+                        const obj = getIDLTypeName(sig.returnType)
                         // TBD: Use writer.makeObjectAlloc()
                         writer.writeStatement(writer.makeReturn(writer.makeString(`new ${obj}(${args})`)))
                     })
@@ -118,7 +122,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
 class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
-    private readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language)
+    private readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
 
     constructor(
         private readonly library: IdlPeerLibrary | PeerLibrary,
@@ -134,7 +138,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             method.declarationTargets[0])
     }
 
-    private convertBuilderMethodTS(method: BuilderMethod, returnType: Type, newMethodName?: string): BuilderMethod {
+    private convertBuilderMethodTS(method: BuilderMethod, returnType: IDLType, newMethodName?: string): BuilderMethod {
         const oldSignature = method.method.signature as NamedMethodSignature
         const types = method.declarationTargets.map(it => this.printerContext.synthesizedTypes!.getTargetType(it, true))
         const signature = new NamedMethodSignature(returnType, types, oldSignature.argsNames, oldSignature.defaults);
@@ -155,7 +159,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             .map(it => this.synthesizeFieldTS(it))
         const fields = [...clazz.fields, ...syntheticFields]
 
-        const returnType = new Type(clazz.name)
+        const returnType = toIDLType(clazz.name)
         const constructors = clazz.constructors.map(it => this.convertBuilderMethodTS(it, returnType, clazz.name))
         const methods = clazz.methods.map(it => this.convertBuilderMethodTS(it, returnType))
 
@@ -184,7 +188,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
-                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, field.field.type.nullable)
+                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, !!field.field.type.optional)
             })
 
             clazz.constructors
@@ -221,7 +225,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             method.declarationTargets[0])
     }
 
-    private convertBuilderMethod(method: BuilderMethod, returnType: Type, newMethodName?: string): BuilderMethod {
+    private convertBuilderMethod(method: BuilderMethod, returnType: IDLType, newMethodName?: string): BuilderMethod {
         const oldSignature = method.method.signature as NamedMethodSignature
         const signature = new NamedMethodSignature(returnType, oldSignature.args, oldSignature.argsNames, oldSignature.defaults);
         return new BuilderMethod(
@@ -241,7 +245,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             .map(it => this.synthesizeField(it))
         const fields = [...clazz.fields, ...syntheticFields]
 
-        const returnType = new Type(clazz.name)
+        const returnType = toIDLType(clazz.name)
         const constructors = clazz.constructors.map(it => this.convertBuilderMethod(it, returnType, clazz.name))
         const methods = clazz.methods.map(it => this.convertBuilderMethod(it, returnType))
 
@@ -266,7 +270,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
-                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, field.field.type.nullable)
+                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, !!field.field.type.optional)
             })
 
             clazz.constructors
@@ -376,7 +380,7 @@ function syntheticName(name: string): string {
 
 function toSyntheticField(method: Method): Field {
     const type = method.signature.args[0]
-    return new Field(syntheticName(method.name), new Type(type.name, true))
+    return new Field(syntheticName(method.name), maybeOptional(type, true))
 }
 
 function collapse(methods: Method[]): Method[] {
@@ -410,14 +414,14 @@ function processTSBuilderClass(clazz: TSBuilderClass): TSBuilderClass {
         if (staticMethods.length > 0) {
             const staticSig = staticMethods[0].signature
             const args = staticSig.args
-            const ctorSig = new NamedMethodSignature(Type.Void, args, args.map((it, i) => staticSig.argName(i)))
+            const ctorSig = new NamedMethodSignature(IDLVoidType, args, args.map((_, i) => staticSig.argName(i)))
             constructors = [new Method("constructor", ctorSig)]
         }
     }
 
     const ctorFields = constructors.flatMap(cons => {
         const ctorSig = cons.signature
-        return ctorSig.args.map((type, index) => new Field(syntheticName(ctorSig.argName(index)), new Type(type.name, true)))
+        return ctorSig.args.map((type, index) => new Field(syntheticName(ctorSig.argName(index)), maybeOptional(type, true)))
     })
 
     const syntheticFields = methods

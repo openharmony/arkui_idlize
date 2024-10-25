@@ -15,7 +15,7 @@
 
 import * as ts from 'typescript'
 import { identName } from '../../../util'
-import { FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, StringExpression, Type, createLanguageWriter } from '../../LanguageWriters'
+import { ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, StringExpression, createLanguageWriter } from '../../LanguageWriters'
 import { SynthesizedTypesRegistry } from '../SynthesizedTypesRegistry'
 import { ARK_OBJECTBASE, INT_VALUE_GETTER } from '../lang/Java'
 import { TargetFile } from '../TargetFile'
@@ -24,6 +24,8 @@ import { PrimitiveType } from "../../ArkPrimitiveType"
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { ImportTable } from '../ImportTable'
 import { Language } from '../../../Language'
+import { getIDLTypeName, IDLI32Type, IDLType, IDLVoidType, maybeOptional, toIDLType } from '../../../idl'
+import { createEmptyReferenceResolver } from '../../ReferenceResolver'
 
 
 function unsupportedType(type: string): Error {
@@ -32,23 +34,23 @@ function unsupportedType(type: string): Error {
 
 type MemberInfo = {
     name: string,
-    type: Type,
+    type: IDLType,
 }
 
 class CJType {
     // CJ type itself
     // string representation can contain special characters (e.g. String[])
-    readonly type: Type
+    readonly type: IDLType
 
     // synthetic identifier for internal use cases: naming classes/files etc.
     // string representation contains only letters, numbers and underscores (e.g. Array_String)
     readonly alias: string
 
     static fromTypeName(typeName: string, optional?: boolean): CJType {
-        return new CJType(new Type(typeName, optional), typeName)
+        return new CJType(maybeOptional(toIDLType(typeName), optional), typeName)
     }
 
-    constructor(type: Type, alias: string) {
+    constructor(type: IDLType, alias: string) {
         this.type = type
         this.alias = alias
     }
@@ -56,7 +58,7 @@ class CJType {
 
 export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
     // maps type name in CJ (e.g. `Union_double_String`) to its definition (LanguageWriter containing `package X; class Union_double_String {...}`)
-    private readonly types = new Map<Type, LanguageWriter>()
+    private readonly types = new Map<IDLType, LanguageWriter>()
 
     constructor(private readonly table: DeclarationTable, private readonly imports: ImportTable) {}
 
@@ -64,14 +66,14 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         const result = new Map<TargetFile, string>()
         for (const [type, writer] of this.types) {
             result.set(
-                new TargetFile(type.name, ''),
+                new TargetFile(getIDLTypeName(type), ''),
                 writer.getOutput().join('\n')
             )
         }
         return result
     }
 
-    getTargetType(target: DeclarationTarget, optional: boolean): Type {
+    getTargetType(target: DeclarationTarget, optional: boolean): IDLType {
         const CJType = this.computeCJType(target, optional)
         if (this.hasType(CJType.type)) {
             return CJType.type
@@ -82,13 +84,13 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         }
 
         if (ts.isUnionTypeNode(target)) {
-            const writer = createLanguageWriter(Language.CJ)
+            const writer = createLanguageWriter(Language.CJ, createEmptyReferenceResolver())
             this.printPackage(writer)
             this.printUnionImplementation(target, CJType, writer)
             this.addType(CJType.type, writer)
         }
         else if (ts.isTupleTypeNode(target)) {
-            const writer = createLanguageWriter(Language.CJ)
+            const writer = createLanguageWriter(Language.CJ, createEmptyReferenceResolver())
             this.printPackage(writer)
             this.printTupleImplementation(target, CJType, writer)
             this.addType(CJType.type, writer)
@@ -97,7 +99,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             this.getTargetType(this.toTarget(target.type), false)
         }
         if (ts.isEnumDeclaration(target)) {
-            const writer = createLanguageWriter(Language.CJ)
+            const writer = createLanguageWriter(Language.CJ, createEmptyReferenceResolver())
             this.printPackage(writer)
             this.printEnumImplementation(target, CJType, writer)
             this.addType(CJType.type, writer)
@@ -130,11 +132,11 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         writer.print(`package idlize\n`)
     }
 
-    private addType(type: Type, writer: LanguageWriter) {
+    private addType(type: IDLType, writer: LanguageWriter) {
         this.types.set(type, writer)
     }
 
-    private hasType(type: Type): boolean {
+    private hasType(type: IDLType): boolean {
         return this.types.has(type)
     }
 
@@ -266,7 +268,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         }
         if (ts.isArrayTypeNode(target)) {
             const arrayElementType = this.computeCJType(this.toTarget(target.elementType), false)
-            return new CJType(new Type(`ArrayList<${arrayElementType.type.name}>`), `Array_${arrayElementType.alias}`)
+            return new CJType(toIDLType(`ArrayList<${getIDLTypeName(arrayElementType.type)}>`), `Array_${arrayElementType.alias}`)
         }
         if (ts.isImportTypeNode(target)) {
             return this.mapImportType(target)
@@ -290,11 +292,11 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 return this.computeCJType(this.toTarget(target.typeArguments[0]), false)
             if (name == 'Array') {
                 const arrayElementType = this.computeCJType(this.toTarget(target.typeArguments[0]), false)
-                return new CJType(new Type(`${arrayElementType.type.name}[]`), `Array_${arrayElementType.alias}`)
+                return new CJType(toIDLType(`${getIDLTypeName(arrayElementType.type)}[]`), `Array_${arrayElementType.alias}`)
             }
             if (name == 'Map') {
                 const CJTypes = target.typeArguments.slice(0, 2).map(it => this.computeCJType(this.toTarget(it), false, true))
-                return new CJType(new Type(`Map<${CJTypes[0].type.name}, ${CJTypes[1].type.name}>`), `Map_${CJTypes[0].alias}_${CJTypes[1].alias}`)
+                return new CJType(toIDLType(`Map<${getIDLTypeName(CJTypes[0].type)}, ${getIDLTypeName(CJTypes[1].type)}>`), `Map_${CJTypes[0].alias}_${CJTypes[1].alias}`)
             }
             if (name == 'Callback')
                 throw unsupportedType(`TypeReferenceNode:Callback`)
@@ -316,7 +318,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         this.imports.printImportsForTypes(membersInfo.map(it => it.type), writer)
 
         writer.writeClass(CJType.alias, () => {
-            const intType = new Type('int32')
+            const intType = IDLI32Type
             const selector = 'selector'
             writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
             writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
@@ -329,12 +331,12 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
 
             const param = 'param'
             for (const [index, memberInfo] of membersInfo.entries()) {
-                let optionalType = new Type(memberInfo.type.name, true)
+                let optionalType = maybeOptional(memberInfo.type, true)
                 writer.writeFieldDeclaration(memberInfo.name, optionalType, [FieldModifier.PRIVATE], true, new StringExpression(`None<${memberInfo.type}>`) )
 
                 writer.writeConstructorImplementation(
                     "init",
-                    new NamedMethodSignature(Type.Void, [memberInfo.type], [param]),
+                    new NamedMethodSignature(IDLVoidType, [memberInfo.type], [param]),
                     () => {
                         writer.writeStatement(
                             writer.makeAssign(memberInfo.name, undefined, writer.makeString(param), false, false)
@@ -369,7 +371,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             return {name: `value${index}`, type: this.getTargetType(this.toTarget(subType), false)}
         })
 
-        const argTypes: Type[] = membersInfo.map(it => it.type)
+        const argTypes: IDLType[] = membersInfo.map(it => it.type)
         const memberNames: string[] = membersInfo.map(it => it.name)
         this.imports.printImportsForTypes(argTypes, writer)
 
@@ -378,7 +380,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 writer.writeFieldDeclaration(memberInfo.name, memberInfo.type, [FieldModifier.PUBLIC], false)
             }
 
-            const signature = new MethodSignature(Type.Void, argTypes)
+            const signature = new MethodSignature(IDLVoidType, argTypes)
             writer.writeConstructorImplementation(CJType.alias, signature, () => {
                 for (let i = 0; i < memberNames.length; i++) {
                     writer.writeStatement(
@@ -410,10 +412,10 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
             }
 
             const value = 'value'
-            const intType = Type.Int32
+            const intType = IDLI32Type
             writer.print("public var value: Int32")
 
-            const signature = new MethodSignature(Type.Void, [intType])
+            const signature = new MethodSignature(IDLVoidType, [intType])
             writer.writeConstructorImplementation(CJType.alias, signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
