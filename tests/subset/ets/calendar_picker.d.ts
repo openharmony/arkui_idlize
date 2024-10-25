@@ -5,8 +5,14 @@ declare enum CalendarAlign {
     END = 2
 }
 
-declare interface CalendarPickerInterface { 
-    (): CalendarPickerAttribute
+declare interface CalendarOptions {
+
+  hintRadius?: number | Resource;
+  selected?: Date;
+}
+
+declare interface CalendarPickerInterface {
+    (options?: CalendarOptions): CalendarPickerAttribute
 }
 
 declare class CalendarPickerAttribute extends CommonMethod<CalendarPickerAttribute> {
@@ -16,3 +22,5 @@ declare class CalendarPickerAttribute extends CommonMethod<CalendarPickerAttribu
 }
 
 declare const CalendarPicker: CalendarPickerInterface
+
+declare const CalendarPickerInstance: CalendarPickerAttribute;

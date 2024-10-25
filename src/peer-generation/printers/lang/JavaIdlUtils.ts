@@ -25,6 +25,9 @@ class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {
         return []
     }
     convertTypeReference(type: idl.IDLReferenceType): ImportFeature[] {
+        if (getIDLTypeName(type) === "Date") {
+            return [{ feature: "java.util.Date", module: "" }]
+        }
         return []
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): ImportFeature[] {

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {CustomTextDecoder, float32, int32} from "@koalaui/common"
+import {CustomTextDecoder, float32, int32, int64} from "@koalaui/common"
 import {pointer} from "@koalaui/interop"
 import {RuntimeType, Tags} from "./SerializerBase";
 // import { Length } from "@arkoala/arkui"
@@ -87,6 +87,13 @@ export class DeserializerBase {
         const value = this.view.getInt32(this.position, true)
         this.position += 4
         return value
+    }
+
+    readInt64(): int64 {
+        this.checkCapacity(8)
+        const value = this.view.getBigInt64(this.position, true)
+        this.position += 8
+        return Number(value)
     }
 
     readPointer(): pointer {

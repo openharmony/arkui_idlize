@@ -46,6 +46,5 @@ export const javaCustomTypeMapping = new Map<string, string>([
     ['Dimension', 'Ark_Length'],
     ['Length', 'Ark_Length'],
     ['ContentModifier', ARK_CUSTOM_OBJECT],
-    ['Date', ARK_CUSTOM_OBJECT],
     ['Optional', 'Optional'],
 ])

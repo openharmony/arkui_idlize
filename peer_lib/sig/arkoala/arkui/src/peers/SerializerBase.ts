@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { float32, int32 } from "@koalaui/common"
+import { float32, int32, int64 } from "@koalaui/common"
 import { pointer, wrapCallback, ResourceId, ResourceManager } from "@koalaui/interop"
 import { nativeModule } from "@koalaui/arkoala"
 import { FinalizableBase } from "../Finalizable"
@@ -258,6 +258,11 @@ export class SerializerBase {
         this.checkCapacity(4)
         this.view.setInt32(this.position, value, true)
         this.position += 4
+    }
+    writeInt64(value: int64) {
+        this.checkCapacity(8)
+        this.view.setBigInt64(this.position, BigInt(value), true)
+        this.position += 8
     }
     writePointer(value: pointer) {
         this.checkCapacity(8)

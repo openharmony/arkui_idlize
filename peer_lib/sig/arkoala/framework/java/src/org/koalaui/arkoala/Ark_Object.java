@@ -18,6 +18,7 @@
 
 package org.koalaui.arkoala;
 
+import java.util.Date;
 import java.util.Map;
 
 public interface Ark_Object {
@@ -53,6 +54,11 @@ public interface Ark_Object {
     public static RuntimeType getRuntimeType(Map<?, ?> object) {
         if (object == null) { return RuntimeType.UNDEFINED; }
         return RuntimeType.OBJECT;
+    }
+
+    public static RuntimeType getRuntimeType(Date date) {
+        if (date == null) { return RuntimeType.UNDEFINED; }
+        return RuntimeType.BIGINT;
     }
 
     public RuntimeType getRuntimeType();

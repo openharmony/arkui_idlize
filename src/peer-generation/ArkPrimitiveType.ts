@@ -21,6 +21,7 @@ export class PrimitiveType {
     static String = new PrimitiveType(`String`, true)
     static Number = new PrimitiveType(`Number`, true)
     static Int32 = new PrimitiveType(`Int32`)
+    static Int64 = new PrimitiveType(`Int64`)
     static RuntimeType = new PrimitiveType(`RuntimeType`)
     static Boolean = new PrimitiveType(`Boolean`)
     static Function = new PrimitiveType(`Function`, false)

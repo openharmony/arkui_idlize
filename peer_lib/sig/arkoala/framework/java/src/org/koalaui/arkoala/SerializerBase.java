@@ -120,6 +120,10 @@ public class SerializerBase {
     public void writeInt32(IntValueGetter value) {
         this.writeInt32(value.getIntValue());
     }
+    public void writeInt64(long value) {
+        this.checkCapacity(8);
+        buffer.putLong(value);
+    }
     public void writeFloat32(float value) {
         this.checkCapacity(4);
         buffer.putFloat(value);

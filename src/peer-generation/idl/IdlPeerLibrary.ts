@@ -20,7 +20,7 @@ import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } fro
 import { IdlPeerFile } from "./IdlPeerFile";
 import { CJTypeNameConvertor } from './IdlNameConvertor';
 import { capitalize, isDefined } from '../../util';
-import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';
@@ -205,9 +205,8 @@ export class IdlPeerLibrary implements ReferenceResolver {
         if (idl.isReferenceType(type)) {
             if (type == idl.IDLObjectType)
                 return new CustomTypeConvertor(param, "Object")
-            // FIXME: remove this lines after Date converter is merged!
             if (idl.isIDLTypeName(type, 'Date')) {
-                return new CustomTypeConvertor(param, 'Date', undefined, 'Date')
+                return new DateConvertor(param)
             }
             if (isImport(type))
                 return new ImportTypeConvertor(param, this.nameConvertorInstance.convert(type))
@@ -283,6 +282,8 @@ export class IdlPeerLibrary implements ReferenceResolver {
             case `Dimension`:
             case `Length`:
                 return new LengthConvertor(typeName, param, this.language)
+            case `Date`:
+                return new DateConvertor(param)
             case `Function`:
                 return new FunctionConvertor(this, param, type as idl.IDLReferenceType)
             case `AnimationRange`:
@@ -340,6 +341,9 @@ export class IdlPeerLibrary implements ReferenceResolver {
             // TODO: remove all this!
             if (idl.isIDLTypeName(type, 'Dimension') || idl.isIDLTypeName(type, 'Length')) {
                 return ArkLength
+            }
+            if (idl.isIDLTypeName(type, 'Date')) {
+                return ArkInt64
             }
             if (idl.isIDLTypeName(type, 'AnimationRange') || idl.isIDLTypeName(type, 'ContentModifier')) {
                 return ArkCustomObject
@@ -443,8 +447,8 @@ export class IdlPeerLibrary implements ReferenceResolver {
                 case idl.IDLU16Type: name = "Int32"; break
                 case idl.IDLI32Type: name = "Int32"; break
                 case idl.IDLU32Type: name = "Int32"; break // FIXME: 
-                case idl.IDLI64Type: name = "Int32"; break // FIXME:
-                case idl.IDLU64Type: name = "Int32"; break // FIXME:
+                case idl.IDLI64Type: name = "Int64"; break // FIXME:
+                case idl.IDLU64Type: name = "Int64"; break // FIXME:
                 case idl.IDLBooleanType: name = "Boolean"; break
                 default: name = capitalize(idl.getIDLTypeName(target)); break
             }
@@ -556,6 +560,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
 }
 
 export const ArkInt32 = idl.IDLI32Type
+export const ArkInt64 = idl.IDLI64Type
 export const ArkFunction = idl.IDLFunctionType
 export const ArkLength = idl.IDLLengthType
 export const ArkCustomObject = idl.IDLCustomObjectType
