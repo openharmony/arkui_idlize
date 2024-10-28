@@ -149,7 +149,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 case IDLI32Type: return 'KInt32ArrayPtr'
                 case IDLF32Type: return 'KFloat32ArrayPtr'
             }
-            return `${this.convert(type.elementType[0])}[]`
+            return `Array<${this.convert(type.elementType[0])}>`
         }
         return super.convertContainer(type)
     }
