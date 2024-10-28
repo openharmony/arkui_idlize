@@ -654,15 +654,8 @@ export function generateArkoalaFromIdl(config: {
         const declarations = printDeclarations(peerLibrary)
         const index = new IndentedPrinter()
         index.print(tsCopyrightAndWarning(""))
-        for (const [targetFile, data] of declarations) {
-            const outComponentFile = arkoala.interface(targetFile)
-            if (false)
-                writeFile(outComponentFile, tsCopyrightAndWarning(data), {
-                    onlyIntegrated: config.onlyIntegrated,
-                    integrated: true
-                })
-            else
-                index.print(data)
+        for (const data of declarations) {
+            index.print(data)
         }
         index.printTo(path.join(arkoala.langDir(), "index-full.d.ts"))
         writeFile(

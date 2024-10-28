@@ -47,7 +47,7 @@ export class TSLambdaExpression extends LambdaExpression {
             const maybeOptional = idl.isOptionalType(it) ? "?" : ""
             return `${this.signature.argName(i)}${maybeOptional}: ${this.convertor.convert(it)}`
         })
-            
+
         return `(${params.join(", ")}): ${this.convertor.convert(this.signature.returnType)} => { ${this.bodyAsString()} }`
     }
 }
@@ -183,7 +183,7 @@ export class TSLanguageWriter extends LanguageWriter implements TypeConvertor<st
     }
 
     /***** TypeConvertor<string> *****************************************/
-    
+
     convertOptional(type: idl.IDLOptionalType): string {
         return this.mapIDLOptionalType(type)
     }
@@ -196,9 +196,7 @@ export class TSLanguageWriter extends LanguageWriter implements TypeConvertor<st
     convertEnum(type: idl.IDLEnumType): string {
         return this.mapIDLEnumType(type)
     }
-    convertImport(_: idl.IDLReferenceType, importClause: string): string {
-        if (importClause.includes("want?: import('../api/@ohos.app.ability.Want').default;"))
-            return "IMPORT_Callback_code_number_want_IMPORT_default_FROM_api_ohos_app_ability_Want_FROM_api_ohos_base"
+    convertImport(type: idl.IDLReferenceType, importClause: string): string {
         const match = importClause.match(/import *\((['"`])(.+)\1\)\.(.+)/)
         if (!match)
             throw new Error(`Cannot parse import clause ${importClause}`)
@@ -238,7 +236,7 @@ export class TSLanguageWriter extends LanguageWriter implements TypeConvertor<st
             } ${
                 isTuple ? "]" : "}"
             }`
-        
+
         return name
     }
 
@@ -303,7 +301,7 @@ export class TSLanguageWriter extends LanguageWriter implements TypeConvertor<st
         }
         prefix = prefix ? prefix.trim() + " " : ""
         const typeParams = generics ? `<${generics.join(", ")}>` : ""
-        // FIXME: 
+        // FIXME:
         const isSetter = modifiers?.includes(MethodModifier.SETTER)
         this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${it.optional && !isSetter ? "?" : ""}: ${this.mapIDLType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.mapIDLType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
@@ -455,7 +453,7 @@ export class TSLanguageWriter extends LanguageWriter implements TypeConvertor<st
             return decl.parent?.name
         }
 
-        let typeSpec = idl.getIDLTypeName(type) 
+        let typeSpec = idl.getIDLTypeName(type)
         let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
@@ -475,7 +473,7 @@ export class TSLanguageWriter extends LanguageWriter implements TypeConvertor<st
         return idl.getIDLTypeName(type)
     }
     mapIDLOptionalType(type: idl.IDLOptionalType): string {
-        return `${this.mapIDLType(type.element)} | undefined` 
+        return `${this.mapIDLType(type.element)} | undefined`
     }
     mapIDLContainerType(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
