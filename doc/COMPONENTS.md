@@ -3,10 +3,10 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 114      | 98     | 1917     |
-| In Progress  | 40      | 8     | 350     |
-| Done         | 24      | 2     | 521     |
-| Blocked      | 20      | 1     | 169     |
+| Total        | 114      | 98     | 1860     |
+| In Progress  | 40      | 8     | 342     |
+| Done         | 24      | 2     | 502     |
+| Blocked      | 20      | 1     | 162     |
 
 
 | Name | Kind | Owner | Status |
@@ -144,7 +144,9 @@
 |`hitTestBehavior`| Function | Roman Sedaikin | in progress |
 |`onChildTouchTest`| Function |  |  |
 |`layoutWeight`| Function | Roman Sedaikin | in progress |
+|`chainWeight`| Function | | |
 |`padding`| Function | Erokhin Ilya | blocked ArKoala |
+|`safeAreaPadding`| Function |  |  |
 |`margin`| Function | Erokhin Ilya | blocked ArKoala |
 |`backgroundColor`| Function | Roman Sedaikin | done |
 |`pixelRound`| Function | Skroba Gleb | done |
@@ -332,6 +334,7 @@
 |`onScrollStart`| Function | Samarin Sergey | in progress |
 |`onScrollStop`| Function | Samarin Sergey | in progress |
 |`flingSpeedLimit`| Function | Samarin Sergey | in progress |
+|`clipContent`| Function | | |
 |`edgeEffect`| Function | Samarin Sergey | in progress |
 |`fadingEdge`| Function | Samarin Sergey | blocked |
 |*Component3D*| *Component* | Kovalev Sergey | blocked AceEngine |
@@ -671,6 +674,7 @@
 |`customNavContentTransition`| Function | Erokhin Ilya | in progress |
 |`systemBarStyle`| Function | Erokhin Ilya | in progress |
 |`recoverable`| Function | Erokhin Ilya | done |
+|`enableDragBar`| Function | | |
 |`title`| Function | Erokhin Ilya | blocked |
 |`toolbarConfiguration`| Function | Erokhin Ilya | in progress |
 |`ignoreLayoutSafeArea`| Function | Erokhin Ilya | in progress |
@@ -1112,6 +1116,8 @@
 |`wordBreak`| Function | | |
 |`lineBreakStrategy`| Function | | |
 |`onCopy`| Function | | |
+|`caretColor`| Function | | |
+|`selectedBackgroundColor`| Function | | |
 |`ellipsisMode`| Function | | |
 |`enableDataDetector`| Function | | |
 |`dataDetectorConfig`| Function | | |
@@ -1438,6 +1444,7 @@
 |`editMenuOptions`| Function | | |
 |`enableHapticFeedback`| Function | | |
 |`registerNativeEmbedRule`| Function | | |
+|`bindSelectionMenu`| Function | | |
 |*WindowScene*| *Component* | | |
 |`setWindowSceneOptions`| Function | | |
 |`attractionEffect`| Function | | |
@@ -1741,6 +1748,7 @@
 |`pushPathByName`| Function | | |
 |`pushDestinationByName`| Function | | |
 |`replacePath`| Function | | |
+|`replaceDestination`| Function | | |
 |`replacePathByName`| Function | | |
 |`removeByIndexes`| Function | | |
 |`removeByName`| Function | | |
@@ -1953,6 +1961,8 @@
 |`getInputFieldType`| Function | | |
 |`isEditable`| Function | | |
 |`getEditStateFlags`| Function | | |
+|`getPreviewWidth`| Function | | |
+|`getPreviewHeight`| Function | | |
 |*WebContextMenuResult*| *Class* | | |
 |`closeContextMenu`| Function | | |
 |`copyImage`| Function | | |
@@ -2042,7 +2052,10 @@
 |`getStyles`| Function | | |
 |`equals`| Function | | |
 |`subStyledString`| Function | | |
+|`fromHtml`| Function | | |
+|`toHtml`| Function | | |
 |`marshalling`| Function | | |
+|`unmarshalling`| Function | | |
 |`getLength`| Function | | |
 |*MutableStyledString*| *Class* | | |
 |`replaceString`| Function | | |
