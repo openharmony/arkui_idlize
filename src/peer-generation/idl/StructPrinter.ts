@@ -472,26 +472,46 @@ export function collectProperties(decl: idl.IDLInterface, library: IdlPeerLibrar
     return [
         ...(superDecl ? collectProperties(superDecl as idl.IDLInterface, library) : []),
         ...decl.properties,
-        ...collectBuilderProperties(decl)
+        ...collectBuilderProperties(decl, library)
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
 }
 
-function collectBuilderProperties(decl: idl.IDLInterface): idl.IDLProperty[] {
+class NameWithType {
+    constructor(public readonly name: string, public readonly type: idl.IDLType) { }
+}
+
+function groupProps(library: IdlPeerLibrary, properties: NameWithType[]): NameWithType[] {
+    const typeMap = new Map<string, idl.IDLType[]>()
+    for (const prop of properties) {
+        const type = prop.type
+        if (type === undefined) {
+            continue
+        }
+        typeMap.set(prop.name, [...typeMap.get(prop.name) ?? [], type])
+    }
+    const result: NameWithType[] = []
+    for (const [name, types] of typeMap.entries()) {
+        // TBD: properly generate union type name
+        const typeName = types.map(it => library.computeTargetName(it, false)).join("_")
+        const type = types.length === 1 ? types[0] : idl.createUnionType(types, typeName)
+        result.push(new NameWithType(name, type))
+    }
+    return result
+}
+
+function collectBuilderProperties(decl: idl.IDLInterface, library: IdlPeerLibrary): idl.IDLProperty[] {
     if (!isBuilderClass(decl)) {
         return []
     }
-    return [
-        ...decl.constructors
-            .flatMap(cons =>
-                cons.parameters.map(param => {
-                    return { name: param.name, type: param.type }
-                })),
-        ...decl.methods
-            .filter(m => !m.isStatic && m.parameters.length === 1)
-            .map(m => {
-                return { name: m.name, type: m.parameters[0].type! }
-            })
-    ]
+    return groupProps(library,
+        [
+            ...decl.constructors
+                .flatMap(cons =>
+                    cons.parameters.map(param => new NameWithType(param.name, param.type!))),
+            ...decl.methods
+                .filter(m => !m.isStatic && m.parameters.length === 1)
+                .map(m => new NameWithType(m.name, m.parameters[0].type!))
+        ])
         .map(it => {
             return {
                 kind: idl.IDLKind.Property,
@@ -502,10 +522,4 @@ function collectBuilderProperties(decl: idl.IDLInterface): idl.IDLProperty[] {
                 isOptional: true
             } as idl.IDLProperty
         })
-        // filter out duplicates (SubTabBarStyle._padding)
-        .reverse()
-        .filter((prop, index, array) => {
-            return index === array.findIndex(it => it.name === prop.name);
-        })
-        .reverse()
 }
