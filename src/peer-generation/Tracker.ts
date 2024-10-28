@@ -71,23 +71,24 @@ class TrackerVisitor {
         let allComponents = Array(STATUSES.length).fill(0)
         let allMaterialized = Array(STATUSES.length).fill(0)
         let allFunctions = Array(STATUSES.length).fill(0)
+        const tracked = new Set<string>()
 
         this.library.files.forEach(file => {
             file.peers.forEach(component => {
                 const compKey = key(component.componentName, "Component")
-                this.incAllStatus(compKey, allComponents)
+                this.incAllStatus(compKey, allComponents, tracked)
                 component.methods.forEach(method => {
                     const funcKey = key(component.componentName, method.method.name)
-                    this.incAllStatus(funcKey, allFunctions)
+                    this.incAllStatus(funcKey, allFunctions, tracked)
                 })
             })
         })
         this.library.materializedClasses.forEach(clazz => {
             const classKey = key(clazz.className, "Class")
-            this.incAllStatus(classKey, allMaterialized)
+            this.incAllStatus(classKey, allMaterialized, tracked)
             clazz.methods.forEach(method => {
                 const funcKey = key(clazz.className, method.method.name)
-                this.incAllStatus(funcKey, allFunctions)
+                this.incAllStatus(funcKey, allFunctions, tracked)
             })
         })
 
@@ -98,7 +99,12 @@ class TrackerVisitor {
         })
     }
 
-    incAllStatus(key: string, counter: number[]) {
+    incAllStatus(key: string, counter: number[], tracked: Set<string>) {
+        // check overloaded methods
+        if (tracked.has(key)) {
+            return
+        }
+        tracked.add(key)
         counter[0]++
         const statusRecord = this.track.get(key)
         if (!statusRecord) return
