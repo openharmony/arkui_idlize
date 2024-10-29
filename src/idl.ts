@@ -62,6 +62,7 @@ export enum IDLExtendedAttributes {
     ComponentInterface = "ComponentInterface",
     Documentation = "Documentation",
     DtsName = "DtsName",
+    DtsTag = "DtsTag",
     Entity = "Entity",
     Import = "Import",
     IndexSignature = "IndexSignature",
@@ -681,6 +682,7 @@ function printExtendedAttributes(idl: IDLEntry, indentLevel: number): stringOrNo
 export const attributesToQuote = new Set([
     IDLExtendedAttributes.Documentation,
     IDLExtendedAttributes.DtsName,
+    IDLExtendedAttributes.DtsTag,
     IDLExtendedAttributes.Import,
     IDLExtendedAttributes.Interfaces,
     IDLExtendedAttributes.ParentTypeArguments,
@@ -693,7 +695,10 @@ function quoteAttributeValues(attributes?: IDLExtendedAttribute[]): stringOrNone
         ?.map(it => {
             let attr = it.name
             if (it.value) {
-                const value = it.value.replaceAll('"', "'")
+                let value = it.value
+                if (value.includes('"') && !value.includes("'"))
+                    value = value.replaceAll('"', "'")
+                value = value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
                 attr += `=${attributesToQuote.has(it.name as IDLExtendedAttributes) ? `"${value}"` : it.value}`
             }
             return attr})

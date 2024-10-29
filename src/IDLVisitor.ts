@@ -17,7 +17,7 @@ import * as path from "path"
 import { parse } from 'comment-parser'
 import * as idl from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameEnumValues, nameOrNull, stringOrNone
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, getNameWithoutQualifiersRight, stringOrNone
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -375,7 +375,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         escapedName: string,
         extendedAttributes: idl.IDLExtendedAttribute[] = []
     ): idl.IDLExtendedAttribute[] {
-        if (nodeName !== escapedName) {
+        if (nodeName !== escapedName && !extendedAttributes.find(ea => ea.name == idl.IDLExtendedAttributes.DtsName)) {
             extendedAttributes.push({ name: idl.IDLExtendedAttributes.DtsName, value: nodeName })
         }
 
@@ -1198,8 +1198,77 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         this.computeTypeParametersAttribute(method.typeParameters, extendedAttributes)
         this.computeDeprecatedExtendAttributes(method, extendedAttributes)
         this.computeExportAttribute(method, extendedAttributes)
-        const [methodName, escapedName] = escapeName(nameOrNull(method.name) ?? "_unknown")
-        nameSuggestion = nameSuggestion?.extend(escapedName) ?? NameSuggestion.make(escapedName)
+        let [methodName, escapedMethodName] = escapeName(nameOrNull(method.name) ?? "_unknown")
+
+        let dtsNameAttributeAccounted: boolean = !!extendedAttributes.find(ea => ea.name == idl.IDLExtendedAttributes.DtsName)
+        const methodParameters = method.parameters.filter((param, paramIndex) : boolean => {
+            const paramName = nameOrNull(param.name)
+            if (!paramName || !param.type)
+                return true
+
+            let tag: string | undefined
+            const tagType = this.typeChecker.getTypeFromTypeNode(param.type)
+            if ((tagType.flags & ts.TypeFlags.Literal) && !(tagType.flags & ~ts.TypeFlags.Literal))
+                tag = param.type.getText()
+            else if (tagType.symbol && (tagType.symbol.flags & ts.SymbolFlags.EnumMember) && ts.isTypeReferenceNode(param.type)) {
+                // note, an enum with the only member is treated as that one member, see https://github.com/microsoft/TypeScript/issues/46755
+                // such a one-member-enum is not acceptable for our purposes
+                // to determine it, we make an alternative resolving from symbol back to entity-name and compare it with the original one
+                const typeNameAlternative = this.typeChecker.symbolToEntityName(tagType.symbol, ts.SymbolFlags.EnumMember, param.type, ts.NodeBuilderFlags.IgnoreErrors)
+                if (identString(param.type.typeName) !== identString(typeNameAlternative))
+                    return true
+
+                // we have a one-way enum-member-name transform for IDL (see nameEnumValues)
+                // so, make the same transformation here
+                if (!tagType.symbol.declarations || tagType.symbol.declarations.length != 1)
+                    throw new Error('Internal error')
+                if (!ts.isEnumDeclaration(tagType.symbol.declarations[0].parent))
+                    throw new Error('Internal error')
+
+                const enumDeclaration = tagType.symbol.declarations[0].parent as ts.EnumDeclaration
+                const enumDeclarationMembers = enumDeclaration.members
+                const tsMemberName = tagType.symbol.name
+                for (let idx=0; idx<enumDeclarationMembers.length; ++idx) {
+                    if (identString(enumDeclarationMembers[idx].name) === tsMemberName) {
+                        const idlMemberNames = nameEnumValues(enumDeclaration)
+                        tag = `${getNameWithoutQualifiersLeft(param.type.typeName)}.${idlMemberNames[idx]}`
+                        break
+                    }
+                }
+
+                if (!tag)
+                    throw new Error('Internal error')
+            }
+            else
+                return true
+
+            if (!dtsNameAttributeAccounted) {
+                dtsNameAttributeAccounted = true
+                extendedAttributes.push({ name: idl.IDLExtendedAttributes.DtsName, value: escapedMethodName })
+            }
+
+            const dtsTagIndexDefault = 0 // see idl.DtsTag specification
+            const dtsTagNameDefault = 'type' // see idl.DtsTag specification
+            let extendedAttributeValues: string[] = []
+            if (paramIndex != dtsTagIndexDefault || paramName != dtsTagNameDefault) {
+                extendedAttributeValues.push(paramIndex.toString())
+                extendedAttributeValues.push(paramName)
+            }
+            extendedAttributeValues.push(tag)
+
+            extendedAttributes.push({
+                name: idl.IDLExtendedAttributes.DtsTag, 
+                value: extendedAttributeValues.map(value => value.replaceAll('|', '\x7c')).join('|')
+            })
+
+            const tagId = tag.replaceAll('.', '_').replaceAll('"', '').replaceAll("'", '')
+            const [methodNameNext, escapedMethodNameNext] = escapeName(methodName + capitalize(tagId))
+            methodName = methodNameNext
+            escapedMethodName = escapedMethodNameNext
+            return false
+        })
+
+        nameSuggestion = nameSuggestion?.extend(escapedMethodName) ?? NameSuggestion.make(escapedMethodName)
         if (ts.isIndexSignatureDeclaration(method)) {
             extendedAttributes.push({ name: idl.IDLExtendedAttributes.IndexSignature })
             return {
@@ -1210,17 +1279,17 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 extendedAttributes: extendedAttributes,
                 isStatic: false,
                 isOptional: false,
-                parameters: method.parameters.map(it => this.serializeParameter(it))
+                parameters: methodParameters.map(it => this.serializeParameter(it))
             }
         }
-        this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedName, extendedAttributes)
+        this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedMethodName, extendedAttributes)
         const returnType = this.serializeType(method.type, nameSuggestion?.extend('ret'))
         return {
             kind: idl.IDLKind.Method,
-            name: escapedName,
+            name: escapedMethodName,
             extendedAttributes: extendedAttributes,
             documentation: getDocumentation(this.sourceFile, method, this.options.docs),
-            parameters: method.parameters.map(it => this.serializeParameter(it, nameSuggestion)),
+            parameters: methodParameters.map(it => this.serializeParameter(it, nameSuggestion)),
             returnType: returnType,
             isStatic: isStatic(method.modifiers),
             isOptional: !!method.questionToken,

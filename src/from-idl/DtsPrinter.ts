@@ -33,6 +33,7 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     getSuperType,
     IDLReferenceType,
     IDLCallable,
+    IDLSignature,
     IDLAnyType,
     getIDLTypeName,
     isIDLTypeName,
@@ -169,11 +170,15 @@ export class CustomPrintVisitor {
             const isOptional = isMethod(node) && node.isOptional
             preamble = `${isGlobal ? `${isExport ? "export ": ""}${namespace ? "" : "declare "}function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}`
         }
-        this.print(`${preamble}${typeParams}(${node.parameters.map(p => this.paramText(p)).join(", ")})${returnType};`)
+        this.print(`${preamble}${typeParams}(${mixMethodParametersAndTags(node).map(p => this.paramText(p)).join(", ")})${returnType};`)
         this.closeNamespace(namespace)
     }
-    paramText(param: IDLParameter): string {
+    paramText(paramOrTag: IDLParameter | SignatureTag): string {
+        const param = paramOrTag as IDLParameter
+        if (param.kind === IDLKind.Parameter)
         return `${param.isVariadic ? "..." : ""}${getName(param)}${param.isOptional ? "?" : ""}: ${this.printTypeForTS(param.type)}`
+        const tag = paramOrTag as SignatureTag
+        return `${tag.name}: ${tag.value}`
     }
     printProperty(node: IDLProperty) {
         const isCommonMethod = hasExtAttribute(node, IDLExtendedAttributes.CommonMethod)
@@ -334,9 +339,7 @@ export class CustomPrintVisitor {
     }
 
     private callback(node: IDLCallback): string {
-        const printParam = (p: IDLParameter) =>
-            `${p.isVariadic ? "..." : ""}${getName(p)}${p.isOptional ? "?" : ""}: ${this.printTypeForTS(p.type)}`
-        return `((${node.parameters.map(printParam).join(", ")}) => ${this.printTypeForTS(node.returnType)})`
+        return `((${node.parameters.map(p => this.paramText(p)).join(", ")}) => ${this.printTypeForTS(node.returnType)})`
     }
 
     private literal(node: IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
@@ -377,4 +380,40 @@ function mapContainerType(idlType: IDLContainerType): string {///belongs to LW?
 
 function getName(node: IDLEntry): stringOrNone {
     return getExtAttribute(node, IDLExtendedAttributes.DtsName) ?? node.name
+}
+
+interface SignatureTag {index: number, name: string, value: string}
+
+function fetchSignatureTags(node: IDLSignature): SignatureTag[] {
+    if (!node.extendedAttributes)
+        return []
+    return node.extendedAttributes
+        .filter((ea) => ea.name === IDLExtendedAttributes.DtsTag)
+        .map((ea):SignatureTag => {
+            if (!ea.value)
+                throw new Error('Empty DtsTag is not allowed')
+            let indexNameValue = ea.value.split('|')
+            if (indexNameValue.length === 1) {
+                return {
+                    index: 0, // zero is from the idl.DtsTag specification
+                    name: 'type', // 'type' is from the idl.DtsTag specification
+                    value: indexNameValue[0],
+                }
+            }
+            if (indexNameValue.length !== 3)
+                throw new Error(`Malformed DtsTag: "${ea.value}"`)
+            return {
+                index: Number(indexNameValue[0]),
+                name: indexNameValue[1],
+                value: indexNameValue[2],
+            }
+        })
+        .sort((a, b) => a.index - b.index)
+}
+
+function mixMethodParametersAndTags(node: IDLSignature) : (IDLParameter | SignatureTag)[] {
+    let mix: (IDLParameter | SignatureTag)[] = node.parameters.slice(0)
+    for (const tag of fetchSignatureTags(node))
+        mix.splice(tag.index, 0, tag)
+    return mix
 }

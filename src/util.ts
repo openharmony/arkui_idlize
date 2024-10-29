@@ -362,7 +362,7 @@ export function identName(node: ts.Node | undefined): string | undefined {
     throw new Error(`Unknown: ${ts.SyntaxKind[node.kind]}`)
 }
 
-function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName |  ts.NumericLiteral | ts.ComputedPropertyName  | undefined): string | undefined {
+export function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName |  ts.NumericLiteral | ts.ComputedPropertyName  | undefined): string | undefined {
     if (!node) return undefined
     if (ts.isStringLiteral(node)) return node.text
     if (ts.isNumericLiteral(node)) return node.text
