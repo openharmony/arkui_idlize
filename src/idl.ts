@@ -918,13 +918,10 @@ export const IDLContainerUtils = {
 export function getIDLContainerTypeKind(type:IDLContainerType): IDLContainerKind {
     return type[idlTypeName]
 } 
-type IDLTypePrinter<T> = (x:T, name:string) => string
-export function getIDLTypeName<T extends IDLType>(type:T, print?: IDLTypePrinter<T>): string {
+type IDLTypePrinter<T> = (x: T, name: string) => string
+export function getIDLTypeName<T extends IDLType>(type:T, print: IDLTypePrinter<T> = (x: T, name: string) => {return name}): string {
     if (isPrimitiveType(type) || isReferenceType(type) || isEnumType(type) || isTypeParameterType(type)) {
-        if (print) {
-           return print(type, type[idlTypeName])
-        }
-        return type[idlTypeName]
+        return print(type, type[idlTypeName])
     }
     if (!print) {
         throw new Error("Possible type data loss!")

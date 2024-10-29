@@ -61,10 +61,19 @@ if compile_events_test
     sources += [
         arkoala_dir / 'events_test.cc',
     ]
+else
+    sources += [
+        arkoala_dir / 'events_test_dummy.cc',
+    ]
 endif
 if compile_callbacks_test
     sources += [
         arkoala_dir + '/callbacks_test.cc',
+    ]
+else
+    sources += [
+        arkoala_dir + '/callbacks_test_dummy.cc',
+        arkoala_dir + '/callback_deserialize_call.cc'
     ]
 endif
 

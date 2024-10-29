@@ -590,9 +590,6 @@ class MaterializedVisitor {
 
             visitor.visit()
             this.materialized.set(visitor.getTargetFile(), visitor.getOutput())
-            for (let i in this.library.materializedClasses) {
-                console.log("hello")
-            }
         }
     }
 }

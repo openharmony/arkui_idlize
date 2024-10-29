@@ -19,25 +19,25 @@ void impl_Test_SetEventsApi() {
 }
 KOALA_INTEROP_V0(Test_SetEventsApi)
 
-void impl_Test_TextPicker_OnAccept(uint8_t* valueArray, int32_t valueLength) {
+void impl_Test_TextPicker_OnAccept(KByte* valueArray, KInt valueLength) {
     Deserializer deserializer(valueArray, valueLength);
     Ark_Int32 nodeId = deserializer.readInt32();
     Ark_String arg1 = deserializer.readString();
     Ark_Number arg2 = deserializer.readNumber();
     GetFullImpl()->getEventsAPI()->getTextPickerEventsReceiver()->onAccept(nodeId, arg1, arg2);
 }
-KOALA_INTEROP_V2(Test_TextPicker_OnAccept, uint8_t*, uint32_t)
+KOALA_INTEROP_V2(Test_TextPicker_OnAccept, KByte*, KUInt)
 
-void impl_Test_List_OnScrollVisibleContentChange(uint8_t* valueArray, int32_t valueLength) {
+void impl_Test_List_OnScrollVisibleContentChange(KByte* valueArray, KInt valueLength) {
     Deserializer deserializer(valueArray, valueLength);
     Ark_Int32 nodeId = deserializer.readInt32();
     Ark_VisibleListContentInfo start = deserializer.readVisibleListContentInfo();
     Ark_VisibleListContentInfo end = deserializer.readVisibleListContentInfo();
     GetFullImpl()->getEventsAPI()->getListEventsReceiver()->onScrollVisibleContentChange(nodeId, start, end);
 }
-KOALA_INTEROP_V2(Test_List_OnScrollVisibleContentChange, uint8_t*, uint32_t)
+KOALA_INTEROP_V2(Test_List_OnScrollVisibleContentChange, KByte*, KUInt)
 
-void impl_Test_Common_OnChildTouchTest(uint8_t* valueArray, int32_t valueLength) {
+void impl_Test_Common_OnChildTouchTest(KByte* valueArray, KInt valueLength) {
     Deserializer deserializer(valueArray, valueLength);
     Ark_Int32 nodeId = deserializer.readInt32();
     Array_TouchTestInfo param;
@@ -49,4 +49,4 @@ void impl_Test_Common_OnChildTouchTest(uint8_t* valueArray, int32_t valueLength)
     }
     GetFullImpl()->getEventsAPI()->getCommonMethodEventsReceiver()->onChildTouchTest(nodeId, param);
 }
-KOALA_INTEROP_V2(Test_Common_OnChildTouchTest, uint8_t*, uint32_t)
+KOALA_INTEROP_V2(Test_Common_OnChildTouchTest, KByte*, KUInt)

@@ -624,12 +624,10 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
        super()
     }
 
-    // here we write everything
     printInterfaces() {
         const declarationConverter = new CJDeclarationConvertor(this.peerLibrary, (declaration: CJDeclaration) => {
             this.interfaces.set(declaration.targetFile, declaration.writer)
         })
-
         
         for (const file of this.peerLibrary.files.values()) {
             file.declarations.forEach(it => convertDeclaration(declarationConverter, it))
@@ -680,6 +678,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         throw new Error(`Unsupported typedef: ${name}, kind=${type.kind}`)
     }
     convertInterface(node: idl.IDLInterface): void {
+        console.log(node.name, this.peerLibrary.isComponentDeclaration(node), node.properties.length)
         const decl = node.kind == idl.IDLKind.TupleInterface
             ? this.makeTuple(node.name, node)
             : this.makeInterface(node.name, node)
@@ -838,7 +837,6 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
 
         writer.print('import std.collection.*\n')
 
-        // TODO: *Attribute classes are empty for now
         const members = this.peerLibrary.isComponentDeclaration(type) ? []
             : type.properties.map(it => {
                 return {name: writer.escapeKeyword(it.name), type: idl.maybeOptional(it.type, it.isOptional), modifiers: [FieldModifier.PUBLIC]}

@@ -14,7 +14,7 @@
  */
 
 
-declare type Resource = import('./resource').Resource;
+// declare type Resource = import('./resource').Resource;
 
 declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUnit;
 

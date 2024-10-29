@@ -561,7 +561,7 @@ function copyArkoalaFiles(config: {
     ])
 }
 
-//
+
 export function generateArkoalaFromIdl(config: {
             outDir: string,
             arkoalaDestination: string|undefined,

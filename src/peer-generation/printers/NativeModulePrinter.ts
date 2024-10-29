@@ -338,7 +338,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             const cleanUpStmnts: string[] = []
             method.signature.args.forEach((arg, ordinal) => {
                 const paramName = method.signature.argName(ordinal)
-                if (this.arrayLikeTypes.has(idl.getIDLTypeName(arg)) || idl.getIDLTypeName(arg).startsWith('ArrayList<')) {
+                if (this.arrayLikeTypes.has(idl.getIDLTypeName(arg)) || idl.getIDLTypeName(arg).startsWith('ArrayList<') || idl.getIDLTypeName(arg) == 'sequence') {
                     const varName = `handle_${ordinal}`
                     callParameters.push(`${varName}.pointer`)
                     printer.writeStatement(printer.makeAssign(

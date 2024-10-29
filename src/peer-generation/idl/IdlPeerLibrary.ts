@@ -36,6 +36,7 @@ import { ReferenceResolver } from '../ReferenceResolver';
 import { IdlTypeNameConvertor } from './IdlTypeConvertor';
 import { JavaLanguageWriter } from '../LanguageWriters/writers/JavaLanguageWriter';
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter';
+import { CJLanguageWriter } from '../LanguageWriters/writers/CJLanguageWriter';
 
 function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor {
     const language = library.language
@@ -46,7 +47,7 @@ function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor 
     if (language === Language.ARKTS)
         return new ETSLanguageWriter(new IndentedPrinter(), library)
     if (language == Language.CJ)
-        return new CJTypeNameConvertor(library)
+        return new CJLanguageWriter(new IndentedPrinter(), library)
     throw new Error(`Convertor from IDL to ${language} not implemented`)
 }
 
