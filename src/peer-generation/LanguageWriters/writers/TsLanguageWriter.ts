@@ -499,7 +499,7 @@ export class TSLanguageWriter extends LanguageWriter implements TypeConvertor<st
             case idl.IDLAnyType: return 'any'
             case idl.IDLUndefinedType: return 'undefined'
             case idl.IDLNullType: return 'null'
-            case idl.IDLPointerType: return 'number | bigint'
+            case idl.IDLPointerType: return 'KPointer'
             case idl.IDLVoidType: return 'void'
             case idl.IDLBooleanType: return 'boolean'
 

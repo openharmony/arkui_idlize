@@ -924,7 +924,7 @@ export function getIDLTypeName<T extends IDLType>(type:T, print: IDLTypePrinter<
         return print(type, type[idlTypeName])
     }
     if (!print) {
-        throw new Error("Possible type data loss!")
+        throw new Error(`Possible type data loss! ${DebugUtils.debugPrintType(type)}`)
     }
     return print(type, type[idlTypeName])
 }

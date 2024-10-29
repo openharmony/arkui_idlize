@@ -18,7 +18,7 @@ import * as path from 'path'
 import { IndentedPrinter } from "../IndentedPrinter"
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
-import { createContainerType, createReferenceType, getIDLTypeName, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isEnum, isEnumType, isInterface, isMethod, isPrimitiveType, isReferenceType, isUnionType } from '../idl'
+import { createContainerType, createReferenceType, getIDLTypeName, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isEnumType, isInterface, isMethod, isPrimitiveType, isReferenceType, isUnionType } from '../idl'
 import { makeCallbacksKinds, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { capitalize } from '../util'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
@@ -67,7 +67,11 @@ class OHOSVisitor {
     mapType(type: IDLType | IDLEnum): string {
         this.library.requestType(type, true)
 
-        const typeName = isEnum(type) ? type.name : getIDLTypeName(type)
+        const typeName = isEnum(type) 
+            ? type.name 
+            : isContainerType(type) || isUnionType(type)
+                ? ''
+                : getIDLTypeName(type)
         if (OHOSVisitor.knownBasicTypes.has(typeName))
             return `${PrimitiveType.Prefix}${typeName}`
 
@@ -341,7 +345,7 @@ class OHOSVisitor {
         })
         printCallbacksKinds(this.library, this.nativeWriter)
         this.data.forEach(data => {
-            this.nativeWriter.writeClass(data.name, writer => {
+            this.nativeWriter.writeInterface(data.name, writer => {
                 data.properties.forEach(prop => {
                     writer.writeFieldDeclaration(prop.name, prop.type, [], false)
                 })

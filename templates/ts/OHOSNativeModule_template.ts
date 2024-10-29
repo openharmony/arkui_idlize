@@ -1,4 +1,4 @@
-import { pointer, int32, EventType } from "./types"
+import { pointer, int32, EventType, KPointer } from "./types"
 
 %NATIVE_MODULE_CONTENT%
 
