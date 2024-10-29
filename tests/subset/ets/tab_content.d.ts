@@ -36,17 +36,16 @@ declare class TabBarSymbol {
     selected?: SymbolGlyphModifier;
 }
 
-declare class BottomTabBarStyle {
+declare enum LayoutMode {
+  AUTO = 0,
+  VERTICAL = 1,
+  HORIZONTAL = 2
+}
 
-    constructor(icon: ResourceStr | TabBarSymbol, text: ResourceStr);
+declare interface TabBarIconStyle {
 
-    id(value: string): BottomTabBarStyle;
-
-    static of(icon: ResourceStr | TabBarSymbol, text: ResourceStr): BottomTabBarStyle;
-
-    labelStyle(value: LabelStyle): BottomTabBarStyle;
-
-    padding(value: Padding | Dimension | LocalizedPadding): BottomTabBarStyle;
+  selectedColor?: ResourceColor;
+  unselectedColor?: ResourceColor;
 }
 
 declare class SubTabBarStyle {
@@ -67,9 +66,32 @@ declare class SubTabBarStyle {
 
     labelStyle(value: LabelStyle): SubTabBarStyle;
 
+    padding(value: Padding | Dimension): SubTabBarStyle;
+
     padding(padding: LocalizedPadding): SubTabBarStyle;
 
     id(value: string): SubTabBarStyle;
+}
+
+declare class BottomTabBarStyle {
+
+  constructor(icon: ResourceStr | TabBarSymbol, text: ResourceStr);
+
+  static of(icon: ResourceStr | TabBarSymbol, text: ResourceStr): BottomTabBarStyle;
+
+  labelStyle(value: LabelStyle): BottomTabBarStyle;
+
+  padding(value: Padding | Dimension | LocalizedPadding): BottomTabBarStyle;
+
+  layoutMode(value: LayoutMode): BottomTabBarStyle;
+
+  verticalAlign(value: VerticalAlign): BottomTabBarStyle;
+
+  symmetricExtensible(value: boolean): BottomTabBarStyle;
+
+  id(value: string): BottomTabBarStyle;
+
+  iconStyle(style: TabBarIconStyle): BottomTabBarStyle;
 }
 
 declare interface  TabContentInterface { 
@@ -78,7 +100,8 @@ declare interface  TabContentInterface {
 
 declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
 
-    tabBar(value: SubTabBarStyle): TabContentAttribute;
+    tabBar(value: string | Resource | CustomBuilder | { icon?: string | Resource; text?: string | Resource }): TabContentAttribute;
+
     tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
 }
 

@@ -64,3 +64,9 @@ declare enum Axis {
   Vertical,
   Horizontal,
 }
+
+declare enum VerticalAlign {
+  Top,
+  Center,
+  Bottom,
+}
