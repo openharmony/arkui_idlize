@@ -291,6 +291,7 @@ export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary, prefix?:
         imports.addFeatures(["NativeModule"], "#components")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
         imports.addFeature('KStringPtr', '@koalaui/interop')
+        imports.addFeature('KInt', '@koalaui/interop')
     }
     imports.print(printer, '')
     writeSerializer(library, printer, prefix, declarationPath)
