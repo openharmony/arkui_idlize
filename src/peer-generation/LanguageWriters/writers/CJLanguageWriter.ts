@@ -177,6 +177,12 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
+    writeFunctionDeclaration(name: string, signature: MethodSignature): void {
+        throw "Not implemented"
+    }
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
+        throw "Not implemented"
+    }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         receiver = this.escapeKeyword(receiver)
         params = params.map(argName => this.escapeKeyword(argName))

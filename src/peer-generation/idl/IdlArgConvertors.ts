@@ -21,7 +21,7 @@ import { qualifiedName } from "./common"
 import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from "../ArgConvertors"
 import { generateCallbackAPIArguments } from "./StructPrinter"
 import { CppCastExpression } from "../LanguageWriters/writers/CppLanguageWriter"
-import { CallbackKind } from "../printers/CallbacksPrinter"
+import { generateCallbackKindAccess } from "../printers/CallbacksPrinter"
 
 
 export class StringConvertor extends BaseArgConvertor {
@@ -506,12 +506,8 @@ export class CallbackConvertor extends BaseArgConvertor {
                 writer, new StringExpression(`${value}.call`), idl.toIDLType("void*"), true).asString()])
             return
         }
-        writer.writeMethodCall(`${param}Serializer`, "writeCallbackResource", [`${value}`])
-        writer.writeMethodCall(`${param}Serializer`, "writePointer", [
-            writer.makeNativeCall(`_GetManagerCallbackCaller`,
-                [writer.makeString(writer.makeEnumCast(`${CallbackKind}.${this.decl.name}`, false, undefined))]
-            ).asString()
-        ])
+        writer.writeMethodCall(`${param}Serializer`, `holdAndWriteCallback`, 
+            [`${value}, ${generateCallbackKindAccess(this.decl, writer.language)}`])
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
         if (writer.language == Language.CPP) {

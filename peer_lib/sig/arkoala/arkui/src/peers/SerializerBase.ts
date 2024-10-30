@@ -14,6 +14,7 @@
  */
 import { float32, int32, int64 } from "@koalaui/common"
 import { pointer, wrapCallback, ResourceId, ResourceManager } from "@koalaui/interop"
+import { CallbackKind } from "./CallbackKind"
 import { nativeModule } from "@koalaui/arkoala"
 import { FinalizableBase } from "../Finalizable"
 
@@ -138,6 +139,12 @@ export function registerMaterialized(value: object|undefined): number {
     return 42
 }
 
+export interface CallbackResource {
+    resourceId: int32
+    hold: pointer
+    release: pointer
+}
+
 /* Serialization extension point */
 export abstract class CustomSerializer {
     constructor(protected supported: Array<string>) {}
@@ -207,12 +214,18 @@ export class SerializerBase {
         }
     }
     private heldResources: ResourceId[] = []
-    writeCallbackResource(resource: object) {
-        const resourceId = ResourceManager.registerAndHold(resource)
+    holdAndWriteCallback(callback: object, kind: CallbackKind) {
+        const resourceId = ResourceManager.registerAndHold(callback)
         this.heldResources.push(resourceId)
         this.writeInt32(resourceId)
         this.writePointer(nativeModule()._GetManagedResourceHolder())
         this.writePointer(nativeModule()._GetManagedResourceReleaser())
+        this.writePointer(nativeModule()._GetManagerCallbackCaller(kind))
+    }
+    writeCallbackResource(resource: CallbackResource) {
+        this.writeInt32(resource.resourceId)
+        this.writePointer(resource.hold)
+        this.writePointer(resource.release)
     }
     private releaseResources() {
         for (const resourceId of this.heldResources)

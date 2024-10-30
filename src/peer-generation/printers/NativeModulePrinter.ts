@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { generateEventsBridgeSignature } from "./EventsPrinter";
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "../FileGenerators";
 import { FunctionCallExpression, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createLanguageWriter } from "../LanguageWriters";
 import { PeerClass, PeerClassBase } from "../PeerClass";
@@ -63,16 +62,6 @@ class NativeModuleVisitor {
                 this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
                     returnType && idl.isPrimitiveType(returnType) ? returnType : idl.IDLPointerType)
             })
-        })
-    }
-
-    protected printEventMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter) {
-        let method = generateEventsBridgeSignature(nativeModule.language)
-        method = new Method(`_${method.name}`, method.signature, method.modifiers)
-        nativeModule.writeNativeMethodDeclaration(method.name, method.signature)
-        nativeModuleEmpty.writeMethodImplementation(method, writer => {
-            writer.writePrintLog(method.name)
-            writer.writeStatement(writer.makeReturn(new StringExpression(`0`)))
         })
     }
 
@@ -190,7 +179,6 @@ class NativeModuleVisitor {
             }
         }
         this.printMaterializedMethods(this.nativeModule, this.nativeModuleEmpty, this.nativeFunctions)
-        if(!(this.nativeModule.language == Language.CJ)) this.printEventMethods(this.nativeModule, this.nativeModuleEmpty)
         this.nativeModule.popIndent()
         this.nativeModuleEmpty.popIndent()
     }

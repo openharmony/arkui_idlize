@@ -63,32 +63,6 @@ export interface IdlCallbackInfo extends CallbackInfoBase {
     originTarget: idl.IDLCallback | idl.IDLReferenceType
 }
 
-export function generateEventsBridgeSignature(language: Language): Method {
-    let signature: NamedMethodSignature
-    switch (language) {
-        case Language.JAVA:
-        case Language.ARKTS:
-        case Language.CJ:
-        case Language.TS:
-            signature = new NamedMethodSignature(
-                idl.toIDLType(`KInt`),
-                [idl.toIDLType(`Uint8Array`), idl.toIDLType(`KInt`)],
-                [`result`, `size`],
-            )
-            break;
-        case Language.CPP:
-            signature = new NamedMethodSignature(
-                idl.toIDLType(`KInt`),
-                [idl.toIDLType(`KUint*`), idl.toIDLType(`KInt`)],
-                [`result`, `size`],
-            )
-            break;
-        default:
-            throw new Error("Not implemented")
-    }
-    return new Method(`CheckArkoalaGeneratedEvents`, signature)
-}
-
 export function groupCallbacks(callbacks: (CallbackInfo | IdlCallbackInfo)[]): Map<string, (CallbackInfo | IdlCallbackInfo)[]> {
     const receiverToCallbacks = new Map<string, (CallbackInfo | IdlCallbackInfo)[]>()
     for (const callback of callbacks) {

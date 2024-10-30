@@ -377,17 +377,12 @@ export class IdlPeerLibrary implements ReferenceResolver {
     analyze() {///stolen from DeclTable
         this.createContinuationCallbacks()
         const callbacks = collectUniqueCallbacks(this)
-        for (const callback of callbacks) {
-            callback.parameters.forEach(arg => {
-                this.requestType(arg.type!, true)
-            })
-            this.requestType(callback.returnType, true)
-        }
 
         let orderer = new DependencySorter(this)
         for (let declaration of this.typeMap.values()) {
             orderer.addDep(declaration[0])
         }
+        for (const callback of callbacks) orderer.addDep(callback)
         this._orderedDependencies = orderer.getToposorted()
         this._orderedDependencies.unshift(ArkInt32)
 
@@ -396,6 +391,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
             if (declaration[2])
                 toGenerateOrderer.addDep(declaration[0])
         }
+        for (const callback of callbacks) toGenerateOrderer.addDep(callback)
         this._orderedDependenciesToGenerate = toGenerateOrderer.getToposorted()
     }
 
@@ -424,6 +420,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
         if (idl.isPrimitiveType(target)) {
             let name: string = ""
             switch (target) {
+                case idl.IDLUnknownType:
                 case idl.IDLAnyType: name = "CustomObject"; break
                 case idl.IDLStringType: name = "String"; break
                 case idl.IDLNullType: name = "Null"; break
@@ -482,9 +479,12 @@ export class IdlPeerLibrary implements ReferenceResolver {
             throw new Error(`Unknown container type ${idl.DebugUtils.debugPrintType(target)}`)
         }
         if (idl.isReferenceType(target)) {
-            if (idl.isIDLTypeName(target, "Optional")) {
-                const typeArg = idl.getExtAttribute(target, idl.IDLExtendedAttributes.TypeArguments)!
-                return this.computeTargetName(idl.toIDLType(typeArg), true, idlPrefix)
+            switch (idl.getIDLTypeName(target)) {
+                case "Date":
+                case "object":
+                case "Object":
+                    const name = PrimitiveType.CustomObject.getText()
+                    return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
             }
             const name = idl.getIDLTypeName(target, idl.DebugUtils.easyGetName)
             if (PeerGeneratorConfig.isKnownParametrized(name)) {

@@ -48,7 +48,7 @@ export class CppIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCo
     /***** TypeConvertor<string> *****************************************/
 
     convertOptional(type: idl.IDLOptionalType): string {
-        return `Opt_${this.convert(type)}`
+        return `Opt_${this.convert(type.element)}`
     }
     convertUnion(type: idl.IDLUnionType): string {
         return `Union_${type.types.map(it => this.convert(it)).join("_")}`
@@ -119,6 +119,8 @@ export class CppIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCo
             case idl.IDLPointerType: return 'void*'
 
             case idl.IDLAnyType: return arkType`CustomObject`
+            case idl.IDLUndefinedType: return arkType`Undefined`
+            case idl.IDLUnknownType: return arkType`Unknown`
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }

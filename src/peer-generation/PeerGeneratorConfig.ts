@@ -129,7 +129,6 @@ export class PeerGeneratorConfig {
         "SubscribedAbstractProperty",
         "SyncedPropertyOneWay",
         "SyncedPropertyTwoWay",
-        "UIExtensionProxy",
         "IMonitorValue",
     ])
 
@@ -146,12 +145,7 @@ export class PeerGeneratorConfig {
     ])
 
     public static ignoredCallbacks = new Set([
-        // can not support type parameters and varargs
-        "Callback_Args_Void",
-        "Callback_WrappedBuilder_Void",
-        "Callback_AnimatableArithmetic_Void",
-        "Callback_Union_IMonitorValue_Undefined_Void",
-        "Callback_DirectionalEdgesT_Void",
+        "MonitorDecorator" //vararg
     ])
 
     static ignoreEntry(name: string, language: Language) {

@@ -66,6 +66,7 @@ import { printConflictedDeclarationsIdl } from "./idl/ConflictedDeclarationsPrin
 import { printNativeModuleRecorder } from "./printers/NativeModuleRecorderPrinter"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { LanguageWriter } from "./LanguageWriters"
+import { printDeserializeAndCall, printManagedCaller } from "./printers/CallbacksPrinter"
 
 export function generateLibace(config: {
     libaceDestination: string | undefined,
@@ -531,6 +532,16 @@ export function generateArkoala(config: {
     writeFile(arkoala.native(new TargetFile('library.cc')), libraryCcDeclaration(), {
         onlyIntegrated: config.onlyIntegrated,
     })
+    // stub until migrated to idl to make meson works
+    writeFile(arkoala.native(new TargetFile('callback_deserialize_call.cc')), "", {
+        onlyIntegrated: config.onlyIntegrated, 
+        integrated: false
+    })
+    // stub until migrated to idl to make meson works
+    writeFile(arkoala.native(new TargetFile('callback_managed_caller.cc')), "", {
+        onlyIntegrated: config.onlyIntegrated, 
+        integrated: false
+    })
 
     copyArkoalaFiles({onlyIntegrated: config.onlyIntegrated}, arkoala)
 }
@@ -893,6 +904,16 @@ export function generateArkoalaFromIdl(config: {
         })
 
     writeFile(arkoala.native(new TargetFile('callback_kind.h')), makeCallbacksKinds(peerLibrary, Language.CPP),
+        {
+            onlyIntegrated: config.onlyIntegrated,
+            integrated: true
+        })
+    writeFile(arkoala.native(new TargetFile('callback_deserialize_call.cc')), printDeserializeAndCall(peerLibrary),
+        {
+            onlyIntegrated: config.onlyIntegrated,
+            integrated: true
+        })
+    writeFile(arkoala.native(new TargetFile('callback_managed_caller.cc')), printManagedCaller(peerLibrary),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true

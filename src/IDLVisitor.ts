@@ -883,7 +883,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             return idl.IDLBigintType
         }
         if (ts.isUnionTypeNode(type)) {
-            return this.serializeUnion(type, nameSuggestion)
+            return this.serializeUnion(type.getText(), [...type.types], nameSuggestion)
         }
         if (ts.isIntersectionTypeNode(type)) {
             const intersectionType = this.serializeIntersectionType(type, nameSuggestion)
@@ -925,6 +925,13 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 const funcType = this.serializeCallback(rawType, type, NameSuggestion.make("Callback"))
                 this.addSyntheticType(funcType)
                 return idl.createReferenceType(funcType.name)
+            }
+            if (rawType == "Optional") {
+                const types = [
+                    type.typeArguments![0],
+                    ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+                ].flatMap(it => ts.isUnionTypeNode(it) ? it.types : it)
+                return this.serializeUnion(type.getText(), types, nameSuggestion)
             }
             if (isEnum) {
                 return idl.createReferenceType(transformedType)
@@ -1054,24 +1061,28 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         return this.deduceFromComputedProperty(name) ?? nameOrNull(name)
     }
 
-    serializeUnion(node: ts.UnionTypeNode, nameSuggestion: NameSuggestion | undefined): idl.IDLType {
-        let types = node.types
+    serializeUnion(
+        sourceText: string, 
+        nodes: ts.TypeNode[], 
+        nameSuggestion: NameSuggestion | undefined,
+    ) {
+        let types = nodes
             .map((it, index) => this.serializeType(it, nameSuggestion?.extend(`u${index}`)))
             .reduce<idl.IDLType[]>((uniqueTypes, it) => uniqueTypes.concat(uniqueTypes.includes(it) ? []: [it]), [])
         const syntheticUnionName = `Union_${types.map(it => this.computeTypeName(it)).join("_")}`
         const selectedUnionName = selectName(nameSuggestion, syntheticUnionName)
         let aPromise = types.find(it => idl.isContainerType(it) && idl.IDLContainerUtils.isPromise(it))
         if (aPromise) {
-            console.log(`WARNING: ${node.getText()} is a union of Promises. This is not supported by the IDL, use only Promise.`)
+            console.log(`WARNING: ${sourceText} is a union of Promises. This is not supported by the IDL, use only Promise.`)
             return aPromise
         }
         if (types.find(it => idl.isIDLTypeName(it, "any"))) {
-            console.log(`WARNING: ${node.getText()} is union with 'any', just make it 'any'.`)
+            console.log(`WARNING: ${sourceText} is union with 'any', just make it 'any'.`)
             return idl.IDLAnyType
         }
 
         if (types.find(it => it === idl.IDLVoidType)) {
-            console.log(`WARNING: ${node.getText()} is union with 'void', which is not supported, remove 'void' variant`)
+            console.log(`WARNING: ${sourceText} is union with 'void', which is not supported, remove 'void' variant`)
             types = types.filter(it => it !== idl.IDLVoidType)
         }
         return typeOrUnion(types, selectedUnionName)

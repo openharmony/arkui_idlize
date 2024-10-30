@@ -286,7 +286,8 @@ export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary, prefix?:
         imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
         imports.addFeatures(["nativeModule"], "@koalaui/arkoala")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
-    }
+        imports.addFeatures(["ResourceManager"], "@koalaui/interop")
+    } 
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["NativeModule"], "#components")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
@@ -404,8 +405,8 @@ export function makeTSDeserializer(library: PeerLibrary | IdlPeerLibrary): strin
     const deserializer = createLanguageWriter(Language.TS, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
     writeDeserializer(library, deserializer)
     return `${cStyleCopyright}
-import { runtimeType, Tags, RuntimeType, SerializerBase } from "./SerializerBase"
-import { DeserializerBase, CallbackResource } from "./DeserializerBase"
+import { runtimeType, Tags, RuntimeType, SerializerBase, CallbackResource } from "./SerializerBase"
+import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
 import { CallbackKind } from "./CallbackKind"
@@ -660,7 +661,17 @@ export function makeCallbacksKinds(library: IdlPeerLibrary, language: Language):
     const writer = createLanguageWriter(language, library)
     printCallbacksKindsImports(library, writer)
     printCallbacksKinds(library, writer)
-    return writer.getOutput().join("\n")
+    const enumContent = writer.getOutput().join("\n")
+    if (language === Language.CPP)
+        return `
+#ifndef _CALLBACK_KIND_H
+#define _CALLBACK_KIND_H
+
+${enumContent}
+
+#endif
+`
+    return enumContent
 }
 
 export function gniFile(gniSources: string): string {

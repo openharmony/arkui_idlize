@@ -14,14 +14,8 @@
  */
 import {CustomTextDecoder, float32, int32, int64} from "@koalaui/common"
 import {pointer} from "@koalaui/interop"
-import {RuntimeType, Tags} from "./SerializerBase";
+import {RuntimeType, Tags, CallbackResource } from "./SerializerBase";
 // import { Length } from "@arkoala/arkui"
-
-export interface CallbackResource {
-    resourceId: int32
-    hold: pointer
-    release: pointer
-}
 
 export class DeserializerBase {
     private position = 0

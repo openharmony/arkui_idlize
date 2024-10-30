@@ -200,6 +200,20 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
+    writeFunctionDeclaration(name: string, signature: MethodSignature): void {
+        this.printer.print(this.generateFunctionDeclaration(name, signature))
+    }
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
+        this.printer.print(`${this.generateFunctionDeclaration(name, signature)} {`)
+        this.printer.pushIndent()
+        op(this)
+        this.printer.popIndent()
+        this.printer.print('}')
+    }
+    private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
+        const args = signature.args.map((it, index) => `${signature.argName(index)}: ${this.convert(it)}`)
+        return `export function ${name}(${args.join(", ")})`
+    }
     writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void {
         throw new Error("WriteEnum for TS is not implemented")
     }

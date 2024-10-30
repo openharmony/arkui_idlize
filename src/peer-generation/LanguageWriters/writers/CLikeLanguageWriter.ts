@@ -74,6 +74,12 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
     protected constructor(printer: IndentedPrinter, resolver: ReferenceResolver, language: Language) {
         super(printer, resolver, language)
     }
+    writeFunctionDeclaration(name: string, signature: MethodSignature): void {
+        this.writeMethodDeclaration(name, signature)
+    }
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
+        this.writeMethodImplementation(new Method(name, signature), op)
+    }
     makeThrowError(message: string): LanguageStatement {
         return new CLikeThrowErrorStatement(message)
     }

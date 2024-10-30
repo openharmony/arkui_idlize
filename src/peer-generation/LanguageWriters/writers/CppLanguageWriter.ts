@@ -161,7 +161,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         const superInvocation = superCall
             ? ` : ${superCall.name}(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`
             : ""
-        const argList = signature.args.map((it, index) => `${this.convert(it)} ${signature.argName(index)}`).join(", ");
+        const argList = signature.args.map((it, index) => {
+            const maybeDefault = signature.defaults?.[index] ? ` = ${signature.defaults![index]}` : ""
+            return `${this.convert(it)} ${signature.argName(index)}${maybeDefault}`
+        }).join(", ");
         this.print("public:")
         this.print(`${className}(${argList})${superInvocation} {`)
         this.pushIndent()

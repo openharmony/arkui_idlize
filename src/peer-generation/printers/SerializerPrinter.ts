@@ -34,7 +34,7 @@ import { convertDeclToFeature, isMaterialized, isSourceDecl } from '../idl/IdlPe
 import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
 import { collectProperties } from '../idl/StructPrinter';
 import { ProxyStatement } from '../LanguageWriters/LanguageWriter';
-import { CallbackKind } from './CallbacksPrinter';
+import { CallbackKind, generateCallbackKindAccess } from './CallbacksPrinter';
 import { convertDeclaration } from '../LanguageWriters/typeConvertor';
 import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
 
@@ -209,7 +209,7 @@ class IdlSerializerPrinter {
                 ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
                 break;
             case Language.CPP:
-                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType("uint8_t*")], ["data"])
+                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType("uint8_t*"), idl.createReferenceType("CallbackResourceHolder*")], ["data", "resourceHolder"], [undefined, `nullptr`])
                 prefix = prefix == "" ? PrimitiveType.Prefix : prefix
                 break;
             case Language.JAVA:
@@ -411,6 +411,8 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                 writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('Serializer'), writer.makeMethodCall('SerializerBase', 'hold', [
                     writer.makeSerializerCreator()
                 ]), true),
+                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeCallbackResource`, 
+                    [writer.makeString(resourceName)])),
                 ...target.parameters.map(it => {
                     const convertor = this.library.typeConvertor(it.name, it.type!, it.isOptional)
                     return new ProxyStatement((writer: LanguageWriter) => {
@@ -419,9 +421,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                 }),
                 ...continuation,
                 new ExpressionStatement(writer.makeNativeCall(`_CallCallback`, [
-                    writer.makeString(writer.makeEnumCast(`${CallbackKind}.${target.name}`, false, undefined)),
-                    writer.makeString(callName),
-                    writer.makeString(`${resourceName}.resourceId`),
+                    writer.makeString(`${generateCallbackKindAccess(target, writer.language)}`),
                     writer.makeString(`${argsSerializer}Serializer.asArray()`),
                     writer.makeString(`${argsSerializer}Serializer.length()`),
                 ])),
