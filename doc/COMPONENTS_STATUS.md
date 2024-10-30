@@ -545,13 +545,13 @@
 |`setLocationButtonOptions`| Function |Samarin Sergey| done |  |
 |`onClick`| Function |Samarin Sergey| done |  |
 |*Marquee*| *Component* | Andrey Khudenkikh| in progress |  |
-|`setMarqueeOptions`| Function | Andrey Khudenkikh| devdone |  |
+|`setMarqueeOptions`| Function | Andrey Khudenkikh| in progress |  |
 |`fontColor`| Function |Andrey Khudenkikh | done |  |
 |`fontSize`| Function |Andrey Khudenkikh | done |  |
 |`allowScale`| Function |Andrey Khudenkikh | done |  |
 |`fontWeight`| Function | Andrey Khudenkikh| done |  |
 |`fontFamily`| Function | Andrey Khudenkikh| done |  |
-|`marqueeUpdateStrategy`| Function |Andrey Khudenkikh | devdone |  |
+|`marqueeUpdateStrategy`| Function |Andrey Khudenkikh | in progress |  |
 |`onStart`| Function | Andrey Khudenkikh| in progress |  |
 |`onBounce`| Function |Andrey Khudenkikh | in progress |  |
 |`onFinish`| Function |Andrey Khudenkikh | in progress |  |
@@ -785,18 +785,18 @@
 |`getItemIndex`| Function | Erokhin Ilya | done |  |
 |*Search*|*Component*| Evstigneev Roman |In Progress|  |
 |`setSearchOptions`|Function| Evstigneev Roman | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IAXCOP |
-|`searchButton`|Function| Evstigneev Roman | devdone |  |
-|`fontColor`|Function| Evstigneev Roman | devdone |  |
+|`searchButton`|Function| Evstigneev Roman | in progress |  |
+|`fontColor`|Function| Evstigneev Roman | in progress |  |
 |`searchIcon`|Function| Evstigneev Roman |blocked AceEngine| https://gitee.com/openharmony/arkui_ace_engine/issues/IAWF91, https://gitee.com/nikolay-igotti/idlize/issues/IAYXQ8 |
 |`cancelButton`|Function| Evstigneev Roman |blocked Arkoala | https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
-|`textIndent`|Function| Evstigneev Roman | devdone |  |
-|`inputFilter`|Function| Evstigneev Roman | devdone |  |
+|`textIndent`|Function| Evstigneev Roman | in progress |  |
+|`inputFilter`|Function| Evstigneev Roman | in progress |  |
 |`onEditChange`|Function| Evstigneev Roman |done|  |
-|`selectedBackgroundColor`|Function| Evstigneev Roman | devdone |  |
-|`caretStyle`|Function| Evstigneev Roman | devdone |  |
-|`placeholderColor`|Function| Evstigneev Roman |devdone |  |
-|`placeholderFont`|Function| Evstigneev Roman | devdone |  |
-|`textFont`|Function| Evstigneev Roman | devdone |  |
+|`selectedBackgroundColor`|Function| Evstigneev Roman | in progress |  |
+|`caretStyle`|Function| Evstigneev Roman | in progress |  |
+|`placeholderColor`|Function| Evstigneev Roman |in progress |  |
+|`placeholderFont`|Function| Evstigneev Roman | in progress |  |
+|`textFont`|Function| Evstigneev Roman | in progress |  |
 |`enterKeyType`|Function| Evstigneev Roman |done|  |
 |`onSubmit`|Function| Evstigneev Roman |done|  |
 |`onChange`|Function| Evstigneev Roman |done|  |
@@ -814,8 +814,8 @@
 |`maxFontSize`|Function| Evstigneev Roman |done|  |
 |`customKeyboard`|Function| Evstigneev Roman |blocked Arkoala| https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
 |`decoration`|Function| Evstigneev Roman |done|  |
-|`letterSpacing`|Function| Evstigneev Roman | devdone |  |
-|`lineHeight`|Function| Evstigneev Roman | devdone |  |
+|`letterSpacing`|Function| Evstigneev Roman | in progress |  |
+|`lineHeight`|Function| Evstigneev Roman | in progress |  |
 |`type`|Function| Evstigneev Roman |done|  |
 |`fontFeature`|Function| Evstigneev Roman |done|  |
 |`onWillInsert`|Function| Evstigneev Roman |blocked Arkoala|  |
@@ -824,7 +824,7 @@
 |`onDidDelete`|Function| Evstigneev Roman |done|  |
 |`editMenuOptions`|Function| Evstigneev Roman |blocked Arkoala|  |
 |`enablePreviewText`|Function| Evstigneev Roman |done|  |
-|`enableHapticFeedback`|Function|Evstigneev Roman| devdone |  |
+|`enableHapticFeedback`|Function|Evstigneev Roman| in progress |  |
 |*SecurityComponentMethod*| *Component* | Samarin Sergey|in progress |  |
 |`iconSize`| Function |Samarin Sergey| done |  |
 |`layoutDirection`| Function |Samarin Sergey|done |  |
@@ -832,19 +832,19 @@
 |`markAnchor`| Function |Samarin Sergey| done |  |
 |`offset`| Function |Samarin Sergey| blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`fontSize`| Function |Samarin Sergey| done |  |
-|`fontStyle`| Function |Samarin Sergey| devdone |  |
-|`fontWeight`| Function |Samarin Sergey| devdone |  |
+|`fontStyle`| Function |Samarin Sergey| in progress |  |
+|`fontWeight`| Function |Samarin Sergey| in progress |  |
 |`fontFamily`| Function |Samarin Sergey| blocked UT |  |
 |`fontColor`| Function |Samarin Sergey| done |  |
 |`iconColor`| Function |Samarin Sergey| done |  |
-|`backgroundColor`| Function |Samarin Sergey| devdone |  |
-|`borderStyle`| Function |Samarin Sergey| devdone |  |
-|`borderWidth`| Function |Samarin Sergey| devdone |  |
-|`borderColor`| Function |Samarin Sergey| devdone |  |
-|`borderRadius`| Function |Samarin Sergey| devdone |  |
-|`padding`| Function |Samarin Sergey| devdone |  |
+|`backgroundColor`| Function |Samarin Sergey| in progress |  |
+|`borderStyle`| Function |Samarin Sergey| in progress |  |
+|`borderWidth`| Function |Samarin Sergey| in progress |  |
+|`borderColor`| Function |Samarin Sergey| in progress |  |
+|`borderRadius`| Function |Samarin Sergey| in progress |  |
+|`padding`| Function |Samarin Sergey| in progress |  |
 |`textIconSpace`| Function |Samarin Sergey| done |  |
-|`key`| Function |Samarin Sergey| devdone |  |
+|`key`| Function |Samarin Sergey| in progress |  |
 |`width`| Function |Samarin Sergey| done |  |
 |`height`| Function |Samarin Sergey| done |  |
 |`size`| Function |Samarin Sergey| done |  |
@@ -1178,17 +1178,17 @@
 |`showCounter`| Function | Spirin Andrey | in progress |  |
 |*TextPicker*| *Component* |Ekaterina Stepanova |in progress |  |
 |`setTextPickerOptions`| Function | Tuzhilkin Ivan| done |  |
-|`defaultPickerItemHeight`| Function |Ekaterina Stepanova | devdone |  |
-|`canLoop`| Function |Ekaterina Stepanova | devdone |  |
-|`disappearTextStyle`|Function |Ekaterina Stepanova | devdone |  |
-|`textStyle`| Function |Ekaterina Stepanova | devdone |  |
-|`selectedTextStyle`| Function | Ekaterina Stepanova| devdone |  |
+|`defaultPickerItemHeight`| Function |Ekaterina Stepanova | in progress |  |
+|`canLoop`| Function |Ekaterina Stepanova | in progress |  |
+|`disappearTextStyle`|Function |Ekaterina Stepanova | in progress |  |
+|`textStyle`| Function |Ekaterina Stepanova | in progress |  |
+|`selectedTextStyle`| Function | Ekaterina Stepanova| in progress |  |
 |`onAccept`| Function |Ekaterina Stepanova | in progress |  |
 |`onCancel`| Function |Ekaterina Stepanova | in progress |  |
 |`onChange`| Function | Tuzhilkin Ivan| blocked UT | https://gitee.com/nikolay-igotti/idlize/issues/IAOKLD  |
-|`selectedIndex`| Function |Ekaterina Stepanova | devdone |  |
-|`divider`| Function |Ekaterina Stepanova | devdone |  |
-|`gradientHeight`| Function | Ekaterina Stepanova| devdone |  |
+|`selectedIndex`| Function |Ekaterina Stepanova | in progress |  |
+|`divider`| Function |Ekaterina Stepanova | in progress |  |
+|`gradientHeight`| Function | Ekaterina Stepanova| in progress |  |
 |*TextTimer*| *Component* |Ekaterina Stepanova|in progress |  |
 |`setTextTimerOptions`| Function |Ekaterina Stepanova|in progress |  |
 |`format`| Function |Ekaterina Stepanova|in progress |  |
@@ -1486,30 +1486,30 @@
 |`reset`| Function | Erokhin Ilya | done |  |
 |*Web*| *Component* | Erokhin Ilya | in progress | |
 |`setWebOptions`| Function | Erokhin Ilya | in progress | |
-|`javaScriptAccess`| Function | Erokhin Ilya | testskipped | |
-|`fileAccess`| Function | Erokhin Ilya | testskipped | |
-|`onlineImageAccess`| Function | Erokhin Ilya | testskipped | |
-|`domStorageAccess`| Function | Erokhin Ilya | testskipped | |
-|`imageAccess`| Function | Erokhin Ilya | testskipped | |
-|`mixedMode`| Function | Erokhin Ilya | testskipped | |
-|`zoomAccess`| Function | Erokhin Ilya | testskipped | |
-|`geolocationAccess`| Function | Erokhin Ilya | testskipped | |
+|`javaScriptAccess`| Function | Erokhin Ilya | done | |
+|`fileAccess`| Function | Erokhin Ilya | done | |
+|`onlineImageAccess`| Function | Erokhin Ilya | done | |
+|`domStorageAccess`| Function | Erokhin Ilya | done | |
+|`imageAccess`| Function | Erokhin Ilya | done | |
+|`mixedMode`| Function | Erokhin Ilya | done | |
+|`zoomAccess`| Function | Erokhin Ilya | done | |
+|`geolocationAccess`| Function | Erokhin Ilya | done | |
 |`javaScriptProxy`| Function | Erokhin Ilya | in progress | |
 |`password`| Function | Erokhin Ilya | done | |
-|`cacheMode`| Function | Erokhin Ilya | testskipped | |
-|`darkMode`| Function | Erokhin Ilya | testskipped | |
-|`forceDarkAccess`| Function | Erokhin Ilya | testskipped | |
-|`mediaOptions`| Function | Erokhin Ilya | testskipped | |
+|`cacheMode`| Function | Erokhin Ilya | done | |
+|`darkMode`| Function | Erokhin Ilya | done | |
+|`forceDarkAccess`| Function | Erokhin Ilya | done | |
+|`mediaOptions`| Function | Erokhin Ilya | done | |
 |`tableData`| Function | Erokhin Ilya | done | |
 |`wideViewModeAccess`| Function | Erokhin Ilya | done | |
-|`overviewModeAccess`| Function | Erokhin Ilya | testskipped | |
-|`overScrollMode`| Function | Erokhin Ilya | testskipped | |
-|`textZoomAtio`| Function | Erokhin Ilya | testskipped | |
-|`textZoomRatio`| Function | Erokhin Ilya | testskipped | |
-|`databaseAccess`| Function | Erokhin Ilya | testskipped | |
-|`initialScale`| Function | Erokhin Ilya | testskipped | |
-|`userAgent`| Function | Erokhin Ilya | testskipped | |
-|`metaViewport`| Function | Erokhin Ilya | testskipped | |
+|`overviewModeAccess`| Function | Erokhin Ilya | done | |
+|`overScrollMode`| Function | Erokhin Ilya | done | |
+|`textZoomAtio`| Function | Erokhin Ilya | done | |
+|`textZoomRatio`| Function | Erokhin Ilya | done | |
+|`databaseAccess`| Function | Erokhin Ilya | done | |
+|`initialScale`| Function | Erokhin Ilya | done | |
+|`userAgent`| Function | Erokhin Ilya | done | |
+|`metaViewport`| Function | Erokhin Ilya | done | |
 |`onPageEnd`| Function | Erokhin Ilya | in progress | |
 |`onPageBegin`| Function | Erokhin Ilya | in progress | |
 |`onProgressChange`| Function | Erokhin Ilya | in progress | |
@@ -1541,7 +1541,7 @@
 |`onScreenCaptureRequest`| Function | Erokhin Ilya | in progress | |
 |`onContextMenuShow`| Function | Erokhin Ilya | in progress | |
 |`onContextMenuHide`| Function | Erokhin Ilya | in progress | |
-|`mediaPlayGestureAccess`| Function | Erokhin Ilya | testskipped | |
+|`mediaPlayGestureAccess`| Function | Erokhin Ilya | done | |
 |`onSearchResultReceive`| Function | Erokhin Ilya | in progress | |
 |`onScroll`| Function | Erokhin Ilya | in progress | |
 |`onSslErrorEventReceive`| Function | Erokhin Ilya | in progress | |
@@ -1549,29 +1549,29 @@
 |`onClientAuthenticationRequest`| Function | Erokhin Ilya | in progress | |
 |`onWindowNew`| Function | Erokhin Ilya | in progress | |
 |`onWindowExit`| Function | Erokhin Ilya | in progress | |
-|`multiWindowAccess`| Function | Erokhin Ilya | testskipped | |
+|`multiWindowAccess`| Function | Erokhin Ilya | done | |
 |`onInterceptKeyEvent`| Function | Erokhin Ilya | in progress | |
-|`webStandardFont`| Function | Erokhin Ilya | testskipped | |
-|`webSerifFont`| Function | Erokhin Ilya | testskipped | |
-|`webSansSerifFont`| Function | Erokhin Ilya | testskipped | |
-|`webFixedFont`| Function | Erokhin Ilya | testskipped | |
-|`webFantasyFont`| Function | Erokhin Ilya | testskipped | |
-|`webCursiveFont`| Function | Erokhin Ilya | testskipped | |
-|`defaultFixedFontSize`| Function | Erokhin Ilya | testskipped | |
-|`defaultFontSize`| Function | Erokhin Ilya | testskipped | |
-|`minFontSize`| Function | Erokhin Ilya | testskipped | |
-|`minLogicalFontSize`| Function | Erokhin Ilya | testskipped | |
-|`defaultTextEncodingFormat`| Function | Erokhin Ilya | testskipped | |
-|`forceDisplayScrollBar`| Function | Erokhin Ilya | testskipped | |
-|`blockNetwork`| Function | Erokhin Ilya | testskipped | |
-|`horizontalScrollBarAccess`| Function | Erokhin Ilya | testskipped | |
-|`verticalScrollBarAccess`| Function | Erokhin Ilya | testskipped | |
+|`webStandardFont`| Function | Erokhin Ilya | done | |
+|`webSerifFont`| Function | Erokhin Ilya | done | |
+|`webSansSerifFont`| Function | Erokhin Ilya | done | |
+|`webFixedFont`| Function | Erokhin Ilya | done | |
+|`webFantasyFont`| Function | Erokhin Ilya | done | |
+|`webCursiveFont`| Function | Erokhin Ilya | done | |
+|`defaultFixedFontSize`| Function | Erokhin Ilya | done | |
+|`defaultFontSize`| Function | Erokhin Ilya | done | |
+|`minFontSize`| Function | Erokhin Ilya | done | |
+|`minLogicalFontSize`| Function | Erokhin Ilya | done | |
+|`defaultTextEncodingFormat`| Function | Erokhin Ilya | done | |
+|`forceDisplayScrollBar`| Function | Erokhin Ilya | done | |
+|`blockNetwork`| Function | Erokhin Ilya | done | |
+|`horizontalScrollBarAccess`| Function | Erokhin Ilya | done | |
+|`verticalScrollBarAccess`| Function | Erokhin Ilya | done | |
 |`onTouchIconUrlReceived`| Function | Erokhin Ilya | in progress | |
 |`onFaviconReceived`| Function | Erokhin Ilya | in progress | |
 |`onPageVisible`| Function | Erokhin Ilya | in progress | |
 |`onDataResubmitted`| Function | Erokhin Ilya | in progress | |
-|`pinchSmooth`| Function | Erokhin Ilya | testskipped | |
-|`allowWindowOpenMethod`| Function | Erokhin Ilya | testskipped | |
+|`pinchSmooth`| Function | Erokhin Ilya | done | |
+|`allowWindowOpenMethod`| Function | Erokhin Ilya | done | |
 |`onAudioStateChanged`| Function | Erokhin Ilya | in progress | |
 |`onFirstContentfulPaint`| Function | Erokhin Ilya | in progress | |
 |`onFirstMeaningfulPaint`| Function | Erokhin Ilya | in progress | |
@@ -1584,27 +1584,27 @@
 |`onIntelligentTrackingPreventionResult`| Function | Erokhin Ilya | in progress | |
 |`javaScriptOnDocumentStart`| Function | Erokhin Ilya | in progress | |
 |`javaScriptOnDocumentEnd`| Function | Erokhin Ilya | in progress | |
-|`layoutMode`| Function | Erokhin Ilya | testskipped | |
+|`layoutMode`| Function | Erokhin Ilya | done | |
 |`nestedScroll`| Function | Erokhin Ilya | in progress | |
-|`enableNativeEmbedMode`| Function | Erokhin Ilya | testskipped | |
+|`enableNativeEmbedMode`| Function | Erokhin Ilya | done | |
 |`onNativeEmbedLifecycleChange`| Function | Erokhin Ilya | in progress | |
 |`onNativeEmbedVisibilityChange`| Function | Erokhin Ilya | in progress | |
 |`onNativeEmbedGestureEvent`| Function | Erokhin Ilya | in progress | |
-|`copyOptions`| Function | Erokhin Ilya | testskipped | |
+|`copyOptions`| Function | Erokhin Ilya | done | |
 |`onOverrideUrlLoading`| Function | Erokhin Ilya | in progress | |
-|`textAutosizing`| Function | Erokhin Ilya | testskipped | |
-|`enableNativeMediaPlayer`| Function | Erokhin Ilya | testskipped | |
-|`enableSmoothDragResize`| Function | Erokhin Ilya | testskipped | |
+|`textAutosizing`| Function | Erokhin Ilya | done | |
+|`enableNativeMediaPlayer`| Function | Erokhin Ilya | done | |
+|`enableSmoothDragResize`| Function | Erokhin Ilya | done | |
 |`onRenderProcessNotResponding`| Function | Erokhin Ilya | in progress | |
 |`onRenderProcessResponding`| Function | Erokhin Ilya | in progress | |
 |`selectionMenuOptions`| Function | Erokhin Ilya | in progress | |
 |`onViewportFitChanged`| Function | Erokhin Ilya | in progress | |
 |`onInterceptKeyboardAttach`| Function | Erokhin Ilya | in progress | |
 |`onAdsBlocked`| Function | Erokhin Ilya | in progress | |
-|`keyboardAvoidMode`| Function | Erokhin Ilya | testskipped | |
+|`keyboardAvoidMode`| Function | Erokhin Ilya | done | |
 |`editMenuOptions`| Function | Erokhin Ilya | in progress | |
-|`enableHapticFeedback`| Function | Erokhin Ilya | testskipped | |
-|`registerNativeEmbedRule`| Function | Erokhin Ilya | testskipped | |
+|`enableHapticFeedback`| Function | Erokhin Ilya | done | |
+|`registerNativeEmbedRule`| Function | Erokhin Ilya | done | |
 |`bindSelectionMenu`| Function |Erokhin Ilya | in progress | |
 |*WebController*| *Class* | Erokhin Ilya | in progress | |
 |`onInactive`| Function | Erokhin Ilya | in progress | |
