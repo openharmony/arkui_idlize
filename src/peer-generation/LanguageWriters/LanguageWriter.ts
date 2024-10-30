@@ -26,7 +26,7 @@ import { EnumConvertor } from "../idl/IdlArgConvertors"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 import { PeerLibrary } from "../PeerLibrary"
 import { ReferenceResolver } from "../ReferenceResolver"
-import { convertType, IdlTypeNameConvertor } from "../idl/IdlTypeConvertor"
+import { convertType, IdlTypeNameConvertor } from "./typeConvertor"
 
 // static Int32 = new Type('int32')
 // static Boolean = new Type('boolean')
@@ -130,7 +130,7 @@ export class AssignStatement implements LanguageStatement {
                 protected isConst: boolean = true) { }
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
-            const typeSpec = this.type ? `: ${writer.mapIDLType(this.type)}${this.type.optional ? "|undefined" : ""}` : ""
+            const typeSpec = this.type ? `: ${writer.convert(this.type)}${this.type.optional ? "|undefined" : ""}` : ""
             const initValue = this.expression ? `= ${this.expression.asString()}` : ""
             const constSpec = this.isConst ? "const" : "let"
             writer.print(`${constSpec} ${this.variableName}${typeSpec} ${initValue}`)
@@ -534,7 +534,7 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
         return this.makeFunctionCall("runtimeType", [ this.makeString(value) ])
     }
     makeArrayResize(array: string, typeName: idl.IDLType, length: string, deserializer: string): LanguageStatement {
-        return new ExpressionStatement(this.makeString(`${array} = [] as ${this.mapIDLType(typeName)}`))
+        return new ExpressionStatement(this.makeString(`${array} = [] as ${this.convert(typeName)}`))
     }
     makeMapResize(mapTypeName: string, keyType: idl.IDLType, valueType: idl.IDLType, map: string, size: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression("// TODO: TS map resize"))
@@ -582,9 +582,6 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     }
     getOutput(): string[] {
         return this.printer.getOutput()
-    }
-    mapIDLType(type: idl.IDLType): string {
-        return this.convert(type)
     }
     makeSignature(returnType: idl.IDLType, parameters: idl.IDLParameter[]): MethodSignature {
         return new MethodSignature(returnType,
@@ -677,7 +674,7 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
                 this.makeString(this.getObjectAccessor(convertor, value)),
                 convertor.enumTypeName(this.language)
             )
-            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.mapIDLType(idl.IDLI32Type), convertor, index)
+            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.convert(idl.IDLI32Type), convertor, index)
         const {low, high} = convertor.extremumOfOrdinals()
         return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], [
             this.makeNaryOp(">=", [ordinal, this.makeString(low!.toString())]),

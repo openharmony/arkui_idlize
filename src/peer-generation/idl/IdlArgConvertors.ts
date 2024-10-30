@@ -61,7 +61,7 @@ export class StringConvertor extends BaseArgConvertor {
     }
     targetType(writer: LanguageWriter): string {
         if (this.literalValue) {
-            return writer.mapIDLType(idl.toIDLType("string"))
+            return writer.convert(idl.toIDLType("string"))
         }
         return super.targetType(writer);
     }
@@ -405,12 +405,12 @@ export class InterfaceConvertor extends BaseArgConvertor { //
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, `write${printer.mapIDLType(this.idlType)}`, [value])
+        printer.writeMethodCall(`${param}Serializer`, `write${printer.convert(this.idlType)}`, [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = this.getObjectAccessor(printer.language, value)
         return printer.makeAssign(accessor, undefined,
-                printer.makeMethodCall(`${param}Deserializer`, `read${printer.mapIDLType(this.idlType)}`, []), false)
+                printer.makeMethodCall(`${param}Deserializer`, `read${printer.convert(this.idlType)}`, []), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Prefix + idl.getIDLTypeName(this.idlType)
@@ -452,7 +452,7 @@ export class ClassConvertor extends InterfaceConvertor { //
         // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
         if (idl.getIDLTypeName(this.idlType) === "SubTabBarStyle") return undefined
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${writer.mapIDLType(this.idlType)}`)])
+            [writer.makeString(`${value} instanceof ${writer.convert(this.idlType)}`)])
     }
 }
 
@@ -837,7 +837,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor { //
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${writer.mapIDLType(this.idlType)}`)])
+            [writer.makeString(`${value} instanceof ${writer.convert(this.idlType)}`)])
     }
 }
 

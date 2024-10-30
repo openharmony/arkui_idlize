@@ -107,7 +107,7 @@ export class StringConvertor extends BaseArgConvertor {
     }
     targetType(writer: LanguageWriter): string {
         if (this.isLiteral()) {
-            return writer.mapIDLType(IDLStringType)
+            return writer.convert(IDLStringType)
         }
         return super.targetType(writer);
     }
@@ -598,7 +598,7 @@ export class AggregateConvertor extends BaseArgConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (writer.language === Language.ARKTS) {
             return makeInterfaceTypeCheckerCall(value,
-                this.aliasName !== undefined ? this.aliasName : writer.mapIDLType(this.idlType),
+                this.aliasName !== undefined ? this.aliasName : writer.convert(this.idlType),
                 this.members.map(it => it[0]), duplicates, writer)
         }
         const uniqueFields = this.members.filter(it => !duplicates.has(it[0]))
@@ -619,12 +619,12 @@ export class InterfaceConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, this.table.serializerName(printer.mapIDLType(this.idlType)), [value])
+        printer.writeMethodCall(`${param}Serializer`, this.table.serializerName(printer.convert(this.idlType)), [value])
     }
     convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const accessor = printer.getObjectAccessor(this, value)
         return printer.makeAssign(accessor, undefined,
-                printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(printer.mapIDLType(this.idlType)), []), false)
+                printer.makeMethodCall(`${param}Deserializer`, this.table.deserializerName(printer.convert(this.idlType)), []), false)
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Prefix + getIDLTypeName(this.idlType)
@@ -640,7 +640,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (writer.language === Language.ARKTS)
-            return makeInterfaceTypeCheckerCall(value, writer.mapIDLType(this.idlType), this.table.targetStruct(this.declaration).getFields().map(it => it.name), duplicates, writer)
+            return makeInterfaceTypeCheckerCall(value, writer.convert(this.idlType), this.table.targetStruct(this.declaration).getFields().map(it => it.name), duplicates, writer)
         // First, tricky special cases
         if (getIDLTypeName(this.idlType).endsWith("GestureInterface")) {
             const gestureType = getIDLTypeName(this.idlType).slice(0, -"GestureInterface".length)
@@ -667,7 +667,7 @@ export class ClassConvertor extends InterfaceConvertor {
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${writer.mapIDLType(this.idlType)}`)])
+            [writer.makeString(`${value} instanceof ${writer.convert(this.idlType)}`)])
     }
 }
 
@@ -1069,7 +1069,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${writer.mapIDLType(this.idlType)}`)])
+            [writer.makeString(`${value} instanceof ${writer.convert(this.idlType)}`)])
     }
 }
 

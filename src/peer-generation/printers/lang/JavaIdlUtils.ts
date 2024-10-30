@@ -1,6 +1,6 @@
 import * as idl from "../../../idl"
 import { getIDLTypeName } from "../../../idl"
-import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../../idl/IdlTypeConvertor"
+import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../../LanguageWriters/typeConvertor"
 import { ImportFeature } from "../../ImportsCollector"
 import {  } from "../../TypeNodeConvertor"
 

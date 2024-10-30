@@ -124,7 +124,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     private printComponent(peer: PeerClass | IdlPeerClass) {
         const callableMethods = (peer.methods as any[]).filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
-        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${it.optional ? "?" : ""}: ${this.printer.mapIDLType(it)}`)
+        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${it.optional ? "?" : ""}: ${this.printer.convert(it)}`)
         const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
         const componentClassName = generateArkComponentName(peer.componentName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`

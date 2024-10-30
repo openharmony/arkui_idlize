@@ -25,6 +25,7 @@ import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvert
 import { Language } from "../../../Language"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
+import { EtsIDLTypeToStringConvertor } from "../convertors/ETSConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -138,44 +139,10 @@ export function makeArrayTypeCheckCall(
 export class ETSLanguageWriter extends TSLanguageWriter {
     constructor(printer: IndentedPrinter, resolver:ReferenceResolver) {
         super(printer, resolver, Language.ARKTS)
+        this.typeConvertor = new EtsIDLTypeToStringConvertor(this.resolver)
     }
     fork(): LanguageWriter {
         return new ETSLanguageWriter(new IndentedPrinter(), this.resolver)
-    }
-    override convertContainer(type: IDLContainerType): string {
-        if (IDLContainerUtils.isSequence(type)) {
-            switch (type.elementType[0]) {
-                case IDLU8Type: return 'KUint8ArrayPtr'
-                case IDLI32Type: return 'KInt32ArrayPtr'
-                case IDLF32Type: return 'KFloat32ArrayPtr'
-            }
-            return `Array<${this.convert(type.elementType[0])}>`
-        }
-        return super.convertContainer(type)
-    }
-    override convertPrimitiveType(type: IDLPrimitiveType): string {
-        switch (type) {
-            case IDLVoidType: return "void"
-            case IDLAnyType: return "object"
-            case IDLUnknownType: return "object"
-        }
-        return this.mapIDLPrimitiveType(type)
-    }
-    protected override productType(decl: IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
-        if (isAnonymousInterface(decl)) {
-            return decl.name
-        }
-        return super.productType(decl, isTuple, includeFieldNames)
-    }
-    protected override processTupleType(idlProperty: IDLProperty): IDLProperty {
-        if (idlProperty.isOptional) {
-            return {
-                ...idlProperty,
-                isOptional: false,
-                type: createUnionType([idlProperty.type, IDLUndefinedType])
-            }
-        }
-        return idlProperty
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         if (signature.returnType === IDLThisType) {
@@ -194,53 +161,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeMapSize(map: string): LanguageExpression {
         return this.makeString(`${super.makeMapSize(map).asString()} as int32`) // TODO: cast really needed?
-    }
-    mapIDLContainerType(type: IDLContainerType): string {
-        if (IDLContainerUtils.isSequence(type)) {
-            switch (type.elementType[0]) {
-                case IDLU8Type: return 'KUint8ArrayPtr'
-                case IDLI32Type: return 'KInt32ArrayPtr'
-                case IDLF32Type: return 'KFloat32ArrayPtr'
-            }
-            return `${this.mapIDLType(type.elementType[0])}[]`
-        }
-        return super.mapIDLContainerType(type)
-    }
-    mapIDLReferenceType(type: IDLReferenceType): string {
-        if (isIDLTypeName(type, 'Function')) {
-            return 'Object'
-        }
-        return super.mapIDLReferenceType(type)
-    }
-    mapIDLPrimitiveType(type: IDLPrimitiveType): string {
-        switch (type) {
-            case IDLPointerType: return 'KPointer'
-            case IDLVoidType: return 'void'
-            case IDLBooleanType: return 'boolean'
-            
-            case IDLU8Type:
-            case IDLI8Type:
-            case IDLI16Type:
-            case IDLU16Type:
-            case IDLI32Type:
-            case IDLU32Type:
-                return 'KInt'
-
-            case IDLI64Type:
-            case IDLU64Type:
-                return 'KLong'
-
-            case IDLF32Type:
-                return 'KFloat'
-
-            case IDLF64Type:
-            case IDLNumberType:
-                return 'number'
-
-            case IDLStringType: return 'KStringPtr'
-            case IDLFunctionType: return 'Object'
-        }
-        return super.mapIDLPrimitiveType(type)
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]
@@ -313,7 +233,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         if (convertor instanceof EnumConvertorDTS || convertor instanceof EnumConvertor) {
             return this.makeString(`${valueName} instanceof ${convertor.enumTypeName(this.language)}`)
         } else if (convertor instanceof StringConvertor && convertor.isLiteral()) {
-            return this.makeString(`${valueName} instanceof ${this.mapIDLType(convertor.idlType)}`)
+            return this.makeString(`${valueName} instanceof ${this.convert(convertor.idlType)}`)
         }
         return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index);
     }

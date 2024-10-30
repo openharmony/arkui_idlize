@@ -38,7 +38,7 @@ import { IdlPeerFile } from './IdlPeerFile'
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { TargetFile } from '../printers/TargetFile'
 import { PrinterContext } from '../printers/PrinterContext'
-import { convertDeclaration, DeclarationConvertor } from "./IdlTypeConvertor";
+import { convertDeclaration, DeclarationConvertor } from "../LanguageWriters/typeConvertor";
 import { makeSyntheticDeclarationsFiles } from './IdlSyntheticDeclarations'
 import { tsCopyrightAndWarning } from '../FileGenerators'
 import { EnumEntity } from '../PeerFile'
@@ -72,7 +72,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         throw "Enums are processed separately"
     }
     convertTypedef(node: idl.IDLTypedef): void {
-        this.writer.print(`export declare type ${node.name} = ${this.writer.mapIDLType(node.type)};`)
+        this.writer.print(`export declare type ${node.name} = ${this.writer.convert(node.type)};`)
     }
     protected replaceImportTypeNodes(text: string): string {///operate on stringOrNone[]
         for (const [stub, src] of [...this.peerLibrary.importTypesStubToSource.entries()].reverse()) {

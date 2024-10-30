@@ -16,7 +16,7 @@
 import { createLanguageWriter, LanguageWriter } from "../LanguageWriters";
 import { IdlPeerLibrary } from "./IdlPeerLibrary";
 import { DeclarationNameConvertor } from "./IdlNameConvertor";
-import { convertDeclaration } from "./IdlTypeConvertor";
+import { convertDeclaration } from "../LanguageWriters/typeConvertor";
 import * as idl from "../../idl";
 import { Language } from "../../Language";
 

@@ -99,6 +99,6 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}${this.mapIDLType(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.mapIDLType(it)} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
+        this.print(`${prefix}${this.convert(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.convert(it)} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
     }
 }

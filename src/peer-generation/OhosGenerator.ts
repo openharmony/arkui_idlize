@@ -78,7 +78,7 @@ class OHOSVisitor {
         if (isReferenceType(type) || isEnum(type) || isEnumType(type)) {
             return `${PrimitiveType.Prefix}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
         }
-        return this.hWriter.mapIDLType(type)
+        return this.hWriter.convert(type)
     }
 
     makeSignature(returnType: IDLType, parameters: IDLParameter[]): MethodSignature {
@@ -328,8 +328,8 @@ class OHOSVisitor {
         const className = `${this.libraryName}NativeModule`
         this.callbacks.forEach(callback => {
             if (this.library.language === Language.TS) {
-                const params = callback.parameters.map(it => `${it.name}:${this.nativeWriter.mapIDLType(it.type!)}`).join(', ')
-                const returnTypeName = this.nativeWriter.mapIDLType(callback.returnType)
+                const params = callback.parameters.map(it => `${it.name}:${this.nativeWriter.convert(it.type!)}`).join(', ')
+                const returnTypeName = this.nativeWriter.convert(callback.returnType)
                 this.nativeWriter.print(`export type ${callback.name} = (${params}) => ${returnTypeName}`)
             }
         })
@@ -660,7 +660,7 @@ function generateCParameters(method: IDLMethod, argConvertors: ArgConvertor[], w
                 ptrCreated = true
             }
         } else {
-            args.push(`${writer.mapIDLType(method.parameters[i].type!)} ${writer.escapeKeyword(method.parameters[i].name)}`)
+            args.push(`${writer.convert(method.parameters[i].type!)} ${writer.escapeKeyword(method.parameters[i].name)}`)
         }
     }
     return args.join(", ")

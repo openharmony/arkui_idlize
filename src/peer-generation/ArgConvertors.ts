@@ -77,7 +77,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         throw new Error("Define")
     }
     targetType(writer: LanguageWriter): string {
-        return writer.mapIDLType(this.idlType)
+        return writer.convert(this.idlType)
     }
     scopeStart?(param: string, language: Language): string
     scopeEnd?(param: string, language: Language): string

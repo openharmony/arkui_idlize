@@ -9,7 +9,7 @@ import { PeerLibrary } from "../PeerLibrary";
 import {
     DeclarationNameConvertor
 } from "../idl/IdlNameConvertor";
-import { convertDeclaration } from "../idl/IdlTypeConvertor";
+import { convertDeclaration } from "../LanguageWriters/typeConvertor";
 import { Language } from "../../Language";
 import { IDLBooleanType, IDLType, toIDLType } from "../../idl";
 import { getReferenceResolver } from '../ReferenceResolver';

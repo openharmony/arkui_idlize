@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createReferenceType, DebugUtils, getIDLTypeName, IDLAnyType, IDLBooleanType, IDLCallback, IDLContainerType, IDLContainerUtils, IDLEnumType, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUnionType, IDLVoidType, isCallback, isContainerType, isEnumType, isIDLTypeName, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType, toIDLType } from "../../../idl"
+import { createReferenceType, DebugUtils, getIDLTypeName, IDLAnyType, IDLBooleanType, IDLCallback, IDLContainerType, IDLContainerUtils, IDLEnumType, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUnionType, IDLVoidType, isCallback, isContainerType, isEnumType, isIDLTypeName, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType, toIDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
@@ -24,9 +24,10 @@ import { AssignStatement, BlockStatement, FieldModifier, LanguageExpression, Lan
 import { CDefinedExpression, CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlTypeNameConvertor } from "../../idl/IdlTypeConvertor"
+import { IdlTypeNameConvertor, TypeConvertor } from "../typeConvertor"
 import { EnumEntity } from "../../PeerFile"
 import { throwException } from "../../../util";
+import { CppIDLTypeToStringConvertor } from "../convertors/CppConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -59,7 +60,7 @@ export class CppAssignStatement extends AssignStatement {
      }
      write(writer: LanguageWriter): void{
         if (this.isDeclared) {
-            const typeSpec = this.type ? writer.mapIDLType(this.type) : "auto"
+            const typeSpec = this.type ? writer.convert(this.type) : "auto"
             const initValue = this.expression ? this.expression.asString() : "{}"
             const constSpec = this.isConst ? "const " : ""
             writer.print(`${constSpec}${typeSpec} ${this.variableName} = ${initValue};`)
@@ -116,35 +117,16 @@ class CppEnumEntityStatement implements LanguageStatement {
 ////////////////////////////////////////////////////////////////
 
 export class CppLanguageWriter extends CLikeLanguageWriter {
+    protected typeConvertor: IdlTypeNameConvertor
     constructor(printer: IndentedPrinter, resolver:ReferenceResolver) {
         super(printer, resolver, Language.CPP)
+        this.typeConvertor = new CppIDLTypeToStringConvertor()
+    }
+    convert(type: IDLType | IDLCallback): string {
+        return this.typeConvertor.convert(type)
     }
     fork(): LanguageWriter {
         return new CppLanguageWriter(new IndentedPrinter(), this.resolver)
-    }
-    convert(type: IDLType | IDLCallback): string {
-        if (isType(type) && isOptionalType(type)) {
-            return this.mapIDLOptionalType(type)
-        }
-        if (isCallback(type)) {
-            throw new Error("Unimplemented!")
-        }
-        if (isPrimitiveType(type)) {
-            return this.mapIDLPrimitiveType(type)
-        }
-        if (isContainerType(type)) {
-            return this.mapIDLContainerType(type)
-        }
-        if (isUnionType(type)) {
-            return this.mapIDLUnionType(type)
-        }
-        if (isEnumType(type)) {
-            return this.mapIDLEnumType(type)
-        }
-        if (isReferenceType(type)) {
-            return this.mapIDLReferenceType(type)
-        }
-        throw new Error(`Unmapped type ${DebugUtils.debugPrintType(type)}`)
     }
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
         const superClasses = (superClass ? [superClass] : []).concat(interfaces ?? [])
@@ -179,7 +161,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         const superInvocation = superCall
             ? ` : ${superCall.name}(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`
             : ""
-        const argList = signature.args.map((it, index) => `${this.mapIDLType(it)} ${signature.argName(index)}`).join(", ");
+        const argList = signature.args.map((it, index) => `${this.convert(it)} ${signature.argName(index)}`).join(", ");
         this.print("public:")
         this.print(`${className}(${argList})${superInvocation} {`)
         this.pushIndent()
@@ -295,84 +277,6 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     makeDefinedCheck(value: string): LanguageExpression {
         return new CDefinedExpression(value);
-    }
-    mapIDLEnumType(type: IDLEnumType): string {
-        return getIDLTypeName(type)
-    }
-    mapIDLUnionType(type: IDLUnionType): string {
-        return `Union_${type.types.map(it => this.mapIDLType(it)).join("_")}`
-    }
-    mapIDLContainerType(type: IDLContainerType): string {
-        if (IDLContainerUtils.isPromise(type)) {
-            return `Promise_${this.mapIDLType(type.elementType[0])}`
-        }
-        if (IDLContainerUtils.isSequence(type)) {
-            return `Array_${this.mapIDLType(type.elementType[0])}`
-        }
-        throw new Error(`Unmapped container type ${DebugUtils.debugPrintType(type)}`)
-    }
-    mapIDLReferenceType(type: IDLReferenceType): string {
-        /***************************************************************/
-        // legacy type mapping.
-        // If no code relies on this mapping 
-        // we should remove it
-        const name = getIDLTypeName(type)
-        switch (name) {
-            case 'KPointer': return 'void*'
-            case 'Uint8Array': return 'byte[]'
-            case 'int32':
-            case 'KInt': return `${PrimitiveType.Prefix}Int32`
-            case 'string':
-            case 'KStringPtr': return `${PrimitiveType.Prefix}String`
-            case 'number': return `${PrimitiveType.Prefix}Number`
-            case 'boolean': return `${PrimitiveType.Prefix}Boolean`
-            case 'Function': return `${PrimitiveType.Prefix}Function`
-            case 'Length': return `${PrimitiveType.Prefix}Length`
-            // TODO: oh no
-            case 'Array<string[]>' : return `Array_Array_${PrimitiveType.String.getText()}`
-        }
-        if (name.startsWith("Array<")) {
-            const typeSpec = name.match(/<(.*)>/)!
-            const elementType = this.mapIDLType(toIDLType(typeSpec[1]))
-            return `Array_${elementType}`
-        }
-        if (!name.includes("std::decay<") && name.includes("<")) {
-            return name.replace(/<(.*)>/, "")
-        }
-        return name
-        /***************************************************************/
-        // return super.mapIDLReferenceType(type)   
-    }
-    mapIDLOptionalType(type:IDLOptionalType): string {
-        return `Opt_${this.convert(type)}`
-    }
-    mapIDLPrimitiveType(type: IDLPrimitiveType): string {
-
-        function arkType(text:TemplateStringsArray): string {
-            return `${PrimitiveType.Prefix}${text.join('')}`
-        }
-
-        switch (type) {
-            case IDLVoidType: return 'void'
-            // mb we should map another way
-            case IDLI8Type: return arkType`Int8`  // char / int8_t
-            case IDLU8Type: return arkType`UInt8`  // unsigned char / uint8_t
-            case IDLI16Type: return arkType`Int16` // short / int16_t
-            case IDLU16Type: return arkType`UInt16` // unsigned short / uint16_t
-            case IDLI32Type: return arkType`Int32` // int / int32_t
-            case IDLU32Type: return arkType`UInt32` // unsigned int / uint32_t
-            case IDLI64Type: return arkType`Int64` // long long / int64_t
-            case IDLU64Type: return arkType`UInt64` // unsigned long long / uint64_t
-
-            case IDLNumberType: return arkType`Number`
-            case IDLStringType: return arkType`String`
-
-            case IDLBooleanType: return arkType`Boolean`
-            case IDLPointerType: return 'void*'
-
-            case IDLAnyType: return arkType`CustomObject`
-        }
-        throw new Error(`Unmapped primitive type ${DebugUtils.debugPrintType(type)}`)
     }
     makeSetUnionSelector(value: string, index: string): LanguageStatement {
         return this.makeAssign(`${value}.selector`, undefined, this.makeString(index), false)

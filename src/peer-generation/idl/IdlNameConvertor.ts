@@ -16,7 +16,7 @@
 import * as idl from '../../idl'
 import { throwException } from '../../util'
 import { IdlPeerLibrary } from './IdlPeerLibrary'
-import { DeclarationConvertor, IdlTypeNameConvertor, TypeConvertor, convertType } from './IdlTypeConvertor'
+import { DeclarationConvertor, IdlTypeNameConvertor, TypeConvertor, convertType } from '../LanguageWriters/typeConvertor'
 import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../printers/lang/Java'
 import { IDLInterface, IDLPrimitiveType, IDLProperty, isAnonymousInterface } from "../../idl";
 import { cjCustomTypeMapping } from '../printers/lang/Cangjie'

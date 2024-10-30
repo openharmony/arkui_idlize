@@ -24,7 +24,7 @@ import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, 
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';
-import { createLanguageWriter, LanguageWriter, MethodSignature, TSLanguageWriter } from '../LanguageWriters';
+import { createLanguageWriter, createTypeNameConvertor, LanguageWriter, MethodSignature, TSLanguageWriter } from '../LanguageWriters';
 import { isImport, isStringEnum } from './common';
 import { StructPrinter } from './StructPrinter';
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
@@ -33,23 +33,7 @@ import { Language } from '../../Language';
 import { generateSyntheticFunctionName } from '../../IDLVisitor';
 import { collectUniqueCallbacks } from '../printers/CallbacksPrinter';
 import { ReferenceResolver } from '../ReferenceResolver';
-import { IdlTypeNameConvertor } from './IdlTypeConvertor';
-import { JavaLanguageWriter } from '../LanguageWriters/writers/JavaLanguageWriter';
-import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter';
-import { CJLanguageWriter } from '../LanguageWriters/writers/CJLanguageWriter';
-
-function createTypeNameConvertor(library: IdlPeerLibrary): IdlTypeNameConvertor {
-    const language = library.language
-    if (language === Language.TS)
-        return new TSLanguageWriter(new IndentedPrinter(), library, language)
-    if (language === Language.JAVA)
-        return new JavaLanguageWriter(new IndentedPrinter(), library)
-    if (language === Language.ARKTS)
-        return new ETSLanguageWriter(new IndentedPrinter(), library)
-    if (language == Language.CJ)
-        return new CJLanguageWriter(new IndentedPrinter(), library)
-    throw new Error(`Convertor from IDL to ${language} not implemented`)
-}
+import { IdlTypeNameConvertor } from '../LanguageWriters/typeConvertor';
 
 export class IdlPeerLibrary implements ReferenceResolver {
     public readonly predefinedFiles: IdlPeerFile[] = []
@@ -86,7 +70,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
     readonly declarations: idl.IDLEntry[] = []
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
-    readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this)
+    readonly nameConvertorInstance: IdlTypeNameConvertor = createTypeNameConvertor(this.language, this)
     readonly seenArrayTypes: Map<string, idl.IDLType> = new Map()
 
     readonly continuationCallbacks: idl.IDLCallback[] = []

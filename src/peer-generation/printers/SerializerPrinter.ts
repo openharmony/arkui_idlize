@@ -35,7 +35,7 @@ import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/I
 import { collectProperties } from '../idl/StructPrinter';
 import { ProxyStatement } from '../LanguageWriters/LanguageWriter';
 import { CallbackKind } from './CallbacksPrinter';
-import { convertDeclaration } from '../idl/IdlTypeConvertor';
+import { convertDeclaration } from '../LanguageWriters/typeConvertor';
 import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
@@ -51,7 +51,6 @@ function printSerializerImports(table: (ts.ClassDeclaration | ts.InterfaceDeclar
         convertorImportsCollector.addFeature("TypeChecker", "#components")
     }
     if ([Language.TS, Language.ARKTS].includes(writer.language)) {
-        convertorImportsCollector.addFeature("KInt", "@koalaui/interop")
         convertorImportsCollector.addFeature("KBoolean", "@koalaui/interop")
     }
     const serializerCollector = createSerializerDependenciesCollector(writer.language, convertorImportsCollector, library)
@@ -326,7 +325,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             const properties = collectProperties(target, this.library)
             // using list initialization to prevent uninitialized value errors
             const valueType = writer.language !== Language.TS ? type /// refac into LW
-                : idl.toIDLType(`{${properties.map(it => `${it.name}?: ${writer.mapIDLType(it.type)}`).join(", ")}}`)
+                : idl.toIDLType(`{${properties.map(it => `${it.name}?: ${writer.convert(it.type)}`).join(", ")}}`)
             writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`{}`), true, false))
 
             if (idl.isInterface(target) || idl.isClass(target)) {

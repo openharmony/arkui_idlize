@@ -14,7 +14,7 @@
  */
 
 import * as idl from '../../idl'
-import { DeclarationConvertor, TypeConvertor, convertDeclaration, convertType } from "./IdlTypeConvertor";
+import { DeclarationConvertor, TypeConvertor, convertDeclaration, convertType } from "../LanguageWriters/typeConvertor";
 import { IdlPeerLibrary } from './IdlPeerLibrary';
 
 export class TypeDependenciesCollector implements TypeConvertor<idl.IDLEntry[]> {

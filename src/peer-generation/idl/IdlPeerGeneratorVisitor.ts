@@ -25,7 +25,7 @@ import { IdlPeerFile } from "./IdlPeerFile"
 import { IdlPeerLibrary, ArkFunction } from "./IdlPeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
-import { convertDeclaration, convertType } from "./IdlTypeConvertor";
+import { convertDeclaration, convertType } from "../LanguageWriters/typeConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
 import {
     addSyntheticDeclarationDependency,
