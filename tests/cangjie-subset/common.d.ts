@@ -17,6 +17,7 @@ declare interface BlurOptions {
     grayscale: [number, number];
 }
 
+declare class AttributeModifier<T> {}
 declare class CommonMethod<T> {
 
     constructor();

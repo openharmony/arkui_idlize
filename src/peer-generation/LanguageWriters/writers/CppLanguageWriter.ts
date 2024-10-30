@@ -169,6 +169,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.print(`}`)
     }
+    writeProperty(propName: string, propType: IDLType, mutable: boolean = true) {
+        throw new Error("writeProperty for c++ is not implemented yet.")
+    }
 
     /**
      * Writes multiline comments decorated with stars

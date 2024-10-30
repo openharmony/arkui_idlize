@@ -205,6 +205,26 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
+    writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void) {
+        this.print(`${mutable ? "mut " : ""}prop ${propName}: ${propType.optional ? '?' : ''}${this.convert(propType)} {`)
+        this.pushIndent()
+        this.print(`get() {`)
+        this.pushIndent()
+        if (getterLambda)
+            getterLambda(this)
+        this.print(`return ${propName}`)
+        this.popIndent()
+        this.print(`}`)
+        if (mutable) {
+            this.print(`set(x) { this.${propName} = x }`)
+            this.pushIndent()
+            if (setterLambda)
+                setterLambda(this)
+            this.popIndent()
+        }
+        this.popIndent()
+        this.print(`}`)
+    }
     writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
         this.writeDeclaration(method.name, method.signature, method.modifiers, " {")
         this.pushIndent()

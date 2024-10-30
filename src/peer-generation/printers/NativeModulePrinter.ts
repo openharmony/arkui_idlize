@@ -308,11 +308,6 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
                 nativeFunctions!.writeNativeMethodDeclaration(`${component}_${clazz.finalizer.method.name}`, clazz.finalizer.method.signature)
                 nativeFunctions!.popIndent()
             }
-            // clazz.methods.forEach(method => {
-            //     const returnType = method.tsReturnType()
-            //     this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
-            //         returnType?.isPrimitive() ? returnType : Type.Pointer, nativeFunctions)                
-            // })
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
                 this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty, idl.IDLPointerType, nativeFunctions)                

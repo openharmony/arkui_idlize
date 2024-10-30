@@ -229,6 +229,9 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
+    writeProperty(propName: string, propType: idl.IDLType) {
+        throw new Error("writeProperty for TS is not implemented yet.")
+    }
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {
         let prefix = !modifiers ? undefined : this.supportedModifiers
             .filter(it => modifiers.includes(it))

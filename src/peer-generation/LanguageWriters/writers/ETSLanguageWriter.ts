@@ -217,6 +217,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // ArkTS does not support - 'this.?'
         super.writeMethodCall(receiver, method, params, nullable && receiver !== "this");
     }
+    writeProperty(propName: string, propType: IDLType) {
+        throw new Error("writeProperty for ArkTS is not implemented yet.")
+    }
     compareLiteral(expr: LanguageExpression, literal: string): LanguageExpression {
         return super.makeNaryOp('instanceof', [expr, this.makeString(createLiteralDeclName(capitalize(literal)))]);
     }

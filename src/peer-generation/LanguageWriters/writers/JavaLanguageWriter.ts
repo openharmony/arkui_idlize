@@ -158,6 +158,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
+    writeProperty(propName: string, propType: idl.IDLType) {
+        throw new Error("writeProperty for Java is not implemented yet.")
+    }
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new JavaAssignStatement(variableName, type, expr, isDeclared, isConst)
     }

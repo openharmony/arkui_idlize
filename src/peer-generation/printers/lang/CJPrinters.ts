@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createReferenceType, IDLType, IDLVoidType } from "../../../idl"
+import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "../../../idl"
 import { IdlPeerLibrary } from "../../idl/IdlPeerLibrary"
 import { IdlPeerMethod } from "../../idl/IdlPeerMethod"
 import { ImportFeature } from "../../ImportsCollector"
@@ -162,21 +162,15 @@ export class CJEnum extends IdlSyntheticTypeBase {
 
     print(writer: LanguageWriter): void {
         writer.writeEnum(this.name, this.members, () => {
-            writer.print("prop ordinal: Int32 {")
-            writer.pushIndent()
-            writer.print("get() {")
-            writer.pushIndent()
-            writer.print("match (this) {")
-            writer.pushIndent()
-            for (const member of this.members) {
-                writer.print(`case ${member.name} => ${member.numberId}`)
-            }
-            writer.popIndent()
-            writer.print("}")
-            writer.popIndent()
-            writer.print("}")
-            writer.popIndent()
-            writer.print("}")
+            writer.writeProperty("ordinal", IDLI32Type, false, () => {
+                writer.print("match (this) {")
+                writer.pushIndent()
+                for (const member of this.members) {
+                    writer.print(`case ${member.name} => ${member.numberId}`)
+                }
+                writer.popIndent()
+                writer.print("}")
+            })
         })
     }
 }

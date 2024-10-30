@@ -59,7 +59,7 @@ export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCon
 
      /**** IdlTypeNameConvertor *******************************************/
 
-     convert(type: idl.IDLType | idl.IDLCallback): string {
+    convert(type: idl.IDLType | idl.IDLCallback): string {
         const typeAlias = idl.isCallback(type) 
             ? this.convertCallback(type) 
             : convertType(this, type)

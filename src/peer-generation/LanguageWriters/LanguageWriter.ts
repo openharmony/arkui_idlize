@@ -392,6 +392,7 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
+    abstract writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void): void
     abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean): LanguageStatement;
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression;
     abstract makeThrowError(message: string): LanguageStatement;

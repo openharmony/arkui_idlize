@@ -843,16 +843,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             })
         writer.writeClass(alias, () => {
             members.forEach(it => {
-                writer.print(`mut prop ${it.name}: ${it.type.optional ? '?' : ''}${writer.convert(it.type)} {`)
-                writer.pushIndent()
-                writer.print(`get() {`)
-                writer.pushIndent()
-                writer.print(`return ${it.name}`)
-                writer.popIndent()
-                writer.print(`}`)
-                writer.print(`set(x) { this.${it.name} = x }`)
-                writer.popIndent()
-                writer.print(`}`)
+                writer.writeProperty(it.name, it.type, true)
             })
         }, writer.convert(idl.getSuperType(type) ?? idl.createReferenceType(ARK_OBJECTBASE)))
 
