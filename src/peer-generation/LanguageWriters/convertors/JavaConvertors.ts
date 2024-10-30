@@ -198,7 +198,6 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
             case 'int32': case 'KInt': return 'int'
             case 'int64': case 'KLong': return 'long'
             case 'float32': case 'KFloat': return 'float'
-            case 'Uint8Array': return 'byte[]'
             case 'KUint8ArrayPtr': return 'byte[]'
             case 'KInt32ArrayPtr': return 'int[]'
             case 'KFloat32ArrayPtr': return 'float[]'

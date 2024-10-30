@@ -512,7 +512,7 @@ export function createUnionType(types: IDLType[], name?: string): IDLUnionType {
         throw new Error("IDLUnionType should contain at least 2 types")
     return {
         kind: IDLKind.UnionType,
-        [idlTypeName]: name ?? types.map(it => it[idlTypeName]).join(" or "),
+        [idlTypeName]: name ?? "Union_" + types.map(it => it[idlTypeName]).join("_"),
         types: types
     }
 }
@@ -950,7 +950,7 @@ export function toIDLType(typeName: string): IDLType {
     if (typeName === 'sequence') {
         throw new Error('FAIL')
     }
-    const arrayMatch = typeName.match(/^Array<(.*)$>/)
+    const arrayMatch = typeName.match(/^Array<(.*)>$/)
     if (arrayMatch) {
         return createContainerType("sequence", [toIDLType(arrayMatch[1])])
     }

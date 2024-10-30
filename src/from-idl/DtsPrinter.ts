@@ -99,7 +99,7 @@ export class CustomPrintVisitor {
         if (node.name === "WrappedBuilder")
             typeSpec = "WrappedBuilder<Args extends any[]>"
 
-        const entity = getExtAttribute(node, IDLExtendedAttributes.Entity)
+        const entity = getExtAttribute(node, IDLExtendedAttributes.Entity) ?? IDLEntity.Interface
         if (entity === IDLEntity.Literal) {
             this.print(`${namespace ? "" : "declare "}type ${typeSpec} = ${this.literal(node, false, true)}`)
         } else if (entity === IDLEntity.Tuple) {

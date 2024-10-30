@@ -72,7 +72,6 @@ export class CppIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCo
         const name = idl.getIDLTypeName(type)
         switch (name) {
             case 'KPointer': return 'void*'
-            case 'Uint8Array': return 'byte[]'
             case 'int32':
             case 'KInt': return `${PrimitiveType.Prefix}Int32`
             case 'string':

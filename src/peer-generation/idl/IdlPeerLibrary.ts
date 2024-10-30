@@ -36,7 +36,6 @@ import { ReferenceResolver } from '../ReferenceResolver';
 import { IdlTypeNameConvertor } from '../LanguageWriters/typeConvertor';
 
 export class IdlPeerLibrary implements ReferenceResolver {
-    public readonly predefinedFiles: IdlPeerFile[] = []
     public readonly files: IdlPeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {
@@ -152,16 +151,19 @@ export class IdlPeerLibrary implements ReferenceResolver {
         entries ??= synthetics
             .concat(this.files.flatMap(it => it.entries))
             .concat(this.continuationCallbacks)
-        
-        if (idl.isIDLTypeNameWith(type, name => name.indexOf(".") >= 0)) {
-            const qualifier = idl.getIDLTypeName(type, (_, name) => name.split(".").slice(0, -2).join(".")) 
+
+        const qualifiedName = idl.getIDLTypeName(type)
+        const lastDot = qualifiedName.lastIndexOf(".")
+        if (lastDot >= 0) {
+            const qualifier = qualifiedName.slice(0, lastDot)
+            const typeName = qualifiedName.slice(lastDot + 1)
             // This is a namespace or enum member. Try enum first
             const parent = entries.find(it => it.name === qualifier)
             if (parent && idl.isEnum(parent))
                 return parent.elements.find(it => it.name === idl.getIDLTypeName(type))
             // Else try namespaces
             return entries.find(it =>
-                idl.isIDLTypeName(type, it.name) && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === qualifier)
+                it.name === typeName && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === qualifier)
         }
 
         const candidates = entries.filter(it => idl.isIDLTypeName(type, it.name))

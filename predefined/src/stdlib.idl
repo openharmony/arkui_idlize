@@ -1,0 +1,83 @@
+package "org.openharmony.idlize.predefined";
+
+/**
+ * Define Monitor Decorator type
+ */
+typedef any MethodDecorator;  // this is actually unused
+
+
+/**
+ * Represents a raw buffer of binary data, which is used to store data for the
+ * different typed arrays. ArrayBuffers cannot be read from or written to directly,
+ * but can be passed to a typed array or DataView Object to interpret the raw
+ * buffer as needed.
+ */
+interface ArrayBuffer {
+    /**
+     * Read-only. The length of the ArrayBuffer (in bytes).
+     */
+    readonly attribute number byteLength;
+};
+
+
+/**
+ * A typed array of 8-bit unsigned integer values. The contents are initialized to 0. If the
+ * requested number of bytes could not be allocated an exception is raised.
+ */
+interface Uint8Array {
+    /**
+     * The size in bytes of each element in the array.
+     */
+    readonly attribute number BYTES_PER_ELEMENT;
+
+    /**
+     * The ArrayBuffer instance referenced by the array.
+     */
+    readonly attribute ArrayBuffer buffer;
+
+    /**
+     * The length in bytes of the array.
+     */
+    readonly attribute number byteLength;
+
+    /**
+     * The offset in bytes of the array.
+     */
+    readonly attribute number byteOffset;
+
+    /**
+     * The length of the array.
+     */
+    readonly attribute number length;
+};
+
+/**
+ * A typed array of 8-bit unsigned integer (clamped) values. The contents are initialized to 0.
+ * If the requested number of bytes could not be allocated an exception is raised.
+ */
+interface Uint8ClampedArray {
+    /**
+     * The size in bytes of each element in the array.
+     */
+    readonly attribute number BYTES_PER_ELEMENT;
+
+    /**
+     * The ArrayBuffer instance referenced by the array.
+     */
+    readonly attribute ArrayBuffer buffer;
+
+    /**
+     * The length in bytes of the array.
+     */
+    readonly attribute number byteLength;
+
+    /**
+     * The offset in bytes of the array.
+     */
+    readonly attribute number byteOffset;
+
+    /**
+     * The length of the array.
+     */
+    readonly attribute number length;
+};
