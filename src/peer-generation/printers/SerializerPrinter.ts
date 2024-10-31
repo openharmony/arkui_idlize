@@ -619,6 +619,7 @@ function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: Serial
     }
     else if (writer.language === Language.ARKTS) {
         collector.addFeature("TypeChecker", "#components")
+        collector.addFeature("KInt", "@koalaui/interop")
 
         library.files.forEach(peer => peer.serializeImportFeatures
             .forEach(importFeature => collector.addFeature(importFeature.feature, importFeature.module)))

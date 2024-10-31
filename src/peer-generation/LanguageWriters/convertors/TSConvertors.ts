@@ -20,7 +20,7 @@ import { ReferenceResolver } from '../../ReferenceResolver'
 export class TsIDLTypeToStringConverter implements IdlTypeNameConvertor, TypeConvertor<string> {
 
     constructor(
-        private resolver: ReferenceResolver
+        protected resolver: ReferenceResolver
     ) {}
 
      /**** IdlTypeNameConvertor *******************************************/

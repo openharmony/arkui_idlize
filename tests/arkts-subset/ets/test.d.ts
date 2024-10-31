@@ -259,8 +259,8 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
     // Boolean Interface
 
     testBooleanInterfaceOption(value?: BooleanInterfaceDTS): TestAttribute
-
-    testBooleanInterfaceTuple(value: [BooleanInterfaceDTS]): TestAttribute
+    // leads to es2panda segmentation fault
+    // testBooleanInterfaceTuple(value: [BooleanInterfaceDTS]): TestAttribute
 
     testBooleanInterfaceArray(value: BooleanInterfaceDTS[]): TestAttribute
 

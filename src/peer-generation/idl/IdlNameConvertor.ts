@@ -14,19 +14,18 @@
  */
 
 import * as idl from '../../idl'
-import { throwException } from '../../util'
 import { IdlPeerLibrary } from './IdlPeerLibrary'
-import { DeclarationConvertor, IdlTypeNameConvertor, TypeConvertor, convertType } from '../LanguageWriters/typeConvertor'
-import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../printers/lang/Java'
-import { IDLInterface, IDLPrimitiveType, IDLProperty, isAnonymousInterface } from "../../idl";
+import { convertType, DeclarationConvertor, IdlTypeNameConvertor, TypeConvertor } from '../LanguageWriters/typeConvertor'
+import { ARK_CUSTOM_OBJECT, convertJavaOptional } from '../printers/lang/Java'
 import { cjCustomTypeMapping } from '../printers/lang/Cangjie'
+import { IDLExtendedAttributes } from "../../idl";
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     convertInterface(decl: idl.IDLInterface): string {
         return decl.name
     }
     convertEnum(decl: idl.IDLEnum): string {
-        return decl.name
+        return `${idl.getExtAttribute(decl, IDLExtendedAttributes.Namespace) ?? ""}${decl.name}`
     }
     convertTypedef(decl: idl.IDLTypedef): string {
         return decl.name

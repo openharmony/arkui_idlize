@@ -15,10 +15,54 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { capitalize } from "../../../util"
-import { AggregateConvertor, ArrayConvertor, EnumConvertor as EnumConvertorDTS, OptionConvertor, StringConvertor } from "../../Convertors"
-import { FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs } from "../LanguageWriter"
+import { EnumConvertor as EnumConvertorDTS, OptionConvertor, StringConvertor } from "../../Convertors"
+import {
+    FieldModifier,
+    LanguageExpression,
+    LanguageStatement,
+    LanguageWriter,
+    Method,
+    MethodModifier,
+    MethodSignature,
+    NamedMethodSignature,
+    ObjectArgs
+} from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { createUnionType, getIDLTypeName, IDLAnyType, IDLBooleanType, IDLContainerType, IDLContainerUtils, IDLF32Type, IDLF64Type, IDLFunctionType, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLInterface, IDLNumberType, IDLPointerType, IDLPrimitiveType, IDLProperty, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUndefinedType, IDLUnknownType, IDLVoidType, isAnonymousInterface, isIDLTypeName, toIDLType  } from '../../../idl'
+import {
+    createReferenceType,
+    createUnionType,
+    getIDLTypeName,
+    IDLAnyType,
+    IDLBooleanType,
+    IDLContainerType,
+    IDLContainerUtils,
+    IDLF32Type,
+    IDLF64Type,
+    IDLFunctionType,
+    IDLI16Type,
+    IDLI32Type,
+    IDLI64Type,
+    IDLI8Type,
+    IDLInterface,
+    IDLNumberType,
+    IDLPointerType,
+    IDLPrimitiveType,
+    IDLProperty,
+    IDLReferenceType,
+    IDLStringType,
+    IDLThisType,
+    IDLType,
+    IDLU16Type,
+    IDLU32Type,
+    IDLU64Type,
+    IDLU8Type,
+    IDLUndefinedType,
+    IDLUnknownType,
+    IDLVoidType,
+    isAnonymousInterface,
+    isIDLTypeName,
+    toIDLType
+} from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
 import { createLiteralDeclName } from "../../TypeNodeNameConvertor"
 import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
@@ -26,6 +70,7 @@ import { Language } from "../../../Language"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLTypeToStringConvertor } from "../convertors/ETSConvertors"
+import { DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -186,6 +231,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return this.makeString(`${value} as ${type}`)
     }
+
     ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
         return value;
     }

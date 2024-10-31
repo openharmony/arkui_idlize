@@ -97,7 +97,7 @@
     "sanity": "npm run check:subset:run && npm run check:peers:run && npm run run:all && npm run lint:test && npm run make:arkts",
     "panda:sdk:install": "npm run panda:sdk:install --prefix external/incremental/tools/panda",
     "make:arkts": "npm run compile && node . --api-version 99 --dts2peer --no-idl --need-interfaces --input-dir ./tests/subset/ets --output-dir ./out/arkts-subset/generated --language arkts",
-    "make:arkts:idl": "npm run compile && node . --api-version 99 --dts2peer --idl --need-interfaces --input-dir ./tests/arkts-subset/ets --output-dir ./out/arkts-subset/generated --language arkts",
+    "make:arkts:idl": "npm run compile && node . --api-version 99 --dts2peer --idl --need-interfaces --input-dir ./tests/arkts-subset/ets,./tests/arkts-subset/resource --output-dir ./out/arkts-subset/generated --language arkts",
     "make:arkts:subset:tsc": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --only-integrated --input-dir ./tests/subset/ets/,./tests/subset/resource --arkoala-destination ./out/arkts-subset-tsc/generated --generator-target arkoala --language=arkts --no-idl",
     "make:arkts:peers": "npm run compile && node . --api-version 99 --dts2peer --no-idl --need-interfaces --input-dir ./interface_sdk-js/api/@internal/component/ets/ --output-dir ./out/arkts-peers/generated --language arkts",
     "compile:arkts": "bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-subset.json --ets-module --extension sts --list-files",

@@ -14,27 +14,41 @@
  */
 
 import * as idl from "../../idl"
+import { getIDLTypeName, IDLEntry, IDLReferenceType, IDLType, maybeOptional } from "../../idl"
 import { posix as path } from "path"
-import { serializerBaseMethods, isDefined, renameDtsToInterfaces, renameClassToBuilderClass, renameClassToMaterialized, capitalize, throwException } from "../../util"
+import {
+    capitalize,
+    isDefined,
+    renameClassToBuilderClass,
+    renameClassToMaterialized,
+    renameDtsToInterfaces,
+    serializerBaseMethods,
+    throwException
+} from "../../util"
 import { GenericVisitor } from "../../options"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { IdlPeerClass } from "./IdlPeerClass"
 import { IdlPeerMethod } from "./IdlPeerMethod"
 import { IdlPeerFile } from "./IdlPeerFile"
-import { IdlPeerLibrary, ArkFunction } from "./IdlPeerLibrary"
+import { IdlPeerLibrary } from "./IdlPeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
-import { convertDeclaration, convertType } from "../LanguageWriters/typeConvertor";
+import { convertDeclaration } from "../LanguageWriters/typeConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
 import {
-    addSyntheticDeclarationDependency,
-    makeSyntheticDeclCompletely,
     isSyntheticDeclaration,
+    makeSyntheticDeclCompletely,
     makeSyntheticTypeAliasDeclaration,
     syntheticDeclarationFilename
 } from "./IdlSyntheticDeclarations";
-import { initCustomBuilderClasses, BuilderClass, isCustomBuilderClass, BuilderMethod, BuilderField } from "../BuilderClass";
+import {
+    BuilderClass,
+    BuilderField,
+    BuilderMethod,
+    initCustomBuilderClasses,
+    isCustomBuilderClass
+} from "../BuilderClass";
 import { isRoot } from "../inheritance";
 import { ImportFeature } from "../ImportsCollector";
 import { DeclarationNameConvertor } from "./IdlNameConvertor";
@@ -47,7 +61,6 @@ import { ARK_CUSTOM_OBJECT, javaCustomTypeMapping } from "../printers/lang/Java"
 import { Language } from "../../Language"
 import { createInterfaceDeclName } from "../TypeNodeNameConvertor";
 import { cjCustomTypeMapping } from "../printers/lang/Cangjie"
-import { IDLEntry, IDLEnumType, IDLType, maybeOptional } from "../../idl";
 
 /**
  * Theory of operations.
@@ -277,6 +290,16 @@ class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
             this.peerLibrary.seenArrayTypes.set(this.peerLibrary.getTypeName(type), type)
         }
         return super.convertContainer(type)
+    }
+
+    override convertTypeReference(type: IDLReferenceType): IDLEntry[] {
+        // TODO: Needs to be implemented properly
+        // Handling type with the namespace prefix
+        const types = getIDLTypeName(type).split(".")
+        if (types.length > 1) {
+            return super.convertTypeReference(idl.createReferenceType(types.slice(-1).join()))
+        }
+        return super.convertTypeReference(type);
     }
 }
 
@@ -609,7 +632,7 @@ class EmptyDependencyFilter implements DependencyFilter {
 
 class SyntheticDependencyConfigurableFilter implements DependencyFilter {
     constructor(
-        private readonly library: IdlPeerLibrary,
+        protected readonly library: IdlPeerLibrary,
         private readonly config: {
             skipAnonymousInterfaces?: boolean,
             skipCallbacks?: boolean,
@@ -625,6 +648,16 @@ class SyntheticDependencyConfigurableFilter implements DependencyFilter {
     }
 }
 
+class ArkTSSyntheticDependencyConfigurableFilter extends SyntheticDependencyConfigurableFilter {
+    readonly IGNORE_TYPES = ["Resource"]
+    shouldAdd(node: idl.IDLEntry): boolean {
+        //TODO: Needs to be implemented properly
+        // if (node.name !== undefined && this.IGNORE_TYPES.includes(node.name) && idl.isTypedef(node)) {
+        //     return false
+        // }
+        return super.shouldAdd(node)
+    }
+}
 
 class ComponentsCompleter {
     constructor(
@@ -870,7 +903,7 @@ export class IdlPeerProcessor {
         const isIface = idl.isInterface(target)
         const importFeatures = this.collectDeclDependencies(target)
         const fields = target.properties.map(it => this.toBuilderField(it))
-        const constructors = target.constructors.map(method => this.toBuilderMethod(method))
+        const constructors = target.constructors.map(method => this.toBuilderMethod(method, name))
         const methods = this.getBuilderMethods(target)
         if (this.library.language === Language.ARKTS) {
             // this is necessary because getBuilderMethods embeds supertype types
@@ -890,22 +923,23 @@ export class IdlPeerProcessor {
             PrimitiveType.Boolean) // sorry, don't really need this param but still have to provide something
     }
 
-    private getBuilderMethods(target: idl.IDLInterface): BuilderMethod[] {
+    private getBuilderMethods(target: idl.IDLInterface, className?: string): BuilderMethod[] {
         return [
             ...target.inheritance
                 .filter(idl.isReferenceType)
                 .map(it => this.library.resolveTypeReference(it)!)
                 .filter(it => idl.isInterface(it) || idl.isClass(it))
-                .flatMap(it => this.getBuilderMethods(it as idl.IDLInterface)),
-            ...target.methods.map(it => this.toBuilderMethod(it))]
+                .flatMap(it => this.getBuilderMethods(it as idl.IDLInterface, target.name)),
+            ...target.methods.map(it => this.toBuilderMethod(it, className))]
     }
 
-    private toBuilderMethod(method: idl.IDLConstructor | idl.IDLMethod | undefined): BuilderMethod {
+    private toBuilderMethod(method: idl.IDLConstructor | idl.IDLMethod | undefined,
+                            className?: string): BuilderMethod {
         if (!method)
             return new BuilderMethod(new Method("constructor", new NamedMethodSignature(idl.IDLVoidType)), [])
         const methodName = idl.isConstructor(method) ? "constructor" : method.name
         // const generics = method.typeParameters?.map(it => it.getText())
-        const signature = generateSignature(this.library, method)
+        const signature = generateSignature(this.library, method, className)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
         return new BuilderMethod(new Method(methodName, signature, modifiers/*, generics*/), [])
     }
@@ -947,10 +981,6 @@ export class IdlPeerProcessor {
 
     private processMaterialized(decl: idl.IDLInterface) {
         const name = decl.name
-        // ArkICurveMaterialized does not work correctly with ICurve interface, ignore it until it is fixed.
-        if (this.library.language === Language.ARKTS && "ICurve" === name) {
-            return
-        }
         if (this.library.materializedClasses.has(name)) {
             return
         }
@@ -1031,7 +1061,7 @@ export class IdlPeerProcessor {
         const generics = undefined // method.typeParameters?.map(it => it.getText())
         method.parameters.forEach(it => this.library.requestType(it.type!, true))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, false))
-        const signature = generateSignature(this.library, method)
+        const signature = generateSignature(this.library, method, decl.name)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
         return new MaterializedMethod(decl.name, /*declarationTargets*/ [], argConvertors, retConvertor, false,
             new Method(methodName, signature, modifiers, generics), getMethodIndex(decl, method))
@@ -1214,7 +1244,7 @@ function createSerializeDeclDependenciesCollector(library: IdlPeerLibrary): Decl
 function createDependencyFilter(library: IdlPeerLibrary): DependencyFilter {
     switch (library.language) {
         case Language.TS: return new SyntheticDependencyConfigurableFilter(library, { skipAnonymousInterfaces: true, skipCallbacks: true, skipTuples: true })
-        case Language.ARKTS: return new SyntheticDependencyConfigurableFilter(library, { skipAnonymousInterfaces: false, skipCallbacks: true, skipTuples: true })
+        case Language.ARKTS: return new ArkTSSyntheticDependencyConfigurableFilter(library, { skipAnonymousInterfaces: false, skipCallbacks: true, skipTuples: true })
         case Language.JAVA: return new EmptyDependencyFilter()
         case Language.CJ: return new EmptyDependencyFilter()
     }
@@ -1234,7 +1264,7 @@ export function isConflictingDeclaration(decl: idl.IDLEntry): boolean {/// stole
     // complicated type arguments
     if (idl.isClass(decl) && decl.name === 'TransitionEffect') return true
     // inside namespace
-    if (idl.isEnum(decl) && decl.name === 'GestureType') return true
+    // if (idl.isEnum(decl) && decl.name === 'GestureType') return true
     // no return type in some methods
     if (idl.isInterface(decl) && decl.name === 'LayoutChild') return true
     return false
@@ -1301,9 +1331,23 @@ export function isSourceDecl(node: idl.IDLEntry): boolean {
     return !node.fileName?.endsWith('stdlib.d.ts')
 }
 
-function generateSignature(library: IdlPeerLibrary, method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor): NamedMethodSignature {
-    const returnType = idl.isVoidType(method.returnType!) ? idl.IDLVoidType
-        : idl.isConstructor(method) || !method.isStatic ? idl.IDLThisType : method.returnType!
+function generateSignature(library: IdlPeerLibrary,
+                           method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor,
+                           className?: string): NamedMethodSignature {
+    let returnType
+    // TODO: Needs to be implemented properly
+    // Correct printing of return type name
+    if (library.language === Language.ARKTS) {
+        const isRetTypeParam = idl.isTypeParameterType(method.returnType!)
+        const isSelfRetType = className !== undefined ? className == getIDLTypeName(method.returnType!) : true
+        returnType = idl.isVoidType(method.returnType!)
+            ? idl.IDLVoidType
+            : idl.isConstructor(method) || (!method.isStatic && isSelfRetType || isRetTypeParam) ? idl.IDLThisType : method.returnType!
+    } else {
+        returnType = idl.isVoidType(method.returnType!) ? idl.IDLVoidType
+            : idl.isConstructor(method) || !method.isStatic ? idl.IDLThisType : method.returnType!
+    }
+
     return new NamedMethodSignature(returnType,
         method.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
         method.parameters.map(it => it.name)

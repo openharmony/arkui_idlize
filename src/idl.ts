@@ -925,7 +925,12 @@ export function getIDLContainerTypeKind(type:IDLContainerType): IDLContainerKind
 } 
 type IDLTypePrinter<T> = (x: T, name: string) => string
 export function getIDLTypeName<T extends IDLType>(type:T, print: IDLTypePrinter<T> = (x: T, name: string) => {return name}): string {
-    if (isPrimitiveType(type) || isReferenceType(type) || isEnumType(type) || isTypeParameterType(type)) {
+    if (isPrimitiveType(type)
+        || isReferenceType(type)
+        || isEnumType(type)
+        || isTypeParameterType(type)
+        || isUnionType(type)
+        || isContainerType(type)) {
         return print(type, type[idlTypeName])
     }
     if (!print) {

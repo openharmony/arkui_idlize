@@ -15,8 +15,24 @@
 
 import * as idl from "../../../idl";
 import { TsIDLTypeToStringConverter } from "./TSConvertors";
+import { createReferenceType, getIDLTypeName, IDLReferenceType, isIDLTypeName } from "../../../idl";
+import { DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
+import { convertDeclaration } from "../typeConvertor";
 
 export class EtsIDLTypeToStringConvertor extends TsIDLTypeToStringConverter {
+    convertTypeReference(type: IDLReferenceType): string {
+        //TODO: Needs to be implemented properly
+        const types = getIDLTypeName(type).split(".")
+        if (types.length > 1) {
+            // Takes only name without the namespace prefix
+            const decl = this.resolver.resolveTypeReference(createReferenceType(types.slice(-1).join()))
+            if (decl !== undefined) {
+                return convertDeclaration(DeclarationNameConvertor.I, decl)
+            }
+        }
+        return super.convertTypeReference(type);
+    }
+
     override convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
             switch (type.elementType[0]) {

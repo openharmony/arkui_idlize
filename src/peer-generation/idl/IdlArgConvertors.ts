@@ -134,6 +134,9 @@ export class EnumConvertor extends BaseArgConvertor { //
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.makeDiscriminatorConvertor(this, value, index)
     }
+    targetType(writer: LanguageWriter): string {
+        return this.enumTypeName(writer.language)
+    }
     extremumOfOrdinals(): {low: number, high: number} {
         let low: number = Number.MAX_VALUE
         let high: number = Number.MIN_VALUE

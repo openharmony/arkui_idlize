@@ -42,6 +42,7 @@ import { ImportsCollector } from "../ImportsCollector";
 import { printMethodDeclaration } from "../LanguageWriters/LanguageWriter"
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver"
 import { isImport } from "../idl/common"
+import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter";
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -391,6 +392,7 @@ abstract class TSEventsVisitorBase {
         const imports = new ImportsCollector()
         imports.addFeature("RuntimeType", "./peers/SerializerBase")
         imports.addFeature("int32", "@koalaui/common")
+        imports.addFeature("KStringPtr", "@koalaui/interop")
         if ([Language.TS].includes(this.library.language))
             imports.addFeature("Deserializer", "./peers/Deserializer")
 
@@ -627,12 +629,14 @@ class IdlTSEventsVisitor extends TSEventsVisitorBase {
     protected mapType(type: idl.IDLType): idl.IDLType {
         return type
     }
+}
+
+class IdlArkTSEventVisitor extends IdlTSEventsVisitor {
+    readonly printer: LanguageWriter = new ETSLanguageWriter(new IndentedPrinter(), getReferenceResolver(this.library))
 
     protected printParseFunction(infos: (CallbackInfo | IdlCallbackInfo)[]) {
         // Disable event functions printing until deserializer is ready
-        if (this.library.language !== Language.ARKTS) {
-            super.printParseFunction(infos);
-        }
+        // super.printParseFunction(infos);
     }
 }
 
@@ -640,7 +644,7 @@ export function printEvents(library: PeerLibrary | IdlPeerLibrary): string {
     let visitor
     switch (library.language) {
         case Language.ARKTS:
-            visitor = library instanceof PeerLibrary ? new ArkTSEventsVisitor(library) : new IdlTSEventsVisitor(library)
+            visitor = library instanceof PeerLibrary ? new ArkTSEventsVisitor(library) : new IdlArkTSEventVisitor(library)
             break
         case Language.TS:
             visitor = library instanceof PeerLibrary ? new TSEventsVisitor(library) : new IdlTSEventsVisitor(library)

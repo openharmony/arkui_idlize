@@ -46,7 +46,7 @@ import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER
 import { printJavaImports } from '../printers/lang/JavaPrinters'
 import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
 import { Language } from '../../Language'
-import { escapeKeyword } from "../../idl";
+import { escapeKeyword, IDLExtendedAttributes } from "../../idl";
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 
 interface InterfacesVisitor {
@@ -152,7 +152,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         }
     }
 
-    private toEnumEntity(enumDecl: idl.IDLEnum): EnumEntity {
+    protected toEnumEntity(enumDecl: idl.IDLEnum): EnumEntity {
         const entity = new EnumEntity(enumDecl.name, enumDecl.documentation ?? "")
         for (let elem of enumDecl.elements) {
             entity.pushMember(elem.name, elem.documentation ?? "", elem.initializer?.toString())
@@ -420,13 +420,9 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
 
 class ArkTSDeclConvertor extends TSDeclConvertor {
     private typeNameConvertor = new ETSLanguageWriter(new IndentedPrinter(), this.peerLibrary)
-    private readonly IGNORES_TYPES = ["GestureType"]
     private seenInterfaceNames = new Set<string>()
 
     convertTypedef(node: idl.IDLTypedef) {
-        if (this.IGNORES_TYPES.includes(node.name)) {
-            return
-        }
         const type = this.peerLibrary.mapType(node.type)
         const typeParams = this.printTypeParameters(node.extendedAttributes)
         this.writer.print(`export declare type ${node.name}${typeParams} = ${type};`)
@@ -438,9 +434,6 @@ class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     convertInterface(node: idl.IDLInterface) {
-        if (this.IGNORES_TYPES.includes(node.name)) {
-            return
-        }
         if (this.seenInterfaceNames.has(node.name)) {
             console.log(`interface name: '${node.name}' already exists`)
             return;
@@ -606,6 +599,15 @@ class ArkTSDeclConvertor extends TSDeclConvertor {
 class ArkTSInterfacesVisitor extends TSInterfacesVisitor {
     protected printAssignEnumsToGlobalScope(writer_: LanguageWriter, peerFile_: IdlPeerFile) {
         // Not supported
+    }
+
+    protected toEnumEntity(enumDecl: idl.IDLEnum): EnumEntity {
+        const namespace = idl.getExtAttribute(enumDecl, IDLExtendedAttributes.Namespace) ?? ""
+        const entity = new EnumEntity(`${namespace}${enumDecl.name}`, enumDecl.documentation ?? "")
+        for (let elem of enumDecl.elements) {
+            entity.pushMember(elem.name, elem.documentation ?? "", elem.initializer?.toString())
+        }
+        return entity
     }
 
     protected createDeclarationConvertor(writer: LanguageWriter): DeclarationConvertor<void> {
