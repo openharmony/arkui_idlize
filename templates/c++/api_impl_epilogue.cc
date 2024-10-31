@@ -22,7 +22,7 @@ extern "C" const OH_AnyAPI* GetAnyAPI(int kind, int version) {
 int main(int argc, char** argv) {
     const OH_XML_API* api = (const OH_XML_API*)GetAnyAPI(OH_XML_API_KIND, 1);
     fprintf(stderr, "api=%p\n", api);
-    Union_ArrayBuffer_DataView data;
+    OH_XML_Union_ArrayBuffer_DataView data;
     OH_XML_XmlSerializerHandle handle = api->XmlSerializer()->construct(data, "utf-8");
     fprintf(stderr, "handle=%p\n", handle);
     return 0;

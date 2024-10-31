@@ -276,7 +276,7 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
-export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary, prefix?: string, declarationPath?: string): LanguageWriter {
+export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
     let printer = createLanguageWriter(library.language, getReferenceResolver(library))
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
@@ -295,7 +295,7 @@ export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary, prefix?:
         imports.addFeature('KInt', '@koalaui/interop')
     }
     imports.print(printer, '')
-    writeSerializer(library, printer, prefix, declarationPath)
+    writeSerializer(library, printer, "")
     printer.writeLines(`
 export function createSerializer(): Serializer { return new Serializer() }
 `)
@@ -313,7 +313,7 @@ export function makeSerializerForOhos(library: PeerLibrary | IdlPeerLibrary, nat
         imports.addFeatures(["int32"], "./types")
         imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
         imports.print(printer, '')
-        writeSerializer(library, printer, undefined, declarationPath)
+        writeSerializer(library, printer, "", declarationPath)
         printer.writeLines(`
 export function createSerializer(): Serializer { return new Serializer() }
 `)
@@ -384,9 +384,9 @@ export function makeCSerializers(library: PeerLibrary | IdlPeerLibrary, structs:
     const serializers = createLanguageWriter(Language.CPP, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
     const writeToString = createLanguageWriter(Language.CPP, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
     serializers.print("\n// Serializers\n")
-    writeSerializer(library, serializers)
+    writeSerializer(library, serializers, "")
     serializers.print("\n// Deserializers\n")
-    writeDeserializer(library, serializers)
+    writeDeserializer(library, serializers, "")
     library.generateStructs(structs, typedefs, writeToString)
 
     return `
@@ -403,7 +403,7 @@ ${serializers.getOutput().join("\n")}
 
 export function makeTSDeserializer(library: PeerLibrary | IdlPeerLibrary): string {
     const deserializer = createLanguageWriter(Language.TS, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
-    writeDeserializer(library, deserializer)
+    writeDeserializer(library, deserializer, "")
     return `${cStyleCopyright}
 import { runtimeType, Tags, RuntimeType, SerializerBase, CallbackResource } from "./SerializerBase"
 import { DeserializerBase } from "./DeserializerBase"

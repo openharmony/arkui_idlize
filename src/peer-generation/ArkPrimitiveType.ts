@@ -16,8 +16,16 @@
 export class PrimitiveType {
     constructor(protected name: string, public isPointer = false) { }
     getText(): string { return PrimitiveType.Prefix + this.name }
+    toString(): string { return this.getText() }
+
     static Prefix = "Ark_"
     static LibraryPrefix = ""
+    static OptionalPrefix = "Opt_"
+    
+    static get UndefinedTag() { return PrimitiveType.Prefix.toUpperCase() + "TAG_UNDEFINED" }
+    static get UndefinedRuntime() { return PrimitiveType.Prefix.toUpperCase() + "RUNTIME_UNDEFINED" }
+    static get ObjectTag() { return PrimitiveType.Prefix.toUpperCase() + "TAG_OBJECT" }
+
     static String = new PrimitiveType(`String`, true)
     static Number = new PrimitiveType(`Number`, true)
     static Int32 = new PrimitiveType(`Int32`)
@@ -35,8 +43,4 @@ export class PrimitiveType {
     static Length = new PrimitiveType(`Length`, true)
     static CustomObject = new PrimitiveType(`CustomObject`, true)
 
-    static UndefinedTag = "ARK_TAG_UNDEFINED"
-    static UndefinedRuntime = "ARK_RUNTIME_UNDEFINED"
-    static ObjectTag = "ARK_TAG_OBJECT"
-    static OptionalPrefix = "Opt_"
 }

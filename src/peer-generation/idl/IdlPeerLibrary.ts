@@ -59,8 +59,10 @@ export class IdlPeerLibrary implements ReferenceResolver {
 
     constructor(
         public language: Language,
-        public componentsToGenerate: Set<string>,
+        public componentsToGenerate: Set<string>
     ) {}
+
+    public name: string = ""
 
     readonly customComponentMethods: string[] = []
     // todo really dirty - we use it until we can generate interfaces
@@ -74,6 +76,10 @@ export class IdlPeerLibrary implements ReferenceResolver {
 
     readonly continuationCallbacks: idl.IDLCallback[] = []
     readonly syntheticEntries: idl.IDLEntry[] = []
+
+    get libraryPrefix(): string {
+        return this.name ? this.name + "_" : ""
+    }
 
     addSyntheticInterface(entry: idl.IDLInterface): idl.IDLReferenceType {
         this.syntheticEntries.push(entry)
@@ -416,6 +422,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
     }
 
     computeTargetNameImpl(target: idl.IDLEntry, optional: boolean, idlPrefix: string): string {
+        // TODO Clarify the actual name of optional type including idlPrefix (with library name included, e.g. OH_XML_)
         const prefix = optional ? PrimitiveType.OptionalPrefix : ""
         if (idl.isPrimitiveType(target)) {
             let name: string = ""

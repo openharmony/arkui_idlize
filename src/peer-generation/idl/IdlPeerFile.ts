@@ -26,6 +26,7 @@ export class IdlPeerFile {
         public readonly originalFilename: string,
         public readonly entries: idl.IDLEntry[],
         private readonly componentsToGenerate: Set<string>,
+        public readonly isPredefined: boolean = false
     ) {}
 
 

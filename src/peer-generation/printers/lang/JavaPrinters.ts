@@ -34,7 +34,7 @@ import { collectJavaImports } from "./JavaIdlUtils"
 export function makeJavaSerializer(library: PeerLibrary | IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
     let writer = createLanguageWriter(library.language, getReferenceResolver(library))
     writer.print(`package ${ARKOALA_PACKAGE};\n`)
-    writeSerializer(library, writer)
+    writeSerializer(library, writer, "")
     return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }
 

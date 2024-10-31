@@ -29,6 +29,16 @@
 template <typename T>
 inline OH_RuntimeType runtimeType(const T& value) = delete;
 
+template <>
+inline OH_RuntimeType runtimeType(const OH_CustomObject& value) {
+  return OH_RUNTIME_OBJECT;
+}
+
+template <>
+inline OH_RuntimeType runtimeType(const OH_Materialized& value) {
+  return OH_RUNTIME_OBJECT;
+}
+
 static const std::size_t buffer_size = 1024 * 1024; // 1 MB
 static std::size_t offset = 0;
 alignas(std::max_align_t) static char buffer[buffer_size];

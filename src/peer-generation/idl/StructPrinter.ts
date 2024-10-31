@@ -131,6 +131,8 @@ export class StructPrinter {
                         concreteDeclarations.print(`void *handle;`) // avoid empty structs
                     }
                     properties.forEach(it => {
+                        // TODO Change to
+                        // concreteDeclarations.print(`${this.library.computeTargetName(it.type, it.isOptional)} ${concreteDeclarations.escapeKeyword(it.name)};`)
                         concreteDeclarations.print(`${this.library.getTypeName(it.type, it.isOptional)} ${concreteDeclarations.escapeKeyword(it.name)};`)
                     })
                 } else if (idl.isContainerType(target)) {
@@ -171,7 +173,9 @@ export class StructPrinter {
         structs.concat(enumsDeclarations)
         structs.concat(concreteDeclarations)
         // TODO: hack, remove me!
-        typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Length ${PrimitiveType.OptionalPrefix}Dimension;`)
+        if (this.library.name == "") { // TODO we probably don't need this typedef for any library except Ark
+            typedefs.print(`typedef ${PrimitiveType.OptionalPrefix}Length ${PrimitiveType.OptionalPrefix}Dimension;`)
+        }
     }
 
     private printOptionalIfNeeded(
@@ -198,7 +202,7 @@ export class StructPrinter {
     }
 
     private writeRuntimeType(target: idl.IDLEntry, targetTypeName: string, isOptional: boolean, writer: LanguageWriter) {
-        const resultType = idl.toIDLType("Ark_RuntimeType")
+        const resultType = idl.toIDLType(PrimitiveType.RuntimeType.getText())
         const op = this.writeRuntimeTypeOp(target, targetTypeName, resultType, isOptional, writer)
         if (op) {
             writer.print("template <>")
@@ -278,11 +282,11 @@ export class StructPrinter {
 
     writeOptional(nameOptional: string, printer: LanguageWriter, isPointer: boolean) {
         printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${nameOptional}* value) {`)
+        printer.print(`inline void WriteToString(std::string* result, const ${nameOptional}* value) {`)
+        printer.pushIndent()
         printer.print(`result->append("{.tag=");`)
         printer.print(`result->append(tagNameExact((${PrimitiveType.Tag.getText()})(value->tag)));`)
         printer.print(`result->append(", .value=");`)
-        printer.pushIndent()
         printer.print(`if (value->tag != ${PrimitiveType.UndefinedTag}) {`)
         printer.pushIndent()
         printer.print(`WriteToString(result, ${isPointer ? "&" : ""}value->value);`)
@@ -293,8 +297,8 @@ export class StructPrinter {
         printer.print(`WriteToString(result, undefined);`)
         printer.popIndent()
         printer.print(`}`)
-        printer.popIndent()
         printer.print(`result->append("}");`)
+        printer.popIndent()
         printer.print(`}`)
     }
 
@@ -307,9 +311,9 @@ export class StructPrinter {
         printer.print(
 `
 template <>
-inline void WriteToString(string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);
+inline void WriteToString(std::string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);
 
-inline void WriteToString(string* result, const ${name}* value) {
+inline void WriteToString(std::string* result, const ${name}* value) {
     int32_t count = value->length;
     result->append("{.array=allocArray<${elementNativeType}, " + std::to_string(count) + ">({{");
     for (int i = 0; i < count; i++) {
@@ -338,14 +342,14 @@ inline void WriteToString(string* result, const ${name}* value) {
 
         // Provide prototype of keys printer.
         printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${keyNativeType}${isPointerKeyField ? "*" : ""} value);`)
+        printer.print(`inline void WriteToString(std::string* result, const ${keyNativeType}${isPointerKeyField ? "*" : ""} value);`)
         // Provide prototype of values printer.
         printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${valueNativeType}${isPointerValueField ? "*" : ""} value);`)
+        printer.print(`inline void WriteToString(std::string* result, const ${valueNativeType}${isPointerValueField ? "*" : ""} value);`)
 
         // Printer.
         printer.print(`template <>`)
-        printer.print(`inline void WriteToString(string* result, const ${name}* value) {`)
+        printer.print(`inline void WriteToString(std::string* result, const ${name}* value) {`)
         printer.pushIndent()
         printer.print(`result->append("{");`)
         printer.print(`int32_t count = value->size;`)
@@ -372,7 +376,7 @@ inline void WriteToString(string* result, const ${name}* value) {
             }
         } else if (idl.isEnum(target)) {
             printer.print(`template <>`)
-            printer.print(`inline void WriteToString(string* result, const ${name} value) {`)
+            printer.print(`inline void WriteToString(std::string* result, const ${name} value) {`)
             printer.pushIndent()
             printer.print(`result->append("${name}(");`)
             printer.print(`WriteToString(result, (${PrimitiveType.Int32.getText()}) value);`)
@@ -381,7 +385,7 @@ inline void WriteToString(string* result, const ${name}* value) {
             printer.print(`}`)
         } else if (idl.isCallback(target)) {
             printer.print(`template <>`)
-            printer.print(`inline void WriteToString(string* result, const ${name}${isPointer ? "*" : ""} value) {`)
+            printer.print(`inline void WriteToString(std::string* result, const ${name}${isPointer ? "*" : ""} value) {`)
             printer.pushIndent()
             printer.print(`result->append("{");`)
             printer.print(`result->append(".resource=");`)
@@ -393,7 +397,7 @@ inline void WriteToString(string* result, const ${name}* value) {
         }
         else {
             printer.print(`template <>`)
-            printer.print(`inline void WriteToString(string* result, const ${name}${isPointer ? "*" : ""} value) {`)
+            printer.print(`inline void WriteToString(std::string* result, const ${name}${isPointer ? "*" : ""} value) {`)
             printer.pushIndent()
 
             if (idl.isUnionType(target)) {

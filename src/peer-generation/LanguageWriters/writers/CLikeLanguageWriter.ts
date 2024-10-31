@@ -15,6 +15,7 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
+import { PrimitiveType } from "../../ArkPrimitiveType"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ReturnStatement } from "../LanguageWriter"
 
@@ -32,7 +33,7 @@ export class CLikeReturnStatement extends ReturnStatement {
 export class CDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
     asString(): string {
-        return `${this.value} != ARK_TAG_UNDEFINED`
+        return `${this.value} != ${PrimitiveType.UndefinedTag}`
     }
 }
 

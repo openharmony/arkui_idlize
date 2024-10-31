@@ -1008,7 +1008,7 @@ export const DebugUtils = {
         if (isContainerType(type)) {
             return `[IDLType, name: '${type[idlTypeName]}', kind: '${IDLKind[type.kind]}', elements: [${type.elementType.map(DebugUtils.debugPrintType).join(', ')}]]`
         }
-        return `[IDLType, name: '${type[idlTypeName]}', kind: '${IDLKind[type.kind]}]'`
+        return `[IDLType, name: '${type[idlTypeName]}', kind: '${IDLKind[type.kind]}']`
     },
     easyGetName: (type:IDLType, name:string): string => {
         if (isContainerType(type)) {

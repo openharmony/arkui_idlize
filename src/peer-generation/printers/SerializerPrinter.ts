@@ -210,7 +210,7 @@ class IdlSerializerPrinter {
                 break;
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType("uint8_t*"), idl.createReferenceType("CallbackResourceHolder*")], ["data", "resourceHolder"], [undefined, `nullptr`])
-                prefix = prefix == "" ? PrimitiveType.Prefix : prefix
+                if (prefix == "") prefix = PrimitiveType.Prefix + this.library.libraryPrefix
                 break;
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
@@ -463,13 +463,13 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
     }
 }
 
-export function writeSerializer(library: PeerLibrary | IdlPeerLibrary, writer: LanguageWriter, prefix = "", declarationPath?: string) {
+export function writeSerializer(library: PeerLibrary | IdlPeerLibrary, writer: LanguageWriter, prefix: string, declarationPath?: string) {
     const printer = library instanceof PeerLibrary
         ? new SerializerPrinter(library, writer) : new IdlSerializerPrinter(library, writer)
     printer.print(prefix, declarationPath)
 }
 
-export function writeDeserializer(library: PeerLibrary | IdlPeerLibrary, writer: LanguageWriter, prefix = "", declarationPath?: string) {
+export function writeDeserializer(library: PeerLibrary | IdlPeerLibrary, writer: LanguageWriter, prefix: string, declarationPath?: string) {
     const printer = library instanceof PeerLibrary
         ? new DeserializerPrinter(library as PeerLibrary, writer) : new IdlDeserializerPrinter(library, writer)
     printer.print(prefix, declarationPath)
@@ -604,7 +604,7 @@ function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: Serial
             collector.addFeature(builder, `Ark${builder}Builder`)
         }
 
-        if (declarationPath) {
+        if (declarationPath) { // This is used for OHOS library generation only
             // TODO Check for compatibility!
             const makeFeature = (node: idl.IDLEntry) => {
                 return {
@@ -613,6 +613,7 @@ function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: Serial
                 }
             }
             serializerDeclarations.filter(it => it.fileName)
+                .filter(it => !idl.isCallback(it) && !(library.files.find(f => f.originalFilename == it.fileName)?.isPredefined))
                 .map(makeFeature)
                 .forEach(it => collector.addFeature(it.feature, it.module))
         }
