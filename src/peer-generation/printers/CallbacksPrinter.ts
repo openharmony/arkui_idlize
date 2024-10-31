@@ -158,10 +158,10 @@ class DeserializeCallbacksVisitor {
 
     private writeInteropImplementation(callbacks: idl.IDLCallback[]): void {
         const signature = new NamedMethodSignature(idl.IDLVoidType,
-            [idl.IDLI32Type, idl.toIDLType(`uint8_t*`), idl.IDLI32Type],
+            [idl.IDLI32Type, idl.toIDLType(`KByte*`), idl.IDLI32Type],
             [`kind`, `thisArray`, `thisLength`],
         )
-        this.writer.writeFunctionImplementation(`impl_CallCallback`, signature, writer => {
+        this.writer.writeFunctionImplementation(`deserializeAndCallCallback`, signature, writer => {
             writer.print(`switch (kind) {`)
             writer.pushIndent()
             for (const callback of callbacks) {
@@ -170,7 +170,6 @@ class DeserializeCallbacksVisitor {
             writer.popIndent()
             writer.print(`}`)
         })
-        this.writer.print(`KOALA_INTEROP_V3(CallCallback, KInt, KByte*, KInt)`)
     }
 
     visit(): void {
@@ -227,10 +226,10 @@ class ManagedCallCallbackVisitor {
 
     private writeInteropImplementation(callbacks: idl.IDLCallback[]): void {
         const signature = new NamedMethodSignature(idl.IDLPointerType,
-            [idl.IDLI32Type],
+            [idl.createReferenceType(`CallbackKind`)],
             [`kind`],
         )
-        this.writer.writeFunctionImplementation(`impl_GetManagerCallbackCaller`, signature, writer => {
+        this.writer.writeFunctionImplementation(`getManagedCallbackCaller`, signature, writer => {
             writer.print(`switch (kind) {`)
             writer.pushIndent()
             for (const callback of callbacks) {
@@ -240,7 +239,6 @@ class ManagedCallCallbackVisitor {
             writer.print(`}`)
             writer.writeStatement(writer.makeReturn(writer.makeString(`nullptr`)))
         })
-        this.writer.print(`KOALA_INTEROP_1(GetManagerCallbackCaller, Ark_NativePointer, Ark_Int32)`)
     }
 
     visit(): void {

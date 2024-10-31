@@ -514,11 +514,13 @@ export class CallbackConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
         if (writer.language == Language.CPP) {
+            const callerInvocation = writer.makeString(`getManagedCallbackCaller(${generateCallbackKindAccess(this.decl, writer.language)})`)
             return writer.makeBlock([
                 writer.makeAssign(`${value}.resource`, undefined, writer.makeMethodCall(`${param}Deserializer`, `readCallbackResource`, []), false),
                 writer.makeAssign(`${value}.call`, undefined, new CppCastExpression(
                     writer,
-                    writer.makeMethodCall(`${param}Deserializer`, `readPointer`, []),
+                    writer.makeMethodCall(`${param}Deserializer`, `readPointerOrDefault`, 
+                        [writer.makeCast(callerInvocation, idl.IDLPointerType, true)]),
                     idl.createReferenceType(`void(*)(${generateCallbackAPIArguments(this.library, this.decl).join(", ")})`),
                     true
                 ), false),
