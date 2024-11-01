@@ -180,7 +180,7 @@
 |`groupDefaultFocus`| Function | | | |
 |`focusOnTouch`| Function | | | |
 |`focusBox`| Function | | | |
-|`animation`| Function | Erokhin Ilya | blocked |https://gitee.com/nikolay-igotti/idlize/issues/IAXHJP & https://gitee.com/nikolay-igotti/idlize/issues/IAOKLD|
+|`animation`| Function | Erokhin Ilya | blocked |https://gitee.com/nikolay-igotti/idlize/issues/IAXHJP|
 |`transition`| Function | | | |
 |`motionBlur`| Function | | | |
 |`brightness`| Function | Lobah Mikhail | in progress | |
@@ -238,7 +238,7 @@
 |`radialGradient`| Function | Erokhin Ilya | done |  |
 |`motionPath`| Function | | | |
 |`shadow`| Function | Roman Sedaikin | in progress | |
-|`clip`| Function | Erokhin Ilya | blocked |https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH|
+|`clip`| Function | Erokhin Ilya | blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH |
 |`clipShape`| Function | | | |
 |`mask`| Function | | | |
 |`maskShape`| Function | | | |
@@ -272,14 +272,14 @@
 |`customProperty`| Function | | | |
 |`expandSafeArea`| Function | | | |
 |`background`| Function | Skroba Gleb | blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
-|`backgroundImage`| Function | Erokhin Ilya | blocked |https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR|
+|`backgroundImage`| Function | Erokhin Ilya | blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
 |`backgroundBlurStyle`| Function | Skroba Gleb | done |  |
 |`foregroundBlurStyle`| Function | Roman Sedaikin | in progress | |
 |`focusScopeId`| Function | | | |
 |`focusScopePriority`| Function | | | |
-|`gesture`| Function | Erokhin Ilya | blocked ArKoala |https://gitee.com/nikolay-igotti/idlize/issues/IARW2A|
-|`priorityGesture`| Function | Erokhin Ilya | blocked ArKoala |https://gitee.com/nikolay-igotti/idlize/issues/IARW2A|
-|`parallelGesture`| Function | Erokhin Ilya | blocked ArKoala |https://gitee.com/nikolay-igotti/idlize/issues/IARW2A|
+|`gesture`| Function | Erokhin Ilya | blocked ArKoala | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
+|`priorityGesture`| Function | Erokhin Ilya | blocked ArKoala | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
+|`parallelGesture`| Function | Erokhin Ilya | blocked ArKoala | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
 |`blur`| Function | Roman Sedaikin | in progress | |
 |`linearGradientBlur`| Function | Lobah Mikhail | in progress | |
 |`systemBarEffect`| Function | Lobah Mikhail | in progress | |
@@ -469,8 +469,7 @@
 |`fillColor`| Function | Evstigneev Roman | done | |
 |`objectFit`| Function |Kirill Berezin| in progress | |
 |`objectRepeat`| Function | Evstigneev Roman | in progress | |
-|`autoResize`| Function | Evstigneev Roman | blocked UT | 
-https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
+|`autoResize`| Function | Evstigneev Roman | in progress | https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`renderMode`| Function | Evstigneev Roman | in progress | |
 |`dynamicRangeMode`| Function | Evstigneev Roman | blocked UT |  |
 |`interpolation`| Function | Evstigneev Roman | in progress | |
@@ -494,7 +493,7 @@ https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`startPoint`|Function|Dudkin Sergey|blocked | https://gitee.com/openharmony/interface_sdk-js/issues/IAXCBA |
 |`endPoint`|Function|Dudkin Sergey|blocked | https://gitee.com/openharmony/interface_sdk-js/issues/IAXCBA |
 |*List*|*Component*|Morozov Sergey| blocked Arkoala |  |
-|`setListOptions`|Function|Morozov Sergey|blocked Arkoala | can be handled |
+|`setListOptions`|Function|Morozov Sergey| in progress | can be handled |
 |`lanes`|Function|Morozov Sergey|done|  |
 |`alignListItem`|Function|Morozov Sergey|done|  |
 |`listDirection`|Function|Morozov Sergey|done|  |
@@ -630,7 +629,7 @@ https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`setNavRouterOptions`| Function |Evstigneev Roman| blocked Arkoala | https://gitee.com/nikolay-igotti/idlize/issues/IAYQZF |
 |`onStateChange`| Function |Evstigneev Roman | done|  |
 |`mode`| Function |Evstigneev Roman | done |  |
-|*Navigator*| *Component* | Skroba Gleb| done |  |
+|*Navigator*| *Component* | Skroba Gleb| blocked |  |
 |`setNavigatorOptions`| Function | Skroba Gleb | done |  |
 |`active`| Function | Skroba Gleb | done |  |
 |`type`| Function | Skroba Gleb | done |  |
@@ -670,6 +669,13 @@ https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`autoReset`| Function | Dmitry A Smirnov| done|  |
 |`onDotConnect`| Function | Dmitry A Smirnov| blocked| waiting for new way implement method with callback |
 |`activateCircleStyle`| Function | Dmitry A Smirnov| blocked| radius is CustomObject. need activateCircleStyle attribute https://gitee.com/openharmony/arkui_ace_engine/issues/IAYWON |
+|*Progress*| *Component* | Erokhin Ilya | | |
+|`setProgressOptions`| Function | Erokhin Ilya | in progress | |
+|`value`| Function | Erokhin Ilya | in progress | |
+|`color`| Function | Erokhin Ilya | in progress | |
+|`style`| Function | Erokhin Ilya | in progress | |
+|`privacySensitive`| Function | Erokhin Ilya | in progress | |
+|`contentModifier`| Function | Erokhin Ilya | in progress | |
 |*QRCode*| *Component* | Evstigneev Roman |in progress|  |
 |`setQRCodeOptions`| Function |Evstigneev Roman | done |  |
 |`color`| Function |Evstigneev Roman |blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZVOQ |
@@ -688,7 +694,7 @@ https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`starStyle`| Function | Lobah Mikhail| done | |
 |`onChange`| Function | Lobah Mikhail| done |  |
 |`contentModifier`| Function | Lobah Mikhail| blocked| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
-|*Rect*|*Component*|Dudkin Sergey| done |  |
+|*Rect*|*Component*|Dudkin Sergey| blocked |  |
 |`setRectOptions`|Function|Dudkin Sergey| done |  |
 |`radiusWidth`|Function|Dudkin Sergey| done |  |
 |`radiusHeight`|Function|Dudkin Sergey| done |  |
@@ -1103,8 +1109,8 @@ https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`fontSize`| Function |Pavelyev Ivan| blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1J5L |
 |`fontStyle`| Function |Pavelyev Ivan|in progress|  |
 |`fontWeight`| Function |Pavelyev Ivan|in progress|  |
-|`fontFamily`| Function |Pavelyev Ivan|in progress|  |
-|`textShadow`| Function |Pavelyev Ivan|in progress|  |
+|`fontFamily`| Function |Pavelyev Ivan| blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1JRR |
+|`textShadow`| Function |Pavelyev Ivan| blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1K3Z |
 |`fontFeature`| Function |Pavelyev Ivan|in progress|  |
 |`contentModifier`| Function |Pavelyev Ivan|blocked Arkoala| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |`dateTimeOptions`| Function |Pavelyev Ivan|in progress|  |
@@ -1186,7 +1192,7 @@ https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`selectedTextStyle`| Function | Ekaterina Stepanova| in progress |  |
 |`onAccept`| Function |Ekaterina Stepanova | in progress |  |
 |`onCancel`| Function |Ekaterina Stepanova | in progress |  |
-|`onChange`| Function | Tuzhilkin Ivan| blocked UT | https://gitee.com/nikolay-igotti/idlize/issues/IAOKLD  |
+|`onChange`| Function | Tuzhilkin Ivan| in progress |  |
 |`selectedIndex`| Function |Ekaterina Stepanova | in progress |  |
 |`divider`| Function |Ekaterina Stepanova | in progress |  |
 |`gradientHeight`| Function | Ekaterina Stepanova| in progress |  |
@@ -1264,7 +1270,7 @@ https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`barMode`| Function | Tuzhilkin Ivan | done |  |
 |`barWidth`| Function | Tuzhilkin Ivan | done |  |
 |`barHeight`| Function | Tuzhilkin Ivan | done  |  |
-|`animationDuration`| Function | Tuzhilkin Ivan | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IATEBX |
+|`animationDuration`| Function | Tuzhilkin Ivan | in progress | https://gitee.com/openharmony/arkui_ace_engine/issues/IATEBX |
 |`animationMode`| Function | Tuzhilkin Ivan | done |  |
 |`edgeEffect`| Function | Tuzhilkin Ivan | done |  |
 |`onChange`| Function | Tuzhilkin Ivan | done |  |
