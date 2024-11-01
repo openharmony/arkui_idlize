@@ -34,10 +34,10 @@
 | `target`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `params`                  | Function  |           | HEL         | Skroba Gleb         | blocked          |                   |           | High     |
 | Progress                  | Component | Yes       |             | Erokhin Ilya        | Blocked          |                   |           |          |
-| `style, total, value`     | Options   |           | HEL         | ?                   |                  |                   |           | Medium   |
-| `type, value`             | Options   |           | HEL         | ?                   |                  |                   |           | Medium   |
-| `style`                   | Function  |           | HEL         | ?                   |                  |                   |           | Medium   |
-| `color`                   | Function  |           | HEL         | ?                   |                  |                   |           | Medium   |
+| `style, total, value`     | Options   |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
+| `type, value`             | Options   |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
+| `style`                   | Function  |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
+| `color`                   | Function  |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
 | Common                    | Component | Yes       |             | Roman Sedaikin      | in progress      | Roman Sedaikin    | done      |          |
 | `width`                   | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
 | `height`                  | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
@@ -105,7 +105,7 @@
 | `ctor(URL)`               | Function  |           | ENC         | Kirill Berezin      | In progress      |                   |           | Medium   |
 | `ctor($rawfile)`          | Function  |           | ENC, WON    | Anton Tarasov       | done             |                   | done      | High     |
 | `objectFit`               | Function  |           | WON         | Kirill Berezin      | Done/No test     |                   |           | Medium   |
-| `autoResize`              | Function  |           | HEL         | Evstigneev Roman    | blocked ut       |                   |           | Medium   |
+| `autoResize`              | Function  |           | HEL         | Evstigneev Roman    | in progress      |                   |           | Medium   |
 | `fillColor`               | Function  |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
 | `onFinish`                | Function  |           | ENC         | Evstigneev Roman    | done             |                   |           | Medium   |
 | `onError`                 | Function  |           | ENC         | Evstigneev Roman    | done             |                   |           | Medium   |
@@ -127,7 +127,7 @@
 | `commands`                | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | Tabs                      | Component | No        | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | High     |
 | `barPosition`             | Options   |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
-| `animationDuration`       | Function  |           | HEL         | Tuzhilkin Ivan      | blocked ut       |                   |           | High     |
+| `animationDuration`       | Function  |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | High     |
 | `barMode`                 | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
 | `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
 | `vertical`                | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
@@ -145,7 +145,7 @@
 | Canvas                    | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
 | `onReady`                 | Function  |           | HEL         | Vadim Voronov       | done             |                   |           | Medium   |
 | TextPicker                | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
-| `range, selected`         | Options   |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | Medium   |
+| `range, selected`         | Options   |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | Medium   |
 | `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | Medium   |
 | Scroll                    | Component |           |             | Kirill Berezin      | in progress      |                   |           |          |
 | `scrollable`              | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
@@ -161,7 +161,7 @@
 | `textFont`                | Function  |           | WON         | Evstigneev Roman    | in progress      |                   |           | Low      |
 | `onSubmit`                | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
 | List                      | Component |           |             | Morozov Sergey      | in progress      |                   |           |          |
-| `space`                   | Options   |           | WON         | Morozov Sergey      | blocked Arkoala  |                   |           | Medium   |
+| `space`                   | Options   |           | WON         | Morozov Sergey      | in progress      |                   |           | Medium   |
 | `lanes`                   | Function  |           | WON         | Morozov Sergey      | done             |                   |           | Medium   |
 | Line                      | Component |           |             |                     | Blocked          |                   |           |          |
 | `startPoint`              | Function  |           | WON         | Dudkin Sergey       | Blocked          |                   |           | Medium   |
