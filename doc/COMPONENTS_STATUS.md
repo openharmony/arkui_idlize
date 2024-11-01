@@ -33,22 +33,22 @@
 |`popupTitleBackground`| Function |Ekaterina Stepanova| done |  |
 |`enableHapticFeedback`| Function |Ekaterina Stepanova| done |  |
 |`alignStyle`| Function |Ekaterina Stepanova| done |  |
-|*Animator*| *Component* | Lobah Mikhail| in progress|  |
-|`setAnimatorOptions`| Function | Lobah Mikhail| in progress|  |
-|`state`| Function | Lobah Mikhail| in progress|  |
-|`duration`| Function | Lobah Mikhail| in progress|  |
-|`curve`| Function | Lobah Mikhail| in progress|  |
-|`delay`| Function | Lobah Mikhail| in progress|  |
-|`fillMode`| Function | Lobah Mikhail| in progress|  |
-|`iterations`| Function | Lobah Mikhail| in progress|  |
-|`playMode`| Function | Lobah Mikhail| in progress|  |
-|`motion`| Function | Lobah Mikhail| in progress|  |
-|`onStart`| Function | Lobah Mikhail| in progress|  |
-|`onPause`| Function | Lobah Mikhail| in progress|  |
-|`onRepeat`| Function | Lobah Mikhail| in progress|  |
-|`onCancel`| Function | Lobah Mikhail| in progress|  |
-|`onFinish`| Function | Lobah Mikhail| in progress|  |
-|`onFrame`| Function | Lobah Mikhail| in progress|  |
+|*Animator*| *Component* | Skroba Gleb | in progress | |
+|`setAnimatorOptions`| Function | Skroba Gleb | in progress | |
+|`state`| Function | Skroba Gleb | in progress | |
+|`duration`| Function | Skroba Gleb | in progress | |
+|`curve`| Function | Skroba Gleb | in progress | |
+|`delay`| Function | Skroba Gleb | in progress | |
+|`fillMode`| Function | Skroba Gleb | in progress | |
+|`iterations`| Function | Skroba Gleb | in progress | |
+|`playMode`| Function | Skroba Gleb | in progress | |
+|`motion`| Function | Skroba Gleb | in progress | |
+|`onStart`| Function | Skroba Gleb | in progress | |
+|`onPause`| Function | Skroba Gleb | in progress | |
+|`onRepeat`| Function | Skroba Gleb | in progress | |
+|`onCancel`| Function | Skroba Gleb | in progress | |
+|`onFinish`| Function | Skroba Gleb | in progress | |
+|`onFrame`| Function | Skroba Gleb | in progress | |
 |*Badge*| *Component* |Vadim Voronov | done |  |
 |`setBadgeOptions`| Function |Vadim Voronov | done |https://gitee.com/openharmony/arkui_ace_engine/issues/IAX28D|
 |*Blank*| *Component* | Skroba Gleb | done |  |
@@ -145,7 +145,7 @@
 |`backgroundImageSize`| Function | Erokhin Ilya | done |  |
 |`backgroundImagePosition`| Function | Erokhin Ilya | done |  |
 |`backgroundEffect`| Function | Skroba Gleb | done |  |
-|`backgroundImageResizable`| Function | Skroba Gleb | in progress | |
+|`backgroundImageResizable`| Function | Skroba Gleb | done | |
 |`foregroundEffect`| Function | Skroba Gleb | done |  |
 |`visualEffect`| Function | Skroba Gleb | blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`backgroundFilter`| Function | Skroba Gleb | blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
@@ -158,11 +158,11 @@
 |`borderColor`| Function | Roman Sedaikin | in progress | |
 |`borderRadius`| Function | Roman Sedaikin | in progress | |
 |`borderImage`| Function | Roman Sedaikin | in progress | |
-|`outline`| Function | Skroba Gleb | in progress | |
-|`outlineStyle`| Function | Skroba Gleb | in progress | |
-|`outlineWidth`| Function | Skroba Gleb | in progress | |
-|`outlineColor`| Function | Skroba Gleb | in progress | |
-|`outlineRadius`| Function | Skroba Gleb | in progress | |
+|`outline`| Function | Skroba Gleb | done | |
+|`outlineStyle`| Function | Skroba Gleb | done | |
+|`outlineWidth`| Function | Skroba Gleb | done | |
+|`outlineColor`| Function | Skroba Gleb | done | |
+|`outlineRadius`| Function | Skroba Gleb | done | |
 |`foregroundColor`| Function | Roman Sedaikin | in progress | |
 |`onClick`| Function | Roman Sedaikin | in progress | |
 |`onHover`| Function | | | |
@@ -183,18 +183,18 @@
 |`animation`| Function | Erokhin Ilya | blocked |https://gitee.com/nikolay-igotti/idlize/issues/IAXHJP & https://gitee.com/nikolay-igotti/idlize/issues/IAOKLD|
 |`transition`| Function | | | |
 |`motionBlur`| Function | | | |
-|`brightness`| Function | | | |
-|`contrast`| Function | | | |
-|`grayscale`| Function | | | |
-|`colorBlend`| Function | | | |
-|`saturate`| Function | | | |
-|`sepia`| Function | | | |
-|`invert`| Function | | | |
-|`hueRotate`| Function | | | |
-|`useShadowBatching`| Function | | | |
+|`brightness`| Function | Lobah Mikhail | in progress | |
+|`contrast`| Function | Lobah Mikhail | in progress | |
+|`grayscale`| Function | Lobah Mikhail | in progress | |
+|`colorBlend`| Function | Lobah Mikhail | in progress | |
+|`saturate`| Function | Lobah Mikhail | in progress | |
+|`sepia`| Function | Lobah Mikhail | in progress | |
+|`invert`| Function | Lobah Mikhail | in progress | |
+|`hueRotate`| Function | Lobah Mikhail | in progress | |
+|`useShadowBatching`| Function | Lobah Mikhail | in progress | |
 |`useEffect`| Function | | | |
-|`renderGroup`| Function | | | |
-|`freeze`| Function | | | |
+|`renderGroup`| Function | Lobah Mikhail | in progress | |
+|`freeze`| Function | Lobah Mikhail | in progress | |
 |`translate`| Function | Erokhin Ilya | done |  |
 |`scale`| Function | Erokhin Ilya | done |  |
 |`gridSpan`| Function | | | |
@@ -247,9 +247,9 @@
 |`geometryTransition`| Function | | | |
 |`stateStyles`| Function | | | |
 |`restoreId`| Function | | | |
-|`sphericalEffect`| Function | | | |
-|`lightUpEffect`| Function | | | |
-|`pixelStretchEffect`| Function | | | |
+|`sphericalEffect`| Function | Lobah Mikhail | in progress | |
+|`lightUpEffect`| Function | Lobah Mikhail | in progress | |
+|`pixelStretchEffect`| Function | Lobah Mikhail | in progress | |
 |`accessibilityGroup`| Function | | | |
 |`accessibilityText`| Function | | | |
 |`accessibilityTextHint`| Function | | | |
@@ -262,7 +262,7 @@
 |`reuseId`| Function | | | |
 |`renderFit`| Function | | | |
 |`gestureModifier`| Function | | | |
-|`backgroundBrightness`| Function | Skroba Gleb | in progress | |
+|`backgroundBrightness`| Function | Skroba Gleb | done | |
 |`onGestureJudgeBegin`| Function | | | |
 |`onGestureRecognizerJudgeBegin`| Function | | | |
 |`shouldBuiltInRecognizerParallelWith`| Function | | | |
@@ -273,7 +273,7 @@
 |`expandSafeArea`| Function | | | |
 |`background`| Function | Skroba Gleb | blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
 |`backgroundImage`| Function | Erokhin Ilya | blocked |https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR|
-|`backgroundBlurStyle`| Function | Skroba Gleb | in progress |  |
+|`backgroundBlurStyle`| Function | Skroba Gleb | done |  |
 |`foregroundBlurStyle`| Function | Roman Sedaikin | in progress | |
 |`focusScopeId`| Function | | | |
 |`focusScopePriority`| Function | | | |
@@ -281,14 +281,14 @@
 |`priorityGesture`| Function | Erokhin Ilya | blocked ArKoala |https://gitee.com/nikolay-igotti/idlize/issues/IARW2A|
 |`parallelGesture`| Function | Erokhin Ilya | blocked ArKoala |https://gitee.com/nikolay-igotti/idlize/issues/IARW2A|
 |`blur`| Function | Roman Sedaikin | in progress | |
-|`linearGradientBlur`| Function | | | |
-|`systemBarEffect`| Function | | | |
+|`linearGradientBlur`| Function | Lobah Mikhail | in progress | |
+|`systemBarEffect`| Function | Lobah Mikhail | in progress | |
 |`backdropBlur`| Function | | | |
 |`sharedTransition`|Function|Skroba Gleb | done |  |
 |`chainMode`| Function | | | |
 |`dragPreviewOptions`| Function | | | |
 |`overlay`| Function | Roman Sedaikin | in progress | |
-|`blendMode`| Function | | | |
+|`blendMode`| Function | Lobah Mikhail | in progress | |
 |`advancedBlendMode`| Function | | | |
 |`bindPopup`| Function | | | |
 |`bindMenu`| Function | | | |
@@ -463,19 +463,20 @@
 |`alignItems`| Function |Lobah Mikhail| in progress|  |
 |*Image*| *Component* | Korobeinikov Evgeny | in progress |  |
 |`setImageOptions`| Function | Berezin Kirill | in progress | |
-|`alt`| Function | Evstigneev Roman | in progress | |
+|`alt`| Function | Evstigneev Roman | blocked Arkoala | https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
 |`matchTextDirection`| Function | Evstigneev Roman | in progress | |
 |`fitOriginalSize`| Function | Evstigneev Roman | in progress | |
 |`fillColor`| Function | Evstigneev Roman | done | |
 |`objectFit`| Function |Kirill Berezin| in progress | |
 |`objectRepeat`| Function | Evstigneev Roman | in progress | |
-|`autoResize`| Function | Evstigneev Roman | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
+|`autoResize`| Function | Evstigneev Roman | blocked UT | 
+https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`renderMode`| Function | Evstigneev Roman | in progress | |
-|`dynamicRangeMode`| Function | Evstigneev Roman | in progress | |
+|`dynamicRangeMode`| Function | Evstigneev Roman | blocked UT |  |
 |`interpolation`| Function | Evstigneev Roman | in progress | |
 |`sourceSize`| Function | Evstigneev Roman | in progress | |
 |`syncLoad`| Function | Evstigneev Roman | in progress | |
-|`colorFilter`| Function | Evstigneev Roman | in progress | |
+|`colorFilter`| Function | Evstigneev Roman | blocked Arkoala | https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH and https://gitee.com/nikolay-igotti/idlize/issues/IB0Y72 |
 |`copyOption`| Function | Evstigneev Roman | in progress | |
 |`draggable`| Function | Evstigneev Roman | in progress | |
 |`pointLight`| Function | Evstigneev Roman | in progress | |
@@ -484,8 +485,8 @@
 |`onError`| Function | Evstigneev Roman | done | |
 |`onFinish`| Function | Evstigneev Roman | done | |
 |`enableAnalyzer`| Function | Evstigneev Roman | in progress | |
-|`analyzerConfig`| Function | Evstigneev Roman | in progress | |
-|`resizable`| Function | Evstigneev Roman | in progress | |
+|`analyzerConfig`| Function | Evstigneev Roman | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB0Y51 |
+|`resizable`| Function | Evstigneev Roman | blocked Arkoala | https://gitee.com/nikolay-igotti/idlize/issues/IB0Y7V |
 |`privacySensitive`| Function | Evstigneev Roman | in progress | |
 |`enhancedImageQuality`| Function | Evstigneev Roman | in progress | |
 |*Line*|*Component*|Dudkin Sergey| blocked |  |
@@ -832,19 +833,19 @@
 |`markAnchor`| Function |Samarin Sergey| done |  |
 |`offset`| Function |Samarin Sergey| blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`fontSize`| Function |Samarin Sergey| done |  |
-|`fontStyle`| Function |Samarin Sergey| in progress |  |
-|`fontWeight`| Function |Samarin Sergey| in progress |  |
+|`fontStyle`| Function |Samarin Sergey| done |  |
+|`fontWeight`| Function |Samarin Sergey| done |  |
 |`fontFamily`| Function |Samarin Sergey| blocked UT |  |
 |`fontColor`| Function |Samarin Sergey| done |  |
 |`iconColor`| Function |Samarin Sergey| done |  |
-|`backgroundColor`| Function |Samarin Sergey| in progress |  |
-|`borderStyle`| Function |Samarin Sergey| in progress |  |
-|`borderWidth`| Function |Samarin Sergey| in progress |  |
-|`borderColor`| Function |Samarin Sergey| in progress |  |
-|`borderRadius`| Function |Samarin Sergey| in progress |  |
-|`padding`| Function |Samarin Sergey| in progress |  |
+|`backgroundColor`| Function |Samarin Sergey| done |  |
+|`borderStyle`| Function |Samarin Sergey| done |  |
+|`borderWidth`| Function |Samarin Sergey| done |  |
+|`borderColor`| Function |Samarin Sergey| done |  |
+|`borderRadius`| Function |Samarin Sergey| done |  |
+|`padding`| Function |Samarin Sergey| done |  |
 |`textIconSpace`| Function |Samarin Sergey| done |  |
-|`key`| Function |Samarin Sergey| in progress |  |
+|`key`| Function |Samarin Sergey| done |  |
 |`width`| Function |Samarin Sergey| done |  |
 |`height`| Function |Samarin Sergey| done |  |
 |`size`| Function |Samarin Sergey| done |  |
@@ -930,13 +931,13 @@
 |`setStackOptions` | Function | Korobeinikov Evgeny | done |  |
 |`alignContent` | Function | Korobeinikov Evgeny | done |  |
 |`pointLight` | Function | Evstigneev Roman | in progress |  |
-|*Stepper*| *Component* | Morozov Sergey |in progress |  |
-|`setStepperOptions`| Function | Morozov Sergey |in progress |  |
-|`onFinish`| Function | Morozov Sergey |in progress |  |
-|`onSkip`| Function | Morozov Sergey |in progress |  |
-|`onChange`| Function | Morozov Sergey |in progress |  |
-|`onNext`| Function | Morozov Sergey |in progress |  |
-|`onPrevious`| Function | Morozov Sergey |in progress |  |
+|*Stepper*| *Component* | Morozov Sergey | blocked Arkoala |  |
+|`setStepperOptions`| Function | Morozov Sergey | in progress |  |
+|`onFinish`| Function | Morozov Sergey | blocked Arkoala |  |
+|`onSkip`| Function | Morozov Sergey | blocked Arkoala |  |
+|`onChange`| Function | Morozov Sergey | blocked Arkoala |  |
+|`onNext`| Function | Morozov Sergey | blocked Arkoala |  |
+|`onPrevious`| Function | Morozov Sergey | blocked Arkoala |  |
 |*StepperItem*| *Component* | Morozov Sergey | done | |
 |`setStepperItemOptions`| Function | Morozov Sergey | done | |
 |`prevLabel`| Function | Morozov Sergey | done | |
@@ -1099,7 +1100,7 @@
 |`format`| Function |Pavelyev Ivan|in progress|  |
 |`onDateChange`| Function |Pavelyev Ivan|in progress|  |
 |`fontColor`| Function |Pavelyev Ivan|in progress|  |
-|`fontSize`| Function |Pavelyev Ivan|in progress| |
+|`fontSize`| Function |Pavelyev Ivan| blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1J5L |
 |`fontStyle`| Function |Pavelyev Ivan|in progress|  |
 |`fontWeight`| Function |Pavelyev Ivan|in progress|  |
 |`fontFamily`| Function |Pavelyev Ivan|in progress|  |
@@ -1221,48 +1222,6 @@
 |`selectedColor`| Function | Morozov Sergey|done |  |
 |`switchPointColor`| Function | Morozov Sergey|done |  |
 |`switchStyle`| Function | Morozov Sergey|done |  |
-|*CommonMethod*| *Component* | Roman Sedaikin | in progress |  |
-|`width`| Function | Roman Sedaikin | done |  |
-|`height`| Function | Roman Sedaikin | done |  |
-|`backgroundColor`| Function | Roman Sedaikin | done |  |
-|`opacity`| Function | Roman Sedaikin | done |  |
-|`responseRegion`| Function | Skroba Gleb | done |  |
-|`constraintSize`| Function | Roman Sedaikin | in progress |  |
-|`size`| Function | Roman Sedaikin | in progress |  |
-|`touchable`| Function | Roman Sedaikin | in progress |  |
-|`hitTestBehavior`| Function | Roman Sedaikin | in progress |  |
-|`layoutWeight`| Function | Roman Sedaikin | in progress |  |
-|`foregroundBlurStyle`| Function | Roman Sedaikin | in progress |  |
-|`border`| Function | Roman Sedaikin | in progress |  |
-|`borderStyle`| Function | Roman Sedaikin | in progress |  |
-|`borderWidth`| Function | Roman Sedaikin | in progress |  |
-|`borderColor`| Function | Roman Sedaikin | in progress |  |
-|`borderRadius`| Function | Roman Sedaikin | in progress |  |
-|`borderImage`| Function | Roman Sedaikin | in progress |  |
-|`foregroundColor`| Function | Roman Sedaikin | in progress |  |
-|`onClick`| Function | Roman Sedaikin | in progress |  |
-|`hoverEffect`| Function | Roman Sedaikin | in progress |  |
-|`onTouch`| Function | Roman Sedaikin | in progress |  |
-|`focusable`| Function | Roman Sedaikin | in progress |  |
-|`onFocus`| Function | Roman Sedaikin | in progress |  |
-|`onBlur`| Function | Roman Sedaikin | in progress |  |
-|`blur`| Function | Roman Sedaikin | in progress |  |
-|`onDisAppear`| Function | Roman Sedaikin | in progress |  |
-|`onAppear`| Function | Roman Sedaikin | in progress |  |
-|`onAreaChange`| Function | Roman Sedaikin | in progress |  |
-|`visibility`| Function | Roman Sedaikin | in progress |  |
-|`alignSelf`| Function | Roman Sedaikin | in progress |  |
-|`displayPriority`| Function | Roman Sedaikin | in progress |  |
-|`zIndex`| Function | Roman Sedaikin | in progress |  |
-|`direction`| Function | Roman Sedaikin | in progress |  |
-|`align`| Function | Roman Sedaikin | in progress |  |
-|`position`| Function | Roman Sedaikin | in progress |  |
-|`enabled`| Function | Roman Sedaikin | in progress |  |
-|`aspectRatio`| Function | Roman Sedaikin | in progress |  |
-|`overlay`| Function | Roman Sedaikin | in progress |  |
-|`linearGradient`| Function | Roman Sedaikin | in progress |  |
-|`sweepGradient`| Function | Roman Sedaikin | in progress |  |
-|`shadow`| Function | Roman Sedaikin | in progress |  |
 |*SearchController*| *Class* |Evstigneev Roman |done |  |
 |`caretPosition`| Function |Evstigneev Roman | done |  |
 |`stopEditing`| Function |Evstigneev Roman | done |  |
@@ -1441,19 +1400,19 @@
 |`invalidate`| Function |Vadim Voronov| in progress| |
 |*ImageAnalyzerController*| *Class* |Vadim Voronov| in progress| |
 |`getImageAnalyzerSupportTypes`| Function |Vadim Voronov| in progress| |
-|*RichEditorController*| *Class* |Dudkin Sergey| in progress|  |
-|`addTextSpan`| Function |Dudkin Sergey| in progress|  |
-|`addImageSpan`| Function |Dudkin Sergey| in progress|  |
-|`addBuilderSpan`| Function | Dudkin Sergey| in progress|  |
-|`addSymbolSpan`| Function | Dudkin Sergey| in progress|  |
-|`updateSpanStyle`| Function | Dudkin Sergey| in progress|  |
-|`updateParagraphStyle`| Function | Dudkin Sergey| in progress|  |
-|`deleteSpans`| Function |Dudkin Sergey| in progress|  |
-|`getSpans`| Function |Dudkin Sergey| in progress|  |
-|`getParagraphs`| Function |Dudkin Sergey| in progress|  |
-|`getSelection`| Function |Dudkin Sergey| in progress|  |
-|`fromStyledString`| Function | Dudkin Sergey| in progress|  |
-|`toStyledString`| Function | Dudkin Sergey| in progress|  |
+|*RichEditorController*| *Class* |Dudkin Sergey| done|  |
+|`addTextSpan`| Function |Dudkin Sergey| done|  |
+|`addImageSpan`| Function |Dudkin Sergey| blocked| Ark_CustomObject :: implement setting pixel map aka inValue into options |
+|`addBuilderSpan`| Function | Dudkin Sergey| blocked| related to Ark_CustomBuilder* inValue |
+|`addSymbolSpan`| Function | Dudkin Sergey| done|  |
+|`updateSpanStyle`| Function | Dudkin Sergey| done|  |
+|`updateParagraphStyle`| Function | Dudkin Sergey| done|  |
+|`deleteSpans`| Function |Dudkin Sergey| done|  |
+|`getSpans`| Function |Dudkin Sergey| done|  |
+|`getParagraphs`| Function |Dudkin Sergey| blocked| GENERATED_ArkUIRichEditorControllerAccessor::getParagraphs should return a value |
+|`getSelection`| Function |Dudkin Sergey| done|  |
+|`fromStyledString`| Function | Dudkin Sergey| done|  |
+|`toStyledString`| Function | Dudkin Sergey| done|  |
 |*PatternLockController*| *Class* |Dmitry A Smirnov| in progress|  |
 |`reset`| Function |Dmitry A Smirnov| in progress|  |
 |`setChallengeResult`| Function |Dmitry A Smirnov| in progress|  |
@@ -1485,7 +1444,7 @@
 |`exitFullscreen`| Function | Erokhin Ilya | done |  |
 |`reset`| Function | Erokhin Ilya | done |  |
 |*Web*| *Component* | Erokhin Ilya | in progress | |
-|`setWebOptions`| Function | Erokhin Ilya | in progress | |
+|`setWebOptions`| Function | Erokhin Ilya | blocked | WebController & https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`javaScriptAccess`| Function | Erokhin Ilya | done | |
 |`fileAccess`| Function | Erokhin Ilya | done | |
 |`onlineImageAccess`| Function | Erokhin Ilya | done | |
@@ -1494,7 +1453,7 @@
 |`mixedMode`| Function | Erokhin Ilya | done | |
 |`zoomAccess`| Function | Erokhin Ilya | done | |
 |`geolocationAccess`| Function | Erokhin Ilya | done | |
-|`javaScriptProxy`| Function | Erokhin Ilya | in progress | |
+|`javaScriptProxy`| Function | Erokhin Ilya | blocked | WebController & https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX & https://gitee.com/nikolay-igotti/idlize/issues/IAU9OV |
 |`password`| Function | Erokhin Ilya | done | |
 |`cacheMode`| Function | Erokhin Ilya | done | |
 |`darkMode`| Function | Erokhin Ilya | done | |
@@ -1582,10 +1541,10 @@
 |`onSafeBrowsingCheckResult`| Function | Erokhin Ilya | in progress | |
 |`onNavigationEntryCommitted`| Function | Erokhin Ilya | in progress | |
 |`onIntelligentTrackingPreventionResult`| Function | Erokhin Ilya | in progress | |
-|`javaScriptOnDocumentStart`| Function | Erokhin Ilya | in progress | |
-|`javaScriptOnDocumentEnd`| Function | Erokhin Ilya | in progress | |
+|`javaScriptOnDocumentStart`| Function | Erokhin Ilya | done | |
+|`javaScriptOnDocumentEnd`| Function | Erokhin Ilya | done | |
 |`layoutMode`| Function | Erokhin Ilya | done | |
-|`nestedScroll`| Function | Erokhin Ilya | in progress | |
+|`nestedScroll`| Function | Erokhin Ilya | done | |
 |`enableNativeEmbedMode`| Function | Erokhin Ilya | done | |
 |`onNativeEmbedLifecycleChange`| Function | Erokhin Ilya | in progress | |
 |`onNativeEmbedVisibilityChange`| Function | Erokhin Ilya | in progress | |
