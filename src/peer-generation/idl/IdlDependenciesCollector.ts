@@ -29,9 +29,6 @@ export class TypeDependenciesCollector implements TypeConvertor<idl.IDLEntry[]> 
     convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
         return type.elementType.flatMap(ty => convertType(this, ty))
     }
-    convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
-        return []
-    }
     convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         return []
     }

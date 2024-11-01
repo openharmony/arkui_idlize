@@ -24,7 +24,7 @@ import * as ts from 'typescript'
 import { ArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { convertType, IdlTypeNameConvertor, TypeConvertor } from "../typeConvertor"
+import { IdlTypeNameConvertor } from "../typeConvertor"
 import { TsIDLTypeToStringConverter } from "../convertors/TSConvertors"
 
 ////////////////////////////////////////////////////////////////

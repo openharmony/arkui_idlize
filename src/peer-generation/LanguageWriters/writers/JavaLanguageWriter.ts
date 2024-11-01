@@ -16,14 +16,13 @@
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
 import { EnumConvertor as EnumConvertorDTS, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
-import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from "../../printers/lang/Java"
 import { AssignStatement, LambdaExpression, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, ReturnStatement } from "../LanguageWriter"
 import { CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
 import * as idl from '../../../idl'
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { convertType, IdlTypeNameConvertor, TypeConvertor } from "../typeConvertor"
+import { IdlTypeNameConvertor } from "../typeConvertor"
 import { JavaIDLTypeToStringConvertor } from "../convertors/JavaConvertors"
 
 ////////////////////////////////////////////////////////////////

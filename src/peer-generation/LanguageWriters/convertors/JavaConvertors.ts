@@ -88,10 +88,6 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
         }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
-    convertEnum(type: idl.IDLEnumType): JavaTypeAlias {
-        // TODO: remove prefix after full migration to IDL
-        return JavaTypeAlias.fromTypeName(`Ark_${idl.getIDLTypeName(type)}`, false)
-    }
     convertCallback(type: idl.IDLCallback): JavaTypeAlias {
         // TODO
         return JavaTypeAlias.fromTypeName(`Callback`, false)

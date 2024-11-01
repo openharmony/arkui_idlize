@@ -86,10 +86,6 @@ export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCon
         }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
-    convertEnum(type: idl.IDLEnumType): CJTypeAlias {
-        // TODO: remove prefix after full migration to IDL
-        return CJTypeAlias.fromTypeName(`Ark_${idl.getIDLTypeName(type)}`, false)
-    }
     convertCallback(type: idl.IDLCallback): CJTypeAlias {
         // TODO
         return CJTypeAlias.fromTypeName(`Callback`, false)

@@ -14,7 +14,6 @@
  */
 
 import * as idl from "../../idl";
-import { isDefined } from "../../util";
 import { convert } from "./common";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
 import { IdlPeerLibrary } from "./IdlPeerLibrary";
@@ -28,9 +27,6 @@ class TypeDependencies extends TypeDependenciesCollector {
         return type.types.map(it => this.library.toDeclaration(it))
     }
     convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
-        return []
-    }
-    convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
         return []
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {

@@ -3,7 +3,7 @@ import { IdlPeerLibrary } from "./idl/IdlPeerLibrary";
 import { PeerLibrary } from "./PeerLibrary";
 
 export interface ReferenceResolver {
-    resolveTypeReference(type: idl.IDLEnumType | idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined
+    resolveTypeReference(type: idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined
     toDeclaration(type: idl.IDLType | idl.IDLCallback): idl.IDLEntry
 }
 

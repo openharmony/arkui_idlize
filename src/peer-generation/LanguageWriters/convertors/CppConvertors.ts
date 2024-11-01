@@ -36,9 +36,6 @@ export class CppIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCo
         if (idl.isUnionType(type)) {
             return this.convertUnion(type)
         }
-        if (idl.isEnumType(type)) {
-            return this.convertEnum(type)
-        }
         if (idl.isReferenceType(type)) {
             return this.convertTypeReference(type)
         }
@@ -61,9 +58,6 @@ export class CppIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCo
             return `Array_${this.convert(type.elementType[0])}`
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
-    }
-    convertEnum(type: idl.IDLEnumType): string {
-        return idl.getIDLTypeName(type)
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): string {
         throw new Error("Method not implemented.")

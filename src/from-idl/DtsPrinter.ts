@@ -17,7 +17,7 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     getVerbatimDts,
     hasExtAttribute,
     isCallback,
-    isClass, isConstructor, isContainerType, isEnum, isEnumType, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isSyntheticEntry, isTypeParameterType, isTypedef, isUnionType,
+    isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isSyntheticEntry, isTypeParameterType, isTypedef, isUnionType,
     isPackage, isImport,
     IDLExtendedAttributes,
     IDLAccessorAttribute,
@@ -309,7 +309,6 @@ export class CustomPrintVisitor {
         }
         if (isReferenceType(type)) return this.toTypeName(type, IDLExtendedAttributes.TypeArguments)
         if (isUnionType(type)) return `(${type.types.map(it => this.printTypeForTS(it)).join("|")})`
-        if (isEnumType(type)) return getIDLTypeName(type)
         if (isTypeParameterType(type)) return getIDLTypeName(type)
         throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
     }

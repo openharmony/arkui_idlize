@@ -18,9 +18,6 @@ class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {
         }
         return result
     }
-    convertEnum(type: idl.IDLEnumType): ImportFeature[] {
-        return []
-    }
     convertImport(type: idl.IDLReferenceType, importClause: string): ImportFeature[] {
         return []
     }

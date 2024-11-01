@@ -152,7 +152,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
         )
     }
 
-    resolveTypeReference(type: idl.IDLEnumType | idl.IDLReferenceType, entries?: idl.IDLEntry[], useSynthetic:boolean = false): idl.IDLEntry | undefined {
+    resolveTypeReference(type: idl.IDLReferenceType, entries?: idl.IDLEntry[], useSynthetic:boolean = false): idl.IDLEntry | undefined {
         const synthetics = useSynthetic ? this.syntheticEntries : []
         entries ??= synthetics
             .concat(this.files.flatMap(it => it.entries))
@@ -204,7 +204,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
             if (isImport(type))
                 return new ImportTypeConvertor(param, this.nameConvertorInstance.convert(type))
         }
-        if (idl.isReferenceType(type) || idl.isEnumType(type)) {
+        if (idl.isReferenceType(type)) {
             const decl = this.resolveTypeReference(type)
             return this.declarationConvertor(param, type, decl, maybeCallback)
         }
@@ -224,7 +224,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
         throw new Error(`Cannot convert: ${idl.getIDLTypeName(type)} ${type.kind}`)
     }
 
-    declarationConvertor(param: string, type: idl.IDLReferenceType | idl.IDLEnumType,
+    declarationConvertor(param: string, type: idl.IDLReferenceType,
         declaration: idl.IDLEntry | undefined, maybeCallback: boolean = false): ArgConvertor
     {
         let customConv = this.customConvertor(param, idl.getIDLTypeName(type, idl.DebugUtils.easyGetName), type)
@@ -270,7 +270,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
         throw new Error(`Unknown decl ${declarationName} of kind ${declaration.kind}`)
     }
 
-    private customConvertor(param: string, typeName: string, type: idl.IDLReferenceType | idl.IDLEnumType): ArgConvertor | undefined {
+    private customConvertor(param: string, typeName: string, type: idl.IDLReferenceType): ArgConvertor | undefined {
         switch (typeName) {
             case `Dimension`:
             case `Length`:
@@ -330,7 +330,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
         if (isImport(type)) {
             return ArkCustomObject
         }
-        if (idl.isReferenceType(type) || idl.isEnumType(type)) {
+        if (idl.isReferenceType(type)) {
             // TODO: remove all this!
             if (idl.isIDLTypeName(type, 'Dimension') || idl.isIDLTypeName(type, 'Length')) {
                 return ArkLength
@@ -455,7 +455,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
             let name = PrimitiveType.CustomObject.getText()
             return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
-        if (idl.isEnum(target) || idl.isEnumType(target)) {
+        if (idl.isEnum(target)) {
             const name = this.enumName(target)
             return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
         }
@@ -516,12 +516,9 @@ export class IdlPeerLibrary implements ReferenceResolver {
         }
     }
 
-    private enumName(target: idl.IDLEnum | idl.IDLEnumType): string {
+    private enumName(target: idl.IDLEnum): string {
         // TODO: support namespaces in other declarations.
         const namespace = idl.getExtAttribute(target, idl.IDLExtendedAttributes.Namespace)
-        if (idl.isEnumType(target)) {
-            return `${PrimitiveType.Prefix}${namespace ? namespace + "_" : ""}${idl.getIDLTypeName(target)}`
-        }
         return `${PrimitiveType.Prefix}${namespace ? namespace + "_" : ""}${target.name}`
     }
 

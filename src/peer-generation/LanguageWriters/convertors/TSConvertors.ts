@@ -63,13 +63,6 @@ export class TsIDLTypeToStringConverter implements IdlTypeNameConvertor, TypeCon
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
-    convertEnum(type: idl.IDLEnumType): string {
-        const entity = this.resolver.toDeclaration(type)
-        if (idl.isEnum(entity)) {
-            return entity.elements.map(it => this.convert(it.type)).join(' | ')
-        }
-        return idl.getIDLTypeName(type)
-    }
     convertImport(_: idl.IDLReferenceType, importClause: string): string {
         const match = importClause.match(/import *\((['"`])(.+)\1\)\.(.+)/)
         if (!match)

@@ -68,10 +68,6 @@ export class CJTypeAliasConvertor implements TypeConvertor<CJTypeAlias> {
         }
         throw new Error(`IDL type '${idl.DebugUtils.debugPrintType(type)}' not supported`)
     }
-    convertEnum(type: idl.IDLEnumType): CJTypeAlias {
-        // TODO: remove prefix after full migration to IDL
-        return CJTypeAlias.fromTypeName(`Ark_${idl.getIDLTypeName(type)}`, false)
-    }
     convertImport(type: idl.IDLReferenceType, importClause: string): CJTypeAlias {
         return CJTypeAlias.fromTypeName(idl.getIDLTypeName(type), false)
     }

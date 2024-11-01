@@ -200,7 +200,7 @@ function mapCInteropRetType(type: idl.IDLType): string {
     if (idl.isTypeParameterType(type))
         /* ANOTHER HACK, fix */
         return "void"
-    if (idl.isEnumType(type) || idl.isUnionType(type))
+    if (idl.isUnionType(type))
         return PrimitiveType.NativePointer.getText()
     if (idl.isContainerType(type)) {
         if (idl.IDLContainerUtils.isSequence(type)) {
@@ -280,14 +280,6 @@ class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
 }
 
 class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
-    override convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
-        const decl = this.library.resolveTypeReference(type)
-        if (decl !== undefined) {
-            return [decl]
-        }
-        return []
-    }
-
     override convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
         if (idl.IDLContainerUtils.isSequence(type)) {
             this.peerLibrary.seenArrayTypes.set(this.peerLibrary.getTypeName(type), type)
@@ -372,14 +364,6 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
 
     override convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
         return super.convertContainer(type)
-    }
-
-    override convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
-        // TODO: remove prefix after full migration to IDL
-        const enumName = `${PrimitiveType.Prefix}${idl.getIDLTypeName(type)}`
-        this.onNewSyntheticTypeAlias(enumName, type)
-
-        return super.convertEnum(type)
     }
 
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
@@ -562,14 +546,6 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
 
     override convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
         return super.convertContainer(type)
-    }
-
-    override convertEnum(type: idl.IDLEnumType): idl.IDLEntry[] {
-        // TODO: remove prefix after full migration to IDL
-        const enumName = `${PrimitiveType.Prefix}${idl.getIDLTypeName(type)}`
-        this.onNewSyntheticTypeAlias(enumName, type)
-
-        return super.convertEnum(type)
     }
 
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
@@ -1414,7 +1390,7 @@ export function checkTSDeclarationMaterialized(decl: idl.IDLEntry): boolean {
 }
 
 export function convertTypeToFeature(library: IdlPeerLibrary, type: IDLType): ImportFeature | undefined {
-    const typeReference = idl.isReferenceType(type) || idl.isEnumType(type)
+    const typeReference = idl.isReferenceType(type)
         ? library.resolveTypeReference(type)
         : undefined
     if (typeReference !== undefined) {

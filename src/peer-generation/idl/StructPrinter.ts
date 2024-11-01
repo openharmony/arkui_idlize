@@ -50,7 +50,7 @@ export class StructPrinter {
         if (isOptional) return true
         if (idl.isPrimitiveType(target))
             return [idl.getIDLTypeName(idl.IDLAnyType), idl.getIDLTypeName(idl.IDLStringType), idl.getIDLTypeName(idl.IDLNumberType), "Length", "CustomObject"].includes(idl.getIDLTypeName(target))
-        if (idl.isEnum(target) || idl.isEnumType(target)) return false
+        if (idl.isEnum(target)) return false
         if (idl.isReferenceType(target) && idl.getIDLTypeName(target) === "GestureType") return false
         return true
     }

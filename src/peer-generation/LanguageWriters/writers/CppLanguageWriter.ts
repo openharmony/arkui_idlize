@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createReferenceType, DebugUtils, getIDLTypeName, IDLAnyType, IDLBooleanType, IDLCallback, IDLContainerType, IDLContainerUtils, IDLEnumType, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUnionType, IDLVoidType, isCallback, isContainerType, isEnumType, isIDLTypeName, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType, toIDLType } from "../../../idl"
+import { createReferenceType, getIDLTypeName, IDLCallback, IDLType, isIDLTypeName, toIDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
@@ -24,7 +24,7 @@ import { AssignStatement, BlockStatement, FieldModifier, LanguageExpression, Lan
 import { CDefinedExpression, CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlTypeNameConvertor, TypeConvertor } from "../typeConvertor"
+import { IdlTypeNameConvertor } from "../typeConvertor"
 import { EnumEntity } from "../../PeerFile"
 import { throwException } from "../../../util";
 import { CppIDLTypeToStringConvertor } from "../convertors/CppConvertors"
