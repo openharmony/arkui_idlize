@@ -231,9 +231,7 @@ export class ImportTypeConvertor extends BaseArgConvertor { //
         ["ComponentContent", ["isInstanceOf", "\"ComponentContent\""]],
         ["DrawableDescriptor", ["isInstanceOf", "\"DrawableDescriptor\""]],
         ["SymbolGlyphModifier", ["isInstanceOf", "\"SymbolGlyphModifier\""]],
-        ["Scene", ["isInstanceOf", "\"Scene\""]],
-        ["PixelMap", ["isPixelMap"]],
-        ["Resource", ["isResource"]]])
+        ["Scene", ["isInstanceOf", "\"Scene\""]]])
     private importedName: string
     constructor(param: string, importedName: string) {
         super(idl.toIDLType("Object"), [RuntimeType.OBJECT], false, true, param)

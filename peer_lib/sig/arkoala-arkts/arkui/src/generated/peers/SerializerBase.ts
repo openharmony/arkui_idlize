@@ -73,11 +73,6 @@ function registerMaterialized(value: Object): int32 {
     return 42
 }
 
-export function isPixelMap(value: Object|undefined): boolean {
-    // TODO: fix me!
-    return false
-}
-
 export function isResource(value: Object|undefined): boolean {
     // TODO: fix me!
     return false

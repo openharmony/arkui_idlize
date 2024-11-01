@@ -18,8 +18,7 @@ import { BuilderClass } from '../BuilderClass';
 import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
 import { IdlPeerFile } from "./IdlPeerFile";
-import { CJTypeNameConvertor } from './IdlNameConvertor';
-import { capitalize, isDefined } from '../../util';
+import { capitalize, throwException } from '../../util';
 import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { DependencySorter } from './DependencySorter';
@@ -178,7 +177,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
             : candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import))
     }
 
-    typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false, maybeCallback: boolean = false): ArgConvertor {
+    typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
         if (isOptionalParam) {
             return new OptionConvertor(this, param, type)
         }
@@ -206,7 +205,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
         }
         if (idl.isReferenceType(type)) {
             const decl = this.resolveTypeReference(type)
-            return this.declarationConvertor(param, type, decl, maybeCallback)
+            return this.declarationConvertor(param, type, decl)
         }
         if (idl.isUnionType(type)) {
             return new UnionConvertor(this, param, type)
@@ -224,9 +223,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
         throw new Error(`Cannot convert: ${idl.getIDLTypeName(type)} ${type.kind}`)
     }
 
-    declarationConvertor(param: string, type: idl.IDLReferenceType,
-        declaration: idl.IDLEntry | undefined, maybeCallback: boolean = false): ArgConvertor
-    {
+    declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor {
         let customConv = this.customConvertor(param, idl.getIDLTypeName(type, idl.DebugUtils.easyGetName), type)
         if (customConv)
             return customConv

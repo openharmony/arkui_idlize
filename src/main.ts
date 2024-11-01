@@ -308,7 +308,7 @@ if (options.dts2peer) {
             options.inputDir.split(','),
             options.inputFile,
             generatedPeersDir,
-            (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options),
+            (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, idlLibrary),
             {
                 compilerOptions: defaultCompilerOptions,
                 onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {

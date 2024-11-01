@@ -46,7 +46,3 @@ interface Record<T1, T2> {}
 interface DataView {}
 interface Transferable {}
 interface SharedArrayBuffer {}
-
-// TODO: move TextModifier to the sdk component dir
-//       and remove it from the workaround.d.ts
-declare type TextModifier = import('../api/arkui/TextModifier').TextModifier;

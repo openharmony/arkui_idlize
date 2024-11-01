@@ -148,8 +148,7 @@ class OHOSVisitor {
             }
             params = params.concat(method.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!))))
             let returnType = this.mapType(method.returnType)
-            const maybeCallback = false
-            const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, maybeCallback))
+            const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
             const args = generateCParameters(method, argConvertors, _h)
             _h.print(`${returnType} (*${method.name})(${args});`)
             let implName = `${clazz.name}_${method.name}Impl`
@@ -344,8 +343,7 @@ class OHOSVisitor {
         this.nativeWriter.writeInterface(className, writer => {
             this.interfaces.flatMap(it => it.methods).forEach(method => {
                 // TODO remove duplicated code from NativeModuleVisitor::printPeerMethod (NativeModulePrinter.ts)
-                const maybeCallback = false
-                const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, maybeCallback))
+                const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
                 const args: ({name: string, type: IDLType})[] = [{ name: 'self', type: IDLPointerType }]
                 let serializerArgCreated = false
                 for (let i = 0; i < argConvertors.length; ++i) {
@@ -440,8 +438,7 @@ class OHOSVisitor {
                     const signature = writer.makeNamedSignature(method.returnType, method.parameters)
                     writer.writeMethodImplementation(new Method(method.name, signature), writer => {
                         // TODO remove duplicated code from writePeerMethod (PeersPrinter.ts)
-                        const maybeCallback = false // TODO callbacks
-                        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, maybeCallback))
+                        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
                         let scopes = argConvertors.filter(it => it.isScoped)
                         scopes.forEach(it => {
                             writer.pushIndent()
@@ -634,9 +631,9 @@ export function generateOhos(outDir: string, peerLibrary: IdlPeerLibrary): void 
     visitor.execute(outDir, managedOutDir)
 }
 
-function generateArgConvertor(library: IdlPeerLibrary, param: IDLParameter, maybeCallback: boolean): ArgConvertor {
+function generateArgConvertor(library: IdlPeerLibrary, param: IDLParameter): ArgConvertor {
     if (!param.type) throw new Error("Type is needed")
-    return library.typeConvertor(param.name, param.type, param.isOptional, maybeCallback)
+    return library.typeConvertor(param.name, param.type, param.isOptional)
 }
 
 // TODO join with generateCParameters(BridgeCcPrinter.ts)

@@ -84,8 +84,7 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
         return library.typeConvertor(
             method.signature.argName(index), 
             target, 
-            method.signature.args[index].optional, 
-            true
+            method.signature.args[index].optional
         )
     })
     return new IdlPeerMethod(

@@ -220,16 +220,6 @@ export abstract class CustomDeserializer {
     next: CustomDeserializer | undefined = undefined
 }
 
-class OurCustomDeserializer extends CustomDeserializer {
-    constructor() {
-        super(["PixelMap"])
-    }
-    deserialize(deserializer: DeserializerBase, kind: string): any {
-        return JSON.parse(deserializer.readString())
-    }
-}
-DeserializerBase.registerCustomDeserializer(new OurCustomDeserializer())
-
 class DateDeserializer extends CustomDeserializer {
     constructor() {
         super(["Date"]);

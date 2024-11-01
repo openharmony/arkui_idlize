@@ -484,7 +484,7 @@ class NameWithType {
     constructor(public readonly name: string, public readonly type: idl.IDLType) { }
 }
 
-function groupProps(library: IdlPeerLibrary, properties: NameWithType[]): NameWithType[] {
+function groupProps(properties: NameWithType[]): NameWithType[] {
     const typeMap = new Map<string, idl.IDLType[]>()
     for (const prop of properties) {
         const type = prop.type
@@ -495,9 +495,7 @@ function groupProps(library: IdlPeerLibrary, properties: NameWithType[]): NameWi
     }
     const result: NameWithType[] = []
     for (const [name, types] of typeMap.entries()) {
-        // TBD: properly generate union type name
-        const typeName = types.map(it => library.computeTargetName(it, false)).join("_")
-        const type = types.length === 1 ? types[0] : idl.createUnionType(types, typeName)
+        const type = types.length === 1 ? types[0] : idl.createUnionType(types)
         result.push(new NameWithType(name, type))
     }
     return result
@@ -507,8 +505,7 @@ function collectBuilderProperties(decl: idl.IDLInterface, library: IdlPeerLibrar
     if (!isBuilderClass(decl)) {
         return []
     }
-    return groupProps(library,
-        [
+    return groupProps([
             ...decl.constructors
                 .flatMap(cons =>
                     cons.parameters.map(param => new NameWithType(param.name, param.type!))),

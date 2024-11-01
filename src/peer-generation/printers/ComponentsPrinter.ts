@@ -87,7 +87,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             imports.addFeature("ArkUINodeType", "./peers/ArkUINodeType")
             imports.addFeature("runtimeType", "./peers/SerializerBase")
             imports.addFeature("RuntimeType", "./peers/SerializerBase")
-            imports.addFeature("isPixelMap", "./peers/SerializerBase")
             imports.addFeature("isResource", "./peers/SerializerBase")
             imports.addFeature("isInstanceOf", "./peers/SerializerBase")
             imports.addFeature('ComponentBase', './ComponentBase')

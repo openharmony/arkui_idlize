@@ -22,7 +22,6 @@
         },
     },
     "include": [
-        "generated/sig/arkoala/**/*",
-        "workaround/**/*"
+        "generated/sig/arkoala/**/*"
     ]
 }

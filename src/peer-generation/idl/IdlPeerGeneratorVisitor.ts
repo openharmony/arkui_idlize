@@ -160,9 +160,9 @@ export class IdlPredefinedGeneratorVisitor implements GenericVisitor<void> {
 
 }
 
-function generateArgConvertor(library: IdlPeerLibrary, param: idl.IDLParameter, maybeCallback: boolean): ArgConvertor {
+function generateArgConvertor(library: IdlPeerLibrary, param: idl.IDLParameter): ArgConvertor {
     if (!param.type) throw new Error("Type is needed")
-    return library.typeConvertor(param.name, param.type, param.isOptional, maybeCallback)
+    return library.typeConvertor(param.name, param.type, param.isOptional)
 }
 
 function generateRetConvertor(type?: idl.IDLType): RetConvertor {
@@ -697,9 +697,7 @@ class PeersGenerator {
         private readonly library: IdlPeerLibrary,
     ) {}
 
-    private processProperty(prop: idl.IDLProperty,
-        peer: IdlPeerClass, maybeCallback: boolean, parentName?: string): IdlPeerMethod | undefined
-    {
+    private processProperty(prop: idl.IDLProperty, peer: IdlPeerClass, parentName?: string): IdlPeerMethod | undefined {
         if (PeerGeneratorConfig.ignorePeerMethod.includes(prop.name))
             return
         if (prop.name === "onWillScroll" || prop.name === "onDidScroll") {
@@ -714,7 +712,7 @@ class PeersGenerator {
         const decl = this.toDeclaration(prop.type)
         this.library.requestType(prop.type, this.library.shouldGenerateComponent(peer.componentName))
         const originalParentName = parentName ?? peer.originalClassName!
-        const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional, maybeCallback)
+        const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional)
         const signature = new NamedMethodSignature(idl.IDLThisType, [maybeOptional(prop.type, prop.isOptional)], ["value"])
         return new IdlPeerMethod(
             originalParentName,
@@ -725,9 +723,7 @@ class PeersGenerator {
             new Method(prop.name, signature, []))
     }
 
-    private processMethodOrCallable(method: idl.IDLMethod | idl.IDLCallable,
-        peer: IdlPeerClass, maybeCallback: boolean, parentName?: string): IdlPeerMethod | undefined
-    {
+    private processMethodOrCallable(method: idl.IDLMethod | idl.IDLCallable, peer: IdlPeerClass, parentName?: string): IdlPeerMethod | undefined {
         if (PeerGeneratorConfig.ignorePeerMethod.includes(method.name!))
             return
         const isCallSignature = !idl.isMethod(method)
@@ -736,7 +732,7 @@ class PeersGenerator {
         // E.g. ButtonInterface instead of ButtonAttribute
         const originalParentName = parentName ?? peer.originalClassName!
         const methodName = isCallSignature ? `set${peer.componentName}Options` : method.name
-        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, maybeCallback))
+        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const declarationTargets = method.parameters.map(param => {
             const decl = this.toDeclaration(param.type ?? throwException(`Expected a type for ${param.name} in ${method.name}`))
             this.library.requestType(param.type!, this.library.shouldGenerateComponent(peer.componentName))
@@ -814,7 +810,7 @@ class PeersGenerator {
     private fillInterface(peer: IdlPeerClass, iface: idl.IDLInterface) {
         peer.originalInterfaceName = iface.name
         const peerMethods = iface.callables
-            .map(it => this.processMethodOrCallable(it, peer, false, iface?.name))
+            .map(it => this.processMethodOrCallable(it, peer, iface?.name))
             .filter(isDefined)
         const overloadedMethods = IdlPeerMethod.markAndGroupOverloads(peerMethods)
         peer.methods.push(...overloadedMethods)
@@ -830,10 +826,9 @@ class PeersGenerator {
             peer.originalParentFilename = parentDecl?.fileName
             peer.parentComponentName = parentComponent.name
         }
-        const maybeCallback = isCommonMethodOrSubclass(this.library, clazz)
         const peerMethods = [
-            ...clazz.properties.map(it => this.processProperty(it, peer, maybeCallback)),
-            ...clazz.methods.map(it => this.processMethodOrCallable(it, peer, maybeCallback)),
+            ...clazz.properties.map(it => this.processProperty(it, peer)),
+            ...clazz.methods.map(it => this.processMethodOrCallable(it, peer)),
             ].filter(isDefined)
         const overloadedMethods = IdlPeerMethod.markAndGroupOverloads(peerMethods)
         peer.methods.push(...overloadedMethods)
@@ -1048,7 +1043,7 @@ export class IdlPeerProcessor {
 
         const generics = undefined // method.typeParameters?.map(it => it.getText())
         method.parameters.forEach(it => this.library.requestType(it.type!, true))
-        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param, false))
+        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(this.library, method, decl.name)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
         return new MaterializedMethod(decl.name, /*declarationTargets*/ [], argConvertors, retConvertor, false,

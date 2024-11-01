@@ -423,9 +423,7 @@ export class ImportTypeConvertor extends BaseArgConvertor {
         ["ComponentContent", ["isInstanceOf", "\"ComponentContent\""]],
         ["DrawableDescriptor", ["isInstanceOf", "\"DrawableDescriptor\""]],
         ["SymbolGlyphModifier", ["isInstanceOf", "\"SymbolGlyphModifier\""]],
-        ["Scene", ["isInstanceOf", "\"Scene\""]],
-        ["PixelMap", ["isPixelMap"]],
-        ["Resource", ["isResource"]]])
+        ["Scene", ["isInstanceOf", "\"Scene\""]]])
     private importedName: string
     constructor(param: string, private table: DeclarationTable, type: ts.ImportTypeNode) {
         super(toIDLType("Object"), [RuntimeType.OBJECT], false, true, param)

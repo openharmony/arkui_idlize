@@ -17,7 +17,7 @@ import * as path from "path"
 import { parse } from 'comment-parser'
 import * as idl from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, getNameWithoutQualifiersRight, stringOrNone
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, getNameWithoutQualifiersRight, stringOrNone,
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -25,6 +25,7 @@ import { OptionValues } from "commander"
 import { typeOrUnion } from "./peer-generation/idl/common"
 import { IDLKeywords } from "./languageSpecificKeywords"
 import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
+import { ReferenceResolver } from "./peer-generation/ReferenceResolver"
 
 const typeContainerMapper: Record<string, idl.IDLContainerKind> = {
     'Array': 'sequence',
@@ -130,7 +131,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     constructor(
         private sourceFile: ts.SourceFile,
         private typeChecker: ts.TypeChecker,
-        private options: OptionValues) {
+        private options: OptionValues,
+        private predefinedTypeResolver?: ReferenceResolver
+    ) {
         this.defaultPackage = options.defaultIdlPackage as string ?? "arkui"
     }
 
@@ -212,7 +215,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         } else if (ts.isEnumDeclaration(node)) {
             this.output.push(this.serializeEnum(node))
         } else if (ts.isTypeAliasDeclaration(node)) {
-            this.output.push(this.serializeTypeAlias(node))
+            const typedef = this.serializeTypeAlias(node)
+            if (typedef)
+                this.output.push(typedef)
         } else if (ts.isFunctionDeclaration(node)) {
             this.globalFunctions.push(this.serializeMethod(node, undefined, true))
         } else if (ts.isVariableStatement(node)) {
@@ -248,21 +253,25 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         )
     }
 
-    serializeTypeAlias(node: ts.TypeAliasDeclaration): idl.IDLTypedef | idl.IDLFunction | idl.IDLInterface {
+    serializeTypeAlias(node: ts.TypeAliasDeclaration): idl.IDLTypedef | idl.IDLFunction | idl.IDLInterface | undefined {
         const nameSuggestion = NameSuggestion.make(nameOrNull(node.name) ?? "UNDEFINED_TYPE_NAME", true)
         let extendedAttributes = this.computeDeprecatedExtendAttributes(node)
         if (ts.isImportTypeNode(node.type)) {
+            const type = idl.createReferenceType(nameSuggestion.name)
+            if (this.predefinedTypeResolver?.resolveTypeReference(type)) {
+                // A predefined declaration exists for this type, so we need no typedef for it
+                return undefined
+            }
+            // No predefined declaration, create an import type and a typedef
             const importAttr = { name: idl.IDLExtendedAttributes.Import, value: node.type.getText() }
             extendedAttributes.push(importAttr)
-            const type = idl.createReferenceType(nameSuggestion.name)
-            if (type.extendedAttributes) {
-                type.extendedAttributes.push(importAttr)
-            } else {
-                type.extendedAttributes = [importAttr]
-            }
+            type.extendedAttributes ??= []
+            type.extendedAttributes.push(importAttr)
             return {
-                name: nameSuggestion.name, type, extendedAttributes,
                 kind: idl.IDLKind.Typedef,
+                name: nameSuggestion.name,
+                type,
+                extendedAttributes,
                 fileName: node.getSourceFile().fileName,
             }
         }
@@ -1009,12 +1018,15 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 this.addSyntheticType(funcType)
                 return idl.createReferenceType(funcType.name)
             }
-            let originalText = `${type.getText(this.sourceFile)}`
-            this.warn(`import type: ${originalText}`)
             let typeName = sanitize(what == "default" ? where[where.length - 1] : what)!
             let result = idl.createReferenceType(typeName, this.mapTypeArgs(type.typeArguments, typeName))
-            result.extendedAttributes ??= []
-            result.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Import, value: originalText })
+            if (!this.predefinedTypeResolver?.resolveTypeReference(result)) {
+                // No predefined declaration for this type, so add import attributes to both declaration and type reference
+                let originalText = `${type.getText(this.sourceFile)}`
+                this.warn(`import type: ${originalText}`)
+                result.extendedAttributes ??= []
+                result.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Import, value: originalText })
+            }
             return result
         }
         if (ts.isNamedTupleMember(type)) {
