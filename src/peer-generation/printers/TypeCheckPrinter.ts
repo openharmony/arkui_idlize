@@ -99,9 +99,11 @@ abstract class TypeCheckerPrinter {
         const importFeatures: ImportFeature[] = []
         const interfaces: { name: string, descriptor: StructDescriptor }[] = []
 
+        const seenNames = new Set<string>()
         for (const file of this.library.files) {
             for (const decl of file.declarations) {
-                if (idl.isInterface(decl) || idl.isAnonymousInterface(decl)) {
+                if ((idl.isInterface(decl) || idl.isAnonymousInterface(decl)) && !seenNames.has(decl.name)) {
+                    seenNames.add(decl.name)
                     importFeatures.push(convertDeclToFeature(this.library, decl))
                     interfaces.push({
                         name: convertDeclaration(DeclarationNameConvertor.I, decl),

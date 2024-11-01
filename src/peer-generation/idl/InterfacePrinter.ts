@@ -33,20 +33,22 @@ import {
     stringOrNone,
     throwException
 } from '../../util'
-import { ImportsCollector } from '../ImportsCollector'
+import { ImportFeature, ImportsCollector } from '../ImportsCollector'
 import { IdlPeerFile } from './IdlPeerFile'
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { TargetFile } from '../printers/TargetFile'
 import { PrinterContext } from '../printers/PrinterContext'
 import { convertDeclaration, DeclarationConvertor } from "../LanguageWriters/typeConvertor";
-import { makeSyntheticDeclarationsFiles } from './IdlSyntheticDeclarations'
+import {
+    makeSyntheticDeclarationsFiles
+} from './IdlSyntheticDeclarations'
 import { tsCopyrightAndWarning } from '../FileGenerators'
 import { EnumEntity } from '../PeerFile'
 import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../printers/lang/Java'
 import { printJavaImports } from '../printers/lang/JavaPrinters'
 import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
 import { Language } from '../../Language'
-import { escapeKeyword, IDLExtendedAttributes } from "../../idl";
+import { escapeKeyword, IDLExtendedAttributes, IDLKind } from "../../idl";
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 
 interface InterfacesVisitor {
@@ -133,9 +135,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
     private printImports(writer: LanguageWriter, file: IdlPeerFile) {
         const imports = new ImportsCollector()
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
-        imports.addFeature("KInt", "@koalaui/interop")
-        imports.addFeature("KBoolean", "@koalaui/interop")
-        imports.addFeature("KStringPtr", "@koalaui/interop")
+        getCommonImports(writer.language).forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
     }
 
@@ -418,14 +418,27 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
     }
 }
 
-class ArkTSDeclConvertor extends TSDeclConvertor {
+export class ArkTSDeclConvertor extends TSDeclConvertor {
     private typeNameConvertor = new ETSLanguageWriter(new IndentedPrinter(), this.peerLibrary)
     private seenInterfaceNames = new Set<string>()
 
     convertTypedef(node: idl.IDLTypedef) {
         const type = this.peerLibrary.mapType(node.type)
         const typeParams = this.printTypeParameters(node.extendedAttributes)
-        this.writer.print(`export declare type ${node.name}${typeParams} = ${type};`)
+        // TODO: needs to be implemented correctly on the idl side
+        if (node.name === "Resource") {
+            this.convertInterface(idl.createInterface(node.name,
+                IDLKind.Interface,
+                [], [], [], [
+                    idl.createProperty("bundleName", idl.createReferenceType("KStringPtr")),
+                    idl.createProperty("moduleName", idl.createReferenceType("KStringPtr")),
+                    idl.createProperty("params", idl.createReferenceType("Array<object>"), false, false, true),
+                    idl.createProperty("id", idl.createReferenceType("number")),
+                    idl.createProperty("type", idl.createReferenceType("number"), false, false, true),
+                ], [], [], []))
+        } else {
+            this.writer.print(`export declare type ${node.name}${typeParams} = ${type};`)
+        }
     }
 
     convertCallback(node: idl.IDLCallback) {
@@ -908,13 +921,29 @@ function getTargetFile(filename: string, language: Language): TargetFile {
     throw new Error(`FakeDeclarations: need to add support for ${language}`)
 }
 
+export function getCommonImports(language: Language) {
+    const imports: ImportFeature[] = []
+    if (language === Language.ARKTS || language === Language.TS) {
+        imports.push({feature: "int32", module: "@koalaui/common"})
+        imports.push({feature: "float32", module: "@koalaui/common"})
+        imports.push({feature: "KInt", module: "@koalaui/interop"})
+        imports.push({feature: "KBoolean", module: "@koalaui/interop"})
+        imports.push({feature: "KStringPtr", module: "@koalaui/interop"})
+        imports.push({feature: "wrapCallback", module: "@koalaui/interop"})
+        imports.push({feature: "NodeAttach", module: "@koalaui/runtime"})
+        imports.push({feature: "remember", module: "@koalaui/runtime"})
+    }
+    return imports
+}
+
 export function printFakeDeclarations(library: IdlPeerLibrary): Map<TargetFile, string> {///copied from FakeDeclarationsPrinter
     const lang = library.language
     const result = new Map<TargetFile, string>()
     for (const [filename, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
         const writer = createLanguageWriter(lang, library)
         const imports = new ImportsCollector()
-        dependencies.forEach(it => imports.addFeature(it.feature, it.module))
+        getCommonImports(writer.language).concat(dependencies)
+            .forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(writer, removeExt(filename))
         const convertor = createDeclarationConvertor(writer, library)
         for (const node of declarations) {

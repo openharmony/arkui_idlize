@@ -101,8 +101,15 @@ class PeerFileVisitor {
         })
         if (this.library.language === Language.TS
             || this.library.language === Language.ARKTS) {
-            this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
-            this.file.serializeImportFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+            const seenNames = new Set<string>()
+            this.file.importFeatures
+                .concat(this.file.serializeImportFeatures)
+                .forEach(it => {
+                    if (!seenNames.has(it.feature)) {
+                        seenNames.add(it.feature)
+                        imports.addFeature(it.feature, it.module)
+                    }
+                })
             imports.addFeature('GestureName', './shared/generated-utils')
             imports.addFeature('GestureComponent', './shared/generated-utils')
             imports.addFeature('CallbackKind', './peers/CallbackKind')

@@ -14,6 +14,7 @@
  */
 import { float32, float64, int32, int8 } from "@koalaui/common"
 import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceManager } from "@koalaui/interop"
+import { CallbackKind } from "./CallbackKind"
 import { Length, Resource } from "../ArkUnitsInterfaces"
 import { NativeModule } from "#components"
 
@@ -85,6 +86,12 @@ export function isResource(value: Object|undefined): boolean {
 export function isInstanceOf(className: string, value: Object): boolean {
     // TODO: fix me!
     return false
+}
+
+export interface CallbackResource {
+    resourceId: int32
+    hold: pointer
+    release: pointer
 }
 
 /* Serialization extension point */
@@ -159,17 +166,23 @@ export class SerializerBase {
         }
     }
     private heldResources: Array<ResourceId> = new Array<ResourceId>()
+    holdAndWriteCallback(callback: object, kind: CallbackKind) {
+        const resourceId = ResourceManager.registerAndHold(callback)
+        this.heldResources.push(resourceId)
+        this.writeInt32(resourceId)
+        this.writePointer(0)
+        this.writePointer(0)
+        this.writePointer(0)
+    }
+    writeCallbackResource(resource: CallbackResource) {
+        this.writeInt32(resource.resourceId)
+        this.writePointer(resource.hold)
+        this.writePointer(resource.release)
+    }
     writeResource(resource: object) {
         const resourceId = ResourceManager.registerAndHold(resource)
         this.heldResources.push(resourceId)
         this.writeInt32(resourceId)
-    }
-    writeCallbackResource(resource: object) {
-        const resourceId = ResourceManager.registerAndHold(resource)
-        this.heldResources.push(resourceId)
-        this.writeInt32(resourceId)
-        this.writePointer(NativeModule._GetManagedResourceHolder())
-        this.writePointer(NativeModule._GetManagedResourceReleaser())
     }
     private releaseResources() {
         for (const resourceId of this.heldResources)
@@ -282,5 +295,12 @@ export class SerializerBase {
         } else if (valueType == RuntimeType.OBJECT) {
            this.writeInt32((value as Resource).id as int32)
         }
+    }
+    //TODO: Needs to be implemented
+    writeArrayBuffer(value: ArrayBuffer) {
+    }
+    writeUint8ClampedArray(value: Uint8ClampedArray) {
+    }
+    writeUint8Array(value: Uint8Array) {
     }
 }

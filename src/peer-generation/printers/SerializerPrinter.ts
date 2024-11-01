@@ -30,7 +30,12 @@ import { isBuilderClass } from "../BuilderClass";
 import { lazy, lazyThrow } from '../lazy';
 import { TypeNodeNameConvertor } from "../TypeNodeNameConvertor";
 import { IdlPeerLibrary } from '../idl/IdlPeerLibrary';
-import { convertDeclToFeature, isMaterialized, isSourceDecl } from '../idl/IdlPeerGeneratorVisitor';
+import {
+    ArkTSBuiltTypesDependencyFilter,
+    convertDeclToFeature,
+    DependencyFilter,
+    isMaterialized,
+} from '../idl/IdlPeerGeneratorVisitor';
 import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
 import { collectProperties } from '../idl/StructPrinter';
 import { ProxyStatement } from '../LanguageWriters/LanguageWriter';
@@ -40,6 +45,8 @@ import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 import { getReferenceResolver } from '../ReferenceResolver';
+import { throwException } from "../../util";
+import { IDLEntry } from "../../idl";
 
 function printSerializerImports(table: (ts.ClassDeclaration | ts.InterfaceDeclaration)[],
                                 library: PeerLibrary,
@@ -216,7 +223,8 @@ class IdlSerializerPrinter {
                 ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
                 break;
         }
-        const serializerDeclarations = getSerializers(this.library)
+        const serializerDeclarations = getSerializers(this.library,
+            createSerializerDependencyFilter(this.library))
         printIdlImports(this.library, serializerDeclarations, this.writer, declarationPath)
         // just a separator
         this.writer.print("")
@@ -444,7 +452,8 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType("uint8_t*"), idl.IDLI32Type], ["data", "length"])
             prefix = prefix === "" ? PrimitiveType.Prefix : prefix
         }
-        const serializerDeclarations = getSerializers(this.library)
+        const serializerDeclarations = getSerializers(this.library,
+            createSerializerDependencyFilter(this.library))
         printIdlImports(this.library, serializerDeclarations, this.writer, declarationPath)
         this.writer.print("")
         this.writer.writeClass(className, writer => {
@@ -566,30 +575,15 @@ function generateSerializerDeclarationsTable(prefix: string, table: DeclarationT
     return declarations
 }
 
-function canSerializeDependency(dep: idl.IDLEntry): dep is SerializableTarget  {
-    if ((idl.isClass(dep) || idl.isInterface(dep)) && !isMaterialized(dep))
-        return true
-    if (idl.isCallback(dep))
-        return true
-    return false
-}
-
-function getSerializers(library: IdlPeerLibrary): SerializableTarget[] {
+function getSerializers(library: IdlPeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {
     const seenNames = new Set<string>()
     return library.orderedDependenciesToGenerate
-        .filter(it => !PeerGeneratorConfig.ignoreSerialization.includes(it.name!))
-        .filter(canSerializeDependency)
-        .filter(it => !isParameterized(it))
+        .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => {
             const seen = seenNames.has(it.name!)
             seenNames.add(it.name!)
             return !seen
         })
-}
-
-function isParameterized(node: idl.IDLEntry) {
-    return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)
-        || ["Record", "Required"].includes(node.name!)
 }
 
 function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: SerializableTarget[], writer: LanguageWriter, declarationPath?: string) {
@@ -637,4 +631,44 @@ function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: Serial
 
     // TODO Refactor to remove dependency on hardcoded paths
     collector.print(writer, (declarationPath ? "." : "./peers/") + `Serializer.${writer.language.extension}`)
+}
+
+function createSerializerDependencyFilter(peerLibrary: IdlPeerLibrary): DependencyFilter {
+    switch (peerLibrary.language) {
+        case Language.TS: return new DefaultSerializerDependencyFilter()
+        case Language.ARKTS: return new ArkTSSerializerDependencyFilter()
+        case Language.JAVA: return new DefaultSerializerDependencyFilter()
+        case Language.CJ: return new DefaultSerializerDependencyFilter()
+    }
+    throwException("Unimplemented filter")
+}
+
+class DefaultSerializerDependencyFilter implements DependencyFilter {
+    shouldAdd(node: IDLEntry): boolean {
+        return !PeerGeneratorConfig.ignoreSerialization.includes(node.name!)
+            && !this.isParameterized(node)
+            && this.canSerializeDependency(node);
+    }
+    isParameterized(node: idl.IDLEntry) {
+        return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)
+            || ["Record", "Required"].includes(node.name!)
+    }
+
+    canSerializeDependency(dep: idl.IDLEntry): dep is SerializableTarget  {
+        if ((idl.isClass(dep) || idl.isInterface(dep)) && !isMaterialized(dep))
+            return true
+        if (idl.isCallback(dep))
+            return true
+        return false
+    }
+}
+
+class ArkTSSerializerDependencyFilter extends DefaultSerializerDependencyFilter {
+    readonly arkTSBuiltTypesFilter = new ArkTSBuiltTypesDependencyFilter()
+    override shouldAdd(node: IDLEntry): node is SerializableTarget {
+        if (!this.arkTSBuiltTypesFilter.shouldAdd(node)) {
+            return false
+        }
+        return super.shouldAdd(node)
+    }
 }
