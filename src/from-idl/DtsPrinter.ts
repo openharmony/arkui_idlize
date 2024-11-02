@@ -132,7 +132,6 @@ export class CustomPrintVisitor {
                     .join(", ")
                 typeSpec += ` ${keyword} ${interfaceList}`
             }
-            let isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
             this.print(`${namespace ? "" : "declare "}${entity!.toLowerCase()} ${typeSpec} {`)
             this.currentInterface = node
             this.pushIndent()
@@ -165,11 +164,10 @@ export class CustomPrintVisitor {
         const typeParams = typeParamsAttr ? `<${typeParamsAttr}>` : ""
         let preamble = ""
         if (!isCallable(node)) {
-            const isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
             const isStatic = isMethod(node) && node.isStatic
             const isProtected = hasExtAttribute(node, IDLExtendedAttributes.Protected)
             const isOptional = isMethod(node) && node.isOptional
-            preamble = `${isGlobal ? `${isExport ? "export ": ""}${namespace ? "" : "declare "}function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}`
+            preamble = `${isGlobal ? `${namespace ? "" : "declare "}function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}`
         }
         this.print(`${preamble}${typeParams}(${mixMethodParametersAndTags(node).map(p => this.paramText(p)).join(", ")})${returnType};`)
         this.closeNamespace(namespace)
@@ -202,8 +200,7 @@ export class CustomPrintVisitor {
     printEnum(node: IDLEnum) {
         const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
         this.openNamespace(namespace)
-        let isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
-        this.print(`${isExport ? "export ": ""}${namespace ? "" : "declare "}enum ${node.name} {`)
+        this.print(`declare enum ${node.name} {`)
         this.pushIndent()
         node.elements.forEach(it => {
             const initializer = it.initializer
@@ -229,10 +226,9 @@ export class CustomPrintVisitor {
         const text = isCallback(node) ? this.callback(node)
             : hasExtAttribute(node, IDLExtendedAttributes.Import) ? getIDLTypeName(IDLAnyType)
             : this.printTypeForTS(node.type)
-        let isExport = hasExtAttribute(node, IDLExtendedAttributes.Export)
         const typeParamsAttr = getExtAttribute(node, IDLExtendedAttributes.TypeParameters)
         const typeParams = typeParamsAttr ? `<${typeParamsAttr}>` : ""
-        this.print(`${isExport ? "export ": ""}declare type ${getName(node)}${typeParams} = ${text};`)
+        this.print(`declare type ${getName(node)}${typeParams} = ${text};`)
     }
 
     printModuleType(node: IDLModuleType) {

@@ -67,7 +67,6 @@ export enum IDLExtendedAttributes {
     DtsName = "DtsName",
     DtsTag = "DtsTag",
     Entity = "Entity",
-    Export = "Export",
     GlobalScope = "GlobalScope",
     Import = "Import",
     IndexSignature = "IndexSignature",
@@ -116,8 +115,8 @@ export interface IDLType {
 }
 
 export const IDLTopType: IDLType = {
-    [idlTypeName]: "__Top__", 
-    kind: IDLKind.Interface 
+    [idlTypeName]: "__Top__",
+    kind: IDLKind.Interface
 }
 
 export interface IDLTypedef extends IDLEntry {
@@ -138,7 +137,7 @@ export interface IDLOptionalType extends IDLType {
     element: IDLType
 }
 
-export type IDLContainerKind = 
+export type IDLContainerKind =
       'sequence'
     | 'record'
     | 'Promise'
@@ -442,7 +441,7 @@ export const IDLUnknownType = createPrimitiveType('unknown')
 export const IDLObjectType = createReferenceType('Object')
 export const IDLThisType = createPrimitiveType('this')
 
-// Stub for IdlPeerLibrary 
+// Stub for IdlPeerLibrary
 export const IDLFunctionType = createPrimitiveType('Function')
 export const IDLLengthType = createPrimitiveType('Length')
 export const IDLCustomObjectType = createPrimitiveType('CustomObject')
@@ -890,7 +889,7 @@ export function isIDLTypeNameIn(type: IDLType, collection:string[] | Map<string,
         return collection.includes(type[idlTypeName])
     }
     return collection.has(type[idlTypeName])
-} 
+}
 export function isIDLTypeName(type: IDLType , name:string | undefined): boolean {
     const isValidType = !isContainerType(type)
     if (!isValidType) {
@@ -909,7 +908,7 @@ export const IDLContainerUtils = {
 }
 export function getIDLContainerTypeKind(type:IDLContainerType): IDLContainerKind {
     return type[idlTypeName]
-} 
+}
 type IDLTypePrinter<T> = (x: T, name: string) => string
 export function getIDLTypeName<T extends IDLType>(type:T, print: IDLTypePrinter<T> = (x: T, name: string) => {return name}): string {
     if (isPrimitiveType(type)
@@ -937,7 +936,7 @@ export function isIDLTypeSameName(a:IDLType, b:IDLType): boolean {
 export function toIDLType(typeName: string): IDLType {
     if (typeName.includes('import')) {
         throw new Error(`FAIL ${typeName}`)
-    } 
+    }
     if (typeName === 'sequence') {
         throw new Error('FAIL')
     }

@@ -251,7 +251,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     serializeAmbientModuleDeclaration(node: ts.ModuleDeclaration): idl.IDLModuleType {
         const name = nameOrNull(node.name) ?? "UNDEFINED_Module"
         return idl.createModuleType(
-            name, 
+            name,
             [{ name: idl.IDLExtendedAttributes.VerbatimDts, value: `"${escapeAmbientModuleContent(this.sourceFile, node)}"` }]
         )
     }
@@ -411,15 +411,6 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     }
 
     computeExportAttribute(node: ts.Node, attributes: idl.IDLExtendedAttribute[] = []): idl.IDLExtendedAttribute[] {
-        if (ts.canHaveModifiers(node)) {
-            if (!attributes.find(it => it.name == idl.IDLExtendedAttributes.Export)) {
-                if (isExport(node.modifiers)) {
-                    attributes.push({
-                        name: idl.IDLExtendedAttributes.Export
-                    })
-                }
-            }
-        }
         return attributes
     }
 
@@ -841,9 +832,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         return typeArgs?.map(arg => {
             if (this.isTypeParameterReference(arg)) {
                 const paramName = nameOrNull(arg.typeName)!
-                const substName = this.context.typeParameterMap 
+                const substName = this.context.typeParameterMap
                     ? this.context.typeParameterMap.get(paramName)
-                        ? idl.getIDLTypeName(this.context.typeParameterMap.get(paramName)!) 
+                        ? idl.getIDLTypeName(this.context.typeParameterMap.get(paramName)!)
                         : undefined
                     : undefined
                 return substName ?? paramName
@@ -1077,8 +1068,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     }
 
     serializeUnion(
-        sourceText: string, 
-        nodes: ts.TypeNode[], 
+        sourceText: string,
+        nodes: ts.TypeNode[],
         nameSuggestion: NameSuggestion | undefined,
     ) {
         let types = nodes
@@ -1283,7 +1274,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             extendedAttributeValues.push(tag)
 
             extendedAttributes.push({
-                name: idl.IDLExtendedAttributes.DtsTag, 
+                name: idl.IDLExtendedAttributes.DtsTag,
                 value: extendedAttributeValues.map(value => value.replaceAll('|', '\x7c')).join('|')
             })
 
