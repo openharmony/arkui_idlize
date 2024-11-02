@@ -117,9 +117,15 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): IDLInterface
         name: node.name,
         fileName: file,
         documentation: makeDocs(node),
-        inheritance: [node.inheritance]
-            .filter(isDefined)
-            .map(it => toIDLType(file, it)),
+        inheritance: (()=>{
+            if (!node.inheritance)
+                return []
+            const referenceType = createReferenceType(node.inheritance)
+            referenceType.fileName = file
+            if (node.inheritanceExtAttrs)
+                referenceType.extendedAttributes = toExtendedAttributes(node.inheritanceExtAttrs)
+            return [referenceType]
+        })(),
         constructors: node.members
             .filter(isConstructor)
             .map(it => toIDLConstructor(file, it)),
