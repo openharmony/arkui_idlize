@@ -283,7 +283,7 @@
 |`blur`| Function | Roman Sedaikin | in progress | |
 |`linearGradientBlur`| Function | Lobah Mikhail | in progress | |
 |`systemBarEffect`| Function | Lobah Mikhail | in progress | |
-|`backdropBlur`| Function | | | |
+|`backdropBlur`| Function | Kirill Berezin | in progress | |
 |`sharedTransition`|Function|Skroba Gleb | done |  |
 |`chainMode`| Function | | | |
 |`dragPreviewOptions`| Function | | | |
@@ -467,7 +467,7 @@
 |`matchTextDirection`| Function | Evstigneev Roman | in progress | |
 |`fitOriginalSize`| Function | Evstigneev Roman | in progress | |
 |`fillColor`| Function | Evstigneev Roman | done | |
-|`objectFit`| Function |Kirill Berezin| in progress | |
+|`objectFit`| Function |Kirill Berezin| done | |
 |`objectRepeat`| Function | Evstigneev Roman | in progress | |
 |`autoResize`| Function | Evstigneev Roman | in progress | https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`renderMode`| Function | Evstigneev Roman | in progress | |
