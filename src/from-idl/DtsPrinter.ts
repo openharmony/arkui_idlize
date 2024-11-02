@@ -41,7 +41,8 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLContainerType,
     DebugUtils,
     isType,
-    createReferenceType,} from "../idl"
+    createReferenceType,
+    transformMethodsAsync2ReturnPromise,} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 
@@ -360,7 +361,10 @@ export function idlToString(name: string, content: string): string {
     let printer = new CustomPrintVisitor(resolveSyntheticType)
     webidl2.parse(content)
         .map(it => toIDLNode(name, it))
-        .map(it => printer.visit(it))
+        .forEach(it => {
+            transformMethodsAsync2ReturnPromise(it)
+            printer.visit(it)
+        })
     return printer.output.join("\n")
 }
 

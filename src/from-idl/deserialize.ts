@@ -215,6 +215,7 @@ function toIDLCallable(file: string, node: webidl2.OperationMemberType): IDLCall
     return {
         name: node.name ?? "",
         isStatic: node.special === "static",
+        isAsync: node.async,
         parameters: node.arguments.map(it => toIDLParameter(file, it)),
         documentation: makeDocs(node),
         returnType: toIDLType(file, node.idlType, node.extAttrs),
@@ -230,6 +231,7 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): IDLMethod
     return {
         name: node.name ?? "",
         isStatic: node.special === "static",
+        isAsync: node.async,
         parameters: node.arguments.map(it => toIDLParameter(file, it)),
         documentation: makeDocs(node),
         returnType: toIDLType(file, node.idlType, node.extAttrs),

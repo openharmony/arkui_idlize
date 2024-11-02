@@ -217,6 +217,7 @@ export interface IDLSignature extends IDLEntry {
 }
 
 export interface IDLFunction extends IDLSignature {
+    isAsync: boolean
 }
 
 export interface IDLMethod extends IDLFunction {
@@ -265,12 +266,14 @@ export function forEachChild(node: IDLEntry, cb: (entry: IDLEntry) => void): voi
     cb(node)
     switch (node.kind) {
         case IDLKind.Interface:
+            if (isType(node)) return // TODO remove this check after IDLType stops mimic IDLInterface
+            // passthrough
         case IDLKind.Class:
         case IDLKind.TupleInterface:
         case IDLKind.AnonymousInterface: {
             let iface = node as IDLInterface
             iface.inheritance.forEach((value) => forEachChild(value, cb))
-            iface.constructors?.forEach((value) => forEachChild(value, cb))
+            iface.constructors.forEach((value) => forEachChild(value, cb))
             iface.properties.forEach((value) => forEachChild(value, cb))
             iface.methods.forEach((value) => forEachChild(value, cb))
             iface.callables.forEach((value) => forEachChild(value, cb))
@@ -615,7 +618,7 @@ export function printParameters(parameters: IDLParameter[] | undefined): string 
         ?.join(", ") ?? ""
 }
 
-export function printConstructor(idl: IDLFunction): stringOrNone[] {
+export function printConstructor(idl: IDLConstructor): stringOrNone[] {
     return [indentedBy(`constructor(${printParameters(idl.parameters)});`, 1)]
 }
 
@@ -696,7 +699,7 @@ export function printFunction(idl: IDLFunction): stringOrNone[] {
     }
     return [
         ...printExtendedAttributes(idl, 1),
-        indentedBy(`${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
+        indentedBy(`${idl.isAsync ? "async " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
     ]
 }
 
@@ -707,7 +710,7 @@ export function printMethod(idl: IDLMethod): stringOrNone[] {
     }
     return [
         ...printExtendedAttributes(idl, 1),
-        indentedBy(`${idl.isStatic ? "static " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
+        indentedBy(`${idl.isStatic ? "static " : ""}${idl.isAsync ? "async " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
     ]
 }
 
@@ -1000,4 +1003,99 @@ export const DebugUtils = {
         }
         return name
     }
+}
+
+function forEachFunction(node: IDLEntry, cb: (node: IDLFunction) => void): void {
+    switch (node.kind) {
+        case IDLKind.Interface:
+            if (isType(node)) return // TODO remove this check after IDLType stops mimic IDLInterface
+            // passthrough
+        case IDLKind.Class:
+        case IDLKind.TupleInterface:
+        case IDLKind.AnonymousInterface: {
+            const concrete = node as IDLInterface
+            concrete.inheritance.forEach((value) => forEachFunction(value, cb))
+            concrete.constructors.forEach((value) => forEachFunction(value, cb))
+            concrete.properties.forEach((value) => forEachFunction(value, cb))
+            concrete.methods.forEach((value) => forEachFunction(value, cb))
+            concrete.callables.forEach((value) => forEachFunction(value, cb))
+            break
+        }
+        case IDLKind.Method:
+        case IDLKind.Callable: {
+            const concrete = node as IDLFunction
+            cb(concrete)
+            concrete.parameters.forEach((value) => forEachFunction(value, cb))
+            if (concrete.returnType) forEachFunction(concrete.returnType, cb)
+            break
+        }
+        case IDLKind.Callback:
+        case IDLKind.Constructor: {
+            const concrete = node as IDLSignature
+            concrete.parameters.forEach((value) => forEachFunction(value, cb))
+            if (concrete.returnType) forEachFunction(concrete.returnType, cb)
+            break
+        }
+        case IDLKind.Parameter: {
+            const concrete = node as IDLParameter
+            if (concrete.type) forEachFunction(concrete.type, cb)
+            break
+        }
+        case IDLKind.Property: {
+            const concrete = node as IDLProperty
+            if (concrete.type) forEachFunction(concrete.type, cb)
+            break
+        }
+        case IDLKind.UnionType: {
+            const concrete = node as IDLUnionType
+            concrete.types.forEach((value) => forEachFunction(value, cb))
+            break
+        }
+        case IDLKind.ContainerType: {
+            const concrete = node as IDLContainerType
+            concrete.elementType.forEach((value) => forEachFunction(value, cb))
+            break
+        }
+        case IDLKind.TypeParameterType:
+        case IDLKind.Enum:
+        case IDLKind.Typedef:
+        case IDLKind.EnumType:
+        case IDLKind.PrimitiveType:
+        case IDLKind.ReferenceType:
+        case IDLKind.ModuleType:
+        case IDLKind.Package:
+        case IDLKind.Import:
+            break
+        default: {
+            throw new Error(`Unhandled ${node.kind}`)
+        }
+    }
+}
+
+function asPromise(type?: IDLType): IDLContainerType | undefined {
+    if (!type) return
+    if (!isContainerType(type)) return
+    const container = type as IDLContainerType
+    if (!IDLContainerUtils.isPromise(container)) return
+    return container
+}
+
+export function transformMethodsAsync2ReturnPromise(entry : IDLEntry) {
+    forEachFunction(entry, function_ => {
+        if (function_.isAsync) {
+            function_.isAsync = false
+            if (!asPromise(function_.returnType))
+                function_.returnType = createContainerType("Promise", [function_.returnType ?? IDLVoidType])
+        }
+    })
+}
+
+export function transformMethodsReturnPromise2Async(entry : IDLEntry) {
+    forEachFunction(entry, function_ => {
+        const promise = asPromise(function_.returnType)
+        if (promise) {
+            function_.returnType = promise.elementType[0]
+            function_.isAsync = true
+        }
+    })
 }

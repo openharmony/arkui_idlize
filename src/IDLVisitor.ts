@@ -17,7 +17,7 @@ import * as path from "path"
 import { parse } from 'comment-parser'
 import * as idl from "./idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, getNameWithoutQualifiersRight, stringOrNone,
+    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getExportedDeclarationNameByNode, identName, isDefined, isExport, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync, nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, getNameWithoutQualifiersRight, stringOrNone,
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -233,6 +233,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         } else {
             throw new Error(`Unknown node type: ${node.kind}`)
         }
+
+        this.output.forEach(idl.transformMethodsReturnPromise2Async)
+        this.globalFunctions.forEach(idl.transformMethodsReturnPromise2Async)
     }
 
     serializeImport(node: ts.ImportDeclaration): idl.IDLImport {
@@ -253,7 +256,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         )
     }
 
-    serializeTypeAlias(node: ts.TypeAliasDeclaration): idl.IDLTypedef | idl.IDLFunction | idl.IDLInterface | undefined {
+    serializeTypeAlias(node: ts.TypeAliasDeclaration): idl.IDLTypedef | idl.IDLCallback | idl.IDLInterface | undefined {
         const nameSuggestion = NameSuggestion.make(nameOrNull(node.name) ?? "UNDEFINED_TYPE_NAME", true)
         let extendedAttributes = this.computeDeprecatedExtendAttributes(node)
         if (ts.isImportTypeNode(node.type)) {
@@ -1302,6 +1305,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 extendedAttributes: extendedAttributes,
                 isStatic: false,
                 isOptional: false,
+                isAsync: false,
                 parameters: methodParameters.map(it => this.serializeParameter(it))
             }
         }
@@ -1316,6 +1320,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             returnType: returnType,
             isStatic: isStatic(method.modifiers),
             isOptional: !!method.questionToken,
+            isAsync: isAsync(method.modifiers),
         };
     }
 
@@ -1330,7 +1335,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             documentation: getDocumentation(this.sourceFile, method, this.options.docs),
             parameters: method.parameters.map(it => this.serializeParameter(it, nameSuggestion)),
             returnType: returnType,
-            isStatic: false
+            isStatic: false,
+            isAsync: (ts.canHaveModifiers(method) && isAsync(ts.getModifiers(method))),
         };
     }
 

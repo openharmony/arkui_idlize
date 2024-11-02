@@ -19,7 +19,7 @@ import * as path from "path"
 import { fromIDL } from "./from-idl/common"
 import { idlToString } from "./from-idl/DtsPrinter"
 import { generate } from "./idlize"
-import { IDLEntry, forEachChild, toIDLString, isInterface, isPackage } from "./idl"
+import { IDLEntry, forEachChild, toIDLString, isInterface, isPackage, transformMethodsAsync2ReturnPromise } from "./idl"
 import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
 import { IDLVisitor } from "./IDLVisitor"
@@ -312,6 +312,7 @@ if (options.dts2peer) {
             {
                 compilerOptions: defaultCompilerOptions,
                 onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
+                    entries.forEach(transformMethodsAsync2ReturnPromise)
                     const file = new IdlPeerFile(sourceFile.fileName, entries, idlLibrary.componentsToGenerate)
                     idlLibrary.files.push(file)
                 },
