@@ -197,13 +197,16 @@ class BridgeCcVisitor {
         const argConvertors = method.argConvertors
 
         let cName = `${method.originalParentName}_${method.overloadedName}`
-        let rv = retConvertor.nativeType()
-        this.generatedApi.print(`${retConvertor.nativeType()} impl_${cName}(${this.generateCParameters(method, argConvertors).join(", ")}) {`)
+        let retValue: string | undefined = retConvertor.interopType
+            ? retConvertor.interopType()
+            : retConvertor.nativeType()
+        this.generatedApi.print(`${retValue} impl_${cName}(${this.generateCParameters(method, argConvertors).join(", ")}) {`)
         this.generatedApi.pushIndent()
         this.printNativeBody(method, modifierName)
         this.generatedApi.popIndent()
         this.generatedApi.print(`}`)
-        let macroArgs = [cName, method.maybeCRetType(retConvertor)].concat(this.generateCParameterTypes(argConvertors, method.hasReceiver()))
+        retValue = retConvertor.isVoid ? undefined : retValue
+        let macroArgs = [cName, retValue].concat(this.generateCParameterTypes(argConvertors, method.hasReceiver()))
             .filter(isDefined)
             .join(", ")
         const suffix = this.generateCMacroSuffix(method)

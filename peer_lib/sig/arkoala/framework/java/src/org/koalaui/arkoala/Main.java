@@ -192,10 +192,10 @@ public class Main {
         // materialized classes
         TestUtils.checkResult("[Materialized] ctor",
             () -> { new ClassWithConstructorAndAllOptionalParamsDTS(new Opt_Number(10), null); },
-            "new ClassWithConstructorAndAllOptionalParamsDTS({.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=10}}, {.tag=ARK_TAG_UNDEFINED, .value={}})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]");
+            "new ClassWithConstructorAndAllOptionalParamsDTS({.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=10}}, {.tag=ARK_TAG_UNDEFINED, .value={}})[return (ClassWithConstructorAndAllOptionalParamsDTSPeer*) 100]getFinalizer()[return reinterpret_cast<ClassWithConstructorAndAllOptionalParamsDTSPeer*>(dummyClassFinalizer)]");
         TestUtils.checkResult("[Materialized] of",
             () -> { ClassWithConstructorAndAllOptionalParamsDTS.of(null, "test"); },
-            "of({.tag=ARK_TAG_UNDEFINED, .value={}}, {.tag=ARK_TAG_OBJECT, .value={.chars=\"test\", .length=4}})[return (void*) 300]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]");
+            "of({.tag=ARK_TAG_UNDEFINED, .value={}}, {.tag=ARK_TAG_OBJECT, .value={.chars=\"test\", .length=4}})[return (void*) 300]getFinalizer()[return reinterpret_cast<ClassWithConstructorAndAllOptionalParamsDTSPeer*>(dummyClassFinalizer)]");
         var classCtor = new ClassWithConstructorAndAllOptionalParamsDTS(new Opt_Number(10), null);
         var classOf = ClassWithConstructorAndAllOptionalParamsDTS.of(null, "test");
         TestUtils.checkResult("[Materialized] method",

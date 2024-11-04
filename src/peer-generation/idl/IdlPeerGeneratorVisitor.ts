@@ -981,7 +981,12 @@ export class IdlPeerProcessor {
 
         const constructor = idl.isClass(decl) ? decl.constructors[0] : undefined
         const mConstructor = this.makeMaterializedMethod(decl, constructor)
-        const finalizerReturnType = {isVoid: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => ""}
+        const finalizerReturnType = {
+            isVoid: false,
+            nativeType: () => `${name}Peer*`,
+            interopType: () => PrimitiveType.NativePointer.getText(),
+            macroSuffixPart: () => ""
+        }
         const mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]), 0)
         const mFields = decl.properties
@@ -1032,7 +1037,13 @@ export class IdlPeerProcessor {
     private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined) {
         const methodName = method === undefined || idl.isConstructor(method) ? "ctor" : method.name
         const retConvertor = method === undefined || idl.isConstructor(method)
-            ? { isVoid: false, isStruct: false, nativeType: () => PrimitiveType.NativePointer.getText(), macroSuffixPart: () => "" }
+            ? {
+                isVoid: false,
+                isStruct: false,
+                nativeType: () => `${decl.name}Peer*`,
+                interopType: () => PrimitiveType.NativePointer.getText(),
+                macroSuffixPart: () => ""
+            }
             : generateRetConvertor(method.returnType)
 
         if (method === undefined) {

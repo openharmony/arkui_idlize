@@ -392,9 +392,7 @@ function checkCanvasRenderingContext2D() {
 
     checkResult("new CanvasRenderingContext2D()",
         () => canvasRenderingContext2D = new CanvasRenderingContext2D(),
-        "new CanvasPath()[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]" +
-        "new CanvasRenderer()[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]" +
-        "new CanvasRenderingContext2D({.tag=ARK_TAG_UNDEFINED, .value={}})[return (void*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]")
+        `new CanvasPath()[return (CanvasPathPeer*) 100]getFinalizer()[return reinterpret_cast<CanvasPathPeer*>(dummyClassFinalizer)]new CanvasRenderer()[return (CanvasRendererPeer*) 100]getFinalizer()[return reinterpret_cast<CanvasRendererPeer*>(dummyClassFinalizer)]new CanvasRenderingContext2D({.tag=ARK_TAG_UNDEFINED, .value={}})[return (CanvasRenderingContext2DPeer*) 100]getFinalizer()[return reinterpret_cast<CanvasRenderingContext2DPeer*>(dummyClassFinalizer)]`)
 
     checkResult("CanvasRenderingContext2D width",
         () => canvasRenderingContext2D!.width,

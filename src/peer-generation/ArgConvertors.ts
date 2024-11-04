@@ -35,6 +35,7 @@ export enum RuntimeType {
 export interface RetConvertor {
     isVoid: boolean
     nativeType: () => string
+    interopType?: () => string
     macroSuffixPart: () => string
 }
 
