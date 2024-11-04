@@ -748,7 +748,7 @@ class PeersGenerator {
             new Method(methodName, signature, method.isStatic ? [MethodModifier.STATIC] : []))
     }
 
-    private toDeclaration(type: idl.IDLType): idl.IDLEntry { 
+    private toDeclaration(type: idl.IDLType): idl.IDLEntry {
         if (idl.isReferenceType(type)) {
             const decl = this.library.resolveTypeReference(type)
             // Currently we're only interested in callbacks for EventsPrinter. In the future, who knows
@@ -983,7 +983,7 @@ export class IdlPeerProcessor {
         const mConstructor = this.makeMaterializedMethod(decl, constructor)
         const finalizerReturnType = {
             isVoid: false,
-            nativeType: () => `${name}Peer*`,
+            nativeType: () => PrimitiveType.NativePointer.getText(),
             interopType: () => PrimitiveType.NativePointer.getText(),
             macroSuffixPart: () => ""
         }
