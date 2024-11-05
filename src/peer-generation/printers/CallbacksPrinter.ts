@@ -94,8 +94,8 @@ export function generateCallbackKindAccess(callback: idl.IDLCallback, language: 
     return `${CallbackKind}.${name}`
 }
 
-export function printCallbacksKindsImports(library: IdlPeerLibrary, writer: LanguageWriter) {
-    if (library.language === Language.ARKTS) {
+export function printCallbacksKindsImports(language: Language, writer: LanguageWriter) {
+    if (language === Language.ARKTS) {
         const imports = new ImportsCollector()
         imports.addFeatures(['KInt'], '@koalaui/interop')
         imports.print(writer, '')

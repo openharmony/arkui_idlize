@@ -659,7 +659,7 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
 
 export function makeCallbacksKinds(library: IdlPeerLibrary, language: Language): string {
     const writer = createLanguageWriter(language, library)
-    printCallbacksKindsImports(library, writer)
+    printCallbacksKindsImports(language, writer)
     printCallbacksKinds(library, writer)
     const enumContent = writer.getOutput().join("\n")
     if (language === Language.CPP)
