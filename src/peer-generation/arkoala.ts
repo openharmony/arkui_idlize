@@ -68,44 +68,6 @@ import { IndentedPrinter } from "../IndentedPrinter"
 import { LanguageWriter } from "./LanguageWriters"
 import { printDeserializeAndCall, printManagedCaller } from "./printers/CallbacksPrinter"
 
-export function generateLibace(config: {
-    libaceDestination: string | undefined,
-    outDir: string,
-    apiVersion: number
-}, peerLibrary: PeerLibrary) {
-    const libace = config.libaceDestination ?
-        new LibaceInstall(config.libaceDestination, false) :
-        new LibaceInstall(config.outDir, true)
-
-    const gniSources = printGniSources(peerLibrary)
-    fs.writeFileSync(libace.gniComponents, gniFile(gniSources))
-
-    // printDelegatesAsMultipleFiles(peerLibrary, libace, { namespace: "OHOS::Ace::NG::GeneratedModifier" })
-    printRealModifiersAsMultipleFiles(peerLibrary, libace, {
-        namespaces: {
-            base: "OHOS::Ace::NG",
-            generated: "OHOS::Ace::NG::GeneratedModifier"
-        },
-        basicVersion: 1,
-        fullVersion: config.apiVersion,
-        extendedVersion: 6,
-    })
-
-    const converterNamespace = "OHOS::Ace::NG::Converter"
-    const { api, converterHeader } = printUserConverter(libace.userConverterHeader, converterNamespace, config.apiVersion, peerLibrary)
-    fs.writeFileSync(libace.generatedArkoalaApi, api)
-    fs.writeFileSync(libace.userConverterHeader, converterHeader)
-    const events = printEventsCLibaceImpl(peerLibrary, {namespace: "OHOS::Ace::NG::GeneratedEvents"})
-    fs.writeFileSync(libace.allEvents, events)
-
-    if (!config.libaceDestination) {
-        const mesonBuild = printMesonBuild(peerLibrary)
-        fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
-    }
-
-    copyToLibace(path.join(__dirname, '..', 'peer_lib'), libace)
-}
-
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
     apiVersion: number,
@@ -341,13 +303,6 @@ export function generateArkoala(config: {
                 integrated: true
             }
         )
-        writeFile(arkoala.peer(new TargetFile('Deserializer')),
-            makeTSDeserializer(peerLibrary),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true
-            }
-        )
     }
     if (config.lang == Language.ARKTS) {
         const interfaces = printInterfaces(peerLibrary, context)
@@ -489,59 +444,6 @@ export function generateArkoala(config: {
             }
         )
     }
-
-    writeFile(arkoala.native(new TargetFile('bridge_generated.cc')), printBridgeCcGenerated(peerLibrary, config.callLog ?? false), {
-        onlyIntegrated: config.onlyIntegrated,
-        integrated: true
-    })
-    writeFile(arkoala.native(new TargetFile('bridge_custom.cc')), printBridgeCcCustom(peerLibrary, config.callLog ?? false), {
-        onlyIntegrated: config.onlyIntegrated
-    })
-
-    const { api, serializers } = printSerializers(config.apiVersion, peerLibrary)
-    writeFile(arkoala.native(new TargetFile('Serializers.h')), serializers, {
-        onlyIntegrated: config.onlyIntegrated,
-        integrated: true
-    })
-    writeFile(arkoala.native(new TargetFile('arkoala_api_generated.h')), api, {
-        onlyIntegrated: config.onlyIntegrated,
-        integrated: true
-    })
-
-    const modifiers = printRealAndDummyModifiers(peerLibrary)
-    const accessors = printRealAndDummyAccessors(peerLibrary)
-    writeFile(
-        arkoala.native(new TargetFile('dummy_impl.cc')),
-        dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6).getOutput().join('\n'),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-        }
-)
-    writeFile(
-        arkoala.native(new TargetFile('real_impl.cc')),
-        dummyImplementations(modifiers.real, accessors.real, 1, config.apiVersion, 6).getOutput().join('\n'),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        })
-    writeFile(arkoala.native(new TargetFile('all_events.cc'),), printEventsCArkoalaImpl(peerLibrary),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        })
-    writeFile(arkoala.native(new TargetFile('library.cc')), libraryCcDeclaration(), {
-        onlyIntegrated: config.onlyIntegrated,
-    })
-    // stub until migrated to idl to make meson works
-    writeFile(arkoala.native(new TargetFile('callback_deserialize_call.cc')), "", {
-        onlyIntegrated: config.onlyIntegrated, 
-        integrated: false
-    })
-    // stub until migrated to idl to make meson works
-    writeFile(arkoala.native(new TargetFile('callback_managed_caller.cc')), "", {
-        onlyIntegrated: config.onlyIntegrated, 
-        integrated: false
-    })
 
     copyArkoalaFiles({onlyIntegrated: config.onlyIntegrated}, arkoala)
 }

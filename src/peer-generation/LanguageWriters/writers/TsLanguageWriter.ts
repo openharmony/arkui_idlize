@@ -328,8 +328,11 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         return new TsObjectAssignStatement(object, undefined, false)
     }
-    makeMapResize(mapTypeName: string, keyType: idl.IDLType, valueType: idl.IDLType, map: string, size: string, deserializer: string): LanguageStatement {
-        return this.makeAssign(map, undefined, this.makeString(`new Map<${this.convert(keyType)}, ${this.convert(valueType)}>()`), false)
+    makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
+        return this.makeString(`new Array<${this.convert(type.elementType[0])}>()`)
+    }
+    makeMapInit(type: idl.IDLType): LanguageExpression {
+        return this.makeString(`new ${this.convert(type)}()`) 
     }
     makeMapKeyTypeName(c: MapConvertor): idl.IDLType {
         return c.keyConvertor.idlType;

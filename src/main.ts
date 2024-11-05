@@ -40,7 +40,7 @@ import { IdlPeerGeneratorVisitor, IdlPeerProcessor, IdlPredefinedGeneratorVisito
 import { generateOhos } from "./peer-generation/OhosGenerator"
 import * as webidl2 from "webidl2"
 import { toIDLNode } from "./from-idl/deserialize"
-import { generateArkoala, generateArkoalaFromIdl, generateLibace, generateLibaceFromIdl } from "./peer-generation/arkoala"
+import { generateArkoala, generateArkoalaFromIdl, generateLibaceFromIdl } from "./peer-generation/arkoala"
 import { Language } from "./Language"
 import { loadPlugin } from "./peer-generation/plugin-api"
 import { SkoalaDeserializerPrinter } from "./peer-generation/printers/SkoalaDeserializerPrinter"
@@ -436,11 +436,7 @@ if (options.dts2peer) {
 
                     if (options.generatorTarget == "libace" ||
                         options.generatorTarget == "all") {
-                        generateLibace({
-                            outDir: outDir,
-                            libaceDestination: options.libaceDestination,
-                            apiVersion: apiVersion
-                         }, peerLibrary)
+                        throw "Native generation for .d.ts is disabled"
                     }
 
                     if (options.generatorTarget == "tracker") {

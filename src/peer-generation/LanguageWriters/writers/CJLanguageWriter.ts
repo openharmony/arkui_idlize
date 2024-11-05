@@ -262,6 +262,12 @@ export class CJLanguageWriter extends LanguageWriter {
     makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
+    makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
+        throw new Error(`TBD`)
+    }
+    makeMapInit(type: idl.IDLType): LanguageExpression {
+        throw new Error(`TBD`)   
+    }
     makeArrayLength(array: string, length?: string): LanguageExpression {
         return this.makeString(`${array}.size`)
     }
@@ -320,14 +326,6 @@ export class CJLanguageWriter extends LanguageWriter {
                 false)
         }
         return new TsObjectAssignStatement(object, undefined, false)
-    }
-    makeMapResize(mapType: string, keyType: IDLType, valueType: IDLType, map: string, size: string, deserializer: string): LanguageStatement {
-        return this.makeAssign(
-            map, 
-            undefined, 
-            this.makeString(`new Map<${this.convert(keyType)}, ${this.convert(valueType)}>()`), 
-            false
-        )
     }
     makeMapKeyTypeName(c: MapConvertor): IDLType {
         return c.keyConvertor.idlType;

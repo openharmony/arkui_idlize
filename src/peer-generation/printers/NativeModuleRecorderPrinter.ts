@@ -105,8 +105,11 @@ class NativeModuleRecorderVisitor {
                         deserializerCreated = true
                     }
 
+                    const fieldName = `${method.overloadedName}_${method.argConvertors[i].param}`
                     printer.writeStatement(
-                        method.argConvertors[i].convertorDeserialize(`this`, `node.${method.overloadedName}_${method.argConvertors[i].param}`, printer)
+                        method.argConvertors[i].convertorDeserialize(`${fieldName}_buf`, `thisDeserializer`, (expr) => {
+                            return printer.makeAssign(`node.${fieldName}`, undefined, expr, false)
+                        }, printer)
                     )
                 } else {             
                     this.nativeModuleRecorder.writeLines(`node.${method.overloadedName}_${method.argConvertors[i].param} = ${parameters.argsNames[i + 1]}`)               

@@ -407,6 +407,8 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     abstract makeUndefined(): LanguageExpression
     abstract makeMapKeyTypeName(c: MapConvertor): idl.IDLType
     abstract makeMapValueTypeName(c: MapConvertor): idl.IDLType
+    abstract makeArrayInit(type: idl.IDLContainerType): LanguageExpression
+    abstract makeMapInit(type: idl.IDLType): LanguageExpression
     abstract makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement
     abstract makeLoop(counter: string, limit: string): LanguageStatement
     abstract makeLoop(counter: string, limit: string, statement: LanguageStatement): LanguageStatement
@@ -539,8 +541,8 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     makeRuntimeTypeGetterCall(value: string): LanguageExpression {
         return this.makeFunctionCall("runtimeType", [ this.makeString(value) ])
     }
-    makeArrayResize(array: string, typeName: idl.IDLType, length: string, deserializer: string): LanguageStatement {
-        return new ExpressionStatement(this.makeString(`${array} = [] as ${this.convert(typeName)}`))
+    makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
+        return new ExpressionStatement(new StringExpression(""))
     }
     makeMapResize(mapTypeName: string, keyType: idl.IDLType, valueType: idl.IDLType, map: string, size: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression("// TODO: TS map resize"))

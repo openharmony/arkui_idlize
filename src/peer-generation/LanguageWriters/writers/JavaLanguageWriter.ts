@@ -261,6 +261,12 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.STATIC, FieldModifier.FINAL]
     }
+    makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
+        throw new Error("Method not implemented.")
+    }
+    makeMapInit(type: idl.IDLType): LanguageExpression {
+        throw new Error("Method not implemented.")
+    }
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }

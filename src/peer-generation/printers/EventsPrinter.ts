@@ -511,7 +511,9 @@ interface PeerEvent {
                         this.printer.makeAssign(`event.nodeId`, undefined, new StringExpression(`nodeId`), false),
                         ...info.args.map(arg => {
                             const convertor = this.typeConvertor(arg.name, arg.type, arg.nullable)
-                            return convertor.convertorDeserialize('event', `event.${arg.name}`, this.printer)
+                            return convertor.convertorDeserialize(`${arg.name}_buf`, `eventDeserializer`, (expr) => {
+                                return this.printer.makeAssign(`event.${arg.name}`, undefined, expr, false)
+                            }, this.printer)
                         }),
                         this.printer.makeReturn(this.printer.makeCast(
                             new StringExpression(`event`),

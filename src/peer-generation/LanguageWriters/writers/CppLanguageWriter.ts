@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createReferenceType, getIDLTypeName, IDLCallback, IDLType, isIDLTypeName, toIDLType } from "../../../idl"
+import { createReferenceType, getIDLTypeName, IDLCallback, IDLContainerType, IDLType, isIDLTypeName, toIDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
@@ -269,7 +269,13 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new CppMapForEachStatement(map, key, value, op)
     }
-    makeArrayResize(array: string, typeName: IDLType, length: string, deserializer: string): LanguageStatement {
+    makeArrayInit(type: IDLContainerType): LanguageExpression {
+        return this.makeString(`{}`)
+    }
+    makeMapInit(type: IDLType): LanguageExpression {
+        return this.makeString(`{}`)        
+    }
+    makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
         return new CppArrayResizeStatement(array, length, deserializer)
     }
     makeMapResize(mapTypeName: string, keyType: IDLType, valueType: IDLType, map: string, size: string, deserializer: string): LanguageStatement {

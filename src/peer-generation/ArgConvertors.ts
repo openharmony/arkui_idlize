@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import * as idl from "../idl"
 import { Language } from "../Language"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { toIDLNode } from "../from-idl/deserialize"
@@ -39,6 +40,8 @@ export interface RetConvertor {
     macroSuffixPart: () => string
 }
 
+export type ExpressionAssigneer = (expression: LanguageExpression) => LanguageStatement
+
 export interface ArgConvertor { // todo:
     param: string
     idlType: IDLType
@@ -49,7 +52,7 @@ export interface ArgConvertor { // todo:
     scopeEnd?(param: string, language: Language): string
     convertorArg(param: string, writer: LanguageWriter): string
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void
-    convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement
     interopType(language: Language): string
     nativeType(impl: boolean): string
     targetType(writer: LanguageWriter): string
@@ -84,7 +87,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     scopeEnd?(param: string, language: Language): string
     abstract convertorArg(param: string, writer: LanguageWriter): string
     abstract convertorSerialize(param: string, value: string, writer: LanguageWriter): void
-    abstract convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement
+    abstract convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement    
     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined {
         return undefined
     }
@@ -112,8 +115,8 @@ export class ProxyConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.convertor.convertorArg(param, writer)
     }
-    convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        return this.convertor.convertorDeserialize(param, value, writer)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return this.convertor.convertorDeserialize(bufferName, deserializerName, assigneer, writer)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         this.convertor.convertorSerialize(param, value, printer)
@@ -203,9 +206,8 @@ export class BooleanConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, "writeBoolean", [value])
     }
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = this.getObjectAccessor(printer.language, value, undefined, printer)
-        return printer.makeAssign(accessor, undefined, printer.makeString(`${param}Deserializer.readBoolean()`), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeString(`${deserializerName}.readBoolean()`))
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Boolean.getText()
@@ -226,10 +228,8 @@ export class UndefinedConvertor extends BaseArgConvertor {
         return writer.makeUndefined().asString()
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {}
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = this.getObjectAccessor(printer.language, value, undefined, printer)
-        return printer.makeAssign(accessor, undefined,
-                printer.makeUndefined(), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeUndefined())
     }
     nativeType(impl: boolean): string {
         return `${PrimitiveType.Prefix}Undefined`
@@ -246,10 +246,8 @@ export class VoidConvertor extends UndefinedConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeVoid().asString()
     }
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = this.getObjectAccessor(printer.language, value, undefined, printer)
-        return printer.makeAssign(accessor, undefined,
-                printer.makeVoid(), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeVoid())
     }
     nativeType(impl: boolean): string {
         return `${PrimitiveType.Prefix}Void`
@@ -264,9 +262,8 @@ export class NullConvertor extends BaseArgConvertor {
         return writer.makeNull().asString()
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {}
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessor = this.getObjectAccessor(printer.language, value, undefined, printer)
-        return printer.makeAssign(accessor, undefined, printer.makeUndefined(), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeUndefined())
     }
     nativeType(impl: boolean): string {
         return "nullptr"
@@ -302,9 +299,8 @@ export class LengthConvertorScoped extends BaseArgConvertor {
             )
         )
     }
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        return printer.makeAssign(value, undefined,
-            printer.makeString(`${param}Deserializer.readLength()`), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeString(`${deserializerName}.readLength()`))
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Length.getText()
@@ -343,12 +339,11 @@ export class LengthConvertor extends BaseArgConvertor {
             )
         )
     }
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const receiver = this.getObjectAccessor(printer.language, value, undefined, printer)
-        return printer.makeAssign(receiver, undefined,
-            printer.makeCast(
-                printer.makeString(`${param}Deserializer.readLength()`),
-                printer.makeType(this.idlType, false, receiver), false), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        const readExpr = writer.makeString(`${deserializerName}.readLength()`)
+        if (writer.language === Language.CPP)
+            return assigneer(readExpr)
+        return assigneer(writer.makeCast(readExpr, writer.makeType(this.idlType, false), false))
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.Length.getText()
@@ -398,13 +393,15 @@ export class CustomTypeConvertor extends BaseArgConvertor {
             [`"${this.customTypeName}"`, printer.makeCastCustomObject(value, this.isGenericType).asString()]
         )
     }
-    convertorDeserialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const receiver = this.getObjectAccessor(printer.language, value, undefined, printer)
-        return printer.makeAssign(receiver, undefined,
-                printer.makeCast(printer.makeMethodCall(`${param}Deserializer`,
-                        "readCustomObject",
-                        [printer.makeString(`"${this.customTypeName}"`)]),
-                    printer.makeType(this.idlType, false, receiver)), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        const type = writer.language === Language.CPP
+            ? idl.createReferenceType(this.nativeType(false))
+            : this.idlType
+        return assigneer(writer.makeCast(
+            writer.makeMethodCall(`${deserializerName}`,
+                "readCustomObject",
+                [writer.makeString(`"${this.customTypeName}"`)]),
+            writer.makeType(type, false)))
     }
     nativeType(impl: boolean): string {
         return PrimitiveType.CustomObject.getText()
@@ -436,12 +433,10 @@ export class NumberConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, "writeNumber", [value])
     }
-    convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const receiver = this.getObjectAccessor(writer.language, value, undefined, writer)
-        return writer.makeAssign(receiver, undefined,
-            writer.makeCast(
-                writer.makeString(`${param}Deserializer.readNumber()`),
-                writer.makeType(this.idlType, false, receiver)), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeCast(
+            writer.makeString(`${deserializerName}.readNumber()`),
+            writer.makeType(this.idlType, false)))
     }
     nativeType(): string {
         return PrimitiveType.Number.getText()
@@ -464,9 +459,8 @@ export class PredefinedConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, `write${this.convertorName}`, [value])
     }
-    convertorDeserialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const accessor = this.getObjectAccessor(writer.language, value, undefined, writer)
-        return writer.makeAssign(accessor, undefined, writer.makeString(`${param}Deserializer.read${this.convertorName}()`), false)
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeString(`${deserializerName}.read${this.convertorName}()`))
     }
     nativeType(impl: boolean): string {
         return this.cType

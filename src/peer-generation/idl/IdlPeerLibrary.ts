@@ -262,7 +262,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
             return new AggregateConvertor(this, param, type, declaration as idl.IDLInterface)
         }
         if (declaration.kind === idl.IDLKind.TupleInterface) {
-            return new TupleConvertor(this, param, declaration as idl.IDLInterface)
+            return new TupleConvertor(this, param, type, declaration as idl.IDLInterface)
         }
         throw new Error(`Unknown decl ${declarationName} of kind ${declaration.kind}`)
     }

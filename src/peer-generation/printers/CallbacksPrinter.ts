@@ -131,25 +131,26 @@ class DeserializeCallbacksVisitor {
             const resourceName = `_resource`
             writer.writeStatement(writer.makeAssign(`thisDeserializer`, idl.createReferenceType(`Deserializer`), 
                 writer.makeString(`Deserializer(thisArray, thisLength)`), true, false))
-            writer.writeStatement(writer.makeAssign(resourceName, idl.createReferenceType(this.library.computeTargetName(callback, false)), undefined, true, false))
             const callbackConvertor = this.library.typeConvertor(resourceName, idl.createReferenceType(callback.name))
-            writer.writeStatement(callbackConvertor.convertorDeserialize(`this`, resourceName, writer))
+            writer.writeStatement(callbackConvertor.convertorDeserialize(`${resourceName}_buf`, `thisDeserializer`, (expr) => {
+                return writer.makeAssign(resourceName, idl.createReferenceType(this.library.computeTargetName(callback, false)), 
+                    expr, true, false)
+            }, writer))
             const argsNames = [`_resource.resource.resourceId`]
             for (const param of callback.parameters) {
                 const convertor = this.library.typeConvertor(param.name, param.type!, param.isOptional)
-                if (this.library.computeTargetName(param.type!, param.isOptional) === "Opt_Object") {
-                    this.library.computeTargetName(param.type!, param.isOptional)
-                }
-                writer.writeStatement(writer.makeAssign(param.name, idl.createReferenceType(convertor.nativeType(false)), undefined, true, false))
-                writer.writeStatement(convertor.convertorDeserialize(`this`, param.name, writer))
+                writer.writeStatement(convertor.convertorDeserialize(`${param.name}_buf`, `thisDeserializer`, (expr) => {
+                    return writer.makeAssign(param.name, idl.createReferenceType(convertor.nativeType(false)), expr, true, false)
+                }, writer))
                 argsNames.push(param.name)
             }
             if (!idl.isVoidType(callback.returnType)) {
                 const continuationReference = this.library.createContinuationCallbackReference(callback.returnType)
                 const convertor = this.library.typeConvertor(`continuation`, continuationReference)
                 const continuationTarget = this.library.toDeclaration(continuationReference)
-                writer.writeStatement(writer.makeAssign(`continuation`, idl.createReferenceType(convertor.nativeType(false)), undefined, true, false))
-                writer.writeStatement(convertor.convertorDeserialize(`this`, `continuation`, writer))
+                writer.writeStatement(convertor.convertorDeserialize(`continuation_buf`, `thisDeserializer`, (expr) => {
+                    return writer.makeAssign(`continuation`, idl.createReferenceType(convertor.nativeType(false)), expr, true, false)
+                }, writer))
                 argsNames.push(`continuation`)
             }
             writer.writeExpressionStatement(writer.makeMethodCall(`${resourceName}`, `call`, argsNames.map(it => writer.makeString(it))))

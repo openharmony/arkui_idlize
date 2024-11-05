@@ -379,10 +379,10 @@ export function makeConverterHeader(path: string, namespace: string, library: Pe
     return converter
 }
 
-export function makeCSerializers(library: PeerLibrary | IdlPeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
+export function makeCSerializers(library: IdlPeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
-    const serializers = createLanguageWriter(Language.CPP, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
-    const writeToString = createLanguageWriter(Language.CPP, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
+    const serializers = createLanguageWriter(Language.CPP, library)
+    const writeToString = createLanguageWriter(Language.CPP, library)
     serializers.print("\n// Serializers\n")
     writeSerializer(library, serializers, "")
     serializers.print("\n// Deserializers\n")
@@ -401,9 +401,9 @@ ${serializers.getOutput().join("\n")}
 `
 }
 
-export function makeTSDeserializer(library: PeerLibrary | IdlPeerLibrary): string {
-    const deserializer = createLanguageWriter(Language.TS, library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
-    writeDeserializer(library, deserializer, "")
+export function makeTSDeserializer(library: IdlPeerLibrary): string {
+    const deserializer = createLanguageWriter(Language.TS, library)
+    writeDeserializer(library, deserializer)
     return `${cStyleCopyright}
 import { runtimeType, Tags, RuntimeType, SerializerBase, CallbackResource } from "./SerializerBase"
 import { DeserializerBase } from "./DeserializerBase"

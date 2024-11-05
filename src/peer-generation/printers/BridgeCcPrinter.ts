@@ -18,7 +18,7 @@ import { EnumConvertor} from "../Convertors";
 import { ArgConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
-import { createLanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
+import { createLanguageWriter, ExpressionStatement, Method, NamedMethodSignature } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { CUSTOM_API, CustomAPI } from "../CustomAPI"
@@ -82,8 +82,11 @@ class BridgeCcVisitor {
                     deserializerCreated = true
                 }
                 let result = `${it.param}_value`
-                this.generatedApi.print(`${it.nativeType(false)} ${result};`)
-                this.generatedApi.writeStatement(it.convertorDeserialize(`this`, result, this.generatedApi))
+                this.generatedApi.writeStatement(it.convertorDeserialize(`${result}_buf`, `thisDeserializer`, (expr) => {
+                    return new ExpressionStatement(this.generatedApi.makeString(
+                        `${it.nativeType(false)} ${result} = ${expr.asString()};`
+                    ))
+                }, this.generatedApi))
             }
         })
         this.printAPICall(method, modifierName)

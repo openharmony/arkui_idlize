@@ -182,7 +182,7 @@ class HeaderVisitor {
     }
 }
 
-export function printUserConverter(headerPath: string, namespace: string, apiVersion: number, peerLibrary: PeerLibrary | IdlPeerLibrary) :
+export function printUserConverter(headerPath: string, namespace: string, apiVersion: number, peerLibrary: IdlPeerLibrary) :
         {api: string, converterHeader: string}
 {
     const apiHeader = new IndentedPrinter()
@@ -203,7 +203,7 @@ export function printUserConverter(headerPath: string, namespace: string, apiVer
     return {api, converterHeader}
 }
 
-export function printSerializers(apiVersion: number, peerLibrary: PeerLibrary | IdlPeerLibrary): {api: string, serializers: string} {
+export function printSerializers(apiVersion: number, peerLibrary: IdlPeerLibrary): {api: string, serializers: string} {
     const apiHeader = new IndentedPrinter()
     const modifierList = new IndentedPrinter()
     const accessorList = new IndentedPrinter()
