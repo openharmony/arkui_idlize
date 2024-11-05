@@ -333,7 +333,7 @@ export class IdlPeerLibrary implements ReferenceResolver {
                 return ArkLength
             }
             if (idl.isIDLTypeName(type, 'Date')) {
-                return ArkInt64
+                return ArkDate
             }
             if (idl.isIDLTypeName(type, 'AnimationRange') || idl.isIDLTypeName(type, 'ContentModifier')) {
                 return ArkCustomObject
@@ -551,6 +551,7 @@ export const ArkInt32 = idl.IDLI32Type
 export const ArkInt64 = idl.IDLI64Type
 export const ArkFunction = idl.IDLFunctionType
 export const ArkLength = idl.IDLLengthType
+export const ArkDate = idl.IDLDate
 export const ArkCustomObject = idl.IDLCustomObjectType
 
 export function cleanPrefix(name: string, prefix: string): string {

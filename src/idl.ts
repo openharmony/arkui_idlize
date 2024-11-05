@@ -440,6 +440,7 @@ export const IDLUndefinedType = createPrimitiveType('undefined')
 export const IDLUnknownType = createPrimitiveType('unknown')
 export const IDLObjectType = createReferenceType('Object')
 export const IDLThisType = createPrimitiveType('this')
+export const IDLDate = createPrimitiveType('date')
 
 // Stub for IdlPeerLibrary
 export const IDLFunctionType = createPrimitiveType('Function')

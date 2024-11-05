@@ -68,6 +68,7 @@ typedef int32_t Ark_Int32;
 typedef unsigned int Ark_UInt32; // TODO: update unsigned int
 typedef int64_t Ark_Int64;
 typedef int8_t Ark_Int8;
+typedef int64_t Ark_Date;
 typedef int8_t Ark_Boolean;
 typedef const char* Ark_CharPtr;
 typedef void* Ark_NativePointer;

@@ -30,6 +30,7 @@ export class PrimitiveType {
     static Number = new PrimitiveType(`Number`, true)
     static Int32 = new PrimitiveType(`Int32`)
     static Int64 = new PrimitiveType(`Int64`)
+    static Date = new PrimitiveType(`Date`) 
     static RuntimeType = new PrimitiveType(`RuntimeType`)
     static Boolean = new PrimitiveType(`Boolean`)
     static Function = new PrimitiveType(`Function`, false)

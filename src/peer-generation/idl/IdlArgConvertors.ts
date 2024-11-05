@@ -760,7 +760,7 @@ export class DateConvertor extends BaseArgConvertor { //
         return assigneer(writer.makeString(`new Date(${deserializeTime.asString()})`))
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.Int64.getText()
+        return PrimitiveType.Date.getText()
     }
     interopType(language: Language): string {
         return language == Language.CPP ? PrimitiveType.Int64.getText() : "KLong"
