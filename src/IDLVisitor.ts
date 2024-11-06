@@ -584,67 +584,18 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             extendedAttributes: extendedAttributes,
             documentation: getDocumentation(this.sourceFile, node, this.options.docs),
         })
-        let seenMembers = new Map<string, [string, boolean]>()
         result.elements = node.members
             .filter(ts.isEnumMember)
-            .map((it, index) => this.serializeEnumMember(it, result, seenMembers, names[index]))
+            .map((it, index) => this.serializeEnumMember(it, result, names[index]))
         return result
     }
 
-    serializeEnumMember(node: ts.EnumMember, parent: idl.IDLEnum, seenMembers: Map<string, [string, boolean]>, name: string): idl.IDLEnumMember {
-        let isString = false
-        let initializer: string | number | undefined = undefined
-        if (!node.initializer) {
-            // Nothing
-        } else if (ts.isStringLiteral(node.initializer)) {
-            isString = true
-            initializer = node.initializer.text
-            seenMembers.set(nameOrNull(node.name)!, [initializer, true])
-        } else if (ts.isNumericLiteral(node.initializer) ||
-            (ts.isPrefixUnaryExpression(node.initializer) &&
-                node.initializer.operator == ts.SyntaxKind.MinusToken &&
-                ts.isNumericLiteral(node.initializer.operand))
-        ) {
-            isString = false
-            initializer = ts.isPrefixUnaryExpression(node.initializer) ?
-                "-" + node.initializer.operand.getText() :
-                node.initializer.text
-            seenMembers.set(nameOrNull(node.name)!, [initializer, false])
-        } else if (
-            ts.isBinaryExpression(node.initializer) &&
-            node.initializer.operatorToken.kind == ts.SyntaxKind.LessThanLessThanToken &&
-            ts.isNumericLiteral(node.initializer.right) &&
-            ts.isNumericLiteral(node.initializer.left)
-        ) {
-            isString = false
-            initializer = (+node.initializer.left.text) << (+node.initializer.right.text)
-            // console.log(`Computed ${node.initializer.getText(this.sourceFile)} to `, initializer)
-        } else if (
-            ts.isBinaryExpression(node.initializer) &&
-            node.initializer.operatorToken.kind == ts.SyntaxKind.BarToken &&
-            ts.isNumericLiteral(node.initializer.right) &&
-            ts.isNumericLiteral(node.initializer.left)
-        ) {
-            isString = false
-            initializer = (+node.initializer.left.text) | (+node.initializer.right.text)
-        } else if (ts.isIdentifier(node.initializer)) {
-            // For cases where one enum member refers another one by value.
-            initializer = node.initializer.text
-            let init = seenMembers.get(initializer)
-            if (init) {
-                isString = init[1]
-                initializer = init[0]
-            }
-        } else {
-            isString = false
-            initializer = node.initializer.getText(this.sourceFile)
-            //throw new Error(`Unpresentable enum initializer: ${initializer} ${node.initializer.kind}`)
-            console.log(`WARNING: Unpresentable enum initializer: ${initializer} ${node.initializer.kind}`)
-        }
+    serializeEnumMember(node: ts.EnumMember, parent: idl.IDLEnum, name: string): idl.IDLEnumMember {
+        const initializer = this.typeChecker.getConstantValue(node)
         return idl.createEnumMember(
             name, 
             parent,
-            isString ? idl.IDLStringType : idl.IDLNumberType,
+            typeof initializer == 'string' ? idl.IDLStringType : idl.IDLNumberType,
             initializer, {
             fileName: node.getSourceFile().fileName,
             documentation: getDocumentation(this.sourceFile, node, this.options.docs),

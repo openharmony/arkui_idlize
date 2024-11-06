@@ -973,13 +973,15 @@ export function hasSuperType(idl: IDLInterface) {
 
 export function printEnumMember(idl: IDLEnumMember): stringOrNone[] {
     const type = printType(idl.type)
-    const initializer = type === IDLStringType.name
-        ? `"${(idl.initializer as string).replaceAll('"', "'")}"`
-        : idl.initializer
+    const initializer = idl.initializer === undefined
+        ? ''
+        : ' = ' + (type === IDLStringType.name
+            ? `"${String(idl.initializer).replaceAll('"', "'")}"`
+            : idl.initializer)
     return [
         idl.documentation,
         ...printExtendedAttributes(idl, 0),
-        `${type} ${idl.name}${initializer ? ` = ${initializer}` : ``};`
+        `${type} ${idl.name}${initializer};`
     ].map(it => it ? indentedBy(it, 1) : undefined)
 }
 
