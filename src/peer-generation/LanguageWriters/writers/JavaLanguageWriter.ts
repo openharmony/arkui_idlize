@@ -264,6 +264,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
         throw new Error("Method not implemented.")
     }
+    makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
+        throw new Error("Method not implemented.")        
+    }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         throw new Error("Method not implemented.")
     }

@@ -394,6 +394,7 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     abstract makeMapKeyTypeName(c: MapConvertor): idl.IDLType
     abstract makeMapValueTypeName(c: MapConvertor): idl.IDLType
     abstract makeArrayInit(type: idl.IDLContainerType): LanguageExpression
+    abstract makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression
     abstract makeMapInit(type: idl.IDLType): LanguageExpression
     abstract makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement
     abstract makeLoop(counter: string, limit: string): LanguageStatement

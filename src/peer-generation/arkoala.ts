@@ -29,7 +29,8 @@ import {
     makeTypeCheckerFromDTS,
     makeTypeChecker,
     makeCallbacksKinds,
-    tsCopyrightAndWarning
+    tsCopyrightAndWarning,
+    makeDeserializeAndCall
 } from "./FileGenerators"
 import { makeCJSerializer, makeCJNodeTypes } from "./printers/lang/CJPrinters"
 import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./printers/lang/JavaPrinters"
@@ -643,6 +644,12 @@ export function generateArkoalaFromIdl(config: {
                 integrated: true
             }
         )
+        writeFile(arkoala.peer(new TargetFile('CallbackDeserializeCall')), makeDeserializeAndCall(peerLibrary, Language.TS),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
     } else if (peerLibrary.language === Language.ARKTS) {
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
@@ -810,7 +817,7 @@ export function generateArkoalaFromIdl(config: {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true
         })
-    writeFile(arkoala.native(new TargetFile('callback_deserialize_call.cc')), printDeserializeAndCall(peerLibrary),
+    writeFile(arkoala.native(new TargetFile('callback_deserialize_call.cc')), makeDeserializeAndCall(peerLibrary, Language.CPP),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true

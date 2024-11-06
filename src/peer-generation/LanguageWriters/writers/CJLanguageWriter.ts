@@ -262,6 +262,9 @@ export class CJLanguageWriter extends LanguageWriter {
     makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
+    makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
+        throw new Error(`TBD`)        
+    }
     makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
         throw new Error(`TBD`)
     }

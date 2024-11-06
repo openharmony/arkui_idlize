@@ -272,6 +272,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeArrayInit(type: IDLContainerType): LanguageExpression {
         return this.makeString(`{}`)
     }
+    makeClassInit(type: IDLType, paramenters: LanguageExpression[]): LanguageExpression {
+        return this.makeString(`${this.convert(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
+    }
     makeMapInit(type: IDLType): LanguageExpression {
         return this.makeString(`{}`)        
     }

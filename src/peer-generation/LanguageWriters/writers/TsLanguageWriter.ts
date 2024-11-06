@@ -331,6 +331,9 @@ export class TSLanguageWriter extends LanguageWriter {
     makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
         return this.makeString(`new Array<${this.convert(type.elementType[0])}>()`)
     }
+    makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
+        return this.makeString(`new ${this.convert(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
+    }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         return this.makeString(`new ${this.convert(type)}()`) 
     }

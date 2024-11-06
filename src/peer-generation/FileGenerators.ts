@@ -28,7 +28,7 @@ import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { writeARKTSTypeCheckerFromDTS, writeTSTypeCheckerFromDTS } from "./printers/TypeCheckFromDTSPrinter"
 import { Language } from "../Language"
-import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/CallbacksPrinter"
+import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
 import { makeCJSerializer } from "./printers/lang/CJPrinters"
 import { IDLVoidType, toIDLType } from "../idl"
 import { createEmptyReferenceResolver, getReferenceResolver } from "./ReferenceResolver"
@@ -573,6 +573,12 @@ export function peerFileTemplate(content: string): string {
 
 export function componentFileTemplate(content: string): string {
     return tsCopyrightAndWarning(content)
+}
+
+export function makeDeserializeAndCall(library: IdlPeerLibrary, language: Language) {
+    const writer = createLanguageWriter(language, library)
+    printDeserializeAndCall(library, writer)
+    return writer.getOutput().join('\n')
 }
 
 export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: LanguageWriter): string {
