@@ -30,6 +30,6 @@ static const %CPP_PREFIX%ArkUINodeModifiers* GetNodeModifiers() {
     return GetFullImpl()->getNodeModifiers();
 }
 
-[[maybe_unused]] static const %CPP_PREFIX%ArkUIAccessors* GetAccessors() {
+static const %CPP_PREFIX%ArkUIAccessors* GetAccessors() {
     return GetFullImpl()->getAccessors();
 }

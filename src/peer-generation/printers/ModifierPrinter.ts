@@ -213,7 +213,6 @@ export class ModifierVisitor {
                 this.real.print(`CHECK_NULL_VOID(${
                     method.argConvertors.at(0)?.param
                 });`)
-                this.real.print(`[[maybe_unused]]`)
                 this.real.print(`auto convValue = Converter::Convert<std::string>(*${
                     method.argConvertors.at(0)?.param
                 });`)
@@ -230,7 +229,6 @@ export class ModifierVisitor {
                 });`)
             } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
                 .includes(PrimitiveType.Boolean.getText())) {
-                this.real.print(`[[maybe_unused]]`)
                 this.real.print(`auto convValue = Converter::Convert<bool>(${
                     method.argConvertors.at(0)?.param
                 });`)
