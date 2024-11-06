@@ -343,10 +343,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                 const continuationTarget = this.library.resolveTypeReference(continuationReference) as idl.IDLCallback
                 const continuationConvertor = this.library.typeConvertor(continuationCallbackName, continuationReference)
                 const returnType = target.returnType
-                const optionalReturnType = idl.createUnionType([
-                    target.returnType,
-                    idl.IDLUndefinedType,
-                ])
+                const optionalReturnType = idl.maybeOptional(target.returnType, true)
                 continuation = [
                     writer.makeAssign(continuationValueName, optionalReturnType, undefined, true, false),
                     writer.makeAssign(

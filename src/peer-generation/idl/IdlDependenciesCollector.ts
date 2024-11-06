@@ -17,24 +17,24 @@ import * as idl from '../../idl'
 import { DeclarationConvertor, TypeConvertor, convertDeclaration, convertType } from "../LanguageWriters/typeConvertor";
 import { IdlPeerLibrary } from './IdlPeerLibrary';
 
-export class TypeDependenciesCollector implements TypeConvertor<idl.IDLEntry[]> {
+export class TypeDependenciesCollector implements TypeConvertor<idl.IDLNode[]> {
     constructor(protected readonly library: IdlPeerLibrary) {}
 
-    convertOptional(type: idl.IDLOptionalType): idl.IDLEntry[] {
-        return [type]
+    convertOptional(type: idl.IDLOptionalType): idl.IDLNode[] {
+        return convertType(this, type.type)
     }
-    convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
+    convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
         return type.types.flatMap(ty => convertType(this, ty))
     }
-    convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
+    convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
         return type.elementType.flatMap(ty => convertType(this, ty))
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
         return []
     }
-    convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
+    convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
         const decl = this.library.resolveTypeReference(type)
-        const result: idl.IDLEntry[] = !decl ? []
+        const result: idl.IDLNode[] = !decl ? []
             : idl.isEnumMember(decl) ? [decl.parent] : [decl]
         const typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)
         if (typeArgs) {
@@ -42,22 +42,22 @@ export class TypeDependenciesCollector implements TypeConvertor<idl.IDLEntry[]> 
         }
         return result
     }
-    convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLEntry[] {
+    convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLNode[] {
         return []
     }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLEntry[] {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLNode[] {
         return []
     }
-    convert(node: idl.IDLType | undefined): idl.IDLEntry[] {
+    convert(node: idl.IDLType | undefined): idl.IDLNode[] {
         return node ? convertType(this, node) : []
     }
 }
 
-export class DeclarationDependenciesCollector implements DeclarationConvertor<idl.IDLEntry[]> {
+export class DeclarationDependenciesCollector implements DeclarationConvertor<idl.IDLNode[]> {
     constructor(
         private readonly typeDepsCollector: TypeDependenciesCollector,
     ) {}
-    convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
+    convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
         return [
             ...decl.inheritance
                 .filter(it => it !== idl.IDLTopType)
@@ -72,25 +72,25 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<id
                 ])
         ]
     }
-    protected convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLEntry[] {
+    protected convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLNode[] {
         if (idl.isInterface(type)) {
             return this.typeDepsCollector.convert(idl.createReferenceType(type.name))
         }
         return this.typeDepsCollector.convert(type)
     }
-    convertEnum(decl: idl.IDLEnum): idl.IDLEntry[] {
+    convertEnum(decl: idl.IDLEnum): idl.IDLNode[] {
         return []
     }
-    convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
+    convertTypedef(decl: idl.IDLTypedef): idl.IDLNode[] {
         return convertType(this.typeDepsCollector, decl.type)
     }
-    convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {
+    convertCallback(decl: idl.IDLCallback): idl.IDLNode[] {
         return [
             ...decl.parameters.flatMap(it => convertType(this.typeDepsCollector, it.type!)),
             ...convertType(this.typeDepsCollector, decl.returnType),
         ]
     }
-    convert(node: idl.IDLEntry | undefined): idl.IDLEntry[] {
+    convert(node: idl.IDLEntry | undefined): idl.IDLNode[] {
         if (node === undefined)
             return []
         return convertDeclaration(this, node)

@@ -69,7 +69,7 @@ export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCon
 
     /***** TypeConvertor<CJTypeAlias> **********************************/
     convertOptional(type: idl.IDLOptionalType): CJTypeAlias {
-        return CJTypeAlias.fromTypeName(convertCJOptional(this.convert(type.element)), true)
+        return CJTypeAlias.fromTypeName(convertCJOptional(this.convert(type.type)), true)
     }
     convertUnion(type: idl.IDLUnionType): CJTypeAlias {
         const aliases = type.types.map(it => convertType(this, it))
@@ -91,7 +91,7 @@ export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCon
         return CJTypeAlias.fromTypeName(`Callback`, false)
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): CJTypeAlias {
-        return CJTypeAlias.fromTypeName(idl.getIDLTypeName(type), false)
+        return CJTypeAlias.fromTypeName(type.name, false)
     }
     convertTypeReference(type: idl.IDLReferenceType): CJTypeAlias {
         const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
@@ -111,7 +111,7 @@ export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCon
             }
         }
 
-        let typeSpec = idl.getIDLTypeName(type)
+        let typeSpec = type.name
         if (cjCustomTypeMapping.has(typeSpec)) {
             typeSpec = cjCustomTypeMapping.get(typeSpec)!
         }
@@ -127,7 +127,7 @@ export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCon
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): CJTypeAlias {
         // TODO
-        return CJTypeAlias.fromTypeName(idl.getIDLTypeName(type), false)
+        return CJTypeAlias.fromTypeName(type.name, false)
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): CJTypeAlias {
         switch (type) {

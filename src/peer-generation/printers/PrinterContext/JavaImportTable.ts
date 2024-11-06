@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { getIDLTypeName, IDLType, toIDLType } from "../../../idl";
+import { forceAsNamedNode, IDLType, toIDLType } from "../../../idl";
 import { LanguageWriter } from "../../LanguageWriters";
 import { ImportTable } from "../ImportTable";
 import * as assert from "assert";
@@ -53,7 +53,7 @@ export class JavaImportTable implements ImportTable {
     }
 
     private encode(type: IDLType): string {
-        return `${getIDLTypeName(type)}`
+        return forceAsNamedNode(type).name
     }
 
     private setPeerLibImports(): void {

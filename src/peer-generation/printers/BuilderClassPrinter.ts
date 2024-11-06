@@ -10,7 +10,7 @@ import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { Language } from "../../Language";
-import { getIDLTypeName, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../../idl";
+import { forceAsNamedNode, IDLType, IDLVoidType, isOptionalType, maybeOptional, toIDLType } from "../../idl";
 import { createEmptyReferenceResolver } from "../ReferenceResolver";
 
 interface BuilderClassFileVisitor {
@@ -64,7 +64,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
-                writer.writeFieldDeclaration(field.name, field.type, field.modifiers, !!field.type.optional)
+                writer.writeFieldDeclaration(field.name, field.type, field.modifiers, isOptionalType(field.type))
             })
 
             clazz.constructors
@@ -88,7 +88,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
                     writer.writeMethodImplementation(staticMethod, writer => {
                         const sig = staticMethod.signature
                         const args = sig.args.map((_, i) => sig.argName(i)).join(", ")
-                        const obj = getIDLTypeName(sig.returnType)
+                        const obj = forceAsNamedNode(sig.returnType).name
                         // TBD: Use writer.makeObjectAlloc()
                         writer.writeStatement(writer.makeReturn(writer.makeString(`new ${obj}(${args})`)))
                     })
@@ -188,7 +188,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
-                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, !!field.field.type.optional)
+                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, isOptionalType(field.field.type))
             })
 
             clazz.constructors
@@ -270,7 +270,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
-                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, !!field.field.type.optional)
+                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, isOptionalType(field.field.type))
             })
 
             clazz.constructors

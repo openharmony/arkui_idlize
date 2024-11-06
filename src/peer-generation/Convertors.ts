@@ -20,7 +20,7 @@ import { BlockStatement, BranchStatement, generateTypeCheckerName, LanguageExpre
 import { mapType, TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
 import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker, ExpressionAssigneer } from "./ArgConvertors"
 import { Language } from "../Language"
-import { createContainerType, createReferenceType, createUnionType, DebugUtils, getIDLTypeName, IDLI32Type, IDLKind, IDLStringType, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../idl"
+import { createContainerType, createReferenceType, createUnionType, DebugUtils, forceAsNamedNode, IDLI32Type, IDLKind, IDLStringType, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../idl"
 
 
 const builtInInterfaceTypes = new Map<string,
@@ -320,7 +320,8 @@ export class UnionConvertor extends BaseArgConvertor {
         this.unionChecker = new UnionRuntimeTypeChecker(this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
         this.idlType = createUnionType(
-            this.memberConvertors.map(it => it.idlType)
+            this.memberConvertors.map(it => it.idlType),
+            "$UnionConvertor_NEVER_PRINTED%"
         )
         // this.tsTypeName = this.memberConvertors.map(it => it.tsTypeName).join(" | ")
     }
@@ -561,7 +562,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
         throw "Not implemented"
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.Prefix + getIDLTypeName(this.idlType)
+        return PrimitiveType.Prefix + forceAsNamedNode(this.idlType).name
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -576,14 +577,14 @@ export class InterfaceConvertor extends BaseArgConvertor {
         if (writer.language === Language.ARKTS)
             return makeInterfaceTypeCheckerCall(value, writer.convert(this.idlType), this.table.targetStruct(this.declaration).getFields().map(it => it.name), duplicates, writer)
         // First, tricky special cases
-        if (getIDLTypeName(this.idlType).endsWith("GestureInterface")) {
-            const gestureType = getIDLTypeName(this.idlType).slice(0, -"GestureInterface".length)
+        if (forceAsNamedNode(this.idlType).name.endsWith("GestureInterface")) {
+            const gestureType = forceAsNamedNode(this.idlType).name.slice(0, -"GestureInterface".length)
             const castExpr = writer.makeCast(writer.makeString(value), toIDLType("GestureComponent<Object>"))
             return writer.makeEquals([
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
         }
-        if (getIDLTypeName(this.idlType) === "CancelButtonSymbolOptions") {
+        if (forceAsNamedNode(this.idlType).name === "CancelButtonSymbolOptions") {
             return writer.makeHasOwnProperty(value, "CancelButtonSymbolOptions", "icon", "SymbolGlyphModifier")
         }
         // Try to figure out interface by examining field sets
@@ -679,7 +680,7 @@ export class CallbackFunctionConvertor extends CallbackConvertor {
             table.typeConvertor("", type.type))
         
         this.idlType = createReferenceType(
-            `(${this.args.map((it, i) => `arg_${i}: ${getIDLTypeName(it.idlType)}`).join(", ")}) => ${getIDLTypeName(this.ret!.idlType)}`
+            `(${this.args.map((it, i) => `arg_${i}: ${forceAsNamedNode(it.idlType).name}`).join(", ")}) => ${forceAsNamedNode(this.ret!.idlType).name}`
         )
     }
 }

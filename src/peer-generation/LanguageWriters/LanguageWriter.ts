@@ -130,7 +130,7 @@ export class AssignStatement implements LanguageStatement {
                 protected isConst: boolean = true) { }
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
-            const typeSpec = this.type ? `: ${writer.convert(this.type)}${this.type.optional ? "|undefined" : ""}` : ""
+            const typeSpec = this.type ? `: ${writer.convert(this.type)}${/*SHOULD BE REMOVED*/idl.isOptionalType(this.type) ? "|undefined" : ""}` : ""
             const initValue = this.expression ? `= ${this.expression.asString()}` : ""
             const constSpec = this.isConst ? "const" : "let"
             writer.print(`${constSpec} ${this.variableName}${typeSpec} ${initValue}`)
@@ -146,20 +146,6 @@ export class ExpressionStatement implements LanguageStatement {
         const text = this.expression.asString()
         if (text.length > 0) {
             writer.print(`${this.expression.asString()};`)
-        }
-    }
-}
-
-export class DeclareStatement implements LanguageStatement {
-    constructor(public variableName: string,
-                public type: idl.IDLType,
-                public expression: LanguageExpression | undefined = undefined) { }
-    write(writer: LanguageWriter): void {
-        const type = this.type ? `: ${idl.getIDLTypeName(this.type)}` : ""
-        if (this.expression) {
-            writer.print(`const ${this.variableName}${type} = ${this.expression.asString()}`)
-        } else {
-            writer.print(`let ${this.variableName}${type}`)
         }
     }
 }
@@ -342,7 +328,7 @@ export class MethodSignature {
     }
 
     toString(): string {
-        return `${this.args.map(it => idl.getIDLTypeName(it))} => ${this.returnType}`
+        return `${this.args.map(it => idl.forceAsNamedNode(it).name)} => ${this.returnType}`
     }
 }
 

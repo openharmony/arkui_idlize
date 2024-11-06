@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createReferenceType, getIDLTypeName, IDLCallback, IDLContainerType, IDLType, isIDLTypeName, toIDLType } from "../../../idl"
+import { createReferenceType, forceAsNamedNode, IDLCallback, IDLContainerType, IDLType, toIDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
@@ -36,7 +36,7 @@ import { CppIDLTypeToStringConvertor } from "../convertors/CppConvertors"
 export class CppCastExpression implements LanguageExpression {
     constructor(public convertor:IdlTypeNameConvertor, public value: LanguageExpression, public type: IDLType, private unsafe = false) {}
     asString(): string {
-        if (isIDLTypeName(this.type, PrimitiveType.Tag.getText())) {
+        if (forceAsNamedNode(this.type).name === PrimitiveType.Tag.getText()) {
             return `${this.value.asString()} == ${PrimitiveType.UndefinedRuntime} ? ${PrimitiveType.UndefinedTag} : ${PrimitiveType.ObjectTag}`
         }
         return this.unsafe
@@ -154,7 +154,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         let prefix = this.makeFieldModifiersList(modifiers, filter)
         this.printer.print(`${prefix}:`)
         this.printer.pushIndent()
-        this.printer.print(`${getIDLTypeName(type)} ${name};`)
+        this.printer.print(`${forceAsNamedNode(type).name} ${name};`)
         this.printer.popIndent()
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {

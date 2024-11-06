@@ -24,7 +24,7 @@ import { PrimitiveType } from "../../ArkPrimitiveType"
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { ImportTable } from '../ImportTable'
 import { Language } from '../../../Language'
-import { getIDLTypeName, IDLI32Type, IDLType, IDLVoidType, maybeOptional, toIDLType } from '../../../idl'
+import { forceAsNamedNode, IDLI32Type, IDLType, IDLVoidType, maybeOptional, toIDLType } from '../../../idl'
 import { createEmptyReferenceResolver } from '../../ReferenceResolver'
 
 
@@ -66,7 +66,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         const result = new Map<TargetFile, string>()
         for (const [type, writer] of this.types) {
             result.set(
-                new TargetFile(getIDLTypeName(type), ''),
+                new TargetFile(forceAsNamedNode(type).name, ''),
                 writer.getOutput().join('\n')
             )
         }
@@ -268,7 +268,7 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         }
         if (ts.isArrayTypeNode(target)) {
             const arrayElementType = this.computeCJType(this.toTarget(target.elementType), false)
-            return new CJType(toIDLType(`ArrayList<${getIDLTypeName(arrayElementType.type)}>`), `Array_${arrayElementType.alias}`)
+            return new CJType(toIDLType(`ArrayList<${forceAsNamedNode(arrayElementType.type).name}>`), `Array_${arrayElementType.alias}`)
         }
         if (ts.isImportTypeNode(target)) {
             return this.mapImportType(target)
@@ -292,11 +292,11 @@ export class CJSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 return this.computeCJType(this.toTarget(target.typeArguments[0]), false)
             if (name == 'Array') {
                 const arrayElementType = this.computeCJType(this.toTarget(target.typeArguments[0]), false)
-                return new CJType(toIDLType(`${getIDLTypeName(arrayElementType.type)}[]`), `Array_${arrayElementType.alias}`)
+                return new CJType(toIDLType(`${forceAsNamedNode(arrayElementType.type).name}[]`), `Array_${arrayElementType.alias}`)
             }
             if (name == 'Map') {
                 const CJTypes = target.typeArguments.slice(0, 2).map(it => this.computeCJType(this.toTarget(it), false, true))
-                return new CJType(toIDLType(`Map<${getIDLTypeName(CJTypes[0].type)}, ${getIDLTypeName(CJTypes[1].type)}>`), `Map_${CJTypes[0].alias}_${CJTypes[1].alias}`)
+                return new CJType(toIDLType(`Map<${forceAsNamedNode(CJTypes[0].type).name}, ${forceAsNamedNode(CJTypes[1].type).name}>`), `Map_${CJTypes[0].alias}_${CJTypes[1].alias}`)
             }
             if (name == 'Callback')
                 throw unsupportedType(`TypeReferenceNode:Callback`)

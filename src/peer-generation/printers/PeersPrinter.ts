@@ -45,7 +45,7 @@ import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
-import { getIDLTypeName, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isIDLTypeName, isPrimitiveType, maybeOptional, toIDLType } from "../../idl";
+import { forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isNamedNode, isOptionalType, isPrimitiveType, maybeOptional, toIDLType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 
 export function componentToPeerClass(component: string) {
@@ -434,7 +434,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
     else if (isJava) {
         // TODO: remove after switching to IDL
         const args = (method as PeerMethod).declarationTargets.map((declarationTarget, index) => {
-            return printerContext.synthesizedTypes!.getTargetType(declarationTarget, !!signature.args[index].optional)
+            return printerContext.synthesizedTypes!.getTargetType(declarationTarget, isOptionalType(signature.args[index]))
         })
         peerMethod = new Method(
             `${method.overloadedName}${methodPostfix}`,
@@ -443,7 +443,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
     }
     else if (isCJ) {
         const args = (method as PeerMethod).declarationTargets.map((declarationTarget, index) => {
-            return printerContext.synthesizedTypes!.getTargetType(declarationTarget, !!signature.args[index].optional)
+            return printerContext.synthesizedTypes!.getTargetType(declarationTarget, isOptionalType(signature.args[index]))
         })
         peerMethod = new Method(
             `${method.overloadedName}${methodPostfix}`,
@@ -523,7 +523,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
                 result = [writer.makeReturn(writer.makeString("this"))]
             } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
                 // const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
-                if (isIDLTypeName(returnType, method.originalParentName)) {
+                if (isNamedNode(returnType) && returnType.name === method.originalParentName) {
                     if (!method.hasReceiver()) {
                         result = [
                             ...constructMaterializedObject(writer, signature, "obj", returnValName),
@@ -545,15 +545,16 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod | Id
 
 function returnsThis(method: PeerMethod | IdlPeerMethod, returnType: IDLType) {
     return method.hasReceiver() &&
-        (returnType === IDLThisType || getIDLTypeName(returnType) === method.originalParentName)
+        (returnType === IDLThisType || 
+            isNamedNode(returnType) && returnType.name === method.originalParentName)
 }
 
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,
     resultName: string, peerPtrName: string): LanguageStatement[] {
     const retType = signature.returnType
     return [
-        writer.makeAssign(`${resultName}`, retType, writer.makeNewObject(getIDLTypeName(retType)), true),
+        writer.makeAssign(`${resultName}`, retType, writer.makeNewObject(forceAsNamedNode(retType).name), true),
         writer.makeAssign(`${resultName}.peer`, toIDLType("Finalizable"),
-            writer.makeString(`new Finalizable(${peerPtrName}, ${getIDLTypeName(retType)}.getFinalizer())`), false),
+            writer.makeString(`new Finalizable(${peerPtrName}, ${forceAsNamedNode(retType).name}.getFinalizer())`), false),
     ]
 }

@@ -1,12 +1,11 @@
 import * as idl from "../../../idl"
-import { getIDLTypeName } from "../../../idl"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../../LanguageWriters/typeConvertor"
 import { ImportFeature } from "../../ImportsCollector"
 import {  } from "../../TypeNodeConvertor"
 
 class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {
     convertOptional(type: idl.IDLOptionalType): ImportFeature[] {
-        return this.convert(type.element)
+        return this.convert(type.type)
     }
     convertUnion(type: idl.IDLUnionType): ImportFeature[] {
         return []
@@ -22,7 +21,7 @@ class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {
         return []
     }
     convertTypeReference(type: idl.IDLReferenceType): ImportFeature[] {
-        if (getIDLTypeName(type) === "Date") {
+        if (type.name === "Date") {
             return [{ feature: "java.util.Date", module: "" }]
         }
         return []
@@ -53,7 +52,7 @@ function uniqueImports(imports: ImportFeature[]): ImportFeature[] {
     });
 }
 
-export function collectJavaImports(nodes: idl.IDLEntry[]): ImportFeature[] {
+export function collectJavaImports(nodes: idl.IDLNode[]): ImportFeature[] {
     const collector = new JavaImportsCollector()
     const allImports = nodes.filter(idl.isType).flatMap(node => collector.convert(node))
     return uniqueImports(allImports)

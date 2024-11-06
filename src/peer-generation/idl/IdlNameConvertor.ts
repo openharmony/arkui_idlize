@@ -69,7 +69,7 @@ export class CJTypeAliasConvertor implements TypeConvertor<CJTypeAlias> {
         throw new Error(`IDL type '${idl.DebugUtils.debugPrintType(type)}' not supported`)
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): CJTypeAlias {
-        return CJTypeAlias.fromTypeName(idl.getIDLTypeName(type), false)
+        return CJTypeAlias.fromTypeName(type.name, false)
     }
     convertTypeReference(type: idl.IDLReferenceType): CJTypeAlias {
         const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
@@ -91,7 +91,7 @@ export class CJTypeAliasConvertor implements TypeConvertor<CJTypeAlias> {
         }
 
         let typeSpec = ''
-        if (idl.isIDLTypeNameIn(type, cjCustomTypeMapping)) {
+        if (cjCustomTypeMapping.has(type.name)) {
             typeSpec = cjCustomTypeMapping.get(typeSpec)!
         }
         let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
@@ -102,7 +102,7 @@ export class CJTypeAliasConvertor implements TypeConvertor<CJTypeAlias> {
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): CJTypeAlias {
         // TODO
-        return CJTypeAlias.fromTypeName(idl.getIDLTypeName(type), false)
+        return CJTypeAlias.fromTypeName(type.name, false)
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): CJTypeAlias {
         switch (type) {

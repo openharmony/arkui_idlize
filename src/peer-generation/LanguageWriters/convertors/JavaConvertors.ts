@@ -71,7 +71,7 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
     /***** TypeConvertor<JavaTypeAlias> **********************************/
 
     convertOptional(type: idl.IDLOptionalType): JavaTypeAlias {
-        return JavaTypeAlias.fromTypeName(convertJavaOptional(this.convert(type.element)), true)
+        return JavaTypeAlias.fromTypeName(convertJavaOptional(this.convert(type.type)), true)
     }
     convertUnion(type: idl.IDLUnionType): JavaTypeAlias {
         const aliases = type.types.map(it => convertType(this, it))
@@ -93,7 +93,7 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
         return JavaTypeAlias.fromTypeName(`Callback`, false)
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): JavaTypeAlias {
-        return JavaTypeAlias.fromTypeName(idl.getIDLTypeName(type), false)
+        return JavaTypeAlias.fromTypeName(type.name, false)
     }
     convertTypeReference(type: idl.IDLReferenceType): JavaTypeAlias {
         const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
@@ -114,7 +114,7 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
             }
         }
 
-        let typeSpec = idl.getIDLTypeName(type)
+        let typeSpec = type.name
         if (javaCustomTypeMapping.has(typeSpec)) {
             typeSpec = javaCustomTypeMapping.get(typeSpec)!
         }
@@ -130,7 +130,7 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): JavaTypeAlias {
         // TODO
-        return JavaTypeAlias.fromTypeName(idl.getIDLTypeName(type), false)
+        return JavaTypeAlias.fromTypeName(type.name, false)
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): JavaTypeAlias {
         switch (type) {

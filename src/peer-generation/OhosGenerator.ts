@@ -18,7 +18,7 @@ import * as path from 'path'
 import { IndentedPrinter } from "../IndentedPrinter"
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
-import { createContainerType, createReferenceType, getIDLTypeName, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isPrimitiveType, isReferenceType, isUnionType } from '../idl'
+import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isOptionalType, isPrimitiveType, isReferenceType, isUnionType } from '../idl'
 import { makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { capitalize } from '../util'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
@@ -71,14 +71,14 @@ class OHOSVisitor {
             ? type.name 
             : isContainerType(type) || isUnionType(type)
                 ? ''
-                : getIDLTypeName(type)
+                : forceAsNamedNode(type).name
         if (OHOSVisitor.knownBasicTypes.has(typeName))
             return `${PrimitiveType.Prefix}${typeName}`
 
         if (isReferenceType(type) || isEnum(type)) {
             return `${PrimitiveType.Prefix}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
         }
-        return this.library.computeTargetName(type, type.optional ?? false)
+        return this.library.computeTargetName(type, isOptionalType(type))
     }
 
     makeSignature(returnType: IDLType, parameters: IDLParameter[]): MethodSignature {
@@ -558,8 +558,8 @@ class OHOSVisitor {
         const callbackInterfaceNames = new Set<string>()
         this.callbacks.forEach(it => {
             it.parameters.forEach(param => {
-                if (this.interfaces.find(x => x.name === getIDLTypeName(param.type!))) {
-                    callbackInterfaceNames.add(getIDLTypeName(param.type!))
+                if (this.interfaces.find(x => x.name === forceAsNamedNode(param.type!).name)) {
+                    callbackInterfaceNames.add(forceAsNamedNode(param.type!).name)
                 }
             })
         })

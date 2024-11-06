@@ -72,7 +72,7 @@ import {
 } from "./BuilderClass";
 import { Lazy, lazy } from "./lazy";
 import { Language } from "../Language";
-import { getIDLTypeName, IDLPointerType, IDLThisType, IDLVoidType, maybeOptional, toIDLType } from "../idl";
+import { IDLPointerType, IDLThisType, IDLVoidType, maybeOptional, toIDLType } from "../idl";
 
 /**
  * Theory of operations.
@@ -909,7 +909,7 @@ export class PeerProcessor {
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
             if (!isReadOnly) {
                 const setSignature = new NamedMethodSignature(IDLVoidType, [field.type], [field.name])
-                const retConvertor = { isVoid: true, nativeType: () => getIDLTypeName(IDLVoidType), macroSuffixPart: () => "V" }
+                const retConvertor = { isVoid: true, nativeType: () => IDLVoidType.name, macroSuffixPart: () => "V" }
                 const setAccessor = new MaterializedMethod(name, [f.declarationTarget!], [f.argConvertor], retConvertor, false,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]), 0
                 )

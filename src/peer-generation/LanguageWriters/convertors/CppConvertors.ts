@@ -45,7 +45,7 @@ export class CppIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCo
     /***** TypeConvertor<string> *****************************************/
 
     convertOptional(type: idl.IDLOptionalType): string {
-        return `Opt_${this.convert(type.element)}`
+        return `Opt_${this.convert(type.type)}`
     }
     convertUnion(type: idl.IDLUnionType): string {
         return `Union_${type.types.map(it => this.convert(it)).join("_")}`
@@ -63,7 +63,7 @@ export class CppIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCo
         throw new Error("Method not implemented.")
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        const name = idl.getIDLTypeName(type)
+        const name = type.name
         switch (name) {
             case 'KPointer': return 'void*'
             case 'int32':

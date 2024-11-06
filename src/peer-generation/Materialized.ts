@@ -24,7 +24,7 @@ import { PrimitiveType } from "./ArkPrimitiveType"
 import { ImportFeature } from "./ImportsCollector"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { isBuilderClass } from "./BuilderClass"
-import { getIDLTypeName, IDLThisType, IDLType, maybeOptional, toIDLType } from "../idl"
+import { forceAsNamedNode, IDLThisType, IDLType, isNamedNode, isOptionalType, maybeOptional, toIDLType } from "../idl"
 
 export function checkTSDeclarationMaterialized(declaration: ts.Declaration): boolean {
     return (ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration)) && isMaterialized(declaration)
@@ -122,7 +122,9 @@ export class MaterializedMethod extends PeerMethod {
 
     tsReturnType(): IDLType | undefined {
         const returnType = this.method.signature.returnType
-        return this.hasReceiver() && getIDLTypeName(returnType) === this.originalParentName ? IDLThisType : maybeOptional(returnType, returnType.optional)
+        return this.hasReceiver() && isNamedNode(returnType) && returnType.name === this.originalParentName 
+            ? IDLThisType 
+            : maybeOptional(returnType, isOptionalType(returnType))
     }
 }
 

@@ -31,7 +31,7 @@ import { isMaterialized } from "../Materialized";
 import { ResourceDeclaration } from '../DeclarationTable'
 import { JavaDataClass } from './lang/JavaPrinters'
 import { Language } from '../../Language'
-import { getIDLTypeName, IDLType, IDLVoidType, maybeOptional, toIDLType } from '../../idl'
+import { forceAsNamedNode, IDLType, IDLVoidType, maybeOptional, toIDLType } from '../../idl'
 import { getReferenceResolver } from '../ReferenceResolver'
 
 interface InterfacesVisitor {
@@ -335,7 +335,7 @@ class CJInterfacesVisitor {
         const superClass = this.getSuperClass(node) ?? ARK_OBJECTBASE
         writer.writeClass(this.getName(node), () => {
             for (const member of membersInfo) {
-                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional, this.initialValue.get(getIDLTypeName(member.type)) ? writer.makeString(this.initialValue.get(getIDLTypeName(member.type))!): undefined)
+                writer.writeFieldDeclaration(member.name, member.type, [FieldModifier.PUBLIC], member.optional, this.initialValue.get(forceAsNamedNode(member.type).name) ? writer.makeString(this.initialValue.get(forceAsNamedNode(member.type).name)!): undefined)
             }
             writer.writeConstructorImplementation(this.getName(node), new MethodSignature(IDLVoidType, membersInfo.map(property => property.type)), (printer) => {
                 for (let i in membersInfo) {

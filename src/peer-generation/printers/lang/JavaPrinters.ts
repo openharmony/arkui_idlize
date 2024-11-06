@@ -105,7 +105,7 @@ function makeJavaArkComponentsOld(library: PeerLibrary, printerContext: PrinterC
                     callableMethod = callableMethods[0]
                     const callableSignature = callableMethod.method.signature
                     callableMethod.declarationTargets.forEach((it, index) => {
-                        const javaType = printerContext.synthesizedTypes!.getTargetType(it, !!callableSignature.args[index].optional)
+                        const javaType = printerContext.synthesizedTypes!.getTargetType(it, false) // TODO IMPORTANT WAS I RIGHT?
                         usedTypes.push(javaType)
                         paramTypes.push(javaType)
                         paramNames.push(callableSignature.argName(index))

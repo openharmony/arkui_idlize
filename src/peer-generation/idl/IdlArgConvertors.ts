@@ -422,7 +422,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
 }
 
 export class InterfaceConvertor extends BaseArgConvertor { //
-    constructor(name: string, param: string, private declaration?: idl.IDLInterface) {
+    constructor(name: string, param: string, protected declaration: idl.IDLInterface) {
         super(idl.toIDLType(name), [RuntimeType.OBJECT], false, true, param)
     }
 
@@ -436,7 +436,7 @@ export class InterfaceConvertor extends BaseArgConvertor { //
         return assigneer(writer.makeMethodCall(`${deserializerName}`, `read${writer.convert(this.idlType)}`, []))
     }
     nativeType(impl: boolean): string {
-        return PrimitiveType.Prefix + idl.getIDLTypeName(this.idlType)
+        return PrimitiveType.Prefix + this.declaration.name
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -449,14 +449,14 @@ export class InterfaceConvertor extends BaseArgConvertor { //
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         // First, tricky special cases
-        if (idl.getIDLTypeName(this.idlType).endsWith("GestureInterface")) {
-            const gestureType = idl.getIDLTypeName(this.idlType).slice(0, -"GestureInterface".length)
+        if (this.declaration.name.endsWith("GestureInterface")) {
+            const gestureType = this.declaration.name.slice(0, -"GestureInterface".length)
             const castExpr = writer.makeCast(writer.makeString(value), idl.toIDLType("GestureComponent<Object>"), true)
             return writer.makeNaryOp("===", [
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
         }
-        if (idl.getIDLTypeName(this.idlType) === "CancelButtonSymbolOptions") {
+        if (this.declaration.name === "CancelButtonSymbolOptions") {
             return writer.makeNaryOp("&&", [
                 writer.makeString(`${value}.hasOwnProperty("icon")`),
                 writer.makeString(`isInstanceOf("SymbolGlyphModifier", ${value}.icon)`)])
@@ -473,7 +473,7 @@ export class ClassConvertor extends InterfaceConvertor { //
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
-        if (idl.getIDLTypeName(this.idlType) === "SubTabBarStyle") return undefined
+        if (this.declaration.name === "SubTabBarStyle") return undefined
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
             [writer.makeString(`${value} instanceof ${writer.convert(this.idlType)}`)])
     }
@@ -639,9 +639,6 @@ export class ArrayConvertor extends BaseArgConvertor { //
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
             [writer.makeString(`${value} instanceof ${this.targetType(writer)}`)])
-    }
-    elementTypeName(): string {
-        return idl.getIDLTypeName(this.elementType)
     }
     override getObjectAccessor(language: Language, value: string, args?: Record<string, string>): string {
         const array = language === Language.CPP ? ".array" : ""

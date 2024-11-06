@@ -46,16 +46,16 @@ export function generateCallbackAPIArguments(library: IdlPeerLibrary, callback: 
 export class StructPrinter {
     constructor(private library: IdlPeerLibrary) {}
 
-    private isPointerDeclaration(target: idl.IDLEntry, isOptional: boolean = false): boolean {
+    private isPointerDeclaration(target: idl.IDLNode, isOptional: boolean = false): boolean {
         if (isOptional) return true
         if (idl.isPrimitiveType(target))
-            return [idl.getIDLTypeName(idl.IDLAnyType), idl.getIDLTypeName(idl.IDLStringType), idl.getIDLTypeName(idl.IDLNumberType), "Length", "CustomObject"].includes(idl.getIDLTypeName(target))
+            return [idl.IDLAnyType.name, idl.IDLStringType.name, idl.IDLNumberType.name, "Length", "CustomObject"].includes(target.name)
         if (idl.isEnum(target)) return false
-        if (idl.isReferenceType(target) && idl.getIDLTypeName(target) === "GestureType") return false
+        if (idl.isReferenceType(target) && target.name === "GestureType") return false
         return true
     }
 
-    private printStructsCHead(name: string, target: idl.IDLEntry, structs: LanguageWriter) {
+    private printStructsCHead(name: string, target: idl.IDLNode, structs: LanguageWriter) {
         // if (descriptor.isArray) {
         //     // Forward declaration of element type.
         //     let elementTypePointer = descriptor.getFields()[0].declaration
@@ -85,7 +85,7 @@ export class StructPrinter {
         const concreteDeclarations = createLanguageWriter(Language.CPP, this.library)
         const seenNames = new Set<string>()
         seenNames.clear()
-        const noDeclaration = ["Int32", "Tag", idl.getIDLTypeName(idl.IDLNumberType), idl.getIDLTypeName(idl.IDLBooleanType), idl.getIDLTypeName(idl.IDLStringType), idl.getIDLTypeName(idl.IDLVoidType)]
+        const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
         for (const target of this.library.orderedDependencies) {
             let nameAssigned = this.library.computeTargetName(target, false)
             if (nameAssigned === PrimitiveType.Tag.getText())
@@ -182,7 +182,7 @@ export class StructPrinter {
         forwardDeclarations: LanguageWriter | undefined, 
         concreteDeclarations: LanguageWriter, 
         writeToString: LanguageWriter, 
-        target: idl.IDLEntry, 
+        target: idl.IDLNode, 
         seenNames: Set<String>,
     ) {
         const isPointer = this.isPointerDeclaration(target)
@@ -201,7 +201,7 @@ export class StructPrinter {
         }
     }
 
-    private writeRuntimeType(target: idl.IDLEntry, targetTypeName: string, isOptional: boolean, writer: LanguageWriter) {
+    private writeRuntimeType(target: idl.IDLNode, targetTypeName: string, isOptional: boolean, writer: LanguageWriter) {
         const resultType = idl.toIDLType(PrimitiveType.RuntimeType.getText())
         const op = this.writeRuntimeTypeOp(target, targetTypeName, resultType, isOptional, writer)
         if (op) {
@@ -215,7 +215,7 @@ export class StructPrinter {
     }
 
     private writeRuntimeTypeOp(
-        target: IDLEntry, targetTypeName: string, resultType: IDLType, isOptional: boolean, writer: LanguageWriter
+        target: idl.IDLNode, targetTypeName: string, resultType: IDLType, isOptional: boolean, writer: LanguageWriter
     ) : ((writer: LanguageWriter) => void) | undefined
     {
         let result: LanguageExpression
@@ -238,11 +238,9 @@ export class StructPrinter {
                 writer.print("}")
             }
         } else {
-            const targetName = idl.isType(target) 
-                ? idl.isContainerType(target)
-                    ? undefined
-                    : idl.getIDLTypeName(target)
-                : target.name
+            const targetName = idl.isContainerType(target)
+                ? undefined
+                : idl.forceAsNamedNode(target).name
             switch (targetName) {
                 case "boolean":
                     result = writer.makeRuntimeType(RuntimeType.BOOLEAN)
@@ -256,13 +254,13 @@ export class StructPrinter {
                     result = writer.makeRuntimeType(RuntimeType.FUNCTION)
                     break
                 case "Int32":
-                case idl.getIDLTypeName(idl.IDLNumberType):
+                case idl.IDLNumberType.name:
                     result = writer.makeRuntimeType(RuntimeType.NUMBER)
                     break
                 case "Length":
                     result = writer.makeCast(writer.makeString("value.type"), resultType)
                     break
-                case idl.getIDLTypeName(idl.IDLStringType):
+                case idl.IDLStringType.name:
                     result = writer.makeRuntimeType(RuntimeType.STRING)
                     break
                 case "undefined":
@@ -366,7 +364,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         printer.print(`}`)
     }
 
-    private generateWriteToString(name: string, target: idl.IDLEntry, printer: LanguageWriter, isPointer: boolean) {
+    private generateWriteToString(name: string, target: idl.IDLNode, printer: LanguageWriter, isPointer: boolean) {
         let access = isPointer ? "->" : "."
         if (idl.isContainerType(target)) {
             if (idl.IDLContainerUtils.isSequence(target)) {
@@ -461,8 +459,8 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         }
     }
 
-    private ignoreTarget(target: idl.IDLEntry): target is idl.IDLPrimitiveType | idl.IDLEnum {
-        if (PeerGeneratorConfig.ignoreSerialization.includes(target.name!)) return true
+    private ignoreTarget(target: idl.IDLNode): target is idl.IDLPrimitiveType | idl.IDLEnum {
+        if (idl.isNamedNode(target) && PeerGeneratorConfig.ignoreSerialization.includes(target.name)) return true
         if (idl.isPrimitiveType(target)) return true
         if (idl.isEnum(target)) return true
         if (isImport(target)) return true

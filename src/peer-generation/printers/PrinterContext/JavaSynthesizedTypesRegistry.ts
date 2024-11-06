@@ -25,7 +25,7 @@ import { PrimitiveType } from "../../ArkPrimitiveType"
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { ImportTable } from '../ImportTable'
 import { Language } from '../../../Language'
-import { getIDLTypeName, IDLType, maybeOptional, toIDLType } from '../../../idl'
+import { forceAsNamedNode, IDLType, maybeOptional, toIDLType } from '../../../idl'
 import { createEmptyReferenceResolver } from '../../ReferenceResolver'
 
 
@@ -62,7 +62,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         const result = new Map<TargetFile, string>()
         for (const [type, writer] of this.types) {
             result.set(
-                new TargetFile(getIDLTypeName(type), ARKOALA_PACKAGE_PATH),
+                new TargetFile(forceAsNamedNode(type).name, ARKOALA_PACKAGE_PATH),
                 writer.getOutput().join('\n')
             )
         }
@@ -238,7 +238,7 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
         }
         if (ts.isArrayTypeNode(target)) {
             const arrayElementType = this.computeJavaType(this.toTarget(target.elementType), false)
-            return new JavaType(toIDLType(`${getIDLTypeName(arrayElementType.type)}[]`), `Array_${arrayElementType.alias}`)
+            return new JavaType(toIDLType(`${forceAsNamedNode(arrayElementType.type).name}[]`), `Array_${arrayElementType.alias}`)
         }
         if (ts.isImportTypeNode(target)) {
             return this.mapImportType(target)
@@ -260,11 +260,11 @@ export class JavaSynthesizedTypesRegistry implements SynthesizedTypesRegistry {
                 return this.computeJavaType(this.toTarget(target.typeArguments[0]), true)
             if (name == 'Array') {
                 const arrayElementType = this.computeJavaType(this.toTarget(target.typeArguments[0]), false)
-                return new JavaType(toIDLType(`${getIDLTypeName(arrayElementType.type)}[]`), `Array_${arrayElementType.alias}`)
+                return new JavaType(toIDLType(`${forceAsNamedNode(arrayElementType.type).name}[]`), `Array_${arrayElementType.alias}`)
             }
             if (name == 'Map') {
                 const javaTypes = target.typeArguments.slice(0, 2).map(it => this.computeJavaType(this.toTarget(it), false, true))
-                return new JavaType(toIDLType(`Map<${getIDLTypeName(javaTypes[0].type)}, ${getIDLTypeName(javaTypes[1].type)}>`), `Map_${javaTypes[0].alias}_${javaTypes[1].alias}`)
+                return new JavaType(toIDLType(`Map<${forceAsNamedNode(javaTypes[0].type).name}, ${forceAsNamedNode(javaTypes[1].type).name}>`), `Map_${javaTypes[0].alias}_${javaTypes[1].alias}`)
             }
             if (name == 'Callback')
                 throw unsupportedType(`TypeReferenceNode:Callback`)

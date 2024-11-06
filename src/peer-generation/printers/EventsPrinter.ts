@@ -103,10 +103,10 @@ export function canProcessCallback(callback: CallbackInfoBase): boolean {
 }
 
 type CallbackInfoType<T> = T extends PeerMethod ? CallbackInfo : T extends IdlPeerMethod ? IdlCallbackInfo : never
-type ParameterInfoType<T> = T extends PeerMethod ? DeclarationTarget : T extends IdlPeerMethod ? (idl.IDLEntry) : never
+type ParameterInfoType<T> = T extends PeerMethod ? DeclarationTarget : T extends IdlPeerMethod ? (idl.IDLNode) : never
 
 export function convertToCallback<T extends PeerMethod | IdlPeerMethod>(peer: PeerClassBase, method: T, target: ParameterInfoType<T>): CallbackInfoType<T> | undefined
-export function convertToCallback(peer: PeerClassBase, method: PeerMethod | IdlPeerMethod, target: DeclarationTarget | idl.IDLEntry): CallbackInfoType<PeerMethod> | CallbackInfoType<IdlPeerMethod> | undefined {
+export function convertToCallback(peer: PeerClassBase, method: PeerMethod | IdlPeerMethod, target: DeclarationTarget | idl.IDLNode): CallbackInfoType<PeerMethod> | CallbackInfoType<IdlPeerMethod> | undefined {
     if (method instanceof PeerMethod)
         return convertTargetToCallback(peer, method, target as ParameterInfoType<PeerMethod>) as CallbackInfoType<PeerMethod>
     else if (method instanceof IdlPeerMethod)
@@ -141,7 +141,7 @@ function convertTargetToCallback(peer: PeerClassBase, method: PeerMethod, target
     }
 }
 
-function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argType: idl.IDLEntry): IdlCallbackInfo | undefined {
+function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argType: idl.IDLNode): IdlCallbackInfo | undefined {
     if (idl.isCallback(argType)) {
         return {
             componentName: peer.getComponentName(),
@@ -159,7 +159,7 @@ function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argTyp
         if (isImport(argType)) {
             return undefined
         }
-        if (idl.isIDLTypeName(argType, 'Callback') && idl.hasExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)) {
+        if (argType.name === 'Callback' && idl.hasExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)) {
             const typeArgs = idl.getExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)!.split(",").map(it => it.trim())
             const inputType = idl.toIDLType(typeArgs[0])
             const hasData = !idl.isVoidType(inputType)
@@ -185,7 +185,7 @@ export function callbackEventNameByInfo(info: CallbackInfoBase): string {
 
 function idlTypesEquals(a: idl.IDLType, b: idl.IDLType): boolean {
     if (a.kind !== b.kind ||
-        !idl.isIDLTypeSameName(a, b))
+        idl.isNamedNode(a) && idl.isNamedNode(b) && a.name === b.name)
         return false
     if (idl.isUnionType(a) && idl.isUnionType(b)) {
         return a.types.every(it => b.types.some(other => idlTypesEquals(it, other))) &&
@@ -342,9 +342,9 @@ class CEventsVisitor extends CEventsVisitorBase {
     protected override printEventMethodDeclaration(event: CallbackInfo) {
         const signature = generateEventSignature(this.library.declarationTable, event)
         const args = signature.args.map((type, index) => {
-            return `${idl.getIDLTypeName(type)} ${signature.argName(index)}`
+            return `${idl.forceAsNamedNode(type).name} ${signature.argName(index)}`
         })
-        printMethodDeclaration(this.impl.printer, idl.getIDLTypeName(signature.returnType), `${event.methodName}Impl`, args)
+        printMethodDeclaration(this.impl.printer, idl.forceAsNamedNode(signature.returnType).name, `${event.methodName}Impl`, args)
     }
 
     protected override printSerializers(event: CallbackInfo) {

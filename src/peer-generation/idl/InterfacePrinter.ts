@@ -195,7 +195,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
     convertTypedef(node: idl.IDLTypedef): void {
         this.convertTypedefTarget(node.name, node.type)
     }
-    private convertTypedefTarget(name: string, type: idl.IDLEntry) {
+    private convertTypedefTarget(name: string, type: idl.IDLNode) {
         if (idl.isUnionType(type)) {
             this.onNewDeclaration(this.makeUnion(name, type))
             return
@@ -397,7 +397,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, it.type, it.modifiers, false)
             })
-        }, (superType ? idl.getIDLTypeName(superType) : undefined) ?? ARK_OBJECTBASE)
+        }, (superType ? idl.forceAsNamedNode(superType).name : undefined) ?? ARK_OBJECTBASE)
 
         return new JavaDeclaration(alias, writer)
     }
@@ -435,7 +435,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
                     idl.createProperty("params", idl.createReferenceType("Array<object>"), false, false, true),
                     idl.createProperty("id", idl.createReferenceType("number")),
                     idl.createProperty("type", idl.createReferenceType("number"), false, false, true),
-                ], [], [], []))
+                ], [], []))
         } else {
             this.writer.print(`export declare type ${node.name}${typeParams} = ${type};`)
         }
@@ -519,7 +519,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         return [idlInterface.name,
             this.printTypeParameters(idlInterface.extendedAttributes),
             idl.hasSuperType(idlInterface)
-                ? ` extends ${idl.getIDLTypeName(inheritanceType)}${this.printTypeParameters(inheritanceType.extendedAttributes)}`
+                ? ` extends ${idl.forceAsNamedNode(inheritanceType).name}${this.printTypeParameters(inheritanceType.extendedAttributes)}`
                 : ""
         ].join("")
     }
@@ -660,7 +660,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     convertTypedef(node: idl.IDLTypedef): void {
         this.convertTypedefTarget(node.name, node.type)
     }
-    private convertTypedefTarget(name: string, type: idl.IDLEntry) {
+    private convertTypedefTarget(name: string, type: idl.IDLNode) {
         if (idl.isUnionType(type)) {
             this.onNewDeclaration(this.makeUnion(name, type))
             return

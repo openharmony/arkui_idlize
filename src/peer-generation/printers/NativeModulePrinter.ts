@@ -100,7 +100,7 @@ class NativeModuleVisitor {
 
         nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
             printer.writePrintLog(name)
-            if (returnType !== undefined && idl.getIDLTypeName(returnType) !== idl.getIDLTypeName(idl.IDLVoidType)) {
+            if (returnType !== undefined && idl.forceAsNamedNode(returnType).name !== idl.IDLVoidType.name) {
                 printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
             }
         })
@@ -143,7 +143,7 @@ class NativeModuleVisitor {
         printer.writeNativeMethodDeclaration(method.name, method.signature)
         this.nativeModuleEmpty.writeMethodImplementation(method, (printer) => {
             printer.writePrintLog(method.name)
-            if (method.signature.returnType !== undefined && idl.getIDLTypeName(method.signature.returnType) !== 'void') {
+            if (method.signature.returnType !== undefined && idl.forceAsNamedNode(method.signature.returnType).name !== 'void') {
                 printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(method.signature.returnType))))
             }
         })
@@ -227,10 +227,10 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             printer.pushIndent()
             for(let param of parameters.args) {
                 let ordinal = parameters.args.indexOf(param)
-                if (this.arrayLikeTypes.has(idl.getIDLTypeName(param))) {
+                if (this.arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
                     functionCallArgs.push(`handle_${ordinal}.pointer`)
                     printer.print(`let handle_${ordinal} = acquireArrayRawData(${parameters.argsNames[ordinal]}.toArray())`)
-                } else if (this.stringLikeTypes.has(idl.getIDLTypeName(param))) {
+                } else if (this.stringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
                     printer.print(`let ${parameters.argsNames[ordinal]} =  LibC.mallocCString(${parameters.argsNames[ordinal]})`)
                     functionCallArgs.push(parameters.argsNames[ordinal])
                 } else {
@@ -254,9 +254,9 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             }
             for(let param of parameters.args) {
                 let ordinal = parameters.args.indexOf(param)
-                if (this.arrayLikeTypes.has(idl.getIDLTypeName(param))) {
+                if (this.arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
                     printer.print(`releaseArrayRawData(handle_${ordinal})`)
-                } else if (this.stringLikeTypes.has(idl.getIDLTypeName(param))) {
+                } else if (this.stringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
                     printer.print(`LibC.free(${parameters.argsNames[ordinal]})`)
                 }
             }
@@ -276,8 +276,8 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
         nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
             printer.writePrintLog(name)
             if (returnType !== undefined 
-                && idl.getIDLTypeName(returnType) !== idl.getIDLTypeName(idl.IDLVoidType)
-                && idl.getIDLTypeName(returnType) !== 'Void'
+                && idl.forceAsNamedNode(returnType).name !== idl.IDLVoidType.name
+                && idl.forceAsNamedNode(returnType).name !== 'Void'
             ) {
                 printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
             }
@@ -321,7 +321,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             const cleanUpStmnts: string[] = []
             method.signature.args.forEach((arg, ordinal) => {
                 const paramName = method.signature.argName(ordinal)
-                if (this.arrayLikeTypes.has(idl.getIDLTypeName(arg)) || idl.getIDLTypeName(arg).startsWith('ArrayList<') || idl.getIDLTypeName(arg) == 'sequence') {
+                if (idl.IDLContainerUtils.isSequence(arg) || this.arrayLikeTypes.has(idl.forceAsNamedNode(arg).name) || idl.forceAsNamedNode(arg).name.startsWith('ArrayList<')) {
                     const varName = `handle_${ordinal}`
                     callParameters.push(`${varName}.pointer`)
                     printer.writeStatement(printer.makeAssign(
@@ -331,7 +331,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
                         true
                     ))
                     cleanUpStmnts.push(`releaseArrayRawData(${varName})`)
-                } else if (this.stringLikeTypes.has(idl.getIDLTypeName(arg))) {
+                } else if (this.stringLikeTypes.has(idl.forceAsNamedNode(arg).name)) {
                     const varName = `cstr_${ordinal}`
                     callParameters.push(varName)
                     printer.writeStatement(printer.makeAssign(
@@ -349,7 +349,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             const resultVarName = 'result'
             let shouldReturn = false
             const callExpr = printer.makeFunctionCall(foreightMethodName, callParameters.map((x) => printer.makeString(x)))
-            if (idl.getIDLTypeName(method.signature.returnType) === 'void') {
+            if (idl.forceAsNamedNode(method.signature.returnType).name === 'void') {
                 printer.writeStatement(printer.makeStatement(callExpr))
             } else {
                 printer.writeStatement(
@@ -376,8 +376,8 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
         this.nativeModuleEmpty.writeMethodImplementation(method, (printer) => {
             printer.writePrintLog(method.name)
             if (inputMethod.returnType !== undefined 
-                && idl.getIDLTypeName(inputMethod.returnType) !== idl.getIDLTypeName(idl.IDLVoidType) 
-                && idl.getIDLTypeName(inputMethod.returnType) !== 'Void'
+                && idl.forceAsNamedNode(inputMethod.returnType).name !== idl.IDLVoidType.name
+                && idl.forceAsNamedNode(inputMethod.returnType).name !== 'Void'
             ) {
                 printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(inputMethod.returnType))))
             }
@@ -434,13 +434,13 @@ function getReturnValue(type: idl.IDLType): string {
         return `""`
     }
 
-    switch(idl.getIDLTypeName(type)) {
-        case idl.getIDLTypeName(idl.IDLBooleanType) : return "false"
-        case idl.getIDLTypeName(idl.IDLNumberType): case "int": case "KInt": case "KLong": return "1"
-        case idl.getIDLTypeName(idl.IDLPointerType): case "KPointer": case "pointer": return "-1"
+    switch(idl.forceAsNamedNode(type).name) {
+        case idl.IDLBooleanType.name : return "false"
+        case idl.IDLNumberType.name: case "int": case "KInt": case "KLong": return "1"
+        case idl.IDLPointerType.name: case "KPointer": case "pointer": return "-1"
         case "KString": case "String": case "string": return `"some string"`
         case "KBoolean": return "false"
         case "KFloat": return "0"
     }
-    throw new Error(`Unknown return type: ${idl.getIDLTypeName(type)}`)
+    throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]}`)
 }

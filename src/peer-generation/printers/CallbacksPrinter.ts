@@ -8,6 +8,7 @@ import { EnumEntity, EnumMember } from "../PeerFile";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
+import { stubReferenceIfCpp } from "../idl/IdlArgConvertors";
 
 export const CallbackKind = "CallbackKind"
 
@@ -77,7 +78,7 @@ export function collectUniqueCallbacks(library: IdlPeerLibrary) {
             if (subtypes.some(it => idl.isTypeParameterType(it)))
                 return false
             // (value: IgnoredInterface) => void
-            if (subtypes.some(it => PeerGeneratorConfig.ignoreEntry(idl.getIDLTypeName(it, (_, it) => it), library.language)))
+            if (subtypes.some(it => idl.isNamedNode(it) && PeerGeneratorConfig.ignoreEntry(it.name, library.language)))
                 return false
             return true
         })
@@ -133,14 +134,15 @@ class DeserializeCallbacksVisitor {
                 writer.makeString(`Deserializer(thisArray, thisLength)`), true, false))
             const callbackConvertor = this.library.typeConvertor(resourceName, idl.createReferenceType(callback.name))
             writer.writeStatement(callbackConvertor.convertorDeserialize(`${resourceName}_buf`, `thisDeserializer`, (expr) => {
-                return writer.makeAssign(resourceName, idl.createReferenceType(this.library.computeTargetName(callback, false)), 
+                return writer.makeAssign(resourceName, stubReferenceIfCpp(this.library, idl.createReferenceType(callback.name), writer.language), 
                     expr, true, false)
             }, writer))
             const argsNames = [`_resource.resource.resourceId`]
             for (const param of callback.parameters) {
                 const convertor = this.library.typeConvertor(param.name, param.type!, param.isOptional)
                 writer.writeStatement(convertor.convertorDeserialize(`${param.name}_buf`, `thisDeserializer`, (expr) => {
-                    return writer.makeAssign(param.name, idl.createReferenceType(convertor.nativeType(false)), expr, true, false)
+                    const maybeOptionalType = idl.maybeOptional(param.type!, param.isOptional)
+                    return writer.makeAssign(param.name, stubReferenceIfCpp(this.library, maybeOptionalType, writer.language), expr, true, false)
                 }, writer))
                 argsNames.push(param.name)
             }
@@ -149,7 +151,7 @@ class DeserializeCallbacksVisitor {
                 const convertor = this.library.typeConvertor(`continuation`, continuationReference)
                 const continuationTarget = this.library.toDeclaration(continuationReference)
                 writer.writeStatement(convertor.convertorDeserialize(`continuation_buf`, `thisDeserializer`, (expr) => {
-                    return writer.makeAssign(`continuation`, idl.createReferenceType(convertor.nativeType(false)), expr, true, false)
+                    return writer.makeAssign(`continuation`, stubReferenceIfCpp(this.library, continuationReference, writer.language), expr, true, false)
                 }, writer))
                 argsNames.push(`continuation`)
             }

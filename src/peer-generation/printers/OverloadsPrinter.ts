@@ -37,13 +37,13 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
         const types = methods.map(it => it.signature.args[argIndex]).filter(isDefined)
         const optional = methods.some(it => {
             if (argIndex < it.signature.args.length) {
-                return it.signature.args[argIndex].optional ?? false
+                return idl.isOptionalType(it.signature.args[argIndex]) ?? false
             } else {
                 return true
             }
         })
         if (types.length > 1) {
-            return idl.maybeOptional(idl.createUnionType(types), optional)
+            return idl.maybeOptional(idl.createUnionType(types, "%PROXY_BEFORE_PEER%"), optional)
         }
         return idl.maybeOptional(types[0], optional)
     })
@@ -84,7 +84,7 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
         return library.typeConvertor(
             method.signature.argName(index), 
             target, 
-            method.signature.args[index].optional
+            idl.isOptionalType(method.signature.args[index])
         )
     })
     return new IdlPeerMethod(
@@ -168,7 +168,7 @@ export class OverloadsPrinter {
             const castedArgName = `${argName}_casted`
             const castedType = peerMethod.method.signature.args[index]
             if (this.language == Language.ARKTS
-                && collapsedMethod.signature.args[index].optional) {
+                && idl.isOptionalType(collapsedMethod.signature.args[index])) {
                 this.printer.writeStatement(
                     this.printer.makeCondition(this.printer.makeNaryOp("==",
                             [this.printer.makeString(argName), this.printer.makeString("undefined")]),

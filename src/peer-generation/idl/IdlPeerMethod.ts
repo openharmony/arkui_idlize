@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-
+import * as idl from "../../idl"
 import { capitalize, isDefined } from "../../util"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
 import { Method, MethodModifier } from "../LanguageWriters"
@@ -25,7 +25,7 @@ export class IdlPeerMethod {
     private overloadIndex?: number
     constructor(
         public originalParentName: string,
-        public declarationTargets: IDLEntry[],
+        public declarationTargets: idl.IDLNode[],
         public argConvertors: ArgConvertor[],
         public retConvertor: RetConvertor,
         public isCallSignature: boolean,

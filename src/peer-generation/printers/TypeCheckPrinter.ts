@@ -57,7 +57,7 @@ class StructDescriptor {
 function collectFields(library: IdlPeerLibrary, target: idl.IDLInterface, struct: StructDescriptor): void {
     const superType = idl.getSuperType(target)
     if (superType && idl.isReferenceType(superType)) {
-        const decl = library.resolveTypeReference(superType) ?? throwException(`Wrong type reference ${idl.getIDLTypeName(superType)}`)
+        const decl = library.resolveTypeReference(superType) ?? throwException(`Wrong type reference ${idl.IDLKind[superType.kind]}`)
         if ((idl.isInterface(decl) || idl.isClass(decl) || idl.isAnonymousInterface(decl))) {
             collectFields(library, decl, struct)
         }

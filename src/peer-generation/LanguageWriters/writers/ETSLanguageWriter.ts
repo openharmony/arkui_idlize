@@ -31,7 +31,7 @@ import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
 import {
     createReferenceType,
     createUnionType,
-    getIDLTypeName,
+    forceAsNamedNode,
     IDLAnyType,
     IDLBooleanType,
     IDLContainerType,
@@ -60,7 +60,6 @@ import {
     IDLUnknownType,
     IDLVoidType,
     isAnonymousInterface,
-    isIDLTypeName,
     toIDLType
 } from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
@@ -171,7 +170,7 @@ export function makeArrayTypeCheckCall(
 ) {
     return writer.makeMethodCall(
         "TypeChecker",
-        generateTypeCheckerName(getIDLTypeName(typeName)),
+        generateTypeCheckerName(forceAsNamedNode(typeName).name),
         // isBrackets ? generateTypeCheckerNameBracketsArray(typeName) : generateTypeCheckerNameArray(typeName), 
         [writer.makeString(valueAccessor)
     ])

@@ -41,7 +41,7 @@ class JavaLambdaExpression extends LambdaExpression {
         return true
     }
     asString(): string {
-        const params = this.signature.args.map((it, i) => `${idl.getIDLTypeName(it)} ${this.signature.argName(i)}`)
+        const params = this.signature.args.map((it, i) => `${idl.forceAsNamedNode(it).name} ${this.signature.argName(i)}`)
         return `(${params.join(", ")}) -> { ${this.bodyAsString()} }`
     }
 }
@@ -207,7 +207,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.print(`System.out.println("${message}")`)
     }
     mapIDLContainerType(type: idl.IDLContainerType): string {
-        switch (idl.getIDLTypeName(type)) {
+        switch (type.containerKind) {
             case "sequence": return `${this.convert(type.elementType[0])}[]`
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)

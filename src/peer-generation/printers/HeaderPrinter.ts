@@ -28,7 +28,7 @@ import { camelCaseToUpperSnakeCase } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
-import { getIDLTypeName, IDLVoidType, maybeOptional, toIDLType } from "../../idl";
+import { forceAsNamedNode, IDLVoidType, maybeOptional, toIDLType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 
 export function generateEventReceiverName(componentName: string) {
@@ -121,9 +121,9 @@ class HeaderVisitor {
         for (const callback of callbacks) {
             const signature = generateEventSignature(library.declarationTable, callback)
             const args = signature.args.map((type, index) => {
-                return `${getIDLTypeName(type)} ${signature.argName(index)}`
+                return `${forceAsNamedNode(type).name} ${signature.argName(index)}`
             })
-            printMethodDeclaration(this.api, getIDLTypeName(signature.returnType), `(*${callback.methodName})`, args, `;`)
+            printMethodDeclaration(this.api, forceAsNamedNode(signature.returnType).name, `(*${callback.methodName})`, args, `;`)
         }
         this.api.popIndent()
         this.api.print(`} ${receiver};\n`)

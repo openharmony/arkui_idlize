@@ -35,7 +35,7 @@ import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
-import { IDLType, IDLVoidType, toIDLType } from "../../idl";
+import { IDLType, IDLVoidType, isOptionalType, toIDLType } from "../../idl";
 import { createEmptyReferenceResolver } from "../ReferenceResolver";
 
 export function generateArkComponentName(component: string) {
@@ -123,7 +123,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     private printComponent(peer: PeerClass | IdlPeerClass) {
         const callableMethods = (peer.methods as any[]).filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
-        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${it.optional ? "?" : ""}: ${this.printer.convert(it)}`)
+        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${isOptionalType(it) ? "?" : ""}: ${this.printer.convert(it)}`)
         const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
         const componentClassName = generateArkComponentName(peer.componentName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
@@ -283,7 +283,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
             peer.methods.forEach(peerMethod => {
                 const originalSignature = peerMethod.method.signature as NamedMethodSignature
                 const types = peerMethod.declarationTargets.map((declarationTarget, index) => {
-                    return this.printerContext.synthesizedTypes!.getTargetType(declarationTarget, !!originalSignature.args[index].optional)
+                    return this.printerContext.synthesizedTypes!.getTargetType(declarationTarget, isOptionalType(originalSignature.args[index]))
                 })
                 usedTypes.push(...types)
                 const signature = new NamedMethodSignature(componentType, types, originalSignature.argsNames)

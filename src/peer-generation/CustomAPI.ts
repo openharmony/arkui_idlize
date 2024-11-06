@@ -2,7 +2,7 @@
 import { Method, NamedMethodSignature} from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { capitalize } from "../util";
-import { getIDLTypeName, IDLBooleanType, IDLI32Type, IDLPointerType, IDLType, IDLVoidType, isOptionalType, toIDLType } from "../idl";
+import { forceAsNamedNode, IDLBooleanType, IDLI32Type, IDLPointerType, IDLType, IDLVoidType, isOptionalType, toIDLType } from "../idl";
 
 
 // TODO: remove this API.
@@ -43,35 +43,35 @@ export class CustomAPI {
     typeMap = new Map<string, [nativeType: IDLType, castType: IDLType, jniType: IDLType]>()
 
     constructor(public apiName: string, public methods: Method[], public withContext: boolean = false) {
-        this.typeMap.set(getIDLTypeName(IDLVoidType), [IDLVoidType, IDLVoidType, IDLVoidType])
-        this.typeMap.set(getIDLTypeName(IDLI32Type), [toIDLType("Ark_Int32"), toIDLType("Ark_Int32"), toIDLType("int")])
-        this.typeMap.set(getIDLTypeName(IDLPointerType), [ARK_NATIVE_POINTER_TYPE, toIDLType("Ark_NodeHandle"), toIDLType("long")])
-        this.typeMap.set(getIDLTypeName(IDLBooleanType), [toIDLType("KBoolean"), toIDLType("Ark_Boolean"), toIDLType("boolean")])
-        this.typeMap.set(getIDLTypeName(K_UINT_TYPE), [K_UINT_TYPE, toIDLType("Ark_UInt32"), toIDLType("int")])
-        this.typeMap.set(getIDLTypeName(K_LONG_TYPE), [toIDLType("Ark_Int64"), toIDLType("Ark_Int64"), toIDLType("long")])
-        this.typeMap.set(getIDLTypeName(K_FLOAT_TYPE), [toIDLType("Ark_Float32"), toIDLType("Ark_Float32"), toIDLType("float")])
-        this.typeMap.set(getIDLTypeName(K_DOUBLE_TYPE), [K_DOUBLE_TYPE, toIDLType("Ark_Float64"), toIDLType("double")])
-        this.typeMap.set(getIDLTypeName(K_VMCONTEXT_TYPE), [K_VMCONTEXT_TYPE, ARK_VMCONTEXT_TYPE, toIDLType("long")])
-        this.typeMap.set(getIDLTypeName(K_NATIVE_POINTER_TYPE), [K_NATIVE_POINTER_TYPE, ARK_FLOAT32_ARRAY_PTR_TYPE, toIDLType("long")])
-        this.typeMap.set(getIDLTypeName(K_CHAR_PTR_TYPE), [K_CHAR_PTR_TYPE, ARK_CHAR_PTR_TYPE, toIDLType("long")])
-        this.typeMap.set(getIDLTypeName(K_FLOAT_ARRAY_TYPE), [K_FLOAT_ARRAY_TYPE, ARK_FLOAT_ARRAY_TYPE, toIDLType("float[]")])
-        this.typeMap.set(getIDLTypeName(NODE_TYPE_ENUM), [toIDLType("Ark_Int32"), ARK_NODE_TYPE, toIDLType("int")])
-        this.typeMap.set(getIDLTypeName(EVENT_SUB_KIND_ENUM), [toIDLType("Ark_Int32"), ARK_EVENT_SUB_KIND_TYPE, toIDLType("int")])
-        this.typeMap.set(getIDLTypeName(ARK_NODE_EVENT_TYPE), [ARK_NATIVE_POINTER_TYPE, ARK_NODE_EVENT_TYPE, toIDLType("long")])
-        this.typeMap.set(getIDLTypeName(RECEIVER_TYPE), [ARK_NATIVE_POINTER_TYPE, RECEIVER_TYPE, toIDLType("long")])
-        this.typeMap.set(getIDLTypeName(PIPELINE_CONTEXT_TYPE), [ARK_NATIVE_POINTER_TYPE, ARK_PIPELINE_CONTEXT_TYPE, toIDLType("long")])
+        this.typeMap.set(forceAsNamedNode(IDLVoidType).name, [IDLVoidType, IDLVoidType, IDLVoidType])
+        this.typeMap.set(forceAsNamedNode(IDLI32Type).name, [toIDLType("Ark_Int32"), toIDLType("Ark_Int32"), toIDLType("int")])
+        this.typeMap.set(forceAsNamedNode(IDLPointerType).name, [ARK_NATIVE_POINTER_TYPE, toIDLType("Ark_NodeHandle"), toIDLType("long")])
+        this.typeMap.set(forceAsNamedNode(IDLBooleanType).name, [toIDLType("KBoolean"), toIDLType("Ark_Boolean"), toIDLType("boolean")])
+        this.typeMap.set(forceAsNamedNode(K_UINT_TYPE).name, [K_UINT_TYPE, toIDLType("Ark_UInt32"), toIDLType("int")])
+        this.typeMap.set(forceAsNamedNode(K_LONG_TYPE).name, [toIDLType("Ark_Int64"), toIDLType("Ark_Int64"), toIDLType("long")])
+        this.typeMap.set(forceAsNamedNode(K_FLOAT_TYPE).name, [toIDLType("Ark_Float32"), toIDLType("Ark_Float32"), toIDLType("float")])
+        this.typeMap.set(forceAsNamedNode(K_DOUBLE_TYPE).name, [K_DOUBLE_TYPE, toIDLType("Ark_Float64"), toIDLType("double")])
+        this.typeMap.set(forceAsNamedNode(K_VMCONTEXT_TYPE).name, [K_VMCONTEXT_TYPE, ARK_VMCONTEXT_TYPE, toIDLType("long")])
+        this.typeMap.set(forceAsNamedNode(K_NATIVE_POINTER_TYPE).name, [K_NATIVE_POINTER_TYPE, ARK_FLOAT32_ARRAY_PTR_TYPE, toIDLType("long")])
+        this.typeMap.set(forceAsNamedNode(K_CHAR_PTR_TYPE).name, [K_CHAR_PTR_TYPE, ARK_CHAR_PTR_TYPE, toIDLType("long")])
+        this.typeMap.set(forceAsNamedNode(K_FLOAT_ARRAY_TYPE).name, [K_FLOAT_ARRAY_TYPE, ARK_FLOAT_ARRAY_TYPE, toIDLType("float[]")])
+        this.typeMap.set(forceAsNamedNode(NODE_TYPE_ENUM).name, [toIDLType("Ark_Int32"), ARK_NODE_TYPE, toIDLType("int")])
+        this.typeMap.set(forceAsNamedNode(EVENT_SUB_KIND_ENUM).name, [toIDLType("Ark_Int32"), ARK_EVENT_SUB_KIND_TYPE, toIDLType("int")])
+        this.typeMap.set(forceAsNamedNode(ARK_NODE_EVENT_TYPE).name, [ARK_NATIVE_POINTER_TYPE, ARK_NODE_EVENT_TYPE, toIDLType("long")])
+        this.typeMap.set(forceAsNamedNode(RECEIVER_TYPE).name, [ARK_NATIVE_POINTER_TYPE, RECEIVER_TYPE, toIDLType("long")])
+        this.typeMap.set(forceAsNamedNode(PIPELINE_CONTEXT_TYPE).name, [ARK_NATIVE_POINTER_TYPE, ARK_PIPELINE_CONTEXT_TYPE, toIDLType("long")])
     }
 
     getArgType(type: IDLType) {
-        return this.typeMap.get(getIDLTypeName(type))![0]
+        return this.typeMap.get(forceAsNamedNode(type).name)![0]
     }
 
     getCastType(type: IDLType) {
-        return this.typeMap.get(getIDLTypeName(type))![1]
+        return this.typeMap.get(forceAsNamedNode(type).name)![1]
     }
 
     getJniType(type: IDLType) {
-        return this.typeMap.get(getIDLTypeName(type))![2]
+        return this.typeMap.get(forceAsNamedNode(type).name)![2]
     }
 }
 
@@ -160,8 +160,8 @@ export const CUSTOM_API: CustomAPI[] = [
 
 function printCustomApiMethodTS(c: CustomAPI, m: Method) {
     const sig = m.signature as NamedMethodSignature
-    const ret = getIDLTypeName(c.getArgType(sig.returnType))
-    let args = sig.args.map((type, index) => `${sig.argsNames[index]}: ${getIDLTypeName(c.getArgType(type))} `)
+    const ret = forceAsNamedNode(c.getArgType(sig.returnType)).name
+    let args = sig.args.map((type, index) => `${sig.argsNames[index]}: ${forceAsNamedNode(c.getArgType(type)).name} `)
     args = c.withContext ? args.slice(1) : args
     const name = `_${capitalize(m.name)}`
     console.log(`  ${name}(${args.join(", ")}): ${ret}`)
@@ -169,8 +169,8 @@ function printCustomApiMethodTS(c: CustomAPI, m: Method) {
 
 function printCustomApiMethodJNI(c: CustomAPI, m: Method) {
     const sig = m.signature as NamedMethodSignature
-    const ret = getIDLTypeName(c.getJniType(sig.returnType))
-    let args = sig.args.map((type, index) => `${getIDLTypeName(c.getJniType(type))} ${sig.argsNames[index]}`)
+    const ret = forceAsNamedNode(c.getJniType(sig.returnType)).name
+    let args = sig.args.map((type, index) => `${forceAsNamedNode(c.getJniType(type)).name} ${sig.argsNames[index]}`)
     args = c.withContext ? args.slice(1) : args
     const name = `_${capitalize(m.name)}`
     console.log(`  static native ${ret} ${name}(${args.join(", ")});`)
@@ -178,8 +178,8 @@ function printCustomApiMethodJNI(c: CustomAPI, m: Method) {
 
 function printCustomApiMethodETS(c: CustomAPI, m: Method) {
     const sig = m.signature as NamedMethodSignature
-    const ret = getIDLTypeName(c.getJniType(sig.returnType))
-    let args = sig.args.map((type, index) => `${sig.argsNames[index]}: ${getIDLTypeName(c.getJniType(type))} `)
+    const ret = forceAsNamedNode(c.getJniType(sig.returnType)).name
+    let args = sig.args.map((type, index) => `${sig.argsNames[index]}: ${forceAsNamedNode(c.getJniType(type)).name} `)
     args = c.withContext ? args.slice(1) : args
     const name = `_${capitalize(m.name)}`
     console.log(`  static native ${name}(${args.join(", ")}): ${ret}`)

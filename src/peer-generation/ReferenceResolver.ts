@@ -4,7 +4,7 @@ import { PeerLibrary } from "./PeerLibrary";
 
 export interface ReferenceResolver {
     resolveTypeReference(type: idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined
-    toDeclaration(type: idl.IDLType | idl.IDLCallback): idl.IDLEntry
+    toDeclaration(type: idl.IDLType | idl.IDLCallback): idl.IDLNode
 }
 
 export function createEmptyReferenceResolver(): ReferenceResolver {

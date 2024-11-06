@@ -28,7 +28,7 @@ export function makeSyntheticDeclCompletely(srcDecl: idl.IDLEntry,
     const synthDecl = makeSyntheticDeclaration(targetFilename, srcDecl.name!, () => newDecl);
     // Collect dependencies types
     declConvertor.convert(srcDecl).forEach(it => {
-        if (isSourceDecl(it)) {
+        if (idl.isEntry(it) && isSourceDecl(it)) {
             addSyntheticDeclarationDependency(synthDecl, convertDeclToFeature(library, it))
         }
     })

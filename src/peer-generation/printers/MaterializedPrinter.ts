@@ -44,7 +44,7 @@ import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
 import { copyMethod } from "../LanguageWriters/LanguageWriter";
-import { createReferenceType, getIDLTypeName, IDLPointerType, IDLThisType, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../../idl";
+import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLThisType, IDLType, IDLVoidType, isOptionalType, maybeOptional, toIDLType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 
 interface MaterializedFileVisitor {
@@ -184,7 +184,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                     writer.writeSuperCall([]);
                 }
 
-                const allOptional = ctorSig.args.every(it => it.optional)
+                const allOptional = ctorSig.args.every(it => isOptionalType(it))
                 const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
                 if (hasStaticMethods && allOptional) {
                     if (ctorSig.args.length == 0) {
@@ -329,7 +329,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
             }
 
             writer.writeConstructorImplementation(clazz.className, ctorSig, writer => {
-                writer.writeSuperCall([`(${getIDLTypeName(emptyParameterType)})null`]);
+                writer.writeSuperCall([`(${forceAsNamedNode(emptyParameterType).name})null`]);
 
                 const args = ctorSig.argsNames.map(it => writer.makeString(it))
                 writer.writeStatement(
@@ -410,7 +410,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
             const signatureWithJavaTypes = new NamedMethodSignature(
                 ctorSig.returnType,
                 clazz.ctor.declarationTargets.map((declarationTarget, index) => {
-                    return this.printerContext.synthesizedTypes!.getTargetType(declarationTarget, !!ctorSig.args[index].optional)
+                    return this.printerContext.synthesizedTypes!.getTargetType(declarationTarget, isOptionalType(ctorSig.args[index]))
                 }),
                 ctorSig.argsNames,
                 ctorSig.defaults)
@@ -424,7 +424,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
             }
 
             writer.writeConstructorImplementation(clazz.className, signatureWithJavaTypes, writer => {
-                writer.writeSuperCall([`(${getIDLTypeName(emptyParameterType)})null`]);
+                writer.writeSuperCall([`(${forceAsNamedNode(emptyParameterType).name})null`]);
 
                 const args = ctorSig.argsNames.map(it => writer.makeString(it))
                 writer.writeStatement(

@@ -34,7 +34,7 @@ export class TsIDLTypeToStringConverter implements IdlTypeNameConvertor, TypeCon
     /***** TypeConvertor<string> *****************************************/
     
     convertOptional(type: idl.IDLOptionalType): string {
-        return `${this.convert(type.element)} | undefined` 
+        return `${this.convert(type.type)} | undefined` 
     }
     convertUnion(type: idl.IDLUnionType): string {
         return type.types.
@@ -91,7 +91,7 @@ export class TsIDLTypeToStringConverter implements IdlTypeNameConvertor, TypeCon
             return decl.parent?.name
         }
 
-        let typeSpec = idl.getIDLTypeName(type) 
+        let typeSpec = type.name
         let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
@@ -104,7 +104,7 @@ export class TsIDLTypeToStringConverter implements IdlTypeNameConvertor, TypeCon
         return `${typeSpec}${maybeTypeArguments}`
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
-        return idl.getIDLTypeName(type)
+        return type.name
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {

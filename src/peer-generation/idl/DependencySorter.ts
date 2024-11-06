@@ -23,26 +23,26 @@ class TypeDependencies extends TypeDependenciesCollector {
     constructor(library: IdlPeerLibrary) {
         super(library)
     }
-    convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
+    convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
         return type.types.map(it => this.library.toDeclaration(it))
     }
-    convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
+    convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
         return []
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
         return []
     }
-    convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
-        if (idl.getIDLTypeName(type) === "Optional") {
+    convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
+        if (type.name === "Optional") {
             const wrapped = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)!
             return [this.library.toDeclaration(idl.toIDLType(wrapped))]
         }
         return [this.library.toDeclaration(type)]
     }
-    convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLEntry[] {
+    convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLNode[] {
         return []
     }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLEntry[] {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLNode[] {
         return []
     }
 }
@@ -51,16 +51,16 @@ class DeclDependencies extends DeclarationDependenciesCollector {
     constructor (private library: IdlPeerLibrary, private typeDependencies: TypeDependencies) {
         super(typeDependencies)
     }
-    convertInterface(node: idl.IDLInterface): idl.IDLEntry[] {
+    convertInterface(node: idl.IDLInterface): idl.IDLNode[] {
         return collectProperties(node, this.library).map(it => this.library.toDeclaration(it.type))
     }
-    convertEnum(node: idl.IDLEnum): idl.IDLEntry[] {
+    convertEnum(node: idl.IDLEnum): idl.IDLNode[] {
         return []
     }
-    convertTypedef(node: idl.IDLTypedef): idl.IDLEntry[] {
+    convertTypedef(node: idl.IDLTypedef): idl.IDLNode[] {
         return [this.library.toDeclaration(node)]
     }
-    convertCallback(node: idl.IDLCallback): idl.IDLEntry[] {
+    convertCallback(node: idl.IDLCallback): idl.IDLNode[] {
         return []
     }
 }
@@ -68,15 +68,15 @@ class DeclDependencies extends DeclarationDependenciesCollector {
 export class DependencySorter {
     typeConvertor: TypeDependenciesCollector
     declConvertor: DeclarationDependenciesCollector
-    dependencies = new Set<idl.IDLEntry>()
-    adjMap = new Map<idl.IDLEntry, idl.IDLEntry[]>()
+    dependencies = new Set<idl.IDLNode>()
+    adjMap = new Map<idl.IDLNode, idl.IDLNode[]>()
 
     constructor(private library: IdlPeerLibrary) {
         this.typeConvertor = new TypeDependencies(library);
         this.declConvertor = new DeclDependencies(library, this.typeConvertor)
     }
 
-    private fillDependencies(target: idl.IDLEntry, seen: Set<idl.IDLEntry>) {
+    private fillDependencies(target: idl.IDLNode, seen: Set<idl.IDLNode>) {
         if (seen.has(target)) return
         seen.add(target)
         // Need to request that declaration.
@@ -98,7 +98,7 @@ export class DependencySorter {
         this.adjMap.set(target, deps)
     }
 
-    addDep(declaration: idl.IDLEntry) {
+    addDep(declaration: idl.IDLNode) {
         if (this.dependencies.has(declaration)) return
         let seen = new Set<idl.IDLEntry>()///one for all deps?
         this.dependencies.add(declaration)
@@ -107,11 +107,11 @@ export class DependencySorter {
     }
 
     // Kahn's algorithm.
-    getToposorted(): idl.IDLEntry[] {
-        let result: idl.IDLEntry[] = []
+    getToposorted(): idl.IDLNode[] {
+        let result: idl.IDLNode[] = []
         let input = Array.from(this.dependencies)
         // Compute in-degrees.
-        let inDegree = new Map<idl.IDLEntry, number>()
+        let inDegree = new Map<idl.IDLNode, number>()
         for (let k of input) {
             inDegree.set(k, 0)
         }
@@ -125,7 +125,7 @@ export class DependencySorter {
                 inDegree.set(it, old + 1)
             }
         }
-        let queue: idl.IDLEntry[] = []
+        let queue: idl.IDLNode[] = []
         // Insert elements with in-degree 0
         for (let k of input) {
             if (inDegree.get(k)! == 0) {
@@ -155,7 +155,7 @@ export class DependencySorter {
                     cycle.push(it)
                 }
             }
-            console.log(`CYCLE:\n${cycle.map(it => `${it.name} (ind=${inDegree.get(it)}): ${this.adjMap.get(it)?.map(it => it.name).join(",")}`).join("\n")}`)
+            console.log(`CYCLE:\n${cycle.map(it => `${idl.forceAsNamedNode(it).name} (ind=${inDegree.get(it)}): ${this.adjMap.get(it)?.map(it => idl.forceAsNamedNode(it).name).join(",")}`).join("\n")}`)
             throw new Error("cycle detected")
         }
         // console.log("DEPS", result.map(it => this.table.computeTargetName(it, false)).join(","))

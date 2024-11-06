@@ -25,7 +25,7 @@ import { CUSTOM_API, CustomAPI } from "../CustomAPI"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { Language } from "../../Language";
-import { getIDLTypeName, IDLBooleanType, IDLNumberType, IDLVoidType } from "../../idl";
+import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from "../../idl";
 import { createEmptyReferenceResolver } from "../ReferenceResolver";
 
 //const VM_CONTEXT_TYPE = new Type(`${PeerGeneratorConfig.cppPrefix}Ark_VMContext`)
@@ -231,10 +231,10 @@ class BridgeCcVisitor {
                 const type = c.getCastType(it)
                 const name = sig.argsNames[index];
                 let castName = name
-                if (getIDLTypeName(c.getArgType(it)) !== getIDLTypeName(type)) {
+                if (forceAsNamedNode(c.getArgType(it)).name !== forceAsNamedNode(type).name) {
                     castName = `${name}Cast`
-                    const cast = getIDLTypeName(it).endsWith("Enum") ? `${getIDLTypeName(type)}(${name})` : `(${getIDLTypeName(type)}) ${name}`
-                    this.customApi.print(`${getIDLTypeName(type)} ${castName} = ${cast};`)
+                    const cast = forceAsNamedNode(it).name.endsWith("Enum") ? `${forceAsNamedNode(type).name}(${name})` : `(${forceAsNamedNode(type).name}) ${name}`
+                    this.customApi.print(`${forceAsNamedNode(type).name} ${castName} = ${cast};`)
                 }
                 castNames = castNames.concat(castName)
             })
@@ -247,7 +247,7 @@ class BridgeCcVisitor {
         args = sig.returnType === IDLVoidType ? args : [retType, ...args]
         const comma = args.length > 0 ? ", " : ""
         const CTX = c.withContext ? "_CTX" : ""
-        this.customApi.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}${comma}${args.map(it => getIDLTypeName(it)).join(", ")})\n`)
+        this.customApi.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}${comma}${args.map(it => forceAsNamedNode(it).name).join(", ")})\n`)
     }
 
     print(): void {
