@@ -1265,7 +1265,6 @@ export function isConflictingDeclaration(decl: idl.IDLEntry): boolean {/// stole
     // if (idl.isEnum(decl) && decl.name === 'GestureType') return true
     // no return type in some methods
     if (idl.isInterface(decl) && decl.name === 'LayoutChild') return true
-    if (idl.isInterface(decl) && decl.name === 'TerminationInfo') return true
     return false
 }
 
