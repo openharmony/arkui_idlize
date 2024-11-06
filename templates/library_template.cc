@@ -13,105 +13,70 @@
  * limitations under the License.
  */
 
-#include "arkoala-logging.h"
-#include "library.h"
+#include <tuple>
+#include <string>
 
-#include "arkoala-logging.h"
+#include "library.h"
+#include "dynamic-loader.h"
+
+#include "interop-logging.h"
 #include "arkoala_api_generated.h"
 
-#if defined(KOALA_WINDOWS)
-
-#include <windows.h>
-// Here we need to find module where GetArkAnyAPI()
-// function is implemented.
-void* FindModule()
-{
-#if KOALA_USE_LIBACE
-    HMODULE result = nullptr;
-    const char libname[] = "./native/ace_compatible_mock.dll";
-    result = LoadLibraryA(libname);
-    if (result) {
-        return result;
+// TODO: rework for generic OHOS case.
+void* FindModule(int kind) {
+    std::tuple<const char*, bool> candidates[] = {
+        { "ace_compatible", true},
+        { "ace", true },
+        { "ace_compatible_mock", true},
+        { nullptr, false }
+    };
+    char* envValue = getenv("ACE_LIBRARY_PATH");
+    std::string prefix = envValue ? std::string(envValue) : "";
+    LOGE("Search ACE in \"%s\" (env ACE_LIBRARY_PATH) for API %d", prefix.c_str(), kind);
+    for (auto* candidate = candidates; std::get<0>(*candidate); candidate++) {
+        std::string name = std::get<0>(*candidate);
+        if (std::get<1>(*candidate)) {
+            name = libName(name.c_str());
+        }
+        std::string libraryName = prefix + "/" + name;
+        void* module = loadLibrary(libraryName);
+        if (module) {
+            LOGE("ACE module at: %s", libraryName.c_str());
+            return module;
+        } else {
+            // LOGE("Cannot find ACE module: %s %s", libraryName.c_str(), libraryError());
+        }
     }
-    LOG("Cannot find module!");
     return nullptr;
-#else
-     return (void*)1;
-#endif
 }
-extern "C" void* GENERATED_GetArkAnyAPI(int kind, int version);
-
-void* FindFunction(void* library, const char* name)
-{
-#if KOALA_USE_LIBACE
-    return (void*)GetProcAddress(reinterpret_cast<HMODULE>(library), TEXT(name));
-#else
-    return (void*)&GENERATED_GetArkAnyAPI;
-#endif
-}
-
-#elif defined(KOALA_OHOS) || defined(KOALA_LINUX) || defined(KOALA_MACOS)
-
-#include <dlfcn.h>
-void* FindModule()
-{
-#if KOALA_USE_LIBACE
-#if defined(KOALA_OHOS)
-#if defined(__aarch64__)
-    const char libname[] = "/system/lib64/module/libace_compatible_mock.so";
-#elif defined(__arm__)
-    const char libname[] = "/system/lib/module/libace_compatible_mock.so";
-#endif
-#else
-    const char libname[] = "./native/libace_compatible_mock.so";
-#endif
-    void* result = dlopen(libname, RTLD_LAZY | RTLD_LOCAL);
-    if (result) {
-        return result;
-    }
-    LOGE("Cannot load libace: %s", dlerror());
-    return nullptr;
-#else
-    return (void*)1;
-#endif
-}
-
-extern "C" void* GENERATED_GetArkAnyAPI(int kind, int version);
-void* FindFunction(void* library, const char* name)
-{
-#if KOALA_USE_LIBACE
-    return dlsym(library, name);
-#else
-    return (void*)&GENERATED_GetArkAnyAPI;
-#endif
-}
-
-#else
-
-#error "Unknown platform"
-
-#endif
 
 static %CPP_PREFIX%ArkUIAnyAPI* impls[%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%COUNT] = { 0 };
 const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
 
-const ArkUIAnyAPI* GetAnyImpl(ArkUIAPIVariantKind kind, int version, std::string* result) {
+const ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
     if (!impls[kind]) {
         %CPP_PREFIX%ArkUIAnyAPI* impl = nullptr;
         typedef %CPP_PREFIX%ArkUIAnyAPI* (*GetAPI_t)(int, int);
-        GetAPI_t getAPI = nullptr;
+        static GetAPI_t getAPI = nullptr;
 
-        void* module = FindModule();
-        if (!module) {
-            if (result)
-                *result = "Cannot find dynamic module";
-            else
-                LOGE("Cannot find dynamic module");
-            return nullptr;
+        char* envValue = getenv("__LIBACE_ENTRY_POINT");
+        if (envValue) {
+            long long value = strtoll(envValue, NULL, 16);
+            if (value != 0) {
+                getAPI = reinterpret_cast<GetAPI_t>(static_cast<uintptr_t>(value));
+            }
         }
-
         if (getAPI == nullptr) {
-            getAPI = reinterpret_cast<GetAPI_t>(FindFunction(module, getArkAnyAPIFuncName));
+            const GroupLogger* logger = GetDefaultLogger();
+            void* module = FindModule(kind);
+            if (!module) {
+                if (result)
+                    *result = "Cannot find dynamic module";
+                else
+                    LOGE("Cannot find dynamic module");
+                return nullptr;
+            }
+            getAPI = reinterpret_cast<GetAPI_t>(findSymbol(module, getArkAnyAPIFuncName));
             if (!getAPI) {
                 if (result)
                     *result = std::string("Cannot find ") + getArkAnyAPIFuncName;
@@ -119,8 +84,11 @@ const ArkUIAnyAPI* GetAnyImpl(ArkUIAPIVariantKind kind, int version, std::string
                     LOGE("Cannot find %s", getArkAnyAPIFuncName);
                 return nullptr;
             }
+            // Provide custom logger to loaded libs.
+            typedef void (*SetLogger_t)(const GroupLogger* logger);
+            SetLogger_t setLogger = reinterpret_cast<SetLogger_t>(findSymbol(module, "SetLoggerSymbol"));
+            if (setLogger && logger) setLogger(logger);
         }
-
         impl = (*getAPI)(kind, version);
         if (!impl) {
             if (result)
@@ -129,7 +97,6 @@ const ArkUIAnyAPI* GetAnyImpl(ArkUIAPIVariantKind kind, int version, std::string
                 LOGE("getAPI() returned null")
             return nullptr;
         }
-
         if (impl->version != version) {
             if (result) {
                 char buffer[256];

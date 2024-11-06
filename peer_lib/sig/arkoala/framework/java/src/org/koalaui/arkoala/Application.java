@@ -34,6 +34,7 @@ public class Application {
     }
 
     public static Application startApplication() {
+        NativeModule._NativeLog("NativeModule.startApplication");
         return new Application().start();
     }
 
@@ -49,6 +50,7 @@ public class Application {
 
     void checkEvents(int what) {
         System.out.println("JAVA: checkEvents " + what);
+        NativeModule._CreateNode(0, 0, 0);
     }
 
     void updateState() {

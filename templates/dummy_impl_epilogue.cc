@@ -1,12 +1,3 @@
-const %CPP_PREFIX%Ark_UtilsModifier* %CPP_PREFIX%GetUtilsModifier()
-{
-    static const %CPP_PREFIX%Ark_UtilsModifier utilsImpl = {
-        OHOS::Ace::NG::GetDensity,
-        OHOS::Ace::NG::GetFontScale,
-        OHOS::Ace::NG::GetDesignWidthScale
-    };
-    return &utilsImpl;
-}
 const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI()
 {
     static const %CPP_PREFIX%ArkUIBasicNodeAPI basicNodeAPIImpl = {
@@ -32,8 +23,9 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI()
 {
     static const %CPP_PREFIX%ArkUIExtendedNodeAPI extendedNodeAPIImpl = {
         %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, // version
-        SetAppendGroupedLog,
-        %CPP_PREFIX%GetUtilsModifier,
+        OHOS::Ace::NG::GetDensity,
+        OHOS::Ace::NG::GetFontScale,
+        OHOS::Ace::NG::GetDesignWidthScale,
         OHOS::Ace::NG::Bridge::SetCallbackMethod,
         OHOS::Ace::NG::ApiImpl::SetCustomMethodFlag,
         OHOS::Ace::NG::ApiImpl::GetCustomMethodFlag,
@@ -67,6 +59,7 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI()
     return &extendedNodeAPIImpl;
 }
 
+// TODO: remove me!
 const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI()
 {
     static const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {

@@ -12,10 +12,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import { env } from "node:process"
+
 import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
 import { SerializerBase } from "@arkoala/arkui/peers/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
-import { Serializer, createSerializer } from "@arkoala/arkui/peers/Serializer"
+import { createSerializer } from "@arkoala/arkui/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
@@ -50,7 +52,6 @@ import {
     stopNativeLog,
     assertEquals,
     assertTrue,
-    assertThrows,
     startNativeTest,
     stopNativeTest,
 } from "./test_utils"
@@ -413,27 +414,6 @@ function checkCanvasRenderingContext2D() {
     stopNativeTest(CALL_GROUP_LOG)
 }
 
-function checkPerf1(count: number) {
-    let module = nativeModule()
-    let start = performance.now()
-    for (let i = 0; i < count; i++) {
-        module._TestPerfNumber(i)
-    }
-    let passed = performance.now() - start
-    console.log(`NUMBER: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
-
-    start = performance.now()
-    for (let i = 0; i < count; i++) {
-        let serializer = SerializerBase.hold(createSerializer)
-        serializer.writeNumber(0)
-        let data = serializer.asArray()
-        module._TestPerfNumberWithArray(data, data.length)
-        serializer.release()
-    }
-    passed = performance.now() - start
-    console.log(`ARRAY: ${passed}ms for ${Math.round(count)} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
-}
-
 function checkPerf2(count: number) {
     let peer = ArkButtonPeer.create(ArkUINodeType.Button)
     let start = performance.now()
@@ -624,6 +604,9 @@ function checkNativeCallback() {
 }
 
 function main() {
+    // Place where mock of ACE is located.
+    env.ACE_LIBRARY_PATH = __dirname + "/../../../native"
+
     checkSerdeBaseLength()
     checkSerdeBaseText()
     checkSerdeBasePrimitive()

@@ -18,18 +18,38 @@
 #include "arkoala_api.h"
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
-#include "arkoala-logging.h"
-#include "common-interop.h"
+#include "interop-logging.h"
 #include "arkoala-macros.h"
 #include "tree.h"
 #include "logging.h"
+#include "dynamic-loader.h"
 
-typedef void (*AppendGroupedLogSignature)(int32_t, const std::string&);
+// For logging we use operations exposed via interop, SetLoggerSymbol() is called
+// when library is loaded.
+const GroupLogger* loggerInstance = GetDefaultLogger();
 
-AppendGroupedLogSignature appendGroupedLogPtr = nullptr;
+const GroupLogger* GetDummyLogger() {
+    return loggerInstance;
+}
 
-void SetAppendGroupedLog(void* logger) {
-    if (logger) appendGroupedLogPtr = reinterpret_cast<AppendGroupedLogSignature>(logger);
+extern "C" INTEROP_API_EXPORT void SetLoggerSymbol(const GroupLogger* logger) {
+    loggerInstance = logger;
+}
+
+void startGroupedLog(int kind) {
+    GetDummyLogger()->startGroupedLog(kind);
+}
+void stopGroupedLog(int kind) {
+    GetDummyLogger()->stopGroupedLog(kind);
+}
+const char* getGroupedLog(int kind) {
+    return GetDummyLogger()->getGroupedLog(kind);
+}
+int needGroupedLog(int kind) {
+    return GetDummyLogger()->needGroupedLog(kind);
+}
+void appendGroupedLog(int kind, const std::string& str) {
+    GetDummyLogger()->appendGroupedLog(kind, str.c_str());
 }
 
 void dummyClassFinalizer(KNativePointer* ptr) {
@@ -40,7 +60,6 @@ void dummyClassFinalizer(KNativePointer* ptr) {
     out.append(")");
     appendGroupedLog(1, out);
 }
-
 
 namespace TreeNodeDelays {
 

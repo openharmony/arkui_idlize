@@ -20,11 +20,11 @@ export function checkTestFailures() {
 }
 
 export function startNativeTest(testName: string, group: number) {
-    nativeModule()._StartNativeTest(testName, group)
+    nativeModule()._AppendGroupedLog(group, `void TEST_${testName}() {\n`)
 }
 
 export function stopNativeTest(group: number) {
-    nativeModule()._StopNativeTest(group)
+    nativeModule()._AppendGroupedLog(group, `}\n`)
 }
 
 export function startNativeLog(group: number) {

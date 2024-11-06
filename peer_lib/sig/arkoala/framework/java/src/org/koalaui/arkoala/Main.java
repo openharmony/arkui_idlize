@@ -36,32 +36,9 @@ public class Main {
 
     static void perfTests() {
         System.out.println("\nJava performance tests");
-        checkPerf(10*1000*1000);
         checkPerf2(5*1000*1000);
         checkPerf3(5*1000*1000);
         System.out.println();
-    }
-
-    static void checkPerf(int count) {
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < count; i++) {
-            NativeModule._TestPerfNumber(i);
-        }
-        long passed = System.currentTimeMillis() - start;
-        System.out.println("NUMBER: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
-
-        start = System.currentTimeMillis();
-        for (int i = 0; i < count; i++) {
-            byte[] data = new byte[5];
-            data[0] = 1;
-            data[1] = (byte)(i >> 24);
-            data[2] = (byte)(i >> 16);
-            data[3] = (byte)(i >> 8);
-            data[4] = (byte)(i >> 0);
-            NativeModule._TestPerfNumberWithArray(data, data.length);
-        }
-        passed = System.currentTimeMillis() - start;
-        System.out.println("ARRAY: " + String.valueOf(passed) + "ms for " + count + " iteration, " + Math.round((double)passed / count * 1000000) + "ms per 1M iterations");
     }
 
     static void checkPerf2(int count) {

@@ -1,11 +1,10 @@
 package "org.openharmony.idlize.predefined";
 
 interface Interop {
-    void StartNativeTest(String ptr1, i32 arg);
-    void StopNativeTest(i32 arg0);
-    pointer GetGroupedLog(i32 arg0);
-    void StartGroupedLog(i32 arg0);
-    void StopGroupedLog(i32 arg0);
+    pointer GetGroupedLog(i32 index);
+    void StartGroupedLog(i32 index);
+    void StopGroupedLog(i32 index);
+    void AppendGroupedLog(i32 index, String message);
     pointer GetStringFinalizer();
     void InvokeFinalizer(pointer ptr1, pointer ptr2);
     pointer GetPtrVectorElement(pointer ptr1, i32 arg);
@@ -19,12 +18,11 @@ interface Interop {
     void Test_Common_OnChildTouchTest(sequence<u8> arr, i32 arg);
     void Test_List_OnScrollVisibleContentChange(sequence<u8> arr, i32 arg);
     void Test_TextPicker_OnAccept(sequence<u8> arr, i32 arg);
-    i32 TestPerfNumber(i32 arg);
-    void TestPerfNumberWithArray(sequence<u8> arr, i32 arg);
     void NativeLog(String str1);
     void StartPerf(String str1);
     void EndPerf(String str1);
     pointer DumpPerf(i32 arg);
+    // TODO: remove!
     i32 CheckArkoalaGeneratedEvents(sequence<u8> result, i32 size);
     void CallCallback(i32 callbackKind, sequence<u8> args, i32 argsSize);
     void CallCallbackResourceHolder(pointer holder, i32 resourceId);

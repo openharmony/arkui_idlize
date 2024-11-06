@@ -12,15 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <vector>
+#include <string>
+
 #include "library.h"
 #include "common-interop.h"
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
-#include "arkoala-logging.h"
 
 static const %CPP_PREFIX%ArkUIFullNodeAPI* GetFullImpl() {
     return reinterpret_cast<const %CPP_PREFIX%ArkUIFullNodeAPI*>(
-        GetAnyImpl(static_cast<ArkUIAPIVariantKind>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%FULL), 
+        GetAnyImpl(static_cast<ArkUIAPIVariantKind>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%FULL),
         %CPP_PREFIX%ARKUI_FULL_API_VERSION));
 }
 
