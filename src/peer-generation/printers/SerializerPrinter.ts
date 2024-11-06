@@ -224,7 +224,7 @@ class IdlSerializerPrinter {
                 break;
         }
         const serializerDeclarations = getSerializers(this.library,
-            createSerializerDependencyFilter(this.library))
+            createSerializerDependencyFilter(this.writer.language))
         printIdlImports(this.library, serializerDeclarations, this.writer, declarationPath)
         // just a separator
         this.writer.print("")
@@ -400,7 +400,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             prefix = prefix === "" ? PrimitiveType.Prefix : prefix
         }
         const serializerDeclarations = getSerializers(this.library,
-            createSerializerDependencyFilter(this.library))
+            createSerializerDependencyFilter(this.writer.language))
         printIdlImports(this.library, serializerDeclarations, this.writer, declarationPath)
         this.writer.print("")
         this.writer.writeClass(className, writer => {
@@ -579,12 +579,13 @@ function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: Serial
     collector.print(writer, (declarationPath ? "." : "./peers/") + `Serializer.${writer.language.extension}`)
 }
 
-function createSerializerDependencyFilter(peerLibrary: IdlPeerLibrary): DependencyFilter {
-    switch (peerLibrary.language) {
+function createSerializerDependencyFilter(language: Language): DependencyFilter {
+    switch (language) {
         case Language.TS: return new DefaultSerializerDependencyFilter()
         case Language.ARKTS: return new ArkTSSerializerDependencyFilter()
         case Language.JAVA: return new DefaultSerializerDependencyFilter()
         case Language.CJ: return new DefaultSerializerDependencyFilter()
+        case Language.CPP: return new DefaultSerializerDependencyFilter()
     }
     throwException("Unimplemented filter")
 }
