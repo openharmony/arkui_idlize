@@ -60,6 +60,19 @@ typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
 } %CPP_PREFIX%ArkUIBasicNodeAPI;
 
 
+typedef struct ServiceLogger {
+    void (*startGroupedLog)(int kind);
+    void (*stopGroupedLog)(int kind);
+    void (*appendGroupedLog)(int kind, const char* str);
+    const char* (*getGroupedLog)(int kind);
+    int (*needGroupedLog)(int kind);
+} ServiceLogger;
+
+typedef struct GenericServiceAPI {
+    Ark_Int32 version;
+    void (*setLogger)(const ServiceLogger* logger);
+} GenericServiceAPI;
+
 typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     Ark_Int32 version;
 
@@ -136,3 +149,22 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
   void (*showCrash)(Ark_CharPtr message);
 
 } %CPP_PREFIX%ArkUIExtendedNodeAPI;
+
+/**
+ * An API to control an implementation. When making changes modifying binary
+ * layout, i.e. adding new events - increase ARKUI_NODE_API_VERSION above for binary
+ * layout checks.
+ */
+typedef struct %CPP_PREFIX%ArkUIFullNodeAPI {
+    Ark_Int32 version;
+    const %CPP_PREFIX%ArkUINodeModifiers* (*getNodeModifiers)();
+    const %CPP_PREFIX%ArkUIAccessors* (*getAccessors)();
+    const %CPP_PREFIX%ArkUIGraphicsAPI* (*getGraphicsAPI)();
+    const %CPP_PREFIX%ArkUIEventsAPI* (*getEventsAPI)();
+    // TODO: move to service?
+    void (*setArkUIEventsAPI)(const %CPP_PREFIX%ArkUIEventsAPI* api);
+} %CPP_PREFIX%ArkUIFullNodeAPI;
+
+typedef struct %CPP_PREFIX%ArkUIAnyAPI {
+   Ark_Int32 version;
+} %CPP_PREFIX%ArkUIAnyAPI;

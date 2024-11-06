@@ -55,6 +55,8 @@ const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
 
 const ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
     if (!impls[kind]) {
+        static const GroupLogger* logger = GetDefaultLogger();
+
         %CPP_PREFIX%ArkUIAnyAPI* impl = nullptr;
         typedef %CPP_PREFIX%ArkUIAnyAPI* (*GetAPI_t)(int, int);
         static GetAPI_t getAPI = nullptr;
@@ -67,7 +69,6 @@ const ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
             }
         }
         if (getAPI == nullptr) {
-            const GroupLogger* logger = GetDefaultLogger();
             void* module = FindModule(kind);
             if (!module) {
                 if (result)
@@ -84,11 +85,11 @@ const ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
                     LOGE("Cannot find %s", getArkAnyAPIFuncName);
                 return nullptr;
             }
-            // Provide custom logger to loaded libs.
-            typedef void (*SetLogger_t)(const GroupLogger* logger);
-            SetLogger_t setLogger = reinterpret_cast<SetLogger_t>(findSymbol(module, "SetLoggerSymbol"));
-            if (setLogger && logger) setLogger(logger);
         }
+        // Provide custom logger to loaded libs.
+        auto service = (const GenericServiceAPI*)(*getAPI)(GENERIC_SERVICE, GENERIC_SERVICE_API_VERSION);
+        if (service && logger) service->setLogger(reinterpret_cast<const ServiceLogger*>(logger));
+
         impl = (*getAPI)(kind, version);
         if (!impl) {
             if (result)

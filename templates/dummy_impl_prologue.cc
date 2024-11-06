@@ -32,7 +32,7 @@ const GroupLogger* GetDummyLogger() {
     return loggerInstance;
 }
 
-extern "C" INTEROP_API_EXPORT void SetLoggerSymbol(const GroupLogger* logger) {
+void SetDummyLogger(const GroupLogger* logger) {
     loggerInstance = logger;
 }
 

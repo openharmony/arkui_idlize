@@ -68,10 +68,22 @@ const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI()
         %CPP_PREFIX%GetArkUIAccessors,
         nullptr,
         OHOS::Ace::NG::GeneratedEvents::%CPP_PREFIX%GetArkUiEventsAPI,
-        %CPP_PREFIX%GetExtendedAPI,
         OHOS::Ace::NG::GeneratedEvents::%CPP_PREFIX%SetArkUiEventsAPI
     };
     return &fullAPIImpl;
+}
+
+void setLogger(const ServiceLogger* logger) {
+    SetDummyLogger(reinterpret_cast<const GroupLogger*>(logger));
+}
+
+const GenericServiceAPI* GetServiceAPI()
+{
+    static const GenericServiceAPI serviceAPIImpl = {
+        GENERIC_SERVICE_API_VERSION, // version
+        setLogger
+    };
+    return &serviceAPIImpl;
 }
 
 EXTERN_C IDLIZE_API_EXPORT const %CPP_PREFIX%ArkUIAnyAPI* %CPP_PREFIX%GetArkAnyAPI(
@@ -91,6 +103,11 @@ EXTERN_C IDLIZE_API_EXPORT const %CPP_PREFIX%ArkUIAnyAPI* %CPP_PREFIX%GetArkAnyA
         case %CPP_PREFIX%EXTENDED:
             if (version == %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION)   {
                 return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(%CPP_PREFIX%GetExtendedAPI());
+            }
+            break;
+        case GENERIC_SERVICE:
+            if (version == GENERIC_SERVICE_API_VERSION)   {
+                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(GetServiceAPI());
             }
             break;
         default:

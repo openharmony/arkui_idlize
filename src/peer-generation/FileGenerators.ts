@@ -287,7 +287,7 @@ export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary): Languag
         imports.addFeatures(["nativeModule"], "@koalaui/arkoala")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
         imports.addFeatures(["ResourceManager"], "@koalaui/interop")
-    } 
+    }
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["NativeModule"], "#components")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
@@ -451,25 +451,6 @@ ${nodeTypes.join(",\n")}
 } ${PeerGeneratorConfig.cppPrefix}Ark_NodeType;
 
 ${node_api}
-
-/**
- * An API to control an implementation. When making changes modifying binary
- * layout, i.e. adding new events - increase ARKUI_NODE_API_VERSION above for binary
- * layout checks.
- */
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI {
-    ${PrimitiveType.Int32.getText()} version;
-    const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* (*getNodeModifiers)();
-    const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* (*getAccessors)();
-    const ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI* (*getGraphicsAPI)();
-    const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* (*getEventsAPI)();
-    const ${PeerGeneratorConfig.cppPrefix}ArkUIExtendedNodeAPI* (*getExtendedAPI)();
-    void (*setArkUIEventsAPI)(const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* api);
-} ${PeerGeneratorConfig.cppPrefix}ArkUIFullNodeAPI;
-
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI {
-    ${PrimitiveType.Int32.getText()} version;
-} ${PeerGeneratorConfig.cppPrefix}ArkUIAnyAPI;
 `
 }
 
