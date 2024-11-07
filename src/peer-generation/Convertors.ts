@@ -366,7 +366,7 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.popIndent()
             printer.print(`}`)
         })
-        this.unionChecker.reportConflicts(this.table.getCurrentContext() ?? "<unknown context>")
+        this.unionChecker.reportConflicts(this.table.getCurrentContext())
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         throw "Not implemented"
@@ -879,6 +879,42 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
             [writer.makeString(`${value} instanceof ${writer.convert(this.idlType)}`)])
     }
 }
+
+export class WrapperClassConvertor extends BaseArgConvertor {
+    // TODO: 
+    constructor(
+        name: string,
+        param: string,
+        protected table: DeclarationTable,
+        private type: ts.InterfaceDeclaration | ts.ClassDeclaration,
+    ) {
+        super(toIDLType(name), [RuntimeType.OBJECT], false, true, param)
+    }
+
+    convertorArg(param: string, writer: LanguageWriter): string {
+        throw new Error("Must never be used")
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.writeMethodCall(`${param}Serializer`, "writeWrapper", [value])
+    }
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        throw "Not implemented"
+    }
+    nativeType(impl: boolean): string {
+        return PrimitiveType.Materialized.getText()
+    }
+    interopType(language: Language): string {
+        throw new Error("Must never be used")
+    }
+    isPointerType(): boolean {
+        return true
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
+            [writer.makeString(`${value} instanceof ${writer.convert(this.idlType)}`)])
+    }
+}
+
 
 export class TypeAliasConvertor extends ProxyConvertor {
     constructor(

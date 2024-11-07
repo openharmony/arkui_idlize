@@ -22,6 +22,7 @@ import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedC
 import { generateCallbackAPIArguments } from "./StructPrinter"
 import { CppCastExpression } from "../LanguageWriters/writers/CppLanguageWriter"
 import { generateCallbackKindAccess } from "../printers/CallbacksPrinter"
+import { LibraryInterface } from "../../LibraryInterface"
 
 
 export class StringConvertor extends BaseArgConvertor {
@@ -152,7 +153,7 @@ export class UnionConvertor extends BaseArgConvertor { //
     private memberConvertors: ArgConvertor[]
     private unionChecker: UnionRuntimeTypeChecker
 
-    constructor(private library: IdlPeerLibrary, param: string, private type: idl.IDLUnionType) {
+    constructor(private library: LibraryInterface, param: string, private type: idl.IDLUnionType) {
         super(idl.toIDLType(`object`), [], false, true, param)
         this.memberConvertors = type.types.map(member => library.typeConvertor(param, member))
         this.unionChecker = new UnionRuntimeTypeChecker(this.memberConvertors)
@@ -273,7 +274,7 @@ export class ImportTypeConvertor extends BaseArgConvertor { //
 export class OptionConvertor extends BaseArgConvertor { //
     private typeConvertor: ArgConvertor
     // TODO: be smarter here, and for smth like Length|undefined or number|undefined pass without serializer.
-    constructor(private library: IdlPeerLibrary, param: string, public type: idl.IDLType) {
+    constructor(private library: LibraryInterface, param: string, public type: idl.IDLType) {
         let conv = library.typeConvertor(param, type)
         let runtimeTypes = conv.runtimeTypes;
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
@@ -344,7 +345,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
     private members: [string, boolean][] = []
     public readonly aliasName: string | undefined
 
-    constructor(protected library: IdlPeerLibrary, param: string, type: idl.IDLType, protected decl: idl.IDLInterface) {
+    constructor(protected library: LibraryInterface, param: string, type: idl.IDLType, protected decl: idl.IDLInterface) {
         super(type, [RuntimeType.OBJECT], false, true, param)
         // this.aliasName = ts.isTypeAliasDeclaration(this.type.parent) ? identName(this.type.parent.name) : undefined
         this.memberConvertors = decl
@@ -381,8 +382,11 @@ export class AggregateConvertor extends BaseArgConvertor { //
                     // prefix initialization for CPP, just easier. Waiting for easy work with nullables
                     return writer.makeAssign(`${bufferName}.${writer.escapeKeyword(prop.name)}`, undefined, expr, false)
                 }
-                const memberType = prop.isOptional 
-                    ? idl.createUnionType([idl.IDLUndefinedType, prop.type!])
+                /**
+                 * todo: check UnionType name creation for union of unnamed nodes (isNamedNode() == false)
+                 */
+                const memberType = prop.isOptional
+                    ? idl.createUnionType([idl.IDLUndefinedType, prop.type!], "$NOT TO BE PRINTED%")
                     : prop.type
                 return writer.makeAssign(`${bufferName}_${prop.name}`, memberType, expr, true, true)
             }, writer))
@@ -480,7 +484,7 @@ export class ClassConvertor extends InterfaceConvertor { //
 }
 
 export class FunctionConvertor extends BaseArgConvertor { //
-    constructor(private library: IdlPeerLibrary, param: string, protected type: idl.IDLReferenceType) {
+    constructor(private library: LibraryInterface, param: string, protected type: idl.IDLReferenceType) {
         // TODO: pass functions as integers to native side.
         super(idl.toIDLType("Function"), [RuntimeType.FUNCTION], false, false, param)
     }
@@ -509,7 +513,7 @@ export class FunctionConvertor extends BaseArgConvertor { //
 
 export class CallbackConvertor extends BaseArgConvertor {
     constructor(
-        private readonly library: IdlPeerLibrary,
+        private readonly library: LibraryInterface,
         param: string,
         private readonly decl: idl.IDLCallback,
     ) {
@@ -553,7 +557,7 @@ export class CallbackConvertor extends BaseArgConvertor {
 }
 
 export class TupleConvertor extends AggregateConvertor { //
-    constructor(library: IdlPeerLibrary, param: string, type: idl.IDLType, decl: idl.IDLInterface) {
+    constructor(library: LibraryInterface, param: string, type: idl.IDLType, decl: idl.IDLInterface) {
         super(library, param, type, decl)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -591,7 +595,7 @@ export class TupleConvertor extends AggregateConvertor { //
 
 export class ArrayConvertor extends BaseArgConvertor { //
     elementConvertor: ArgConvertor
-    constructor(private library: IdlPeerLibrary, param: string, private type: idl.IDLContainerType, private elementType: idl.IDLType) {
+    constructor(private library: LibraryInterface, param: string, private type: idl.IDLContainerType, private elementType: idl.IDLType) {
         super(idl.createContainerType('sequence', [elementType]), [RuntimeType.OBJECT], false, true, param)
         this.elementConvertor = library.typeConvertor(param, elementType)
     }
@@ -649,7 +653,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
 export class MapConvertor extends BaseArgConvertor { //
     keyConvertor: ArgConvertor
     valueConvertor: ArgConvertor
-    constructor(private library: IdlPeerLibrary, param: string, type: idl.IDLType, public keyType: idl.IDLType, public valueType: idl.IDLType) {
+    constructor(private library: LibraryInterface, param: string, type: idl.IDLType, public keyType: idl.IDLType, public valueType: idl.IDLType) {
         super(
             idl.createContainerType(
                 'record', [keyType, valueType]
@@ -768,7 +772,7 @@ export class DateConvertor extends BaseArgConvertor { //
 }
 
 export class MaterializedClassConvertor extends BaseArgConvertor { //
-    constructor(private library: IdlPeerLibrary, name: string, param: string, private type: idl.IDLInterface) {
+    constructor(private library: LibraryInterface, name: string, param: string, private type: idl.IDLInterface) {
         super(idl.toIDLType(name), [RuntimeType.OBJECT], false, true, param)
     }
 
@@ -802,7 +806,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor { //
 }
 
 export class TypeAliasConvertor extends ProxyConvertor { //
-    constructor(library: IdlPeerLibrary, param: string, typedef: idl.IDLTypedef) {///, private typeArguments?: ts.NodeArray<ts.TypeNode>) {
+    constructor(library: LibraryInterface, param: string, typedef: idl.IDLTypedef) {///, private typeArguments?: ts.NodeArray<ts.TypeNode>) {
         super(library.typeConvertor(param, typedef.type), typedef.name)
     }
 }
@@ -817,7 +821,7 @@ export interface RetConvertor {
     macroSuffixPart: () => string
 }
 
-export function stubReferenceIfCpp(library: IdlPeerLibrary, type: idl.IDLType, language: Language): idl.IDLType {
+export function stubReferenceIfCpp(library: LibraryInterface, type: idl.IDLType, language: Language): idl.IDLType {
     if (language === Language.CPP)
         return idl.createReferenceType(library.getTypeName(type))
     return type

@@ -31,10 +31,10 @@ import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, N
 import { Language } from '../../Language';
 import { generateSyntheticFunctionName } from '../../IDLVisitor';
 import { collectUniqueCallbacks } from '../printers/CallbacksPrinter';
-import { ReferenceResolver } from '../ReferenceResolver';
 import { IdlTypeNameConvertor } from '../LanguageWriters/typeConvertor';
+import { LibraryInterface } from '../../LibraryInterface';
 
-export class IdlPeerLibrary implements ReferenceResolver {
+export class IdlPeerLibrary implements LibraryInterface {
     public readonly files: IdlPeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {

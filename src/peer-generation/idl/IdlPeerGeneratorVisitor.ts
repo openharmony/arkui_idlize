@@ -216,13 +216,14 @@ function mapCInteropRetType(type: idl.IDLType): string {
 
 class ImportsAggregateCollector extends TypeDependenciesCollector {
     // TODO: dirty hack, need to rework
-    private readonly declarationCollector: FilteredDeclarationCollector = new FilteredDeclarationCollector(this.library, this)
+    private readonly declarationCollector: FilteredDeclarationCollector
 
     constructor(
         protected readonly peerLibrary: IdlPeerLibrary,
         private readonly expandAliases: boolean,
     ) {
         super(peerLibrary)
+        this.declarationCollector = new FilteredDeclarationCollector(peerLibrary, this)
     }
 
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
@@ -260,7 +261,7 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
     }
 }
 
-class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
+export class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
     constructor(
         private readonly library: IdlPeerLibrary,
         typeDepsCollector: TypeDependenciesCollector,
@@ -282,6 +283,7 @@ class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
 class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
     override convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
         if (idl.IDLContainerUtils.isSequence(type)) {
+        // todo: check this.peerLibrary instanceof IdlPeerLibrary)
             this.peerLibrary.seenArrayTypes.set(this.peerLibrary.getTypeName(type), type)
         }
         return super.convertContainer(type)
@@ -1338,11 +1340,11 @@ function generateSignature(library: IdlPeerLibrary,
     if (library.language === Language.ARKTS) {
         const isRetTypeParam = idl.isTypeParameterType(method.returnType!)
         const isSelfRetType = className !== undefined && idl.isNamedNode(method.returnType!) ? className == method.returnType.name : true
-        returnType = idl.isVoidType(method.returnType!)
+        returnType = idl.isVoidType(method.returnType!) // check
             ? idl.IDLVoidType
             : idl.isConstructor(method) || (!method.isStatic && isSelfRetType || isRetTypeParam) ? idl.IDLThisType : method.returnType!
     } else {
-        returnType = idl.isVoidType(method.returnType!) ? idl.IDLVoidType
+        returnType = (method.returnType && idl.isVoidType(method.returnType)) ? idl.IDLVoidType
             : idl.isConstructor(method) || !method.isStatic ? idl.IDLThisType : method.returnType!
     }
 

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { LibraryInterface } from "../../LibraryInterface"
 import * as idl from "../../idl"
 import { IDLEntry, IDLType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
@@ -27,7 +28,7 @@ import { isImport, isStringEnum } from "./common"
 import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
 
-export function generateCallbackAPIArguments(library: IdlPeerLibrary, callback: idl.IDLCallback): string[] {
+export function generateCallbackAPIArguments(library: LibraryInterface, callback: idl.IDLCallback): string[] {
     const args: string[] = [`const ${PrimitiveType.Int32.getText()} resourceId`]
     args.push(...callback.parameters.map(it => {
         const target = library.toDeclaration(it.type!)

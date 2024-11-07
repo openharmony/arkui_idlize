@@ -242,6 +242,7 @@ export interface IDLPackage extends IDLEntry {
 
 export interface IDLImport extends IDLEntry {
     kind: IDLKind.Import
+    importClause?: string[]
 }
 
 export interface IDLCallback extends IDLEntry, IDLSignature {
@@ -542,10 +543,11 @@ export function createPackage(name: string): IDLPackage {
     }
 }
 
-export function createImport(name: string): IDLImport {
+export function createImport(name: string, importClause?: string[]): IDLImport {
     return {
         kind: IDLKind.Import,
         name,
+        importClause: importClause,
         _idlNodeBrand: innerIdlSymbol,
         _idlEntryBrand: innerIdlSymbol,
         _idlNamedNodeBrand: innerIdlSymbol,
@@ -1070,6 +1072,21 @@ export const IDLContainerUtils = {
     isSequence: (x:IDLNode) => isContainerType(x) && x.containerKind === 'sequence',
     isPromise: (x:IDLNode) => isContainerType(x) && x.containerKind === 'Promise'
 }
+
+/** 
+ * @returns tuple of qualifier name and real type name
+ */
+export function decomposeQualifiedName(type: IDLReferenceType): [string | undefined, string] {
+    const typeName = type.name
+    const lastDot = typeName.lastIndexOf(".")
+    if (lastDot >= 0) {
+        const qualifier = typeName.slice(0, lastDot)
+        const realTypeName = typeName.slice(lastDot + 1)
+        return [qualifier, realTypeName]
+    }
+    return [undefined, typeName]
+}
+
 ///don't like this. But type args are stored as strings, not as IDLType as they should
 export function toIDLType(typeName: string): IDLType {
     if (typeName.includes('import')) {

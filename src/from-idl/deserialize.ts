@@ -28,11 +28,11 @@ import { createInterface } from "readline"
 
 const syntheticTypes = new Map<string, idl.IDLEntry>()
 
-function addSyntheticType(name: string, type: idl.IDLEntry) {
+export function addSyntheticType(name: string, type: idl.IDLEntry) {
     if (syntheticTypes.has(name))
         console.log(`WARNING: duplicate synthetic type name "${name}"`) ///throw?
     syntheticTypes.set(name, type)
-}
+} // check
 
 export function resolveSyntheticType(type: idl.IDLReferenceType): idl.IDLEntry | undefined {
     return syntheticTypes.get(type.name)

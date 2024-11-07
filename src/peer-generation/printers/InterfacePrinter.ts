@@ -67,6 +67,10 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         let type = mapType(node.type)
         this.writer.print(`export declare type ${node.name.text}${maybeTypeArguments} = ${type};`)
     }
+    convertFunction(node: ts.FunctionDeclaration): void {
+        // todo: fix
+        this.writer.print(node.getText())
+    }
     private replaceImportTypeNodes(text: string): string {
         for (const [stub, src] of [...this.peerLibrary.importTypesStubToSource.entries()].reverse()) {
             text = text.replaceAll(src, stub)
@@ -505,6 +509,11 @@ export class ArkTSDeclConvertor implements DeclarationConvertor<void> {
                 ? `<${node.typeParameters.map(it => it.name.text).join(', ')}>` : ''
             this.writer.print(`export declare type ${typeName}${maybeTypeArguments} = ${this.mapType(node.type)}`)
         }
+    }
+
+    convertFunction(node: ts.FunctionDeclaration): void {
+        // todo: fix
+        this.writer.print(node.getText())
     }
 
     private declarationName(node: ts.ClassDeclaration | ts.InterfaceDeclaration): string {

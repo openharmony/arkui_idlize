@@ -132,7 +132,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         private sourceFile: ts.SourceFile,
         private typeChecker: ts.TypeChecker,
         private options: OptionValues,
-        private predefinedTypeResolver?: ReferenceResolver
+        private predefinedTypeResolver?: ReferenceResolver,
     ) {
         this.defaultPackage = options.defaultIdlPackage as string ?? "arkui"
     }
@@ -232,7 +232,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     serializeImport(node: ts.ImportDeclaration): idl.IDLImport {
         let name = node.moduleSpecifier.getText().replaceAll('"', '').replaceAll("'", "")
         //if (name.startsWith("./")) name = name.substring(2)
-        const result = idl.createImport(name)
+        let importClause: string[] | undefined
+        if (node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
+            importClause = node.importClause.namedBindings.elements.map(it => it.getText())
+        }
+        const result = idl.createImport(name, importClause)
         return result
     }
 
@@ -925,6 +929,10 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             return idl.IDLStringType
         }
         if (ts.isTypeQueryNode(type)) {
+            if (ts.isIdentifier(type.exprName)) {
+                const name = type.exprName.escapedText.toString()
+                return idl.createReferenceType(name, this.mapTypeArgs(type.typeArguments, name))
+            }
             console.log(`WARNING: unsupported type query: ${type.getText()}`)
             return idl.IDLAnyType
         }
@@ -1210,7 +1218,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             extendedAttributes.push({ name: idl.IDLExtendedAttributes.IndexSignature })
             return idl.createMethod(
                 "indexSignature",
-                methodParameters.map(it => this.serializeParameter(it)),
+                methodParameters.map(it => this.serializeParameter(it)), // check nameSuggestion
                 this.serializeType(method.type, nameSuggestion),{
                 isStatic: false,
                 isOptional: false,
@@ -1260,13 +1268,13 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             constr.parameters.map(it => this.serializeParameter(it, nameSuggestion)),
             this.serializeType(constr.type), {
             extendedAttributes: this.computeDeprecatedExtendAttributes(constr),
-        })
+        }) // check
     }
 
     // TODO here we only handle initialized constants. Do we care for uninitialized const declarations?
     serializeConstants(stmt: ts.VariableStatement): idl.IDLConstant[] {
         return stmt.declarationList.declarations
-            .filter(decl => decl.initializer)
+            .filter(decl => decl.initializer) // todo: handle uninitialized declarations (d.ts).
             .map(decl => {
                 const name = nameOrNull(decl.name)!
                 let [type, value] = this.guessTypeAndValue(decl)

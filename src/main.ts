@@ -46,6 +46,10 @@ import { loadPlugin } from "./peer-generation/plugin-api"
 import { SkoalaDeserializerPrinter } from "./peer-generation/printers/SkoalaDeserializerPrinter"
 import { PrimitiveType } from "./peer-generation/ArkPrimitiveType"
 
+import { IdlSkoalaLibrary, IldSkoalaFile } from "./skoala-generation/idl/idlSkoalaLibrary"
+import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"
+import { IdlWrapperProcessor } from "./skoala-generation/idl/idlSkoalaLibrary"
+
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
     .option('--dts2test', 'Generate tests from .d.ts to .h')
@@ -141,41 +145,60 @@ if (options.dts2idl) {
 }
 
 if (options.dts2skoala) {
-    const generatedIDLMap = new Map<string, IDLEntry[]>()
-    const outputDir: string = options.outputDir ?? "./generated/skoala"
+    PrimitiveType.Prefix = ""
 
-    if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true })
-    }
+    if (options.idl) {
+        const outputDir: string = options.outputDir ?? "./out/skoala"
 
-    generate(
-        options.inputDir.split(','),
-        options.inputFile,
-        outputDir,
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options),
-        {
-            compilerOptions: defaultCompilerOptions,
-            onSingleFile: (entries: IDLEntry[], outputDirectory, sourceFile) => {
-                const fileName = path.basename(sourceFile.fileName, ".d.ts")
-
-                if (!generatedIDLMap.has(fileName)) {
-                    generatedIDLMap.set(fileName, [])
-                }
-
-                generatedIDLMap.get(fileName)?.push(...entries)
-            },
-            onEnd: () => {
-                try {
-                    SkoalaDeserializerPrinter.generateDeserializer(outputDir, generatedIDLMap)
-                } catch (error) {
-                    console.error("Error during deserializer generation:", error)
-                }
-
-                console.log("All files processed.")
-            }
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true })
         }
-    )
-    didJob = true
+
+        const generatedIDLMap = new Map<string, IDLEntry[]>()
+        const skoalaLibrary = new IdlSkoalaLibrary()
+
+        generate(
+            options.inputDir.split(','),
+            options.inputFile,
+            outputDir,
+            (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, skoalaLibrary),
+            {
+                compilerOptions: {
+                    ...defaultCompilerOptions,
+                    paths: {
+                        "@koalaui/common": ["/home/huawei/idlize/external/incremental/common/src"],
+                        "@koalaui/compat": ["/home/huawei/idlize/external/incremental/compat/src/typescript"],
+                        "@koalaui/interop": ["/home/huawei/idlize/external/interop/src/interop"],
+                        "@koalaui/arkoala": ["/home/huawei/idlize/external/arkoala/framework/src"],
+                    },
+                },
+                onSingleFile: (entries: IDLEntry[], outputDirectory, sourceFile) => {
+                    const fileName = path.basename(sourceFile.fileName, ".d.ts")
+
+                    if (!generatedIDLMap.has(fileName)) {
+                        generatedIDLMap.set(fileName, [])
+                    }
+
+                    generatedIDLMap.get(fileName)?.push(...entries)
+                    skoalaLibrary.files.push(new IldSkoalaFile(sourceFile.fileName, entries))
+                },
+                onEnd: (outDir) => {
+                    const wrapperProcessor = new IdlWrapperProcessor(skoalaLibrary)
+                    wrapperProcessor.process()
+                    generateIdlSkoala(outDir, skoalaLibrary, options)
+
+                    try {
+                        SkoalaDeserializerPrinter.generateDeserializer(outputDir, generatedIDLMap)
+                    } catch (error) {
+                        console.error("Error during deserializer generation:", error)
+                    }
+
+                    console.log("All files processed.")
+                }
+            }
+        )
+        didJob = true
+    }
 }
 
 if (options.linter) {

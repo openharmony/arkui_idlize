@@ -18,6 +18,7 @@ import { DeclarationConvertor, TypeNodeConvertor, convertDeclaration, convertTyp
 import {getDeclarationsByNode} from '../util';
 import { mapType } from './TypeNodeNameConvertor';
 import { Language } from '../Language';
+import { ImportExport } from '../ImportExport';
 
 export class TypeDependenciesCollector implements TypeNodeConvertor<ts.Declaration[]> {
     constructor(protected readonly typeChecker: ts.TypeChecker, private readonly language: Language) {}
@@ -121,10 +122,12 @@ export class TypeDependenciesCollector implements TypeNodeConvertor<ts.Declarati
 }
 
 export class DeclarationDependenciesCollector implements DeclarationConvertor<ts.Declaration[]> {
+    private imprtExprt: ImportExport
     constructor(
         private readonly typeChecker: ts.TypeChecker,
         private readonly typeDepsCollector: TypeDependenciesCollector,
     ) {
+        this.imprtExprt = new ImportExport(typeChecker)
     }
 
     convertClass(node: ts.ClassDeclaration): ts.Declaration[] {
@@ -177,9 +180,21 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<ts
         return convertTypeNode(this.typeDepsCollector, node.type)
     }
 
+    convertFunction(node: ts.FunctionDeclaration): ts.Declaration[] {
+        return [
+            ...node.parameters.flatMap(param => this.typeDepsCollector.convert(param.type)),
+            ...this.typeDepsCollector.convert(node.type)
+        ]
+    }
+
     convert(node: ts.Declaration | undefined): ts.Declaration[] {
         if (node === undefined)
             return []
+        if (ts.isImportSpecifier(node)) {
+            let realDecl = this.imprtExprt.findRealDeclaration(node.name)
+            if (!realDecl) return []
+            node = realDecl
+        }
         return convertDeclaration(this, node)
     }
 }
@@ -198,6 +213,9 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
         return node.name!.text
     }
     convertTypeAlias(node: ts.TypeAliasDeclaration): string {
+        return node.name!.text
+    }
+    convertFunction(node: ts.FunctionDeclaration): string {
         return node.name!.text
     }
 

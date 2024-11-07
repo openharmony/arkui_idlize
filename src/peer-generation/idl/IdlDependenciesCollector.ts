@@ -15,10 +15,10 @@
 
 import * as idl from '../../idl'
 import { DeclarationConvertor, TypeConvertor, convertDeclaration, convertType } from "../LanguageWriters/typeConvertor";
-import { IdlPeerLibrary } from './IdlPeerLibrary';
+import { LibraryInterface } from '../../LibraryInterface';
 
 export class TypeDependenciesCollector implements TypeConvertor<idl.IDLNode[]> {
-    constructor(protected readonly library: IdlPeerLibrary) {}
+    constructor(protected readonly library: LibraryInterface) {}
 
     convertOptional(type: idl.IDLOptionalType): idl.IDLNode[] {
         return convertType(this, type.type)

@@ -38,13 +38,15 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLContainerUtils,
     IDLContainerType,
     DebugUtils,
-    isType,
+    IDLTopType,
+    IDLConstant,
     createReferenceType,
     transformMethodsAsync2ReturnPromise,
     forceAsNamedNode,
     isEntry,
     isNamedNode,
     IDLNode,
+    isType,
     IDLThisType,} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
@@ -94,6 +96,10 @@ export class CustomPrintVisitor {
             this.print(exports)
     }
 
+    printConstant(node: IDLConstant) {
+        this.print(`export declare const ${node.name} : ${isPrimitiveType(node.type) ? "" : "typeof"} ${this.printTypeForTS(node.type)} = ${node.value}`)
+    }
+
     printInterface(node: IDLInterface) {
         const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
         this.openNamespace(namespace)
@@ -114,6 +120,7 @@ export class CustomPrintVisitor {
             // restore globalScope
             if (hasExtAttribute(node,IDLExtendedAttributes.GlobalScope)) {
                 node.methods.map(it => this.printMethod(it, true))
+                node.constants.map(it => this.printConstant(it))
                 return
             }
             let interfaces = node.inheritance
@@ -130,6 +137,7 @@ export class CustomPrintVisitor {
                 keyword = "implements"
             }
             if (interfaces.length > 0) {
+            // todo: check node.inheritance[0] != IDLTopType
                 const interfaceList = zip(interfaces, parentTypeArgs ?? new Array(interfaces.length))
                     .map(([iface, typeArg]) => forceAsNamedNode(iface).name + (typeArg ? `<${typeArg}>` : ""))
                     .join(", ")

@@ -54,7 +54,7 @@ function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
 }
 
-class PointersCollector {
+export class PointersCollector {
     private static pointersMap = new Map<DeclarationTarget, PointerType>()
     static pointerTo(name: string, target: DeclarationTarget): PointerType {
         if (PointersCollector.pointersMap.has(target)) return PointersCollector.pointersMap.get(target)!
@@ -180,7 +180,7 @@ export class DeclarationTable {
         return this.computeTargetNameImpl(target, optional, idlPrefix)
     }
 
-    computeTargetTypeLiteralName(type: ts.TypeLiteralNode, prefix: string): string {
+    private computeTargetTypeLiteralName(type: ts.TypeLiteralNode, prefix: string): string {
         const props = type.members.filter(ts.isPropertySignature)
         const map = new Map<string, string[]>()
         for (const prop of props) {

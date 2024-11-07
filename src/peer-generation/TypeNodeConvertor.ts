@@ -54,7 +54,7 @@ export function convertTypeNode<T>(convertor: TypeNodeConvertor<T>, node: ts.Typ
     if (ts.isParenthesizedTypeNode(node)) return convertor.convertParenthesized(node)
     if (ts.isIndexedAccessTypeNode(node)) return convertor.convertIndexedAccess(node)
     if (node.kind == ts.SyntaxKind.StringKeyword) return convertor.convertStringKeyword(node)
-    if (node.kind == ts.SyntaxKind.NumberKeyword) return convertor.convertNumberKeyword(node)
+    if (node.kind == ts.SyntaxKind.NumberKeyword || node.kind == ts.SyntaxKind.BigIntKeyword) return convertor.convertNumberKeyword(node)
     if (node.kind == ts.SyntaxKind.BooleanKeyword) return convertor.convertBooleanKeyword(node)
     if (node.kind == ts.SyntaxKind.UndefinedKeyword) return convertor.convertUndefinedKeyword(node)
     if (node.kind == ts.SyntaxKind.VoidKeyword) return convertor.convertVoidKeyword(node)
@@ -69,6 +69,7 @@ export interface DeclarationConvertor<T> {
     convertInterface(node: ts.InterfaceDeclaration): T
     convertEnum(node: ts.EnumDeclaration): T
     convertTypeAlias(node: ts.TypeAliasDeclaration): T
+    convertFunction(node: ts.FunctionDeclaration): T
 }
 
 export function convertDeclaration<T>(convertor: DeclarationConvertor<T>, node: ts.Declaration): T {
@@ -77,5 +78,6 @@ export function convertDeclaration<T>(convertor: DeclarationConvertor<T>, node: 
     if (ts.isEnumDeclaration(node)) return convertor.convertEnum(node)
     if (ts.isEnumMember(node)) return convertor.convertEnum(node.parent)
     if (ts.isTypeAliasDeclaration(node)) return convertor.convertTypeAlias(node)
+    if (ts.isFunctionDeclaration(node)) return convertor.convertFunction(node)
     throw new Error(`Unknown declaration type ${ts.SyntaxKind[node.kind]}`)
 }

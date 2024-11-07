@@ -1,0 +1,232 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { float32, int32 } from "@koalaui/common"
+import { pointer, wrapCallback} from "@koalaui/interop"
+import { nativeModule } from "@koalaui/arkoala"
+import { FinalizableBase } from "./Finalizable"
+
+// imports required intarfaces (now generation is disabled)
+// import { Resource, Length, PixelMap } from "@arkoala/arkui"
+/**
+ * Value representing possible JS runtime object type.
+ * Must be synced with "enum RuntimeType" in C++.
+ */
+export enum RuntimeType {
+    UNEXPECTED = -1,
+    NUMBER = 1,
+    STRING = 2,
+    OBJECT = 3,
+    BOOLEAN = 4,
+    UNDEFINED = 5,
+    BIGINT = 6,
+    FUNCTION = 7,
+    SYMBOL = 8,
+    MATERIALIZED = 9,
+}
+
+/**
+ * Value representing object type in serialized data.
+ * Must be synced with "enum Tags" in C++.
+ */
+export enum Tags {
+    UNDEFINED = 101,
+    INT32 = 102,
+    FLOAT32 = 103,
+    STRING = 104,
+    LENGTH = 105,
+    RESOURCE = 106,
+    OBJECT = 107,
+}
+
+export function runtimeType(value: any): int32 {
+    let type = typeof value
+    if (type == "number") return RuntimeType.NUMBER
+    if (type == "string") return RuntimeType.STRING
+    if (type == "undefined") return RuntimeType.UNDEFINED
+    if (type == "object") return RuntimeType.OBJECT
+    if (type == "boolean") return RuntimeType.BOOLEAN
+    if (type == "bigint") return RuntimeType.BIGINT
+    if (type == "function") return RuntimeType.FUNCTION
+    if (type == "symbol") return RuntimeType.SYMBOL
+
+    throw new Error(`bug: ${value} is ${type}`)
+}
+
+// Poor man's instanceof, fails on subclasses
+export function isInstanceOf(className: string, value: Object): boolean {
+    return value.constructor.name === className
+}
+
+export function registerCallback(value: object|undefined): int32 {
+    return wrapCallback((args: Uint8Array, length: int32) => {
+        // TBD: deserialize the callback arguments and call the callback
+        return 42
+    })
+}
+
+export function registerMaterialized(value: object|undefined): number {
+    // TODO: fix me!
+    return 42
+}
+
+class SerializersCache {
+    cache: Array<SerializerBase|undefined>
+    constructor(maxCount: number) {
+        this.cache = new Array<SerializerBase|undefined>(maxCount)
+    }
+    get<T extends SerializerBase>(factory: () => T, index: int32): T {
+        let result = this.cache[index]
+        if (result) {
+            result.resetCurrentPosition()
+            return result as T
+        }
+        result = factory()
+        this.cache[index] = result
+        return result as T
+    }
+}
+
+/* Serialization extension point */
+export abstract class CustomSerializer {
+    constructor(protected supported: Array<string>) {}
+    supports(kind: string): boolean { return this.supported.includes(kind) }
+    abstract serialize(serializer: SerializerBase, value: any, kind: string): void
+    next: CustomSerializer | undefined = undefined
+}
+
+export class SerializerBase {
+    private static cache = new SerializersCache(22)
+
+    private position = 0
+    private buffer: ArrayBuffer
+    private view: DataView
+
+    private static customSerializers: CustomSerializer | undefined = undefined
+    static registerCustomSerializer(serializer: CustomSerializer) {
+        if (SerializerBase.customSerializers == undefined) {
+            SerializerBase.customSerializers = serializer
+        } else {
+            let current = SerializerBase.customSerializers
+            while (current.next != undefined) { current = current.next }
+            current.next = serializer
+        }
+    }
+    constructor() {
+        this.buffer = new ArrayBuffer(96)
+        this.view = new DataView(this.buffer)
+    }
+
+    static get<T extends SerializerBase>(factory: () => T, index: int32): T {
+        return SerializerBase.cache.get<T>(factory, index)
+    }
+    asArray(): Uint8Array {
+        return new Uint8Array(this.buffer)
+    }
+    length(): int32 {
+        return this.position
+    }
+    currentPosition(): int32 { return this.position }
+    resetCurrentPosition(): void { this.position = 0 }
+
+    private checkCapacity(value: int32) {
+        if (value < 1) {
+            throw new Error(`${value} is less than 1`)
+        }
+        let buffSize = this.buffer.byteLength
+        if (this.position > buffSize - value) {
+            const minSize = this.position + value
+            const resizedSize = Math.max(minSize, Math.round(3 * buffSize / 2))
+            let resizedBuffer = new ArrayBuffer(resizedSize)
+            // TODO: can we grow without new?
+            new Uint8Array(resizedBuffer).set(new Uint8Array(this.buffer))
+            this.buffer = resizedBuffer
+            this.view = new DataView(resizedBuffer)
+        }
+    }
+    writeCustomObject(kind: string, value: any) {
+        let current = SerializerBase.customSerializers
+        while (current) {
+            if (current.supports(kind)) {
+                current.serialize(this, value, kind)
+                return
+            }
+            current = current.next
+        }
+        console.log(`Unsupported custom serialization for ${kind}, write undefined`)
+        this.writeInt8(Tags.UNDEFINED)
+    }
+    writeNumber(value: number|undefined) {
+        this.checkCapacity(5)
+        if (value == undefined) {
+            this.view.setInt8(this.position, Tags.UNDEFINED)
+            this.position++
+            return
+        }
+        if (value == Math.round(value)) {
+            this.view.setInt8(this.position, Tags.INT32)
+            this.view.setInt32(this.position + 1, value, true)
+            this.position += 5
+            return
+        }
+        this.view.setInt8(this.position, Tags.FLOAT32)
+        this.view.setFloat32(this.position + 1, value, true)
+        this.position += 5
+    }
+    writeInt8(value: int32) {
+        this.checkCapacity(1)
+        this.view.setInt8(this.position, value)
+        this.position += 1
+    }
+    writeInt32(value: int32) {
+        this.checkCapacity(4)
+        this.view.setInt32(this.position, value, true)
+        this.position += 4
+    }
+    writePointer(value: pointer) {
+        this.checkCapacity(8)
+        this.view.setBigInt64(this.position, BigInt(value), true)
+        this.position += 8
+    }
+    writeFloat32(value: float32) {
+        this.checkCapacity(4)
+        this.view.setFloat32(this.position, value, true)
+        this.position += 4
+    }
+    writeBoolean(value: boolean|undefined) {
+        this.checkCapacity(1)
+        this.view.setInt8(this.position, value == undefined ? RuntimeType.UNDEFINED : +value)
+        this.position++
+    }
+    writeFunction(value: object | undefined) {
+        this.writeInt32(registerCallback(value))
+    }
+    writeMaterialized(value: object | undefined) {
+        this.writePointer(value ? (value as FinalizableBase).ptr : 0)
+    }
+    writeWrapper(value: object | undefined) {
+        this.writePointer(value ? (value as FinalizableBase).ptr : 0)
+    }
+    writeString(value: string) {
+        this.checkCapacity(4 + value.length * 4) // length, data
+        let encodedLength =
+            nativeModule()._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
+        this.view.setInt32(this.position, encodedLength, true)
+        this.position += encodedLength + 4
+    }
+}
+
+// TODO, remove me!
+SerializerBase.registerCustomSerializer(new OurCustomSerializer())
