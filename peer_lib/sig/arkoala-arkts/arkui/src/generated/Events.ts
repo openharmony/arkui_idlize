@@ -13,20 +13,11 @@
  * limitations under the License.
  */
 
-import { pointer, nullptr } from "@koalaui/interop"
+export function checkEvents() {
+    customEventsChecker()
+}
 
-export class Finalizable {
-    public ptr: pointer
-    public finalizerPtr: pointer
-
-    constructor(ptr: pointer, finalizerPtr: pointer) {
-        this.ptr = ptr
-        this.finalizerPtr = finalizerPtr
-    }
-
-    release(): pointer {
-        let result = this.ptr
-        this.ptr = nullptr
-        return result
-    }
+let customEventsChecker = () => {}
+export function setCustomEventsChecker(eventsChecker: () => void) {
+    customEventsChecker = eventsChecker
 }

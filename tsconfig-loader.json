@@ -14,7 +14,10 @@
         "removeComments": false,
         "outDir": "build/lib",
         "rootDirs": ["src"],
-        "module": "CommonJS"
+        "module": "CommonJS",
+        "paths": {
+            "@koalaui/common": ["./external/incremental/compat/src/typescript"]
+        }
     },
-    "include": ["peer_lib/sig/arkoala/loader/loader.ts"]
+    "include": ["peer_lib/sig/arkoala/loader/*.ts"],
 }

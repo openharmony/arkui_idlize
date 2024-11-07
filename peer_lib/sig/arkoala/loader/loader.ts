@@ -13,9 +13,10 @@
 * limitations under the License.
 */
 import { env } from "node:process"
+import { int32 } from "@koalaui/common"
 import { Worker, isMainThread, parentPort } from "node:worker_threads"
-
-type int32 = number
+import { wrapCallback } from "./CallbackRegistry"
+import { KInt, KPointer, KUint8ArrayPtr, pointer } from "./types"
 
 export interface LoaderOps {
     _LoadVirtualMachine(vmKind: int32, appClassPath: string, appLibPath: string): int32
@@ -24,32 +25,55 @@ export interface LoaderOps {
     _SetCallbackDispatcher(dispatcher: (id: int32, args: Uint8Array, length: int32) => int32): void
 }
 
-let theModule: LoaderOps | undefined = undefined
+// todo: for control VSYNC
+export interface NativeControl extends LoaderOps {
+    // todo: implement native methods
+    _SetVsyncCallback(ptr0: KPointer, arg: KInt): void
+    _UnblockVsyncWait(ptr0: KPointer): void
+    _GetPipelineContext(): pointer
+}
 
-declare const LOAD_NATIVE: LoaderOps
+let theModule: NativeControl | undefined = undefined
+
+declare const LOAD_NATIVE: NativeControl
 
 export function callCallback(id: int32, args: Uint8Array, length: int32): int32 {
    console.log("Called callCallback()")
    throw new Error("Not yet implemented")
 }
 
-export function nativeModule(): LoaderOps {
+export function nativeModule(): NativeControl {
     if (theModule) return theModule
-    theModule = LOAD_NATIVE as LoaderOps
+    theModule = LOAD_NATIVE as NativeControl
     if (!theModule)
         throw new Error("Cannot load native module")
     theModule._SetCallbackDispatcher(callCallback)
     return theModule
 }
 
-function waitVSync(): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, 100) )
+function getNativePipelineContext(): pointer {
+    return nativeModule()._GetPipelineContext()
+}
+
+function waitVSync(pipelineContext: KPointer): Promise<void> {
+    return new Promise((resolve, reject) => {
+        nativeModule()._SetVsyncCallback(pipelineContext, wrapCallback((args: KUint8ArrayPtr, length: int32) => {
+            if (args instanceof Uint8Array) {
+                const values = new Int32Array(args.buffer)
+                if (values[0] != 0)
+                    resolve()
+            } else
+                reject(new Error("vsync failed"))
+            return 0
+        }))
+    })
 }
 
 export async function runEventLoop() {
+    const pipelineContext: pointer = getNativePipelineContext()
     for (let i = 0; i < 5; i++) {
         nativeModule()._RunApplication(i, i * i)
-        await waitVSync()
+        await waitVSync(pipelineContext!)
     }
 }
 

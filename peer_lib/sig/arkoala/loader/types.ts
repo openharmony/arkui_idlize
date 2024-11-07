@@ -12,21 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { int32, int64, float32 } from "@koalaui/common"
 
-import { pointer, nullptr } from "@koalaui/interop"
-
-export class Finalizable {
-    public ptr: pointer
-    public finalizerPtr: pointer
-
-    constructor(ptr: pointer, finalizerPtr: pointer) {
-        this.ptr = ptr
-        this.finalizerPtr = finalizerPtr
-    }
-
-    release(): pointer {
-        let result = this.ptr
-        this.ptr = nullptr
-        return result
-    }
-}
+export type KStringPtr = string
+export type KStringArrayPtr = Uint8Array
+export type KInt32ArrayPtr =  Int32Array
+export type KFloat32ArrayPtr = Float32Array
+export type KUint8ArrayPtr = Uint8Array
+export type KInt = int32
+export type KUInt = int32
+export type KLong = int64
+export type KFloat = float32
+export type KBoolean = int32
+export type KPointer = bigint
+export type pointer = KPointer
+export type KNativePointer = KPointer
