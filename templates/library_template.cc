@@ -16,7 +16,6 @@
 #include <tuple>
 #include <string>
 
-#include "library.h"
 #include "dynamic-loader.h"
 
 #include "interop-logging.h"
@@ -53,7 +52,7 @@ void* FindModule(int kind) {
 static %CPP_PREFIX%ArkUIAnyAPI* impls[%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%COUNT] = { 0 };
 const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
 
-const ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
+const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
     if (!impls[kind]) {
         static const GroupLogger* logger = GetDefaultLogger();
 
@@ -111,5 +110,5 @@ const ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
         }
         impls[kind] = impl;
     }
-    return reinterpret_cast<ArkUIAnyAPI*>(impls[kind]);
+    return impls[kind];
 }

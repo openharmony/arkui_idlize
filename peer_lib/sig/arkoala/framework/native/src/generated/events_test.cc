@@ -1,8 +1,9 @@
 #include "events.h"
 #include "common-interop.h"
-#include "library.h"
 #include "Serializers.h"
 #include "arkoala_api_generated.h"
+
+const GENERATED_ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
 namespace Generated {
     extern const GENERATED_ArkUIEventsAPI* GetArkUiEventsAPI();
@@ -10,7 +11,7 @@ namespace Generated {
 
 static const GENERATED_ArkUIFullNodeAPI* GetFullImpl() {
     return reinterpret_cast<const GENERATED_ArkUIFullNodeAPI*>(
-        GetAnyImpl(static_cast<ArkUIAPIVariantKind>(GENERATED_Ark_APIVariantKind::GENERATED_FULL),
+        GetAnyImpl(static_cast<int>(GENERATED_Ark_APIVariantKind::GENERATED_FULL),
         GENERATED_ARKUI_FULL_API_VERSION));
 }
 

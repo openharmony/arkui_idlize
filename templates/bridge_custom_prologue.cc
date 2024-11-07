@@ -20,12 +20,13 @@
 #include <iomanip>
 #include <unordered_map>
 
-#include "library.h"
 #include "common-interop.h"
 #include "interop-logging.h"
 
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
+
+const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
 const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
     return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(

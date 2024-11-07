@@ -75,21 +75,30 @@ typedef int8_t Ark_Boolean;
 typedef const char* Ark_CharPtr;
 typedef void* Ark_NativePointer;
 
-#ifdef FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
-typedef struct _ArkUINode* Ark_NodeHandle;
-typedef struct _ArkUIVMContext* Ark_VMContext;
-typedef struct _ArkUIPipelineContext* Ark_PipelineContext;
-#else
-struct Ark_NodeHandleOpaque;
-typedef struct Ark_NodeHandleOpaque* Ark_NodeHandle;
+struct _Ark_VMContext;
+typedef struct _Ark_VMContext* Ark_VMContext;
+struct _Ark_PipelineContext;
+typedef struct _Ark_PipelineContext* Ark_PipelineContext;
+struct _Ark_VMObject;
+typedef struct _Ark_VMObject* Ark_VMObject;
+struct _Ark_Node;
+typedef struct _Ark_Node* Ark_NodeHandle;
+struct _Ark_Canvas;
+typedef struct _Ark_Canvas* Ark_CanvasHandle;
 
-struct Ark_VMContextOpaque;
-typedef struct Ark_VMContextOpaque* Ark_VMContext;
-
-struct Ark_PipelineContextOpaque;
-typedef struct Ark_PipelineContextOpaque* Ark_PipelineContext;
-#endif
-
+enum Ark_APINodeFlags {
+    %CPP_PREFIX%CUSTOM_NONE = 0,
+    %CPP_PREFIX%CUSTOM_MEASURE = 1 << 0,
+    %CPP_PREFIX%CUSTOM_LAYOUT = 1 << 1,
+    %CPP_PREFIX%CUSTOM_DRAW = 1 << 2,
+    %CPP_PREFIX%CUSTOM_FOREGROUND_DRAW = 1 << 3,
+    %CPP_PREFIX%CUSTOM_OVERLAY_DRAW = 1 << 4,
+};
+enum Ark_APICustomOp {
+    %CPP_PREFIX%MEASURE = 1,
+    %CPP_PREFIX%LAYOUT = 2,
+    %CPP_PREFIX%DRAW = 3
+};
 struct Ark_ObjectHandleOpaque;
 typedef struct Ark_ObjectHandleOpaque* Ark_ObjectHandle;
 

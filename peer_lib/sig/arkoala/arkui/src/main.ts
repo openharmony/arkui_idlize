@@ -12,8 +12,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { env } from "node:process"
-
 import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
 import { SerializerBase } from "@arkoala/arkui/peers/SerializerBase"
 import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
@@ -605,7 +603,7 @@ function checkNativeCallback() {
 
 function main() {
     // Place where mock of ACE is located.
-    env.ACE_LIBRARY_PATH = __dirname + "/../../../native"
+    process.env.ACE_LIBRARY_PATH = __dirname + "/../../../native"
 
     checkSerdeBaseLength()
     checkSerdeBaseText()
