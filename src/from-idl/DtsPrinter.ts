@@ -38,25 +38,24 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLContainerUtils,
     IDLContainerType,
     DebugUtils,
-    IDLTopType,
     IDLConstant,
     createReferenceType,
     transformMethodsAsync2ReturnPromise,
     forceAsNamedNode,
-    isEntry,
     isNamedNode,
     IDLNode,
-    isType,
     IDLThisType,} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
+import { Language } from "../Language"
 
 export class CustomPrintVisitor {
-    constructor(private resolver: (type: IDLReferenceType) => IDLEntry | undefined) {}
+    constructor(private resolver: (type: IDLReferenceType) => IDLEntry | undefined, private language: Language) {}
     output: string[] = []
     currentInterface?: IDLInterface
 
     visit(node: IDLEntry) {
+        if (hasExtAttribute(node, IDLExtendedAttributes.TSType) && this.language == Language.TS) return
         if (isSyntheticEntry(node)) {
             return
         } else if (isInterface(node) || isAnonymousInterface(node) || isTupleInterface(node) || isClass(node)) {
@@ -366,7 +365,7 @@ export class CustomPrintVisitor {
 }
 
 export function idlToString(name: string, content: string): string {
-    let printer = new CustomPrintVisitor(resolveSyntheticType)
+    let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
     webidl2.parse(content)
         .map(it => toIDLNode(name, it))
         .forEach(it => {

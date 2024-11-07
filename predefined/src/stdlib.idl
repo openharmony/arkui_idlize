@@ -3,8 +3,8 @@ package "org.openharmony.idlize.predefined";
 /**
  * Define Monitor Decorator type
  */
+[TSType=MethodDecorator]
 typedef any MethodDecorator;  // this is actually unused
-
 
 /**
  * Represents a raw buffer of binary data, which is used to store data for the
@@ -12,6 +12,7 @@ typedef any MethodDecorator;  // this is actually unused
  * but can be passed to a typed array or DataView Object to interpret the raw
  * buffer as needed.
  */
+[TSType=ArrayBuffer]
 interface ArrayBuffer {
     /**
      * Read-only. The length of the ArrayBuffer (in bytes).
@@ -19,11 +20,11 @@ interface ArrayBuffer {
     readonly attribute number byteLength;
 };
 
-
 /**
  * A typed array of 8-bit unsigned integer values. The contents are initialized to 0. If the
  * requested number of bytes could not be allocated an exception is raised.
  */
+[TSType=Uint8Array]
 interface Uint8Array {
     /**
      * The size in bytes of each element in the array.
@@ -55,6 +56,7 @@ interface Uint8Array {
  * A typed array of 8-bit unsigned integer (clamped) values. The contents are initialized to 0.
  * If the requested number of bytes could not be allocated an exception is raised.
  */
+[TSType=Uint8ClampedArray]
 interface Uint8ClampedArray {
     /**
      * The size in bytes of each element in the array.
@@ -82,5 +84,7 @@ interface Uint8ClampedArray {
     readonly attribute number length;
 };
 
+[TSType=RuntimeType, CPPType=RuntimeType]
 interface RuntimeType {};
+[TSType=Materialized, CPPType=Materialized]
 interface Materialized {};

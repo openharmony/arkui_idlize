@@ -137,7 +137,7 @@ export class IdlPredefinedGeneratorVisitor implements GenericVisitor<void> {
             if (pkgName.startsWith('"')) {
                 pkgName = pkgName.substring(1, pkgName.length - 1)
             }
-            this.packageName = pkgName   
+            this.packageName = pkgName
         }
     }
 
@@ -1130,7 +1130,9 @@ export class IdlPeerProcessor {
 
     private ignoreDeclaration(decl: idl.IDLEntry, language: Language): boolean {
         return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope) ||
-            language === Language.JAVA && idl.isInterface(decl) && isMaterialized(decl) ||
+            idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TSType) ||
+            idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.CPPType) ||
+            (language === Language.JAVA && idl.isInterface(decl) && isMaterialized(decl)) ||
             PeerGeneratorConfig.ignoreEntry(decl.name!, language)
     }
 

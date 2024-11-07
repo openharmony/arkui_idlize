@@ -242,7 +242,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
 }
 
 export class IdlWrapperClassConvertor extends BaseArgConvertor {
-    // TODO: 
+    // TODO:
     constructor(
         name: string,
         param: string,
@@ -510,16 +510,16 @@ export class IdlWrapperProcessor {
         )
     }
 
-    private makeWrapperMethod(decl: idl.IDLInterface, 
+    private makeWrapperMethod(decl: idl.IDLInterface,
         idlMethod: idl.IDLConstructor | idl.IDLMethod
     ): WrapperMethod {
         // TODO: add convertor to convers method.type, method.name, method.parameters[..].type, method.parameters[..].name
         // TODO: add arg and ret convertors
 
-        let retConvertor = { 
-            isVoid: false, 
-            nativeType: () => PrimitiveType.NativePointer.getText(), 
-            macroSuffixPart: () => "" 
+        let retConvertor = {
+            isVoid: false,
+            nativeType: () => PrimitiveType.NativePointer.getText(),
+            macroSuffixPart: () => ""
         }
 
         if (!idl.isConstructor(idlMethod)) {
@@ -622,7 +622,7 @@ function mapCInteropRetType(type: idl.IDLType): string {
 export class TSDeclConvertor implements DeclarationConvertor<void> {
     private printer
     constructor(private readonly writer: LanguageWriter, readonly library: IdlSkoalaLibrary) {
-        this.printer = new CustomPrintVisitor(resolveSyntheticType)
+        this.printer = new CustomPrintVisitor(resolveSyntheticType, writer.language)
     }
     convertCallback(node: idl.IDLCallback): void {
         this.printer.output = []
@@ -676,7 +676,7 @@ export function convertDeclToFeature(node: idl.IDLEntry) {
 export class TSSkoalaTypeNameConvertor implements IdlNameConvertor, TypeConvertor<string> {
     constructor(private library: IdlSkoalaLibrary) {}
     convertOptional(type: idl.IDLOptionalType): string {
-        return `${this.convert(type.type)} | undefined` 
+        return `${this.convert(type.type)} | undefined`
     }
     convertUnion(type: idl.IDLUnionType): string {
         return type.types.map(it => this.convert(it)).join(" | ")

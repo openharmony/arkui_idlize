@@ -19,7 +19,7 @@ import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 export function printDeclarations(peerLibrary: IdlPeerLibrary): Array<string> {
     const result = []
     for (const decl of peerLibrary.declarations) {
-        const visitor = new DtsPrintVisitor(type => peerLibrary.resolveTypeReference(type))
+        const visitor = new DtsPrintVisitor(type => peerLibrary.resolveTypeReference(type), peerLibrary.language)
         visitor.visit(decl)
         const text = visitor.output.join("\n")
         if (text)

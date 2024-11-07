@@ -31,6 +31,7 @@ We use WebIDL language with several custom extension attributes documented below
    * `Optional` - if given attribute is optional
    * `ParentTypeArguments` - concrete types used as values for extended class type parameters
    * `Protected` - if given attribute is protected
+   * `TSType` - name of standard TypeScript type for given IDL type
    * `TypeParameters` - type parameters for a parameterized type
    * `TypeArguments` - concrete types used as values for type parameters
    * `VerbatimDts` - code to add "as-is" to produced .d.ts, for language-specific features, avoid when possible
