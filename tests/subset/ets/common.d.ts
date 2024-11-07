@@ -147,6 +147,12 @@ declare enum SheetKeyboardAvoidMode {
     TRANSLATE_AND_SCROLL = 3,
 }
 
+declare enum HoverModeAreaType {
+
+    TOP_SCREEN = 0,
+    BOTTOM_SCREEN = 1,
+}
+
 declare interface SheetOptions extends BindOptions {
     height?: SheetSize | Length;
     dragBar?: boolean;
@@ -173,6 +179,8 @@ declare interface SheetOptions extends BindOptions {
     onTypeDidChange?: Callback<SheetType>;
     uiContext?: UIContext;
     keyboardAvoidMode?: SheetKeyboardAvoidMode;
+    enableHoverMode?: boolean;
+    hoverModeArea?: HoverModeAreaType;
 }
 
 declare enum BlurStyle {
