@@ -936,7 +936,13 @@ export class IdlPeerProcessor {
                         decl,
                         {
                             ...decl,
-                            name: createInterfaceDeclName(decl.name)
+                            name: createInterfaceDeclName(decl.name),
+                            methods: decl.methods.map(method => {
+                                return {
+                                    ...method,
+                                    returnType: getMethodReturnType(this.library.language, method, decl.name),
+                                } as idl.IDLMethod
+                            }),
                         } as idl.IDLInterface,
                         this.library,
                         this.declDependenciesCollector,
@@ -1332,13 +1338,13 @@ export function isSourceDecl(node: idl.IDLEntry): boolean {
     return !node.fileName?.endsWith('stdlib.d.ts')
 }
 
-function generateSignature(library: IdlPeerLibrary,
-                           method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor,
-                           className?: string): NamedMethodSignature {
-    let returnType
+function getMethodReturnType(language: Language,
+                             method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor,
+                             className?: string): idl.IDLType {
+    let returnType: idl.IDLType
     // TODO: Needs to be implemented properly
     // Correct printing of return type name
-    if (library.language === Language.ARKTS) {
+    if (language === Language.ARKTS) {
         const isRetTypeParam = idl.isTypeParameterType(method.returnType!)
         const isSelfRetType = className !== undefined && idl.isNamedNode(method.returnType!) ? className == method.returnType.name : true
         returnType = idl.isVoidType(method.returnType!) // check
@@ -1348,7 +1354,13 @@ function generateSignature(library: IdlPeerLibrary,
         returnType = (method.returnType && idl.isVoidType(method.returnType)) ? idl.IDLVoidType
             : idl.isConstructor(method) || !method.isStatic ? idl.IDLThisType : method.returnType!
     }
+    return returnType
+}
 
+function generateSignature(library: IdlPeerLibrary,
+                           method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor,
+                           className?: string): NamedMethodSignature {
+    const returnType = getMethodReturnType(library.language, method, className)
     return new NamedMethodSignature(returnType,
         method.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
         method.parameters.map(it => it.name)
