@@ -16,7 +16,8 @@
 import * as idl from "../../idl"
 import { Language } from "../../Language"
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../LanguageWriters/typeConvertor"
+import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../LanguageWriters/nameConvertor"
+import { IdlPeerLibrary } from "./IdlPeerLibrary"
 
 // export function isDeclaration(node: idl.IDLNode): boolean {
 //     return idl.isClass(node) || idl.isInterface(node) || idl.isAnonymousInterface(node) || idl.isTupleInterface(node)

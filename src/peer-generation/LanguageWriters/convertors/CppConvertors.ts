@@ -15,109 +15,35 @@
 
 import * as idl from '../../../idl'
 import { PrimitiveType } from '../../ArkPrimitiveType';
-import { IdlTypeNameConvertor, TypeConvertor } from "../typeConvertor";
+import { ReferenceResolver } from '../../ReferenceResolver';
+import { IdlNameConvertor, IdlNameConvertorBase } from "../nameConvertor";
+import { ConvertResult, InteropConverter } from './InteropConvertor';
 
-export class CppIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeConvertor<string> {
-    /**** IdlTypeNameConvertor *******************************************/
+export class CppIDLNodeToStringConvertor extends IdlNameConvertorBase {
 
-    convert(type: idl.IDLType | idl.IDLCallback): string {
+    private readonly interopConverter: InteropConverter
+    constructor(
+        protected resolver: ReferenceResolver
+    ) {
+        super()
+        this.interopConverter = new InteropConverter(resolver)
+    }
+
+    private unwrap(type: idl.IDLEntry | idl.IDLType | idl.IDLCallback, result:ConvertResult): string {
         if (idl.isType(type) && idl.isOptionalType(type)) {
-            return this.convertOptional(type)
+            return `Opt_${result.text}`
         }
-        if (idl.isCallback(type)) {
-            throw new Error("Unimplemented!")
+        if (result.noPrefix) {
+            return result.text
         }
-        if (idl.isPrimitiveType(type)) {
-            return this.convertPrimitiveType(type)
-        }
-        if (idl.isContainerType(type)) {
-            return this.convertContainer(type)
-        }
-        if (idl.isUnionType(type)) {
-            return this.convertUnion(type)
-        }
-        if (idl.isReferenceType(type)) {
-            return this.convertTypeReference(type)
-        }
-        throw new Error(`Unmapped type ${idl.DebugUtils.debugPrintType(type)}`)
+        return `${PrimitiveType.Prefix}${result.text}`
     }
 
-    /***** TypeConvertor<string> *****************************************/
-
-    convertOptional(type: idl.IDLOptionalType): string {
-        return `Opt_${this.convert(type.type)}`
-    }
-    convertUnion(type: idl.IDLUnionType): string {
-        return `Union_${type.types.map(it => this.convert(it)).join("_")}`
-    }
-    convertContainer(type: idl.IDLContainerType): string {
-        if (idl.IDLContainerUtils.isPromise(type)) {
-            return `Promise_${this.convert(type.elementType[0])}`
-        }
-        if (idl.IDLContainerUtils.isSequence(type)) {
-            return `Array_${this.convert(type.elementType[0])}`
-        }
-        throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
-    }
-    convertImport(type: idl.IDLReferenceType, importClause: string): string {
-        throw new Error("Method not implemented.")
-    }
-    convertTypeReference(type: idl.IDLReferenceType): string {
-        const name = type.name
-        switch (name) {
-            case 'KPointer': return 'void*'
-            case 'int32':
-            case 'KInt': return `${PrimitiveType.Prefix}Int32`
-            case 'string':
-            case 'KStringPtr': return `${PrimitiveType.Prefix}String`
-            case 'number': return `${PrimitiveType.Prefix}Number`
-            case 'boolean': return `${PrimitiveType.Prefix}Boolean`
-            case 'Function': return `${PrimitiveType.Prefix}Function`
-            case 'Length': return `${PrimitiveType.Prefix}Length`
-            // TODO: oh no
-            case 'Array<string[]>' : return `Array_Array_${PrimitiveType.String.getText()}`
-        }
-        if (name.startsWith("Array<")) {
-            const typeSpec = name.match(/<(.*)>/)!
-            const elementType = this.convert(idl.toIDLType(typeSpec[1]))
-            return `Array_${elementType}`
-        }
-        if (!name.includes("std::decay<") && name.includes("<")) {
-            return name.replace(/<(.*)>/, "")
-        }
-        return name
-    }
-    convertTypeParameter(type: idl.IDLTypeParameterType): string {
-        throw new Error("Method not implemented.")
-    }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        function arkType(text:TemplateStringsArray): string {
-            return `${PrimitiveType.Prefix}${text.join('')}`
-        }
-        switch (type) {
-            case idl.IDLVoidType: return 'void'
-            // mb we should map another way
-            case idl.IDLI8Type: return arkType`Int8`  // char / int8_t
-            case idl.IDLU8Type: return arkType`UInt8`  // unsigned char / uint8_t
-            case idl.IDLI16Type: return arkType`Int16` // short / int16_t
-            case idl.IDLU16Type: return arkType`UInt16` // unsigned short / uint16_t
-            case idl.IDLI32Type: return arkType`Int32` // int / int32_t
-            case idl.IDLU32Type: return arkType`UInt32` // unsigned int / uint32_t
-            case idl.IDLI64Type: return arkType`Int64` // long long / int64_t
-            case idl.IDLU64Type: return arkType`UInt64` // unsigned long long / uint64_t
-
-            case idl.IDLNumberType: return arkType`Number`
-            case idl.IDLStringType: return arkType`String`
-
-            case idl.IDLBooleanType: return arkType`Boolean`
-            case idl.IDLPointerType: return 'void*'
-
-            case idl.IDLAnyType: return arkType`CustomObject`
-            case idl.IDLUndefinedType: return arkType`Undefined`
-            case idl.IDLUnknownType: return arkType`Unknown`
-        }
-        throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
+    convertType(type: idl.IDLType): string {
+        return this.unwrap(type, this.interopConverter.convertType(type))
     }
 
-    /**********************************************************************/
+    convertEntry(entry: idl.IDLEntry): string {
+        return this.unwrap(entry, this.interopConverter.convertEntry(entry))
+    }
 }

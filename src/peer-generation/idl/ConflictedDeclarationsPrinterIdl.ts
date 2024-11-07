@@ -15,8 +15,7 @@
 
 import { createLanguageWriter, LanguageWriter } from "../LanguageWriters";
 import { IdlPeerLibrary } from "./IdlPeerLibrary";
-import { DeclarationNameConvertor } from "./IdlNameConvertor";
-import { convertDeclaration } from "../LanguageWriters/typeConvertor";
+import { convertDeclaration } from "../LanguageWriters/nameConvertor";
 import * as idl from "../../idl";
 import { Language } from "../../Language";
 import { ArkTSDeclConvertor, getCommonImports } from "./InterfacePrinter";
@@ -26,6 +25,7 @@ import {
     createTypeDependenciesCollector,
 } from "./IdlPeerGeneratorVisitor";
 import { ImportsCollector } from "../ImportsCollector";
+import { DeclarationNameConvertor } from "./IdlNameConvertor";
 
 class ConflictedDeclarationsVisitorIdl {
     readonly writer = createLanguageWriter(this.library.language, this.library)

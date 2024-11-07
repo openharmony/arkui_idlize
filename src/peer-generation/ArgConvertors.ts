@@ -53,7 +53,7 @@ export interface ArgConvertor { // todo:
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement
     interopType(language: Language): string
-    nativeType(impl: boolean): string
+    nativeType(): IDLType
     targetType(writer: LanguageWriter): string
     isPointerType(): boolean
     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined
@@ -70,7 +70,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         public param: string
     ) { }
 
-    nativeType(impl: boolean): string {
+    nativeType(): IDLType {
         throw new Error("Define")
     }
     isPointerType(): boolean {
@@ -80,7 +80,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         throw new Error("Define")
     }
     targetType(writer: LanguageWriter): string {
-        return writer.convert(this.idlType)
+        return writer.stringifyType(this.idlType)
     }
     scopeStart?(param: string, language: Language): string
     scopeEnd?(param: string, language: Language): string
@@ -120,8 +120,8 @@ export class ProxyConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         this.convertor.convertorSerialize(param, value, printer)
     }
-    nativeType(impl: boolean): string {
-        return this.convertor.nativeType(impl)
+    nativeType(): IDLType {
+        return this.convertor.nativeType()
     }
     interopType(language: Language): string {
         return this.convertor.interopType(language)
@@ -208,8 +208,8 @@ export class BooleanConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeString(`${deserializerName}.readBoolean()`))
     }
-    nativeType(impl: boolean): string {
-        return PrimitiveType.Boolean.getText()
+    nativeType(): IDLType {
+        return IDLBooleanType
     }
     interopType(language: Language): string {
         return language == Language.CPP ? PrimitiveType.Boolean.getText() : "KInt"
@@ -230,8 +230,8 @@ export class UndefinedConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeUndefined())
     }
-    nativeType(impl: boolean): string {
-        return `${PrimitiveType.Prefix}Undefined`
+    nativeType(): IDLType {
+        return IDLUndefinedType
     }
     interopType(language: Language): string {
         return PrimitiveType.NativePointer.getText()
@@ -248,8 +248,8 @@ export class VoidConvertor extends UndefinedConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeVoid())
     }
-    nativeType(impl: boolean): string {
-        return `${PrimitiveType.Prefix}Void`
+    nativeType(): IDLType {
+        return idl.IDLVoidType
     }
 }
 
@@ -264,8 +264,8 @@ export class NullConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeUndefined())
     }
-    nativeType(impl: boolean): string {
-        return "nullptr"
+    nativeType(): IDLType {
+        return IDLNullType
     }
     interopType(language: Language): string {
         return PrimitiveType.NativePointer.getText()
@@ -301,8 +301,8 @@ export class LengthConvertorScoped extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeString(`${deserializerName}.readLength()`))
     }
-    nativeType(impl: boolean): string {
-        return PrimitiveType.Length.getText()
+    nativeType(): IDLType {
+        return IDLLengthType
     }
     interopType(language: Language): string {
         switch (language) {
@@ -342,10 +342,10 @@ export class LengthConvertor extends BaseArgConvertor {
         const readExpr = writer.makeString(`${deserializerName}.readLength()`)
         if (writer.language === Language.CPP)
             return assigneer(readExpr)
-        return assigneer(writer.makeCast(readExpr, writer.makeType(this.idlType, false), false))
+        return assigneer(writer.makeCast(readExpr, this.idlType, { optional: false, unsafe: false }))
     }
-    nativeType(impl: boolean): string {
-        return PrimitiveType.Length.getText()
+    nativeType(): IDLType {
+        return IDLLengthType
     }
     interopType(language: Language): string {
         switch (language) {
@@ -394,16 +394,16 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         const type = writer.language === Language.CPP
-            ? idl.createReferenceType(this.nativeType(false))
+            ? this.nativeType()
             : this.idlType
         return assigneer(writer.makeCast(
             writer.makeMethodCall(`${deserializerName}`,
                 "readCustomObject",
                 [writer.makeString(`"${this.customTypeName}"`)]),
-            writer.makeType(type, false)))
+            type, { optional: false }))
     }
-    nativeType(impl: boolean): string {
-        return PrimitiveType.CustomObject.getText()
+    nativeType(): IDLType {
+        return idl.IDLCustomObjectType
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -435,10 +435,11 @@ export class NumberConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeCast(
             writer.makeString(`${deserializerName}.readNumber()`),
-            writer.makeType(this.idlType, false)))
+            this.idlType, { optional: false })
+        )
     }
-    nativeType(): string {
-        return PrimitiveType.Number.getText()
+    nativeType(): IDLType {
+        return IDLNumberType
     }
     interopType(language: Language): string {
         return language == Language.CPP ?  "KInteropNumber" : "number"
@@ -449,7 +450,7 @@ export class NumberConvertor extends BaseArgConvertor {
 }
 
 export class PredefinedConvertor extends BaseArgConvertor {
-    constructor(param: string, tsType: string, private convertorName: string, private cType: string) {
+    constructor(param: string, tsType: string, private convertorName: string, private cType: IDLType) {
         super(toIDLType(tsType), [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -461,7 +462,7 @@ export class PredefinedConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeString(`${deserializerName}.read${this.convertorName}()`))
     }
-    nativeType(impl: boolean): string {
+    nativeType(): IDLType {
         return this.cType
     }
     interopType(language: Language): string {

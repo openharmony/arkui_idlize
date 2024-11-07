@@ -27,13 +27,13 @@ import {
     ObjectArgs
 } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { forceAsNamedNode, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
+import { forceAsNamedNode, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
 import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
 import { Language } from "../../../Language"
-import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { EtsIDLTypeToStringConvertor } from "../convertors/ETSConvertors"
+import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
+import { EnumConvertor, StringConvertor } from "../../idl/IdlArgConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -147,7 +147,7 @@ export function makeArrayTypeCheckCall(
 export class ETSLanguageWriter extends TSLanguageWriter {
     constructor(printer: IndentedPrinter, resolver:ReferenceResolver) {
         super(printer, resolver, Language.ARKTS)
-        this.typeConvertor = new EtsIDLTypeToStringConvertor(this.resolver)
+        this.typeConvertor = new EtsIDLNodeToStringConvertor(this.resolver)
     }
     fork(): LanguageWriter {
         return new ETSLanguageWriter(new IndentedPrinter(), this.resolver)
@@ -162,7 +162,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
-        return new TSLambdaExpression(this, this, signature, this.resolver, body)
+        return new TSLambdaExpression(this, this.typeConvertor, signature, this.resolver, body)
     }
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, op)
@@ -176,7 +176,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     nativeReceiver(): string { return 'NativeModule' }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
         if ((convertor instanceof EnumConvertor) && !param.endsWith(".value")) {
-            return `(${param} as ${convertor.enumTypeName(this.language)}).${convertor.isStringEnum ? 'ordinal' : 'value'}`
+            return `(${param} as ${this.typeConvertor.convertEntry(convertor.enumEntry)}).${convertor.isStringEnum ? 'ordinal' : 'value'}`
         }
         return super.makeUnsafeCast(convertor, param)
     }
@@ -189,8 +189,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return this.makeString(`${value} as ${type}`)
     }
-
-    ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
+    ordinalFromEnum(value: LanguageExpression, _: IDLEnum): LanguageExpression {
         return value;
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string}, value: string, accessors: string[]): LanguageExpression {
@@ -227,7 +226,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
         if (convertor instanceof EnumConvertor) {
-            return this.makeString(`${valueName} instanceof ${convertor.enumTypeName(this.language)}`)
+            return this.makeString(`${valueName} instanceof ${this.typeConvertor.convertEntry(convertor.enumEntry)}`)
+        } else if (convertor instanceof StringConvertor) {
+            return this.makeString(`${valueName} instanceof ${this.stringifyType(convertor.idlType)}`)
         }
         return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index);
     }

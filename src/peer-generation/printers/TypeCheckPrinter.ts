@@ -15,9 +15,9 @@ import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { convertDeclToFeature } from "../idl/IdlPeerGeneratorVisitor";
 import { getSyntheticDeclarationList } from "../idl/IdlSyntheticDeclarations";
 import { DeclarationNameConvertor } from "../idl/IdlNameConvertor";
-import { convertDeclaration } from "../LanguageWriters/typeConvertor";
 import { Language } from "../../Language";
 import { getReferenceResolver } from '../ReferenceResolver';
+import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 
 const builtInInterfaceTypes = new Map<string,
     (writer: LanguageWriter, value: string) => LanguageExpression>([

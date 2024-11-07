@@ -227,3 +227,258 @@ KNativePointer impl_DumpPerf(KInt options) {
     return new std::string(result.str());
 }
 KOALA_INTEROP_1(DumpPerf, KNativePointer, KInt)
+// custom API methods
+
+Ark_NativePointer impl_CreateNode(Ark_Int32 type, Ark_Int32 id, Ark_Int32 flags)
+{
+    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
+    return GetArkUIBasicNodeAPI()->createNode(typeCast, id, flags);
+}
+KOALA_INTEROP_3(CreateNode, Ark_NativePointer, Ark_Int32, Ark_Int32, Ark_Int32)
+
+Ark_NativePointer impl_GetNodeByViewStack()
+{
+    return GetArkUIBasicNodeAPI()->getNodeByViewStack();
+}
+KOALA_INTEROP_0(GetNodeByViewStack, Ark_NativePointer)
+
+void impl_DisposeNode(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIBasicNodeAPI()->disposeNode(nodePtrCast);
+}
+KOALA_INTEROP_V1(DisposeNode, Ark_NativePointer)
+
+void impl_DumpTreeNode(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIBasicNodeAPI()->dumpTreeNode(nodePtrCast);
+}
+KOALA_INTEROP_V1(DumpTreeNode, Ark_NativePointer)
+
+void impl_RemoveChild(Ark_NativePointer parent, Ark_NativePointer child)
+{
+    Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
+    Ark_NodeHandle childCast = (Ark_NodeHandle) child;
+    GetArkUIBasicNodeAPI()->removeChild(parentCast, childCast);
+}
+KOALA_INTEROP_V2(RemoveChild, Ark_NativePointer, Ark_NativePointer)
+
+Ark_Int32 impl_InsertChildAfter(Ark_NativePointer parent, Ark_NativePointer child, Ark_NativePointer sibling)
+{
+    Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
+    Ark_NodeHandle childCast = (Ark_NodeHandle) child;
+    Ark_NodeHandle siblingCast = (Ark_NodeHandle) sibling;
+    return GetArkUIBasicNodeAPI()->insertChildAfter(parentCast, childCast, siblingCast);
+}
+KOALA_INTEROP_3(InsertChildAfter, Ark_Int32, Ark_NativePointer, Ark_NativePointer, Ark_NativePointer)
+
+Ark_Int32 impl_AddChild(Ark_NativePointer parent, Ark_NativePointer child)
+{
+    Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
+    Ark_NodeHandle childCast = (Ark_NodeHandle) child;
+    return GetArkUIBasicNodeAPI()->addChild(parentCast, childCast);
+}
+KOALA_INTEROP_2(AddChild, Ark_Int32, Ark_NativePointer, Ark_NativePointer)
+
+Ark_Int32 impl_InsertChildBefore(Ark_NativePointer parent, Ark_NativePointer child, Ark_NativePointer sibling)
+{
+    Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
+    Ark_NodeHandle childCast = (Ark_NodeHandle) child;
+    Ark_NodeHandle siblingCast = (Ark_NodeHandle) sibling;
+    return GetArkUIBasicNodeAPI()->insertChildBefore(parentCast, childCast, siblingCast);
+}
+KOALA_INTEROP_3(InsertChildBefore, Ark_Int32, Ark_NativePointer, Ark_NativePointer, Ark_NativePointer)
+
+Ark_Int32 impl_InsertChildAt(Ark_NativePointer parent, Ark_NativePointer child, Ark_Int32 position)
+{
+    Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
+    Ark_NodeHandle childCast = (Ark_NodeHandle) child;
+    return GetArkUIBasicNodeAPI()->insertChildAt(parentCast, childCast, position);
+}
+KOALA_INTEROP_3(InsertChildAt, Ark_Int32, Ark_NativePointer, Ark_NativePointer, Ark_Int32)
+
+void impl_ApplyModifierFinish(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIBasicNodeAPI()->applyModifierFinish(nodePtrCast);
+}
+KOALA_INTEROP_V1(ApplyModifierFinish, Ark_NativePointer)
+
+void impl_MarkDirty(Ark_NativePointer nodePtr, KUInt dirtyFlag)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_UInt32 dirtyFlagCast = (Ark_UInt32) dirtyFlag;
+    GetArkUIBasicNodeAPI()->markDirty(nodePtrCast, dirtyFlagCast);
+}
+KOALA_INTEROP_V2(MarkDirty, Ark_NativePointer, KUInt)
+
+KBoolean impl_IsBuilderNode(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    return GetArkUIBasicNodeAPI()->isBuilderNode(nodePtrCast);
+}
+KOALA_INTEROP_1(IsBuilderNode, KBoolean, Ark_NativePointer)
+
+Ark_Float32 impl_ConvertLengthMetricsUnit(Ark_Float32 value, Ark_Int32 originUnit, Ark_Int32 targetUnit)
+{
+    return GetArkUIBasicNodeAPI()->convertLengthMetricsUnit(value, originUnit, targetUnit);
+}
+KOALA_INTEROP_3(ConvertLengthMetricsUnit, Ark_Float32, Ark_Float32, Ark_Int32, Ark_Int32)
+
+void impl_MeasureLayoutAndDraw(KVMContext vmContext, Ark_NativePointer nodePtr)
+{
+    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->measureLayoutAndDraw(vmContextCast, nodePtrCast);
+}
+KOALA_INTEROP_CTX_V1(MeasureLayoutAndDraw, Ark_NativePointer)
+
+Ark_Int32 impl_MeasureNode(KVMContext vmContext, Ark_NativePointer nodePtr, KFloatArray data)
+{
+    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_Float32* dataCast = (Ark_Float32*) data;
+    return GetArkUIExtendedNodeAPI()->measureNode(vmContextCast, nodePtrCast, dataCast);
+}
+KOALA_INTEROP_CTX_2(MeasureNode, Ark_Int32, Ark_NativePointer, KFloatArray)
+
+Ark_Int32 impl_DrawNode(KVMContext vmContext, Ark_NativePointer nodePtr, KFloatArray data)
+{
+    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    Ark_Float32* dataCast = (Ark_Float32*) data;
+    return GetArkUIExtendedNodeAPI()->drawNode(vmContextCast, nodePtrCast, dataCast);
+}
+KOALA_INTEROP_CTX_2(DrawNode, Ark_Int32, Ark_NativePointer, KFloatArray)
+
+Ark_Int32 impl_IndexerChecker(KVMContext vmContext, Ark_NativePointer nodePtr)
+{
+    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    return GetArkUIExtendedNodeAPI()->indexerChecker(vmContextCast, nodePtrCast);
+}
+KOALA_INTEROP_CTX_1(IndexerChecker, Ark_Int32, Ark_NativePointer)
+
+void impl_SetLazyItemIndexer(KVMContext vmContext, Ark_NativePointer nodePtr, Ark_Int32 indexerId)
+{
+    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setLazyItemIndexer(vmContextCast, nodePtrCast, indexerId);
+}
+KOALA_INTEROP_CTX_V2(SetLazyItemIndexer, Ark_NativePointer, Ark_Int32)
+
+void impl_SetVsyncCallback(KVMContext vmContext, Ark_NativePointer pipelineContext, Ark_Int32 callbackId)
+{
+    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
+    Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext) pipelineContext;
+    GetArkUIExtendedNodeAPI()->setVsyncCallback(vmContextCast, pipelineContextCast, callbackId);
+}
+KOALA_INTEROP_CTX_V2(SetVsyncCallback, Ark_NativePointer, Ark_Int32)
+
+void impl_UnblockVsyncWait(KVMContext vmContext, Ark_NativePointer pipelineContext)
+{
+    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
+    Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext) pipelineContext;
+    GetArkUIExtendedNodeAPI()->unblockVsyncWait(vmContextCast, pipelineContextCast);
+}
+KOALA_INTEROP_CTX_V1(UnblockVsyncWait, Ark_NativePointer)
+
+void impl_SetCustomCallback(KVMContext vmContext, Ark_NativePointer nodePtr, Ark_Int32 updaterId)
+{
+    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setCustomCallback(vmContextCast, nodePtrCast, updaterId);
+}
+KOALA_INTEROP_CTX_V2(SetCustomCallback, Ark_NativePointer, Ark_Int32)
+
+void impl_SetMeasureWidth(Ark_NativePointer nodePtr, Ark_Int32 value)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setMeasureWidth(nodePtrCast, value);
+}
+KOALA_INTEROP_V2(SetMeasureWidth, Ark_NativePointer, Ark_Int32)
+
+Ark_Int32 impl_GetMeasureWidth(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    return GetArkUIExtendedNodeAPI()->getMeasureWidth(nodePtrCast);
+}
+KOALA_INTEROP_1(GetMeasureWidth, Ark_Int32, Ark_NativePointer)
+
+void impl_SetMeasureHeight(Ark_NativePointer nodePtr, Ark_Int32 value)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setMeasureHeight(nodePtrCast, value);
+}
+KOALA_INTEROP_V2(SetMeasureHeight, Ark_NativePointer, Ark_Int32)
+
+Ark_Int32 impl_GetMeasureHeight(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    return GetArkUIExtendedNodeAPI()->getMeasureHeight(nodePtrCast);
+}
+KOALA_INTEROP_1(GetMeasureHeight, Ark_Int32, Ark_NativePointer)
+
+void impl_SetX(Ark_NativePointer nodePtr, Ark_Int32 value)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setX(nodePtrCast, value);
+}
+KOALA_INTEROP_V2(SetX, Ark_NativePointer, Ark_Int32)
+
+Ark_Int32 impl_GetX(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    return GetArkUIExtendedNodeAPI()->getX(nodePtrCast);
+}
+KOALA_INTEROP_1(GetX, Ark_Int32, Ark_NativePointer)
+
+void impl_SetY(Ark_NativePointer nodePtr, Ark_Int32 value)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setY(nodePtrCast, value);
+}
+KOALA_INTEROP_V2(SetY, Ark_NativePointer, Ark_Int32)
+
+Ark_Int32 impl_GetY(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    return GetArkUIExtendedNodeAPI()->getY(nodePtrCast);
+}
+KOALA_INTEROP_1(GetY, Ark_Int32, Ark_NativePointer)
+
+void impl_SetAlignment(Ark_NativePointer nodePtr, Ark_Int32 value)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setAlignment(nodePtrCast, value);
+}
+KOALA_INTEROP_V2(SetAlignment, Ark_NativePointer, Ark_Int32)
+
+Ark_Int32 impl_GetAlignment(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    return GetArkUIExtendedNodeAPI()->getAlignment(nodePtrCast);
+}
+KOALA_INTEROP_1(GetAlignment, Ark_Int32, Ark_NativePointer)
+
+void impl_SetRangeUpdater(Ark_NativePointer nodePtr, Ark_Int32 updaterId)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setRangeUpdater(nodePtrCast, updaterId);
+}
+KOALA_INTEROP_V2(SetRangeUpdater, Ark_NativePointer, Ark_Int32)
+
+Ark_NativePointer impl_GetPipelineContext(Ark_NativePointer nodePtr)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    return GetArkUIExtendedNodeAPI()->getPipelineContext(nodePtrCast);
+}
+KOALA_INTEROP_1(GetPipelineContext, Ark_NativePointer, Ark_NativePointer)
+
+void impl_SetChildTotalCount(Ark_NativePointer nodePtr, Ark_Int32 totalCount)
+{
+    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
+    GetArkUIExtendedNodeAPI()->setChildTotalCount(nodePtrCast, totalCount);
+}
+KOALA_INTEROP_V2(SetChildTotalCount, Ark_NativePointer, Ark_Int32)

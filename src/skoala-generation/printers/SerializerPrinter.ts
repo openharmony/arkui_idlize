@@ -36,11 +36,10 @@ class IdlSerializerPrinter {
     ) {}
 
     private generateSerializer(target: idl.IDLInterface, prefix: string = "") {
-        const name = this.library.computeTargetName(target, false, prefix)
         const methodName = target.name
         this.writer.writeMethodImplementation(
             new Method(`write${methodName}`,
-                new NamedMethodSignature(idl.IDLVoidType, [idl.toIDLType(name)], ["value"])),
+                new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target.name)], ["value"])),
             writer => {
                 const properties = collectProperties(target, this.library)
                 if (properties.length > 0) {

@@ -181,7 +181,7 @@ export class OverloadsPrinter {
                     )
                 )
             }
-            this.printer.print(`const ${castedArgName} = ${argName} as (${this.printer.convert(castedType)})`)
+            this.printer.print(`const ${castedArgName} = ${argName} as (${this.printer.stringifyType(castedType)})`)
             return castedArgName
         })
         const isStatic = collapsedMethod.modifiers?.includes(MethodModifier.STATIC)

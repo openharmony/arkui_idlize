@@ -22,7 +22,6 @@ import * as fs from "fs"
 import { Language } from "../../Language"
 import { EnumConvertor } from "../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../ReferenceResolver"
-import { IdlTypeNameConvertor } from "./typeConvertor"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -115,10 +114,16 @@ export class AssignStatement implements LanguageStatement {
                 public type: idl.IDLType | undefined,
                 public expression: LanguageExpression | undefined,
                 public isDeclared: boolean = true,
-                protected isConst: boolean = true) { }
+                protected isConst: boolean = true,
+                protected options?: MakeAssignOptions) {}
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
-            const typeSpec = this.type ? `: ${writer.convert(this.type)}${/*SHOULD BE REMOVED*/idl.isOptionalType(this.type) ? "|undefined" : ""}` : ""
+            const typeSpec = 
+                this.options?.overrideTypeName
+                    ? `: ${this.options.overrideTypeName}`
+                    : this.type 
+                        ? `: ${writer.stringifyType(this.type)}${/*SHOULD BE REMOVED*/idl.isOptionalType(this.type) ? "|undefined" : ""}` 
+                        : ""
             const initValue = this.expression ? `= ${this.expression.asString()}` : ""
             const constSpec = this.isConst ? "const" : "let"
             writer.print(`${constSpec} ${this.variableName}${typeSpec} ${initValue}`)
@@ -305,14 +310,37 @@ export class Method {
     ) {}
 }
 
+export class MethodArgPrintHint {
+    private constructor(
+        public hint: string
+    ) {}
+
+    static AsPointer = new MethodArgPrintHint('AsPointer')
+    static AsConstPointer = new MethodArgPrintHint('AsConstPointer')
+    static AsValue = new MethodArgPrintHint('AsValue')
+}
+
+type MethodArgPrintHintOrNone = MethodArgPrintHint | undefined
+
 export class MethodSignature {
-    constructor(public returnType: idl.IDLType, public args: idl.IDLType[], public defaults: stringOrNone[]|undefined = undefined) {}
+    constructor(
+        public returnType: idl.IDLType, 
+        public args: idl.IDLType[], 
+        public defaults: stringOrNone[]|undefined = undefined,
+        public printHints?: MethodArgPrintHintOrNone[] 
+    ) {}
 
     argName(index: number): string {
         return `arg${index}`
     }
     argDefault(index: number): string|undefined {
         return this.defaults?.[index]
+    }
+    retHint(): MethodArgPrintHint | undefined {
+        return this.printHints?.[0]
+    }
+    argHint(index: number): MethodArgPrintHint | undefined {
+        return this.printHints?.[index + 1]
     }
 
     toString(): string {
@@ -321,8 +349,14 @@ export class MethodSignature {
 }
 
 export class NamedMethodSignature extends MethodSignature {
-    constructor(returnType: idl.IDLType, args: idl.IDLType[] = [], public argsNames: string[] = [], defaults: stringOrNone[]|undefined = undefined) {
-        super(returnType, args, defaults)
+    constructor(
+        returnType: idl.IDLType, 
+        args: idl.IDLType[] = [], 
+        public argsNames: string[] = [], 
+        defaults: stringOrNone[]|undefined = undefined,
+        printHints?: MethodArgPrintHintOrNone[] 
+    ) {
+        super(returnType, args, defaults, printHints)
     }
 
     static make(returnType: idl.IDLType, args: {name: string, type: idl.IDLType}[]): NamedMethodSignature {
@@ -346,7 +380,7 @@ export interface PrinterLike {
 //                    LANGUAGE WRITER                         //
 ////////////////////////////////////////////////////////////////
 
-export abstract class LanguageWriter implements IdlTypeNameConvertor {
+export abstract class LanguageWriter {
     constructor(
         public printer: IndentedPrinter, 
         protected resolver: ReferenceResolver,
@@ -369,14 +403,13 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
     abstract writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void): void
-    abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean): LanguageStatement;
+    abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement;
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression;
     abstract makeThrowError(message: string): LanguageStatement;
     abstract makeReturn(expr?: LanguageExpression): LanguageStatement;
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
     abstract getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
-    abstract makeCast(value: LanguageExpression, type: idl.IDLType): LanguageExpression
-    abstract makeCast(value: LanguageExpression, type: idl.IDLType, unsafe: boolean): LanguageExpression
+    abstract makeCast(value: LanguageExpression, type: idl.IDLType, options?:MakeCastOptions): LanguageExpression
     abstract writePrintLog(message: string): void
     abstract makeUndefined(): LanguageExpression
     abstract makeArrayInit(type: idl.IDLContainerType): LanguageExpression
@@ -392,15 +425,11 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     abstract makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement
     abstract get supportedModifiers(): MethodModifier[]
     abstract get supportedFieldModifiers(): FieldModifier[]
-    abstract enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression
-    abstract ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression
+    abstract enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
+    abstract ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
     abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string
-    abstract convert(type: idl.IDLType | idl.IDLCallback): string
+    abstract stringifyType(type: idl.IDLType | idl.IDLCallback): string
     abstract fork(): LanguageWriter
-
-    makeType(type: idl.IDLType, nullable: boolean, receiver?: string): idl.IDLType {
-        return idl.maybeOptional(type, nullable)
-    }
 
     concat(other: PrinterLike): this {
         other.getOutput().forEach(it => this.print(it))
@@ -434,7 +463,7 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     makeTag(tag: string): string {
         return "Tag." + tag
     }
-    makeRef(type: idl.IDLType | string): idl.IDLType {
+    makeRef(type: idl.IDLType | string, _options?:MakeRefOptions): idl.IDLType {
         if (typeof type === 'string') {
             return idl.createReferenceType(type)
         }
@@ -639,7 +668,6 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
                                  exprs: LanguageExpression[]): LanguageExpression {
         return this.discriminatorFromExpressions(value, runtimeType, exprs)
     }
-
     makeNot(expr: LanguageExpression): LanguageExpression {
         return this.makeString(`!${expr.asString()}`)
     }
@@ -687,3 +715,23 @@ export function copyMethod(method: Method, overrides: {
         overrides.generics ?? method.generics,
     )
 }
+
+export type MakeCastOptions = {
+    unsafe?: boolean
+    optional?: boolean
+    receiver?: string
+    toRef?: boolean
+    overrideTypeName?: string
+}
+
+export type MakeRefOptions = {
+    receiver?: string
+}
+
+export type MakeAssignOptions = {
+    receiver?: string,
+    assignRef?: boolean
+    overrideTypeName?: string
+}
+
+/////////////////////////////////////////////////////////////////////////////////

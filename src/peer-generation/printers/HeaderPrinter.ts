@@ -17,13 +17,14 @@ import { IndentedPrinter } from "../../IndentedPrinter";
 import { getNodeTypes, makeAPI, makeConverterHeader, makeCSerializers } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
-import { CppLanguageWriter, printMethodDeclaration } from "../LanguageWriters";
+import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } from "../LanguageWriters";
 import { camelCaseToUpperSnakeCase } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { forceAsNamedNode, IDLVoidType, maybeOptional, toIDLType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
+import { Language } from "../../Language";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -51,7 +52,7 @@ class HeaderVisitor {
     }
 
     private printMethod(method: IdlPeerMethod) {
-        const apiParameters = method.generateAPIParameters()
+        const apiParameters = method.generateAPIParameters(createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library)))
         printMethodDeclaration(this.api, method.retType, `(*${method.fullMethodName})`, apiParameters, `;`)
     }
 
@@ -97,10 +98,13 @@ class HeaderVisitor {
         const receiver = generateEventReceiverName(componentName)
         this.api.print(`typedef struct ${receiver} {`)
         this.api.pushIndent()
+
+        const nameConvertor = createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
+
         for (const callback of callbacks) {
             const args = ["Ark_Int32 nodeId",///same code in EventsPrinter
                 ...callback.args.map(it =>
-                    `const ${library.typeConvertor(it.name, it.type, it.nullable).nativeType(false)} ${it.name}`)]
+                    `const ${nameConvertor.convertType(maybeOptional(library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
             printMethodDeclaration(this.api, "void", `(*${callback.methodName})`, args, `;`)
         }
         this.api.popIndent()

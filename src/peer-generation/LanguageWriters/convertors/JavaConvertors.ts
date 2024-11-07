@@ -14,9 +14,10 @@
  */
 
 import * as idl from '../../../idl'
+import { throwException } from '../../../util';
 import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../../printers/lang/Java';
 import { ReferenceResolver } from '../../ReferenceResolver';
-import { convertType, IdlTypeNameConvertor, TypeConvertor } from "../typeConvertor";
+import { convertType, IdlNameConvertor, IdlNameConvertorBase, TypeConvertor } from "../nameConvertor";
 
 
 class JavaTypeAlias {
@@ -52,15 +53,15 @@ class JavaTypeAlias {
     }
 }
 
-export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeConvertor<JavaTypeAlias> {
+export class JavaIDLNodeToStringConvertor extends IdlNameConvertorBase implements TypeConvertor<JavaTypeAlias> {
     
     constructor(
         private resolver: ReferenceResolver 
-    ) {}
+    ) { super() }
     
     /**** IdlTypeNameConvertor *******************************************/
 
-    convert(type: idl.IDLType | idl.IDLCallback): string {
+    convertType(type: idl.IDLType | idl.IDLCallback): string {
         const typeAlias = idl.isCallback(type) 
             ? this.convertCallback(type) 
             : convertType(this, type)
@@ -68,10 +69,14 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
         return this.mapTypeName(rowType)
     }
 
+    convertEntry(entry: idl.IDLEntry): string {
+        return entry.name ?? throwException("Unnamed entry!")
+    }
+
     /***** TypeConvertor<JavaTypeAlias> **********************************/
 
     convertOptional(type: idl.IDLOptionalType): JavaTypeAlias {
-        return JavaTypeAlias.fromTypeName(convertJavaOptional(this.convert(type.type)), true)
+        return JavaTypeAlias.fromTypeName(convertJavaOptional(this.convertType(type.type)), true)
     }
     convertUnion(type: idl.IDLUnionType): JavaTypeAlias {
         const aliases = type.types.map(it => convertType(this, it))
@@ -101,29 +106,35 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
             return this.convertImport(type, importAttr)
         }
 
-        // resolve synthetic types
+        let typeSpec = type.name
+        if (javaCustomTypeMapping.has(typeSpec)) {
+            return JavaTypeAlias.fromTypeName(javaCustomTypeMapping.get(typeSpec)!, false)
+        }
+
         const decl = this.resolver.resolveTypeReference(type)!
-        if (decl && idl.isSyntheticEntry(decl)) {
-            if (idl.isCallback(decl)) {
-                return this.callbackType(decl)
+        if (decl) {
+            // resolve synthetic types
+            if (idl.isSyntheticEntry(decl)) {
+                if (idl.isCallback(decl)) {
+                    return this.callbackType(decl)
+                }
+                const entity = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity)
+                if (entity) {
+                    const isTuple = entity === idl.IDLEntity.Tuple
+                    return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
+                }
             }
-            const entity = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity)
-            if (entity) {
-                const isTuple = entity === idl.IDLEntity.Tuple
-                return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
+            
+            if (decl.name) {
+                if (javaCustomTypeMapping.has(decl.name)) {
+                    return JavaTypeAlias.fromTypeName(javaCustomTypeMapping.get(decl.name)!, false)
+                }
+                return JavaTypeAlias.fromTypeName(decl.name, false)
             }
         }
 
-        let typeSpec = type.name
-        if (javaCustomTypeMapping.has(typeSpec)) {
-            typeSpec = javaCustomTypeMapping.get(typeSpec)!
-        }
-        // const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier)
-        // if (qualifier) {
-        //     typeSpec = `${qualifier}.${typeSpec}`
-        // }
-        let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
         if (typeSpec === `Optional`) {
+            let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
             return JavaTypeAlias.fromTypeName(typeArgs![0], true)
         }
         return JavaTypeAlias.fromTypeName(typeSpec, false)
@@ -151,6 +162,7 @@ export class JavaIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeC
             case idl.IDLF64Type: return JavaTypeAlias.fromTypeName('double', false)
             case idl.IDLPointerType: return JavaTypeAlias.fromTypeName('long', false)
             case idl.IDLVoidType: return JavaTypeAlias.fromTypeName('void', false)
+            case idl.IDLDate: return JavaTypeAlias.fromTypeName('Date', false)
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }

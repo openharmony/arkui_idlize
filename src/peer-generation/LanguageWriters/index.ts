@@ -22,12 +22,13 @@ import { CppLanguageWriter } from "./writers/CppLanguageWriter";
 import { CJLanguageWriter } from "./writers/CJLanguageWriter";
 import { Language } from "../../Language";
 import { ReferenceResolver } from "../ReferenceResolver";
-import { IdlTypeNameConvertor } from "./typeConvertor";
 
-import { CJIDLTypeToStringConvertor } from "./convertors/CJConvertors";
-import { TsIDLTypeToStringConverter } from "./convertors/TSConvertors";
-import { JavaIDLTypeToStringConvertor } from "./convertors/JavaConvertors";
-import { EtsIDLTypeToStringConvertor } from "./convertors/ETSConvertors";
+import { CJIDLNodeToStringConvertor } from "./convertors/CJConvertors";
+import { TsIDLNodeToStringConverter } from "./convertors/TSConvertors";
+import { JavaIDLNodeToStringConvertor } from "./convertors/JavaConvertors";
+import { EtsIDLNodeToStringConvertor } from "./convertors/ETSConvertors";
+import { CppIDLNodeToStringConvertor } from "./convertors/CppConvertors";
+import { IdlNameConvertor } from "./nameConvertor";
 
 //////////////////////////////////////////////////////////////////
 // REEXPORTS
@@ -64,14 +65,34 @@ export function createLanguageWriter(language: Language, resolver:ReferenceResol
     }
 }
 
-export function createTypeNameConvertor(language: Language , library: ReferenceResolver): IdlTypeNameConvertor {
+export const languageWritersUtils = {
+    isCppWriter(writer: LanguageWriter): writer is CppLanguageWriter {
+        return writer.language === Language.CPP
+    },
+    isJavaWriter(writer: LanguageWriter): writer is JavaLanguageWriter {
+        return writer.language === Language.JAVA
+    },
+    isCJWriter(writer: LanguageWriter): writer is CJLanguageWriter {
+        return writer.language === Language.CJ
+    },
+    isTsWriter(writer: LanguageWriter): writer is TSLanguageWriter {
+        return writer.language === Language.TS
+    },
+    isArkTsWriter(writer: LanguageWriter): writer is ETSLanguageWriter {
+        return writer.language === Language.ARKTS
+    }
+}
+
+export function createTypeNameConvertor(language: Language , library: ReferenceResolver): IdlNameConvertor {
     if (language === Language.TS)
-        return new TsIDLTypeToStringConverter(library)
+        return new TsIDLNodeToStringConverter(library)
     if (language === Language.JAVA)
-        return new JavaIDLTypeToStringConvertor(library)
+        return new JavaIDLNodeToStringConvertor(library)
     if (language === Language.ARKTS)
-        return new EtsIDLTypeToStringConvertor(library)
-    if (language == Language.CJ)
-        return new CJIDLTypeToStringConvertor(library)
+        return new EtsIDLNodeToStringConvertor(library)
+    if (language === Language.CJ)
+        return new CJIDLNodeToStringConvertor(library)
+    if (language === Language.CPP) 
+        return new CppIDLNodeToStringConvertor(library)
     throw new Error(`Convertor from IDL to ${language} not implemented`)
 }

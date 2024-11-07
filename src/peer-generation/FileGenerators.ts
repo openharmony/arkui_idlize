@@ -27,8 +27,9 @@ import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { Language } from "../Language"
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
-import { IDLVoidType, toIDLType } from "../idl"
-import { createEmptyReferenceResolver, getReferenceResolver } from "./ReferenceResolver"
+import { createReferenceType, IDLVoidType, toIDLType } from "../idl"
+import { createEmptyReferenceResolver, getReferenceResolver, ReferenceResolver } from "./ReferenceResolver"
+import { MethodArgPrintHint } from "./LanguageWriters/LanguageWriter"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -557,8 +558,8 @@ export function makeDeserializeAndCall(library: IdlPeerLibrary, language: Langua
     return writer.getOutput().join('\n')
 }
 
-export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: LanguageWriter): string {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver())
+export function makeCEventsArkoalaImpl(resolver: ReferenceResolver, implData: LanguageWriter, receiversList: LanguageWriter): string {
+    const writer = new CppLanguageWriter(new IndentedPrinter(), resolver)
     writer.print(cStyleCopyright)
     writer.writeInclude("arkoala_api_generated.h")
     writer.writeInclude("events.h")
@@ -569,7 +570,7 @@ export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: 
     writer.concat(implData)
     writer.writeMethodImplementation(new Method(
         `GetArkUiEventsAPI`,
-        new MethodSignature(toIDLType(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`), []),
+        new MethodSignature(createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), [], undefined, [MethodArgPrintHint.AsConstPointer]),
     ), (writer) => {
         writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()
@@ -582,8 +583,8 @@ export function makeCEventsArkoalaImpl(implData: LanguageWriter, receiversList: 
     return writer.getOutput().join('\n')
 }
 
-export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: PrinterLike, namespace: string): string {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver())
+export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: PrinterLike, namespace: string, resolver: ReferenceResolver): string {
+    const writer = new CppLanguageWriter(new IndentedPrinter(), resolver)
     writer.writeLines(cStyleCopyright)
     writer.print("")
     writer.writeInclude(`arkoala_api_generated.h`)
@@ -595,14 +596,14 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
     writer.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;`)
     writer.writeMethodImplementation(new Method(
         `${PeerGeneratorConfig.cppPrefix}SetArkUiEventsAPI`,
-        new NamedMethodSignature(IDLVoidType, [toIDLType(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`)], [`api`]),
+        new NamedMethodSignature(IDLVoidType, [createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`)], [`api`]),
     ), (writer) => {
-        writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`api`), false))
+        writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`&api`), false))
     })
 
     writer.writeMethodImplementation(new Method(
         `${PeerGeneratorConfig.cppPrefix}GetArkUiEventsAPI`,
-        new MethodSignature(toIDLType(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI*`), []),
+        new MethodSignature(createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), []),
     ), (writer) => {
         writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()

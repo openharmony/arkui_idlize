@@ -30,9 +30,10 @@ import { CustomPrintVisitor } from "../../from-idl/DtsPrinter";
 import { ClassConvertor, EnumConvertor, InterfaceConvertor, RetConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor } from "../../peer-generation/idl/IdlArgConvertors";
 import { Language } from "../../Language";
 import { addSyntheticType, resolveSyntheticType } from "../../from-idl/deserialize";
-import { convertDeclaration, convertType, DeclarationConvertor, IdlTypeNameConvertor, TypeConvertor } from "../../peer-generation/LanguageWriters/typeConvertor";
+import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "../../peer-generation/LanguageWriters/nameConvertor";
 import { LibraryInterface } from "../../LibraryInterface";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
+import { IDLNodeToStringConvertor } from "../../peer-generation/LanguageWriters/convertors/InteropConvertor";
 
 export class IldSkoalaFile {
     readonly wrapperClasses: Map<string, [WrapperClass, any|undefined]> = new Map()
@@ -57,9 +58,10 @@ export class IldSkoalaFile {
 
 export class IdlSkoalaLibrary implements LibraryInterface {
     public readonly serializerDeclarations: Set<idl.IDLInterface> = new Set()
-    readonly nameConvertorInstance: IdlTypeNameConvertor = new TSSkoalaTypeNameConvertor(this)
+    readonly nameConvertorInstance: IdlNameConvertor = new TSSkoalaTypeNameConvertor(this)
+    readonly interopNameConvertorInstance: IdlNameConvertor = new IDLNodeToStringConvertor(this)
     readonly importTypesStubToSource: Map<string, string> = new Map()
-    readonly typeMap = new Map<idl.IDLType, [idl.IDLNode, string[], boolean]>()
+    readonly typeMap = new Map<idl.IDLType, [idl.IDLNode, boolean]>()
     public name: string = ""
 
     public readonly files: IldSkoalaFile[] = []
@@ -75,27 +77,14 @@ export class IdlSkoalaLibrary implements LibraryInterface {
         return ""
     }
 
-    getTypeName(type: idl.IDLType, optional: boolean = false): string {
-        let declaration = this.typeMap.get(type)
-        if (!declaration) {
-            this.requestType(type, false)
-            declaration = this.typeMap.get(type)!
-        }
-        let name = declaration[1][0]
-        return name
-    }
-
     requestType(type: idl.IDLType, useToGenerate: boolean) {
         let declaration = this.typeMap.get(type)
         if (declaration) {
-            declaration[2] ||= useToGenerate
+            declaration[1] ||= useToGenerate
             return
         }
         const decl = this.toDeclaration(type)
-        let name = this.computeTargetName(decl, false)
-        if (idl.isReferenceType(type) && type.name == "Optional")
-            name = "Opt_" + cleanPrefix(name, PrimitiveType.Prefix)
-        this.typeMap.set(type, [decl, [name], useToGenerate])
+        this.typeMap.set(type, [decl, useToGenerate])
     }
 
     toDeclaration(type: idl.IDLType | idl.IDLTypedef | idl.IDLCallback | idl.IDLEnum | idl.IDLInterface): idl.IDLNode {
@@ -127,102 +116,17 @@ export class IdlSkoalaLibrary implements LibraryInterface {
         return type
     }
 
-    computeTargetName(target: idl.IDLNode, optional: boolean, idlPrefix: string = PrimitiveType.Prefix): string {
-        return this.computeTargetNameImpl(target, optional, idlPrefix)///inline
+    getNodeName(node: idl.IDLNode): string {
+        return this.interopNameConvertorInstance.convert(node)
     }
-
-    private computeTargetNameImpl(target: idl.IDLNode, optional: boolean, idlPrefix: string): string {
-        const prefix = optional ? PrimitiveType.OptionalPrefix : ""
-        if (idl.isPrimitiveType(target)) {
-            let name: string = ""
-            switch (target) {
-                case idl.IDLAnyType: return "CustomObject"
-                case idl.IDLStringType: name = "String"; break
-                case idl.IDLNullType: name = "Null"; break
-                case idl.IDLVoidType: name = "void"; break
-                default: name = capitalize(target.name); break
-            }
-            return (optional ? prefix : idlPrefix) + name
-        }
-        if (idl.isAnonymousInterface(target)) {
-            return target.name
-                ? (optional ? prefix : idlPrefix) + target.name
-                : this.computeTargetTypeLiteralName(target, prefix)
-        }
-        if (idl.isTypeParameterType(target)) {
-            // TODO: likely incorrect
-            let name = PrimitiveType.CustomObject.getText()
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
-        }
-        if (idl.isEnum(target)) {
-            const name = this.enumName(target)
-            return prefix + ((optional || idlPrefix == "") ? cleanPrefix(name, PrimitiveType.Prefix) : name)
-        }
-        if (idl.isUnionType(target)) {
-            return target.name
-        }
-        if (idl.isInterface(target) || idl.isClass(target)) {
-            return (optional ? prefix : idlPrefix) + target.name
-        }
-        if (idl.isCallback(target)) {
-            return (optional ? prefix : idlPrefix) + "Function"
-        }
-        if (idl.isTupleInterface(target)) {
-            return target.name
-                ? (optional ? prefix : idlPrefix) + target.name
-                : prefix + `Tuple_${target.properties.map(it => this.computeTargetName(it.type, it.isOptional, "")).join("_")}`
-        }
-        if (idl.isContainerType(target)) {
-            if (idl.IDLContainerUtils.isSequence(target)) {
-                return this.makeCArrayName(target.elementType[0])
-            }
-            if (idl.IDLContainerUtils.isRecord(target)) {
-                return this.makeCMapName(target.elementType[0], target.elementType[1])
-            }
-            if (idl.IDLContainerUtils.isPromise(target)) {
-                return prefix + `Promise_` + this.computeTargetName(target.elementType[0], false, "")
-            }
-        }
-        if (idl.isReferenceType(target)) {
-            const name = target.name
-            return (optional ? prefix : idlPrefix) + name
-        }
-        if (isImport(target)) {
-            if (!idl.isEntry(target))
-                throw "Expected to be an entry"
-            return prefix + this.mapImportTypeName(target)
-        }
-        if (idl.isEnumMember(target))
-            return this.computeTargetName(target.parent, optional, idlPrefix)
-        if (idl.isTypedef(target))
-            return (optional ? prefix : idlPrefix) + target.name
-        throw new Error(`Cannot compute target name: ${idl.IDLKind[target.kind!]}`)
+    getEntryName(node: idl.IDLEntry): string {
+        return this.interopNameConvertorInstance.convert(node)
     }
-
-    private mapImportTypeName(type: idl.IDLEntry): string {
-        switch (type.name) {
-            case "Resource": return "Resource"
-            case "Callback": return PrimitiveType.Function.getText()
-            default: return PrimitiveType.CustomObject.getText()
-        }
+    getTypeName(type: idl.IDLType): string {
+       return this.interopNameConvertorInstance.convert(type)
     }
-
-    private enumName(target: idl.IDLEnum): string {
-        // TODO: support namespaces in other declarations.
-        const namespace = idl.getExtAttribute(target, idl.IDLExtendedAttributes.Namespace)
-        return `${PrimitiveType.Prefix}${namespace ? namespace + "_" : ""}${target.name}`
-    }
-
-    private computeTargetTypeLiteralName(decl: idl.IDLInterface, prefix: string): string {
-        const map = new Map<string, string[]>()
-        for (const prop of decl.properties) {
-            const type = this.computeTargetName(prop.type, prop.isOptional, "")
-            const values = map.has(type) ? map.get(type)! : []
-            values.push(prop.name)
-            map.set(type, values)
-        }
-        const names = Array.from(map.keys()).map(key => `${key}_${map.get(key)!.join('_')}`)
-        return prefix + `Literal_${names.join('_')}`
+    getInteropName(node: idl.IDLNode): string {
+        return this.interopNameConvertorInstance.convert(node)
     }
 
     mapType(type: idl.IDLType | idl.IDLCallback | undefined): string {
@@ -262,7 +166,6 @@ export class IdlSkoalaLibrary implements LibraryInterface {
             return this.declarationConvertor(param, type, decl, maybeCallback, processor)
         }
         return new CustomTypeConvertor(param, this.nameConvertorInstance.convert(type))
-        throw new Error(`Cannot convert: ${this.nameConvertorInstance.convert(type)} ${type.kind}`)
     }
 
     declarationConvertor(param: string, type: idl.IDLReferenceType,
@@ -285,13 +188,13 @@ export class IdlSkoalaLibrary implements LibraryInterface {
             if (processor?.isWrapper(declaration)) {
                 return new IdlWrapperClassConvertor(declarationName, param, this, declaration)
             }
-            return new InterfaceConvertor(declarationName, param, declaration)
+            return new InterfaceConvertor(this, declarationName, param, declaration)
         }
         if (idl.isClass(declaration)) {
             if (processor?.isWrapper(declaration)) {
                 return new IdlWrapperClassConvertor(declarationName, param, this, declaration)
             }
-            return new ClassConvertor(declarationName, param, declaration)
+            return new ClassConvertor(this, declarationName, param, declaration)
         }
         if (idl.isTypedef(declaration)) {
             return new TypeAliasConvertor(this, param, declaration)
@@ -323,16 +226,6 @@ export class IdlSkoalaLibrary implements LibraryInterface {
         return candidates.length == 1
             ? candidates[0]
             : candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import))
-    }
-
-    //
-
-    public makeCMapName(keyType: idl.IDLType, valueType: idl.IDLType): string {
-        return `Map_${this.computeTargetName(keyType, false, "")}_${this.computeTargetName(valueType, false, "")}`
-    }
-
-    public makeCArrayName(elementType: idl.IDLType): string {
-        return `Array_${this.computeTargetName(elementType, false, "")}`
     }
 
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType {
@@ -373,8 +266,8 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         )
         return assigneer(readStatement)
     }
-    nativeType(impl: boolean): string {
-        return PrimitiveType.Materialized.getText()
+    nativeType(): idl.IDLType {
+        return idl.createReferenceType('Materialized')
     }
     interopType(language: Language): string {
         throw new Error("Must never be used")
@@ -384,7 +277,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${writer.convert(this.idlType)}`)])
+            [writer.makeString(`${value} instanceof ${writer.stringifyType(this.idlType)}`)])
     }
 }
 
@@ -780,7 +673,7 @@ export function convertDeclToFeature(node: idl.IDLEntry) {
     }
 }
 
-export class TSSkoalaTypeNameConvertor implements IdlTypeNameConvertor, TypeConvertor<string> {
+export class TSSkoalaTypeNameConvertor implements IdlNameConvertor, TypeConvertor<string> {
     constructor(private library: IdlSkoalaLibrary) {}
     convertOptional(type: idl.IDLOptionalType): string {
         return `${this.convert(type.type)} | undefined` 
@@ -834,10 +727,23 @@ export class TSSkoalaTypeNameConvertor implements IdlTypeNameConvertor, TypeConv
         // todo: add other types
         return type.name
     }
-    convert(type: idl.IDLType | idl.IDLCallback): string {
-        return idl.isCallback(type)
-            ? this.callbackType(type)
-            : convertType(this, type)
+    convertType(type: idl.IDLType): string {
+        return convertType(this, type)
+    }
+    convertEntry(entry: idl.IDLEntry): string {
+        if (idl.isCallback(entry)) {
+            return this.callbackType(entry)
+        }
+        return entry.name
+    }
+    convert(node: idl.IDLNode): string {
+        if (idl.isType(node)) {
+            return this.convertType(node)
+        }
+        if (idl.isEntry(node)) {
+            return this.convertEntry(node)
+        }
+        throw new Error("node is either entry or type!")
     }
 
     callbackType(decl: idl.IDLCallback): string {

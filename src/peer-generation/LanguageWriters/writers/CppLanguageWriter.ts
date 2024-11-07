@@ -13,14 +13,7 @@
  * limitations under the License.
  */
 
-import {
-    createReferenceType,
-    forceAsNamedNode,
-    IDLCallback,
-    IDLContainerType,
-    IDLType,
-    toIDLType
-} from "../../../idl"
+import { createReferenceType, DebugUtils, forceAsNamedNode, IDLAnyType, IDLBooleanType, IDLCallback, IDLContainerType, IDLContainerUtils, IDLEnum, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUnionType, IDLVoidType, isCallback, isContainerType, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType, toIDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
@@ -33,7 +26,11 @@ import {
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
+    MakeAssignOptions,
+    MakeCastOptions,
+    MakeRefOptions,
     Method,
+    MethodArgPrintHint,
     MethodModifier,
     MethodSignature,
     ObjectArgs,
@@ -48,27 +45,41 @@ import {
 } from "./CLikeLanguageWriter"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlTypeNameConvertor } from "../typeConvertor"
+import { IdlNameConvertor, TypeConvertor } from "../nameConvertor"
 import { EnumEntity } from "../../PeerFile"
 import { throwException } from "../../../util";
-import { CppIDLTypeToStringConvertor } from "../convertors/CppConvertors"
+import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
 ////////////////////////////////////////////////////////////////
 
 export class CppCastExpression implements LanguageExpression {
-    constructor(public convertor:IdlTypeNameConvertor, public value: LanguageExpression, public type: IDLType, private unsafe = false) {}
+    constructor(public convertor:IdlNameConvertor, public value: LanguageExpression, public type: IDLType, private options?:MakeCastOptions) {}
     asString(): string {
-        if (forceAsNamedNode(this.type).name === PrimitiveType.Tag.getText()) {
+        if (forceAsNamedNode(this.type).name === "Tag") {
             return `${this.value.asString()} == ${PrimitiveType.UndefinedRuntime} ? ${PrimitiveType.UndefinedTag} : ${PrimitiveType.ObjectTag}`
         }
-        return this.unsafe
-            ? `reinterpret_cast<${this.convertor.convert(this.type)}>(${this.value.asString()})`
-            : `static_cast<${this.convertor.convert(this.type)}>(${this.value.asString()})`
+        let resultName = ''
+        if (this.options?.overrideTypeName) {
+            resultName = this.options.overrideTypeName
+        } else {
+            const pureName = this.mapTypeWithReceiver(this.type, this.options?.receiver)
+            const qualifiedName = this.options?.toRef ? `${pureName}&` : pureName
+            resultName = qualifiedName
+        }
+        return this.options?.unsafe
+            ? `reinterpret_cast<${resultName}>(${this.value.asString()})`
+            : `static_cast<${resultName}>(${this.value.asString()})`
+    }
+    private mapTypeWithReceiver(type: IDLType, receiver?: string): string {
+        // make deducing type from receiver
+        if (receiver !== undefined) {
+            return `std::decay<decltype(${receiver})>::type`
+        }
+        return this.convertor.convertType(type)
     }
 }
-
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -79,12 +90,15 @@ export class CppAssignStatement extends AssignStatement {
                 public type: IDLType | undefined,
                 public expression: LanguageExpression | undefined,
                 public isDeclared: boolean = true,
-                public isConst: boolean = true) {
-        super(variableName, type, expression, isDeclared, isConst)
+                public isConst: boolean = true,
+                protected options?:MakeAssignOptions
+            ) {
+        super(variableName, type, expression, isDeclared, isConst, options)
      }
-     write(writer: LanguageWriter): void{
+     write(writer: CppLanguageWriter): void{
         if (this.isDeclared) {
-            const typeSpec = this.type ? writer.convert(this.type) : "auto"
+            const typeName = this.type ? writer.stringifyTypeWithReceiver(this.type, this.options?.receiver) : "auto"
+            const typeSpec = this.options?.assignRef ? `${typeName}&` : typeName
             const initValue = this.expression ? this.expression.asString() : "{}"
             const constSpec = this.isConst ? "const " : ""
             writer.print(`${constSpec}${typeSpec} ${this.variableName} = ${initValue};`)
@@ -105,7 +119,7 @@ class CppArrayResizeStatement implements LanguageStatement {
 class CppMapResizeStatement implements LanguageStatement {
     constructor(private mapTypeName: string, private keyType: IDLType, private valueType: IDLType, private map: string, private size: string, private deserializer: string) {}
     write(writer: LanguageWriter): void {
-        writer.print(`${this.deserializer}.resizeMap<${this.mapTypeName}, ${writer.convert(this.keyType)}, ${writer.convert(this.valueType)}>(&${this.map}, ${this.size});`)
+        writer.print(`${this.deserializer}.resizeMap<${this.mapTypeName}, ${writer.stringifyType(this.keyType)}, ${writer.stringifyType(this.valueType)}>(&${this.map}, ${this.size});`)
     }
 }
 
@@ -141,13 +155,13 @@ class CppEnumEntityStatement implements LanguageStatement {
 ////////////////////////////////////////////////////////////////
 
 export class CppLanguageWriter extends CLikeLanguageWriter {
-    protected typeConvertor: IdlTypeNameConvertor
+    protected typeConvertor: IdlNameConvertor
     constructor(printer: IndentedPrinter, resolver:ReferenceResolver) {
         super(printer, resolver, Language.CPP)
-        this.typeConvertor = new CppIDLTypeToStringConvertor()
+        this.typeConvertor = new CppIDLNodeToStringConvertor(this.resolver)
     }
-    convert(type: IDLType | IDLCallback): string {
-        return this.typeConvertor.convert(type)
+    stringifyType(type: IDLType): string {
+        return this.typeConvertor.convertType(type)
     }
     fork(): LanguageWriter {
         return new CppLanguageWriter(new IndentedPrinter(), this.resolver)
@@ -187,7 +201,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             : ""
         const argList = signature.args.map((it, index) => {
             const maybeDefault = signature.defaults?.[index] ? ` = ${signature.defaults![index]}` : ""
-            return `${this.convert(it)} ${signature.argName(index)}${maybeDefault}`
+            return `${this.stringifyMethodArgType(it, signature.argHint(index))} ${signature.argName(index)}${maybeDefault}`
         }).join(", ");
         this.print("public:")
         this.print(`${className}(${argList})${superInvocation} {`)
@@ -245,11 +259,11 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override makeTag(tag: string): string {
         return PrimitiveType.Prefix.toLocaleUpperCase() + "TAG_" + tag
     }
-    override makeRef(type: IDLType | string): IDLType {
+    override makeRef(type: IDLType | string, options?:MakeRefOptions): IDLType {
         if (typeof type === 'string') {
             return createReferenceType(`${type}&`)
         }
-        return createReferenceType(`${this.convert(type)}&`)
+        return createReferenceType(`${this.stringifyTypeWithReceiver(type, options?.receiver)}&`)
     }
     override makeThis(): LanguageExpression {
         return new StringExpression("*this")
@@ -260,8 +274,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}.value`)
     }
-    makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
-        return new CppAssignStatement(variableName, type, expr, isDeclared, isConst)
+    makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true, options?:MakeAssignOptions): LanguageStatement {
+        return new CppAssignStatement(variableName, type, expr, isDeclared, isConst, options)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         throw new Error(`TBD`)
@@ -297,7 +311,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(`{}`)
     }
     makeClassInit(type: IDLType, paramenters: LanguageExpression[]): LanguageExpression {
-        return this.makeString(`${this.convert(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
+        return this.makeString(`${this.stringifyType(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
     }
     makeMapInit(type: IDLType): LanguageExpression {
         return this.makeString(`{}`)        
@@ -308,8 +322,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeMapResize(mapTypeName: string, keyType: IDLType, valueType: IDLType, map: string, size: string, deserializer: string): LanguageStatement {
         return new CppMapResizeStatement(mapTypeName, keyType, valueType, map, size, deserializer)
     }
-    makeCast(expr: LanguageExpression, type: IDLType, unsafe = false): LanguageExpression {
-        return new CppCastExpression(this, expr, type, unsafe)
+    makeCast(expr: LanguageExpression, type: IDLType, options?:MakeCastOptions): LanguageExpression {
+        return new CppCastExpression(this.typeConvertor, expr, type, options)
     }
     writePrintLog(message: string): void {
         this.print(`printf("${message}\n")`)
@@ -343,17 +357,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         ], false)
     }
     getTagType(): IDLType {
-        return toIDLType(PrimitiveType.Tag.getText())
+        return createReferenceType('Tag')
     }
     getRuntimeType(): IDLType {
-        return toIDLType(PrimitiveType.RuntimeType.getText())
-    }
-    makeType(type: IDLType, nullable: boolean, receiver?: string): IDLType {
-        // make deducing type from receiver
-        if (receiver !== undefined) {
-            return toIDLType(`std::decay<decltype(${receiver})>::type`)
-        }
-        return type
+        return createReferenceType(`RuntimeType`)
     }
     makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement {
         const statements =
@@ -369,25 +376,74 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return []
     }
-    enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
+    enumFromOrdinal(value: LanguageExpression, _: IDLEnum): LanguageExpression {
         return value;
     }
-    ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
+    ordinalFromEnum(value: LanguageExpression, _: IDLEnum): LanguageExpression {
         return value;
     }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
         return param
     }
     override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
-        if (convertor == undefined) {
+        if (convertor === undefined) {
             throwException("Need pass EnumConvertor")
         }
-        return `static_cast<${convertor!.enumTypeName(this.language)}>(${value})`
+        return `static_cast<${this.typeConvertor.convertEntry(convertor.enumEntry)}>(${value})`
     }
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name
     }
     makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
         return new CppEnumEntityStatement(enumEntity)
+    }
+    private decayTypeName(typeName: string) {
+        if (typeName.endsWith('*') || typeName.endsWith('&')) {
+            typeName = typeName.substring(0, typeName.length - 1)
+        }
+        if (typeName.startsWith('const ')) {
+            typeName = typeName.substring(6)
+        }
+
+        return typeName
+    }
+    override stringifyMethodReturnType(type:IDLType, hint?: MethodArgPrintHint): string {
+        const name = this.stringifyType(type)
+        let postfix = ''
+        if (hint === MethodArgPrintHint.AsPointer || hint === MethodArgPrintHint.AsConstPointer) {
+            postfix = '*'
+        }
+        let constModifier = ''
+        if (hint === MethodArgPrintHint.AsConstPointer) {
+            constModifier = 'const '
+        }
+        return `${constModifier}${name}${postfix}`
+    }
+    override stringifyMethodArgType(type:IDLType, hint?: MethodArgPrintHint): string {
+        // we should decide pass by value or by reference here
+        const name = this.stringifyType(type)
+        let postfix = ''
+        if (hint === MethodArgPrintHint.AsPointer || hint === MethodArgPrintHint.AsConstPointer) {
+            postfix = '*'
+        } else {
+            if (name.endsWith('*') || hint === MethodArgPrintHint.AsValue) {
+                postfix = ''
+            } else {
+                postfix = '&'
+            }
+        }
+        
+        let constModifier = ''
+        if (hint !== MethodArgPrintHint.AsPointer && !name.endsWith('*') && hint !== MethodArgPrintHint.AsValue) {
+            constModifier = 'const '
+        }
+        return `${constModifier}${name}${postfix}`
+    }
+    stringifyTypeWithReceiver(type: IDLType, receiver?: string): string {
+        // make deducing type from receiver
+        if (receiver !== undefined) {
+            return `std::decay<decltype(${receiver})>::type`
+        }
+        return this.stringifyType(type)
     }
 }

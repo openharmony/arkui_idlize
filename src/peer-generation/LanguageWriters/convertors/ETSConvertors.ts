@@ -14,12 +14,12 @@
  */
 
 import * as idl from "../../../idl";
-import { TsIDLTypeToStringConverter } from "./TSConvertors";
+import { TsIDLNodeToStringConverter } from "./TSConvertors";
 import { createReferenceType, IDLReferenceType } from "../../../idl";
 import { DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
-import { convertDeclaration } from "../typeConvertor";
+import { convertDeclaration } from "../nameConvertor";
 
-export class EtsIDLTypeToStringConvertor extends TsIDLTypeToStringConverter {
+export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
     convertTypeReference(type: IDLReferenceType): string {
         //TODO: Needs to be implemented properly
         const types = type.name.split(".")
@@ -40,7 +40,7 @@ export class EtsIDLTypeToStringConvertor extends TsIDLTypeToStringConverter {
                 case idl.IDLI32Type: return 'KInt32ArrayPtr'
                 case idl.IDLF32Type: return 'KFloat32ArrayPtr'
             }
-            return `Array<${this.convert(type.elementType[0])}>`
+            return `Array<${this.convertType(type.elementType[0])}>`
         }
         return super.convertContainer(type)
     }

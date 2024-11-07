@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
+import { IDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
 import { PrimitiveType } from "../../ArkPrimitiveType"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ReturnStatement } from "../LanguageWriter"
+import { ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodArgPrintHint, MethodModifier, MethodSignature, ReturnStatement } from "../LanguageWriter"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -106,6 +107,12 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}${this.convert(signature.returnType)} ${name}(${signature.args.map((it, index) => `${this.convert(it)} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
+        this.print(`${prefix}${this.stringifyMethodReturnType(signature.returnType, signature.retHint())} ${name}(${signature.args.map((it, index) => `${this.stringifyMethodArgType(it, signature.argHint(index))} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
+    }
+    protected stringifyMethodReturnType(type:IDLType, _?:MethodArgPrintHint): string {
+        return this.stringifyType(type)
+    }
+    protected stringifyMethodArgType(type:IDLType, _?:MethodArgPrintHint): string {
+        return this.stringifyType(type)
     }
 }

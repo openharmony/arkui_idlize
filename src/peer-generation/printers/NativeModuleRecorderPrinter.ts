@@ -21,7 +21,8 @@ import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
 import { makeSyntheticDeclarationsFiles } from "../idl/IdlSyntheticDeclarations";
 import { Language } from "../../Language";
-import { createReferenceType, IDLI32Type, IDLStringType, IDLType, IDLVoidType, toIDLType } from "../../idl";
+import { createCallback, createParameter, createReferenceType, IDLI32Type, IDLStringType, IDLType, IDLVoidType, toIDLType } from "../../idl";
+import { generateSyntheticFunctionName } from "../../IDLVisitor";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
@@ -63,7 +64,7 @@ class NativeModuleRecorderVisitor {
         this.nativeModuleRecorder.writeInterface(`${clazz.componentName}Interface`, w => {
             for (const method of clazz.methods) {
                 for (const arg of method.argConvertors) {
-                    w.print(`${method.overloadedName}_${arg.param}?: ${w.convert(arg.idlType)}`)
+                    w.print(`${method.overloadedName}_${arg.param}?: ${w.stringifyType(arg.idlType)}`)
                 }
             }
         }, clazz.parentComponentName ? [`${clazz.parentComponentName}Interface`, `UIElement`] : undefined)
@@ -304,7 +305,6 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`if (!inserted) throw Error("Cannot find sibling to insert")`)
             w.writeLines(`return 0`)
         })
-        
     }
 
     printClassField() {
@@ -316,7 +316,12 @@ class NativeModuleRecorderVisitor {
     }
 
     printConstructor(writer: LanguageWriter) {
-        writer.writeConstructorImplementation("NativeModuleRecorder", new NamedMethodSignature(IDLVoidType, [toIDLType("(type: int32) => string")], ["nameByNodeType"]), w => {
+        const [paramType] = this.library.factory.generateCallback(
+            (type) => writer.stringifyType(type),
+            [createParameter('type', IDLI32Type)],
+            IDLStringType
+        )
+        writer.writeConstructorImplementation("NativeModuleRecorder", new NamedMethodSignature(IDLVoidType, [paramType], ["nameByNodeType"]), w => {
             w.writeSuperCall([])
             w.writeLines(`this.nameByNodeType = nameByNodeType`)
             w.writeLines(`this.pointers[NULL_POINTER] = null`)

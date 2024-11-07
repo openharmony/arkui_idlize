@@ -78,16 +78,6 @@ export class WrapperMethod {
         return retConvertor.nativeType()
     }
 
-    generateAPIParameters(): string[] {
-        const args = this.argConvertors.map(it => {
-            let isPointer = it.isPointerType()
-            return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
-        })
-        const receiver = this.generateReceiver()
-        if (receiver) return [`${receiver.argType} ${receiver.argName}`, ...args]
-        return args
-    }
-
     generateReceiver(): {argName: string, argType: string} | undefined {
         if (!this.hasReceiver()) return undefined
         return {

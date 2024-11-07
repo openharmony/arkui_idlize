@@ -18,31 +18,16 @@ import * as idl from "../../idl"
 import { IDLEntry, IDLType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { Language } from "../../Language"
-import { camelCaseToUpperSnakeCase } from "../../util"
+import { camelCaseToUpperSnakeCase, throwException } from "../../util"
 import { RuntimeType } from "../ArgConvertors"
 // import { ArkPrimitiveType } from "../DeclarationTable"
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isImport, isStringEnum } from "./common"
+import { generateCallbackAPIArguments } from "./IdlArgConvertors"
 import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
-
-export function generateCallbackAPIArguments(library: LibraryInterface, callback: idl.IDLCallback): string[] {
-    const args: string[] = [`const ${PrimitiveType.Int32.getText()} resourceId`]
-    args.push(...callback.parameters.map(it => {
-        const target = library.toDeclaration(it.type!)
-        const type = library.typeConvertor(it.name, it.type!, it.isOptional)
-        const constPrefix = !idl.isEnum(target) ? "const " : ""
-        return `${constPrefix}${type.nativeType(false)} ${type.param}`
-    }))
-    if (!idl.isVoidType(callback.returnType)) {
-        const type = library.typeConvertor(`continuation`, 
-            library.createContinuationCallbackReference(callback.returnType)!, false)
-        args.push(`const ${type.nativeType(false)} ${type.param}`)
-    }
-    return args
-}
 
 export class StructPrinter {
     constructor(private library: IdlPeerLibrary) {}
@@ -88,13 +73,19 @@ export class StructPrinter {
         seenNames.clear()
         const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
         for (const target of this.library.orderedDependencies) {
-            let nameAssigned = this.library.computeTargetName(target, false)
-            if (nameAssigned === PrimitiveType.Tag.getText())
+            if (target === idl.IDLVoidType) {
+                continue
+            }
+            const targetType  = idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name)
+            let nameAssigned = this.library.getNodeName(target)
+            if (nameAssigned === 'Tag')
                 continue
             if (!nameAssigned) {
                 throw new Error(`No assigned name for an ${idl.IDLKind[target.kind!]}`)
             }
-            if (seenNames.has(nameAssigned)) continue
+            if (seenNames.has(nameAssigned)) {
+                continue
+            }
             seenNames.add(nameAssigned)
             let isPointer = this.isPointerDeclaration(target)
             let isAccessor = (idl.isClass(target) || idl.isInterface(target)) && isMaterialized(target)
@@ -112,7 +103,7 @@ export class StructPrinter {
                 }
                 enumsDeclarations.popIndent()
                 enumsDeclarations.print(`} ${nameAssigned};`)
-                this.writeRuntimeType(target, nameAssigned, false, writeToString)
+                this.writeRuntimeType(target, targetType, false, writeToString)
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.printOptionalIfNeeded(undefined, enumsDeclarations, writeToString, target, seenNames)
             } else if (!noBasicDecl && !this.ignoreTarget(target)) {
@@ -123,7 +114,7 @@ export class StructPrinter {
                     concreteDeclarations.print("union {")
                     concreteDeclarations.pushIndent()
                     target.types.forEach((it, index) =>
-                        concreteDeclarations.print(`${this.library.getTypeName(it, false)} value${index};`))
+                        concreteDeclarations.print(`${this.library.getTypeName(it)} value${index};`))
                     concreteDeclarations.popIndent()
                     concreteDeclarations.print("};")
                 } else if (idl.isClass(target) || idl.isInterface(target) || idl.isAnonymousInterface(target) || idl.isTupleInterface(target)) {
@@ -134,7 +125,7 @@ export class StructPrinter {
                     properties.forEach(it => {
                         // TODO Change to
                         // concreteDeclarations.print(`${this.library.computeTargetName(it.type, it.isOptional)} ${concreteDeclarations.escapeKeyword(it.name)};`)
-                        concreteDeclarations.print(`${this.library.getTypeName(it.type, it.isOptional)} ${concreteDeclarations.escapeKeyword(it.name)};`)
+                        concreteDeclarations.print(`${this.library.getTypeName(idl.maybeOptional(it.type, it.isOptional))} ${concreteDeclarations.escapeKeyword(it.name)};`)
                     })
                 } else if (idl.isContainerType(target)) {
                     let fieldNames: string[] = []
@@ -157,7 +148,7 @@ export class StructPrinter {
                     concreteDeclarations.print(`void (*call)(${args.join(', ')});`)
                 }
                 this.printStructsCTail(nameAssigned, concreteDeclarations)
-                this.writeRuntimeType(target, nameAssigned, false, writeToString)
+                this.writeRuntimeType(target, targetType, false, writeToString)
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             } else if (isAccessor) {
@@ -166,7 +157,7 @@ export class StructPrinter {
             } else {
                 if (!noBasicDecl && !idl.isPrimitiveType(target))
                     this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
-                this.writeRuntimeType(target, nameAssigned, false, writeToString)
+                this.writeRuntimeType(target, targetType, false, writeToString)
                 this.printOptionalIfNeeded(undefined, concreteDeclarations, writeToString, target, seenNames)
             }
         }
@@ -187,9 +178,13 @@ export class StructPrinter {
         seenNames: Set<String>,
     ) {
         const isPointer = this.isPointerDeclaration(target)
-        const nameAssigned = this.library.computeTargetName(target, false)
-        const nameOptional = this.library.computeTargetName(target, true)
-        if (seenNames.has(nameOptional)) return
+        const nameAssigned = this.library.getNodeName(target)
+        const nameOptional = idl.isType(target)
+            ? this.library.getTypeName(idl.createOptionalType(target))
+            : PrimitiveType.OptionalPrefix + cleanPrefix(this.library.getEntryName(target as idl.IDLEntry), PrimitiveType.Prefix)
+        if (seenNames.has(nameOptional)) {
+            return
+        }
         seenNames.add(nameOptional)
         if (nameAssigned !== "Optional" && nameAssigned !== "RelativeIndexable") {
             forwardDeclarations?.print(`typedef struct ${nameOptional} ${nameOptional};`)
@@ -198,25 +193,25 @@ export class StructPrinter {
             concreteDeclarations.print(`${nameAssigned} value;`)
             this.printStructsCTail(nameOptional, concreteDeclarations)
             this.writeOptional(nameOptional, writeToString, isPointer)
-            this.writeRuntimeType(target, nameOptional, true, writeToString)
+            this.writeRuntimeType(target, idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name), true, writeToString)
         }
     }
 
-    private writeRuntimeType(target: idl.IDLNode, targetTypeName: string, isOptional: boolean, writer: LanguageWriter) {
-        const resultType = idl.toIDLType(PrimitiveType.RuntimeType.getText())
-        const op = this.writeRuntimeTypeOp(target, targetTypeName, resultType, isOptional, writer)
+    private writeRuntimeType(target: idl.IDLNode, targetType: IDLType, isOptional: boolean, writer: LanguageWriter) {
+        const resultType = idl.toIDLType("RuntimeType")
+        const op = this.writeRuntimeTypeOp(target, targetType, resultType, isOptional, writer)
         if (op) {
             writer.print("template <>")
             writer.writeMethodImplementation(
                 new Method("runtimeType",
-                    new NamedMethodSignature(resultType, [idl.toIDLType(`const ${targetTypeName}&`)], ["value"]),
+                    new NamedMethodSignature(resultType, [idl.maybeOptional(targetType, isOptional)], ["value"]),
                     [MethodModifier.INLINE]),
                 op)
         }
     }
 
     private writeRuntimeTypeOp(
-        target: idl.IDLNode, targetTypeName: string, resultType: IDLType, isOptional: boolean, writer: LanguageWriter
+        target: idl.IDLNode, targetType: IDLType, resultType: IDLType, isOptional: boolean, writer: LanguageWriter
     ) : ((writer: LanguageWriter) => void) | undefined
     {
         let result: LanguageExpression
@@ -234,7 +229,7 @@ export class StructPrinter {
                 for (let i = 0; i < target.types.length; i++) {
                     writer.print(`case ${i}: return runtimeType(value.value${i});`)
                 }
-                writer.print(`default: throw "Bad selector in ${targetTypeName}: " + std::to_string(value.selector);`)
+                writer.print(`default: throw "Bad selector in ${writer.stringifyType(targetType)}: " + std::to_string(value.selector);`)
                 writer.popIndent()
                 writer.print("}")
             }
@@ -304,7 +299,7 @@ export class StructPrinter {
     private generateArrayWriteToString(name: string, target: idl.IDLContainerType, printer: LanguageWriter) {
         let convertor = this.library.typeConvertor("param", target.elementType[0])
         let isPointerField = convertor.isPointerType()
-        let elementNativeType = convertor.nativeType(false)
+        let elementNativeType = this.library.getTypeName(convertor.nativeType())
         let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
 
         printer.print(
@@ -334,8 +329,8 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         const valueConvertor = this.library.typeConvertor("_", valueType)
         let isPointerKeyField = keyConvertor.isPointerType()
         let isPointerValueField = valueConvertor.isPointerType()
-        let keyNativeType = keyConvertor.nativeType(false)
-        let valueNativeType = valueConvertor.nativeType(false)
+        let keyNativeType = this.library.getTypeName(keyConvertor.nativeType())
+        let valueNativeType = this.library.getTypeName(valueConvertor.nativeType())
         let keyConstCast = isPointerKeyField ? `(const ${keyNativeType}*)` : ``
         let valueConstCast = isPointerValueField ? `(const ${valueNativeType}*)` : ``
 
@@ -406,7 +401,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                 printer.print(`result->append(", ");`);
                 target.types.forEach((type, index) => {
                     const isPointerField = this.isPointerDeclaration(this.library.toDeclaration(type))
-                    printer.print(`// ${this.library.getTypeName(type, false)}`)
+                    printer.print(`// ${this.library.getTypeName(type)}`)
                     printer.print(`if (value${access}selector == ${index}) {`)
                     printer.pushIndent()
                     printer.print(`result->append(".value${index}=");`);
@@ -471,7 +466,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
 
 export function collectProperties(decl: idl.IDLInterface, library: IdlPeerLibrary): idl.IDLProperty[] {
     const superType = idl.getSuperType(decl)
-    const superDecl = superType ? library.resolveTypeReference(superType as idl.IDLReferenceType) : undefined
+    const superDecl = superType ? library.resolveTypeReference(/* FIX */ superType as idl.IDLReferenceType) : undefined
     return [
         ...(superDecl ? collectProperties(superDecl as idl.IDLInterface, library) : []),
         ...decl.properties,

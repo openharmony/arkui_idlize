@@ -315,9 +315,15 @@ if (options.dts2peer) {
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
             peerFile: file
-        }).visitWholeFile()
+        }, 'sys').visitWholeFile()
     })
-    scanPredefinedDirectory(PREDEFINED_PATH, "src").forEach(file => idlLibrary.files.push(file))
+    scanPredefinedDirectory(PREDEFINED_PATH, "src").forEach(file => {
+        IdlPredefinedGeneratorVisitor.create({
+            sourceFile: file.originalFilename,
+            peerLibrary: idlLibrary,
+            peerFile: file
+        }, 'src').visitWholeFile()
+    })
 
     // First convert DTS to IDL
     generate(

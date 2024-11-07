@@ -34,7 +34,7 @@ import { IdlPeerFile } from "./IdlPeerFile"
 import { IdlPeerLibrary } from "./IdlPeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
-import { convertDeclaration } from "../LanguageWriters/typeConvertor";
+import { convertDeclaration } from "../LanguageWriters/nameConvertor";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
 import {
     isSyntheticDeclaration,
@@ -85,6 +85,7 @@ export class IdlComponentDeclaration {
 }
 
 const PREDEFINED_PACKAGE = 'org.openharmony.idlize.predefined'
+const PREDEFINED_PACKAGE_TYPES = `${PREDEFINED_PACKAGE}.types`
 
 export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
     private readonly sourceFile: string
@@ -124,38 +125,60 @@ export class IdlPredefinedGeneratorVisitor implements GenericVisitor<void> {
     readonly peerLibrary: IdlPeerLibrary
     readonly peerFile: IdlPeerFile
 
-    constructor(options: IdlPeerGeneratorVisitorOptions) {
+    private packageName?: string
+
+    private constructor(options: IdlPeerGeneratorVisitorOptions, private mode: 'sys' | 'src') {
         this.peerLibrary = options.peerLibrary
         this.peerFile = options.peerFile
+        const packageDeclarations = this.peerFile.entries.filter(entry => idl.isPackage(entry))
+        if (packageDeclarations.length === 1) {
+            const [ pkg ] = packageDeclarations
+            let pkgName = pkg.name ?? ''
+            if (pkgName.startsWith('"')) {
+                pkgName = pkgName.substring(1, pkgName.length - 1)
+            }
+            this.packageName = pkgName   
+        }
     }
 
-    static create(options: IdlPeerGeneratorVisitorOptions) {
-        return new IdlPredefinedGeneratorVisitor(options)
+    static create(options: IdlPeerGeneratorVisitorOptions, mode: 'sys' | 'src') {
+        return new IdlPredefinedGeneratorVisitor(options, mode)
     }
 
     visitWholeFile(): void {
-        if (this.isPredefinedPackage(this.peerFile)) {
-            this.peerFile.entries
-                .filter(it => idl.isInterface(it))
-                .forEach(it => this.visitPredefinedDeclaration(it as idl.IDLInterface))
+        if (this.mode === 'sys') {
+            if (this.isPredefinedPackage(this.peerFile)) {
+                this.peerFile.entries
+                    .filter(it => idl.isInterface(it))
+                    .forEach(it => this.visitPredefinedDeclaration(it as idl.IDLInterface))
+            }
+        }
+        if (this.mode === 'src') {
+            if (this.isPredefinedTypesPackage(this.peerFile)) {
+                this.peerFile.entries.forEach(it => {
+                    if (!it.extendedAttributes) {
+                        it.extendedAttributes = []
+                    }
+                    it.extendedAttributes!.push({
+                        name: idl.IDLExtendedAttributes.Namespace,
+                        value: 'predefined'
+                    })
+                })
+            }
+            this.peerLibrary.files.push(this.peerFile)
         }
     }
 
-    visitPredefinedDeclaration(declaration: idl.IDLInterface) {
+    private visitPredefinedDeclaration(declaration: idl.IDLInterface) {
         this.peerLibrary.predefinedDeclarations.push(declaration)
     }
 
-    isPredefinedPackage(file:IdlPeerFile): boolean {
-        const packageDeclarations = file.entries.filter(entry => idl.isPackage(entry))
-        if (packageDeclarations.length !== 1) {
-            return false
-        }
-        const [ pkg ] = packageDeclarations
-        let pkgName = pkg.name ?? ''
-        if (pkgName.startsWith('"')) {
-            pkgName = pkgName.substring(1, pkgName.length - 1)
-        }
-        return pkgName === PREDEFINED_PACKAGE
+    private isPredefinedPackage(file:IdlPeerFile): boolean {
+        return this.packageName === PREDEFINED_PACKAGE
+    }
+
+    private isPredefinedTypesPackage(file:IdlPeerFile): boolean {
+        return this.packageName === PREDEFINED_PACKAGE_TYPES
     }
 
 }
@@ -327,13 +350,13 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
             idl.IDLKind.Interface,
             [idl.IDLTopType],
         )
-        const superClassType = this.library.addSyntheticInterface(superClass)
+        const [superClassType] = this.library.factory.registerInterface(superClass)
         const clazz = idl.createInterface(
             alias,
             idl.IDLKind.Interface,
             [superclassName ? superClassType : idl.IDLTopType],
         )
-        const clazzType = this.library.addSyntheticInterface(clazz)
+        const [clazzType] = this.library.factory.registerInterface(clazz)
         this.onNewSyntheticTypeAlias(alias, clazzType)
     }
 
@@ -499,13 +522,13 @@ class CJTypeDependenciesCollector extends TypeDependenciesCollector {
             idl.IDLKind.Interface,
             [idl.IDLTopType],
         )
-        const superClassType = this.library.addSyntheticInterface(superClass)
+        const [superClassType] = this.library.factory.registerInterface(superClass)
         const clazz = idl.createInterface(
             alias,
             idl.IDLKind.Interface,
             [superclassName ? superClassType : idl.IDLTopType],
         )
-        const clazzType = this.library.addSyntheticInterface(clazz)
+        const [clazzType] = this.library.factory.registerInterface(clazz)
         this.onNewSyntheticTypeAlias(alias, clazzType)
     }
 

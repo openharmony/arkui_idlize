@@ -15,8 +15,30 @@
 
 import * as idl from '../../idl'
 
-export interface IdlTypeNameConvertor {
-    convert(type: idl.IDLType | idl.IDLCallback): string
+export interface IdlNameConvertor {
+    /** @deprecated
+     * Use `IdlNameConvertor.convert`
+     */
+    convertType(type: idl.IDLType): string
+    /** @deprecated
+     * Use `IdlNameConvertor.convert`
+     */
+    convertEntry(entry: idl.IDLEntry): string
+    convert(node: idl.IDLNode): string
+}
+
+export abstract class IdlNameConvertorBase implements IdlNameConvertor {
+    convert(node: idl.IDLNode): string {
+        if (idl.isType(node)) {
+            return this.convertType(node)
+        }
+        if (idl.isEntry(node)) {
+            return this.convertEntry(node)
+        }
+        throw new Error("unreachable: node is type or entry")
+    }
+    abstract convertType(type: idl.IDLType): string
+    abstract convertEntry(entry: idl.IDLEntry): string
 }
 
 export interface TypeConvertor<T> {

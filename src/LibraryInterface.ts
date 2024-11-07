@@ -6,22 +6,31 @@ import { ReferenceResolver } from "./peer-generation/ReferenceResolver";
 export interface LibraryInterface extends ReferenceResolver {
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam?: boolean): ArgConvertor
     declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor
-    getTypeName(type: idl.IDLType | idl.IDLInterface, optional?: boolean): string
+    /** @deprecated
+     * Should be removed ASAP
+     * Do not use this function if possible, instead use 
+     * `LanguageWriter.stringifyType()`
+     *   or `IdlNameConvertor.convert`
+     */
+    getTypeName(type: idl.IDLType): string
+    /** @deprecated
+     * Should be removed ASAP
+     * Do not use this function if possible, instead use 
+     * `IdlNameConvertor.convert`
+     */
+    getEntryName(entry: idl.IDLEntry): string
+     /** @deprecated
+     * Should be removed ASAP
+     * Do not use this function if possible, instead use 
+     * `IdlNameConvertor.convert`
+     */
+    getNodeName(node: idl.IDLNode): string
+    getInteropName(node: idl.IDLNode): string
     mapType(type: idl.IDLType | idl.IDLCallback): string
-    computeTargetName(target: idl.IDLEntry, optional: boolean, idlPrefix?: string): string
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType
     getCurrentContext(): string | undefined
     /**
      * todo: is it really needed?
      */
     libraryPrefix: string
-
-    /**
-     * @deprecated
-     */
-    makeCArrayName(elementType: idl.IDLType): string
-    /** 
-     * @deprecated 
-     */
-    makeCMapName(keyType: idl.IDLType, valueType: idl.IDLType): string
 }

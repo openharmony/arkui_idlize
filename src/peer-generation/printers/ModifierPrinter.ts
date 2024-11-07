@@ -27,14 +27,15 @@ import {
 } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { MaterializedClass, MaterializedMethod } from "../Materialized";
-import { groupBy } from "../../util";
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
+import { groupBy, throwException } from "../../util";
+import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { Language } from "../../Language";
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
+import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from "../../idl";
 
 export class ModifierVisitor {
     dummy = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
@@ -81,20 +82,24 @@ export class ModifierVisitor {
 
     private printBodyImplementation(printer: LanguageWriter, method: IdlPeerMethod,
         clazz: IdlPeerClass | undefined = undefined) {
-        const apiParameters = method.generateAPIParameters()
+        const apiParameters = method.generateAPIParameters(
+            createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
+        )
         if (apiParameters.at(0)?.includes(PrimitiveType.NativePointer.getText())) {
             this.real.print(`auto frameNode = reinterpret_cast<FrameNode *>(node);`)
             this.real.print(`CHECK_NULL_VOID(frameNode);`)
-            if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
-                .includes(PrimitiveType.String.getText())) {
+            if (method.argConvertors.length === 1 
+                && method.argConvertors.at(0)?.nativeType() === IDLStringType
+            ) {
                 this.real.print(`CHECK_NULL_VOID(${
                     method.argConvertors.at(0)?.param
                 });`)
                 this.real.print(`auto convValue = Converter::Convert<std::string>(*${
                     method.argConvertors.at(0)?.param
                 });`)
-            } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
-                .includes(PrimitiveType.OptionalPrefix) && method.argConvertors.at(0)?.isPointerType()) {
+            } else if (method.argConvertors.length === 1 
+                && isOptionalType(method.argConvertors[0].nativeType())
+                && method.argConvertors.at(0)?.isPointerType()) {
                 this.real.print(`//auto convValue = ${method.argConvertors.at(0)?.param} ? ` +
                     `Converter::OptConvert<type>(*${method.argConvertors.at(0)?.param}) : std::nullopt;`)
             } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.isPointerType()) {
@@ -104,13 +109,13 @@ export class ModifierVisitor {
                 this.real.print(`//auto convValue = Converter::OptConvert<type_name>(*${
                     method.argConvertors.at(0)?.param
                 });`)
-            } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
-                .includes(PrimitiveType.Boolean.getText())) {
+            } else if (method.argConvertors.length === 1 && 
+                method.argConvertors.at(0)?.nativeType() === IDLBooleanType) {
                 this.real.print(`auto convValue = Converter::Convert<bool>(${
                     method.argConvertors.at(0)?.param
                 });`)
-            } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.nativeType(false)
-                .includes(PrimitiveType.Function.getText())) {
+            } else if (method.argConvertors.length === 1 
+                && method.argConvertors.at(0)?.nativeType() === IDLFunctionType) {
                 this.real.print(`//auto convValue = [frameNode](input values) { code }`)
             } else {
                 this.real.print(`//auto convValue = Converter::Convert<type>(${
@@ -125,7 +130,9 @@ export class ModifierVisitor {
     }
 
     printMethodProlog(printer: LanguageWriter, method: IdlPeerMethod) {
-        const apiParameters = method.generateAPIParameters()
+        const apiParameters = method.generateAPIParameters(
+            createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
+        )
         printMethodDeclaration(printer.printer, method.retType, method.implName, apiParameters)
         printer.print("{")
         printer.pushIndent()

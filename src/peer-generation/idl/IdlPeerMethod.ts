@@ -20,6 +20,7 @@ import { Method, MethodModifier } from "../LanguageWriters"
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { IDLCallback, IDLEntry, IDLType } from "../../idl"
 import { mangleMethodName } from "../LanguageWriters/LanguageWriter"
+import { IdlNameConvertor } from "../LanguageWriters/nameConvertor"
 
 export class IdlPeerMethod {
     private overloadIndex?: number
@@ -80,10 +81,10 @@ export class IdlPeerMethod {
         return retConvertor.nativeType()
     }
 
-    generateAPIParameters(): string[] {
+    generateAPIParameters(converter:IdlNameConvertor): string[] {
         const args = this.argConvertors.map(it => {
             let isPointer = it.isPointerType()
-            return `${isPointer ? "const ": ""}${it.nativeType(false)}${isPointer ? "*": ""} ${it.param}`
+            return `${isPointer ? "const ": ""}${converter.convertType(it.nativeType())}${isPointer ? "*": ""} ${it.param}`
         })
         const receiver = this.generateReceiver()
         if (receiver) return [`${receiver.argType} ${receiver.argName}`, ...args]

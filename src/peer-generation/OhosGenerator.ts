@@ -18,7 +18,7 @@ import * as path from 'path'
 import { IndentedPrinter } from "../IndentedPrinter"
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
-import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isOptionalType, isPrimitiveType, isReferenceType, isUnionType } from '../idl'
+import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType } from '../idl'
 import { makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { capitalize } from '../util'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
@@ -26,9 +26,10 @@ import { PrimitiveType } from './ArkPrimitiveType'
 import { Language } from '../Language'
 import { ArgConvertor } from './ArgConvertors'
 import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter'
-import { generateCallbackAPIArguments, StructPrinter } from './idl/StructPrinter'
 import { qualifiedName } from './idl/common'
 import { printCallbacksKinds } from './printers/CallbacksPrinter'
+import { StructPrinter } from './idl/StructPrinter'
+import { generateCallbackAPIArguments } from './idl/IdlArgConvertors'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -65,7 +66,9 @@ class OHOSVisitor {
     private static knownBasicTypes = new Set(['ArrayBuffer', 'DataView'])
 
     mapType(type: IDLType | IDLEnum): string {
-        this.library.requestType(type, true)
+        if (isType(type)) {
+            this.library.requestType(type, true)
+        }
 
         const typeName = isEnum(type) 
             ? type.name 
@@ -78,7 +81,7 @@ class OHOSVisitor {
         if (isReferenceType(type) || isEnum(type)) {
             return `${PrimitiveType.Prefix}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
         }
-        return this.library.computeTargetName(type, isOptionalType(type))
+        return this.hWriter.stringifyType(type)
     }
 
     makeSignature(returnType: IDLType, parameters: IDLParameter[]): MethodSignature {
@@ -256,7 +259,7 @@ class OHOSVisitor {
             entry.parameters.forEach(it => this.requestType(it.type!))
             this.requestType(entry.returnType)
         } else if (isEnum(entry)) {
-            this.requestType(entry)
+            entry.elements.forEach(it => this.requestType(it.type))
         }
         entry.scope?.forEach(it => this.requestTypes(it))
     }
@@ -270,8 +273,8 @@ class OHOSVisitor {
         const className = `${this.libraryName}NativeModule`
         this.callbacks.forEach(callback => {
             if (this.library.language === Language.TS) {
-                const params = callback.parameters.map(it => `${it.name}:${this.nativeWriter.convert(it.type!)}`).join(', ')
-                const returnTypeName = this.nativeWriter.convert(callback.returnType)
+                const params = callback.parameters.map(it => `${it.name}:${this.nativeWriter.stringifyType(it.type!)}`).join(', ')
+                const returnTypeName = this.nativeWriter.stringifyType(callback.returnType)
                 this.nativeWriter.print(`export type ${callback.name} = (${params}) => ${returnTypeName}`)
             }
         })
@@ -594,7 +597,7 @@ function generateCParameters(method: IDLMethod, argConvertors: ArgConvertor[], w
                 ptrCreated = true
             }
         } else {
-            args.push(`${writer.convert(method.parameters[i].type!)} ${writer.escapeKeyword(method.parameters[i].name)}`)
+            args.push(`${writer.stringifyType(method.parameters[i].type!)} ${writer.escapeKeyword(method.parameters[i].name)}`)
         }
     }
     return args.join(", ")

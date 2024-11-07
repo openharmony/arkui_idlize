@@ -14,7 +14,7 @@
  */
 
 import * as webidl2 from "webidl2"
-import { indentedBy, isDefined, stringOrNone, throwException } from "./util";
+import { indentedBy, isDefined, stringOrNone } from "./util";
 
 export enum IDLKind {
     Interface,
@@ -412,7 +412,7 @@ function createPrimitiveType(name: string): IDLPrimitiveType {
     }
 }
 
-function createOptionalType(element:IDLType): IDLOptionalType {
+export function createOptionalType(element:IDLType): IDLOptionalType {
     if (isOptionalType(element)) {
         return element
     }
@@ -470,6 +470,7 @@ export function createModuleType(name:string, extendedAttributes?: IDLExtendedAt
         _idlNamedNodeBrand: innerIdlSymbol,
     }
 }
+
 export function createReferenceType(name: string, typeArguments?: (string | undefined)[]): IDLReferenceType {
     if (typeArguments) {
         return {
@@ -589,9 +590,10 @@ export function createEnumMember(
     }
 }
 
+export type IDLInterfaceKind = IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface | IDLKind.TupleInterface
 export function createInterface(
     name: string,
-    kind: IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface | IDLKind.TupleInterface,
+    kind: IDLInterfaceKind,
     inheritance: IDLType[] = [],
     constructors: IDLConstructor[] = [],
     constants: IDLConstant[] = [],

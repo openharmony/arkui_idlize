@@ -1,5 +1,5 @@
 import * as idl from "../../../idl"
-import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../../LanguageWriters/typeConvertor"
+import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../../LanguageWriters/nameConvertor"
 import { ImportFeature } from "../../ImportsCollector"
 
 class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {

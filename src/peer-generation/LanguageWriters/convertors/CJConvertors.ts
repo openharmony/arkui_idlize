@@ -14,9 +14,10 @@
  */
 
 import * as idl from '../../../idl'
+import { throwException } from '../../../util'
 import { ARK_CUSTOM_OBJECT, cjCustomTypeMapping, convertCJOptional } from '../../printers/lang/Cangjie'
 import { ReferenceResolver } from '../../ReferenceResolver'
-import { convertType, IdlTypeNameConvertor, TypeConvertor } from "../typeConvertor"
+import { convertType, IdlNameConvertor, IdlNameConvertorBase, TypeConvertor } from "../nameConvertor"
 
 class CJTypeAlias {
     // CJ type itself
@@ -51,15 +52,15 @@ class CJTypeAlias {
     }
 }
 
-export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeConvertor<CJTypeAlias> {
+export class CJIDLNodeToStringConvertor extends IdlNameConvertorBase implements TypeConvertor<CJTypeAlias> {
 
     constructor(
         protected resolver: ReferenceResolver
-    ) {}
+    ) { super() }
 
      /**** IdlTypeNameConvertor *******************************************/
 
-    convert(type: idl.IDLType | idl.IDLCallback): string {
+    convertType(type: idl.IDLType | idl.IDLCallback): string {
         const typeAlias = idl.isCallback(type) 
             ? this.convertCallback(type) 
             : convertType(this, type)
@@ -67,9 +68,13 @@ export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCon
         return this.mapTypeName(rawType)
     }
 
+    convertEntry(entry: idl.IDLEntry): string {
+        return entry.name ?? throwException("unnamed entry!")
+    }
+
     /***** TypeConvertor<CJTypeAlias> **********************************/
     convertOptional(type: idl.IDLOptionalType): CJTypeAlias {
-        return CJTypeAlias.fromTypeName(convertCJOptional(this.convert(type.type)), true)
+        return CJTypeAlias.fromTypeName(convertCJOptional(this.convertType(type.type)), true)
     }
     convertUnion(type: idl.IDLUnionType): CJTypeAlias {
         const aliases = type.types.map(it => convertType(this, it))
@@ -204,7 +209,7 @@ export class CJIDLTypeToStringConvertor implements IdlTypeNameConvertor, TypeCon
     /**********************************************************************/
 }
 
-export class CJIDLTypeToForeignStringConvertor extends CJIDLTypeToStringConvertor {
+export class CJIDLTypeToForeignStringConvertor extends CJIDLNodeToStringConvertor {
     convert(type: idl.IDLType | idl.IDLCallback): string {
         if (idl.isPrimitiveType(type)) {
             switch (type) {
@@ -216,10 +221,10 @@ export class CJIDLTypeToForeignStringConvertor extends CJIDLTypeToStringConverto
                 return `CPointer<${this.convert(type.elementType[0])}>`
             }
         }
-        if (idl.isReferenceType(type) && super.convert(type).startsWith('Array')) {
+        if (idl.isReferenceType(type) && super.convertType(type).startsWith('Array')) {
             // Fix, actual mapping has to be due to IDLType
             return `CPointer<UInt8>`
         }
-        return super.convert(type)
+        return super.convertType(type)
     }
 }

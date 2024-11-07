@@ -302,7 +302,7 @@ class IdlCEventsVisitor extends CEventsVisitorBase {
     protected override printEventMethodDeclaration(event: IdlCallbackInfo) {
         const args = ["Ark_Int32 nodeId",
             ...event.args.map(it =>
-                `const ${this.library.typeConvertor(it.name, it.type, it.nullable).nativeType(false)} ${it.name}`)]
+                `const ${this.impl.stringifyType(idl.maybeOptional(this.library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
         printMethodDeclaration(this.impl.printer, "void", `${event.methodName}Impl`, args)
     }
 
@@ -323,8 +323,7 @@ abstract class TSEventsVisitorBase {
     }
 
     protected abstract typeConvertor(param: string, type: ts.TypeNode | idl.IDLType, isOptional: boolean): ArgConvertor
-
-    protected abstract mapType(type: ts.TypeNode | idl.IDLType | idl.IDLCallback): idl.IDLType
+    protected abstract mapType(type: ts.TypeNode | idl.IDLType | idl.IDLCallback): idl.IDLType | idl.IDLCallback
 
     private printImports() {
         const imports = new ImportsCollector()
@@ -368,9 +367,13 @@ interface PeerEvent {
                     false,
                 )
                 info.args.forEach(arg => {
+                    const mapped = this.mapType(arg.type)
+                    const ref = idl.isType(mapped)
+                        ? mapped
+                        : idl.createReferenceType(mapped.name)
                     writer.writeFieldDeclaration(
                         arg.name,
-                        idl.maybeOptional(this.mapType(arg.type), arg.nullable),
+                        idl.maybeOptional(ref, arg.nullable),
                         [FieldModifier.READONLY],
                         arg.nullable,
                     )
@@ -472,8 +475,12 @@ interface PeerEvent {
     private printProperties(infos: IdlCallbackInfo[]) {
         const contentOp = (writer: LanguageWriter) => {
             for (const info of infos) {
+                const mapped = this.mapType( info.originTarget)
+                const ref = idl.isType(mapped)
+                    ? mapped
+                    : idl.createReferenceType(mapped.name)
                 writer.writeFieldDeclaration(callbackIdByInfo(info),
-                    this.mapType(info.originTarget),
+                    ref,
                     undefined,
                     true
                 )
@@ -560,6 +567,7 @@ export function printEventsCArkoalaImpl(library: IdlPeerLibrary): string {
     const visitor = new IdlCEventsVisitor(library, false)
     visitor.print()
     return makeCEventsArkoalaImpl(
+        getReferenceResolver(library),
         visitor.impl,
         visitor.receiversList,
     )
@@ -572,5 +580,6 @@ export function printEventsCLibaceImpl(library: IdlPeerLibrary, options: { names
         visitor.impl,
         visitor.receiversList,
         options.namespace,
+        getReferenceResolver(library)
     )
 }

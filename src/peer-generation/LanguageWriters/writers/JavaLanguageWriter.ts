@@ -22,6 +22,7 @@ import {
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
+    MakeCastOptions,
     Method,
     MethodModifier,
     MethodSignature,
@@ -37,8 +38,8 @@ import * as idl from '../../../idl'
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlTypeNameConvertor } from "../typeConvertor"
-import { JavaIDLTypeToStringConvertor } from "../convertors/JavaConvertors"
+import { convertType, IdlNameConvertor, TypeConvertor } from "../nameConvertor"
+import { JavaIDLNodeToStringConvertor } from "../convertors/JavaConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -89,7 +90,7 @@ export class JavaAssignStatement extends AssignStatement {
      }
      write(writer: LanguageWriter): void{
         if (this.isDeclared) {
-            const typeSpec = this.type ? writer.convert(this.type) : "var"
+            const typeSpec = this.type ? writer.stringifyType(this.type) : "var"
             writer.print(`${typeSpec} ${this.variableName} = ${this.expression.asString()};`)
         } else {
             writer.print(`${this.variableName} = ${this.expression.asString()};`)
@@ -116,14 +117,14 @@ class JavaMapForEachStatement implements LanguageStatement {
 ////////////////////////////////////////////////////////////////
 
 export class JavaLanguageWriter extends CLikeLanguageWriter {
-    protected typeConvertor: IdlTypeNameConvertor
+    protected typeConvertor: IdlNameConvertor
     constructor(printer: IndentedPrinter, resolver:ReferenceResolver) {
         super(printer, resolver, Language.JAVA)
-        this.typeConvertor = new JavaIDLTypeToStringConvertor(this.resolver)
+        this.typeConvertor = new JavaIDLNodeToStringConvertor(this.resolver)
     }
 
-    convert(type: idl.IDLType | idl.IDLCallback): string {
-        return this.typeConvertor.convert(type)
+    stringifyType(type: idl.IDLType): string {
+        return this.typeConvertor.convertType(type)
     }
 
     fork(): LanguageWriter {
@@ -157,13 +158,13 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[] | undefined, optional: boolean, initExpr?: LanguageExpression): void {
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} ${(this.convert(type))} ${name}${initExpr ? ` = ${initExpr.asString()}` : ""};`)
+        this.printer.print(`${prefix} ${(this.stringifyType(type))} ${name}${initExpr ? ` = ${initExpr.asString()}` : ""};`)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
-        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${this.convert(it)} ${signature.argName(index)}`).join(", ")}) {`)
+        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${this.stringifyType(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
             this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")});`)
@@ -196,8 +197,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeMapSize(map: string): LanguageExpression {
         return this.makeString(`${map}.size()`)
     }
-    makeCast(value: LanguageExpression, type: idl.IDLType, unsafe = false): LanguageExpression {
-        return new JavaCastExpression(value, this.convert(type), unsafe)
+    makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
+        return new JavaCastExpression(value, this.stringifyType(type), options?.unsafe ?? false)
     }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new CLikeExpressionStatement(expr)
@@ -223,7 +224,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     mapIDLContainerType(type: idl.IDLContainerType): string {
         switch (type.containerKind) {
-            case "sequence": return `${this.convert(type.elementType[0])}[]`
+            case "sequence": return `${this.stringifyType(type.elementType[0])}[]`
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -273,10 +274,10 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression {
+    enumFromOrdinal(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
         throw new Error("Method not implemented.")
     }
-    ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression {
+    ordinalFromEnum(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
         throw new Error("Method not implemented.")
     }
     makeValueFromOption(value: string): LanguageExpression {

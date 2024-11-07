@@ -17,12 +17,12 @@ import { capitalize, dropSuffix, isDefined } from "../../util";
 import { ArgConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
-import { createLanguageWriter, ExpressionStatement, Method, NamedMethodSignature } from "../LanguageWriters";
-import { CUSTOM_API, CustomAPI } from "../CustomAPI"
+import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement, Method, NamedMethodSignature } from "../LanguageWriters";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { Language } from "../../Language";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from "../../idl";
+import { getReferenceResolver } from "../ReferenceResolver";
 
 class BridgeCcVisitor {
     readonly generatedApi = createLanguageWriter(Language.CPP, this.library)
@@ -41,7 +41,8 @@ class BridgeCcVisitor {
 
     // TODO: may be this is another method of ArgConvertor?
     private generateApiArgument(argConvertor: ArgConvertor): string {
-        const prefix = argConvertor.isPointerType() ? `(const ${argConvertor.nativeType(false)}*)&`: "    "
+        const nameConverter = createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
+        const prefix = argConvertor.isPointerType() ? `(const ${nameConverter.convertType(argConvertor.nativeType())}*)&`: "    "
         if (argConvertor.useArray)
             return `${prefix}${argConvertor.param}_value`
         else
@@ -78,7 +79,7 @@ class BridgeCcVisitor {
                 let result = `${it.param}_value`
                 this.generatedApi.writeStatement(it.convertorDeserialize(`${result}_buf`, `thisDeserializer`, (expr) => {
                     return new ExpressionStatement(this.generatedApi.makeString(
-                        `${it.nativeType(false)} ${result} = ${expr.asString()};`
+                        `${this.generatedApi.stringifyType(it.nativeType())} ${result} = ${expr.asString()};`
                     ))
                 }, this.generatedApi))
             }
@@ -101,7 +102,7 @@ class BridgeCcVisitor {
             let name = this.generateApiArgument(it) // it.param + '_value'
             this.generatedApi.print(`_tmp = "", WriteToString(&_tmp, ${name});`)
             varNames.push(`var${BridgeCcVisitor.varCnt}`)
-            let ptrType = `const ${it.nativeType(false)}`
+            let ptrType = `const ${forceAsNamedNode(it.nativeType()).name}`
             this.generatedApi.print(`_logData.append("  ${ptrType} ${varNames[i]}_" + std::to_string(_num) + " = " + _tmp + ";\\n");`)
             BridgeCcVisitor.varCnt += 1
         }
@@ -114,7 +115,8 @@ class BridgeCcVisitor {
                 this.generatedApi.print(`_logData.append(", ");`)
         }
         method.argConvertors.forEach((it, index) => {
-            if (it.nativeType(false) != "Ark_Number"
+            const type = it.nativeType()
+            if ('name' in type && type.name === "Number"
                 && (it.idlType === IDLNumberType || it.idlType === IDLBooleanType)) {
                 this.generatedApi.print(`_logData.append("${varNames[index]}_" + std::to_string(_num));`)
             } else {
@@ -211,6 +213,7 @@ class BridgeCcVisitor {
         this.generatedApi.print(` `)
     }
 
+    /* 
     printCustomApiMethod(c: CustomAPI, m: Method) {
         const sig = m.signature as NamedMethodSignature
         const capitalizedName = capitalize(m.name)
@@ -243,6 +246,7 @@ class BridgeCcVisitor {
         const CTX = c.withContext ? "_CTX" : ""
         this.customApi.print(`KOALA_INTEROP${CTX}_${v}${size}(${capitalizedName}${comma}${args.map(it => forceAsNamedNode(it).name).join(", ")})\n`)
     }
+    */
 
     print(): void {
         for (const file of this.library.files) {
@@ -260,12 +264,14 @@ class BridgeCcVisitor {
             }
         }
 
+        /* 
         this.customApi.print("\n// custom API methods\n")
         for(const customApi of CUSTOM_API) {
             for(const method of customApi.methods) {
                 this.printCustomApiMethod(customApi, method)
             }
         }
+        */
     }
 }
 
