@@ -72,28 +72,6 @@ widthAttributeString: 502ms for 5000000 iteration, 100ms per 1M iterations
 
 let hasTestErrors = false
 
-function checkPerf(count: number) {
-    let start = Date.now()
-    for (let i = 0; i < count; i++) {
-        NativeModule._TestPerfNumber(i)
-    }
-    let passed = Date.now() - start
-    console.log(`NUMBER: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
-
-    start = Date.now()
-    for (let i = 0; i < count; i++) {
-        let data = new byte[5]
-        data[0] = 1
-        data[1] = (i >> 24) as byte
-        data[2] = (i >> 16) as byte
-        data[3] = (i >> 8) as byte
-        data[4] = (i >> 0) as byte
-        NativeModule._TestPerfNumberWithArray(data, data.length)
-    }
-    passed = Date.now() - start
-    console.log(`ARRAY: ${passed}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
-}
-
 export function getNativeLog(): string {
     let ptr = NativeModule._GetGroupedLog(1)
     let length = NativeModule._StringLength(ptr)
@@ -482,11 +460,6 @@ function checkPerf3(count: number) {
 }
 
 function checkButton() {
-    let data = new byte[5]
-    data[0] = 42
-    checkResult("TestPerfNumberWithArray",
-        () => NativeModule._TestPerfNumberWithArray(data, data.length),
-        "TestPerfNumberWithArray(42, 5)")
     let peer = ArkButtonPeer.create(ArkUINodeType.Button)
     checkResult("width", () => peer.widthAttribute("42%"),
         "width({.type=2, .value=42.000000, .unit=3, .resource=0})")
@@ -649,7 +622,6 @@ function checkNodeAPI() {
 }
 
 export function main(): void {
-    checkPerf(5 * 1000 * 1000)
     checkPerf2(5 * 1000 * 1000)
     checkPerf3(5 * 1000 * 1000)
 
