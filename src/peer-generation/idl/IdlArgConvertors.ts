@@ -539,7 +539,7 @@ export class CallbackConvertor extends BaseArgConvertor {
                 idl.createReferenceType(`void(*)(${generateCallbackAPIArguments(this.library, this.decl).join(", ")})`),
                 true
             )
-            return assigneer(writer.makeString(`{.resource=${resourceReadExpr.asString()}, .call=${callReadExpr.asString()}}`))
+            return assigneer(writer.makeString(`{${resourceReadExpr.asString()}, ${callReadExpr.asString()}}`))
         }
         return assigneer(writer.makeString(
             `${deserializerName}.read${this.library.computeTargetName(this.decl, false, "")}()`))

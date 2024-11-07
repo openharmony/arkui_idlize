@@ -12,6 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define _HAS_STD_BYTE 0
+
+#include <algorithm>
 #include <array>
 #include <chrono>
 
@@ -23,6 +26,8 @@
 #include "tree.h"
 #include "logging.h"
 #include "dynamic-loader.h"
+
+#undef max
 
 // For logging we use operations exposed via interop, SetLoggerSymbol() is called
 // when library is loaded.
