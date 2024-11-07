@@ -275,17 +275,17 @@
 |`backgroundImage`| Function | Erokhin Ilya | blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
 |`backgroundBlurStyle`| Function | Skroba Gleb | done |  |
 |`foregroundBlurStyle`| Function | Roman Sedaikin | in progress | |
-|`focusScopeId`| Function | | | |
-|`focusScopePriority`| Function | | | |
+|`focusScopeId`| Function | Berezin Kirill | in progress | |
+|`focusScopePriority`| Function | Berezin Kirill | in progress | |
 |`gesture`| Function | Erokhin Ilya | blocked ArKoala | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
 |`priorityGesture`| Function | Erokhin Ilya | blocked ArKoala | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
 |`parallelGesture`| Function | Erokhin Ilya | blocked ArKoala | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
 |`blur`| Function | Roman Sedaikin | in progress | |
 |`linearGradientBlur`| Function | Lobah Mikhail | in progress | |
 |`systemBarEffect`| Function | Lobah Mikhail | in progress | |
-|`backdropBlur`| Function | Kirill Berezin | in progress | |
+|`backdropBlur`| Function | Berezin Kirill | done | |
 |`sharedTransition`|Function|Skroba Gleb | done |  |
-|`chainMode`| Function | | | |
+|`chainMode`| Function | Berezin Kirill | in progress | |
 |`dragPreviewOptions`| Function | | | |
 |`overlay`| Function | Roman Sedaikin | in progress | |
 |`blendMode`| Function | Lobah Mikhail | in progress | |
