@@ -13,82 +13,28 @@
  * limitations under the License.
  */
 
-import * as ts from "typescript"
-import { heritageDeclarations, identName, isReadonly, isStatic } from "../util"
-import { Field, FieldModifier, Method, MethodModifier, MethodSignature, NamedMethodSignature } from "./LanguageWriters"
-import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
-import { DeclarationTable, DeclarationTarget, FieldRecord } from "./DeclarationTable"
-import { PrimitiveType } from "./ArkPrimitiveType"
-
-import {
-    collectDeclarationDeps,
-    createTypeNodeConvertor,
-    generateMethodModifiers,
-    generateSignature
-} from "./PeerGeneratorVisitor"
-import { SuperElement, extractSuperElement } from "./Materialized"
+import { Field, Method, MethodModifier, MethodSignature, NamedMethodSignature } from "./LanguageWriters"
+import { SuperElement } from "./Materialized"
 import { ImportFeature } from "./ImportsCollector"
-import { TypeNodeNameConvertor } from "./TypeNodeNameConvertor"
-import { DeclarationDependenciesCollector } from "./dependencies_collector";
-import { PeerLibrary } from "./PeerLibrary";
 import { Language } from "../Language";
 import { IdlPeerLibrary } from "./idl/IdlPeerLibrary";
 import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
 import { createReferenceType, IDLThisType, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../idl"
 
-export function isBuilderClass(declaration: ts.InterfaceDeclaration | ts.ClassDeclaration): boolean {
-
-    // Builder classes are classes with methods which have only one parameter and return only itself
-
-    const className = identName(declaration)!
-
-    if (PeerGeneratorConfig.builderClasses.includes(className)) {
-        return true
-    }
-
-    if (isCustomBuilderClass(className)) {
-        return true
-    }
-
-    // TBD: update builder class check condition.
-    // Only SubTabBarStyle, BottomTabBarStyle, DotIndicator, and DigitIndicator classes
-    // are used for now.
-
-    return false
-
-    /*
-    if (PeerGeneratorConfig.isStandardNameIgnored(className)) {
-        return false
-    }
-
-    const methods: (ts.MethodSignature | ts.MethodDeclaration)[] = [
-        ...ts.isClassDeclaration(declaration) ? declaration.members.filter(ts.isMethodDeclaration) : [],
-    ]
-
-    if (methods.length === 0) {
-        return false
-    }
-
-    return methods.every(it => it.type && className == it.type.getText() && it.parameters.length === 1)
-    */
-}
-
-function builderMethod(name: string, type: IDLType, declarationTarget: DeclarationTarget): BuilderMethod {
+function builderMethod(name: string, type: IDLType): BuilderMethod {
     const method = new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))
-    return new BuilderMethod(method, [declarationTarget])
+    return new BuilderMethod(method)
 }
 
 export class BuilderField {
     constructor(
         public field: Field,
-        public declarationTarget: DeclarationTarget,
     ) { }
 }
 
 export class BuilderMethod {
     constructor(
         public method: Method,
-        public declarationTargets: DeclarationTarget[],
     ) { }
 }
 
@@ -109,22 +55,22 @@ export class BuilderClass {
 export const CUSTOM_BUILDER_CLASSES: BuilderClass[] = []
 const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set()
 
-export function initCustomBuilderClasses(library: PeerLibrary | IdlPeerLibrary) {
+export function initCustomBuilderClasses(library: IdlPeerLibrary) {
     CUSTOM_BUILDER_CLASSES.push(
         new BuilderClass("Indicator", ["T"], false, undefined,
             [], // fields
-            [new BuilderMethod(new Method("constructor", new MethodSignature(IDLVoidType, [])), [])],
+            [new BuilderMethod(new Method("constructor", new MethodSignature(IDLVoidType, [])))],
             [
-                ...["left", "top", "right", "bottom"].map(it => builderMethod(it, createReferenceType("Length"), PrimitiveType.Length)),
-                ...["start", "end"].map(it => builderMethod(it, createReferenceType("LengthMetrics"), PrimitiveType.CustomObject)),
-                new BuilderMethod(new Method("dot", new MethodSignature(createReferenceType("DotIndicator"), []), [MethodModifier.STATIC]), [PrimitiveType.CustomObject]),
+                ...["left", "top", "right", "bottom"].map(it => builderMethod(it, createReferenceType("Length"))),
+                ...["start", "end"].map(it => builderMethod(it, createReferenceType("LengthMetrics"))),
+                new BuilderMethod(new Method("dot", new MethodSignature(createReferenceType("DotIndicator"), []), [MethodModifier.STATIC])),
             ],
             [], // imports
         )
     )
 
     CUSTOM_BUILDER_CLASSES.forEach(it => {
-        if (library instanceof IdlPeerLibrary && library.language === Language.ARKTS) {
+        if (library.language === Language.ARKTS) {
             it.importFeatures.push(
                 ...it.methods.flatMap(it => [...it.method.signature.args, it.method.signature.returnType])
                     .map(it => convertTypeToFeature(library, it))
@@ -139,111 +85,6 @@ export function isCustomBuilderClass(name: string) {
     return CUSTOM_BUILDER_CLASSES_SET.has(name)
 }
 
-export function toBuilderClass(declarationTable: DeclarationTable,
-                               name: string,
-                               target: ts.InterfaceDeclaration | ts.ClassDeclaration,
-                               peerLibrary: PeerLibrary,
-                               declDependenciesCollector: DeclarationDependenciesCollector,
-                               needBeGenerated: boolean,
-                               typeNodeConvertor: TypeNodeNameConvertor): BuilderClass {
-    const importFeatures = collectDeclarationDeps(target, declDependenciesCollector, peerLibrary)
-    typeNodeConvertor = createTypeNodeConvertor(peerLibrary,
-        typeNodeConvertor,
-        declDependenciesCollector,
-        importFeatures)
-    const isClass = ts.isClassDeclaration(target)
-    const isInterface = ts.isInterfaceDeclaration(target)
-
-    const superClass = extractSuperElement(target)
-
-    const fields = isClass
-        ? target.members
-            .filter(ts.isPropertyDeclaration)
-            .map(it => toBuilderField(declarationTable, it, typeNodeConvertor))
-        : isInterface
-            ? target.members
-                .filter(ts.isPropertySignature)
-                .map(it => toBuilderField(declarationTable, it, typeNodeConvertor))
-            : []
-
-    const constructors = isClass
-        ? target.members
-            .filter(ts.isConstructorDeclaration)
-            .map(method => toBuilderMethod(declarationTable, method, typeNodeConvertor))
-        : [toBuilderMethod(declarationTable, undefined, typeNodeConvertor)]
-
-    const generics = target.typeParameters?.map(it => it.name.text)
-
-    const methods = getBuilderMethods(declarationTable, target, peerLibrary.declarationTable.typeChecker!, typeNodeConvertor, name)
-    return new BuilderClass(name, generics, isInterface, superClass, fields, constructors, methods, importFeatures, needBeGenerated)
-}
-
-function getBuilderMethods(declarationTable: DeclarationTable,
-                           target: ts.InterfaceDeclaration | ts.ClassDeclaration,
-                           typeChecker: ts.TypeChecker,
-                           typeNodeNameConvertor: TypeNodeNameConvertor,
-                           childName: string): BuilderMethod[] {
-
-    const heritageMethods = target.heritageClauses
-        ?.flatMap(it => heritageDeclarations(typeChecker, it))
-        .flatMap(it => (ts.isClassDeclaration(it) || ts.isInterfaceDeclaration(it))
-            ? getBuilderMethods(declarationTable, it, typeChecker, typeNodeNameConvertor, 'this')
-            : [])
-        ?? []
-
-    const isClass = ts.isClassDeclaration(target)
-    const isInterface = ts.isInterfaceDeclaration(target)
-
-    // Assume that all super type parameters resolved
-    // to the current class name
-    const genericsSubstitution = new Map<string, string>()
-    if (childName) {
-        target.typeParameters?.forEach(it => {
-            genericsSubstitution.set(it.getText(), childName)
-        })
-    }
-
-    const methods = isClass
-        ? target.members
-            .filter(ts.isMethodDeclaration)
-            .map(method => toBuilderMethod(declarationTable, method, typeNodeNameConvertor, genericsSubstitution))
-        : isInterface
-            ? target.members
-                .filter(ts.isMethodSignature)
-                .map(method => toBuilderMethod(declarationTable, method, typeNodeNameConvertor, genericsSubstitution))
-            : []
-
-    return [...heritageMethods, ...methods]
-}
-
-function toBuilderField(declarationTable: DeclarationTable,
-                        property: ts.PropertyDeclaration | ts.PropertySignature,
-                        typeNodeConvertor: TypeNodeNameConvertor): BuilderField {
-    const fieldName = identName(property.name)!
-    const modifiers = isReadonly(property.modifiers) ? [FieldModifier.READONLY] : []
-    const isOptional = property.questionToken !== undefined
-    const declarationTarget = declarationTable.toTarget(property.type!)
-    return new BuilderField(new Field(fieldName, maybeOptional(toIDLType(typeNodeConvertor.convert(property.type!)), isOptional), modifiers), declarationTarget)
-}
-
-function toBuilderMethod(declarationTable: DeclarationTable,
-                         method: ts.ConstructorDeclaration | ts.MethodDeclaration | ts.MethodSignature | undefined,
-                         typeNodeNameConvertor: TypeNodeNameConvertor,
-                         genericsSubstitution?: Map<string, string>): BuilderMethod {
-    const methodName = method === undefined || ts.isConstructorDeclaration(method) ? "constructor" : identName(method.name)!
-
-    if (method === undefined) {
-        return new BuilderMethod(new Method(methodName, new NamedMethodSignature(IDLVoidType)), [])
-    }
-
-    const generics = method.typeParameters?.map(it => it.getText())
-    const signature = generateSignature(method, typeNodeNameConvertor, false, genericsSubstitution)
-    const modifiers = generateMethodModifiers(method)
-    const declarationTargets: DeclarationTarget[] = method.parameters.map(it => declarationTable.toTarget(it.type!))
-
-    return new BuilderMethod(new Method(methodName, signature, modifiers, generics), declarationTargets)
-}
-
 export function methodsGroupOverloads(methods: Method[]): Method[][] {
     const seenNames = new Set<string>()
     const groups: Method[][] = []
@@ -254,48 +95,4 @@ export function methodsGroupOverloads(methods: Method[]): Method[][] {
         groups.push(methods.filter(it => it.name === method.name))
     }
     return groups
-}
-
-export function extractBuilderFields(target: ts.InterfaceDeclaration | ts.ClassDeclaration, table: DeclarationTable): FieldRecord[] {
-
-    if (!isBuilderClass(target)) {
-        return []
-    }
-
-    const isClass = ts.isClassDeclaration(target)
-    const isInterface = ts.isInterfaceDeclaration(target)
-
-    const methods = isClass
-        ? target.members
-            .filter(ts.isMethodDeclaration)
-            .filter(it => !isStatic(it.modifiers))
-        : isInterface
-            ? target.members
-                .filter(ts.isMethodSignature)
-            : []
-
-    let records: FieldRecord[] = []
-
-    methods.forEach(method => {
-        const parameters = Array.from(method.parameters)
-        if (parameters.length === 1) {
-            const param = parameters[0]
-            const type = param.type!
-            const name = `_${identName(method.name)}`
-            records.push(new FieldRecord(table.toTarget(type!), type, name, true))
-        }
-    })
-
-    if (isClass) {
-        target.members
-            .filter(ts.isConstructorDeclaration)
-            .forEach(cons => {
-                cons.parameters.forEach(param => {
-                    const type = param.type!
-                    const name = `_${identName(param.name)}`
-                    records.push(new FieldRecord(table.toTarget(type), type, name, true))
-                })
-            })
-    }
-    return records
 }

@@ -14,10 +14,8 @@
  */
 
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "../FileGenerators";
-import { FunctionCallExpression, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createLanguageWriter } from "../LanguageWriters";
-import { PeerClass, PeerClassBase } from "../PeerClass";
-import { PeerLibrary } from "../PeerLibrary";
-import { PeerMethod } from "../PeerMethod";
+import { FunctionCallExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createLanguageWriter } from "../LanguageWriters";
+import { PeerClassBase } from "../PeerClass";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
@@ -42,14 +40,14 @@ class NativeModuleVisitor {
     ])
 
     constructor(
-        protected readonly library: PeerLibrary | IdlPeerLibrary,
+        protected readonly library: IdlPeerLibrary,
     ) {
         this.nativeModule = createLanguageWriter(library.language, getReferenceResolver(library))
         this.nativeModuleEmpty = createLanguageWriter(library.language, getReferenceResolver(library))
         this.nativeModulePredefined = new Map()
     }
 
-    protected printPeerMethods(peer: PeerClass | IdlPeerClass) {
+    protected printPeerMethods(peer: IdlPeerClass) {
         peer.methods.forEach(it => this.printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
     }
 
@@ -65,7 +63,7 @@ class NativeModuleVisitor {
         })
     }
 
-    printPeerMethod(clazz: PeerClassBase, method: PeerMethod | IdlPeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
+    printPeerMethod(clazz: PeerClassBase, method: IdlPeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
         returnType?: idl.IDLType,
         nativeFunctions?: LanguageWriter
     ) {
@@ -190,13 +188,13 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
     private stringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string'])
 
     constructor(
-        protected readonly library: PeerLibrary | IdlPeerLibrary,
+        protected readonly library: IdlPeerLibrary,
     ) {
         super(library)
         this.nativeFunctions = createLanguageWriter(library.language, getReferenceResolver(library))
     }
 
-    override printPeerMethod(clazz: PeerClassBase, method: PeerMethod | IdlPeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
+    override printPeerMethod(clazz: PeerClassBase, method: IdlPeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
         returnType?: idl.IDLType,
         nativeFunctions?: LanguageWriter
     ) {
@@ -386,14 +384,14 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
 }
 
 
-export function printNativeModule(peerLibrary: PeerLibrary | IdlPeerLibrary, nativeBridgePath: string): string {
+export function printNativeModule(peerLibrary: IdlPeerLibrary, nativeBridgePath: string): string {
     const lang = peerLibrary.language
     const visitor = (lang == Language.CJ) ? new CJNativeModuleVisitor(peerLibrary) : new NativeModuleVisitor(peerLibrary)
     visitor.print()
     return nativeModuleDeclaration(visitor.nativeModule, visitor.nativeModulePredefined, nativeBridgePath, false, lang, visitor.nativeFunctions)
 }
 
-export function printNativeModuleEmpty(peerLibrary: PeerLibrary | IdlPeerLibrary): string {
+export function printNativeModuleEmpty(peerLibrary: IdlPeerLibrary): string {
     const visitor = new NativeModuleVisitor(peerLibrary)
     visitor.print()
     return nativeModuleEmptyDeclaration(visitor.nativeModuleEmpty.getOutput())

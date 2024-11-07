@@ -18,18 +18,15 @@ import { makeFileNameFromClassName } from "../FileGenerators"
 import { IdlPeerClass } from "../idl/IdlPeerClass"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 import { MaterializedClass } from "../Materialized"
-import { PeerClass } from "../PeerClass"
-import { PeerLibrary } from "../PeerLibrary"
-
 
 export class MesonVisitor {
     printer = new IndentedPrinter()
 
     constructor(
-        protected library: PeerLibrary | IdlPeerLibrary
+        protected library: IdlPeerLibrary
     ) { }
 
-    printPeerClassSourcePaths(clazz: PeerClass | IdlPeerClass): void {
+    printPeerClassSourcePaths(clazz: IdlPeerClass): void {
         const className = makeFileNameFromClassName(clazz.componentName)
         // TODO use names from Libace;
         this.printer.print(`'implementation/${className}_delegate.cpp',`)
@@ -63,7 +60,7 @@ export class MesonVisitor {
     }
 }
 
-export function printMesonBuild(peerLibrary: PeerLibrary | IdlPeerLibrary): string {
+export function printMesonBuild(peerLibrary: IdlPeerLibrary): string {
     const visitor = new MesonVisitor(peerLibrary)
     visitor.printMesonBuildContent()
     return visitor.printer.getOutput().join("\n")

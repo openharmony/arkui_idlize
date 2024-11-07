@@ -1,7 +1,6 @@
 import * as idl from "../../../idl"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../../LanguageWriters/typeConvertor"
 import { ImportFeature } from "../../ImportsCollector"
-import {  } from "../../TypeNodeConvertor"
 
 class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {
     convertOptional(type: idl.IDLOptionalType): ImportFeature[] {

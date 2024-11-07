@@ -21,15 +21,12 @@ import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, Method
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
-import { PeerLibrary } from "./PeerLibrary"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
 import { ImportsCollector } from "./ImportsCollector"
 import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
-import { writeARKTSTypeCheckerFromDTS, writeTSTypeCheckerFromDTS } from "./printers/TypeCheckFromDTSPrinter"
 import { Language } from "../Language"
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
-import { makeCJSerializer } from "./printers/lang/CJPrinters"
 import { IDLVoidType, toIDLType } from "../idl"
 import { createEmptyReferenceResolver, getReferenceResolver } from "./ReferenceResolver"
 
@@ -153,8 +150,8 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
     return result
 }
 
-export function getNodeTypes(library: PeerLibrary | IdlPeerLibrary): string[] {
-    const components:string[] = []
+export function getNodeTypes(library: IdlPeerLibrary): string[] {
+    const components: string[] = []
     for (const file of library.files) {
         for (const peer of file.peers.values()) {
             components.push(peer.componentName)
@@ -163,7 +160,7 @@ export function getNodeTypes(library: PeerLibrary | IdlPeerLibrary): string[] {
     return [...PeerGeneratorConfig.customNodeTypes, ...components.sort()]
 }
 
-export function appendViewModelBridge(library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
+export function appendViewModelBridge(library: IdlPeerLibrary): LanguageWriter {
     let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
     let body = readTemplate('view_model_bridge.cc')
 
@@ -276,7 +273,7 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
-export function makeTSSerializer(library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
+export function makeTSSerializer(library: IdlPeerLibrary): LanguageWriter {
     let printer = createLanguageWriter(library.language, getReferenceResolver(library))
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
@@ -302,7 +299,7 @@ export function createSerializer(): Serializer { return new Serializer() }
     return printer
 }
 
-export function makeSerializerForOhos(library: PeerLibrary | IdlPeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): LanguageWriter {
+export function makeSerializerForOhos(library: IdlPeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): LanguageWriter {
     // TODO Add Java and migrate arkoala code
     if (library.language == Language.TS || library.language == Language.ARKTS) {
         let printer = createLanguageWriter(library.language, getReferenceResolver(library))
@@ -323,18 +320,6 @@ export function createSerializer(): Serializer { return new Serializer() }
     }
 }
 
-// TODO: remove after full switching to IDL
-export function makeTypeCheckerFromDTS(library: PeerLibrary): { arkts: string, ts: string } {
-    let arktsPrinter = createLanguageWriter(Language.ARKTS, createEmptyReferenceResolver())
-    writeARKTSTypeCheckerFromDTS(library, arktsPrinter)
-    let tsPrinter = createLanguageWriter(Language.TS, createEmptyReferenceResolver())
-    writeTSTypeCheckerFromDTS(library, tsPrinter)
-    return {
-        arkts: arktsPrinter.getOutput().join("\n"),
-        ts: tsPrinter.getOutput().join("\n"),
-    }
-}
-
 export function makeTypeChecker(library: IdlPeerLibrary): { arkts: string, ts: string } {
     let arktsPrinter = createLanguageWriter(Language.ARKTS, createEmptyReferenceResolver())
     writeARKTSTypeCheckers(library, arktsPrinter)
@@ -346,8 +331,8 @@ export function makeTypeChecker(library: IdlPeerLibrary): { arkts: string, ts: s
     }
 }
 
-export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary | IdlPeerLibrary): LanguageWriter {
-    const converter = new CppLanguageWriter(new IndentedPrinter(), library instanceof IdlPeerLibrary ? library : createEmptyReferenceResolver())
+export function makeConverterHeader(path: string, namespace: string, library: IdlPeerLibrary): LanguageWriter {
+    const converter = new CppLanguageWriter(new IndentedPrinter(), library)
     converter.writeLines(cStyleCopyright)
     converter.writeLines(`/*
  * ${warning}
@@ -566,15 +551,6 @@ ${content}
 `
 }
 
-
-export function peerFileTemplate(content: string): string {
-    return tsCopyrightAndWarning(content)
-}
-
-export function componentFileTemplate(content: string): string {
-    return tsCopyrightAndWarning(content)
-}
-
 export function makeDeserializeAndCall(library: IdlPeerLibrary, language: Language) {
     const writer = createLanguageWriter(language, library)
     printDeserializeAndCall(library, writer)
@@ -685,6 +661,6 @@ export function makeIncludeGuardDefine(filePath: string) {
 }
 
 export function makeFileNameFromClassName(className: string) {
-    // transfroms camel-case name to snake-case
+    // transforms camel-case name to snake-case
     return className.split(/(?=[A-Z][a-z])/g).join("_").toLowerCase()
 }

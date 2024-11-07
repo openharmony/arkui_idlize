@@ -884,7 +884,7 @@ export class IdlPeerProcessor {
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
         return new BuilderField(
             new Field(prop.name, idl.maybeOptional(prop.type, prop.isOptional), modifiers),
-            PrimitiveType.Boolean) // sorry, don't really need this param but still have to provide something
+        )
     }
 
     private getBuilderMethods(target: idl.IDLInterface, className?: string): BuilderMethod[] {
@@ -905,12 +905,12 @@ export class IdlPeerProcessor {
     private toBuilderMethod(method: idl.IDLConstructor | idl.IDLMethod | undefined,
                             className?: string): BuilderMethod {
         if (!method)
-            return new BuilderMethod(new Method("constructor", new NamedMethodSignature(idl.IDLVoidType)), [])
+            return new BuilderMethod(new Method("constructor", new NamedMethodSignature(idl.IDLVoidType)))
         const methodName = idl.isConstructor(method) ? "constructor" : method.name
         // const generics = method.typeParameters?.map(it => it.getText())
         const signature = generateSignature(this.library, method, className)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
-        return new BuilderMethod(new Method(methodName, signature, modifiers/*, generics*/), [])
+        return new BuilderMethod(new Method(methodName, signature, modifiers/*, generics*/))
     }
     private collectDeclDependencies(decl: idl.IDLEntry): ImportFeature[] {
         let importFeatures: ImportFeature[]
@@ -975,7 +975,7 @@ export class IdlPeerProcessor {
             macroSuffixPart: () => ""
         }
         const mFinalizer = new MaterializedMethod(name, [], [], finalizerReturnType, false,
-            new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]), 0)
+            new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
         const mFields = decl.properties
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
             .filter(it => idl.getExtAttribute(it, idl.IDLExtendedAttributes.Accessor) !== idl.IDLAccessorAttribute.Setter)
@@ -994,7 +994,7 @@ export class IdlPeerProcessor {
                 const getSignature = new NamedMethodSignature(idlType, [], [])
                 const getAccessor = new MaterializedMethod(
                     name, [], [], f.retConvertor, false,
-                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE]), 0)
+                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE]))
                 mMethods.push(getAccessor)
             }
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
@@ -1003,7 +1003,7 @@ export class IdlPeerProcessor {
                 const retConvertor = { isVoid: true, nativeType: () => idl.IDLVoidType.name, macroSuffixPart: () => "V" }
                 const setAccessor = new MaterializedMethod(
                     name, [], [f.argConvertor], retConvertor, false,
-                    new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]), 0)
+                    new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]))
                 mMethods.push(setAccessor)
             }
         })
@@ -1018,7 +1018,7 @@ export class IdlPeerProcessor {
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
         return new MaterializedField(
             new Field(prop.name, prop.type, modifiers),
-            argConvertor, retConvertor, undefined, prop.isOptional)
+            argConvertor, retConvertor, prop.isOptional)
     }
 
     private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined) {
@@ -1036,7 +1036,7 @@ export class IdlPeerProcessor {
         if (method === undefined) {
             // interface or class without constructors
             const ctor = new Method("ctor", new NamedMethodSignature(idl.IDLVoidType, [], []), [MethodModifier.STATIC])
-            return new MaterializedMethod(decl.name, [], [], retConvertor, false, ctor, 0)
+            return new MaterializedMethod(decl.name, [], [], retConvertor, false, ctor)
         }
 
         const generics = undefined // method.typeParameters?.map(it => it.getText())
@@ -1044,8 +1044,9 @@ export class IdlPeerProcessor {
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(this.library, method, decl.name)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
-        return new MaterializedMethod(decl.name, /*declarationTargets*/ [], argConvertors, retConvertor, false,
-            new Method(methodName, signature, modifiers, generics), getMethodIndex(decl, method))
+        return new MaterializedMethod(decl.name, [], argConvertors, retConvertor, false,
+            new Method(methodName, signature, modifiers, generics)
+        )
     }
 
     private collectDepsRecursive(decl: idl.IDLNode, deps: Set<idl.IDLNode>): void {

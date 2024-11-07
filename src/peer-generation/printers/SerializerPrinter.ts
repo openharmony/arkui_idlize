@@ -13,22 +13,12 @@
  * limitations under the License.
  */
 
-import * as ts from 'typescript'
 import * as idl from '../../idl'
 import { Language } from "../../Language";
-import { DeclarationTable, DeclarationTarget } from "../DeclarationTable";
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { createLanguageWriter, ExpressionStatement, LanguageStatement, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters";
+import { ExpressionStatement, LanguageStatement, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters";
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
-import { checkDeclarationTargetMaterialized } from '../Materialized';
-import { convertDeclToFeature as convertDeclToFeatureDTS, ImportsCollector } from '../ImportsCollector';
-import { PeerLibrary } from '../PeerLibrary';
-import { createTypeDependenciesCollector, createTypeNodeConvertor, isSourceDecl as isSourceDeclDTS } from "../PeerGeneratorVisitor";
-import { isSyntheticDeclaration as isSyntheticDeclarationDTS } from "../synthetic_declaration";
-import { DeclarationDependenciesCollector } from "../dependencies_collector";
-import { isBuilderClass } from "../BuilderClass";
-import { lazy, lazyThrow } from '../lazy';
-import { TypeNodeNameConvertor } from "../TypeNodeNameConvertor";
+import { ImportsCollector } from '../ImportsCollector';
 import { IdlPeerLibrary } from '../idl/IdlPeerLibrary';
 import {
     ArkTSBuiltTypesDependencyFilter,
@@ -39,144 +29,13 @@ import {
 import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
 import { collectProperties } from '../idl/StructPrinter';
 import { ProxyStatement } from '../LanguageWriters/LanguageWriter';
-import { CallbackKind, generateCallbackKindAccess } from './CallbacksPrinter';
+import { generateCallbackKindAccess } from './CallbacksPrinter';
 import { convertDeclaration } from '../LanguageWriters/typeConvertor';
 import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
-import { getReferenceResolver } from '../ReferenceResolver';
 import { throwException } from "../../util";
 import { IDLEntry } from "../../idl";
-
-function printSerializerImports(table: (ts.ClassDeclaration | ts.InterfaceDeclaration)[],
-                                library: PeerLibrary,
-                                writer: LanguageWriter) {
-    const convertorImportsCollector = new ImportsCollector()
-    if (writer.language === Language.ARKTS) {
-        library.files.forEach(peer => peer.serializeImportFeatures
-            .forEach(importFeature => convertorImportsCollector.addFeature(importFeature.feature, importFeature.module)))
-        convertorImportsCollector.addFeature("TypeChecker", "#components")
-    }
-    if ([Language.TS, Language.ARKTS].includes(writer.language)) {
-        convertorImportsCollector.addFeature("KBoolean", "@koalaui/interop")
-    }
-    const serializerCollector = createSerializerDependenciesCollector(writer.language, convertorImportsCollector, library)
-    if (serializerCollector != undefined) {
-        table.forEach(decl => serializerCollector.collect(decl))
-    }
-    convertorImportsCollector.print(writer, `./peers/Serializer.${writer.language.extension}`)
-}
-
-function canSerializeTarget(declaration: ts.ClassDeclaration | ts.InterfaceDeclaration): boolean {
-    // we can not generate serializer/deserializer for targets, where
-    // type parameters are in signature and some of this parameters has not
-    // default value. At all we should not generate even classes with default values,
-    // but they are at least compilable.
-    // See class TransitionEffect declared at common.d.ts and used at CommonMethod.transition
-    return (declaration.typeParameters ?? []).every(it => {
-        return it.default !== undefined
-    })
-}
-
-function ignoreSerializeTarget(table: DeclarationTable, target: DeclarationTarget): target is PrimitiveType | ts.EnumDeclaration {
-    const name = table.computeTargetName(target, false, "")
-    if (PeerGeneratorConfig.ignoreSerialization.includes(name)) return true
-    if (target instanceof PrimitiveType) return true
-    if (ts.isEnumDeclaration(target)) return true
-    if (ts.isFunctionTypeNode(target)) return true
-    if (ts.isImportTypeNode(target)) return true
-    if (ts.isTemplateLiteralTypeNode(target)) return true
-    if (checkDeclarationTargetMaterialized(target)) return true
-    return false
-}
-
-class SerializerPrinter {
-    constructor(
-        private readonly library: PeerLibrary,
-        private readonly writer: LanguageWriter,
-    ) {}
-
-    private get table(): DeclarationTable {
-        return this.library.declarationTable
-    }
-
-    private translateSerializerType(name: string, target: DeclarationTarget): string {
-        if (target instanceof PrimitiveType) throw new Error("Unexpected")
-        if (ts.isInterfaceDeclaration(target) && target.typeParameters != undefined) {
-            if (target.typeParameters.length != 1) throw new Error("Unexpected")
-            return `${name}<object>`
-        } else {
-            return name
-        }
-    }
-
-    private generateSerializer(writer: LanguageWriter, target: ts.ClassDeclaration | ts.InterfaceDeclaration,
-                               prefix: string,
-                               typeNodeNameConvertor: TypeNodeNameConvertor) {
-        const name = this.table.computeTargetName(target, false, prefix)
-        const methodName = this.table.computeTargetName(target, false, "")
-        this.table.setCurrentContext(`write${methodName}()`)
-
-        writer.writeMethodImplementation(
-            new Method(`write${methodName}`,
-                new NamedMethodSignature(idl.IDLVoidType, [idl.toIDLType(this.translateSerializerType(name, target))], ["value"])),
-            writer => {
-                let struct = this.table.targetStruct(target)
-                if (struct.getFields().length > 0) {
-                    writer.writeStatement(
-                        writer.makeAssign("valueSerializer", writer.makeRef("Serializer"), writer.makeThis(), true, false))
-                }
-                struct.getFields().forEach(it => {
-                    let field = `value_${it.name}`
-                    writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.escapeKeyword(it.name)}`), true))
-                    let typeConvertor = this.table.typeConvertor(`value`, it.type!, it.optional, undefined, typeNodeNameConvertor)
-                    typeConvertor.convertorSerialize(`value`, field, writer)
-                })
-            })
-        this.table.setCurrentContext(undefined)
-    }
-
-    print() {
-        const className = "Serializer"
-        const superName = `${className}Base`
-        let prefix = ""
-        let ctorSignature: NamedMethodSignature | undefined = undefined
-        switch (this.writer.language) {
-            case Language.ARKTS:
-                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
-                break;
-            case Language.CPP:
-                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.toIDLType("uint8_t*")], ["data"])
-                prefix = PrimitiveType.Prefix
-                break;
-            case Language.JAVA:
-                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
-                break;
-            case Language.CJ:
-                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
-                break;
-        }
-        const serializerDeclarations = generateSerializerDeclarationsTable(prefix, this.table)
-        const serializerWriter = createLanguageWriter(this.writer.language, getReferenceResolver(this.library))
-        const typeNodeNameConvertor = createTypeNodeConvertor(this.library)
-        // just a separator
-        serializerWriter.print("")
-        serializerWriter.writeClass(className, writer => {
-            if (ctorSignature) {
-                const ctorMethod = new Method(superName, ctorSignature)
-                writer.writeConstructorImplementation(className, ctorSignature, _ => {}, ctorMethod)
-            }
-            serializerDeclarations.forEach(decl =>
-                this.generateSerializer(serializerWriter, decl, prefix, typeNodeNameConvertor))
-            if (serializerWriter.language == Language.JAVA) {
-                // TODO: somewhat ugly.
-                serializerWriter.print(`static Serializer createSerializer() { return new Serializer(); }`)
-            }
-        }, superName)
-        printSerializerImports(serializerDeclarations, this.library, this.writer)
-        this.writer.print(serializerWriter.printer.getOutput().join("\n"))
-    }
-}
 
 class IdlSerializerPrinter {
     constructor(
@@ -416,106 +275,13 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
     }
 }
 
-export function writeSerializer(library: PeerLibrary | IdlPeerLibrary, writer: LanguageWriter, prefix: string, declarationPath?: string) {
-    const printer = library instanceof PeerLibrary
-        ? new SerializerPrinter(library, writer) : new IdlSerializerPrinter(library, writer)
-    printer.print(prefix, declarationPath)
+export function writeSerializer(library: IdlPeerLibrary, writer: LanguageWriter, prefix: string, declarationPath?: string) {
+    new IdlSerializerPrinter(library, writer).print(prefix, declarationPath)
 }
 
 export function writeDeserializer(library: IdlPeerLibrary, writer: LanguageWriter, prefix = "", declarationPath?: string) {
     const printer = new IdlDeserializerPrinter(library, writer)
     printer.print(prefix, declarationPath)
-}
-
-interface SerializerDependenciesCollector {
-    collect(decl: ts.Declaration): void
-}
-
-class TSSerializerDependenciesCollector implements SerializerDependenciesCollector {
-    private readonly declDependenciesCollector: DeclarationDependenciesCollector
-    constructor(private readonly collector: ImportsCollector, private readonly library: PeerLibrary) {
-        this.declDependenciesCollector = new DeclarationDependenciesCollector(
-            library.declarationTable.typeChecker!,
-            createTypeDependenciesCollector(library, { declDependenciesCollector: lazyThrow()}))
-        for (const file of this.library.files) {
-            file.importFeatures.forEach(it => this.collector.addFeature(it.feature, it.module))
-        }
-    }
-    collect(decl: ts.Declaration) {
-        this.declDependenciesCollector.convert(decl).forEach(it => {
-            if (this.isBuilderClassDeclaration(it)) {
-                const feature = convertDeclToFeatureDTS(this.library, it)
-                this.collector.addFeature(feature.feature, feature.module)
-            }
-        })
-        if (this.isBuilderClassDeclaration(decl)) {
-            const feature = convertDeclToFeatureDTS(this.library, decl)
-            this.collector.addFeature(feature.feature, feature.module)
-        }
-    }
-    isBuilderClassDeclaration(decl: ts.Declaration): boolean {
-        return (ts.isInterfaceDeclaration(decl) || ts.isClassDeclaration(decl)) && isBuilderClass(decl)
-    }
-}
-
-class ArkTSSerializerDependenciesCollector implements SerializerDependenciesCollector {
-    private readonly declDependenciesCollector: DeclarationDependenciesCollector
-    constructor(private readonly collector: ImportsCollector, private readonly library: PeerLibrary) {
-        this.declDependenciesCollector = new DeclarationDependenciesCollector(
-            library.declarationTable.typeChecker!,
-            createTypeDependenciesCollector(library, {
-                declDependenciesCollector: lazy(() => this.declDependenciesCollector)
-            })
-        )
-    }
-
-    collect(decl: ts.Declaration): void {
-        this.declDependenciesCollector.convert(decl).forEach(it => {
-            if (isSourceDeclDTS(it) || isSyntheticDeclarationDTS(it)) {
-                const feature = convertDeclToFeatureDTS(this.library, it)
-                this.collector.addFeature(feature.feature, feature.module)
-            }
-        })
-        if (decl.parent && isSourceDeclDTS(decl)) {
-            const feature = convertDeclToFeatureDTS(this.library, decl)
-            this.collector.addFeature(feature.feature, feature.module)
-        }
-    }
-}
-
-function createSerializerDependenciesCollector(language: Language,
-                                               collector: ImportsCollector,
-                                               library: PeerLibrary): SerializerDependenciesCollector | undefined {
-    switch (language) {
-        case Language.TS:
-            return new TSSerializerDependenciesCollector(collector, library)
-        case Language.ARKTS:
-            return new ArkTSSerializerDependenciesCollector(collector, library)
-    }
-    return undefined
-}
-
-function generateSerializerDeclarationsTable(prefix: string, table: DeclarationTable):
-        (ts.ClassDeclaration | ts.InterfaceDeclaration)[] {
-    const declarations = new Array<ts.ClassDeclaration | ts.InterfaceDeclaration>()
-    const seenNames = new Set<string>()
-    for (let declaration of table.orderedDependenciesToGenerate) {
-        if (ignoreSerializeTarget(table, declaration)) {
-            continue
-        }
-
-        const name = table.computeTargetName(declaration, false, prefix)
-        if (seenNames.has(name)) {
-            continue
-        }
-        seenNames.add(name)
-
-        if ((ts.isClassDeclaration(declaration) || ts.isInterfaceDeclaration(declaration))
-            && canSerializeTarget(declaration)) {
-            declarations.push(declaration)
-        }
-    }
-    return declarations
 }
 
 function getSerializers(library: IdlPeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {

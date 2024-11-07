@@ -20,7 +20,6 @@ variables:
         - npm i --no-audit --no-fund
         - npm i --prefix external --no-audit --no-fund
 
-
 idlize sanity:
   stage: test
   tags:

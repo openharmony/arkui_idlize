@@ -13,20 +13,10 @@
  * limitations under the License.
  */
 
-import * as ts from 'typescript'
 import { posix as path } from "path"
-import { getOrPut, nameOrNull, renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces, renameDtsToPeer } from "../util";
+import { getOrPut, renameDtsToPeer } from "../util";
 import { LanguageWriter } from "./LanguageWriters";
-import { PeerLibrary } from './PeerLibrary';
-import { isMaterialized } from './Materialized';
-import { DeclarationNameConvertor } from './dependencies_collector';
-import { PeerGeneratorConfig } from './PeerGeneratorConfig';
-import { convertDeclaration, DeclarationConvertor } from './TypeNodeConvertor';
-import { syntheticDeclarationFilename, isSyntheticDeclaration } from './synthetic_declaration';
-import { isBuilderClass } from './BuilderClass';
 import { Language } from '../Language';
-
-export type ImportsCollectorFilter = (feature: string, module: string) => boolean
 
 export class ImportsCollector {
     private readonly moduleToFeatures: Map<string, Set<string>> = new Map()
@@ -59,45 +49,6 @@ export class ImportsCollector {
 }
 
 export type ImportFeature = { feature: string, module: string }
-
-export function convertDeclToFeature(library: PeerLibrary, node: ts.Declaration): ImportFeature {
-    if (isSyntheticDeclaration(node))
-        return {
-            feature: convertDeclaration(DeclarationNameConvertor.I, node),
-            module: `./${syntheticDeclarationFilename(node)}`
-        }
-    if (PeerGeneratorConfig.isConflictedDeclaration(node)) {
-        const feature = convertDeclaration(
-            createConflictedDeclarationConvertor(library.declarationTable.language), node)
-        return {
-            feature: feature,
-            module: './ConflictedDeclarations'
-        }
-    }
-
-    if (!ts.isSourceFile(node.parent))
-        throw "Expected parent of declaration to be a SourceFile"
-    const originalBasename = path.basename(node.parent.fileName)
-    let fileName = renameDtsToInterfaces(originalBasename, library.declarationTable.language)
-    if ((ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node)) && !library.isComponentDeclaration(node)) {
-        if (isBuilderClass(node)) {
-            fileName = renameClassToBuilderClass(nameOrNull(node.name)!, library.declarationTable.language)
-        } else if (isMaterialized(node)) {
-            fileName = renameClassToMaterialized(nameOrNull(node.name)!, library.declarationTable.language)
-        }
-    }
-
-    const basename = path.basename(fileName)
-    const basenameNoExt = basename.replaceAll(path.extname(basename), '')
-    return {
-        feature: convertDeclaration(DeclarationNameConvertor.I, node),
-        module: `./${basenameNoExt}`,
-    }
-}
-
-function createConflictedDeclarationConvertor(language: Language): DeclarationConvertor<string> {
-    return DeclarationNameConvertor.I
-}
 
 export function convertPeerFilenameToModule(filename: string) {
     const basename = renameDtsToPeer(path.basename(filename), Language.TS, false)

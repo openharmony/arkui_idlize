@@ -18,18 +18,15 @@ import { makeFileNameFromClassName } from "../FileGenerators"
 import { IdlPeerClass } from "../idl/IdlPeerClass"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 import { MaterializedClass } from "../Materialized"
-import { PeerClass } from "../PeerClass"
-import { PeerLibrary } from "../PeerLibrary"
-
 
 export class GniVisitor {
     gni = new IndentedPrinter()
 
     constructor(
-        protected library: PeerLibrary | IdlPeerLibrary
+        protected library: IdlPeerLibrary
     ) { }
 
-    printGniEntries(clazz: PeerClass | IdlPeerClass): void {
+    printGniEntries(clazz: IdlPeerClass): void {
         const className = makeFileNameFromClassName(clazz.componentName)
         this.gni.print(`"../arkoala/implementation/${className}_modifier.cpp",`)
     }
@@ -66,7 +63,7 @@ export class GniVisitor {
     }
 }
 
-export function printGniSources(peerLibrary: PeerLibrary | IdlPeerLibrary): string {
+export function printGniSources(peerLibrary: IdlPeerLibrary): string {
     const visitor = new GniVisitor(peerLibrary)
     visitor.printGniSource()
     return visitor.gni.getOutput().join("\n")

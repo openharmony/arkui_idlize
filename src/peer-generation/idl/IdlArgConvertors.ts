@@ -15,7 +15,7 @@
 import * as idl from "../../idl"
 import { Language } from "../../Language"
 import { BlockStatement, BranchStatement, LanguageExpression, LanguageStatement, LanguageWriter, MethodSignature, NamedMethodSignature, StringExpression } from "../LanguageWriters"
-import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
+import { IdlPeerLibrary } from "./IdlPeerLibrary"
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { qualifiedName } from "./common"
 import { RuntimeType, ArgConvertor, BaseArgConvertor, ProxyConvertor, UndefinedConvertor, UnionRuntimeTypeChecker, ExpressionAssigneer } from "../ArgConvertors"
@@ -23,7 +23,6 @@ import { generateCallbackAPIArguments } from "./StructPrinter"
 import { CppCastExpression } from "../LanguageWriters/writers/CppLanguageWriter"
 import { generateCallbackKindAccess } from "../printers/CallbacksPrinter"
 import { LibraryInterface } from "../../LibraryInterface"
-
 
 export class StringConvertor extends BaseArgConvertor {
     private literalValue?: string
@@ -126,10 +125,6 @@ export class EnumConvertor extends BaseArgConvertor { //
     }
     isPointerType(): boolean {
         return false
-    }
-    // TODO: bit clumsy.
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.makeDiscriminatorConvertor(this, value, index)
     }
     targetType(writer: LanguageWriter): string {
         return this.enumTypeName(writer.language)

@@ -13,12 +13,6 @@
  * limitations under the License.
  */
 
-import * as ts from 'typescript'
-import { getOrPut } from "../util"
-import { PeerClass } from "./PeerClass"
-import { DeclarationTable } from "./DeclarationTable"
-import { ImportFeature } from './ImportsCollector'
-
 export class EnumEntity {
     constructor(
         public readonly name: string,
@@ -36,34 +30,4 @@ export class EnumMember {
         public readonly comment: string,
         public readonly initializerText: string | undefined,
     ) {}
-}
-
-export class PeerFile {
-    readonly peers: Map<string, PeerClass> = new Map()
-    readonly enums: EnumEntity[] = []
-    // todo maybe declarations should be converted as same as enums - to
-    // structs detached from `ts` nodes
-    readonly declarations: Set<ts.Declaration> = new Set()
-    readonly importFeatures: ImportFeature[] = []
-    readonly serializeImportFeatures: ImportFeature[] = []
-    constructor(
-        public readonly originalFilename: string,
-        public readonly declarationTable: DeclarationTable,
-        private readonly componentsToGenerate: Set<string>,
-    ) {}
-
-    get peersToGenerate(): PeerClass[] {
-        const peers = Array.from(this.peers.values())
-        if (!this.componentsToGenerate.size)
-            return peers
-        return peers.filter(it => this.componentsToGenerate.has(it.componentName))
-    }
-
-    getOrPutPeer(componentName: string) {
-        return getOrPut(this.peers, componentName, () => new PeerClass(this, componentName, this.originalFilename, this.declarationTable))
-    }
-
-    pushEnum(enumEntity: EnumEntity) {
-        this.enums.push(enumEntity)
-    }
 }

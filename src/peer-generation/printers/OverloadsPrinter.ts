@@ -14,15 +14,20 @@
  */
 
 import * as idl from "../../idl"
-import { Method, MethodSignature, LanguageWriter, MethodModifier, ExpressionStatement, StringExpression, NamedMethodSignature } from "../LanguageWriters";
-import { PeerClass, PeerClassBase } from "../PeerClass";
-import { PeerMethod } from "../PeerMethod";
+import {
+    ExpressionStatement,
+    LanguageWriter,
+    Method,
+    MethodModifier,
+    NamedMethodSignature,
+    StringExpression
+} from "../LanguageWriters";
+import { PeerClassBase } from "../PeerClass";
 import { isDefined } from "../../util";
-import { callbackIdByInfo, canProcessCallback, convertToCallback } from "./EventsPrinter";
+import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./EventsPrinter";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { typeOrUnion } from "../idl/common";
-// import { ArgConvertor as IdlArgConvertor } from "../idl/IdlArgConvertors"
 import { ArgConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from '../ArgConvertors';
 import { Language } from "../../Language";
 
@@ -97,7 +102,7 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
     )
 }
 
-export function groupOverloads<T extends PeerMethod | IdlPeerMethod>(peerMethods: T[]): T[][] {
+export function groupOverloads<T extends IdlPeerMethod>(peerMethods: T[]): T[][] {
     const seenNames = new Set<string>()
     const groups: T[][] = []
     for (const method of peerMethods) {
@@ -119,7 +124,7 @@ export class OverloadsPrinter {
         }
     }
 
-    printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: (PeerMethod | IdlPeerMethod)[]) {
+    printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: (IdlPeerMethod)[]) {
         const orderedMethods = Array.from(peerMethods)
             .sort((a, b) => b.argConvertors.length - a.argConvertors.length)
         const collapsedMethod = collapseSameNamedMethods(orderedMethods.map(it => it.method))
@@ -152,7 +157,7 @@ export class OverloadsPrinter {
         })
     }
 
-    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod | IdlPeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
+    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: IdlPeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
         const argsConditions = collapsedMethod.signature.args.map((_, argIndex) =>
             runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
         this.printer.print(`if (${this.printer.makeNaryOp("&&", argsConditions).asString()}) {`)
@@ -162,7 +167,7 @@ export class OverloadsPrinter {
         this.printer.print('}')
     }
 
-    private printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod | IdlPeerMethod) {
+    private printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: IdlPeerMethod) {
         const argsNames = peerMethod.argConvertors.map((conv, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${argName}_casted`
@@ -189,7 +194,7 @@ export class OverloadsPrinter {
         if ([Language.TS].includes(this.language))
             peerMethod.declarationTargets.map((target, index) => {
                 if (this.isComponent) { // TBD: Check for materialized classes
-                    const callback = convertToCallback(peer, peerMethod, target)
+                    const callback = convertIdlToCallback(peer, peerMethod, target)
                     if (!callback || !canProcessCallback(callback))
                         return
                     const argName = argsNames[index]

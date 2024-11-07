@@ -15,7 +15,6 @@
 
 import * as webidl2 from "webidl2"
 import { indentedBy, isDefined, stringOrNone, throwException } from "./util";
-import { NodeArray, TypeNode } from "typescript";
 
 export enum IDLKind {
     Interface,

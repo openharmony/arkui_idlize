@@ -4,6 +4,7 @@ import * as idl from '../../idl'
 import { IDLEntry, IDLMethod, IDLInterface, isInterface, isClass, printType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { capitalize, toCamelCase } from "../../util"
+
 export class SkoalaCCodeGenerator {
     private entries: IDLEntry[]
     private outputDir: string

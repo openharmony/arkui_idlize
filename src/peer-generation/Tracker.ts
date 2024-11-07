@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { PeerLibrary } from "./PeerLibrary";
 import { IndentedPrinter } from "../IndentedPrinter";
-import { PeerClass } from "./PeerClass";
 import { MaterializedClass } from "./Materialized";
 import { EnumEntity } from './PeerFile';
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary';
@@ -29,7 +28,7 @@ class TrackerVisitor {
     out = new IndentedPrinter()
 
     constructor(
-        protected library: PeerLibrary | IdlPeerLibrary,
+        protected library: IdlPeerLibrary,
         protected track: Map<string, StatusRecord>
     ) { }
 
@@ -41,7 +40,7 @@ class TrackerVisitor {
         return '| |'
     }
 
-    printPeerClass(clazz: PeerClass | IdlPeerClass): void {
+    printPeerClass(clazz: IdlPeerClass): void {
         let seen = new Set<string>()
         this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(clazz.componentName, "Component")}`)
         clazz.methods.forEach(method => {
@@ -163,7 +162,7 @@ function optionsFunction(component: string) {
     return `set${component}Options`
 }
 
-export function generateTracker(outDir: string, peerLibrary: PeerLibrary | IdlPeerLibrary, trackerStatus: string, verbose: boolean = false): void {
+export function generateTracker(outDir: string, peerLibrary: IdlPeerLibrary, trackerStatus: string, verbose: boolean = false): void {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
     let track = new Map<string, StatusRecord>()
     if (fs.existsSync(trackerStatus)) {

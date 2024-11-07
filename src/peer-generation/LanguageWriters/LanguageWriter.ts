@@ -16,25 +16,13 @@
 import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { stringOrNone } from "../../util"
-import { EnumConvertor as EnumConvertorDTS, MapConvertor } from "../Convertors"
 import { ArgConvertor, RuntimeType } from "../ArgConvertors"
-import { FieldRecord } from "../DeclarationTable"
 import { EnumEntity } from "../PeerFile"
 import * as fs from "fs"
 import { Language } from "../../Language"
 import { EnumConvertor } from "../idl/IdlArgConvertors"
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
-import { PeerLibrary } from "../PeerLibrary"
 import { ReferenceResolver } from "../ReferenceResolver"
-import { convertType, IdlTypeNameConvertor } from "./typeConvertor"
-
-// static Int32 = new Type('int32')
-// static Boolean = new Type('boolean')
-// static Number = new Type('number')
-// static Pointer = new Type('KPointer')
-// static This = new Type('this')
-// static Void = new Type('void')
-// static String = new Type('string')
+import { IdlTypeNameConvertor } from "./typeConvertor"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -391,8 +379,6 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     abstract makeCast(value: LanguageExpression, type: idl.IDLType, unsafe: boolean): LanguageExpression
     abstract writePrintLog(message: string): void
     abstract makeUndefined(): LanguageExpression
-    abstract makeMapKeyTypeName(c: MapConvertor): idl.IDLType
-    abstract makeMapValueTypeName(c: MapConvertor): idl.IDLType
     abstract makeArrayInit(type: idl.IDLContainerType): LanguageExpression
     abstract makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression
     abstract makeMapInit(type: idl.IDLType): LanguageExpression
@@ -408,7 +394,6 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     abstract get supportedFieldModifiers(): FieldModifier[]
     abstract enumFromOrdinal(value: LanguageExpression, enumType: string): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumType: string): LanguageExpression
-    abstract makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, unsafe?: boolean): string // TODO: remove after switching to IDL
     abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string
     abstract convert(type: idl.IDLType | idl.IDLCallback): string
     abstract fork(): LanguageWriter
@@ -540,9 +525,6 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     makeTupleAlloc(option: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression(""))
     }
-    makeObjectAlloc(object: string, fields: readonly FieldRecord[]): LanguageStatement {
-        return new ExpressionStatement(new StringExpression(""))
-    }
     makeSetUnionSelector(value: string, index: string): LanguageStatement {
         // empty expression
         return new ExpressionStatement(new StringExpression(""))
@@ -597,9 +579,6 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     mapMethodModifier(modifier: MethodModifier): string {
         return `${MethodModifier[modifier].toLowerCase()}`
     }
-    makeObjectDeclare(name: string, type: idl.IDLType | undefined, fields: readonly FieldRecord[]): LanguageStatement {
-        return this.makeAssign(name, type, this.makeString("{}"), true, false)
-    }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
         return `unsafeCast<int32>(${param})`
     }
@@ -633,9 +612,6 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
     escapeKeyword(keyword: string): string {
         return keyword
     }
-    compareLiteral(expr: LanguageExpression, literal: string): LanguageExpression {
-        return this.makeEquals([expr, this.makeString(`"${literal}"`)])
-    }
     makeCastCustomObject(customName: string, _isGenericType: boolean): LanguageExpression {
         return this.makeString(customName)
     }
@@ -663,19 +639,7 @@ export abstract class LanguageWriter implements IdlTypeNameConvertor {
                                  exprs: LanguageExpression[]): LanguageExpression {
         return this.discriminatorFromExpressions(value, runtimeType, exprs)
     }
-    makeDiscriminatorConvertor(convertor: EnumConvertorDTS | EnumConvertor, value: string, index: number): LanguageExpression {
-        const ordinal = convertor.isStringEnum
-            ? this.ordinalFromEnum(
-                this.makeString(this.getObjectAccessor(convertor, value)),
-                convertor.enumTypeName(this.language)
-            )
-            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.convert(idl.IDLI32Type), convertor, index)
-        const {low, high} = convertor.extremumOfOrdinals()
-        return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], [
-            this.makeNaryOp(">=", [ordinal, this.makeString(low!.toString())]),
-            this.makeNaryOp("<=",  [ordinal, this.makeString(high!.toString())])
-        ])
-    }
+
     makeNot(expr: LanguageExpression): LanguageExpression {
         return this.makeString(`!${expr.asString()}`)
     }
@@ -715,7 +679,7 @@ export function copyMethod(method: Method, overrides: {
     signature?: MethodSignature,
     modifiers?: MethodModifier[],
     generics?: string[],
- }) {
+}) {
     return new Method(
         overrides.name ?? method.name,
         overrides.signature ?? method.signature,

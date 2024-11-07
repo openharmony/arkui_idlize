@@ -13,15 +13,12 @@
  * limitations under the License.
  */
 
-import { PeerLibrary } from "../PeerLibrary";
-import { BlockStatement, FieldModifier, FunctionCallExpression, LanguageExpression, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, StringExpression, createLanguageWriter } from "../LanguageWriters";
-import { PeerClass, PeerClassBase } from "../PeerClass";
-import { PeerMethod } from "../PeerMethod";
+import { createLanguageWriter, LanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
+import { PeerClassBase } from "../PeerClass";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
-import { FunctionConvertor } from "../Convertors";
 import { makeSyntheticDeclarationsFiles } from "../idl/IdlSyntheticDeclarations";
 import { Language } from "../../Language";
 import { createReferenceType, IDLI32Type, IDLStringType, IDLType, IDLVoidType, toIDLType } from "../../idl";
@@ -58,7 +55,7 @@ class NativeModuleRecorderVisitor {
         })
     }
 
-    private printPeerMethods(peer: PeerClass | IdlPeerClass) {
+    private printPeerMethods(peer: IdlPeerClass) {
         peer.methods.forEach(it => this.printPeerMethod(peer, it, this.nativeModuleRecorder, undefined))
     }
 
@@ -72,7 +69,7 @@ class NativeModuleRecorderVisitor {
         }, clazz.parentComponentName ? [`${clazz.parentComponentName}Interface`, `UIElement`] : undefined)
     }
 
-    private printPeerMethod(clazz: PeerClassBase, method: PeerMethod | IdlPeerMethod, nativeModuleRecorder: LanguageWriter, returnType?: IDLType) {
+    private printPeerMethod(clazz: PeerClassBase, method: IdlPeerMethod, nativeModuleRecorder: LanguageWriter, returnType?: IDLType) {
         const component = clazz.generatedName(method.isCallSignature)
         const interfaceName = clazz.getComponentName()
         clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)

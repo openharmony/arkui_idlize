@@ -13,23 +13,31 @@
  * limitations under the License.
  */
 
-import { DebugUtils, IDLBooleanType, IDLCallback, IDLContainerType, IDLContainerUtils, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLParameter, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLVoidType, isContainerType, isPrimitiveType, toIDLType } from "../../../idl"
+import * as idl from "../../../idl"
+import { IDLNumberType, IDLType, toIDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
 import { CJKeywords } from "../../../languageSpecificKeywords"
 import { isDefined } from "../../../util"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
-import { EnumConvertor as EnumConvertorDTS, MapConvertor } from "../../Convertors"
-import { FieldRecord } from "../../DeclarationTable"
-import * as idl from '../../../idl'
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { EnumEntity } from "../../PeerFile"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { mapType } from "../../TypeNodeNameConvertor"
-import { AssignStatement, ExpressionStatement, FieldModifier, LambdaExpression, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, ObjectArgs, ReturnStatement } from "../LanguageWriter"
-import { TSCastExpression, TsObjectAssignStatement, TsObjectDeclareStatement, TsTupleAllocStatement } from "./TsLanguageWriter"
-import { cjCustomTypeMapping, convertCJOptional } from "../../printers/lang/Cangjie"
-import { ARK_CUSTOM_OBJECT } from "../../printers/lang/Java"
+import {
+    AssignStatement,
+    ExpressionStatement,
+    FieldModifier,
+    LambdaExpression,
+    LanguageExpression,
+    LanguageStatement,
+    LanguageWriter,
+    Method,
+    MethodModifier,
+    MethodSignature,
+    ObjectArgs,
+    ReturnStatement
+} from "../LanguageWriter"
+import { TSCastExpression, TsTupleAllocStatement } from "./TsLanguageWriter"
 import { IdlTypeNameConvertor } from "../typeConvertor"
 import { CJIDLTypeToForeignStringConvertor, CJIDLTypeToStringConvertor } from "../convertors/CJConvertors"
 
@@ -252,9 +260,6 @@ export class CJLanguageWriter extends LanguageWriter {
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.print(`func ${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${idl.isOptionalType(it) ? '?' : ''}${this.typeForeignConvertor.convert(it)}`).join(", ")}): ${this.typeForeignConvertor.convert(signature.returnType)}`)
     }
-    override makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, _unsafe?: boolean): string {
-        return `${enumName}.getIntValue()`
-    }
     override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: EnumConvertor | undefined): string {
         // TODO: remove after switching to IDL
         return `${enumName}.getIntValue()`
@@ -263,7 +268,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
-        throw new Error(`TBD`)        
+        throw new Error(`TBD`)
     }
     makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
         throw new Error(`TBD`)
@@ -321,27 +326,9 @@ export class CJLanguageWriter extends LanguageWriter {
     makeTupleAlloc(option: string): LanguageStatement {
         return new TsTupleAllocStatement(option)
     }
-    makeObjectAlloc(object: string, fields: readonly FieldRecord[]): LanguageStatement {
-        if (fields.length > 0) {
-            return this.makeAssign(object, undefined,
-                this.makeCast(this.makeString("{}"),
-                   toIDLType(`{${fields.map(it=>`${it.name}: ${mapType(it.type)}`).join(",")}}`)),
-                false)
-        }
-        return new TsObjectAssignStatement(object, undefined, false)
-    }
-    makeMapKeyTypeName(c: MapConvertor): IDLType {
-        return c.keyConvertor.idlType;
-    }
-    makeMapValueTypeName(c: MapConvertor): IDLType {
-        return c.valueConvertor.idlType;
-    }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         // keyAccessor and valueAccessor are equal in TS
         return this.makeStatement(this.makeMethodCall(keyAccessor, "set", [this.makeString(key), this.makeString(value)]))
-    }
-    makeObjectDeclare(name: string, type: IDLType, fields: readonly FieldRecord[]): LanguageStatement {
-        return new TsObjectDeclareStatement(name, type, fields)
     }
     getTagType(): IDLType {
         return toIDLType("Tags");

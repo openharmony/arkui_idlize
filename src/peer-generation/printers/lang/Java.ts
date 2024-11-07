@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-import * as idl from "../../../idl"
-
 export const ARKOALA_PACKAGE = 'org.koalaui.arkoala'
 export const INTEROP_PACKAGE = 'org.koalaui.interop'
 

@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import * as fs from 'fs'
 import * as path from 'path'
-
 import { IndentedPrinter } from "../IndentedPrinter"
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
@@ -241,25 +241,6 @@ class OHOSVisitor {
         return capitalize(clazz.name)
     }
 
-    private writeClass(clazz: IDLInterface) {
-        this.cppWriter.writeClass(clazz.name, (writer) => {
-            clazz.constructors.forEach(it => {
-                writer.writeConstructorImplementation(clazz.name,
-                    this.makeSignature(IDLVoidType, it.parameters), (writer) => {
-                })
-            })
-            clazz.methods.forEach(it => {
-                writer.writeMethodImplementation(new Method(it.name,
-                    this.makeSignature(it.returnType, it.parameters)), (writer) => {
-                })
-            })
-        })
-    }
-
-    visitDeclaration(entry: IDLEntry): void {
-        // if (isClass(entry)) this.writeClass(entry)
-    }
-
     private requestType(type: IDLType | IDLEnum) {
         this.library.requestType(type, true)
     }
@@ -278,41 +259,6 @@ class OHOSVisitor {
             this.requestType(entry)
         }
         entry.scope?.forEach(it => this.requestTypes(it))
-    }
-
-    private writeTypes(types: IDLEntry[]) {
-        let _ = this.hWriter
-        let seen = new Set<string>()
-        types.forEach(type => {
-            if (seen.has(type.name!)) return
-            seen.add(type.name!)
-            if (isPrimitiveType(type)) {
-            }
-            if (isUnionType(type)) {
-                _.print(`struct ${this.mapType(type)} {`)
-                _.pushIndent()
-                _.print(`int selector;`)
-                _.print(`union {`)
-                _.pushIndent()
-                type.types.forEach((type, index) => {
-                    _.print(`${this.mapType(type)} value${index};`)
-                })
-                _.popIndent()
-                _.print(`};`)
-                _.popIndent()
-                _.print(`};`)
-            }
-            if (isEnum(type)) {
-                let declaration = this.library.toDeclaration(type) as IDLEnum
-                _.print(`typedef enum {`)
-                _.pushIndent()
-                declaration.elements.forEach(it => {
-                    _.print(`${PrimitiveType.Prefix}${this.libraryName}_${it.name},`)
-                })
-                _.popIndent()
-                _.print(`} ${this.mapType(type)};`)
-            }
-        })
     }
 
     private printManaged() {

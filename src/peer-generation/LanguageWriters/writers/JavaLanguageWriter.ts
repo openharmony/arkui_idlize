@@ -15,9 +15,24 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
-import { EnumConvertor as EnumConvertorDTS, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
-import { AssignStatement, LambdaExpression, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, ReturnStatement } from "../LanguageWriter"
-import { CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
+import {
+    AssignStatement,
+    FieldModifier,
+    LambdaExpression,
+    LanguageExpression,
+    LanguageStatement,
+    LanguageWriter,
+    Method,
+    MethodModifier,
+    MethodSignature,
+    ObjectArgs
+} from "../LanguageWriter"
+import {
+    CLikeExpressionStatement,
+    CLikeLanguageWriter,
+    CLikeLoopStatement,
+    CLikeReturnStatement
+} from "./CLikeLanguageWriter"
 import * as idl from '../../../idl'
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
@@ -217,15 +232,6 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         throw new Error("Method not implemented.")
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
-        if (convertor instanceof OptionConvertor) {
-            return `${value}`
-        }
-        if (convertor instanceof TupleConvertor && args?.index) {
-            return `${value}.value${args.index}`
-        }
-        if (convertor instanceof UnionConvertor && args?.index) {
-            return `${value}.getValue${args.index}()`
-        }
         return value
     }
     makeUndefined(): LanguageExpression {
@@ -236,12 +242,6 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     makeRuntimeTypeGetterCall(value: string): LanguageExpression {
         return this.makeMethodCall("Ark_Object", "getRuntimeType", [this.makeString(value)])
-    }
-    makeMapKeyTypeName(c: MapConvertor): idl.IDLType {
-        throw new Error("Method not implemented.")
-    }
-    makeMapValueTypeName(c: MapConvertor): idl.IDLType {
-        throw new Error("Method not implemented.")
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         throw new Error("Method not implemented.")
@@ -288,10 +288,6 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     makeSerializerCreator() {
         return this.makeString('Serializer::createSerializer');
-    }
-    override makeCastEnumToInt(convertor: EnumConvertorDTS, enumName: string, _unsafe?: boolean): string {
-        // TODO: remove after switching to IDL
-        return `${enumName}.getIntValue()`
     }
     override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: EnumConvertor | undefined): string {
         return `${enumName}.getIntValue()`

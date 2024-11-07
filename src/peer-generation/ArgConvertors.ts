@@ -16,7 +16,6 @@
 import * as idl from "../idl"
 import { Language } from "../Language"
 import { PrimitiveType } from "./ArkPrimitiveType"
-import { toIDLNode } from "../from-idl/deserialize"
 import { IDLBooleanType, IDLLengthType, IDLNullType, IDLNumberType, IDLType, IDLUndefinedType, toIDLType } from "../idl"
 import { LanguageExpression, LanguageStatement, LanguageWriter } from "./LanguageWriters"
 

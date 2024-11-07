@@ -1,17 +1,22 @@
 import * as idl from '../../idl'
+import { IDLBooleanType, toIDLType } from '../../idl'
 import { ImportFeature, ImportsCollector } from "../ImportsCollector";
-import { createLanguageWriter, generateTypeCheckerName, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression } from "../LanguageWriters";
+import {
+    createLanguageWriter,
+    generateTypeCheckerName,
+    LanguageExpression,
+    LanguageWriter,
+    Method,
+    MethodModifier,
+    NamedMethodSignature
+} from "../LanguageWriters";
 import { throwException } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { convertDeclToFeature } from "../idl/IdlPeerGeneratorVisitor";
 import { getSyntheticDeclarationList } from "../idl/IdlSyntheticDeclarations";
-import { PeerLibrary } from "../PeerLibrary";
-import {
-    DeclarationNameConvertor
-} from "../idl/IdlNameConvertor";
+import { DeclarationNameConvertor } from "../idl/IdlNameConvertor";
 import { convertDeclaration } from "../LanguageWriters/typeConvertor";
 import { Language } from "../../Language";
-import { IDLBooleanType, IDLType, toIDLType } from "../../idl";
 import { getReferenceResolver } from '../ReferenceResolver';
 
 const builtInInterfaceTypes = new Map<string,

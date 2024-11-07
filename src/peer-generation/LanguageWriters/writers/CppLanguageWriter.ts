@@ -13,15 +13,39 @@
  * limitations under the License.
  */
 
-import { createReferenceType, forceAsNamedNode, IDLCallback, IDLContainerType, IDLType, toIDLType } from "../../../idl"
+import {
+    createReferenceType,
+    forceAsNamedNode,
+    IDLCallback,
+    IDLContainerType,
+    IDLType,
+    toIDLType
+} from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { PrimitiveType } from "../../ArkPrimitiveType"
-import { ArrayConvertor, EnumConvertor as EnumConvertorDTS, MapConvertor, OptionConvertor, TupleConvertor, UnionConvertor } from "../../Convertors"
-import { AssignStatement, BlockStatement, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, ObjectArgs, StringExpression } from "../LanguageWriter"
-import { CDefinedExpression, CLikeExpressionStatement, CLikeLanguageWriter, CLikeLoopStatement, CLikeReturnStatement } from "./CLikeLanguageWriter"
+import {
+    AssignStatement,
+    BlockStatement,
+    FieldModifier,
+    LanguageExpression,
+    LanguageStatement,
+    LanguageWriter,
+    Method,
+    MethodModifier,
+    MethodSignature,
+    ObjectArgs,
+    StringExpression
+} from "../LanguageWriter"
+import {
+    CDefinedExpression,
+    CLikeExpressionStatement,
+    CLikeLanguageWriter,
+    CLikeLoopStatement,
+    CLikeReturnStatement
+} from "./CLikeLanguageWriter"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { IdlTypeNameConvertor } from "../typeConvertor"
@@ -300,18 +324,6 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return this.makeAssign(`${value}.tag`, undefined, tag, false)
     }
     getObjectAccessor(convertor: BaseArgConvertor, value: string, args?: ObjectArgs): string {
-        if (convertor instanceof OptionConvertor) {
-            return `${value}.value`
-        }
-        if (convertor instanceof ArrayConvertor && args?.index) {
-            return `${value}.array${args.index}`
-        }
-        if ((convertor instanceof UnionConvertor || convertor instanceof TupleConvertor) && args?.index) {
-            return `${value}.value${args.index}`
-        }
-        if (convertor instanceof MapConvertor && args?.index && args?.field) {
-            return `${value}.${args.field}[${args.index}]`
-        }
         return value
     }
     makeUndefined(): LanguageExpression {
@@ -322,12 +334,6 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`${PrimitiveType.Prefix.toUpperCase()}RUNTIME_${RuntimeType[rt]}`)
-    }
-    makeMapKeyTypeName(c: MapConvertor): IDLType {
-        return toIDLType(c.table.computeTargetName(c.table.toTarget(c.keyType), false))
-    }
-    makeMapValueTypeName(c: MapConvertor): IDLType {
-        return toIDLType(c.table.computeTargetName(c.table.toTarget(c.valueType), false))
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         // TODO: maybe use std::move?
@@ -371,10 +377,6 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
         return param
-    }
-    override makeCastEnumToInt(convertor: EnumConvertorDTS, value: string, _unsafe?: boolean): string {
-        // TODO: remove after switching to IDL
-        return `static_cast<${convertor.enumTypeName(this.language)}>(${value})`
     }
     override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
         if (convertor == undefined) {

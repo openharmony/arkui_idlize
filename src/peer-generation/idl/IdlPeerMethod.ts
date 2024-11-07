@@ -109,4 +109,8 @@ export class IdlPeerMethod {
         }
         return groupedMethods
     }
+
+    setSameOverloadIndex(copyFrom: IdlPeerMethod) {
+        this.overloadIndex = copyFrom.overloadIndex
+    }
 }

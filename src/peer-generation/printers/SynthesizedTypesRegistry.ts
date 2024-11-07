@@ -14,10 +14,7 @@
  */
 
 import { TargetFile } from './TargetFile'
-import { DeclarationTarget } from '../DeclarationTable'
-import { IDLType } from '../../idl'
 
 export interface SynthesizedTypesRegistry {
     getDefinitions(): Map<TargetFile, string>
-    getTargetType(target: DeclarationTarget, optional: boolean): IDLType
 }

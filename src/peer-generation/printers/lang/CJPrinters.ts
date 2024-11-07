@@ -13,23 +13,22 @@
  * limitations under the License.
  */
 
-import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "../../../idl"
+import { IDLI32Type, IDLType, IDLVoidType } from "../../../idl"
 import { IdlPeerLibrary } from "../../idl/IdlPeerLibrary"
-import { IdlPeerMethod } from "../../idl/IdlPeerMethod"
 import { ImportFeature } from "../../ImportsCollector"
-import { LanguageWriter, createLanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "../../LanguageWriters"
-import { PeerLibrary } from "../../PeerLibrary"
-import { PeerMethod } from "../../PeerMethod"
+import {
+    createLanguageWriter,
+    FieldModifier,
+    LanguageWriter,
+    MethodSignature,
+} from "../../LanguageWriters"
 import { getReferenceResolver } from "../../ReferenceResolver"
-import { generateArkComponentName } from "../ComponentsPrinter"
-import { componentToPeerClass } from "../PeersPrinter"
-import { PrinterContext } from "../PrinterContext"
 import { writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_UI_NODE_TYPE, ARK_OBJECTBASE, INT_VALUE_GETTER } from "./Cangjie"
+import { ARK_OBJECTBASE, ARK_UI_NODE_TYPE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./Cangjie"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 
-export function makeCJSerializer(library: PeerLibrary | IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
+export function makeCJSerializer(library: IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
     let writer = createLanguageWriter(library.language, getReferenceResolver(library))
     writer.print(`package idlize\n`)
     writeSerializer(library, writer, "")
@@ -37,11 +36,7 @@ export function makeCJSerializer(library: PeerLibrary | IdlPeerLibrary): { targe
     return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }
 
-export function makeCJNodeTypes(library: PeerLibrary | IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    if (library instanceof PeerLibrary) {
-        // TODO remove after migrating to IDL
-        throw new Error("We tried to generate old CJ node types ")
-    }
+export function makeCJNodeTypes(library: IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
     const componentNames = library.files.flatMap(file => {
         return Array.from(file.peers.values()).map(peer => peer.componentName)
     })
@@ -74,57 +69,6 @@ export class CJTuple extends IdlSyntheticTypeBase {
                     )
                 }
             })
-        }, ARK_OBJECTBASE)
-    }
-}
-
-export class CJUnion extends IdlSyntheticTypeBase {
-    constructor(source: Object | undefined, public name: string, public readonly members: IDLType[], public readonly imports: ImportFeature[]) {
-        super(source)
-    }
-
-    print(writer: LanguageWriter): void {
-        writer.writeClass(this.name, () => {
-            const intType = createReferenceType('int')
-            const selector = 'selector'
-            writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
-            writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
-                writer.writeStatement(
-                    writer.makeReturn(
-                        writer.makeString(selector)
-                    )
-                )
-            })
-
-            const param = 'param'
-            for (const [index, memberType] of this.members.entries()) {
-                const memberName = `value${index}`
-                writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], false)
-
-                writer.writeConstructorImplementation(
-                    this.name,
-                    new NamedMethodSignature(IDLVoidType, [memberType], [param]),
-                    () => {
-                        writer.writeStatement(
-                            writer.makeAssign(memberName, undefined, writer.makeString(param), false)
-                        )
-                        writer.writeStatement(
-                            writer.makeAssign(selector, undefined, writer.makeString(index.toString()), false)
-                        )
-                    }
-                )
-
-                writer.writeMethodImplementation(
-                    new Method(`getValue${index}`, new MethodSignature(memberType, []), [MethodModifier.PUBLIC]),
-                    () => {
-                        writer.writeStatement(
-                            writer.makeReturn(
-                                writer.makeString(memberName)
-                            )
-                        )
-                    }
-                )
-            }
         }, ARK_OBJECTBASE)
     }
 }

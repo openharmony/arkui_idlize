@@ -14,7 +14,6 @@
  */
 
 import { CustomPrintVisitor as DtsPrintVisitor} from "../../from-idl/DtsPrinter"
-import * as idl from "../../idl"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 
 export function printDeclarations(peerLibrary: IdlPeerLibrary): Array<string> {

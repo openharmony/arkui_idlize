@@ -43,5 +43,4 @@ export class PrimitiveType {
     static ObjectHandle = new PrimitiveType(`ObjectHandle`)
     static Length = new PrimitiveType(`Length`, true)
     static CustomObject = new PrimitiveType(`CustomObject`, true)
-
 }

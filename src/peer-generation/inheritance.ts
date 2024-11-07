@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-
 import * as ts from "typescript";
-import { asString, getDeclarationsByNode, heritageDeclarations, identName } from "../util";
+import { asString, heritageDeclarations, identName } from "../util";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 
 export enum InheritanceRole {
@@ -72,18 +71,4 @@ export function isStandalone(name: string): boolean {
 
 export function isHeir(name: string): boolean {
     return determineInheritanceRole(name) === InheritanceRole.Heir
-}
-
-export function singleParentDeclaration(
-    typeChecker: ts.TypeChecker,
-    component: ts.ClassDeclaration | ts.InterfaceDeclaration
-): ts.ClassDeclaration | ts.InterfaceDeclaration | undefined {
-    const parentTypeNode = component.heritageClauses
-        ?.filter(it => it.token == ts.SyntaxKind.ExtendsKeyword)[0]?.types[0]?.expression
-    if (parentTypeNode) {
-        const declaration = getDeclarationsByNode(typeChecker, parentTypeNode)
-            .find(it => ts.isClassDeclaration(it) || ts.isInterfaceDeclaration(it))
-        return declaration as (ts.ClassDeclaration | ts.InterfaceDeclaration | undefined)
-    }
-    return undefined
 }

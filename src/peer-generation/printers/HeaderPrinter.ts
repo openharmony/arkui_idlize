@@ -13,17 +13,11 @@
  * limitations under the License.
  */
 
-
 import { IndentedPrinter } from "../../IndentedPrinter";
-import { getNodeTypes, makeAPI, makeCSerializers, makeConverterHeader } from "../FileGenerators";
-import { PeerClass } from "../PeerClass";
-import { PeerLibrary } from "../PeerLibrary";
-import { PeerMethod } from "../PeerMethod";
+import { getNodeTypes, makeAPI, makeConverterHeader, makeCSerializers } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
-import { CallbackInfo, collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
-import { DeclarationTable } from "../DeclarationTable";
-import { PrimitiveType } from "../ArkPrimitiveType"
-import { CppLanguageWriter, NamedMethodSignature, createLanguageWriter, printMethodDeclaration } from "../LanguageWriters";
+import { collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
+import { CppLanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { camelCaseToUpperSnakeCase } from "../../util";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerClass } from "../idl/IdlPeerClass";
@@ -35,22 +29,9 @@ export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
 }
 
-export function generateEventSignature(table: DeclarationTable, event: CallbackInfo): NamedMethodSignature {
-    const nodeType = toIDLType(table.computeTargetName(PrimitiveType.Int32, false))
-    const argsTypes = event.args.map(it => maybeOptional(
-        toIDLType('const ' + table.typeConvertor(it.name, it.type, it.nullable).nativeType(false)),
-        it.nullable,
-    ))
-    return new NamedMethodSignature(
-        IDLVoidType,
-        [nodeType, ...argsTypes],
-        ['nodeId', ...event.args.map(it => it.name)]
-    )
-}
-
 class HeaderVisitor {
     constructor(
-        private library: PeerLibrary | IdlPeerLibrary,
+        private library: IdlPeerLibrary,
         private api: IndentedPrinter,
         private modifiersList: IndentedPrinter,
         private accessorsList: IndentedPrinter,
@@ -58,23 +39,23 @@ class HeaderVisitor {
         private nodeTypesList: IndentedPrinter,
     ) {}
 
-    private apiModifierHeader(clazz: PeerClass | IdlPeerClass) {
+    private apiModifierHeader(clazz: IdlPeerClass) {
         return `typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUI${clazz.componentName}Modifier {`
     }
 
-    private printClassProlog(clazz: PeerClass | IdlPeerClass) {
+    private printClassProlog(clazz: IdlPeerClass) {
         this.api.print(this.apiModifierHeader(clazz))
         this.api.pushIndent()
         this.modifiersList.pushIndent()
         this.modifiersList.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUI${clazz.componentName}Modifier* (*get${clazz.componentName}Modifier)();`)
     }
 
-    private printMethod(method: PeerMethod | IdlPeerMethod) {
+    private printMethod(method: IdlPeerMethod) {
         const apiParameters = method.generateAPIParameters()
         printMethodDeclaration(this.api, method.retType, `(*${method.fullMethodName})`, apiParameters, `;`)
     }
 
-    private printClassEpilog(clazz: PeerClass | IdlPeerClass) {
+    private printClassEpilog(clazz: IdlPeerClass) {
         if (clazz.methods.length == 0) {
             this.api.print("int dummy;")
         }
@@ -108,25 +89,8 @@ class HeaderVisitor {
         }
     }
 
-    private printEventsReceiver(componentName: string, callbacks: (CallbackInfo | IdlCallbackInfo)[]) {
-        return this.library instanceof PeerLibrary
-            ? this.printEventsReceiverTs(componentName, callbacks as CallbackInfo[], this.library)
-            : this.printEventsReceiverIdl(componentName, callbacks as IdlCallbackInfo[], this.library)
-    }
-
-    private printEventsReceiverTs(componentName: string, callbacks: CallbackInfo[], library: PeerLibrary) {
-        const receiver = generateEventReceiverName(componentName)
-        this.api.print(`typedef struct ${receiver} {`)
-        this.api.pushIndent()
-        for (const callback of callbacks) {
-            const signature = generateEventSignature(library.declarationTable, callback)
-            const args = signature.args.map((type, index) => {
-                return `${forceAsNamedNode(type).name} ${signature.argName(index)}`
-            })
-            printMethodDeclaration(this.api, forceAsNamedNode(signature.returnType).name, `(*${callback.methodName})`, args, `;`)
-        }
-        this.api.popIndent()
-        this.api.print(`} ${receiver};\n`)
+    private printEventsReceiver(componentName: string, callbacks: IdlCallbackInfo[]) {
+        return this.printEventsReceiverIdl(componentName, callbacks as IdlCallbackInfo[], this.library)
     }
 
     private printEventsReceiverIdl(componentName: string, callbacks: IdlCallbackInfo[], library: IdlPeerLibrary) {

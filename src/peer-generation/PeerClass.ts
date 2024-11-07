@@ -13,46 +13,10 @@
  * limitations under the License.
  */
 
-import { PeerFile } from "./PeerFile"
-import { PeerMethod } from "./PeerMethod"
-import { DeclarationTable } from "./DeclarationTable"
-
 export interface PeerClassBase {
     setGenerationContext(context: string| undefined): void
     generatedName(isCallSignature: boolean): string
 
     // TBD: update
     getComponentName(): string
-}
-
-export class PeerClass implements PeerClassBase {
-    constructor(
-        public readonly file: PeerFile,
-        public readonly componentName: string,
-        public readonly originalFilename: string,
-        public readonly declarationTable: DeclarationTable
-    ) { }
-
-    setGenerationContext(context: string| undefined): void {
-        this.declarationTable.setCurrentContext(context)
-    }
-
-    generatedName(isCallSignature: boolean): string{
-        return isCallSignature ? this.originalInterfaceName! : this.originalClassName!
-    }
-
-    getComponentName(): string {
-        return this.componentName
-    }
-
-    methods: PeerMethod[] = []
-
-    originalClassName: string | undefined = undefined
-    originalInterfaceName: string | undefined = undefined
-    originalParentName: string | undefined = undefined
-    originalParentFilename: string | undefined = undefined
-    parentComponentName: string | undefined = undefined
-    attributesFields: string[] = []
-    attributesTypes: {typeName: string, content: string}[] = []
-    hasGenericType: boolean = false
 }

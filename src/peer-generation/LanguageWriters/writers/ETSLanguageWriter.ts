@@ -15,7 +15,6 @@
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { capitalize } from "../../../util"
-import { EnumConvertor as EnumConvertorDTS, OptionConvertor, StringConvertor } from "../../Convertors"
 import {
     FieldModifier,
     LanguageExpression,
@@ -28,48 +27,13 @@ import {
     ObjectArgs
 } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import {
-    createReferenceType,
-    createUnionType,
-    forceAsNamedNode,
-    IDLAnyType,
-    IDLBooleanType,
-    IDLContainerType,
-    IDLContainerUtils,
-    IDLF32Type,
-    IDLF64Type,
-    IDLFunctionType,
-    IDLI16Type,
-    IDLI32Type,
-    IDLI64Type,
-    IDLI8Type,
-    IDLInterface,
-    IDLNumberType,
-    IDLPointerType,
-    IDLPrimitiveType,
-    IDLProperty,
-    IDLReferenceType,
-    IDLStringType,
-    IDLThisType,
-    IDLType,
-    IDLU16Type,
-    IDLU32Type,
-    IDLU64Type,
-    IDLU8Type,
-    IDLUndefinedType,
-    IDLUnknownType,
-    IDLVoidType,
-    isAnonymousInterface,
-    toIDLType
-} from '../../../idl'
+import { forceAsNamedNode, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
-import { createLiteralDeclName } from "../../TypeNodeNameConvertor"
 import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
 import { Language } from "../../../Language"
 import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLTypeToStringConvertor } from "../convertors/ETSConvertors"
-import { DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -211,18 +175,13 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     nativeReceiver(): string { return 'NativeModule' }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
-        if ((convertor instanceof EnumConvertorDTS || convertor instanceof EnumConvertor) && !param.endsWith(".value")) {
+        if ((convertor instanceof EnumConvertor) && !param.endsWith(".value")) {
             return `(${param} as ${convertor.enumTypeName(this.language)}).${convertor.isStringEnum ? 'ordinal' : 'value'}`
         }
         return super.makeUnsafeCast(convertor, param)
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
-        if (param instanceof OptionConvertor) {
-            this.writeStatement(this.makeCondition(this.makeString(`${value} != undefined`), this.makeAssign(valueType, undefined,
-                this.makeRuntimeType(RuntimeType.OBJECT), false)))
-        } else {
-            super.runtimeType(param, valueType, value);
-        }
+        super.runtimeType(param, valueType, value);
     }
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index?: number): LanguageExpression {
         if (convertor instanceof EnumConvertor) {
@@ -241,7 +200,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`${value} instanceof ${convertor.targetType(this)}`)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
-        if (destinationConvertor instanceof EnumConvertorDTS || destinationConvertor instanceof EnumConvertor) {
+        if (destinationConvertor instanceof EnumConvertor) {
             return this.makeString(`${value}!`)
         }
         return super.makeValueFromOption(value, destinationConvertor)
@@ -253,9 +212,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return new ArkTSEnumEntityStatement(enumEntity, isExport);
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
-        if (convertor instanceof StringConvertor && convertor.isLiteral()) {
-            return `${value}.toString()`
-        }
         return super.getObjectAccessor(convertor, value, args);
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable: boolean = false) {
@@ -265,23 +221,13 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     writeProperty(propName: string, propType: IDLType) {
         throw new Error("writeProperty for ArkTS is not implemented yet.")
     }
-    compareLiteral(expr: LanguageExpression, literal: string): LanguageExpression {
-        return super.makeNaryOp('instanceof', [expr, this.makeString(createLiteralDeclName(capitalize(literal)))]);
-    }
-    override makeCastEnumToInt(convertor: EnumConvertorDTS, value: string, _unsafe?: boolean): string {
-        // TODO: remove after switching to IDL
-        return this.makeCast(this.makeString(`${value}.${convertor.isStringEnum ? "ordinal" : "value"}`),
-            IDLI32Type).asString();
-    }
     override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
         return this.makeCast(this.makeString(`${value}.${convertor?.isStringEnum ? "ordinal" : "value"}`),
             IDLI32Type).asString();
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
-        if (convertor instanceof EnumConvertorDTS || convertor instanceof EnumConvertor) {
+        if (convertor instanceof EnumConvertor) {
             return this.makeString(`${valueName} instanceof ${convertor.enumTypeName(this.language)}`)
-        } else if (convertor instanceof StringConvertor && convertor.isLiteral()) {
-            return this.makeString(`${valueName} instanceof ${this.convert(convertor.idlType)}`)
         }
         return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index);
     }
@@ -309,11 +255,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                                                      runtimeType: RuntimeType,
                                                      exprs: LanguageExpression[]): LanguageExpression {
         return makeArrayTypeCheckCall(value, toIDLType(checkedType), this)
-    }
-    makeDiscriminatorConvertor(convertor: EnumConvertorDTS, value: string, index: number): LanguageExpression {
-        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
-            this.makeString(`${value} instanceof ${convertor.enumTypeName(this.language)}`)
-        ])
     }
     override castToInt(value: string, bitness: 8 | 32): string {
         return `${value} as int32` // FIXME: is there int8 in ARKTS?
