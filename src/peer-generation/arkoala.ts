@@ -785,7 +785,7 @@ export function generateArkoalaFromIdl(config: {
         integrated: true,
     })
 
-    const modifiers = printRealAndDummyModifiers(peerLibrary, true)
+    const modifiers = printRealAndDummyModifiers(peerLibrary)
     const accessors = printRealAndDummyAccessors(peerLibrary)
     writeFile(
         arkoala.native(new TargetFile('dummy_impl.cc')),
