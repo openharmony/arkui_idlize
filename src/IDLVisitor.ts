@@ -27,25 +27,6 @@ import { IDLKeywords } from "./languageSpecificKeywords"
 import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
 import { ReferenceResolver } from "./peer-generation/ReferenceResolver"
 
-const typeContainerMapper: Record<string, idl.IDLContainerKind> = {
-    'Array': 'sequence',
-    'Map': 'record',
-    'Promise': 'Promise'
-}
-
-const typeMapper = new Map<string, string>(
-    [
-        ["object", "Object"],
-        ["Array", "sequence"],
-        ["string",idl.IDLStringType.name],
-        ["Map", "record"],
-        ["Record", "record"],
-        // TODO: rethink that
-        ["\"2d\"", "string"],
-        ["\"auto\"", "string"]
-    ]
-)
-
 function escapeIdl(name: string): string {
     if (IDLKeywords.has(name))
         return `${name}_`
@@ -155,6 +136,42 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         return this.output
     }
+
+    private makeContainerType(kind: idl.IDLContainerKind, type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion): idl.IDLContainerType {
+        return idl.createContainerType(kind,
+            type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`p${index}`))))
+    }
+
+    private makeCallbackType(name: string, type: ts.TypeReferenceNode, _?: NameSuggestion): idl.IDLReferenceType {
+        const funcType = this.serializeCallback(name, type, NameSuggestion.make("Callback"))
+        this.addSyntheticType(funcType)
+        return idl.createReferenceType(funcType.name)
+    }
+
+    private makeOptionalType(type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion): idl.IDLType {
+        const types = [
+            type.typeArguments![0],
+            ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
+        ].flatMap(it => ts.isUnionTypeNode(it) ? it.types : it)
+        return this.serializeUnion(type.getText(), types, nameSuggestion)
+    }
+
+    private readonly TypeMapper =
+        new Map<string, (type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion) => idl.IDLType>([
+            ["object", _ => idl.IDLObjectType],
+            ["string", _ => idl.IDLStringType],
+            ["Boolean", _ => idl.IDLBooleanType], // nasty typo in SDK
+            ["Array", (type, name) => this.makeContainerType("sequence", type, name)],
+            ["Map", (type, name) => this.makeContainerType("record", type, name)],
+            ["Promise", (type, name) => this.makeContainerType("Promise", type, name)],
+            ["Record", (type, name) => this.makeContainerType("record", type, name)],
+            ["Callback", (type, name) => this.makeCallbackType("Callback", type, name)],
+            ["AsyncCallback", (type, name) => this.makeCallbackType("AsyncCallback", type, name)],
+            ["Optional", (type, name) => this.makeOptionalType(type, name)],
+            // TODO: rethink that
+            ["\"2d\"", _ => idl.IDLStringType],
+            ["\"auto\"", _ => idl.IDLStringType],
+        ])
 
     makeEnumMember(parent: idl.IDLEnum, name: string, value: string): idl.IDLEnumMember {
         const result = idl.createEnumMember(name, parent, idl.IDLStringType, value)
@@ -831,12 +848,15 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             return substType ?? idl.createTypeParameterReference(typeParamName ?? "UNEXPECTED_TYPE_PARAMETER")
         }
         if (ts.isTypeReferenceNode(type)) {
-            let declaration = getDeclarationsByNode(this.typeChecker, type.typeName)
+            const declarations = getDeclarationsByNode(this.typeChecker, type.typeName)
+            const typeName = type.typeName.getText(type.typeName.getSourceFile())
+            if (declarations.length == 0)
+                this.warn(`Do not know type ${typeName}`)
             // Treat enum member type 'value: EnumName.MemberName`
             // as enum type 'value: EnumName`.
             if (ts.isQualifiedName(type.typeName)) {
-                if (declaration && declaration.length > 0) {
-                    const decl = declaration[0]
+                if (declarations && declarations.length > 0) {
+                    const decl = declarations[0]
                     if (ts.isEnumMember(decl)) {
                         const enumName = identName(decl.parent.name)!
                         return idl.createReferenceType(enumName)
@@ -844,34 +864,10 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 }
                 return this.makeQualifiedName(type)
             }
-            if (declaration.length == 0) {
-                let name = type.typeName.getText(type.typeName.getSourceFile())
-                this.warn(`Do not know type ${name}`)
-                return idl.createReferenceType(name, this.mapTypeArgs(type.typeArguments, name))
-            }
-            let isEnum = ts.isEnumDeclaration(declaration[0])
-            const rawType = sanitize(getExportedDeclarationNameByNode(this.typeChecker, type.typeName))!
-            const transformedType = typeMapper.get(rawType) ?? rawType
-            if (rawType == "Array" || rawType == "Promise" || rawType == "Map" || rawType == "Record") {
-                // FIXME: bomb (as idl.IDLContainerKind)
-                return idl.createContainerType(transformedType as idl.IDLContainerKind, type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`p${index}`))))
-            }
-            if (rawType == "Callback" || rawType == "AsyncCallback") {
-                const funcType = this.serializeCallback(rawType, type, NameSuggestion.make("Callback"))
-                this.addSyntheticType(funcType)
-                return idl.createReferenceType(funcType.name)
-            }
-            if (rawType == "Optional") {
-                const types = [
-                    type.typeArguments![0],
-                    ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
-                ].flatMap(it => ts.isUnionTypeNode(it) ? it.types : it)
-                return this.serializeUnion(type.getText(), types, nameSuggestion)
-            }
-            if (isEnum) {
-                return idl.createReferenceType(transformedType)
-            }
-            return idl.createReferenceType(transformedType, this.mapTypeArgs(type.typeArguments, transformedType));
+            const typeMapper = this.TypeMapper.get(typeName)
+            return typeMapper
+                ? typeMapper(type, nameSuggestion)
+                : idl.createReferenceType(typeName, this.mapTypeArgs(type.typeArguments, typeName));
         }
         if (ts.isThisTypeNode(type)) {
             return idl.createReferenceType("this")
