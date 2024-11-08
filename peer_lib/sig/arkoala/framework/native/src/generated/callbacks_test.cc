@@ -14,6 +14,7 @@
  */
 #include <cstdint>
 #include "common-interop.h"
+#include "interop-logging.h"
 
 void CallVoid(KVMContext vmContext, KInt methodId, KInt length, void* args) {
 #if KOALA_USE_NODE_VM || KOALA_USE_HZ_VM || KOALA_USE_PANDA_VM || KOALA_USE_JAVA_VM
@@ -105,3 +106,15 @@ KInt impl_TestCallIntMemory(KVMContext vmContext, KInt methodId, KInt n) {
     return res;
 }
 KOALA_INTEROP_CTX_2(TestCallIntMemory, KInt, KInt, KInt)
+
+void impl_TestWithBuffer(KInteropBuffer buffer) {
+    std::string result;
+    if (buffer.length == 256) {
+        int8_t* view = (int8_t*)buffer.data;
+        result = std::to_string(view[0]) + " " + std::to_string(view[100]);
+    } else {
+        result = "Incorrect length of buffer " + std::to_string(buffer.length);
+    }
+    GetDefaultLogger()->appendGroupedLog(1, result.c_str());
+}
+//KOALA_INTEROP_V1(TestWithBuffer, KInteropBuffer)

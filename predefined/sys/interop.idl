@@ -14,10 +14,6 @@ interface Interop {
     pointer StringMake(String str1);
     i32 GetPtrVectorSize(pointer ptr1);
     i32 ManagedStringWrite(String str1, sequence<u8> arr, i32 arg);
-    void Test_SetEventsApi();
-    void Test_Common_OnChildTouchTest(sequence<u8> arr, i32 arg);
-    void Test_List_OnScrollVisibleContentChange(sequence<u8> arr, i32 arg);
-    void Test_TextPicker_OnAccept(sequence<u8> arr, i32 arg);
     void NativeLog(String str1);
     void StartPerf(String str1);
     void EndPerf(String str1);

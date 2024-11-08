@@ -54,18 +54,18 @@ class JavaTypeAlias {
 }
 
 export class JavaIDLNodeToStringConvertor extends IdlNameConvertorBase implements TypeConvertor<JavaTypeAlias> {
-    
+
     constructor(
-        private resolver: ReferenceResolver 
+        private resolver: ReferenceResolver
     ) { super() }
-    
+
     /**** IdlTypeNameConvertor *******************************************/
 
     convertType(type: idl.IDLType | idl.IDLCallback): string {
-        const typeAlias = idl.isCallback(type) 
-            ? this.convertCallback(type) 
+        const typeAlias = idl.isCallback(type)
+            ? this.convertCallback(type)
             : convertType(this, type)
-        const rowType = typeAlias.type.optional ? convertJavaOptional(typeAlias.type.text) : typeAlias.type.text 
+        const rowType = typeAlias.type.optional ? convertJavaOptional(typeAlias.type.text) : typeAlias.type.text
         return this.mapTypeName(rowType)
     }
 
@@ -124,7 +124,7 @@ export class JavaIDLNodeToStringConvertor extends IdlNameConvertorBase implement
                     return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
                 }
             }
-            
+
             if (decl.name) {
                 if (javaCustomTypeMapping.has(decl.name)) {
                     return JavaTypeAlias.fromTypeName(javaCustomTypeMapping.get(decl.name)!, false)
@@ -209,6 +209,7 @@ export class JavaIDLNodeToStringConvertor extends IdlNameConvertorBase implement
             case 'KUint8ArrayPtr': return 'byte[]'
             case 'KInt32ArrayPtr': return 'int[]'
             case 'KFloat32ArrayPtr': return 'float[]'
+            // case 'ArrayBuffer': return 'byte[]'
             case 'KStringPtr': return 'String'
             case 'string': return 'String'
         }
