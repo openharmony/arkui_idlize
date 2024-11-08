@@ -90,7 +90,7 @@
 | `backgroundImage`         | Function  |           | WON         | Erokhin Ilya        | blocked          |                   |           | Medium   |
 | `backgroundImageSize`     | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `backgroundImagePosition` | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Medium   |
-| `clip`                    | Function  |           | HEL, WON    | Erokhin Ilya        | blocked          |                   |           | High     |
+| `clip`                    | Function  |           | HEL, WON    | Skroba Gleb         | blocked  https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH|                   |           | High     |
 | `scale`                   | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `translate`               | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | High     |
 | `id`                      | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | High     |
@@ -153,7 +153,7 @@
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
 | `onScrollEdge`            | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | Video                     | Component |           |             | Erokhin Ilya        | blocked          |                   |           |          |
-| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
+| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked          |                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
 | Search                    | Component |           |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `placeholderColor`        | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
