@@ -558,9 +558,6 @@ export abstract class LanguageWriter {
     makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression(""))
     }
-    makeExtractionFromOption(value: string): LanguageExpression {
-        return this.makeString(`${value} == (${value}!)`)
-    }
     makeMapResize(mapTypeName: string, keyType: idl.IDLType, valueType: idl.IDLType, map: string, size: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression("// TODO: TS map resize"))
     }

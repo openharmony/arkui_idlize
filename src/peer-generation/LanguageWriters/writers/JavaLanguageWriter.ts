@@ -223,9 +223,6 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeUnionTypeDefaultInitializer() {
         return this.makeString("-1")
     }
-    makeExtractionFromOption(value: string): LanguageExpression {
-        return this.makeString(`${value} != null`)
-    }
     writePrintLog(message: string): void {
         this.print(`System.out.println("${message}")`)
     }

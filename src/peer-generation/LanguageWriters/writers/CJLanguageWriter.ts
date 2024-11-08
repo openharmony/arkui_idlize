@@ -336,9 +336,6 @@ export class CJLanguageWriter extends LanguageWriter {
     makeUndefined(): LanguageExpression {
         return this.makeString("Option.None")
     }
-    makeExtractionFromOption(value: string): LanguageExpression {
-        return this.makeString(`let Some(${value}) <- ${value}`)
-    }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         return this.makeString(`${value}`)
     }

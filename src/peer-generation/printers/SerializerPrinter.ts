@@ -149,22 +149,28 @@ class IdlSerializerPrinter {
         this.writer.writeClass(className, writer => {
             // No need for hold() in C++.
             if (writer.language != Language.CPP) {
-                writer.writeFieldDeclaration("cache", idl.createOptionalType(idl.createReferenceType("Serializer")), [FieldModifier.PRIVATE, FieldModifier.STATIC], false, writer.makeNull("Serializer"))
+                writer.writeFieldDeclaration("cache", idl.createOptionalType(idl.createReferenceType("Serializer")), [FieldModifier.PRIVATE, FieldModifier.STATIC], true, writer.makeNull("Serializer"))
+
                 writer.writeMethodImplementation(new Method("hold", new MethodSignature(idl.createReferenceType("Serializer"), []), [MethodModifier.STATIC]),
                 writer => {
-                    writer.writeStatement(writer.makeAssign("serializer", undefined, writer.makeString("Serializer.cache"), true, false))
                     writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.cache')), writer.makeBlock([
-                        writer.makeAssign("serializer", undefined, writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), false),
-                        writer.makeAssign("Serializer.cache", undefined, writer.makeString("serializer"), false)
+                        writer.makeAssign("Serializer.cache", undefined, writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), false)
                     ])))
-                    writer.writeStatement(writer.makeCondition(writer.makeExtractionFromOption('serializer'), writer.makeBlock([ 
-                        writer.makeCondition(writer.makeString("serializer.isHolding"),
+                    if (writer.language != Language.CJ) {
+                        writer.writeStatement(writer.makeAssign("serializer", undefined, writer.makeString("Serializer.cache"), true, false))
+                    } else {
+                        writer.print("var serializer = match (Serializer.cache) {")
+                        writer.pushIndent()
+                        writer.print("case Some(serializer) => serializer")
+                        writer.print("case _ => throw Exception(\"Even after creating Serializer cache it is still undefined\")")
+                        writer.popIndent()
+                        writer.print("}")
+                    }
+                    writer.writeStatement(writer.makeCondition(writer.makeString("serializer.isHolding"),
                         writer.makeBlock([writer.makeThrowError(("Serializer is already being held. Check if you had released is before"))])),
-                        writer.makeAssign("serializer.isHolding", undefined, writer.makeString("true"), false),
-                        writer.makeReturn(writer.makeString("serializer"))
-                    ]), 
-                    writer.makeBlock([writer.makeThrowError("Even after creating Serializer cache it is still undefined")])
-                    ))
+                    )
+                    writer.writeStatement(writer.makeAssign("serializer.isHolding", undefined, writer.makeString("true"), false))
+                    writer.writeStatement(writer.makeReturn(writer.makeString("serializer")))
                 })
             }
             if (ctorSignature) {
