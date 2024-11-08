@@ -17,8 +17,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { IndentedPrinter } from "../IndentedPrinter"
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
-import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
-import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLKind, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType } from '../idl'
+import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageExpression, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
+import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType, maybeOptional } from '../idl'
 import { makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { capitalize } from '../util'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
@@ -30,6 +30,7 @@ import { qualifiedName } from './idl/common'
 import { printCallbacksKinds } from './printers/CallbacksPrinter'
 import { StructPrinter } from './idl/StructPrinter'
 import { generateCallbackAPIArguments } from './idl/IdlArgConvertors'
+import { printBridgeCc } from './printers/BridgeCcPrinter'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -88,17 +89,6 @@ class OHOSVisitor {
         return new MethodSignature(returnType, parameters.map(it => it.type!))
     }
 
-    private writeData(clazz: IDLInterface) {
-        let name = `${PrimitiveType.Prefix}${this.libraryName}_${clazz.name}`
-        let _ = this.hWriter
-        _.print(`typedef struct ${name} {`)
-        _.pushIndent()
-        clazz.properties.forEach(it => {
-            _.print(`${this.mapType(it.type)} ${it.name};`)
-        })
-        _.popIndent()
-        _.print(`} ${name};`)
-    }
 
     private writeCallback(callback: IDLCallback) {
         // TODO commonize with StructPrinter.ts
@@ -131,7 +121,7 @@ class OHOSVisitor {
         clazz.constructors.forEach((ctor, index) => {
             let name = `construct${(index > 0) ? index.toString() : ""}`
             let params = ctor.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!)))
-            _h.print(`${handleType} (*${name})(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
+            _h.print(`${handleType} (*${name})(${params.map(it => `const ${it.type}* ${it.name}`).join(", ")});`) // TODO check
             let implName = `${clazz.name}_${name}Impl`
             _c.print(`&${implName},`)
             this.impls.set(implName, { params, returnType: handleType})
@@ -290,27 +280,11 @@ class OHOSVisitor {
         })
         printCallbacksKinds(this.library, this.nativeWriter)
         this.nativeWriter.writeInterface(className, writer => {
-            this.interfaces.flatMap(it => it.methods).forEach(method => {
-                // TODO remove duplicated code from NativeModuleVisitor::printPeerMethod (NativeModulePrinter.ts)
-                const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
-                const args: ({name: string, type: IDLType})[] = [{ name: 'self', type: IDLPointerType }]
-                let serializerArgCreated = false
-                for (let i = 0; i < argConvertors.length; ++i) {
-                    let it = argConvertors[i]
-                    if (it.useArray) {
-                        if (!serializerArgCreated) {
-                            args.push(
-                                { name: 'thisArray', type: createContainerType('sequence', [IDLU8Type]) },
-                                { name: 'thisLength', type: IDLI32Type },
-                            )
-                            serializerArgCreated = true
-                        }
-                    } else {
-                        args.push({ name: `${it.param}`, type: method.parameters[i].type! })
-                    }
-                }
-                const signature = NamedMethodSignature.make(method.returnType, args)
-                writer.writeNativeMethodDeclaration(`_${this.libraryName}_${method.name}`, signature)
+            this.interfaces.forEach(it => {
+                it.methods.forEach(method => {
+                    const signature = makePeerCallSignature(this.library, method.parameters, method.returnType, "self")
+                    writer.writeNativeMethodDeclaration(`_${it.name}_${method.name}`, signature)  // TODO temporarily removed _${this.libraryName} prefix
+                })
             })
             this.interfaces.forEach(it => {
                 const ctors = it.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
@@ -321,7 +295,7 @@ class OHOSVisitor {
                     })
                 }
                 ctors.forEach(ctor => {
-                    const signature = writer.makeNamedSignature(IDLPointerType, ctor.parameters)
+                    const signature = makePeerCallSignature(this.library, ctor.parameters, IDLPointerType)
                     writer.writeNativeMethodDeclaration(`_${it.name}_ctor`, signature)
                 })
             })
@@ -348,7 +322,7 @@ class OHOSVisitor {
         this.data.forEach(data => {
             this.peerWriter.writeInterface(data.name, writer => {
                 data.properties.forEach(prop => {
-                    writer.writeFieldDeclaration(prop.name, prop.type, [], false)
+                    writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
                 })
             })
         })
@@ -372,17 +346,64 @@ class OHOSVisitor {
                 }
                 ctors.forEach(ctor => {
                     const signature = writer.makeNamedSignature(ctor.returnType ?? IDLVoidType, ctor.parameters)
+                    // TODO remove duplicated code from writePeerMethod (PeersPrinter.ts)
+                    const argConvertors = ctor.parameters.map(param => generateArgConvertor(this.library, param))
+                    let scopes = argConvertors.filter(it => it.isScoped)
+                    scopes.forEach(it => {
+                        writer.pushIndent()
+                        writer.print(it.scopeStart?.(it.param, writer.language))
+                    })
+
+                    let serializerPushed = false
+                    let params: LanguageExpression[] = []
+                    argConvertors.forEach(it => {
+                        if (it.useArray) {
+                            if (!serializerPushed) {
+                                params.push(writer.makeMethodCall(`thisSerializer`, 'asArray', []))
+                                params.push(writer.makeMethodCall(`thisSerializer`, 'length', []))
+                                serializerPushed = true
+                            }
+                        } else {
+                            params.push(writer.makeString(it.convertorArg(it.param, writer)))
+                        }
+                    })
 
                     writer.writeConstructorImplementation(int.name, signature, writer => {
-                        writer.writeStatement(
-                            writer.makeAssign(
-                                'this.peer', undefined,
-                                writer.makeMethodCall(`${nativeModuleGetter}()`, `_${int.name}_ctor`, signature.argsNames.map(it => writer.makeString(it))),
-                                false
+                        if (serializerPushed) {
+                            writer.writeStatement(
+                                writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
+                                    writer.makeMethodCall('Serializer', 'hold', []), true)
                             )
+                        }
+                        argConvertors.forEach((it) => {
+                            if (it.useArray) {
+                                it.convertorSerialize(`this`, it.param, writer)
+                            }
+                        })
+                        
+                        const callExpression = writer.makeMethodCall(`${nativeModuleGetter}()`, `_${int.name}_ctor`, params)
+                        writer.writeStatement(
+                            writer.makeAssign('this.peer', undefined, callExpression, false)
                         )
+
+                        if (serializerPushed) {
+                            writer.writeStatement(new ExpressionStatement(
+                                writer.makeMethodCall('thisSerializer', 'release', [])))
+                            scopes.reverse().forEach(it => {
+                                writer.popIndent()
+                                writer.print(it.scopeEnd!(it.param, writer.language))
+                            })
+                        }
                     })
                 })
+
+                // write getPeer() method
+                const getPeerSig = new MethodSignature(maybeOptional(createReferenceType("Finalizable"), true),[])
+                writer.writeMethodImplementation(new Method("getPeer", getPeerSig), writer => {
+                    // TODO add better (platform-agnostic) way to return Finalizable
+                    writer.writeStatement(writer.makeReturn(writer.makeString("{ ptr: this.peer }")))
+                })
+
                 int.methods.forEach(method => {
                     const signature = writer.makeNamedSignature(method.returnType, method.parameters)
                     writer.writeMethodImplementation(new Method(method.name, signature), writer => {
@@ -394,7 +415,7 @@ class OHOSVisitor {
                             writer.print(it.scopeStart?.(it.param, writer.language))
                         })
                         let serializerCreated = false
-                        argConvertors.forEach((it, index) => {
+                        argConvertors.forEach((it) => {
                             if (it.useArray) {
                                 if (!serializerCreated) {
                                     writer.writeStatement(
@@ -421,13 +442,13 @@ class OHOSVisitor {
                         })
                         const callExpression = writer.makeMethodCall(
                             `${nativeModuleGetter}()`,
-                            `_${this.libraryName}_${method.name}`,
+                            `_${int.name}_${method.name}`, // TODO temporarily removed _${this.libraryName} prefix
                             params
                         )
                         if (method.returnType === IDLVoidType) {
                             writer.writeStatement(writer.makeStatement(callExpression))
                         } else {
-                            writer.writeStatement(writer.makeReturn(callExpression))
+                            writer.writeStatement(writer.makeAssign("result", undefined, callExpression, true, true))
                         }
                         if (serializerPushed) {
                             writer.writeStatement(new ExpressionStatement(
@@ -436,6 +457,9 @@ class OHOSVisitor {
                                 writer.popIndent()
                                 writer.print(it.scopeEnd!(it.param, writer.language))
                             })
+                        }
+                        if (method.returnType !== IDLVoidType) {
+                            writer.writeStatement(writer.makeReturn(writer.makeString("result")))
                         }
                     })
                 })
@@ -454,6 +478,7 @@ class OHOSVisitor {
         )
 
 
+        printCallbacksKinds(this.library, this.cppWriter)
         let toStringsPrinter = createLanguageWriter(Language.CPP, this.library)
         new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter)
         this.cppWriter.concat(toStringsPrinter)
@@ -465,6 +490,9 @@ class OHOSVisitor {
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)
+        this.cppWriter.print("// ------------------------------------------------------------------------------")
+        const bridgeCc = printBridgeCc(this.library, false)
+        this.cppWriter.concat(bridgeCc.generated)
 
         this.hWriter.writeLines(
             readLangTemplate('ohos_api_epilogue.h', Language.CPP)
@@ -583,20 +611,33 @@ function generateArgConvertor(library: IdlPeerLibrary, param: IDLParameter): Arg
     return library.typeConvertor(param.name, param.type, param.isOptional)
 }
 
-// TODO join with generateCParameters(BridgeCcPrinter.ts)
+// TODO drop this method
 function generateCParameters(method: IDLMethod, argConvertors: ArgConvertor[], writer: LanguageWriter): string {
     let args = [`${PrimitiveType.NativePointer.getText()} thisPtr`]
-    let ptrCreated = false;
+    for (let i = 0; i < argConvertors.length; ++i) {
+        args.push(`const ${writer.stringifyType(method.parameters[i].type!)}* ${writer.escapeKeyword(method.parameters[i].name)}`)
+    }
+    return args.join(", ")
+}
+
+function makePeerCallSignature(library: IdlPeerLibrary, parameters: IDLParameter[], returnType: IDLType, thisArg?: string) {
+    // TODO remove duplicated code from NativeModuleVisitor::printPeerMethod (NativeModulePrinter.ts)
+    const argConvertors = parameters.map(param => generateArgConvertor(library, param))
+    const args: ({name: string, type: IDLType})[] = thisArg ? [{ name: thisArg, type: IDLPointerType }] : []
+    let serializerArgCreated = false
     for (let i = 0; i < argConvertors.length; ++i) {
         let it = argConvertors[i]
         if (it.useArray) {
-            if (!ptrCreated) {
-                args.push(`uint8_t* thisArray, int32_t thisLength`)
-                ptrCreated = true
+            if (!serializerArgCreated) {
+                args.push(
+                    { name: 'thisArray', type: createContainerType('sequence', [IDLU8Type]) },
+                    { name: 'thisLength', type: IDLI32Type },
+                )
+                serializerArgCreated = true
             }
         } else {
-            args.push(`${writer.stringifyType(method.parameters[i].type!)} ${writer.escapeKeyword(method.parameters[i].name)}`)
+            args.push({ name: `${it.param}`, type: parameters[i].type! })
         }
     }
-    return args.join(", ")
+    return NamedMethodSignature.make(returnType, args)
 }

@@ -15,6 +15,8 @@
 #ifndef %INCLUDE_GUARD_DEFINE%
 #define %INCLUDE_GUARD_DEFINE%
 
+#define XML_API_VERSION 1
+
 #include <stdint.h>
 
 /* clang-format off */

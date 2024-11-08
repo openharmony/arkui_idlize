@@ -1,0 +1,16 @@
+{
+    "name": "demo-xml",
+    "private": true,
+    "devDependencies": {
+        "@rollup/plugin-inject": "^5.0.5",
+        "@rollup/plugin-node-resolve": "^15.3.0",
+        "@rollup/plugin-typescript": "^12.1.1",
+        "rollup": "^4.24.4"
+    },
+    "scripts": {
+        "compile:ts:node": "rollup -c",
+        "compile:native:node": "meson setup build/native && meson install -C build/native",
+        "compile:node": "npm run compile:native:node && npm run compile:ts:node",
+        "start": "node build/node/index.js"
+    }
+}

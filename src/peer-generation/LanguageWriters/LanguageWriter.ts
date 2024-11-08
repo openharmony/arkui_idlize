@@ -609,7 +609,10 @@ export abstract class LanguageWriter {
     makeNamedSignature(returnType: idl.IDLType, parameters: idl.IDLParameter[]): NamedMethodSignature {
         return NamedMethodSignature.make(
             returnType,
-            parameters.map(it => ({ name: it.name, type: it.type! }))
+            parameters.map(it => ({
+                name: it.name,
+                type:  it.isOptional ? idl.createOptionalType(it.type!) : it.type!
+            }))
         )
     }
     makeNativeMethodNamedSignature(returnType: idl.IDLType, parameters: idl.IDLParameter[]): NamedMethodSignature {

@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "outDir": "build/ts",
+        "sourceMap": true,
+        "rootDirs": ["src", "generated/ts"]
+    }
+}

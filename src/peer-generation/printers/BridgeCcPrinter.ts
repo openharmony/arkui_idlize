@@ -17,11 +17,11 @@ import { capitalize, dropSuffix, isDefined } from "../../util";
 import { ArgConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
-import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement, Method, NamedMethodSignature } from "../LanguageWriters";
+import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement, LanguageWriter } from "../LanguageWriters";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { Language } from "../../Language";
-import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from "../../idl";
+import { forceAsNamedNode, IDLBooleanType, IDLNumberType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 
 class BridgeCcVisitor {
@@ -275,14 +275,23 @@ class BridgeCcVisitor {
     }
 }
 
-export function printBridgeCcGenerated(peerLibrary: IdlPeerLibrary, callLog: boolean): string {
+type BridgeCcApi = {
+    generated: LanguageWriter;
+    custom: LanguageWriter;
+};
+
+export function printBridgeCc(peerLibrary: IdlPeerLibrary, callLog: boolean): BridgeCcApi {
     const visitor = new BridgeCcVisitor(peerLibrary, callLog)
     visitor.print()
-    return bridgeCcGeneratedDeclaration(visitor.generatedApi.getOutput())
+    return { generated: visitor.generatedApi, custom: visitor.customApi }
+}
+
+export function printBridgeCcGenerated(peerLibrary: IdlPeerLibrary, callLog: boolean): string {
+    const { generated } = printBridgeCc(peerLibrary, callLog)
+    return bridgeCcGeneratedDeclaration(generated.getOutput())
 }
 
 export function printBridgeCcCustom(peerLibrary: IdlPeerLibrary, callLog: boolean): string {
-    const visitor = new BridgeCcVisitor(peerLibrary, callLog)
-    visitor.print()
-    return bridgeCcCustomDeclaration(visitor.customApi.getOutput())
+    const { custom } = printBridgeCc(peerLibrary, callLog)
+    return bridgeCcCustomDeclaration(custom.getOutput())
 }
