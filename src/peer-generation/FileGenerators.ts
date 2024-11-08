@@ -294,9 +294,6 @@ export function makeTSSerializer(library: IdlPeerLibrary): LanguageWriter {
     }
     imports.print(printer, '')
     writeSerializer(library, printer, "")
-    printer.writeLines(`
-export function createSerializer(): Serializer { return new Serializer() }
-`)
     return printer
 }
 
@@ -312,9 +309,6 @@ export function makeSerializerForOhos(library: IdlPeerLibrary, nativeModule: { n
         imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
         imports.print(printer, '')
         writeSerializer(library, printer, "", declarationPath)
-        printer.writeLines(`
-export function createSerializer(): Serializer { return new Serializer() }
-`)
         return printer
     } else {
         throw new Error(`unsupported language ${library.language}`)
@@ -396,7 +390,7 @@ import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
 import { CallbackKind } from "./CallbackKind"
-import { Serializer, createSerializer } from "./Serializer"
+import { Serializer } from "./Serializer"
 import { nativeModule } from "@koalaui/arkoala"
 import { KPointer } from "@koalaui/interop"
 

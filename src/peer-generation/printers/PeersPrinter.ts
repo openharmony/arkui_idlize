@@ -230,8 +230,8 @@ class PeerFileVisitor {
         const defaultPeerImports =  [
             `import { int32 } from "@koalaui/common"`,
             `import { nullptr, KPointer, KInt, KBoolean, KStringPtr } from "@koalaui/interop"`,
-            `import { isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./SerializerBase"`,
-            `import { createSerializer, Serializer } from "./Serializer"`,
+            `import { isResource, isInstanceOf, runtimeType, RuntimeType } from "./SerializerBase"`,
+            `import { Serializer } from "./Serializer"`,
             `import { ArkUINodeType } from "./ArkUINodeType"`,
             `import { ComponentBase } from "../ComponentBase"`,
         ]
@@ -423,9 +423,7 @@ export function writePeerMethod(printer: LanguageWriter, method: IdlPeerMethod, 
                 if (!serializerCreated) {
                     writer.writeStatement(
                         writer.makeAssign(`thisSerializer`, toIDLType('Serializer'),
-                            writer.makeMethodCall('SerializerBase', 'hold', [
-                                writer.makeSerializerCreator()
-                            ]), true)
+                            writer.makeMethodCall('Serializer', 'hold', []), true)
                     )
                     serializerCreated = true
                 }
@@ -461,7 +459,7 @@ export function writePeerMethod(printer: LanguageWriter, method: IdlPeerMethod, 
             // here we write methods
             `_${method.originalParentName}_${method.overloadedName}`,
             params)
-        
+
         if (returnType != IDLVoidType) {
             writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
         } else {

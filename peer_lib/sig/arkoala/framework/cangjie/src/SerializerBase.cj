@@ -28,7 +28,7 @@ public enum RuntimeType {
     |BOOLEAN
     |UNDEFINED
     |BIGINT
-    |FUNCTION 
+    |FUNCTION
     |SYMBOL
     |MATERIALIZED
     prop ordinal: Int32 {
@@ -80,7 +80,7 @@ class SerializersCache {
                     case res: T => res
                     case _ => throw Exception("Factory lambda inside getCached function has returned no value")
                 }
-            case None => 
+            case None =>
                 result = factory()
                 this.cache[Int64(index)] = result
                 return match(result) {
@@ -92,9 +92,7 @@ class SerializersCache {
 }
 
 public open class SerializerBase {
-    private static var cache: ?SerializerBase = None<SerializerBase>
-
-    private var isHolding: Bool = false
+    protected var isHolding: Bool = false
     private var position: Int64 = 0
     private var buffer: ArrayList<UInt8> = ArrayList<UInt8>()
 
@@ -110,23 +108,6 @@ public open class SerializerBase {
     // static func get<T>(factory: () -> T, index: Int32): T where T <: SerializerBase {
     //     return SerializerBase.cache.getCached(factory, index)
     // }
-
-    static func hold<T>(factory: () -> T): T where T <: SerializerBase {
-        if (SerializerBase.cache.isNone()) {
-            SerializerBase.cache = factory()
-        }
-
-        let serializer = SerializerBase.cache as T
-        return match (serializer) {
-            case Some(serializer) => 
-                match (serializer.isHolding) {
-                    case true => throw Exception("Serializer is already being held. Check if you had released is before")
-                    case false => serializer.isHolding = true
-                serializer
-            }
-            case _ => throw Exception("For some reason serializer is still None")
-        }
-    }
     public func release() {
         this.isHolding = false
         // todo handle release resources
@@ -263,5 +244,5 @@ public open class SerializerBase {
         this.checkCapacity(1)
         this.writeInt8(RuntimeType.STRING.ordinal)
         this.writeString(value.value)
-    }    
+    }
 }

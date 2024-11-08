@@ -135,6 +135,14 @@ export class CJEnumEntityStatement implements LanguageStatement {
     }
 }
 
+class CJThrowErrorStatement implements LanguageStatement {
+    constructor(public message: string) { }
+    write(writer: LanguageWriter): void {
+        writer.print(`throw Exception("${this.message}")`)
+    }
+}
+
+
 ////////////////////////////////////////////////////////////////
 //                           WRITER                           //
 ////////////////////////////////////////////////////////////////
@@ -275,7 +283,7 @@ export class CJLanguageWriter extends LanguageWriter {
         throw new Error(`TBD`)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
-        throw new Error(`TBD`)   
+        throw new Error(`TBD`)
     }
     makeArrayLength(array: string, length?: string): LanguageExpression {
         return this.makeString(`${array}.size`)
@@ -288,7 +296,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return new CJLambdaExpression(this, signature, this.resolver, body)
     }
     makeThrowError(message: string): LanguageStatement {
-        throw new Error(`TBD`)
+        return new CJThrowErrorStatement(message)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new ReturnStatement(expr)
@@ -371,9 +379,6 @@ export class CJLanguageWriter extends LanguageWriter {
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         this.writeStatement(this.makeAssign(valueType, undefined,
             this.makeRuntimeTypeGetterCall(value), false))
-    }
-    makeSerializerCreator() {
-        return this.makeString('createSerializer');
     }
     escapeKeyword(word: string): string {
         return CJKeywords.has(word) ? word + "_" : word

@@ -101,9 +101,7 @@ export class TSWrappersVisitor {
                     if (!serializerCreated) {
                         writer.writeStatement(
                             writer.makeAssign(`thisSerializer`, toIDLType('Serializer'),
-                                writer.makeMethodCall('SerializerBase', 'get', [
-                                    writer.makeSerializerCreator(), writer.makeString(index.toString())
-                                ]), true)
+                                writer.makeMethodCall('Serializer', 'hold', []), true)
                         )
                         serializerCreated = true
                     }

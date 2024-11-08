@@ -564,8 +564,8 @@ export class IdlWrapperProcessor {
                     || conv.runtimeTypes.indexOf(RuntimeType.MATERIALIZED) > -1
                     || conv.runtimeTypes.indexOf(RuntimeType.FUNCTION) > -1
                 ) {
-                    importsCollector.addFeatures(["createSerializer", "Serializer"], "Serializer")
-                    importsCollector.addFeatures(["RuntimeType", "runtimeType", "SerializerBase"], "SerializerBase")
+                    importsCollector.addFeatures(["Serializer"], "Serializer")
+                    importsCollector.addFeatures(["RuntimeType", "runtimeType" ], "SerializerBase")
                 }
             })
         })

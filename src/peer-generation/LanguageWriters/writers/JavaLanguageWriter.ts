@@ -266,7 +266,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         throw new Error("Method not implemented.")
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
-        throw new Error("Method not implemented.")        
+        throw new Error("Method not implemented.")
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         throw new Error("Method not implemented.")
@@ -286,9 +286,6 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         this.writeStatement(this.makeAssign(valueType, undefined,
             this.makeRuntimeTypeGetterCall(value), false))
-    }
-    makeSerializerCreator() {
-        return this.makeString('Serializer::createSerializer');
     }
     override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: EnumConvertor | undefined): string {
         return `${enumName}.getIntValue()`

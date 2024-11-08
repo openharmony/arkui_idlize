@@ -24,8 +24,6 @@ export function makeTSSerializerFromIdl(library: IdlSkoalaLibrary): string {
     serializorPrinter.print()
     return `
 ${printer.getOutput().join("\n")}
-
-export function createSerializer(): Serializer { return new Serializer() }
 `
 }
 
@@ -96,10 +94,6 @@ class IdlSerializerPrinter {
                 }, ctorMethod)
             }
             serializerDeclarations.forEach(decl => this.generateSerializer(decl))
-            if (this.writer.language == Language.JAVA) {
-                // TODO: somewhat ugly.
-                this.writer.print(`static Serializer createSerializer() { return new Serializer(); }`)
-            }
         }, superName)
     }
 }

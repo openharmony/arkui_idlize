@@ -31,7 +31,8 @@ import {
     MethodSignature,
     NamedMethodSignature,
     ObjectArgs,
-    ReturnStatement
+    ReturnStatement,
+    StringExpression
 } from "../LanguageWriter"
 import * as idl from '../../../idl'
 import * as ts from 'typescript'
@@ -170,7 +171,7 @@ class TsObjectDeclareNodeNameConvertor extends TSTypeNodeNameConvertor {
 
 export class TSLanguageWriter extends LanguageWriter {
     protected typeConvertor: IdlNameConvertor
-    
+
     constructor(printer: IndentedPrinter, resolver: ReferenceResolver, language: Language = Language.TS) {
         super(printer, resolver, language)
         this.typeConvertor = new TsIDLNodeToStringConverter(this.resolver)
@@ -264,6 +265,9 @@ export class TSLanguageWriter extends LanguageWriter {
         const isSetter = modifiers?.includes(MethodModifier.SETTER)
         this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${idl.isOptionalType(it) && !isSetter ? "?" : ""}: ${this.stringifyType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.stringifyType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
+    makeNull(): LanguageExpression {
+        return new StringExpression("undefined")
+    }
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true, options?:MakeAssignOptions): LanguageStatement {
         return new AssignStatement(variableName, type, expr, isDeclared, isConst, options)
     }
@@ -313,7 +317,7 @@ export class TSLanguageWriter extends LanguageWriter {
         return this.makeString(`new ${this.stringifyType(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
-        return this.makeString(`new ${this.stringifyType(type)}()`) 
+        return this.makeString(`new ${this.stringifyType(type)}()`)
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         // keyAccessor and valueAccessor are equal in TS

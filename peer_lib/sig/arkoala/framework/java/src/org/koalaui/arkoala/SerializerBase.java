@@ -33,20 +33,10 @@ public class SerializerBase {
 
     // TODO: use allocateDirect
     private ByteBuffer buffer = ByteBuffer.allocate(96).order(ByteOrder.LITTLE_ENDIAN);
-    private boolean isHolding = false;
+    protected boolean isHolding = false;
 
     private static SerializerBase cache = null;
 
-    @SuppressWarnings("unchecked")
-    static <T extends SerializerBase> T hold(Supplier<T> factory) {
-        if (SerializerBase.cache == null)
-            SerializerBase.cache = factory.get();
-        SerializerBase serializer = SerializerBase.cache;
-        if (serializer.isHolding)
-            return null;
-        serializer.isHolding = true;
-        return (T) serializer;
-    }
     public void release() {
         this.isHolding = false;
         // todo handle release resources

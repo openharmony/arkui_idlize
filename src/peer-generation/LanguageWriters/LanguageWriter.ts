@@ -118,11 +118,11 @@ export class AssignStatement implements LanguageStatement {
                 protected options?: MakeAssignOptions) {}
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
-            const typeSpec = 
+            const typeSpec =
                 this.options?.overrideTypeName
                     ? `: ${this.options.overrideTypeName}`
-                    : this.type 
-                        ? `: ${writer.stringifyType(this.type)}${/*SHOULD BE REMOVED*/idl.isOptionalType(this.type) ? "|undefined" : ""}` 
+                    : this.type
+                        ? `: ${writer.stringifyType(this.type)}${/*SHOULD BE REMOVED*/idl.isOptionalType(this.type) ? "|undefined" : ""}`
                         : ""
             const initValue = this.expression ? `= ${this.expression.asString()}` : ""
             const constSpec = this.isConst ? "const" : "let"
@@ -166,22 +166,18 @@ export class IfStatement implements LanguageStatement {
         public insideElseOp: (() => void) | undefined
     ) { }
     write(writer: LanguageWriter): void {
-        writer.print(`if (${this.condition.asString()}) {`)
+        writer.print(`if (${this.condition.asString()})`)
         writer.pushIndent()
         this.thenStatement.write(writer)
         if (this.insideIfOp) { this.insideIfOp!() }
         writer.popIndent()
         if (this.elseStatement !== undefined) {
-            writer.print("} else {")
+            writer.print("else")
             writer.pushIndent()
             this.elseStatement.write(writer)
             if (this.insideElseOp) { this.insideElseOp!() }
             writer.popIndent()
-            writer.print("}")
-        } else {
-            writer.print("}")
         }
-
     }
 }
 
@@ -324,10 +320,10 @@ type MethodArgPrintHintOrNone = MethodArgPrintHint | undefined
 
 export class MethodSignature {
     constructor(
-        public returnType: idl.IDLType, 
-        public args: idl.IDLType[], 
+        public returnType: idl.IDLType,
+        public args: idl.IDLType[],
         public defaults: stringOrNone[]|undefined = undefined,
-        public printHints?: MethodArgPrintHintOrNone[] 
+        public printHints?: MethodArgPrintHintOrNone[]
     ) {}
 
     argName(index: number): string {
@@ -350,11 +346,11 @@ export class MethodSignature {
 
 export class NamedMethodSignature extends MethodSignature {
     constructor(
-        returnType: idl.IDLType, 
-        args: idl.IDLType[] = [], 
-        public argsNames: string[] = [], 
+        returnType: idl.IDLType,
+        args: idl.IDLType[] = [],
+        public argsNames: string[] = [],
         defaults: stringOrNone[]|undefined = undefined,
-        printHints?: MethodArgPrintHintOrNone[] 
+        printHints?: MethodArgPrintHintOrNone[]
     ) {
         super(returnType, args, defaults, printHints)
     }
@@ -382,7 +378,7 @@ export interface PrinterLike {
 
 export abstract class LanguageWriter {
     constructor(
-        public printer: IndentedPrinter, 
+        public printer: IndentedPrinter,
         protected resolver: ReferenceResolver,
         public language: Language,
     ) {}
@@ -618,9 +614,6 @@ export abstract class LanguageWriter {
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string}, value: string, accessors: string[]): LanguageExpression {
         return this.makeString(`(${this.makeNaryOp("||",
             accessors.map(it => this.makeString(`${value}!.hasOwnProperty("${it}")`))).asString()})`)
-    }
-    makeSerializerCreator() {
-        return this.makeString('createSerializer');
     }
     makeCallIsResource(value: string): LanguageExpression {
         return this.makeString(`isResource(${value})`)

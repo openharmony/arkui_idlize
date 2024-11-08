@@ -149,9 +149,7 @@ export abstract class CustomSerializer {
 }
 
 export class SerializerBase {
-    private static cache: SerializerBase | undefined
-
-    private isHolding: boolean = false
+    protected isHolding: boolean = false
     private position = 0
     private buffer: ArrayBuffer
     private view: DataView
@@ -171,15 +169,6 @@ export class SerializerBase {
         this.view = new DataView(this.buffer)
     }
 
-    static hold<T extends SerializerBase>(factory: () => T): T {
-        if (!this.cache)
-            this.cache = factory()
-        const serializer = SerializerBase.cache!
-        if (serializer.isHolding)
-            throw new Error("Serializer is already being held. Check if you had released is before")
-        serializer.isHolding = true
-        return serializer as T
-    }
     public release() {
         this.isHolding = false
         this.releaseResources()

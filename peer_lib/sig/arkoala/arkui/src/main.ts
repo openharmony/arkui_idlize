@@ -13,9 +13,8 @@
 * limitations under the License.
 */
 import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
-import { SerializerBase } from "@arkoala/arkui/peers/SerializerBase"
+import { Serializer } from "@arkoala/arkui/peers/Serializer"
 import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
-import { createSerializer } from "@arkoala/arkui/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
@@ -71,7 +70,7 @@ function checkSerdeResult(name: string, value: any, expected: any) {
 }
 
 function checkSerdeBaseLength() {
-    const ser = SerializerBase.hold(createSerializer)
+    const ser = Serializer.hold()
     ser.writeLength("10px")
     ser.writeLength("11vp")
     ser.writeLength("12%")
@@ -87,7 +86,7 @@ function checkSerdeBaseLength() {
 }
 
 function checkSerdeBaseText() {
-    const ser = SerializerBase.hold(createSerializer)
+    const ser = Serializer.hold()
     const text = "test text serialization/deserialization"
     ser.writeString(text)
     const des = new DeserializerBase(ser.asArray().buffer, ser.length())
@@ -96,7 +95,7 @@ function checkSerdeBaseText() {
 }
 
 function checkSerdeBasePrimitive() {
-    const ser = SerializerBase.hold(createSerializer)
+    const ser = Serializer.hold()
     ser.writeNumber(10)
     ser.writeNumber(10.5)
     ser.writeNumber(undefined)
@@ -108,7 +107,7 @@ function checkSerdeBasePrimitive() {
 }
 
 function checkSerdeBaseCustomObject() {
-    const ser = SerializerBase.hold(createSerializer)
+    const ser = Serializer.hold()
     const pixelMap: PixelMap = {
         isEditable: true,
         isStrideAlignment: true,
@@ -205,7 +204,7 @@ function checkCallback() {
     assertTrue("Register callback 2", id2 != -1)
     assertTrue("Callback ids are different", id1 != id2)
 
-    const serializer = SerializerBase.hold(createSerializer)
+    const serializer = Serializer.hold()
     assertEquals("Call callback 1", 1001, callCallback(id1, serializer.asArray(), serializer.length()))
     assertEquals("Call callback 2", 1002, callCallback(id2, serializer.asArray(), serializer.length()))
 // TODO: Fix the tests according to the latest callback changes
@@ -215,12 +214,12 @@ function checkCallback() {
 }
 
 function checkWriteFunction() {
-    const s = SerializerBase.hold(createSerializer)
+    const s = Serializer.hold()
     s.writeFunction((value: number, flag: boolean) => flag ? value + 10 : value - 10)
     // TBD: id is small number
     const id = s.asArray()[0]
     s.release()
-    const args = SerializerBase.hold(createSerializer)
+    const args = Serializer.hold()
     args.writeNumber(20)
     args.writeBoolean(true)
     // TBD: callCallback() result should be 30
@@ -438,7 +437,7 @@ function setEventsAPI() {
 
 function checkEvent_Primitive() {
     const BufferSize = 60 * 4
-    const serializer = SerializerBase.hold(createSerializer)
+    const serializer = Serializer.hold()
     serializer.writeInt32(1) //nodeId
     serializer.writeString("testString") //arg1
     serializer.writeNumber(22) //arg2
@@ -463,7 +462,7 @@ function checkEvent_Primitive() {
 
 function checkEvent_Interface_Optional() {
     const bufferSize = 60 * 4
-    const serializer = SerializerBase.hold(createSerializer)
+    const serializer = Serializer.hold()
     const eventStart = { index: 11, itemIndexInGroup: 1 }
     const eventEnd = { index: 22 }
     serializer.writeInt32(1) //nodeId
@@ -492,7 +491,7 @@ function checkEvent_Interface_Optional() {
 
 function checkEvent_Array_Class() {
     const bufferSize = 60 * 4
-    const serializer = SerializerBase.hold(createSerializer)
+    const serializer = Serializer.hold()
     const eventParam: TouchTestInfo[] = [
         {
             windowX: 10, windowY: 11, parentX: 12, parentY: 13, x: 14, y: 15, id: "one",

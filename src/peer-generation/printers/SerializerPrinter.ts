@@ -28,7 +28,7 @@ import {
 } from '../idl/IdlPeerGeneratorVisitor';
 import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
 import { collectProperties } from '../idl/StructPrinter';
-import { MakeAssignOptions, MethodArgPrintHint, ProxyStatement } from '../LanguageWriters/LanguageWriter';
+import { FieldModifier, MakeAssignOptions, MethodArgPrintHint, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter';
 import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
@@ -54,10 +54,10 @@ class IdlSerializerPrinter {
                 if (properties.length > 0) {
                     writer.writeStatement(
                         writer.makeAssign(
-                            "valueSerializer", 
-                            idl.createReferenceType("Serializer"), 
-                            writer.makeThis(), 
-                            true, 
+                            "valueSerializer",
+                            idl.createReferenceType("Serializer"),
+                            writer.makeThis(),
+                            true,
                             false,
                             { assignRef: true }
                         )
@@ -84,10 +84,10 @@ class IdlSerializerPrinter {
             case Language.CPP:
                 ctorSignature = new NamedMethodSignature(
                     idl.IDLVoidType, [
-                        idl.createContainerType('sequence', [idl.IDLU8Type]) /*idl.createReferenceType("uint8_t*")*/ , 
+                        idl.createContainerType('sequence', [idl.IDLU8Type]) /*idl.createReferenceType("uint8_t*")*/ ,
                         idl.createReferenceType("CallbackResourceHolder" /* ast */)
-                    ], 
-                    ["data", "resourceHolder"], 
+                    ],
+                    ["data", "resourceHolder"],
                     [undefined, `nullptr`],
                     [undefined, undefined, MethodArgPrintHint.AsPointer]
                 )
@@ -103,6 +103,23 @@ class IdlSerializerPrinter {
         // just a separator
         this.writer.print("")
         this.writer.writeClass(className, writer => {
+            // No need for hold() in C++.
+            if (writer.language != Language.CPP) {
+                writer.writeFieldDeclaration("cache", idl.createReferenceType("Serializer"), [FieldModifier.PRIVATE, FieldModifier.STATIC], true)
+                writer.writeMethodImplementation(new Method("hold", new MethodSignature(idl.createReferenceType("Serializer"), []), [MethodModifier.STATIC]),
+                writer => {
+                    writer.writeStatement(writer.makeAssign("serializer", undefined, writer.makeString("Serializer.cache"), true, false))
+                    writer.writeStatement(writer.makeCondition(writer.makeNaryOp("==",
+                            [writer.makeString("serializer"), writer.makeNull()]), writer.makeBlock([
+                        writer.makeAssign("serializer", undefined, writer.makeString("new Serializer()"), false),
+                        writer.makeAssign("Serializer.cache", undefined, writer.makeString("serializer"), false)
+                    ])))
+                    writer.writeStatement(writer.makeCondition(writer.makeString("serializer.isHolding"),
+                        writer.makeThrowError(("Serializer is already being held. Check if you had released is before"))))
+                    writer.writeStatement(writer.makeAssign("serializer.isHolding", undefined, writer.makeString("true"), false))
+                    writer.writeStatement(writer.makeReturn(writer.makeString("serializer")))
+                })
+            }
             if (ctorSignature) {
                 const ctorMethod = new Method(superName, ctorSignature)
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {
@@ -114,10 +131,6 @@ class IdlSerializerPrinter {
                 } else if (idl.isCallback(decl)) {
                     // callbacks goes through writeCallbackResource function
                 }
-            }
-            if (this.writer.language == Language.JAVA) {
-                // TODO: somewhat ugly.
-                this.writer.print(`static Serializer createSerializer() { return new Serializer(); }`)
             }
         }, superName)
     }
@@ -136,10 +149,10 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             function declareDeserializer() {
                 writer.writeStatement(
                     writer.makeAssign(
-                        "valueDeserializer", 
-                        idl.createReferenceType("Deserializer"), 
-                        writer.makeThis(), 
-                        true, 
+                        "valueDeserializer",
+                        idl.createReferenceType("Deserializer"),
+                        writer.makeThis(),
+                        true,
                         false,
                         { assignRef: true }
                     )
@@ -152,7 +165,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                 ? { overrideTypeName: `{${properties.map(it => `${it.name}?: ${writer.stringifyType(it.type)}`).join(", ")}}` }
                 : undefined
 
-            if (writer.language === Language.CPP) 
+            if (writer.language === Language.CPP)
                 writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`{}`), true, false, options))
             if (idl.isInterface(target) || idl.isClass(target)) {
                 if (properties.length > 0) {
@@ -177,7 +190,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                     let typeConvertor = this.library.declarationConvertor("value", idl.createReferenceType((target as idl.IDLInterface).name), target)
                     declareDeserializer()
                     writer.writeStatement(typeConvertor.convertorDeserialize(`value_buf`, `valueDeserializer`, (expr) => {
-                       return writer.makeAssign(`value`, undefined, expr, false) 
+                       return writer.makeAssign(`value`, undefined, expr, false)
                     }, writer))
                 }
             }
@@ -188,7 +201,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
 
     private generateCallbackDeserializer(target: idl.IDLCallback): void {
         if (this.writer.language === Language.CPP)
-            // callbacks in native are just CallbackResource while in managed we need to convert them to 
+            // callbacks in native are just CallbackResource while in managed we need to convert them to
             // target language callable
             return
         if (PeerGeneratorConfig.ignoredCallbacks.has(target.name))
@@ -241,10 +254,9 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                 ]
             }
             writer.writeStatement(writer.makeReturn(writer.makeLambda(callbackSignature, [
-                writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('Serializer'), writer.makeMethodCall('SerializerBase', 'hold', [
-                    writer.makeSerializerCreator()
-                ]), true),
-                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeCallbackResource`, 
+                writer.makeAssign(`${argsSerializer}Serializer`,
+                    idl.createReferenceType('Serializer'), writer.makeMethodCall('Serializer', 'hold', []), true),
+                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeCallbackResource`,
                     [writer.makeString(resourceName)])),
                 ...target.parameters.map(it => {
                     const convertor = this.library.typeConvertor(it.name, it.type!, it.isOptional)
@@ -259,10 +271,10 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                     writer.makeString(`${argsSerializer}Serializer.length()`),
                 ])),
                 new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `release`, [])),
-                writer.makeReturn(hasContinuation 
+                writer.makeReturn(hasContinuation
                     ? writer.makeCast(
                         writer.makeString(continuationValueName),
-                        target.returnType) 
+                        target.returnType)
                     : undefined),
             ])))
 

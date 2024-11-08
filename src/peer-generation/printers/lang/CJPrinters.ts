@@ -32,7 +32,6 @@ export function makeCJSerializer(library: IdlPeerLibrary): { targetFile: TargetF
     let writer = createLanguageWriter(library.language, getReferenceResolver(library))
     writer.print(`package idlize\n`)
     writeSerializer(library, writer, "")
-    writer.print('public func createSerializer(): Serializer { return Serializer() }')
     return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }
 

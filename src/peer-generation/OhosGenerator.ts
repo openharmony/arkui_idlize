@@ -70,8 +70,8 @@ class OHOSVisitor {
             this.library.requestType(type, true)
         }
 
-        const typeName = isEnum(type) 
-            ? type.name 
+        const typeName = isEnum(type)
+            ? type.name
             : isContainerType(type) || isUnionType(type)
                 ? ''
                 : forceAsNamedNode(type).name
@@ -399,9 +399,7 @@ class OHOSVisitor {
                                 if (!serializerCreated) {
                                     writer.writeStatement(
                                         writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
-                                            writer.makeMethodCall('SerializerBase', 'hold', [
-                                                writer.makeSerializerCreator()
-                                            ]), true)
+                                            writer.makeMethodCall('Serializer', 'hold', []), true)
                                     )
                                     serializerCreated = true
                                 }
@@ -462,7 +460,7 @@ class OHOSVisitor {
         const prefix = PrimitiveType.Prefix + this.library.libraryPrefix
         writeSerializer(this.library, this.cppWriter, prefix)
         writeDeserializer(this.library, this.cppWriter, prefix)
-        
+
         let writer = new CppLanguageWriter(new IndentedPrinter(), this.library)
         this.writeModifiers(writer)
         this.writeImpls()
@@ -542,7 +540,7 @@ class OHOSVisitor {
             .replaceAll('%PEER_CONTENT%', this.peerWriter.getOutput().join('\n'))
             .replaceAll('%SERIALIZER_PATH%', `./${fileNamePrefix}Serializer`)
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
-        
+
         this.hWriter.printTo(path.join(outDir, `${fileNamePrefix}.h`))
         this.cppWriter.printTo(path.join(outDir, `${fileNamePrefix}.cc`))
 
@@ -554,7 +552,7 @@ class OHOSVisitor {
             readLangTemplate(`ohos_DeserializerBase.h`, Language.CPP)
                 .replaceAll("%NATIVE_API_HEADER_PATH%", `${fileNamePrefix}.h`)
         )
-        
+
         const nativeModuleInfo = {
             name: `get${this.libraryName}NativeModule`,
             path: `./${fileNamePrefix}Native`,

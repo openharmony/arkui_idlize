@@ -253,7 +253,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
                         writer.makeBlock([
                             writer.makeStatement(writer.makeMethodCall(`((${peerClassName})peer)`, `${peerMethod.overloadedName}Attribute`, signature.argsNames.map(it => writer.makeString(it)))),
                             writer.makeReturn(thiz),
-                        ], false)))
+                        ])))
                     writer.writeStatement(writer.makeReturn(thiz))
                 })
             })

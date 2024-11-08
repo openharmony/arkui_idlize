@@ -194,7 +194,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                     writer.print(`// It means that the static method call invokes ctor method as well`)
                     writer.print(`// when all arguments are undefined.`)
                 }
-                let ctorStatements: LanguageStatement = new BlockStatement([
+                let ctorStatements: LanguageStatement = writer.makeBlock([
                     writer.makeAssign("ctorPtr", IDLPointerType,
                         writer.makeMethodCall(clazz.className, "ctor",
                             ctorSig.args.map((it, index) => writer.makeString(`${ctorSig.argsNames[index]}`))),
@@ -205,7 +205,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                         writer.makeString(`new Finalizable(ctorPtr, ${clazz.className}.getFinalizer())`),
                         false
                     )
-                ], false)
+                ])
                 if (!allOptional) {
                     ctorStatements =
                         writer.makeCondition(

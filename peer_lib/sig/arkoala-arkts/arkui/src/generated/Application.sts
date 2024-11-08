@@ -18,7 +18,6 @@ import { nativeModule } from "#components"
 import { ArkoalaHost, ArkoalaControl, WaitFramesEvent, UIElement } from "./Declarations"
 import { ArkoalaControlImpl } from "./ArkoalaControl"
 import { SerializerBase } from "@arkoala/arkui/peers/SerializerBase"
-import { createSerializer } from "@arkoala/arkui/peers/Serializer"
 import { wrapCallback } from "./CallbackRegistry"
 import { PeerNode } from "./PeerNode"
 import { ArkUINodeType } from "./peers/ArkUINodeType"
@@ -170,7 +169,7 @@ export class Application {
         // Here we request to draw a frame and call custom components JS callbacks.
         measureLayoutAndDraw(this.root!.value as PeerNode)
     }
-    
+
     private render() {
         console.log("ARKTS: render2")
         // Call callbacks.
