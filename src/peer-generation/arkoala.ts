@@ -217,7 +217,7 @@ export function generateArkoalaFromIdl(config: {
             const outComponentFile = arkoala.interface(targetFile)
             writeFile(outComponentFile, data, {
                 onlyIntegrated: config.onlyIntegrated,
-                integrated: false,
+                integrated: true,
                 message: "producing [idl]"
             })
             arkuiComponentsFiles.push(outComponentFile)

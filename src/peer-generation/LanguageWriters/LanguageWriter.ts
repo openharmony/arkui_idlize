@@ -16,7 +16,7 @@
 import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { stringOrNone } from "../../util"
-import { ArgConvertor, RuntimeType } from "../ArgConvertors"
+import {ArgConvertor, BaseArgConvertor, RuntimeType} from "../ArgConvertors"
 import { EnumEntity } from "../PeerFile"
 import * as fs from "fs"
 import { Language } from "../../Language"
@@ -611,7 +611,7 @@ export abstract class LanguageWriter {
         this.writeStatement(this.makeAssign(valueType, idl.IDLI32Type,
             this.makeFunctionCall("runtimeType", [this.makeString(value)]), false))
     }
-    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string}, value: string, accessors: string[]): LanguageExpression {
+    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string}, value: string, accessors: string[], duplicates: Set<string>): LanguageExpression {
         return this.makeString(`(${this.makeNaryOp("||",
             accessors.map(it => this.makeString(`${value}!.hasOwnProperty("${it}")`))).asString()})`)
     }
@@ -655,11 +655,18 @@ export abstract class LanguageWriter {
             ...exprs
         ])
     }
-    arrayDiscriminatorFromTypeOrExpressions(value: string,
-                                 checkedType: string,
-                                 runtimeType: RuntimeType,
-                                 exprs: LanguageExpression[]): LanguageExpression {
-        return this.discriminatorFromExpressions(value, runtimeType, exprs)
+    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
+        const ordinal = convertor.isStringEnum
+            ? this.ordinalFromEnum(
+                this.makeString(this.getObjectAccessor(convertor, value)),
+                convertor.enumEntry
+            )
+            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.stringifyType(idl.IDLI32Type), convertor, index)
+        const {low, high} = convertor.extremumOfOrdinals()
+        return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], [
+            this.makeNaryOp(">=", [ordinal, this.makeString(low!.toString())]),
+            this.makeNaryOp("<=",  [ordinal, this.makeString(high!.toString())])
+        ])
     }
     makeNot(expr: LanguageExpression): LanguageExpression {
         return this.makeString(`!${expr.asString()}`)
@@ -674,6 +681,9 @@ export abstract class LanguageWriter {
     }
     makeCallIsArrayBuffer(value: string): LanguageExpression {
         return this.makeString(`${value} instanceof ArrayBuffer`)
+    }
+    instanceOf(convertor: BaseArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
+        return this.makeString(`${value} instanceof ${this.stringifyType(convertor.idlType)}`)
     }
 }
 

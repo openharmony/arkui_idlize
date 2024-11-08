@@ -95,14 +95,19 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         if (writer) return writer.getObjectAccessor(this, value, args)
         return this.useArray && args?.index ? `${value}[${args.index}]` : value
     }
-    protected discriminatorFromFields<T>(value: string, writer: LanguageWriter,
-        uniqueFields: T[] | undefined, nameAccessor: (field: T) => string, optionalAccessor: (field: T) => boolean)
-    {
+    protected discriminatorFromFields<T>(value: string,
+                                         writer: LanguageWriter,
+                                         uniqueFields: T[] | undefined,
+                                         nameAccessor: (field: T) => string,
+                                         optionalAccessor: (field: T) => boolean,
+                                         duplicates: Set<string>){
         if (!uniqueFields || uniqueFields.length === 0) return undefined
         const firstNonOptional = uniqueFields.find(it => !optionalAccessor(it))
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
-            writer.makeDiscriminatorFromFields(this, value,
-                firstNonOptional ? [nameAccessor(firstNonOptional)] : uniqueFields.map(it => nameAccessor(it)))
+            writer.makeDiscriminatorFromFields(this,
+                value,
+                firstNonOptional ? [nameAccessor(firstNonOptional)] : uniqueFields.map(it => nameAccessor(it)),
+                duplicates)
         ])
     }
 }
@@ -416,7 +421,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         const uniqueFields = CustomTypeConvertor.knownTypes.get(this.customTypeName)?.filter(it => !duplicates.has(it[0]))
-        return this.discriminatorFromFields(value, writer, uniqueFields, it => it[0], it => it[1])
+        return this.discriminatorFromFields(value, writer, uniqueFields, it => it[0], it => it[1], duplicates)
     }
 }
 

@@ -26,7 +26,7 @@ export class ImportsCollector {
      * @param module Module name - can be package started with `@` or relative path from current package root
      */
     addFeature(feature: string, module: string) {
-        const dependencies = getOrPut(this.moduleToFeatures, module, () => new Set())
+        const dependencies = getOrPut(this.moduleToFeatures, path.normalize(module), () => new Set())
         dependencies.add(feature)
     }
 

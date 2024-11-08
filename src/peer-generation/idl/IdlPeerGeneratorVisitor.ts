@@ -14,7 +14,7 @@
  */
 
 import * as idl from "../../idl"
-import { IDLEntry, IDLReferenceType, IDLType, maybeOptional } from "../../idl"
+import { IDLReferenceType, IDLType, maybeOptional} from "../../idl"
 import { posix as path } from "path"
 import {
     capitalize,
@@ -1160,8 +1160,9 @@ export class IdlPeerProcessor {
                 }
             }
 
-            if (idl.isEnum(dep))
+            if (idl.isEnum(dep)) {
                 continue
+            }
 
             this.declDependenciesCollector.convert(dep).forEach(it => {
                 // Add a type that is not in the file declaration list

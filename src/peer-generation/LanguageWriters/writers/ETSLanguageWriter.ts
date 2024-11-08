@@ -29,11 +29,20 @@ import {
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
 import { forceAsNamedNode, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
-import { ArgConvertor, CustomTypeConvertor, RuntimeType } from "../../ArgConvertors"
+import {ArgConvertor, BaseArgConvertor, CustomTypeConvertor, RuntimeType} from "../../ArgConvertors"
 import { Language } from "../../../Language"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
-import { EnumConvertor, StringConvertor } from "../../idl/IdlArgConvertors"
+import {
+    AggregateConvertor,
+    ArrayConvertor,
+    EnumConvertor,
+    InterfaceConvertor,
+    StringConvertor
+} from "../../idl/IdlArgConvertors"
+import {makeInterfaceTypeCheckerCall} from "../../Convertors";
+import {IdlPeerLibrary} from "../../idl/IdlPeerLibrary";
+import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter";
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -128,14 +137,12 @@ export function generateTypeCheckerName(typeName: string): string {
 }
 
 export function makeArrayTypeCheckCall(
-    valueAccessor: string, 
-    typeName: IDLType,
-    writer: LanguageWriter,
-) {
+    valueAccessor: string,
+    typeName: string,
+    writer: LanguageWriter) {
     return writer.makeMethodCall(
         "TypeChecker",
-        generateTypeCheckerName(forceAsNamedNode(typeName).name),
-        // isBrackets ? generateTypeCheckerNameBracketsArray(typeName) : generateTypeCheckerNameArray(typeName), 
+        generateTypeCheckerName(typeName),
         [writer.makeString(valueAccessor)
     ])
 }
@@ -192,9 +199,15 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     ordinalFromEnum(value: LanguageExpression, _: IDLEnum): LanguageExpression {
         return value;
     }
-    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string}, value: string, accessors: string[]): LanguageExpression {
+    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
+                                value: string,
+                                accessors: string[],
+                                duplicates: Set<string>): LanguageExpression {
         if (convertor instanceof CustomTypeConvertor) {
             return this.makeString(`${value} instanceof ${convertor.customTypeName}`)
+        }
+        if (convertor instanceof AggregateConvertor || convertor instanceof InterfaceConvertor) {
+            return this.instanceOf(convertor, value, duplicates)
         }
         return this.makeString(`${value} instanceof ${convertor.targetType(this)}`)
     }
@@ -226,9 +239,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
         if (convertor instanceof EnumConvertor) {
-            return this.makeString(`${valueName} instanceof ${this.typeConvertor.convertEntry(convertor.enumEntry)}`)
-        } else if (convertor instanceof StringConvertor) {
-            return this.makeString(`${valueName} instanceof ${this.stringifyType(convertor.idlType)}`)
+            return this.instanceOf(convertor, valueName);
         }
         return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index);
     }
@@ -251,14 +262,36 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // the '==' operator must be used when one of the operands is a reference
         return super.makeNaryOp('==', args);
     }
-    override arrayDiscriminatorFromTypeOrExpressions(value: string,
-                                                     checkedType: string,
-                                                     runtimeType: RuntimeType,
-                                                     exprs: LanguageExpression[]): LanguageExpression {
-        return makeArrayTypeCheckCall(value, toIDLType(checkedType), this)
+    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
+        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
+            makeEnumTypeCheckerCall(value, this.stringifyType(convertor.idlType), this)
+        ])
     }
     override castToInt(value: string, bitness: 8 | 32): string {
         return `${value} as int32` // FIXME: is there int8 in ARKTS?
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
+
+    override instanceOf(convertor: BaseArgConvertor, value: string, duplicateMembers?: Set<string>): LanguageExpression {
+        if (convertor instanceof InterfaceConvertor && convertor.declaration.properties.length > 0) {
+            return makeInterfaceTypeCheckerCall(value,
+                this.stringifyType(convertor.idlType),
+                convertor.declaration.properties.map(it => it.name),
+                duplicateMembers!,
+                this)
+        }
+        if (convertor instanceof AggregateConvertor) {
+            return makeInterfaceTypeCheckerCall(value,
+                convertor.aliasName !== undefined ? convertor.aliasName : this.stringifyType(convertor.idlType),
+                convertor.members.map(it => it[0]), duplicateMembers!, this)
+        }
+        if (convertor instanceof ArrayConvertor) {
+            return makeArrayTypeCheckCall(value,
+                (this.resolver as IdlPeerLibrary).getTypeName(convertor.idlType), this)
+        }
+        if (convertor instanceof EnumConvertor) {
+            return this.makeString(`${value} instanceof ${this.typeConvertor.convert(convertor.enumEntry)}`)
+        }
+        return super.instanceOf(convertor, value, duplicateMembers)
+    }
 }
