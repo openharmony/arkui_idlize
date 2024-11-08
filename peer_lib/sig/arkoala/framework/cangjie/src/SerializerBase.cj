@@ -60,37 +60,6 @@ public abstract class CustomSerializer {
     var next: ?CustomSerializer = Option.None
 }
 
-class SerializersCache {
-    var cache: ArrayList<?SerializerBase>
-    init(maxCount: Int64) {
-        this.cache = ArrayList<?SerializerBase>()
-        for(i in 0..maxCount) {
-            this.cache.append(None<SerializerBase>)
-        }
-    }
-    func getCached<T>(factory: () -> T, index: Int32): T where T <: SerializerBase {
-        while(this.cache.size < Int64(index)) {
-            cache.append(None<SerializerBase>)
-        }
-        var result = this.cache[Int64(index)]
-        match(result) {
-            case Some(result) =>
-                result.resetCurrentPosition()
-                return match(result) {
-                    case res: T => res
-                    case _ => throw Exception("Factory lambda inside getCached function has returned no value")
-                }
-            case None =>
-                result = factory()
-                this.cache[Int64(index)] = result
-                return match(result) {
-                    case Some(res: T) => res
-                    case _ => throw Exception("Factory lambda inside getCached function has returned no value")
-                }
-        }
-    }
-}
-
 public open class SerializerBase {
     protected var isHolding: Bool = false
     private var position: Int64 = 0
@@ -105,9 +74,6 @@ public open class SerializerBase {
     init() {
         this.buffer = ArrayList<UInt8>(Array<UInt8>(96, item: 0))
     }
-    // static func get<T>(factory: () -> T, index: Int32): T where T <: SerializerBase {
-    //     return SerializerBase.cache.getCached(factory, index)
-    // }
     public func release() {
         this.isHolding = false
         // todo handle release resources

@@ -35,8 +35,6 @@ public class SerializerBase {
     private ByteBuffer buffer = ByteBuffer.allocate(96).order(ByteOrder.LITTLE_ENDIAN);
     protected boolean isHolding = false;
 
-    private static SerializerBase cache = null;
-
     public void release() {
         this.isHolding = false;
         // todo handle release resources

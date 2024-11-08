@@ -168,7 +168,6 @@ export class SerializerBase {
         this.buffer = new ArrayBuffer(96)
         this.view = new DataView(this.buffer)
     }
-
     public release() {
         this.isHolding = false
         this.releaseResources()

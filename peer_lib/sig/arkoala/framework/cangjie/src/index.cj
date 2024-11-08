@@ -52,8 +52,7 @@ func checkPerf2(count: Int64) {
             peer.backdropBlurAttribute(Float64(i), Option.None)
         }
         else {
-            let options: BlurOptions = BlurOptions()
-            options.grayscale = Tuple_Float64_Float64(1.0, 2.0)
+            let options: BlurOptions = BlurOptions(Tuple_Float64_Float64(1.0, 2.0))
             peer.backdropBlurAttribute(Float64(i), options);
         }
     }
@@ -76,8 +75,7 @@ func peersTest(): Unit {
     println("CJ peer tests")
     // interface
     let buttonPeer = ArkButtonPeer.create(ArkUINodeType.Button, Option.None, 0)
-    let labelStyle = LabelStyle()
-    labelStyle.maxLines = 5.0
+    let labelStyle = LabelStyle(None<TextOverflow>, 5.0, None<Union_Float64_ResourceStr>, None<Union_Float64_ResourceStr>, None<TextHeightAdaptivePolicy>, None<Font>)
     checkResult("[Interface + Optional] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
         "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=5}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")

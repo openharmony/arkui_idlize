@@ -36,7 +36,8 @@ import {
     MethodModifier,
     MethodSignature,
     ObjectArgs,
-    ReturnStatement
+    ReturnStatement,
+    StringExpression
 } from "../LanguageWriter"
 import { TSCastExpression, TsTupleAllocStatement } from "./TsLanguageWriter"
 import { IdlNameConvertor } from "../nameConvertor"
@@ -66,7 +67,7 @@ class CJLambdaExpression extends LambdaExpression {
 export class CJCheckDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
     asString(): string {
-        return `${this.value}.isNotNone()}`
+        return `${this.value}.isSome()`
     }
 }
 
@@ -229,17 +230,24 @@ export class CJLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void) {
+        let shortName = propName.concat("_container")
+        if(!getterLambda) {
+            this.print(`private var ${shortName}: ${idl.isOptionalType(propType) ? '?' : ''}${this.stringifyType(propType)}`)
+        }
         this.print(`${mutable ? "mut " : ""}prop ${propName}: ${idl.isOptionalType(propType) ? '?' : ''}${this.stringifyType(propType)} {`)
+
         this.pushIndent()
         this.print(`get() {`)
         this.pushIndent()
-        if (getterLambda)
+        if (getterLambda) {
             getterLambda(this)
-        this.print(`return ${propName}`)
+        } else {
+            this.print(`return ${shortName}`)
+        }
         this.popIndent()
         this.print(`}`)
         if (mutable) {
-            this.print(`set(x) { this.${propName} = x }`)
+            this.print(`set(x) { ${shortName} = x }`)
             this.pushIndent()
             if (setterLambda)
                 setterLambda(this)
@@ -267,7 +275,7 @@ export class CJLanguageWriter extends LanguageWriter {
         printer.print(`return unsafe { ${name}(${signature.args.map((it, index) => `${signature.argName(index)}`).join(", ")}) }`)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
-        this.print(`func ${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${idl.isOptionalType(it) ? '?' : ''}${this.typeForeignConvertor.convertType(it)}`).join(", ")}): ${this.typeForeignConvertor.convertType(signature.returnType)}`)
+        this.print(`func ${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.typeForeignConvertor.convert(it)}`).join(", ")}): ${this.typeForeignConvertor.convert(signature.returnType)}`)
     }
     override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: EnumConvertor | undefined): string {
         // TODO: remove after switching to IDL
@@ -313,6 +321,9 @@ export class CJLanguageWriter extends LanguageWriter {
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new CJMapForEachStatement(map, key, value, op)
     }
+    makeDefinedCheck(value: string): LanguageExpression {
+        return new CJCheckDefinedExpression(value)
+    }
     writePrintLog(message: string): void {
         this.print(`println("${message}")`)
     }
@@ -324,6 +335,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeUndefined(): LanguageExpression {
         return this.makeString("Option.None")
+    }
+    makeExtractionFromOption(value: string): LanguageExpression {
+        return this.makeString(`let Some(${value}) <- ${value}`)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         return this.makeString(`${value}`)
@@ -341,6 +355,9 @@ export class CJLanguageWriter extends LanguageWriter {
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         // keyAccessor and valueAccessor are equal in TS
         return this.makeStatement(this.makeMethodCall(keyAccessor, "set", [this.makeString(key), this.makeString(value)]))
+    }
+    makeNull(value?: string): LanguageExpression {
+        return new StringExpression(`None<${value}>`)
     }
     getTagType(): IDLType {
         return toIDLType("Tags");

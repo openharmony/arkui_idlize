@@ -48,6 +48,7 @@ import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
 import { Language } from '../../Language'
 import { escapeKeyword, IDLExtendedAttributes, IDLKind } from "../../idl";
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
+import { collectProperties } from './StructPrinter'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -703,7 +704,6 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         throw new Error(`Unsupported typedef: ${name}, kind=${type.kind}`)
     }
     convertInterface(node: idl.IDLInterface): void {
-        console.log(node.name, this.peerLibrary.isComponentDeclaration(node), node.properties.length)
         const decl = node.kind == idl.IDLKind.TupleInterface
             ? this.makeTuple(node.name, node)
             : this.makeInterface(node.name, node)
@@ -779,7 +779,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         const memberNames: string[] = members.map((_, index) => `value${index}`)
         writer.writeClass(alias, () => {
             for (let i = 0; i < memberNames.length; i++) {
-                writer.writeFieldDeclaration(memberNames[i], members[i], [FieldModifier.PUBLIC], false)
+                writer.writeFieldDeclaration(memberNames[i], members[i], [FieldModifier.PUBLIC], idl.isOptionalType(members[i]) ?? false)
             }
 
             const signature = new MethodSignature(idl.IDLVoidType, members)
@@ -866,11 +866,43 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             : type.properties.map(it => {
                 return {name: writer.escapeKeyword(it.name), type: idl.maybeOptional(it.type, it.isOptional), modifiers: [FieldModifier.PUBLIC]}
             })
+        let constructorMembers: idl.IDLProperty[] = collectProperties(type, this.peerLibrary)
+
+        let superName = undefined as string | undefined
+        const superType = idl.getSuperType(type)
+            if (superType) {
+            if (idl.isReferenceType(superType)) {
+                const superDecl = this.peerLibrary.resolveTypeReference(superType)
+                if (superDecl) {
+                    superName = superDecl.name
+                }
+            } else {
+                superName = idl.forceAsNamedNode(superType).name
+            }
+        }
+
         writer.writeClass(alias, () => {
             members.forEach(it => {
                 writer.writeProperty(it.name, it.type, true)
             })
-        }, writer.stringifyType(idl.getSuperType(type) ?? idl.createReferenceType(ARK_OBJECTBASE)))
+            writer.writeConstructorImplementation(alias,
+                new NamedMethodSignature(idl.IDLVoidType, 
+                    constructorMembers.map(it =>
+                        idl.maybeOptional(it.type, it.isOptional) 
+                    ),
+                    constructorMembers.map(it =>
+                        writer.escapeKeyword(it.name)
+                    )), () => {
+                        const superType = idl.getSuperType(type)
+                        const superDecl = superType ? this.peerLibrary.resolveTypeReference(superType as idl.IDLReferenceType) : undefined
+                        let superProperties = superDecl ? collectProperties(superDecl as idl.IDLInterface, this.peerLibrary) : []
+                        writer.print(`super(${superProperties.map(it => writer.escapeKeyword(it.name)).join(', ')})`)
+
+                        for(let i of members) {
+                            writer.print(`this.${i.name}_container = ${i.name}`)
+                        }
+                    })
+        }, superName ?? ARK_OBJECTBASE)
 
         return new CJDeclaration(alias, writer)
     }
