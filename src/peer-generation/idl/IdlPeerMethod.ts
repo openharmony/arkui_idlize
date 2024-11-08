@@ -26,7 +26,6 @@ export class IdlPeerMethod {
     private overloadIndex?: number
     constructor(
         public originalParentName: string,
-        public declarationTargets: idl.IDLNode[],
         public argConvertors: ArgConvertor[],
         public retConvertor: RetConvertor,
         public isCallSignature: boolean,

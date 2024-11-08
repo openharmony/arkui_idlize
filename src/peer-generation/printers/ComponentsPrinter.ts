@@ -40,6 +40,7 @@ import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
 import { IDLVoidType, isOptionalType, toIDLType } from "../../idl";
+import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
 
 export function generateArkComponentName(component: string) {
@@ -57,8 +58,8 @@ interface ComponentFileVisitor {
 
 class TSComponentFileVisitor implements ComponentFileVisitor {
     private readonly language = this.library.language
-    private readonly printer = createLanguageWriter(this.language, this.library)
-    private readonly overloadsPrinter = new OverloadsPrinter(this.printer, this.library.language)
+    private readonly printer = createLanguageWriter(this.language, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
+    private readonly overloadsPrinter = new OverloadsPrinter(getReferenceResolver(this.library), this.printer, this.library.language)
 
     constructor(
         private readonly library: IdlPeerLibrary,
@@ -107,8 +108,8 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             )
 
             for (const method of peer.methods) {
-                for (const argType of method.declarationTargets)
-                    if (convertIdlToCallback(peer, method, argType))
+                for (const argType of method.method.signature.args)
+                    if (convertIdlToCallback(getReferenceResolver(this.library), peer, method, argType))
                         imports.addFeature("UseEventsProperties", './use_properties')
             }
             // TBD
@@ -238,7 +239,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
 
         const result = createLanguageWriter(Language.JAVA, this.library)
         result.print(`package ${ARKOALA_PACKAGE};\n`)
-        const imports = collectJavaImports(peer.methods.flatMap(method => method.declarationTargets))
+        const imports = collectJavaImports(peer.methods.flatMap(method => method.method.signature.args))
         printJavaImports(result, imports)
 
         result.writeClass(componentClassName, (writer) => {

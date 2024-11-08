@@ -73,7 +73,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
 class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
-    private overloadsPrinter = new OverloadsPrinter(this.printer, this.library.language, false)
+    private overloadsPrinter = new OverloadsPrinter(getReferenceResolver(this.library), this.printer, this.library.language, false)
 
     constructor(
         protected readonly library: IdlPeerLibrary,

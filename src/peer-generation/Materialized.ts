@@ -33,13 +33,12 @@ export class MaterializedField {
 export class MaterializedMethod extends IdlPeerMethod {
     constructor(
         originalParentName: string,
-        declarationTargets: IDLNode[],
         argConvertors: ArgConvertor[],
         retConvertor: RetConvertor,
         isCallSignature: boolean,
         method: Method,
     ) {
-        super(originalParentName, declarationTargets, argConvertors, retConvertor, isCallSignature, method)
+        super(originalParentName, argConvertors, retConvertor, isCallSignature, method)
     }
 
     override get peerMethodName() {
@@ -99,7 +98,6 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
 }) {
     const copied = new MaterializedMethod(
         method.originalParentName,
-        method.declarationTargets,
         method.argConvertors,
         method.retConvertor,
         method.isCallSignature,

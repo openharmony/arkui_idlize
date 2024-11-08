@@ -30,6 +30,7 @@ import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { typeOrUnion } from "../idl/common";
 import { ArgConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from '../ArgConvertors';
 import { Language } from "../../Language";
+import { ReferenceResolver } from "../ReferenceResolver";
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
@@ -66,15 +67,15 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
 
 export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPeerMethod[], selectMaxMethodArgs?: number[]): IdlPeerMethod {
     const method = collapseSameNamedMethods(overloads.map(it => it.method), selectMaxMethodArgs)
-    const maxArgsLength = Math.max(...overloads.map(it => it.declarationTargets.length))
-    const maxMethod = overloads.find(it => it.declarationTargets.length === maxArgsLength)!
+    const maxArgsLength = Math.max(...overloads.map(it => it.method.signature.args.length))
+    const maxMethod = overloads.find(it => it.method.signature.args.length === maxArgsLength)!
     const targets: idl.IDLType[] = Array.from({length: maxArgsLength}, (_, argIndex) => {
         if (selectMaxMethodArgs?.includes(argIndex))
-            return idl.entityToType(maxMethod.declarationTargets[argIndex])
+            return idl.entityToType(maxMethod.method.signature.args[argIndex])
         return typeOrUnion(overloads.flatMap(overload => {
-            if (overload.declarationTargets.length <= argIndex)
+            if (overload.method.signature.args.length <= argIndex)
                 return []
-            const target = idl.entityToType(overload.declarationTargets[argIndex])
+            const target = idl.entityToType(overload.method.signature.args[argIndex])
             if (idl.isUnionType(target))
                 return target.types
             return [target]
@@ -94,7 +95,6 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
     })
     return new IdlPeerMethod(
         overloads[0].originalParentName,
-        targets,
         typeConvertors,
         overloads[0].retConvertor,
         overloads[0].isCallSignature,
@@ -117,7 +117,7 @@ export function groupOverloads<T extends IdlPeerMethod>(peerMethods: T[]): T[][]
 export class OverloadsPrinter {
     private static undefinedConvertor: UndefinedConvertor | undefined
 
-    constructor(private printer: LanguageWriter, private language: Language, private isComponent: boolean = true) {
+    constructor(private resolver: ReferenceResolver, private printer: LanguageWriter, private language: Language, private isComponent: boolean = true) {
         // TODO: UndefinedConvertor is not known during static initialization because of cyclic dependencies
         if (!OverloadsPrinter.undefinedConvertor) {
             OverloadsPrinter.undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
@@ -192,9 +192,9 @@ export class OverloadsPrinter {
         const methodName = `${peerMethod.overloadedName}${postfix}`
 
         if ([Language.TS].includes(this.language))
-            peerMethod.declarationTargets.map((target, index) => {
+            peerMethod.method.signature.args.forEach((target, index) => {
                 if (this.isComponent) { // TBD: Check for materialized classes
-                    const callback = convertIdlToCallback(peer, peerMethod, target)
+                    const callback = convertIdlToCallback(this.resolver, peer, peerMethod, target)
                     if (!callback || !canProcessCallback(callback))
                         return
                     const argName = argsNames[index]

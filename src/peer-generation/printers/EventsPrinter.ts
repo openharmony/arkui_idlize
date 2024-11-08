@@ -37,7 +37,7 @@ import { IdlPeerClass } from "../idl/IdlPeerClass"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { Language } from "../../Language"
 import { ImportsCollector } from "../ImportsCollector";
-import { getReferenceResolver } from "../ReferenceResolver"
+import { getReferenceResolver, ReferenceResolver } from "../ReferenceResolver"
 import { isImport } from "../idl/common"
 import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter";
 
@@ -78,8 +78,8 @@ export function collectCallbacks(library: IdlPeerLibrary): IdlCallbackInfo[] {
         for (const peer of file.peers.values()) {
             for (const method of peer.methods) {
                 let callbackFound = false
-                for (const target of method.declarationTargets) {
-                    const info = convertIdlToCallback(peer, method, target)
+                for (const target of method.method.signature.args) {
+                    const info = convertIdlToCallback(getReferenceResolver(library), peer, method, target)
                     if (info && canProcessCallback(info)) {
                         if (callbackFound)
                             throw new Error("Only one callback per method is acceptable")
@@ -99,24 +99,27 @@ export function canProcessCallback(callback: CallbackInfoBase): boolean {
     return true
 }
 
-export function convertIdlToCallback(peer: PeerClassBase, method: IdlPeerMethod, argType: idl.IDLNode): IdlCallbackInfo | undefined {
-    if (idl.isCallback(argType)) {
-        return {
-            componentName: peer.getComponentName(),
-            methodName: method.overloadedName,
-            args: argType.parameters.map(it => ({
-                name: it.name,
-                type: it.type!,
-                nullable: it.isOptional
-            })),
-            returnType: argType.returnType,
-            originTarget: argType,
-        }
-    }
+export function convertIdlToCallback(resolver: ReferenceResolver, peer: PeerClassBase, method: IdlPeerMethod, argType: idl.IDLNode): IdlCallbackInfo | undefined {
     if (idl.isReferenceType(argType)) {
         if (isImport(argType)) {
             return undefined
         }
+
+        const argDecl = resolver.resolveTypeReference(argType)
+        if (argDecl && idl.isCallback(argDecl)) {
+            return {
+                componentName: peer.getComponentName(),
+                methodName: method.overloadedName,
+                args: argDecl.parameters.map(it => ({
+                    name: it.name,
+                    type: it.type!,
+                    nullable: it.isOptional
+                })),
+                returnType: argDecl.returnType,
+                originTarget: argDecl,
+            }
+        }
+
         if (argType.name === 'Callback' && idl.hasExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)) {
             const typeArgs = idl.getExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)!.split(",").map(it => it.trim())
             const inputType = idl.toIDLType(typeArgs[0])
@@ -174,14 +177,14 @@ export function collapseIdlEventsOverloads(library: IdlPeerLibrary, peer: IdlPee
 
     for (const overloads of groupOverloads(peer.methods)) {
         if (overloads.length <= 1) continue
-        const callbacks = overloads[0].declarationTargets.map(it => convertIdlToCallback(peer, overloads[0], it))
+        const callbacks = overloads[0].method.signature.args.map(it => convertIdlToCallback(library, peer, overloads[0], it))
         const callbackIndex = callbacks.findIndex(it => it)
         if (callbackIndex === -1) continue
 
         const sampleCallback = callbacks[callbackIndex]
         let canCollapseCallbacks = true
         for (const overload of overloads) {
-            const overloadCallback = convertIdlToCallback(peer, overload, overload.declarationTargets[callbackIndex])
+            const overloadCallback = convertIdlToCallback(library, peer, overload, overload.method.signature.args[callbackIndex])
             if (!idlCallbacksEquals(sampleCallback, overloadCallback))
                 canCollapseCallbacks = false
         }

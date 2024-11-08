@@ -84,7 +84,7 @@ export function makeJavaArkComponents(library: IdlPeerLibrary, printerContext: P
                 }
                 else if (callableMethods.length == 1) {
                     callableMethod = callableMethods[0]
-                    imports.push(...collectJavaImports(callableMethod.declarationTargets))
+                    imports.push(...collectJavaImports(callableMethod.method.signature.args))
                     const callableSignature = callableMethod.method.signature
                     callableSignature.args.forEach((it, index) => {
                         paramTypes.push(it)
