@@ -23,6 +23,7 @@ interface Interop {
     void CallCallback(i32 callbackKind, sequence<u8> args, i32 argsSize);
     void CallCallbackResourceHolder(pointer holder, i32 resourceId);
     void CallCallbackResourceReleaser(pointer releaser, i32 resourceId);
-    i32 GetFrontCallback(sequence<u8> buffer, i32 bufferLength);
-    i32 PopFrontCallback();
+    i32 CheckArkoalaCallbackEvent(sequence<u8> buffer, i32 bufferLength);
+    void HoldArkoalaResource(i32 resourceId);
+    void ReleaseArkoalaResource(i32 resourceId);
 };

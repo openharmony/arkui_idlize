@@ -28,6 +28,7 @@ import { isImport, isStringEnum } from "./common"
 import { generateCallbackAPIArguments } from "./IdlArgConvertors"
 import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
 import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
+import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter"
 
 export class StructPrinter {
     constructor(private library: IdlPeerLibrary) {}
@@ -204,7 +205,7 @@ export class StructPrinter {
             writer.print("template <>")
             writer.writeMethodImplementation(
                 new Method("runtimeType",
-                    new NamedMethodSignature(resultType, [idl.maybeOptional(targetType, isOptional)], ["value"]),
+                    new NamedMethodSignature(resultType, [idl.maybeOptional(targetType, isOptional)], ["value"], undefined, [undefined, MethodArgPrintHint.AsConstReference]),
                     [MethodModifier.INLINE]),
                 op)
         }

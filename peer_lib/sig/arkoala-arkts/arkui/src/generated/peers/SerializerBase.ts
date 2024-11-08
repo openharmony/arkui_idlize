@@ -151,13 +151,14 @@ export class SerializerBase {
         }
     }
     private heldResources: Array<ResourceId> = new Array<ResourceId>()
-    holdAndWriteCallback(callback: object, kind: CallbackKind) {
+    holdAndWriteCallback(callback: object, hold: pointer = 0, release: pointer = 0, call: pointer = 0): ResourceId {
         const resourceId = ResourceHolder.instance().registerAndHold(callback)
         this.heldResources.push(resourceId)
         this.writeInt32(resourceId)
-        this.writePointer(0)
-        this.writePointer(0)
-        this.writePointer(0)
+        this.writePointer(hold)
+        this.writePointer(release)
+        this.writePointer(call)
+        return resourceId
     }
     writeCallbackResource(resource: CallbackResource) {
         this.writeInt32(resource.resourceId)
@@ -171,7 +172,7 @@ export class SerializerBase {
     }
     private releaseResources() {
         for (const resourceId of this.heldResources)
-            ResourceHolder.instance().release(resourceId)
+            NativeModule._ReleaseArkoalaResource(resourceId)
         // todo think about effective array clearing/pushing
         this.heldResources = new Array<ResourceId>()
     }

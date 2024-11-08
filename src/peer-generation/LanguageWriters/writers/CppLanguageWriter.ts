@@ -425,20 +425,25 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override stringifyMethodArgType(type:IDLType, hint?: MethodArgPrintHint): string {
         // we should decide pass by value or by reference here
         const name = this.stringifyType(type)
-        let postfix = ''
-        if (hint === MethodArgPrintHint.AsPointer || hint === MethodArgPrintHint.AsConstPointer) {
-            postfix = '*'
-        } else {
-            if (name.endsWith('*') || hint === MethodArgPrintHint.AsValue) {
-                postfix = ''
-            } else {
-                postfix = '&'
-            }
-        }
-        
         let constModifier = ''
-        if (hint !== MethodArgPrintHint.AsPointer && !name.endsWith('*') && hint !== MethodArgPrintHint.AsValue) {
-            constModifier = 'const '
+        let postfix = ''
+        switch (hint) {
+            case undefined:
+            case MethodArgPrintHint.AsValue:
+                break;
+            case MethodArgPrintHint.AsPointer:
+                postfix = '*'
+                break;
+            case MethodArgPrintHint.AsConstPointer:
+                constModifier = 'const ';
+                postfix = '*'
+                break;
+            case MethodArgPrintHint.AsConstReference:
+                constModifier = 'const '
+                postfix = '&'
+                break;
+            default:
+                throw new Error(`Unknown hint ${hint}`)
         }
         return `${constModifier}${name}${postfix}`
     }

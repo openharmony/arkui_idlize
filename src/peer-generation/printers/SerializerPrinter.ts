@@ -331,8 +331,10 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             }
             writer.writeStatement(writer.makeReturn(writer.makeLambda(callbackSignature, [
                 writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('Serializer'), writer.makeMethodCall('Serializer', 'hold', []), true),
-                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeCallbackResource`, 
-                    [writer.makeString(resourceName)])),
+                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeInt32`, 
+                    [writer.makeString(`${resourceName}.resourceId`)])),
+                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writePointer`, 
+                    [writer.makeString(callName)])),
                 ...target.parameters.map(it => {
                     const convertor = this.library.typeConvertor(it.name, it.type!, it.isOptional)
                     return new ProxyStatement((writer: LanguageWriter) => {

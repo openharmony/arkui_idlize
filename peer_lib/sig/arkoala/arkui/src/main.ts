@@ -16,6 +16,7 @@ import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
 import { Serializer } from "@arkoala/arkui/peers/Serializer"
 import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
+import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/peers/ArkCalendarPickerPeer"
@@ -54,6 +55,8 @@ import {
 } from "./test_utils"
 import { nativeModule } from "@koalaui/arkoala"
 import { mkdirSync, writeFileSync } from "fs"
+import { CallbackKind } from "@arkoala/arkui/peers/CallbackKind"
+import { ResourceId } from "@koalaui/interop"
 
 if (!reportTestFailures) {
     console.log("WARNING: ignore test result")
@@ -213,6 +216,72 @@ function checkCallback() {
     serializer.release()
 }
 
+function createDefaultWriteCallback(kind: CallbackKind, callback: object) {
+    return (serializer: Serializer) => {
+        return serializer.holdAndWriteCallback(callback, 
+            nativeModule()._TestGetManagedHolder(),
+            nativeModule()._TestGetManagedReleaser(),
+            nativeModule()._TestGetManagedCaller(kind),
+        )
+    }
+}
+
+function enqueueCallback(
+    writeCallback: (serializer: Serializer) => ResourceId,
+    readAndCallCallback: (deserializer: Deserializer) => void,
+) {
+    const serializer = Serializer.hold()
+    const resourceId = writeCallback(serializer)
+    /* imitate libace holding resource */
+    nativeModule()._HoldArkoalaResource(resourceId)
+    /* libace stored resource somewhere */
+    const buffer = new Uint8Array(serializer.asArray().buffer.byteLength)
+    const bufferLength = serializer.length()
+    buffer.set(serializer.asArray())
+    serializer.release()
+
+    /* libace calls stored callback */
+    const deserializer = new Deserializer(buffer.buffer, bufferLength)
+    readAndCallCallback(deserializer)
+    /* libace released resource */
+    nativeModule()._ReleaseArkoalaResource(resourceId)
+}
+
+function checkTwoSidesCallback() {
+    nativeModule()._TestSetArkoalaCallbackCaller()
+
+    let callResult1 = "NOT_CALLED"
+    let callResult2 = 0
+    const call2Count = 100
+
+    enqueueCallback(
+        createDefaultWriteCallback(CallbackKind.Kind_Callback_Number_Void, (value: number): void => {
+            callResult1 = `CALLED, value=${value}`
+        }),
+        (deserializer) => {
+            const callback = deserializer.readCallback_Number_Void()
+            callback(194)
+        },
+    )
+    for (let i = 0; i < call2Count; i++) {
+        enqueueCallback(
+            createDefaultWriteCallback(CallbackKind.Kind_Callback_Void, (): void => {
+                callResult2++
+            }),
+            (deserializer) => {
+                const callback = deserializer.readCallback_Void()
+                callback()
+            },
+        )
+    }
+
+    assertEquals("Callback 1 enqueued", "NOT_CALLED", callResult1)
+    assertEquals(`Callback 2 enqueued ${call2Count} times`, callResult2, 0)
+    checkArkoalaCallbacks()
+    assertEquals("Callback 1 read&called", "CALLED, value=194", callResult1)
+    assertEquals(`Callback 2 read&called ${call2Count} times`, callResult2, call2Count)
+}
+
 function checkWriteFunction() {
     const s = Serializer.hold()
     s.writeFunction((value: number, flag: boolean) => flag ? value + 10 : value - 10)
@@ -243,7 +312,7 @@ function checkButton() {
                 title: { id: 43, type: 2000, bundleName: "MyApp", moduleName: "MyApp", params: ["param1", "param2"] }
             }
         }),
-        `bindSheet({.selector=0, .value0=false}, {.resource={.resourceId=0, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=1, .value1={.bundleName={.chars="MyApp", .length=5}, .moduleName={.chars="MyApp", .length=5}, .id={.tag=102, .i32=43}, .params={.tag=ARK_TAG_OBJECT, .value={.array=allocArray<Ark_CustomObject, 2>({{{.kind="ErrorAny"}, {.kind="ErrorAny"}}}), .length=2}}, .type={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .scrollSizeMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}, .keyboardAvoidMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableHoverMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .hoverModeArea={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
+        `bindSheet({.selector=0, .value0=false}, {.resource={.resourceId=201, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=1, .value1={.bundleName={.chars="MyApp", .length=5}, .moduleName={.chars="MyApp", .length=5}, .id={.tag=102, .i32=43}, .params={.tag=ARK_TAG_OBJECT, .value={.array=allocArray<Ark_CustomObject, 2>({{{.kind="ErrorAny"}, {.kind="ErrorAny"}}}), .length=2}}, .type={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .scrollSizeMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}, .keyboardAvoidMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableHoverMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .hoverModeArea={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
     checkResult("type", () => peer.typeAttribute(1), "type(Ark_ButtonType(1))")
     checkResult("labelStyle", () => peer.labelStyleAttribute({ maxLines: 3 }),
@@ -636,6 +705,7 @@ function main() {
 
     checkNodeAPI()
     checkCallback()
+    checkTwoSidesCallback()
     checkWriteFunction()
     checkButton()
     checkCalendar()

@@ -2,6 +2,7 @@
 #include "common-interop.h"
 #include "Serializers.h"
 #include "arkoala_api_generated.h"
+#include "callbacks.h"
 
 const GENERATED_ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
@@ -51,3 +52,23 @@ void impl_Test_Common_OnChildTouchTest(KByte* valueArray, KInt valueLength) {
     GetFullImpl()->getEventsAPI()->getCommonMethodEventsReceiver()->onChildTouchTest(nodeId, param);
 }
 KOALA_INTEROP_V2(Test_Common_OnChildTouchTest, KByte*, KUInt)
+
+KNativePointer impl_TestGetManagedCaller(KInt kind) {
+    return getManagedCallbackCaller(static_cast<CallbackKind>(kind));
+}
+KOALA_INTEROP_1(TestGetManagedCaller, KNativePointer, KInt)
+
+KNativePointer impl_TestGetManagedHolder() {
+    return reinterpret_cast<KNativePointer>(holdManagedCallbackResource);
+}
+KOALA_INTEROP_0(TestGetManagedHolder, KNativePointer)
+
+KNativePointer impl_TestGetManagedReleaser() {
+    return reinterpret_cast<KNativePointer>(releaseManagedCallbackResource);
+}
+KOALA_INTEROP_0(TestGetManagedReleaser, KNativePointer)
+
+void impl_TestSetArkoalaCallbackCaller() {
+    setCallbackCaller(deserializeAndCallCallback);
+}
+KOALA_INTEROP_V0(TestSetArkoalaCallbackCaller)

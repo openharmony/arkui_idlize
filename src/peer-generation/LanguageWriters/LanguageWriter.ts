@@ -329,6 +329,7 @@ export class MethodArgPrintHint {
     static AsPointer = new MethodArgPrintHint('AsPointer')
     static AsConstPointer = new MethodArgPrintHint('AsConstPointer')
     static AsValue = new MethodArgPrintHint('AsValue')
+    static AsConstReference = new MethodArgPrintHint('AsConstReference')
 }
 
 type MethodArgPrintHintOrNone = MethodArgPrintHint | undefined

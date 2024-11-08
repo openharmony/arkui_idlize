@@ -515,8 +515,7 @@ export class CallbackConvertor extends BaseArgConvertor {
                 createTypeNameConvertor(writer.language, this.library), new StringExpression(`${value}.call`), idl.IDLPointerType, { unsafe: true }).asString()])
             return
         }
-        writer.writeMethodCall(`${param}Serializer`, `holdAndWriteCallback`, 
-            [`${value}, ${generateCallbackKindAccess(this.decl, writer.language)}`])
+        writer.writeMethodCall(`${param}Serializer`, `holdAndWriteCallback`, [`${value}`])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         if (writer.language == Language.CPP) {
