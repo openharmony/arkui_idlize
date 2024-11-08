@@ -190,7 +190,7 @@ function checkNodeAPI() {
     let length = 0.0
     checkResult("BasicNodeAPI convertLengthMetricsUnit",
         () => length = nativeModule()._ConvertLengthMetricsUnit(1.23, 10, 0),
-        `convertLengthMetricsUnit(1.230000, 10, 0)`
+        `convertLengthMetricsUnit(1.23, 10, 0)`
     )
     assertTrue("BasicNodeAPI convertLengthMetricsUnit result", Math.abs(12.3 - length) < 0.00001)
 
@@ -233,9 +233,9 @@ function checkButton() {
     let peer = ArkButtonPeer.create(ArkUINodeType.Button)
 
     checkResult("width", () => peer.widthAttribute("42%"),
-        "width({.type=1, .value=42.000000, .unit=3, .resource=0})")
+        "width({.type=1, .value=42, .unit=3, .resource=0})")
     checkResult("height", () => peer.heightAttribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
-        "height({.type=2, .value=0.000000, .unit=1, .resource=43})")
+        "height({.type=2, .value=0, .unit=1, .resource=43})")
 
     checkResult("bindSheet", () =>
         peer.bindSheetAttribute(false, () => { }, {
@@ -266,7 +266,7 @@ function checkCalendar() {
     checkResult("setCalendarOptions: selected", () => peer.setCalendarPickerOptionsAttribute({ selected: date }),
         `setCalendarPickerOptions({.tag=ARK_TAG_OBJECT, .value={.hintRadius={.tag=ARK_TAG_UNDEFINED, .value={}}, .selected={.tag=ARK_TAG_OBJECT, .value=${date.getTime()}}}})`)
     checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, { dx: 5, dy: 6 }),
-        `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5.000000, .unit=1, .resource=0}, .dy={.type=1, .value=6.000000, .unit=1, .resource=0}}})`)
+        `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5, .unit=1, .resource=0}, .dy={.type=1, .value=6, .unit=1, .resource=0}}})`)
     checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2),
         `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_UNDEFINED, .value={}})`)
 
@@ -280,7 +280,7 @@ function checkFormComponent() {
     checkResult("size int", () => peer.sizeAttribute({ width: 5, height: 6 }),
         `size({.width={.tag=102, .i32=5}, .height={.tag=102, .i32=6}})`)
     checkResult("size float", () => peer.sizeAttribute({ width: 5.5, height: 6.789 }),
-        `size({.width={.tag=103, .f32=5.50}, .height={.tag=103, .f32=6.78}})`)
+        `size({.width={.tag=103, .f32=5.5}, .height={.tag=103, .f32=6.789}})`)
     checkResult("size zero", () => peer.sizeAttribute({ width: 0.0, height: 0.0 }),
         `size({.width={.tag=102, .i32=0}, .height={.tag=102, .i32=0}})`)
 
@@ -340,7 +340,7 @@ function checkOverloads() {
     )
     checkResult("Test string implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth("42%"),
-        `minSideBarWidth({.type=1, .value=42.000000, .unit=3, .resource=0})`
+        `minSideBarWidth({.type=1, .value=42, .unit=3, .resource=0})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)
@@ -377,7 +377,7 @@ function checkTabContent() {
 
     checkResult("new BottomTabBarStyle()",
         () => peer.tabBar1Attribute(bottomTabBarStyle),
-        `tabBar({.selector=0, .value0={._content={.tag=ARK_TAG_UNDEFINED, .value={}}, ._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.selector=1, .value1={.type=1, .value=10.000000, .unit=1, .resource=0}}}}, ._id={.tag=ARK_TAG_OBJECT, .value={.chars="bottomId", .length=8}}}})`
+        `tabBar({.selector=0, .value0={._content={.tag=ARK_TAG_UNDEFINED, .value={}}, ._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.selector=1, .value1={.type=1, .value=10, .unit=1, .resource=0}}}}, ._id={.tag=ARK_TAG_OBJECT, .value={.chars="bottomId", .length=8}}}})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)

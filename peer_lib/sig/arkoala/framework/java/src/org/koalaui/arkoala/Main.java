@@ -113,7 +113,7 @@ public class Main {
         var tuple1 = new Tuple_double_String_EnumDTS(5.5, "test", EnumDTS.ELEM_1);
         TestUtils.checkResult("[Tuple + Enum] TestPeer.testTupleNumberStringEnum",
             () -> { peer.testTupleNumberStringEnumAttribute(tuple1); },
-            "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.50}, .value1={.chars=\"test\", .length=4}, .value2=Ark_EnumDTS(1)})");
+            "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.5}, .value1={.chars=\"test\", .length=4}, .value2=Ark_EnumDTS(1)})");
 
         // optional
         var listPeer = ArkListPeer.create(ArkUINodeType.List, null, 0);
@@ -202,7 +202,7 @@ public class Main {
         var swiperPeer = ArkSwiperPeer.create(ArkUINodeType.Swiper, null, 0);
         TestUtils.checkResult("[Builder] SwiperPeer.indicator",
             () -> { swiperPeer.indicatorAttribute(indicator); },
-            "indicator({._left={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10.000000, .unit=4, .resource=0}}, ._top={.tag=ARK_TAG_UNDEFINED, .value={}}, ._right={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10.000000, .unit=4, .resource=0}}, ._bottom={.tag=ARK_TAG_UNDEFINED, .value={}}, ._start={.tag=ARK_TAG_UNDEFINED, .value={}}, ._end={.tag=ARK_TAG_UNDEFINED, .value={}}, ._itemWidth={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10.000000, .unit=4, .resource=0}}, ._itemHeight={.tag=ARK_TAG_UNDEFINED, .value={}}})");
+            "indicator({._left={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10, .unit=4, .resource=0}}, ._top={.tag=ARK_TAG_UNDEFINED, .value={}}, ._right={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10, .unit=4, .resource=0}}, ._bottom={.tag=ARK_TAG_UNDEFINED, .value={}}, ._start={.tag=ARK_TAG_UNDEFINED, .value={}}, ._end={.tag=ARK_TAG_UNDEFINED, .value={}}, ._itemWidth={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10, .unit=4, .resource=0}}, ._itemHeight={.tag=ARK_TAG_UNDEFINED, .value={}}})");
 
         System.out.println();
     }
@@ -278,7 +278,7 @@ public class Main {
         component.setPeer(peer);
         TestUtils.checkResult("ArkSideBarContainerComponent method overloads",
             () -> component.minSideBarWidth(10.0).minSideBarWidth(new Ark_Length("10lpx")),
-            "minSideBarWidth({.tag=102, .i32=10})minSideBarWidth({.type=2, .value=10.000000, .unit=4, .resource=0})");
+            "minSideBarWidth({.tag=102, .i32=10})minSideBarWidth({.type=2, .value=10, .unit=4, .resource=0})");
 
         System.out.println();
     }
