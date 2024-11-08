@@ -105,7 +105,7 @@ class IdlSerializerPrinter {
         this.writer.writeClass(className, writer => {
             // No need for hold() in C++.
             if (writer.language != Language.CPP) {
-                writer.writeFieldDeclaration("cache", idl.createReferenceType("Serializer"), [FieldModifier.PRIVATE, FieldModifier.STATIC], true)
+                writer.writeFieldDeclaration("cache", idl.createOptionalType(idl.createReferenceType("Serializer")), [FieldModifier.PRIVATE, FieldModifier.STATIC], false, writer.makeNull())
                 writer.writeMethodImplementation(new Method("hold", new MethodSignature(idl.createReferenceType("Serializer"), []), [MethodModifier.STATIC]),
                 writer => {
                     writer.writeStatement(writer.makeAssign("serializer", undefined, writer.makeString("Serializer.cache"), true, false))

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { float32, float64, int32, int8 } from "@koalaui/common"
-import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceManager } from "@koalaui/interop"
+import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder } from "@koalaui/interop"
 import { CallbackKind } from "./CallbackKind"
 import { Length } from "../ArkUnitsInterfaces"
 import { Resource } from "../ArkResourceInterfaces"
@@ -152,7 +152,7 @@ export class SerializerBase {
     }
     private heldResources: Array<ResourceId> = new Array<ResourceId>()
     holdAndWriteCallback(callback: object, kind: CallbackKind) {
-        const resourceId = ResourceManager.registerAndHold(callback)
+        const resourceId = ResourceHolder.instance().registerAndHold(callback)
         this.heldResources.push(resourceId)
         this.writeInt32(resourceId)
         this.writePointer(0)
@@ -165,13 +165,13 @@ export class SerializerBase {
         this.writePointer(resource.release)
     }
     writeResource(resource: object) {
-        const resourceId = ResourceManager.registerAndHold(resource)
+        const resourceId = ResourceHolder.instance().registerAndHold(resource)
         this.heldResources.push(resourceId)
         this.writeInt32(resourceId)
     }
     private releaseResources() {
         for (const resourceId of this.heldResources)
-            ResourceManager.release(resourceId)
+            ResourceHolder.instance().release(resourceId)
         // todo think about effective array clearing/pushing
         this.heldResources = new Array<ResourceId>()
     }

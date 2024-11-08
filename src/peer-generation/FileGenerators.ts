@@ -284,7 +284,7 @@ export function makeTSSerializer(library: IdlPeerLibrary): LanguageWriter {
         imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
         imports.addFeatures(["nativeModule"], "@koalaui/arkoala")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
-        imports.addFeatures(["ResourceManager"], "@koalaui/interop")
+        imports.addFeatures(["ResourceHolder"], "@koalaui/interop")
     }
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["NativeModule"], "#components")
