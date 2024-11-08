@@ -210,6 +210,21 @@ export class MultiBranchIfStatement implements LanguageStatement {
     }
 }
 
+export class CheckOptionalStatement implements LanguageStatement {
+    constructor(
+        public undefinedValue: string,
+        public optionalExpression: LanguageExpression,
+        public doStatement: LanguageStatement
+    ) { }
+    write(writer: LanguageWriter): void {
+        writer.print(`if (${this.optionalExpression.asString()} != ${this.undefinedValue}) {`)
+        writer.pushIndent()
+        this.doStatement.write(writer)
+        writer.popIndent()
+        writer.print("}")
+    }
+}
+
 // maybe rename or move of fix
 export class TsEnumEntityStatement implements LanguageStatement {
     constructor(private readonly enumEntity: EnumEntity, private readonly isExport: boolean) {}
@@ -403,6 +418,7 @@ export abstract class LanguageWriter {
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression;
     abstract makeThrowError(message: string): LanguageStatement;
     abstract makeReturn(expr?: LanguageExpression): LanguageStatement;
+    abstract makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement;
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
     abstract getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
     abstract makeCast(value: LanguageExpression, type: idl.IDLType, options?:MakeCastOptions): LanguageExpression

@@ -88,6 +88,7 @@ export class PeerGeneratorConfig {
         // constant values need to be generated
         // "equals(id: TextMenuItemId): boolean" method leads to the "cycle detected" message
         "TextMenuItemId",
+        "AnimatableArithmetic", // Unused generic class
     ]
 
     public static ArkTsIgnoredMethods = ["testTupleNumberStringEnum", "testTupleOptional", "testTupleUnion"]

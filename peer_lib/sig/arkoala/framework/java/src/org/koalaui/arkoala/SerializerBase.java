@@ -158,8 +158,4 @@ public class SerializerBase {
         System.out.println(String.format("Unsupported custom serialization for %s, write undefined", kind));
         this.writeInt8(Tag.UNDEFINED.value);
     }
-
-    void writeMaterialized(Ark_MaterializedBase value) {
-        this.writePointer(value != null ? value.peer.ptr : 0);
-    }
 }

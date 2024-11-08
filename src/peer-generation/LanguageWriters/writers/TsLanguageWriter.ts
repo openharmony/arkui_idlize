@@ -18,6 +18,7 @@ import { Language } from "../../../Language"
 import { TSTypeNodeNameConvertor } from "../../TypeNodeNameConvertor"
 import {
     AssignStatement,
+    CheckOptionalStatement,
     ExpressionStatement,
     FieldModifier,
     LambdaExpression,
@@ -279,6 +280,9 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new TSReturnStatement(expr)
+    }
+    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
+        return new CheckOptionalStatement("undefined", optional, doStatement)
     }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)

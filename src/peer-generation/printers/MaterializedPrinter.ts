@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import * as idl from "../../idl"
 import { capitalize, removeExt, renameClassToMaterialized } from "../../util";
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
@@ -162,6 +163,26 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                         writer.writeMethodCall("this", `set${capitalize(mField.name)}`, [castedNonNullArg])
                     });
                 }
+            })
+
+            // write getPeer() method
+            const getPeerSig = new MethodSignature(idl.maybeOptional(idl.createReferenceType("Finalizable"), true),[])
+            writer.writeMethodImplementation(new Method("getPeer", getPeerSig), writer => {
+                writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
+            })
+
+            // write construct(ptr: number) method
+            const typeArguments = clazz.generics
+            const clazzRefType = idl.createReferenceType(clazz.className, typeArguments)
+            const constructSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
+            writer.writeMethodImplementation(new Method("construct", constructSig, [MethodModifier.STATIC], typeArguments), writer => {
+                const objVar = `obj${clazz.className}`
+                writer.writeStatement(writer.makeAssign(objVar, clazzRefType, writer.makeNewObject(clazz.className), true))
+                writer.writeStatement(
+                    writer.makeAssign(`${objVar}.peer`, toIDLType("Finalizable"),
+                        writer.makeString(`new Finalizable(ptr, ${clazz.className}.getFinalizer())`), false),
+                )
+                writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
             })
 
             const pointerType = IDLPointerType

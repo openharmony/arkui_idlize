@@ -301,6 +301,9 @@ export class CJLanguageWriter extends LanguageWriter {
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new ReturnStatement(expr)
     }
+    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
+        throw new Error(`TBD`)
+    }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }

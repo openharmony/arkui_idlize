@@ -17,6 +17,7 @@ import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
 import {
     AssignStatement,
+    CheckOptionalStatement,
     FieldModifier,
     LambdaExpression,
     LanguageExpression,
@@ -184,6 +185,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)
+    }
+    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
+        return new CheckOptionalStatement("null", optional, doStatement)
     }
     makeDefinedCheck(value: string): LanguageExpression {
         return new JavaCheckDefinedExpression(value)

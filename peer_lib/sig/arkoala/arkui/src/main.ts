@@ -408,6 +408,12 @@ function checkCanvasRenderingContext2D() {
         () => canvasRenderingContext2D!.peer!.close(),
         `dummyClassFinalizer(0x64)`)
 
+    const ctorPtr = 123
+    const serializer = new Serializer()
+    serializer.writeCanvasRenderingContext2D(CanvasRenderingContext2D.construct(ctorPtr))
+    const deserializer = new Deserializer(serializer.asArray().buffer, serializer.length())
+    assertEquals("Deserializer readCanvasRenderingContext2D()", ctorPtr, deserializer.readCanvasRenderingContext2D().getPeer()!.ptr)
+
     stopNativeTest(CALL_GROUP_LOG)
 }
 

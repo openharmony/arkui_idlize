@@ -16,10 +16,11 @@
 import { ArgConvertor, RetConvertor } from "./ArgConvertors"
 import { Field, Method, MethodModifier } from "./LanguageWriters"
 import { capitalize } from "../util"
-import { ImportFeature } from "./ImportsCollector"
+import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { isOptionalType, isNamedNode, IDLThisType, IDLType, maybeOptional, IDLNode } from "../idl"
 import { IdlPeerMethod } from "./idl/IdlPeerMethod";
 import { PeerClassBase } from "./PeerClass";
+import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
 
 export class MaterializedField {
     constructor(
@@ -144,5 +145,11 @@ export class MaterializedClass implements PeerClassBase {
 
     generatedName(isCallSignature: boolean): string{
         return this.className
+    }
+}
+
+export function collectMaterializedImports(imports: ImportsCollector, library: IdlPeerLibrary, level: string = "") {
+    for (const materialized of library.materializedClasses.keys()) {
+        imports.addFeature(materialized, `${level}Ark${materialized}Materialized`)
     }
 }

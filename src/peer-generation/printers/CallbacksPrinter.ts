@@ -23,6 +23,7 @@ import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
 import { CallbackKind, generateCallbackKindAccess, generateCallbackKindName } from "../idl/IdlArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
+import { collectMaterializedImports } from "../Materialized";
 
 function collectEntryCallbacks(library: IdlPeerLibrary, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
@@ -134,6 +135,7 @@ class DeserializeCallbacksVisitor {
             imports.addFeature("Deserializer", "./Deserializer")
             imports.addFeature("int32", "@koalaui/common")
             imports.addFeature("RuntimeType", "./SerializerBase")
+            collectMaterializedImports(imports, this.library, "../")
             imports.print(this.writer, "./peers")
         }
     }

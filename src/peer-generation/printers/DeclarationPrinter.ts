@@ -14,12 +14,15 @@
  */
 
 import { CustomPrintVisitor as DtsPrintVisitor} from "../../from-idl/DtsPrinter"
+import { isClass, isInterface } from "../../idl"
+import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
 
 export function printDeclarations(peerLibrary: IdlPeerLibrary): Array<string> {
     const result = []
     for (const decl of peerLibrary.declarations) {
         const visitor = new DtsPrintVisitor(type => peerLibrary.resolveTypeReference(type), peerLibrary.language)
+        if ((isInterface(decl) || isClass(decl)) && isMaterialized(decl)) continue
         visitor.visit(decl)
         const text = visitor.output.join("\n")
         if (text)

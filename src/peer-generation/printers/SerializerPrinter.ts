@@ -36,6 +36,7 @@ import { throwException } from "../../util";
 import { IDLEntry } from "../../idl";
 import { generateCallbackKindAccess } from '../idl/IdlArgConvertors';
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
+import { collectMaterializedImports } from '../Materialized';
 
 class IdlSerializerPrinter {
     constructor(
@@ -50,27 +51,67 @@ class IdlSerializerPrinter {
             new Method(`write${methodName}`,
                 new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target.name)], ["value"])),
             writer => {
-                const properties = collectProperties(target, this.library)
-                if (properties.length > 0) {
-                    writer.writeStatement(
-                        writer.makeAssign(
-                            "valueSerializer",
-                            idl.createReferenceType("Serializer"),
-                            writer.makeThis(),
-                            true,
-                            false,
-                            { assignRef: true }
-                        )
-                    )
+                if (isMaterialized(target)) {
+                    this.generateMaterializedBodySerializer(target, writer)
+                } else {
+                    this.generateInterfaceBodySerializer(target, writer)
                 }
-                properties.forEach(it => {
-                    let field = `value_${it.name}`
-                    writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.escapeKeyword(it.name)}`), true))
-                    let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
-                    typeConvertor.convertorSerialize(`value`, field, writer)
-                })
             })
         this.library.setCurrentContext(undefined)
+    }
+
+    private declareSerializer(writer: LanguageWriter) {
+        writer.writeStatement(
+            writer.makeAssign(
+                "valueSerializer",
+                idl.createReferenceType("Serializer"),
+                writer.makeThis(),
+                true,
+                false,
+                { assignRef: true }
+            )
+        )
+}
+
+    private generateInterfaceBodySerializer(target: idl.IDLInterface, writer: LanguageWriter) {
+        const properties = collectProperties(target, this.library)
+        if (properties.length > 0) {
+            this.declareSerializer(writer)
+        }
+        properties.forEach(it => {
+            let field = `value_${it.name}`
+            writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.escapeKeyword(it.name)}`), true))
+            let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
+            typeConvertor.convertorSerialize(`value`, field, writer)
+        })
+    }
+
+    private generateMaterializedBodySerializer(target: idl.IDLInterface, writer: LanguageWriter) {
+        this.declareSerializer(writer)
+        if (writer.language === Language.CPP) {
+            writer.writeExpressionStatement(
+                writer.makeMethodCall(`valueSerializer`, `writePointer`, [writer.makeString(`value.ptr`)]))
+            return
+        }
+        writer.writeStatement(
+            writer.makeAssign(
+                `peer`,
+                undefined,
+                writer.makeString(`value.getPeer()`),
+                true,
+                true
+            ))
+
+        writer.writeStatement(
+            writer.makeCheckOptional(
+                writer.makeString(`peer`),
+                writer.makeStatement(
+                    writer.makeMethodCall(`valueSerializer`, `writePointer`, [
+                        writer.makeString(`peer.ptr`)
+                    ])
+                )
+            )
+        )
     }
 
     print(prefix: string, declarationPath?: string) {
@@ -146,57 +187,86 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
         const methodName = this.library.getInteropName(target)
         const type = idl.createReferenceType(target.name)
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
-            function declareDeserializer() {
-                writer.writeStatement(
-                    writer.makeAssign(
-                        "valueDeserializer",
-                        idl.createReferenceType("Deserializer"),
-                        writer.makeThis(),
-                        true,
-                        false,
-                        { assignRef: true }
-                    )
-                )
-            }
-            const properties = collectProperties(target, this.library)
-            // using list initialization to prevent uninitialized value errors
-            const valueType = type // not used, if language === TS
-            const options: MakeAssignOptions | undefined = this.library.language === Language.TS
-                ? { overrideTypeName: `{${properties.map(it => `${it.name}?: ${writer.stringifyType(it.type)}`).join(", ")}}` }
-                : undefined
-
-            if (writer.language === Language.CPP)
-                writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`{}`), true, false, options))
-            if (idl.isInterface(target) || idl.isClass(target)) {
-                if (properties.length > 0) {
-                    declareDeserializer()
-                }
-                properties.forEach(it => {
-                    let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
-                    writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}_buf`, `valueDeserializer`, (expr) => {
-                        if (writer.language === Language.CPP)
-                            return writer.makeAssign(`value.${writer.escapeKeyword(it.name)}`, undefined, expr, false)
-                        return writer.makeAssign(`${it.name}_result`, idl.maybeOptional(it.type, it.isOptional), expr, true, true)
-                    }, writer))
-                })
-                if (writer.language !== Language.CPP) {
-                    const propsAssignees = properties.map(it => {
-                        return `${it.name}: ${it.name}_result`
-                    })
-                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`{${propsAssignees.join(',')}}`), true, false, options))
-                }
+            if (isMaterialized(target)) {
+                this.generateMaterializedBodyDeserializer(target)
             } else {
-                if (writer.language === Language.CPP) {
-                    let typeConvertor = this.library.declarationConvertor("value", idl.createReferenceType((target as idl.IDLInterface).name), target)
-                    declareDeserializer()
-                    writer.writeStatement(typeConvertor.convertorDeserialize(`value_buf`, `valueDeserializer`, (expr) => {
-                       return writer.makeAssign(`value`, undefined, expr, false)
-                    }, writer))
-                }
+                this.generateInterfaceBodyDeserializer(target, type)
             }
-            writer.writeStatement(writer.makeReturn(
-                writer.makeCast(writer.makeString("value"), type)))
         })
+    }
+
+    private declareDeserializer() {
+        this.writer.writeStatement(
+            this.writer.makeAssign(
+                "valueDeserializer",
+                idl.createReferenceType("Deserializer"),
+                this.writer.makeThis(),
+                true,
+                false,
+                { assignRef: true }
+            )
+        )
+    }
+    private generateInterfaceBodyDeserializer(target: idl.IDLInterface, type: idl.IDLType) {
+        const properties = collectProperties(target, this.library)
+        // using list initialization to prevent uninitialized value errors
+        const valueType = type // not used, if language === TS
+        const options: MakeAssignOptions | undefined = this.library.language === Language.TS
+            ? { overrideTypeName: `{${properties.map(it => `${it.name}?: ${this.writer.stringifyType(it.type)}`).join(", ")}}` }
+            : undefined
+
+        if (this.writer.language === Language.CPP)
+            this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeString(`{}`), true, false, options))
+        if (idl.isInterface(target) || idl.isClass(target)) {
+            if (properties.length > 0) {
+                this.declareDeserializer()
+            }
+            properties.forEach(it => {
+                let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
+                this.writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}_buf`, `valueDeserializer`, (expr) => {
+                    if (this.writer.language === Language.CPP)
+                        return this.writer.makeAssign(`value.${this.writer.escapeKeyword(it.name)}`, undefined, expr, false)
+                    return this.writer.makeAssign(`${it.name}_result`, idl.maybeOptional(it.type, it.isOptional), expr, true, true)
+                }, this.writer))
+            })
+            if (this.writer.language !== Language.CPP) {
+                const propsAssignees = properties.map(it => {
+                    return `${it.name}: ${it.name}_result`
+                })
+                this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeString(`{${propsAssignees.join(',')}}`), true, false, options))
+            }
+        } else {
+            if (this.writer.language === Language.CPP) {
+                let typeConvertor = this.library.declarationConvertor("value", idl.createReferenceType((target as idl.IDLInterface).name), target)
+                this.declareDeserializer()
+                this.writer.writeStatement(typeConvertor.convertorDeserialize(`value_buf`, `valueDeserializer`, (expr) => {
+                   return this.writer.makeAssign(`value`, undefined, expr, false)
+                }, this.writer))
+            }
+        }
+        this.writer.writeStatement(this.writer.makeReturn(
+            this.writer.makeCast(this.writer.makeString("value"), type)))
+    }
+
+    private generateMaterializedBodyDeserializer(target: idl.IDLInterface) {
+        this.declareDeserializer()
+        this.writer.writeStatement(
+            this.writer.makeAssign(`ptr`, idl.IDLPointerType, this.writer.makeMethodCall(
+                `valueDeserializer`, `readPointer`, []), true, false),
+        )
+        if (this.writer.language === Language.CPP) {
+            this.writer.writeStatement(
+                this.writer.makeReturn(this.writer.makeString(`{ .ptr = ptr }`))
+            )
+            return
+        }
+        this.writer.writeStatement(
+            this.writer.makeReturn(
+                this.writer.makeMethodCall(
+                    target.name, "construct", [this.writer.makeString(`ptr`)]
+                )
+            )
+        )
     }
 
     private generateCallbackDeserializer(target: idl.IDLCallback): void {
@@ -340,6 +410,8 @@ function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: Serial
         for (let builder of library.builderClasses.keys()) {
             collector.addFeature(builder, `Ark${builder}Builder`)
         }
+        collector.addFeature(`Finalizable`, `Finalizable`)
+        collectMaterializedImports(collector, library)
 
         if (declarationPath) { // This is used for OHOS library generation only
             // TODO Check for compatibility!
@@ -398,7 +470,7 @@ class DefaultSerializerDependencyFilter implements DependencyFilter {
     }
 
     canSerializeDependency(dep: idl.IDLEntry): dep is SerializableTarget  {
-        if ((idl.isClass(dep) || idl.isInterface(dep)) && !isMaterialized(dep))
+        if (idl.isClass(dep) || idl.isInterface(dep))
             return true
         if (idl.isCallback(dep))
             return true

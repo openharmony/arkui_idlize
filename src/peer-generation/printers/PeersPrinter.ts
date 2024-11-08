@@ -29,7 +29,7 @@ import {
     NamedMethodSignature,
     createLanguageWriter
 } from "../LanguageWriters";
-import { MaterializedMethod } from "../Materialized";
+import { collectMaterializedImports, MaterializedMethod } from "../Materialized";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile";
@@ -123,6 +123,8 @@ class PeerFileVisitor {
             imports.addFeature("Deserializer", "./peers/Deserializer")
             imports.addFeature("createDeserializer", "./peers/Deserializer")
         }
+        imports.addFeature("MaterializedBase", "./MaterializedBase")
+        collectMaterializedImports(imports, this.library)
         Array.from(this.library.builderClasses.keys())
             .filter(it => this.library.builderClasses.get(it)?.needBeGenerated)
             .forEach((className) => imports.addFeature(className, `./Ark${className}Builder`))

@@ -13,21 +13,9 @@
  * limitations under the License.
  */
 
+import { Finalizable } from "./Finalizable"
 
-// WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
-
-package org.koalaui.arkoala;
-
-import org.koalaui.interop.Finalizable;
-
-public class Ark_MaterializedBase extends Ark_ObjectBase {
-    public Finalizable peer;
-
-    // internal interface to call constructors that only create materialized class wrappers at Java side
-    protected interface EmptyParameter {}
-    protected Ark_MaterializedBase(EmptyParameter p) {}
-
-    public Finalizable getPeer() {
-        return peer;
-    }
+export interface MaterializedBase {
+    getPeer(): Finalizable | undefined
 }
+

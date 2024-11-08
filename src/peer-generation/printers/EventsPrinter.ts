@@ -40,6 +40,7 @@ import { ImportsCollector } from "../ImportsCollector";
 import { getReferenceResolver, ReferenceResolver } from "../ReferenceResolver"
 import { isImport } from "../idl/common"
 import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter";
+import { collectMaterializedImports } from "../Materialized"
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -333,6 +334,7 @@ abstract class TSEventsVisitorBase {
         imports.addFeature("RuntimeType", "./peers/SerializerBase")
         imports.addFeature("int32", "@koalaui/common")
         imports.addFeature("KStringPtr", "@koalaui/interop")
+        imports.addFeature("KPointer", "@koalaui/interop")
         if ([Language.TS].includes(this.library.language))
             imports.addFeature("Deserializer", "./peers/Deserializer")
 
@@ -347,6 +349,7 @@ abstract class TSEventsVisitorBase {
                 }
             })
         }
+        collectMaterializedImports(imports, this.library)
         imports.print(this.printer, '')
     }
 

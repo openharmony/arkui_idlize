@@ -753,16 +753,19 @@ export class MaterializedClassConvertor extends BaseArgConvertor { //
     constructor(private library: LibraryInterface, name: string, param: string, private type: idl.IDLInterface) {
         super(idl.toIDLType(name), [RuntimeType.OBJECT], false, true, param)
     }
-
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, "writeMaterialized", [value])
+        printer.writeStatement(
+            printer.makeStatement(
+                printer.makeMethodCall(`${param}Serializer`, `write${this.type.name}`, [
+                    printer.makeString(value)
+                ])))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         const readStatement = writer.makeCast(
-            writer.makeMethodCall(`${deserializerName}`, `readMaterialized`, []),
+            writer.makeMethodCall(`${deserializerName}`, `read${this.type.name}`, []),
             idl.createReferenceType(this.type.name)
         )
         return assigneer(readStatement)

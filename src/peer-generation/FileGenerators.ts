@@ -281,6 +281,7 @@ export function makeTSSerializer(library: IdlPeerLibrary): LanguageWriter {
     imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "./SerializerBase")
     imports.addFeatures(["int32"], "@koalaui/common")
     if (printer.language == Language.TS) {
+        imports.addFeatures(["MaterializedBase"], "../MaterializedBase")
         imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
         imports.addFeatures(["nativeModule"], "@koalaui/arkoala")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
@@ -386,6 +387,7 @@ export function makeTSDeserializer(library: IdlPeerLibrary): string {
     writeDeserializer(library, deserializer)
     return `${cStyleCopyright}
 import { runtimeType, Tags, RuntimeType, SerializerBase, CallbackResource } from "./SerializerBase"
+import { MaterializedBase } from "./../MaterializedBase"
 import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"

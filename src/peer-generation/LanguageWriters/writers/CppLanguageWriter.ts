@@ -283,6 +283,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)
     }
+    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
+        throw new Error(`TBD`)
+    }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new CLikeExpressionStatement(expr)
     }
