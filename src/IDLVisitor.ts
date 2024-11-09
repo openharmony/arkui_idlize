@@ -125,8 +125,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             this.output.push(idl.createInterface(
                 `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replaceAll("@", "").replaceAll(".", "_")}`,
                 idl.IDLKind.Interface,
-                [], 
-                [], 
+                [],
+                [],
                 this.globalConstants,
                 [],
                 this.globalFunctions,
@@ -282,7 +282,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             return idl.createTypedef(
                 nameSuggestion.name,
                 type, {
-                extendedAttributes: extendedAttributes, 
+                extendedAttributes: extendedAttributes,
                 fileName: node.getSourceFile().fileName
             })
         }
@@ -614,7 +614,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     serializeEnumMember(node: ts.EnumMember, parent: idl.IDLEnum, name: string): idl.IDLEnumMember {
         const initializer = this.typeChecker.getConstantValue(node)
         return idl.createEnumMember(
-            name, 
+            name,
             parent,
             typeof initializer == 'string' ? idl.IDLStringType : idl.IDLNumberType,
             initializer, {
@@ -782,7 +782,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                         : undefined
                     : undefined
                 if (substType) {
-                    if (!idl.isNamedNode(substType)) 
+                    if (!idl.isNamedNode(substType))
                         throw `Type name of node ${idl.IDLKind[substType.kind]} is unknown`
                     return substType.name
                 }
@@ -1046,9 +1046,17 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
 
         if (ts.isPropertyDeclaration(property) || ts.isPropertySignature(property)) {
+            let type = this.serializeType(property.type, nameSuggestion)
+            if (escapedName == "params" && this.maybeClassName(property.parent) == "Resource" &&
+                idl.isContainerType(type) && type.elementType[0] == idl.IDLAnyType) {
+                // Ugly hack: Resource.params is any[] in the SDK, but it should be string[].
+                // TODO: remove, once SDK is fixed.
+                console.log(`WARNING: applying Resource.params workaround, type was ${this.computeTypeName(type)}`)
+                type = idl.createContainerType('sequence', [idl.IDLStringType])
+            }
             return idl.createProperty(
                 escapedName,
-                this.serializeType(property.type, nameSuggestion),
+                type,
                 isReadonly(property.modifiers),
                 isStatic(property.modifiers),
                 !!property.questionToken, {
@@ -1057,6 +1065,13 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             })
         }
         throw new Error("Unknown")
+    }
+
+    private maybeClassName(node: ts.Node|ts.ClassLikeDeclaration): string | undefined {
+        if (ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node))
+            return identName(node.name)
+        else
+            return undefined
     }
 
     serializeTupleProperty(property: ts.NamedTupleMember | ts.TypeNode, index: number, isReadonly: boolean = false): idl.IDLProperty {

@@ -1207,6 +1207,11 @@ function forEachFunction(node: IDLNode, cb: (node: IDLFunction) => void): void {
             concrete.elementType.forEach((value) => forEachFunction(value, cb))
             break
         }
+        case IDLKind.OptionalType: {
+            const concrete = node as IDLOptionalType
+            forEachFunction(concrete.type, cb)
+            break
+        }
         case IDLKind.TypeParameterType:
         case IDLKind.Enum:
         case IDLKind.Typedef:
