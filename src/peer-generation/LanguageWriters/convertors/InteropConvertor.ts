@@ -98,7 +98,7 @@ export class InteropConverter implements TypeConvertor<ConvertResult> {
         return this.convertType(type.type)
     }
     convertUnion(type: idl.IDLUnionType): ConvertResult {
-        return this.make(`Union_${type.types.map(it => this.convertType(it).text).join("_")}`, true)
+        return this.make(type.name, false)
     }
     convertContainer(type: idl.IDLContainerType): ConvertResult {
         if (idl.IDLContainerUtils.isPromise(type)) {
