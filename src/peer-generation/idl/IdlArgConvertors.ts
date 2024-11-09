@@ -128,8 +128,8 @@ export class EnumConvertor extends BaseArgConvertor { //
         let high: number = Number.MIN_VALUE
         this.enumEntry.elements.forEach((member, index) => {
             let value = index
-            if (member.initializer && !this.isStringEnum) {
-                value = parseInt(member.initializer.toString())
+            if ((typeof member.initializer === 'number') && !this.isStringEnum) {
+                value = member.initializer
             }
             if (low > value) low = value
             if (high < value) high = value

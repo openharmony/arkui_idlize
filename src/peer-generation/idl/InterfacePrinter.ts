@@ -321,7 +321,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         this.printPackage(writer)
 
         const initializers = enumDecl.elements.map(it => {
-            return {name: it.name, id: isNaN(parseInt(it.initializer as string, 10)) ? it.initializer : parseInt(it.initializer as string, 10)}
+            return {name: it.name, id: it.initializer}
         })
 
         const isStringEnum = initializers.every(it => typeof it.id == 'string')
@@ -802,7 +802,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         writer.print('import std.collection.*\n')
 
         const initializers = enumDecl.elements.map(it => {
-            return {name: it.name, id: isNaN(parseInt(it.initializer as string, 10)) ? it.initializer : parseInt(it.initializer as string, 10)}
+            return {name: it.name, id: it.initializer}
         })
 
         const isStringEnum = initializers.every(it => typeof it.id == 'string')

@@ -213,8 +213,8 @@ export class CustomPrintVisitor {
         this.print(`declare enum ${node.name} {`)
         this.pushIndent()
         node.elements.forEach(it => {
-            const initializer = it.initializer
-                ? it.type === IDLStringType ? ` = "${it.initializer}"` : ` = ${it.initializer}`
+            const initializer = (it.initializer !== undefined)
+                ? (it.type === IDLStringType ? ` = "${it.initializer}"` : ` = ${it.initializer}`)
                 : undefined
             this.print(`${getName(it)}${initializer ?? ""},`)
         })

@@ -997,7 +997,7 @@ export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone
             idl.documentation,
             ...printExtendedAttributes(idl, 0),
             `enum ${idl.name!} {`,
-            ...idl.elements.map(it => indentedBy(`${it.name} ${(it.initializer ? " /* " + it.initializer + " */" : "")}`, 1)),
+            ...idl.elements.map(it => indentedBy(`${it.name} ${(it.initializer !== undefined ? " /* " + it.initializer + " */" : "")}`, 1)),
             "};"
         ]
     } else {

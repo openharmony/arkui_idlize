@@ -99,7 +99,7 @@ export class StructPrinter {
                 for (let member of enumTarget.elements) {
                     const memberName = member.documentation?.includes("@deprecated")
                         ? member.name : camelCaseToUpperSnakeCase(member.name)
-                    const initializer = !stringEnum && member.initializer ? " = " + member.initializer : ""
+                    const initializer = (!stringEnum && (member.initializer !== undefined)) ? " = " + member.initializer : ""
                     enumsDeclarations.print(`${camelCaseToUpperSnakeCase(nameAssigned)}_${memberName}${initializer},`)
                 }
                 enumsDeclarations.popIndent()
