@@ -243,7 +243,7 @@ export function generateArkoalaFromIdl(config: {
         for (const data of declarations) {
             index.print(data)
         }
-        index.printTo(path.join(arkoala.langDir(), "index-full.d.ts"))
+        index.printTo(path.join(arkoala.indexDir(), "index-full.d.ts"))
         writeFile(
             arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
             printNativeModuleEmpty(peerLibrary),

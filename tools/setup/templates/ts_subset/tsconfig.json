@@ -25,6 +25,6 @@
         "generated/sig/arkoala/**/*",
     ],
     "files": [
-        "generated/sig/arkoala/arkui/src/index-full.d.ts"
+        "generated/sig/arkoala/arkui/types/index-full.d.ts"
     ]
 }

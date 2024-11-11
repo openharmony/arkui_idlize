@@ -105,7 +105,6 @@ export class PeerGeneratorConfig {
 
         // common
         "AppStorage",
-        "CustomComponent",  // pulls in Layoutable, LayoutChild
         "DataAddOperation",
         "DataChangeListener",  // causes discrimination code failure
         "DataChangeOperation",
@@ -134,6 +133,7 @@ export class PeerGeneratorConfig {
     ])
 
     private static ignoredEntriesJava = new Set([
+        "CustomComponent",  // pulls in Layoutable, LayoutChild
         "AnimationRange",
         "EventTargetInfo",
         "GestureRecognizer",

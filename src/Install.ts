@@ -38,6 +38,11 @@ export class ArkoalaInstall extends Install {
             default: throw new Error("unsupported")
         }
     }
+    indexDir(): string {
+        if (this.lang == Language.TS)
+            return this.tsTypesDir
+        return this.langDir()
+    }
     createDirs(dirs: string[]) {
         for (const dir of dirs) {
             this.mkdir(dir)
@@ -46,6 +51,7 @@ export class ArkoalaInstall extends Install {
     sig = this.mkdir(this.test ? path.join(this.outDir, "sig") : this.outDir)
 
     tsDir = this.mkdir(path.join(this.sig, "arkoala/arkui/src/"))
+    tsTypesDir = this.mkdir(path.join(this.sig, "arkoala/arkui/types/"))
     arktsDir = this.mkdir(path.join(this.sig, "arkoala-arkts/arkui/src/generated/"))
 
     frameworkDir = this.mkdir(path.join(this.sig, "arkoala/framework"))
