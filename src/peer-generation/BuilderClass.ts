@@ -21,21 +21,8 @@ import { IdlPeerLibrary } from "./idl/IdlPeerLibrary";
 import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
 import { createReferenceType, IDLThisType, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../idl"
 
-function builderMethod(name: string, type: IDLType): BuilderMethod {
-    const method = new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))
-    return new BuilderMethod(method)
-}
-
-export class BuilderField {
-    constructor(
-        public field: Field,
-    ) { }
-}
-
-export class BuilderMethod {
-    constructor(
-        public method: Method,
-    ) { }
+function builderMethod(name: string, type: IDLType): Method {
+    return new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))
 }
 
 export class BuilderClass {
@@ -44,9 +31,9 @@ export class BuilderClass {
         public readonly generics: string[] | undefined,
         public readonly isInterface: boolean,
         public readonly superClass: SuperElement | undefined,
-        public readonly fields: BuilderField[],
-        public readonly constructors: BuilderMethod[],
-        public readonly methods: BuilderMethod[],
+        public readonly fields: Field[],
+        public readonly constructors: Method[],
+        public readonly methods: Method[],
         public readonly importFeatures: ImportFeature[],
         public readonly needBeGenerated: boolean = true,
     ) { }
@@ -59,11 +46,11 @@ export function initCustomBuilderClasses(library: IdlPeerLibrary) {
     CUSTOM_BUILDER_CLASSES.push(
         new BuilderClass("Indicator", ["T"], false, undefined,
             [], // fields
-            [new BuilderMethod(new Method("constructor", new MethodSignature(IDLVoidType, [])))],
+            [new Method("constructor", new MethodSignature(IDLVoidType, []))],
             [
                 ...["left", "top", "right", "bottom"].map(it => builderMethod(it, createReferenceType("Length"))),
                 ...["start", "end"].map(it => builderMethod(it, createReferenceType("LengthMetrics"))),
-                new BuilderMethod(new Method("dot", new MethodSignature(createReferenceType("DotIndicator"), []), [MethodModifier.STATIC])),
+                new Method("dot", new MethodSignature(createReferenceType("DotIndicator"), []), [MethodModifier.STATIC]),
             ],
             [], // imports
         )
@@ -72,7 +59,7 @@ export function initCustomBuilderClasses(library: IdlPeerLibrary) {
     CUSTOM_BUILDER_CLASSES.forEach(it => {
         if (library.language === Language.ARKTS) {
             it.importFeatures.push(
-                ...it.methods.flatMap(it => [...it.method.signature.args, it.method.signature.returnType])
+                ...it.methods.flatMap(it => [...it.signature.args, it.signature.returnType])
                     .map(it => convertTypeToFeature(library, it))
                     .filter((it) : it is ImportFeature => it !== undefined)
             )

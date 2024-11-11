@@ -42,13 +42,7 @@ import {
     makeSyntheticTypeAliasDeclaration,
     syntheticDeclarationFilename
 } from "./IdlSyntheticDeclarations";
-import {
-    BuilderClass,
-    BuilderField,
-    BuilderMethod,
-    initCustomBuilderClasses,
-    isCustomBuilderClass
-} from "../BuilderClass";
+import { BuilderClass, initCustomBuilderClasses, isCustomBuilderClass } from "../BuilderClass";
 import { isRoot } from "../inheritance";
 import { ImportFeature } from "../ImportsCollector";
 import { DeclarationNameConvertor } from "./IdlNameConvertor";
@@ -880,7 +874,7 @@ export class IdlPeerProcessor {
         if (this.library.language === Language.ARKTS) {
             // this is necessary because getBuilderMethods embeds supertype types
             importFeatures.push(
-                ...methods.flatMap(it => [...it.method.signature.args, it.method.signature.returnType])
+                ...methods.flatMap(it => [...it.signature.args, it.signature.returnType])
                     .map(it => convertTypeToFeature(this.library, it))
                     .filter((it) : it is ImportFeature => it !== undefined)
             )
@@ -888,14 +882,12 @@ export class IdlPeerProcessor {
         return new BuilderClass(name, undefined, isIface, undefined, fields, constructors, methods, importFeatures)
     }
 
-    private toBuilderField(prop: idl.IDLProperty): BuilderField {
+    private toBuilderField(prop: idl.IDLProperty): Field {
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
-        return new BuilderField(
-            new Field(prop.name, idl.maybeOptional(prop.type, prop.isOptional), modifiers),
-        )
+        return new Field(prop.name, idl.maybeOptional(prop.type, prop.isOptional), modifiers)
     }
 
-    private getBuilderMethods(target: idl.IDLInterface, className?: string): BuilderMethod[] {
+    private getBuilderMethods(target: idl.IDLInterface, className?: string): Method[] {
         return [
             ...target.inheritance
                 .filter(idl.isReferenceType)
@@ -910,15 +902,14 @@ export class IdlPeerProcessor {
             ...target.methods.map(it => this.toBuilderMethod(it, className))]
     }
 
-    private toBuilderMethod(method: idl.IDLConstructor | idl.IDLMethod | undefined,
-                            className?: string): BuilderMethod {
+    private toBuilderMethod(method: idl.IDLConstructor | idl.IDLMethod | undefined, className?: string): Method {
         if (!method)
-            return new BuilderMethod(new Method("constructor", new NamedMethodSignature(idl.IDLVoidType)))
+            return new Method("constructor", new NamedMethodSignature(idl.IDLVoidType))
         const methodName = idl.isConstructor(method) ? "constructor" : method.name
         // const generics = method.typeParameters?.map(it => it.getText())
         const signature = generateSignature(this.library, method, className)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
-        return new BuilderMethod(new Method(methodName, signature, modifiers/*, generics*/))
+        return new Method(methodName, signature, modifiers/*, generics*/)
     }
     private collectDeclDependencies(decl: idl.IDLEntry): ImportFeature[] {
         let importFeatures: ImportFeature[]

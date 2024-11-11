@@ -15,12 +15,11 @@
 
 import { removeExt, renameClassToBuilderClass } from "../../util"
 import { LanguageWriter, MethodModifier, Method, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
-import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES, BuilderMethod, BuilderField } from "../BuilderClass";
+import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES } from "../BuilderClass";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
-import { SuperElement } from "../Materialized";
-import { ImportFeature, ImportsCollector } from "../ImportsCollector";
+import { ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
 import { Language } from "../../Language";
@@ -30,20 +29,6 @@ interface BuilderClassFileVisitor {
     printFile(): void
     getTargetFile(): TargetFile
     getOutput(): string[]
-}
-
-class TSBuilderClass {
-    constructor(
-        public readonly name: string,
-        public readonly generics: string[] | undefined,
-        public readonly isInterface: boolean,
-        public readonly superClass: SuperElement | undefined,
-        public readonly fields: Field[],
-        public readonly constructors: Method[],
-        public readonly methods: Method[],
-        public readonly importFeatures: ImportFeature[],
-        public readonly needBeGenerated: boolean = true,
-    ) { }
 }
 
 class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
@@ -56,7 +41,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         private readonly dumpSerialized: boolean,
         private readonly peerLibrary: IdlPeerLibrary) { }
 
-    private printBuilderClass(builderClass: TSBuilderClass) {
+    private printBuilderClass(builderClass: BuilderClass) {
         const writer = this.printer
         const clazz = processTSBuilderClass(builderClass)
 
@@ -116,7 +101,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 
     printFile(): void {
-        this.printBuilderClass(toTSBuilderClass(this.builderClass))
+        this.printBuilderClass(this.builderClass)
     }
 
     getTargetFile(): TargetFile {
@@ -225,30 +210,23 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
     //     })
     // }
 
-    private synthesizeField(method: BuilderMethod): BuilderField {
-        return new BuilderField(
-            new Field(syntheticName(method.method.name), method.method.signature.args[0]),
-            // method.declarationTargets[0]
-        )
+    private synthesizeField(method: Method): Field {
+        return new Field(syntheticName(method.name), method.signature.args[0])
     }
 
-    private convertBuilderMethod(method: BuilderMethod, returnType: IDLType, newMethodName?: string): BuilderMethod {
-        const oldSignature = method.method.signature as NamedMethodSignature
+    private convertBuilderMethod(method: Method, returnType: IDLType, newMethodName?: string): Method {
+        const oldSignature = method.signature as NamedMethodSignature
         const signature = new NamedMethodSignature(returnType, oldSignature.args, oldSignature.argsNames, oldSignature.defaults);
-        return new BuilderMethod(
-            new Method(
-                newMethodName ?? method.method.name,
-                signature,
-                method.method.modifiers,
-                method.method.generics,
-            ),
-            // method.declarationTargets
-        )
+        return new Method(
+            newMethodName ?? method.name,
+            signature,
+            method.modifiers,
+            method.generics)
     }
 
     private processBuilderClass(clazz: BuilderClass): BuilderClass {
         const syntheticFields = clazz.methods
-            .filter(it => !it.method.modifiers?.includes(MethodModifier.STATIC))
+            .filter(it => !it.modifiers?.includes(MethodModifier.STATIC))
             .map(it => this.synthesizeField(it))
         const fields = [...clazz.fields, ...syntheticFields]
 
@@ -277,30 +255,30 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
         writer.writeClass(clazz.name, writer => {
 
             clazz.fields.forEach(field => {
-                writer.writeFieldDeclaration(field.field.name, field.field.type, field.field.modifiers, isOptionalType(field.field.type))
+                writer.writeFieldDeclaration(field.name, field.type, field.modifiers, isOptionalType(field.type))
             })
 
             clazz.constructors
                 .forEach(ctor => {
-                    writer.writeConstructorImplementation(ctor.method.name, ctor.method.signature, writer => {})
+                    writer.writeConstructorImplementation(ctor.name, ctor.signature, writer => {})
                 })
 
             clazz.methods
-                .filter(method => method.method.modifiers?.includes(MethodModifier.STATIC))
+                .filter(method => method.modifiers?.includes(MethodModifier.STATIC))
                 .forEach(staticMethod => {
-                    writer.writeMethodImplementation(staticMethod.method, writer => {
-                        const sig = staticMethod.method.signature
+                    writer.writeMethodImplementation(staticMethod, writer => {
+                        const sig = staticMethod.signature
                         const args = sig.args.map((_, i) => sig.argName(i)).join(", ")
                         writer.writeStatement(writer.makeReturn(writer.makeString(`new ${clazz.name}(${args})`)))
                     })
                 })
 
             clazz.methods
-                .filter(method => !method.method.modifiers?.includes(MethodModifier.STATIC))
+                .filter(method => !method.modifiers?.includes(MethodModifier.STATIC))
                 .forEach(method => {
-                    writer.writeMethodImplementation(method.method, writer => {
-                        const argName = method.method.signature.argName(0)
-                        const fieldName = syntheticName(method.method.name)
+                    writer.writeMethodImplementation(method, writer => {
+                        const argName = method.signature.argName(0)
+                        const fieldName = syntheticName(method.name)
                         writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
                         writer.writeStatement(writer.makeReturn(writer.makeString("this")))
                     })
@@ -391,21 +369,7 @@ function collapse(methods: Method[]): Method[] {
     return groups.map(it => it.length == 1 ? it[0] : collapseSameNamedMethods(it))
 }
 
-function toTSBuilderClass(clazz: BuilderClass): TSBuilderClass {
-    return new TSBuilderClass(
-        clazz.name,
-        clazz.generics,
-        clazz.isInterface,
-        clazz.superClass,
-        clazz.fields.map(it => it.field),
-        clazz.constructors.map(it => it.method),
-        clazz.methods.map(it => it.method),
-        clazz.importFeatures,
-        clazz.needBeGenerated,
-    )
-}
-
-function processTSBuilderClass(clazz: TSBuilderClass): TSBuilderClass {
+function processTSBuilderClass(clazz: BuilderClass): BuilderClass {
     const methods = collapse(clazz.methods)
     let constructors = collapse(clazz.constructors)
 
@@ -433,7 +397,7 @@ function processTSBuilderClass(clazz: TSBuilderClass): TSBuilderClass {
 
     const fields = [...clazz.fields, ...ctorFields, ...syntheticFields]
 
-    return new TSBuilderClass(
+    return new BuilderClass(
         clazz.name,
         clazz.generics,
         clazz.isInterface,
