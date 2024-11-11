@@ -230,11 +230,6 @@ public class Main {
     static void checkNodeAPI() {
         System.out.println("Java TreeNode tests");
 
-        NativePeerNode.setCreateNodeDelay(ArkUINodeType.Column, Duration.ofNanos(500000));
-        NativePeerNode.setMeasureNodeDelay(ArkUINodeType.Button, Duration.ofNanos(400000));
-        NativePeerNode.setLayoutNodeDelay(ArkUINodeType.List, Duration.ofNanos(600000));
-        NativePeerNode.setDrawNodeDelay(ArkUINodeType.Web, Duration.ofNanos(700000));
-
         var root = ArkColumnPeer.create(ArkUINodeType.Column, null, 0);
         var child1 = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
         var child2 = ArkBlankPeer.create(ArkUINodeType.Blank, null, 0);

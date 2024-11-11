@@ -153,7 +153,7 @@ if os == 'linux'
     panda_ldflags = ['-ldl', '-lm']
 endif
 if os == 'macos'
-    cflags += ['-DKOALA_MACOS']
+    cflags += ['-DKOALA_MACOS', '-mmacosx-version-min=13.3']
     panda_ldflags = ['-ldl', '-lm']
 endif
 

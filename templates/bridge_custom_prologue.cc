@@ -31,50 +31,16 @@ const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* re
 const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
     return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(
         GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%BASIC),
-        %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION));
+        %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, nullptr));
 }
 
 const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
     return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedNodeAPI*>(
         GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED),
-        %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION));
+        %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, nullptr));
 }
 
 CustomDeserializer* DeserializerBase::customDeserializers = nullptr;
-
-// set delay API
-
-// TODO: remove or properly implement for dummy case.
-namespace TreeNodeDelays {
-    void SetCreateNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {}
-    void SetMeasureNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {}
-    void SetLayoutNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {}
-    void SetDrawNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {}
-}
-
-void impl_SetCreateNodeDelay(Ark_Int32 type, Ark_Int64 nanoseconds) {
-    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
-    TreeNodeDelays::SetCreateNodeDelay(typeCast, nanoseconds);
-}
-KOALA_INTEROP_V2(SetCreateNodeDelay, Ark_Int32, Ark_Int64)
-
-void impl_SetMeasureNodeDelay(Ark_Int32 type, Ark_Int64 nanoseconds) {
-    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
-    TreeNodeDelays::SetMeasureNodeDelay(typeCast, nanoseconds);
-}
-KOALA_INTEROP_V2(SetMeasureNodeDelay, Ark_Int32, Ark_Int64)
-
-void impl_SetLayoutNodeDelay(Ark_Int32 type, Ark_Int64 nanoseconds) {
-    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
-    TreeNodeDelays::SetLayoutNodeDelay(typeCast, nanoseconds);
-}
-KOALA_INTEROP_V2(SetLayoutNodeDelay, Ark_Int32, Ark_Int64)
-
-void impl_SetDrawNodeDelay(Ark_Int32 type, Ark_Int64 nanoseconds) {
-    GENERATED_Ark_NodeType typeCast = GENERATED_Ark_NodeType(type);
-    TreeNodeDelays::SetDrawNodeDelay(typeCast, nanoseconds);
-}
-KOALA_INTEROP_V2(SetDrawNodeDelay, Ark_Int32, Ark_Int64)
 
 // TODO: Remove all this.
 void disposeNode(KNativePointer* ptr) {

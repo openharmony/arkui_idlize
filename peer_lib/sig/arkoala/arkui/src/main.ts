@@ -477,7 +477,7 @@ function checkCanvasRenderingContext2D() {
         () => canvasRenderingContext2D!.peer!.close(),
         `dummyClassFinalizer(0x64)`)
 
-    const ctorPtr = 123
+    const ctorPtr = BigInt(123)
     const serializer = new Serializer()
     serializer.writeCanvasRenderingContext2D(CanvasRenderingContext2D.construct(ctorPtr))
     const deserializer = new Deserializer(serializer.asArray().buffer, serializer.length())

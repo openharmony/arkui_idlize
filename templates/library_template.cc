@@ -17,7 +17,8 @@
 #include <string>
 
 #include "dynamic-loader.h"
-
+#include "callbacks.h"
+#include "common-interop.h"
 #include "interop-logging.h"
 #include "arkoala_api_generated.h"
 
@@ -49,6 +50,7 @@ void* FindModule(int kind) {
     return nullptr;
 }
 
+const %CPP_PREFIX%ArkUIEventsAPI* GetArkUiEventsAPI();
 static %CPP_PREFIX%ArkUIAnyAPI* impls[%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%COUNT] = { 0 };
 const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
 
@@ -73,7 +75,7 @@ const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* re
                 if (result)
                     *result = "Cannot find dynamic module";
                 else
-                    LOGE("Cannot find dynamic module");
+                    LOG("Cannot find dynamic module");
                 return nullptr;
             }
             getAPI = reinterpret_cast<GetAPI_t>(findSymbol(module, getArkAnyAPIFuncName));
@@ -94,7 +96,7 @@ const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* re
             if (result)
                 *result = "getAPI() returned null";
             else
-                LOGE("getAPI() returned null")
+                LOG("getAPI() returned null")
             return nullptr;
         }
         if (impl->version != version) {

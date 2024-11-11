@@ -25,6 +25,13 @@ declare enum ContentType {
   PASSWORD = 1,
 }
 
+declare type EditableTextOnChangeCallback = (value: string, previewText?: PreviewText) => void;
+
+declare interface PreviewText {
+    offset: number;
+    value: string;
+  }
+
 declare interface TextInputOptions {
 
     placeholder?: ResourceStr;
@@ -44,6 +51,8 @@ declare class TextInputAttribute extends CommonMethod<TextInputAttribute> {
     type(value: InputType): TextInputAttribute;
 
     contentType(value: ContentType): TextInputAttribute;
+
+    onChange(callback: EditableTextOnChangeCallback): TextInputAttribute;
 
     onEditChanged(callback: (isEditing: boolean) => void): TextInputAttribute;
 }

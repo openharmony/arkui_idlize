@@ -13,7 +13,7 @@ namespace Generated {
 static const GENERATED_ArkUIFullNodeAPI* GetFullImpl() {
     return reinterpret_cast<const GENERATED_ArkUIFullNodeAPI*>(
         GetAnyImpl(static_cast<int>(GENERATED_Ark_APIVariantKind::GENERATED_FULL),
-        GENERATED_ARKUI_FULL_API_VERSION));
+        GENERATED_ARKUI_FULL_API_VERSION, nullptr));
 }
 
 void impl_Test_SetEventsApi() {

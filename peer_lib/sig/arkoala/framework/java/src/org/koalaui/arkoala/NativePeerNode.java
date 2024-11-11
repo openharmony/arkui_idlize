@@ -55,17 +55,4 @@ public class NativePeerNode extends Finalizable {
     public void dumpTree() {
         NativeModule._DumpTreeNode(ptr);
     }
-
-    public static void setCreateNodeDelay(ArkUINodeType type, Duration delay) {
-        NativeModule._SetCreateNodeDelay(type.value, delay.toNanos());
-    }
-    public static void setMeasureNodeDelay(ArkUINodeType type, Duration delay) {
-        NativeModule._SetMeasureNodeDelay(type.value, delay.toNanos());
-    }
-    public static void setLayoutNodeDelay(ArkUINodeType type, Duration delay) {
-        NativeModule._SetLayoutNodeDelay(type.value, delay.toNanos());
-    }
-    public static void setDrawNodeDelay(ArkUINodeType type, Duration delay) {
-        NativeModule._SetDrawNodeDelay(type.value, delay.toNanos());
-    }
 }

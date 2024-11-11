@@ -46,6 +46,7 @@ export class ModifierVisitor {
 
     constructor(
         protected library: IdlPeerLibrary,
+        private isDummy: boolean = false
     ) { }
 
     printDummyImplFunctionBody(method: IdlPeerMethod) {
@@ -70,7 +71,9 @@ export class ModifierVisitor {
     }
 
     printModifierImplFunctionBody(method: IdlPeerMethod, clazz: IdlPeerClass | undefined = undefined) {
-        this.printBodyImplementation(this.real, method, clazz)
+        if (!this.isDummy) {
+            this.printBodyImplementation(this.real, method, clazz)
+        }       
         this.printReturnStatement(this.real, method)
     }
 
@@ -356,8 +359,8 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
     }
 }
 
-export function printRealAndDummyModifiers(peerLibrary: IdlPeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
-    const visitor = new ModifierVisitor(peerLibrary)
+export function printRealAndDummyModifiers(peerLibrary: IdlPeerLibrary, isDummy: boolean = false): {dummy: LanguageWriter, real: LanguageWriter} {
+    const visitor = new ModifierVisitor(peerLibrary, isDummy)
     visitor.printRealAndDummyModifiers()
     const dummy =
         visitor.dummy.concat(visitor.modifiers).concat(modifierStructList(visitor.modifierList))

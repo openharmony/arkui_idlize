@@ -28,10 +28,25 @@ declare interface Callback<T, V = void> {
 declare interface BaseEvent {}
 
 declare interface ClickEvent extends BaseEvent {
-
+    target: EventTarget;
+    timestamp: number;
+    source: SourceType;
+    axisHorizontal?: number;
+    axisVertical?: number;
+    pressure: number;
+    sourceTool: SourceTool;
+    deviceId?: number;
     displayX: number;
-
     displayY: number;
+    windowX: number;
+    windowY: number;
+    screenX: number;
+    screenY: number;
+    tiltX: number;
+    tiltY: number;
+    x: number;
+    y: number;
+    preventDefault: () => void;
 }
 
 declare interface CommonConfiguration<T> {
@@ -488,6 +503,22 @@ declare class ScrollableCommonMethod<T> extends CommonMethod<T> {
     scrollBarWidth(value: number | string): T;
 }
 
+declare interface EventTarget {
+    area: Area;
+}
+
+declare interface Area {
+    width: Length;
+    height: Length;
+    position: Position;
+    globalPosition: Position;
+}
+
+declare interface Position {
+    x?: Length;
+    y?: Length;
+}
+
 declare enum SourceTool {
     Unknown,
     Finger,
@@ -495,6 +526,12 @@ declare enum SourceTool {
     MOUSE,
     TOUCHPAD,
     JOYSTICK,
+}
+
+declare enum SourceType {
+    Unknown,
+    Mouse,
+    TouchScreen,
 }
 
 declare interface UIGestureEvent {

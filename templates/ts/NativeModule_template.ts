@@ -19,16 +19,27 @@ let theModule: NativeModule | undefined = undefined
 
 declare const LOAD_NATIVE: NativeModule
 
-export function nativeModule(): NativeModule {
-    if (theModule) return theModule
-    if (%USE_EMPTY%)
-        theModule = new NativeModuleEmpty()
-    else
-        theModule = LOAD_NATIVE as NativeModule
+export function initInteropModule(nativeModule?: NativeModule) {
+    if (theModule) return
+    theModule = nativeModule ?? LOAD_NATIVE
     if (!theModule)
         throw new Error("Cannot load native module")
+    // TODO: properly implement (or get rid of?) [NativeModule._CheckImpl()]
+    // let result = theModule._CheckImpl()
+    // if (result != undefined) {
+    //     theModule = undefined
+    //     throw new Error("Error loading native module: " + result.toString())
+    // }
     theModule._SetCallbackDispatcher(callCallback)
-    return theModule
+}
+
+export function initEmptyNativeModule() {
+    initInteropModule(new NativeModuleEmpty())
+}
+
+export function nativeModule(): NativeModule {
+    initInteropModule()
+    return theModule!
 }
 
 class NativeString extends NativeStringBase {
