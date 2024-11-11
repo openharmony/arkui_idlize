@@ -595,14 +595,17 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
     writer.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;`)
     writer.writeMethodImplementation(new Method(
         `${PeerGeneratorConfig.cppPrefix}SetArkUiEventsAPI`,
-        new NamedMethodSignature(IDLVoidType, [createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`)], [`api`]),
+        new NamedMethodSignature(IDLVoidType, [
+            createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`)], 
+            [`api`], undefined, 
+            [undefined, MethodArgPrintHint.AsConstPointer]),
     ), (writer) => {
-        writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`&api`), false))
+        writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`api`), false))
     })
 
     writer.writeMethodImplementation(new Method(
         `${PeerGeneratorConfig.cppPrefix}GetArkUiEventsAPI`,
-        new MethodSignature(createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), []),
+        new MethodSignature(createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), [], undefined, [MethodArgPrintHint.AsConstPointer]),
     ), (writer) => {
         writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()
