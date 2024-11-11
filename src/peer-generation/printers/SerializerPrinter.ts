@@ -157,7 +157,8 @@ class IdlSerializerPrinter {
                         writer.makeAssign("Serializer.cache", undefined, writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), false)
                     ])))
                     if (writer.language != Language.CJ) {
-                        writer.writeStatement(writer.makeAssign("serializer", undefined, writer.makeString("Serializer.cache"), true, false))
+                        writer.writeStatement(writer.makeAssign("serializer", undefined,
+                                writer.makeUnwrapOptional(writer.makeString("Serializer.cache")), true, false))
                     } else {
                         writer.print("var serializer = match (Serializer.cache) {")
                         writer.pushIndent()
@@ -337,9 +338,9 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             }
             writer.writeStatement(writer.makeReturn(writer.makeLambda(callbackSignature, [
                 writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('Serializer'), writer.makeMethodCall('Serializer', 'hold', []), true),
-                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeInt32`, 
+                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeInt32`,
                     [writer.makeString(`${resourceName}.resourceId`)])),
-                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writePointer`, 
+                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writePointer`,
                     [writer.makeString(callName)])),
                 ...target.parameters.map(it => {
                     const convertor = this.library.typeConvertor(it.name, it.type!, it.isOptional)

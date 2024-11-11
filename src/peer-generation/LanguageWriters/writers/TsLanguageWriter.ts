@@ -78,6 +78,14 @@ export class TSCastExpression implements LanguageExpression {
     }
 }
 
+class TSUnwrapOptionalExpression implements LanguageExpression {
+    constructor(public value: LanguageExpression) {}
+    asString(): string {
+        return `(${this.value.asString()})!`
+    }
+}
+
+
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
 ////////////////////////////////////////////////////////////////
@@ -327,6 +335,10 @@ export class TSLanguageWriter extends LanguageWriter {
         // keyAccessor and valueAccessor are equal in TS
         return this.makeStatement(this.makeMethodCall(keyAccessor, "set", [this.makeString(key), this.makeString(value)]))
     }
+    makeUnwrapOptional(expression: LanguageExpression): LanguageExpression {
+        return new TSUnwrapOptionalExpression(expression)
+    }
+
     getTagType(): idl.IDLType {
         return idl.toIDLType("Tags");
     }

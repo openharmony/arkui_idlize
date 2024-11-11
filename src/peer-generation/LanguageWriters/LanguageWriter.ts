@@ -217,11 +217,10 @@ export class CheckOptionalStatement implements LanguageStatement {
         public doStatement: LanguageStatement
     ) { }
     write(writer: LanguageWriter): void {
-        writer.print(`if (${this.optionalExpression.asString()} != ${this.undefinedValue}) {`)
+        writer.print(`if (${this.optionalExpression.asString()} != ${this.undefinedValue})`)
         writer.pushIndent()
         this.doStatement.write(writer)
         writer.popIndent()
-        writer.print("}")
     }
 }
 
@@ -425,6 +424,9 @@ export abstract class LanguageWriter {
     abstract makeCast(value: LanguageExpression, type: idl.IDLType, options?:MakeCastOptions): LanguageExpression
     abstract writePrintLog(message: string): void
     abstract makeUndefined(): LanguageExpression
+    makeUnwrapOptional(expression: LanguageExpression): LanguageExpression {
+        return expression
+    }
     abstract makeArrayInit(type: idl.IDLContainerType): LanguageExpression
     abstract makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression
     abstract makeMapInit(type: idl.IDLType): LanguageExpression
