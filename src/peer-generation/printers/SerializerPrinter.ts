@@ -16,7 +16,7 @@
 import * as idl from '../../idl'
 import { Language } from "../../Language";
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement, LanguageStatement, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters";
+import { ExpressionStatement, LanguageStatement, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters";
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { ImportsCollector } from '../ImportsCollector';
 import { IdlPeerLibrary } from '../idl/IdlPeerLibrary';
@@ -38,6 +38,7 @@ import { IDLEntry } from "../../idl";
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { collectMaterializedImports } from '../Materialized';
 import { generateCallbackKindAccess } from '../ArgConvertors';
+import { ModifierFlags } from 'typescript';
 
 class IdlSerializerPrinter {
     constructor(
@@ -106,7 +107,7 @@ class IdlSerializerPrinter {
             writer.makeAssign(
                 `ptr`,
                 idl.IDLPointerType,
-                writer.makeString(`0`),
+                writer.makeString(`nullptr`),
                 true,
                 false
             ))
@@ -162,6 +163,10 @@ class IdlSerializerPrinter {
             this.writer.print("import java.util.function.Supplier;")
         }
         this.writer.writeClass(className, writer => {
+            if (writer.language == Language.JAVA)
+                writer.writeFieldDeclaration('nullptr', idl.IDLPointerType, [FieldModifier.STATIC, FieldModifier.PRIVATE], false, writer.makeString('0'))
+
+
             // No need for hold() in C++.
             if (writer.language != Language.CPP) {
                 writer.writeFieldDeclaration("cache", idl.createOptionalType(idl.createReferenceType("Serializer")), [FieldModifier.PRIVATE, FieldModifier.STATIC], true, writer.makeNull("Serializer"))

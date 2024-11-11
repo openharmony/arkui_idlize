@@ -27,7 +27,7 @@ import {
     ObjectArgs
 } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { forceAsNamedNode, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
+import { IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
 import { EnumEntity } from "../../PeerFile"
 import {AggregateConvertor, ArgConvertor, ArrayConvertor, BaseArgConvertor, CustomTypeConvertor, EnumConvertor, InterfaceConvertor, makeInterfaceTypeCheckerCall, RuntimeType} from "../../ArgConvertors"
 import { Language } from "../../../Language"

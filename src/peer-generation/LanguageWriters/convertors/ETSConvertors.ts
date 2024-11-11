@@ -15,7 +15,7 @@
 
 import * as idl from "../../../idl";
 import { TsIDLNodeToStringConverter } from "./TSConvertors";
-import { createReferenceType, IDLReferenceType } from "../../../idl";
+import {createReferenceType, IDLReferenceType, IDLType} from "../../../idl";
 import { DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
 import { convertDeclaration } from "../nameConvertor";
 

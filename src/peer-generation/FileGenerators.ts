@@ -285,14 +285,13 @@ export function makeTSSerializer(library: IdlPeerLibrary): LanguageWriter {
         imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
         imports.addFeatures(["nativeModule"], "@koalaui/arkoala")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
-        imports.addFeatures(["ResourceHolder"], "@koalaui/interop")
+        imports.addFeatures(["ResourceHolder", "nullptr"], "@koalaui/interop")
         imports.addFeature('KPointer', '@koalaui/interop')
     }
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["NativeModule"], "#components")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
-        imports.addFeature('KStringPtr', '@koalaui/interop')
-        imports.addFeature('KInt', '@koalaui/interop')
+        imports.addFeatures(['KStringPtr', 'nullptr', 'KInt'], '@koalaui/interop')
     }
     imports.print(printer, '')
     writeSerializer(library, printer, "")
