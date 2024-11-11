@@ -102,17 +102,32 @@ class IdlSerializerPrinter {
                 true,
                 true
             ))
-
+        writer.writeStatement(
+            writer.makeAssign(
+                `ptr`,
+                idl.IDLPointerType,
+                writer.makeString(`0`),
+                true,
+                false
+            ))
         writer.writeStatement(
             writer.makeCheckOptional(
                 writer.makeString(`peer`),
-                writer.makeStatement(
-                    writer.makeMethodCall(`valueSerializer`, `writePointer`, [
-                        writer.makeString(`peer.ptr`)
-                    ])
+                writer.makeAssign(
+                    `ptr`,
+                    idl.IDLPointerType,
+                    writer.makeString(`peer.ptr`),
+                    false,
+                    false,
                 )
             )
         )
+        writer.writeStatement(
+            writer.makeStatement(
+                writer.makeMethodCall(`valueSerializer`, `writePointer`, [
+                    writer.makeString(`ptr`)
+                ])
+            ))
     }
 
     print(prefix: string, declarationPath?: string) {
