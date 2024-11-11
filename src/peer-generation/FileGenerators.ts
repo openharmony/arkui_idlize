@@ -311,6 +311,8 @@ export function makeSerializerForOhos(library: IdlPeerLibrary, nativeModule: { n
         imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
         imports.print(printer, '')
         writeSerializer(library, printer, "", declarationPath)
+        writeDeserializer(library, printer, "", declarationPath)
+        printer.writeLines(makeDeserializeAndCall(library, Language.TS))
         return printer
     } else {
         throw new Error(`unsupported language ${library.language}`)

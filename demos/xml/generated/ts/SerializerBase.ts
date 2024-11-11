@@ -14,6 +14,7 @@
  */
 import { float32, int32, pointer } from "./types"
 import { getXMLNativeModule as nativeModule, CallbackKind } from "./xmlNative"
+import { ResourceHolder, ResourceId } from "./ResourceManager"
 
 /**
  * Value representing possible JS runtime object type.
@@ -86,6 +87,12 @@ export abstract class CustomSerializer {
     next: CustomSerializer | undefined = undefined
 }
 
+export interface CallbackResource {
+    resourceId: int32
+    hold: pointer
+    release: pointer
+}
+
 export class SerializerBase {
     private position = 0
     private buffer: ArrayBuffer
@@ -134,36 +141,25 @@ export class SerializerBase {
             this.view = new DataView(resizedBuffer)
         }
     }
-    // TODO implement callback and check do we need this for a custom OHOS library
-    // private heldResources: ResourceId[] = []
-
-    holdAndWriteCallback(callback: object, kind: CallbackKind) {
-        this.writeInt32(42)
+    private heldResources: ResourceId[] = []
+    holdAndWriteCallback(callback: object) {
+        const resourceId = ResourceHolder.instance().registerAndHold(callback)
+        this.heldResources.push(resourceId)
+        this.writeInt32(resourceId)
         this.writePointer(0n)
         this.writePointer(0n)
         this.writePointer(0n)
-        // const resourceId = ResourceManager.registerAndHold(callback)
-        // this.heldResources.push(resourceId)
-        // this.writeInt32(resourceId)
-        // this.writePointer(nativeModule()._GetManagedResourceHolder())
-        // this.writePointer(nativeModule()._GetManagedResourceReleaser())
-        // this.writePointer(nativeModule()._GetManagerCallbackCaller(kind))
     }
-
-    writeCallbackResource(resource: object /*CallbackResource*/) {
-        this.writeInt32(42)
-        this.writePointer(0n)
-        this.writePointer(0n)
-        // this.writeInt32(resource.resourceId)
-        // this.writePointer(resource.hold)
-        // this.writePointer(resource.release)
+    writeCallbackResource(resource: CallbackResource) {
+        this.writeInt32(resource.resourceId)
+        this.writePointer(resource.hold)
+        this.writePointer(resource.release)
     }
-
     private releaseResources() {
-        // for (const resourceId of this.heldResources)
-        //     ResourceManager.release(resourceId)
-        // // todo think about effective array clearing/pushing
-        // this.heldResources = []
+        for (const resourceId of this.heldResources)
+            nativeModule()._ReleaseArkoalaResource(resourceId)
+        // todo think about effective array clearing/pushing
+        this.heldResources = []
     }
     writeCustomObject(kind: string, value: any) {
         let current = SerializerBase.customSerializers

@@ -1,3 +1,4 @@
+import { checkArkoalaCallbacks } from "./CallbacksChecker";
 import { ParseInfo, XmlPullParser } from "./xml"
 // TODO Actually it is an enum, need to be generated
 enum EventType {
@@ -14,7 +15,21 @@ enum EventType {
     WHITESPACE
 }
 
-const sampleXml = String.raw`<foo value="xx">Hello</foo>`
+(() => {
+    let finished = false
+    let pull = () => {
+        //
+        checkArkoalaCallbacks()
+        if (!finished)
+            setTimeout(pull, 0)
+    };
+    setTimeout(pull, 0);
+    setTimeout(() => {
+        finished = true
+    }, 2000);
+})();
+
+const sampleXml = String.raw`<foo valOfFoo="xx">Hello<bar>124</bar>World</foo>`
 const parser = new XmlPullParser(sampleXml)
 parser.parse({
     ignoreNameSpace: true,

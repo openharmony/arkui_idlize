@@ -20,6 +20,13 @@
 #include <vector>
 #include "xml.h"
 
+// callbacks.h
+
+void holdManagedCallbackResource(OH_Int32 resourceId);
+void releaseManagedCallbackResource(OH_Int32 resourceId);
+
+// ---------
+
 inline const char *tagName(OH_Tag tag)
 {
   switch (tag)
@@ -439,12 +446,10 @@ public:
 
   OH_CallbackResource readCallbackResource()
   {
-    // TODO implement holdManagedCallbackResource
-    void* holdManagedCallbackResource = nullptr;
     OH_CallbackResource result = {};
     result.resourceId = readInt32();
     result.hold = reinterpret_cast<void(*)(OH_Int32)>(readPointerOrDefault(reinterpret_cast<void*>(holdManagedCallbackResource)));
-    result.release = reinterpret_cast<void(*)(OH_Int32)>(readPointerOrDefault(reinterpret_cast<void*>(holdManagedCallbackResource)));
+    result.release = reinterpret_cast<void(*)(OH_Int32)>(readPointerOrDefault(reinterpret_cast<void*>(releaseManagedCallbackResource)));
     return result;
   }
 };

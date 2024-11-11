@@ -108,13 +108,13 @@ typedef struct OH_Callback_EventType_ParseInfo_Boolean OH_Callback_EventType_Par
 typedef struct Opt_Callback_EventType_ParseInfo_Boolean Opt_Callback_EventType_ParseInfo_Boolean;
 typedef struct OH_Callback_String_String_Boolean OH_Callback_String_String_Boolean;
 typedef struct Opt_Callback_String_String_Boolean Opt_Callback_String_String_Boolean;
-typedef struct OH_XML_ArrayBuffer OH_XML_ArrayBuffer;
+typedef struct OH_ArrayBuffer OH_ArrayBuffer;
 typedef struct Opt_ArrayBuffer Opt_ArrayBuffer;
 typedef struct OH_Callback_Void OH_Callback_Void;
 typedef struct Opt_Callback_Void Opt_Callback_Void;
 typedef struct OH_Callback_Boolean_Void OH_Callback_Boolean_Void;
 typedef struct Opt_Callback_Boolean_Void Opt_Callback_Boolean_Void;
-typedef OH_Materialized OH_ParseInfo;
+typedef OH_Materialized OH_XML_ParseInfo;
 typedef struct Opt_ParseInfo Opt_ParseInfo;
 typedef struct OH_XML_ParseOptions OH_XML_ParseOptions;
 typedef struct Opt_ParseOptions Opt_ParseOptions;
@@ -169,12 +169,12 @@ typedef struct Opt_CustomObject {
     OH_Tag tag;
     OH_CustomObject value;
 } Opt_CustomObject;
-typedef struct OH_XML_ArrayBuffer {
+typedef struct OH_ArrayBuffer {
     OH_Number byteLength;
-} OH_XML_ArrayBuffer;
+} OH_ArrayBuffer;
 typedef struct Opt_ArrayBuffer {
     OH_Tag tag;
-    OH_XML_ArrayBuffer value;
+    OH_ArrayBuffer value;
 } Opt_ArrayBuffer;
 typedef struct OH_Callback_Void {
     OH_CallbackResource resource;
@@ -198,7 +198,7 @@ typedef struct Opt_Void {
 } Opt_Void;
 typedef struct Opt_ParseInfo {
     OH_Tag tag;
-    OH_ParseInfo value;
+    OH_XML_ParseInfo value;
 } Opt_ParseInfo;
 typedef struct OH_XML_ParseOptions {
     Opt_Boolean supportDoctype;
@@ -214,7 +214,7 @@ typedef struct Opt_ParseOptions {
 typedef struct OH_Union_ArrayBuffer_DataView {
     OH_Int32 selector;
     union {
-        OH_XML_ArrayBuffer value0;
+        OH_ArrayBuffer value0;
         OH_CustomObject value1;
     };
 } OH_Union_ArrayBuffer_DataView;

@@ -31,7 +31,12 @@ export interface XMLNativeModule {
     _XmlSerializer_ctor(thisArray: Uint8Array, thisLength: int32): KPointer 
     _ParseInfo_ctor(): KPointer 
     _XmlPullParser_ctor(buffer: string, thisArray: Uint8Array, thisLength: int32): KPointer 
-    _GetManagerCallbackCaller(kind: CallbackKind): KPointer 
+    _CallCallback(callbackKind: int32, args: Uint8Array, argsSize: int32): void 
+    _CallCallbackResourceHolder(holder: KPointer, resourceId: int32): void 
+    _CallCallbackResourceReleaser(releaser: KPointer, resourceId: int32): void 
+    _CheckArkoalaCallbackEvent(buffer: Uint8Array, bufferLength: int32): int32 
+    _HoldArkoalaResource(resourceId: int32): void 
+    _ReleaseArkoalaResource(resourceId: int32): void 
 }
 
 type NativeModuleType = XMLNativeModule

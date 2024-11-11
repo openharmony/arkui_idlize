@@ -25,6 +25,7 @@
 #include <memory>
 #include <cassert>
 #include <cstddef>
+#include <vector>
 
 template <typename T>
 inline OH_RuntimeType runtimeType(const T& value) = delete;
@@ -57,12 +58,29 @@ T* allocArray(const std::array<T, size>& ref) {
   return array;
 }
 
+class CallbackResourceHolder {
+private:
+    std::vector<OH_CallbackResource> heldResources;
+public:
+    void holdCallbackResource(const OH_CallbackResource* resource) {
+        resource->hold(resource->resourceId);
+        this->heldResources.push_back(*resource);
+    }
+    void release() {
+        for (auto resource : this->heldResources) {
+            resource.release(resource.resourceId);
+        }
+        this->heldResources.clear();
+    }
+};
+
 class SerializerBase {
 private:
     uint8_t* data;
     int position;
+    CallbackResourceHolder* resourceHolder;
 public:
-    SerializerBase(uint8_t* data): data(data), position(0) {}
+    SerializerBase(uint8_t* data, CallbackResourceHolder* resourceHolder = nullptr): data(data), position(0), resourceHolder(resourceHolder) {}
 
     void writeInt8(OH_Int8 value) {
         *((OH_Int8*)(data + position)) = value;
@@ -93,9 +111,10 @@ public:
 
     void writeString(OH_String value) {
         // TODO implement string
-        // writeInt32(value.length + 1);
-        // strcpy((char*)(data + position), value.chars);
-        // position += value.length + 1;
+        auto length = std::strlen(value);
+        writeInt32(length + 1);
+        strcpy((char*)(data + position), value);
+        position += length + 1;
     }
 
     void writeBoolean(OH_Boolean value) {
@@ -111,6 +130,9 @@ public:
         writeInt32(resource.resourceId);
         writePointer(reinterpret_cast<void*>(resource.hold));
         writePointer(reinterpret_cast<void*>(resource.release));
+        if (this->resourceHolder != nullptr) {
+            this->resourceHolder->holdCallbackResource(&resource);
+        }
     }
 
 /*
@@ -130,6 +152,11 @@ public:
     void writeMaterialized(OH_Materialized value) {
         // There should be no need to pass accessors back from native code
         throw "Trying to pass materialized class back from native code -- is that really needed?";
+    }
+
+    void writeBuffer(uint8_t* buffer, int size) {
+        memcpy(data + position, buffer, size);
+        position += size;
     }
 };
 

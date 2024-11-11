@@ -19,7 +19,7 @@ import { IndentedPrinter } from "../IndentedPrinter"
 import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageExpression, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
 import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType, maybeOptional } from '../idl'
-import { makeSerializerForOhos, readLangTemplate } from './FileGenerators'
+import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { capitalize } from '../util'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
 import { PrimitiveType } from './ArkPrimitiveType'
@@ -27,7 +27,7 @@ import { Language } from '../Language'
 import { ArgConvertor } from './ArgConvertors'
 import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter'
 import { qualifiedName } from './idl/common'
-import { printCallbacksKinds } from './printers/CallbacksPrinter'
+import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
 import { StructPrinter } from './idl/StructPrinter'
 import { generateCallbackAPIArguments } from './ArgConvertors'
 import { printBridgeCc } from './printers/BridgeCcPrinter'
@@ -493,6 +493,9 @@ class OHOSVisitor {
         this.cppWriter.print("// ------------------------------------------------------------------------------")
         const bridgeCc = printBridgeCc(this.library, false)
         this.cppWriter.concat(bridgeCc.generated)
+
+        this.cppWriter.writeLines(makeDeserializeAndCall(this.library, Language.CPP))
+        this.cppWriter.writeLines(printManagedCaller(this.library))
 
         this.hWriter.writeLines(
             readLangTemplate('ohos_api_epilogue.h', Language.CPP)
