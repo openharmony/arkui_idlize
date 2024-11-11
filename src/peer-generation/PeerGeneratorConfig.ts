@@ -150,6 +150,10 @@ export class PeerGeneratorConfig {
     ])
 
     static ignoreEntry(name: string, language: Language) {
+        // TODO: Needs to be fixed properly
+        if (language === Language.ARKTS && name === "CustomComponent") {
+            return true
+        }
         return PeerGeneratorConfig.ignoredEntriesCommon.has(name) ||
             language === Language.JAVA && PeerGeneratorConfig.ignoredEntriesJava.has(name)
     }
