@@ -19,7 +19,7 @@ import { MaterializedClass } from "../Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
 import { IdlPeerFile } from "./IdlPeerFile";
 import { capitalize } from '../../util';
-import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './IdlArgConvertors';
+import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from '../ArgConvertors';
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { DependencySorter } from './DependencySorter';
 import { IndentedPrinter } from '../../IndentedPrinter';

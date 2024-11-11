@@ -36,8 +36,7 @@ import {
     CLikeReturnStatement
 } from "./CLikeLanguageWriter"
 import * as idl from '../../../idl'
-import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
-import { EnumConvertor } from "../../idl/IdlArgConvertors"
+import { ArgConvertor, BaseArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { convertType, IdlNameConvertor, TypeConvertor } from "../nameConvertor"
 import { JavaIDLNodeToStringConvertor } from "../convertors/JavaConvertors"

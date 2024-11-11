@@ -29,7 +29,7 @@ import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter
 import { qualifiedName } from './idl/common'
 import { printCallbacksKinds } from './printers/CallbacksPrinter'
 import { StructPrinter } from './idl/StructPrinter'
-import { generateCallbackAPIArguments } from './idl/IdlArgConvertors'
+import { generateCallbackAPIArguments } from './ArgConvertors'
 import { printBridgeCc } from './printers/BridgeCcPrinter'
 
 class NameType {

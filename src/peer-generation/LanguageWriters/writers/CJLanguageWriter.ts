@@ -20,7 +20,7 @@ import { Language } from "../../../Language"
 import { CJKeywords } from "../../../languageSpecificKeywords"
 import { isDefined } from "../../../util"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
-import { EnumConvertor } from "../../idl/IdlArgConvertors"
+import { EnumConvertor } from "../../ArgConvertors"
 import { EnumEntity } from "../../PeerFile"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import {

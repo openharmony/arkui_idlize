@@ -17,7 +17,7 @@ import { createReferenceType, DebugUtils, forceAsNamedNode, IDLAnyType, IDLBoole
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
-import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
+import { ArgConvertor, BaseArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { PrimitiveType } from "../../ArkPrimitiveType"
 import {
     AssignStatement,
@@ -43,7 +43,6 @@ import {
     CLikeLoopStatement,
     CLikeReturnStatement
 } from "./CLikeLanguageWriter"
-import { EnumConvertor } from "../../idl/IdlArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { IdlNameConvertor, TypeConvertor } from "../nameConvertor"
 import { EnumEntity } from "../../PeerFile"

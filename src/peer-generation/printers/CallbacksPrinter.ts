@@ -21,7 +21,7 @@ import { EnumEntity, EnumMember } from "../PeerFile";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
-import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName } from "../idl/IdlArgConvertors";
+import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName } from "../ArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
 import { collectMaterializedImports } from "../Materialized";
 

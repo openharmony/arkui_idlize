@@ -35,9 +35,9 @@ import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 import { throwException } from "../../util";
 import { IDLEntry } from "../../idl";
-import { generateCallbackKindAccess } from '../idl/IdlArgConvertors';
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { collectMaterializedImports } from '../Materialized';
+import { generateCallbackKindAccess } from '../ArgConvertors';
 
 class IdlSerializerPrinter {
     constructor(

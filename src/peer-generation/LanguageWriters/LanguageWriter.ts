@@ -20,7 +20,7 @@ import {ArgConvertor, BaseArgConvertor, RuntimeType} from "../ArgConvertors"
 import { EnumEntity } from "../PeerFile"
 import * as fs from "fs"
 import { Language } from "../../Language"
-import { EnumConvertor } from "../idl/IdlArgConvertors"
+import { EnumConvertor } from "../ArgConvertors"
 import { ReferenceResolver } from "../ReferenceResolver"
 
 ////////////////////////////////////////////////////////////////
