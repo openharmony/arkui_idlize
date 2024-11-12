@@ -132,6 +132,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 this.globalFunctions,
                 [], {
                 extendedAttributes: [ {name: idl.IDLExtendedAttributes.GlobalScope } ],
+                fileName: this.sourceFile.fileName
             }))
         }
         return this.output

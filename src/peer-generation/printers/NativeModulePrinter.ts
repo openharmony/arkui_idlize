@@ -273,7 +273,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
 
         nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
             printer.writePrintLog(name)
-            if (returnType !== undefined 
+            if (returnType !== undefined
                 && idl.forceAsNamedNode(returnType).name !== idl.IDLVoidType.name
                 && idl.forceAsNamedNode(returnType).name !== 'Void'
             ) {
@@ -296,7 +296,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             }
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
-                this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty, idl.IDLPointerType, nativeFunctions)                
+                this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty, idl.IDLPointerType, nativeFunctions)
             })
         })
     }
@@ -373,7 +373,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
 
         this.nativeModuleEmpty.writeMethodImplementation(method, (printer) => {
             printer.writePrintLog(method.name)
-            if (inputMethod.returnType !== undefined 
+            if (inputMethod.returnType !== undefined
                 && idl.forceAsNamedNode(inputMethod.returnType).name !== idl.IDLVoidType.name
                 && idl.forceAsNamedNode(inputMethod.returnType).name !== 'Void'
             ) {
@@ -432,13 +432,13 @@ function getReturnValue(type: idl.IDLType): string {
         return `""`
     }
 
-    switch(idl.forceAsNamedNode(type).name) {
-        case idl.IDLBooleanType.name : return "false"
-        case idl.IDLNumberType.name: case "int": case "KInt": case "KLong": return "1"
-        case idl.IDLPointerType.name: case "KPointer": case "pointer": return "-1"
-        case "KString": case "String": case "string": return `"some string"`
-        case "KBoolean": return "false"
-        case "KFloat": return "0"
+    switch(type) {
+        case idl.IDLBooleanType : return "false"
+        case idl.IDLNumberType: return "1"
+        case idl.IDLPointerType: return "0"
+        case idl.IDLStringType: return `"some string"`
+        case idl.IDLAnyType: return `""`
     }
-    throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]}`)
+
+    throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]} ${idl.forceAsNamedNode(type).name}`)
 }
