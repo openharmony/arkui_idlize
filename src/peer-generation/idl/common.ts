@@ -15,14 +15,7 @@
 
 import * as idl from "../../idl"
 import { Language } from "../../Language"
-import { PrimitiveType } from "../ArkPrimitiveType"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../LanguageWriters/nameConvertor"
-import { IdlPeerLibrary } from "./IdlPeerLibrary"
-
-// export function isDeclaration(node: idl.IDLNode): boolean {
-//     return idl.isClass(node) || idl.isInterface(node) || idl.isAnonymousInterface(node) || idl.isTupleInterface(node)
-//         || idl.isEnum(node) || idl.isEnumMember(node) || idl.isCallback(node) || idl.isTypedef(node)
-// }
 
 export function convert<T>(node: idl.IDLNode, typeConvertor: TypeConvertor<T>, declConvertor: DeclarationConvertor<T>): T {
     return idl.isEntry(node)
@@ -47,5 +40,12 @@ export function qualifiedName(decl: idl.IDLNode, language: Language): string {
 }
 
 export function typeOrUnion(types: idl.IDLType[], name?: string): idl.IDLType {
-    return types.length === 1 ? types[0] : idl.createUnionType(types, name)
+    const seenNames = new Set<string>()
+    const uniqueTypes = types.filter(it => {
+        const typeName = idl.printType(it)
+        if (seenNames.has(typeName)) return false
+        seenNames.add(typeName)
+        return true
+    })
+    return uniqueTypes.length === 1 ? uniqueTypes[0] : idl.createUnionType(uniqueTypes, name)
 }

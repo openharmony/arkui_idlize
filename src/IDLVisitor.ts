@@ -1007,7 +1007,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             console.log(`WARNING: ${sourceText} is a union of Promises. This is not supported by the IDL, use only Promise.`)
             return aPromise
         }
-        if (types.find(it => idl.printType(it) == "any")) {
+        if (types.find(it => it == idl.IDLAnyType)) {
             console.log(`WARNING: ${sourceText} is union with 'any', just make it 'any'.`)
             return idl.IDLAnyType
         }

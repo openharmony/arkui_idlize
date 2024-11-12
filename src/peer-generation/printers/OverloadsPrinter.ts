@@ -48,10 +48,7 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
                 return true
             }
         })
-        if (types.length > 1) {
-            return idl.maybeOptional(idl.createUnionType(types, "%PROXY_BEFORE_PEER%"), optional)
-        }
-        return idl.maybeOptional(types[0], optional)
+        return idl.maybeOptional(typeOrUnion(types, "%PROXY_BEFORE_PEER%"), optional)
     })
     return new Method(
         methods[0].name,

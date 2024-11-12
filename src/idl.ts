@@ -792,6 +792,7 @@ export function unescapeKeyword(name: string): string {
 export function printType(type: IDLType | IDLInterface | undefined, ignoreExtendedAttributes = false): string {
     if (!type) throw new Error("Missing type")
     if (isInterface(type)) return type.name
+    if (isOptionalType(type)) return `(${printType(type.type)} or ${IDLUndefinedType.name})`
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) return `${type.containerKind}<${type.elementType.map(it => printType(it)).join(", ")}>`
     if (isReferenceType(type)) {
