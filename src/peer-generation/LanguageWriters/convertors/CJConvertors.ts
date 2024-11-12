@@ -127,9 +127,8 @@ export class CJIDLNodeToStringConvertor extends IdlNameConvertorBase implements 
         // if (qualifier) {
         //     typeSpec = `${qualifier}.${typeSpec}`
         // }
-        let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
         if (typeSpec === `Optional`) {
-            return CJTypeAlias.fromTypeName(typeArgs![0], true)
+            return CJTypeAlias.fromTypeName(idl.printType(type.typeArguments![0]), true)
         }
         return CJTypeAlias.fromTypeName(typeSpec, false)
     }

@@ -102,11 +102,12 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInter
         (()=>{
             if (!node.inheritance)
                 return []
-            const referenceType = idl.createReferenceType(node.inheritance)
-            referenceType.fileName = file
+            const parentTypeArgs = extractTypeArguments(file, node.inheritanceExtAttrs ?? [], idl.IDLExtendedAttributes.ParentTypeArguments)
+            const parentType = idl.createReferenceType(node.inheritance, parentTypeArgs)
+            parentType.fileName = file
             if (node.inheritanceExtAttrs)
-                referenceType.extendedAttributes = toExtendedAttributes(node.inheritanceExtAttrs)
-            return [referenceType]
+                parentType.extendedAttributes = toExtendedAttributes(node.inheritanceExtAttrs)
+            return [parentType]
         })(),
         node.members
             .filter(isConstructor)
@@ -123,23 +124,36 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInter
             .filter(isOperation)
             .filter(it => isCallable(it))
             .map(it => toIDLCallable(file, it)),
+        findExtendedAttribute(node.extAttrs, idl.IDLExtendedAttributes.TypeParameters)?.split(","),
         {
             fileName: file,
             documentation: makeDocs(node),
             extendedAttributes: toExtendedAttributes(node.extAttrs),
         }
     )
+    if (result.inheritance.length && idl.isReferenceType(result.inheritance[0]))
+        result.inheritance[0].typeArguments = extractTypeArguments(file, node.extAttrs, idl.IDLExtendedAttributes.ParentTypeArguments)
     if (node.extAttrs.find(it => it.name === "Synthetic"))
         addSyntheticType(node.name, result)
     return result
 }
 
-function extractTypeArguments(extAttrs: webidl2.ExtendedAttribute[] | undefined): idl.IDLExtendedAttribute[] | undefined {
-    for (let attr of extAttrs ?? []) {
-        if (attr.name === "TypeArguments")
-            return [{"name": "TypeArguments", value: toExtendedAttributeValue(attr)}]
+function extractTypeArguments(file: string,
+    extAttrs: webidl2.ExtendedAttribute[] | undefined,
+    attribute: idl.IDLExtendedAttributes
+): idl.IDLType[] | undefined {
+    const attr = extAttrs?.find(it => it.name === attribute)
+    if (!attr)
+        return undefined
+    let separator = ","
+    let value = toExtendedAttributeValue(attr)!
+    if (attribute === idl.IDLExtendedAttributes.ParentTypeArguments) {
+        value = value.slice(1, -1)
+        separator = ">,<"
     }
-    return undefined
+    return value
+        ?.split(separator)  // TODO need real parsing here. What about "<T, Map<K, Callback<K,R>>, U>"
+        ?.map(it => toIDLType(file, it))
 }
 
 function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extAttrs?: webidl2.ExtendedAttribute[]): idl.IDLType {
@@ -147,7 +161,7 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
         // is it IDLStringType?
         const refType = idl.createReferenceType(type)
         refType.fileName = file
-        refType.extendedAttributes = extractTypeArguments(extAttrs)
+        refType.typeArguments = extractTypeArguments(file, extAttrs, idl.IDLExtendedAttributes.TypeArguments)
         return refType
     }
     if (isUnionTypeDescription(type)) {
@@ -179,13 +193,10 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
             case idl.IDLPointerType.name: return idl.IDLPointerType
 
         }
-        const combinedExtAttrs = extAttrs
-            ? type.extAttrs ? extAttrs.concat(type.extAttrs) : extAttrs
-            : type.extAttrs
-        const idlRefType = idl.createReferenceType(
-            type.idlType
-        )
+        const combinedExtAttrs = (type.extAttrs ?? []).concat(extAttrs ?? [])
+        const idlRefType = idl.createReferenceType(type.idlType)
         idlRefType.fileName = file
+        idlRefType.typeArguments = extractTypeArguments(file, combinedExtAttrs, idl.IDLExtendedAttributes.TypeArguments)
         idlRefType.extendedAttributes = toExtendedAttributes(combinedExtAttrs)
         return idlRefType
     }
@@ -204,17 +215,22 @@ function toIDLCallable(file: string, node: webidl2.OperationMemberType): idl.IDL
     if (!node.idlType) {
         throw new Error(`method with no type ${toString(node)}`)
     }
+    const returnType = toIDLType(file, node.idlType, node.extAttrs)
+    if (idl.isReferenceType(returnType)) {
+        const returnTypeArgs = extractTypeArguments(file, node.extAttrs, idl.IDLExtendedAttributes.TypeArguments)
+        returnType.typeArguments = returnTypeArgs
+    }
     return idl.createCallable(
         node.name ?? "",
         node.arguments.map(it => toIDLParameter(file, it)),
-        toIDLType(file, node.idlType, node.extAttrs),
+        returnType,
         {
             isStatic: node.special === "static",
             isAsync: node.async,
         }, {
             documentation: makeDocs(node),
             extendedAttributes: toExtendedAttributes(node.extAttrs),
-        }
+        }, findExtendedAttribute(node.extAttrs, idl.IDLExtendedAttributes.TypeParameters)?.split(","),
     )
 }
 
@@ -222,10 +238,13 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): idl.IDLMe
     if (!node.idlType) {
         throw new Error(`method with no type ${toString(node)}`)
     }
+    const returnType = toIDLType(file, node.idlType, node.extAttrs)
+    if (idl.isReferenceType(returnType))
+        returnType.typeArguments = extractTypeArguments(file, node.extAttrs, idl.IDLExtendedAttributes.TypeArguments)
     return idl.createMethod(
         node.name ?? "",
         node.arguments.map(it => toIDLParameter(file, it)),
-        toIDLType(file, node.idlType, node.extAttrs),
+        returnType,
         {
             isStatic: node.special === "static",
             isAsync: node.async,
@@ -233,7 +252,7 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): idl.IDLMe
         }, {
             documentation: makeDocs(node),
             extendedAttributes: toExtendedAttributes(node.extAttrs),
-        }
+        }, findExtendedAttribute(node.extAttrs, idl.IDLExtendedAttributes.TypeParameters)?.split(","),
     )
 }
 
@@ -272,7 +291,8 @@ function toIDLCallback(file: string, node: webidl2.CallbackType): idl.IDLCallbac
 function toIDLTypedef(file: string, node: webidl2.TypedefType): idl.IDLTypedef {
     return idl.createTypedef(
         node.name,
-        toIDLType(file, node.idlType), {
+        toIDLType(file, node.idlType),
+        findExtendedAttribute(node.extAttrs, idl.IDLExtendedAttributes.TypeParameters)?.split(","), {
         extendedAttributes: toExtendedAttributes(node.extAttrs),
         documentation: makeDocs(node),
         fileName: file,
@@ -332,7 +352,7 @@ function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType, paren
     })
 }
 
-function toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): idl.IDLExtendedAttribute[]|undefined {
+function toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): idl.IDLExtendedAttribute[] | undefined {
     return extAttrs.map(it => {
         return { name: it.name, value: toExtendedAttributeValue(it) }
     })
@@ -371,4 +391,9 @@ function toIDLEnum(file: string, node: webidl2.EnumType): idl.IDLEnum {
         undefined
     ))
     return result
+}
+
+function findExtendedAttribute(extAttrs: webidl2.ExtendedAttribute[], name: idl.IDLExtendedAttributes): stringOrNone {
+    const attr = extAttrs.find(it => it.name === name)
+    return attr ? toExtendedAttributeValue(attr) : undefined
 }

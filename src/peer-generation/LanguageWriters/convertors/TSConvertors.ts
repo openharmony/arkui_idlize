@@ -122,7 +122,7 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
         }
 
         let typeSpec = type.name
-        let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
+        let typeArgs = type.typeArguments?.map(it => idl.printType(it))
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
         if (typeSpec === `ContentModifier`)

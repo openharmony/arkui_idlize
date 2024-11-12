@@ -268,7 +268,7 @@ export class TSLanguageWriter extends LanguageWriter {
             needReturn = false
         }
         prefix = prefix ? prefix.trim() + " " : ""
-        const typeParams = generics ? `<${generics.join(", ")}>` : ""
+        const typeParams = generics?.length ? `<${generics.join(", ")}>` : ""
         // FIXME:
         const isSetter = modifiers?.includes(MethodModifier.SETTER)
         this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${idl.isOptionalType(it) && !isSetter ? "?" : ""}: ${this.stringifyType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.stringifyType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)

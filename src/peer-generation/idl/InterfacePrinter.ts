@@ -434,7 +434,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
 
     convertTypedef(node: idl.IDLTypedef) {
         const type = this.peerLibrary.mapType(node.type)
-        const typeParams = this.printTypeParameters(node.extendedAttributes)
+        const typeParams = this.printTypeParameters(node.typeParameters)
         // TODO: needs to be implemented correctly on the idl side
         if (node.name === "Resource") {
             this.convertInterface(idl.createInterface(node.name,
@@ -453,7 +453,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
 
     convertCallback(node: idl.IDLCallback) {
         this.writer.print('export ' +
-            this.printCallback(node.name, node.extendedAttributes, node.parameters, node.returnType))
+            this.printCallback(node, node.parameters, node.returnType))
     }
 
     convertInterface(node: idl.IDLInterface) {
@@ -464,8 +464,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         this.seenInterfaceNames.add(node.name)
         let result: string
         if (this.isCallback(node)) {
-            result = this.printCallback(node.name,
-                node.extendedAttributes,
+            result = this.printCallback(node,
                 node.callables[0].parameters,
                 node.callables[0].returnType)
         } else {
@@ -509,27 +508,13 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     private printInterfaceName(idlInterface: idl.IDLInterface): string {
-        let inheritanceType = idlInterface.inheritance[0]
-        if (inheritanceType !== undefined) {
-            if (inheritanceType.extendedAttributes === undefined) {
-                inheritanceType.extendedAttributes = []
-            }
-            const parentTypeArg = idlInterface
-                ?.extendedAttributes
-                ?.find(it => it.name === idl.IDLExtendedAttributes.ParentTypeArguments)
-            if (parentTypeArg !== undefined) {
-                inheritanceType
-                    .extendedAttributes
-                    .push({
-                        name: idl.IDLExtendedAttributes.TypeParameters,
-                        value: parentTypeArg.value
-                    })
-            }
-        }
+        let superType = idl.getSuperType(idlInterface)
+        const parentTypeArgs = this.printTypeParameters(
+            (superType as idl.IDLReferenceType)?.typeArguments?.map(it => idl.printType(it)))
         return [idlInterface.name,
-            this.printTypeParameters(idlInterface.extendedAttributes),
-            idl.hasSuperType(idlInterface)
-                ? ` extends ${idl.forceAsNamedNode(inheritanceType).name}${this.printTypeParameters(inheritanceType.extendedAttributes)}`
+            this.printTypeParameters(idlInterface.typeParameters),
+            superType
+                ? ` extends ${idl.forceAsNamedNode(superType).name}${parentTypeArgs}`
                 : ""
         ].join("")
     }
@@ -553,7 +538,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     private printMethod(idl: idl.IDLMethod): stringOrNone[] {
         return [
             ...this.printExtendedAttributes(idl),
-            indentedBy(`${idl.name}${this.printTypeParameters(idl.extendedAttributes)}(${this.printParameters(idl.parameters)}): ${this.convertType(idl.returnType)}`, 1)
+            indentedBy(`${idl.name}${this.printTypeParameters(idl.typeParameters)}(${this.printParameters(idl.parameters)}): ${this.convertType(idl.returnType)}`, 1)
         ]
     }
     private printFunction(idl: idl.IDLFunction): stringOrNone[] {
@@ -590,24 +575,20 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         return `${escapeKeyword(idl.name!)}${optional ? "?" : ""}: ${type}`
     }
 
-    private printTypeParameters(extendedAttributes: idl.IDLExtendedAttribute[] | undefined): string {
-        const typeParameters = extendedAttributes
-                ?.filter(it => it.name === idl.IDLExtendedAttributes.TypeParameters && it.value)
-                .map(it => it.value) ?? []
-        return typeParameters.length ? `<${typeParameters.join(",")}>` : ""
+    private printTypeParameters(typeParameters: string[] | undefined): string {
+        return typeParameters?.length ? `<${typeParameters.join(",")}>` : ""
     }
 
     private convertType(idlType: idl.IDLType): string {
         return this.typeNameConvertor.stringifyType(idlType)
     }
 
-    private printCallback(name: string,
-                          extendedAttributes: idl.IDLExtendedAttribute[] | undefined,
+    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
                           parameters: idl.IDLParameter[],
                           returnType: idl.IDLType | undefined): string {
         const paramsType = this.printParameters(parameters)
         const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
-        return `declare type ${name}${this.printTypeParameters(extendedAttributes)} = (${paramsType}) => ${retType};`
+        return `declare type ${node.name}${this.printTypeParameters(node.typeParameters)} = (${paramsType}) => ${retType};`
     }
 
     private isCallback(node: idl.IDLInterface) {

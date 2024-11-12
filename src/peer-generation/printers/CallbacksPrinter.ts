@@ -85,7 +85,7 @@ export function collectUniqueCallbacks(library: IdlPeerLibrary) {
                 })
             // can not process callbacks with type arguments used inside 
             // (value: SomeInterface<T>) => void
-            if (subtypes.some(it => idl.getExtAttribute(it, idl.IDLExtendedAttributes.TypeArguments)?.length))
+            if (subtypes.some(it => idl.isReferenceType(it) && it.typeArguments))
                 return false
             // (value: T) => void
             if (subtypes.some(it => idl.isTypeParameterType(it)))

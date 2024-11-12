@@ -121,15 +121,15 @@ export function convertIdlToCallback(resolver: ReferenceResolver, peer: PeerClas
             }
         }
 
-        if (argType.name === 'Callback' && idl.hasExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)) {
-            const typeArgs = idl.getExtAttribute(argType, idl.IDLExtendedAttributes.TypeArguments)!.split(",").map(it => it.trim())
-            const inputType = idl.toIDLType(typeArgs[0])
+        if (argType.name === 'Callback' && argType.typeArguments) {
+            const typeArgs = argType.typeArguments!
+            const inputType = typeArgs[0]
             const hasData = !idl.isVoidType(inputType)
             return {
                 componentName: peer.getComponentName(),
                 methodName: method.overloadedName,
                 args: hasData ? [{name: 'data', type: inputType, nullable: false}] : [],
-                returnType: typeArgs[1] ? idl.createReferenceType(typeArgs[1]) : idl.IDLVoidType,
+                returnType: typeArgs[1] ? typeArgs[1] : idl.IDLVoidType,
                 originTarget: argType,
             }
         }

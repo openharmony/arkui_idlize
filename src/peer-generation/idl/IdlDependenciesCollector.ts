@@ -36,9 +36,8 @@ export class TypeDependenciesCollector implements TypeConvertor<idl.IDLNode[]> {
         const decl = this.library.resolveTypeReference(type)
         const result: idl.IDLNode[] = !decl ? []
             : idl.isEnumMember(decl) ? [decl.parent] : [decl]
-        const typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)
-        if (typeArgs) {
-            result.push(...typeArgs.split(",").flatMap(it => convertType(this, idl.toIDLType(it))))
+        if (type.typeArguments) {
+            result.push(...type.typeArguments.flatMap(it => convertType(this, it)))
         }
         return result
     }

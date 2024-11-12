@@ -34,8 +34,7 @@ class TypeDependencies extends TypeDependenciesCollector {
     }
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
         if (type.name === "Optional") {
-            const wrapped = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)!
-            return [this.library.toDeclaration(idl.toIDLType(wrapped))]
+            return type.typeArguments!
         }
         return [this.library.toDeclaration(type)]
     }

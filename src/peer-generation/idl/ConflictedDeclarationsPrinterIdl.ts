@@ -48,10 +48,7 @@ class ConflictedDeclarationsVisitorIdl {
     protected convertDeclaration(name: string, decl: idl.IDLEntry, writer: LanguageWriter) {
         let maybeGenerics = ''
         if (idl.isClass(decl) || idl.isInterface(decl)) {
-            const typeParameters = decl.extendedAttributes
-                ?.filter(it => it.name === idl.IDLExtendedAttributes.TypeParameters)
-                .map(it => it.value) ?? []
-
+            const typeParameters = decl.typeParameters ?? []
             if (typeParameters.length) {
                 maybeGenerics = `<${typeParameters.map((_, i) => `T${i}=undefined`).join(',')}>`
             }

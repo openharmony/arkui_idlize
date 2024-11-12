@@ -102,7 +102,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         printer.print(makeMaterializedPrologue(this.printerContext.language))
 
         let superClassName = clazz.superClass?.getSuperType()
-        let selfInterface = clazz.isInterface ? `${clazz.className}${clazz.generics ? `<${clazz.generics.join(", ")}>` : ``}` : undefined
+        let selfInterface = clazz.isInterface
+            ? `${clazz.className}${clazz.generics?.length ? `<${clazz.generics.join(", ")}>` : ``}`
+            : undefined
 
         const interfaces: string[] = []
         if (clazz.isInterface) {
@@ -173,7 +175,8 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
             // write construct(ptr: number) method
             const typeArguments = clazz.generics
-            const clazzRefType = idl.createReferenceType(clazz.className, typeArguments)
+            const clazzRefType = idl.createReferenceType(clazz.className,
+                typeArguments?.map(idl.createTypeParameterReference))
             const constructSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
             writer.writeMethodImplementation(new Method("construct", constructSig, [MethodModifier.STATIC], typeArguments), writer => {
                 const objVar = `obj${clazz.className}`

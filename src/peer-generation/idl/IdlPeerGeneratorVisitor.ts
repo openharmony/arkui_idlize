@@ -958,12 +958,11 @@ export class IdlPeerProcessor {
         const superClass = superClassType ?
             new SuperElement(
                 idl.forceAsNamedNode(superClassType).name,
-                idl.getExtAttribute(superClassType, idl.IDLExtendedAttributes.TypeArguments)?.split(","))
+                (superClassType as idl.IDLReferenceType).typeArguments?.map(it => idl.printType(it)))
             : undefined
 
         const importFeatures = this.collectDeclDependencies(decl)
         const isDeclInterface = idl.isInterface(decl)
-        const generics = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.TypeParameters)?.split(",")
 
         const constructor = idl.isClass(decl) ? decl.constructors[0] : undefined
         const mConstructor = this.makeMaterializedMethod(decl, constructor)
@@ -1007,7 +1006,7 @@ export class IdlPeerProcessor {
             }
         })
         this.library.materializedClasses.set(name,
-            new MaterializedClass(name, isDeclInterface, superClass, generics,
+            new MaterializedClass(name, isDeclInterface, superClass, decl.typeParameters,
                 mFields, mConstructor, mFinalizer, importFeatures, mMethods))
     }
 

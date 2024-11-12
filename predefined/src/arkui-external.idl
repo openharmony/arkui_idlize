@@ -10,6 +10,13 @@ interface NodeController {};
 
 
 /**
+ * Defines Text Modifier
+ */
+[Entity=Class, Interfaces="AttributeModifier", ParentTypeArguments="<object>"]
+interface TextModifier {};
+
+
+/**
  * PixelMap instance.
  */
 interface PixelMap {

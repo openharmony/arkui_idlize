@@ -137,8 +137,7 @@ export class JavaIDLNodeToStringConvertor extends IdlNameConvertorBase implement
         }
 
         if (typeSpec === `Optional`) {
-            let typeArgs = idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)?.split(",")
-            return JavaTypeAlias.fromTypeName(typeArgs![0], true)
+            return JavaTypeAlias.fromTypeName(idl.printType(type.typeArguments![0]), true)
         }
         return JavaTypeAlias.fromTypeName(typeSpec, false)
     }

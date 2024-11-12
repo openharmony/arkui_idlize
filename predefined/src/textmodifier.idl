@@ -1,7 +1,0 @@
-package "org.openharmony.idlize.predefined";
-
-/**
- * Defines Text Modifier
- */
-[Entity=Class, ParentTypeArguments="object"]
-interface TextModifier : AttributeModifier {};
