@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "out/abc-subset",
-        "rootDir": "./out/arkts-subset/generated",
+        "baseUrl": ".",
         "paths": {
             "#components": ["./out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/arkts"],
             "@arkoala/arkui": ["./out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated"],
@@ -12,6 +11,8 @@
         }
     },
     "include": ["out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/**/*\\.ts"],
-    "exclude": ["out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/ts/*\\.ts",
-        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/main.ts"]
+    "exclude": [
+        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/ts/*\\.ts",
+        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/main.ts"
+    ]
 }
