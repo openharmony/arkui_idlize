@@ -39,7 +39,7 @@ interface Node {
     void ShowCrash(String message);
     i32 CheckArkoalaGeneratedEvents(sequence<u8> result, i32 size);
     void EmulateClickEvent(i32 nodeId, f32 x, f32 y);
-    void EmulateTextInputEvent(i32 nodeId, string text);
+    void EmulateTextInputEvent(i32 nodeId, String text);
     void CallCallback(i32 callbackKind, sequence<u8> args, i32 argsSize);
     void CallCallbackResourceHolder(pointer holder, i32 resourceId);
     void CallCallbackResourceReleaser(pointer releaser, i32 resourceId);

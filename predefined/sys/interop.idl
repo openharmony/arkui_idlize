@@ -1,7 +1,6 @@
 package "org.openharmony.idlize.predefined";
 
 interface Interop {
-    pointer CheckImpl();
     pointer GetGroupedLog(i32 index);
     void StartGroupedLog(i32 index);
     void StopGroupedLog(i32 index);
