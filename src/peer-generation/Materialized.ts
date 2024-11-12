@@ -17,7 +17,7 @@ import { ArgConvertor, RetConvertor } from "./ArgConvertors"
 import { Field, Method, MethodModifier } from "./LanguageWriters"
 import { capitalize } from "../util"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
-import { isOptionalType, isNamedNode, IDLThisType, IDLType, maybeOptional, IDLNode } from "../idl"
+import { IDLType } from "../idl"
 import { IdlPeerMethod } from "./idl/IdlPeerMethod";
 import { PeerClassBase } from "./PeerClass";
 import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
@@ -86,10 +86,7 @@ export class MaterializedMethod extends IdlPeerMethod {
     }
 
     tsReturnType(): IDLType | undefined {
-        const returnType = this.method.signature.returnType
-        return this.hasReceiver() && isNamedNode(returnType) && returnType.name === this.originalParentName
-            ? IDLThisType
-            : maybeOptional(returnType, isOptionalType(returnType))
+        return this.method.signature.returnType
     }
 }
 

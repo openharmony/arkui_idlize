@@ -411,7 +411,6 @@ export function writePeerMethod(printer: LanguageWriter, method: IdlPeerMethod, 
         new NamedMethodSignature(returnType, signature.args, signature.argsNames),
         method.method.modifiers, method.method.generics
     )
-
     printer.writeMethodImplementation(peerMethod, (writer) => {
         let scopes = method.argConvertors.filter(it => it.isScoped)
         scopes.forEach(it => {
@@ -479,9 +478,14 @@ export function writePeerMethod(printer: LanguageWriter, method: IdlPeerMethod, 
             if (returnsThis(method, returnType)) {
                 result = [writer.makeReturn(writer.makeString("this"))]
             } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
-                // const isStatic = method.method.modifiers?.includes(MethodModifier.STATIC)
                 if (isNamedNode(returnType) && returnType.name === method.originalParentName) {
-                    if (!method.hasReceiver()) {
+                    if (method.hasReceiver()) {
+                        // TODO: interesting question if we shall reassign ptr to the value returned by the native op.
+                        result = [
+                            // writer.makeAssign(`this.peer!.ptr`, undefined, writer.makeString(returnValName), false),
+                            writer.makeReturn(writer.makeString("this"))
+                        ]
+                    } else {
                         result = [
                             ...constructMaterializedObject(writer, signature, "obj", returnValName),
                             writer.makeReturn(writer.makeString("obj"))
@@ -501,9 +505,7 @@ export function writePeerMethod(printer: LanguageWriter, method: IdlPeerMethod, 
 }
 
 function returnsThis(method: IdlPeerMethod, returnType: IDLType) {
-    return method.hasReceiver() &&
-        (returnType === IDLThisType ||
-            isNamedNode(returnType) && returnType.name === method.originalParentName)
+    return method.hasReceiver() && returnType === IDLThisType
 }
 
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,

@@ -22,8 +22,7 @@ import {
     renameClassToBuilderClass,
     renameClassToMaterialized,
     renameDtsToInterfaces,
-    serializerBaseMethods,
-    throwException
+    serializerBaseMethods
 } from "../../util"
 import { GenericVisitor } from "../../options"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
@@ -199,10 +198,8 @@ function mapCInteropRetType(type: idl.IDLType): string {
             case idl.IDLNumberType: return PrimitiveType.Int32.getText()
             case idl.IDLStringType:
             case idl.IDLAnyType:
-                /* HACK, fix */
-                // return `KStringPtr`
-                return "void"
             case idl.IDLVoidType:
+            case idl.IDLThisType:
             case idl.IDLUndefinedType:
                 return "void"
         }
@@ -722,23 +719,24 @@ class PeersGenerator {
     private processMethodOrCallable(method: idl.IDLMethod | idl.IDLCallable, peer: IdlPeerClass, parentName?: string): IdlPeerMethod | undefined {
         if (PeerGeneratorConfig.ignorePeerMethod.includes(method.name!))
             return
-        const isCallSignature = !idl.isMethod(method)
         // Some method have other parents as part of their names
         // Such as the ones coming from the friend interfaces
         // E.g. ButtonInterface instead of ButtonAttribute
-        const originalParentName = parentName ?? peer.originalClassName!
+        const isCallSignature = idl.isCallable(method)
         const methodName = isCallSignature ? `set${peer.componentName}Options` : method.name
+        if (isCallSignature) method.returnType = idl.IDLVoidType
+        const originalParentName = parentName ?? peer.originalClassName!
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         method.parameters.forEach(param => {
             this.library.requestType(param.type!, this.library.shouldGenerateComponent(peer.componentName))
         })
-        const signature = generateSignature(this.library, method)
+        const signature = generateSignature(method)
         return new IdlPeerMethod(
             originalParentName,
             argConvertors,
             generateRetConvertor(method.returnType),
             isCallSignature,
-            new Method(methodName, signature, method.isStatic ? [MethodModifier.STATIC] : []))
+            new Method(methodName!, signature, method.isStatic ? [MethodModifier.STATIC] : []))
     }
 
     private createComponentAttributesDeclaration(clazz: idl.IDLInterface, peer: IdlPeerClass) {
@@ -892,7 +890,7 @@ export class IdlPeerProcessor {
                 .filter(idl.isReferenceType)
                 .filter(it => {
                     if (!this.library.resolveTypeReference(it))
-                        console.log("AAA")
+                        console.log(`Cannot resolve ${it.name}`)
                     return true
                 })
                 .map(it => this.library.resolveTypeReference(it)!)
@@ -905,8 +903,13 @@ export class IdlPeerProcessor {
         if (!method)
             return new Method("constructor", new NamedMethodSignature(idl.IDLVoidType))
         const methodName = idl.isConstructor(method) ? "constructor" : method.name
+        const isStatic = idl.isConstructor(method) || (idl.isMethod(method) && method.isStatic)
         // const generics = method.typeParameters?.map(it => it.getText())
-        const signature = generateSignature(this.library, method, className)
+        const signature = new NamedMethodSignature(
+            isStatic ? method.returnType! : idl.IDLThisType,
+            method.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
+            method.parameters.map(it => it.name)
+        )
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
         return new Method(methodName, signature, modifiers/*, generics*/)
     }
@@ -935,7 +938,7 @@ export class IdlPeerProcessor {
                             methods: decl.methods.map(method => {
                                 return {
                                     ...method,
-                                    returnType: getMethodReturnType(this.library.language, method, decl.name),
+                                    returnType: method.returnType!,
                                 } as idl.IDLMethod
                             }),
                         } as idl.IDLInterface,
@@ -1040,7 +1043,7 @@ export class IdlPeerProcessor {
         const generics = undefined // method.typeParameters?.map(it => it.getText())
         method.parameters.forEach(it => this.library.requestType(it.type!, true))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
-        const signature = generateSignature(this.library, method, decl.name)
+        const signature = generateSignature(method)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
         return new MaterializedMethod(decl.name, argConvertors, retConvertor, false,
             new Method(methodName, signature, modifiers, generics)
@@ -1333,30 +1336,11 @@ export function isSourceDecl(node: idl.IDLEntry): boolean {
     return !node.fileName?.endsWith('stdlib.d.ts')
 }
 
-function getMethodReturnType(language: Language,
-                             method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor,
-                             className?: string): idl.IDLType {
-    let returnType: idl.IDLType
-    // TODO: Needs to be implemented properly
-    // Correct printing of return type name
-    if (language === Language.ARKTS) {
-        const isRetTypeParam = idl.isTypeParameterType(method.returnType!)
-        const isSelfRetType = className !== undefined && idl.isNamedNode(method.returnType!) ? className == method.returnType.name : true
-        returnType = idl.isVoidType(method.returnType!) // check
-            ? idl.IDLVoidType
-            : idl.isConstructor(method) || (!method.isStatic && isSelfRetType || isRetTypeParam) ? idl.IDLThisType : method.returnType!
-    } else {
-        returnType = (method.returnType && idl.isVoidType(method.returnType)) ? idl.IDLVoidType
-            : idl.isConstructor(method) || !method.isStatic ? idl.IDLThisType : method.returnType!
-    }
-    return returnType
-}
-
-function generateSignature(library: IdlPeerLibrary,
-                           method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor,
-                           className?: string): NamedMethodSignature {
-    const returnType = getMethodReturnType(library.language, method, className)
-    return new NamedMethodSignature(returnType,
+function generateSignature(
+    method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor,
+): NamedMethodSignature {
+    return new NamedMethodSignature(
+        method.returnType!,
         method.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
         method.parameters.map(it => it.name)
     )

@@ -733,7 +733,7 @@ export function createCallback(name: string, parameters: IDLParameter[], returnT
 {
     return {
         kind: IDLKind.Callback,
-        name, parameters, returnType, typeParameters, 
+        name, parameters, returnType, typeParameters,
         ...nodeInitializer,
         _idlNodeBrand: innerIdlSymbol,
         _idlEntryBrand: innerIdlSymbol,

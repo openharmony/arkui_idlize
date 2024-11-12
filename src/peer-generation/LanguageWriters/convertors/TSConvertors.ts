@@ -38,9 +38,9 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
     }
 
     /***** TypeConvertor<string> *****************************************/
-    
+
     convertOptional(type: idl.IDLOptionalType): string {
-        return `${this.convertType(type.type)} | undefined` 
+        return `${this.convertType(type.type)} | undefined`
     }
     convertUnion(type: idl.IDLUnionType): string {
         return type.types.
@@ -125,11 +125,10 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
         let typeArgs = type.typeArguments?.map(it => idl.printType(it))
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
-        if (typeSpec === `ContentModifier`)
-            typeArgs = [this.convertType(idl.IDLAnyType)] //this.convert(ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword))]
-        if (typeSpec === `Optional`) {
+        if (typeSpec === `ContentModifier` || typeSpec === `WrappedBuilder`)
+            typeArgs = [this.convertType(idl.IDLAnyType)]
+        if (typeSpec === `Optional`)
             return `${typeArgs} | undefined`
-        }
         const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
         // FIXME:
         if (namespacePrefix !== '' && typeSpec.startsWith(namespacePrefix)) {
@@ -199,7 +198,7 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
             } ${
                 isTuple ? "]" : "}"
             }`
-        
+
         return name
     }
 
