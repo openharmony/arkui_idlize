@@ -27,6 +27,7 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
+    NamedMethodSignature,
     ObjectArgs
 } from "../LanguageWriter"
 import {
@@ -294,4 +295,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return `${enumName}.getIntValue()`
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
+    override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
+        return new NamedMethodSignature(idl.IDLVoidType, [], [])
+    }
 }

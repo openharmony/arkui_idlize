@@ -190,20 +190,6 @@ export class OverloadsPrinter {
             : this.isComponent ? `this.peer` : `this`
         const postfix = this.isComponent ? "Attribute" : "_serialize"
         const methodName = `${peerMethod.overloadedName}${postfix}`
-
-        if ([Language.TS].includes(this.language))
-            peerMethod.method.signature.args.forEach((target, index) => {
-                if (this.isComponent) { // TBD: Check for materialized classes
-                    const callback = convertIdlToCallback(this.resolver, peer, peerMethod, target)
-                    if (!callback || !canProcessCallback(callback))
-                        return
-                    const argName = argsNames[index]
-                    this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseEventsProperties`,[
-                        new StringExpression(`{${callbackIdByInfo(callback)}: ${argName}}`)
-                    ])))
-                }
-            })
-
         const returnType = collapsedMethod.signature.returnType
         if (returnType === idl.IDLThisType || returnType === idl.IDLVoidType) {
             this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)

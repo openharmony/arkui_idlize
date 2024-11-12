@@ -286,4 +286,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return super.instanceOf(convertor, value, duplicateMembers)
     }
+    override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
+        return new NamedMethodSignature(IDLVoidType, [], [])
+    }
 }

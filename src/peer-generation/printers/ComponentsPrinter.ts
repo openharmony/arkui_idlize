@@ -107,12 +107,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             peer.attributesTypes.forEach((attrType) =>
                 imports.addFeature(attrType.typeName, peerModule)
             )
-
-            for (const method of peer.methods) {
-                for (const argType of method.method.signature.args)
-                    if (convertIdlToCallback(getReferenceResolver(this.library), peer, method, argType))
-                        imports.addFeature("UseEventsProperties", './use_properties')
-            }
         })
 
         collectMaterializedImports(imports, this.library)
@@ -139,7 +133,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeFieldDeclaration('peer', toIDLType(peerClassName), [FieldModifier.PROTECTED], true)
             const filteredMethods = (peer.methods as any[]).filter(it =>
-                this.language !== Language.ARKTS || !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(it.overloadedName))
+                !PeerGeneratorConfig.ignoreMethod(it.overloadedName, this.language))
             for (const grouped of groupOverloads(filteredMethods))
                 this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier

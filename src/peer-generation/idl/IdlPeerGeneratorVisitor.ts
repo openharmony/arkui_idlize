@@ -49,7 +49,6 @@ import { DeclarationNameConvertor } from "./IdlNameConvertor";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convert } from "./common"
-import { collectJavaImportsForDeclaration } from "../printers/lang/JavaIdlUtils"
 import { collectCJImportsForDeclaration } from "../printers/lang/CJIdlUtils"
 import { ARK_CUSTOM_OBJECT, javaCustomTypeMapping } from "../printers/lang/Java"
 import { Language } from "../../Language"
@@ -913,12 +912,9 @@ export class IdlPeerProcessor {
     }
     private collectDeclDependencies(decl: idl.IDLEntry): ImportFeature[] {
         let importFeatures: ImportFeature[]
-        if (this.library.language == Language.JAVA) {
-            // TODO: collect imports for Java via serializeDepsCollector
-            importFeatures = collectJavaImportsForDeclaration(decl)
-        } else if (this.library.language == Language.CJ) {
+        if (this.library.language === Language.CJ) {
             importFeatures = collectCJImportsForDeclaration(decl)
-        } else if (this.library.language == Language.TS || this.library.language == Language.ARKTS) {
+        } else {
             importFeatures = this.serializeDepsCollector.convert(decl)
                 .filter(it => !idl.isEntry(it) || isSourceDecl(it))
                 .filter(it => {
@@ -948,8 +944,6 @@ export class IdlPeerProcessor {
                         'SyntheticDeclarations'
                     )))
             }
-        } else {
-            throwException(`Unsupported language: ${this.library.language}`)
         }
         return importFeatures
     }

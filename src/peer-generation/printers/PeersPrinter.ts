@@ -209,8 +209,7 @@ class PeerFileVisitor {
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])
-                .filter(method => writer.language !== Language.ARKTS
-                               || !PeerGeneratorConfig.ArkTsIgnoredMethods.includes(method.overloadedName))
+                .filter(method => !PeerGeneratorConfig.ignoreMethod(method.overloadedName, writer.language))
                 .forEach(method => this.printPeerMethod(method, writer))
             this.printApplyMethod(peer, writer)
         }, this.generatePeerParentName(peer))

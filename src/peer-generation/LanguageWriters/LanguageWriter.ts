@@ -620,6 +620,9 @@ export abstract class LanguageWriter {
     makeNativeMethodNamedSignature(returnType: idl.IDLType, parameters: idl.IDLParameter[]): NamedMethodSignature {
         return this.makeNamedSignature(returnType, parameters)
     }
+    makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
+        return undefined
+    }
     mapFieldModifier(modifier: FieldModifier): string {
         return `${FieldModifier[modifier].toLowerCase()}`
     }

@@ -43,13 +43,6 @@ class CJImportsCollector implements TypeConvertor<ImportFeature[]> {
     convertPrimitiveType(type: idl.IDLPrimitiveType): ImportFeature[] {
         return []
     }
-    convertCallback(decl: idl.IDLCallback): ImportFeature[] {
-        // TODO: add types like Consumer/Supplier/...
-        return [
-            ...decl.parameters.flatMap(it => convertType(this, it.type!)),
-            ...convertType(this, decl.returnType),
-        ]
-    }
     convert(node: idl.IDLType | undefined): ImportFeature[] {
         return node ? convertType(this, node) : []
     }

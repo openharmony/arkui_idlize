@@ -39,7 +39,9 @@ export function printJavaImports(printer: LanguageWriter, imports: ImportFeature
     if (imports.length == 0) {
         return
     }
-    imports.forEach(it => printer.print(`import ${it.feature};`))
+    imports
+        .filter(it => it.module === "")  // ignore imports from local package
+        .forEach(it => printer.print(`import ${it.feature};`))
     printer.print('')
 }
 

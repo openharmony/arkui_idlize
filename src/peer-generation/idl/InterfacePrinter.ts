@@ -139,7 +139,6 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
     }
 
     protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: IdlPeerFile) {
-        if (![Language.TS, Language.ARKTS].includes(writer.language)) return
         if (peerFile.enums.length != 0) {
             writer.print(`Object.assign(globalThis, {`)
             writer.pushIndent()
@@ -957,10 +956,8 @@ export function createDeclarationConvertor(writer: LanguageWriter, peerLibrary: 
 }
 
 function getTargetFile(filename: string, language: Language): TargetFile {
-    if ([Language.TS, Language.ARKTS].includes(language)) return new TargetFile(`${filename}${language.extension}`)
-    if (language == Language.JAVA) return new TargetFile(`${filename}${language.extension}`, ARKOALA_PACKAGE_PATH)
-    if (language == Language.CJ) return new TargetFile(`${filename}${language.extension}`, '')
-    throw new Error(`FakeDeclarations: need to add support for ${language}`)
+    const packagePath = language === Language.JAVA ? ARKOALA_PACKAGE_PATH : undefined
+    return new TargetFile(`${filename}${language.extension}`, packagePath)
 }
 
 export function getCommonImports(language: Language) {

@@ -134,27 +134,9 @@ class IdlSerializerPrinter {
     print(prefix: string, declarationPath?: string) {
         const className = "Serializer"
         const superName = `${className}Base`
-        let ctorSignature: NamedMethodSignature | undefined = undefined
-        switch (this.writer.language) {
-            case Language.ARKTS:
-                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
-                break;
-            case Language.CPP:
-                ctorSignature = new NamedMethodSignature(
-                    idl.IDLVoidType, [
-                        idl.createContainerType('sequence', [idl.IDLU8Type]) /*idl.createReferenceType("uint8_t*")*/ ,
-                        idl.createReferenceType("CallbackResourceHolder" /* ast */)
-                    ],
-                    ["data", "resourceHolder"],
-                    [undefined, `nullptr`],
-                    [undefined, undefined, MethodArgPrintHint.AsPointer]
-                )
-                if (prefix == "") prefix = PrimitiveType.Prefix + this.library.libraryPrefix
-                break;
-            case Language.JAVA:
-                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
-                break;
-        }
+        let ctorSignature = this.writer.makeSerializerConstructorSignature()
+        if (prefix == "" && this.writer.language === Language.CPP)
+            prefix = PrimitiveType.Prefix + this.library.libraryPrefix
         const serializerDeclarations = getSerializers(this.library,
             createSerializerDependencyFilter(this.writer.language))
         printIdlImports(this.library, serializerDeclarations, this.writer, declarationPath)

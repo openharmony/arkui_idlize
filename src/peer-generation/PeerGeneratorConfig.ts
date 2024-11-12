@@ -91,8 +91,6 @@ export class PeerGeneratorConfig {
         "AnimatableArithmetic", // Unused generic class
     ]
 
-    public static ArkTsIgnoredMethods = ["testTupleNumberStringEnum", "testTupleOptional", "testTupleUnion"]
-
     public static ignoreReturnTypes = new Set<string>([
         "Promise"
     ])
@@ -156,6 +154,11 @@ export class PeerGeneratorConfig {
         }
         return PeerGeneratorConfig.ignoredEntriesCommon.has(name) ||
             language === Language.JAVA && PeerGeneratorConfig.ignoredEntriesJava.has(name)
+    }
+
+    static ignoreMethod(name: string, language: Language) {
+        return language === Language.ARKTS &&
+            ["testTupleNumberStringEnum", "testTupleOptional", "testTupleUnion"].includes(name)
     }
 
     public static isMaterializedIgnored(name: string) {
