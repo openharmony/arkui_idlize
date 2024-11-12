@@ -184,7 +184,7 @@ class NativeModuleVisitor {
 
 class CJNativeModuleVisitor extends NativeModuleVisitor {
     private arrayLikeTypes = new Set([
-        'Uint8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr'])
+        'Uint8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'ArrayBuffer'])
     private stringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string'])
 
     constructor(

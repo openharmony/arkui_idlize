@@ -1,7 +1,7 @@
 package "org.openharmony.idlize.predefined";
 
 interface Node {
-    pointer CreateNode(i32 pointer, i32 arg0, i32 arg1);
+    pointer CreateNode(i32 node_t, i32 arg0, i32 arg1);
     pointer GetNodeByViewStack();
     void DisposeNode(pointer ptr0);
     void DumpTreeNode(pointer ptr0);

@@ -174,9 +174,12 @@ public open class SerializerBase {
         this.setBytes(this.position, value)
     }
     func writeInt8(value: Int32): Unit {
-        this.setBytes(this.position, value)
+        this.setBytes(this.position, Int8(value))
     }
     func writeInt32(value: Int32): Unit {
+        this.setBytes(this.position, Int32(value))
+    }
+    func writeInt64(value: Int64): Unit {
         this.setBytes(this.position, value)
     }
     func writeFloat32(value: Float32): Unit {

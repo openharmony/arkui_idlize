@@ -39,7 +39,6 @@ import {
     ReturnStatement,
     StringExpression
 } from "../LanguageWriter"
-import { TSCastExpression, TsTupleAllocStatement } from "./TsLanguageWriter"
 import { IdlNameConvertor } from "../nameConvertor"
 import { CJIDLTypeToForeignStringConvertor, CJIDLNodeToStringConvertor } from "../convertors/CJConvertors"
 
@@ -68,6 +67,13 @@ export class CJCheckDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
     asString(): string {
         return `${this.value}.isSome()`
+    }
+}
+
+export class CJCastExpression implements LanguageExpression {
+    constructor(public value: LanguageExpression, public type: string, private unsafe = false) {}
+    asString(): string {
+        return `(${this.value.asString()} as ${this.type})`
     }
 }
 
@@ -328,7 +334,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.print(`println("${message}")`)
     }
     makeCast(value: LanguageExpression, type: IDLType, options?:MakeCastOptions): LanguageExpression {
-        return new TSCastExpression(value, this.stringifyType(type), options?.unsafe ?? false)
+        return new CJCastExpression(value, this.stringifyType(type), options?.unsafe ?? false)
     }
     getObjectAccessor(convertor: BaseArgConvertor, value: string, args?: ObjectArgs): string {
         return `${value}`
@@ -346,11 +352,7 @@ export class CJLanguageWriter extends LanguageWriter {
         let methodCall = this.makeMethodCall("Ark_Object", "getRuntimeType", [this.makeString(value)])
         return this.makeString(methodCall.asString() + '.ordinal')
     }
-    makeTupleAlloc(option: string): LanguageStatement {
-        return new TsTupleAllocStatement(option)
-    }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
-        // keyAccessor and valueAccessor are equal in TS
         return this.makeStatement(this.makeMethodCall(keyAccessor, "set", [this.makeString(key), this.makeString(value)]))
     }
     makeNull(value?: string): LanguageExpression {

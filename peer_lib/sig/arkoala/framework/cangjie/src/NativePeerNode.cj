@@ -20,8 +20,8 @@ public open class NativePeerNode <: Finalizable {
     }
 
     public static func create(type_: ArkUINodeType, id: Int32, flags: Int32): NativePeerNode {
-        // var ptr = NativeModule._CreateNode(Int32(type_), id, flags)
-        return NativePeerNode(42, 0)
+        let ptr = NativeModule._CreateNode(type_.ordinal, id, flags)
+        return NativePeerNode(ptr, NativeModule._GetNodeFinalizer())
     }
 
     public func dispose() {

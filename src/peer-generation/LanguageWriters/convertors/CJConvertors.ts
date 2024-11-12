@@ -203,6 +203,7 @@ export class CJIDLNodeToStringConvertor extends IdlNameConvertorBase implements 
             case 'KFloat32ArrayPtr': return 'Int64'
             case 'KStringPtr': return 'Int64'
             case 'string': return 'String'
+            case 'ArrayBuffer': return 'ArrayList<UInt8>'
         }
         return name
     }

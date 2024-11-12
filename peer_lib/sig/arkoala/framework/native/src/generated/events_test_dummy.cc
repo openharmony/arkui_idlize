@@ -26,3 +26,23 @@ KOALA_INTEROP_V2(Test_List_OnScrollVisibleContentChange, KByte*, KUInt)
 
 void impl_Test_Common_OnChildTouchTest(KByte* valueArray, KInt valueLength) {}
 KOALA_INTEROP_V2(Test_Common_OnChildTouchTest, KByte*, KUInt)
+
+KNativePointer impl_TestGetManagedCaller(KInt kind) {
+    return getManagedCallbackCaller(static_cast<CallbackKind>(kind));
+}
+KOALA_INTEROP_1(TestGetManagedCaller, KNativePointer, KInt)
+
+KNativePointer impl_TestGetManagedHolder() {
+    return reinterpret_cast<KNativePointer>(holdManagedCallbackResource);
+}
+KOALA_INTEROP_0(TestGetManagedHolder, KNativePointer)
+
+KNativePointer impl_TestGetManagedReleaser() {
+    return reinterpret_cast<KNativePointer>(releaseManagedCallbackResource);
+}
+KOALA_INTEROP_0(TestGetManagedReleaser, KNativePointer)
+
+void impl_TestSetArkoalaCallbackCaller() {
+    setCallbackCaller(deserializeAndCallCallback);
+}
+KOALA_INTEROP_V0(TestSetArkoalaCallbackCaller)
