@@ -372,7 +372,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
         const superName = `${className}Base`
         let ctorSignature: NamedMethodSignature | undefined = undefined
         if (this.writer.language == Language.CPP) {
-            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [/*idl.createReferenceType("uint8_t*")*/ idl.createContainerType('sequence', [idl.IDLU8Type]), idl.IDLI32Type], ["data", "length"])
+            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [/*idl.createReferenceType("uint8_t*")*/ idl.createContainerType('buffer', [idl.IDLU8Type]), idl.IDLI32Type], ["data", "length"])
             prefix = prefix === "" ? PrimitiveType.Prefix : prefix
         }
         const serializerDeclarations = getSerializers(this.library,

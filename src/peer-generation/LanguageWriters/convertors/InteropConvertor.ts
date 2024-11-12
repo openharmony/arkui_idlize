@@ -113,6 +113,14 @@ export class InteropConverter implements TypeConvertor<ConvertResult> {
         if (idl.IDLContainerUtils.isRecord(type)) {
             return this.make(`Map_${this.convertType(type.elementType[0]).text}_${this.convertType(type.elementType[1]).text}`, true)
         }
+        if (idl.IDLContainerUtils.isBuffer(type)) {
+            if (type.elementType.length > 0) {
+                switch (type.elementType[0]) {
+                    case idl.IDLU8Type: return this.make(`uint8_t*`, true)
+                }
+            }
+            return this.make(`void*`, true)
+        }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
     convertImport(_type: idl.IDLReferenceType, _: string): ConvertResult {

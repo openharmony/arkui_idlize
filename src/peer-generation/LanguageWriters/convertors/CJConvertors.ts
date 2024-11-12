@@ -89,6 +89,9 @@ export class CJIDLNodeToStringConvertor extends IdlNameConvertorBase implements 
             const CJTypeAliases = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
             return new CJTypeAlias(`Map<${CJTypeAliases[0].type.text}, ${CJTypeAliases[1].type.text}>`, `Map_${CJTypeAliases[0].alias}_${CJTypeAliases[1].alias}`)
         }
+        if (idl.IDLContainerUtils.isBuffer(type)) {
+            throw new Error('TBD')
+        }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
     convertCallback(type: idl.IDLCallback): CJTypeAlias {

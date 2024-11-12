@@ -633,7 +633,7 @@ function makePeerCallSignature(library: IdlPeerLibrary, parameters: IDLParameter
         if (it.useArray) {
             if (!serializerArgCreated) {
                 args.push(
-                    { name: 'thisArray', type: createContainerType('sequence', [IDLU8Type]) },
+                    { name: 'thisArray', type: createContainerType(/* 'buffer' */ 'sequence', [IDLU8Type]) },
                     { name: 'thisLength', type: IDLI32Type },
                 )
                 serializerArgCreated = true
