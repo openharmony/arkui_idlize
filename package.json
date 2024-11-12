@@ -141,6 +141,13 @@
     "compile:cj:native": "npm run configure:cj:native && cd native && meson compile --verbose -C build-cangjie-native-dummy",
     "run:cj": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --input-dir ./tests/cangjie-subset/ --output-dir ./out/cangjie-subset/generated --language cangjie && npm run compile:cj:native && LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH && ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run",
     "run:peers:call_log": "npm run check:peers:run && cd ./peer_lib/call_log && meson setup build && cd ./build && meson compile && ./run_call_log",
-    "cj": "npm run compile:cj:native &&  LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH && ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run"
+    "cj": "npm run compile:cj:native &&  LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH && ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run",
+    "generate:ts": "cd external/arkoala/tools/peer-generator && npm run generate:ts:current",
+    "generate:arkts": "cd external/arkoala/tools/peer-generator && npm run generate:arkts:current",
+    "generate:all": "cd external/arkoala/tools/peer-generator && npm run generate:all:current",
+    "native:ts:arm32": "npm run generate:ts && npm run compile:native-hzvm-ohos-arm32 --prefix external/arkoala/framework",
+    "native:ts:arm64": "npm run generate:ts && npm run compile:native-hzvm-ohos-arm64 --prefix external/arkoala/framework",
+    "arkoala:har": "npm run generate:ts && cd external && npm run arkoala:har",
+    "arkoala:har-arm32": "npm run generate:ts && cd external && npm run arkoala:har-arm32"
   }
 }

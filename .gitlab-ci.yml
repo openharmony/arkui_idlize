@@ -63,6 +63,44 @@ compile arkts subset:
 #   script:
 #     - npm run check:arkts:subset:tsc
 
+build native-arm64:
+  stage: test
+  allow_failure: true
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+  script:
+    - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run native:ts:arm64
+
+build native-arm32:
+  stage: test
+  allow_failure: true
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+  script:
+    - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run native:ts:arm32
+
+build arkoala.har:
+  stage: test
+  allow_failure: true
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+  script:
+    - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run arkoala:har-arm32
+    - cp $CI_PROJECT_DIR/external/arkoala/har/app/arkoala/build/default/outputs/default/arkoala.har $CI_PROJECT_DIR/
+  artifacts:
+      expire_in: 1 week
+      paths:
+          - arkoala.har
+
 publish idlize:
     stage: test
     tags:
