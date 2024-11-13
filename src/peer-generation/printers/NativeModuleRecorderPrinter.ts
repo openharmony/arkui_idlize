@@ -21,7 +21,7 @@ import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
 import { makeSyntheticDeclarationsFiles } from "../idl/IdlSyntheticDeclarations";
 import { Language } from "../../Language";
-import { createCallback, createContainerType, createParameter, createReferenceType, IDLI32Type, IDLStringType, IDLType, IDLU8Type, IDLVoidType, toIDLType } from "../../idl";
+import { createCallback, createContainerType, createParameter, createReferenceType, createUnionType, IDLBigintType, IDLI32Type, IDLNullType, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLVoidType, toIDLType } from "../../idl";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { collectMaterializedImports } from "../Materialized";
 
@@ -130,7 +130,7 @@ class NativeModuleRecorderVisitor {
     }
 
     printOtherMethods() {
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_ManagedStringWrite", new NamedMethodSignature(toIDLType("KInt"),[toIDLType("KStringPtr"), createContainerType('buffer', [IDLU8Type]), toIDLType("KInt")], ['value', 'buffer', 'offset'])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_ManagedStringWrite", new NamedMethodSignature(IDLI32Type, [IDLStringType, createContainerType('buffer', [IDLU8Type]), IDLI32Type], ['value', 'buffer', 'offset'])), w => {
             w.writeLines(`if (typeof value === 'number' || value === null)`)
             w.pushIndent()
             w.writeLines(`throw "Not implemented"`)
@@ -145,7 +145,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return length`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_CaptureUIStructure", new NamedMethodSignature(toIDLType("pointer"), [], [])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_CaptureUIStructure", new NamedMethodSignature(IDLPointerType, [], [])), w => {
             w.writeLines(`return this.object2ptr(JSON.stringify({`)
             w.pushIndent()
             w.writeLines(`rootElement: this.rootElement`)
@@ -153,11 +153,11 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`}))`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("private ptr2object<T>", new NamedMethodSignature(toIDLType("T"), [toIDLType("pointer")], ["ptr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("private ptr2object<T>", new NamedMethodSignature(/* looks like temporary solution: */ toIDLType("T"), [IDLPointerType], ["ptr"])), w => {
             w.writeLines(`return this.pointers[ptr as number] as T`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("private object2ptr", new NamedMethodSignature(toIDLType("pointer"), [toIDLType("Object|null")], ["object"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("private object2ptr", new NamedMethodSignature(IDLPointerType, [createUnionType([IDLObjectType, IDLNullType])], ["object"])), w => {
             w.writeLines(`if (object == null) return nullptr`)
             w.writeLines(`for (let i = 1; i < this.pointers.length; i++) {`)
             w.pushIndent()
@@ -174,25 +174,25 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return ptr`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringLength", new NamedMethodSignature(toIDLType("KInt"), [toIDLType("pointer")], ["ptr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringLength", new NamedMethodSignature(IDLI32Type, [IDLPointerType], ["ptr"])), w => {
             w.writeLines(`return this.ptr2object<string>(ptr).length`)
         })
         
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringData", new NamedMethodSignature(IDLVoidType, [toIDLType("KPointer"), createContainerType('buffer', [IDLU8Type]), toIDLType("number")], ["ptr", "buffer", "length"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringData", new NamedMethodSignature(IDLVoidType, [IDLPointerType, createContainerType('buffer', [IDLU8Type]), IDLNumberType], ["ptr", "buffer", "length"])), w => {
             w.writeLines(`let value = this.ptr2object<string>(ptr);`)
             w.writeLines(`(buffer as Uint8Array).set(encodeToData(value))`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_GetStringFinalizer", new NamedMethodSignature(toIDLType("pointer"), [], [])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_GetStringFinalizer", new NamedMethodSignature(IDLPointerType, [], [])), w => {
             w.writeLines(`return FINALIZER_POINTER as pointer`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InvokeFinalizer", new NamedMethodSignature(IDLVoidType, [toIDLType("KPointer"), toIDLType("KPointer")], ["ptr", "finalizer"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InvokeFinalizer", new NamedMethodSignature(IDLVoidType, [IDLPointerType, IDLPointerType], ["ptr", "finalizer"])), w => {
             w.writeLines(`let finalizerFunc = this.ptr2object<(obj: pointer) => void>(finalizer)`)
             w.writeLines(`finalizerFunc(ptr)`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_CreateNode", new NamedMethodSignature(toIDLType("NodePointer"), [toIDLType("KInt"), toIDLType("KInt"), toIDLType("KInt")], ["type", "id", "flags"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_CreateNode", new NamedMethodSignature(/* IDLNodePointer ? */ IDLPointerType /* NodePointer */, [IDLI32Type, IDLI32Type, IDLI32Type], ["type", "id", "flags"])), w => {
             w.writeLines(`let element: UIElement = {`)
             w.pushIndent()
             w.writeLines(`nodeId: id,`)
@@ -209,20 +209,20 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return this.object2ptr(element)`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_DisposeNode", new NamedMethodSignature(IDLVoidType, [toIDLType("NodePointer")], ["ptr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_DisposeNode", new NamedMethodSignature(IDLVoidType, [IDLPointerType /* NodePointer */], ["ptr"])), w => {
             w.writeLines(`let node = this.ptr2object<UIElement|null>(ptr)`)
             w.writeLines(`console.log("Dispose", node)`)
             w.writeLines(`if (node?.elementId) this.nodeById.delete(node.elementId)`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_AddChild", new NamedMethodSignature(toIDLType("number"), [toIDLType("number|bigint"), toIDLType("number|bigint")], ["ptr1", "ptr2"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_AddChild", new NamedMethodSignature(IDLNumberType, [IDLPointerType, IDLPointerType], ["ptr1", "ptr2"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(ptr1)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(ptr2)`)
             w.writeLines(`parent?.children?.push(child!)`)
             w.writeLines(`return 0`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_RemoveChild", new NamedMethodSignature(IDLVoidType, [toIDLType("NodePointer"), toIDLType("NodePointer")], ["parentPtr", "childPtr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_RemoveChild", new NamedMethodSignature(IDLVoidType, [IDLPointerType /* NodePointer */, IDLPointerType /* NodePointer */], ["parentPtr", "childPtr"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(parentPtr)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(childPtr)`)
             w.writeLines(`parent?.children?.forEach((element, index) => {`)
@@ -236,7 +236,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`})`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildAfter", new NamedMethodSignature(toIDLType("number"), [toIDLType("number|bigint"), toIDLType("number|bigint"), toIDLType("number|bigint")], ["ptr0", "ptr1", "ptr2"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildAfter", new NamedMethodSignature(IDLNumberType, [IDLPointerType, IDLPointerType, IDLPointerType], ["ptr0", "ptr1", "ptr2"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(ptr0)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(ptr1)`)
             w.writeLines(`let sibling = this.ptr2object<UIElement|null>(ptr2)`)
@@ -263,7 +263,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return 0`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildBefore", new NamedMethodSignature(toIDLType("number"), [toIDLType("number|bigint"), toIDLType("number|bigint"), toIDLType("number|bigint")], ["ptr0", "ptr1", "ptr2"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildBefore", new NamedMethodSignature(IDLNumberType, [IDLPointerType, IDLPointerType, IDLPointerType], ["ptr0", "ptr1", "ptr2"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(ptr0)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(ptr1)`)
             w.writeLines(`let sibling = this.ptr2object<UIElement|null>(ptr2)`)
@@ -290,7 +290,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return 0`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildAt", new NamedMethodSignature(toIDLType("number"), [toIDLType("number|bigint"), toIDLType("number|bigint"), toIDLType("number")], ["ptr0", "ptr1", "arg"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_InsertChildAt", new NamedMethodSignature(IDLNumberType, [IDLPointerType, IDLPointerType, IDLNumberType], ["ptr0", "ptr1", "arg"])), w => {
             w.writeLines(`let parent = this.ptr2object<UIElement|null>(ptr0)`)
             w.writeLines(`let child = this.ptr2object<UIElement|null>(ptr1)`)
             w.writeLines(`let inserted = false`)

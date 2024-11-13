@@ -166,6 +166,9 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
             case idl.IDLNumberType:
                 return 'number'
 
+            case idl.IDLBigintType:
+                return 'bigint'
+
             case idl.IDLStringType:
                 return 'string'
 
