@@ -490,12 +490,9 @@ class OHOSVisitor {
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)
-        this.cppWriter.print("// ------------------------------------------------------------------------------")
-        const bridgeCc = printBridgeCc(this.library, false)
-        this.cppWriter.concat(bridgeCc.generated)
-
-        this.cppWriter.writeLines(makeDeserializeAndCall(this.library, Language.CPP))
-        this.cppWriter.writeLines(printManagedCaller(this.library))
+        this.cppWriter.concat(printBridgeCc(this.library, false).generated)
+        this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
+        this.cppWriter.concat(printManagedCaller(this.library).content)
 
         this.hWriter.writeLines(
             readLangTemplate('ohos_api_epilogue.h', Language.CPP)

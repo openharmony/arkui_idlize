@@ -16,7 +16,7 @@
 import * as idl from "../../idl"
 import { cStyleCopyright } from "../FileGenerators";
 import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter, NamedMethodSignature } from "../LanguageWriters";
+import { CppLanguageWriter, LanguageWriter, NamedMethodSignature } from "../LanguageWriters";
 import { EnumEntity, EnumMember } from "../PeerFile";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
@@ -24,6 +24,7 @@ import { Language } from "../../Language";
 import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName } from "../ArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
 import { collectMaterializedImports } from "../Materialized";
+import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 
 function collectEntryCallbacks(library: IdlPeerLibrary, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
@@ -116,28 +117,32 @@ export function printCallbacksKinds(library: IdlPeerLibrary, writer: LanguageWri
 }
 
 class DeserializeCallbacksVisitor {
-    constructor(private readonly library: IdlPeerLibrary, private readonly writer: LanguageWriter) {}
+    constructor(private readonly library: IdlPeerLibrary, private readonly destFile: SourceFile) {}
+
+    private get writer(): LanguageWriter {
+        return this.destFile.content
+    }
 
     private writeImports() {
         this.writer.writeLines(cStyleCopyright)
         
         if (this.writer.language === Language.CPP) {
-            const cppWriter = this.writer as CppLanguageWriter
-            cppWriter.writeInclude("arkoala_api_generated.h")
-            cppWriter.writeInclude("callback_kind.h")
-            cppWriter.writeInclude("Serializers.h")
-            cppWriter.writeInclude("common-interop.h")
+            const cppFile = this.destFile as CppSourceFile
+            cppFile.addInclude("arkoala_api_generated.h")
+            cppFile.addInclude("callback_kind.h")
+            cppFile.addInclude("Serializers.h")
+            cppFile.addInclude("common-interop.h")
         }
 
         if (this.writer.language === Language.TS) {
-            const imports = new ImportsCollector()
+            const tsFile = this.destFile as TsSourceFile
+            const imports = tsFile.imports
             imports.addFeature("CallbackKind", "./CallbackKind")
             imports.addFeature("Deserializer", "./Deserializer")
             imports.addFeature("int32", "@koalaui/common")
             imports.addFeature("ResourceHolder", "@koalaui/interop")
             imports.addFeature("RuntimeType", "./SerializerBase")
             collectMaterializedImports(imports, this.library, "../")
-            imports.print(this.writer, "./peers")
         }
     }
 
@@ -247,17 +252,18 @@ class DeserializeCallbacksVisitor {
 }
 
 class ManagedCallCallbackVisitor {
-    readonly writer: CppLanguageWriter = createLanguageWriter(Language.CPP, this.library) as CppLanguageWriter
+    constructor(private readonly library: IdlPeerLibrary, private readonly dest: CppSourceFile) {}
 
-    constructor(private readonly library: IdlPeerLibrary) {}
+    private get writer(): CppLanguageWriter {
+        return this.dest.content
+    }
 
     private writeImports() {
-        this.writer.writeLines(cStyleCopyright)
-        this.writer.writeInclude("arkoala_api_generated.h")
-        this.writer.writeInclude("callback_kind.h")
-        this.writer.writeInclude("Serializers.h")
-        this.writer.writeInclude("common-interop.h")
-        this.writer.writeInclude("callbacks.h")
+        this.dest.addInclude("arkoala_api_generated.h")
+        this.dest.addInclude("callback_kind.h")
+        this.dest.addInclude("Serializers.h")
+        this.dest.addInclude("common-interop.h")
+        this.dest.addInclude("callbacks.h")
     }
 
     private writeCallbackCaller(callback: idl.IDLCallback): void {
@@ -318,13 +324,14 @@ class ManagedCallCallbackVisitor {
     }
 }
 
-export function printDeserializeAndCall(library: IdlPeerLibrary, writer: LanguageWriter): void {
-    const visitor = new DeserializeCallbacksVisitor(library, writer)
+export function printDeserializeAndCall(library: IdlPeerLibrary, destination: SourceFile): void {
+    const visitor = new DeserializeCallbacksVisitor(library, destination)
     visitor.visit()
 }
 
-export function printManagedCaller(library: IdlPeerLibrary): string {
-    const visitor = new ManagedCallCallbackVisitor(library)
+export function printManagedCaller(library: IdlPeerLibrary): SourceFile {
+    const destFile = new CppSourceFile('callback_managed_caller.cc', library) // TODO combine with TargetFile
+    const visitor = new ManagedCallCallbackVisitor(library, destFile)
     visitor.visit()
-    return visitor.writer.getOutput().join("\n")
+    return destFile
 }

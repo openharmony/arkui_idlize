@@ -30,6 +30,7 @@ import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCal
 import { createReferenceType, IDLVoidType, toIDLType } from "../idl"
 import { createEmptyReferenceResolver, getReferenceResolver, ReferenceResolver } from "./ReferenceResolver"
 import { MethodArgPrintHint } from "./LanguageWriters/LanguageWriter"
+import { SourceFile } from "./printers/SourceFile"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -311,7 +312,7 @@ export function makeSerializerForOhos(library: IdlPeerLibrary, nativeModule: { n
         imports.print(printer, '')
         writeSerializer(library, printer, "", declarationPath)
         writeDeserializer(library, printer, "", declarationPath)
-        printer.writeLines(makeDeserializeAndCall(library, Language.TS))
+        printer.concat(makeDeserializeAndCall(library, Language.TS, nativeModule.path).content)
         return printer
     } else {
         throw new Error(`unsupported language ${library.language}`)
@@ -550,10 +551,10 @@ ${content}
 `
 }
 
-export function makeDeserializeAndCall(library: IdlPeerLibrary, language: Language) {
-    const writer = createLanguageWriter(language, library)
+export function makeDeserializeAndCall(library: IdlPeerLibrary, language: Language, fileName: string): SourceFile {
+    const writer = SourceFile.make(fileName, language, library)
     printDeserializeAndCall(library, writer)
-    return writer.getOutput().join('\n')
+    return writer
 }
 
 export function makeCEventsArkoalaImpl(resolver: ReferenceResolver, implData: LanguageWriter, receiversList: LanguageWriter): string {

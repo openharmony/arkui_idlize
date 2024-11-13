@@ -35,6 +35,15 @@ export class ImportsCollector {
             this.addFeature(feature, module)
     }
 
+    merge(other: ImportsCollector) {
+        for (const [module, features] of other.moduleToFeatures) {
+            const dst = getOrPut(this.moduleToFeatures, module, () => new Set())
+            for (const feature of features) {
+                dst.add(feature)
+            }
+        }
+    }
+
     print(printer: LanguageWriter, currentModule: string) {
         const currentModuleDir = path.dirname(currentModule)
         this.moduleToFeatures.forEach((features, module) => {
