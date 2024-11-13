@@ -25,14 +25,14 @@
 | Rect                      | Component | No        | HEL         | Dudkin Sergey       | done             |                   |           | High     |
 | `height, width`           | Options   |           | WON         | Dudkin Sergey       | done             |                   |           | High     |
 | `height, radius, width`   | Options   |           | WON         | Dudkin Sergey       | done             |                   |           | High     |
-| `radius`                  | Function  |           | WON         | Dudkin Sergey       | blocked          |                   |           |          |
+| `radius`                  | Function  |           | WON         | Dudkin Sergey       | blocked AceEngine|                   |           |          |
 | Navigator                 | Component | No        | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `target`                  | Options   |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `setNavigatorOptions`     | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `active`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `type`                    | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `target`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
-| `params`                  | Function  |           | HEL         | Skroba Gleb         | blocked          |                   |           | High     |
+| `params`                  | Function  |           | HEL         | Skroba Gleb         | blocked IDL      |                   |           | High     |
 | Progress                  | Component | Yes       |             | Erokhin Ilya        | Blocked          |                   |           |          |
 | `style, total, value`     | Options   |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
 | `type, value`             | Options   |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
@@ -41,61 +41,61 @@
 | Common                    | Component | Yes       |             | Roman Sedaikin      | in progress      | Roman Sedaikin    | done      |          |
 | `width`                   | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
 | `height`                  | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
-| `size`                    | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `constraintSize`          | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `offset`                  | Function  |           | WON         | Erokhin Ilya        | blocked arkoala  | Roman Sedaikin    | done      | High     |
-| `position`                | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `padding`                 | Function  |           | HEL         | Erokhin Ilya        | blocked arkoala  | Roman Sedaikin    | done      | Medium   |
-| `margin`                  | Function  |           | ENC,WON,HEL | Erokhin Ilya        | blocked arkoala  | Roman Sedaikin    | done      | Medium   |
-| `foregroundColor`         | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
+| `size`                    | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `constraintSize`          | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `offset`                  | Function  |           | WON         | Skroba Gleb         | in progress      | Roman Sedaikin    | done      | High     |
+| `position`                | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `padding`                 | Function  |           | HEL         | Skroba Gleb         | in progress      | Roman Sedaikin    | done      | Medium   |
+| `margin`                  | Function  |           | ENC,WON,HEL | Skroba Gleb         | in progress      | Roman Sedaikin    | done      | Medium   |
+| `foregroundColor`         | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `opacity`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
-| `blur`                    | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `visibility`              | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `enabled`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `onTouch`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `touchable`               | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `onFocus`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `onBlur`                  | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `focusable`               | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `onAppear`                | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `onDisappear`             | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
+| `blur`                    | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `visibility`              | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `enabled`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `onTouch`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `touchable`               | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `onFocus`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `onBlur`                  | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `focusable`               | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `onAppear`                | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `onDisAppear`             | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `responseRegion`          | Function  |           |             | Skroba Gleb         | done             | Roman Sedaikin    | done      | Medium   |
-| `layoutWeight`            | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `foregroundBlurStyle`     | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `border`                  | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `borderStyle`             | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `borderWidth`             | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `borderColor`             | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `borderRadius`            | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `borderImage`             | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `hoverEffect`             | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `onAreaChange`            | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `alignSelf`               | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `displayPriority`         | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `zIndex`                  | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `direction`               | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `align`                   | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `aspectRatio`             | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `overlay`                 | Function  |           | ENC         | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | Medium   |
-| `linearGradient`          | Function  |           | ENC         | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | High     |
-| `sweepGradient`           | Function  |           | ENC         | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | High     |
+| `layoutWeight`            | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `foregroundBlurStyle`     | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `border`                  | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `borderStyle`             | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `borderWidth`             | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `borderColor`             | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `borderRadius`            | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `borderImage`             | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `hoverEffect`             | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `onAreaChange`            | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `alignSelf`               | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `displayPriority`         | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `zIndex`                  | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `direction`               | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `align`                   | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `aspectRatio`             | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `overlay`                 | Function  |           | ENC         | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `linearGradient`          | Function  |           | ENC         | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High     |
+| `sweepGradient`           | Function  |           | ENC         | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High     |
 | `radialGradient`          | Function  |           | ENC         | Erokhin Ilya        | done             | Roman Sedaikin    | done      | High     |
-| `shadow`                  | Function  |           |             | Roman Sedaikin      | done/no test     | Roman Sedaikin    | done      | High     |
-| `onClick`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | in progress      |                   | done      | High+    |
+| `shadow`                  | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High     |
+| `onClick`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             |                   | done      | High+    |
 | `fill`                    | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Low      |
-| `animateTo`               | Function  |           | HEL, ENC    | Erokhin Ilya        | blocked ArKoala  |                   |           | Medium   |
-| `animation`               | Function  |           | HEL, ENC    | Erokhin Ilya        | blocked          |                   |           | Medium   |
+| `animateTo`               | Function  |           | HEL, ENC    | Erokhin Ilya        | blocked IDL      |                   |           | Medium   |
+| `animation`               | Function  |           | HEL, ENC    | Erokhin Ilya        | blocked IDL      |                   |           | Medium   |
 | `sharedTransition`        | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Medium   |
 | `backgroundColor($r)`     | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Low      |
-| `backgroundImage`         | Function  |           | WON         | Erokhin Ilya        | blocked          |                   |           | Medium   |
+| `backgroundImage`         | Function  |           | WON         | Erokhin Ilya        | blocked IDL      |                   |           | Medium   |
 | `backgroundImageSize`     | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `backgroundImagePosition` | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Medium   |
-| `clip`                    | Function  |           | HEL, WON    | Skroba Gleb         | blocked  https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH|                   |           | High     |
+| `clip`                    | Function  |           | HEL, WON    | Skroba Gleb         | blocked IDL      |                   |           | High     |
 | `scale`                   | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `translate`               | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | High     |
 | `id`                      | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | High     |
 | `onVisibleAreaChange`     | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | High     |
-| `gesture`                 | Function  |           | WON         | Erokhin Ilya        | blocked ArKoala  |                   |           | Medium   |
+| `gesture`                 | Function  |           | WON         | Erokhin Ilya        | blocked IDL      |                   |           | Medium   |
 | `@Styles function`        | Decorator |           | HEL         | N/A                 | N/A              | A. Tarasov        |           | Low      |
 | Button                    | Component | Yes       |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `stateEffect, type`       | Options   |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
@@ -104,7 +104,7 @@
 | Image                     | Component | Yes       |             |                     |                  |                   |           |          |
 | `ctor(URL)`               | Function  |           | ENC         | Kirill Berezin      | In progress      |                   |           | Medium   |
 | `ctor($rawfile)`          | Function  |           | ENC, WON    | Anton Tarasov       | done             |                   | done      | High     |
-| `objectFit`               | Function  |           | WON         | Kirill Berezin      | Done/No test     |                   |           | Medium   |
+| `objectFit`               | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
 | `autoResize`              | Function  |           | HEL         | Evstigneev Roman    | in progress      |                   |           | Medium   |
 | `fillColor`               | Function  |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
 | `onFinish`                | Function  |           | ENC         | Evstigneev Roman    | done             |                   |           | Medium   |
@@ -122,7 +122,7 @@
 | `fillOpacity`             | Function  |           | HEL         | Dudkin Sergey       | done             |                   |           | Medium   |
 | `stroke`                  | Function  |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
 | `strokeWidth`             | Function  |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
-| `strokeDashArray`         | Function  |           | HEL         | Dudkin Sergey       | blocked          |                   |           | High     |
+| `strokeDashArray`         | Function  |           | HEL         | Dudkin Sergey       | blocked AceEngine|                   |           | High     |
 | Path                      | Component | No        |             | Skroba Gleb         | done             |                   |           | High     |
 | `commands`                | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | Tabs                      | Component | No        | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | High     |
@@ -153,7 +153,7 @@
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
 | `onScrollEdge`            | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | Video                     | Component |           |             | Erokhin Ilya        | blocked          |                   |           |          |
-| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked          |                   |           | Low      |
+| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked AceEngine|                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
 | Search                    | Component |           |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `placeholderColor`        | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
@@ -164,7 +164,7 @@
 | `space`                   | Options   |           | WON         | Morozov Sergey      | done             |                   |           | Medium   |
 | `lanes`                   | Function  |           | WON         | Morozov Sergey      | done             |                   |           | Medium   |
 | Line                      | Component |           |             |                     | Blocked          |                   |           |          |
-| `startPoint`              | Function  |           | WON         | Dudkin Sergey       | Blocked          |                   |           | Medium   |
-| `endPoint`                | Function  |           | WON         | Dudkin Sergey       | Blocked          |                   |           | Medium   |
+| `startPoint`              | Function  |           | WON         | Dudkin Sergey       | blocked AceEngine|                   |           | Medium   |
+| `endPoint`                | Function  |           | WON         | Dudkin Sergey       | blocked AceEngine|                   |           | Medium   |
 | LoadingProgress           | Component |           |             | Samarin Sergey      | done             |                   |           |    Low      |
 | `color`                   | Function  |           | ENC         | Samarin Sergey      | done             |                   |           | Low      |
