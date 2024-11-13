@@ -74,7 +74,6 @@ export enum IDLExtendedAttributes {
     Namespace = "Namespace",
     NativeModule = "NativeModule",
     Optional = "Optional",
-    ParentTypeArguments = "ParentTypeArguments",
     Protected = "Protected",
     Synthetic = "Synthetic",
     TSType = "TSType",
@@ -789,26 +788,33 @@ export function unescapeKeyword(name: string): string {
     return name
 }
 
-export function printType(type: IDLType | IDLInterface | undefined, ignoreExtendedAttributes = false): string {
+type PrintTypeOptions = {
+    [key: string]: any
+}
+export function printType(type: IDLType | IDLInterface | undefined, options?:PrintTypeOptions): string {
     if (!type) throw new Error("Missing type")
     if (isInterface(type)) return type.name
     if (isOptionalType(type)) return `(${printType(type.type)} or ${IDLUndefinedType.name})`
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) return `${type.containerKind}<${type.elementType.map(it => printType(it)).join(", ")}>`
     if (isReferenceType(type)) {
-        let typeSpec = type.name
-        if (!ignoreExtendedAttributes) {
-            const extAttrs = type.extendedAttributes ? Array.from(type.extendedAttributes) : []
-            if (type.typeArguments)
-                extAttrs.push({ name: IDLExtendedAttributes.TypeArguments, value: getTypeArguments(type).join(",") })
-            const attrSpec = extAttrs.length ? `[${quoteAttributeValues(extAttrs)}] ` : ""
-            typeSpec = attrSpec + typeSpec
-        }
-        return typeSpec
+        const extAttrs = type.extendedAttributes ? Array.from(type.extendedAttributes) : []
+        if (type.typeArguments)
+            extAttrs.push({ name: IDLExtendedAttributes.TypeArguments, value: type.typeArguments.map(it=>printType(it)).join(",") })
+        if (!extAttrs.length)
+            return type.name;
+        let res = `[${quoteAttributeValues(extAttrs)}] ${type.name}`;
+        if (options?.bracketsAroundReferenceTypeWithExtAttrs)
+            return `(${res})`;
+        return res;
     }
     if (isUnionType(type)) return `(${type.types.map(it => printType(it)).join(" or ")})`
     if (isTypeParameterType(type)) return type.name
     throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
+}
+
+export function printReturnType(type: IDLType | IDLInterface | undefined): string {
+    return printType(type, {bracketsAroundReferenceTypeWithExtAttrs: true});
 }
 
 export function printParameters(parameters: IDLParameter[] | undefined): string {
@@ -851,17 +857,41 @@ export function printProperty(idl: IDLProperty): stringOrNone[] {
     ]
 }
 
-function printExtendedAttributes(idl: IDLNode, indentLevel: number, extras?: IDLExtendedAttribute[]): stringOrNone[] {
-    let attributes = idl.extendedAttributes?.concat(extras ?? [])
+function printExtendedAttributes(idl: IDLNode, indentLevel: number): stringOrNone[] {
+    let typeParameters: string[]|undefined
+    let typeArguments: IDLType[]|undefined
+    switch(idl.kind) {
+    case IDLKind.Interface:
+    case IDLKind.Class:
+    case IDLKind.AnonymousInterface:
+    case IDLKind.TupleInterface:
+        typeParameters = (idl as IDLInterface).typeParameters
+        break
+    case IDLKind.Callback:
+    case IDLKind.Method:
+    case IDLKind.Callable:
+    case IDLKind.Constructor:
+        typeParameters = (idl as IDLSignature).typeParameters
+        break
+    case IDLKind.Typedef:
+        typeParameters = (idl as IDLTypedef).typeParameters
+        break
+    case IDLKind.ReferenceType:
+        typeArguments = (idl as IDLReferenceType).typeArguments
+        break
+    }
+    const attributes: IDLExtendedAttribute[] = Array.from(idl.extendedAttributes || [])
+    if (typeParameters?.length)
+        attributes.push({ name: IDLExtendedAttributes.TypeParameters, value: typeParameters.join(",") })
+    if (typeArguments?.length)
+        attributes.push({ name: IDLExtendedAttributes.TypeArguments, value: typeArguments.map(it=>printType(it)).join(",") })
+
     if (idl.documentation) {
         let docs: IDLExtendedAttribute = {
             name: IDLExtendedAttributes.Documentation,
             value: idl.documentation
         }
-        if (attributes)
-            attributes.push(docs)
-        else
-            attributes = [docs]
+        attributes.push(docs)
     }
     const attrSpec = quoteAttributeValues(attributes)
     return attrSpec ? [indentedBy(`[${attrSpec}]`, indentLevel)] : []
@@ -873,7 +903,6 @@ export const attributesToQuote = new Set([
     IDLExtendedAttributes.DtsTag,
     IDLExtendedAttributes.Import,
     IDLExtendedAttributes.Interfaces,
-    IDLExtendedAttributes.ParentTypeArguments,
     IDLExtendedAttributes.TypeArguments,
     IDLExtendedAttributes.TypeParameters,
 ])
@@ -900,7 +929,7 @@ export function printFunction(idl: IDLFunction): stringOrNone[] {
     }
     return [
         ...printExtendedAttributes(idl, 1),
-        indentedBy(`${idl.isAsync ? "async " : ""}${printType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
+        indentedBy(`${idl.isAsync ? "async " : ""}${printReturnType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
     ]
 }
 
@@ -909,15 +938,9 @@ export function printMethod(idl: IDLMethod): stringOrNone[] {
         console.log(`Ignore ${idl.name}`)
         return []
     }
-    const genericAttrs: IDLExtendedAttribute[] = idl.returnType.extendedAttributes ?? []
-    if (idl.typeParameters)
-        genericAttrs.push({ name: IDLExtendedAttributes.TypeParameters, value: idl.typeParameters.join(",") })
-    const typeArgs = getTypeArguments(idl.returnType);
-    if (typeArgs.length)
-        genericAttrs.push({ name: IDLExtendedAttributes.TypeArguments, value: typeArgs.join(",") })
     return [
-        ...printExtendedAttributes(idl, 1, genericAttrs),
-        indentedBy(`${idl.isStatic ? "static " : ""}${idl.isAsync ? "async " : ""}${printType(idl.returnType, true)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
+        ...printExtendedAttributes(idl, 1),
+        indentedBy(`${idl.isStatic ? "static " : ""}${idl.isAsync ? "async " : ""}${printReturnType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`, 1)
     ]
 }
 
@@ -944,7 +967,7 @@ export function printImport(idl: IDLImport): stringOrNone[] {
 export function printCallback(idl: IDLCallback): stringOrNone[] {
     return [
         ...printExtendedAttributes(idl, 0),
-        `callback ${idl.name} = ${printType(idl.returnType)} (${printParameters(idl.parameters)});`
+        `callback ${idl.name} = ${printReturnType(idl.returnType)} (${printParameters(idl.parameters)});`
     ]
 }
 
@@ -964,17 +987,9 @@ export function printInterface(idl: IDLInterface): stringOrNone[] {
         })
         .filter(isDefined)
         .forEach(scope => idl.scope ? idl.scope.push(...scope) : idl.scope = scope)
-    const genericAttrs: IDLExtendedAttribute[] = []
-    if (idl.typeParameters)
-        genericAttrs.push({ name: IDLExtendedAttributes.TypeParameters, value: idl.typeParameters.join(",") })
-    const parentTypeArgs = idl.inheritance.map(getTypeArguments)
-    if (parentTypeArgs.flat().some(isDefined)) {
-        const argSpec = parentTypeArgs.map(args => `<${args.map(arg => arg ?? "").join(",")}>`).join(",")
-        genericAttrs.push({ name: IDLExtendedAttributes.ParentTypeArguments, value: argSpec })
-    }
     return [
-        ...printExtendedAttributes(idl, 0, genericAttrs),
-        `interface ${idl.name}${hasSuperType(idl) ? ": " + printType(idl.inheritance[0], true) : ""} {`,
+        ...printExtendedAttributes(idl, 0),
+        `interface ${idl.name}${hasSuperType(idl) ? ": " + printType(idl.inheritance[0]) : ""} {`,
         // TODO: type system hack!
     ]
         .concat(idl.constructors.map(printConstructor).flat())
@@ -983,10 +998,6 @@ export function printInterface(idl: IDLInterface): stringOrNone[] {
         .concat(idl.methods.map(printMethod).flat())
         .concat(idl.callables.map(printFunction).flat())
         .concat(["};"])
-}
-
-function getTypeArguments(type: IDLType): (string | undefined)[] {
-    return isReferenceType(type) ? type.typeArguments?.map(it => printType(it, true)) ?? [] : []
 }
 
 export function getSuperType(idl: IDLInterface): IDLType | undefined {
@@ -1033,12 +1044,9 @@ export function printEnum(idl: IDLEnum, skipInitializers: boolean): stringOrNone
 }
 
 export function printTypedef(idl: IDLTypedef): stringOrNone[] {
-    const genericAttrs = idl.typeParameters
-        ? [{ name: IDLExtendedAttributes.TypeParameters, value: idl.typeParameters.join(",") }]
-        : []
     return [
         idl.documentation,
-        ...printExtendedAttributes(idl, 0, genericAttrs),
+        ...printExtendedAttributes(idl, 0),
         `typedef ${printType(idl.type)} ${idl.name!};`
     ]
 }

@@ -102,11 +102,11 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInter
         (()=>{
             if (!node.inheritance)
                 return []
-            const parentTypeArgs = extractTypeArguments(file, node.inheritanceExtAttrs ?? [], idl.IDLExtendedAttributes.ParentTypeArguments)
+            const parentTypeArgs = extractTypeArguments(file, node.inheritanceExtAttrs ?? [], idl.IDLExtendedAttributes.TypeArguments)
             const parentType = idl.createReferenceType(node.inheritance, parentTypeArgs)
             parentType.fileName = file
             if (node.inheritanceExtAttrs)
-                parentType.extendedAttributes = toExtendedAttributes(node.inheritanceExtAttrs)
+                parentType.extendedAttributes = toExtendedAttributes(node.inheritanceExtAttrs)?.filter(it => it.name !== idl.IDLExtendedAttributes.TypeArguments)
             return [parentType]
         })(),
         node.members
@@ -132,7 +132,7 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInter
         }
     )
     if (result.inheritance.length && idl.isReferenceType(result.inheritance[0]))
-        result.inheritance[0].typeArguments = extractTypeArguments(file, node.extAttrs, idl.IDLExtendedAttributes.ParentTypeArguments)
+        result.inheritance[0].typeArguments = extractTypeArguments(file, node.extAttrs, idl.IDLExtendedAttributes.TypeArguments)
     if (node.extAttrs.find(it => it.name === "Synthetic"))
         addSyntheticType(node.name, result)
     return result
@@ -145,14 +145,9 @@ function extractTypeArguments(file: string,
     const attr = extAttrs?.find(it => it.name === attribute)
     if (!attr)
         return undefined
-    let separator = ","
     let value = toExtendedAttributeValue(attr)!
-    if (attribute === idl.IDLExtendedAttributes.ParentTypeArguments) {
-        value = value.slice(1, -1)
-        separator = ">,<"
-    }
     return value
-        ?.split(separator)  // TODO need real parsing here. What about "<T, Map<K, Callback<K,R>>, U>"
+        ?.split(",")  // TODO need real parsing here. What about "<T, Map<K, Callback<K,R>>, U>"
         ?.map(it => toIDLType(file, it))
 }
 
