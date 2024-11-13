@@ -15,7 +15,6 @@
 
 import * as path from 'path'
 import * as ts from "typescript"
-import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { Language } from './Language';
 
 export interface NameWithType {
@@ -181,10 +180,6 @@ export function dropSuffix(text: string, suffix: string): string {
 }
 
 export type stringOrNone = string | undefined
-
-export function isCustomComponentClass(decl: ts.ClassDeclaration) {
-    return PeerGeneratorConfig.customComponent.includes(identName(decl.name)!)
-}
 
 export function toSet(option: string | undefined): Set<string> {
     let set = new Set<string>()

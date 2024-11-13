@@ -271,7 +271,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
         )
         if (this.writer.language === Language.CPP) {
             this.writer.writeStatement(
-                this.writer.makeReturn(this.writer.makeString(`{ .ptr = ptr }`))
+                this.writer.makeReturn(this.writer.makeString(`{ ptr }`))
             )
             return
         }

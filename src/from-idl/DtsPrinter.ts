@@ -161,7 +161,7 @@ export class CustomPrintVisitor {
         const name = isConstructor(node)
             ? isClass(this.currentInterface!) ? "constructor" : "new"
             : getName(node)
-        const typeParams = node.typeParameters ? `<${node.typeParameters.join(",")}>` : ""
+        const typeParams = (node.typeParameters && node.typeParameters.length > 0) ? `<${node.typeParameters.join(",")}>` : ""
         let preamble = ""
         if (!isCallable(node)) {
             const isStatic = isMethod(node) && node.isStatic
