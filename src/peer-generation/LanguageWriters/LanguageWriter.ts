@@ -710,6 +710,11 @@ export abstract class LanguageWriter {
     instanceOf(convertor: BaseArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
         return this.makeString(`${value} instanceof ${this.stringifyType(convertor.idlType)}`)
     }
+
+    stringifyTypeOrEmpty(type: idl.IDLType | idl.IDLCallback | undefined): string {
+        if (type === undefined) return ""
+        return this.stringifyType(type)
+    }
 }
 
 export function mangleMethodName(method: Method, id?: number): string {

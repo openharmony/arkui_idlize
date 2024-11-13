@@ -136,6 +136,7 @@ function copyArkoalaFiles(config: {
         'sig/arkoala-arkts/arkui/src/generated/Finalizable.ts',
         'sig/arkoala-arkts/arkui/src/generated/CallbackRegistry.ts',
         'sig/arkoala-arkts/arkui/src/generated/ComponentBase.ts',
+        'sig/arkoala-arkts/arkui/src/generated/MaterializedBase.ts',
         'sig/arkoala-arkts/arkui/src/generated/PeerNode.ts',
         'sig/arkoala-arkts/arkui/src/generated/NativePeerNode.ts',
         'sig/arkoala-arkts/arkui/src/generated/arkts/index.ts',
