@@ -83,6 +83,7 @@ export class PeerGeneratorConfig {
         "CustomComponent",
         "Layoutable",
         "LayoutChild",
+        "Measurable",
         "IMonitor", // IMonitor class processing will fixed in !920
         "Event",
         "Configuration",
@@ -134,7 +135,7 @@ export class PeerGeneratorConfig {
     ])
 
     private static ignoredEntriesJava = new Set([
-        "CustomComponent",  // pulls in Layoutable, LayoutChild
+        "CustomComponent",
         "AnimationRange",
         "EventTargetInfo",
         "GestureRecognizer",

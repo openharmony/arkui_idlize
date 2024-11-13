@@ -478,9 +478,42 @@ interface PeerEvent {
         this.printer.print('}')
     }
 
+    private printProperties(infos: IdlCallbackInfo[]) {
+        const contentOp = (writer: LanguageWriter) => {
+            for (const info of infos) {
+                const mapped = this.mapType( info.originTarget)
+                const ref = idl.isType(mapped)
+                    ? mapped
+                    : idl.createReferenceType(mapped.name)
+                writer.writeFieldDeclaration(callbackIdByInfo(info),
+                    ref,
+                    undefined,
+                    true
+                )
+            }
+        }
+        if (this.library.language == Language.ARKTS)
+            this.printer.writeClass(PeerEventsProperties, contentOp)
+        else
+            this.printer.writeInterface(PeerEventsProperties, contentOp)
+    }
+
     protected printCallbackInfo(callbackInfo: CallbackInfo | IdlCallbackInfo) {
         const infoFields = callbackInfo.args.map(it => `(event as ${callbackEventNameByInfo(callbackInfo)}).${it.name}`).join(', ')
         this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(callbackInfo)}: properties.${callbackIdByInfo(callbackInfo)}?.(${infoFields}); break`)
+    }
+
+    private printEventsDeliverer(infos: IdlCallbackInfo[]) {
+        this.printer.print(`export function deliverGeneratedPeerEvent(event: PeerEvent, properties: ${PeerEventsProperties}): void {`)
+        this.printer.pushIndent()
+        this.printer.print(`switch (event.kind) {`)
+        this.printer.pushIndent()
+        infos.forEach(it => this.printCallbackInfo(it))
+        this.printer.print(`default: throw new Error(\`Unknown kind \${event.kind}\`)`)
+        this.printer.popIndent()
+        this.printer.print('}')
+        this.printer.popIndent()
+        this.printer.print('}')
     }
 
     print(): void {
@@ -491,6 +524,8 @@ interface PeerEvent {
         this.printEventsClasses(filteredCallbacks)
         this.printNameByKindRetriever(filteredCallbacks)
         this.printParseFunction(filteredCallbacks)
+        this.printProperties(filteredCallbacks)
+        this.printEventsDeliverer(filteredCallbacks)
     }
 }
 

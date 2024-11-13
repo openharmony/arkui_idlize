@@ -107,6 +107,12 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             peer.attributesTypes.forEach((attrType) =>
                 imports.addFeature(attrType.typeName, peerModule)
             )
+
+            for (const method of peer.methods) {
+                for (const argType of method.method.signature.args)
+                    if (convertIdlToCallback(getReferenceResolver(this.library), peer, method, argType))
+                        imports.addFeature("UseEventsProperties", './use_properties')
+            }
         })
 
         collectMaterializedImports(imports, this.library)
