@@ -15,22 +15,21 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType, maybeOptional } from '../idl'
 import { IndentedPrinter } from "../IndentedPrinter"
-import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
-import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageExpression, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
-import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType, maybeOptional } from '../idl'
-import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
-import { capitalize } from '../util'
-import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
-import { PrimitiveType } from './ArkPrimitiveType'
 import { Language } from '../Language'
-import { ArgConvertor } from './ArgConvertors'
-import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter'
+import { capitalize } from '../util'
+import { ArgConvertor, generateCallbackAPIArguments } from './ArgConvertors'
+import { PrimitiveType } from './ArkPrimitiveType'
+import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { qualifiedName } from './idl/common'
-import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
+import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
+import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
 import { StructPrinter } from './idl/StructPrinter'
-import { generateCallbackAPIArguments } from './ArgConvertors'
-import { printBridgeCc } from './printers/BridgeCcPrinter'
+import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageExpression, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
+import { printBridgeCcForOHOS } from './printers/BridgeCcPrinter'
+import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
+import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -121,10 +120,12 @@ class OHOSVisitor {
         clazz.constructors.forEach((ctor, index) => {
             let name = `construct${(index > 0) ? index.toString() : ""}`
             let params = ctor.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!)))
-            _h.print(`${handleType} (*${name})(${params.map(it => `const ${it.type}* ${it.name}`).join(", ")});`) // TODO check
+            let argConvertors = ctor.parameters.map(param => generateArgConvertor(this.library, param))
+            let cppArgs = generateCParameters(ctor, argConvertors, _h)
+            _h.print(`${handleType} (*${name})(${cppArgs});`) // TODO check
             let implName = `${clazz.name}_${name}Impl`
             _c.print(`&${implName},`)
-            this.impls.set(implName, { params, returnType: handleType})
+            this.impls.set(implName, { params, returnType: handleType, paramsCString: cppArgs})
         })
         if (clazz.constructors.length > 0) {
             let destructName = `${clazz.name}_destructImpl`
@@ -468,17 +469,21 @@ class OHOSVisitor {
     }
 
     private printC() {
+        let callbackKindsPrinter = createLanguageWriter(Language.CPP, this.library);
+        printCallbacksKinds(this.library, callbackKindsPrinter)
+
         this.cppWriter.writeLines(
             readLangTemplate('api_impl_prologue.cc', Language.CPP)
                 .replaceAll("%API_HEADER_PATH%", `${this.libraryName.toLowerCase()}.h`)
+                .replaceAll("%CALLBACK_KINDS%", callbackKindsPrinter.getOutput().join("\n"))
+                .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
         this.hWriter.writeLines(
             readLangTemplate('ohos_api_prologue.h', Language.CPP)
                 .replaceAll("%INCLUDE_GUARD_DEFINE%", `OH_${this.libraryName.toUpperCase()}_H`)
+                .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
 
-
-        printCallbacksKinds(this.library, this.cppWriter)
         let toStringsPrinter = createLanguageWriter(Language.CPP, this.library)
         new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter)
         this.cppWriter.concat(toStringsPrinter)
@@ -490,15 +495,19 @@ class OHOSVisitor {
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)
-        this.cppWriter.concat(printBridgeCc(this.library, false).generated)
+        this.cppWriter.concat(printBridgeCcForOHOS(this.library).generated)
         this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
         this.cppWriter.concat(printManagedCaller(this.library).content)
 
         this.hWriter.writeLines(
             readLangTemplate('ohos_api_epilogue.h', Language.CPP)
                 .replaceAll("%INCLUDE_GUARD_DEFINE%", `OH_${this.libraryName.toUpperCase()}_H`)
+                .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
-        this.cppWriter.writeLines(readLangTemplate('api_impl_epilogue.cc', Language.CPP))
+        this.cppWriter.writeLines(
+            readLangTemplate('api_impl_epilogue.cc', Language.CPP)
+                .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
+        )
     }
 
     execute(outDir: string, managedOutDir: string) {
@@ -612,10 +621,12 @@ function generateArgConvertor(library: IdlPeerLibrary, param: IDLParameter): Arg
 }
 
 // TODO drop this method
-function generateCParameters(method: IDLMethod, argConvertors: ArgConvertor[], writer: LanguageWriter): string {
-    let args = [`${PrimitiveType.NativePointer.getText()} thisPtr`]
+function generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: ArgConvertor[], writer: LanguageWriter): string {
+    let args = isConstructor(method) ? [] : [`${PrimitiveType.NativePointer} thisPtr`]
     for (let i = 0; i < argConvertors.length; ++i) {
-        args.push(`const ${writer.stringifyType(method.parameters[i].type!)}* ${writer.escapeKeyword(method.parameters[i].name)}`)
+        const typeName = writer.stringifyType(argConvertors[i].nativeType())
+        const argName = writer.escapeKeyword(method.parameters[i].name)
+        args.push(`const ${typeName}* ${argName}`)
     }
     return args.join(", ")
 }

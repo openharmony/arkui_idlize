@@ -15,7 +15,7 @@
 #ifndef %INCLUDE_GUARD_DEFINE%
 #define %INCLUDE_GUARD_DEFINE%
 
-#define XML_API_VERSION 1
+#define %LIBRARY_NAME%_API_VERSION 1
 
 #include <stdint.h>
 
@@ -90,10 +90,6 @@ typedef struct OH_Undefined {
   OH_Int32 dummy; // Empty structs are forbidden in C.
 } OH_Undefined;
 
-typedef struct OH_Void {
-  OH_Int32 dummy; // Empty structs are forbidden in C.
-} OH_Void;
-
 // TODO: wrong, provide real definitions.
 typedef void* OH_DataView;
 
@@ -102,5 +98,5 @@ typedef struct OH_AnyAPI {
 } OH_AnyAPI;
 
 typedef enum OH_APIKind {
-    OH_XML_API_KIND = 1
+    OH_%LIBRARY_NAME%_API_KIND = 1
 } OH_APIKind;

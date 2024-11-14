@@ -13,9 +13,26 @@
  * limitations under the License.
  */
 
+#include "%API_HEADER_PATH%"
+
 #include "common-interop.h"
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
-#include "%API_HEADER_PATH%"
+#include <deque>
 
 CustomDeserializer * DeserializerBase::customDeserializers = nullptr;
+
+%CALLBACK_KINDS%
+
+struct CallbackBuffer {
+    CallbackKind kind;
+    uint8_t buffer[60 * 4];
+    CallbackResourceHolder resourceHolder;
+};
+void enqueueArkoalaCallback(const CallbackBuffer* event);
+
+OH_NativePointer getManagedCallbackCaller(CallbackKind kind);
+void holdManagedCallbackResource(OH_Int32 resourceId);
+void releaseManagedCallbackResource(OH_Int32 resourceId);
+
+void deserializeAndCallCallback(KInt kind, KByte* args, KInt argsSize);

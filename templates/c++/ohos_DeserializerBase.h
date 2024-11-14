@@ -12,13 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>
+#include "%NATIVE_API_HEADER_PATH%"
 
+#include <cstdint>
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <vector>
-#include "%NATIVE_API_HEADER_PATH%"
+
+
+// callbacks.h
+
+void holdManagedCallbackResource(OH_Int32 resourceId);
+void releaseManagedCallbackResource(OH_Int32 resourceId);
+
+// ---------
 
 inline const char *tagName(OH_Tag tag)
 {
@@ -181,18 +189,6 @@ inline void WriteToString(std::string *result, OH_Undefined value)
 
 template <>
 inline void WriteToString(std::string *result, const OH_Undefined *value)
-{
-  result->append("{}");
-}
-
-template <>
-inline void WriteToString(std::string *result, OH_Void value)
-{
-  result->append("{}");
-}
-
-template <>
-inline void WriteToString(std::string *result, const OH_Void *value)
 {
   result->append("{}");
 }
@@ -386,7 +382,7 @@ public:
 
   OH_String readString()
   {
-    OH_String result = "todo";
+    OH_String result = "TODO";
     // TODO implement string
     // OH_Int32 length = readInt32();
     // check(length);
@@ -439,12 +435,10 @@ public:
 
   OH_CallbackResource readCallbackResource()
   {
-    // TODO implement holdManagedCallbackResource
-    void* holdManagedCallbackResource = nullptr;
     OH_CallbackResource result = {};
     result.resourceId = readInt32();
     result.hold = reinterpret_cast<void(*)(OH_Int32)>(readPointerOrDefault(reinterpret_cast<void*>(holdManagedCallbackResource)));
-    result.release = reinterpret_cast<void(*)(OH_Int32)>(readPointerOrDefault(reinterpret_cast<void*>(holdManagedCallbackResource))); 
+    result.release = reinterpret_cast<void(*)(OH_Int32)>(readPointerOrDefault(reinterpret_cast<void*>(releaseManagedCallbackResource)));
     return result;
   }
 };

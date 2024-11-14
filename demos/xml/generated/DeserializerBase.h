@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>
+#include "xml.h"
 
+#include <cstdint>
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <vector>
-#include "xml.h"
+
 
 // callbacks.h
 
@@ -188,18 +189,6 @@ inline void WriteToString(std::string *result, OH_Undefined value)
 
 template <>
 inline void WriteToString(std::string *result, const OH_Undefined *value)
-{
-  result->append("{}");
-}
-
-template <>
-inline void WriteToString(std::string *result, OH_Void value)
-{
-  result->append("{}");
-}
-
-template <>
-inline void WriteToString(std::string *result, const OH_Void *value)
 {
   result->append("{}");
 }
