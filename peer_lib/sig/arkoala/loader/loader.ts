@@ -15,32 +15,27 @@
 import { env } from "node:process"
 import { int32 } from "@koalaui/common"
 import { Worker, isMainThread, parentPort } from "node:worker_threads"
-import { wrapCallback } from "./CallbackRegistry"
+import { callCallback, wrapCallback } from "./CallbackRegistry"
 import { KInt, KPointer, KUint8ArrayPtr, pointer } from "./types"
 
 export interface LoaderOps {
     _LoadVirtualMachine(vmKind: int32, appClassPath: string, appLibPath: string): int32
-    _StartApplication(): int32
-    _RunApplication(arg0: int32, arg1: int32): int32
+    _StartApplication(): KPointer
+    _RunApplication(arg0: int32, arg1: int32): boolean
     _SetCallbackDispatcher(dispatcher: (id: int32, args: Uint8Array, length: int32) => int32): void
 }
 
 // todo: for control VSYNC
 export interface NativeControl extends LoaderOps {
     // todo: implement native methods
+    _GetPipelineContext(ptr0: KPointer): KPointer
     _SetVsyncCallback(ptr0: KPointer, arg: KInt): void
     _UnblockVsyncWait(ptr0: KPointer): void
-    _GetPipelineContext(): pointer
 }
 
 let theModule: NativeControl | undefined = undefined
 
 declare const LOAD_NATIVE: NativeControl
-
-export function callCallback(id: int32, args: Uint8Array, length: int32): int32 {
-   console.log("Called callCallback()")
-   throw new Error("Not yet implemented")
-}
 
 export function nativeModule(): NativeControl {
     if (theModule) return theModule
@@ -51,8 +46,11 @@ export function nativeModule(): NativeControl {
     return theModule
 }
 
-function getNativePipelineContext(): pointer {
-    return nativeModule()._GetPipelineContext()
+let rootPointer: KPointer
+
+function getNativePipelineContext(): KPointer {
+    const root = rootPointer
+    return nativeModule()._GetPipelineContext(root!)
 }
 
 function waitVSync(pipelineContext: KPointer): Promise<void> {
@@ -70,9 +68,8 @@ function waitVSync(pipelineContext: KPointer): Promise<void> {
 }
 
 export async function runEventLoop() {
-    const pipelineContext: pointer = getNativePipelineContext()
-    for (let i = 0; i < 5; i++) {
-        nativeModule()._RunApplication(i, i * i)
+    const pipelineContext = getNativePipelineContext()
+    while (!nativeModule()._RunApplication(0, 0)) {
         await waitVSync(pipelineContext!)
     }
 }
@@ -179,7 +176,7 @@ export function checkLoader(variant: string): int32 {
     let result = nativeModule()._LoadVirtualMachine(vm, classPath, nativePath)
 
     if (result == 0) {
-        nativeModule()._StartApplication();
+        rootPointer = nativeModule()._StartApplication();
         setTimeout(async () => runEventLoop(), 0)
     } else {
         throw new Error(`Cannot start VM: ${result}`)
