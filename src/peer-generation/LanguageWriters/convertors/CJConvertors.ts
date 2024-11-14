@@ -89,9 +89,6 @@ export class CJIDLNodeToStringConvertor extends IdlNameConvertorBase implements 
             const CJTypeAliases = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
             return new CJTypeAlias(`Map<${CJTypeAliases[0].type.text}, ${CJTypeAliases[1].type.text}>`, `Map_${CJTypeAliases[0].alias}_${CJTypeAliases[1].alias}`)
         }
-        if (idl.IDLContainerUtils.isBuffer(type)) {
-            throw new Error('TBD')
-        }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
     convertCallback(type: idl.IDLCallback): CJTypeAlias {
@@ -155,6 +152,7 @@ export class CJIDLNodeToStringConvertor extends IdlNameConvertorBase implements 
             case idl.IDLF64Type: return CJTypeAlias.fromTypeName('Float64', false)
             case idl.IDLPointerType: return CJTypeAlias.fromTypeName('Int64', false)
             case idl.IDLVoidType: return CJTypeAlias.fromTypeName('Unit', false)
+            case idl.IDLBufferType: return CJTypeAlias.fromTypeName('ArrayList<UInt8>', false)
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -229,5 +227,11 @@ export class CJIDLTypeToForeignStringConvertor extends CJIDLNodeToStringConverto
             return `CPointer<UInt8>`
         }
         return super.convertType(type)
+    }
+    convertPrimitiveType(type: idl.IDLPrimitiveType): CJTypeAlias {
+        switch (type) {
+            case idl.IDLBufferType: return CJTypeAlias.fromTypeName('CPointer<UInt8>', false)
+        }
+        return super.convertPrimitiveType(type)
     }
 }

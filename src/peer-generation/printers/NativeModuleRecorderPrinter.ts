@@ -21,7 +21,7 @@ import { IdlPeerMethod } from "../idl/IdlPeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
 import { makeSyntheticDeclarationsFiles } from "../idl/IdlSyntheticDeclarations";
 import { Language } from "../../Language";
-import { createCallback, createContainerType, createParameter, createReferenceType, createUnionType, IDLBigintType, IDLI32Type, IDLNullType, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLVoidType, toIDLType } from "../../idl";
+import { createCallback, createContainerType, createParameter, createReferenceType, createUnionType, IDLBigintType, IDLI32Type, IDLNullType, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, toIDLType } from "../../idl";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { collectMaterializedImports } from "../Materialized";
 
@@ -83,7 +83,7 @@ class NativeModuleRecorderVisitor {
             if (it.useArray) {
                 if (!serializerArgCreated) {
                     const array = `thisSerializer`
-                    args.push({ name: `thisArray`, type: createContainerType('sequence', [IDLU8Type]) }, { name: `thisLength`, type: IDLI32Type })
+                    args.push({ name: `thisArray`, type: IDLUint8ArrayType }, { name: `thisLength`, type: IDLI32Type })
                     serializerArgCreated = true
                 }
             } else {
@@ -130,7 +130,7 @@ class NativeModuleRecorderVisitor {
     }
 
     printOtherMethods() {
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_ManagedStringWrite", new NamedMethodSignature(IDLI32Type, [IDLStringType, createContainerType('buffer', [IDLU8Type]), IDLI32Type], ['value', 'buffer', 'offset'])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_ManagedStringWrite", new NamedMethodSignature(IDLI32Type, [IDLStringType, IDLUint8ArrayType, IDLI32Type], ['value', 'buffer', 'offset'])), w => {
             w.writeLines(`if (typeof value === 'number' || value === null)`)
             w.pushIndent()
             w.writeLines(`throw "Not implemented"`)
@@ -178,7 +178,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return this.ptr2object<string>(ptr).length`)
         })
         
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringData", new NamedMethodSignature(IDLVoidType, [IDLPointerType, createContainerType('buffer', [IDLU8Type]), IDLNumberType], ["ptr", "buffer", "length"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringData", new NamedMethodSignature(IDLVoidType, [IDLPointerType, IDLUint8ArrayType, IDLNumberType], ["ptr", "buffer", "length"])), w => {
             w.writeLines(`let value = this.ptr2object<string>(ptr);`)
             w.writeLines(`(buffer as Uint8Array).set(encodeToData(value))`)
         })

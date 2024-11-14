@@ -207,7 +207,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             if (it.useArray) {
                 if (!serializerArgCreated) {
                     const array = `thisSerializer`
-                    args.push({ name: `thisArray`, type: idl.createContainerType('buffer', [idl.IDLU8Type]) }, { name: `thisLength`, type: idl.IDLI32Type })
+                    args.push({ name: `thisArray`, type: idl.IDLUint8ArrayType }, { name: `thisLength`, type: idl.IDLI32Type })
                     serializerArgCreated = true
                 }
             } else {

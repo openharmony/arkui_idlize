@@ -149,7 +149,7 @@ class DeserializeCallbacksVisitor {
     private writeCallbackDeserializeAndCall(callback: idl.IDLCallback): void {
         let signature: NamedMethodSignature
         if (this.writer.language === Language.CPP) {
-            signature = new NamedMethodSignature(idl.IDLVoidType, [idl.createContainerType('buffer', [idl.IDLU8Type]), idl.IDLI32Type], [`thisArray`, `thisLength`])
+            signature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLUint8ArrayType, idl.IDLI32Type], [`thisArray`, `thisLength`])
         } else {
             signature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(`Deserializer`)], [`thisDeserializer`])
         }
@@ -214,7 +214,7 @@ class DeserializeCallbacksVisitor {
         let signature: NamedMethodSignature
         if (this.writer.language === Language.CPP) {
             signature = new NamedMethodSignature(idl.IDLVoidType,
-                [idl.IDLI32Type, idl.createContainerType('buffer', [idl.IDLU8Type]), idl.IDLI32Type],
+                [idl.IDLI32Type, idl.IDLUint8ArrayType, idl.IDLI32Type],
                 [`kind`, `thisArray`, `thisLength`],
             )
         } else {

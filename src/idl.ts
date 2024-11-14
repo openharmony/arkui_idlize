@@ -138,7 +138,6 @@ export type IDLContainerKind =
       'sequence'
     | 'record'
     | 'Promise'
-    | 'buffer'
 
 export interface IDLContainerType extends IDLType {
     kind: IDLKind.ContainerType
@@ -453,6 +452,9 @@ export const IDLUnknownType = createPrimitiveType('unknown')
 export const IDLObjectType = createReferenceType('Object')
 export const IDLThisType = createPrimitiveType('this')
 export const IDLDate = createPrimitiveType('date')
+export const IDLBufferType = createPrimitiveType('buffer')
+
+export const IDLUint8ArrayType = createContainerType('sequence', [IDLU8Type])
 
 
 // Stub for IdlPeerLibrary
@@ -1106,8 +1108,7 @@ export function getVerbatimDts(node: IDLEntry): stringOrNone {
 export const IDLContainerUtils = {
     isRecord: (x:IDLNode) => isContainerType(x) && x.containerKind === 'record',
     isSequence: (x:IDLNode) => isContainerType(x) && x.containerKind === 'sequence',
-    isPromise: (x:IDLNode) => isContainerType(x) && x.containerKind === 'Promise',
-    isBuffer: (x:IDLNode) => isContainerType(x) && x.containerKind === 'buffer'
+    isPromise: (x:IDLNode) => isContainerType(x) && x.containerKind === 'Promise'
 }
 
 /**
@@ -1159,8 +1160,8 @@ export function toIDLType(typeName: string): IDLType {
         case "u64": return IDLU64Type
         case "pointer": return IDLPointerType
         case "this": return IDLThisType
-        case "Uint8Array": return createContainerType('buffer', [IDLU8Type])
-        case "ArrayBuffer": return createContainerType('buffer', [])
+        case "Uint8Array": return IDLUint8ArrayType
+        case "ArrayBuffer": return IDLBufferType
         default: return createReferenceType(typeName)
     }
 }

@@ -42,16 +42,6 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
             }
             return `Array<${this.convertType(type.elementType[0])}>`
         }
-        if (idl.IDLContainerUtils.isBuffer(type)) {
-            if (type.elementType.length > 0) {
-                switch (type.elementType[0]) {
-                    case idl.IDLU8Type: return 'KUint8ArrayPtr'
-                    case idl.IDLI32Type: return 'KInt32ArrayPtr'
-                    case idl.IDLF32Type: return 'KFloat32ArrayPtr'
-                }
-            }
-            return `ArrayBuffer`
-        }
         return super.convertContainer(type)
     }
     override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
