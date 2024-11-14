@@ -3,5 +3,5 @@ package "org.openharmony.idlize.predefined";
 interface Loader {
     i32 LoadVirtualMachine(i32 arg0, String arg1, String arg2);
     boolean RunApplication(i32 arg0, i32 arg1);
-    pointer StartApplication();
+    pointer StartApplication(String appUrl, String appParams);
 };

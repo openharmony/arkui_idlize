@@ -13,16 +13,14 @@
  * limitations under the License.
  */
 
-
-// WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
-
 package org.koalaui.arkoala;
 
 public class Application {
     Application() {}
 
     public static void main(String[] args) {
-        var app = Application.startApplication();
+        var app = Application.createApplication();
+        var root = app.start("init", "");
         try {
             for (int i = 0; i < 10; i++) {
                 app.loopIteration(i, 0);
@@ -33,19 +31,20 @@ public class Application {
         }
     }
 
-    public static Application startApplication() {
-        NativeModule._NativeLog("NativeModule.startApplication");
-        return new Application().start();
+    public static Application createApplication() {
+        NativeModule._NativeLog("NativeModule.createApplication");
+        return new Application();
     }
 
-    public void enter(int arg0, int arg1) {
-        loopIteration(arg0, arg1);
+    public boolean enter(int arg0, int arg1) {
+        return loopIteration(arg0, arg1);
     }
 
-    public void loopIteration(int arg0, int arg1) {
+    public boolean loopIteration(int arg0, int arg1) {
         checkEvents(arg0);
         updateState();
         render();
+        return true;
     }
 
     void checkEvents(int what) {
@@ -61,7 +60,8 @@ public class Application {
         System.out.println("JAVA: render");
     }
 
-    public Application start() {
-        return this;
+    public long start(String app, String params) {
+        System.out.println("JAVA: start " + app + " , params=" + params);
+        return 42;
     }
 }

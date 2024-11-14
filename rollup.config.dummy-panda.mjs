@@ -63,7 +63,6 @@ export default {
     },
     external: [],
     plugins: [
-        commonjs(),
         typescript({
             outputToFilesystem: false,
             module: "ESNext",
@@ -74,8 +73,9 @@ export default {
             tsconfig: tsconfigFile,
             filterRoot: '.'
         }),
+        commonjs(),
         nodeResolve({
-            extensions: [".js", ".mjs", ".cjs", ".ts", ".cts", ".mts"]
+            // extensions: [".js", ".mjs", ".cjs"]
         }),
         replace({
             'LOAD_NATIVE': `require('${crossPathRelative(outDir, 'native/NativeBridgeNapi.node')}')`,

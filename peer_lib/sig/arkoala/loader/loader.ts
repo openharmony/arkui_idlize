@@ -20,7 +20,7 @@ import { KInt, KPointer, KUint8ArrayPtr, pointer } from "./types"
 
 export interface LoaderOps {
     _LoadVirtualMachine(vmKind: int32, appClassPath: string, appLibPath: string): int32
-    _StartApplication(): KPointer
+    _StartApplication(arg0: string, arg1: string): KPointer
     _RunApplication(arg0: int32, arg1: int32): boolean
     _SetCallbackDispatcher(dispatcher: (id: int32, args: Uint8Array, length: int32) => int32): void
 }
@@ -165,7 +165,7 @@ export function checkLoader(variant: string): int32 {
         }
         case 'panda': {
             vm = 2
-            classPath = __dirname + "/../out/abc-subset/sig/arkoala-arkts/arkui/src/generated"
+            classPath = __dirname + "/../external/arkoala-arkts/framework/build/abc/trivial"
             break
         }
         case 'es2panda': {
@@ -176,7 +176,7 @@ export function checkLoader(variant: string): int32 {
     let result = nativeModule()._LoadVirtualMachine(vm, classPath, nativePath)
 
     if (result == 0) {
-        rootPointer = nativeModule()._StartApplication();
+        rootPointer = nativeModule()._StartApplication("LoaderApp", "LoaderAppParams");
         setTimeout(async () => runEventLoop(), 0)
     } else {
         throw new Error(`Cannot start VM: ${result}`)
