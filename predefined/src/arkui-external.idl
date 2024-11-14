@@ -15,6 +15,21 @@ interface NodeController {};
 [Entity=Class, Interfaces="AttributeModifier", ParentTypeArguments="<object>"]
 interface TextModifier {};
 
+[Namespace=text]
+dictionary RectWidthStyle {
+    number TIGHT;
+    number MAX;
+};
+
+[Namespace=text]
+dictionary RectHeightStyle {
+    number TIGHT;
+    number MAX;
+    number INCLUDE_LINE_SPACE_MIDDLE;
+    number INCLUDE_LINE_SPACE_TOP;
+    number INCLUDE_LINE_SPACE_BOTTOM;
+    number STRUT;
+};
 
 /**
  * PixelMap instance.

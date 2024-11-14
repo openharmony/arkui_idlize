@@ -385,6 +385,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
                 private readonly isGenericType: boolean = false,
                 tsType?: string) {
         super(idl.toIDLType(tsType ?? "Object"), [RuntimeType.OBJECT], false, true, param)
+        warnCustomObject(`${tsType}`)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -681,6 +682,7 @@ export class ImportTypeConvertor extends BaseArgConvertor { //
     constructor(param: string, importedName: string) {
         super(idl.toIDLType("Object"), [RuntimeType.OBJECT], false, true, param)
         this.importedName = importedName
+        warnCustomObject(importedName, `imported`)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -1320,4 +1322,12 @@ export function makeInterfaceTypeCheckerCall(
             return writer.makeString(duplicates.has(it) ? "true" : "false")
         })
     ])
+}
+
+const customObjects = new Set<string>()
+function warnCustomObject(type: string, msg?: string) {
+    if (!customObjects.has(type)) {
+        console.log(`WARNING: Use CustomObject for ${msg ? `${msg} ` : ``}type ${type}`)
+        customObjects.add(type)
+    }
 }
