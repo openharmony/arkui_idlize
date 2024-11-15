@@ -28,8 +28,8 @@ import { defaultCompilerOptions, toSet } from "./util"
 import { initRNG } from "./rand_utils"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { generateTracker } from "./peer-generation/Tracker"
-import { IdlPeerLibrary } from "./peer-generation/idl/IdlPeerLibrary"
-import { IdlPeerFile } from "./peer-generation/idl/IdlPeerFile"
+import { PeerLibrary } from "./peer-generation/PeerLibrary"
+import { PeerFile } from "./peer-generation/PeerFile"
 import {
     IdlPeerGeneratorVisitor,
     IdlPeerProcessor,
@@ -293,7 +293,7 @@ if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
-    function scanPredefinedDirectory(dir: string, ...subdirs: string[]): IdlPeerFile[] {
+    function scanPredefinedDirectory(dir: string, ...subdirs: string[]): PeerFile[] {
         dir = path.join(dir, ...subdirs)
         return fs.readdirSync(dir)
             .filter(it => it.endsWith(".idl"))
@@ -301,14 +301,14 @@ if (options.dts2peer) {
                 const idlFile = path.resolve(path.join(dir, it))
                 const content = fs.readFileSync(path.resolve(path.join(dir, it))).toString()
                 const nodes = webidl2.parse(content).map(it => toIDLNode(idlFile, it))
-                return new IdlPeerFile(idlFile, nodes, new Set(), true)
+                return new PeerFile(idlFile, nodes, new Set(), true)
             })
     }
 
     const PREDEFINED_PATH = path.join(__dirname, "..", "predefined")
 
     options.docs = "all"
-    const idlLibrary = new IdlPeerLibrary(lang, toSet(options.generateInterface))
+    const idlLibrary = new PeerLibrary(lang, toSet(options.generateInterface))
     // collect predefined files
     scanPredefinedDirectory(PREDEFINED_PATH, "sys").forEach(file => {
         IdlPredefinedGeneratorVisitor.create({
@@ -335,7 +335,7 @@ if (options.dts2peer) {
             compilerOptions: defaultCompilerOptions,
             onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
                 entries.forEach(transformMethodsAsync2ReturnPromise)
-                const file = new IdlPeerFile(sourceFile.fileName, entries, idlLibrary.componentsToGenerate)
+                const file = new PeerFile(sourceFile.fileName, entries, idlLibrary.componentsToGenerate)
                 idlLibrary.files.push(file)
             },
             onEnd(outDir) {

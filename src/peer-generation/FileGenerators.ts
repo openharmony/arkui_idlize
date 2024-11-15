@@ -23,7 +23,7 @@ import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
 import { ImportsCollector } from "./ImportsCollector"
-import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
+import { PeerLibrary } from "./PeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { Language } from "../Language"
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
@@ -152,7 +152,7 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
     return result
 }
 
-export function getNodeTypes(library: IdlPeerLibrary): string[] {
+export function getNodeTypes(library: PeerLibrary): string[] {
     const components: string[] = []
     for (const file of library.files) {
         for (const peer of file.peers.values()) {
@@ -162,7 +162,7 @@ export function getNodeTypes(library: IdlPeerLibrary): string[] {
     return [...PeerGeneratorConfig.customNodeTypes, ...components.sort()]
 }
 
-export function appendViewModelBridge(library: IdlPeerLibrary): LanguageWriter {
+export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
     let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
     let body = readTemplate('view_model_bridge.cc')
 
@@ -275,7 +275,7 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
-export function makeTSSerializer(library: IdlPeerLibrary): LanguageWriter {
+export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     let printer = createLanguageWriter(library.language, getReferenceResolver(library))
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
@@ -299,7 +299,7 @@ export function makeTSSerializer(library: IdlPeerLibrary): LanguageWriter {
     return printer
 }
 
-export function makeSerializerForOhos(library: IdlPeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): LanguageWriter {
+export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): LanguageWriter {
     // TODO Add Java and migrate arkoala code
     if (library.language == Language.TS || library.language == Language.ARKTS) {
         let printer = createLanguageWriter(library.language, getReferenceResolver(library))
@@ -319,7 +319,7 @@ export function makeSerializerForOhos(library: IdlPeerLibrary, nativeModule: { n
     }
 }
 
-export function makeTypeChecker(library: IdlPeerLibrary): { arkts: string, ts: string } {
+export function makeTypeChecker(library: PeerLibrary): { arkts: string, ts: string } {
     let arktsPrinter = createLanguageWriter(Language.ARKTS, createEmptyReferenceResolver())
     writeARKTSTypeCheckers(library, arktsPrinter)
     let tsPrinter = createLanguageWriter(Language.TS, createEmptyReferenceResolver())
@@ -330,7 +330,7 @@ export function makeTypeChecker(library: IdlPeerLibrary): { arkts: string, ts: s
     }
 }
 
-export function makeConverterHeader(path: string, namespace: string, library: IdlPeerLibrary): LanguageWriter {
+export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
     const converter = new CppLanguageWriter(new IndentedPrinter(), library)
     converter.writeLines(cStyleCopyright)
     converter.writeLines(`/*
@@ -363,7 +363,7 @@ export function makeConverterHeader(path: string, namespace: string, library: Id
     return converter
 }
 
-export function makeCSerializers(library: IdlPeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
+export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
     const serializers = createLanguageWriter(Language.CPP, library)
     const writeToString = createLanguageWriter(Language.CPP, library)
@@ -385,7 +385,7 @@ ${serializers.getOutput().join("\n")}
 `
 }
 
-export function makeTSDeserializer(library: IdlPeerLibrary): string {
+export function makeTSDeserializer(library: PeerLibrary): string {
     const deserializer = createLanguageWriter(Language.TS, library)
     writeDeserializer(library, deserializer)
     return `${cStyleCopyright}
@@ -551,7 +551,7 @@ ${content}
 `
 }
 
-export function makeDeserializeAndCall(library: IdlPeerLibrary, language: Language, fileName: string): SourceFile {
+export function makeDeserializeAndCall(library: PeerLibrary, language: Language, fileName: string): SourceFile {
     const writer = SourceFile.make(fileName, language, library)
     printDeserializeAndCall(library, writer)
     return writer
@@ -623,7 +623,7 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
     return writer.getOutput().join('\n')
 }
 
-export function makeCallbacksKinds(library: IdlPeerLibrary, language: Language): string {
+export function makeCallbacksKinds(library: PeerLibrary, language: Language): string {
     const writer = createLanguageWriter(language, library)
     printCallbacksKindsImports(language, writer)
     printCallbacksKinds(library, writer)

@@ -10,7 +10,7 @@ import {
     NamedMethodSignature
 } from "../LanguageWriters";
 import { throwException } from "../../util";
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { PeerLibrary } from "../PeerLibrary";
 import {
     convertDeclToFeature, createDeclDependenciesCollector,
     createTypeDependenciesCollector,
@@ -35,7 +35,7 @@ const builtInInterfaceTypes = new Map<string,
             (writer: LanguageWriter, value: string) => writer.makeCallIsResource(value)],
     ])
 
-export function importTypeChecker(library: IdlPeerLibrary, imports: ImportsCollector): void {
+export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
     imports.addFeature("TypeChecker", "#components")
 }
 
@@ -65,7 +65,7 @@ class StructDescriptor {
     }
 }
 
-function collectFields(library: IdlPeerLibrary, target: idl.IDLInterface, struct: StructDescriptor): void {
+function collectFields(library: PeerLibrary, target: idl.IDLInterface, struct: StructDescriptor): void {
     const superType = idl.getSuperType(target)
     if (superType && idl.isReferenceType(superType)) {
         const decl = library.resolveTypeReference(superType) ?? throwException(`Wrong type reference ${idl.IDLKind[superType.kind]}`)
@@ -79,7 +79,7 @@ function collectFields(library: IdlPeerLibrary, target: idl.IDLInterface, struct
     })
 }
 
-function makeStructDescriptor(library: IdlPeerLibrary, target: idl.IDLEntry): StructDescriptor {
+function makeStructDescriptor(library: PeerLibrary, target: idl.IDLEntry): StructDescriptor {
     const result = new StructDescriptor()
     if (idl.isInterface(target)
         || idl.isAnonymousInterface(target)
@@ -92,7 +92,7 @@ function makeStructDescriptor(library: IdlPeerLibrary, target: idl.IDLEntry): St
 
 abstract class TypeCheckerPrinter {
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
         public readonly writer: LanguageWriter,
     ) {}
 
@@ -182,7 +182,7 @@ abstract class TypeCheckerPrinter {
 
 class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
-        library: IdlPeerLibrary
+        library: PeerLibrary
     ) {
         super(library, createLanguageWriter(Language.ARKTS, getReferenceResolver(library)))
     }
@@ -214,7 +214,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
 
 class TSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
-        library: IdlPeerLibrary
+        library: PeerLibrary
     ) {
         super(library, createLanguageWriter(Language.TS, getReferenceResolver(library)))
     }
@@ -261,13 +261,13 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
     }
 }
 
-export function writeARKTSTypeCheckers(library: IdlPeerLibrary, printer: LanguageWriter) {
+export function writeARKTSTypeCheckers(library: PeerLibrary, printer: LanguageWriter) {
     const checker = new ARKTSTypeCheckerPrinter(library)
     checker.print()
     printer.concat(checker.writer)
 }
 
-export function writeTSTypeCheckers(library: IdlPeerLibrary, printer: LanguageWriter) {
+export function writeTSTypeCheckers(library: PeerLibrary, printer: LanguageWriter) {
     const checker = new TSTypeCheckerPrinter(library)
     checker.print()
     printer.concat(checker.writer)

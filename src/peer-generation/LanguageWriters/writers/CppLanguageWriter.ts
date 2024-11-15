@@ -46,7 +46,6 @@ import {
 } from "./CLikeLanguageWriter"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { IdlNameConvertor, TypeConvertor } from "../nameConvertor"
-import { EnumEntity } from "../../PeerFile"
 import { throwException } from "../../../util";
 import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
 
@@ -137,14 +136,12 @@ class CppMapForEachStatement implements LanguageStatement {
 }
 
 class CppEnumEntityStatement implements LanguageStatement {
-    constructor(private _enum: EnumEntity) {}
+    constructor(private _enum: IDLEnum) {}
     write(writer: LanguageWriter): void {
         writer.print(`typedef enum ${this._enum.name} {`)
         writer.pushIndent()
-        for (let i = 0; i < this._enum.members.length; i++) {
-            const member = this._enum.members[i]
-            writer.print(`${member.name} = ${member.initializerText ?? i},`)
-        }
+        this._enum.elements.forEach((member, index) =>
+            writer.print(`${member.name} = ${member.initializer ?? index},`))
         writer.popIndent()
         writer.print(`} ${this._enum.name};`)
     }
@@ -397,7 +394,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name
     }
-    makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
+    makeEnumEntity(enumEntity: IDLEnum, isExport: boolean): LanguageStatement {
         return new CppEnumEntityStatement(enumEntity)
     }
     private decayTypeName(typeName: string) {

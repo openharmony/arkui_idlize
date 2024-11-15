@@ -18,9 +18,9 @@ import { Field, Method, MethodModifier } from "./LanguageWriters"
 import { capitalize } from "../util"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { IDLType } from "../idl"
-import { IdlPeerMethod } from "./idl/IdlPeerMethod";
+import { PeerMethod } from "./PeerMethod";
 import { PeerClassBase } from "./PeerClass";
-import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
+import { PeerLibrary } from "./PeerLibrary"
 
 export class MaterializedField {
     constructor(
@@ -31,7 +31,7 @@ export class MaterializedField {
     ) { }
 }
 
-export class MaterializedMethod extends IdlPeerMethod {
+export class MaterializedMethod extends PeerMethod {
     constructor(
         originalParentName: string,
         argConvertors: ArgConvertor[],
@@ -129,7 +129,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly methods: MaterializedMethod[],
         public readonly needBeGenerated: boolean = true,
     ) {
-        IdlPeerMethod.markAndGroupOverloads(methods)
+        PeerMethod.markAndGroupOverloads(methods)
     }
 
     getComponentName(): string {
@@ -145,7 +145,7 @@ export class MaterializedClass implements PeerClassBase {
     }
 }
 
-export function collectMaterializedImports(imports: ImportsCollector, library: IdlPeerLibrary, level: string = "") {
+export function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary, level: string = "") {
     for (const materialized of library.materializedClasses.keys()) {
         imports.addFeature(materialized, `${level}Ark${materialized}Materialized`)
     }

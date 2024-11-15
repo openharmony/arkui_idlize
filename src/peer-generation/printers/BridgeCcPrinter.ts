@@ -18,8 +18,8 @@ import { ArgConvertor, RetConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement, LanguageWriter } from "../LanguageWriters";
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
-import { IdlPeerMethod } from "../idl/IdlPeerMethod";
+import { PeerLibrary } from "../PeerLibrary";
+import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
@@ -29,11 +29,11 @@ class BridgeCcVisitor {
     readonly customApi = createLanguageWriter(Language.CPP, this.library)
 
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
         protected readonly callLog: boolean,
     ) {}
 
-    protected generateApiCall(method: IdlPeerMethod, modifierName?: string): string {
+    protected generateApiCall(method: PeerMethod, modifierName?: string): string {
         // TODO: may be need some translation tables?
         let clazz = modifierName ?? dropSuffix(dropSuffix(dropSuffix(method.originalParentName, "Method"), "Attribute"), "Interface")
         return `get${capitalize(clazz)}${method.apiKind}()`
@@ -53,11 +53,11 @@ class BridgeCcVisitor {
             return `${argConvertor.convertorArg(this.escapeKeyword(argConvertor.param), this.generatedApi)}`
     }
 
-    protected getApiCall(method: IdlPeerMethod): string {
+    protected getApiCall(method: PeerMethod): string {
         return method.apiCall
     }
 
-    protected printAPICall(method: IdlPeerMethod, modifierName?: string) {
+    protected printAPICall(method: PeerMethod, modifierName?: string) {
         const hasReceiver = method.hasReceiver()
         const argConvertors = method.argConvertors
         const isVoid = method.retConvertor.isVoid
@@ -74,7 +74,7 @@ class BridgeCcVisitor {
         this.generatedApi.print(call)
     }
 
-    protected getApiCallResultField(method: IdlPeerMethod): string {
+    protected getApiCallResultField(method: PeerMethod): string {
         return ""
     }
 
@@ -82,17 +82,17 @@ class BridgeCcVisitor {
         return "self"
     }
 
-    protected getPeerMethodName(method: IdlPeerMethod): string {
+    protected getPeerMethodName(method: PeerMethod): string {
         return method.peerMethodName
     }
 
-    protected printReceiverCastCall(method: IdlPeerMethod) {
+    protected printReceiverCastCall(method: PeerMethod) {
         const receiverType = method.receiverType;
         const self = this.getReceiverArgName();
         this.generatedApi.print(`${receiverType} ${self} = reinterpret_cast<${receiverType}>(thisPtr);`)
     }
 
-    private printNativeBody(method: IdlPeerMethod, modifierName?: string) {
+    private printNativeBody(method: PeerMethod, modifierName?: string) {
         this.generatedApi.pushIndent()
         if (method.hasReceiver()) {
             this.printReceiverCastCall(method)
@@ -118,7 +118,7 @@ class BridgeCcVisitor {
 
     private static varCnt : number = 0;
 
-    private printCallLog(method: IdlPeerMethod, api: string, modifier: string) {
+    private printCallLog(method: PeerMethod, api: string, modifier: string) {
         this.generatedApi.print(`if (needGroupedLog(2)) {`)
         this.generatedApi.pushIndent()
         this.generatedApi.print('std::string _logData;')
@@ -177,7 +177,7 @@ class BridgeCcVisitor {
         return receiver
     }
 
-    private generateCMacroSuffix(method: IdlPeerMethod): string {
+    private generateCMacroSuffix(method: PeerMethod): string {
         let counter = method.hasReceiver() ? 1 : 0
         let arrayAdded = false
         method.argConvertors.forEach(it => {
@@ -193,7 +193,7 @@ class BridgeCcVisitor {
         return `${method.retConvertor.macroSuffixPart()}${counter}`
     }
 
-    private generateCParameters(method: IdlPeerMethod, argConvertors: ArgConvertor[]): string[] {
+    private generateCParameters(method: PeerMethod, argConvertors: ArgConvertor[]): string[] {
         let maybeReceiver = method.hasReceiver() ? [`${PrimitiveType.NativePointer.getText()} thisPtr`] : []
         let ptrCreated = false;
         for (let i = 0; i < argConvertors.length; ++i) {
@@ -219,7 +219,7 @@ class BridgeCcVisitor {
         return maybeReceiver
     }
 
-    private printMethod(method: IdlPeerMethod, modifierName?: string) {
+    private printMethod(method: PeerMethod, modifierName?: string) {
         const retConvertor = method.retConvertor
         const argConvertors = method.argConvertors
 
@@ -239,7 +239,7 @@ class BridgeCcVisitor {
         this.generatedApi.print(` `)
     }
 
-    protected getRetValue(method: IdlPeerMethod, retConvertor: RetConvertor): string | undefined {
+    protected getRetValue(method: PeerMethod, retConvertor: RetConvertor): string | undefined {
         return retConvertor.interopType
             ? retConvertor.interopType()
             : retConvertor.nativeType();
@@ -309,13 +309,13 @@ class BridgeCcVisitor {
 
 // TODO commonize this piece of code
 class OhosBridgeCcVisitor extends BridgeCcVisitor {
-    protected generateApiCall(method: IdlPeerMethod, modifierName?: string): string {
+    protected generateApiCall(method: PeerMethod, modifierName?: string): string {
         // TODO: may be need some translation tables?
         let clazz = modifierName ?? dropSuffix(dropSuffix(dropSuffix(method.originalParentName, "Method"), "Attribute"), "Interface")
         return capitalize(clazz) + "()"
     }
 
-    protected getApiCall(method: IdlPeerMethod): string {
+    protected getApiCall(method: PeerMethod): string {
         const libName = this.library.name;
         return `Get${libName}APIImpl(${libName}_API_VERSION)`
     }
@@ -325,11 +325,11 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
         return "thisPtr"
     }
 
-    protected printReceiverCastCall(method: IdlPeerMethod) {
+    protected printReceiverCastCall(method: PeerMethod) {
         // OHOS API does not need to cast native pointer at this moment
     }
 
-    protected getPeerMethodName(method: IdlPeerMethod): string {
+    protected getPeerMethodName(method: PeerMethod): string {
         switch (method.peerMethodName) {
             case "ctor": return "construct"
             case "getFinalizer": return "destruct"
@@ -337,7 +337,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
         }
     }
 
-    protected printAPICall(method: IdlPeerMethod, modifierName?: string) {
+    protected printAPICall(method: PeerMethod, modifierName?: string) {
         if (method.peerMethodName == "getFinalizer") {
             const modifier = this.generateApiCall(method, modifierName)
             const peerMethod = this.getPeerMethodName(method)
@@ -349,7 +349,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
         }
     }
 
-    protected getApiCallResultField(method: IdlPeerMethod): string {
+    protected getApiCallResultField(method: PeerMethod): string {
         // TODO Remove this workaround for case when number is replaced with int32
         if (method.method.signature.returnType === IDLNumberType) {
             return ".i32"
@@ -365,24 +365,24 @@ type BridgeCcApi = {
     custom: LanguageWriter;
 };
 
-export function printBridgeCcForOHOS(peerLibrary: IdlPeerLibrary): BridgeCcApi {
+export function printBridgeCcForOHOS(peerLibrary: PeerLibrary): BridgeCcApi {
     const visitor = new OhosBridgeCcVisitor(peerLibrary, false)
     visitor.print()
     return { generated: visitor.generatedApi, custom: visitor.customApi }
 }
 
-export function printBridgeCc(peerLibrary: IdlPeerLibrary, callLog: boolean): BridgeCcApi {
+export function printBridgeCc(peerLibrary: PeerLibrary, callLog: boolean): BridgeCcApi {
     const visitor = new BridgeCcVisitor(peerLibrary, callLog)
     visitor.print()
     return { generated: visitor.generatedApi, custom: visitor.customApi }
 }
 
-export function printBridgeCcGenerated(peerLibrary: IdlPeerLibrary, callLog: boolean): string {
+export function printBridgeCcGenerated(peerLibrary: PeerLibrary, callLog: boolean): string {
     const { generated } = printBridgeCc(peerLibrary, callLog)
     return bridgeCcGeneratedDeclaration(generated.getOutput())
 }
 
-export function printBridgeCcCustom(peerLibrary: IdlPeerLibrary, callLog: boolean): string {
+export function printBridgeCcCustom(peerLibrary: PeerLibrary, callLog: boolean): string {
     const { custom } = printBridgeCc(peerLibrary, callLog)
     return bridgeCcCustomDeclaration(custom.getOutput())
 }

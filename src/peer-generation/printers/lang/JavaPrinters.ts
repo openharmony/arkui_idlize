@@ -14,8 +14,8 @@
  */
 
 import { IDLI32Type, IDLType, IDLVoidType, toIDLType } from "../../../idl"
-import { IdlPeerLibrary } from "../../idl/IdlPeerLibrary"
-import { IdlPeerMethod } from "../../idl/IdlPeerMethod"
+import { PeerLibrary } from "../../PeerLibrary"
+import { PeerMethod } from "../../PeerMethod"
 import { ImportFeature } from "../../ImportsCollector"
 import { LanguageWriter, createLanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "../../LanguageWriters"
 import { getReferenceResolver } from "../../ReferenceResolver"
@@ -28,7 +28,7 @@ import { IdlSyntheticTypeBase } from "./CommonUtils"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_UI_NODE_TYPE, ARK_BASE, ARK_OBJECTBASE, INT_VALUE_GETTER } from "./Java"
 import { collectJavaImports } from "./JavaIdlUtils"
 
-export function makeJavaSerializer(library: IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
+export function makeJavaSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
     let writer = createLanguageWriter(library.language, getReferenceResolver(library))
     writer.print(`package ${ARKOALA_PACKAGE};\n`)
     writeSerializer(library, writer, "")
@@ -45,7 +45,7 @@ export function printJavaImports(printer: LanguageWriter, imports: ImportFeature
     printer.print('')
 }
 
-export function makeJavaNodeTypes(library: IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
+export function makeJavaNodeTypes(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
     const componentNames = library.files.flatMap(file => {
         return Array.from(file.peers.values()).map(peer => peer.componentName)
     })
@@ -58,7 +58,7 @@ export function makeJavaNodeTypes(library: IdlPeerLibrary): { targetFile: Target
     return { targetFile: new TargetFile(ARK_UI_NODE_TYPE, ARKOALA_PACKAGE_PATH), writer: writer }
 }
 
-export function makeJavaArkComponents(library: IdlPeerLibrary, printerContext: PrinterContext): { targetFile: TargetFile, writer: LanguageWriter } {
+export function makeJavaArkComponents(library: PeerLibrary, printerContext: PrinterContext): { targetFile: TargetFile, writer: LanguageWriter } {
     const ark = 'Ark'
     const receiver = 'receiver'
     const create = 'create'
@@ -80,7 +80,7 @@ export function makeJavaArkComponents(library: IdlPeerLibrary, printerContext: P
                 const paramTypes = [toIDLType(`Consumer<${arkComponent}>`), toIDLType('Runnable')]
                 const paramNames = ['style', 'content']
                 const callableMethods = peer.methods.filter(it => it.isCallSignature)
-                let callableMethod: IdlPeerMethod | undefined
+                let callableMethod: PeerMethod | undefined
                 if (callableMethods.length > 1) {
                     throw new Error(`More than 1 method with callSignature in ${peer.componentName}`)
                 }

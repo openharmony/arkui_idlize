@@ -14,10 +14,8 @@
  */
 
 import * as idl from "../../idl"
-import { cStyleCopyright } from "../FileGenerators";
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { PeerLibrary } from "../PeerLibrary";
 import { CppLanguageWriter, LanguageWriter, NamedMethodSignature } from "../LanguageWriters";
-import { EnumEntity, EnumMember } from "../PeerFile";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
@@ -27,7 +25,7 @@ import { collectMaterializedImports } from "../Materialized";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { PrimitiveType } from "../ArkPrimitiveType";
 
-function collectEntryCallbacks(library: IdlPeerLibrary, entry: idl.IDLEntry): idl.IDLCallback[] {
+function collectEntryCallbacks(library: PeerLibrary, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
     if (idl.isCallback(entry)) {
         res.push(entry)
@@ -54,7 +52,7 @@ function collectEntryCallbacks(library: IdlPeerLibrary, entry: idl.IDLEntry): id
     return res
 }
 
-export function collectUniqueCallbacks(library: IdlPeerLibrary) {
+export function collectUniqueCallbacks(library: PeerLibrary) {
     const foundCallbacksNames = new Set<string>()
     const foundCallbacks: idl.IDLCallback[] = []
     for (const file of library.files) {
@@ -107,18 +105,15 @@ export function printCallbacksKindsImports(language: Language, writer: LanguageW
     }
 }
 
-export function printCallbacksKinds(library: IdlPeerLibrary, writer: LanguageWriter): void {
-    writer.writeStatement(writer.makeEnumEntity(new EnumEntity(
-        CallbackKind,
-        "",
-        collectUniqueCallbacks(library).map((it, index) => {
-            return new EnumMember(generateCallbackKindName(it), "", index.toString())
-        })
-    ), true))
+export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter): void {
+    const kindsEnum = idl.createEnum(CallbackKind, [], {})
+    kindsEnum.elements = collectUniqueCallbacks(library).map((it, index) =>
+        idl.createEnumMember(generateCallbackKindName(it), kindsEnum, idl.IDLNumberType, index))
+    writer.writeStatement(writer.makeEnumEntity(kindsEnum, true))
 }
 
 class DeserializeCallbacksVisitor {
-    constructor(private readonly library: IdlPeerLibrary, private readonly destFile: SourceFile) {}
+    constructor(private readonly library: PeerLibrary, private readonly destFile: SourceFile) {}
 
     private get writer(): LanguageWriter {
         return this.destFile.content
@@ -251,7 +246,7 @@ class DeserializeCallbacksVisitor {
 }
 
 class ManagedCallCallbackVisitor {
-    constructor(private readonly library: IdlPeerLibrary, private readonly dest: CppSourceFile) {}
+    constructor(private readonly library: PeerLibrary, private readonly dest: CppSourceFile) {}
 
     private get writer(): CppLanguageWriter {
         return this.dest.content
@@ -323,12 +318,12 @@ class ManagedCallCallbackVisitor {
     }
 }
 
-export function printDeserializeAndCall(library: IdlPeerLibrary, destination: SourceFile): void {
+export function printDeserializeAndCall(library: PeerLibrary, destination: SourceFile): void {
     const visitor = new DeserializeCallbacksVisitor(library, destination)
     visitor.visit()
 }
 
-export function printManagedCaller(library: IdlPeerLibrary): SourceFile {
+export function printManagedCaller(library: PeerLibrary): SourceFile {
     const destFile = new CppSourceFile('callback_managed_caller.cc', library) // TODO combine with TargetFile
     const visitor = new ManagedCallCallbackVisitor(library, destFile)
     visitor.visit()

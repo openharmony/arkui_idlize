@@ -21,7 +21,7 @@ import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 import { ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { PeerLibrary } from "../PeerLibrary";
 import { Language } from "../../Language";
 import { forceAsNamedNode, IDLType, IDLVoidType, isOptionalType, maybeOptional, toIDLType } from "../../idl";
 
@@ -39,7 +39,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         private readonly language: Language,
         private readonly builderClass: BuilderClass,
         private readonly dumpSerialized: boolean,
-        private readonly peerLibrary: IdlPeerLibrary) { }
+        private readonly peerLibrary: PeerLibrary) { }
 
     private printBuilderClass(builderClass: BuilderClass) {
         const writer = this.printer
@@ -118,7 +118,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
     private readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language, this.library)
 
     constructor(
-        private readonly library: IdlPeerLibrary,
+        private readonly library: PeerLibrary,
         private readonly printerContext: PrinterContext,
         private readonly builderClass: BuilderClass,
         private readonly dumpSerialized: boolean,
@@ -303,7 +303,7 @@ class BuilderClassVisitor {
     readonly builderClasses: Map<TargetFile, string[]> = new Map()
 
     constructor(
-        private readonly library: IdlPeerLibrary,
+        private readonly library: PeerLibrary,
         private printerContext: PrinterContext,
         private readonly dumpSerialized: boolean,
     ) { }
@@ -339,7 +339,7 @@ class BuilderClassVisitor {
     }
 }
 
-export function printBuilderClasses(peerLibrary: IdlPeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
+export function printBuilderClasses(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
     // TODO: support other output languages
     if (printerContext.language != Language.TS && printerContext.language != Language.ARKTS && printerContext.language != Language.JAVA) {
         return new Map()

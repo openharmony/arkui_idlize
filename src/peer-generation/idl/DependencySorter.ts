@@ -16,11 +16,11 @@
 import * as idl from "../../idl";
 import { convert } from "./common";
 import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
-import { IdlPeerLibrary } from "./IdlPeerLibrary";
-import { collectProperties } from "./StructPrinter";
+import { PeerLibrary } from "../PeerLibrary"
+import { collectProperties } from "../printers/StructPrinter";
 
 class TypeDependencies extends TypeDependenciesCollector {
-    constructor(library: IdlPeerLibrary) {
+    constructor(library: PeerLibrary) {
         super(library)
     }
     convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
@@ -47,7 +47,7 @@ class TypeDependencies extends TypeDependenciesCollector {
 }
 
 class DeclDependencies extends DeclarationDependenciesCollector {
-    constructor (private library: IdlPeerLibrary, private typeDependencies: TypeDependencies) {
+    constructor (private library: PeerLibrary, private typeDependencies: TypeDependencies) {
         super(typeDependencies)
     }
     convertInterface(node: idl.IDLInterface): idl.IDLNode[] {
@@ -70,7 +70,7 @@ export class DependencySorter {
     dependencies = new Set<idl.IDLNode>()
     adjMap = new Map<idl.IDLNode, idl.IDLNode[]>()
 
-    constructor(private library: IdlPeerLibrary) {
+    constructor(private library: PeerLibrary) {
         this.typeConvertor = new TypeDependencies(library);
         this.declConvertor = new DeclDependencies(library, this.typeConvertor)
     }

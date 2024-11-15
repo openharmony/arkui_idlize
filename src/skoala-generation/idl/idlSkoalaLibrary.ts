@@ -21,7 +21,7 @@ import { DeclarationDependenciesCollector, TypeDependenciesCollector } from '../
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
 import { capitalize, isDefined, throwException } from "../../util";
 import { PrimitiveType } from "../../peer-generation/ArkPrimitiveType";
-import { cleanPrefix } from "../../peer-generation/idl/IdlPeerLibrary";
+import { cleanPrefix } from "../../peer-generation/PeerLibrary";
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../../peer-generation/LanguageWriters";

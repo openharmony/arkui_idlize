@@ -21,7 +21,6 @@ import { CJKeywords } from "../../../languageSpecificKeywords"
 import { isDefined } from "../../../util"
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { EnumConvertor } from "../../ArgConvertors"
-import { EnumEntity } from "../../PeerFile"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import {
     AssignStatement,
@@ -125,16 +124,16 @@ class CJMapForEachStatement implements LanguageStatement {
 }
 
 export class CJEnumEntityStatement implements LanguageStatement {
-    constructor(private readonly enumEntity: EnumEntity, private readonly isExport: boolean) {}
+    constructor(private readonly enumEntity: idl.IDLEnum, private readonly isExport: boolean) {}
 
     write(writer: LanguageWriter) {
-        writer.print(this.enumEntity.comment.length > 0 ? this.enumEntity.comment : undefined)
+        writer.print(this.enumEntity.comment)
         writer.print(`${this.isExport ? "public " : ""}enum ${this.enumEntity.name} {`)
         writer.pushIndent()
-        this.enumEntity.members.forEach((member, index) => {
-            writer.print(member.comment.length > 0 ? member.comment : undefined)
-            const varticalBar = index < this.enumEntity.members.length - 1 ? '|' : ''
-            const initValue = member.initializerText ? ` = ${member.initializerText}` : ``
+        this.enumEntity.elements.forEach((member, index) => {
+            writer.print(member.comment)
+            const varticalBar = index < this.enumEntity.elements.length - 1 ? '|' : ''
+            const initValue = member.initializer ? ` = ${member.initializer}` : ``
             writer.print(`${member.name}${initValue}${varticalBar}`)
         })
         writer.popIndent()
@@ -392,7 +391,7 @@ export class CJLanguageWriter extends LanguageWriter {
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
         throw new Error('Not yet implemented')
     }
-    makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
+    makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
         return new CJEnumEntityStatement(enumEntity, isExport)
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {

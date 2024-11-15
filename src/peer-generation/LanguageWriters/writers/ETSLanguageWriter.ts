@@ -14,7 +14,6 @@
  */
 
 import { IndentedPrinter } from "../../../IndentedPrinter"
-import { capitalize } from "../../../util"
 import {
     FieldModifier,
     LanguageExpression,
@@ -28,12 +27,11 @@ import {
 } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
 import { IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
-import { EnumEntity } from "../../PeerFile"
 import {AggregateConvertor, ArgConvertor, ArrayConvertor, BaseArgConvertor, CustomTypeConvertor, EnumConvertor, InterfaceConvertor, makeInterfaceTypeCheckerCall, RuntimeType} from "../../ArgConvertors"
 import { Language } from "../../../Language"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
-import {IdlPeerLibrary} from "../../idl/IdlPeerLibrary";
+import {PeerLibrary} from "../../PeerLibrary";
 import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter";
 
 ////////////////////////////////////////////////////////////////
@@ -65,16 +63,16 @@ class ArkTSMapForEachStatement implements LanguageStatement {
 }
 
 export class ArkTSEnumEntityStatement implements LanguageStatement {
-    constructor(private readonly enumEntity: EnumEntity, private readonly isExport: boolean) {}
+    constructor(private readonly enumEntity: IDLEnum, private readonly isExport: boolean) {}
 
     write(writer: LanguageWriter) {
-        writer.print(this.enumEntity.comment.length > 0 ? this.enumEntity.comment : undefined)
+        writer.print(this.enumEntity.comment)
         writer.writeClass(this.enumEntity.name, (writer) => {
             let isTypeString = true
-            this.enumEntity.members.forEach((member, index) => {
-                writer.print(member.comment.length > 0 ? member.comment : undefined)
-                const initText = member.initializerText?.replaceAll('"', '').replaceAll("'", "") ?? `${index}`
-                isTypeString &&= isNaN(Number(initText))
+            this.enumEntity.elements.forEach((member, index) => {
+                writer.print(member.comment)
+                const initText = member.initializer ?? index
+                isTypeString &&= (typeof initText !== "number")
                 const ctorArgs = [
                     isTypeString ? `"${initText}"` : initText,
                     isTypeString ? index : undefined
@@ -105,7 +103,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
             }
             writer.writeMethodImplementation(new Method("of", new MethodSignature(toIDLType(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {
-                    this.enumEntity.members.forEach((member) => {
+                    this.enumEntity.elements.forEach(member => {
                         const memberName = `${this.enumEntity.name}.${member.name}`
                         writer.writeStatement(
                             writer.makeCondition(
@@ -212,7 +210,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeCallIsResource(value: string): LanguageExpression {
         return this.makeString(`isResource(${value})`);
     }
-    makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
+    makeEnumEntity(enumEntity: IDLEnum, isExport: boolean): LanguageStatement {
         return new ArkTSEnumEntityStatement(enumEntity, isExport);
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
@@ -279,7 +277,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         if (convertor instanceof ArrayConvertor) {
             return makeArrayTypeCheckCall(value,
-                (this.resolver as IdlPeerLibrary).getTypeName(convertor.idlType), this)
+                (this.resolver as PeerLibrary).getTypeName(convertor.idlType), this)
         }
         if (convertor instanceof EnumConvertor) {
             return this.makeString(`${value} instanceof ${this.typeConvertor.convert(convertor.enumEntry)}`)

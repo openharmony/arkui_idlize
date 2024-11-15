@@ -13,21 +13,36 @@
  * limitations under the License.
  */
 
-export class EnumEntity {
-    constructor(
-        public readonly name: string,
-        public readonly comment: string,
-        public readonly members: EnumMember[] = [],
-    ) {}
-    pushMember(name: string, comment: string, initializerText: string | undefined) {
-        this.members.push(new EnumMember(name, comment, initializerText))
-    }
-}
+import * as idl from "../idl"
+import { PeerClass } from "./PeerClass"
+import { ImportFeature } from './ImportsCollector'
 
-export class EnumMember {
+export class PeerFile {
+    readonly peers: Map<string, PeerClass> = new Map()
+    readonly declarations: Set<idl.IDLEntry> = new Set()
+    readonly importFeatures: ImportFeature[] = []
+    readonly serializeImportFeatures: ImportFeature[] = []
     constructor(
-        public readonly name: string,
-        public readonly comment: string,
-        public readonly initializerText: string | undefined,
+        public readonly originalFilename: string,
+        public readonly entries: idl.IDLEntry[],
+        private readonly componentsToGenerate: Set<string>,
+        public readonly isPredefined: boolean = false
     ) {}
+
+
+    public packageName(): string {
+        let packageTag = this.entries.find(it => idl.isPackage(it)) as idl.IDLPackage
+        if (packageTag) return packageTag.name
+        return ""
+    }
+
+    get enums(): idl.IDLEnum[] {
+        return this.entries.filter(it => idl.isEnum(it)) as idl.IDLEnum[]
+    }
+    get peersToGenerate(): PeerClass[] {
+        const peers = Array.from(this.peers.values())
+        if (!this.componentsToGenerate.size)
+            return peers
+        return peers.filter(it => this.componentsToGenerate.has(it.componentName))
+    }
 }

@@ -17,7 +17,7 @@ import { Field, Method, MethodModifier, MethodSignature, NamedMethodSignature } 
 import { SuperElement } from "./Materialized"
 import { ImportFeature } from "./ImportsCollector"
 import { Language } from "../Language";
-import { IdlPeerLibrary } from "./idl/IdlPeerLibrary";
+import { PeerLibrary } from "./PeerLibrary";
 import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
 import { createReferenceType, IDLThisType, IDLType, IDLVoidType, maybeOptional, toIDLType } from "../idl"
 
@@ -42,7 +42,7 @@ export class BuilderClass {
 export const CUSTOM_BUILDER_CLASSES: BuilderClass[] = []
 const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set()
 
-export function initCustomBuilderClasses(library: IdlPeerLibrary) {
+export function initCustomBuilderClasses(library: PeerLibrary) {
     CUSTOM_BUILDER_CLASSES.push(
         new BuilderClass("Indicator", ["T"], false, undefined,
             [], // fields

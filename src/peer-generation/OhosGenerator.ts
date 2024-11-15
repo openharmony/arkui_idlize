@@ -17,6 +17,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { createContainerType, createReferenceType, forceAsNamedNode, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType, maybeOptional } from '../idl'
 import { IndentedPrinter } from "../IndentedPrinter"
+import { PeerLibrary } from './PeerLibrary'
 import { Language } from '../Language'
 import { capitalize } from '../util'
 import { ArgConvertor, generateCallbackAPIArguments } from './ArgConvertors'
@@ -24,8 +25,7 @@ import { PrimitiveType } from './ArkPrimitiveType'
 import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { qualifiedName } from './idl/common'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
-import { IdlPeerLibrary } from './idl/IdlPeerLibrary'
-import { StructPrinter } from './idl/StructPrinter'
+import { StructPrinter } from './printers/StructPrinter'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageExpression, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from './LanguageWriters'
 import { printBridgeCcForOHOS } from './printers/BridgeCcPrinter'
 import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
@@ -58,7 +58,7 @@ class OHOSVisitor {
     callbacks = new Array<IDLCallback>()
     callbackInterfaces = new Array<IDLInterface>()
 
-    constructor(protected library: IdlPeerLibrary) {
+    constructor(protected library: PeerLibrary) {
         this.peerWriter = createLanguageWriter(this.library.language, this.library)
         this.nativeWriter = createLanguageWriter(this.library.language, this.library)
     }
@@ -606,7 +606,7 @@ class OHOSVisitor {
     }
 }
 
-export function generateOhos(outDir: string, peerLibrary: IdlPeerLibrary): void {
+export function generateOhos(outDir: string, peerLibrary: PeerLibrary): void {
     const managedOutDir = path.join(outDir, peerLibrary.language.name.toLocaleLowerCase())
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
     if (!fs.existsSync(managedOutDir)) fs.mkdirSync(managedOutDir)
@@ -615,7 +615,7 @@ export function generateOhos(outDir: string, peerLibrary: IdlPeerLibrary): void 
     visitor.execute(outDir, managedOutDir)
 }
 
-function generateArgConvertor(library: IdlPeerLibrary, param: IDLParameter): ArgConvertor {
+function generateArgConvertor(library: PeerLibrary, param: IDLParameter): ArgConvertor {
     if (!param.type) throw new Error("Type is needed")
     return library.typeConvertor(param.name, param.type, param.isOptional)
 }
@@ -631,7 +631,7 @@ function generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: 
     return args.join(", ")
 }
 
-function makePeerCallSignature(library: IdlPeerLibrary, parameters: IDLParameter[], returnType: IDLType, thisArg?: string) {
+function makePeerCallSignature(library: PeerLibrary, parameters: IDLParameter[], returnType: IDLType, thisArg?: string) {
     // TODO remove duplicated code from NativeModuleVisitor::printPeerMethod (NativeModulePrinter.ts)
     const argConvertors = parameters.map(param => generateArgConvertor(library, param))
     const args: ({name: string, type: IDLType})[] = thisArg ? [{ name: thisArg, type: IDLPointerType }] : []

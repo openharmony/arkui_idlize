@@ -14,7 +14,7 @@
  */
 
 import { createLanguageWriter, LanguageWriter } from "../LanguageWriters";
-import { IdlPeerLibrary } from "./IdlPeerLibrary";
+import { PeerLibrary } from "../PeerLibrary"
 import { convertDeclaration } from "../LanguageWriters/nameConvertor";
 import * as idl from "../../idl";
 import { Language } from "../../Language";
@@ -23,15 +23,15 @@ import {
     convertDeclToFeature,
     createDeclDependenciesCollector,
     createTypeDependenciesCollector,
-} from "./IdlPeerGeneratorVisitor";
+} from "../idl/IdlPeerGeneratorVisitor";
 import { ImportsCollector } from "../ImportsCollector";
-import { DeclarationNameConvertor } from "./IdlNameConvertor";
+import { DeclarationNameConvertor } from "../idl/IdlNameConvertor";
 
-class ConflictedDeclarationsVisitorIdl {
+class ConflictedDeclarationsVisitor {
     readonly writer = createLanguageWriter(this.library.language, this.library)
 
     constructor(
-        protected readonly library: IdlPeerLibrary
+        protected readonly library: PeerLibrary
     ) {}
 
     print() {
@@ -57,7 +57,7 @@ class ConflictedDeclarationsVisitorIdl {
     }
 }
 
-class ArkTSConflictedDeclarationsVisitorIdl extends ConflictedDeclarationsVisitorIdl {
+class ArkTSConflictedDeclarationsVisitor extends ConflictedDeclarationsVisitor {
     protected convertDeclaration(name: string, decl: idl.IDLEntry, writer: LanguageWriter) {
         const declConvertor = new ArkTSDeclConvertor(writer, this.library)
         convertDeclaration(declConvertor, decl)
@@ -89,11 +89,11 @@ class ArkTSConflictedDeclarationsVisitorIdl extends ConflictedDeclarationsVisito
     }
 }
 
-export function printConflictedDeclarationsIdl(library: IdlPeerLibrary): string {
+export function printConflictedDeclarations(library: PeerLibrary): string {
     let visitor
     visitor = library.language == Language.ARKTS
-        ? new ArkTSConflictedDeclarationsVisitorIdl(library)
-        : new ConflictedDeclarationsVisitorIdl(library)
+        ? new ArkTSConflictedDeclarationsVisitor(library)
+        : new ConflictedDeclarationsVisitor(library)
     visitor.print()
     return visitor.writer.getOutput().join('\n')
 }

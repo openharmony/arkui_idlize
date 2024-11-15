@@ -51,16 +51,16 @@ import { printMesonBuild } from "./printers/MesonPrinter"
 import {
     printFakeDeclarations as printIdlFakeDeclarations,
     printInterfaces as printIdlInterfaces
-} from "./idl/InterfacePrinter"
+} from "./printers/InterfacePrinter"
 import { printBuilderClasses } from "./printers/BuilderClassPrinter"
 import { ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH } from "./printers/lang/Java"
 import { TargetFile } from "./printers/TargetFile"
 import { printBridgeCcCustom, printBridgeCcGenerated } from "./printers/BridgeCcPrinter"
 import { Language } from "../Language"
-import { IdlPeerLibrary } from "./idl/IdlPeerLibrary"
+import { PeerLibrary } from "./PeerLibrary"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { printDeclarations } from "./printers/DeclarationPrinter"
-import { printConflictedDeclarationsIdl } from "./idl/ConflictedDeclarationsPrinterIdl";
+import { printConflictedDeclarations } from "./printers/ConflictedDeclarationsPrinter";
 import { printNativeModuleRecorder } from "./printers/NativeModuleRecorderPrinter"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { LanguageWriter } from "./LanguageWriters"
@@ -70,7 +70,7 @@ export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
     apiVersion: number,
     outDir: string
-}, peerLibrary: IdlPeerLibrary) {
+}, peerLibrary: PeerLibrary) {
     const libace = config.libaceDestination ?
         new LibaceInstall(config.libaceDestination, false) :
         new LibaceInstall(config.outDir, true)
@@ -160,7 +160,7 @@ export function generateArkoalaFromIdl(config: {
             callLog: boolean,
             verbose: boolean
         },
-        peerLibrary: IdlPeerLibrary) {
+        peerLibrary: PeerLibrary) {
     const arkoala = config.arkoalaDestination ?
         new ArkoalaInstall(config.arkoalaDestination, config.lang, false) :
         new ArkoalaInstall(config.outDir, config.lang, true)
@@ -334,7 +334,7 @@ export function generateArkoalaFromIdl(config: {
         )
         writeFile(
             arkoala.arktsLib(new TargetFile('ConflictedDeclarations')),
-            printConflictedDeclarationsIdl(peerLibrary),
+            printConflictedDeclarations(peerLibrary),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true

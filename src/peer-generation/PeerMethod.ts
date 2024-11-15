@@ -13,16 +13,14 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
-import { capitalize, isDefined } from "../../util"
-import { ArgConvertor, RetConvertor } from "../ArgConvertors"
-import { Method, MethodModifier } from "../LanguageWriters"
-import { PrimitiveType } from "../ArkPrimitiveType"
-import { IDLCallback, IDLEntry, IDLType } from "../../idl"
-import { mangleMethodName } from "../LanguageWriters/LanguageWriter"
-import { IdlNameConvertor } from "../LanguageWriters/nameConvertor"
+import { capitalize, isDefined } from "../util"
+import { ArgConvertor, RetConvertor } from "./ArgConvertors"
+import { Method, MethodModifier } from "./LanguageWriters"
+import { PrimitiveType } from "./ArkPrimitiveType"
+import { mangleMethodName } from "./LanguageWriters/LanguageWriter"
+import { IdlNameConvertor } from "./LanguageWriters/nameConvertor"
 
-export class IdlPeerMethod {
+export class PeerMethod {
     private overloadIndex?: number
     constructor(
         public originalParentName: string,
@@ -98,8 +96,8 @@ export class IdlPeerMethod {
         }
     }
 
-    static markAndGroupOverloads(methods: IdlPeerMethod[]): IdlPeerMethod[] {
-        let groupedMethods: IdlPeerMethod[] = []
+    static markAndGroupOverloads(methods: PeerMethod[]): PeerMethod[] {
+        let groupedMethods: PeerMethod[] = []
         for (const peerMethod of methods) {
             if (isDefined(peerMethod.overloadIndex)) continue
             const sameNamedMethods = methods.filter(it => it.method.name === peerMethod.method.name)
@@ -110,7 +108,7 @@ export class IdlPeerMethod {
         return groupedMethods
     }
 
-    setSameOverloadIndex(copyFrom: IdlPeerMethod) {
+    setSameOverloadIndex(copyFrom: PeerMethod) {
         this.overloadIndex = copyFrom.overloadIndex
     }
 }

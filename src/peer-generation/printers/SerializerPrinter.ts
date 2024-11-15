@@ -19,7 +19,7 @@ import { PrimitiveType } from "../ArkPrimitiveType"
 import { ExpressionStatement, LanguageStatement, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters";
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
 import { ImportsCollector } from '../ImportsCollector';
-import { IdlPeerLibrary } from '../idl/IdlPeerLibrary';
+import { PeerLibrary } from '../PeerLibrary';
 import {
     ArkTSBuiltTypesDependencyFilter,
     convertDeclToFeature,
@@ -27,7 +27,7 @@ import {
     isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor';
 import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
-import { collectProperties } from '../idl/StructPrinter';
+import { collectProperties } from '../printers/StructPrinter';
 import { MakeAssignOptions, MethodArgPrintHint } from '../LanguageWriters/LanguageWriter';
 import { FieldModifier, IfStatement, MethodModifier, ProxyStatement, ReturnStatement } from '../LanguageWriters/LanguageWriter';
 import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
@@ -42,7 +42,7 @@ import { ModifierFlags } from 'typescript';
 
 class IdlSerializerPrinter {
     constructor(
-        private readonly library: IdlPeerLibrary,
+        private readonly library: PeerLibrary,
         private readonly writer: LanguageWriter,
     ) {}
 
@@ -194,7 +194,7 @@ class IdlSerializerPrinter {
 
 class IdlDeserializerPrinter {///converge w/ IdlSerP?
     constructor(
-        private readonly library: IdlPeerLibrary,
+        private readonly library: PeerLibrary,
         private readonly writer: LanguageWriter,
     ) {}
 
@@ -395,16 +395,16 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
     }
 }
 
-export function writeSerializer(library: IdlPeerLibrary, writer: LanguageWriter, prefix: string, declarationPath?: string) {
+export function writeSerializer(library: PeerLibrary, writer: LanguageWriter, prefix: string, declarationPath?: string) {
     new IdlSerializerPrinter(library, writer).print(prefix, declarationPath)
 }
 
-export function writeDeserializer(library: IdlPeerLibrary, writer: LanguageWriter, prefix = "", declarationPath?: string) {
+export function writeDeserializer(library: PeerLibrary, writer: LanguageWriter, prefix = "", declarationPath?: string) {
     const printer = new IdlDeserializerPrinter(library, writer)
     printer.print(prefix, declarationPath)
 }
 
-function getSerializers(library: IdlPeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {
+function getSerializers(library: PeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {
     const seenNames = new Set<string>()
     return library.orderedDependenciesToGenerate
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
@@ -415,7 +415,7 @@ function getSerializers(library: IdlPeerLibrary, dependencyFilter: DependencyFil
         })
 }
 
-function printIdlImports(library: IdlPeerLibrary, serializerDeclarations: SerializableTarget[], writer: LanguageWriter, declarationPath?: string) {
+function printIdlImports(library: PeerLibrary, serializerDeclarations: SerializableTarget[], writer: LanguageWriter, declarationPath?: string) {
     const collector = new ImportsCollector()
 
     if (writer.language === Language.TS) {

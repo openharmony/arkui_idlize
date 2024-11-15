@@ -15,7 +15,7 @@
 
 import * as idl from '../../idl'
 import * as path from 'path'
-import { IdlPeerLibrary } from "./IdlPeerLibrary"
+import { PeerLibrary } from "../PeerLibrary"
 import {
     createLanguageWriter,
     FieldModifier,
@@ -34,19 +34,18 @@ import {
     throwException
 } from '../../util'
 import { ImportFeature, ImportsCollector } from '../ImportsCollector'
-import { IdlPeerFile } from './IdlPeerFile'
+import { PeerFile } from '../PeerFile'
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { TargetFile } from '../printers/TargetFile'
 import { PrinterContext } from '../printers/PrinterContext'
 import { convertDeclaration, DeclarationConvertor } from "../LanguageWriters/nameConvertor";
-import { makeSyntheticDeclarationsFiles } from './IdlSyntheticDeclarations'
+import { makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations'
 import { tsCopyrightAndWarning } from '../FileGenerators'
-import { EnumEntity } from '../PeerFile'
 import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../printers/lang/Java'
 import { printJavaImports } from '../printers/lang/JavaPrinters'
 import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
 import { Language } from '../../Language'
-import { escapeKeyword, IDLExtendedAttributes, IDLKind } from "../../idl";
+import { escapeKeyword, IDLKind } from "../../idl";
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 import { collectProperties } from './StructPrinter'
 
@@ -65,7 +64,7 @@ abstract class DefaultInterfacesVisitor implements InterfacesVisitor {
 
 export class TSDeclConvertor implements DeclarationConvertor<void> {
     constructor(protected readonly writer: LanguageWriter,
-                readonly peerLibrary: IdlPeerLibrary) {
+                readonly peerLibrary: PeerLibrary) {
     }
     convertCallback(node: idl.IDLCallback): void {
     }
@@ -123,7 +122,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
 }
 
 class TSInterfacesVisitor extends DefaultInterfacesVisitor {
-    constructor(protected readonly peerLibrary: IdlPeerLibrary) {
+    constructor(protected readonly peerLibrary: PeerLibrary) {
         super()
     }
 
@@ -131,14 +130,14 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         return renameDtsToInterfaces(path.basename(originalFilename), this.peerLibrary.language)
     }
 
-    private printImports(writer: LanguageWriter, file: IdlPeerFile) {
+    private printImports(writer: LanguageWriter, file: PeerFile) {
         const imports = new ImportsCollector()
         file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         getCommonImports(writer.language).forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
     }
 
-    protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: IdlPeerFile) {
+    protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: PeerFile) {
         if (peerFile.enums.length != 0) {
             writer.print(`Object.assign(globalThis, {`)
             writer.pushIndent()
@@ -150,12 +149,11 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         }
     }
 
-    protected toEnumEntity(enumDecl: idl.IDLEnum): EnumEntity {
-        const entity = new EnumEntity(enumDecl.name, enumDecl.documentation ?? "")
-        for (let elem of enumDecl.elements) {
-            entity.pushMember(elem.name, elem.documentation ?? "", elem.initializer?.toString())
-        }
-        return entity
+    protected toEnumEntity(enumDecl: idl.IDLEnum): idl.IDLEnum {
+        const namespace = idl.getExtAttribute(enumDecl, idl.IDLExtendedAttributes.Namespace) ?? ""
+        return idl.createEnum(`${namespace}${enumDecl.name}`, enumDecl.elements, {
+            documentation: enumDecl.documentation
+        })
     }
 
     printInterfaces() {
@@ -184,7 +182,7 @@ class JavaDeclaration {
 }
 
 class JavaDeclarationConvertor implements DeclarationConvertor<void> {
-    constructor(private readonly peerLibrary: IdlPeerLibrary, private readonly onNewDeclaration: (declaration: JavaDeclaration) => void) {}
+    constructor(private readonly peerLibrary: PeerLibrary, private readonly onNewDeclaration: (declaration: JavaDeclaration) => void) {}
     convertCallback(node: idl.IDLCallback): void {
     }
     convertEnum(node: idl.IDLEnum): void {
@@ -414,7 +412,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
 }
 
 class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
-    constructor(protected readonly peerLibrary: IdlPeerLibrary) {
+    constructor(protected readonly peerLibrary: PeerLibrary) {
         super()
     }
 
@@ -601,17 +599,8 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
 }
 
 class ArkTSInterfacesVisitor extends TSInterfacesVisitor {
-    protected printAssignEnumsToGlobalScope(writer_: LanguageWriter, peerFile_: IdlPeerFile) {
+    protected printAssignEnumsToGlobalScope(writer_: LanguageWriter, peerFile_: PeerFile) {
         // Not supported
-    }
-
-    protected toEnumEntity(enumDecl: idl.IDLEnum): EnumEntity {
-        const namespace = idl.getExtAttribute(enumDecl, IDLExtendedAttributes.Namespace) ?? ""
-        const entity = new EnumEntity(`${namespace}${enumDecl.name}`, enumDecl.documentation ?? "")
-        for (let elem of enumDecl.elements) {
-            entity.pushMember(elem.name, elem.documentation ?? "", elem.initializer?.toString())
-        }
-        return entity
     }
 
     protected createDeclarationConvertor(writer: LanguageWriter): DeclarationConvertor<void> {
@@ -626,7 +615,7 @@ class CJDeclaration {
 }
 
 class CJInterfacesVisitor extends DefaultInterfacesVisitor {
-    constructor(protected readonly peerLibrary: IdlPeerLibrary) {
+    constructor(protected readonly peerLibrary: PeerLibrary) {
        super()
     }
 
@@ -642,7 +631,7 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
 }
 
 class CJDeclarationConvertor implements DeclarationConvertor<void> {
-    constructor(private readonly peerLibrary: IdlPeerLibrary, private readonly onNewDeclaration: (declaration: CJDeclaration) => void) {}
+    constructor(private readonly peerLibrary: PeerLibrary, private readonly onNewDeclaration: (declaration: CJDeclaration) => void) {}
     convertCallback(node: idl.IDLCallback): void {
     }
     convertEnum(node: idl.IDLEnum): void {
@@ -889,7 +878,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
 }
 
 
-function getVisitor(peerLibrary: IdlPeerLibrary, context: PrinterContext): InterfacesVisitor | undefined {
+function getVisitor(peerLibrary: PeerLibrary, context: PrinterContext): InterfacesVisitor | undefined {
     if (context.language == Language.TS) {
         return new TSInterfacesVisitor(peerLibrary)
     }
@@ -905,7 +894,7 @@ function getVisitor(peerLibrary: IdlPeerLibrary, context: PrinterContext): Inter
     throwException(`Need to implement InterfacesVisitor for ${context.language} language`)
 }
 
-export function printInterfaces(peerLibrary: IdlPeerLibrary, context: PrinterContext): Map<TargetFile, string> {
+export function printInterfaces(peerLibrary: PeerLibrary, context: PrinterContext): Map<TargetFile, string> {
     const visitor = getVisitor(peerLibrary, context)
     if (!visitor) {
         return new Map()
@@ -920,7 +909,7 @@ export function printInterfaces(peerLibrary: IdlPeerLibrary, context: PrinterCon
     return result
 }
 
-export function createDeclarationConvertor(writer: LanguageWriter, peerLibrary: IdlPeerLibrary) {
+export function createDeclarationConvertor(writer: LanguageWriter, peerLibrary: PeerLibrary) {
     if (writer.language === Language.TS) {
         return new TSDeclConvertor(writer, peerLibrary)
     }
@@ -956,7 +945,7 @@ export function getCommonImports(language: Language) {
     return imports
 }
 
-export function printFakeDeclarations(library: IdlPeerLibrary): Map<TargetFile, string> {///copied from FakeDeclarationsPrinter
+export function printFakeDeclarations(library: PeerLibrary): Map<TargetFile, string> {///copied from FakeDeclarationsPrinter
     const lang = library.language
     const result = new Map<TargetFile, string>()
     for (const [filename, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {

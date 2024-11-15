@@ -30,10 +30,10 @@ import { PeerClassBase } from "../PeerClass"
 import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl } from "../FileGenerators"
 import { generateEventReceiverName } from "./HeaderPrinter"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { IdlPeerMethod } from "../idl/IdlPeerMethod"
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
+import { PeerMethod } from "../PeerMethod"
+import { PeerLibrary } from "../PeerLibrary"
 import { ArgConvertor } from "../ArgConvertors"
-import { IdlPeerClass } from "../idl/IdlPeerClass"
+import { PeerClass } from "../PeerClass"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { Language } from "../../Language"
 import { ImportsCollector } from "../ImportsCollector";
@@ -73,7 +73,7 @@ export function groupCallbacks(callbacks: IdlCallbackInfo[]): Map<string, IdlCal
     return receiverToCallbacks
 }
 
-export function collectCallbacks(library: IdlPeerLibrary): IdlCallbackInfo[] {
+export function collectCallbacks(library: PeerLibrary): IdlCallbackInfo[] {
     const callbacks = []
     for (const file of library.files) {
         for (const peer of file.peers.values()) {
@@ -100,7 +100,7 @@ export function canProcessCallback(callback: CallbackInfoBase): boolean {
     return true
 }
 
-export function convertIdlToCallback(resolver: ReferenceResolver, peer: PeerClassBase, method: IdlPeerMethod, argType: idl.IDLNode): IdlCallbackInfo | undefined {
+export function convertIdlToCallback(resolver: ReferenceResolver, peer: PeerClassBase, method: PeerMethod, argType: idl.IDLNode): IdlCallbackInfo | undefined {
     if (idl.isReferenceType(argType)) {
         if (isImport(argType)) {
             return undefined
@@ -173,8 +173,8 @@ function idlCallbacksEquals(a: IdlCallbackInfo | undefined, b: IdlCallbackInfo |
     return true
 }
 
-export function collapseIdlEventsOverloads(library: IdlPeerLibrary, peer: IdlPeerClass): void {
-    const replacements: [IdlPeerMethod[], IdlPeerMethod][] = []
+export function collapseIdlEventsOverloads(library: PeerLibrary, peer: PeerClass): void {
+    const replacements: [PeerMethod[], PeerMethod][] = []
 
     for (const overloads of groupOverloads(peer.methods)) {
         if (overloads.length <= 1) continue
@@ -205,7 +205,7 @@ abstract class CEventsVisitorBase {
     readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library)
 
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
         protected readonly isEmptyImplementation: boolean,
     ) {
     }
@@ -297,7 +297,7 @@ abstract class CEventsVisitorBase {
 
 class IdlCEventsVisitor extends CEventsVisitorBase {
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
         isEmptyImplementation: boolean
     ) {
         super(library, isEmptyImplementation)
@@ -322,7 +322,7 @@ abstract class TSEventsVisitorBase {
     readonly printer: LanguageWriter = new TSLanguageWriter(new IndentedPrinter(), getReferenceResolver(this.library))
 
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
     ) {
     }
 
@@ -531,7 +531,7 @@ interface PeerEvent {
 
 
 class IdlTSEventsVisitor extends TSEventsVisitorBase {
-    constructor(protected readonly library: IdlPeerLibrary) {
+    constructor(protected readonly library: PeerLibrary) {
         super(library)
     }
 
@@ -553,7 +553,7 @@ class IdlArkTSEventVisitor extends IdlTSEventsVisitor {
     }
 }
 
-export function printEvents(library: IdlPeerLibrary): string {
+export function printEvents(library: PeerLibrary): string {
     let visitor
     switch (library.language) {
         case Language.ARKTS:
@@ -569,7 +569,7 @@ export function printEvents(library: IdlPeerLibrary): string {
     return visitor.printer.getOutput().join("\n")
 }
 
-export function printEventsCArkoalaImpl(library: IdlPeerLibrary): string {
+export function printEventsCArkoalaImpl(library: PeerLibrary): string {
     const visitor = new IdlCEventsVisitor(library, false)
     visitor.print()
     return makeCEventsArkoalaImpl(
@@ -579,7 +579,7 @@ export function printEventsCArkoalaImpl(library: IdlPeerLibrary): string {
     )
 }
 
-export function printEventsCLibaceImpl(library: IdlPeerLibrary, options: { namespace: string }): string {
+export function printEventsCLibaceImpl(library: PeerLibrary, options: { namespace: string }): string {
     const visitor = new IdlCEventsVisitor(library, true)
     visitor.print()
     return makeCEventsLibaceImpl(

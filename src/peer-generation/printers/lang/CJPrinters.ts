@@ -14,7 +14,7 @@
  */
 
 import { IDLI32Type, IDLType, IDLVoidType } from "../../../idl"
-import { IdlPeerLibrary } from "../../idl/IdlPeerLibrary"
+import { PeerLibrary } from "../../PeerLibrary"
 import { ImportFeature } from "../../ImportsCollector"
 import {
     createLanguageWriter,
@@ -28,14 +28,14 @@ import { TargetFile } from "../TargetFile"
 import { ARK_OBJECTBASE, ARK_UI_NODE_TYPE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./Cangjie"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 
-export function makeCJSerializer(library: IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
+export function makeCJSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
     let writer = createLanguageWriter(library.language, getReferenceResolver(library))
     writer.print(`package idlize\n`)
     writeSerializer(library, writer, "")
     return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }
 
-export function makeCJNodeTypes(library: IdlPeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
+export function makeCJNodeTypes(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
     const componentNames = library.files.flatMap(file => {
         return Array.from(file.peers.values()).map(peer => peer.componentName)
     })

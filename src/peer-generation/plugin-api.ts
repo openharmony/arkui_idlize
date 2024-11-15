@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IdlPeerLibrary } from "./idl/IdlPeerLibrary";
+import { PeerLibrary } from "./PeerLibrary";
 
 export interface PluginHost {
     log(message: string): void
@@ -28,7 +28,7 @@ class PluginHostImpl implements PluginHost {
 }
 
 export interface Plugin {
-    process(options: PluginOptions, idl: IdlPeerLibrary): void
+    process(options: PluginOptions, idl: PeerLibrary): void
 }
 
 export async function loadPlugin(path: string): Promise<Plugin> {

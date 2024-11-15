@@ -25,8 +25,8 @@ import {
 import { PeerClassBase } from "../PeerClass";
 import { isDefined } from "../../util";
 import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./EventsPrinter";
-import { IdlPeerMethod } from "../idl/IdlPeerMethod";
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { PeerMethod } from "../PeerMethod";
+import { PeerLibrary } from "../PeerLibrary";
 import { typeOrUnion } from "../idl/common";
 import { ArgConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from '../ArgConvertors';
 import { Language } from "../../Language";
@@ -62,7 +62,7 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
     )
 }
 
-export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPeerMethod[], selectMaxMethodArgs?: number[]): IdlPeerMethod {
+export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMethod[], selectMaxMethodArgs?: number[]): PeerMethod {
     const method = collapseSameNamedMethods(overloads.map(it => it.method), selectMaxMethodArgs)
     const maxArgsLength = Math.max(...overloads.map(it => it.method.signature.args.length))
     const maxMethod = overloads.find(it => it.method.signature.args.length === maxArgsLength)!
@@ -90,7 +90,7 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
             idl.isOptionalType(method.signature.args[index])
         )
     })
-    return new IdlPeerMethod(
+    return new PeerMethod(
         overloads[0].originalParentName,
         typeConvertors,
         overloads[0].retConvertor,
@@ -99,7 +99,7 @@ export function collapseIdlPeerMethods(library: IdlPeerLibrary, overloads: IdlPe
     )
 }
 
-export function groupOverloads<T extends IdlPeerMethod>(peerMethods: T[]): T[][] {
+export function groupOverloads<T extends PeerMethod>(peerMethods: T[]): T[][] {
     const seenNames = new Set<string>()
     const groups: T[][] = []
     for (const method of peerMethods) {
@@ -121,7 +121,7 @@ export class OverloadsPrinter {
         }
     }
 
-    printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: (IdlPeerMethod)[]) {
+    printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: (PeerMethod)[]) {
         const orderedMethods = Array.from(peerMethods)
             .sort((a, b) => b.argConvertors.length - a.argConvertors.length)
         const collapsedMethod = collapseSameNamedMethods(orderedMethods.map(it => it.method))
@@ -154,7 +154,7 @@ export class OverloadsPrinter {
         })
     }
 
-    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: IdlPeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
+    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
         const argsConditions = collapsedMethod.signature.args.map((_, argIndex) =>
             runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
         this.printer.print(`if (${this.printer.makeNaryOp("&&", argsConditions).asString()}) {`)
@@ -164,7 +164,7 @@ export class OverloadsPrinter {
         this.printer.print('}')
     }
 
-    private printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: IdlPeerMethod) {
+    private printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod) {
         const argsNames = peerMethod.argConvertors.map((conv, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${argName}_casted`

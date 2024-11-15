@@ -33,9 +33,9 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, COMPONENT_BASE } from "./lang/Java";
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
-import { IdlPeerFile } from "../idl/IdlPeerFile";
-import { IdlPeerClass } from "../idl/IdlPeerClass";
+import { PeerLibrary } from "../PeerLibrary";
+import { PeerFile } from "../PeerFile";
+import { PeerClass } from "../PeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
@@ -59,12 +59,12 @@ interface ComponentFileVisitor {
 
 class TSComponentFileVisitor implements ComponentFileVisitor {
     private readonly language = this.library.language
-    private readonly printer = createLanguageWriter(this.language, this.library instanceof IdlPeerLibrary ? this.library : createEmptyReferenceResolver())
+    private readonly printer = createLanguageWriter(this.language, this.library instanceof PeerLibrary ? this.library : createEmptyReferenceResolver())
     private readonly overloadsPrinter = new OverloadsPrinter(getReferenceResolver(this.library), this.printer, this.library.language)
 
     constructor(
-        private readonly library: IdlPeerLibrary,
-        private readonly file: IdlPeerFile,
+        private readonly library: PeerLibrary,
+        private readonly file: PeerFile,
     ) { }
 
     visit(): void {
@@ -125,7 +125,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         imports.addFeature('unsafeCast', './shared/generated-utils')
     }
 
-    private printComponent(peer: IdlPeerClass) {
+    private printComponent(peer: PeerClass) {
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
         const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${isOptionalType(it) ? "?" : ""}: ${this.printer.stringifyType(it)}`)
@@ -218,8 +218,8 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
     private readonly results: ComponentPrintResult[] = []
 
     constructor(
-        private readonly library: IdlPeerLibrary,
-        private readonly file: IdlPeerFile,
+        private readonly library: PeerLibrary,
+        private readonly file: PeerFile,
         private readonly printerContext: PrinterContext,
     ) { }
 
@@ -231,7 +231,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
         return this.results
     }
 
-    private printComponent(peer: IdlPeerClass) {
+    private printComponent(peer: PeerClass) {
         const componentClassName = generateArkComponentName(peer.componentName)
         const componentType = toIDLType(componentClassName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : COMPONENT_BASE
@@ -276,7 +276,7 @@ class ComponentsVisitor {
     private readonly language = this.printerContext.language
 
     constructor(
-        private readonly peerLibrary: IdlPeerLibrary,
+        private readonly peerLibrary: PeerLibrary,
         private readonly printerContext: PrinterContext,
     ) { }
 
@@ -303,7 +303,7 @@ class ComponentsVisitor {
     }
 }
 
-export function printComponents(peerLibrary: IdlPeerLibrary, printerContext: PrinterContext): Map<TargetFile, string> {
+export function printComponents(peerLibrary: PeerLibrary, printerContext: PrinterContext): Map<TargetFile, string> {
     // TODO: support other output languages
     if (![Language.TS, Language.ARKTS, Language.JAVA].includes(peerLibrary.language))
         return new Map()

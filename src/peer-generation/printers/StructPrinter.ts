@@ -13,25 +13,23 @@
  * limitations under the License.
  */
 
-import { LibraryInterface } from "../../LibraryInterface"
 import * as idl from "../../idl"
-import { IDLEntry, IDLType } from "../../idl"
+import { IDLType } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { Language } from "../../Language"
-import { camelCaseToUpperSnakeCase, throwException } from "../../util"
+import { camelCaseToUpperSnakeCase } from "../../util"
 import { RuntimeType } from "../ArgConvertors"
-// import { ArkPrimitiveType } from "../DeclarationTable"
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { isImport, isStringEnum } from "./common"
+import { isImport, isStringEnum } from "../idl/common"
 import { generateCallbackAPIArguments } from "../ArgConvertors"
-import { isBuilderClass, isMaterialized } from "./IdlPeerGeneratorVisitor"
-import { cleanPrefix, IdlPeerLibrary } from "./IdlPeerLibrary"
+import { isBuilderClass, isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
+import { cleanPrefix, PeerLibrary } from "../PeerLibrary"
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter"
 
 export class StructPrinter {
-    constructor(private library: IdlPeerLibrary) {}
+    constructor(private library: PeerLibrary) {}
 
     private isPointerDeclaration(target: idl.IDLNode, isOptional: boolean = false): boolean {
         if (isOptional) return true
@@ -465,7 +463,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
     }
 }
 
-export function collectProperties(decl: idl.IDLInterface, library: IdlPeerLibrary): idl.IDLProperty[] {
+export function collectProperties(decl: idl.IDLInterface, library: PeerLibrary): idl.IDLProperty[] {
     const superType = idl.getSuperType(decl)
     const superDecl = superType ? library.resolveTypeReference(/* FIX */ superType as idl.IDLReferenceType) : undefined
     return [
@@ -496,7 +494,7 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
     return result
 }
 
-function collectBuilderProperties(decl: idl.IDLInterface, library: IdlPeerLibrary): idl.IDLProperty[] {
+function collectBuilderProperties(decl: idl.IDLInterface, library: PeerLibrary): idl.IDLProperty[] {
     if (!isBuilderClass(decl)) {
         return []
     }

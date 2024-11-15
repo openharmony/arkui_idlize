@@ -18,9 +18,9 @@ import * as path from 'path'
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { MaterializedClass } from "./Materialized";
-import { EnumEntity } from './PeerFile';
-import { IdlPeerLibrary } from './idl/IdlPeerLibrary';
-import { IdlPeerClass } from './idl/IdlPeerClass';
+import { IDLEnum } from '../idl';
+import { PeerLibrary } from './PeerLibrary';
+import { PeerClass } from './PeerClass';
 
 const STATUSES = ["Total", "In Progress", "Done", "Blocked"]
 
@@ -28,7 +28,7 @@ class TrackerVisitor {
     out = new IndentedPrinter()
 
     constructor(
-        protected library: IdlPeerLibrary,
+        protected library: PeerLibrary,
         protected track: Map<string, StatusRecord>
     ) { }
 
@@ -40,7 +40,7 @@ class TrackerVisitor {
         return '| |'
     }
 
-    printPeerClass(clazz: IdlPeerClass): void {
+    printPeerClass(clazz: PeerClass): void {
         let seen = new Set<string>()
         this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(clazz.componentName, "Component")}`)
         clazz.methods.forEach(method => {
@@ -62,7 +62,7 @@ class TrackerVisitor {
         })
     }
 
-    printEnum(enam: EnumEntity) {
+    printEnum(enam: IDLEnum) {
         this.out.print(`## Enum ${enam.name}`)
     }
 
@@ -162,7 +162,7 @@ function optionsFunction(component: string) {
     return `set${component}Options`
 }
 
-export function generateTracker(outDir: string, peerLibrary: IdlPeerLibrary, trackerStatus: string, verbose: boolean = false): void {
+export function generateTracker(outDir: string, peerLibrary: PeerLibrary, trackerStatus: string, verbose: boolean = false): void {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
     let track = new Map<string, StatusRecord>()
     if (fs.existsSync(trackerStatus)) {

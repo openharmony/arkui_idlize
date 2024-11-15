@@ -17,7 +17,6 @@ import * as idl from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { stringOrNone } from "../../util"
 import {ArgConvertor, BaseArgConvertor, RuntimeType} from "../ArgConvertors"
-import { EnumEntity } from "../PeerFile"
 import * as fs from "fs"
 import { Language } from "../../Language"
 import { EnumConvertor } from "../ArgConvertors"
@@ -226,16 +225,16 @@ export class CheckOptionalStatement implements LanguageStatement {
 
 // maybe rename or move of fix
 export class TsEnumEntityStatement implements LanguageStatement {
-    constructor(private readonly enumEntity: EnumEntity, private readonly isExport: boolean) {}
+    constructor(private readonly enumEntity: idl.IDLEnum, private readonly isExport: boolean) {}
 
     write(writer: LanguageWriter) {
-        writer.print(this.enumEntity.comment.length > 0 ? this.enumEntity.comment : undefined)
+        writer.print(this.enumEntity.comment)
         writer.print(`${this.isExport ? "export " : ""}enum ${this.enumEntity.name} {`)
         writer.pushIndent()
-        this.enumEntity.members.forEach((member, index) => {
-            writer.print(member.comment.length > 0 ? member.comment : undefined)
-            const commaOp = index < this.enumEntity.members.length - 1 ? ',' : ''
-            const initValue = member.initializerText ? ` = ${member.initializerText}` : ``
+        this.enumEntity.elements.forEach((member, index) => {
+            writer.print(member.comment)
+            const commaOp = index < this.enumEntity.elements.length - 1 ? ',' : ''
+            const initValue = member.initializer ? ` = ${member.initializer}` : ``
             writer.print(`${member.name}${initValue}${commaOp}`)
         })
         writer.popIndent()
@@ -643,7 +642,7 @@ export abstract class LanguageWriter {
     makeCallIsResource(value: string): LanguageExpression {
         return this.makeString(`isResource(${value})`)
     }
-    makeEnumEntity(enumEntity: EnumEntity, isExport: boolean): LanguageStatement {
+    makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
         return new TsEnumEntityStatement(enumEntity, isExport)
     }
     makeFieldModifiersList(modifiers: FieldModifier[] | undefined, customFieldFilter?: (field :FieldModifier) => boolean) : string {

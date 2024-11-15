@@ -16,10 +16,9 @@
 import * as idl from "../../idl"
 import { CustomPrintVisitor as DtsPrintVisitor} from "../../from-idl/DtsPrinter"
 import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary"
-import { IndentedPrinter } from "../../IndentedPrinter"
+import { PeerLibrary } from "../PeerLibrary"
 
-export function printDeclarations(peerLibrary: IdlPeerLibrary): Array<string> {
+export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
     const result = []
     for (const decl of peerLibrary.declarations) {
         const visitor = new DtsPrintVisitor(type => peerLibrary.resolveTypeReference(type), peerLibrary.language)

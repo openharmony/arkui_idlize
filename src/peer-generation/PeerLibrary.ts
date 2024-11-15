@@ -13,34 +13,32 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { BuilderClass } from '../BuilderClass';
-import { MaterializedClass } from "../Materialized";
-import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './IdlPeerGeneratorVisitor';
-import { IdlPeerFile } from "./IdlPeerFile";
-import { capitalize } from '../../util';
-import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from '../ArgConvertors';
-import { PrimitiveType } from "../ArkPrimitiveType"
-import { DependencySorter } from './DependencySorter';
-import { IndentedPrinter } from '../../IndentedPrinter';
-import { createLanguageWriter, createTypeNameConvertor, LanguageWriter, MethodSignature, TSLanguageWriter } from '../LanguageWriters';
-import { isImport, isStringEnum } from './common';
-import { StructPrinter } from './StructPrinter';
-import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
-import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NullConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from '../ArgConvertors';
-import { Language } from '../../Language';
-import { generateSyntheticFunctionName } from '../../IDLVisitor';
-import { collectUniqueCallbacks } from '../printers/CallbacksPrinter';
-import { IdlNameConvertor } from '../LanguageWriters/nameConvertor';
-import { LibraryInterface } from '../../LibraryInterface';
-import { IdlEntryManager } from './IdlEntryManager';
-import { IDLNodeToStringConvertor } from '../LanguageWriters/convertors/InteropConvertor';
+import * as idl from '../idl'
+import { BuilderClass } from './BuilderClass';
+import { MaterializedClass } from "./Materialized";
+import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './idl/IdlPeerGeneratorVisitor';
+import { PeerFile } from "./PeerFile";
+import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
+import { PrimitiveType } from "./ArkPrimitiveType"
+import { DependencySorter } from './idl/DependencySorter';
+import { IndentedPrinter } from '../IndentedPrinter';
+import { createTypeNameConvertor, LanguageWriter } from './LanguageWriters';
+import { isImport, isStringEnum } from './idl/common';
+import { StructPrinter } from './printers/StructPrinter';
+import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NullConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from './ArgConvertors';
+import { Language } from '../Language';
+import { generateSyntheticFunctionName } from '../IDLVisitor';
+import { collectUniqueCallbacks } from './printers/CallbacksPrinter';
+import { IdlNameConvertor } from './LanguageWriters/nameConvertor';
+import { LibraryInterface } from '../LibraryInterface';
+import { IdlEntryManager } from './idl/IdlEntryManager';
+import { IDLNodeToStringConvertor } from './LanguageWriters/convertors/InteropConvertor';
 
-export class IdlPeerLibrary implements LibraryInterface {
+export class PeerLibrary implements LibraryInterface {
 
     public readonly factory = new IdlEntryManager()
 
-    public readonly files: IdlPeerFile[] = []
+    public readonly files: PeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {
         return Array.from(this.builderClasses.values()).filter(it => it.needBeGenerated)
@@ -117,7 +115,7 @@ export class IdlPeerLibrary implements LibraryInterface {
         this.context = context
     }
 
-    findFileByOriginalFilename(filename: string): IdlPeerFile | undefined {
+    findFileByOriginalFilename(filename: string): PeerFile | undefined {
         return this.files.find(it => it.originalFilename === filename)
     }
 

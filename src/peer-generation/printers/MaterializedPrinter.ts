@@ -40,7 +40,7 @@ import {
     ARKOALA_PACKAGE_PATH
 } from "./lang/Java";
 import { createInterfaceDeclName } from "../TypeNodeNameConvertor";
-import { IdlPeerLibrary } from "../idl/IdlPeerLibrary";
+import { PeerLibrary } from "../PeerLibrary";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
 import { copyMethod } from "../LanguageWriters/LanguageWriter";
@@ -57,7 +57,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     protected readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language, getReferenceResolver(this.library))
 
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
         protected readonly printerContext: PrinterContext,
         protected readonly clazz: MaterializedClass,
     ) {}
@@ -77,7 +77,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     private overloadsPrinter = new OverloadsPrinter(getReferenceResolver(this.library), this.printer, this.library.language, false)
 
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
         protected readonly printerContext: PrinterContext,
         protected readonly clazz: MaterializedClass,
         protected readonly dumpSerialized: boolean,
@@ -276,7 +276,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
 class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
         protected readonly printerContext: PrinterContext,
         protected readonly clazz: MaterializedClass,
         protected readonly dumpSerialized: boolean,
@@ -404,7 +404,7 @@ class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
 
 class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
     constructor(
-        protected readonly library: IdlPeerLibrary,
+        protected readonly library: PeerLibrary,
         protected readonly printerContext: PrinterContext,
         protected readonly clazz: MaterializedClass,
         protected readonly dumpSerialized: boolean,
@@ -490,7 +490,7 @@ class MaterializedVisitor {
     readonly materialized: Map<TargetFile, string[]> = new Map()
 
     constructor(
-        private readonly library: IdlPeerLibrary,
+        private readonly library: PeerLibrary,
         private readonly printerContext: PrinterContext,
         private readonly dumpSerialized: boolean,
     ) {}
@@ -521,7 +521,7 @@ class MaterializedVisitor {
     }
 }
 
-export function printMaterialized(peerLibrary: IdlPeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
+export function printMaterialized(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
     const visitor = new MaterializedVisitor(peerLibrary, printerContext, dumpSerialized)
     visitor.printMaterialized()
     const result = new Map<TargetFile, string>()
