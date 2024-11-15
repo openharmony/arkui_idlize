@@ -1,7 +1,7 @@
 | Component | Function | Owner | Status (done=merged **with** UT, blocked UT=merged **without** UT, blocked=blocked by IDL)|issue/comment|
 | --------- | -------- | ----- | ------ |------|
 |*AbilityComponent*| *Component* | Tuzhilkin Ivan | in progress|  |
-|`setAbilityComponentOptions`| Function | Tuzhilkin Ivan | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`setAbilityComponentOptions`| Function | Tuzhilkin Ivan | in progress| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`onConnect`| Function | Tuzhilkin Ivan | in progress|  |
 |`onDisconnect`| Function | Tuzhilkin Ivan | in progress|  |
 |*AlphabetIndexer*| *Component* |Ekaterina Stepanova| blocked |  |
@@ -68,41 +68,26 @@
 |`fontFamily`| Function |Evstigneev Roman | done |  |
 |`contentModifier`| Function |Evstigneev Roman | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |`labelStyle`| Function |Evstigneev Roman | done |  |
-|*CalendarPicker*| *Component* |Politov Mikhail | in progress |  |
-|`setCalendarPickerOptions`| Function |Politov Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`textStyle`| Function |Politov Mikhail | done |  |
-|`onChange`| Function |Politov Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`edgeAlign`| Function |Politov Mikhail | done |  |
 |*Calendar*| *Component* | Maksimov Nikita | in progress|  |
-|`setCalendarOptions`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
-|`showLunar`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
-|`showHoliday`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`setCalendarOptions`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`showLunar`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`showHoliday`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
 |`needSlide`| Function | Maksimov Nikita | done |  |
-|`startOfWeek`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
-|`offDays`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
-|`direction`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1N99 |
-|`currentDayStyle`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
-|`nonCurrentDayStyle`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
-|`todayStyle`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
-|`weekStyle`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
-|`workStateStyle`| Function | Maksimov Nikita | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`startOfWeek`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`offDays`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`direction`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1N99 |
+|`currentDayStyle`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`nonCurrentDayStyle`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`todayStyle`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`weekStyle`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
+|`workStateStyle`| Function | Maksimov Nikita | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TMG |
 |`onSelectChange`| Function | Maksimov Nikita | in progress | |
 |`onRequestData`| Function | Maksimov Nikita | in progress | |
-|*CalendarController*| *Class* |Maksimov Nikita | in progress|  |
-|`backToToday`| Function |Maksimov Nikita | in progress|  |
-|`goTo`| Function |Maksimov Nikita | in progress|  |
-|*CanvasPath*| *Class* | Lobah Mikhail | in progress |  |
-|`arc`| Function | Lobah Mikhail | in progress |  |
-|`arcTo`| Function | Lobah Mikhail | in progress |  |
-|`bezierCurveTo`| Function | Lobah Mikhail | in progress |  |
-|`closePath`| Function | Lobah Mikhail | in progress |  |
-|`ellipse`| Function | Lobah Mikhail | in progress |  |
-|`lineTo`| Function | Lobah Mikhail | in progress |  |
-|`moveTo`| Function | Lobah Mikhail | in progress |  |
-|`quadraticCurveTo`| Function | Lobah Mikhail | in progress |  |
-|`rect`| Function | Lobah Mikhail | in progress |  |
-|*CanvasPattern*| *Class* | Vadim Voronov | in progress |  |
-|`setTransform`| Function | Vadim Voronov | in progress |  |
+|*CalendarPicker*| *Component* |Politov Mikhail | in progress |  |
+|`setCalendarPickerOptions`| Function |Politov Mikhail | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`textStyle`| Function |Politov Mikhail | done |  |
+|`onChange`| Function |Politov Mikhail | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`edgeAlign`| Function |Politov Mikhail | done |  |
 |*Canvas*| *Component* |Vadim Voronov | blocked IDL | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZ229 |
 |`setCanvasOptions`| Function |Vadim Voronov | blocked IDL | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZ229 |
 |`onReady`| Function |Vadim Voronov | done |  |
@@ -149,6 +134,7 @@
 |`hitTestBehavior`| Function | Roman Sedaikin | done | |
 |`onChildTouchTest`| Function | | | |
 |`layoutWeight`| Function | Roman Sedaikin | done | |
+|`chainWeight`| Function | | | |
 |`padding`| Function | Skroba Gleb | in progress | |
 |`safeAreaPadding`| Function | | | |
 |`margin`| Function | Skroba Gleb | in progress | |
@@ -159,10 +145,10 @@
 |`backgroundEffect`| Function | Skroba Gleb | done |  |
 |`backgroundImageResizable`| Function | Skroba Gleb | done | |
 |`foregroundEffect`| Function | Skroba Gleb | done |  |
-|`visualEffect`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`backgroundFilter`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`foregroundFilter`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`compositingFilter`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`visualEffect`| Function | Skroba Gleb | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`backgroundFilter`| Function | Skroba Gleb | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`foregroundFilter`| Function | Skroba Gleb | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`compositingFilter`| Function | Skroba Gleb | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`opacity`| Function | Roman Sedaikin | done | |
 |`border`| Function | Roman Sedaikin | done | |
 |`borderStyle`| Function | Roman Sedaikin | done | |
@@ -187,14 +173,14 @@
 |`focusable`| Function | Roman Sedaikin | done | |
 |`onFocus`| Function | Roman Sedaikin | done | |
 |`onBlur`| Function | Roman Sedaikin | done | |
-|`tabIndex`| Function | | | |
-|`defaultFocus`| Function | | | |
-|`groupDefaultFocus`| Function | | | |
-|`focusOnTouch`| Function | | | |
-|`focusBox`| Function | | | |
+|`tabIndex`| Function | Dmitry A Smirnov| in progress | |
+|`defaultFocus`| Function | Dmitry A Smirnov| in progress | |
+|`groupDefaultFocus`| Function | Dmitry A Smirnov| in progress | |
+|`focusOnTouch`| Function | Dmitry A Smirnov| in progress | |
+|`focusBox`| Function | Dmitry A Smirnov| in progress | |
 |`animation`| Function | Erokhin Ilya | blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAXHJP|
-|`transition`| Function | | | |
-|`motionBlur`| Function | | | |
+|`transition`| Function | Dmitry A Smirnov| in progress | |
+|`motionBlur`| Function | Dmitry A Smirnov| in progress | |
 |`brightness`| Function | Lobah Mikhail | in progress | |
 |`contrast`| Function | Lobah Mikhail | in progress | |
 |`grayscale`| Function | Lobah Mikhail | in progress | |
@@ -209,9 +195,9 @@
 |`freeze`| Function | Lobah Mikhail | in progress | |
 |`translate`| Function | Erokhin Ilya | done |  |
 |`scale`| Function | Erokhin Ilya | done |  |
-|`gridSpan`| Function | | | |
-|`gridOffset`| Function | | | |
-|`rotate`| Function | | | |
+|`gridSpan`| Function | Dmitry A Smirnov| in progress | |
+|`gridOffset`| Function | Dmitry A Smirnov| in progress | |
+|`rotate`| Function | Dmitry A Smirnov| in progress | |
 |`transform`| Function | | | |
 |`onAppear`| Function | Roman Sedaikin | done | |
 |`onDisAppear`| Function | Roman Sedaikin | done | |
@@ -219,20 +205,20 @@
 |`onDetach`| Function | | | |
 |`onAreaChange`| Function | Roman Sedaikin | done | |
 |`visibility`| Function | Roman Sedaikin | done | |
-|`flexGrow`| Function | | | |
-|`flexShrink`| Function | | | |
-|`flexBasis`| Function | | | |
+|`flexGrow`| Function | Dmitry A Smirnov| in progress | |
+|`flexShrink`| Function | Dmitry A Smirnov| in progress | |
+|`flexBasis`| Function | Dmitry A Smirnov| in progress | |
 |`alignSelf`| Function | Roman Sedaikin | done | |
 |`displayPriority`| Function | Roman Sedaikin | done | |
 |`zIndex`| Function | Roman Sedaikin | done | |
 |`direction`| Function | Roman Sedaikin | done | |
 |`align`| Function | Roman Sedaikin | done | |
 |`position`| Function | Roman Sedaikin | done | |
-|`markAnchor`| Function | | | |
+|`markAnchor`| Function | Dmitry A Smirnov| in progress | |
 |`offset`| Function | Skroba Gleb | in progress | |
 |`enabled`| Function | Roman Sedaikin | done | |
-|`useSizeType`| Function | | | |
-|`alignRules`| Function | | | |
+|`useSizeType`| Function | Dmitry A Smirnov| in progress | |
+|`alignRules`| Function | Dmitry A Smirnov| in progress | |
 |`aspectRatio`| Function | Roman Sedaikin | done | |
 |`clickEffect`| Function | | | |
 |`onDragStart`| Function | | | |
@@ -251,9 +237,9 @@
 |`motionPath`| Function | | | |
 |`shadow`| Function | Roman Sedaikin | done | |
 |`clip`| Function | Skroba Gleb |  blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH |
-|`clipShape`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH |
-|`mask`| Function | | | |
-|`maskShape`| Function | | | |
+|`clipShape`| Function | Dmitry A Smirnov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAW4RH |
+|`mask`| Function | Dmitry A Smirnov| in progress | |
+|`maskShape`| Function | Dmitry A Smirnov| in progress | |
 |`key`| Function | | | |
 |`id`| Function | Erokhin Ilya | done |  |
 |`geometryTransition`| Function | | | |
@@ -287,8 +273,8 @@
 |`backgroundImage`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
 |`backgroundBlurStyle`| Function | Skroba Gleb | done |  |
 |`foregroundBlurStyle`| Function | Roman Sedaikin | done | |
-|`focusScopeId`| Function | Berezin Kirill | in progress | |
-|`focusScopePriority`| Function | Berezin Kirill | in progress | |
+|`focusScopeId`| Function | Dmitry A Smirnov| in progress | |
+|`focusScopePriority`| Function | Dmitry A Smirnov| in progress | |
 |`gesture`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
 |`priorityGesture`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
 |`parallelGesture`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IARW2A |
@@ -321,12 +307,14 @@
 |`strokeWidth`| Function | Evstigneev Roman | done |  |
 |`antiAlias`| Function | Evstigneev Roman | done |  |
 |`strokeDashArray`| Function | Evstigneev Roman | blocked AceEngine|https://gitee.com/openharmony/interface_sdk-js/issues/IAX8ZZ|
+|*Common*| *Component* | | | |
+|`setCommonOptions`| Function | | | |
 |*ScrollableCommonMethod*| *Component* | Samarin Sergey |in progress |  |
 |`scrollBar`| Function | Samarin Sergey | in progress |  |
 |`scrollBarColor`| Function | Samarin Sergey | in progress |  |
 |`scrollBarWidth`| Function | Samarin Sergey | in progress |  |
 |`nestedScroll`| Function | Samarin Sergey | in progress |  |
-|`enableScrollInteraction`| Function | Samarin Sergey |in progress |  |
+|`enableScrollInteraction`| Function | Samarin Sergey | in progress |  |
 |`friction`| Function | Samarin Sergey | in progress |  |
 |`onScroll`| Function | Samarin Sergey | in progress|  |
 |`onWillScroll`| Function | Samarin Sergey | in progress|  |
@@ -336,8 +324,9 @@
 |`onScrollStart`| Function | Samarin Sergey | in progress|  |
 |`onScrollStop`| Function | Samarin Sergey | in progress|  |
 |`flingSpeedLimit`| Function | Samarin Sergey | in progress |  |
-|`edgeEffect`| Function | Samarin Sergey |in progress | Arkoala|  |
-|`fadingEdge`| Function | Samarin Sergey | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`clipContent`| Function | | | |
+|`edgeEffect`| Function | Samarin Sergey | in progress | |
+|`fadingEdge`| Function | Samarin Sergey | in progress| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |*Component3D*| *Component* |Kovalev Sergey | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZC20 |
 |`setComponent3DOptions`| Function |Kovalev Sergey | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZC20 |
 |`environment`| Function |Kovalev Sergey | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZC20 |
@@ -356,9 +345,6 @@
 |`onDec`| Function | Erokhin Ilya | done |  |
 |`enableDec`| Function | Erokhin Ilya | done |  |
 |`enableInc`| Function | Erokhin Ilya | done |  |
-|*CustomDialogController*| *Class* | Erokhin Ilya | blocked | https://gitee.com/openharmony/interface_sdk-js/issues/IB07SJ & https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
-|`open`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/openharmony/interface_sdk-js/issues/IB07SJ & https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
-|`close`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/openharmony/interface_sdk-js/issues/IB07SJ & https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
 |*DataPanel*| *Component* | Morozov Sergey |blocked|  |
 |`setDataPanelOptions`| Function | Morozov Sergey |done |  |
 |`closeEffect`| Function | Morozov Sergey |done |  |
@@ -368,22 +354,32 @@
 |`trackShadow`| Function |Morozov Sergey |blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAW4DU|
 |`contentModifier`| Function | Morozov Sergey |blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |*DatePicker*| *Component* | Vadim Voronov | done |  |
-|`setDatePickerOptions`| Function | Vadim Voronov| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`setDatePickerOptions`| Function | Vadim Voronov| in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`lunar`| Function |Vadim Voronov | done |  |
 |`disappearTextStyle`| Function | Vadim Voronov| done |  |
 |`textStyle`| Function |Vadim Voronov | done |  |
 |`selectedTextStyle`| Function |Vadim Voronov | done |  |
 |`onChange`| Function | Vadim Voronov| done |  |
-|`onDateChange`| Function |Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`onDateChange`| Function |Vadim Voronov | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |*Divider*| *Component* | Tuzhilkin Ivan | done |  |
 |`setDividerOptions`| Function | Tuzhilkin Ivan| done |  |
 |`vertical`| Function | Tuzhilkin Ivan | done |  |
 |`color`| Function | Tuzhilkin Ivan | done |  |
 |`strokeWidth`| Function | Tuzhilkin Ivan | done |  |
 |`lineCap`| Function | Tuzhilkin Ivan | done |  |
+|*EffectComponent*| *Component* | | | |
+|`setEffectComponentOptions`| Function | | | |
+|*Ellipse*| *Component* | | | |
+|`setEllipseOptions`| Function | | | |
+|*EmbeddedComponent*| *Component* | | | |
+|`setEmbeddedComponentOptions`| Function | | | |
+|`onTerminated`| Function | | | |
+|`onError`| Function | | | |
 |*Flex*| *Component* | Kovalev Sergey | in progress |  |
 |`setFlexOptions`| Function | Kovalev Sergey | done |  |
 |`pointLight`| Function | Evstigneev Roman | In Progress |  |
+|*FlowItem*| *Component* | | | |
+|`setFlowItemOptions`| Function | | | |
 |*FolderStack*| *Component* | Politov Mikhail | done |  |
 |`setFolderStackOptions`| Function | Politov Mikhail | done |  |
 |`alignContent`| Function | Politov Mikhail | done |  |
@@ -473,13 +469,16 @@
 |`setGridRowOptions`| Function |Lobah Mikhail| in progress|  |
 |`onBreakpointChange`| Function |Lobah Mikhail| in progress|  |
 |`alignItems`| Function |Lobah Mikhail| in progress|  |
+|*Hyperlink*| *Component* | | |
+|`setHyperlinkOptions`| Function | | |
+|`color`| Function | | |
 |*Image*| *Component* | Korobeinikov Evgeny | in progress |  |
 |`setImageOptions`| Function | Berezin Kirill | in progress | |
 |`alt`| Function | Evstigneev Roman | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
 |`matchTextDirection`| Function | Evstigneev Roman | in progress | |
 |`fitOriginalSize`| Function | Evstigneev Roman | in progress | |
 |`fillColor`| Function | Evstigneev Roman | done | |
-|`objectFit`| Function |Kirill Berezin| done | |
+|`objectFit`| Function |Berezin Kirill| done | |
 |`objectRepeat`| Function | Evstigneev Roman | in progress | |
 |`autoResize`| Function | Evstigneev Roman | in progress | https://gitee.com/openharmony/arkui_ace_engine/issues/IAW529 |
 |`renderMode`| Function | Evstigneev Roman | in progress | |
@@ -500,6 +499,21 @@
 |`resizable`| Function | Evstigneev Roman | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0Y7V |
 |`privacySensitive`| Function | Evstigneev Roman | in progress | |
 |`enhancedImageQuality`| Function | Evstigneev Roman | in progress | |
+|*ImageAnimator*| *Component* | | | |
+|`setImageAnimatorOptions`| Function | | | |
+|`images`| Function | | | |
+|`state`| Function | | | |
+|`duration`| Function | | | |
+|`reverse`| Function | | | |
+|`fixedSize`| Function | | | |
+|`preDecode`| Function | | | |
+|`fillMode`| Function | | | |
+|`iterations`| Function | | | |
+|`onStart`| Function | | | |
+|`onPause`| Function | | | |
+|`onRepeat`| Function | | | |
+|`onCancel`| Function | | | |
+|`onFinish`| Function | | | |
 |*ImageSpan*| *Component* | Politov Mikhail | in progress|  |
 |`setImageSpanOptions`| Function | Politov Mikhail |  in progress|  |
 |`verticalAlign`| Function | Politov Mikhail | in progress |  |
@@ -561,6 +575,11 @@
 |`setListItemGroupOptions`|Function|Morozov Sergey|blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
 |`divider`|Function|Morozov Sergey|done|  |
 |`childrenMainSize`|Function|Morozov Sergey|in progress|  |
+|*LoadingProgress*|*Component*| Samarin Sergey | done |  |
+|`setLoadingProgressOptions`|Function| Samarin Sergey | done |  |
+|`color`|Function| Samarin Sergey | done |  |
+|`enableLoading`|Function| Samarin Sergey | done |  |
+|`contentModifier`|Function| Samarin Sergey|blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |*LocationButton*| *Component* |Samarin Sergey| done |  |
 |`setLocationButtonOptions`| Function |Samarin Sergey| done |  |
 |`onClick`| Function |Samarin Sergey| done |  |
@@ -575,19 +594,16 @@
 |`onStart`| Function | Andrey Khudenkikh| in progress |  |
 |`onBounce`| Function |Andrey Khudenkikh | in progress |  |
 |`onFinish`| Function |Andrey Khudenkikh | in progress |  |
-|*LoadingProgress*|*Component*| Samarin Sergey | done |  |
-|`setLoadingProgressOptions`|Function| Samarin Sergey | done |  |
-|`color`|Function| Samarin Sergey | done |  |
-|`enableLoading`|Function| Samarin Sergey | done |  |
-|`contentModifier`|Function| Samarin Sergey|blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
+|*MediaCachedImage*| *Component* | | |
+|`setMediaCachedImageOptions`| Function | | |
 |*Menu*|*Component*|Morozov Sergey|blocked |  |
 |`setMenuOptions`| Function |Morozov Sergey| done |  |
 |`fontSize`|Function|Morozov Sergey| done |  |
 |`fontColor`|Function|Morozov Sergey| done |  |
 |`font`|Function|Morozov Sergey| done |  |
 |`radius`|Function|Morozov Sergey| done |  |
-|`menuItemDivider`|Function|Morozov Sergey| blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX|
-|`menuItemGroupDivider`|Function|Morozov Sergey| blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX|
+|`menuItemDivider`|Function|Morozov Sergey| in progress |https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX|
+|`menuItemGroupDivider`|Function|Morozov Sergey| in progress |https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX|
 |`subMenuExpandingMode`|Function|Morozov Sergey| done |  |
 |*MenuItem*| *Component* |Morozov Sergey|blocked|  |
 |`setMenuItemOptions`| Function |Morozov Sergey|blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
@@ -616,9 +632,15 @@
 |`onWillHide`| Function | Kovalev Sergey | done | |
 |`systemBarStyle`| Function |Kovalev Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |`recoverable`| Function |Kovalev Sergey | done |  |
-|`systemTransition`| Function |Kovalev Sergey | blocked AceEngine | No handlers for Ark_NavigationSystemTransitionType |
+|`systemTransition`| Function |Kovalev Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB4BII |
 |`title`| Function |Kovalev Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
+|`toolbarConfiguration`| Function |Kovalev Sergey | in progress |  |
+|`hideToolBar`| Function | Kovalev Sergey | in progress |  |
 |`ignoreLayoutSafeArea`| Function |Kovalev Sergey | done |  |
+|*NavRouter*| *Component* |Evstigneev Roman | done |  |
+|`setNavRouterOptions`| Function |Evstigneev Roman| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAYQZF |
+|`onStateChange`| Function |Evstigneev Roman | done|  |
+|`mode`| Function |Evstigneev Roman | done |  |
 |*Navigation*| *Component* | Erokhin Ilya | in progress |  |
 |`setNavigationOptions`| Function | Skroba Gleb | in progress| depend on NavPathStack |
 |`navBarWidth`|Function| Skroba Gleb | in progress | |
@@ -630,7 +652,7 @@
 |`hideNavBar`|Function| Erokhin Ilya | done |  |
 |`subTitle`|Function| Erokhin Ilya | done |  |
 |`hideTitleBar`|Function| Skroba Gleb | in progress | main part done, no ace_engine implementation for second |
-|`onTitleModeChange`| Function | Skroba Gleb | in progress| no callbacks Arkoala support |
+|`onTitleModeChange`| Function | Skroba Gleb | in progress| no callbacks IDL support |
 |`hideBackButton`|Function| Erokhin Ilya | done |  |
 |`titleMode`|Function| Erokhin Ilya | done |  |
 |`menus`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q ,  https://gitee.com/openharmony/arkui_ace_engine/issues/IB3U6S|
@@ -638,23 +660,22 @@
 |`hideToolBar`|Function| Skroba Gleb | in progress | main part done, no ace_engine implementation for second |
 |`onNavBarStateChange`|Function| Erokhin Ilya | done |  |
 |`onNavigationModeChange`|Function| Erokhin Ilya | done |  |
-|`navDestination`| Function | Skroba Gleb | in progress | no callbacks Arkoala support |
-|`customNavContentTransition`| Function | Skroba Gleb | in progress| no callbacks Arkoala support |
+|`navDestination`| Function | Skroba Gleb | in progress | no callbacks IDL support |
+|`customNavContentTransition`| Function | Skroba Gleb | in progress| no callbacks IDL support |
 |`systemBarStyle`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |`recoverable`|Function| Erokhin Ilya | done |  |
+|`enableDragBar`| Function | | | |
 |`title`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
 |`toolbarConfiguration`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q|
-|`ignoreLayoutSafeArea`| Function | Skroba Gleb | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TXB |
-|*NavRouter*| *Component* |Evstigneev Roman | done |  |
-|`setNavRouterOptions`| Function |Evstigneev Roman| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAYQZF |
-|`onStateChange`| Function |Evstigneev Roman | done|  |
-|`mode`| Function |Evstigneev Roman | done |  |
+|`ignoreLayoutSafeArea`| Function | Skroba Gleb | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3TXB |
 |*Navigator*| *Component* | Skroba Gleb| blocked |  |
 |`setNavigatorOptions`| Function | Skroba Gleb | done |  |
 |`active`| Function | Skroba Gleb | done |  |
 |`type`| Function | Skroba Gleb | done |  |
 |`target`| Function | Skroba Gleb | done |  |
-|`params`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`params`| Function | Skroba Gleb |in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|*NodeContainer*| *Component* | | | |
+|`setNodeContainerOptions`| Function | | | |
 |*Panel*| *Component* | Pavelyev Ivan| done |  |
 |`setPanelOptions`| Function | Pavelyev Ivan| done |  |
 |`mode`| Function |Pavelyev Ivan| done |  |
@@ -689,18 +710,28 @@
 |`autoReset`| Function | Dmitry A Smirnov| done|  |
 |`onDotConnect`| Function | Dmitry A Smirnov| in progress|  |
 |`activateCircleStyle`| Function | Dmitry A Smirnov| blocked AceEngine| https://gitee.com/openharmony/arkui_ace_engine/issues/IAYWON |
-|*Progress*| *Component* | Erokhin Ilya | | |
+|*PluginComponent*| *Component* | | | |
+|`setPluginComponentOptions`| Function | | | |
+|`onComplete`| Function | | | |
+|`onError`| Function | | | |
+|*Polygon*| *Component* | | | |
+|`setPolygonOptions`| Function | | | |
+|`points`| Function | | | |
+|*Polyline*| *Component* | | | |
+|`setPolylineOptions`| Function | | | |
+|`points`| Function | | | |
+|*Progress*| *Component* | Erokhin Ilya |   | |
 |`setProgressOptions`| Function | Erokhin Ilya | in progress | |
 |`value`| Function | Erokhin Ilya | in progress | |
 |`color`| Function | Erokhin Ilya | in progress | |
-|`style`| Function | Erokhin Ilya | in progress | |
+|`style`| Function | Erokhin Ilya | blocked | linearStyle.strokeRadius https://gitee.com/nikolay-igotti/idlize/issues/IB4G8D |
 |`privacySensitive`| Function | Erokhin Ilya | in progress | |
-|`contentModifier`| Function | Erokhin Ilya | in progress | |
+|`contentModifier`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |*QRCode*| *Component* | Evstigneev Roman |in progress|  |
 |`setQRCodeOptions`| Function |Evstigneev Roman | done |  |
-|`color`| Function |Evstigneev Roman |blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZVOQ |
-|`backgroundColor`| Function |Evstigneev Roman | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZVOQ |
-|`contentOpacity`| Function |Evstigneev Roman | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZVOQ |
+|`color`| Function |Evstigneev Roman |done | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZVOQ |
+|`backgroundColor`| Function |Evstigneev Roman | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZVOQ |
+|`contentOpacity`| Function |Evstigneev Roman | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IAZVOQ |
 |*Radio*| *Component* | Evstigneev Roman | done |  |
 |`setRadioOptions`| Function | Evstigneev Roman | done |  |
 |`checked`| Function | Evstigneev Roman | done |  |
@@ -720,12 +751,12 @@
 |`radiusHeight`|Function|Dudkin Sergey| done |  |
 |`radius`|Function|Dudkin Sergey| blocked AceEngine|https://gitee.com/openharmony/interface_sdk-js/issues/IAXA7J|
 |*Refresh*| *Component* |Politov Mikhail | in progress |  |
-|`setRefreshOptions`| Function |Politov Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`onStateChange`| Function |Politov Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`onRefreshing`| Function |Politov Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`setRefreshOptions`| Function |Politov Mikhail | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`onStateChange`| Function |Politov Mikhail | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`onRefreshing`| Function |Politov Mikhail | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`refreshOffset`| Function |Politov Mikhail | done |  |
 |`pullToRefresh`| Function |Politov Mikhail | done |  |
-|`onOffsetChange`| Function |Politov Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`onOffsetChange`| Function |Politov Mikhail | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`pullDownRatio`| Function |Politov Mikhail | done |  |
 |*RelativeContainer*| *Component* | Dmitry A Smirnov | done |  |
 |`setRelativeContainerOptions`| Function | Dmitry A Smirnov | done |  |
@@ -751,10 +782,10 @@
 |`onEditingChange`| Function | Dudkin Sergey| done|  |
 |`enterKeyType`| Function | Dudkin Sergey| in progress|  |
 |`onSubmit`| Function | Dudkin Sergey| done|  |
-|`onWillChange`| Function | Dudkin Sergey| done|  |
+|`onWillChange`| Function | Dudkin Sergey| blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IB4G70 |
 |`onDidChange`| Function | Dudkin Sergey| done|  |
-|`onCut`| Function | Dudkin Sergey| in progress| Ark_CutEvent param is always empty now DMZ|
-|`onCopy`| Function | Dudkin Sergey| in progress| Ark_CopyEvent param is always empty now DMZ|
+|`onCut`| Function | Dudkin Sergey| in progress| |
+|`onCopy`| Function | Dudkin Sergey| in progress| |
 |`editMenuOptions`| Function | Dudkin Sergey| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB3UKQ |
 |`enableKeyboardOnFocus`| Function | Dudkin Sergey| in progress|  |
 |`enableHapticFeedback`| Function | Dudkin Sergey| in progress|  |
@@ -766,6 +797,8 @@
 |`setRichTextOptions`| Function | Dudkin Sergey| in progress|  |
 |`onStart`| Function | Dudkin Sergey| in progress|  |
 |`onComplete`| Function | Dudkin Sergey| in progress|  |
+|*RootScene*| *Component* | Maksimov Nikita | in progress | |
+|`setRootSceneOptions`| Function | Maksimov Nikita | in progress | |
 |*Row*| *Component* | Andrey Khudenkikh | in progress |  |
 |`setRowOptions`| Function | Andrey Khudenkikh | done |  |
 |`alignItems`| Function | Andrey Khudenkikh | done |  |
@@ -778,38 +811,32 @@
 |*SaveButton*| *Component* | Samarin Sergey| done |  |
 |`setSaveButtonOptions`| Function | Samarin Sergey| done |  |
 |`onClick`| Function | Samarin Sergey| done |  |
-|*Scroll*| *Component* | Kirill Berezin | in progress |  |
-|`setScrollOptions`| Function | Kirill Berezin | in progress |  |
-|`scrollable`| Function | Kirill Berezin | In progress |  |
-|`onScroll`| Function | Kirill Berezin | done |  |
-|`onWillScroll`| Function | Kirill Berezin |blocked |  |
-|`onDidScroll`| Function | Kirill Berezin | in progress |  |
-|`onScrollEdge`| Function | Kirill Berezin | in progress |  |
-|`onScrollStart`| Function | Kirill Berezin | done |  |
-|`onScrollEnd`| Function | Kirill Berezin | done |  |
-|`onScrollStop`| Function | Kirill Berezin | done |  |
-|`scrollBar`| Function | Kirill Berezin | in progress |  |
-|`scrollBarColor`| Function | Kirill Berezin | in progress |  |
-|`scrollBarWidth`| Function | Kirill Berezin | in progress |  |
-|`edgeEffect`| Function | Kirill Berezin | in progress |  |
-|`onScrollFrameBegin`| Function | Kirill Berezin |blocked |  |
-|`nestedScroll`| Function | Kirill Berezin | in progress |  |
-|`enableScrollInteraction`| Function | Kirill Berezin | In progress |  |
-|`friction`| Function | Kirill Berezin | In progress |  |
-|`scrollSnap`| Function | Kirill Berezin | in progress |  |
-|`enablePaging`| Function | Kirill Berezin | done |  |
-|`initialOffset`| Function | Kirill Berezin | done |  |
-|*Scroller*| *Class* | Erokhin Ilya | blocked |  |
-|`scrollTo`| Function | Erokhin Ilya | done |  |
-|`scrollEdge`| Function | Erokhin Ilya | done |  |
-|`fling`| Function | Erokhin Ilya | done |  |
-|`scrollPage`| Function | Erokhin Ilya | done |  |
-|`currentOffset`| Function | Erokhin Ilya | blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0|
-|`scrollToIndex`| Function | Erokhin Ilya | blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX|
-|`scrollBy`| Function | Erokhin Ilya | done |  |
-|`isAtEnd`| Function | Erokhin Ilya | done |  |
-|`getItemRect`| Function | Erokhin Ilya | blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0|
-|`getItemIndex`| Function | Erokhin Ilya | done |  |
+|*Screen*| *Component* | Maksimov Nikita | in progress | |
+|`setScreenOptions`| Function | Maksimov Nikita | in progress | |
+|*Scroll*| *Component* | Berezin Kirill | in progress |  |
+|`setScrollOptions`| Function | Berezin Kirill | in progress |  |
+|`scrollable`| Function | Berezin Kirill | In progress |  |
+|`onScroll`| Function | Berezin Kirill | done |  |
+|`onWillScroll`| Function | Berezin Kirill |blocked |  |
+|`onDidScroll`| Function | Berezin Kirill | in progress |  |
+|`onScrollEdge`| Function | Berezin Kirill | in progress |  |
+|`onScrollStart`| Function | Berezin Kirill | done |  |
+|`onScrollEnd`| Function | Berezin Kirill | done |  |
+|`onScrollStop`| Function | Berezin Kirill | done |  |
+|`scrollBar`| Function | Berezin Kirill | in progress |  |
+|`scrollBarColor`| Function | Berezin Kirill | in progress |  |
+|`scrollBarWidth`| Function | Berezin Kirill | in progress |  |
+|`edgeEffect`| Function | Berezin Kirill | in progress |  |
+|`onScrollFrameBegin`| Function | Berezin Kirill |blocked |  |
+|`nestedScroll`| Function | Berezin Kirill | in progress |  |
+|`enableScrollInteraction`| Function | Berezin Kirill | In progress |  |
+|`friction`| Function | Berezin Kirill | In progress |  |
+|`scrollSnap`| Function | Berezin Kirill | in progress |  |
+|`enablePaging`| Function | Berezin Kirill | done |  |
+|`initialOffset`| Function | Berezin Kirill | done |  |
+|*ScrollBar*| *Component* | Maksimov Nikita | in progress | |
+|`setScrollBarOptions`| Function | Maksimov Nikita | in progress | |
+|`enableNestedScroll`| Function | Maksimov Nikita | in progress | |
 |*Search*|*Component*| Evstigneev Roman |In Progress|  |
 |`setSearchOptions`|Function| Evstigneev Roman | in progress | https://gitee.com/openharmony/arkui_ace_engine/issues/IAXCOP |
 |`searchButton`|Function| Evstigneev Roman | done |  |
@@ -857,11 +884,11 @@
 |`layoutDirection`| Function |Samarin Sergey|done |  |
 |`position`| Function |Samarin Sergey| done |  |
 |`markAnchor`| Function |Samarin Sergey| done |  |
-|`offset`| Function |Samarin Sergey| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`offset`| Function |Samarin Sergey| in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`fontSize`| Function |Samarin Sergey| done |  |
 |`fontStyle`| Function |Samarin Sergey| done |  |
 |`fontWeight`| Function |Samarin Sergey| done |  |
-|`fontFamily`| Function |Samarin Sergey| blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB29LJ |
+|`fontFamily`| Function |Samarin Sergey| done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB29LJ |
 |`fontColor`| Function |Samarin Sergey| done |  |
 |`iconColor`| Function |Samarin Sergey| done |  |
 |`backgroundColor`| Function |Samarin Sergey| done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB17WJ |
@@ -939,7 +966,7 @@
 |`showTips`| Function |Morozov Sergey |done |  |
 |*BaseSpan*| *Component* |Politov Mikhail | in progress |  |
 |`textBackgroundStyle`| Function | Politov Mikhail | done |  |
-|`baselineOffset`| Function | Politov Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`baselineOffset`| Function | Politov Mikhail | in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |*Span*| *Component* | Politov Mikhail | done |  |
 |`setSpanOptions`| Function |Politov Mikhail | done  |  |
 |`font`| Function | Politov Mikhail | done |  |
@@ -952,7 +979,7 @@
 |`letterSpacing`| Function |Politov Mikhail | done |  |
 |`textCase`| Function | Politov Mikhail | done |  |
 |`lineHeight`| Function | Politov Mikhail | done |  |
-|`textShadow`| Function | Politov Mikhail | blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1K3Z |
+|`textShadow`| Function | Politov Mikhail | done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1K3Z |
 |*Stack*| *Component* | Korobeinikov Evgeny | in progress |  |
 |`setStackOptions` | Function | Korobeinikov Evgeny | done |  |
 |`alignContent` | Function | Korobeinikov Evgeny | done |  |
@@ -993,7 +1020,7 @@
 |`onAnimationStart`| Function | Skroba Gleb| done |  |
 |`onAnimationEnd`| Function | Skroba Gleb | done |  |
 |`onGestureSwipe`| Function | Skroba Gleb | done |  |
-|`nestedScroll`| Function | Skroba Gleb| blocked UT | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3ULZ |
+|`nestedScroll`| Function | Skroba Gleb| done | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3ULZ |
 |`customContentTransition`| Function | Skroba Gleb | in progress | |
 |`onContentDidScroll`| Function | Skroba Gleb| done | |
 |`indicatorInteractive`| Function | Skroba Gleb| done |  |
@@ -1005,14 +1032,10 @@
 |`loop`| Function |  Andrey Khudenkikh | done |  |
 |`vertical`| Function | Andrey Khudenkikh | done |  |
 |`onChange`| Function | Andrey Khudenkikh | done |  |
-|*IndicatorComponentController*| *Class* | Andrey Khudenkikh | in progress |  |
-|`showNext`| Function | Andrey Khudenkikh | in progress |  |
-|`showPrevious`| Function |  Andrey Khudenkikh | in progress |  |
-|`changeIndex`| Function |  Andrey Khudenkikh | in progress |  |
-|*SymbolGlyph*| *Component* |Andrey Khudenkikh | in progress |  |
-|`setSymbolGlyphOptions`| Function |Andrey Khudenkikh | in progress |  |
+|*SymbolGlyph*| *Component* |Andrey Khudenkikh | blocked |  |
+|`setSymbolGlyphOptions`| Function |Andrey Khudenkikh | done |  |
 |`fontSize`| Function |Andrey Khudenkikh | done |  |
-|`fontColor`| Function |Andrey Khudenkikh | in progress |  |
+|`fontColor`| Function |Andrey Khudenkikh | done |  |
 |`fontWeight`| Function |Andrey Khudenkikh | done |  |
 |`effectStrategy`| Function |Andrey Khudenkikh | done |  |
 |`renderingStrategy`| Function |Andrey Khudenkikh | done |  |
@@ -1024,21 +1047,52 @@
 |`fontWeight`| Function |Dmitry A Smirnov| done|  |
 |`effectStrategy`| Function |Dmitry A Smirnov| done|  |
 |`renderingStrategy`| Function |Dmitry A Smirnov| done|  |
+|*Tabs*| *Component* | Tuzhilkin Ivan | in progress |  |
+|`setTabsOptions`| Function | Skroba Gleb | done |  |
+|`vertical`| Function | Tuzhilkin Ivan | done |  |
+|`barPosition`| Function | Tuzhilkin Ivan | done |  |
+|`scrollable`| Function | Tuzhilkin Ivan | done |  |
+|`barMode`| Function | Tuzhilkin Ivan | done |  |
+|`barWidth`| Function | Tuzhilkin Ivan | done |  |
+|`barHeight`| Function | Tuzhilkin Ivan | done  |  |
+|`animationDuration`| Function | Tuzhilkin Ivan | in progress | https://gitee.com/openharmony/arkui_ace_engine/issues/IATEBX |
+|`animationMode`| Function | Tuzhilkin Ivan | done |  |
+|`edgeEffect`| Function | Tuzhilkin Ivan | done |  |
+|`onChange`| Function | Tuzhilkin Ivan | done |  |
+|`onTabBarClick`| Function | Tuzhilkin Ivan | done |  |
+|`onAnimationStart`| Function | Tuzhilkin Ivan | done |  |
+|`onAnimationEnd`| Function | Tuzhilkin Ivan | done |  |
+|`onGestureSwipe`| Function | Tuzhilkin Ivan | done |  |
+|`fadingEdge`| Function | Tuzhilkin Ivan | done |  |
+|`divider`| Function | Tuzhilkin Ivan | done |  |
+|`barOverlap`| Function | Tuzhilkin Ivan | done |  |
+|`barBackgroundColor`| Function | Tuzhilkin Ivan | done |  |
+|`barGridAlign`| Function | Tuzhilkin Ivan | done |  |
+|`customContentTransition`| Function | Tuzhilkin Ivan | in progress |  |
+|`barBackgroundBlurStyle`| Function | Tuzhilkin Ivan | done |  |
+|`barBackgroundEffect`| Function | | | |
+|`onContentWillChange`| Function | Tuzhilkin Ivan | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IARLIB |
+|`barModeBarMode_SCROLLABLE`| Function | | | |
+|*TabContent*| *Component* | Evstigneev Roman |in progress |  |
+|`setTabContentOptions`| Function | Evstigneev Roman | done |  |
+|`tabBar`| Function | Evstigneev Roman | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
+|`onWillShow`| Function |Evstigneev Roman | in progress |  |
+|`onWillHide`| Function |Evstigneev Roman | in progress |  |
 |*Text*| *Component* | Kirill Kirichenko | in progress | |
 |`setTextOptions`| Function | Kirill Kirichenko | in progress |  |
 |`font`| Function |Samarin Sergey |in progress |  |
-|`fontColor`| Function |Samarin Sergey |in progress |  |
-|`fontSize`| Function |Samarin Sergey |in progress |  |
+|`fontColor`| Function |Samarin Sergey | in progress |  |
+|`fontSize`| Function |Samarin Sergey | in progress |  |
 |`minFontSize`| Function |Samarin Sergey |in progress |  |
 |`maxFontSize`| Function |Samarin Sergey |in progress |  |
 |`minFontScale`| Function |Samarin Sergey |in progress |  |
 |`maxFontScale`| Function |Samarin Sergey |in progress |  |
-|`fontStyle`| Function |Samarin Sergey |in progress |  |
+|`fontStyle`| Function |Samarin Sergey | in progress |  |
 |`fontWeight`| Function |Samarin Sergey |in progress |  |
 |`lineSpacing`| Function |Samarin Sergey |in progress |  |
 |`textAlign`| Function |Samarin Sergey |in progress |  |
 |`lineHeight`| Function |Samarin Sergey |in progress |  |
-|`textOverflow`| Function |Samarin Sergey |in progress |  |
+|`textOverflow`| Function |Samarin Sergey | in progress |  |
 |`fontFamily`| Function |Samarin Sergey |in progress |  |
 |`maxLines`| Function |Samarin Sergey |in progress |  |
 |`decoration`| Function |Samarin Sergey |in progress |  |
@@ -1048,14 +1102,14 @@
 |`copyOption`| Function |Samarin Sergey |in progress |  |
 |`draggable`| Function |Samarin Sergey | done |  |
 |`textShadow`| Function |Samarin Sergey |in progress |  |
-|`heightAdaptivePolicy`| Function |Samarin Sergey |in progress |  |
+|`heightAdaptivePolicy`| Function |Samarin Sergey | in progress |  |
 |`textIndent`| Function |Samarin Sergey |in progress |  |
-|`wordBreak`| Function | Samarin Sergey |in progress |  |
+|`wordBreak`| Function | Samarin Sergey | in progress |  |
 |`lineBreakStrategy`| Function |Samarin Sergey |in progress |  |
 |`onCopy`| Function | Samarin Sergey |in progress |  |
 |`caretColor`| Function |Samarin Sergey |in progress |  |
 |`selectedBackgroundColor`| Function |Samarin Sergey |in progress |  |
-|`ellipsisMode`| Function |Samarin Sergey |in progress |  |
+|`ellipsisMode`| Function |Samarin Sergey | in progress |  |
 |`EnableDataDetector`| Function | Kirill Kirichenko | done |  |
 |`DataDetectorConfig`| Function | Kirill Kirichenko | in progress |  |
 |`onTextSelectionChange`| Function |Samarin Sergey |in progress |  |
@@ -1072,12 +1126,12 @@
 |`placeholderFont`|Function|Tuzhilkin Ivan|done|  |
 |`enterKeyType`|Function|Tuzhilkin Ivan|done|  |
 |`textAlign`|Function|Tuzhilkin Ivan|done|  |
-|`caretColor`|Function|Tuzhilkin Ivan|done|  |
-|`fontColor`|Function|Tuzhilkin Ivan|done|  |
-|`textIndent`|Function|Tuzhilkin Ivan|done|  |
+|`caretColor`|Function|Tuzhilkin Ivan|in progress|  |
+|`fontColor`|Function|Tuzhilkin Ivan|in progress|  |
+|`textIndent`|Function|Tuzhilkin Ivan|in progress|  |
 |`inputFilter`|Function|Tuzhilkin Ivan|done|  |
 |`caretStyle`|Function|Tuzhilkin Ivan|in progress|  |
-|`selectedBackgroundColor`|Function|Tuzhilkin Ivan|done|  |
+|`selectedBackgroundColor`|Function|Tuzhilkin Ivan|in progress|  |
 |`onSubmit`|Function|Tuzhilkin Ivan|done|  |
 |`onChange`|Function|Tuzhilkin Ivan|done|  |
 |`onTextSelectionChange`|Function|Tuzhilkin Ivan|done|  |
@@ -1090,13 +1144,13 @@
 |`enableKeyboardOnFocus`|Function|Tuzhilkin Ivan|done|  |
 |`maxLength`|Function|Tuzhilkin Ivan|done|  |
 |`selectionMenuHidden`|Function|Tuzhilkin Ivan|done|  |
-|`minFontSize`|Function|Tuzhilkin Ivan|done|  |
-|`maxFontSize`|Function|Tuzhilkin Ivan|done|  |
+|`minFontSize`|Function|Tuzhilkin Ivan|in progress|  |
+|`maxFontSize`|Function|Tuzhilkin Ivan|in progress|  |
 |`maxLines`|Function|Tuzhilkin Ivan|done|  |
 |`customKeyboard`|Function|Tuzhilkin Ivan|blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
-|`decoration`|Function|Tuzhilkin Ivan|done|  |
-|`letterSpacing`|Function|Tuzhilkin Ivan|done|  |
-|`lineSpacing`|Function|Tuzhilkin Ivan|blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`decoration`|Function|Tuzhilkin Ivan|in progress|  |
+|`letterSpacing`|Function|Tuzhilkin Ivan|in progress|  |
+|`lineSpacing`|Function|Tuzhilkin Ivan|in progress| |
 |`lineHeight`|Function|Tuzhilkin Ivan|done|  |
 |`type`|Function|Tuzhilkin Ivan|done|  |
 |`enableAutoFill`|Function|Tuzhilkin Ivan|done|  |
@@ -1113,8 +1167,8 @@
 |`fontStyle`|Function|Tuzhilkin Ivan|in progress|  |
 |`fontWeight`|Function|Tuzhilkin Ivan|in progress|  |
 |`fontFamily`|Function|Tuzhilkin Ivan|in progress|  |
-|`textOverflow`|Function|Tuzhilkin Ivan|blocked AceEngine|https://gitee.com/openharmony/arkui_ace_engine/issues/IAXX0N|
-|`showCounter`|Function|Tuzhilkin Ivan|blocked AceEngine| https://gitee.com/openharmony/arkui_ace_engine/issues/IB3V0N |
+|`textOverflow`|Function|Tuzhilkin Ivan|in progress| https://gitee.com/openharmony/arkui_ace_engine/issues/IAXX0N |
+|`showCounter`|Function|Tuzhilkin Ivan|in progress| https://gitee.com/openharmony/arkui_ace_engine/issues/IB3V0N |
 |`style`|Function|Tuzhilkin Ivan|in progress|  |
 |`barState`|Function|Tuzhilkin Ivan|in progress|  |
 |`heightAdaptivePolicy`|Function|Tuzhilkin Ivan|in progress|  |
@@ -1134,9 +1188,6 @@
 |`fontFeature`| Function |Pavelyev Ivan|done|  |
 |`contentModifier`| Function |Pavelyev Ivan|blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |`dateTimeOptions`| Function |Pavelyev Ivan|in progress|  |
-|*TextClockController*| *Class* |Pavelyev Ivan|in progress|  |
-|`start`| Function |Pavelyev Ivan|in progress|  |
-|`stop`| Function |Pavelyev Ivan|in progress|  |
 |*TextInput*| *Component* | Spirin Andrey | in progress |  |
 |`setTextInputOptions`| Function | Spirin Andrey | done |  |
 |`type`| Function | Spirin Andrey | done |  |
@@ -1157,8 +1208,8 @@
 |`fontColor`| Function | Spirin Andrey | done |  |
 |`fontSize`| Function | Spirin Andrey | done |  |
 |`fontStyle`| Function | Spirin Andrey | done |  |
-|`fontWeight`| Function | Spirin Andrey | done  |  |
-|`fontFamily`| Function | Spirin Andrey | in progress |  |
+|`fontWeight`| Function | Spirin Andrey | done |  |
+|`fontFamily`| Function | Spirin Andrey | done |  |
 |`onCopy`| Function | Spirin Andrey | in progress |  |
 |`onCut`| Function | Spirin Andrey | in progress|  |
 |`onPaste`| Function | Spirin Andrey | in progress|  |
@@ -1174,7 +1225,7 @@
 |`showError`| Function | Spirin Andrey | done |  |
 |`showUnit`| Function | Spirin Andrey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
 |`showUnderline`| Function | Spirin Andrey | done |  |
-|`underlineColor`| Function | Spirin Andrey | in progress |  |
+|`underlineColor`| Function | Spirin Andrey | done |  |
 |`selectionMenuHidden`| Function | Spirin Andrey | done |  |
 |`barState`| Function | Spirin Andrey | done |  |
 |`maxLines`| Function | Spirin Andrey | done  |  |
@@ -1189,7 +1240,7 @@
 |`decoration`| Function | Spirin Andrey | done  |  |
 |`letterSpacing`| Function | Spirin Andrey | done  |  |
 |`lineHeight`| Function | Spirin Andrey | done  |  |
-|`passwordRules`| Function | Spirin Andrey | in progress |  |
+|`passwordRules`| Function | Spirin Andrey | done |  |
 |`fontFeature`| Function | Spirin Andrey | done  |  |
 |`showPassword`| Function | Spirin Andrey | done |  |
 |`onSecurityStateChange`| Function | Spirin Andrey | in progress|  |
@@ -1217,7 +1268,7 @@
 |`divider`| Function |Ekaterina Stepanova | done |  |
 |`gradientHeight`| Function | Ekaterina Stepanova| done |  |
 |*TextTimer*| *Component* |Ekaterina Stepanova| blocked |  |
-|`setTextTimerOptions`| Function |Ekaterina Stepanova| in progress |  |
+|`setTextTimerOptions`| Function |Ekaterina Stepanova| done |  |
 |`format`| Function |Ekaterina Stepanova| done |  |
 |`fontColor`| Function |Ekaterina Stepanova| done |  |
 |`fontSize`| Function |Ekaterina Stepanova| done |  |
@@ -1227,18 +1278,14 @@
 |`onTimer`| Function |Ekaterina Stepanova| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB3V0H |
 |`textShadow`| Function |Ekaterina Stepanova| blocked AceEngine| https://gitee.com/openharmony/arkui_ace_engine/issues/IB2SZK |
 |`contentModifier`| Function |Ekaterina Stepanova| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
-|*TextTimerController*| *Class* |Ekaterina Stepanova| in progress |  |
-|`start`| Function |Ekaterina Stepanova| in progress |  |
-|`pause`| Function |Ekaterina Stepanova| in progress |  |
-|`reset`| Function |Ekaterina Stepanova| in progress |  |
 |*TimePicker*| *Component* | Ekaterina Stepanova| blocked |  |
-|`setTimePickerOptions`| Function |Ekaterina Stepanova| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`setTimePickerOptions`| Function |Ekaterina Stepanova| in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`useMilitaryTime`| Function |Ekaterina Stepanova| done |  |
 |`loop`| Function |Ekaterina Stepanova| done |  |
 |`disappearTextStyle`| Function |Ekaterina Stepanova| done |  |
 |`textStyle`| Function |Ekaterina Stepanova| done |  |
 |`selectedTextStyle`| Function |Ekaterina Stepanova| done |  |
-|`dateTimeOptions`| Function |Ekaterina Stepanova| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`dateTimeOptions`| Function |Ekaterina Stepanova| in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`onChange`| Function |Ekaterina Stepanova| done |  |
 |`enableHapticFeedback`| Function |Ekaterina Stepanova| done |  |
 |*Toggle*| *Component* |Morozov Sergey |blocked |  |
@@ -1248,269 +1295,6 @@
 |`selectedColor`| Function | Morozov Sergey|done |  |
 |`switchPointColor`| Function | Morozov Sergey|done |  |
 |`switchStyle`| Function | Morozov Sergey|done |  |
-|*SearchController*| *Class* |Evstigneev Roman |done |  |
-|`caretPosition`| Function |Evstigneev Roman | done |  |
-|`stopEditing`| Function |Evstigneev Roman | done |  |
-|`setTextSelection`| Function |Evstigneev Roman | done |  |
-|*SwiperController*| *Class* | Skroba Gleb | done |  |
-|`showNext`| Function | Skroba Gleb | done |  |
-|`showPrevious`| Function | Skroba Gleb | done |  |
-|`changeIndex`| Function | Skroba Gleb | done |  |
-|`finishAnimation`| Function | Skroba Gleb | in progress |  |
-|*SwiperContentTransitionProxy*| *Class* | Skroba Gleb | in progress | |
-|`finishTransition`| Function | Skroba Gleb | in progress | |
-|`getSelectedIndex`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setSelectedIndex`| Function | Skroba Gleb | in progress | |
-|`getIndex`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setIndex`| Function | Skroba Gleb | in progress | |
-|`getPosition`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setPosition`| Function | Skroba Gleb | in progress | |
-|`getMainAxisLength`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setMainAxisLength`| Function | Skroba Gleb | in progress | |
-|*TabsController*| *Class* | Skroba Gleb | in progress |
-|`changeIndex`| Function | Skroba Gleb | done | |
-|`preloadItems`| Function | Skroba Gleb | done | |
-|`setTabBarTranslate`| Function | | | |
-|`setTabBarOpacity`| Function | | | |
-|*TextAreaController*| *Class* | Tuzhilkin Ivan | in progress |  |
-|`caretPosition`| Function | Tuzhilkin Ivan | in progress |  |
-|`setTextSelection`| Function | Tuzhilkin Ivan | in progress |  |
-|`stopEditing`| Function | Tuzhilkin Ivan | in progress |  |
-|*TabContentTransitionProxy*| *Class* | | |  |
-|`finishTransition`| Function | | |  |
-|`getFrom`| Function | | |  |
-|`setFrom`| Function | | |  |
-|`getTo`| Function | | |  |
-|`setTo`| Function | | |  |
-|*EditMenuOptions*| *Class* | Erokhin Ilya | in progress |  |
-|`onCreateMenu`| Function |Erokhin Ilya | in progress |  |
-|`onMenuItemClick`| Function |Erokhin Ilya | in progress |  |
-|*TextInputController*| *Class* | Spirin Andrey | in progress |  |
-|`caretPosition`| Function | Spirin Andrey | in progress |  |
-|`setTextSelection`| Function | Spirin Andrey | in progress |  |
-|`stopEditing`| Function |  Spirin Andrey | in progress |  |
-|*Tabs*| *Component* | Tuzhilkin Ivan | in progress |  |
-|`setTabsOptions`| Function | Skroba Gleb | done |  |
-|`vertical`| Function | Tuzhilkin Ivan | done |  |
-|`barPosition`| Function | Tuzhilkin Ivan | done |  |
-|`scrollable`| Function | Tuzhilkin Ivan | done |  |
-|`barMode`| Function | Tuzhilkin Ivan | done |  |
-|`barWidth`| Function | Tuzhilkin Ivan | done |  |
-|`barHeight`| Function | Tuzhilkin Ivan | done  |  |
-|`animationDuration`| Function | Tuzhilkin Ivan | in progress | https://gitee.com/openharmony/arkui_ace_engine/issues/IATEBX |
-|`animationMode`| Function | Tuzhilkin Ivan | done |  |
-|`edgeEffect`| Function | Tuzhilkin Ivan | done |  |
-|`onChange`| Function | Tuzhilkin Ivan | done |  |
-|`onTabBarClick`| Function | Tuzhilkin Ivan | done |  |
-|`onAnimationStart`| Function | Tuzhilkin Ivan | done |  |
-|`onAnimationEnd`| Function | Tuzhilkin Ivan | done |  |
-|`onGestureSwipe`| Function | Tuzhilkin Ivan | done |  |
-|`fadingEdge`| Function | Tuzhilkin Ivan | done |  |
-|`divider`| Function | Tuzhilkin Ivan | done |  |
-|`barOverlap`| Function | Tuzhilkin Ivan | done |  |
-|`barBackgroundColor`| Function | Tuzhilkin Ivan | done |  |
-|`barGridAlign`| Function | Tuzhilkin Ivan | done |  |
-|`customContentTransition`| Function | Tuzhilkin Ivan | in progress |  |
-|`barBackgroundBlurStyle`| Function | Tuzhilkin Ivan | done |  |
-|`onContentWillChange`| Function | Tuzhilkin Ivan | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IARLIB |
-|*TabContent*| *Component* | Evstigneev Roman |in progress |  |
-|`setTabContentOptions`| Function | Evstigneev Roman | done |  |
-|`tabBar`| Function | Evstigneev Roman | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
-|`onWillShow`| Function |Evstigneev Roman | in progress |  |
-|`onWillHide`| Function |Evstigneev Roman | in progress |  |
-|*SideBarContainer*| *Component* |Dmitry A Smirnov|blocked|  |
-|`setSideBarContainerOptions`| Function |Dmitry A Smirnov|done|  |
-|`showSideBar`| Function |Dmitry A Smirnov|done|  |
-|`controlButton`| Function |Dmitry A Smirnov| blocked IDL | 1.parse PixelMap from CustomObject https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR 2. default values https://gitee.com/openharmony/arkui_ace_engine/issues/IAW40V |
-|`showControlButton`| Function |Dmitry A Smirnov|done|  |
-|`onChange`| Function |Dmitry A Smirnov|done|  |
-|`sideBarWidth`| Function |Dmitry A Smirnov|done|  |
-|`minSideBarWidth`| Function |Dmitry A Smirnov|done|  |
-|`maxSideBarWidth`| Function |Dmitry A Smirnov|done|  |
-|`autoHide`| Function |Dmitry A Smirnov|done|  |
-|`sideBarPosition`| Function |Dmitry A Smirnov|done|  |
-|`divider`| Function |Dmitry A Smirnov|done|  |
-|`minContentWidth`| Function |Dmitry A Smirnov|done|  |
-|*WaterFlow*| *Component* | Kovalev Sergey | in progress |  |
-|`setWaterFlowOptions`| Function | Kovalev Sergey |blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`columnsTemplate`| Function | Kovalev Sergey | done |  |
-|`itemConstraintSize`| Function | Kovalev Sergey | done |  |
-|`rowsTemplate`| Function | Kovalev Sergey | done |  |
-|`columnsGap`| Function | Kovalev Sergey | done |  |
-|`rowsGap`| Function |Kovalev Sergey | done |  |
-|`layoutDirection`| Function |Kovalev Sergey | done |  |
-|`nestedScroll`| Function | Kovalev Sergey | done |  |
-|`enableScrollInteraction`| Function | Kovalev Sergey | done |  |
-|`friction`| Function | Kovalev Sergey | done |  |
-|`cachedCount`| Function |Kovalev Sergey | done |  |
-|`onReachStart`| Function | Kovalev Sergey | in progress | |
-|`onReachEnd`| Function | Kovalev Sergey | in progress | |
-|`onScrollFrameBegin`| Function | Kovalev Sergey | in progress | |
-|`onScrollIndex`| Function | Kovalev Sergey | in progress | |
-|*LinearIndicatorController*| *Class* | Kovalev Sergey | in progress |  |
-|`setProgress`| Function | Kovalev Sergey | in progress |  |
-|`start`| Function | Kovalev Sergey | in progress |  |
-|`pause`| Function | Kovalev Sergey | in progress |  |
-|`stop`| Function | Kovalev Sergey | in progress |  |
-|*LinearIndicator*| *Component* | Kovalev Sergey | in progress |  |
-|`setLinearIndicatorOptions`| Function | Kovalev Sergey | in progress |  |
-|`indicatorStyle`| Function | Kovalev Sergey | in progress |  |
-|`indicatorLoop`| Function | Kovalev Sergey | in progress |  |
-|`onChange`| Function | Kovalev Sergey | in progress |  |
-|*CanvasRenderer*| *Class*  | Vadim Voronov | in progress | |
-|`drawImage`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`beginPath`| Function  | Vadim Voronov | done | |
-|`clip`| Function  | Vadim Voronov | in progress | |
-|`fill`| Function  | Vadim Voronov | in progress | |
-|`stroke`| Function  | Vadim Voronov | in progress | |
-|`createLinearGradient`| Function  | Vadim Voronov | in progress | |
-|`createPattern`| Function  | Vadim Voronov | in progress | |
-|`createRadialGradient`| Function  | Vadim Voronov | in progress | |
-|`createConicGradient`| Function  | Vadim Voronov | in progress | |
-|`createImageData`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX & https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
-|`getImageData`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
-|`getPixelMap`| Function  | Vadim Voronov | in progress | |
-|`putImageData`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`getLineDash`| Function  | Vadim Voronov |  blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setLineDash`| Function  | Vadim Voronov | done | |
-|`clearRect`| Function  | Vadim Voronov | done | |
-|`fillRect`| Function  | Vadim Voronov | done | |
-|`strokeRect`| Function  | Vadim Voronov | done | |
-|`restore`| Function  | Vadim Voronov | done | |
-|`save`| Function  | Vadim Voronov | done | |
-|`fillText`| Function  | Vadim Voronov | done | |
-|`measureText`| Function  | Vadim Voronov | in progress | |
-|`strokeText`| Function  | Vadim Voronov | done | |
-|`getTransform`| Function  | Vadim Voronov | in progress | |
-|`resetTransform`| Function  | Vadim Voronov | done | |
-|`rotate`| Function  | Vadim Voronov | done | |
-|`scale`| Function  | Vadim Voronov | done | |
-|`setTransform`| Function  | Vadim Voronov | done | |
-|`transform`| Function  | Vadim Voronov | done | |
-|`translate`| Function  | Vadim Voronov | done | |
-|`setPixelMap`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`transferFromImageBitmap`| Function  | Vadim Voronov | in progress | |
-|`saveLayer`| Function  | Vadim Voronov | done | |
-|`restoreLayer`| Function  | Vadim Voronov | done | |
-|`reset`| Function  | Vadim Voronov | done | |
-|`getGlobalAlpha`| Function  | Vadim Voronov | in progress | |
-|`setGlobalAlpha`| Function  | Vadim Voronov | done | |
-|`getGlobalCompositeOperation`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setGlobalCompositeOperation`| Function  | Vadim Voronov | done | |
-|`setFillStyle`| Function  | Vadim Voronov | in progress | |
-|`setStrokeStyle`| Function  | Vadim Voronov | in progress | |
-|`getFilter`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setFilter`| Function  | Vadim Voronov | done | |
-|`getImageSmoothingEnabled`| Function  | Vadim Voronov | in progress | |
-|`setImageSmoothingEnabled`| Function  | Vadim Voronov | in progress | |
-|`getImageSmoothingQuality`| Function  | Vadim Voronov | in progress | |
-|`setImageSmoothingQuality`| Function  | Vadim Voronov | in progress | |
-|`getLineCap`| Function  | Vadim Voronov | in progress | |
-|`setLineCap`| Function  | Vadim Voronov | in progress | |
-|`getLineDashOffset`| Function  | Vadim Voronov | in progress | |
-|`setLineDashOffset`| Function  | Vadim Voronov | in progress | |
-|`getLineJoin`| Function  | Vadim Voronov | in progress | |
-|`setLineJoin`| Function  | Vadim Voronov | in progress | |
-|`getLineWidth`| Function  | Vadim Voronov | in progress | |
-|`setLineWidth`| Function  | Vadim Voronov | in progress | |
-|`getMiterLimit`| Function  | Vadim Voronov | in progress | |
-|`setMiterLimit`| Function  | Vadim Voronov | in progress | |
-|`getShadowBlur`| Function  | Vadim Voronov | in progress | |
-|`setShadowBlur`| Function  | Vadim Voronov | in progress | |
-|`getShadowColor`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setShadowColor`| Function  | Vadim Voronov | in progress | |
-|`getShadowOffsetX`| Function  | Vadim Voronov | in progress | |
-|`setShadowOffsetX`| Function  | Vadim Voronov | in progress | |
-|`getShadowOffsetY`| Function  | Vadim Voronov | in progress | |
-|`setShadowOffsetY`| Function  | Vadim Voronov | in progress | |
-|`getDirection`| Function  | Vadim Voronov | in progress | |
-|`setDirection`| Function  | Vadim Voronov | in progress | |
-|`getFont`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|`setFont`| Function  | Vadim Voronov | in progress | |
-|`getTextAlign`| Function  | Vadim Voronov | in progress | |
-|`setTextAlign`| Function  | Vadim Voronov | in progress | |
-|`getTextBaseline`| Function  | Vadim Voronov | in progress | |
-|`setTextBaseline`| Function  | Vadim Voronov | in progress | |
-|*CanvasRenderingContext2D*| *Class* | Vadim Voronov| blocked|  |
-|`toDataURL`| Function |Vadim Voronov| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`startImageAnalyzer`| Function |Vadim Voronov| done | |
-|`stopImageAnalyzer`| Function | Vadim Voronov| done| |
-|`onOnAttach`| Function | Vadim Voronov | in progress |  |
-|`offOnAttach`| Function | Vadim Voronov | in progress |  |
-|`onOnDetach`| Function | Vadim Voronov | in progress |  |
-|`offOnDetach`| Function | Vadim Voronov | in progress |  |
-|`getHeight`| Function |Vadim Voronov| done | |
-|`getWidth`| Function |Vadim Voronov| done | |
-|*DrawingRenderingContext*| *Class* |Vadim Voronov| blocked |  |
-|`invalidate`| Function |Vadim Voronov| blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|*ChildrenMainSize*| *Class* | Morozov Sergey | in progress |  |
-|`splice`| Function | Morozov Sergey | in progress |  |
-|`update`| Function | Morozov Sergey | in progress |  |
-|`getChildDefaultSize`| Function | Morozov Sergey | in progress |  |
-|*ImageAnalyzerController*| *Class* |Vadim Voronov|  blocked |  |
-|`getImageAnalyzerSupportTypes`| Function |Vadim Voronov|  blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
-|*ListScroller*| *Class* |Morozov Sergey | blocked |  |
-|`getItemRectInGroup`| Function |Morozov Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
-|`scrollToItemInGroup`| Function |Morozov Sergey | done |  |
-|`closeAllSwipeActions`| Function |Morozov Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
-|`getVisibleListContentInfo`| Function |Morozov Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
-|*NavPathStack*| *Class* | Morozov Sergey |in progress |  |
-|`pushPath`| Function | Morozov Sergey |in progress |  |
-|`pushDestination`| Function | Morozov Sergey |in progress |  |
-|`pushPathByName`| Function | Morozov Sergey |in progress |  |
-|`pushDestinationByName`| Function | Morozov Sergey |in progress |  |
-|`replacePath`| Function | Morozov Sergey |in progress |  |
-|`replaceDestination`| Function | Morozov Sergey |in progress |  |
-|`replacePathByName`| Function | Morozov Sergey |in progress |  |
-|`removeByIndexes`| Function | Morozov Sergey |in progress |  |
-|`removeByName`| Function | Morozov Sergey |in progress |  |
-|`removeByNavDestinationId`| Function | Morozov Sergey |in progress |  |
-|`pop`| Function | Morozov Sergey |in progress |  |
-|`popToName`| Function | Morozov Sergey |in progress |  |
-|`popToIndex`| Function | Morozov Sergey |in progress |  |
-|`moveToTop`| Function | Morozov Sergey |in progress |  |
-|`moveIndexToTop`| Function | Morozov Sergey |in progress |  |
-|`clear`| Function | Morozov Sergey |in progress |  |
-|`getAllPathName`| Function | Morozov Sergey |in progress |  |
-|`getParamByIndex`| Function | Morozov Sergey |in progress |  |
-|`getParamByName`| Function | Morozov Sergey |in progress |  |
-|`getIndexByName`| Function | Morozov Sergey |in progress |  |
-|`getParent`| Function | Morozov Sergey |in progress |  |
-|`size`| Function | Morozov Sergey |in progress |  |
-|`disableAnimation`| Function | Morozov Sergey |in progress |  |
-|`setInterception`| Function | Morozov Sergey |in progress |  |
-|*RichEditorBaseController*| *Class*|Dudkin Sergey| in progress| |
-|`getCaretOffset`| Function|Dudkin Sergey| in progress| |
-|`setCaretOffset`| Function|Dudkin Sergey| in progress| |
-|`closeSelectionMenu`| Function|Dudkin Sergey| in progress| |
-|`getTypingStyle`| Function|Dudkin Sergey| in progress| |
-|`setTypingStyle`| Function|Dudkin Sergey| in progress| |
-|`setSelection`| Function|Dudkin Sergey| in progress| |
-|`isEditing`| Function|Dudkin Sergey| in progress| |
-|`stopEditing`| Function|Dudkin Sergey| in progress| |
-|`getLayoutManager`| Function|Dudkin Sergey| in progress| |
-|`getPreviewText`| Function|Dudkin Sergey| in progress| |
-|*RichEditorController*| *Class* |Dudkin Sergey| blocked|  |
-|`addTextSpan`| Function |Dudkin Sergey| done|  |
-|`addImageSpan`| Function |Dudkin Sergey| blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
-|`addBuilderSpan`| Function | Dudkin Sergey| blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
-|`addSymbolSpan`| Function | Dudkin Sergey| done|  |
-|`updateSpanStyle`| Function | Dudkin Sergey| done|  |
-|`updateParagraphStyle`| Function | Dudkin Sergey| done|  |
-|`deleteSpans`| Function |Dudkin Sergey| done|  |
-|`getSpans`| Function |Dudkin Sergey| done|  |
-|`getParagraphs`| Function |Dudkin Sergey| blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IB1LVZ |
-|`getSelection`| Function |Dudkin Sergey| done|  |
-|`fromStyledString`| Function | Dudkin Sergey| done|  |
-|`toStyledString`| Function | Dudkin Sergey| done|  |
-|*RichEditorStyledStringController*| *Class* |Dudkin Sergey| in progress| |
-|`setStyledString`| Function |Dudkin Sergey| in progress| |
-|`getStyledString`| Function | Dudkin Sergey| in progress| |
-|`getSelection`| Function |Dudkin Sergey| in progress| |
-|`onContentChanged`| Function | Dudkin Sergey| in progress| |
-|*PatternLockController*| *Class* |Dmitry A Smirnov| done|  |
-|`reset`| Function |Dmitry A Smirnov| done|  |
-|`setChallengeResult`| Function |Dmitry A Smirnov| done|  |
 |*Video*| *Component* | Erokhin Ilya | blocked |  |
 |`setVideoOptions`| Function | Erokhin Ilya | blocked AceEngine| https://gitee.com/openharmony/arkui_ace_engine/issues/IAZ229 |
 |`muted`| Function | Erokhin Ilya | done |  |
@@ -1530,87 +1314,8 @@
 |`onStop`| Function | Erokhin Ilya | done |  |
 |`enableAnalyzer`| Function | Erokhin Ilya | done |  |
 |`analyzerConfig`| Function | Erokhin Ilya | blocked AceEngine| https://gitee.com/openharmony/arkui_ace_engine/issues/IAZ229 |
-|*VideoController*| *Class* | Erokhin Ilya | done |  |
-|`start`| Function | Erokhin Ilya | done |  |
-|`pause`| Function | Erokhin Ilya | done |  |
-|`stop`| Function | Erokhin Ilya | done |  |
-|`setCurrentTime`| Function | Erokhin Ilya | done|  |
-|`requestFullscreen`| Function | Erokhin Ilya | done |  |
-|`exitFullscreen`| Function | Erokhin Ilya | done |  |
-|`reset`| Function | Erokhin Ilya | done |  |
-|*WebKeyboardController*| *Class* | Erokhin Ilya | in progress |  |
-|`insertText`| Function | Erokhin Ilya | in progress |  |
-|`deleteForward`| Function | Erokhin Ilya | in progress |  |
-|`deleteBackward`| Function | Erokhin Ilya | in progress |  |
-|`sendFunctionKey`| Function | Erokhin Ilya | in progress |  |
-|`close`| Function | Erokhin Ilya | in progress |  |
-|*FullScreenExitHandler*| *Class* | Erokhin Ilya | in progress |  |
-|`exitFullScreen`| Function | Erokhin Ilya | in progress |  |
-|*FileSelectorParam*| *Class* | Erokhin Ilya | in progress |  |
-|`getTitle`| Function | Erokhin Ilya | in progress |  |
-|`getMode`| Function | Erokhin Ilya | in progress |  |
-|`getAcceptType`| Function | Erokhin Ilya | in progress |  |
-|`isCapture`| Function | Erokhin Ilya | in progress |  |
-|*JsResult*| *Class* | Erokhin Ilya | in progress |  |
-|`handleCancel`| Function | Erokhin Ilya | in progress |  |
-|`handleConfirm`| Function | Erokhin Ilya | in progress |  |
-|`handlePromptConfirm`| Function | Erokhin Ilya | in progress |  |
-|*FileSelectorResult*| *Class* | Erokhin Ilya | in progress |  |
-|`handleFileList`| Function | Erokhin Ilya | in progress |  |
-|*HttpAuthHandler*| *Class* | Erokhin Ilya | in progress |  |
-|`confirm`| Function | Erokhin Ilya | in progress |  |
-|`cancel`| Function | Erokhin Ilya | in progress |  |
-|`isHttpAuthInfoSaved`| Function | Erokhin Ilya | in progress |  |
-|*SslErrorHandler*| *Class* | Erokhin Ilya | in progress |  |
-|`handleConfirm`| Function | Erokhin Ilya | in progress |  |
-|`handleCancel`| Function | Erokhin Ilya | in progress |  |
-|*ClientAuthenticationHandler*| *Class* | Erokhin Ilya | in progress |  |
-|`confirm`| Function | Erokhin Ilya | in progress |  |
-|`cancel`| Function | Erokhin Ilya | in progress |  |
-|`ignore`| Function | Erokhin Ilya | in progress |  |
-|*PermissionRequest*| *Class* | Erokhin Ilya | in progress |  |
-|`deny`| Function | Erokhin Ilya | in progress |  |
-|`getOrigin`| Function | Erokhin Ilya | in progress |  |
-|`getAccessibleResource`| Function | Erokhin Ilya | in progress |  |
-|`grant`| Function | Erokhin Ilya | in progress |  |
-|*ScreenCaptureHandler*| *Class* | Erokhin Ilya | in progress |  |
-|`getOrigin`| Function | Erokhin Ilya | in progress |  |
-|`grant`| Function | Erokhin Ilya | in progress |  |
-|`deny`| Function | Erokhin Ilya | in progress |  |
-|*DataResubmissionHandler*| *Class* | Erokhin Ilya | in progress |  |
-|`resend`| Function | Erokhin Ilya | in progress |  |
-|`cancel`| Function | Erokhin Ilya | in progress |  |
-|*ControllerHandler*| *Class* | Erokhin Ilya | in progress |  |
-|`setWebController`| Function | Erokhin Ilya | in progress |  |
-|*WebContextMenuParam*| *Class* | Erokhin Ilya | in progress |  |
-|`x`| Function | Erokhin Ilya | in progress |  |
-|`y`| Function | Erokhin Ilya | in progress |  |
-|`getLinkUrl`| Function | Erokhin Ilya | in progress |  |
-|`getUnfilteredLinkUrl`| Function | Erokhin Ilya | in progress |  |
-|`getSourceUrl`| Function | Erokhin Ilya | in progress |  |
-|`existsImageContents`| Function | Erokhin Ilya | in progress |  |
-|`getMediaType`| Function | Erokhin Ilya | in progress |  |
-|`getSelectionText`| Function | Erokhin Ilya | in progress |  |
-|`getSourceType`| Function | Erokhin Ilya | in progress |  |
-|`getInputFieldType`| Function | Erokhin Ilya | in progress |  |
-|`isEditable`| Function | Erokhin Ilya | in progress |  |
-|`getEditStateFlags`| Function | Erokhin Ilya | in progress |  |
-|`getPreviewWidth`| Function | Erokhin Ilya | in progress |  |
-|`getPreviewHeight`| Function | Erokhin Ilya | in progress |  |
-|*WebContextMenuResult*| *Class* | Erokhin Ilya | in progress |  |
-|`closeContextMenu`| Function | Erokhin Ilya | in progress |  |
-|`copyImage`| Function | Erokhin Ilya | in progress |  |
-|`copy`| Function | Erokhin Ilya | in progress |  |
-|`paste`| Function | Erokhin Ilya | in progress |  |
-|`cut`| Function | Erokhin Ilya | in progress |  |
-|`selectAll`| Function | Erokhin Ilya | in progress |  |
-|*ConsoleMessage*| *Class* | Erokhin Ilya | in progress |  |
-|`getMessage`| Function | Erokhin Ilya | in progress |  |
-|`getSourceId`| Function | Erokhin Ilya | in progress |  |
-|`getLineNumber`| Function | Erokhin Ilya | in progress |  |
-|`getMessageLevel`| Function | Erokhin Ilya | in progress |  |
 |*Web*| *Component* | Erokhin Ilya | in progress | |
-|`setWebOptions`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`setWebOptions`| Function | Erokhin Ilya | in progress| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`javaScriptAccess`| Function | Erokhin Ilya | done | |
 |`fileAccess`| Function | Erokhin Ilya | done | |
 |`onlineImageAccess`| Function | Erokhin Ilya | done | |
@@ -1619,7 +1324,7 @@
 |`mixedMode`| Function | Erokhin Ilya | done | |
 |`zoomAccess`| Function | Erokhin Ilya | done | |
 |`geolocationAccess`| Function | Erokhin Ilya | done | |
-|`javaScriptProxy`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX & https://gitee.com/nikolay-igotti/idlize/issues/IAU9OV |
+|`javaScriptProxy`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9OV |
 |`password`| Function | Erokhin Ilya | done | |
 |`cacheMode`| Function | Erokhin Ilya | done | |
 |`darkMode`| Function | Erokhin Ilya | done | |
@@ -1716,7 +1421,7 @@
 |`onNativeEmbedVisibilityChange`| Function | Erokhin Ilya | done | |
 |`onNativeEmbedGestureEvent`| Function | Erokhin Ilya | in progress | dependency on Ark_EventResult & Ark_Function |
 |`copyOptions`| Function | Erokhin Ilya | done | |
-|`onOverrideUrlLoading`| Function | Erokhin Ilya | blocked | https://gitee.com/nikolay-igotti/idlize/issues/IAPDBZ |
+|`onOverrideUrlLoading`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAPDBZ |
 |`textAutosizing`| Function | Erokhin Ilya | done | |
 |`enableNativeMediaPlayer`| Function | Erokhin Ilya | done | |
 |`enableSmoothDragResize`| Function | Erokhin Ilya | done | |
@@ -1724,32 +1429,537 @@
 |`onRenderProcessResponding`| Function | Erokhin Ilya | done | |
 |`selectionMenuOptions`| Function | Erokhin Ilya | in progress | |
 |`onViewportFitChanged`| Function | Erokhin Ilya | done | |
-|`onInterceptKeyboardAttach`| Function | Erokhin Ilya | blocked | dependency on Ark_CustomObject & Ark_WebKeyboardController |
+|`onInterceptKeyboardAttach`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAPDBZ|
 |`onAdsBlocked`| Function | Erokhin Ilya | in progress | |
 |`keyboardAvoidMode`| Function | Erokhin Ilya | done | |
 |`editMenuOptions`| Function | Erokhin Ilya | in progress | |
 |`enableHapticFeedback`| Function | Erokhin Ilya | done | |
 |`registerNativeEmbedRule`| Function | Erokhin Ilya | done | |
-|*WebController*| *Class* | Erokhin Ilya | in progress | |
-|`onInactive`| Function | Erokhin Ilya | done | |
-|`onActive`| Function | Erokhin Ilya | done | |
-|`zoom`| Function | Erokhin Ilya | done | |
-|`clearHistory`| Function | Erokhin Ilya | done | |
-|`runJavaScript`| Function | Erokhin Ilya | in progress | |
-|`loadData`| Function | Erokhin Ilya | done | |
-|`loadUrl`| Function | Erokhin Ilya | done | |
-|`refresh`| Function | Erokhin Ilya | done | |
-|`stop`| Function | Erokhin Ilya | done | |
-|`registerJavaScriptProxy`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9OV |
-|`deleteJavaScriptRegister`| Function | Erokhin Ilya | done | |
-|`getHitTest`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
-|`requestFocus`| Function | Erokhin Ilya | done | |
-|`accessBackward`| Function | Erokhin Ilya | done | |
-|`accessForward`| Function | Erokhin Ilya | done | |
-|`accessStep`| Function | Erokhin Ilya | done | |
-|`backward`| Function | Erokhin Ilya | done | |
-|`forward`| Function | Erokhin Ilya | done | |
-|`getCookieManager`| Function | Erokhin Ilya | done | |
+|`bindSelectionMenu`| Function | Erokhin Ilya | in progress | |
+|*WindowScene*| *Component* | Spirin Andrey | in progress | |
+|`setWindowSceneOptions`| Function | Spirin Andrey | in progress | |
+|`attractionEffect`| Function | Spirin Andrey | in progress | |
+|*XComponent*| *Component* | | | |
+|`setXComponentOptions`| Function | | | |
+|`onLoad`| Function | | | |
+|`onDestroy`| Function | | | |
+|`enableAnalyzer`| Function | | | |
+|`enableSecure`| Function | | | |
+|*SideBarContainer*| *Component* |Dmitry A Smirnov|blocked|  |
+|`setSideBarContainerOptions`| Function |Dmitry A Smirnov|done|  |
+|`showSideBar`| Function |Dmitry A Smirnov|done|  |
+|`controlButton`| Function |Dmitry A Smirnov| blocked IDL | 1.parse PixelMap from CustomObject https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR 2. default values https://gitee.com/openharmony/arkui_ace_engine/issues/IAW40V |
+|`showControlButton`| Function |Dmitry A Smirnov|done|  |
+|`onChange`| Function |Dmitry A Smirnov|done|  |
+|`sideBarWidth`| Function |Dmitry A Smirnov|done|  |
+|`minSideBarWidth`| Function |Dmitry A Smirnov|done|  |
+|`maxSideBarWidth`| Function |Dmitry A Smirnov|done|  |
+|`autoHide`| Function |Dmitry A Smirnov|done|  |
+|`sideBarPosition`| Function |Dmitry A Smirnov|done|  |
+|`divider`| Function |Dmitry A Smirnov|done|  |
+|`minContentWidth`| Function |Dmitry A Smirnov|done|  |
+|*RemoteWindow*| *Component* | Spirin Andrey | in progress | |
+|`setRemoteWindowOptions`| Function | Spirin Andrey | in progress | |
+|*WaterFlow*| *Component* | Kovalev Sergey | in progress |  |
+|`setWaterFlowOptions`| Function | Kovalev Sergey |in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`columnsTemplate`| Function | Kovalev Sergey | done |  |
+|`itemConstraintSize`| Function | Kovalev Sergey | done |  |
+|`rowsTemplate`| Function | Kovalev Sergey | done |  |
+|`columnsGap`| Function | Kovalev Sergey | done |  |
+|`rowsGap`| Function |Kovalev Sergey | done |  |
+|`layoutDirection`| Function |Kovalev Sergey | done |  |
+|`nestedScroll`| Function | Kovalev Sergey | done |  |
+|`enableScrollInteraction`| Function | Kovalev Sergey | done |  |
+|`friction`| Function | Kovalev Sergey | done |  |
+|`cachedCount`| Function |Kovalev Sergey | done |  |
+|`onReachStart`| Function | Kovalev Sergey | in progress | |
+|`onReachEnd`| Function | Kovalev Sergey | in progress | |
+|`onScrollFrameBegin`| Function | Kovalev Sergey | in progress | |
+|`onScrollIndex`| Function | Kovalev Sergey | in progress | |
+|*UIExtensionComponent*| *Component* | | |
+|`setUIExtensionComponentOptions`| Function | | | |
+|`onRemoteReady`| Function | | | |
+|`onReceive`| Function | | | |
+|`onResult`| Function | | | |
+|`onRelease`| Function | | | |
+|`onError`| Function | | | |
+|`onTerminated`| Function | | | |
+|*LinearIndicator*| *Component* | Kovalev Sergey | in progress |  |
+|`setLinearIndicatorOptions`| Function | Kovalev Sergey | in progress |  |
+|`indicatorStyle`| Function | Kovalev Sergey | in progress |  |
+|`indicatorLoop`| Function | Kovalev Sergey | in progress |  |
+|`onChange`| Function | Kovalev Sergey | in progress |  |
+|*ActionSheet*| *Class* | | |
+|`show`| Function | | |
+|*AlertDialog*| *Class* | | |
+|`show`| Function | | |
+|*CalendarController*| *Class* |Maksimov Nikita | in progress |  |
+|`backToToday`| Function |Maksimov Nikita | in progress |  |
+|`goTo`| Function |Maksimov Nikita | in progress |  |
+|*CalendarPickerDialog*| *Class* | | | |
+|`show`| Function | | | |
+|*CanvasGradient*| *Class* | | | |
+|`addColorStop`| Function | | | |
+|*CanvasPath*| *Class* | Lobah Mikhail | in progress |  |
+|`arc`| Function | Lobah Mikhail | in progress |  |
+|`arcTo`| Function | Lobah Mikhail | in progress |  |
+|`bezierCurveTo`| Function | Lobah Mikhail | in progress |  |
+|`closePath`| Function | Lobah Mikhail | in progress |  |
+|`ellipse`| Function | Lobah Mikhail | in progress |  |
+|`lineTo`| Function | Lobah Mikhail | in progress |  |
+|`moveTo`| Function | Lobah Mikhail | in progress |  |
+|`quadraticCurveTo`| Function | Lobah Mikhail | in progress |  |
+|`rect`| Function | Lobah Mikhail | in progress |  |
+|*Path2D*| *Class* | | | |
+|`addPath`| Function | | | |
+|*CanvasPattern*| *Class* | Vadim Voronov | in progress |  |
+|`setTransform`| Function | Vadim Voronov | in progress |  |
+|*ImageBitmap*| *Class* | Pavelyev Ivan | in progress | |
+|`close`| Function | Pavelyev Ivan | in progress |  |
+|`getHeight`| Function | Pavelyev Ivan | in progress |  |
+|`getWidth`| Function | Pavelyev Ivan | in progress |  |
+|*CanvasRenderer*| *Class*  | Vadim Voronov | in progress | |
+|`drawImage`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB4BTA |
+|`beginPath`| Function  | Vadim Voronov | done | |
+|`clip`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO |
+|`fill`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO |
+|`stroke`| Function  | Vadim Voronov | in progress | |
+|`createLinearGradient`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`createPattern`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`createRadialGradient`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`createConicGradient`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`createImageData`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB4BTA & https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`getImageData`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`getPixelMap`| Function  | Vadim Voronov | in progress | |
+|`putImageData`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB4BTA |
+|`getLineDash`| Function  | Vadim Voronov |  blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|`setLineDash`| Function  | Vadim Voronov | done | |
+|`clearRect`| Function  | Vadim Voronov | done | |
+|`fillRect`| Function  | Vadim Voronov | done | |
+|`strokeRect`| Function  | Vadim Voronov | done | |
+|`restore`| Function  | Vadim Voronov | done | |
+|`save`| Function  | Vadim Voronov | done | |
+|`fillText`| Function  | Vadim Voronov | done | |
+|`measureText`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`strokeText`| Function  | Vadim Voronov | done | |
+|`getTransform`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`resetTransform`| Function  | Vadim Voronov | done | |
+|`rotate`| Function  | Vadim Voronov | done | |
+|`scale`| Function  | Vadim Voronov | done | |
+|`setTransform`| Function  | Vadim Voronov | in progress | |
+|`transform`| Function  | Vadim Voronov | done | |
+|`translate`| Function  | Vadim Voronov | done | |
+|`setPixelMap`| Function  | Vadim Voronov | in progress | |
+|`transferFromImageBitmap`| Function  | Vadim Voronov | in progress | |
+|`saveLayer`| Function  | Vadim Voronov | done | |
+|`restoreLayer`| Function  | Vadim Voronov | done | |
+|`reset`| Function  | Vadim Voronov | done | |
+|`getGlobalAlpha`| Function  | Vadim Voronov | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setGlobalAlpha`| Function  | Vadim Voronov | done | |
+|`getGlobalCompositeOperation`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR & https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setGlobalCompositeOperation`| Function  | Vadim Voronov | done | |
+|`setFillStyle`| Function  | Vadim Voronov | in progress | |
+|`setStrokeStyle`| Function  | Vadim Voronov | in progress | |
+|`getFilter`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|`setFilter`| Function  | Vadim Voronov | done | |
+|`getImageSmoothingEnabled`| Function  | Vadim Voronov | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setImageSmoothingEnabled`| Function  | Vadim Voronov | done | |
+|`getImageSmoothingQuality`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO & https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 & https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setImageSmoothingQuality`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO |
+|`getLineCap`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO & https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 & https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setLineCap`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO |
+|`getLineDashOffset`| Function  | Vadim Voronov | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setLineDashOffset`| Function  | Vadim Voronov | done | |
+|`getLineJoin`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO & https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 & https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setLineJoin`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO |
+|`getLineWidth`| Function  | Vadim Voronov | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setLineWidth`| Function  | Vadim Voronov | done | |
+|`getMiterLimit`| Function  | Vadim Voronov | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setMiterLimit`| Function  | Vadim Voronov | done | |
+|`getShadowBlur`| Function  | Vadim Voronov | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setShadowBlur`| Function  | Vadim Voronov | done | |
+|`getShadowColor`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|`setShadowColor`| Function  | Vadim Voronov | done | |
+|`getShadowOffsetX`| Function  | Vadim Voronov | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setShadowOffsetX`| Function  | Vadim Voronov | done | |
+|`getShadowOffsetY`| Function  | Vadim Voronov | blocked AceEngine | https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setShadowOffsetY`| Function  | Vadim Voronov | done | |
+|`getDirection`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO & https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 & https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setDirection`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO |
+|`getFont`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR & https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setFont`| Function  | Vadim Voronov | in progress | |
+|`getTextAlign`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO & https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 & https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setTextAlign`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO |
+|`getTextBaseline`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO & https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 & https://gitee.com/openharmony/arkui_ace_engine/issues/IB3UUE |
+|`setTextBaseline`| Function  | Vadim Voronov | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB45FO |
+|*CanvasRenderingContext2D*| *Class* | Vadim Voronov| in progress|  |
+|`toDataURL`| Function |Vadim Voronov| in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`startImageAnalyzer`| Function |Vadim Voronov| done | |
+|`stopImageAnalyzer`| Function | Vadim Voronov| done| |
+|`onOnAttach`| Function | Vadim Voronov | in progress |  |
+|`offOnAttach`| Function | Vadim Voronov | in progress |  |
+|`onOnDetach`| Function | Vadim Voronov | in progress |  |
+|`offOnDetach`| Function | Vadim Voronov | in progress |  |
+|`getHeight`| Function |Vadim Voronov| done | |
+|`getWidth`| Function |Vadim Voronov| done | |
+|*DrawingRenderingContext*| *Class* |Vadim Voronov| in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`invalidate`| Function |Vadim Voronov| in progress | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|*ICurve*| *Class* | | | |
+|`interpolate`| Function | | | |
+|*DrawModifier*| *Class* | | | |
+|`drawBehind`| Function | | | |
+|`drawContent`| Function | | | |
+|`drawFront`| Function | | | |
+|`invalidate`| Function | | | |
+|*TransitionEffect*| *Class* | | | |
+|`translate`| Function | | | |
+|`rotate`| Function | | | |
+|`scale`| Function | | | |
+|`opacity`| Function | | | |
+|`move`| Function | | | |
+|`asymmetric`| Function | | | |
+|`animation`| Function | | | |
+|`combine`| Function | | | |
+|*PixelMapMock*| *Class* | | | |
+|`release`| Function | | | |
+|*ProgressMask*| *Class* | | | |
+|`updateProgress`| Function | | | |
+|`updateColor`| Function | | | |
+|`enableBreathingAnimation`| Function | | | |
+|*AttributeModifier*| *Class* | | | |
+|`applyNormalAttribute`| Function | | | |
+|`applyPressedAttribute`| Function | | | |
+|`applyFocusedAttribute`| Function | | | |
+|`applyDisabledAttribute`| Function | | | |
+|`applySelectedAttribute`| Function | | | |
+|*ContentModifier*| *Class* | | | |
+|`applyContent`| Function | | | |
+|*Measurable*| *Class* | | | |
+|`measure`| Function | | | |
+|`getMargin`| Function | | | |
+|`getPadding`| Function | | | |
+|`getBorderWidth`| Function | | | |
+|*View*| *Class* | | | |
+|`create`| Function | | | |
+|*TextContentControllerBase*| *Class* | | | |
+|`getCaretOffset`| Function | | | |
+|`getTextContentRect`| Function | | | |
+|`getTextContentLineCount`| Function | | | |
+|*DynamicNode*| *Class* | | | |
+|`onMove`| Function | | | |
+|*ChildrenMainSize*| *Class* | Morozov Sergey | blocked Arkoala |  |
+|`splice`| Function | Morozov Sergey | in progress |  |
+|`update`| Function | Morozov Sergey | in progress |  |
+|`getChildDefaultSize`| Function | Morozov Sergey | blocked Arkoala | https://gitee.com/nikolay-igotti/idlize/issues/IB4QKQ |
+|*GestureModifier*| *Class* | | | |
+|`applyGesture`| Function | | | |
+|*AbstractProperty*| *Class* | | | |
+|`get`| Function | | | |
+|`set`| Function | | | |
+|`info`| Function | | | |
+|*IPropertySubscriber*| *Class* | | | |
+|`id`| Function | | | |
+|`aboutToBeDeleted`| Function | | | |
+|*ISinglePropertyChangeSubscriber*| *Class* | | | |
+|`hasChanged`| Function | | | |
+|*SubscribaleAbstract*| *Class* | | | |
+|`notifyPropertyHasChanged`| Function | | | |
+|`addOwningProperty`| Function | | | |
+|`removeOwningProperty`| Function | | | |
+|`removeOwningPropertyById`| Function | | | |
+|*ContextMenu*| *Class* | | | |
+|`close`| Function | | | |
+|*CustomDialogController*| *Class* | Erokhin Ilya | blocked | https://gitee.com/openharmony/interface_sdk-js/issues/IB07SJ & https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
+|`open`| Function | Erokhin Ilya | blocked IDL | https://gitee.com/openharmony/interface_sdk-js/issues/IB07SJ & https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
+|`close`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/openharmony/interface_sdk-js/issues/IB07SJ & https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
+|*DatePickerDialog*| *Class* | | | |
+|`show`| Function | | | |
+|*PanGestureOptions*| *Class* | | | |
+|`setDirection`| Function | | | |
+|`setDistance`| Function | | | |
+|`setFingers`| Function | | | |
+|`getDirection`| Function | | | |
+|*ScrollableTargetInfo*| *Class* | | | |
+|`isBegin`| Function | | | |
+|`isEnd`| Function | | | |
+|*EventTargetInfo*| *Class* | | | |
+|`getId`| Function | | | |
+|*GestureRecognizer*| *Class* | Kovalev Sergey | in progress |
+|`getTag`| Function | Kovalev Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|`getType`| Function | Kovalev Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`isBuiltIn`| Function | Kovalev Sergey | in progress |
+|`setEnabled`| Function | Kovalev Sergey | in progress |
+|`isEnabled`| Function | Kovalev Sergey | in progress |
+|`getState`| Function | Kovalev Sergey | in progress |
+|`getEventTargetInfo`| Function | Kovalev Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`isValid`| Function | Kovalev Sergey | in progress |
+|*PanRecognizer*| *Class* | | | |
+|`getPanGestureOptions`| Function | | | |
+|*ImageAnalyzerController*| *Class* |Vadim Voronov|  blocked |  |
+|`getImageAnalyzerSupportTypes`| Function |Vadim Voronov|  blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|*ListScroller*| *Class* |Morozov Sergey | blocked |  |
+|`getItemRectInGroup`| Function |Morozov Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`scrollToItemInGroup`| Function |Morozov Sergey | done |  |
+|`closeAllSwipeActions`| Function |Morozov Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`getVisibleListContentInfo`| Function |Morozov Sergey | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|*Matrix2D*| *Class* | | | |
+|`identity`| Function | | | |
+|`invert`| Function | | | |
+|`multiply`| Function | | | |
+|`rotate`| Function | | | |
+|`translate`| Function | | | |
+|`scale`| Function | | | |
+|`getScaleX`| Function | | | |
+|`setScaleX`| Function | | | |
+|`getRotateY`| Function | | | |
+|`setRotateY`| Function | | | |
+|`getRotateX`| Function | | | |
+|`setRotateX`| Function | | | |
+|`getScaleY`| Function | | | |
+|`setScaleY`| Function | | | |
+|`getTranslateX`| Function | | | |
+|`setTranslateX`| Function | | | |
+|`getTranslateY`| Function | | | |
+|`setTranslateY`| Function | | | |
+|*NavDestinationContext*| *Class* | | | |
+|`getConfigInRouteMap`| Function | | | |
+|`setPathInfo`| Function | | | |
+|`setPathStack`| Function | | | |
+|`getNavDestinationId`| Function | | | |
+|`setNavDestinationId`| Function | | | |
+|*NavPathStack*| *Class* | Morozov Sergey |in progress |  |
+|`pushPath`| Function | Morozov Sergey |in progress |  |
+|`pushDestination`| Function | Morozov Sergey |in progress |  |
+|`pushPathByName`| Function | Morozov Sergey |in progress |  |
+|`pushDestinationByName`| Function | Morozov Sergey |in progress |  |
+|`replacePath`| Function | Morozov Sergey |in progress |  |
+|`replaceDestination`| Function | Morozov Sergey |in progress |  |
+|`replacePathByName`| Function | Morozov Sergey |in progress |  |
+|`removeByIndexes`| Function | Morozov Sergey |in progress |  |
+|`removeByName`| Function | Morozov Sergey |in progress |  |
+|`removeByNavDestinationId`| Function | Morozov Sergey |in progress |  |
+|`pop`| Function | Morozov Sergey |in progress |  |
+|`popToName`| Function | Morozov Sergey |in progress |  |
+|`popToIndex`| Function | Morozov Sergey |in progress |  |
+|`moveToTop`| Function | Morozov Sergey |in progress |  |
+|`moveIndexToTop`| Function | Morozov Sergey |in progress |  |
+|`clear`| Function | Morozov Sergey |in progress |  |
+|`getAllPathName`| Function | Morozov Sergey |in progress |  |
+|`getParamByIndex`| Function | Morozov Sergey |in progress |  |
+|`getParamByName`| Function | Morozov Sergey |in progress |  |
+|`getIndexByName`| Function | Morozov Sergey |in progress |  |
+|`getParent`| Function | Morozov Sergey |in progress |  |
+|`size`| Function | Morozov Sergey |in progress |  |
+|`disableAnimation`| Function | Morozov Sergey |in progress |  |
+|`setInterception`| Function | Morozov Sergey |in progress |  |
+|*NavigationTransitionProxy*| *Class* | | | |
+|`finishTransition`| Function | | | |
+|`cancelTransition`| Function | | | |
+|`updateTransition`| Function | | | |
+|`setFrom`| Function | | | |
+|`setTo`| Function | | | |
+|`getIsInteractive`| Function | | | |
+|`setIsInteractive`| Function | | | |
+|*PatternLockController*| *Class* |Dmitry A Smirnov| done|  |
+|`reset`| Function |Dmitry A Smirnov| done|  |
+|`setChallengeResult`| Function |Dmitry A Smirnov| done|  |
+|*RichEditorBaseController*| *Class*|Dudkin Sergey| in progress| |
+|`getCaretOffset`| Function|Dudkin Sergey| in progress| |
+|`setCaretOffset`| Function|Dudkin Sergey| in progress| |
+|`closeSelectionMenu`| Function|Dudkin Sergey| in progress| |
+|`getTypingStyle`| Function|Dudkin Sergey| in progress| |
+|`setTypingStyle`| Function|Dudkin Sergey| in progress| |
+|`setSelection`| Function|Dudkin Sergey| in progress| |
+|`isEditing`| Function|Dudkin Sergey| in progress| |
+|`stopEditing`| Function|Dudkin Sergey| in progress| |
+|`getLayoutManager`| Function|Dudkin Sergey| in progress| |
+|`getPreviewText`| Function|Dudkin Sergey| in progress| |
+|*RichEditorController*| *Class* |Dudkin Sergey| blocked|  |
+|`addTextSpan`| Function |Dudkin Sergey| done|  |
+|`addImageSpan`| Function |Dudkin Sergey| blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
+|`addBuilderSpan`| Function | Dudkin Sergey| blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
+|`addSymbolSpan`| Function | Dudkin Sergey| done|  |
+|`updateSpanStyle`| Function | Dudkin Sergey| done|  |
+|`updateParagraphStyle`| Function | Dudkin Sergey| done|  |
+|`deleteSpans`| Function |Dudkin Sergey| done|  |
+|`getSpans`| Function |Dudkin Sergey| done|  |
+|`getParagraphs`| Function |Dudkin Sergey| blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IB1LVZ |
+|`getSelection`| Function |Dudkin Sergey| done|  |
+|`fromStyledString`| Function | Dudkin Sergey| done|  |
+|`toStyledString`| Function | Dudkin Sergey| done|  |
+|*RichEditorStyledStringController*| *Class* |Dudkin Sergey| in progress| |
+|`setStyledString`| Function |Dudkin Sergey| in progress| |
+|`getStyledString`| Function | Dudkin Sergey| in progress| |
+|`getSelection`| Function |Dudkin Sergey| in progress| |
+|`onContentChanged`| Function | Dudkin Sergey| in progress| |
+|*Scroller*| *Class* | Erokhin Ilya | blocked |  |
+|`scrollTo`| Function | Erokhin Ilya | done |  |
+|`scrollEdge`| Function | Erokhin Ilya | done |  |
+|`fling`| Function | Erokhin Ilya | done |  |
+|`scrollPage`| Function | Erokhin Ilya | done |  |
+|`currentOffset`| Function | Erokhin Ilya | blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0|
+|`scrollToIndex`| Function | Erokhin Ilya | in progress |https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX|
+|`scrollBy`| Function | Erokhin Ilya | done |  |
+|`isAtEnd`| Function | Erokhin Ilya | done |  |
+|`getItemRect`| Function | Erokhin Ilya | blocked IDL |https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0|
+|`getItemIndex`| Function | Erokhin Ilya | done |  |
+|*SearchController*| *Class* |Evstigneev Roman |done |  |
+|`caretPosition`| Function |Evstigneev Roman | done |  |
+|`stopEditing`| Function |Evstigneev Roman | done |  |
+|`setTextSelection`| Function |Evstigneev Roman | done |  |
+|*SwiperController*| *Class* | Skroba Gleb | done |  |
+|`showNext`| Function | Skroba Gleb | done |  |
+|`showPrevious`| Function | Skroba Gleb | done |  |
+|`changeIndex`| Function | Skroba Gleb | done |  |
+|`finishAnimation`| Function | Skroba Gleb | in progress |  |
+|*SwiperContentTransitionProxy*| *Class* | Skroba Gleb | in progress | |
+|`finishTransition`| Function | Skroba Gleb | in progress | |
+|`getSelectedIndex`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|`setSelectedIndex`| Function | Skroba Gleb | in progress | |
+|`getIndex`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|`setIndex`| Function | Skroba Gleb | in progress | |
+|`getPosition`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|`setPosition`| Function | Skroba Gleb | in progress | |
+|`getMainAxisLength`| Function | Skroba Gleb | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB0DGR |
+|`setMainAxisLength`| Function | Skroba Gleb | in progress | |
+|*IndicatorComponentController*| *Class* | Andrey Khudenkikh | in progress |  |
+|`showNext`| Function | Andrey Khudenkikh | in progress |  |
+|`showPrevious`| Function |  Andrey Khudenkikh | in progress |  |
+|`changeIndex`| Function |  Andrey Khudenkikh | in progress |  |
+|*TabsController*| *Class* | Skroba Gleb | in progress |
+|`changeIndex`| Function | Skroba Gleb | done | |
+|`preloadItems`| Function | Skroba Gleb | done | |
+|`setTabBarTranslate`| Function | | | |
+|`setTabBarOpacity`| Function | | | |
+|*TabContentTransitionProxy*| *Class* | | |  |
+|`finishTransition`| Function | | |  |
+|`getFrom`| Function | | |  |
+|`setFrom`| Function | | |  |
+|`getTo`| Function | | |  |
+|`setTo`| Function | | |  |
+|*TextController*| *Class* | | | |
+|`closeSelectionMenu`| Function | | | |
+|`setStyledString`| Function | | | |
+|`getLayoutManager`| Function | | | |
+|*TextAreaController*| *Class* | Tuzhilkin Ivan | in progress |  |
+|`caretPosition`| Function | Tuzhilkin Ivan | in progress |  |
+|`setTextSelection`| Function | Tuzhilkin Ivan | in progress |  |
+|`stopEditing`| Function | Tuzhilkin Ivan | in progress |  |
+|*TextClockController*| *Class* |Pavelyev Ivan|in progress|  |
+|`start`| Function |Pavelyev Ivan|in progress|  |
+|`stop`| Function |Pavelyev Ivan|in progress|  |
+|*TextBaseController*| *Class* | | | |
+|`setSelection`| Function | | | |
+|`closeSelectionMenu`| Function | | | |
+|`getLayoutManager`| Function | | | |
+|*TextEditControllerEx*| *Class* | | | |
+|`isEditing`| Function | | | |
+|`stopEditing`| Function | | | |
+|`setCaretOffset`| Function | | | |
+|`getCaretOffset`| Function | | | |
+|`getPreviewText`| Function | | | |
+|*StyledStringController*| *Class* | | | |
+|`setStyledString`| Function | | | |
+|`getStyledString`| Function | | | |
+|*LayoutManager*| *Class* | | | |
+|`getLineCount`| Function | | | |
+|`getGlyphPositionAtCoordinate`| Function | | | |
+|`getLineMetrics`| Function | | | |
+|`getRectsForRange`| Function | | | |
+|*EditMenuOptions*| *Class* | Erokhin Ilya | in progress |  |
+|`onCreateMenu`| Function |Erokhin Ilya | in progress |  |
+|`onMenuItemClick`| Function |Erokhin Ilya | in progress |  |
+|*TextInputController*| *Class* | Spirin Andrey | in progress |  |
+|`caretPosition`| Function | Spirin Andrey | in progress |  |
+|`setTextSelection`| Function | Spirin Andrey | in progress |  |
+|`stopEditing`| Function |  Spirin Andrey | in progress |  |
+|*TextPickerDialog*| *Class* | | | |
+|`show`| Function | | | |
+|*TextTimerController*| *Class* |Ekaterina Stepanova| done |  |
+|`start`| Function |Ekaterina Stepanova| done |  |
+|`pause`| Function |Ekaterina Stepanova| done |  |
+|`reset`| Function |Ekaterina Stepanova| done |  |
+|*TimePickerDialog*| *Class* | | | |
+|`show`| Function | | | |
+|*VideoController*| *Class* | Erokhin Ilya | done |  |
+|`start`| Function | Erokhin Ilya | done |  |
+|`pause`| Function | Erokhin Ilya | done |  |
+|`stop`| Function | Erokhin Ilya | done |  |
+|`setCurrentTime`| Function | Erokhin Ilya | done|  |
+|`requestFullscreen`| Function | Erokhin Ilya | done |  |
+|`exitFullscreen`| Function | Erokhin Ilya | done |  |
+|`reset`| Function | Erokhin Ilya | done |  |
+|*WebKeyboardController*| *Class* | Erokhin Ilya | in progress |  |
+|`insertText`| Function | Erokhin Ilya | in progress |  |
+|`deleteForward`| Function | Erokhin Ilya | in progress |  |
+|`deleteBackward`| Function | Erokhin Ilya | in progress |  |
+|`sendFunctionKey`| Function | Erokhin Ilya | in progress |  |
+|`close`| Function | Erokhin Ilya | in progress |  |
+|*FullScreenExitHandler*| *Class* | Erokhin Ilya | in progress |  |
+|`exitFullScreen`| Function | Erokhin Ilya | in progress |  |
+|*FileSelectorParam*| *Class* | Erokhin Ilya | in progress |  |
+|`getTitle`| Function | Erokhin Ilya | in progress |  |
+|`getMode`| Function | Erokhin Ilya | in progress |  |
+|`getAcceptType`| Function | Erokhin Ilya | in progress |  |
+|`isCapture`| Function | Erokhin Ilya | in progress |  |
+|*JsResult*| *Class* | Erokhin Ilya | in progress |  |
+|`handleCancel`| Function | Erokhin Ilya | in progress |  |
+|`handleConfirm`| Function | Erokhin Ilya | in progress |  |
+|`handlePromptConfirm`| Function | Erokhin Ilya | in progress |  |
+|*FileSelectorResult*| *Class* | Erokhin Ilya | in progress |  |
+|`handleFileList`| Function | Erokhin Ilya | in progress |  |
+|*HttpAuthHandler*| *Class* | Erokhin Ilya | in progress |  |
+|`confirm`| Function | Erokhin Ilya | in progress |  |
+|`cancel`| Function | Erokhin Ilya | in progress |  |
+|`isHttpAuthInfoSaved`| Function | Erokhin Ilya | in progress |  |
+|*SslErrorHandler*| *Class* | Erokhin Ilya | in progress |  |
+|`handleConfirm`| Function | Erokhin Ilya | in progress |  |
+|`handleCancel`| Function | Erokhin Ilya | in progress |  |
+|*ClientAuthenticationHandler*| *Class* | Erokhin Ilya | in progress |  |
+|`confirm`| Function | Erokhin Ilya | in progress |  |
+|`cancel`| Function | Erokhin Ilya | in progress |  |
+|`ignore`| Function | Erokhin Ilya | in progress |  |
+|*PermissionRequest*| *Class* | Erokhin Ilya | in progress |  |
+|`deny`| Function | Erokhin Ilya | in progress |  |
+|`getOrigin`| Function | Erokhin Ilya | in progress |  |
+|`getAccessibleResource`| Function | Erokhin Ilya | in progress |  |
+|`grant`| Function | Erokhin Ilya | in progress |  |
+|*ScreenCaptureHandler*| *Class* | Erokhin Ilya | in progress |  |
+|`getOrigin`| Function | Erokhin Ilya | in progress |  |
+|`grant`| Function | Erokhin Ilya | in progress |  |
+|`deny`| Function | Erokhin Ilya | in progress |  |
+|*DataResubmissionHandler*| *Class* | Erokhin Ilya | in progress |  |
+|`resend`| Function | Erokhin Ilya | in progress |  |
+|`cancel`| Function | Erokhin Ilya | in progress |  |
+|*ControllerHandler*| *Class* | Erokhin Ilya | in progress |  |
+|`setWebController`| Function | Erokhin Ilya | in progress |  |
+|*WebContextMenuParam*| *Class* | Erokhin Ilya | in progress |  |
+|`x`| Function | Erokhin Ilya | in progress |  |
+|`y`| Function | Erokhin Ilya | in progress |  |
+|`getLinkUrl`| Function | Erokhin Ilya | in progress |  |
+|`getUnfilteredLinkUrl`| Function | Erokhin Ilya | in progress |  |
+|`getSourceUrl`| Function | Erokhin Ilya | in progress |  |
+|`existsImageContents`| Function | Erokhin Ilya | in progress |  |
+|`getMediaType`| Function | Erokhin Ilya | in progress |  |
+|`getSelectionText`| Function | Erokhin Ilya | in progress |  |
+|`getSourceType`| Function | Erokhin Ilya | in progress |  |
+|`getInputFieldType`| Function | Erokhin Ilya | in progress |  |
+|`isEditable`| Function | Erokhin Ilya | in progress |  |
+|`getEditStateFlags`| Function | Erokhin Ilya | in progress |  |
+|`getPreviewWidth`| Function | Erokhin Ilya | in progress |  |
+|`getPreviewHeight`| Function | Erokhin Ilya | in progress |  |
+|*WebContextMenuResult*| *Class* | Erokhin Ilya | in progress |  |
+|`closeContextMenu`| Function | Erokhin Ilya | in progress |  |
+|`copyImage`| Function | Erokhin Ilya | in progress |  |
+|`copy`| Function | Erokhin Ilya | in progress |  |
+|`paste`| Function | Erokhin Ilya | in progress |  |
+|`cut`| Function | Erokhin Ilya | in progress |  |
+|`selectAll`| Function | Erokhin Ilya | in progress |  |
+|*ConsoleMessage*| *Class* | Erokhin Ilya | in progress |  |
+|`getMessage`| Function | Erokhin Ilya | in progress |  |
+|`getSourceId`| Function | Erokhin Ilya | in progress |  |
+|`getLineNumber`| Function | Erokhin Ilya | in progress |  |
+|`getMessageLevel`| Function | Erokhin Ilya | in progress |  |
 |*WebResourceRequest*| *Class* | Erokhin Ilya | in progress |  |
 |`getRequestHeader`| Function | Erokhin Ilya | in progress |  |
 |`getRequestUrl`| Function | Erokhin Ilya | in progress |  |
@@ -1778,12 +1988,85 @@
 |`getErrorCode`| Function | Erokhin Ilya | in progress |  |
 |*JsGeolocation*| *Class* | Erokhin Ilya | in progress |  |
 |`invoke`| Function | Erokhin Ilya | in progress |  |
-|*EventResult*| *Class* | Erokhin Ilya | in progress |  |
-|`setGestureEventResult`| Function | Erokhin Ilya | in progress |  |
 |*WebCookie*| *Class* | Erokhin Ilya | done | |
 |`setCookie`| Function | Erokhin Ilya | done | |
 |`saveCookie`| Function | Erokhin Ilya | done | |
-|*CustomSpan*| *Class* | Politov Mikhail | in progress |  |
-|`onMeasure`| Function | Politov Mikhail | in progress |  |
-|`onDraw`| Function | Politov Mikhail | in progress |  |
-|`invalidate`| Function | Politov Mikhail | in progress |  |
+|*EventResult*| *Class* | Erokhin Ilya | in progress |  |
+|`setGestureEventResult`| Function | Erokhin Ilya | in progress |  |
+|*WebController*| *Class* | Erokhin Ilya | in progress | |
+|`onInactive`| Function | Erokhin Ilya | done | |
+|`onActive`| Function | Erokhin Ilya | done | |
+|`zoom`| Function | Erokhin Ilya | done | |
+|`clearHistory`| Function | Erokhin Ilya | done | |
+|`runJavaScript`| Function | Erokhin Ilya | in progress | |
+|`loadData`| Function | Erokhin Ilya | done | |
+|`loadUrl`| Function | Erokhin Ilya | done | |
+|`refresh`| Function | Erokhin Ilya | done | |
+|`stop`| Function | Erokhin Ilya | done | |
+|`registerJavaScriptProxy`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAU9OV |
+|`deleteJavaScriptRegister`| Function | Erokhin Ilya | done | |
+|`getHitTest`| Function | Erokhin Ilya | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IAUYD0 |
+|`requestFocus`| Function | Erokhin Ilya | done | |
+|`accessBackward`| Function | Erokhin Ilya | done | |
+|`accessForward`| Function | Erokhin Ilya | done | |
+|`accessStep`| Function | Erokhin Ilya | done | |
+|`backward`| Function | Erokhin Ilya | done | |
+|`forward`| Function | Erokhin Ilya | done | |
+|`getCookieManager`| Function | Erokhin Ilya | done | |
+|*XComponentController*| *Class* | | | |
+|`getXComponentSurfaceId`| Function | | | |
+|`getXComponentContext`| Function | | | |
+|`setXComponentSurfaceSize`| Function | | | |
+|`setXComponentSurfaceRect`| Function | | | |
+|`getXComponentSurfaceRect`| Function | | | |
+|`setXComponentSurfaceRotation`| Function | | | |
+|`getXComponentSurfaceRotation`| Function | | | |
+|`onSurfaceCreated`| Function | | | |
+|`onSurfaceChanged`| Function | | | |
+|`onSurfaceDestroyed`| Function | | | |
+|`startImageAnalyzer`| Function | | | |
+|`stopImageAnalyzer`| Function | | | |
+|*WaterFlowSections*| *Class* | | | |
+|`splice`| Function | | | |
+|`push`| Function | | | |
+|`update`| Function | | | |
+|`values`| Function | | | |
+|`length`| Function | | | |
+|*UIExtensionProxy*| *Class* | | | |
+|`send`| Function | | | |
+|`sendSync`| Function | | | |
+|`onAsyncReceiverRegister`| Function | | | |
+|`onSyncReceiverRegister`| Function | | | |
+|`offAsyncReceiverRegister`| Function | | | |
+|`offSyncReceiverRegister`| Function | | | |
+|*StyledString*| *Class* | | | |
+|`getString`| Function | | | |
+|`getStyles`| Function | | | |
+|`equals`| Function | | | |
+|`subStyledString`| Function | | | |
+|`fromHtml`| Function | | | |
+|`toHtml`| Function | | | |
+|`marshalling`| Function | | | |
+|`unmarshalling`| Function | | | |
+|`getLength`| Function | | | |
+|*MutableStyledString*| *Class* | | | |
+|`replaceString`| Function | | | |
+|`insertString`| Function | | | |
+|`removeString`| Function | | | |
+|`replaceStyle`| Function | | | |
+|`setStyle`| Function | | | |
+|`removeStyle`| Function | | | |
+|`removeStyles`| Function | | | |
+|`clearStyles`| Function | | | |
+|`replaceStyledString`| Function | | | |
+|`insertStyledString`| Function | | | |
+|`appendStyledString`| Function | | | |
+|*CustomSpan*| *Class* | Politov Mikhail | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IB4H0N |
+|`onMeasure`| Function | Politov Mikhail | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IB4H0N |
+|`onDraw`| Function | Politov Mikhail | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IB4H0N |
+|`invalidate`| Function | Politov Mikhail | blocked IDL| https://gitee.com/nikolay-igotti/idlize/issues/IB4H0N |
+|*LinearIndicatorController*| *Class* | Kovalev Sergey | in progress |  |
+|`setProgress`| Function | Kovalev Sergey | in progress |  |
+|`start`| Function | Kovalev Sergey | in progress |  |
+|`pause`| Function | Kovalev Sergey | in progress |  |
+|`stop`| Function | Kovalev Sergey | in progress |  |
