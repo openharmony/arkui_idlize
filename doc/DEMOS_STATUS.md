@@ -15,7 +15,7 @@
 |---------------------------|-----------|-----------|-------------|---------------------|------------------|-------------------|-----------|----------|
 | @ohos.router              | Class     |           |             | Kirill Kirichenko   | done             |                   |           |          |
 | `back`                    | Function  |           | ENC, WON    | Kirill Kirichenko   | done             | Kirill Kirichenko |           | High     |
-| `pageTransition`          | Function  |           | ENC, WON    | Kirill Kirichenko   | in progress      | Kirill Kirichenko |           | High     |
+| `pageTransition`          | Function  |           | ENC, WON    |                     |                  | Kirill Kirichenko |           | High     |
 | CustomDialogController    | Class     |           | HEL         | Erokhin Ilya        | blocked          |                   |           | Low      |
 | `builder`                 | Function  |           |             | Erokhin Ilya        | blocked          |                   |           |          |
 | `autoCancel`              | Function  |           |             | Erokhin Ilya        | done             |                   |           |          |
@@ -32,11 +32,11 @@
 | `active`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `type`                    | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `target`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
-| `params`                  | Function  |           | HEL         | Skroba Gleb         | blocked IDL      |                   |           | High     |
+| `params`                  | Function  |           | HEL         | Skroba Gleb         | in progress      |                   |           | High     |
 | Progress                  | Component | Yes       |             | Erokhin Ilya        | Blocked          |                   |           |          |
 | `style, total, value`     | Options   |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
 | `type, value`             | Options   |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
-| `style`                   | Function  |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
+| `style`                   | Function  |           | HEL         | Erokhin Ilya        | blocked          |                   |           | Medium   |
 | `color`                   | Function  |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
 | Common                    | Component | Yes       |             | Roman Sedaikin      | in progress      | Roman Sedaikin    | done      |          |
 | `width`                   | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
@@ -99,7 +99,7 @@
 | `@Styles function`        | Decorator |           | HEL         | N/A                 | N/A              | A. Tarasov        |           | Low      |
 | Button                    | Component | Yes       |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `stateEffect, type`       | Options   |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
-| `radialGradient`          | Function  |           | ENC         | Kirill Kirichenko   |                  |                   |           | Medium   |
+| `radialGradient`          | Function  |           | ENC         |                     |                  |                   |           | Medium   |
 | `ctor($r)`                | Function  |           | ENC         | Kirill Kirichenko   | done             |                   |           | High     |
 | Image                     | Component | Yes       |             |                     |                  |                   |           |          |
 | `ctor(URL)`               | Function  |           | ENC         | Kirill Berezin      | In progress      |                   |           | Medium   |
@@ -115,7 +115,7 @@
 | `displayCount`            | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Medium   |
 | `indicatorStyle`          | Function  |           | WON         | Skroba Gleb         | done             |                   |           | Low      |
 | `priorityGesture`         | Function  |           | WON         | Erokhin Ilya        | blocked          |                   |           | Medium   |
-| Text                      | Component | Yes       |             | Kirill Kirichenko   | in progress      |                   |           |          |
+| Text                      | Component | Yes       |             |                     |                  |                   |           |          |
 | `ctor($r)`                | Function  |           | HEL         | Kirill Kirichenko   | done             |                   |           | High     |
 | Shape                     | Component |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
 | `fill`                    | Function  |           | HEL         | Dudkin Sergey       | done             |                   |           | High     |
