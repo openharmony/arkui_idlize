@@ -52,16 +52,26 @@ compile arkts subset:
   script:
     - npm run compile:all:arkts:idl
 
+arkts subset tsc:
+   stage: test
+   tags:
+     - idlize-ci
+     - koala-ci
+   before_script:
+     - !reference [.setup, script]
+   script:
+     - npm run check:arkts:subset:tsc
 
-# arkts subset tsc:
-#   stage: test
-#   tags:
-#     - idlize-ci
-#     - koala-ci
-#   before_script:
-#     - !reference [.setup, script]
-#   script:
-#     - npm run check:arkts:subset:tsc
+arkts subset sig integration:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - PANDA_SDK_VERSION=1.5.0-dev.7123 npm run panda:sdk:install
+  script:
+    - npm run sig:arkts:subset:all
 
 build arkoala-ts:
   stage: test

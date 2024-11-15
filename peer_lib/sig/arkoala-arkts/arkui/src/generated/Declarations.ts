@@ -14,11 +14,7 @@
  */
 
 import { NativeModule } from "#components"
-
-export interface ArkoalaHost {
-    waitForVSync(): Promise<void> | undefined
-    nativeModule: NativeModule | undefined
-}
+import { int32 } from "@koalaui/common"
 
 export interface ArkoalaControl {
     sendMessage(topic: string, event: Object): void
@@ -26,7 +22,7 @@ export interface ArkoalaControl {
 }
 
 export interface UIElement {
-    id: int
+    id: int32
     kind: string
     children: Array<UIElement> | undefined
     width: string | undefined
@@ -39,6 +35,6 @@ export interface UIElement {
 }
 
 export interface WaitFramesEvent {
-    skipFrames: int
+    skipFrames: int32
     callback: () => void
 }

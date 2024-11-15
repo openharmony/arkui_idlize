@@ -24,10 +24,10 @@ declare interface UIExtensionOptions {
    dpiFollowStrategy?: DpiFollowStrategy;
 }
 
-declare interface TerminationInfo {
-   code: number;
-   want?: import('../api/@ohos.app.ability.Want').default;
-}
+// declare interface TerminationInfo {
+//    code: number;
+//    want?: import('../api/@ohos.app.ability.Want').default;
+// }
 
 declare interface UIExtensionProxy {
    send(data: Record<string, Object>): void;
@@ -38,35 +38,35 @@ declare interface UIExtensionProxy {
    off(type: 'syncReceiverRegister', callback?: (proxy: UIExtensionProxy) => void): void;
 }
 
-interface UIExtensionComponentInterface {
-   (
-       want: import('../api/@ohos.app.ability.Want').default,
-       options?: UIExtensionOptions
-   ): UIExtensionComponentAttribute;
-}
-
-declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComponentAttribute> {
-   onRemoteReady(
-       callback: import('../api/@ohos.base').Callback<UIExtensionProxy>
-   ): UIExtensionComponentAttribute;
-   onReceive(
-       callback: import('../api/@ohos.base').Callback<{ [key: string]: Object }>
-   ): UIExtensionComponentAttribute;
-   onResult(
-       callback: import('../api/@ohos.base').Callback<{
-          code: number;
-          want?: import('../api/@ohos.app.ability.Want').default;
-       }>
-   ): UIExtensionComponentAttribute;
-   onRelease(
-       callback: import('../api/@ohos.base').Callback<number>
-   ): UIExtensionComponentAttribute;
-   onError(
-       callback: import('../api/@ohos.base').ErrorCallback
-   ): UIExtensionComponentAttribute;
-   onTerminated(callback: Callback<TerminationInfo>): UIExtensionComponentAttribute;
-}
-
-declare const UIExtensionComponent: UIExtensionComponentInterface;
-
-declare const UIExtensionComponentInstance: UIExtensionComponentAttribute;
+// interface UIExtensionComponentInterface {
+//    (
+//        want: import('../api/@ohos.app.ability.Want').default,
+//        options?: UIExtensionOptions
+//    ): UIExtensionComponentAttribute;
+// }
+//
+// declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComponentAttribute> {
+//    onRemoteReady(
+//        callback: import('../api/@ohos.base').Callback<UIExtensionProxy>
+//    ): UIExtensionComponentAttribute;
+//    onReceive(
+//        callback: import('../api/@ohos.base').Callback<{ [key: string]: Object }>
+//    ): UIExtensionComponentAttribute;
+//    onResult(
+//        callback: import('../api/@ohos.base').Callback<{
+//           code: number;
+//           want?: import('../api/@ohos.app.ability.Want').default;
+//        }>
+//    ): UIExtensionComponentAttribute;
+//    onRelease(
+//        callback: import('../api/@ohos.base').Callback<number>
+//    ): UIExtensionComponentAttribute;
+//    onError(
+//        callback: import('../api/@ohos.base').ErrorCallback
+//    ): UIExtensionComponentAttribute;
+//    onTerminated(callback: Callback<TerminationInfo>): UIExtensionComponentAttribute;
+// }
+//
+// declare const UIExtensionComponent: UIExtensionComponentInterface;
+//
+// declare const UIExtensionComponentInstance: UIExtensionComponentAttribute;

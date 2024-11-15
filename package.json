@@ -150,6 +150,10 @@
     "arkoala:ts:native:arm32": "npm run generate:ts && npm run compile:native-hzvm-ohos-arm32 --prefix external/arkoala/framework",
     "arkoala:ts:native:arm64": "npm run generate:ts && npm run compile:native-hzvm-ohos-arm64 --prefix external/arkoala/framework",
     "arkoala:har": "npm run generate:ts && cd external && npm run arkoala:har",
-    "arkoala:har-arm32": "npm run generate:ts && cd external && npm run arkoala:har-arm32"
+    "arkoala:har-arm32": "npm run generate:ts && cd external && npm run arkoala:har-arm32",
+    "sig:arkts:subset:clean": "cd ./external/arkoala-arkts/arkui && rm -rf src/generated/ && rm -rf build/ && rm -rf unmemoized/",
+    "sig:arkts:subset:copy": "npm run make:arkts:idl && cp -r ./out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/ ./external/arkoala-arkts/arkui/src/",
+    "sig:arkts:subset:compile": "cd external/arkoala-arkts/arkui && npm run compile:arkts:unmemoized",
+    "sig:arkts:subset:all": "npm run sig:arkts:subset:clean && npm run sig:arkts:subset:copy && npm run sig:arkts:subset:compile"
   }
 }
