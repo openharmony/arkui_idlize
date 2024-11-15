@@ -18,7 +18,7 @@ import {
     isMaterialized,
 } from "../idl/IdlPeerGeneratorVisitor";
 import { getSyntheticDeclarationList } from "../idl/IdlSyntheticDeclarations";
-import { DeclarationNameConvertor } from "../idl/IdlNameConvertor";
+import { createDeclarationNameConvertor, DeclarationNameConvertor } from "../idl/IdlNameConvertor";
 import { Language } from "../../Language";
 import {IDLBooleanType, toIDLType} from "../../idl";
 import { getReferenceResolver } from '../ReferenceResolver';
@@ -108,15 +108,16 @@ abstract class TypeCheckerPrinter {
                 imports.addFeature(feature.feature, feature.module)
         imports.print(this.writer, 'arkts/type_check')
     }
-    protected abstract writeInterfaceChecker(name: string, descriptor: StructDescriptor): void
+    protected abstract writeInterfaceChecker(name: string, descriptor: StructDescriptor, type?: idl.IDLType): void
     protected abstract writeArrayChecker(typeName: string, type: idl.IDLType): void
 
     print() {
         const importFeatures: ImportFeature[] = []
-        const interfaces: { name: string, descriptor: StructDescriptor }[] = []
+        const interfaces: { name: string, type?: idl.IDLType, descriptor: StructDescriptor }[] = []
         const seenNames = new Set<string>()
         const declDependenciesCollector
             = createDeclDependenciesCollector(this.library, createTypeDependenciesCollector(this.library))
+        const declNameConvertor = createDeclarationNameConvertor(this.library.language)
 
         for (const file of this.library.files) {
             const declarations: idl.IDLEntry[] = [...Array.from(file.declarations), ...file.enums]
@@ -139,7 +140,8 @@ abstract class TypeCheckerPrinter {
                         importFeatures.push(convertDeclToFeature(this.library, decl))
                     }
                     interfaces.push({
-                        name: convertDeclaration(DeclarationNameConvertor.I, decl),
+                        name: convertDeclaration(declNameConvertor, decl),
+                        type: idl.createReferenceType(decl.name),
                         descriptor: makeStructDescriptor(this.library, decl)
                     })
                 }
@@ -152,7 +154,7 @@ abstract class TypeCheckerPrinter {
             .forEach(it => {
                 importFeatures.push(convertDeclToFeature(this.library, it))
                 interfaces.push({
-                    name: convertDeclaration(DeclarationNameConvertor.I, it),
+                    name: convertDeclaration(declNameConvertor, it),
                     descriptor: makeStructDescriptor(this.library, it)
                 })
         })
@@ -164,7 +166,7 @@ abstract class TypeCheckerPrinter {
         this.writeImports(importFeatures)
         this.writer.writeClass("TypeChecker", writer => {
             for (const struct of interfaces)
-                this.writeInterfaceChecker(struct.name, struct.descriptor)
+                this.writeInterfaceChecker(struct.name, struct.descriptor, struct.type)
 
             const arrayTypes = Array.from(this.library.seenArrayTypes)
                 .sort((a, b) => a[0].localeCompare(b[0]))
@@ -219,7 +221,8 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         super(library, createLanguageWriter(Language.TS, getReferenceResolver(library)))
     }
 
-    protected writeInterfaceChecker(name: string, descriptor: StructDescriptor): void {
+    protected writeInterfaceChecker(name: string, descriptor: StructDescriptor, type: idl.IDLType): void {
+        const typeName = this.library.mapType(type)
         if (descriptor.getFields().length === 0) {
             return
         }
@@ -244,7 +247,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
                     ]),
                     stmt: writer.makeReturn(writer.makeString('true'))
                 }
-            }), writer.makeThrowError(`Can not discriminate value typeof ${name}`))
+            }), writer.makeThrowError(`Can not discriminate value typeof ${typeName}`))
             writer.writeStatement(statement)
         })
     }

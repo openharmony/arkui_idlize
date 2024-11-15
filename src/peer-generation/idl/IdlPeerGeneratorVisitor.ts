@@ -44,7 +44,7 @@ import {
 import { BuilderClass, initCustomBuilderClasses, isCustomBuilderClass } from "../BuilderClass";
 import { isRoot } from "../inheritance";
 import { ImportFeature } from "../ImportsCollector";
-import { DeclarationNameConvertor } from "./IdlNameConvertor";
+import { createFeatureNameConvertor, DeclarationNameConvertor } from "./IdlNameConvertor";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convert } from "./common"
@@ -1159,18 +1159,19 @@ export class IdlPeerProcessor {
 }
 
 export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): ImportFeature {
+    const featureNameConvertor = createFeatureNameConvertor(library.language)
     if (!idl.isEntry(node))
         throw "Expected to have an entry"
     if (isSyntheticDeclaration(node))
         return {
-            feature: convertDeclaration(DeclarationNameConvertor.I, node),
+            feature: convertDeclaration(featureNameConvertor, node),
             module: `./${syntheticDeclarationFilename(node)}`
         }
     if (isConflictingDeclaration(node)) {
         // const parent = node.parent
         let feature = /*ts.isModuleBlock(parent)
             ? parent.parent.name.text
-            : */convertDeclaration(DeclarationNameConvertor.I, node)
+            : */convertDeclaration(featureNameConvertor, node)
         return {
             feature: feature,
             module: './ConflictedDeclarations'
@@ -1190,7 +1191,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): I
     const basename = path.basename(fileName)
     const basenameNoExt = basename.replaceAll(path.extname(basename), '')
     return {
-        feature: convertDeclaration(DeclarationNameConvertor.I, node),
+        feature: convertDeclaration(featureNameConvertor, node),
         module: `./${basenameNoExt}`,
     }
 }

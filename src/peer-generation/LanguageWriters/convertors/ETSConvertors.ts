@@ -16,18 +16,25 @@
 import * as idl from "../../../idl";
 import { TsIDLNodeToStringConverter } from "./TSConvertors";
 import {createReferenceType, IDLReferenceType, IDLType} from "../../../idl";
-import { DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
+import { createDeclarationNameConvertor, DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
 import { convertDeclaration } from "../nameConvertor";
+import { Language } from "../../../Language";
 
 export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
     convertTypeReference(type: IDLReferenceType): string {
-        //TODO: Needs to be implemented properly
+        // Only to deal with namespaces. TODO: remove later 
+        const decl = this.resolver.resolveTypeReference(type)
+        if (decl && idl.isEnum(decl)) {
+            return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
+        }
+
+        // TODO: Needs to be implemented properly
         const types = type.name.split(".")
         if (types.length > 1) {
             // Takes only name without the namespace prefix
             const decl = this.resolver.resolveTypeReference(createReferenceType(types.slice(-1).join()))
             if (decl !== undefined) {
-                return convertDeclaration(DeclarationNameConvertor.I, decl)
+                return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
             }
         }
         return super.convertTypeReference(type);

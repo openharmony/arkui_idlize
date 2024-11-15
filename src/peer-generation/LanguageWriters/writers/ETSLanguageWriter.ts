@@ -26,13 +26,16 @@ import {
     ObjectArgs
 } from "../LanguageWriter"
 import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
+import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
 import {AggregateConvertor, ArgConvertor, ArrayConvertor, BaseArgConvertor, CustomTypeConvertor, EnumConvertor, InterfaceConvertor, makeInterfaceTypeCheckerCall, RuntimeType} from "../../ArgConvertors"
 import { Language } from "../../../Language"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
 import {PeerLibrary} from "../../PeerLibrary";
 import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter";
+import * as idl from "../../../idl"
+import { convertDeclaration } from "../nameConvertor"
+import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -66,11 +69,12 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
     constructor(private readonly enumEntity: IDLEnum, private readonly isExport: boolean) {}
 
     write(writer: LanguageWriter) {
-        writer.print(this.enumEntity.comment)
-        writer.writeClass(this.enumEntity.name, (writer) => {
+        // writer.print(this.enumEntity.comment)
+        const className = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
+        writer.writeClass(className, (writer) => {
             let isTypeString = true
             this.enumEntity.elements.forEach((member, index) => {
-                writer.print(member.comment)
+                // writer.print(member.comment)
                 const initText = member.initializer ?? index
                 isTypeString &&= (typeof initText !== "number")
                 const ctorArgs = [
@@ -81,7 +85,15 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                     toIDLType(this.enumEntity.name),
                     [FieldModifier.STATIC, FieldModifier.READONLY],
                     false,
-                    writer.makeString(`new ${this.enumEntity.name}(${ctorArgs.join(",")})`))
+                    writer.makeString(`new ${className}(${ctorArgs.join(",")})`))
+                let originalName = getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
+                if (originalName) {
+                    writer.writeFieldDeclaration(originalName,
+                        toIDLType(this.enumEntity.name),
+                        [FieldModifier.STATIC, FieldModifier.READONLY],
+                        false,
+                        writer.makeString(`${className}.${member.name}`))
+                }
             })
             const typeName = isTypeString ? "string" : "KInt"
             let argTypes = [toIDLType(typeName)]
@@ -90,7 +102,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                 argTypes.push(toIDLType("KInt"))
                 argNames.push("ordinal")
             }
-            writer.writeConstructorImplementation(this.enumEntity.name,
+            writer.writeConstructorImplementation(className,
                 new NamedMethodSignature(IDLVoidType, argTypes, argNames), (writer) => {
                     writer.writeStatement(writer.makeAssign("this.value", undefined, writer.makeString("value"), false))
                     if (isTypeString) {
@@ -103,8 +115,8 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
             }
             writer.writeMethodImplementation(new Method("of", new MethodSignature(toIDLType(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {
-                    this.enumEntity.elements.forEach(member => {
-                        const memberName = `${this.enumEntity.name}.${member.name}`
+                    this.enumEntity.elements.forEach((member) => {
+                        const memberName = `${className}.${member.name}`
                         writer.writeStatement(
                             writer.makeCondition(
                                 writer.makeEquals([writer.makeString('arg0'), writer.makeString(`${memberName}.value`)]),
@@ -123,6 +135,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
 
 export function generateTypeCheckerName(typeName: string): string {
     typeName = typeName.replaceAll('[]', 'BracketsArray')
+    .replaceAll('.', '') // Todo: hack for namespaces
     return `is${typeName.replaceAll('[]', 'Brackets')}`
 }
 

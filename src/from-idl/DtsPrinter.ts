@@ -41,17 +41,18 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLConstant,
     createReferenceType,
     transformMethodsAsync2ReturnPromise,
-    forceAsNamedNode,
     isNamedNode,
     IDLNode,
     IDLThisType,} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
+import { IndentedPrinter } from "../IndentedPrinter"
 
 export class CustomPrintVisitor {
-    constructor(private resolver: (type: IDLReferenceType) => IDLEntry | undefined, private language: Language) {}
     output: string[] = []
+    constructor(private resolver: (type: IDLReferenceType) => IDLEntry | undefined, private language: Language) {}
+
     currentInterface?: IDLInterface
 
     visit(node: IDLEntry) {

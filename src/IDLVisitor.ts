@@ -602,12 +602,16 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         })
         result.elements = node.members
             .filter(ts.isEnumMember)
-            .map((it, index) => this.serializeEnumMember(it, result, names[index]))
+            .map((it, index) => this.serializeEnumMember(it, result, names[index], identName(it.name)!))
         return result
     }
 
-    serializeEnumMember(node: ts.EnumMember, parent: idl.IDLEnum, name: string): idl.IDLEnumMember {
+    serializeEnumMember(node: ts.EnumMember, parent: idl.IDLEnum, name: string, originalName: string): idl.IDLEnumMember {
         const initializer = this.typeChecker.getConstantValue(node)
+        let extendedAttributes = this.computeDeprecatedExtendAttributes(node)
+        if (originalName != name) {
+            extendedAttributes.push({ name: idl.IDLExtendedAttributes.OriginalEnumMemberName, value: originalName })
+        }
         return idl.createEnumMember(
             name,
             parent,
@@ -615,7 +619,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             initializer, {
             fileName: node.getSourceFile().fileName,
             documentation: getDocumentation(this.sourceFile, node, this.options.docs),
-            extendedAttributes: this.computeDeprecatedExtendAttributes(node),
+            extendedAttributes: extendedAttributes
         })
     }
 

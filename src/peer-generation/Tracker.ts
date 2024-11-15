@@ -15,6 +15,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import * as idl from "../idl"
 
 import { IndentedPrinter } from "../IndentedPrinter";
 import { MaterializedClass } from "./Materialized";

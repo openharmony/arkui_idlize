@@ -74,6 +74,7 @@ export enum IDLExtendedAttributes {
     Namespace = "Namespace",
     NativeModule = "NativeModule",
     Optional = "Optional",
+    OriginalEnumMemberName = "OriginalEnumMemberName",
     Protected = "Protected",
     Synthetic = "Synthetic",
     TSType = "TSType",

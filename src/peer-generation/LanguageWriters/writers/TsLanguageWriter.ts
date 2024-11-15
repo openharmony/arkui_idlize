@@ -185,6 +185,11 @@ export class TSLanguageWriter extends LanguageWriter {
         this.typeConvertor = new TsIDLNodeToStringConverter(this.resolver)
     }
 
+    pushNamespace(namespace: string, ident: boolean = true): void {
+        this.print(`export namespace ${namespace} {`)
+        if (ident) this.pushIndent()
+    }
+
     fork(): LanguageWriter {
         return new TSLanguageWriter(new IndentedPrinter(), this.resolver, this.language)
     }

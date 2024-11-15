@@ -14,6 +14,7 @@
  */
 
 import * as idl from '../../idl'
+import { Language } from '../../Language'
 import { DeclarationConvertor } from '../LanguageWriters/nameConvertor'
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
@@ -31,4 +32,49 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     }
 
     static readonly I = new DeclarationNameConvertor()
+}
+
+export class TSFeatureNameConvertor extends DeclarationNameConvertor {
+    override convertEnum(decl: idl.IDLEnum): string {
+        return `${idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace) ?? decl.name}`
+    }
+    static readonly I = new TSFeatureNameConvertor()
+}
+
+export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
+    override convertEnum(decl: idl.IDLEnum): string {
+        const namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
+        return `${namespace ? `${namespace}_` : ``}${decl.name}`
+    }
+    static readonly I = new ETSDeclarationNameConvertor()
+}
+
+export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
+    override convertEnum(decl: idl.IDLEnum): string {
+        const namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
+        return `${namespace ? `${namespace}_` : ``}${decl.name}`
+    }
+    static readonly I = new ETSFeatureNameConvertor()
+}
+
+export function createDeclarationNameConvertor(language: Language): DeclarationNameConvertor {
+    switch (language) {
+        case Language.ARKTS: return ETSDeclarationNameConvertor.I
+        case Language.JAVA: 
+        case Language.CPP: 
+        case Language.CJ: 
+        case Language.TS: return DeclarationNameConvertor.I
+        default: throw new Error(`Language ${language.toString()} is not supported`)
+    }
+}
+
+export function createFeatureNameConvertor(language: Language): DeclarationNameConvertor {
+    switch (language) {
+        case Language.ARKTS: return ETSFeatureNameConvertor.I
+        case Language.JAVA: 
+        case Language.CPP: 
+        case Language.CJ: 
+        case Language.TS: return TSFeatureNameConvertor.I
+        default: throw new Error(`Language ${language.toString()} is not supported`)
+    }
 }

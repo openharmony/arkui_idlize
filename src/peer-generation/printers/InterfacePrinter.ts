@@ -48,6 +48,7 @@ import { Language } from '../../Language'
 import { escapeKeyword, IDLKind } from "../../idl";
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 import { collectProperties } from './StructPrinter'
+import { CustomPrintVisitor } from "../../from-idl/DtsPrinter"
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -63,8 +64,10 @@ abstract class DefaultInterfacesVisitor implements InterfacesVisitor {
 }
 
 export class TSDeclConvertor implements DeclarationConvertor<void> {
+    private printer: CustomPrintVisitor
     constructor(protected readonly writer: LanguageWriter,
                 readonly peerLibrary: PeerLibrary) {
+    this.printer = new CustomPrintVisitor(type => peerLibrary.resolveTypeReference(type), writer.language)
     }
     convertCallback(node: idl.IDLCallback): void {
     }
@@ -97,7 +100,9 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
 
     convertInterface(node: idl.IDLInterface): void {
         if (!this.peerLibrary.isComponentDeclaration((node))) {
-            this.writer.print('export ' + this.replaceImportTypeNodes(idl.printInterface(node).join("\n")))
+            this.printer.output = []
+            this.printer.printInterface(node)
+            this.writer.print('export ' + this.replaceImportTypeNodes(this.printer.output.join("\n")))
             return
         }
         let printer = new IndentedPrinter()
@@ -142,18 +147,12 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
             writer.print(`Object.assign(globalThis, {`)
             writer.pushIndent()
             for (const e of peerFile.enums) {
-                writer.print(`${e.name}: ${e.name},`)
+                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e.name))
+                writer.print(`${e.name}: ${usageTypeName},`)
             }
             writer.popIndent()
             writer.print(`})`)
         }
-    }
-
-    protected toEnumEntity(enumDecl: idl.IDLEnum): idl.IDLEnum {
-        const namespace = idl.getExtAttribute(enumDecl, idl.IDLExtendedAttributes.Namespace) ?? ""
-        return idl.createEnum(`${namespace}${enumDecl.name}`, enumDecl.elements, {
-            documentation: enumDecl.documentation
-        })
     }
 
     printInterfaces() {
@@ -162,10 +161,17 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
             this.printImports(writer, file)
             const typeConvertor = this.createDeclarationConvertor(writer)
             file.declarations.forEach(it => convertDeclaration(typeConvertor, it))
-            file.enums.forEach(it => writer.writeStatement(writer.makeEnumEntity(this.toEnumEntity(it), true)))
+            file.enums.forEach(it => {
+                it.name = this.enumName(it)
+                writer.writeStatement(writer.makeEnumEntity(it, true))
+            })
             this.printAssignEnumsToGlobalScope(writer, file)
             this.interfaces.set(new TargetFile(this.generateFileBasename(file.originalFilename)), writer)
         }
+    }
+
+    protected enumName(enumEntry: idl.IDLEnum): string {
+        return enumEntry.name
     }
 
     protected createDeclarationConvertor(writer: LanguageWriter): DeclarationConvertor<void> {
@@ -603,6 +609,11 @@ class ArkTSInterfacesVisitor extends TSInterfacesVisitor {
         // Not supported
     }
 
+    // override enumName(enumEntry: idl.IDLEnum): string {
+    //     const namespace = idl.getExtAttribute(enumEntry, IDLExtendedAttributes.Namespace) ?? ""
+    //     return `${namespace}${enumEntry.name}`
+    // }
+
     protected createDeclarationConvertor(writer: LanguageWriter): DeclarationConvertor<void> {
         return new ArkTSDeclConvertor(writer, this.peerLibrary)
     }
@@ -623,7 +634,7 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
         const declarationConverter = new CJDeclarationConvertor(this.peerLibrary, (declaration: CJDeclaration) => {
             this.interfaces.set(declaration.targetFile, declaration.writer)
         })
-        
+
         for (const file of this.peerLibrary.files.values()) {
             file.declarations.forEach(it => convertDeclaration(declarationConverter, it))
         }
@@ -855,9 +866,9 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                 writer.writeProperty(it.name, it.type, true)
             })
             writer.writeConstructorImplementation(alias,
-                new NamedMethodSignature(idl.IDLVoidType, 
+                new NamedMethodSignature(idl.IDLVoidType,
                     constructorMembers.map(it =>
-                        idl.maybeOptional(it.type, it.isOptional) 
+                        idl.maybeOptional(it.type, it.isOptional)
                     ),
                     constructorMembers.map(it =>
                         writer.escapeKeyword(it.name)
