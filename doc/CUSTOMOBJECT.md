@@ -33,7 +33,6 @@ node . --dts2idl --input-dir ./interface_sdk-js/api,./interface_sdk-js/api/\@int
 - find an idl declaration for necessary CustomObject in the `full-idl` dir.
 For example `RectWidthStyle` declaration is placed in the file `@ohos.graphics.text.idl`:
 ```
-[Namespace=text]
 dictionary RectWidthStyle {
     number TIGHT;
     number MAX;
