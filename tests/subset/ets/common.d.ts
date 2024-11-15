@@ -394,6 +394,18 @@ declare enum GradientDirection {
     None,
 }
 
+declare enum Alignment {
+    TopStart,
+    Top,
+    TopEnd,
+    Start,
+    Center,
+    End,
+    BottomStart,
+    Bottom,
+    BottomEnd,
+}
+
 declare interface LinearGradient {
     angle?: number | string;
     direction?: GradientDirection;
@@ -420,6 +432,8 @@ declare class CommonMethod<T> {
     restoreId(value: number): T;
 
     padding(value: Padding | Dimension): T;
+
+    background(builder: CustomBuilder, options?: { align?: Alignment }): T;
 
     bindSheet(isShow: Optional<boolean>, builder: CustomBuilder, options?: SheetOptions): T;
 
