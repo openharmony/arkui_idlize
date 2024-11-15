@@ -173,6 +173,7 @@ declare interface SheetOptions extends BindOptions {
     onTypeDidChange?: Callback<SheetType>;
     uiContext?: UIContext;
     keyboardAvoidMode?: SheetKeyboardAvoidMode;
+    offset?: Position;
 }
 
 declare enum BlurStyle {

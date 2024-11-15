@@ -196,6 +196,7 @@ declare interface SheetOptions extends BindOptions {
     keyboardAvoidMode?: SheetKeyboardAvoidMode;
     enableHoverMode?: boolean;
     hoverModeArea?: HoverModeAreaType;
+    offset?: Position;
 }
 
 declare enum BlurStyle {

@@ -41,6 +41,7 @@ import { BlurOptions,
          EdgeStyles,
          UIContext,
          ScrollSizeMode,
+         Position,
          SheetKeyboardAvoidMode } from "@arkoala/arkui/ArkCommonInterfaces"
 import { Dimension,
          Length,
@@ -208,6 +209,7 @@ class SheetOptionsImpl implements SheetOptions {
     _onWillAppear: (() => void) | undefined
     _onWillDisappear: (() => void) | undefined
     _keyboardAvoidMode: SheetKeyboardAvoidMode | undefined
+    _offset: Position | undefined
 
     constructor(title?: SheetTitleOptions) {
         this._title = title
@@ -421,6 +423,13 @@ class SheetOptionsImpl implements SheetOptions {
     }
     set keyboardAvoidMode(arg: SheetKeyboardAvoidMode | undefined) {
         this._keyboardAvoidMode = arg
+    }
+
+    get offset(): Position | undefined {
+        return this._offset
+    }
+    set offset(arg: Position | undefined) {
+        this._offset = arg
     }
 }
 
