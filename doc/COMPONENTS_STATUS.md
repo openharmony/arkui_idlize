@@ -1078,8 +1078,8 @@
 |`tabBar`| Function | Evstigneev Roman | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAX81Q |
 |`onWillShow`| Function |Evstigneev Roman | in progress |  |
 |`onWillHide`| Function |Evstigneev Roman | in progress |  |
-|*Text*| *Component* | Kirill Kirichenko | in progress | |
-|`setTextOptions`| Function | Kirill Kirichenko | in progress |  |
+|*Text*| *Component* |  |  | |
+|`setTextOptions`| Function |  |  |  |
 |`font`| Function |Samarin Sergey |in progress |  |
 |`fontColor`| Function |Samarin Sergey | in progress |  |
 |`fontSize`| Function |Samarin Sergey | in progress |  |
@@ -1111,16 +1111,16 @@
 |`selectedBackgroundColor`| Function |Samarin Sergey |in progress |  |
 |`ellipsisMode`| Function |Samarin Sergey | in progress |  |
 |`EnableDataDetector`| Function | Kirill Kirichenko | done |  |
-|`DataDetectorConfig`| Function | Kirill Kirichenko | in progress |  |
+|`DataDetectorConfig`| Function |  | |  |
 |`onTextSelectionChange`| Function |Samarin Sergey |in progress |  |
 |`fontFeature`| Function |Samarin Sergey |in progress |  |
 |`privacySensitive`| Function |Samarin Sergey | done |  |
 |`textSelectable`| Function |Samarin Sergey | done |  |
-|`EditMenuOptions`| Function | Kirill Kirichenko | in progress |  |
+|`EditMenuOptions`| Function |  |  |  |
 |`halfLeading`| Function |Samarin Sergey | done |  |
 |`enableHapticFeedback`| Function |Samarin Sergey | done |  |
 |`selection`| Function |Samarin Sergey |in progress |  |
-|`BindSelectionMenu`| Function | Kirill Kirichenko | in progress |  |
+|`BindSelectionMenu`| Function |  | |  |
 |*TextArea*|*Component*|Tuzhilkin Ivan|in progress|  |
 |`placeholderColor`|Function|Tuzhilkin Ivan|done|  |
 |`placeholderFont`|Function|Tuzhilkin Ivan|done|  |
