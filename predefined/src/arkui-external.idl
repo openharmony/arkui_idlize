@@ -15,13 +15,13 @@ interface NodeController {};
 [Entity=Class, Interfaces="AttributeModifier", ParentTypeArguments="<object>"]
 interface TextModifier {};
 
-[Namespace=text]
+/*[Namespace=text]*/
 dictionary RectWidthStyle {
     number TIGHT;
     number MAX;
 };
 
-[Namespace=text]
+/*[Namespace=text]*/
 dictionary RectHeightStyle {
     number TIGHT;
     number MAX;
