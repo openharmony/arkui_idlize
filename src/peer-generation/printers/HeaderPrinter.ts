@@ -19,12 +19,13 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
 import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } from "../LanguageWriters";
 import { camelCaseToUpperSnakeCase } from "../../util";
+import { maybeOptional } from "../../idl";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
-import { forceAsNamedNode, IDLVoidType, maybeOptional, toIDLType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { Language } from "../../Language";
+import { createDestroyPeerMethod } from "../Materialized";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -82,9 +83,10 @@ class HeaderVisitor {
             let accessorName = `${PeerGeneratorConfig.cppPrefix}ArkUI${name}Accessor`
             this.api.print(`typedef struct ${peerName} ${peerName};`)
             this.api.print(`typedef struct ${accessorName} {`)
-            this.api.pushIndent();
-            [clazz.ctor, clazz.finalizer].concat(clazz.methods)
-                .forEach(method => this.printMethod(method))
+            this.api.pushIndent()
+            const mDestroyPeer = createDestroyPeerMethod(clazz)
+            const methods = [clazz.ctor, clazz.finalizer, mDestroyPeer].concat(clazz.methods)
+            methods.forEach(method => this.printMethod(method))
             this.api.popIndent()
             this.api.print(`} ${accessorName};\n`)
         }

@@ -14,13 +14,14 @@
  */
 
 import { ArgConvertor, RetConvertor } from "./ArgConvertors"
-import { Field, Method, MethodModifier } from "./LanguageWriters"
+import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 import { capitalize } from "../util"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
-import { IDLType } from "../idl"
+import { createReferenceType, IDLType, IDLVoidType } from "../idl"
 import { PeerMethod } from "./PeerMethod";
 import { PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary"
+import { PrimitiveType } from "./ArkPrimitiveType"
 
 export class MaterializedField {
     constructor(
@@ -143,6 +144,30 @@ export class MaterializedClass implements PeerClassBase {
     generatedName(isCallSignature: boolean): string{
         return this.className
     }
+}
+
+export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedMethod {
+    const destroyPeerReturnType: RetConvertor = {
+        isVoid: true,
+        nativeType: () => PrimitiveType.Void.getText(),
+        interopType: () => PrimitiveType.Void.getText(),
+        macroSuffixPart: () => "V"
+    }
+
+    return new MaterializedMethod(
+            clazz.className,
+            [],
+            destroyPeerReturnType,
+            false,
+            new Method(
+                'destroyPeer',
+                new NamedMethodSignature(
+                    IDLVoidType,
+                    [createReferenceType(clazz.className)],
+                    ['peer']
+                )
+            )
+        )
 }
 
 export function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary, level: string = "") {

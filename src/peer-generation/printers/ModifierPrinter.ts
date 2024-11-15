@@ -26,16 +26,16 @@ import {
     warning
 } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
-import { MaterializedClass, MaterializedMethod } from "../Materialized";
-import { groupBy, throwException } from "../../util";
+import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod } from "../Materialized";
+import { groupBy } from "../../util";
 import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
+import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from "../../idl"
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
-import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from "../../idl";
 
 export class ModifierVisitor {
     dummy = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
@@ -241,8 +241,9 @@ class AccessorVisitor extends ModifierVisitor {
         // Materialized class methods share the same namespace
         // so take the first one.
         const namespaceName = clazz.methods[0].implNamespaceName
-        this.pushNamespace(namespaceName, false);
-        [clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
+        this.pushNamespace(namespaceName, false)
+        const mDestroyPeer = createDestroyPeerMethod(clazz);
+        [clazz.ctor, clazz.finalizer, mDestroyPeer].concat(clazz.methods).forEach(method => {
             this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(m))
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
             this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
