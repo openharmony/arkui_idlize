@@ -695,15 +695,6 @@ class PeersGenerator {
     private processProperty(prop: idl.IDLProperty, peer: PeerClass, parentName?: string): PeerMethod | undefined {
         if (PeerGeneratorConfig.ignorePeerMethod.includes(prop.name))
             return
-        if (prop.name === "onWillScroll" || prop.name === "onDidScroll") {
-            /**
-             * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
-             * ScrollAttribute extends ScrollableCommonMethod and overrides this method as
-             * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
-             * valid and cannot be correctly processed and we want to stub this for now.
-             */
-            prop.type = idl.IDLAnyType
-        }
         this.library.requestType(prop.type, this.library.shouldGenerateComponent(peer.componentName))
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional)

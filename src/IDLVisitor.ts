@@ -1060,10 +1060,24 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         this.computeDeprecatedExtendAttributes(property, extendedAttributes)
         if (ts.isMethodDeclaration(property) || ts.isMethodSignature(property)) {
             if (!this.isCommonMethodUsedAsProperty(property)) throw new Error("Wrong")
+            let type = this.serializeType(property.parameters[0].type, nameSuggestion?.extend(nameOrNull(property.parameters[0].name)!))
+            if  ((escapedName == "onWillScroll" || escapedName == "onDidScroll") && ts.isClassDeclaration(property.parent)) {
+                let parentName = identName(property.parent.name)
+                if (parentName == "ScrollableCommonMethod" || parentName == "ScrollAttribute") {
+                    /**
+                     * ScrollableCommonMethod has a method `onWillScroll(handler: Optional<OnWillScrollCallback>): T;`
+                     * ScrollAttribute extends ScrollableCommonMethod and overrides this method as
+                     * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
+                     * valid and cannot be correctly processed so we force ScrollOnWillScrollCallback as parameter type.
+                     */
+                    type = idl.createUnionType([idl.createReferenceType("ScrollOnWillScrollCallback"), idl.IDLUndefinedType])
+                    console.log(`WARNING: forcing type of ${parentName}.${escapedName} to ScrollOnWillScrollCallback|undefined`)
+                }
+            }
             extendedAttributes.push({ name: idl.IDLExtendedAttributes.CommonMethod })
             return idl.createProperty(
                 escapedName,
-                this.serializeType(property.parameters[0].type, nameSuggestion?.extend(nameOrNull(property.parameters[0].name)!)),
+                type,
                 false,
                 false,
                 isDefined(property.parameters[0].questionToken), {
@@ -1179,7 +1193,6 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         this.computeDeprecatedExtendAttributes(method, extendedAttributes)
         this.computeExportAttribute(method, extendedAttributes)
         let [methodName, escapedMethodName] = escapeName(nameOrNull(method.name) ?? "_unknown")
-
         let dtsNameAttributeAccounted: boolean = !!extendedAttributes.find(ea => ea.name == idl.IDLExtendedAttributes.DtsName)
         const methodParameters = method.parameters.filter((param, paramIndex) : boolean => {
             const paramName = nameOrNull(param.name)
