@@ -18,19 +18,8 @@
 
 package idlize
 
-import std.collection.*
-
-public open class DateCustomSerializer <: CustomSerializer {
-    public DateCustomSerializer() {
-        super(["Date"])
-    }
-    public func serialize(serializer: SerializerBase, value: Ark_CustomObject, kind: String): Unit {
-        serializer.writeString("{}")
-    }
-}
-
-public open class Ark_CustomObject <: Ark_ObjectBase {
-    init() {
-        SerializerBase.registerCustomSerializer(DateCustomSerializer())     
+public class Ark_Undefined <: Ark_ObjectBase {
+    public func runtimeType(): RuntimeType {
+        return RuntimeType.UNDEFINED
     }
 }

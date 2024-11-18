@@ -225,7 +225,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             printer.pushIndent()
             for(let param of parameters.args) {
                 let ordinal = parameters.args.indexOf(param)
-                if (this.arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                if (idl.isContainerType(param) || this.arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
                     functionCallArgs.push(`handle_${ordinal}.pointer`)
                     printer.print(`let handle_${ordinal} = acquireArrayRawData(${parameters.argsNames[ordinal]}.toArray())`)
                 } else if (this.stringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
@@ -252,7 +252,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             }
             for(let param of parameters.args) {
                 let ordinal = parameters.args.indexOf(param)
-                if (this.arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                if (idl.isContainerType(param) || this.arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
                     printer.print(`releaseArrayRawData(handle_${ordinal})`)
                 } else if (this.stringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
                     printer.print(`LibC.free(${parameters.argsNames[ordinal]})`)

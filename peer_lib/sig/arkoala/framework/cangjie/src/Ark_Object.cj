@@ -87,7 +87,11 @@ public abstract class Ark_Object {
     
     static func getRuntimeType<T>(object: ?T): RuntimeType where T <: Ark_Object {
         if(let Some(obj) <- object) {
-            return Ark_Object.getRuntimeType(object as Ark_Object)
+            let object = match (object) {
+                case Some(object) => object
+                case _ => throw Exception("Failed to case child class of Ark_Object to Ark_Object")
+            }
+            return object.runtimeType()
         }
         else {
             return RuntimeType.UNDEFINED

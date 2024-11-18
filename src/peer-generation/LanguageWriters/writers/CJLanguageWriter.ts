@@ -76,6 +76,20 @@ export class CJCastExpression implements LanguageExpression {
     }
 }
 
+export class CJMatchExpression implements LanguageExpression {
+    constructor(public matchValue: LanguageExpression, public matchCases: LanguageExpression[], public caseBlocks: LanguageExpression[]) {}
+    asString(): string {
+        let output: string[] = []
+        output.push(`match (${this.matchValue.asString()}) {`)
+        for (let index in this.matchCases) {
+            output.push(`case ${this.matchCases[index].asString()} => ${this.caseBlocks[index].asString()} `)
+        }
+        output.push(`case _ => throw Exception(\"Unmatched pattern ${this.matchValue.asString()}\")`)
+        output.push(`}`)
+        return output.join('\n')
+    }
+}
+
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
 ////////////////////////////////////////////////////////////////
@@ -147,6 +161,22 @@ class CJThrowErrorStatement implements LanguageStatement {
         writer.print(`throw Exception("${this.message}")`)
     }
 }
+
+class CJCheckOptionalStatement implements LanguageStatement {
+    constructor(
+        public undefinedValue: string,
+        public optionalExpression: LanguageExpression,
+        public doStatement: LanguageStatement
+    ) { }
+    write(writer: LanguageWriter): void {
+        writer.print(`if (let Some(${this.optionalExpression.asString()}) <- ${this.optionalExpression.asString()}) {`)
+        writer.pushIndent()
+        this.doStatement.write(writer)
+        writer.popIndent()
+        writer.print('}')
+    }
+}
+
 
 
 ////////////////////////////////////////////////////////////////
@@ -228,7 +258,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${idl.isOptionalType(it) ? '?' : ''}${this.stringifyType(it)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
-            this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")});`)
+            this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`)
         }
         op(this)
         this.popIndent()
@@ -290,10 +320,10 @@ export class CJLanguageWriter extends LanguageWriter {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
-        throw new Error(`TBD`)
+        throw new Error(`makeClassInit`)
     }
     makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
-        throw new Error(`TBD`)
+        throw new Error(`makeArrayInit`)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         throw new Error(`TBD`)
@@ -315,7 +345,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return new ReturnStatement(expr)
     }
     makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
-        throw new Error(`TBD`)
+        return new CJCheckOptionalStatement("undefined", optional, doStatement)
     }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
@@ -341,6 +371,9 @@ export class CJLanguageWriter extends LanguageWriter {
     makeUndefined(): LanguageExpression {
         return this.makeString("Option.None")
     }
+    override makeUnwrapOptional(expression: LambdaExpression): LanguageExpression {
+        return new CJMatchExpression(expression, [this.makeString('Some(serializer)')], [this.makeString('serializer')])
+    }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         return this.makeString(`${value}`)
     }
@@ -358,7 +391,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return new StringExpression(`None<${value}>`)
     }
     getTagType(): IDLType {
-        return toIDLType("Tags");
+        return toIDLType("Tags")
     }
     getRuntimeType(): IDLType {
         return IDLNumberType
@@ -389,7 +422,7 @@ export class CJLanguageWriter extends LanguageWriter {
         throw new Error('Not yet implemented')
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
-        throw new Error('Not yet implemented')
+        return value
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
         return new CJEnumEntityStatement(enumEntity, isExport)

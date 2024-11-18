@@ -201,7 +201,7 @@ export class CJIDLNodeToStringConvertor extends IdlNameConvertorBase implements 
             case 'KUint8ArrayPtr': return 'Int64'
             case 'KInt32ArrayPtr': return 'Int64'
             case 'KFloat32ArrayPtr': return 'Int64'
-            case 'KStringPtr': return 'Int64'
+            case 'KStringPtr': return 'String'
             case 'string': return 'String'
             case 'ArrayBuffer': return 'ArrayList<UInt8>'
         }
@@ -222,9 +222,13 @@ export class CJIDLTypeToForeignStringConvertor extends CJIDLNodeToStringConverto
                 return `CPointer<${this.convert(type.elementType[0])}>`
             }
         }
-        if (idl.isReferenceType(type) && super.convertType(type).startsWith('Array')) {
+        if (idl.isReferenceType(type)) {
             // Fix, actual mapping has to be due to IDLType
-            return `CPointer<UInt8>`
+            if (super.convertType(type).startsWith('Array'))
+                return `CPointer<UInt8>`
+            if (super.convertType(type) == 'String') {
+                return `CString`
+            }
         }
         return super.convertType(type)
     }

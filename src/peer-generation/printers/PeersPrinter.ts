@@ -330,19 +330,14 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     }
 
     printFile(): void {
-        const isIDL = true
         const printer = createLanguageWriter(this.library.language, getReferenceResolver(this.library))
-        this.file.peers.forEach(peer => {
-            const peerName = componentToPeerClass(peer.componentName)
-            this.printers.set(new TargetFile(peerName, ''), printer)
+        const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
+        this.printers.set(new TargetFile(targetBasename), printer)
 
-            this.printPackage(printer)
+        this.printPackage(printer)
 
-            if (isIDL) {
-                const idlPeer = peer as PeerClass
-                const imports = collectJavaImports(idlPeer.methods.flatMap(method => method.method.signature.args))
-                printJavaImports(printer, imports)
-            }
+        printer.print("import std.collection.*")
+        this.file.peersToGenerate.forEach(peer => {
             this.printPeer(peer, printer)
         })
     }

@@ -17,16 +17,85 @@ declare interface BlurOptions {
     grayscale: [number, number];
 }
 
+declare interface StateStyles {
+
+    normal?: any;
+}
+
 declare class AttributeModifier<T> {}
+
+declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {
+    policy?: BlurStyleActivePolicy;
+    inactiveColor?: ResourceColor;
+}
+
+declare enum DragPreviewMode {
+    AUTO = 1,
+    DISABLE_SCALE = 2,
+    ENABLE_DEFAULT_SHADOW = 3,
+    ENABLE_DEFAULT_RADIUS = 4,
+  }
+
+declare interface DragPreviewOptions {
+    mode?: DragPreviewMode | Array<DragPreviewMode>;
+    modifier?: ImageModifier;
+    numberBadge?: boolean | number;
+}
+
+declare interface DragInteractionOptions {
+
+    isMultiSelectionEnabled?: boolean;
+
+    defaultAnimationBeforeLifting?: boolean;
+}
+
+declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier; // hack
+
+// declare type CustomBuilder = (() => any) | void;
 declare class CommonMethod<T> {
 
     constructor();
+
+    stateStyles(value: StateStyles): T;
+
+    backdropBlur(value: number, options?: BlurOptions): T;
 
     width(value: Length): T;
 
     height(value: Length): T;
 
-    backdropBlur(value: number, options?: BlurOptions): T;
+    key(value: string): T;
+
+    restoreId(value: number): T;
+
+    padding(value: Padding | Dimension): T;
+
+    bindSheet(isShow: boolean, /* builder: CustomBuilder, */ options?: SheetOptions): T;
+
+    backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): T;
+
+    dragPreviewOptions(value: DragPreviewOptions, options?: DragInteractionOptions): T;
+
+    // linearGradient(value: {
+    //     angle?: number | string;
+    //     direction?: GradientDirection;
+    //     colors: Array<[ResourceColor, number]>;
+    //     repeating?: boolean;
+    // }): T;
+
+    // border(value: BorderOptions): T;
+
+    // onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
+
+    // attributeModifier(modifier: AttributeModifier<T>): T
+
+    // gestureModifier(modifier: GestureModifier): T;
+
+    // onGestureRecognizerJudgeBegin(callback: GestureRecognizerJudgeBeginCallback): T;
+
+    // onClick(event: (event: ClickEvent) => void): T;
+
+    // onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
 }
 
 declare interface Rectangle {
@@ -44,3 +113,185 @@ declare enum BlurStyle {
     Thin = 0
 }
 
+declare enum BlurStyleActivePolicy {
+    /**
+     * The component has the blur effect only when the window is focused.
+     *
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    FOLLOWS_WINDOW_ACTIVE_STATE = 0,
+
+    /**
+     * The component always has the blur effect, regardless of whether the window is focused.
+     *
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    ALWAYS_ACTIVE = 1,
+
+    /**
+     * The component does not have the blur effect, regardless of whether the window is focused.
+     *
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    ALWAYS_INACTIVE = 2,
+}
+
+declare enum SheetSize {
+    MEDIUM,
+    LARGE,
+    FIT_CONTENT = 2,
+}
+
+declare enum SheetType {
+    BOTTOM = 0,
+    CENTER = 1,
+    POPUP = 2,
+}
+
+declare enum SheetMode {
+    OVERLAY = 0,
+    EMBEDDED = 1,
+}
+
+declare interface SheetTitleOptions {
+    title: ResourceStr;
+    subtitle?: ResourceStr;
+}
+
+declare enum ShadowStyle {
+    OUTER_DEFAULT_XS,
+    OUTER_DEFAULT_SM,
+    OUTER_DEFAULT_MD,
+    OUTER_DEFAULT_LG,
+    OUTER_FLOATING_SM,
+    OUTER_FLOATING_MD,
+}
+
+declare enum ShadowType {
+    COLOR,
+    BLUR,
+}
+declare interface ShadowOptions {
+    radius: number | Resource;
+    type?: ShadowType;
+    color?: Color | string | Resource | ColoringStrategy;
+    offsetX?: number | Resource;
+    offsetY?: number | Resource;
+    fill?: boolean;
+}
+
+declare interface SizeResult {
+    width: number,
+    height: number,
+}
+
+declare type EdgeWidths = {
+    top?: Length;
+    right?: Length;
+    bottom?: Length;
+    left?: Length;
+};
+
+declare type EdgeWidth = EdgeWidths;
+
+declare type Padding = {
+    top?: Length;
+    right?: Length;
+    bottom?: Length;
+    left?: Length;
+};
+
+declare interface LocalizedEdgeWidths {
+    top?: LengthMetrics;
+    end?: LengthMetrics;
+    bottom?: LengthMetrics;
+    start?: LengthMetrics;
+};
+
+declare type EdgeColors = {
+    top?: ResourceColor;
+    right?: ResourceColor;
+    bottom?: ResourceColor;
+    left?: ResourceColor;
+};
+
+declare interface LocalizedEdgeColors  {
+    top?: ResourceColor;
+    end?: ResourceColor;
+    bottom?: ResourceColor;
+    start?: ResourceColor;
+};
+
+declare type BorderRadiuses = {
+    topLeft?: Length;
+    topRight?: Length;
+    bottomLeft?: Length;
+    bottomRight?: Length;
+};
+
+declare interface LocalizedBorderRadiuses  {
+    topStart?: LengthMetrics;
+    topEnd?: LengthMetrics;
+    bottomStart?: LengthMetrics;
+    bottomEnd?: LengthMetrics;
+};
+
+declare enum BorderStyle {
+    Dotted,
+    Dashed,
+    Solid,
+}
+
+declare type EdgeStyles = {
+    top?: BorderStyle;
+    right?: BorderStyle;
+    bottom?: BorderStyle;
+    left?: BorderStyle;
+};
+declare class ScrollableCommonMethod<T> extends CommonMethod<T> {
+    scrollBarWidth(value: number | string): T;
+}
+
+declare interface BindOptions {
+    backgroundColor?: ResourceColor;
+    /*~onAppear?: () => void;
+    onDisappear?: () => void;
+    onWillAppear?: () => void;
+    onWillDisappear?: () => void;*/
+}
+
+declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext; // hack
+declare interface SheetOptions extends BindOptions {
+    height?: SheetSize | Length;
+    dragBar?: boolean;
+    maskColor?: ResourceColor;
+    detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
+    blurStyle?: BlurStyle;
+    showClose?: boolean | Resource;
+    preferType?: SheetType;
+    title?: SheetTitleOptions /*| CustomBuilder*/;
+    //~shouldDismiss?: (sheetDismiss: SheetDismiss) => void;
+    //~onWillDismiss?: Callback<DismissSheetAction>;
+    //~onWillSpringBackWhenDismiss?: Callback<SpringBackAction>;
+    enableOutsideInteractive?: boolean;
+    width?: Dimension;
+    borderWidth?: Dimension/*~ | EdgeWidths | LocalizedEdgeWidths*/;
+    borderColor?: ResourceColor/*~ | EdgeColors */| LocalizedEdgeColors;
+    borderStyle?: BorderStyle/*~ | EdgeStyles*/;
+    shadow?: ShadowOptions | ShadowStyle;
+    //~onHeightDidChange?: Callback<number>;
+    mode?: SheetMode;
+    //~onDetentsDidChange?: Callback<number>;
+    //~onWidthDidChange?: Callback<number>;
+    //~onTypeDidChange?: Callback<SheetType>;
+    uiContext?: UIContext;
+}

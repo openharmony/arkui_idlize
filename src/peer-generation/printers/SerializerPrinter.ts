@@ -163,17 +163,8 @@ class IdlSerializerPrinter {
                     writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.cache')), writer.makeBlock([
                         writer.makeAssign("Serializer.cache", undefined, writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), false)
                     ])))
-                    if (writer.language != Language.CJ) {
-                        writer.writeStatement(writer.makeAssign("serializer", undefined,
-                                writer.makeUnwrapOptional(writer.makeString("Serializer.cache")), true, false))
-                    } else {
-                        writer.print("var serializer = match (Serializer.cache) {")
-                        writer.pushIndent()
-                        writer.print("case Some(serializer) => serializer")
-                        writer.print("case _ => throw Exception(\"Even after creating Serializer cache it is still undefined\")")
-                        writer.popIndent()
-                        writer.print("}")
-                    }
+                    writer.writeStatement(writer.makeAssign("serializer", undefined,
+                            writer.makeUnwrapOptional(writer.makeString("Serializer.cache")), true, false))
                     writer.writeStatement(writer.makeCondition(writer.makeString("serializer.isHolding"),
                         writer.makeBlock([writer.makeThrowError(("Serializer is already being held. Check if you had released is before"))])),
                     )
