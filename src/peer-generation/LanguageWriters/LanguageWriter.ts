@@ -457,7 +457,7 @@ export abstract class LanguageWriter {
     abstract get supportedModifiers(): MethodModifier[]
     abstract get supportedFieldModifiers(): FieldModifier[]
     abstract enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
-    abstract ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
+    abstract ordinalFromEnum(value: LanguageExpression, enumReference: idl.IDLType): LanguageExpression
     abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string
     abstract stringifyType(type: idl.IDLType | idl.IDLCallback): string
     abstract fork(): LanguageWriter
@@ -700,7 +700,7 @@ export abstract class LanguageWriter {
         const ordinal = convertor.isStringEnum
             ? this.ordinalFromEnum(
                 this.makeString(this.getObjectAccessor(convertor, value)),
-                convertor.enumEntry
+                idl.createReferenceType(convertor.enumEntry.name)
             )
             : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.stringifyType(idl.IDLI32Type), convertor, index)
         const {low, high} = convertor.extremumOfOrdinals()

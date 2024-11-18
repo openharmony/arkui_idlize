@@ -1,0 +1,242 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {CustomTextDecoder, float32, int32} from "@koalaui/common"
+import {pointer} from "@koalaui/interop"
+import {RuntimeType, Tags, CallbackResource} from "./SerializerBase";
+import { Length } from "../ArkUnitsInterfaces"
+import { Resource } from "../ArkResourceInterfaces"
+
+export class DeserializerBase {
+    private position = 0
+    private readonly buffer: ArrayBuffer
+    private readonly length: int32
+    private view: DataView
+    private static textDecoder: CustomTextDecoder = new CustomTextDecoder()
+    private static customDeserializers: CustomDeserializer | undefined = undefined
+
+    static registerCustomDeserializer(deserializer: CustomDeserializer) {
+        let current = DeserializerBase.customDeserializers
+        if (current == undefined) {
+            DeserializerBase.customDeserializers = deserializer
+        } else {
+            while (current!.next != undefined) {
+                current = current!.next
+            }
+            current!.next = deserializer
+        }
+    }
+
+    constructor(buffer: ArrayBuffer, length: int32) {
+        this.buffer = buffer
+        this.length = length
+        this.view = new DataView(this.buffer)
+    }
+
+    static get<T extends DeserializerBase>(
+        factory: (args: Uint8Array, length: int32) => T,
+        args: Uint8Array, length: int32): T {
+
+        // TBD: Use cache
+        return factory(args, length);
+    }
+
+    asArray(position?: number, length?: number): Uint8Array {
+        return new Uint8Array(this.buffer, position, length)
+    }
+
+    currentPosition(): int32 {
+        return this.position
+    }
+
+    resetCurrentPosition(): void {
+        this.position = 0
+    }
+
+    private checkCapacity(value: int32) {
+        if (value > this.length) {
+            throw new Error(`${value} is less than remaining buffer length`)
+        }
+    }
+
+    readInt8(): int32 {
+        this.checkCapacity(1)
+        const value = this.view.getInt8(this.position)
+        this.position += 1
+        return value
+    }
+
+    readInt32(): int32 {
+        this.checkCapacity(4)
+        const value = this.view.getInt32(this.position, true)
+        this.position += 4
+        return value
+    }
+
+    readPointer(): pointer {
+        this.checkCapacity(8)
+        const value = this.view.getBigInt64(this.position, true)
+        this.position += 8
+        return value
+    }
+
+    readFloat32(): float32 {
+        this.checkCapacity(4)
+        const value = this.view.getFloat32(this.position, true)
+        this.position += 4
+        return value
+    }
+
+    readBoolean(): boolean {
+        this.checkCapacity(1)
+        const value = this.view.getInt8(this.position)
+        this.position += 1
+        return value == 1
+    }
+
+    readFunction(): int32 {
+        // TODO: not exactly correct.
+        const id = this.readInt32()
+        return id
+    }
+
+    // readMaterialized(): object {
+    //     const ptr = this.readPointer()
+    //     return { ptr: ptr }
+    // }
+
+    readCallbackResource(): CallbackResource {
+        return ({
+            resourceId: this.readInt32(),
+            hold: this.readPointer(),
+            release: this.readPointer(),
+        } as CallbackResource)
+    }
+
+    readString(): string {
+        const length = this.readInt32()
+        this.checkCapacity(length)
+        // read without null-terminated byte
+        const value = DeserializerBase.textDecoder.decode(this.asArray(this.position, length - 1));
+        this.position += length
+        return value
+    }
+
+    readCustomObject(kind: string): object {
+        let current = DeserializerBase.customDeserializers
+        while (current) {
+            if (current!.supports(kind)) {
+                return current!.deserialize(this, kind)
+            }
+            current = current!.next
+        }
+        // consume tag
+        const tag = this.readInt8()
+        throw Error(`${kind} is not supported`)
+    }
+
+    readNumber(): number | undefined {
+        const tag = this.readInt8()
+        if (tag == Tags.UNDEFINED) {
+            return undefined
+        } else if (tag == Tags.INT32) {
+            return this.readInt32()
+        } else if (tag == Tags.FLOAT32) {
+            return this.readFloat32()
+        } else {
+            throw new Error(`Unknown number tag: ${tag}`)
+        }
+    }
+
+    readLength(): Length | undefined {
+        this.checkCapacity(1)
+        const valueType = this.readInt8()
+        if (valueType == RuntimeType.OBJECT) {
+            return ({
+                id: this.readInt32(),
+                bundleName: "",
+                moduleName: ""
+            }) as Resource
+        } else if (valueType == RuntimeType.STRING) {
+            return (this.readString() as String)
+        } else if (valueType == RuntimeType.NUMBER) {
+            return (this.readFloat32() as number)
+        } else {
+            return undefined
+        }
+    }
+
+    static lengthUnitFromInt(unit: int32): string {
+        let suffix: string
+        switch (unit) {
+            case 0:
+                suffix = "px"
+                break
+            case 1:
+                suffix = "vp"
+                break
+            case 3:
+                suffix = "%"
+                break
+            case 4:
+                suffix = "lpx"
+                break
+            default:
+                suffix = "<unknown>"
+        }
+        return suffix
+    }
+
+    readUint8ClampedArray(): Uint8ClampedArray {
+        throw new Error("Not implemented")
+    }
+}
+
+export abstract class CustomDeserializer {
+    protected supported: string
+    protected constructor(supported_: string) {
+        this.supported = supported_
+    }
+
+    supports(kind: string): boolean {
+        return this.supported.includes(kind)
+    }
+
+    abstract deserialize(serializer: DeserializerBase, kind: string): object
+
+    next: CustomDeserializer | undefined = undefined
+}
+
+class OurCustomDeserializer extends CustomDeserializer {
+    constructor() {
+        super("PixelMap")
+    }
+    deserialize(deserializer: DeserializerBase, kind: string): object {
+        // return JSON.parse(deserializer.readString())
+        return {}
+    }
+}
+DeserializerBase.registerCustomDeserializer(new OurCustomDeserializer())
+
+class DateDeserializer extends CustomDeserializer {
+    constructor() {
+        super("Date")
+    }
+
+    deserialize(serializer: DeserializerBase, kind: string): Date {
+        return new Date(serializer.readString())
+    }
+}
+DeserializerBase.registerCustomDeserializer(new DateDeserializer())

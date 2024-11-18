@@ -421,7 +421,7 @@ export class CJLanguageWriter extends LanguageWriter {
     enumFromOrdinal(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
         throw new Error('Not yet implemented')
     }
-    ordinalFromEnum(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
+    ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
         return value
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {

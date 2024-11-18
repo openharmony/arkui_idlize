@@ -281,8 +281,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     enumFromOrdinal(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
         throw new Error("Method not implemented.")
     }
-    ordinalFromEnum(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
-        throw new Error("Method not implemented.")
+    ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
+        return this.makeString(`${value.asString()}.value`)
     }
     makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}`)

@@ -41,6 +41,7 @@ import { ArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { convertType, IdlNameConvertor, TypeConvertor } from "../nameConvertor"
 import { TsIDLNodeToStringConverter } from "../convertors/TSConvertors"
+import { isStringEnum } from "../../idl/common"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -369,8 +370,13 @@ export class TSLanguageWriter extends LanguageWriter {
     enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         return this.makeString(`Object.values(${enumEntry.name})[${value.asString()}]`);
     }
-    ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        return this.makeString(`Object.keys(${enumEntry.name}).indexOf(${this.makeCast(value, idl.IDLStringType).asString()})`);
+    ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+        const enumName = idl.forceAsNamedNode(enumEntry).name
+        const decl = idl.isReferenceType(enumEntry) ? this.resolver.resolveTypeReference(enumEntry) : undefined
+        if (decl && idl.isEnum(decl) && isStringEnum(decl)) {
+            return this.makeString(`Object.values(${enumName}).indexOf(${value.asString()})`);
+        }
+        return value;
     }
     override makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor): string {
         if (unsafe) {

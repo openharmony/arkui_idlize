@@ -19,7 +19,7 @@ import {
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
-    Method,
+    Method, MethodCallExpression,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
@@ -79,7 +79,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                 isTypeString &&= (typeof initText !== "number")
                 const ctorArgs = [
                     isTypeString ? `"${initText}"` : initText,
-                    isTypeString ? index : undefined
+                    index,
                 ].filter(it => it !== undefined)
                 writer.writeFieldDeclaration(member.name,
                     toIDLType(this.enumEntity.name),
@@ -98,21 +98,15 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
             const typeName = isTypeString ? "string" : "KInt"
             let argTypes = [toIDLType(typeName)]
             let argNames = ["value"]
-            if (isTypeString) {
-                argTypes.push(toIDLType("KInt"))
-                argNames.push("ordinal")
-            }
+            argTypes.push(toIDLType("KInt"))
+            argNames.push("ordinal")
             writer.writeConstructorImplementation(className,
                 new NamedMethodSignature(IDLVoidType, argTypes, argNames), (writer) => {
                     writer.writeStatement(writer.makeAssign("this.value", undefined, writer.makeString("value"), false))
-                    if (isTypeString) {
-                        writer.writeStatement(writer.makeAssign("this.ordinal", undefined, writer.makeString("ordinal"), false))
-                    }
+                    writer.writeStatement(writer.makeAssign("this.ordinal", undefined, writer.makeString("ordinal"), false))
             })
             writer.writeFieldDeclaration("value", toIDLType(typeName), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
-            if (isTypeString) {
-                writer.writeFieldDeclaration("ordinal", IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
-            }
+            writer.writeFieldDeclaration("ordinal", IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             writer.writeMethodImplementation(new Method("of", new MethodSignature(toIDLType(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {
                     this.enumEntity.elements.forEach((member) => {
@@ -120,6 +114,18 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                         writer.writeStatement(
                             writer.makeCondition(
                                 writer.makeEquals([writer.makeString('arg0'), writer.makeString(`${memberName}.value`)]),
+                                writer.makeReturn(writer.makeString(memberName)))
+                        )
+                    })
+                    writer.print("throw new Error(`Enum member '$\{arg0\}' not found`)")
+            })
+            writer.writeMethodImplementation(new Method("ofOrdinal", new MethodSignature(toIDLType(this.enumEntity.name), [idl.IDLI32Type]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
+                (writer)=> {
+                    this.enumEntity.elements.forEach((member) => {
+                        const memberName = `${className}.${member.name}`
+                        writer.writeStatement(
+                            writer.makeCondition(
+                                writer.makeEquals([writer.makeString('arg0'), writer.makeString(`${memberName}.ordinal`)]),
                                 writer.makeReturn(writer.makeString(memberName)))
                         )
                     })
@@ -199,8 +205,14 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return this.makeString(`${value} as ${type}`)
     }
-    ordinalFromEnum(value: LanguageExpression, _: IDLEnum): LanguageExpression {
-        return value;
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+        if (value instanceof MethodCallExpression) {
+            return this.makeString(`${enumEntry.name}.ofOrdinal(${value.asString()})`)
+        }
+        return this.makeString(`Object.values(${enumEntry.name})[${value.asString()}]`);
+    }
+    ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
+        return this.makeString(`${value.asString()}.ordinal`);
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
                                 value: string,

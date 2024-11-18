@@ -365,7 +365,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     enumFromOrdinal(value: LanguageExpression, _: IDLEnum): LanguageExpression {
         return value;
     }
-    ordinalFromEnum(value: LanguageExpression, _: IDLEnum): LanguageExpression {
+    ordinalFromEnum(value: LanguageExpression, _: IDLType): LanguageExpression {
         return value;
     }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {

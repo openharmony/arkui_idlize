@@ -49,6 +49,7 @@ import { escapeKeyword, IDLKind } from "../../idl";
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 import { collectProperties } from './StructPrinter'
 import { CustomPrintVisitor } from "../../from-idl/DtsPrinter"
+import { stubIsTypeCallback } from '../ArgConvertors'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -540,10 +541,14 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     private printMethod(idl: idl.IDLMethod): stringOrNone[] {
-        return [
-            ...this.printExtendedAttributes(idl),
-            indentedBy(`${idl.name}${this.printTypeParameters(idl.typeParameters)}(${this.printParameters(idl.parameters)}): ${this.convertType(idl.returnType)}`, 1)
-        ]
+        // TODO dirty stub. We are not processing interfaces methods as a 
+        // callbacks for now, so interfaces with methods can not be 
+        // deserialized in ArkTS
+        return []
+        // return [
+        //     ...this.printExtendedAttributes(idl),
+        //     indentedBy(`${idl.name}${this.printTypeParameters(idl.typeParameters)}(${this.printParameters(idl.parameters)}): ${this.convertType(idl.returnType)}`, 1)
+        // ]
     }
     private printFunction(idl: idl.IDLFunction): stringOrNone[] {
         if (idl.name?.startsWith("__")) {
@@ -561,7 +566,8 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     private printPropNameWithType(prop: idl.IDLProperty): string {
-        return `${prop.name}${prop.isOptional ? "?" : ""}: ${this.convertType(prop.type)}`
+        const isOptional = prop.isOptional || stubIsTypeCallback(this.peerLibrary, prop.type)
+        return `${prop.name}${isOptional ? "?" : ""}: ${this.convertType(prop.type)}`
     }
 
     private printParameters(parameters: idl.IDLParameter[]): string {

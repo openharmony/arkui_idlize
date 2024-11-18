@@ -25,6 +25,7 @@ import {
     makeArkuiModule,
     makeCallbacksKinds,
     makeTSDeserializer,
+    makeArkTSDeserializer,
     makeTSSerializer,
     makeTypeChecker,
     mesonBuildFile,
@@ -144,6 +145,7 @@ function copyArkoalaFiles(config: {
         'sig/arkoala-arkts/arkui/src/generated/ts/arkts-stdlib.ts',
         'sig/arkoala-arkts/arkui/src/generated/ts/NativeModule.ts',
         'sig/arkoala-arkts/arkui/src/generated/peers/SerializerBase.ts',
+        'sig/arkoala-arkts/arkui/src/generated/peers/DeserializerBase.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/ArkResource.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/dts-exports.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/generated-utils.ts',
@@ -369,6 +371,15 @@ export function generateArkoalaFromIdl(config: {
                 integrated: true,
             }
         )
+        // waiting for es2panda to fix 20642 issue
+        // writeFile(arkoala.peer(new TargetFile('Deserializer')),
+        //     makeArkTSDeserializer(peerLibrary),
+        //     {
+        //         onlyIntegrated: config.onlyIntegrated,
+        //         integrated: true,
+        //         message: "producing [idl]"
+        //     }
+        // )
         writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')),
             makeTypeChecker(peerLibrary).arkts,
             {

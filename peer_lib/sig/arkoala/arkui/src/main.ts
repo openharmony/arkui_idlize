@@ -276,10 +276,10 @@ function checkTwoSidesCallback() {
     }
 
     assertEquals("Callback 1 enqueued", "NOT_CALLED", callResult1)
-    assertEquals(`Callback 2 enqueued ${call2Count} times`, callResult2, 0)
+    assertEquals(`Callback 2 enqueued ${call2Count} times`, 0, callResult2)
     checkArkoalaCallbacks()
     assertEquals("Callback 1 read&called", "CALLED, value=194", callResult1)
-    assertEquals(`Callback 2 read&called ${call2Count} times`, callResult2, call2Count)
+    assertEquals(`Callback 2 read&called ${call2Count} times`, call2Count, callResult2)
 }
 
 function checkWriteFunction() {
