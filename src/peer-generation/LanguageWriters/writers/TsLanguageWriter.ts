@@ -61,10 +61,10 @@ export class TSLambdaExpression extends LambdaExpression {
     asString(): string {
         const params = this.signature.args.map((it, i) => {
             const maybeOptional = idl.isOptionalType(it) ? "?" : ""
-            return `${this.signature.argName(i)}${maybeOptional}: ${this.convertor.convertType(it)}`
+            return `${this.signature.argName(i)}${maybeOptional}: ${this.convertor.convert(it)}`
         })
 
-        return `(${params.join(", ")}): ${this.convertor.convertType(this.signature.returnType)} => { ${this.bodyAsString()} }`
+        return `(${params.join(", ")}): ${this.convertor.convert(this.signature.returnType)} => { ${this.bodyAsString()} }`
     }
 }
 
@@ -195,7 +195,7 @@ export class TSLanguageWriter extends LanguageWriter {
     }
 
     stringifyType(type: idl.IDLType): string {
-        return this.typeConvertor.convertType(type)
+        return this.typeConvertor.convert(type)
     }
 
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void {

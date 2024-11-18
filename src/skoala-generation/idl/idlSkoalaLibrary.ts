@@ -15,9 +15,8 @@
 
 import * as idl from "../../idl"
 import { posix as path } from "path"
-import { convert, isImport, isStringEnum } from '../../peer-generation/idl/common';
+import { isImport, isStringEnum } from '../../peer-generation/idl/common';
 import { DeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
-import { DeclarationDependenciesCollector, TypeDependenciesCollector } from '../../peer-generation/idl/IdlDependenciesCollector';
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
 import { capitalize, isDefined, throwException } from "../../util";
 import { PrimitiveType } from "../../peer-generation/ArkPrimitiveType";
@@ -33,6 +32,8 @@ import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor
 import { LibraryInterface } from "../../LibraryInterface";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { IDLNodeToStringConvertor } from "../../peer-generation/LanguageWriters/convertors/InteropConvertor";
+import { IdlEntryManager } from "../../peer-generation/idl/IdlEntryManager";
+import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
 
 export class IldSkoalaFile {
     readonly wrapperClasses: Map<string, [WrapperClass, any|undefined]> = new Map()
@@ -74,6 +75,14 @@ export class IdlSkoalaLibrary implements LibraryInterface {
 
     getCurrentContext(): string | undefined {
         return ""
+    }
+
+    get factory(): IdlEntryManager {
+        throw new Error("Method not implemented.");
+    }
+
+    isComponentDeclaration(iface: idl.IDLInterface): boolean {
+        throw new Error("Method not implemented.");
     }
 
     requestType(type: idl.IDLType, useToGenerate: boolean) {
@@ -283,10 +292,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
 export const CustomObject: idl.IDLPrimitiveType = idl.IDLCustomObjectType
 export const Function: idl.IDLPrimitiveType = idl.IDLFunctionType
 
-class ImportsAggregateCollector extends TypeDependenciesCollector {
-    // TODO: dirty hack, need to rework
-    private readonly declarationCollector = new DeclarationDependenciesCollector(this)
-
+class ImportsAggregateCollector extends DependenciesCollector {
     constructor(
         protected readonly peerLibrary: IdlSkoalaLibrary,
         private readonly expandAliases: boolean,
@@ -302,7 +308,7 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
         const result = [...realDeclarations]
 
         // process synthetic declarations dependencies
-        result.push(...syntheticDeclarations.flatMap(decl => convert(decl, this, this.declarationCollector)))
+        result.push(...syntheticDeclarations.flatMap(decl => this.convert(decl)))
 
         for (const decl of realDeclarations) {
             // expand type aliaces because we have serialization inside peers methods
@@ -314,18 +320,16 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
 }
 
 export class IdlWrapperProcessor {
-    private readonly typeDependenciesCollector: TypeDependenciesCollector
-    private readonly declDependenciesCollector: DeclarationDependenciesCollector
+    private readonly dependenciesCollector: DependenciesCollector
 
     constructor(
         public library: IdlSkoalaLibrary
     ) {
-        this.typeDependenciesCollector = new ImportsAggregateCollector(library, false)
-        this.declDependenciesCollector = new DeclarationDependenciesCollector(this.typeDependenciesCollector)
+        this.dependenciesCollector = new ImportsAggregateCollector(library, false)
     }
 
     private collectDepsRecursive(decl: idl.IDLNode, deps: Set<idl.IDLNode>): void {
-        const currentDeps = convert(decl, this.typeDependenciesCollector, this.declDependenciesCollector)
+        const currentDeps = this.dependenciesCollector.convert(decl)
         for (const dep of currentDeps) {
             if (deps.has(dep)) continue
             if (idl.isEntry(dep) && !isSourceDecl(dep)) continue
@@ -378,7 +382,7 @@ export class IdlWrapperProcessor {
             }
 
             //  process serializer dependency
-            let serDependencies = this.declDependenciesCollector.convert(decl)
+            let serDependencies = this.dependenciesCollector.convert(decl)
                 .filter(it => idl.isEntry(it) && isSourceDecl(it))
 
             serDependencies.forEach(it => {

@@ -12,8 +12,8 @@ import {
 import { throwException } from "../../util";
 import { PeerLibrary } from "../PeerLibrary";
 import {
-    convertDeclToFeature, createDeclDependenciesCollector,
-    createTypeDependenciesCollector,
+    convertDeclToFeature,
+    createDependenciesCollector,
     isBuilderClass,
     isMaterialized,
 } from "../idl/IdlPeerGeneratorVisitor";
@@ -115,8 +115,7 @@ abstract class TypeCheckerPrinter {
         const importFeatures: ImportFeature[] = []
         const interfaces: { name: string, type?: idl.IDLType, descriptor: StructDescriptor }[] = []
         const seenNames = new Set<string>()
-        const declDependenciesCollector
-            = createDeclDependenciesCollector(this.library, createTypeDependenciesCollector(this.library))
+        const declDependenciesCollector = createDependenciesCollector(this.library)
         const declNameConvertor = createDeclarationNameConvertor(this.library.language)
 
         for (const file of this.library.files) {

@@ -17,7 +17,7 @@ import * as idl from '../../../idl'
 import { throwException } from '../../../util';
 import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../../printers/lang/Java';
 import { ReferenceResolver } from '../../ReferenceResolver';
-import { convertType, IdlNameConvertor, IdlNameConvertorBase, TypeConvertor } from "../nameConvertor";
+import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "../nameConvertor";
 
 
 class JavaTypeAlias {
@@ -53,30 +53,30 @@ class JavaTypeAlias {
     }
 }
 
-export class JavaIDLNodeToStringConvertor extends IdlNameConvertorBase implements TypeConvertor<JavaTypeAlias> {
+export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias>, IdlNameConvertor {
 
     constructor(
         private resolver: ReferenceResolver
-    ) { super() }
+    ) { }
 
-    /**** IdlTypeNameConvertor *******************************************/
-
-    convertType(type: idl.IDLType | idl.IDLCallback): string {
-        const typeAlias = idl.isCallback(type)
-            ? this.convertCallback(type)
-            : convertType(this, type)
-        const rowType = typeAlias.type.optional ? convertJavaOptional(typeAlias.type.text) : typeAlias.type.text
+    convert(node: idl.IDLNode): string {
+        const alias = convertNode<JavaTypeAlias>(this, node)
+        const rowType = alias.type.optional ? convertJavaOptional(alias.type.text) : alias.type.text
         return this.mapTypeName(rowType)
     }
 
-    convertEntry(entry: idl.IDLEntry): string {
-        return entry.name ?? throwException("Unnamed entry!")
+    convertInterface(node: idl.IDLInterface): JavaTypeAlias {
+        throw new Error('Method not implemented.');
+    }
+    convertEnum(node: idl.IDLEnum): JavaTypeAlias {
+        throw new Error('Method not implemented.');
+    }
+    convertTypedef(node: idl.IDLTypedef): JavaTypeAlias {
+        throw new Error('Method not implemented.');
     }
 
-    /***** TypeConvertor<JavaTypeAlias> **********************************/
-
     convertOptional(type: idl.IDLOptionalType): JavaTypeAlias {
-        return JavaTypeAlias.fromTypeName(convertJavaOptional(this.convertType(type.type)), true)
+        return JavaTypeAlias.fromTypeName(convertJavaOptional(this.convert(type.type)), true)
     }
     convertUnion(type: idl.IDLUnionType): JavaTypeAlias {
         const aliases = type.types.map(it => convertType(this, it))

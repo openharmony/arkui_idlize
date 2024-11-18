@@ -14,10 +14,10 @@
  */
 
 import * as idl from '../../idl'
-import { DeclarationConvertor, TypeConvertor, convertDeclaration, convertType } from "../LanguageWriters/nameConvertor";
+import { NodeConvertor, convertNode, convertType } from "../LanguageWriters/nameConvertor";
 import { LibraryInterface } from '../../LibraryInterface';
 
-export class TypeDependenciesCollector implements TypeConvertor<idl.IDLNode[]> {
+export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     constructor(protected readonly library: LibraryInterface) {}
 
     convertOptional(type: idl.IDLOptionalType): idl.IDLNode[] {
@@ -47,15 +47,6 @@ export class TypeDependenciesCollector implements TypeConvertor<idl.IDLNode[]> {
     convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLNode[] {
         return []
     }
-    convert(node: idl.IDLType | undefined): idl.IDLNode[] {
-        return node ? convertType(this, node) : []
-    }
-}
-
-export class DeclarationDependenciesCollector implements DeclarationConvertor<idl.IDLNode[]> {
-    constructor(
-        private readonly typeDepsCollector: TypeDependenciesCollector,
-    ) {}
     convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
         return [
             ...decl.inheritance
@@ -63,35 +54,35 @@ export class DeclarationDependenciesCollector implements DeclarationConvertor<id
                 .flatMap(it => this.convertSupertype(it)),
             ...decl.properties
                 .filter(it => !it.isStatic)
-                .flatMap(it => this.typeDepsCollector.convert(it.type)),
+                .flatMap(it => this.convert(it.type)),
             ...[...decl.constructors, ...decl.callables, ...decl.methods]
                 .flatMap(it => [
-                    ...it.parameters.flatMap(param => this.typeDepsCollector.convert(param.type)),
-                    ...this.typeDepsCollector.convert(it.returnType)
+                    ...it.parameters.flatMap(param => this.convert(param.type)),
+                    ...this.convert(it.returnType)
                 ])
         ]
     }
     protected convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLNode[] {
         if (idl.isInterface(type)) {
-            return this.typeDepsCollector.convert(idl.createReferenceType(type.name))
+            return this.convert(idl.createReferenceType(type.name))
         }
-        return this.typeDepsCollector.convert(type)
+        return this.convert(type)
     }
     convertEnum(decl: idl.IDLEnum): idl.IDLNode[] {
         return []
     }
     convertTypedef(decl: idl.IDLTypedef): idl.IDLNode[] {
-        return convertType(this.typeDepsCollector, decl.type)
+        return this.convert(decl.type)
     }
     convertCallback(decl: idl.IDLCallback): idl.IDLNode[] {
         return [
-            ...decl.parameters.flatMap(it => convertType(this.typeDepsCollector, it.type!)),
-            ...convertType(this.typeDepsCollector, decl.returnType),
+            ...decl.parameters.flatMap(it => this.convert(it.type!)),
+            ...this.convert(decl.returnType),
         ]
     }
-    convert(node: idl.IDLEntry | undefined): idl.IDLNode[] {
+    convert(node: idl.IDLNode | undefined): idl.IDLNode[] {
         if (node === undefined)
             return []
-        return convertDeclaration(this, node)
+        return convertNode(this, node)
     }
 }

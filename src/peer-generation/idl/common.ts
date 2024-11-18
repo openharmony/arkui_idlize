@@ -15,13 +15,6 @@
 
 import * as idl from "../../idl"
 import { Language } from "../../Language"
-import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../LanguageWriters/nameConvertor"
-
-export function convert<T>(node: idl.IDLNode, typeConvertor: TypeConvertor<T>, declConvertor: DeclarationConvertor<T>): T {
-    return idl.isEntry(node)
-        ? convertDeclaration(declConvertor, node)
-        : convertType(typeConvertor, node as idl.IDLType)
-}
 
 export function isImport(decl: idl.IDLNode): boolean {
     return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)

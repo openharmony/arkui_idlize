@@ -125,7 +125,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
 
     stringifyType(type: idl.IDLType): string {
-        return this.typeConvertor.convertType(type)
+        return this.typeConvertor.convert(type)
     }
 
     fork(): LanguageWriter {

@@ -16,29 +16,7 @@
 import * as idl from '../../idl'
 
 export interface IdlNameConvertor {
-    /** @deprecated
-     * Use `IdlNameConvertor.convert`
-     */
-    convertType(type: idl.IDLType): string
-    /** @deprecated
-     * Use `IdlNameConvertor.convert`
-     */
-    convertEntry(entry: idl.IDLEntry): string
     convert(node: idl.IDLNode): string
-}
-
-export abstract class IdlNameConvertorBase implements IdlNameConvertor {
-    convert(node: idl.IDLNode): string {
-        if (idl.isType(node)) {
-            return this.convertType(node)
-        }
-        if (idl.isEntry(node)) {
-            return this.convertEntry(node)
-        }
-        throw new Error("unreachable: node is type or entry")
-    }
-    abstract convertType(type: idl.IDLType): string
-    abstract convertEntry(entry: idl.IDLEntry): string
 }
 
 export interface TypeConvertor<T> {
@@ -81,4 +59,14 @@ export function convertDeclaration<T>(convertor: DeclarationConvertor<T>, decl: 
     if (idl.isTypedef(decl)) return convertor.convertTypedef(decl)
     if (idl.isCallback(decl)) return convertor.convertCallback(decl)
     throw new Error(`Unknown declaration type ${decl.kind ? idl.IDLKind[decl.kind] : "(undefined kind)"}`)
+}
+
+export interface NodeConvertor<T> extends TypeConvertor<T>, DeclarationConvertor<T> {}
+
+export function convertNode<T>(convertor: NodeConvertor<T>, node: idl.IDLNode): T {
+    if (idl.isEntry(node))
+        return convertDeclaration(convertor, node)
+    if (idl.isType(node))
+        return convertType(convertor, node)
+    throw new Error(`Unknown node type ${idl.IDLKind[node.kind]}`)
 }

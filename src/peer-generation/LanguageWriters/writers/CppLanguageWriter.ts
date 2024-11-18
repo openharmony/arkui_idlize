@@ -76,7 +76,7 @@ export class CppCastExpression implements LanguageExpression {
         if (receiver !== undefined) {
             return `std::decay<decltype(${receiver})>::type`
         }
-        return this.convertor.convertType(type)
+        return this.convertor.convert(type)
     }
 }
 
@@ -159,7 +159,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.typeConvertor = new CppIDLNodeToStringConvertor(this.resolver)
     }
     stringifyType(type: IDLType): string {
-        return this.typeConvertor.convertType(type)
+        return this.typeConvertor.convert(type)
     }
     fork(): LanguageWriter {
         return new CppLanguageWriter(new IndentedPrinter(), this.resolver)
@@ -375,7 +375,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         if (convertor === undefined) {
             throwException("Need pass EnumConvertor")
         }
-        return `static_cast<${this.typeConvertor.convertEntry(convertor.enumEntry)}>(${value})`
+        return `static_cast<${this.typeConvertor.convert(convertor.enumEntry)}>(${value})`
     }
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name

@@ -47,7 +47,7 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
                 case idl.IDLI32Type: return 'KInt32ArrayPtr'
                 case idl.IDLF32Type: return 'KFloat32ArrayPtr'
             }
-            return `Array<${this.convertType(type.elementType[0])}>`
+            return `Array<${this.convert(type.elementType[0])}>`
         }
         return super.convertContainer(type)
     }
@@ -103,8 +103,8 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
 
     protected mapCallback(decl: idl.IDLCallback): string {
         const types = decl.parameters.map(it => {
-            return `${this.convertType(it.isOptional ? idl.createUnionType([it.type!, idl.IDLUndefinedType]) : it.type!)}`
+            return `${this.convert(it.isOptional ? idl.createUnionType([it.type!, idl.IDLUndefinedType]) : it.type!)}`
         })
-        return `Function${types.length}<${types.join(",")}${types.length > 0 ? "," : ""}${this.convertType(decl.returnType)}>`
+        return `Function${types.length}<${types.join(",")}${types.length > 0 ? "," : ""}${this.convert(decl.returnType)}>`
     }
 }

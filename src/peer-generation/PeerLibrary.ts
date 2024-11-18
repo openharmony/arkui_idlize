@@ -139,7 +139,7 @@ export class PeerLibrary implements LibraryInterface {
     }
 
     mapType(type: idl.IDLType): string {
-        return this.targetNameConvertorInstance.convertType(
+        return this.targetNameConvertorInstance.convert(
             type ?? idl.IDLVoidType
         )
     }
@@ -199,7 +199,7 @@ export class PeerLibrary implements LibraryInterface {
                 return new DateConvertor(param)
             }
             if (isImport(type))
-                return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convertType(type))
+                return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
         if (idl.isReferenceType(type)) {
             const decl = this.resolveTypeReference(type)
@@ -216,7 +216,7 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isTypeParameterType(type)) {
             // TODO: unlikely correct.
-            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convertType(type))
+            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
         throw new Error(`Cannot convert: ${type.kind}`)
     }
@@ -226,11 +226,11 @@ export class PeerLibrary implements LibraryInterface {
         if (customConv)
             return customConv
         if (!declaration || isConflictingDeclaration(declaration))
-            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convertType(type), false, this.targetNameConvertorInstance.convertType(type)) // assume some predefined type
+            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type), false, this.targetNameConvertorInstance.convert(type)) // assume some predefined type
 
         const declarationName = declaration.name!
         if (isImport(declaration)) {
-            return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convertType(type))
+            return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
         if (idl.isEnum(declaration)) {
             return new EnumConvertor(param, declaration, isStringEnum(declaration))
@@ -298,7 +298,7 @@ export class PeerLibrary implements LibraryInterface {
      *   or `IdlNameConvertor.convertType`
      */
     getTypeName(type: idl.IDLType): string {
-        return this.nativeNameConvertorInstance.convertType(type)
+        return this.nativeNameConvertorInstance.convert(type)
     }
 
     /** @deprecated
@@ -307,7 +307,7 @@ export class PeerLibrary implements LibraryInterface {
      * `IdlNameConvertor.convertEntry`
      */
     getEntryName(entry: idl.IDLEntry): string {
-        return this.nativeNameConvertorInstance.convertEntry(entry)
+        return this.nativeNameConvertorInstance.convert(entry)
     }
 
     /** @deprecated
@@ -421,7 +421,7 @@ export class PeerLibrary implements LibraryInterface {
         const data: Array<[string, {id: number, name: string}[]]> =
             this.allTypes(idl.isUnionType)
                 .map(it => [
-                    this.nativeNameConvertorInstance.convertType(it),
+                    this.nativeNameConvertorInstance.convert(it),
                     it.types.map((e, index) => { return {id: index, name: "value" + index }})])
         return new Map(data)
     }
@@ -430,7 +430,7 @@ export class PeerLibrary implements LibraryInterface {
         const data: Array<[string, string[]]> =
             this.allEntries(idl.isAnonymousInterface)
                 .map(it => [
-                    this.nativeNameConvertorInstance.convertEntry(it),
+                    this.nativeNameConvertorInstance.convert(it),
                     it.properties.map(p => p.name)])
         return new Map(data)
     }
@@ -439,8 +439,8 @@ export class PeerLibrary implements LibraryInterface {
         const data = this._orderedDependencies
             .filter(it => it !== idl.IDLVoidType)
             .map(it => idl.isType(it)
-                ? this.nativeNameConvertorInstance.convertType(idl.createOptionalType(it))
-                : PrimitiveType.OptionalPrefix + cleanPrefix(this.nativeNameConvertorInstance.convertEntry(it as idl.IDLEntry), PrimitiveType.Prefix)
+                ? this.nativeNameConvertorInstance.convert(idl.createOptionalType(it))
+                : PrimitiveType.OptionalPrefix + cleanPrefix(this.nativeNameConvertorInstance.convert(it), PrimitiveType.Prefix)
             )
         return new Set(data)
     }

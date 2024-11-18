@@ -14,12 +14,11 @@
  */
 
 import * as idl from "../../idl";
-import { convert } from "./common";
-import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
-import { PeerLibrary } from "../PeerLibrary"
+import { PeerLibrary } from "../PeerLibrary";
 import { collectProperties } from "../printers/StructPrinter";
+import { DependenciesCollector } from "./IdlDependenciesCollector";
 
-class TypeDependencies extends TypeDependenciesCollector {
+class SorterDependenciesCollector extends DependenciesCollector {
     constructor(library: PeerLibrary) {
         super(library)
     }
@@ -44,12 +43,6 @@ class TypeDependencies extends TypeDependenciesCollector {
     convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLNode[] {
         return []
     }
-}
-
-class DeclDependencies extends DeclarationDependenciesCollector {
-    constructor (private library: PeerLibrary, private typeDependencies: TypeDependencies) {
-        super(typeDependencies)
-    }
     convertInterface(node: idl.IDLInterface): idl.IDLNode[] {
         return collectProperties(node, this.library).map(it => this.library.toDeclaration(it.type))
     }
@@ -65,14 +58,12 @@ class DeclDependencies extends DeclarationDependenciesCollector {
 }
 
 export class DependencySorter {
-    typeConvertor: TypeDependenciesCollector
-    declConvertor: DeclarationDependenciesCollector
+    dependenciesCollector: SorterDependenciesCollector
     dependencies = new Set<idl.IDLNode>()
     adjMap = new Map<idl.IDLNode, idl.IDLNode[]>()
 
     constructor(private library: PeerLibrary) {
-        this.typeConvertor = new TypeDependencies(library);
-        this.declConvertor = new DeclDependencies(library, this.typeConvertor)
+        this.dependenciesCollector = new SorterDependenciesCollector(library);
     }
 
     private fillDependencies(target: idl.IDLNode, seen: Set<idl.IDLNode>) {
@@ -80,7 +71,7 @@ export class DependencySorter {
         seen.add(target)
         // Need to request that declaration.
         this.dependencies.add(target)
-        let deps = convert(target, this.typeConvertor, this.declConvertor)
+        let deps = this.dependenciesCollector.convert(target)
         deps.forEach(it => this.fillDependencies(it, seen))
 
         // Require structs but do not make dependencies to them from `target`

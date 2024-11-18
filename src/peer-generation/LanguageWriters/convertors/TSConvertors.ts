@@ -13,42 +13,45 @@
  * limitations under the License.
  */
 
-import { convertType, IdlNameConvertorBase, TypeConvertor } from '../nameConvertor'
+import { convertNode, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 import * as idl from '../../../idl'
 import { ReferenceResolver } from '../../ReferenceResolver'
 import { throwException } from '../../../util'
 
-export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements TypeConvertor<string> {
+export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNameConvertor {
 
     constructor(
         protected resolver: ReferenceResolver
-    ) { super() }
+    ) { }
 
-     /**** IdlTypeNameConvertor *******************************************/
-
-    convertType(type: idl.IDLType): string {
-        return convertType(this, type)
-    }
-
-    convertEntry(entry: idl.IDLEntry): string {
-        if (idl.isCallback(entry)) {
-            return this.mapCallback(entry)
-        }
-        return entry.name ?? throwException('unnamed entry!')
+    convert(node: idl.IDLNode): string {
+        return convertNode(this, node)
     }
 
     /***** TypeConvertor<string> *****************************************/
 
+    convertInterface(node: idl.IDLInterface): string {
+        return node.name
+    }
+    convertEnum(node: idl.IDLEnum): string {
+        return node.name
+    }
+    convertTypedef(node: idl.IDLTypedef): string {
+        return node.name
+    }
+    convertCallback(node: idl.IDLCallback): string {
+        return node.name
+    }
     convertOptional(type: idl.IDLOptionalType): string {
-        return `${this.convertType(type.type)} | undefined`
+        return `${this.convert(type.type)} | undefined`
     }
     convertUnion(type: idl.IDLUnionType): string {
         return type.types.
             map(it => {
                 if (false /* add check if it is function */) {
-                    return `(${this.convertType(it)})`
+                    return `(${this.convert(it)})`
                 }
-                return this.convertType(it)
+                return this.convert(it)
             })
             .join(' | ')
     }
@@ -58,14 +61,14 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
                 case idl.IDLU8Type: return 'Uint8Array' // should be changed to Array
                 case idl.IDLI32Type: return 'Int32Array' // should be changed to Array
                 case idl.IDLF32Type: return 'Float32Array' // should be changed to Array
-                default: return `Array<${this.convertType(type.elementType[0])}>`
+                default: return `Array<${this.convert(type.elementType[0])}>`
             }
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
-            return `Map<${this.convertType(type.elementType[0])}, ${this.convertType(type.elementType[1])}>`
+            return `Map<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
         }
         if (idl.IDLContainerUtils.isPromise(type)) {
-            return `Promise<${this.convertType(type.elementType[0])}>`
+            return `Promise<${this.convert(type.elementType[0])}>`
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -111,7 +114,7 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
         if (typeSpec === `ContentModifier` || typeSpec === `WrappedBuilder`)
-            typeArgs = [this.convertType(idl.IDLAnyType)]
+            typeArgs = [this.convert(idl.IDLAnyType)]
         if (typeSpec === `Optional`)
             return `${typeArgs} | undefined`
         const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
@@ -170,8 +173,8 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
     }
     protected mapCallback(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it =>
-            `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${this.convertType(it.type!)}`)
-        return `((${params.join(", ")}) => ${this.convertType(decl.returnType)})`
+            `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}`)
+        return `((${params.join(", ")}) => ${this.convert(decl.returnType)})`
     }
 
     protected productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
@@ -181,7 +184,7 @@ export class TsIDLNodeToStringConverter extends IdlNameConvertorBase implements 
                 decl.properties
                     .map(it => isTuple ? this.processTupleType(it) : it)
                     .map(it => {
-                        const type = this.convertType(it.type)
+                        const type = this.convert(it.type)
                         return it.isOptional
                             ? includeFieldNames ? `${it.name}?: ${type}` : `(${type})?`
                             : includeFieldNames ? `${it.name}: ${type}` : `${type}`

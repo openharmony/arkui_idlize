@@ -196,7 +196,7 @@ export class CJLanguageWriter extends LanguageWriter {
     }
 
     stringifyType(type: idl.IDLType): string {
-        return this.typeConvertor.convertType(type)
+        return this.typeConvertor.convert(type)
     }
 
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {

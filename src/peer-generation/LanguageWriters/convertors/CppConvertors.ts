@@ -16,20 +16,11 @@
 import * as idl from '../../../idl'
 import { PrimitiveType } from '../../ArkPrimitiveType';
 import { ReferenceResolver } from '../../ReferenceResolver';
-import { IdlNameConvertor, IdlNameConvertorBase } from "../nameConvertor";
+import { IdlNameConvertor } from "../nameConvertor";
 import { ConvertResult, InteropConverter } from './InteropConvertor';
 
-export class CppIDLNodeToStringConvertor extends IdlNameConvertorBase {
-
-    private readonly interopConverter: InteropConverter
-    constructor(
-        protected resolver: ReferenceResolver
-    ) {
-        super()
-        this.interopConverter = new InteropConverter(resolver)
-    }
-
-    private unwrap(type: idl.IDLEntry | idl.IDLType | idl.IDLCallback, result:ConvertResult): string {
+export class CppIDLNodeToStringConvertor extends InteropConverter implements IdlNameConvertor {
+    private unwrap(type: idl.IDLNode, result:ConvertResult): string {
         if (idl.isType(type) && idl.isOptionalType(type)) {
             return `Opt_${result.text}`
         }
@@ -39,11 +30,7 @@ export class CppIDLNodeToStringConvertor extends IdlNameConvertorBase {
         return `${PrimitiveType.Prefix}${result.text}`
     }
 
-    convertType(type: idl.IDLType): string {
-        return this.unwrap(type, this.interopConverter.convertType(type))
-    }
-
-    convertEntry(entry: idl.IDLEntry): string {
-        return this.unwrap(entry, this.interopConverter.convertEntry(entry))
+    convert(node: idl.IDLNode): string {
+        return this.unwrap(node, this.convertNode(node))
     }
 }

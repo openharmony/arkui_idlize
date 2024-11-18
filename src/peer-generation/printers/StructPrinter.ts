@@ -27,6 +27,7 @@ import { generateCallbackAPIArguments } from "../ArgConvertors"
 import { isBuilderClass, isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
 import { cleanPrefix, PeerLibrary } from "../PeerLibrary"
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter"
+import { LibraryInterface } from "../../LibraryInterface"
 
 export class StructPrinter {
     constructor(private library: PeerLibrary) {}
@@ -463,7 +464,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
     }
 }
 
-export function collectProperties(decl: idl.IDLInterface, library: PeerLibrary): idl.IDLProperty[] {
+export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
     const superType = idl.getSuperType(decl)
     const superDecl = superType ? library.resolveTypeReference(/* FIX */ superType as idl.IDLReferenceType) : undefined
     return [
@@ -494,7 +495,7 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
     return result
 }
 
-function collectBuilderProperties(decl: idl.IDLInterface, library: PeerLibrary): idl.IDLProperty[] {
+function collectBuilderProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
     if (!isBuilderClass(decl)) {
         return []
     }

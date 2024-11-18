@@ -34,7 +34,6 @@ import { PeerLibrary } from "../PeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { convertDeclaration } from "../LanguageWriters/nameConvertor";
-import { DeclarationDependenciesCollector, TypeDependenciesCollector } from "./IdlDependenciesCollector";
 import {
     isSyntheticDeclaration,
     makeSyntheticDeclCompletely,
@@ -47,12 +46,12 @@ import { ImportFeature } from "../ImportsCollector";
 import { createFeatureNameConvertor, DeclarationNameConvertor } from "./IdlNameConvertor";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
-import { convert } from "./common"
 import { collectCJImportsForDeclaration } from "../printers/lang/CJIdlUtils"
 import { ARK_CUSTOM_OBJECT, javaCustomTypeMapping } from "../printers/lang/Java"
 import { Language } from "../../Language"
 import { createInterfaceDeclName } from "../TypeNodeNameConvertor";
 import { cjCustomTypeMapping } from "../printers/lang/Cangjie"
+import { DependenciesCollector } from "./IdlDependenciesCollector"
 
 /**
  * Theory of operations.
@@ -227,16 +226,12 @@ function mapCInteropRetType(type: idl.IDLType): string {
 }
 
 
-class ImportsAggregateCollector extends TypeDependenciesCollector {
-    // TODO: dirty hack, need to rework
-    private readonly declarationCollector: FilteredDeclarationCollector
-
+class ImportsAggregateCollector extends DependenciesCollector {
     constructor(
         protected readonly peerLibrary: PeerLibrary,
-        private readonly expandAliases: boolean,
+        protected readonly expandAliases: boolean,
     ) {
         super(peerLibrary)
-        this.declarationCollector = new FilteredDeclarationCollector(peerLibrary, this)
     }
 
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
@@ -262,7 +257,7 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
         // such declarations are not processed by FilteredDeclarationCollector
         result.push(
             ...syntheticDeclarations.filter(it => idl.isAnonymousInterface(it)),
-            ...syntheticDeclarations.flatMap(decl => convert(decl, this, this.declarationCollector))
+            ...syntheticDeclarations.flatMap(decl => this.convert(decl))
         )
 
         for (const decl of realDeclarations) {
@@ -274,14 +269,7 @@ class ImportsAggregateCollector extends TypeDependenciesCollector {
     }
 }
 
-export class FilteredDeclarationCollector extends DeclarationDependenciesCollector {
-    constructor(
-        private readonly library: PeerLibrary,
-        typeDepsCollector: TypeDependenciesCollector,
-    ) {
-        super(typeDepsCollector)
-    }
-
+class TSDependenciesCollector extends ImportsAggregateCollector {
     protected override convertSupertype(type: idl.IDLType): idl.IDLNode[] {
         if (idl.isReferenceType(type)) {
             const decl = this.library.resolveTypeReference(type)
@@ -294,6 +282,10 @@ export class FilteredDeclarationCollector extends DeclarationDependenciesCollect
 }
 
 class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
+    constructor(peerLibrary: PeerLibrary) {
+        super(peerLibrary, true)
+    }
+
     override convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
         if (idl.IDLContainerUtils.isSequence(type)) {
         // todo: check this.peerLibrary instanceof IdlPeerLibrary)
@@ -313,17 +305,14 @@ class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
     }
 }
 
-class ArkTSDeclarationCollector extends DeclarationDependenciesCollector {
-}
-
 ////////////////////////////////////////////////////////////////
 //                         JAVA                               //
 ////////////////////////////////////////////////////////////////
 
-class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
+class JavaDependenciesCollector extends DependenciesCollector {
     constructor(
-        protected readonly library: PeerLibrary,
-        private readonly expandAliases: boolean,
+        library: PeerLibrary,
+        private expandAliases: boolean,
     ) {
         super(library)
     }
@@ -418,15 +407,6 @@ class JavaTypeDependenciesCollector extends TypeDependenciesCollector {
 
         return decl.properties.flatMap(it => this.convert(it.type))
     }
-}
-
-class JavaDeclarationCollector extends DeclarationDependenciesCollector {
-    constructor(
-        private readonly library: PeerLibrary,
-        typeDepsCollector: TypeDependenciesCollector,
-    ) {
-        super(typeDepsCollector)
-    }
 
     convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
         return super.convertInterface(decl)
@@ -458,12 +438,12 @@ class JavaDeclarationCollector extends DeclarationDependenciesCollector {
 //                         CANGJIE                            //
 ////////////////////////////////////////////////////////////////
 
-class CJDeclarationCollector extends DeclarationDependenciesCollector {
+class CJDependenciesCollector extends DependenciesCollector {
     constructor(
-        private readonly library: PeerLibrary,
-        typeDepsCollector: TypeDependenciesCollector,
+        library: PeerLibrary,
+        private readonly expandAliases: boolean,
     ) {
-        super(typeDepsCollector)
+        super(library)
     }
 
     convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
@@ -489,15 +469,6 @@ class CJDeclarationCollector extends DeclarationDependenciesCollector {
                 : super.convertSupertype(type)
         }
         throw new Error(`Expected reference type, got ${type.kind} ${idl.DebugUtils.debugPrintType(type)}`)
-    }
-}
-
-class CJTypeDependenciesCollector extends TypeDependenciesCollector {
-    constructor(
-        protected readonly library: PeerLibrary,
-        private readonly expandAliases: boolean,
-    ) {
-        super(library)
     }
 
     private ignoredTypes: Set<idl.IDLType | idl.IDLInterface> = new Set()
@@ -823,17 +794,15 @@ class PeersGenerator {
 }
 
 export class IdlPeerProcessor {
-    private readonly typeDependenciesCollector: TypeDependenciesCollector
-    private readonly declDependenciesCollector: DeclarationDependenciesCollector
-    private readonly serializeDepsCollector: DeclarationDependenciesCollector
+    private readonly dependenciesCollector: DependenciesCollector
+    private readonly serializeDepsCollector: DependenciesCollector
     private readonly dependencyFilter: DependencyFilter
 
     constructor(
         private readonly library: PeerLibrary,
     ) {
-        this.typeDependenciesCollector = createTypeDependenciesCollector(this.library)
-        this.declDependenciesCollector = createDeclDependenciesCollector(this.library, this.typeDependenciesCollector)
-        this.serializeDepsCollector = createSerializeDeclDependenciesCollector(this.library)
+        this.dependenciesCollector = createDependenciesCollector(this.library)
+        this.serializeDepsCollector = createDependenciesCollector(library, true)
         this.dependencyFilter = createDependencyFilter(this.library)
     }
 
@@ -932,7 +901,7 @@ export class IdlPeerProcessor {
                             }),
                         } as idl.IDLInterface,
                         this.library,
-                        this.declDependenciesCollector,
+                        this.dependenciesCollector,
                         'SyntheticDeclarations'
                     )))
             }
@@ -1040,7 +1009,7 @@ export class IdlPeerProcessor {
     }
 
     private collectDepsRecursive(decl: idl.IDLNode, deps: Set<idl.IDLNode>): void {
-        const currentDeps = convert(decl, this.typeDependenciesCollector, this.declDependenciesCollector)
+        const currentDeps = this.dependenciesCollector.convert(decl)
         for (const dep of currentDeps) {
             if (deps.has(dep)) continue
             if (idl.isEntry(dep) && !isSourceDecl(dep)) continue
@@ -1125,7 +1094,7 @@ export class IdlPeerProcessor {
                 continue
             }
 
-            this.declDependenciesCollector.convert(dep).forEach(it => {
+            this.dependenciesCollector.convert(dep).forEach(it => {
                 // Add a type that is not in the file declaration list
                 if (Array.from(file.declarations.values()).find(decl => decl.name === idl.forceAsNamedNode(it).name) === undefined
                     && idl.isEntry(it)
@@ -1188,40 +1157,15 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): I
     }
 }
 
-export function createTypeDependenciesCollector(library: PeerLibrary): TypeDependenciesCollector {
+export function createDependenciesCollector(library: PeerLibrary, forceExpandAliaces: boolean = false): DependenciesCollector {
     switch (library.language) {
-        case Language.TS: return new ImportsAggregateCollector(library, false)
-        case Language.ARKTS: return new ArkTSImportsAggregateCollector(library, true)
-        case Language.JAVA: return new JavaTypeDependenciesCollector(library, true)
-        case Language.CJ: return new CJTypeDependenciesCollector(library, true)
+        case Language.TS: return new TSDependenciesCollector(library, forceExpandAliaces || false)
+        case Language.ARKTS: return new ArkTSImportsAggregateCollector(library)
+        case Language.JAVA: return new JavaDependenciesCollector(library, true)
+        case Language.CJ: return new CJDependenciesCollector(library, true)
     }
     // TODO: support other languages
-    return new ImportsAggregateCollector(library, false)
-}
-
-export function createDeclDependenciesCollector(library: PeerLibrary,
-                                                typeDependenciesCollector: TypeDependenciesCollector
-): DeclarationDependenciesCollector {
-    switch (library.language) {
-        case Language.TS: return new FilteredDeclarationCollector(library, typeDependenciesCollector)
-        case Language.ARKTS: return new ArkTSDeclarationCollector(typeDependenciesCollector)
-        case Language.JAVA: return new JavaDeclarationCollector(library, typeDependenciesCollector)
-        case Language.CJ: return new CJDeclarationCollector(library, typeDependenciesCollector)
-    }
-    // TODO: support other languages
-    return new FilteredDeclarationCollector(library, typeDependenciesCollector)
-}
-
-function createSerializeDeclDependenciesCollector(library: PeerLibrary): DeclarationDependenciesCollector {
-    const expandAliases = true
-    switch (library.language) {
-        case Language.TS: return new FilteredDeclarationCollector(library, new ImportsAggregateCollector(library, expandAliases))
-        case Language.ARKTS: return new ArkTSDeclarationCollector(new ArkTSImportsAggregateCollector(library, expandAliases))
-        case Language.JAVA: return new JavaDeclarationCollector(library, new JavaTypeDependenciesCollector(library, expandAliases))
-        case Language.CJ: return new CJDeclarationCollector(library, new CJTypeDependenciesCollector(library, expandAliases))
-    }
-    // TODO: support other languages
-    return new FilteredDeclarationCollector(library, new ImportsAggregateCollector(library, expandAliases))
+    return new ImportsAggregateCollector(library, forceExpandAliaces || false)
 }
 
 export function createDependencyFilter(library: PeerLibrary): DependencyFilter {

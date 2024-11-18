@@ -81,7 +81,7 @@ export class PeerMethod {
     generateAPIParameters(converter:IdlNameConvertor): string[] {
         const args = this.argConvertors.map(it => {
             let isPointer = it.isPointerType()
-            return `${isPointer ? "const ": ""}${converter.convertType(it.nativeType())}${isPointer ? "*": ""} ${it.param}`
+            return `${isPointer ? "const ": ""}${converter.convert(it.nativeType())}${isPointer ? "*": ""} ${it.param}`
         })
         const receiver = this.generateReceiver()
         if (receiver) return [`${receiver.argType} ${receiver.argName}`, ...args]

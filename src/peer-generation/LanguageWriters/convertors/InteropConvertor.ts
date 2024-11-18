@@ -18,14 +18,14 @@ import { capitalize } from '../../../util'
 import { PrimitiveType } from '../../ArkPrimitiveType'
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { ReferenceResolver } from '../../ReferenceResolver'
-import { IdlNameConvertor, IdlNameConvertorBase, TypeConvertor } from '../nameConvertor'
+import { convertNode, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 
 export interface ConvertResult {
     text: string,
     noPrefix: boolean
 }
 
-export class InteropConverter implements TypeConvertor<ConvertResult> {
+export class InteropConverter implements NodeConvertor<ConvertResult> {
 
     private make(text: string, noPrefix = false): ConvertResult {
         return { text, noPrefix }
@@ -35,83 +35,63 @@ export class InteropConverter implements TypeConvertor<ConvertResult> {
         protected resolver: ReferenceResolver
     ) {}
 
-    convertType(type: idl.IDLType): ConvertResult {
-        if (idl.isType(type) && idl.isOptionalType(type)) {
-            return this.convertOptional(type)
-        }
-        if (idl.isPrimitiveType(type)) {
-            return this.convertPrimitiveType(type)
-        }
-        if (idl.isContainerType(type)) {
-            return this.convertContainer(type)
-        }
-        if (idl.isUnionType(type)) {
-            return this.convertUnion(type)
-        }
-        if (idl.isReferenceType(type)) {
-            return this.convertTypeReference(type)
-        }
-        if (idl.isTypeParameterType(type)) {
-            return this.make('CustomObject')
-        }
-        throw new Error(`Unmapped type ${idl.DebugUtils.debugPrintType(type)}`)
+    convertNode(node: idl.IDLNode): ConvertResult {
+        return convertNode<ConvertResult>(this, node)
     }
 
-    convertEntry(target: idl.IDLEntry): ConvertResult {
-        if (idl.isType(target)) {
-            throw new Error('use convertType instead!')
+    convertInterface(node: idl.IDLInterface): ConvertResult {
+        if (idl.isAnonymousInterface(node) && 1==1) {
+            return node.name
+                ? this.make(node.name)
+                : this.make(this.computeTargetTypeLiteralName(node), true)
         }
-        if (idl.isAnonymousInterface(target)) {
-            return target.name
-                ? this.make(target.name)
-                : this.make(this.computeTargetTypeLiteralName(target), true)
-        }
-        if (idl.isEnum(target)) {
-            return this.make(this.enumName(target))
-        }
-        if (idl.isInterface(target) || idl.isClass(target)) {
-            if (target.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.Namespace && it.value === 'predefined')) {
-                return this.make(target.name, true)
+        if ((idl.isInterface(node) || idl.isClass(node)) && 1==1) {
+            if (node.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.Namespace && it.value === 'predefined')) {
+                return this.make(node.name, true)
             }
-            return this.make(target.name)
+            return this.make(node.name)
         }
-        if (idl.isCallback(target)) {
-            return this.make(PrimitiveType.LibraryPrefix + target.name, true)
+        if (idl.isTupleInterface(node)) {
+            return node.name
+                ? this.make(node.name)
+                : this.make(`Tuple_${node.properties.map(it => this.convertNode(idl.maybeOptional(it.type, it.isOptional)).text).join("_")}`, true)
         }
-        if (idl.isTupleInterface(target)) {
-            return target.name
-                ? this.make(target.name)
-                : this.make(`Tuple_${target.properties.map(it => this.convertType(idl.maybeOptional(it.type, it.isOptional)).text).join("_")}`, true)
-        }
-        if (idl.isImport(target))
-            return this.make(this.mapImportTypeName(target), true)
-        if (idl.isEnumMember(target))
-            return this.convertEntry(target.parent)
-        if (idl.isTypedef(target))
-            return this.make(target.name)
-        throw new Error(`Cannot compute target name: ${idl.IDLKind[target.kind!]} ${target.name}`)
+        throw new Error("Unknown interface type")
     }
+    convertEnum(node: idl.IDLEnum): ConvertResult {
+        return this.make(this.enumName(node))
+    }
+    convertTypedef(node: idl.IDLTypedef): ConvertResult {
+        return this.make(node.name)
+    }
+    convertCallback(node: idl.IDLCallback): ConvertResult {
+        return this.make(PrimitiveType.LibraryPrefix + node.name, true)
+    }
+    // convertImport
+    // 
+    // if (idl.isImport(target))
+    //     return this.make(this.mapImportTypeName(target), true)
 
     /////////////////////////////////////////////////////////////////////////////////////////
 
     convertOptional(type: idl.IDLOptionalType): ConvertResult {
-        return this.convertType(type.type)
+        return this.convertNode(type.type)
     }
     convertUnion(type: idl.IDLUnionType): ConvertResult {
         return this.make(type.name, false)
     }
     convertContainer(type: idl.IDLContainerType): ConvertResult {
         if (idl.IDLContainerUtils.isPromise(type)) {
-            return this.make(`Promise_${this.convertType(type.elementType[0]).text}`)
+            return this.make(`Promise_${this.convertNode(type.elementType[0]).text}`)
         }
         if (idl.IDLContainerUtils.isSequence(type)) {
             if (type.elementType[0] === idl.IDLU8Type) {
                 return this.make(`uint8_t*`, true)
             }
-            return this.make(`Array_${this.convertType(type.elementType[0]).text}`, true)
+            return this.make(`Array_${this.convertNode(type.elementType[0]).text}`, true)
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
-            return this.make(`Map_${this.convertType(type.elementType[0]).text}_${this.convertType(type.elementType[1]).text}`, true)
+            return this.make(`Map_${this.convertNode(type.elementType[0]).text}_${this.convertNode(type.elementType[1]).text}`, true)
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -133,15 +113,15 @@ export class InteropConverter implements TypeConvertor<ConvertResult> {
             if (idl.isReferenceType(decl)) {
                 return this.make(`${capitalize(decl.name)}`)
             }
-            return this.convertType(decl)
+            return this.convertNode(decl)
         }
-        let res = this.convertEntry(decl as idl.IDLEntry)
+        let res = this.convertNode(decl as idl.IDLEntry)
         if (type.name === "Optional")
             res = this.make("Opt_" + res.text, true)
         return res
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): ConvertResult {
-        throw new Error("Method not implemented.")
+        return this.make('CustomObject')
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): ConvertResult {
         switch (type) {
@@ -190,7 +170,7 @@ export class InteropConverter implements TypeConvertor<ConvertResult> {
     private computeTargetTypeLiteralName(decl: idl.IDLInterface): string {
         const map = new Map<string, string[]>()
         for (const prop of decl.properties) {
-            const type = this.convertType(prop.type)
+            const type = this.convertNode(prop.type)
             const values = map.has(type.text) ? map.get(type.text)! : []
             values.push(prop.name)
             map.set(type.text, values)
@@ -200,21 +180,14 @@ export class InteropConverter implements TypeConvertor<ConvertResult> {
     }
 }
 
-export class IDLNodeToStringConvertor extends IdlNameConvertorBase {
-
+export class IDLNodeToStringConvertor implements IdlNameConvertor {
     private readonly interopConverter: InteropConverter
     constructor(
         protected resolver: ReferenceResolver
     ) {
-        super()
         this.interopConverter = new InteropConverter(resolver)
     }
-
-    convertType(type: idl.IDLType): string {
-        return this.interopConverter.convertType(type).text
-    }
-
-    convertEntry(type: idl.IDLEntry): string {
-        return this.interopConverter.convertEntry(type).text
+    convert(node: idl.IDLNode): string {
+        return this.interopConverter.convertNode(node).text
     }
 }

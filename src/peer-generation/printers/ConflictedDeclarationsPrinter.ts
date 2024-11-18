@@ -21,8 +21,7 @@ import { Language } from "../../Language";
 import { ArkTSDeclConvertor, getCommonImports } from "./InterfacePrinter";
 import {
     convertDeclToFeature,
-    createDeclDependenciesCollector,
-    createTypeDependenciesCollector,
+    createDependenciesCollector,
 } from "../idl/IdlPeerGeneratorVisitor";
 import { ImportsCollector } from "../ImportsCollector";
 import { DeclarationNameConvertor } from "../idl/IdlNameConvertor";
@@ -64,12 +63,11 @@ class ArkTSConflictedDeclarationsVisitor extends ConflictedDeclarationsVisitor {
     }
 
     print() {
-        const typeDependenciesCollector = createTypeDependenciesCollector(this.library)
-        const declDependenciesCollector = createDeclDependenciesCollector(this.library, typeDependenciesCollector)
+        const dependenciesCollector = createDependenciesCollector(this.library)
         const importsCollector = new ImportsCollector()
         getCommonImports(this.library.language).forEach(it => importsCollector.addFeature(it.feature, it.module))
         this.library.conflictedDeclarations.forEach(it => {
-            declDependenciesCollector.convert(it).forEach(it => {
+            dependenciesCollector.convert(it).forEach(it => {
                 const dep = convertDeclToFeature(this.library, it)
                 importsCollector.addFeature(dep.feature, dep.module)
             })

@@ -106,7 +106,7 @@ class HeaderVisitor {
         for (const callback of callbacks) {
             const args = ["Ark_Int32 nodeId",///same code in EventsPrinter
                 ...callback.args.map(it =>
-                    `const ${nameConvertor.convertType(maybeOptional(library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
+                    `const ${nameConvertor.convert(maybeOptional(library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
             printMethodDeclaration(this.api, "void", `(*${callback.methodName})`, args, `;`)
         }
         this.api.popIndent()
