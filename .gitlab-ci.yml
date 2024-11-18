@@ -13,7 +13,6 @@ variables:
 
 .setup:
     script:
-        - npm config set registry https://repo.huaweicloud.com/repository/npm/
         - npm config set @ohos:registry https://repo.harmonyos.com/npm/
         - npm config set @koalaui:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
         - npm config set @panda:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
