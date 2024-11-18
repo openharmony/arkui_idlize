@@ -47,6 +47,7 @@ interface ScrollInterface {
 declare class ScrollAttribute extends ScrollableCommonMethod<ScrollAttribute> {
 
     //onScrollEdge(event: (side: Edge) => void): ScrollAttribute;
+  scrollBar(barState: BarState): ScrollAttribute;
 }
 
 declare const Scroll: ScrollInterface;

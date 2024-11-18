@@ -13,19 +13,17 @@
  * limitations under the License.
  */
 
-declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor').DrawableDescriptor;
 
-declare enum ImageContent {
-  EMPTY = 0,
-}
-declare interface ImageInterface { 
-    (src: PixelMap | ResourceStr | DrawableDescriptor): ImageAttribute;
-    (src: PixelMap | ResourceStr | DrawableDescriptor | ImageContent): ImageAttribute;
-    (src: PixelMap | ResourceStr | DrawableDescriptor, imageAIOptions: ImageAIOptions): ImageAttribute;
-}
+interface CounterInterface {
+    (): CounterAttribute;
+  }
 
-declare class ImageAttribute extends CommonMethod<ImageAttribute> {
-  objectFit(value: ImageFit): ImageAttribute;
-}
-
-declare const Image: ImageInterface
+  declare class CounterAttribute extends CommonMethod<CounterAttribute> {
+    onInc(event: VoidCallback): CounterAttribute;
+    onDec(event: VoidCallback): CounterAttribute;
+    enableDec(value: boolean): CounterAttribute;
+    enableInc(value: boolean): CounterAttribute;
+  }
+  declare const CounterInstance: CounterAttribute;
+  declare const Counter: CounterInterface;
+  

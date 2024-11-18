@@ -18,6 +18,10 @@ declare interface TextOptions {
   controller: TextController;
 }
 
+declare interface TextOverflowOptions {
+  overflow: TextOverflow;
+}
+
 interface TextInterface {
 
   (content?: string | Resource, value?: TextOptions): TextAttribute;
@@ -28,6 +32,18 @@ declare class TextAttribute extends CommonMethod<TextAttribute> {
   font(value: Font): TextAttribute;
 
   fontColor(value: ResourceColor): TextAttribute;
+
+  maxLines(value: number): TextAttribute;
+
+  fontSize(value: number | string | Resource): TextAttribute;
+
+  fontWeight(value: number | FontWeight | string): TextAttribute;
+
+  textOverflow(options: TextOverflowOptions): TextAttribute;
+
+  textAlign(value: TextAlign): TextAttribute;
+
+  lineHeight(value: number | string | Resource): TextAttribute;
 
 }
 

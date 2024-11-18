@@ -13,19 +13,18 @@
  * limitations under the License.
  */
 
-declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor').DrawableDescriptor;
-
-declare enum ImageContent {
-  EMPTY = 0,
-}
-declare interface ImageInterface { 
-    (src: PixelMap | ResourceStr | DrawableDescriptor): ImageAttribute;
-    (src: PixelMap | ResourceStr | DrawableDescriptor | ImageContent): ImageAttribute;
-    (src: PixelMap | ResourceStr | DrawableDescriptor, imageAIOptions: ImageAIOptions): ImageAttribute;
+declare enum ImageAnalyzerType {
+    SUBJECT = 0,
+    TEXT,
+    OBJECT_LOOKUP,
 }
 
-declare class ImageAttribute extends CommonMethod<ImageAttribute> {
-  objectFit(value: ImageFit): ImageAttribute;
+declare class ImageAnalyzerController {
+    constructor();
+    getImageAnalyzerSupportTypes(): ImageAnalyzerType[];
 }
 
-declare const Image: ImageInterface
+declare interface ImageAIOptions {
+    types?: ImageAnalyzerType[];
+    aiController?: ImageAnalyzerController;
+}

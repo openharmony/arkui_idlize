@@ -79,3 +79,5 @@ declare interface Font {
 declare type Margin = Padding;
 
 declare type LocalizedMargin = LocalizedPadding;
+
+declare type VoidCallback  = () => void;
