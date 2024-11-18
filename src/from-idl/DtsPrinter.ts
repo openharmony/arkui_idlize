@@ -184,7 +184,8 @@ export class CustomPrintVisitor {
         const isCommonMethod = hasExtAttribute(node, IDLExtendedAttributes.CommonMethod)
         let isProtected = hasExtAttribute(node, IDLExtendedAttributes.Protected)
         if (isCommonMethod) {
-            const returnType = this.currentInterface?.typeParameters ? this.currentInterface.typeParameters[0] : this.currentInterface!.name
+            const typeParams = this.currentInterface?.typeParameters
+            const returnType = typeParams && typeParams.length > 0 ? typeParams[0] : this.currentInterface!.name
             this.print(`${getName(node)}(value: ${this.printTypeForTS(node.type, undefined, undefined, isCommonMethod)}): ${returnType};`)
         } else if (hasExtAttribute(node, IDLExtendedAttributes.Accessor)) {
             const accessorName = getExtAttribute(node, IDLExtendedAttributes.Accessor)

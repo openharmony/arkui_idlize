@@ -715,17 +715,18 @@ class PeersGenerator {
         // E.g. ButtonInterface instead of ButtonAttribute
         const isCallSignature = idl.isCallable(method)
         const methodName = isCallSignature ? `set${peer.componentName}Options` : method.name
-        if (isCallSignature) method.returnType = idl.IDLVoidType
+        const retType = method.returnType!
+        const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T")
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         method.parameters.forEach(param => {
             this.library.requestType(param.type!, this.library.shouldGenerateComponent(peer.componentName))
         })
-        const signature = generateSignature(method)
+        const signature = generateSignature(method, isThisRet ? idl.IDLThisType : retType)
         return new PeerMethod(
             originalParentName,
             argConvertors,
-            generateRetConvertor(method.returnType),
+            generateRetConvertor(isThisRet ? idl.IDLVoidType : retType),
             isCallSignature,
             new Method(methodName!, signature, method.isStatic ? [MethodModifier.STATIC] : []))
     }
@@ -1327,9 +1328,10 @@ export function isSourceDecl(node: idl.IDLEntry): boolean {
 
 function generateSignature(
     method: idl.IDLCallable | idl.IDLMethod | idl.IDLConstructor,
+    returnType?: idl.IDLType
 ): NamedMethodSignature {
     return new NamedMethodSignature(
-        method.returnType!,
+        returnType ?? method.returnType!,
         method.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
         method.parameters.map(it => it.name)
     )

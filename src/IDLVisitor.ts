@@ -797,36 +797,6 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
     }
 
-
-    // Check if particular place is suitable for conversion of return type to `this` type.
-    private isSuitableForThisConversion(owner: ts.ClassDeclaration | ts.ObjectTypeDeclaration | ts.InterfaceDeclaration | ts.Node) {
-        let result = false
-        if (ts.isClassDeclaration(owner))
-            result ||= isCommonMethodOrSubclass(this.typeChecker, owner)
-        if (ts.isInterfaceDeclaration(owner) || ts.isClassDeclaration(owner))
-            result ||= PeerGeneratorConfig.builderClasses.includes(identName(owner.name)!)
-        return result
-    }
-
-    private serializeTypeOrThis(
-        method: ts.MethodDeclaration | ts.MethodSignature | ts.FunctionDeclaration | ts.CallSignatureDeclaration | ts.ConstructorDeclaration | ts.ConstructSignatureDeclaration | ts.IndexSignatureDeclaration,
-        nameSuggestion?: NameSuggestion
-    ): idl.IDLType {
-        let type = this.serializeType(method.type, nameSuggestion)
-
-        if (!this.isSuitableForThisConversion(method.parent)) return type
-
-        let className = this.ownerName(method)
-        // We use `this` IDL type when converting builder methods of UI nodes or similar types.
-        let retTypeName = idl.isNamedNode(type) ? idl.forceAsNamedNode(type).name : undefined
-        const isMethodStatic = method.modifiers?.some(mod => mod.kind === ts.SyntaxKind.StaticKeyword)
-
-        if (!isMethodStatic && ((retTypeName == className) || retTypeName === 'T'))
-            return idl.IDLThisType
-        else
-            return type
-    }
-
     serializeType(type: ts.TypeNode | undefined, nameSuggestion?: NameSuggestion): idl.IDLType {
         if (type == undefined) return idl.IDLUndefinedType // TODO: can we have implicit types in d.ts?
 
@@ -1277,7 +1247,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             })
         }
         this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedMethodName, extendedAttributes)
-        let returnType = this.serializeTypeOrThis(method, nameSuggestion?.extend('ret'))
+        const returnType = this.serializeType(method.type, nameSuggestion?.extend('ret'))
         return idl.createMethod(
             escapedMethodName,
             methodParameters.map(it => this.serializeParameter(it, nameSuggestion)),
