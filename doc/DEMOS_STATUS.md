@@ -152,8 +152,8 @@
 | `scrollBar`               | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
 | `onScrollEdge`            | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
-| Video                     | Component |           |             | Erokhin Ilya        | blocked          |                   |           |          |
-| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked AceEngine|                   |           | Low      |
+| Video                     | Component |           |             | Erokhin Ilya        | done             |                   |           |          |
+| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
 | Search                    | Component |           |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `placeholderColor`        | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
