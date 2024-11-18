@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "../FileGenerators";
 import { FunctionCallExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createLanguageWriter } from "../LanguageWriters";
 import { PeerClassBase } from "../PeerClass";
@@ -438,6 +437,7 @@ function getReturnValue(type: idl.IDLType): string {
         case idl.IDLPointerType: return "0"
         case idl.IDLStringType: return `"some string"`
         case idl.IDLAnyType: return `""`
+        case idl.IDLObjectType: return "new Object()"
     }
 
     throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]} ${idl.forceAsNamedNode(type).name}`)

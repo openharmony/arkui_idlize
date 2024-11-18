@@ -15,12 +15,22 @@
 
 package org.koalaui.arkoala;
 
+import java.util.function.Consumer;
+
 public class Application {
-    Application() {}
+    UserView view;
+    Consumer<PeerNode> builderFunction;
+    PeerNode rootNode;
+
+    Application(UserView view) {
+        this.view = view;
+        builderFunction = view.getBuilder();
+        rootNode = ArkColumnPeer.create(ArkUINodeType.Column, null, 0);
+    }
 
     public static void main(String[] args) {
-        var app = Application.createApplication();
-        var root = app.start("init", "");
+        var app = Application.createApplication("init", "");
+        var root = app.start();
         try {
             for (int i = 0; i < 10; i++) {
                 app.loopIteration(i, 0);
@@ -31,9 +41,11 @@ public class Application {
         }
     }
 
-    public static Application createApplication() {
-        NativeModule._NativeLog("NativeModule.createApplication");
-        return new Application();
+    public static Application createApplication(String app, String params) {
+        NativeModule._NativeLog("NativeModule.createApplication " +  app + " , params=" + params);
+        UserView view = (UserView)NativeModule._LoadUserView("org.koalaui.arkoala.View" + app, params);
+        if (view == null) throw new Error("Cannot load user view");
+        return new Application(view);
     }
 
     public boolean enter(int arg0, int arg1) {
@@ -44,7 +56,7 @@ public class Application {
         checkEvents(arg0);
         updateState();
         render();
-        return true;
+        return false;
     }
 
     void checkEvents(int what) {
@@ -58,10 +70,11 @@ public class Application {
 
     void render() {
         System.out.println("JAVA: render");
+        builderFunction.accept(rootNode);
     }
 
-    public long start(String app, String params) {
-        System.out.println("JAVA: start " + app + " , params=" + params);
+    public long start() {
+        System.out.println("JAVA: start");
         return 42;
     }
 }

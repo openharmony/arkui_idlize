@@ -46,4 +46,5 @@ interface Node {
     i32 CheckArkoalaCallbackEvent(sequence<u8> buffer, i32 bufferLength);
     void HoldArkoalaResource(i32 resourceId);
     void ReleaseArkoalaResource(i32 resourceId);
+    Object LoadUserView(String userClass, String params);
 };

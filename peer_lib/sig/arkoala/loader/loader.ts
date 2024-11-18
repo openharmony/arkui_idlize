@@ -67,10 +67,17 @@ function waitVSync(pipelineContext: KPointer): Promise<void> {
     })
 }
 
+function delay(ms: int32): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+const useDelayAsVsync = true
+
 export async function runEventLoop() {
     const pipelineContext = getNativePipelineContext()
+    let vsync = useDelayAsVsync ? () => delay(500) : () => waitVSync(pipelineContext)
     while (!nativeModule()._RunApplication(0, 0)) {
-        await waitVSync(pipelineContext!)
+        await vsync()
     }
 }
 
@@ -165,7 +172,7 @@ export function checkLoader(variant: string): int32 {
         }
         case 'panda': {
             vm = 2
-            classPath = __dirname + "/../external/arkoala-arkts/framework/build/abc/trivial"
+            classPath = __dirname + "/../external/arkoala-arkts/build"
             break
         }
         case 'es2panda': {
