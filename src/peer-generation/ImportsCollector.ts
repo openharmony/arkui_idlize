@@ -44,6 +44,10 @@ export class ImportsCollector {
         }
     }
 
+    clear() {
+        this.moduleToFeatures.clear()
+    }
+
     print(printer: LanguageWriter, currentModule: string) {
         const currentModuleDir = path.dirname(currentModule)
         this.moduleToFeatures.forEach((features, module) => {

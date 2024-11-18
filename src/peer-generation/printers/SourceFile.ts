@@ -50,6 +50,8 @@ export abstract class SourceFile {
     }
     
     public abstract printToString(): string;
+    // TODO make protected
+    public abstract printImports(writer: LanguageWriter): void;
     protected abstract onMerge(file: this): void;
 }
 
@@ -90,12 +92,7 @@ export class CppSourceFile extends SourceFile {
             fileWriter.print(`#ifndef ${includeGuard}\n#define ${includeGuard}\n`)
         }
         
-        for (const include of this.includes) {
-            fileWriter.writeInclude(include)
-        }
-        for (const include of this.globalIncludes) {
-            fileWriter.writeGlobalInclude(include)
-        }
+        this.printImports(fileWriter)
         fileWriter.print("")
         fileWriter.concat(this.content)
 
@@ -104,6 +101,17 @@ export class CppSourceFile extends SourceFile {
         }
 
         return fileWriter.getOutput().join("\n")
+    }
+
+    public printImports(writer: LanguageWriter): void {
+        if (!(writer instanceof CppLanguageWriter)) throw new TypeError("illegal language writer")
+
+        for (const include of this.includes) {
+            writer.writeInclude(include)
+        }
+        for (const include of this.globalIncludes) {
+            writer.writeGlobalInclude(include)
+        }
     }
 }
 
@@ -128,10 +136,15 @@ export class TsSourceFile extends SourceFile {
     public printToString(): string {
         let fileWriter = createLanguageWriter(Language.TS, this.resolver) as TSLanguageWriter
         fileWriter.print(cStyleCopyright)
-        this.imports.print(fileWriter, this.moduleName)
+        this.printImports(fileWriter)
         fileWriter.print("")
         fileWriter.concat(this.content)
         return fileWriter.getOutput().join("\n")
+    }
+    
+    public printImports(writer: LanguageWriter): void {
+        if (!(writer instanceof TSLanguageWriter)) throw new TypeError("illegal language writer")
+        this.imports.print(writer, this.moduleName)
     }
 }
 
@@ -140,5 +153,6 @@ export class GenericSourceFile extends SourceFile {
     public printToString(): string {
         return this.content.getOutput().join("\n")
     }
+    public printImports(writer: LanguageWriter): void {}
     protected onMerge(file: this): void {}
 }

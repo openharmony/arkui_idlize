@@ -21,6 +21,7 @@ include_dirs = [
 
 sources = [
     'generated/xml.cc',
+    'src/cpp/xmlImpl.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'interop-logging.cc',
 ]

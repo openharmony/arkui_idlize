@@ -19,7 +19,7 @@ import { PrimitiveType } from "./ArkPrimitiveType"
 import { camelCaseToUpperSnakeCase } from "../util"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
-import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
+import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSerializerFile } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
 import { ImportsCollector } from "./ImportsCollector"
@@ -30,7 +30,7 @@ import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCal
 import { createReferenceType, IDLVoidType, toIDLType } from "../idl"
 import { createEmptyReferenceResolver, getReferenceResolver, ReferenceResolver } from "./ReferenceResolver"
 import { MethodArgPrintHint } from "./LanguageWriters/LanguageWriter"
-import { SourceFile } from "./printers/SourceFile"
+import { SourceFile, TsSourceFile } from "./printers/SourceFile"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -299,21 +299,22 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     return printer
 }
 
-export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): LanguageWriter {
+export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): SourceFile {
     // TODO Add Java and migrate arkoala code
     if (library.language == Language.TS || library.language == Language.ARKTS) {
-        let printer = createLanguageWriter(library.language, getReferenceResolver(library))
-        printer.nativeModuleAccessor = nativeModule.name
-        printer.writeLines(cStyleCopyright)
-        const imports = new ImportsCollector()
-        imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isInstanceOf"], "./SerializerBase")
-        imports.addFeatures(["int32"], "./types")
-        imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
-        imports.print(printer, '')
-        writeSerializer(library, printer, "", declarationPath)
-        writeDeserializer(library, printer, "", declarationPath)
-        printer.concat(makeDeserializeAndCall(library, Language.TS, nativeModule.path).content)
-        return printer
+        const destFile = new TsSourceFile("Serializer" + library.language.extension, getReferenceResolver(library))
+        destFile.content.nativeModuleAccessor = nativeModule.name
+        destFile.imports.addFeatures(["SerializerBase", "RuntimeType", "runtimeType", "CallbackResource"], "./SerializerBase")
+        destFile.imports.addFeatures(["DeserializerBase" ], "./DeserializerBase")
+        destFile.imports.addFeatures(["int32", "KPointer", "nullptr"], "./types")
+        destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
+        writeSerializerFile(library, destFile, "", declarationPath)
+        writeDeserializerFile(library, destFile, "", declarationPath)
+        const deserializeCallImpls = makeDeserializeAndCall(library, Language.TS, nativeModule.path) as TsSourceFile
+        deserializeCallImpls.imports.clear() // TODO fix dependencies
+        deserializeCallImpls.imports.addFeatures(["ResourceHolder"], "./ResourceManager")
+        destFile.merge(deserializeCallImpls)
+        return destFile
     } else {
         throw new Error(`unsupported language ${library.language}`)
     }
@@ -387,7 +388,7 @@ ${serializers.getOutput().join("\n")}
 
 export function makeTSDeserializer(library: PeerLibrary): string {
     const deserializer = createLanguageWriter(Language.TS, library)
-    writeDeserializer(library, deserializer)
+    writeDeserializer(library, deserializer, "")
     return `${cStyleCopyright}
 import { runtimeType, Tags, RuntimeType, SerializerBase, CallbackResource } from "./SerializerBase"
 import { MaterializedBase } from "./../MaterializedBase"

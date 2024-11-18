@@ -30,6 +30,7 @@ enum EventType {
 })();
 
 const sampleXml = String.raw`<foo valOfFoo="xx">Hello<bar>124</bar>World</foo>`
+console.log(`PARSING ${sampleXml}`)
 const parser = new XmlPullParser(sampleXml)
 parser.parse({
     ignoreNameSpace: true,

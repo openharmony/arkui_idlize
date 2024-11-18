@@ -231,7 +231,14 @@ export class TSLanguageWriter extends LanguageWriter {
         return `export function ${name}(${args.join(", ")})`
     }
     writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void {
-        throw new Error("WriteEnum for TS is not implemented")
+        this.printer.print(`export enum ${name} {`)
+        this.printer.pushIndent()
+        for (const { name, numberId } of members) {
+            // TODO handle string enums
+            this.printer.print(`${name} = ${numberId},`)
+        }
+        this.printer.popIndent()
+        this.printer.print("}")
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``

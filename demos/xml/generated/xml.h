@@ -237,6 +237,8 @@ typedef struct OH_XML_XmlSerializerModifier {
 struct OH_XML_ParseInfoHandleOpaque;
 typedef struct OH_XML_ParseInfoHandleOpaque* OH_XML_ParseInfoHandle;
 typedef struct OH_XML_ParseInfoModifier {
+    OH_XML_ParseInfoHandle (*construct)();
+    void (*destruct)(OH_XML_ParseInfoHandle thiz);
     OH_Number (*getColumnNumber)(OH_NativePointer thisPtr);
     OH_Number (*getDepth)(OH_NativePointer thisPtr);
     OH_Number (*getLineNumber)(OH_NativePointer thisPtr);
