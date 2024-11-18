@@ -424,6 +424,19 @@ declare class CommonMethod<T> {
     onClick(event: (event: ClickEvent) => void): T;
 
     onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
+
+    /////////////// recently added ///////////////
+
+    backgroundColor(value: ResourceColor): T;
+
+    margin(value: Margin | Length | LocalizedMargin): T;
+
+    clip(value: boolean): T;
+
+    zIndex(value: number): T;
+
+    aspectRatio(value: number): T;
+
 }
 
 declare interface Rectangle {
@@ -516,3 +529,19 @@ declare module 'commonAttribute'{
         export { CommonAttribute };
     }
 }
+
+/////////////// recently added ///////////////
+
+declare interface LightSource {
+    positionX: Dimension;
+    positionY: Dimension;
+    positionZ: Dimension;
+    intensity: number;
+    color?: ResourceColor;
+  }
+
+declare interface PointLightStyle {
+    lightSource?: LightSource;
+    illuminated?: IlluminatedType;
+    bloom?: number;
+  }

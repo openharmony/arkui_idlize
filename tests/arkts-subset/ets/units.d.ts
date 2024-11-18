@@ -73,3 +73,9 @@ declare interface Font {
   family?: string | Resource;
   style?: FontStyle;
 }
+
+/////////////// recently added ///////////////
+
+declare type Margin = Padding;
+
+declare type LocalizedMargin = LocalizedPadding;

@@ -70,3 +70,45 @@ declare enum VerticalAlign {
   Center,
   Bottom,
 }
+
+/////////////// recently added ///////////////
+
+declare enum FlexDirection {
+  Row,
+  Column,
+  RowReverse,
+  ColumnReverse,
+}
+
+declare enum FlexWrap {
+  NoWrap,
+  Wrap,
+  WrapReverse,
+}
+
+declare enum FlexAlign {
+  Start,
+  Center,
+  End,
+  SpaceBetween,
+  SpaceAround,
+  SpaceEvenly,
+}
+
+declare enum ItemAlign {
+  Auto,
+  Start,
+  Center,
+  End,
+  Baseline,
+  Stretch,
+}
+
+declare enum IlluminatedType {
+  NONE = 0,
+  BORDER = 1,
+  CONTENT = 2,
+  BORDER_CONTENT = 3,
+  BLOOM_BORDER = 4,
+  BLOOM_BORDER_CONTENT = 5
+}
