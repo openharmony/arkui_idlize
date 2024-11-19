@@ -86,7 +86,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     scopeEnd?(param: string, language: Language): string
     abstract convertorArg(param: string, writer: LanguageWriter): string
     abstract convertorSerialize(param: string, value: string, writer: LanguageWriter): void
-    abstract convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement    
+    abstract convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement
     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined {
         return undefined
     }
@@ -326,7 +326,8 @@ export class LengthConvertorScoped extends BaseArgConvertor {
 export class LengthConvertor extends BaseArgConvertor {
     constructor(name: string, param: string, language: Language) {
         // length convertor is only optimized for NAPI interop
-        super(idl.toIDLType(name), [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, language !== Language.TS, param)
+        super(idl.toIDLType(name), [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false,
+            (language !== Language.TS && language !== Language.ARKTS), param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         switch (writer.language) {
@@ -749,7 +750,7 @@ export class OptionConvertor extends BaseArgConvertor { //
             writer.makeCast(writer.makeString(`${deserializerName}.readInt8()`), writer.getRuntimeType()), true))
         const bufferType = this.nativeType()
         statements.push(writer.makeAssign(bufferName, bufferType, undefined, true, false))
-        
+
         const thenStatement = new BlockStatement([
             this.typeConvertor.convertorDeserialize(`${bufferName}_`, deserializerName, (expr) => {
                 const receiver = writer.language === Language.CPP
@@ -1106,10 +1107,10 @@ export class MapConvertor extends BaseArgConvertor { //
         super(
             idl.createContainerType(
                 'record', [keyType, valueType]
-            ), 
-            [RuntimeType.OBJECT], 
-            false, 
-            true, 
+            ),
+            [RuntimeType.OBJECT],
+            false,
+            true,
             param
         )
         this.keyConvertor = library.typeConvertor(param, keyType)
@@ -1139,7 +1140,7 @@ export class MapConvertor extends BaseArgConvertor { //
         const keyAccessor = this.getObjectAccessor(writer.language, bufferName, {index: counterBuffer, field: "keys"})
         const valueAccessor = this.getObjectAccessor(writer.language, bufferName, {index: counterBuffer, field: "values"})
         return new BlockStatement([
-            writer.makeAssign(sizeBuffer, idl.IDLI32Type, 
+            writer.makeAssign(sizeBuffer, idl.IDLI32Type,
                 writer.makeString(`${deserializerName}.readInt32()`), true, true),
             writer.makeAssign(bufferName, this.idlType, writer.makeMapInit(this.idlType), true, false),
             writer.makeMapResize(mapTypeName, keyType, valueType, bufferName, sizeBuffer, deserializerName),
