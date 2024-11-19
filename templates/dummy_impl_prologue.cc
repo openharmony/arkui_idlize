@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <future>
+#include <thread>
 
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
@@ -136,6 +138,7 @@ void DumpTree(TreeNode *node, Ark_Int32 indent) {
     }
 }
 
+// TODO: remove in favour of callbackCallerInstance!
 GENERATED_Ark_APICallbackMethod *callbacks = nullptr;
 
 int TreeNode::_globalId = 1;
@@ -769,8 +772,23 @@ void SetLazyItemIndexer(Ark_VMContext vmContext, Ark_NodeHandle nodePtr, Ark_Int
 Ark_PipelineContext GetPipelineContext(Ark_NodeHandle node) {
     return nullptr;
 }
-void SetVsyncCallback(Ark_VMContext vmContext, Ark_PipelineContext pipelineContext, Ark_Int32 callbackId) {}
-void UnblockVsyncWait(Ark_VMContext vmContext, Ark_PipelineContext pipelineContext) {}
+
+Ark_Deferred* currentVsyncWait = nullptr;
+void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_Deferred* deferred) {
+    auto delayed_call = std::async(std::launch::async, [deferred] {
+        currentVsyncWait = deferred;
+        std::this_thread::sleep_for(1000ms);
+        if (currentVsyncWait)
+            deferred->resolve(currentVsyncWait, nullptr, 0);
+        currentVsyncWait = nullptr;
+    });
+}
+void UnblockVsyncWait(Ark_VMContext vmContext, Ark_PipelineContext pipelineContext) {
+    if (currentVsyncWait) {
+        currentVsyncWait->reject(currentVsyncWait, "Reject vsync");
+        currentVsyncWait = nullptr;
+    }
+}
 void SetChildTotalCount(Ark_NodeHandle node, Ark_Int32 totalCount) {}
 void ShowCrash(Ark_CharPtr message) {}
 }

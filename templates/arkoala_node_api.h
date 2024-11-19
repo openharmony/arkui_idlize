@@ -69,7 +69,7 @@ typedef struct ServiceLogger {
 } ServiceLogger;
 
 typedef struct GenericServiceAPI {
-    Ark_Int32 version;
+    int32_t version;
     void (*setLogger)(const ServiceLogger* logger);
 } GenericServiceAPI;
 
@@ -136,18 +136,16 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
 
     /// Vsync support
     Ark_PipelineContext (*getPipelineContext)(Ark_NodeHandle node);
-    void (*setVsyncCallback)(Ark_VMContext  vmContext,
-                             Ark_PipelineContext pipelineContext,
-                             Ark_Int32 callbackId);
+    void (*setVsyncCallback)(Ark_PipelineContext pipelineContext,
+                             Ark_Deferred* deferred);
     void (*unblockVsyncWait)(Ark_VMContext  vmContext,
                              Ark_PipelineContext pipelineContext);
 
-  void (*setChildTotalCount)(Ark_NodeHandle node,
-                             Ark_Int32 totalCount);
+    void (*setChildTotalCount)(Ark_NodeHandle node,
+                               Ark_Int32 totalCount);
 
-  /// Error reporting.
-  void (*showCrash)(Ark_CharPtr message);
-
+    /// Error reporting.
+    void (*showCrash)(Ark_CharPtr message);
 } %CPP_PREFIX%ArkUIExtendedNodeAPI;
 
 /**

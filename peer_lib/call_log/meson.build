@@ -7,7 +7,7 @@ sources = [
 ]
 CXX = meson.get_compiler('cpp')
 deps = CXX.find_library(
-    'NativeBridgeArk',
+    'ArkoalaNative_ark',
     dirs : [meson.current_source_dir() + '/../../native/']
 )
 # for subset:

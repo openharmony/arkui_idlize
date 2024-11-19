@@ -107,7 +107,7 @@ libace_sources = [
 endif
 
 node_library_name = 'NativeBridgeNapi'
-arkts_library_name = 'NativeBridgeArk'
+arkts_library_name = 'ArkoalaNative_ark'
 jni_library_name = 'NativeBridgeJni'
 cj_library_name = 'NativeBridgeCJ'
 ohos_library_name = 'NativeBridge_ohos'

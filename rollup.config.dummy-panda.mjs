@@ -34,7 +34,7 @@ function crossPathRelative(from, to) {
 const mode = process.env.mode
 
 console.log(`rollup args: mode = ${mode}`)
-const arkoalaLoaderSrcDir = `peer_lib/sig/arkoala/loader`
+const arkoalaLoaderSrcDir = `external/arkoala-arkts/loader/src`
 const tsconfigFile = path.resolve(`tsconfig-loader.json`)
 const outDir = path.resolve('lib')
 

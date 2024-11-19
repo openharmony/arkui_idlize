@@ -13,7 +13,7 @@
         "skipLibCheck": true,
         "removeComments": false,
         "outDir": "build/lib",
-        "rootDirs": ["peer_lib/sig/arkoala/loader", "external/incremental", "external/interop"],
+        "rootDirs": ["external/arkoala-arkts/loader/src", "external/incremental", "external/interop"],
         "module": "CommonJS",
         "baseUrl": ".",
         "paths": {
@@ -22,7 +22,7 @@
             "@koalaui/compat": ["./external/incremental/compat/src/typescript"],
         }
     },
-    "include": ["peer_lib/sig/arkoala/loader/*.ts"],
+    "include": ["./external/arkoala-arkts/loader/src/loader.ts"],
     "references": [
         { "path": "./external/incremental/common" },
         { "path": "./external/interop" },

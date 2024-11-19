@@ -77,6 +77,7 @@ void setLogger(const ServiceLogger* logger) {
     SetDummyLogger(reinterpret_cast<const GroupLogger*>(logger));
 }
 
+
 const GenericServiceAPI* GetServiceAPI()
 {
     static const GenericServiceAPI serviceAPIImpl = {

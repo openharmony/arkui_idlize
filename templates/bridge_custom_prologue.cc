@@ -343,13 +343,16 @@ void impl_SetLazyItemIndexer(KVMContext vmContext, Ark_NativePointer nodePtr, Ar
 }
 KOALA_INTEROP_CTX_V2(SetLazyItemIndexer, Ark_NativePointer, Ark_Int32)
 
-void impl_SetVsyncCallback(KVMContext vmContext, Ark_NativePointer pipelineContext, Ark_Int32 callbackId)
+
+KVMObjectHandle impl_VSyncAwait(KVMContext vmContext, Ark_NativePointer pipelineContext)
 {
-    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
     Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext) pipelineContext;
-    GetArkUIExtendedNodeAPI()->setVsyncCallback(vmContextCast, pipelineContextCast, callbackId);
+    KVMObjectHandle result = nullptr;
+    KVMDeferred* deferred = CreateDeferred(vmContext, &result);
+    GetArkUIExtendedNodeAPI()->setVsyncCallback(pipelineContextCast, (Ark_Deferred*)deferred);
+    return result;
 }
-KOALA_INTEROP_CTX_V2(SetVsyncCallback, Ark_NativePointer, Ark_Int32)
+KOALA_INTEROP_CTX_1(VSyncAwait, KVMObjectHandle, Ark_NativePointer)
 
 void impl_UnblockVsyncWait(KVMContext vmContext, Ark_NativePointer pipelineContext)
 {
@@ -495,7 +498,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     EtsEnv* env = reinterpret_cast<EtsEnv*>(vm);
     std:: string className(viewClass.c_str());
     // TODO: hack, fix it!
-    if (className == "ViewArkTSLoaderApp") className = "Page.App";
+    if (className == "ViewLoaderApp") className = "Page.App";
     std::replace(className.begin(), className.end(), '.', '/');
     ets_class viewClassClass = env->FindClass(className.c_str());
     if (!viewClassClass) {
