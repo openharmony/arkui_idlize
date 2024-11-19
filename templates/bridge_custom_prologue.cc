@@ -227,6 +227,7 @@ void impl_RemoveChild(Ark_NativePointer parent, Ark_NativePointer child)
     Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
     Ark_NodeHandle childCast = (Ark_NodeHandle) child;
     GetArkUIBasicNodeAPI()->removeChild(parentCast, childCast);
+    GetArkUIBasicNodeAPI()->markDirty(parentCast, GENERATED_ARKUI_DIRTY_FLAG_MEASURE_BY_CHILD_REQUEST);
 }
 KOALA_INTEROP_V2(RemoveChild, Ark_NativePointer, Ark_NativePointer)
 
@@ -235,7 +236,9 @@ Ark_Int32 impl_InsertChildAfter(Ark_NativePointer parent, Ark_NativePointer chil
     Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
     Ark_NodeHandle childCast = (Ark_NodeHandle) child;
     Ark_NodeHandle siblingCast = (Ark_NodeHandle) sibling;
-    return GetArkUIBasicNodeAPI()->insertChildAfter(parentCast, childCast, siblingCast);
+    auto result = GetArkUIBasicNodeAPI()->insertChildAfter(parentCast, childCast, siblingCast);
+    GetArkUIBasicNodeAPI()->markDirty(parentCast, GENERATED_ARKUI_DIRTY_FLAG_MEASURE_BY_CHILD_REQUEST);
+    return result;
 }
 KOALA_INTEROP_3(InsertChildAfter, Ark_Int32, Ark_NativePointer, Ark_NativePointer, Ark_NativePointer)
 
@@ -243,7 +246,9 @@ Ark_Int32 impl_AddChild(Ark_NativePointer parent, Ark_NativePointer child)
 {
     Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
     Ark_NodeHandle childCast = (Ark_NodeHandle) child;
-    return GetArkUIBasicNodeAPI()->addChild(parentCast, childCast);
+    auto result = GetArkUIBasicNodeAPI()->addChild(parentCast, childCast);
+    GetArkUIBasicNodeAPI()->markDirty(parentCast, GENERATED_ARKUI_DIRTY_FLAG_MEASURE_BY_CHILD_REQUEST);
+    return result;
 }
 KOALA_INTEROP_2(AddChild, Ark_Int32, Ark_NativePointer, Ark_NativePointer)
 
@@ -252,7 +257,9 @@ Ark_Int32 impl_InsertChildBefore(Ark_NativePointer parent, Ark_NativePointer chi
     Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
     Ark_NodeHandle childCast = (Ark_NodeHandle) child;
     Ark_NodeHandle siblingCast = (Ark_NodeHandle) sibling;
-    return GetArkUIBasicNodeAPI()->insertChildBefore(parentCast, childCast, siblingCast);
+    auto result = GetArkUIBasicNodeAPI()->insertChildBefore(parentCast, childCast, siblingCast);
+    GetArkUIBasicNodeAPI()->markDirty(parentCast, GENERATED_ARKUI_DIRTY_FLAG_MEASURE_BY_CHILD_REQUEST);
+    return result;
 }
 KOALA_INTEROP_3(InsertChildBefore, Ark_Int32, Ark_NativePointer, Ark_NativePointer, Ark_NativePointer)
 
@@ -260,7 +267,9 @@ Ark_Int32 impl_InsertChildAt(Ark_NativePointer parent, Ark_NativePointer child, 
 {
     Ark_NodeHandle parentCast = (Ark_NodeHandle) parent;
     Ark_NodeHandle childCast = (Ark_NodeHandle) child;
-    return GetArkUIBasicNodeAPI()->insertChildAt(parentCast, childCast, position);
+    auto result = GetArkUIBasicNodeAPI()->insertChildAt(parentCast, childCast, position);
+    GetArkUIBasicNodeAPI()->markDirty(parentCast, GENERATED_ARKUI_DIRTY_FLAG_MEASURE_BY_CHILD_REQUEST);
+    return result;
 }
 KOALA_INTEROP_3(InsertChildAt, Ark_Int32, Ark_NativePointer, Ark_NativePointer, Ark_Int32)
 

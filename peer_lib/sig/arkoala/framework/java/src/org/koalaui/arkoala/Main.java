@@ -238,17 +238,17 @@ public class Main {
         var child5 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
 
         TestUtils.checkResult("BasicNodeAPI addChild", () -> root.peer.addChild(child1.peer),
-            String.format("addChild(0x%d, 0x%d)", root.peer.ptr, child1.peer.ptr));
+            String.format("addChild(0x%d, 0x%d)markDirty(0x%d, 32)", root.peer.ptr, child1.peer.ptr, root.peer.ptr, root.peer.ptr));
         TestUtils.checkResult("BasicNodeAPI insertChildAfter", () -> root.peer.insertChildAfter(child4.peer, child1.peer),
-            String.format("insertChildAfter(0x%d, 0x%d, 0x%d)", root.peer.ptr, child4.peer.ptr, child1.peer.ptr));
+            String.format("insertChildAfter(0x%d, 0x%d, 0x%d)markDirty(0x%d, 32)", root.peer.ptr, child4.peer.ptr, child1.peer.ptr, root.peer.ptr));
         TestUtils.checkResult("BasicNodeAPI insertChildBefore", () -> root.peer.insertChildBefore(child3.peer, child4.peer),
-            String.format("insertChildBefore(0x%d, 0x%d, 0x%d)", root.peer.ptr, child3.peer.ptr, child4.peer.ptr));
+            String.format("insertChildBefore(0x%d, 0x%d, 0x%d)markDirty(0x%d, 32)", root.peer.ptr, child3.peer.ptr, child4.peer.ptr, root.peer.ptr));
         TestUtils.checkResult("BasicNodeAPI insertChildAt", () -> root.peer.insertChildAt(child2.peer, 1),
-            String.format("insertChildAt(0x%d, 0x%d, %d)", root.peer.ptr, child2.peer.ptr, 1));
+            String.format("insertChildAt(0x%d, 0x%d, %d)markDirty(0x%d, 32)", root.peer.ptr, child2.peer.ptr, 1, root.peer.ptr));
         TestUtils.checkResult("BasicNodeAPI insertChildAfter (empty tree case)", () -> child4.peer.insertChildAfter(child5.peer, null),
-            String.format("insertChildAfter(0x%d, 0x%d, 0x%d)", child4.peer.ptr, child5.peer.ptr, 0));
+            String.format("insertChildAfter(0x%d, 0x%d, 0x%d)markDirty(0x%d, 32)", child4.peer.ptr, child5.peer.ptr, 0, child4.peer.ptr));
         TestUtils.checkResult("BasicNodeAPI removeChild", () -> root.peer.removeChild(child2.peer),
-            String.format("removeChild(0x%d, 0x%d)", root.peer.ptr, child2.peer.ptr));
+            String.format("removeChild(0x%d, 0x%d)markDirty(0x%d, 32)", root.peer.ptr, child2.peer.ptr, root.peer.ptr));
         TestUtils.checkResult("BasicNodeAPI dispose", () -> child2.peer.dispose(),
             String.format("disposeNode(0x%d)", child2.peer.ptr));
         TestUtils.checkResult("BasicNodeAPI dumpTree", () -> root.peer.dumpTree(),

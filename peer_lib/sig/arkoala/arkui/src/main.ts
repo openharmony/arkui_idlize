@@ -142,30 +142,30 @@ function checkNodeAPI() {
 
     checkResult("BasicNodeAPI addChild",
         () => nativeModule()._AddChild(ptr, childPtr1),
-        `addChild(0x${ptr}, 0x${childPtr1})`
+        `addChild(0x${ptr}, 0x${childPtr1})markDirty(0x${ptr}, 32)`
     )
 
     nativeModule()._AddChild(ptr, childPtr2)
     checkResult("BasicNodeAPI removeChild",
         () => nativeModule()._RemoveChild(ptr, childPtr2),
-        `removeChild(0x${ptr}, 0x${childPtr2})`
+        `removeChild(0x${ptr}, 0x${childPtr2})markDirty(0x${ptr}, 32)`
     )
 
     checkResult("BasicNodeAPI insertChildAfter",
         () => nativeModule()._InsertChildAfter(ptr, childPtr2, childPtr1),
-        `insertChildAfter(0x${ptr}, 0x${childPtr2}, 0x${childPtr1})`
+        `insertChildAfter(0x${ptr}, 0x${childPtr2}, 0x${childPtr1})markDirty(0x${ptr}, 32)`
     )
     nativeModule()._RemoveChild(ptr, childPtr2)
 
     checkResult("BasicNodeAPI insertChildBefore",
         () => nativeModule()._InsertChildBefore(ptr, childPtr2, childPtr1),
-        `insertChildBefore(0x${ptr}, 0x${childPtr2}, 0x${childPtr1})`
+        `insertChildBefore(0x${ptr}, 0x${childPtr2}, 0x${childPtr1})markDirty(0x${ptr}, 32)`
     )
     nativeModule()._RemoveChild(ptr, childPtr2)
 
     checkResult("BasicNodeAPI insertChildAt",
         () => nativeModule()._InsertChildAt(ptr, childPtr2, 0),
-        `insertChildAt(0x${ptr}, 0x${childPtr2}, 0)`
+        `insertChildAt(0x${ptr}, 0x${childPtr2}, 0)markDirty(0x${ptr}, 32)`
     )
     nativeModule()._RemoveChild(ptr, childPtr2)
 
