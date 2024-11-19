@@ -24,7 +24,7 @@ is_jni = java_home != 'undefined'
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
-if ['ts-peers', 'ts-subset', 'java-subset', 'arkts-subset', 'cangjie-subset'].contains(source_set)
+if ['ts-peers', 'ts-subset', 'java-subset', 'arkts-subset', 'arkts-peers', 'cangjie-subset'].contains(source_set)
     gen_dir = '../out/' / source_set / 'generated'
 else
 endif

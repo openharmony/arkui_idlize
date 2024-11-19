@@ -49,7 +49,7 @@ compile arkts subset:
     - !reference [.setup, script]
     - PANDA_SDK_VERSION=1.5.0-dev.7123 npm run panda:sdk:install
   script:
-    - npm run compile:all:arkts:idl
+    - npm run compile:all:arkts
 
 arkts subset tsc:
    stage: test
