@@ -228,7 +228,7 @@ export class CustomPrintVisitor {
         const text = isCallback(node) ? this.callback(node)
             : hasExtAttribute(node, IDLExtendedAttributes.Import) ? IDLAnyType.name
             : this.printTypeForTS(node.type)
-        const typeParams = node.typeParameters ? `<${node.typeParameters.join(",")}>` : ""
+        const typeParams = node.typeParameters && node.typeParameters.length > 0 ? `<${node.typeParameters.join(",")}>` : ""
         this.print(`declare type ${getName(node)}${typeParams} = ${text};`)
     }
 
