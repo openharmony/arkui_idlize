@@ -21,7 +21,13 @@ import { LanguageWriter } from "../LanguageWriters"
 
 export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
     const result = []
+    const seenEnums = new Set<string>()
     for (const decl of peerLibrary.declarations) {
+        if (idl.isEnum(decl)) {
+            // One more hack to avoid double definition of ContentType enum.
+            if (seenEnums.has(decl.name)) continue
+            seenEnums.add(decl.name)
+        }
         const visitor = new DtsPrintVisitor(type => peerLibrary.resolveTypeReference(type), peerLibrary.language)
         if ((idl.isInterface(decl) || idl.isClass(decl)) && isMaterialized(decl)) continue
         visitor.visit(decl)
