@@ -121,7 +121,7 @@ export class AssignStatement implements LanguageStatement {
                 this.options?.overrideTypeName
                     ? `: ${this.options.overrideTypeName}`
                     : this.type
-                        ? `: ${writer.stringifyType(this.type)}${/*SHOULD BE REMOVED*/idl.isOptionalType(this.type) ? "|undefined" : ""}`
+                        ? `: ${writer.getNodeName(this.type)}${/*SHOULD BE REMOVED*/idl.isOptionalType(this.type) ? "|undefined" : ""}`
                         : ""
             const initValue = this.expression ? `= ${this.expression.asString()}` : ""
             const constSpec = this.isConst ? "const" : "let"
@@ -459,7 +459,7 @@ export abstract class LanguageWriter {
     abstract enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumReference: idl.IDLType): LanguageExpression
     abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string
-    abstract stringifyType(type: idl.IDLType | idl.IDLCallback): string
+    abstract getNodeName(type: idl.IDLNode): string
     abstract fork(): LanguageWriter
 
     concat(other: PrinterLike): this {
@@ -702,7 +702,7 @@ export abstract class LanguageWriter {
                 this.makeString(this.getObjectAccessor(convertor, value)),
                 idl.createReferenceType(convertor.enumEntry.name)
             )
-            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.stringifyType(idl.IDLI32Type), convertor, index)
+            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.getNodeName(idl.IDLI32Type), convertor, index)
         const {low, high} = convertor.extremumOfOrdinals()
         return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], [
             this.makeNaryOp(">=", [ordinal, this.makeString(low!.toString())]),
@@ -724,12 +724,12 @@ export abstract class LanguageWriter {
         return this.makeString(`${value} instanceof ArrayBuffer`)
     }
     instanceOf(convertor: BaseArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
-        return this.makeString(`${value} instanceof ${this.stringifyType(convertor.idlType)}`)
+        return this.makeString(`${value} instanceof ${this.getNodeName(convertor.idlType)}`)
     }
 
-    stringifyTypeOrEmpty(type: idl.IDLType | idl.IDLCallback | undefined): string {
+    stringifyTypeOrEmpty(type: idl.IDLType | undefined): string {
         if (type === undefined) return ""
-        return this.stringifyType(type)
+        return this.getNodeName(type)
     }
     /**
      * Writes `namespace <namespace> {` and adds extra indent

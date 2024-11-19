@@ -110,9 +110,9 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
         this.print(`${prefix}${this.stringifyMethodReturnType(signature.returnType, signature.retHint())} ${name}(${signature.args.map((it, index) => `${this.stringifyMethodArgType(it, signature.argHint(index))} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
     }
     protected stringifyMethodReturnType(type:IDLType, _?:MethodArgPrintHint): string {
-        return this.stringifyType(type)
+        return this.getNodeName(type)
     }
     protected stringifyMethodArgType(type:IDLType, _?:MethodArgPrintHint): string {
-        return this.stringifyType(type)
+        return this.getNodeName(type)
     }
 }

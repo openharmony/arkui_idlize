@@ -17,7 +17,7 @@ import * as idl from "../idl"
 import { Language } from "../Language"
 import { LibraryInterface } from "../LibraryInterface"
 import { PrimitiveType } from "./ArkPrimitiveType"
-import { BlockStatement, BranchStatement, generateTypeCheckerName, LanguageExpression, LanguageStatement, LanguageWriter, StringExpression } from "./LanguageWriters"
+import { BlockStatement, BranchStatement, createTypeNameConvertor, generateTypeCheckerName, LanguageExpression, LanguageStatement, LanguageWriter, StringExpression } from "./LanguageWriters"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -80,7 +80,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         throw new Error("Define")
     }
     targetType(writer: LanguageWriter): string {
-        return writer.stringifyType(this.idlType)
+        return writer.getNodeName(this.idlType)
     }
     scopeStart?(param: string, language: Language): string
     scopeEnd?(param: string, language: Language): string
@@ -513,7 +513,7 @@ export class StringConvertor extends BaseArgConvertor {
     }
     targetType(writer: LanguageWriter): string {
         if (this.literalValue) {
-            return writer.stringifyType(idl.IDLStringType)
+            return writer.getNodeName(idl.IDLStringType)
         }
         return super.targetType(writer);
     }
@@ -576,7 +576,7 @@ export class EnumConvertor extends BaseArgConvertor { //
         return false
     }
     targetType(writer: LanguageWriter): string {
-        return writer.stringifyType(this.idlType) // this.enumTypeName(writer.language)
+        return writer.getNodeName(this.idlType) // this.enumTypeName(writer.language)
     }
     extremumOfOrdinals(): {low: number, high: number} {
         let low: number = Number.MAX_VALUE
@@ -619,7 +619,7 @@ export class UnionConvertor extends BaseArgConvertor { //
             if (!(it instanceof UndefinedConvertor)) {
                 printer.writeStatement(
                         printer.makeAssign(`${value}_${index}`, undefined,
-                            printer.makeUnionVariantCast(it.getObjectAccessor(printer.language, value), printer.stringifyType(it.idlType), it, index), true))
+                            printer.makeUnionVariantCast(it.getObjectAccessor(printer.language, value), printer.getNodeName(it.idlType), it, index), true))
                 it.convertorSerialize(param, `${value}_${index}`, printer)
             }
             printer.popIndent()
@@ -998,7 +998,7 @@ export class CallbackConvertor extends BaseArgConvertor {
             return assigneer(writer.makeString(`{${resourceReadExpr.asString()}, ${callReadExpr.asString()}}`))
         }
         return assigneer(writer.makeString(
-            `${deserializerName}.read${this.library.getEntryName(this.decl)}()`))
+            `${deserializerName}.read${this.library.getInteropName(this.decl)}()`))
     }
     nativeType(): idl.IDLType {
         return idl.createReferenceType(this.decl.name)
@@ -1130,7 +1130,7 @@ export class MapConvertor extends BaseArgConvertor { //
         }))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
-        const mapTypeName = this.library.getTypeName(this.idlType)
+        const mapTypeName = writer.getNodeName(this.idlType)
         const keyType = this.keyType
         const valueType = this.valueType
         const sizeBuffer = `${bufferName}_size`
@@ -1283,17 +1283,18 @@ export function generateCallbackKindAccess(callback: idl.IDLCallback, language: 
 }
 
 export function generateCallbackAPIArguments(library: LibraryInterface, callback: idl.IDLCallback): string[] {
+    const nameConvertor = createTypeNameConvertor(Language.CPP, library)
     const args: string[] = [`const ${PrimitiveType.Int32.getText()} resourceId`]
     args.push(...callback.parameters.map(it => {
         const target = library.toDeclaration(it.type!)
         const type = library.typeConvertor(it.name, it.type!, it.isOptional)
         const constPrefix = !idl.isEnum(target) ? "const " : ""
-        return `${constPrefix}${library.getTypeName(type.nativeType())} ${type.param}`
+        return `${constPrefix}${nameConvertor.convert(type.nativeType())} ${type.param}`
     }))
     if (!idl.isVoidType(callback.returnType)) {
         const type = library.typeConvertor(`continuation`,
             library.createContinuationCallbackReference(callback.returnType)!, false)
-        args.push(`const ${library.getTypeName(type.nativeType())} ${type.param}`)
+        args.push(`const ${nameConvertor.convert(type.nativeType())} ${type.param}`)
     }
     return args
 }

@@ -36,6 +36,7 @@ import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter";
 import * as idl from "../../../idl"
 import { convertDeclaration } from "../nameConvertor"
 import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
+import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -49,7 +50,7 @@ export class EtsAssignStatement implements LanguageStatement {
                 protected isConst: boolean = true) { }
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
-            const typeClause = this.type !== undefined ? `: ${writer.stringifyType(this.type)}` : ''
+            const typeClause = this.type !== undefined ? `: ${writer.getNodeName(this.type)}` : ''
             const initValue = this.expression !== undefined ? this.expression : writer.makeUndefined()
             writer.print(`${this.isConst ? "const" : "let"} ${this.variableName} ${typeClause} = ${initValue.asString()}`)
         } else {
@@ -279,7 +280,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
         return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
-            makeEnumTypeCheckerCall(value, this.stringifyType(convertor.idlType), this)
+            makeEnumTypeCheckerCall(value, this.getNodeName(convertor.idlType), this)
         ])
     }
     override castToInt(value: string, bitness: 8 | 32): string {
@@ -290,19 +291,20 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     override instanceOf(convertor: BaseArgConvertor, value: string, duplicateMembers?: Set<string>): LanguageExpression {
         if (convertor instanceof InterfaceConvertor && convertor.declaration.properties.length > 0) {
             return makeInterfaceTypeCheckerCall(value,
-                this.stringifyType(convertor.idlType),
+                this.getNodeName(convertor.idlType),
                 convertor.declaration.properties.map(it => it.name),
                 duplicateMembers!,
                 this)
         }
         if (convertor instanceof AggregateConvertor) {
             return makeInterfaceTypeCheckerCall(value,
-                convertor.aliasName !== undefined ? convertor.aliasName : this.stringifyType(convertor.idlType),
+                convertor.aliasName !== undefined ? convertor.aliasName : this.getNodeName(convertor.idlType),
                 convertor.members.map(it => it[0]), duplicateMembers!, this)
         }
         if (convertor instanceof ArrayConvertor) {
+            const cppConvertor = new CppIDLNodeToStringConvertor(this.resolver)
             return makeArrayTypeCheckCall(value,
-                (this.resolver as PeerLibrary).getTypeName(convertor.idlType), this)
+                cppConvertor.convert(convertor.idlType), this)
         }
         if (convertor instanceof EnumConvertor) {
             return this.makeString(`${value} instanceof ${this.typeConvertor.convert(convertor.enumEntry)}`)

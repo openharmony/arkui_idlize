@@ -100,7 +100,7 @@ export class PeerLibrary implements LibraryInterface {
             return this.createContinuationCallbackReference(continuationType.elementType[0])
         const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
         const syntheticName = generateSyntheticFunctionName(
-            (type) => cleanPrefix(this.getTypeName(type), PrimitiveType.Prefix),
+            (type) => cleanPrefix(this.nativeNameConvertorInstance.convert(type), PrimitiveType.Prefix),
             continuationParameters,
             idl.IDLVoidType,
         )
@@ -290,33 +290,6 @@ export class PeerLibrary implements LibraryInterface {
 
     getInteropName(node: idl.IDLNode) {
         return this.interopNameConvertorInstance.convert(node)
-    }
-    /** @deprecated
-     * Should be removed ASAP
-     * Do not use this function if possible, instead use
-     * `LanguageWriter.stringifyType()`
-     *   or `IdlNameConvertor.convertType`
-     */
-    getTypeName(type: idl.IDLType): string {
-        return this.nativeNameConvertorInstance.convert(type)
-    }
-
-    /** @deprecated
-     * Should be removed ASAP
-     * Do not use this function if possible, instead use
-     * `IdlNameConvertor.convertEntry`
-     */
-    getEntryName(entry: idl.IDLEntry): string {
-        return this.nativeNameConvertorInstance.convert(entry)
-    }
-
-    /** @deprecated
-     * Should be removed ASAP
-     * Do not use this function if possible, instead use
-     * `IdlNameConvertor.convert`
-     */
-    getNodeName(node:idl.IDLNode): string {
-        return this.nativeNameConvertorInstance.convert(node)
     }
 
     toDeclaration(type: idl.IDLType | idl.IDLTypedef | idl.IDLCallback | idl.IDLEnum | idl.IDLInterface): idl.IDLEntry | idl.IDLType {

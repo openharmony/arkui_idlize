@@ -32,8 +32,8 @@ import { PeerMethod } from "../PeerMethod"
 import { PeerFile } from "../PeerFile"
 import { PeerLibrary } from "../PeerLibrary"
 import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
-import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
-import { convertDeclaration } from "../LanguageWriters/nameConvertor";
+import { createTypeNameConvertor, Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
+import { convertDeclaration, IdlNameConvertor } from "../LanguageWriters/nameConvertor";
 import {
     isSyntheticDeclaration,
     makeSyntheticDeclCompletely,
@@ -289,7 +289,7 @@ class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
     override convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
         if (idl.IDLContainerUtils.isSequence(type)) {
         // todo: check this.peerLibrary instanceof IdlPeerLibrary)
-            this.peerLibrary.seenArrayTypes.set(this.peerLibrary.getTypeName(type), type)
+            this.peerLibrary.seenArrayTypes.set(this.peerLibrary.getInteropName(type), type)
         }
         return super.convertContainer(type)
     }
@@ -310,11 +310,13 @@ class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
 ////////////////////////////////////////////////////////////////
 
 class JavaDependenciesCollector extends DependenciesCollector {
+    private nameConverter: IdlNameConvertor
     constructor(
         library: PeerLibrary,
         private expandAliases: boolean,
     ) {
         super(library)
+        this.nameConverter = createTypeNameConvertor(Language.JAVA, library)
     }
 
     private ignoredTypes: Set<idl.IDLType> = new Set()
@@ -349,7 +351,7 @@ class JavaDependenciesCollector extends DependenciesCollector {
 
     override convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
         if (!this.ignoredType(type)) {
-            const typeName = this.library.mapType(type)
+            const typeName = this.nameConverter.convert(type)
             this.onNewSyntheticTypeAlias(typeName, type)
         }
 
@@ -361,7 +363,7 @@ class JavaDependenciesCollector extends DependenciesCollector {
     }
 
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
-        const generatedName = this.library.mapType(type)
+        const generatedName = this.nameConverter.convert(type)
         this.onNewSyntheticInterface(generatedName, ARK_CUSTOM_OBJECT)
         return super.convertImport(type, importClause)
     }
@@ -401,7 +403,7 @@ class JavaDependenciesCollector extends DependenciesCollector {
         if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')
 
         if (!this.ignoredType(type)) {
-            const typeName = this.library.mapType(type)
+            const typeName = this.nameConverter.convert(type)
             this.onNewSyntheticTypeAlias(typeName, type)
         }
 
@@ -439,11 +441,13 @@ class JavaDependenciesCollector extends DependenciesCollector {
 ////////////////////////////////////////////////////////////////
 
 class CJDependenciesCollector extends DependenciesCollector {
+    private nameConverter: IdlNameConvertor
     constructor(
         library: PeerLibrary,
         private readonly expandAliases: boolean,
     ) {
         super(library)
+        this.nameConverter = createTypeNameConvertor(Language.CJ, this.library)
     }
 
     convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
@@ -503,7 +507,7 @@ class CJDependenciesCollector extends DependenciesCollector {
 
     override convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
         if (!this.ignoredType(type)) {
-            const typeName = this.library.mapType(type)
+            const typeName = this.nameConverter.convert(type)
             this.onNewSyntheticTypeAlias(typeName, type)
         }
 
@@ -515,7 +519,7 @@ class CJDependenciesCollector extends DependenciesCollector {
     }
 
     override convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
-        const generatedName = this.library.mapType(type)
+        const generatedName = this.nameConverter.convert(type)
         this.onNewSyntheticInterface(generatedName, ARK_CUSTOM_OBJECT)
         return super.convertImport(type, importClause)
     }
@@ -555,7 +559,7 @@ class CJDependenciesCollector extends DependenciesCollector {
         if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')
 
         if (!this.ignoredType(decl)) {
-            const typeName = this.library.mapType(type)
+            const typeName = this.nameConverter.convert(type)
             const ref = idl.createReferenceType(decl.name)
             this.onNewSyntheticTypeAlias(typeName, ref)
         }

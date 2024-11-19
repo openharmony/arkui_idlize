@@ -65,7 +65,7 @@ class NativeModuleRecorderVisitor {
         this.nativeModuleRecorder.writeInterface(`${clazz.componentName}Interface`, w => {
             for (const method of clazz.methods) {
                 for (const arg of method.argConvertors) {
-                    w.print(`${method.overloadedName}_${arg.param}?: ${w.stringifyType(arg.idlType)}`)
+                    w.print(`${method.overloadedName}_${arg.param}?: ${w.getNodeName(arg.idlType)}`)
                 }
             }
         }, clazz.parentComponentName ? [`${clazz.parentComponentName}Interface`, `UIElement`] : undefined)
@@ -318,7 +318,7 @@ class NativeModuleRecorderVisitor {
 
     printConstructor(writer: LanguageWriter) {
         const [paramType] = this.library.factory.generateCallback(
-            (type) => writer.stringifyType(type),
+            (type) => writer.getNodeName(type),
             [createParameter('type', IDLI32Type)],
             IDLStringType
         )

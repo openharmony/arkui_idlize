@@ -209,7 +209,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     }
 
     protected writeArrayChecker(typeName: string, type: idl.IDLType): void {
-        this.writeInstanceofChecker(this.library.mapType(type), generateTypeCheckerName(typeName), 0)
+        this.writeInstanceofChecker(this.writer.getNodeName(type), generateTypeCheckerName(typeName), 0)
     }
 }
 

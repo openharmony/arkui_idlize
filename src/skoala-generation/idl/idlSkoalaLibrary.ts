@@ -64,6 +64,8 @@ export class IdlSkoalaLibrary implements LibraryInterface {
     readonly typeMap = new Map<idl.IDLType, [idl.IDLNode, boolean]>()
     public name: string = ""
 
+    public language = Language.TS
+
     public readonly files: IldSkoalaFile[] = []
     findFileByOriginalFilename(filename: string): IldSkoalaFile | undefined {
         return this.files.find(it => it.originalFilename === filename)
@@ -285,7 +287,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${writer.stringifyType(this.idlType)}`)])
+            [writer.makeString(`${value} instanceof ${writer.getNodeName(this.idlType)}`)])
     }
 }
 

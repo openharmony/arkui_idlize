@@ -306,7 +306,7 @@ class IdlCEventsVisitor extends CEventsVisitorBase {
     protected override printEventMethodDeclaration(event: IdlCallbackInfo) {
         const args = ["Ark_Int32 nodeId",
             ...event.args.map(it =>
-                `const ${this.impl.stringifyType(idl.maybeOptional(this.library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
+                `const ${this.impl.getNodeName(idl.maybeOptional(this.library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
         printMethodDeclaration(this.impl.printer, "void", `${event.methodName}Impl`, args)
     }
 

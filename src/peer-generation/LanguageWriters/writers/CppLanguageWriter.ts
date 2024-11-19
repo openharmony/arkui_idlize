@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createContainerType, createReferenceType, DebugUtils, forceAsNamedNode, IDLAnyType, IDLBooleanType, IDLCallback, IDLContainerType, IDLContainerUtils, IDLEnum, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUint8ArrayType, IDLUnionType, IDLVoidType, isCallback, isContainerType, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType, toIDLType } from "../../../idl"
+import { createContainerType, createReferenceType, DebugUtils, forceAsNamedNode, IDLAnyType, IDLBooleanType, IDLCallback, IDLContainerType, IDLContainerUtils, IDLEnum, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNode, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUint8ArrayType, IDLUnionType, IDLVoidType, isCallback, isContainerType, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType, toIDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"
@@ -118,7 +118,7 @@ class CppArrayResizeStatement implements LanguageStatement {
 class CppMapResizeStatement implements LanguageStatement {
     constructor(private mapTypeName: string, private keyType: IDLType, private valueType: IDLType, private map: string, private size: string, private deserializer: string) {}
     write(writer: LanguageWriter): void {
-        writer.print(`${this.deserializer}.resizeMap<${this.mapTypeName}, ${writer.stringifyType(this.keyType)}, ${writer.stringifyType(this.valueType)}>(&${this.map}, ${this.size});`)
+        writer.print(`${this.deserializer}.resizeMap<${this.mapTypeName}, ${writer.getNodeName(this.keyType)}, ${writer.getNodeName(this.valueType)}>(&${this.map}, ${this.size});`)
     }
 }
 
@@ -158,7 +158,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         super(printer, resolver, Language.CPP)
         this.typeConvertor = new CppIDLNodeToStringConvertor(this.resolver)
     }
-    stringifyType(type: IDLType): string {
+    getNodeName(type: IDLNode): string {
         return this.typeConvertor.convert(type)
     }
     fork(): LanguageWriter {
@@ -297,7 +297,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(`{}`)
     }
     makeClassInit(type: IDLType, paramenters: LanguageExpression[]): LanguageExpression {
-        return this.makeString(`${this.stringifyType(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
+        return this.makeString(`${this.getNodeName(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
     }
     makeMapInit(type: IDLType): LanguageExpression {
         return this.makeString(`{}`)        
@@ -394,7 +394,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return typeName
     }
     override stringifyMethodReturnType(type:IDLType, hint?: MethodArgPrintHint): string {
-        const name = this.stringifyType(type)
+        const name = this.getNodeName(type)
         let postfix = ''
         if (hint === MethodArgPrintHint.AsPointer || hint === MethodArgPrintHint.AsConstPointer) {
             postfix = '*'
@@ -407,7 +407,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     override stringifyMethodArgType(type:IDLType, hint?: MethodArgPrintHint): string {
         // we should decide pass by value or by reference here
-        const name = this.stringifyType(type)
+        const name = this.getNodeName(type)
         let constModifier = ''
         let postfix = ''
         switch (hint) {
@@ -435,7 +435,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         if (receiver !== undefined) {
             return `std::decay<decltype(${receiver})>::type`
         }
-        return this.stringifyType(type)
+        return this.getNodeName(type)
     }
     override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
         return new NamedMethodSignature(

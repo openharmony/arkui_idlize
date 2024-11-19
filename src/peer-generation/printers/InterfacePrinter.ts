@@ -76,7 +76,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         throw "Enums are processed separately"
     }
     convertTypedef(node: idl.IDLTypedef): void {
-        this.writer.print(`export declare type ${node.name} = ${this.writer.stringifyType(node.type)};`)
+        this.writer.print(`export declare type ${node.name} = ${this.writer.getNodeName(node.type)};`)
     }
     protected replaceImportTypeNodes(text: string): string {///operate on stringOrNone[]
         for (const [stub, src] of [...this.peerLibrary.importTypesStubToSource.entries()].reverse()) {
@@ -438,7 +438,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     private seenInterfaceNames = new Set<string>()
 
     convertTypedef(node: idl.IDLTypedef) {
-        const type = this.peerLibrary.mapType(node.type)
+        const type = this.typeNameConvertor.getNodeName(node.type)
         const typeParams = this.printTypeParameters(node.typeParameters)
         // TODO: needs to be implemented correctly on the idl side
         if (node.name === "Resource") {
@@ -590,7 +590,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     private convertType(idlType: idl.IDLType): string {
-        return this.typeNameConvertor.stringifyType(idlType)
+        return this.typeNameConvertor.getNodeName(idlType)
     }
 
     private printCallback(node: idl.IDLCallback | idl.IDLInterface,
@@ -722,7 +722,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             const param = 'param'
             for (const [index, memberType] of members.entries()) {
                 const memberName = `value${index}`
-                writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], true, writer.makeString(`None<${writer.stringifyType(memberType)}>`))
+                writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], true, writer.makeString(`None<${writer.getNodeName(memberType)}>`))
 
                 writer.writeConstructorImplementation(
                     'init',

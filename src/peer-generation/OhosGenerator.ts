@@ -92,7 +92,7 @@ class OHOSVisitor {
         if (isReferenceType(type) || isEnum(type)) {
             return `${PrimitiveType.Prefix}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
         }
-        return this.hWriter.stringifyType(type)
+        return this.hWriter.getNodeName(type)
     }
 
     makeSignature(returnType: IDLType, parameters: IDLParameter[]): MethodSignature {
@@ -283,8 +283,8 @@ class OHOSVisitor {
         const className = `${this.libraryName}NativeModule`
         this.callbacks.forEach(callback => {
             if (this.library.language === Language.TS) {
-                const params = callback.parameters.map(it => `${it.name}:${this.nativeWriter.stringifyType(it.type!)}`).join(', ')
-                const returnTypeName = this.nativeWriter.stringifyType(callback.returnType)
+                const params = callback.parameters.map(it => `${it.name}:${this.nativeWriter.getNodeName(it.type!)}`).join(', ')
+                const returnTypeName = this.nativeWriter.getNodeName(callback.returnType)
                 this.nativeWriter.print(`export type ${callback.name} = (${params}) => ${returnTypeName}`)
             }
         })
@@ -718,7 +718,7 @@ function generateArgConvertor(library: PeerLibrary, param: IDLParameter): ArgCon
 function generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: ArgConvertor[], writer: LanguageWriter): string {
     let args = isConstructor(method) ? [] : [`${PrimitiveType.NativePointer} thisPtr`]
     for (let i = 0; i < argConvertors.length; ++i) {
-        const typeName = writer.stringifyType(argConvertors[i].nativeType())
+        const typeName = writer.getNodeName(argConvertors[i].nativeType())
         const argName = writer.escapeKeyword(method.parameters[i].name)
         args.push(`const ${typeName}* ${argName}`)
     }

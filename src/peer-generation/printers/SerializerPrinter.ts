@@ -306,7 +306,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             return
         if (PeerGeneratorConfig.ignoredCallbacks.has(target.name))
             return
-        const methodName = this.library.getEntryName(target)
+        const methodName = this.library.getInteropName(target)
         const type = idl.createReferenceType(target.name)
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
             const resourceName = "_resource"

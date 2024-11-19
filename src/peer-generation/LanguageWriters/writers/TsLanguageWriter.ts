@@ -195,7 +195,7 @@ export class TSLanguageWriter extends LanguageWriter {
         return new TSLanguageWriter(new IndentedPrinter(), this.resolver, this.language)
     }
 
-    stringifyType(type: idl.IDLType): string {
+    getNodeName(type: idl.IDLNode): string {
         return this.typeConvertor.convert(type)
     }
 
@@ -228,7 +228,7 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print('}')
     }
     private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
-        const args = signature.args.map((it, index) => `${signature.argName(index)}: ${this.stringifyType(it)}`)
+        const args = signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`)
         return `export function ${name}(${args.join(", ")})`
     }
     writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void {
@@ -244,7 +244,7 @@ export class TSLanguageWriter extends LanguageWriter {
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} ${name}${optional ? "?"  : ""}: ${this.stringifyType(type)}${init}`)
+        this.printer.print(`${prefix} ${name}${optional ? "?"  : ""}: ${this.getNodeName(type)}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
@@ -284,7 +284,7 @@ export class TSLanguageWriter extends LanguageWriter {
         const typeParams = generics?.length ? `<${generics.join(", ")}>` : ""
         // FIXME:
         const isSetter = modifiers?.includes(MethodModifier.SETTER)
-        this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${idl.isOptionalType(it) && !isSetter ? "?" : ""}: ${this.stringifyType(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.stringifyType(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
+        this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${idl.isOptionalType(it) && !isSetter ? "?" : ""}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
     makeNull(): LanguageExpression {
         return new StringExpression("undefined")
@@ -317,7 +317,7 @@ export class TSLanguageWriter extends LanguageWriter {
         this.print(`console.log("${message}")`)
     }
     makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
-        return new TSCastExpression(value, this.stringifyType(/* FIXME: */ idl.maybeOptional(type, false)), options?.unsafe ?? false)
+        return new TSCastExpression(value, this.getNodeName(/* FIXME: */ idl.maybeOptional(type, false)), options?.unsafe ?? false)
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
         if (convertor.useArray && args?.index != undefined) {
@@ -335,13 +335,13 @@ export class TSLanguageWriter extends LanguageWriter {
         return new TsTupleAllocStatement(option)
     }
     makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
-        return this.makeString(`new Array<${this.stringifyType(type.elementType[0])}>()`)
+        return this.makeString(`new Array<${this.getNodeName(type.elementType[0])}>()`)
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
-        return this.makeString(`new ${this.stringifyType(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
+        return this.makeString(`new ${this.getNodeName(type)}(${paramenters.map(it => it.asString()).join(", ")})`)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
-        return this.makeString(`new ${this.stringifyType(type)}()`)
+        return this.makeString(`new ${this.getNodeName(type)}()`)
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         // keyAccessor and valueAccessor are equal in TS

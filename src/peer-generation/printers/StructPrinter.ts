@@ -77,7 +77,7 @@ export class StructPrinter {
                 continue
             }
             const targetType  = idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name)
-            let nameAssigned = this.library.getNodeName(target)
+            let nameAssigned = structs.getNodeName(target)
             if (nameAssigned === 'Tag')
                 continue
             if (!nameAssigned) {
@@ -114,7 +114,7 @@ export class StructPrinter {
                     concreteDeclarations.print("union {")
                     concreteDeclarations.pushIndent()
                     target.types.forEach((it, index) =>
-                        concreteDeclarations.print(`${this.library.getTypeName(it)} value${index};`))
+                        concreteDeclarations.print(`${structs.getNodeName(it)} value${index};`))
                     concreteDeclarations.popIndent()
                     concreteDeclarations.print("};")
                 } else if (idl.isClass(target) || idl.isInterface(target) || idl.isAnonymousInterface(target) || idl.isTupleInterface(target)) {
@@ -125,7 +125,7 @@ export class StructPrinter {
                     properties.forEach(it => {
                         // TODO Change to
                         // concreteDeclarations.print(`${this.library.computeTargetName(it.type, it.isOptional)} ${concreteDeclarations.escapeKeyword(it.name)};`)
-                        concreteDeclarations.print(`${this.library.getTypeName(idl.maybeOptional(it.type, it.isOptional))} ${concreteDeclarations.escapeKeyword(it.name)};`)
+                        concreteDeclarations.print(`${structs.getNodeName(idl.maybeOptional(it.type, it.isOptional))} ${concreteDeclarations.escapeKeyword(it.name)};`)
                     })
                 } else if (idl.isContainerType(target)) {
                     let fieldNames: string[] = []
@@ -137,7 +137,7 @@ export class StructPrinter {
                             fieldNames = ["keys", "values"]
                     }
                     target.elementType.forEach((it, index) => {
-                        concreteDeclarations.print(`${this.library.getTypeName(it)}* ${fieldNames[index]};`)
+                        concreteDeclarations.print(`${structs.getNodeName(it)}* ${fieldNames[index]};`)
                     })
                     if (idl.IDLContainerUtils.isSequence(target)) {
                         concreteDeclarations.print(`${PrimitiveType.Int32.getText()} length;`)
@@ -178,10 +178,10 @@ export class StructPrinter {
         seenNames: Set<String>,
     ) {
         const isPointer = this.isPointerDeclaration(target)
-        const nameAssigned = this.library.getNodeName(target)
+        const nameAssigned = concreteDeclarations.getNodeName(target)
         const nameOptional = idl.isType(target)
-            ? this.library.getTypeName(idl.createOptionalType(target))
-            : PrimitiveType.OptionalPrefix + cleanPrefix(this.library.getEntryName(target as idl.IDLEntry), PrimitiveType.Prefix)
+            ? concreteDeclarations.getNodeName(idl.createOptionalType(target))
+            : PrimitiveType.OptionalPrefix + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), PrimitiveType.Prefix)
         if (seenNames.has(nameOptional)) {
             return
         }
@@ -229,7 +229,7 @@ export class StructPrinter {
                 for (let i = 0; i < target.types.length; i++) {
                     writer.print(`case ${i}: return runtimeType(value.value${i});`)
                 }
-                writer.print(`default: throw "Bad selector in ${writer.stringifyType(targetType)}: " + std::to_string(value.selector);`)
+                writer.print(`default: throw "Bad selector in ${writer.getNodeName(targetType)}: " + std::to_string(value.selector);`)
                 writer.popIndent()
                 writer.print("}")
             }
@@ -299,7 +299,7 @@ export class StructPrinter {
     private generateArrayWriteToString(name: string, target: idl.IDLContainerType, printer: LanguageWriter) {
         let convertor = this.library.typeConvertor("param", target.elementType[0])
         let isPointerField = convertor.isPointerType()
-        let elementNativeType = this.library.getTypeName(convertor.nativeType())
+        let elementNativeType = printer.getNodeName(convertor.nativeType())
         let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
 
         printer.print(
@@ -329,8 +329,8 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         const valueConvertor = this.library.typeConvertor("_", valueType)
         let isPointerKeyField = keyConvertor.isPointerType()
         let isPointerValueField = valueConvertor.isPointerType()
-        let keyNativeType = this.library.getTypeName(keyConvertor.nativeType())
-        let valueNativeType = this.library.getTypeName(valueConvertor.nativeType())
+        let keyNativeType = printer.getNodeName(keyConvertor.nativeType())
+        let valueNativeType = printer.getNodeName(valueConvertor.nativeType())
         let keyConstCast = isPointerKeyField ? `(const ${keyNativeType}*)` : ``
         let valueConstCast = isPointerValueField ? `(const ${valueNativeType}*)` : ``
 
@@ -401,7 +401,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                 printer.print(`result->append(", ");`);
                 target.types.forEach((type, index) => {
                     const isPointerField = this.isPointerDeclaration(this.library.toDeclaration(type))
-                    printer.print(`// ${this.library.getTypeName(type)}`)
+                    printer.print(`// ${printer.getNodeName(type)}`)
                     printer.print(`if (value${access}selector == ${index}) {`)
                     printer.pushIndent()
                     printer.print(`result->append(".value${index}=");`);
@@ -414,7 +414,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                 printer.print(`result->append("{");`)
                 collectProperties(target, this.library)
                     .forEach((field, index) => {
-                        printer.print(`// ${this.library.getTypeName(field.type)} ${field.name}`)
+                        printer.print(`// ${printer.getNodeName(field.type)} ${field.name}`)
                         let isPointerField = this.isPointerDeclaration(this.library.toDeclaration(field.type), field.isOptional)
                         if (index > 0) printer.print(`result->append(", ");`)
                         printer.print(`result->append(".${field.name}=");`)
@@ -425,7 +425,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                 printer.print(`result->append("{");`)
                 collectProperties(target, this.library)
                     .forEach((field, index) => {
-                        printer.print(`// ${this.library.getTypeName(field.type)} ${field.name}`)
+                        printer.print(`// ${printer.getNodeName(field.type)} ${field.name}`)
                         if (index > 0) printer.print(`result->append(", ");`)
                         printer.print(`result->append("${field.name}: ");`)
                         const isPointerField = this.isPointerDeclaration(this.library.toDeclaration(field.type), field.isOptional)
@@ -442,7 +442,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                 printer.print(`result->append("{");`)
                 collectProperties(target, this.library)
                     .forEach((field, index) => {
-                        printer.print(`// ${this.library.getTypeName(field.type)} ${field.name}`)
+                        printer.print(`// ${printer.getNodeName(field.type)} ${field.name}`)
                         if (index > 0) printer.print(`result->append(", ");`)
                         printer.print(`result->append(".${field.name}=");`)
                         let isPointerField = this.isPointerDeclaration(this.library.toDeclaration(field.type), field.isOptional)

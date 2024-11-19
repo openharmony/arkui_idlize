@@ -57,7 +57,7 @@ class CJLambdaExpression extends LambdaExpression {
         return true
     }
     asString(): string {
-        const params = this.signature.args.map((it, i) => `${this.writer.stringifyType(it)} ${this.signature.argName(i)}`)
+        const params = this.signature.args.map((it, i) => `${this.writer.getNodeName(it)} ${this.signature.argName(i)}`)
         return `(${params.join(", ")}) -> { ${this.bodyAsString()} }`
     }
 }
@@ -105,7 +105,7 @@ export class CJAssignStatement extends AssignStatement {
 
         write(writer: LanguageWriter): void {
             if (this.isDeclared) {
-                const typeSpec = this.type ? ': ' + writer.stringifyType(this.type) : ''
+                const typeSpec = this.type ? ': ' + writer.getNodeName(this.type) : ''
                 writer.print(`${this.isConst ? "let" : "var"} ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
             } else {
                 writer.print(`${this.variableName} = ${this.expression.asString()}`)
@@ -194,8 +194,7 @@ export class CJLanguageWriter extends LanguageWriter {
     fork(): LanguageWriter {
         return new CJLanguageWriter(new IndentedPrinter(), this.resolver)
     }
-
-    stringifyType(type: idl.IDLType): string {
+    getNodeName(type: idl.IDLNode): string {
         return this.typeConvertor.convert(type)
     }
 
@@ -249,13 +248,13 @@ export class CJLanguageWriter extends LanguageWriter {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         name = this.escapeKeyword(name)
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} var ${name}: ${optional ? '?' : ''}${this.stringifyType(type)}${init}`)
+        this.printer.print(`${prefix} var ${name}: ${optional ? '?' : ''}${this.getNodeName(type)}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, modifiers)
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
-        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${idl.isOptionalType(it) ? '?' : ''}${this.stringifyType(it)}`).join(", ")}) {`)
+        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${idl.isOptionalType(it) ? '?' : ''}${this.getNodeName(it)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
             this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`)
@@ -267,9 +266,9 @@ export class CJLanguageWriter extends LanguageWriter {
     writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void) {
         let shortName = propName.concat("_container")
         if(!getterLambda) {
-            this.print(`private var ${shortName}: ${idl.isOptionalType(propType) ? '?' : ''}${this.stringifyType(propType)}`)
+            this.print(`private var ${shortName}: ${idl.isOptionalType(propType) ? '?' : ''}${this.getNodeName(propType)}`)
         }
-        this.print(`${mutable ? "mut " : ""}prop ${propName}: ${idl.isOptionalType(propType) ? '?' : ''}${this.stringifyType(propType)} {`)
+        this.print(`${mutable ? "mut " : ""}prop ${propName}: ${idl.isOptionalType(propType) ? '?' : ''}${this.getNodeName(propType)} {`)
 
         this.pushIndent()
         this.print(`get() {`)
@@ -303,7 +302,7 @@ export class CJLanguageWriter extends LanguageWriter {
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${idl.isOptionalType(it) ? '?' : ''}${this.stringifyType(it)}`).join(", ")}): ${this.stringifyType(signature.returnType)}${postfix ?? ""}`)
+        this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${idl.isOptionalType(it) ? '?' : ''}${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
     }
     nativeReceiver(): string { return 'NativeModule' }
     writeNativeFunctionCall(printer: LanguageWriter, name: string, signature: MethodSignature) {
@@ -363,7 +362,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.print(`println("${message}")`)
     }
     makeCast(value: LanguageExpression, type: IDLType, options?:MakeCastOptions): LanguageExpression {
-        return new CJCastExpression(value, this.stringifyType(type), options?.unsafe ?? false)
+        return new CJCastExpression(value, this.getNodeName(type), options?.unsafe ?? false)
     }
     getObjectAccessor(convertor: BaseArgConvertor, value: string, args?: ObjectArgs): string {
         return `${value}`
