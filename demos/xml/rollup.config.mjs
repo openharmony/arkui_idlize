@@ -3,6 +3,7 @@ import { defineConfig } from "rollup"
 import typescript from "@rollup/plugin-typescript"
 import resolve from "@rollup/plugin-node-resolve"
 import inject from "@rollup/plugin-inject"
+import commonjs from "@rollup/plugin-commonjs"
 
 export default defineConfig({
     input: "src/index.ts",
@@ -19,6 +20,8 @@ export default defineConfig({
             moduleResolution: "nodenext",
             outDir: "build/node"
         }),
-        resolve()
+        resolve(),
+        // TODO Runtime JS modules should be in ES6 format
+        commonjs(),
     ]
 })

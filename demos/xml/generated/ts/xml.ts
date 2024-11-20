@@ -1,6 +1,9 @@
-import { pointer, int32, KPointer, Finalizable } from "./types"
-import { Tags, RuntimeType, runtimeType, isInstanceOf, unsafeCast } from "./SerializerBase"
+import { int32 } from "@koalaui/common"
+import { KPointer, pointer } from "@koalaui/interop"
+import { RuntimeType, runtimeType, unsafeCast } from "./SerializerBase"
 import { Serializer } from "./xmlSerializer"
+
+type Finalizable = { ptr: pointer }
 
 import {
     XMLNativeModule,

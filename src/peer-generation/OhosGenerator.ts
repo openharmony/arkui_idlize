@@ -672,7 +672,6 @@ class OHOSVisitor {
         const serializerText = makeSerializerForOhos(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
-        fs.writeFileSync(path.join(managedOutDir, `types${ext}`), readLangTemplate(`types${ext}`, this.library.language))
         fs.writeFileSync(path.join(managedOutDir, `SerializerBase${ext}`),
             readLangTemplate(`SerializerBase${ext}`, this.library.language)
                 .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
@@ -693,9 +692,6 @@ class OHOSVisitor {
             readLangTemplate(`DeserializerBase${ext}`, this.library.language)
                 .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
                 .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
-        )
-        fs.writeFileSync(path.join(managedOutDir, `ResourceManager${ext}`),
-            readLangTemplate(`ResourceManager${ext}`, this.library.language)
         )
     }
 }

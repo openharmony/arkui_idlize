@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {float32, int32, pointer} from "./types"
-import {RuntimeType, Tags, CallbackResource } from "./SerializerBase";
-// import { Length } from "@arkoala/arkui"
+import { float32, int32 } from "@koalaui/common"
+import { pointer } from "@koalaui/interop"
+import { Tags, CallbackResource } from "./SerializerBase";
 
 export class DeserializerBase {
     private position = 0

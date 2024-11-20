@@ -15,10 +15,10 @@
 
 import { SerializerBase, RuntimeType, runtimeType, CallbackResource } from "./SerializerBase"
 import { DeserializerBase } from "./DeserializerBase"
-import { int32, KPointer, nullptr } from "./types"
+import { int32 } from "@koalaui/common"
+import { KPointer, nullptr, ResourceHolder } from "@koalaui/interop"
 import { getXMLNativeModule, CallbackKind } from "./xmlNative"
 import { xml, ParseInfo, ParseOptions } from "./xml"
-import { ResourceHolder } from "./ResourceManager"
 
 export class Serializer extends SerializerBase {
     private static cache?: Serializer | undefined = undefined

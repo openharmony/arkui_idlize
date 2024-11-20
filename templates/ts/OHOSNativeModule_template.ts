@@ -1,4 +1,5 @@
-import { pointer, int32, KPointer, Finalizable } from "./types"
+import { int32 } from "@koalaui/common"
+import { pointer, KPointer } from "@koalaui/interop"
 
 %NATIVE_MODULE_CONTENT%
 

@@ -1,5 +1,4 @@
-import { float32, int32, pointer, Finalizable } from "./types"
-import { ResourceHolder } from "./ResourceManager"
+import { ResourceHolder } from "@koalaui/interop"
 import { Deserializer, deserializeAndCallCallback } from "./xmlSerializer"
 import { getXMLNativeModule } from "./xmlNative"
 

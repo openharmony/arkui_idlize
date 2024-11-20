@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { float32, int32, pointer, Finalizable } from "./types"
+import { float32, int32 } from "@koalaui/common"
+import { pointer, ResourceHolder, ResourceId } from "@koalaui/interop"
 import { getXMLNativeModule as nativeModule, CallbackKind } from "./xmlNative"
-import { ResourceHolder, ResourceId } from "./ResourceManager"
 
 /**
  * Value representing possible JS runtime object type.

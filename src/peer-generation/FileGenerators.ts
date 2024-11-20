@@ -306,13 +306,14 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         destFile.content.nativeModuleAccessor = nativeModule.name
         destFile.imports.addFeatures(["SerializerBase", "RuntimeType", "runtimeType", "CallbackResource"], "./SerializerBase")
         destFile.imports.addFeatures(["DeserializerBase" ], "./DeserializerBase")
-        destFile.imports.addFeatures(["int32", "KPointer", "nullptr"], "./types")
+        destFile.imports.addFeatures(["int32"], "@koalaui/common")
+        destFile.imports.addFeatures(["KPointer", "nullptr"], "@koalaui/interop")
         destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
         writeSerializerFile(library, destFile, "", declarationPath)
         writeDeserializerFile(library, destFile, "", declarationPath)
         const deserializeCallImpls = makeDeserializeAndCall(library, Language.TS, nativeModule.path) as TsSourceFile
         deserializeCallImpls.imports.clear() // TODO fix dependencies
-        deserializeCallImpls.imports.addFeatures(["ResourceHolder"], "./ResourceManager")
+        deserializeCallImpls.imports.addFeatures(["ResourceHolder"], "@koalaui/interop")
         destFile.merge(deserializeCallImpls)
         return destFile
     } else {

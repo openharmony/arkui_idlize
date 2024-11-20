@@ -29,7 +29,6 @@ import {
 } from '../idl/IdlPeerGeneratorVisitor';
 import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
 import { collectProperties } from '../printers/StructPrinter';
-import { MakeAssignOptions, MethodArgPrintHint } from '../LanguageWriters/LanguageWriter';
 import { FieldModifier, IfStatement, MethodModifier, ProxyStatement, ReturnStatement } from '../LanguageWriters/LanguageWriter';
 import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
 
@@ -39,7 +38,6 @@ import { IDLEntry } from "../../idl";
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { collectMaterializedImports } from '../Materialized';
 import { CallbackKind, generateCallbackKindAccess, stubIsTypeCallback } from '../ArgConvertors';
-import { createSourceFile, ModifierFlags } from 'typescript';
 import { SourceFile, TsSourceFile } from './SourceFile';
 
 class IdlSerializerPrinter {
