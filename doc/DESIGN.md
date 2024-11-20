@@ -32,8 +32,7 @@ project and language-specific glue code to allow invocation of APIs across langu
 
  Important part of interop problem is mapping of data types between languages and runtimes. To solve that universal
 type system based serialization/deserialization mechanism is designed. It works by analyzing types aggregation and inheritance
-and created automated serializers and deserializers for data transfer. This way every API call and callback can be
-
+and created automated serializers and deserializers for data transfer. This way every API call and callback can be systematically processed by tool to provide cross-language interaction via FFI in languages-specific manner.
 
 ## Challenges
 
