@@ -202,7 +202,7 @@ export class CustomPrintVisitor {
     printEnum(node: IDLEnum) {
         const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
         this.openNamespace(namespace)
-        this.print(`declare enum ${node.name} {`)
+        this.print(`${namespace ? "" : "declare "}enum ${node.name} {`)
         this.pushIndent()
         node.elements.forEach(it => {
             const initializer = (it.initializer !== undefined)
