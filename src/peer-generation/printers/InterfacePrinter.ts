@@ -45,11 +45,11 @@ import { ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER
 import { printJavaImports } from '../printers/lang/JavaPrinters'
 import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
 import { Language } from '../../Language'
-import { escapeKeyword, IDLKind } from "../../idl";
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 import { collectProperties } from './StructPrinter'
 import { CustomPrintVisitor } from "../../from-idl/DtsPrinter"
 import { stubIsTypeCallback } from '../ArgConvertors'
+import { escapeKeyword, IDLType } from "../../idl";
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -441,19 +441,19 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         const type = this.typeNameConvertor.getNodeName(node.type)
         const typeParams = this.printTypeParameters(node.typeParameters)
         // TODO: needs to be implemented correctly on the idl side
-        if (node.name === "Resource") {
-            this.convertInterface(idl.createInterface(node.name,
-                IDLKind.Interface,
-                [], [], [], [
-                    idl.createProperty("bundleName", idl.createReferenceType("KStringPtr")),
-                    idl.createProperty("moduleName", idl.createReferenceType("KStringPtr")),
-                    idl.createProperty("params", idl.createReferenceType("Array<object>"), false, false, true),
-                    idl.createProperty("id", idl.createReferenceType("number")),
-                    idl.createProperty("type", idl.createReferenceType("number"), false, false, true),
-                ], [], []))
-        } else {
-            this.writer.print(`export declare type ${node.name}${typeParams} = ${type};`)
-        }
+        // if (node.name === "Resource") {
+        //     this.convertInterface(idl.createInterface(node.name,
+        //         idl.IDLKind.Interface,
+        //         [], [], [], [
+        //             idl.createProperty("bundleName", idl.createReferenceType("KStringPtr")),
+        //             idl.createProperty("moduleName", idl.createReferenceType("KStringPtr")),
+        //             idl.createProperty("params", idl.createReferenceType("Array<object>"), false, false, true),
+        //             idl.createProperty("id", idl.createReferenceType("number")),
+        //             idl.createProperty("type", idl.createReferenceType("number"), false, false, true),
+        //         ], [], []))
+        // } else {
+        // }
+        this.writer.print(`export declare type ${node.name}${typeParams} = ${type};`)
     }
 
     convertCallback(node: idl.IDLCallback) {
@@ -472,6 +472,8 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
             result = this.printCallback(node,
                 node.callables[0].parameters,
                 node.callables[0].returnType)
+        } else if (idl.isTupleInterface(node)) {
+            result = this.printTuple(node).join("\n")
         } else {
             result = this.printInterface(node).join("\n")
         }
@@ -541,8 +543,8 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     private printMethod(idl: idl.IDLMethod): stringOrNone[] {
-        // TODO dirty stub. We are not processing interfaces methods as a 
-        // callbacks for now, so interfaces with methods can not be 
+        // TODO dirty stub. We are not processing interfaces methods as a
+        // callbacks for now, so interfaces with methods can not be
         // deserialized in ArkTS
         return []
         // return [
@@ -586,7 +588,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     private printTypeParameters(typeParameters: string[] | undefined): string {
-        return typeParameters?.length ? `<${typeParameters.join(",")}>` : ""
+        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
     }
 
     private convertType(idlType: idl.IDLType): string {
@@ -607,6 +609,33 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
             node.properties,
             node.methods]
             .reduce((sum, value) => value.length + sum, 0) === 0
+    }
+
+    private printTuple(tuple: idl.IDLInterface) {
+        const seenFields = new Set<string>()
+        return ([`declare type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
+            .concat(tuple.properties
+                .map(it => this.iDLTypedEntryPrinter(it, it => {
+                    //TODO: use ETSConvertor.processTupleType
+                    let property = it;
+                    if (property.isOptional) {
+                        let types: IDLType[] = []
+                        if (idl.isUnionType(it.type)) {
+                            types = it.type.types
+                        } else if (idl.isPrimitiveType(it.type)) {
+                            types = [it.type]
+                        } else {
+                            throwException(`Unprocessed type: ${idl.forceAsNamedNode(it.type)}`)
+                        }
+                        property = idl.createProperty(it.name,
+                            idl.createUnionType([...types, idl.IDLUndefinedType]),
+                            it.isReadonly,
+                            it.isStatic,
+                            false)
+                    }
+                    return [indentedBy(`${this.printPropNameWithType(property)},`, 1)]
+                }, seenFields) ).flat())
+            .concat(["]"])
     }
 }
 

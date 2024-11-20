@@ -292,7 +292,7 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["NativeModule"], "#components")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
-        imports.addFeatures(['KStringPtr', 'nullptr', 'KInt', 'KPointer'], '@koalaui/interop')
+        imports.addFeatures(['KStringPtr', 'nullptr', 'KInt', 'KPointer', 'KLong'], '@koalaui/interop')
     }
     imports.print(printer, '')
     writeSerializer(library, printer, "")

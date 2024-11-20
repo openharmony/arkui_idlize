@@ -121,9 +121,13 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
         // TODO: workarond for ContentModifier<T> which returns WrappedBuilder<[T]>
         //       and the WrappedBuilder is defined as "class WrappedBuilder<Args extends Object[]>""
-        let generics = clazz.generics
-        if (clazz.className === "ContentModifier") {
-            generics = ["T extends Object"]
+        let classTypeParameters = clazz.generics
+        const hasMethodWithTypeParams = clazz.methods.find(it =>
+            it.method.signature.args.find(it => idl.isTypeParameterType(it)) !== undefined
+        )
+        // Need to restrict generic type to the Object type
+        if (hasMethodWithTypeParams) {
+            classTypeParameters = ["T extends Object"]
         }
 
         printer.writeClass(clazz.className, writer => {
@@ -174,13 +178,17 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             })
 
             // write construct(ptr: number) method
-            const typeArguments = clazz.generics
             const clazzRefType = idl.createReferenceType(clazz.className,
-                typeArguments?.map(idl.createTypeParameterReference))
+                clazz.generics?.map(idl.createTypeParameterReference))
             const constructSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
-            writer.writeMethodImplementation(new Method("construct", constructSig, [MethodModifier.STATIC], typeArguments), writer => {
+            writer.writeMethodImplementation(new Method("construct", constructSig, [MethodModifier.STATIC], classTypeParameters), writer => {
                 const objVar = `obj${clazz.className}`
-                writer.writeStatement(writer.makeAssign(objVar, clazzRefType, writer.makeNewObject(clazz.className), true))
+                writer.writeStatement(writer.makeAssign(objVar,
+                    clazzRefType,
+                    //TODO: Need to pass IDLType instead of string to makeNewObject
+                    writer.makeNewObject(writer.getNodeName(clazzRefType)),
+                    true)
+                )
                 writer.writeStatement(
                     writer.makeAssign(`${objVar}.peer`, toIDLType("Finalizable"),
                         writer.makeString(`new Finalizable(ptr, ${clazz.className}.getFinalizer())`), false),
@@ -262,7 +270,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 writePeerMethod(writer, privateMethod, true, this.printerContext, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
                 this.library.setCurrentContext(undefined)
             })
-        }, superClassName, interfaces.length === 0 ? undefined : interfaces, generics)
+        }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
     }
 
     visit(): void {

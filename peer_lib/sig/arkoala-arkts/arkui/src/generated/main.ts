@@ -20,36 +20,39 @@ import { ArkColumnPeer } from "@arkoala/arkui/peers/ArkColumnPeer"
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { ButtonType, LabelStyle } from '@arkoala/arkui/ArkButtonInterfaces'
 import { BlurOptions,
-         SheetSize,
-         BlurStyle,
-         SheetType,
-         SheetDismiss,
-         DismissSheetAction,
-         SpringBackAction,
-         EdgeWidths,
-         LocalizedEdgeWidths,
-         EdgeColors,
-         LocalizedEdgeColors,
-         BorderStyle,
-         ShadowOptions,
-         ShadowStyle,
-         SheetMode,
-         Callback,
-         SheetTitleOptions,
-         SheetOptions,
-         CustomBuilder,
-         EdgeStyles,
-         UIContext,
-         ScrollSizeMode,
-         Position,
-         SheetKeyboardAvoidMode } from "@arkoala/arkui/ArkCommonInterfaces"
+    SheetSize,
+    BlurStyle,
+    SheetType,
+    SheetDismiss,
+    DismissSheetAction,
+    SpringBackAction,
+    EdgeWidths,
+    LocalizedEdgeWidths,
+    EdgeColors,
+    LocalizedEdgeColors,
+    BorderStyle,
+    ShadowOptions,
+    ShadowStyle,
+    SheetMode,
+    Callback,
+    SheetTitleOptions,
+    SheetOptions,
+    CustomBuilder,
+    EdgeStyles,
+    UIContext,
+    ScrollSizeMode,
+    Position,
+         SheetKeyboardAvoidMode,
+    HoverModeAreaType } from "@arkoala/arkui/ArkCommonInterfaces"
 import { Dimension,
-         Length,
-         LengthMetrics,
-         Resource,
-         ResourceColor,
-         ResourceStr,
-         Font } from "@arkoala/arkui/ArkUnitsInterfaces"
+    Length,
+    LengthMetrics,
+    ResourceColor,
+    ResourceStr,
+    Font,
+    Position } from "@arkoala/arkui/ArkUnitsInterfaces"
+
+import { Resource } from "./ArkResourceInterfaces"
 
 import { TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/ArkEnumsInterfaces"
 
@@ -177,39 +180,40 @@ class SheetTitleOptionsImpl implements SheetTitleOptions {
         this._subtitle = arg
     }
 }
-
 class SheetOptionsImpl implements SheetOptions {
-    _title: SheetTitleOptions | CustomBuilder| undefined
-    _detents: [(SheetSize | Length), (SheetSize | Length) | undefined, (SheetSize | Length) | undefined] | undefined
-    _height: SheetSize | Length| undefined
-    _dragBar: boolean| undefined
-    _maskColor: ResourceColor| undefined
-    _blurStyle: BlurStyle| undefined
-    _showClose: boolean | Resource| undefined
-    _preferType: SheetType| undefined
-    _shouldDismiss: ((sheetDismiss: SheetDismiss) => void) | undefined
-    _onWillDismiss: Callback<DismissSheetAction, void>| undefined
-    _onWillSpringBackWhenDismiss: Callback<SpringBackAction, void>| undefined
-    _enableOutsideInteractive: boolean| undefined
-    _width: Dimension| undefined
-    _borderWidth: Dimension | EdgeWidths | LocalizedEdgeWidths| undefined
-    _borderColor: ResourceColor | EdgeColors | LocalizedEdgeColors| undefined
-    _borderStyle: BorderStyle | EdgeStyles| undefined
-    _shadow: ShadowOptions | ShadowStyle| undefined
-    _onHeightDidChange: Callback<number, void>| undefined
-    _mode: SheetMode| undefined
-    _scrollSizeMode?: ScrollSizeMode | undefined
-    _onDetentsDidChange: Callback<number, void>| undefined
-    _onWidthDidChange: Callback<number, void>| undefined
-    _onTypeDidChange: Callback<SheetType, void>| undefined
-    _uiContext: UIContext| undefined
-    _backgroundColor: ResourceColor | undefined
-    _onAppear: (() => void) | undefined
-    _onDisappear: (() => void) | undefined
-    _onWillAppear: (() => void) | undefined
-    _onWillDisappear: (() => void) | undefined
-    _keyboardAvoidMode: SheetKeyboardAvoidMode | undefined
-    _offset: Position | undefined
+    _height: SheetSize | Length|undefined;
+    _dragBar: boolean|undefined;
+    _maskColor: ResourceColor|undefined;
+    _detents: [ SheetSize | Length, SheetSize | Length | undefined, SheetSize | Length | undefined ]|undefined;
+    _blurStyle: BlurStyle|undefined;
+    _showClose: boolean | Resource|undefined;
+    _preferType: SheetType|undefined;
+    _title: SheetTitleOptions | CustomBuilder|undefined;
+    _shouldDismiss: Callback<SheetDismiss,void>|undefined;
+    _onWillDismiss: Callback<DismissSheetAction,void>|undefined;
+    _onWillSpringBackWhenDismiss: Callback<SpringBackAction,void>|undefined;
+    _enableOutsideInteractive: boolean|undefined;
+    _width: Dimension|undefined;
+    _borderWidth: Dimension | EdgeWidths | LocalizedEdgeWidths|undefined;
+    _borderColor: ResourceColor | EdgeColors | LocalizedEdgeColors|undefined;
+    _borderStyle: BorderStyle | EdgeStyles|undefined;
+    _shadow: ShadowOptions | ShadowStyle|undefined;
+    _onHeightDidChange: Callback<number,void>|undefined;
+    _mode: SheetMode|undefined;
+    _scrollSizeMode: ScrollSizeMode|undefined;
+    _onDetentsDidChange: Callback<number,void>|undefined;
+    _onWidthDidChange: Callback<number,void>|undefined;
+    _onTypeDidChange: Callback<SheetType,void>|undefined;
+    _uiContext: UIContext|undefined;
+    _keyboardAvoidMode: SheetKeyboardAvoidMode|undefined;
+    _enableHoverMode: boolean|undefined;
+    _hoverModeArea: HoverModeAreaType|undefined;
+    _backgroundColor: ResourceColor|undefined;
+    _onAppear: (() => void)|undefined;
+    _onDisappear: (() => void)|undefined;
+    _onWillAppear: (() => void)|undefined;
+    _onWillDisappear: (() => void)|undefined;
+    _offset?: Position;
 
     constructor(title?: SheetTitleOptions) {
         this._title = title
@@ -381,6 +385,20 @@ class SheetOptionsImpl implements SheetOptions {
     }
     set uiContext(arg: UIContext| undefined) {
         this._uiContext = arg
+    }
+
+    get enableHoverMode(): boolean | undefined {
+        return this._enableHoverMode
+    }
+    set enableHoverMode(arg: boolean | undefined) {
+        this._enableHoverMode = arg
+    }
+
+    get hoverModeArea(): HoverModeAreaType | undefined {
+        return this._hoverModeArea
+    }
+    set hoverModeArea(arg: HoverModeAreaType | undefined) {
+        this._hoverModeArea = arg
     }
 
     get backgroundColor(): ResourceColor | undefined {

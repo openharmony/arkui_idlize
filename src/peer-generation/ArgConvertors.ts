@@ -908,10 +908,11 @@ export class InterfaceConvertor extends BaseArgConvertor { //
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
         }
-        if (this.declaration.name === "CancelButtonSymbolOptions") {
-            return writer.makeNaryOp("&&", [
-                writer.makeString(`${value}.hasOwnProperty("icon")`),
-                writer.makeString(`isInstanceOf("SymbolGlyphModifier", ${value}.icon)`)])
+        //TODO: Need to check this in TypeChecker
+        if (this.declaration.name === "CancelButtonSymbolOptions"
+            && writer.language !== Language.ARKTS) {
+            return writer.makeHasOwnProperty(value, "CancelButtonSymbolOptions",
+                "icon", "SymbolGlyphModifier")
         }
         // Try to figure out interface by examining field sets
         const uniqueFields = this.declaration?.properties.filter(it => !duplicates.has(it.name))
@@ -1191,9 +1192,11 @@ export class DateConvertor extends BaseArgConvertor { //
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         if (writer.language === Language.CPP) {
             writer.writeMethodCall(`${param}Serializer`, "writeInt64", [value])
-            return
+        } else {
+            writer.writeMethodCall(`${param}Serializer`, "writeInt64", [
+                writer.makeCast(writer.makeString(`${value}.getTime()`), idl.IDLI64Type).asString()
+            ])
         }
-        writer.writeMethodCall(`${param}Serializer`, "writeInt64", [`${value}.getTime()`])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         const deserializeTime = writer.makeMethodCall(`${deserializerName}`, "readInt64", [])

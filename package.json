@@ -102,7 +102,7 @@
     "compile:arkts:common": "cd ./external/incremental/common/ && npm run compile:arkts",
     "compile:arkts:runtime": "cd ./external/incremental/runtime/ && npm run compile:arkts && echo ATTENTION: the runtime is compiled without unmemoization here!",
     "compile:arkts:interop": "cd ./external/interop/ && npm run compile:arkts && echo ATTENTION: an interop is compiled without unmemoization here!",
-    "compile:arkts:peers": "bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-peers.json --ets-module --extension sts --list-files --compiler-memory-size=1073741824",
+    "compile:arkts:peers": "bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-peers.json --ets-module --extension sts --list-files",
     "compile:arkts:subset": "npm run make:arkts && npm run compile:arkts",
     "compile:arkts:subset:main": "bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-subset-main.json --extension sts --list-files",
     "compile:arkts:peers:main": "bash ./external/incremental/tools/panda/arkts/arktsc --arktsconfig ./arktsconfig-peers-main.json --extension sts --list-files",

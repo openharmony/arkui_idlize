@@ -26,8 +26,17 @@ export class ImportsCollector {
      * @param module Module name - can be package started with `@` or relative path from current package root
      */
     addFeature(feature: string, module: string) {
-        const dependencies = getOrPut(this.moduleToFeatures, path.normalize(module), () => new Set())
-        dependencies.add(feature)
+        module = path.normalize(module)
+        // Checking for name collisions between modules
+        // TODO: needs to be done more effectively
+        const featureInAnotherModule = [...this.moduleToFeatures.entries()]
+            .find(it => it[0] !== module && it[1].has(feature))
+        if (featureInAnotherModule) {
+            console.warn(`WARNING: Skip feature:'${feature}' is already imported into '${featureInAnotherModule[0]}'`)
+        } else {
+            const dependencies = getOrPut(this.moduleToFeatures, module, () => new Set())
+            dependencies.add(feature)
+        }
     }
 
     addFeatures(features: string[], module: string) {

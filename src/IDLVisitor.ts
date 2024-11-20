@@ -560,7 +560,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         })
     }
 
-    serializeTupleType(node: ts.TupleTypeNode, nameSuggestion?: NameSuggestion, typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>, withOperator: boolean = false): idl.IDLInterface {
+    serializeTupleType(node: ts.TupleTypeNode, nameSuggestion?: NameSuggestion, typeParameters?: ts.NodeArray<ts.Node>, withOperator: boolean = false): idl.IDLInterface {
         const properties = node.elements.map((it, index) => this.serializeTupleProperty(it, index, withOperator))
         const syntheticName = `Tuple_${properties.map(it => this.computeTypeName(it.type)).join("_")}`
         const selectedName = selectName(nameSuggestion, syntheticName)
@@ -785,7 +785,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 }
                 return idl.createTypeParameterReference(paramName)
             }
-            return this.serializeType(arg)
+            return this.serializeType(arg, undefined, typeArgs)
         })
     }
 
@@ -797,7 +797,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
     }
 
-    serializeType(type: ts.TypeNode | undefined, nameSuggestion?: NameSuggestion): idl.IDLType {
+    serializeType(type: ts.TypeNode | undefined, nameSuggestion?: NameSuggestion, typeArgs?: ts.NodeArray<ts.TypeNode>): idl.IDLType {
         if (type == undefined) return idl.IDLUndefinedType // TODO: can we have implicit types in d.ts?
 
         if (type.kind == ts.SyntaxKind.UndefinedKeyword) {
@@ -873,7 +873,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             return idl.createContainerType("sequence", [this.serializeType(type.elementType, nameSuggestion)])
         }
         if (ts.isTupleTypeNode(type)) {
-            const tupleType = this.serializeTupleType(type, nameSuggestion)
+            const tupleType = this.serializeTupleType(type, nameSuggestion, typeArgs)
             this.addSyntheticType(tupleType)
             return idl.createReferenceType(tupleType.name)
         }
@@ -1329,8 +1329,13 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         throw new Error(`Cannot infer type of ${declaration.getText()}`)
     }
 
-    private collectTypeParameters(typeParameters: ts.NodeArray<ts.TypeParameterDeclaration> | undefined): string[] | undefined {
-        return this.context.typeParameterMap ? undefined : typeParameters?.map(it => it.getText())
+    private collectTypeParameters(typeParameters: ts.NodeArray<ts.Node> | undefined): string[] | undefined {
+        return this.context.typeParameterMap ? undefined : typeParameters?.flatMap(it => {
+            if (ts.isTupleTypeNode(it)) {
+                return it.elements.map(it => it.getText())
+            }
+            return it.getText()
+        })
     }
 }
 

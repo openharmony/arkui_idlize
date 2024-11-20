@@ -16,7 +16,8 @@
 import { convertNode, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 import * as idl from '../../../idl'
 import { ReferenceResolver } from '../../ReferenceResolver'
-import { throwException } from '../../../util'
+import { stringOrNone, throwException } from '../../../util'
+import { IDLEntry } from "../../../idl";
 
 export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNameConvertor {
 
@@ -79,6 +80,15 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
         const [where, what] = match.slice(2)
         return `IMPORT_${what}_FROM_${where}`.match(/[a-zA-Z]+/g)!.join('_')
     }
+
+    protected getNamespacePrefix(decl: IDLEntry): stringOrNone {
+        let namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
+        if (namespace !== undefined) {
+            namespace += "."
+        }
+        return namespace
+    }
+
     convertTypeReference(type: idl.IDLReferenceType): string {
         const decl = this.resolver.resolveTypeReference(type)!
         let namespacePrefix = ''
@@ -94,9 +104,9 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
                 }
             }
             if (idl.isEnum(decl)) {
-                const namespaceAttr = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
-                if (namespaceAttr) {
-                    namespacePrefix = namespaceAttr + '.'
+                const prefix = this.getNamespacePrefix(decl)
+                if (prefix !== undefined) {
+                    namespacePrefix = prefix;
                 }
             }
         }

@@ -91,7 +91,7 @@ export class PeerGeneratorConfig {
         "GestureHandler",           // class with generics
         // constant values need to be generated
         // "equals(id: TextMenuItemId): boolean" method leads to the "cycle detected" message
-        "TextMenuItemId",
+        // "TextMenuItemId", // SyntaxError: Unexpected token, expected 'private' or identifier [ArkTextCommonInterfaces.ts:52:24]
         "AnimatableArithmetic", // Unused generic class
     ]
 

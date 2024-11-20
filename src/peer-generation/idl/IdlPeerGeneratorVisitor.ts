@@ -14,7 +14,14 @@
  */
 
 import * as idl from "../../idl"
-import { IDLReferenceType, IDLType, maybeOptional} from "../../idl"
+import {
+    getExtAttribute,
+    IDLExtendedAttributes,
+    IDLNode,
+    IDLReferenceType,
+    IDLType,
+    maybeOptional
+} from "../../idl"
 import { posix as path } from "path"
 import {
     capitalize,
@@ -35,6 +42,7 @@ import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement 
 import { createTypeNameConvertor, Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { convertDeclaration, IdlNameConvertor } from "../LanguageWriters/nameConvertor";
 import {
+    addSyntheticDeclarationDependency,
     isSyntheticDeclaration,
     makeSyntheticDeclCompletely,
     makeSyntheticTypeAliasDeclaration,
@@ -284,6 +292,26 @@ class TSDependenciesCollector extends ImportsAggregateCollector {
 class ArkTSImportsAggregateCollector extends ImportsAggregateCollector {
     constructor(peerLibrary: PeerLibrary) {
         super(peerLibrary, true)
+    }
+
+    override convertImport(type: IDLReferenceType, importClause: string): IDLNode[] {
+        const generatedName = this.peerLibrary.mapType(type)
+        const ref = idl.createReferenceType(idl.forceAsNamedNode(type).name)
+        const resolvedType = this.peerLibrary.resolveTypeReference(ref)
+        if (resolvedType !== undefined && !idl.isTypedef(resolvedType)) {
+            const syntheticDeclaration = makeSyntheticTypeAliasDeclaration(
+                'SyntheticDeclarations', generatedName, ref)
+            if (!this.peerLibrary.importTypesStubToSource.has(generatedName)) {
+                this.peerLibrary.importTypesStubToSource.set(generatedName, type.name)
+            }
+            addSyntheticDeclarationDependency(syntheticDeclaration,
+                convertDeclToFeature(this.peerLibrary, resolvedType))
+            return [
+                ...super.convertImport(type, importClause),
+                syntheticDeclaration
+            ]
+        }
+        return super.convertImport(type, importClause);
     }
 
     override convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
@@ -1002,13 +1030,16 @@ export class IdlPeerProcessor {
             return new MaterializedMethod(decl.name, [], retConvertor, false, ctor)
         }
 
-        const generics = undefined // method.typeParameters?.map(it => it.getText())
+        const methodTypeParams = getExtAttribute(method, IDLExtendedAttributes.TypeParameters)
         method.parameters.forEach(it => this.library.requestType(it.type!, true))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(method)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
         return new MaterializedMethod(decl.name, argConvertors, retConvertor, false,
-            new Method(methodName, signature, modifiers, generics)
+            new Method(methodName,
+                signature,
+                modifiers,
+                methodTypeParams !== undefined ? [methodTypeParams] : undefined)
         )
     }
 
@@ -1205,7 +1236,7 @@ export function isConflictingDeclaration(decl: idl.IDLEntry): boolean {/// stole
     // just has ugly dependency WrappedBuilder - there is conflict in generic types
     if (idl.isInterface(decl) && decl.name === 'ContentModifier') return true
     // complicated type arguments
-    if (idl.isClass(decl) && decl.name === 'TransitionEffect') return true
+    // if (idl.isClass(decl) && decl.name === 'TransitionEffect') return true
     // inside namespace
     // if (idl.isEnum(decl) && decl.name === 'GestureType') return true
     // no return type in some methods

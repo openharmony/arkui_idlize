@@ -199,7 +199,7 @@ export class MultiBranchIfStatement implements LanguageStatement {
             writer.print("}")
         })
 
-        if (this.elseStatement !== undefined) {
+        if (this.statements.length > 0 && this.elseStatement !== undefined) {
             writer.print(" else {")
             writer.pushIndent()
             this.elseStatement.write(writer)

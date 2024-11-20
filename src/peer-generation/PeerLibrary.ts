@@ -216,7 +216,7 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isTypeParameterType(type)) {
             // TODO: unlikely correct.
-            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type), true)
         }
         throw new Error(`Cannot convert: ${type.kind}`)
     }
@@ -329,6 +329,8 @@ export class PeerLibrary implements LibraryInterface {
             const decl = this.resolveTypeReference(type)
             if (!decl) {
                 console.log(`WARNING: undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
+            } else if (isConflictingDeclaration(decl)) {
+                return ArkCustomObject
             }
             return !decl ? ArkCustomObject  // assume some builtin type
                 : idl.isTypedef(decl) ? this.toDeclaration(decl.type)

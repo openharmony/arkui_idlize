@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { float32, float64, int32, int8 } from "@koalaui/common"
+import { float32, float64, int8, int32, int64 } from "@koalaui/common"
 import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder } from "@koalaui/interop"
 import { CallbackKind } from "./CallbackKind"
 import { Length } from "../ArkUnitsInterfaces"
@@ -79,7 +79,7 @@ export function isResource(value: Object|undefined): boolean {
     return false
 }
 
-export function isInstanceOf(className: string, value: Object): boolean {
+export function isInstanceOf(className: string, value: Object|undefined): boolean {
     // TODO: fix me!
     return false
 }
@@ -227,6 +227,18 @@ export class SerializerBase {
         this.setInt32(this.position, value)
         this.position += 4
     }
+    writeInt64(value: int64) {
+        this.checkCapacity(8)
+        this.buffer.set(this.position + 0, ((value      ) & 0xff) as int8)
+        this.buffer.set(this.position + 1, ((value >>  8) & 0xff) as int8)
+        this.buffer.set(this.position + 2, ((value >> 16) & 0xff) as int8)
+        this.buffer.set(this.position + 3, ((value >> 24) & 0xff) as int8)
+        this.buffer.set(this.position + 4, ((value >> 32) & 0xff) as int8)
+        this.buffer.set(this.position + 5, ((value >> 40) & 0xff) as int8)
+        this.buffer.set(this.position + 6, ((value >> 48) & 0xff) as int8)
+        this.buffer.set(this.position + 7, ((value >> 56) & 0xff) as int8)
+        this.position += 8
+    }
     writeFloat32(value: float32) {
         // TODO: this is wrong!
         this.checkCapacity(4)
@@ -240,16 +252,7 @@ export class SerializerBase {
         if (typeof value === "bigint")
             // todo where it is possible to be called from?
             throw new Error("Not implemented")
-        this.checkCapacity(8)
-        this.buffer.set(this.position + 0, ((value      ) & 0xff) as int8)
-        this.buffer.set(this.position + 1, ((value >>  8) & 0xff) as int8)
-        this.buffer.set(this.position + 2, ((value >> 16) & 0xff) as int8)
-        this.buffer.set(this.position + 3, ((value >> 24) & 0xff) as int8)
-        this.buffer.set(this.position + 4, ((value >> 32) & 0xff) as int8)
-        this.buffer.set(this.position + 5, ((value >> 40) & 0xff) as int8)
-        this.buffer.set(this.position + 6, ((value >> 48) & 0xff) as int8)
-        this.buffer.set(this.position + 7, ((value >> 56) & 0xff) as int8)
-        this.position += 8
+        this.writeInt64(value)
     }
     writeBoolean(value: boolean|undefined) {
         this.checkCapacity(1)

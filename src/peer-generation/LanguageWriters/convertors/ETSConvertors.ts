@@ -15,14 +15,15 @@
 
 import * as idl from "../../../idl";
 import { TsIDLNodeToStringConverter } from "./TSConvertors";
-import {createReferenceType, IDLReferenceType, IDLType} from "../../../idl";
+import { createReferenceType, IDLEntry, IDLReferenceType } from "../../../idl";
 import { createDeclarationNameConvertor, DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
 import { convertDeclaration } from "../nameConvertor";
 import { Language } from "../../../Language";
+import { stringOrNone } from "../../../util";
 
 export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
     convertTypeReference(type: IDLReferenceType): string {
-        // Only to deal with namespaces. TODO: remove later 
+        // Only to deal with namespaces. TODO: remove later
         const decl = this.resolver.resolveTypeReference(type)
         if (decl && idl.isEnum(decl)) {
             return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
@@ -106,5 +107,9 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
             return `${this.convert(it.isOptional ? idl.createUnionType([it.type!, idl.IDLUndefinedType]) : it.type!)}`
         })
         return `Function${types.length}<${types.join(",")}${types.length > 0 ? "," : ""}${this.convert(decl.returnType)}>`
+    }
+
+    protected getNamespacePrefix(decl: IDLEntry): stringOrNone {
+        return idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace);
     }
 }
