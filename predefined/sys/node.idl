@@ -35,6 +35,7 @@ interface Node {
     pointer GetPipelineContext(pointer ptr0);
     // TODO: Actually Promise<void>, fix!
     Object VSyncAwait(pointer pipeline);
+    void SetVsyncCallback(pointer pipeline);
     void UnblockVsyncWait(pointer pipeline);
     void SetChildTotalCount(pointer ptr0, i32 arg);
     void ShowCrash(String message);

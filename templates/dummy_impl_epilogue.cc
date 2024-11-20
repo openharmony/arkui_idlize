@@ -52,7 +52,6 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI()
         OHOS::Ace::NG::ApiImpl::SetLazyItemIndexer,
         OHOS::Ace::NG::ApiImpl::GetPipelineContext,
         OHOS::Ace::NG::ApiImpl::SetVsyncCallback,
-        OHOS::Ace::NG::ApiImpl::UnblockVsyncWait,
         OHOS::Ace::NG::ApiImpl::SetChildTotalCount,
         OHOS::Ace::NG::ApiImpl::ShowCrash
     };

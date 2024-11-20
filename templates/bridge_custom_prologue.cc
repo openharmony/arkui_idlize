@@ -343,22 +343,45 @@ void impl_SetLazyItemIndexer(KVMContext vmContext, Ark_NativePointer nodePtr, Ar
 }
 KOALA_INTEROP_CTX_V2(SetLazyItemIndexer, Ark_NativePointer, Ark_Int32)
 
+KVMDeferred* vsyncDeferred = nullptr;
+
+// TODO: map if multiple pipeline contexts.
+static KVMDeferred* currentVsyncDeferred = nullptr;
+
+void vsyncCallback(Ark_PipelineContext context) {
+    if (currentVsyncDeferred) {
+        currentVsyncDeferred->resolve(currentVsyncDeferred, nullptr, 0);
+        currentVsyncDeferred = nullptr;
+    }
+}
+
+void impl_SetVsyncCallback(Ark_NativePointer pipelineContext)
+{
+    Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext) pipelineContext;
+    GetArkUIExtendedNodeAPI()->setVsyncCallback(pipelineContextCast, vsyncCallback);
+}
+KOALA_INTEROP_V1(SetVsyncCallback, Ark_NativePointer)
 
 KVMObjectHandle impl_VSyncAwait(KVMContext vmContext, Ark_NativePointer pipelineContext)
 {
     Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext) pipelineContext;
     KVMObjectHandle result = nullptr;
     KVMDeferred* deferred = CreateDeferred(vmContext, &result);
-    GetArkUIExtendedNodeAPI()->setVsyncCallback(pipelineContextCast, (Ark_Deferred*)deferred);
+    if (currentVsyncDeferred) {
+        fprintf(stderr, "Multiple unresolved vsync deferred\n");
+        currentVsyncDeferred->reject(currentVsyncDeferred, "Wrong");
+    }
+    currentVsyncDeferred = deferred;
     return result;
 }
 KOALA_INTEROP_CTX_1(VSyncAwait, KVMObjectHandle, Ark_NativePointer)
 
 void impl_UnblockVsyncWait(KVMContext vmContext, Ark_NativePointer pipelineContext)
 {
-    Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
-    Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext) pipelineContext;
-    GetArkUIExtendedNodeAPI()->unblockVsyncWait(vmContextCast, pipelineContextCast);
+    if (currentVsyncDeferred) {
+        currentVsyncDeferred->resolve(currentVsyncDeferred, nullptr, 0);
+        currentVsyncDeferred = nullptr;
+    }
 }
 KOALA_INTEROP_CTX_V1(UnblockVsyncWait, Ark_NativePointer)
 
