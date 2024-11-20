@@ -437,6 +437,15 @@ declare class CommonMethod<T> {
 
     aspectRatio(value: number): T;
 
+    visibility(value: Visibility): T;
+
+    backgroundImage(src: ResourceStr | PixelMap, repeat?: ImageRepeat): T;
+  
+    backgroundImageSize(value: SizeOptions | ImageSize): T;
+
+    offset(value: Position | Edges | LocalizedEdges): T;
+
+    enabled(value: boolean): T;
 }
 
 declare interface Rectangle {

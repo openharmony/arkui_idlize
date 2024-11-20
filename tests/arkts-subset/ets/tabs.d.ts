@@ -14,19 +14,44 @@
  */
 
 declare enum BarMode {
-    Scrollable = 0,
-    Fixed = 1,
+  Scrollable = 0,
+  Fixed = 1,
 }
 
-declare interface TabsInterface { 
-    (): TabsAttribute
+declare class TabsController {
+  constructor();
+  changeIndex(value: number): void;
+  // preloadItems(indices: Optional<Array<number>>): Promise<void>;
+  // setTabBarTranslate(translate: TranslateOptions): void;
+  // setTabBarOpacity(opacity: number): void;
+}
+
+declare enum BarPosition {
+  Start,
+  End,
+}
+
+declare interface TabsOptions {
+  barPosition?: BarPosition;
+  index?: number;
+  controller?: TabsController
+}
+
+declare interface TabsInterface {
+  (options?: TabsOptions): TabsAttribute;
 }
 
 declare class TabsAttribute extends CommonMethod<TabsAttribute> {
 
-    // TBD: Fix for the TestGeneratorVisitor
-    // barMode(value: BarMode.Fixed): TabsAttribute;
-    barMode(value: BarMode): TabsAttribute;
+  // TBD: Fix for the TestGeneratorVisitor
+  // barMode(value: BarMode.Fixed): TabsAttribute;
+  barMode(value: BarMode): TabsAttribute;
+  barWidth(value: Length): TabsAttribute;
+  barHeight(value: Length): TabsAttribute;
+  barPosition(value: BarPosition): TabsAttribute;
+  animationDuration(value: number): TabsAttribute;
+  scrollable(value: boolean): TabsAttribute;
+
 }
 
 declare const Tabs: TabsInterface

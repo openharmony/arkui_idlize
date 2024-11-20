@@ -143,3 +143,41 @@ declare enum BarState {
   Auto,
   On,
 }
+
+declare enum ImageRepeat {
+  NoRepeat,
+  X,
+  Y,
+  XY,
+}
+
+declare enum Visibility {
+  Visible,
+  Hidden,
+  None,
+}
+
+declare enum ImageSize {
+  Auto,
+  Cover,
+  Contain,
+  FILL = 3,
+}
+
+declare enum Alignment {
+  TopStart,
+  Top,
+  TopEnd,
+  Start,
+  Center,
+  End,
+  BottomStart,
+  Bottom,
+  BottomEnd,
+}
+
+declare enum LineCapStyle {
+  Butt,
+  Round,
+  Square,
+}

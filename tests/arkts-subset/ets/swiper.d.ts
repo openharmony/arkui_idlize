@@ -101,6 +101,10 @@ declare class SwiperAttribute extends CommonMethod<SwiperAttribute> {
   indicator(value: DotIndicator): SwiperAttribute;
 //  indicator(value: DotIndicator | DigitIndicator | boolean): SwiperAttribute;
 
+  autoPlay(value: boolean): SwiperAttribute;
+  loop(value: boolean): SwiperAttribute;
+  vertical(value: boolean): SwiperAttribute;
+  interval(value: number): SwiperAttribute;
 }
 
 declare const Swiper: SwiperInterface;

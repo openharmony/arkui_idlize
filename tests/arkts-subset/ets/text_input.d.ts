@@ -19,6 +19,16 @@ declare enum InputType {
     Number,
 }
 
+declare enum EnterKeyType {
+    Go = 2,
+    Search = 3,
+    Send = 4,
+    Next = 5,
+    Done = 6,
+    PREVIOUS = 7,
+    NEW_LINE = 8,
+  }
+
 declare enum ContentType {
 
   USER_NAME = 0,
@@ -46,6 +56,11 @@ declare class TextInputAttribute extends CommonMethod<TextInputAttribute> {
     contentType(value: ContentType): TextInputAttribute;
 
     onEditChanged(callback: (isEditing: boolean) => void): TextInputAttribute;
+
+    placeholderFont(value?: Font): TextInputAttribute;
+
+    enterKeyType(value: EnterKeyType): TextInputAttribute;
+
 }
 
 declare const TextInput: TextInputInterface;

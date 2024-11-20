@@ -26,6 +26,7 @@ declare interface ImageInterface {
 
 declare class ImageAttribute extends CommonMethod<ImageAttribute> {
   objectFit(value: ImageFit): ImageAttribute;
+  fillColor(value: ResourceColor): ImageAttribute;
 }
 
 declare const Image: ImageInterface
