@@ -33,8 +33,9 @@ interface Node {
     void SetRangeUpdater(pointer ptr0, i32 arg);
     void SetLazyItemIndexer(pointer ptr0, i32 arg);
     pointer GetPipelineContext(pointer ptr0);
-    void SetVsyncCallback(pointer ptr0, i32 arg);
-    void UnblockVsyncWait(pointer ptr0);
+    // TODO: Actually Promise<void>, fix!
+    Object VSyncAwait(pointer pipeline);
+    void UnblockVsyncWait(pointer pipeline);
     void SetChildTotalCount(pointer ptr0, i32 arg);
     void ShowCrash(String message);
     i32 CheckArkoalaGeneratedEvents(sequence<u8> result, i32 size);

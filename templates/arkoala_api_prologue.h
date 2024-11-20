@@ -90,7 +90,6 @@ typedef struct Ark_Deferred {
     void* context;
     void (*resolve)(struct Ark_Deferred* thiz, uint8_t* data, int32_t length);
     void (*reject)(struct Ark_Deferred* thiz, const char* message);
-    void (*release)(struct Ark_Deferred* thiz);
 } Ark_Deferred;
 
 enum Ark_APINodeFlags {

@@ -27,7 +27,8 @@ import {
   KInt32ArrayPtr,
   KFloat32ArrayPtr,
 } from "@koalaui/interop"
-import { Length } from "../ArkUnitsInterfaces.ts"
+
+import { Length } from "../ArkUnitsInterfaces"
 
 let theModule: NativeModule
 

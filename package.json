@@ -119,7 +119,7 @@
     "run:java:concurrent": "npm run compile:java && npm run compile:native-node-host-java-subset && java -Djava.library.path=./native -cp ./out/java-subset/bin org.koalaui.arkoala.Concurrent",
     "compile:dummy-panda": "npm run compile:java && npm run rollup:host:subset && cross-env mode=subset rollup -c rollup.config.dummy-panda.mjs",
     "run:app:java": "npm run compile:dummy-panda && ACE_LIBRARY_PATH=./native node lib/loader.js java",
-    "run:app:panda": "cross-env mode=subset rollup -c rollup.config.dummy-panda.mjs && npm run compile:all:arkts:idl && PANDA_HOME=./external/incremental/tools/panda/node_modules/@panda/sdk ACE_LIBRARY_PATH=./native node lib/loader.js panda",
+    "run:app:panda": "cross-env mode=subset rollup -c rollup.config.dummy-panda.mjs && npm run compile:all:arkts && PANDA_HOME=./external/incremental/tools/panda/node_modules/@panda/sdk ACE_LIBRARY_PATH=./native node lib/loader.js panda",
     "compile:native-ohos-subset-arm32": "npm run check:subset && node ./native/nativeBuild.mjs subset arm32",
     "compile:native-ohos-subset-arm64": "npm run check:subset && node ./native/nativeBuild.mjs subset arm64",
     "compile:native-ohos-full-arm32": "npm run check:peers && node ./native/nativeBuild.mjs full arm32",

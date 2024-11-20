@@ -182,8 +182,6 @@ export class PeerGeneratorConfig {
 
     static isConflictedDeclaration(node: ts.Declaration): boolean {
         if (!this.needInterfaces) return false
-        // duplicate type declarations with different signatures
-        if (ts.isTypeAliasDeclaration(node) && node.name.text === 'OnWillScrollCallback') return true
         // has same named class and interface
         if ((ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node)) && node.name?.text === 'LinearGradient') return true
         // just has ugly dependency WrappedBuilder - there is conflict in generic types
