@@ -772,7 +772,6 @@ void SetLazyItemIndexer(Ark_VMContext vmContext, Ark_NodeHandle nodePtr, Ark_Int
 Ark_PipelineContext GetPipelineContext(Ark_NodeHandle node) {
     return (Ark_PipelineContext)42;
 }
-
 void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback callback) {
     auto producer = std::thread([pipelineContext, callback] {
         while (true) {
@@ -782,7 +781,6 @@ void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback cal
     });
     producer.detach();
 }
-
 void SetChildTotalCount(Ark_NodeHandle node, Ark_Int32 totalCount) {}
 void ShowCrash(Ark_CharPtr message) {}
 }

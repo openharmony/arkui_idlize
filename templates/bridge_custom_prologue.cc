@@ -343,8 +343,6 @@ void impl_SetLazyItemIndexer(KVMContext vmContext, Ark_NativePointer nodePtr, Ar
 }
 KOALA_INTEROP_CTX_V2(SetLazyItemIndexer, Ark_NativePointer, Ark_Int32)
 
-KVMDeferred* vsyncDeferred = nullptr;
-
 // TODO: map if multiple pipeline contexts.
 static KVMDeferred* currentVsyncDeferred = nullptr;
 
@@ -364,11 +362,11 @@ KOALA_INTEROP_V1(SetVsyncCallback, Ark_NativePointer)
 
 KVMObjectHandle impl_VSyncAwait(KVMContext vmContext, Ark_NativePointer pipelineContext)
 {
-    Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext) pipelineContext;
+    Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext)pipelineContext;
     KVMObjectHandle result = nullptr;
     KVMDeferred* deferred = CreateDeferred(vmContext, &result);
     if (currentVsyncDeferred) {
-        fprintf(stderr, "Multiple unresolved vsync deferred\n");
+        LOGE("%s", "Multiple unresolved vsync deferred");
         currentVsyncDeferred->reject(currentVsyncDeferred, "Wrong");
     }
     currentVsyncDeferred = deferred;
@@ -376,14 +374,14 @@ KVMObjectHandle impl_VSyncAwait(KVMContext vmContext, Ark_NativePointer pipeline
 }
 KOALA_INTEROP_CTX_1(VSyncAwait, KVMObjectHandle, Ark_NativePointer)
 
-void impl_UnblockVsyncWait(KVMContext vmContext, Ark_NativePointer pipelineContext)
+void impl_UnblockVsyncWait(Ark_NativePointer pipelineContext)
 {
     if (currentVsyncDeferred) {
         currentVsyncDeferred->resolve(currentVsyncDeferred, nullptr, 0);
         currentVsyncDeferred = nullptr;
     }
 }
-KOALA_INTEROP_CTX_V1(UnblockVsyncWait, Ark_NativePointer)
+KOALA_INTEROP_V1(UnblockVsyncWait, Ark_NativePointer)
 
 void impl_SetCustomCallback(KVMContext vmContext, Ark_NativePointer nodePtr, Ark_Int32 updaterId)
 {
