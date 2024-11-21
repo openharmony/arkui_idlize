@@ -431,8 +431,9 @@ interface PeerEvent {
             true,
         ))
 
+        // TODO: maybe we shall use a switch statement here!
         this.printer.writeStatement(this.printer.makeMultiBranchCondition(infos.map(info => {
-                // TODO wait until TS deserializer is uncomplited
+                // TODO wait until TS deserializer is complete
                 const constructorTypeArgs = [
                     `kind?: number`,
                     `nodeId?: ${PeerEventKind}`,

@@ -18,6 +18,7 @@
 #include "common-interop.h"
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
+#include "events.h"
 
 const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
@@ -33,6 +34,10 @@ static const %CPP_PREFIX%ArkUINodeModifiers* GetNodeModifiers() {
 
 static const %CPP_PREFIX%ArkUIAccessors* GetAccessors() {
     return GetFullImpl()->getAccessors();
+}
+
+namespace Generated {
+    extern const GENERATED_ArkUIEventsAPI* GetArkUiEventsAPI();
 }
 
 void impl_EmulateClickEvent(KInt nodeId, KFloat x, KFloat y) {
@@ -88,6 +93,14 @@ void impl_EmulateClickEvent(KInt nodeId, KFloat x, KFloat y) {
 
     GetFullImpl()->getEventsAPI()->getCommonMethodEventsReceiver()->onClick0(nodeId, event);
     */
+    fprintf(stderr, "EmulateClickEvent: %d %f %f\n", nodeId, x, y);
+    Ark_ClickEvent event = {};
+    event.x = { ARK_TAG_FLOAT32, { .f32 = x } };
+    event.y = { ARK_TAG_FLOAT32, { .f32 = y } };
+    event.displayX = { ARK_TAG_FLOAT32, { .f32 = x } };
+    event.displayY = { ARK_TAG_FLOAT32, { .f32 = y } };
+
+    Generated::GetArkUiEventsAPI()->getCommonMethodEventsReceiver()->onClick0(nodeId, event);
 }
 KOALA_INTEROP_V3(EmulateClickEvent, KInt, KFloat, KFloat)
 

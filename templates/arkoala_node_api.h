@@ -82,6 +82,7 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     Ark_Float32 (*getFontScale) (Ark_Int32 deviceId);
     Ark_Float32 (*getDesignWidthScale) (Ark_Int32 deviceId);
 
+    // TODO: remove!
     void (*setCallbackMethod)(%CPP_PREFIX%Ark_APICallbackMethod* method);
 
     // the custom node is not set in create.

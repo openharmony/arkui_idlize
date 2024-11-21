@@ -20,13 +20,13 @@ package org.koalaui.arkoala;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class SerializerBase {
 
-    private static List<CustomSerializer> customSerializers = new LinkedList<CustomSerializer>();
+    private static List<CustomSerializer> customSerializers = new ArrayList<CustomSerializer>();
     public static void registerCustomSerializer(CustomSerializer serializer) {
         customSerializers.add(serializer);
     }
@@ -156,4 +156,14 @@ public class SerializerBase {
         System.out.println(String.format("Unsupported custom serialization for %s, write undefined", kind));
         this.writeInt8(Tag.UNDEFINED.value);
     }
+    private ArrayList<Integer> heldResources = new ArrayList<Integer>();
+    void holdAndWriteCallback(Object callback) {
+        int resourceId = ResourceHolder.instance().registerAndHold(callback);
+        this.heldResources.add(resourceId);
+        this.writeInt32(resourceId);
+        this.writePointer(0);
+        this.writePointer(0);
+        this.writePointer(0);
+    }
+
 }

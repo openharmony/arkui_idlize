@@ -59,9 +59,13 @@ public class Application {
         return false;
     }
 
+    byte[] eventBuffer = new byte[4 * 60];
+
     void checkEvents(int what) {
         System.out.println("JAVA: checkEvents " + what);
-        NativeModule._CreateNode(0, 0, 0);
+        while (NativeModule._CheckArkoalaGeneratedEvents(eventBuffer, eventBuffer.length) != 0) {
+            System.out.println("JAVA: checkEvents: got an event: " + (int)eventBuffer[0]);
+        }
     }
 
     void updateState() {

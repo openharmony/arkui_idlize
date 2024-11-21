@@ -27,6 +27,10 @@ declare interface BaseEvent {}
 
 declare interface ClickEvent extends BaseEvent {
 
+    x: number;
+
+    y: number;
+
     displayX: number;
 
     displayY: number;
@@ -393,6 +397,9 @@ declare class CommonMethod<T> {
     gestureModifier(modifier: GestureModifier): T;
 
     //~onGestureRecognizerJudgeBegin(callback: GestureRecognizerJudgeBeginCallback): T;
+
+    onClick(event: (event: ClickEvent) => void): T;
+    onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
 }
 
 declare interface Rectangle {
