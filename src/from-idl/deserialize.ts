@@ -25,6 +25,7 @@ import { toString } from "./toString"
 import * as idl from "../idl"
 import { isDefined, stringOrNone, typeName } from "../util"
 import { createInterface } from "readline"
+import { generateSyntheticUnionName } from "../IDLVisitor"
 
 const syntheticTypes = new Map<string, idl.IDLEntry>()
 
@@ -165,9 +166,11 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
         )
     }
     if (isUnionTypeDescription(type)) {
-        return idl.createUnionType(type.idlType
+        const types = type.idlType
             .map(it => toIDLType(file, it))
-            .filter(isDefined))
+            .filter(isDefined)
+        const name = generateSyntheticUnionName(types)
+        return idl.createUnionType(types, name)
     }
     if (isSingleTypeDescription(type)) {
         switch (type.idlType) {

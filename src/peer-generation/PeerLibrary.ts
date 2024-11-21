@@ -100,7 +100,6 @@ export class PeerLibrary implements LibraryInterface {
             return this.createContinuationCallbackReference(continuationType.elementType[0])
         const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
         const syntheticName = generateSyntheticFunctionName(
-            (type) => cleanPrefix(this.nativeNameConvertorInstance.convert(type), PrimitiveType.Prefix),
             continuationParameters,
             idl.IDLVoidType,
         )

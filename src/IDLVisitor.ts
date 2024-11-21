@@ -66,10 +66,32 @@ export function selectName(nameSuggestion: NameSuggestion | undefined, synthetic
     return syntheticName
 }
 
-export function generateSyntheticFunctionName(computeTypeName: (type: idl.IDLType) => string, parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
+export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
     let prefix = isAsync ? "AsyncCallback" : "Callback"
-    const names = parameters.map(it => `${computeTypeName(it.type!)}`).concat(computeTypeName(returnType))
+    const names = parameters.map(it => `${generateSyntheticIdlNodeName(it.type!)}`).concat(generateSyntheticIdlNodeName(returnType))
     return `${prefix}_${names.join("_").replaceAll(".", "_")}`
+}
+
+export function generateSyntheticUnionName(types: idl.IDLType[]) {
+    return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
+}
+
+export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
+    if (idl.isPrimitiveType(type)) return capitalize(type.name)
+    if (idl.isContainerType(type)) {
+        const typeArgs = type.elementType.map(it => generateSyntheticIdlNodeName(it)).join("_")
+        switch (type.containerKind) {
+            case "sequence": return "Array_" + typeArgs
+            case "record": return "Map_" + typeArgs
+            case "Promise": return "Promise_" + typeArgs
+            default: throw new Error(`Unknown container type ${idl.DebugUtils.debugPrintType(type)}`)
+        }
+    }
+    if (idl.isNamedNode(type))
+        return type.name
+    if (idl.isOptionalType(type))
+        return `Opt_${generateSyntheticIdlNodeName(type.type)}`
+    throw `Can not compute type name of ${idl.IDLKind[type.kind]}`
 }
 
 const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
@@ -532,7 +554,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         const typeMap = new Map<string, string[]>()
         for (const prop of properties) {
-            const type = this.computeTypeName(prop.type)
+            const type = generateSyntheticIdlNodeName(prop.type)
             typeMap.set(type, [...typeMap.get(type) ?? [], prop.name])
         }
         const literalName = Array.from(typeMap.entries())
@@ -562,7 +584,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
 
     serializeTupleType(node: ts.TupleTypeNode, nameSuggestion?: NameSuggestion, typeParameters?: ts.NodeArray<ts.Node>, withOperator: boolean = false): idl.IDLInterface {
         const properties = node.elements.map((it, index) => this.serializeTupleProperty(it, index, withOperator))
-        const syntheticName = `Tuple_${properties.map(it => this.computeTypeName(it.type)).join("_")}`
+        const syntheticName = `Tuple_${properties.map(it => generateSyntheticIdlNodeName(it.type)).join("_")}`
         const selectedName = selectName(nameSuggestion, syntheticName)
         return idl.createInterface(
             selectedName,
@@ -576,7 +598,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
 
     serializeIntersectionType(node: ts.IntersectionTypeNode, nameSuggestion?: NameSuggestion): idl.IDLInterface {
         const inheritance = node.types.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`intersection${index}`)))
-        const syntheticName = `Intersection_${inheritance.map(it => this.computeTypeName(it)).join("_")}`
+        const syntheticName = `Intersection_${inheritance.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
         const selectedName = selectName(nameSuggestion, syntheticName)
         return idl.createInterface(
             selectedName,
@@ -655,7 +677,6 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
 
     private generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
         return generateSyntheticFunctionName(
-            (type) => this.computeTypeName(type),
             parameters,
             returnType,
             isAsync,
@@ -749,23 +770,6 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
 
     warn(message: string) {
         console.log(`WARNING: ${message}`)
-    }
-
-    private computeTypeName(type: idl.IDLType): string {
-        if (idl.isOptionalType(type)) return "Opt_" + this.computeTypeName(type.type)
-        if (idl.isPrimitiveType(type)) return capitalize(type.name)
-        if (idl.isContainerType(type)) {
-            const typeArgs = type.elementType.map(it => this.computeTypeName(it)).join("_")
-            switch (type.containerKind) {
-                case "sequence": return "Array_" + typeArgs
-                case "record": return "Map_" + typeArgs
-                case "Promise": return "Promise_" + typeArgs
-                default: throw new Error(`Unknown container type ${idl.DebugUtils.debugPrintType(type)}`)
-            }
-        }
-        if (idl.isNamedNode(type))
-            return type.name
-        throw new Error(`Can not compute type name of ${idl.IDLKind[type.kind]}`)
     }
 
     /**
@@ -1005,7 +1009,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         let types = nodes
             .map((it, index) => this.serializeType(it, nameSuggestion?.extend(`u${index}`)))
             .reduce<idl.IDLType[]>((uniqueTypes, it) => uniqueTypes.concat(uniqueTypes.includes(it) ? []: [it]), [])
-        const syntheticUnionName = `Union_${types.map(it => this.computeTypeName(it)).join("_")}`
+        const syntheticUnionName = generateSyntheticUnionName(types)
         const selectedUnionName = selectName(nameSuggestion, syntheticUnionName)
         let aPromise = types.find(it => idl.isContainerType(it) && idl.IDLContainerUtils.isPromise(it))
         if (aPromise) {
@@ -1068,7 +1072,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 idl.isContainerType(type) && type.elementType[0] == idl.IDLAnyType) {
                 // Ugly hack: Resource.params is any[] in the SDK, but it should be string[].
                 // TODO: remove, once SDK is fixed.
-                console.log(`WARNING: applying Resource.params workaround, type was ${this.computeTypeName(type)}`)
+                console.log(`WARNING: applying Resource.params workaround, type was ${generateSyntheticIdlNodeName(type)}`)
                 type = idl.createContainerType('sequence', [idl.IDLStringType])
             }
             return idl.createProperty(

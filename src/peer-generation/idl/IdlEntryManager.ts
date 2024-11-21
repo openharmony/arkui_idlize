@@ -20,9 +20,8 @@ export class IdlEntryManager {
 
     private entries = new Map<string, idl.IDLEntry>()
 
-    generateCallback(mapper:(type:idl.IDLType) => string, parameters:idl.IDLParameter[], returnType:idl.IDLType): [idl.IDLReferenceType, idl.IDLCallback] {
+    generateCallback(parameters:idl.IDLParameter[], returnType:idl.IDLType): [idl.IDLReferenceType, idl.IDLCallback] {
         const name = generateSyntheticFunctionName(
-            mapper,
             parameters,
             returnType
         )

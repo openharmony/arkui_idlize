@@ -318,7 +318,6 @@ class NativeModuleRecorderVisitor {
 
     printConstructor(writer: LanguageWriter) {
         const [paramType] = this.library.factory.generateCallback(
-            (type) => writer.getNodeName(type),
             [createParameter('type', IDLI32Type)],
             IDLStringType
         )

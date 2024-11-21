@@ -243,7 +243,6 @@ export class IdlSkoalaLibrary implements LibraryInterface {
             return this.createContinuationCallbackReference(continuationType.elementType[0])
         const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
         const syntheticName = generateSyntheticFunctionName(
-            (type) => cleanPrefix(this.getTypeName(type), PrimitiveType.Prefix),
             continuationParameters,
             idl.IDLVoidType,
         )
