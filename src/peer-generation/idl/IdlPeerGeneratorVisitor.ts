@@ -29,7 +29,8 @@ import {
     renameClassToBuilderClass,
     renameClassToMaterialized,
     renameDtsToInterfaces,
-    serializerBaseMethods
+    serializerBaseMethods,
+    throwException
 } from "../../util"
 import { GenericVisitor } from "../../options"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
@@ -919,26 +920,35 @@ export class IdlPeerProcessor {
                 .map(it => convertDeclToFeature(this.library, it))
             // self-interface is not supported ArkTS
             if (idl.isInterface(decl) && this.library.language == Language.ARKTS) {
-                importFeatures.push(convertDeclToFeature(this.library,
-                    makeSyntheticDeclCompletely(
-                        decl,
-                        {
-                            ...decl,
-                            name: createInterfaceDeclName(decl.name),
-                            methods: decl.methods.map(method => {
-                                return {
-                                    ...method,
-                                    returnType: method.returnType!,
-                                } as idl.IDLMethod
-                            }),
-                        } as idl.IDLInterface,
-                        this.library,
-                        this.dependenciesCollector,
-                        'SyntheticDeclarations'
-                    )))
+                importFeatures.push(this.registerSelfInterface(decl))
             }
         }
         return importFeatures
+    }
+
+    private registerSelfInterface(decl: idl.IDLInterface): ImportFeature {
+        const inheritance: idl.IDLType[] = []
+        const superType = idl.getSuperType(decl)
+        if (superType) {
+            const resolved = this.library.resolveTypeReference(superType as idl.IDLReferenceType) ?? throwException(`${superType} cannot be resolved`)
+            inheritance.push(idl.createReferenceType(createInterfaceDeclName(idl.forceAsNamedNode(resolved).name)))
+        }
+
+        const newInterface: idl.IDLInterface = {
+            ...decl,
+            name: createInterfaceDeclName(decl.name),
+            inheritance: inheritance,
+            methods: decl.methods.map(method => {
+                return {
+                    ...method,
+                    returnType: method.returnType!,
+                } as idl.IDLMethod
+            }),
+        } as idl.IDLInterface
+        this.library.factory.registerInterface(newInterface, newInterface.name)
+
+        return convertDeclToFeature(this.library,
+            makeSyntheticDeclCompletely(decl, newInterface, this.library, this.dependenciesCollector, 'SyntheticDeclarations'))
     }
 
     private processMaterialized(decl: idl.IDLInterface) {

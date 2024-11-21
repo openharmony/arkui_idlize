@@ -41,8 +41,8 @@ export class IdlEntryManager {
         return [ref, callback]
     }
 
-    registerInterface(entry:idl.IDLInterface): [idl.IDLReferenceType, idl.IDLInterface] {
-        const mangledName = `Generated_synthetic_${entry.name}`
+    registerInterface(entry:idl.IDLInterface, nameSuggestion?: string): [idl.IDLReferenceType, idl.IDLInterface] {
+        const mangledName = nameSuggestion ? nameSuggestion : `Generated_synthetic_${entry.name}`
         this.entries.set(mangledName, entry)
         const ref = idl.createReferenceType(mangledName)
         return [ref, entry]
