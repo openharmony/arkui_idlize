@@ -18,43 +18,43 @@
  * @kit ArkUI
  */
 
-/**
- * Defines the data type of the interface restriction.
- *
- * @typedef { import('../api/global/resource').Resource } Resource
- * @interface Resource
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @since 7
- */
-/**
- * Defines the data type of the interface restriction.
- *
- * @typedef { import('../api/global/resource').Resource } Resource
- * @interface Resource
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @form
- * @since 9
- */
-/**
- * Defines the data type of the interface restriction.
- *
- * @typedef { import('../api/global/resource').Resource } Resource
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @form
- * @since 10
- */
-/**
- * Defines the data type of the interface restriction.
- *
- * @typedef { import('../api/global/resource').Resource } Resource
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @form
- * @atomicservice
- * @since 11
- */
-declare type Resource = import('../api/global/resource').Resource;
+// /**
+//  * Defines the data type of the interface restriction.
+//  *
+//  * @typedef { import('../api/global/resource').Resource } Resource
+//  * @interface Resource
+//  * @syscap SystemCapability.ArkUI.ArkUI.Full
+//  * @since 7
+//  */
+// /**
+//  * Defines the data type of the interface restriction.
+//  *
+//  * @typedef { import('../api/global/resource').Resource } Resource
+//  * @interface Resource
+//  * @syscap SystemCapability.ArkUI.ArkUI.Full
+//  * @form
+//  * @since 9
+//  */
+// /**
+//  * Defines the data type of the interface restriction.
+//  *
+//  * @typedef { import('../api/global/resource').Resource } Resource
+//  * @syscap SystemCapability.ArkUI.ArkUI.Full
+//  * @crossplatform
+//  * @form
+//  * @since 10
+//  */
+// /**
+//  * Defines the data type of the interface restriction.
+//  *
+//  * @typedef { import('../api/global/resource').Resource } Resource
+//  * @syscap SystemCapability.ArkUI.ArkUI.Full
+//  * @crossplatform
+//  * @form
+//  * @atomicservice
+//  * @since 11
+//  */
+// declare type Resource = import('../api/global/resource').Resource;
 
 /**
  * Defines the length property with string, number and resource unit.
