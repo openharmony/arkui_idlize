@@ -568,7 +568,7 @@ class Deserializer : public DeserializerBase {
         tokenValueCallbackFunction_buf.tag = tokenValueCallbackFunction_buf_runtimeType == OH_RUNTIME_UNDEFINED ? OH_TAG_UNDEFINED : OH_TAG_OBJECT;
         if ((OH_RUNTIME_UNDEFINED) != (tokenValueCallbackFunction_buf_runtimeType))
             {
-                tokenValueCallbackFunction_buf.value = {valueDeserializer.readCallbackResource(), reinterpret_cast<void(*)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_Materialized value, const Callback_Boolean_void continuation)>(valueDeserializer.readPointerOrDefault(reinterpret_cast<void*>(getManagedCallbackCaller(Kind_Callback_EventType_ParseInfo_Boolean))))};
+                tokenValueCallbackFunction_buf.value = {valueDeserializer.readCallbackResource(), reinterpret_cast<void(*)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_ParseInfo value, const Callback_Boolean_void continuation)>(valueDeserializer.readPointerOrDefault(reinterpret_cast<void*>(getManagedCallbackCaller(Kind_Callback_EventType_ParseInfo_Boolean))))};
             }
         value.tokenValueCallbackFunction = tokenValueCallbackFunction_buf;
         return static_cast<OH_ParseOptions>(value);
@@ -683,7 +683,7 @@ OH_NativePointer impl_XmlSerializer_ctor(uint8_t* thisArray, int32_t thisLength)
 KOALA_INTEROP_2(XmlSerializer_ctor, OH_NativePointer, uint8_t*, int32_t)
  
 OH_NativePointer impl_XmlSerializer_getFinalizer() {
-        return (OH_NativePointer) &GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->destruct;
+        return (OH_NativePointer) GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->destruct;
 }
 KOALA_INTEROP_0(XmlSerializer_getFinalizer, OH_NativePointer)
  
@@ -743,7 +743,7 @@ OH_NativePointer impl_ParseInfo_ctor() {
 KOALA_INTEROP_0(ParseInfo_ctor, OH_NativePointer)
  
 OH_NativePointer impl_ParseInfo_getFinalizer() {
-        return (OH_NativePointer) &GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->destruct;
+        return (OH_NativePointer) GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->destruct;
 }
 KOALA_INTEROP_0(ParseInfo_getFinalizer, OH_NativePointer)
  
@@ -812,7 +812,7 @@ OH_NativePointer impl_XmlPullParser_ctor(const KStringPtr& buffer, uint8_t* this
 KOALA_INTEROP_3(XmlPullParser_ctor, OH_NativePointer, KStringPtr, uint8_t*, int32_t)
  
 OH_NativePointer impl_XmlPullParser_getFinalizer() {
-        return (OH_NativePointer) &GetXMLAPIImpl(XML_API_VERSION)->XmlPullParser()->destruct;
+        return (OH_NativePointer) GetXMLAPIImpl(XML_API_VERSION)->XmlPullParser()->destruct;
 }
 KOALA_INTEROP_0(XmlPullParser_getFinalizer, OH_NativePointer)
  
@@ -835,7 +835,7 @@ void deserializeAndCallCallback_EventType_ParseInfo_Boolean(uint8_t* thisArray, 
 {
     Deserializer thisDeserializer = Deserializer(thisArray, thisLength);
     const OH_Int32 _resourceId = thisDeserializer.readInt32();
-    const auto _call = reinterpret_cast<void(*)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_Materialized value, const Callback_Boolean_void continuation)>(thisDeserializer.readPointer());
+    const auto _call = reinterpret_cast<void(*)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_ParseInfo value, const Callback_Boolean_void continuation)>(thisDeserializer.readPointer());
     OH_xml_EventType eventType = static_cast<OH_xml_EventType>(thisDeserializer.readInt32());
     OH_ParseInfo value = static_cast<OH_ParseInfo>(thisDeserializer.readParseInfo());
     Callback_Boolean_void _continuation = {thisDeserializer.readCallbackResource(), reinterpret_cast<void(*)(const OH_Int32 resourceId, const OH_Boolean value)>(thisDeserializer.readPointerOrDefault(reinterpret_cast<void*>(getManagedCallbackCaller(Kind_Callback_Boolean_void))))};
@@ -886,7 +886,7 @@ void callManagedCallback_EventType_ParseInfo_Boolean(OH_Int32 resourceId, OH_xml
     Serializer argsSerializer = Serializer(__buffer.buffer, &(__buffer.resourceHolder));
     argsSerializer.writeInt32(Kind_Callback_EventType_ParseInfo_Boolean);
     argsSerializer.writeInt32(resourceId);
-    argsSerializer.writeInt32(static_cast<OH_xml_EventType>(eventType));
+    argsSerializer.writeInt32(eventType);
     argsSerializer.writeParseInfo(value);
     argsSerializer.writeCallbackResource(continuation.resource);
     argsSerializer.writePointer(reinterpret_cast<void*>(continuation.call));

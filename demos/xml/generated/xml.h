@@ -143,7 +143,7 @@ typedef struct Opt_Number {
 } Opt_Number;
 typedef struct Callback_EventType_ParseInfo_Boolean {
     OH_CallbackResource resource;
-    void (*call)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_Materialized value, const Callback_Boolean_void continuation);
+    void (*call)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_ParseInfo value, const Callback_Boolean_void continuation);
 } Callback_EventType_ParseInfo_Boolean;
 typedef struct Opt_Callback_EventType_ParseInfo_Boolean {
     OH_Tag tag;

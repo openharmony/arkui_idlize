@@ -107,7 +107,7 @@ export class Deserializer extends DeserializerBase {
     readArrayBuffer(): ArrayBuffer {
         let valueDeserializer: Deserializer = this
         const byteLength_result: number = (valueDeserializer.readNumber() as number)
-        let value: {byteLength?: number} = {byteLength: byteLength_result}
+        let value: ArrayBuffer = ({byteLength: byteLength_result} as ArrayBuffer)
         return (value as ArrayBuffer)
     }
     readCallback_void(): (() => void) {
@@ -162,7 +162,7 @@ export class Deserializer extends DeserializerBase {
                 tokenValueCallbackFunction_buf = valueDeserializer.readCallback_EventType_ParseInfo_Boolean()
             }
         const tokenValueCallbackFunction_result: ((eventType: xml.EventType, value: ParseInfo) => boolean) | undefined|undefined = tokenValueCallbackFunction_buf
-        let value: {supportDoctype?: boolean, ignoreNameSpace?: boolean, tagValueCallbackFunction?: ((name: string, value: string) => boolean), attributeValueCallbackFunction?: ((name: string, value: string) => boolean), tokenValueCallbackFunction?: ((eventType: xml.EventType, value: ParseInfo) => boolean)} = {supportDoctype: supportDoctype_result,ignoreNameSpace: ignoreNameSpace_result,tagValueCallbackFunction: tagValueCallbackFunction_result,attributeValueCallbackFunction: attributeValueCallbackFunction_result,tokenValueCallbackFunction: tokenValueCallbackFunction_result}
+        let value: ParseOptions = ({supportDoctype: supportDoctype_result,ignoreNameSpace: ignoreNameSpace_result,tagValueCallbackFunction: tagValueCallbackFunction_result,attributeValueCallbackFunction: attributeValueCallbackFunction_result,tokenValueCallbackFunction: tokenValueCallbackFunction_result} as ParseOptions)
         return (value as ParseOptions)
     }
 }

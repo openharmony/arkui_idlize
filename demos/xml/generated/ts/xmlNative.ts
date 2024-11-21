@@ -8,6 +8,8 @@ export enum CallbackKind {
     Kind_Callback_void = 3,
 }
 export interface XMLNativeModule {
+    _XmlSerializer_ctor(thisArray: Uint8Array, thisLength: int32): KPointer 
+    _XmlSerializer_getFinalizer(): KPointer 
     _XmlSerializer_setAttributes(self: KPointer, name: string, value: string): void 
     _XmlSerializer_addEmptyElement(self: KPointer, name: string): void 
     _XmlSerializer_setDeclaration(self: KPointer): void 
@@ -18,6 +20,7 @@ export interface XMLNativeModule {
     _XmlSerializer_setCDATA(self: KPointer, text: string): void 
     _XmlSerializer_setText(self: KPointer, text: string): void 
     _XmlSerializer_setDocType(self: KPointer, text: string): void 
+    _ParseInfo_getFinalizer(): KPointer 
     _ParseInfo_getColumnNumber(self: KPointer): number 
     _ParseInfo_getDepth(self: KPointer): number 
     _ParseInfo_getLineNumber(self: KPointer): number 
@@ -28,9 +31,10 @@ export interface XMLNativeModule {
     _ParseInfo_isEmptyElementTag(self: KPointer): boolean 
     _ParseInfo_isWhitespace(self: KPointer): boolean 
     _ParseInfo_getAttributeCount(self: KPointer): number 
-    _XmlPullParser_parse(self: KPointer, thisArray: Uint8Array, thisLength: int32): void 
-    _XmlSerializer_ctor(thisArray: Uint8Array, thisLength: int32): KPointer 
     _XmlPullParser_ctor(buffer: string, thisArray: Uint8Array, thisLength: int32): KPointer 
+    _XmlPullParser_getFinalizer(): KPointer 
+    _XmlPullParser_parse(self: KPointer, thisArray: Uint8Array, thisLength: int32): void 
+    _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void 
     _CallCallback(callbackKind: int32, args: Uint8Array, argsSize: int32): void 
     _CallCallbackResourceHolder(holder: KPointer, resourceId: int32): void 
     _CallCallbackResourceReleaser(releaser: KPointer, resourceId: int32): void 

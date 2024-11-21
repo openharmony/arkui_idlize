@@ -28,6 +28,7 @@ public:
 
     virtual ~ExpatParser() {
         XML_ParserFree(m_parser);
+        std::cerr << "Parser destroy" << std::endl;
     }
 
     void parse() {

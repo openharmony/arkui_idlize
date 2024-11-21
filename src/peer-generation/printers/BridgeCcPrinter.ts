@@ -342,7 +342,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
             const modifier = this.generateApiCall(method, modifierName)
             const peerMethod = this.getPeerMethodName(method)
             const apiCall = this.getApiCall(method)
-            const call = `return (${PrimitiveType.NativePointer}) &${apiCall}->${modifier}->${peerMethod};`
+            const call = `return (${PrimitiveType.NativePointer}) ${apiCall}->${modifier}->${peerMethod};`
             this.generatedApi.print(call)
         } else {
             super.printAPICall(method, modifierName)
