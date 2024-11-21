@@ -43,7 +43,8 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     transformMethodsAsync2ReturnPromise,
     isNamedNode,
     IDLNode,
-    IDLThisType,} from "../idl"
+    IDLThisType,
+    isOptionalType,} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
@@ -294,6 +295,7 @@ export class CustomPrintVisitor {
 
     private printTypeForTS(type: IDLType | undefined, undefinedToVoid?: boolean, sequenceToArrayInterface: boolean = false, isCommonMethod = false): string {
         if (!type) throw new Error("Missing type")
+        if (isOptionalType(type)) return `${this.printTypeForTS(type.type, undefinedToVoid, sequenceToArrayInterface)} | undefined`
         if (type === IDLUndefinedType && undefinedToVoid) return "void"
         if (type === IDLStringType) return "string"
         // if (isCommonMethod && forceAsNamedNode(type).name == "this") return "T"

@@ -284,7 +284,20 @@ export class TSLanguageWriter extends LanguageWriter {
         const typeParams = generics?.length ? `<${generics.join(", ")}>` : ""
         // FIXME:
         const isSetter = modifiers?.includes(MethodModifier.SETTER)
-        this.printer.print(`${prefix}${name}${typeParams}(${signature.args.map((it, index) => `${signature.argName(index)}${idl.isOptionalType(it) && !isSetter ? "?" : ""}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
+        const canBeOptional: boolean[] =  []
+        for (let i = signature.args.length - 1; i >= 0; --i) {
+            const prevCanBeOptional = canBeOptional.at(-1) ?? true
+            const curr = signature.args[i]
+            
+            const result = prevCanBeOptional && (idl.isOptionalType(curr) || signature.argDefault(i) !== undefined)
+            canBeOptional.push(result)
+        }
+        canBeOptional.reverse()
+        const isOptional = signature.args.map((it, i) => idl.isOptionalType(it) && canBeOptional[i] && !isSetter)
+        const normalizedArgs = signature.args.map((it, i) => 
+            idl.isOptionalType(it) && isOptional[i] ? idl.maybeUnwrapOptionalType(it) : it
+        )
+        this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${signature.argName(index)}${isOptional[index] ? "?" : ""}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
     }
     makeNull(): LanguageExpression {
         return new StringExpression("undefined")
@@ -317,7 +330,7 @@ export class TSLanguageWriter extends LanguageWriter {
         this.print(`console.log("${message}")`)
     }
     makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
-        return new TSCastExpression(value, this.getNodeName(/* FIXME: */ idl.maybeOptional(type, false)), options?.unsafe ?? false)
+        return new TSCastExpression(value, this.getNodeName(/* FIXME: */ idl.maybeUnwrapOptionalType(type)), options?.unsafe ?? false)
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
         if (convertor.useArray && args?.index != undefined) {

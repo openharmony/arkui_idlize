@@ -159,6 +159,11 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
         refType.typeArguments = extractTypeArguments(file, extAttrs, idl.IDLExtendedAttributes.TypeArguments)
         return refType
     }
+    if (type.nullable) {
+        return idl.createOptionalType(
+            toIDLType(file, { ...type, nullable: false }, extAttrs)            
+        )
+    }
     if (isUnionTypeDescription(type)) {
         return idl.createUnionType(type.idlType
             .map(it => toIDLType(file, it))

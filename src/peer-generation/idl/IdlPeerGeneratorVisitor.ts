@@ -200,6 +200,10 @@ function generateRetConvertor(type?: idl.IDLType): RetConvertor {
 
 // TODO convert to convertor ;)
 function mapCInteropRetType(type: idl.IDLType): string {
+    // probably wrong
+    if (idl.isOptionalType(type)) {
+        return mapCInteropRetType(type.type)
+    }
     if (idl.isPrimitiveType(type)) {
         switch (type) {
             case idl.IDLBooleanType: return PrimitiveType.Boolean.getText()
@@ -209,6 +213,7 @@ function mapCInteropRetType(type: idl.IDLType): string {
             case idl.IDLVoidType:
             case idl.IDLThisType:
             case idl.IDLUndefinedType:
+            case idl.IDLUnknownType:
                 return "void"
         }
     }
@@ -231,7 +236,7 @@ function mapCInteropRetType(type: idl.IDLType): string {
         } else
             return PrimitiveType.NativePointer.getText()
     }
-    throw `mapCInteropType failed for ${idl.IDLKind[type.kind]}`
+    throw new Error(`mapCInteropType failed for ${idl.IDLKind[type.kind]}`)
 }
 
 

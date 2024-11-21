@@ -42,7 +42,7 @@ import { PeerMethod } from "../PeerMethod";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
-import { forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isNamedNode, isOptionalType, isPrimitiveType, maybeOptional, toIDLType } from "../../idl";
+import { createOptionalType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isNamedNode, isOptionalType, isPrimitiveType, maybeOptional, toIDLType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 
 export function componentToPeerClass(component: string) {
@@ -171,7 +171,7 @@ class PeerFileVisitor {
         const peerClass = componentToPeerClass(peer.componentName)
         const signature = new NamedMethodSignature(
             toIDLType(peerClass),
-            [toIDLType('ArkUINodeType'), maybeOptional(toIDLType('ComponentBase'), true), IDLI32Type],
+            [toIDLType('ArkUINodeType'), createOptionalType(toIDLType('ComponentBase')), IDLI32Type],
             ['nodeType', 'component', 'flags'],
             [undefined, undefined, '0'])
 

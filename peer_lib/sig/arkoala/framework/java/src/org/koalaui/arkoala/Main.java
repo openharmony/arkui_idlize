@@ -118,8 +118,8 @@ public class Main {
         // optional
         var listPeer = ArkListPeer.create(ArkUINodeType.List, null, 0);
         TestUtils.checkResult("[Optional] ListPeer.someOptional",
-            () -> { listPeer.someOptionalAttribute(new Union_boolean_Ark_Undefined(false)); },
-            "someOptional({.selector=0, .value0=false})");
+            () -> { listPeer.someOptionalAttribute(new Opt_Boolean(false)); },
+            "someOptional({.tag=ARK_TAG_OBJECT, .value=false})");
 
         // enum
         TestUtils.checkResult("[Enum] ButtonPeer.type", () -> { buttonPeer.typeAttribute(ButtonType.CAPSULE); }, "type(Ark_ButtonType(0))");

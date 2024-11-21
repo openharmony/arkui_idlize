@@ -79,6 +79,9 @@ export class DependencySorter {
             for (const type of target.elementType)
                 this.addDep(this.library.toDeclaration(type))
         }
+        if (idl.isOptionalType(target)) {
+            this.addDep(this.library.toDeclaration(target.type))
+        }
         if (idl.isCallback(target)) {
             for (const parameter of target.parameters)
                 this.addDep(this.library.toDeclaration(parameter.type!))

@@ -752,6 +752,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     }
 
     private computeTypeName(type: idl.IDLType): string {
+        if (idl.isOptionalType(type)) return "Opt_" + this.computeTypeName(type.type)
         if (idl.isPrimitiveType(type)) return capitalize(type.name)
         if (idl.isContainerType(type)) {
             const typeArgs = type.elementType.map(it => this.computeTypeName(it)).join("_")
@@ -764,7 +765,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         if (idl.isNamedNode(type))
             return type.name
-        throw `Can not compute type name of ${idl.IDLKind[type.kind]}`
+        throw new Error(`Can not compute type name of ${idl.IDLKind[type.kind]}`)
     }
 
     /**
@@ -1020,6 +1021,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             console.log(`WARNING: ${sourceText} is union with 'void', which is not supported, remove 'void' variant`)
             types = types.filter(it => it !== idl.IDLVoidType)
         }
+        if (types.find(it => it === idl.IDLUndefinedType)) {
+            return idl.createOptionalType(
+                typeOrUnion(types.filter(it => it !== idl.IDLUndefinedType))
+            )
+        }
         return typeOrUnion(types, selectedUnionName)
     }
 
@@ -1040,7 +1046,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                      * `onWillScroll(handler: ScrollOnWillScrollCallback): ScrollAttribute;`. So that override is not
                      * valid and cannot be correctly processed so we force ScrollOnWillScrollCallback as parameter type.
                      */
-                    type = idl.createUnionType([idl.createReferenceType("ScrollOnWillScrollCallback"), idl.IDLUndefinedType])
+                    type = idl.createOptionalType(idl.createReferenceType("ScrollOnWillScrollCallback"))
                     console.log(`WARNING: forcing type of ${parentName}.${escapedName} to ScrollOnWillScrollCallback|undefined`)
                 }
             }

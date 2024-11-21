@@ -15,7 +15,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { createConstructor, createContainerType, createReferenceType, createTypeParameterReference, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType, maybeOptional } from '../idl'
+import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLNumberType, IDLParameter, IDLPointerType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType, maybeOptional } from '../idl'
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerLibrary } from './PeerLibrary'
 import { Language } from '../Language'
@@ -460,7 +460,7 @@ class OHOSVisitor {
                 // TODO refactor MaterializedPrinter to generate OHOS peers
 
                 // write getPeer() method
-                const getPeerSig = new MethodSignature(maybeOptional(createReferenceType("Finalizable"), true),[])
+                const getPeerSig = new MethodSignature(createOptionalType(createReferenceType("Finalizable")),[])
                 writer.writeMethodImplementation(new Method("getPeer", getPeerSig), writer => {
                     // TODO add better (platform-agnostic) way to return Finalizable
                     writer.writeStatement(writer.makeReturn(writer.makeString("{ ptr: this.peer }")))

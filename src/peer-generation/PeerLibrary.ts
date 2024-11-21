@@ -174,7 +174,7 @@ export class PeerLibrary implements LibraryInterface {
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
         if (isOptionalParam) {
-            return new OptionConvertor(this, param, idl.maybeOptional(type, false))
+            return new OptionConvertor(this, param, idl.maybeUnwrapOptionalType(type))
         }
         if (idl.isOptionalType(type)) {
             return new OptionConvertor(this, param, type.type)

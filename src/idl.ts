@@ -315,7 +315,7 @@ export function isNamedNode(type: IDLNode): type is IDLNamedNode {
 
 export function forceAsNamedNode(type: IDLNode): IDLNamedNode {
     if (!isNamedNode(type)) {
-        throw new Error("Expected to be an IDLNamedNode")
+        throw new Error(`Expected to be an IDLNamedNode, but got '${IDLKind[type.kind]}'`)
     }
     return type
 }
@@ -404,7 +404,7 @@ export function isSyntheticEntry(node: IDLNode): boolean {
     return isDefined(node.extendedAttributes?.find(it => it.name === IDLExtendedAttributes.Synthetic))
 }
 
-export function isOptionalType(type: IDLType): type is IDLOptionalType {
+export function isOptionalType(type: IDLNode): type is IDLOptionalType {
     return type.kind === IDLKind.OptionalType
 }
 
@@ -1167,19 +1167,16 @@ export function toIDLType(typeName: string): IDLType {
     }
 }
 
-export function maybeOptional(type: IDLType, optional?: boolean): IDLType {
-    if (optional === undefined) {
-        return type
-    }
-    if (optional) {
-        if (isOptionalType(type)) {
-            return type
-        }
-        return createOptionalType(type)
-    }
-
+export function maybeUnwrapOptionalType(type: IDLType): IDLType {
     if (isOptionalType(type)) {
         return type.type
+    }
+    return type
+}
+
+export function maybeOptional(type: IDLType, optional = false): IDLType {
+    if (optional) {
+        return createOptionalType(type)
     }
     return type
 }

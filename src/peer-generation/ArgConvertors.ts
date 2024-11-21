@@ -721,7 +721,7 @@ export class OptionConvertor extends BaseArgConvertor { //
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
             runtimeTypes.push(RuntimeType.UNDEFINED)
         }
-        super(idl.maybeOptional(conv.idlType, true), runtimeTypes, conv.isScoped, true, param)
+        super(idl.createOptionalType(conv.idlType), runtimeTypes, conv.isScoped, true, param)
         this.typeConvertor = conv
     }
     convertorArg(param: string, writer: LanguageWriter): string {

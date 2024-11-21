@@ -172,7 +172,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             })
 
             // write getPeer() method
-            const getPeerSig = new MethodSignature(idl.maybeOptional(idl.createReferenceType("Finalizable"), true),[])
+            const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")),[])
             writer.writeMethodImplementation(new Method("getPeer", getPeerSig), writer => {
                 writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
             })
@@ -205,7 +205,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             const ctorSig = clazz.ctor.method.signature as NamedMethodSignature
             const sigWithPointer = new NamedMethodSignature(
                 ctorSig.returnType,
-                ctorSig.args.map(it => maybeOptional(it, true)),
+                ctorSig.args.map(it => idl.createOptionalType(it)),
                 ctorSig.argsNames,
                 ctorSig.defaults)
 

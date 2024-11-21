@@ -23,7 +23,7 @@ import { ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { PeerLibrary } from "../PeerLibrary";
 import { Language } from "../../Language";
-import { forceAsNamedNode, IDLType, IDLVoidType, isOptionalType, maybeOptional, toIDLType } from "../../idl";
+import { createOptionalType, forceAsNamedNode, IDLType, IDLVoidType, isOptionalType, toIDLType } from "../../idl";
 
 interface BuilderClassFileVisitor {
     printFile(): void
@@ -361,7 +361,7 @@ function syntheticName(name: string): string {
 
 function toSyntheticField(method: Method): Field {
     const type = method.signature.args[0]
-    return new Field(syntheticName(method.name), maybeOptional(type, true))
+    return new Field(syntheticName(method.name), createOptionalType(type))
 }
 
 function collapse(methods: Method[]): Method[] {
@@ -388,7 +388,7 @@ function processTSBuilderClass(clazz: BuilderClass): BuilderClass {
 
     const ctorFields = constructors.flatMap(cons => {
         const ctorSig = cons.signature
-        return ctorSig.args.map((type, index) => new Field(syntheticName(ctorSig.argName(index)), maybeOptional(type, true)))
+        return ctorSig.args.map((type, index) => new Field(syntheticName(ctorSig.argName(index)), createOptionalType(type)))
     })
 
     const syntheticFields = methods
