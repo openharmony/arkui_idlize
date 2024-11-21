@@ -106,7 +106,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             ? `${clazz.className}${clazz.generics?.length ? `<${clazz.generics.join(", ")}>` : ``}`
             : undefined
 
-        const interfaces: string[] = []
+        const interfaces: string[] = ["MaterializedBase"]
         if (clazz.isInterface) {
             // self-interface is not supported ArkTS
             if (this.library.language == Language.ARKTS) {
@@ -307,6 +307,8 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
         const finalizableType = toIDLType('Finalizable')
         const superClassName = clazz.superClass?.getSuperType() ?? ARK_MATERIALIZEDBASE
 
+        const interfaces:string[] = ["MaterializedBase"]
+
         this.printer.writeClass(clazz.className, writer => {
             // TODO: getters and setters for fields
             /*clazz.fields.forEach(f => {
@@ -337,6 +339,12 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
                     });
                 }
             })*/
+
+            // write getPeer() method
+            const getPeerSig = new MethodSignature(idl.maybeOptional(idl.createReferenceType("Finalizable"), true),[])
+            writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC]), writer => {
+                writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
+            })
 
             const pointerType = IDLPointerType
             this.library.setCurrentContext(`${clazz.className}.constructor`)
@@ -387,7 +395,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 writePeerMethod(writer, method, true, this.printerContext, this.dumpSerialized, '', 'this.peer.ptr', returnType)
                 this.library.setCurrentContext(undefined)
             })
-        }, superClassName, undefined, clazz.generics)
+        }, superClassName, interfaces, clazz.generics)
     }
 
     visit(): void {

@@ -1,4 +1,5 @@
 import { Finalizable } from "./Finalizable"
+import { MaterializedBase } from "./MaterializedBase"
 import { Serializer } from "./peers/Serializer"
 import { isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase, registerCallback } from "./peers/SerializerBase"
 import { NativeModule } from "#components"

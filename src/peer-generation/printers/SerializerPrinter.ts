@@ -105,11 +105,20 @@ class IdlSerializerPrinter {
                 writer.makeMethodCall(`valueSerializer`, `writePointer`, [writer.makeString(`value.ptr`)]))
             return
         }
+        const baseType = idl.createReferenceType("MaterializedBase")
+        writer.writeStatement(
+            writer.makeAssign(
+                `base`,
+                baseType,
+                writer.makeCast(writer.makeString(`value`), baseType),
+                true,
+                true
+            ))
         writer.writeStatement(
             writer.makeAssign(
                 `peer`,
                 undefined,
-                writer.makeString(`value.getPeer()`),
+                writer.makeString(`base.getPeer()`),
                 true,
                 true
             ))
