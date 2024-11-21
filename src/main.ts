@@ -25,6 +25,7 @@ import {
     isClass,
     isEnum,
     isInterface,
+    isSyntheticEntry,
     toIDLString,
     transformMethodsAsync2ReturnPromise
 } from "./idl"
@@ -347,7 +348,8 @@ if (options.dts2peer) {
                     !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
                         if (([newEntry, entry].every(isInterface)
                             || [newEntry, entry].every(isClass)
-                            || [newEntry, entry].every(isEnum))) {
+                            || [newEntry, entry].every(isEnum)
+                            || [newEntry, entry].every(isSyntheticEntry))) {
                             if (newEntry.name === entry.name) {
                                 console.warn(`WARNING: Skip entry:'${newEntry.name}'(${sourceFile.fileName}) already exists in ${peerFile.originalFilename}`)
                                 return true
