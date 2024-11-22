@@ -562,7 +562,7 @@ export class EnumConvertor extends BaseArgConvertor { //
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])
         const enumExpr = writer.language === Language.ARKTS || this.isStringEnum && writer.language !== Language.CPP
-            ? writer.enumFromOrdinal(readExpr, this.enumEntry)
+            ? writer.enumFromOrdinal(readExpr, idl.createReferenceType(this.enumEntry.name))
             : writer.makeCast(readExpr, idl.createReferenceType(this.enumEntry.name))
         return assigneer(enumExpr)
     }

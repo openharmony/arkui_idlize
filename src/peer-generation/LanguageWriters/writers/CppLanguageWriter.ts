@@ -362,7 +362,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return []
     }
-    enumFromOrdinal(value: LanguageExpression, _: IDLEnum): LanguageExpression {
+    enumFromOrdinal(value: LanguageExpression, _: IDLType): LanguageExpression {
         return value;
     }
     ordinalFromEnum(value: LanguageExpression, _: IDLType): LanguageExpression {

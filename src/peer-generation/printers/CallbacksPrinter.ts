@@ -19,11 +19,14 @@ import { CppLanguageWriter, LanguageWriter, NamedMethodSignature } from "../Lang
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
-import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName } from "../ArgConvertors";
+import { CallbackKind, EnumConvertor, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName } from "../ArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
 import { collectMaterializedImports } from "../Materialized";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { PrimitiveType } from "../ArkPrimitiveType";
+import { createSerializerDependencyFilter, getSerializerDeclarations, printSerializerImports } from "./SerializerPrinter";
+import { convertDeclToFeature, createDependencyFilter } from "../idl/IdlPeerGeneratorVisitor";
+import { isSyntheticDeclaration } from "../idl/IdlSyntheticDeclarations";
 
 function collectEntryCallbacks(library: PeerLibrary, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
@@ -131,15 +134,37 @@ class DeserializeCallbacksVisitor {
             cppFile.addInclude("common-interop.h")
         }
 
-        if (this.writer.language === Language.TS) {
+        if (this.writer.language === Language.TS || this.writer.language === Language.ARKTS) {
             const tsFile = this.destFile as TsSourceFile
             const imports = tsFile.imports
-            imports.addFeature("CallbackKind", "./CallbackKind")
-            imports.addFeature("Deserializer", "./Deserializer")
+            imports.addFeature("CallbackKind", "./peers/CallbackKind")
+            imports.addFeature("Deserializer", "./peers/Deserializer")
             imports.addFeature("int32", "@koalaui/common")
-            imports.addFeature("ResourceHolder", "@koalaui/interop")
-            imports.addFeature("RuntimeType", "./SerializerBase")
-            collectMaterializedImports(imports, this.library, "../")
+            imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr"], "@koalaui/interop")
+            imports.addFeature("RuntimeType", "./peers/SerializerBase")
+
+            if (this.writer.language === Language.TS) {
+                collectMaterializedImports(imports, this.library)
+            }
+            if (this.writer.language === Language.ARKTS) {
+                for (const callback of collectUniqueCallbacks(this.library)) {
+                    if (idl.isSyntheticEntry(callback))
+                        continue
+                    const feature = convertDeclToFeature(this.library, callback)
+                    imports.addFeature(feature.feature, feature.module)
+                }
+                this.library.files.forEach(peer => peer.serializeImportFeatures
+                    .forEach(importFeature => imports.addFeature(importFeature.feature, importFeature.module)))
+        
+                getSerializerDeclarations(this.library, createSerializerDependencyFilter(this.destFile.language)).filter(it => isSyntheticDeclaration(it) || it.fileName)
+                    .filter(it => !idl.isCallback(it))
+                    .map(it => convertDeclToFeature(this.library, it))
+                    .forEach(it => imports.addFeature(it.feature, it.module))
+        
+                for (let builder of this.library.builderClasses.keys()) {
+                    imports.addFeature(builder, `Ark${builder}Builder`)
+                }
+            }
         }
     }
 
@@ -221,9 +246,12 @@ class DeserializeCallbacksVisitor {
             )
         }
         this.writer.writeFunctionImplementation(`deserializeAndCallCallback`, signature, writer => {
+            const kindReference = idl.createReferenceType(`CallbackKind`)
             if (writer.language !== Language.CPP) {
-                writer.writeStatement(writer.makeAssign(`kind`, idl.createReferenceType(`CallbackKind`), 
-                    writer.makeCast(writer.makeMethodCall(`thisDeserializer`, `readInt32`, []), idl.createReferenceType(`CallbackKind`)), true))
+                writer.writeStatement(writer.makeAssign(`kind`, idl.IDLI32Type, 
+                    writer.makeMethodCall(`thisDeserializer`, `readInt32`, []), 
+                    true
+                ))
             }
             writer.print(`switch (kind) {`)
             writer.pushIndent()
@@ -231,10 +259,12 @@ class DeserializeCallbacksVisitor {
                 const args = writer.language === Language.CPP
                     ? [`thisArray`, `thisLength`]
                     : [`thisDeserializer`]
-                writer.print(`case ${generateCallbackKindAccess(callback, this.writer.language)}: return deserializeAndCall${callback.name}(${args.join(', ')});`)
+                const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
+                writer.print(`case ${callbacks.indexOf(callback)}/*${callbackKindValue}*/: return deserializeAndCall${callback.name}(${args.join(', ')});`)
             }
             writer.popIndent()
             writer.print(`}`)
+            writer.writeStatement(writer.makeThrowError("Unknown callback kind"))
         })
     }
 

@@ -278,7 +278,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    enumFromOrdinal(value: LanguageExpression, _: idl.IDLEnum): LanguageExpression {
+    enumFromOrdinal(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
         throw new Error("Method not implemented.")
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {

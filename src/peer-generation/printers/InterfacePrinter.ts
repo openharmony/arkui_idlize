@@ -535,7 +535,9 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
 
     private printProperty(prop: idl.IDLProperty): stringOrNone[] {
         const staticMod = prop.isStatic ? "static " : ""
-        const readonlyMod = prop.isReadonly ? "readonly " : ""
+        // TODO stub until issue 20764 is fixed
+        // const readonlyMod = prop.isReadonly ? "readonly " : ""
+        const readonlyMod = ""
         return [
             ...this.printExtendedAttributes(prop),
             indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1)

@@ -51,8 +51,9 @@ export class EtsAssignStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
             const typeClause = this.type !== undefined ? `: ${writer.getNodeName(this.type)}` : ''
-            const initValue = this.expression !== undefined ? this.expression : writer.makeUndefined()
-            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName} ${typeClause} = ${initValue.asString()}`)
+            const maybeAssign = this.expression !== undefined ? " = " : ""
+            const initValue = this.expression !== undefined ? this.expression : writer.makeString("")
+            writer.print(`${this.isConst ? "const" : "let"} ${this.variableName} ${typeClause}${maybeAssign}${initValue.asString()}`)
         } else {
             writer.print(`${this.variableName} = ${this.expression.asString()}`)
         }
@@ -206,11 +207,12 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return this.makeString(`${value} as ${type}`)
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+        const enumName = this.getNodeName(enumEntry)
         if (value instanceof MethodCallExpression) {
-            return this.makeString(`${enumEntry.name}.ofOrdinal(${value.asString()})`)
+            return this.makeString(`${enumName}.ofOrdinal(${value.asString()})`)
         }
-        return this.makeString(`Object.values(${enumEntry.name})[${value.asString()}]`);
+        return this.makeString(`Object.values(${enumName})[${value.asString()}]`);
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
         return this.makeString(`${value.asString()}.ordinal`);

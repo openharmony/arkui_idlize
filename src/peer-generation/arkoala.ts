@@ -326,7 +326,7 @@ export function generateArkoalaFromIdl(config: {
                 integrated: true
             }
         )
-        writeFile(arkoala.peer(new TargetFile('CallbackDeserializeCall')), makeDeserializeAndCall(peerLibrary, Language.TS, "CallbackDeserializeCall.ts").printToString(),
+        writeFile(arkoala.peer(new TargetFile('CallbackDeserializeCall')), makeDeserializeAndCall(peerLibrary, Language.TS, "./peers/CallbackDeserializeCall.ts").printToString(),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
@@ -372,14 +372,27 @@ export function generateArkoalaFromIdl(config: {
             }
         )
         // waiting for es2panda to fix 20642 issue
-        // writeFile(arkoala.peer(new TargetFile('Deserializer')),
-        //     makeArkTSDeserializer(peerLibrary),
-        //     {
-        //         onlyIntegrated: config.onlyIntegrated,
-        //         integrated: true,
-        //         message: "producing [idl]"
-        //     }
-        // )
+        writeFile(arkoala.peer(new TargetFile('Deserializer')),
+            makeArkTSDeserializer(peerLibrary),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+                message: "producing [idl]"
+            }
+        )
+        writeFile(arkoala.peer(new TargetFile('CallbackKind')),
+            makeCallbacksKinds(peerLibrary, peerLibrary.language),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
+        writeFile(arkoala.peer(new TargetFile('CallbackDeserializeCall')), makeDeserializeAndCall(peerLibrary, Language.ARKTS, "./peers/CallbackDeserializeCall.ts").printToString(),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true
+            }
+        )
         writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')),
             makeTypeChecker(peerLibrary).arkts,
             {

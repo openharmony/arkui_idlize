@@ -17,6 +17,7 @@ import { Language } from "../../Language"
 import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, TSLanguageWriter } from "../LanguageWriters"
+import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter"
 import { ReferenceResolver } from "../ReferenceResolver"
 
 
@@ -28,6 +29,8 @@ export abstract class SourceFile {
             return new CppSourceFile(name, resolver)
         } else if (language === Language.TS) {
             return new TsSourceFile(name, resolver)
+        } else if (language === Language.ARKTS) {
+            return new ArkTSSourceFile(name, resolver)
         } else {
             return new GenericSourceFile(name, language, resolver)
         }
@@ -144,6 +147,39 @@ export class TsSourceFile extends SourceFile {
     
     public printImports(writer: LanguageWriter): void {
         if (!(writer instanceof TSLanguageWriter)) throw new TypeError("illegal language writer")
+        this.imports.print(writer, this.moduleName)
+    }
+}
+
+export class ArkTSSourceFile extends SourceFile {
+    declare public readonly content: ETSLanguageWriter
+
+    public readonly imports: ImportsCollector = new ImportsCollector()
+
+    constructor(name: string, resolver: ReferenceResolver) {
+        super(name, Language.ARKTS, resolver)
+    }
+
+    protected onMerge(file: this): void {
+        this.imports.merge(file.imports)
+    }
+
+    private get moduleName(): string {
+        // TODO set proper module name
+        return `./${this.name.replace(/\.ts$/, "")}` 
+    }
+
+    public printToString(): string {
+        let fileWriter = createLanguageWriter(Language.ARKTS, this.resolver) as ETSLanguageWriter
+        fileWriter.print(cStyleCopyright)
+        this.printImports(fileWriter)
+        fileWriter.print("")
+        fileWriter.concat(this.content)
+        return fileWriter.getOutput().join("\n")
+    }
+    
+    public printImports(writer: LanguageWriter): void {
+        if (!(writer instanceof ETSLanguageWriter)) throw new TypeError("illegal language writer")
         this.imports.print(writer, this.moduleName)
     }
 }
