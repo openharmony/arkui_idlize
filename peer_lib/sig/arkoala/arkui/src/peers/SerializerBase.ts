@@ -299,4 +299,8 @@ export class SerializerBase {
             this.writeInt32((value as Resource).id)
         }
     }
+    writeBuffer(buffer: ArrayBuffer) {
+        this.writePointer(64)
+        this.writeInt64(buffer.byteLength)
+    }
 }

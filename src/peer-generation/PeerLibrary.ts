@@ -18,7 +18,7 @@ import { BuilderClass } from './BuilderClass';
 import { MaterializedClass } from "./Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './idl/IdlPeerGeneratorVisitor';
 import { PeerFile } from "./PeerFile";
-import { AggregateConvertor, ArrayConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
+import { AggregateConvertor, ArrayConvertor, BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { DependencySorter } from './idl/DependencySorter';
 import { IndentedPrinter } from '../IndentedPrinter';
@@ -180,6 +180,7 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isPrimitiveType(type)) {
             switch (type) {
+                case idl.IDLBufferType: return new BufferConvertor(param)
                 case idl.IDLBooleanType: return new BooleanConvertor(param)
                 case idl.IDLStringType: return new StringConvertor(param)
                 case idl.IDLNullType: return new NullConvertor(param)

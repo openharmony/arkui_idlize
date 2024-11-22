@@ -620,7 +620,7 @@ function mapCInteropRetType(type: idl.IDLType): string {
         } else
             return PrimitiveType.NativePointer.getText()
     }
-    throw `mapCInteropType failed for ${idl.IDLKind[type.kind]}`
+    throw new Error(`mapCInteropType failed for ${idl.IDLKind[type.kind]}`)
 }
 
 export class TSDeclConvertor implements DeclarationConvertor<void> {

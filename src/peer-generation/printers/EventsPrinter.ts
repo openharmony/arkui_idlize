@@ -368,7 +368,7 @@ interface PeerEvent {
                     : `${PeerEventKind}`
                 writer.writeFieldDeclaration(
                     'kind',
-                    idl.maybeOptional(idl.toIDLType(kindType), false),
+                    idl.toIDLType(kindType),
                     [FieldModifier.READONLY],
                     false,
                 )

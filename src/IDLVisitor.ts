@@ -181,9 +181,22 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
 
     private readonly TypeMapper =
         new Map<string, (type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion) => idl.IDLType>([
-            ["object", _ => idl.IDLObjectType],
-            ["string", _ => idl.IDLStringType],
-            ["Boolean", _ => idl.IDLBooleanType], // nasty typo in SDK
+            ["object", () => idl.IDLObjectType],
+            ["string", () => idl.IDLStringType],
+            ["Boolean", () => idl.IDLBooleanType], // nasty typo in SDK
+            ["ArrayBuffer", () => idl.IDLBufferType],
+            ["Int8Array", () => idl.IDLBufferType], // ["Int8Array", () => idl.createContainerType('sequence', [idl.IDLI8Type])],
+            ["Uint8Array", () => idl.IDLBufferType], // ["Uint8Array", () => idl.createContainerType('sequence', [idl.IDLU8Type])],
+            ["Uint8ClampedArray", () => idl.IDLBufferType], // ["Uint8ClampedArray", () => idl.createContainerType('sequence', [idl.IDLU8Type])],
+            ["Int16Array", () => idl.IDLBufferType], // ["Int16Array", () => idl.createContainerType('sequence', [idl.IDLI16Type])],
+            ["Uint16Array", () => idl.IDLBufferType], // ["Uint16Array", () => idl.createContainerType('sequence', [idl.IDLU16Type])],
+            ["Int32Array", () => idl.IDLBufferType], // ["Int32Array", () => idl.createContainerType('sequence', [idl.IDLI32Type])],
+            ["Uint32Array", () => idl.IDLBufferType], // ["Uint32Array", () => idl.createContainerType('sequence', [idl.IDLU32Type])],
+            ["Float16Array", () => idl.IDLBufferType], // ["Float16Array", () => idl.createContainerType('sequence', [idl.IDLF16Type])],
+            ["Float32Array", () => idl.IDLBufferType], // ["Float32Array", () => idl.createContainerType('sequence', [idl.IDLF32Type])],
+            ["Float64Array", () => idl.IDLBufferType], // ["Float64Array", () => idl.createContainerType('sequence', [idl.IDLF64Type])],
+            ["BigInt64Array", () => idl.IDLBufferType], // ["BigInt64Array", () => idl.createContainerType('sequence', [idl.IDLI64Type])],
+            ["BigUint64Array", () => idl.IDLBufferType], // ["BigUint64Array", () => idl.createContainerType('sequence', [idl.IDLU64Type])],
             ["Array", (type, name) => this.makeContainerType("sequence", type, name)],
             ["Map", (type, name) => this.makeContainerType("record", type, name)],
             ["Promise", (type, name) => this.makeContainerType("Promise", type, name)],
@@ -192,8 +205,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             ["AsyncCallback", (type, name) => this.makeCallbackType("AsyncCallback", type, name)],
             ["Optional", (type, name) => this.makeOptionalType(type, name)],
             // TODO: rethink that
-            ["\"2d\"", _ => idl.IDLStringType],
-            ["\"auto\"", _ => idl.IDLStringType],
+            ["\"2d\"", () => idl.IDLStringType],
+            ["\"auto\"", () => idl.IDLStringType],
         ])
 
     makeEnumMember(parent: idl.IDLEnum, name: string, value: string): idl.IDLEnumMember {

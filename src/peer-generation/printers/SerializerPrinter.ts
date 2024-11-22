@@ -407,7 +407,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLUint8ArrayType, idl.IDLI32Type], ["data", "length"])
             prefix = prefix === "" ? PrimitiveType.Prefix : prefix
         } else if (this.writer.language === Language.ARKTS) {
-            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType('ArrayBuffer'), idl.IDLI32Type], ["data", "length"])
+            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLBufferType, idl.IDLI32Type], ["data", "length"])
         }
         const serializerDeclarations = getSerializerDeclarations(this.library,
             createSerializerDependencyFilter(this.writer.language))

@@ -145,7 +145,7 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
             case idl.IDLLengthType: return this.make(`Length`)
             case idl.IDLFunctionType: return this.make(`Function`)
             case idl.IDLDate: return this.make(`Date`)
-            case idl.IDLBufferType: this.make('void*', true)
+            case idl.IDLBufferType: return this.make('Buffer')
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }

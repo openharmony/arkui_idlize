@@ -96,6 +96,13 @@ export class DeserializerBase {
         return value
     }
 
+    readInt64(): bigint {
+        this.checkCapacity(8)
+        const value = this.view.getBigInt64(this.position, true)
+        this.position += 8
+        return value
+    }
+
     readFloat32(): float32 {
         this.checkCapacity(4)
         const value = this.view.getFloat32(this.position, true)
@@ -156,6 +163,11 @@ export class DeserializerBase {
                 throw new Error(`Unknown number tag: ${tag}`)
                 break
         }
+    }
+    readBuffer(): ArrayBuffer {
+        this.readPointer()
+        const length = this.readInt64()
+        return new ArrayBuffer(Number(length))
     }
 
     // readLength(): Length | undefined {

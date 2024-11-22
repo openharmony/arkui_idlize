@@ -205,6 +205,11 @@ export class DeserializerBase {
         }
         return suffix
     }
+    readBuffer(): ArrayBuffer {
+        this.readPointer()
+        const length = this.readInt64()
+        return new ArrayBuffer(Number(length))
+    }
 }
 
 export abstract class CustomDeserializer {

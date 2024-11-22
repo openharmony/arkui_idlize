@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import {CustomTextDecoder, float32, int32} from "@koalaui/common"
+import {CustomTextDecoder, float32, int32, int64} from "@koalaui/common"
 import {pointer} from "@koalaui/interop"
 import {RuntimeType, Tags, CallbackResource} from "./SerializerBase";
 import { Length } from "../ArkUnitsInterfaces"
@@ -86,6 +86,13 @@ export class DeserializerBase {
     }
 
     readPointer(): pointer {
+        this.checkCapacity(8)
+        const value = this.view.getBigInt64(this.position, true)
+        this.position += 8
+        return value
+    }
+
+    readInt64(): int64 {
         this.checkCapacity(8)
         const value = this.view.getBigInt64(this.position, true)
         this.position += 8
@@ -197,6 +204,12 @@ export class DeserializerBase {
                 suffix = "<unknown>"
         }
         return suffix
+    }
+
+    readBuffer(): ArrayBuffer {
+        this.readPointer()
+        const length = this.readInt64()
+        return new ArrayBuffer(length)
     }
 
     readUint8ClampedArray(): Uint8ClampedArray {

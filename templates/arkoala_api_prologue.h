@@ -64,12 +64,19 @@ typedef enum Ark_RuntimeType
   ARK_RUNTIME_MATERIALIZED = 9,
 } Ark_RuntimeType;
 
+typedef struct Ark_Buffer
+{
+  void* data;
+  int64_t length;
+} Ark_Buffer;
+
 typedef float Ark_Float32;
 typedef double Ark_Float64;
 typedef int32_t Ark_Int32;
 typedef unsigned int Ark_UInt32; // TODO: update unsigned int
 typedef int64_t Ark_Int64;
 typedef int8_t Ark_Int8;
+typedef uint8_t Ark_UInt8;
 typedef int64_t Ark_Date;
 typedef int8_t Ark_Boolean;
 typedef const char* Ark_CharPtr;

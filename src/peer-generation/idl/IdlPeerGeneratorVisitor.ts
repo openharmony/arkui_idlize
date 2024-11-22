@@ -214,6 +214,7 @@ function mapCInteropRetType(type: idl.IDLType): string {
             case idl.IDLThisType:
             case idl.IDLUndefinedType:
             case idl.IDLUnknownType:
+            case idl.IDLBufferType:
                 return "void"
         }
     }

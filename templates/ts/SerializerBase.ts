@@ -205,6 +205,11 @@ export class SerializerBase {
         this.view.setBigInt64(this.position, BigInt(value ?? 0), true)
         this.position += 8
     }
+    writeInt64(value: bigint) {
+        this.checkCapacity(8)
+        this.view.setBigInt64(this.position, value, true)
+        this.position += 8
+    }
     writeFloat32(value: float32) {
         this.checkCapacity(4)
         this.view.setFloat32(this.position, value, true)
@@ -227,6 +232,10 @@ export class SerializerBase {
         //     nativeModule()._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
         // this.view.setInt32(this.position, encodedLength, true)
         // this.position += encodedLength + 4
+    }
+    writeBuffer(buffer: ArrayBuffer) {
+        this.writePointer(BigInt(64))
+        this.writeInt64(BigInt(buffer.byteLength)) // writeInt64
     }
 }
 

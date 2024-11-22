@@ -480,6 +480,33 @@ export class PredefinedConvertor extends BaseArgConvertor {
     }
 }
 
+export class BufferConvertor extends BaseArgConvertor {
+    constructor(param: string) {
+        super(idl.IDLBufferType, [RuntimeType.OBJECT], false, true, param)
+    }
+    convertorArg(param: string, _: LanguageWriter): string {
+        return param
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.writeMethodCall(`${param}Serializer`, "writeBuffer", [value])
+    }
+    convertorDeserialize(_: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeCast(
+            writer.makeString(`${deserializerName}.readBuffer()`),
+            this.idlType, { optional: false })
+        )
+    }
+    nativeType(): idl.IDLType {
+        return idl.IDLBufferType
+    }
+    interopType(language: Language): string {
+        return language == Language.CPP ?  "Ark_Buffer" : "ArrayBuffer"
+    }
+    isPointerType(): boolean {
+        return false
+    }
+}
+
 export class StringConvertor extends BaseArgConvertor {
     private literalValue?: string
     constructor(param: string) {

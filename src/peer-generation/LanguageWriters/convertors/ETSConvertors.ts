@@ -82,6 +82,8 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
 
             case idl.IDLStringType: return 'KStringPtr'
             case idl.IDLFunctionType: return 'Object'
+
+            case idl.IDLBufferType: return 'ArrayBuffer'
         }
         return super.convertPrimitiveType(type)
     }

@@ -146,6 +146,11 @@ public class SerializerBase {
         this.buffer.put(RuntimeType.STRING.value);
         this.writeString(value.value);
     }
+    public void writeBuffer(byte[] value) {
+        this.checkCapacity(8);
+        this.buffer.putLong(42);
+        this.buffer.putLong(value.length);
+    }
     public void writeCustomObject(String kind, Object value) {
         for (var serializer: customSerializers) {
             if (serializer.supports(kind)) {

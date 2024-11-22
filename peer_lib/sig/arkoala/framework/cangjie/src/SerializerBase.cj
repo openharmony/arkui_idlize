@@ -179,7 +179,7 @@ public open class SerializerBase {
         this.setBytes(this.position, Int32(value))
     }
     func writeInt64(value: Int64): Unit {
-        this.setBytes(this.position, value)
+        this.setBytes(this.position, Int64(value))
     }
     func writeFloat32(value: Float32): Unit {
         this.setBytes(this.position, value)
@@ -213,5 +213,10 @@ public open class SerializerBase {
         this.checkCapacity(1)
         this.writeInt8(RuntimeType.STRING.ordinal)
         this.writeString(value.value)
+    }
+    func writeBuffer(value: ArrayList<UInt8>) {
+        // TODO
+        // this.writePointer(42)
+        // this.writeInt64(value.size)
     }
 }
