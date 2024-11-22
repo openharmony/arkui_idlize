@@ -14,7 +14,7 @@
  */
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "../FileGenerators";
 import { FunctionCallExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createLanguageWriter } from "../LanguageWriters";
-import { PeerClassBase } from "../PeerClass";
+import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
@@ -47,7 +47,7 @@ class NativeModuleVisitor {
     }
 
     protected printPeerMethods(peer: PeerClass) {
-        peer.methods.forEach(it => this.printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
+        [createConstructPeerMethod(peer)].concat(peer.methods).forEach(it => this.printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
     }
 
     protected printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter, nativeFunctions?: LanguageWriter) {
@@ -381,7 +381,6 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
         })
     }
 }
-
 
 export function printNativeModule(peerLibrary: PeerLibrary, nativeBridgePath: string): string {
     const lang = peerLibrary.language

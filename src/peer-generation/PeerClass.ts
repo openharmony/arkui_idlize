@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
-import { IDLProperty } from "../idl"
+import { IDLPointerType, IDLProperty, IDLVoidType } from "../idl"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
+import { PrimitiveType } from "./ArkPrimitiveType"
+import { RetConvertor } from "./ArgConvertors"
+import { Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 
 export interface PeerClassBase {
     setGenerationContext(context: string| undefined): void
@@ -52,4 +55,24 @@ export class PeerClass implements PeerClassBase {
     attributesFields: IDLProperty[] = []
     attributesTypes: {typeName: string, content: string}[] = []
     hasGenericType: boolean = false
+}
+
+export function createConstructPeerMethod(clazz: PeerClass): PeerMethod {
+    const constructPeerReturnType: RetConvertor = {
+        isVoid: false,
+        nativeType: () => PrimitiveType.NativePointer.getText(),
+        interopType: () => PrimitiveType.NativePointer.getText(),
+        macroSuffixPart: () => ""
+    }
+    return new PeerMethod(
+            clazz.componentName,
+            [],
+            constructPeerReturnType,
+            false,
+            new Method(
+                'construct',
+                new NamedMethodSignature(IDLPointerType, [], []),
+                [MethodModifier.STATIC]
+            )
+        )
 }

@@ -213,7 +213,6 @@ ${lines}
 `
 }
 
-
 export function dummyImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
     let prologue = readTemplate('dummy_impl_prologue.cc')
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
@@ -622,8 +621,8 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
     writer.writeMethodImplementation(new Method(
         `${PeerGeneratorConfig.cppPrefix}SetArkUiEventsAPI`,
         new NamedMethodSignature(IDLVoidType, [
-            createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`)], 
-            [`api`], undefined, 
+            createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`)],
+            [`api`], undefined,
             [undefined, MethodArgPrintHint.AsConstPointer]),
     ), (writer) => {
         writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`api`), false))

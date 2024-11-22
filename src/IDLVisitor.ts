@@ -1266,14 +1266,14 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             return idl.createMethod(
                 "indexSignature",
                 methodParameters.map(it => this.serializeParameter(it)), // check nameSuggestion
-                this.serializeType(method.type, nameSuggestion),{
-                isStatic: false,
-                isOptional: false,
-                isAsync: false,
-            }, {
-                extendedAttributes: extendedAttributes,
-                documentation: getDocumentation(this.sourceFile, method, this.options.docs),
-            })
+                this.serializeType(method.type, nameSuggestion), {
+                    isStatic: false,
+                    isOptional: false,
+                    isAsync: false,
+                }, {
+                    extendedAttributes: extendedAttributes,
+                    documentation: getDocumentation(this.sourceFile, method, this.options.docs),
+                })
         }
         this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedMethodName, extendedAttributes)
         const returnType = this.serializeType(method.type, nameSuggestion?.extend('ret'))

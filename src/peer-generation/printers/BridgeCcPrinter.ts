@@ -23,6 +23,7 @@ import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
+import { createConstructPeerMethod } from "../PeerClass";
 
 class BridgeCcVisitor {
     readonly generatedApi = createLanguageWriter(Language.CPP, this.library)
@@ -245,7 +246,7 @@ class BridgeCcVisitor {
             : retConvertor.nativeType();
     }
 
-    /* 
+    /*
     printCustomApiMethod(c: CustomAPI, m: Method) {
         const sig = m.signature as NamedMethodSignature
         const capitalizedName = capitalize(m.name)
@@ -283,7 +284,7 @@ class BridgeCcVisitor {
     print(): void {
         for (const file of this.library.files) {
             for (const peer of file.peersToGenerate.values()) {
-                for (const method of peer.methods) {
+                for (const method of [createConstructPeerMethod(peer)].concat(peer.methods)) {
                     this.printMethod(method, peer.componentName)
                 }
             }
@@ -296,7 +297,7 @@ class BridgeCcVisitor {
             }
         }
 
-        /* 
+        /*
         this.customApi.print("\n// custom API methods\n")
         for(const customApi of CUSTOM_API) {
             for(const method of customApi.methods) {
@@ -356,7 +357,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
         } else {
             return super.getApiCallResultField(method)
         }
-        
+
     }
 }
 

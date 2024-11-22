@@ -21,7 +21,7 @@ import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } fr
 import { camelCaseToUpperSnakeCase } from "../../util";
 import { maybeOptional } from "../../idl";
 import { PeerLibrary } from "../PeerLibrary";
-import { PeerClass } from "../PeerClass";
+import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { Language } from "../../Language";
@@ -140,6 +140,7 @@ class HeaderVisitor {
         this.library.files.forEach(file => {
             file.peers.forEach(clazz => {
                 this.printClassProlog(clazz)
+                this.printMethod(createConstructPeerMethod(clazz))
                 clazz.methods.forEach(method => {
                     this.printMethod(method)
                 })
