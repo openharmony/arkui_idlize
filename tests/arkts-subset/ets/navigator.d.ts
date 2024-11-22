@@ -13,9 +13,15 @@
  * limitations under the License.
  */
 
+declare enum NavigationType {
+    Push,
+    Back,
+    Replace,
+  }
+
 interface NavigatorInterface {
-    (): NavigatorAttribute;
-    // (value?: { target: string; type?: NavigationType }): NavigatorAttribute;
+    // (): NavigatorAttribute;
+    (value?: { target: string; type?: NavigationType }): NavigatorAttribute;
 }
 
 declare class NavigatorAttribute extends CommonMethod<NavigatorAttribute> {
