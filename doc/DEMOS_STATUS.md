@@ -34,19 +34,19 @@
 | `target`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `params`                  | Function  |           | HEL         | Skroba Gleb         | in progress      |                   |           | High     |
 | Progress                  | Component | Yes       |             | Erokhin Ilya        | Blocked          |                   |           |          |
-| `style, total, value`     | Options   |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
-| `type, value`             | Options   |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
-| `style`                   | Function  |           | HEL         | Erokhin Ilya        | blocked          |                   |           | Medium   |
-| `color`                   | Function  |           | HEL         | Erokhin Ilya        | in progress      |                   |           | Medium   |
+| `style, total, value`     | Options   |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
+| `type, value`             | Options   |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
+| `style`                   | Function  |           | HEL         | Erokhin Ilya        | blocked IDL      |                   |           | Medium   |
+| `color`                   | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
 | Common                    | Component | Yes       |             | Roman Sedaikin      | in progress      | Roman Sedaikin    | done      |          |
 | `width`                   | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
 | `height`                  | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
 | `size`                    | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `constraintSize`          | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
-| `offset`                  | Function  |           | WON         | Skroba Gleb         | in progress      | Roman Sedaikin    | done      | High     |
+| `offset`                  | Function  |           | WON         | Skroba Gleb         | done             | Roman Sedaikin    | done      | High     |
 | `position`                | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
-| `padding`                 | Function  |           | HEL         | Skroba Gleb         | in progress      | Roman Sedaikin    | done      | Medium   |
-| `margin`                  | Function  |           | ENC,WON,HEL | Skroba Gleb         | in progress      | Roman Sedaikin    | done      | Medium   |
+| `padding`                 | Function  |           | HEL         | Skroba Gleb         | done             | Roman Sedaikin    | done      | Medium   |
+| `margin`                  | Function  |           | ENC,WON,HEL | Skroba Gleb         | done             | Roman Sedaikin    | done      | Medium   |
 | `foregroundColor`         | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `opacity`                 | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `blur`                    | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
@@ -146,14 +146,14 @@
 | `onReady`                 | Function  |           | HEL         | Vadim Voronov       | done             |                   |           | Medium   |
 | TextPicker                | Component |           |             | Tuzhilkin Ivan      | in progress      |                   |           |          |
 | `range, selected`         | Options   |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | Medium   |
-| `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | Medium   |
+| `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | Medium   |
 | Scroll                    | Component |           |             | Kirill Berezin      | in progress      |                   |           |          |
 | `scrollable`              | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | `scrollBar`               | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
 | `onScrollEdge`            | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | Video                     | Component |           |             | Erokhin Ilya        | done             |                   |           |          |
-| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
+| `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked AceEngine|                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
 | Search                    | Component |           |             | Evstigneev Roman    | in progress      |                   |           |          |
 | `placeholderColor`        | Function  |           | WON         | Evstigneev Roman    | done             |                   |           | Low      |
