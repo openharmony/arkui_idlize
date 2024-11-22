@@ -39,6 +39,8 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLContainerType,
     DebugUtils,
     IDLConstant,
+    mixMethodParametersAndTags,
+    SignatureTag,
     createReferenceType,
     transformMethodsAsync2ReturnPromise,
     isNamedNode,
@@ -383,40 +385,4 @@ function mapContainerType(idlType: IDLContainerType): string {///belongs to LW?
 
 function getName(node: IDLEntry): stringOrNone {
     return getExtAttribute(node, IDLExtendedAttributes.DtsName) ?? node.name
-}
-
-interface SignatureTag {index: number, name: string, value: string}
-
-function fetchSignatureTags(node: IDLSignature): SignatureTag[] {
-    if (!node.extendedAttributes)
-        return []
-    return node.extendedAttributes
-        .filter((ea) => ea.name === IDLExtendedAttributes.DtsTag)
-        .map((ea):SignatureTag => {
-            if (!ea.value)
-                throw new Error('Empty DtsTag is not allowed')
-            let indexNameValue = ea.value.split('|')
-            if (indexNameValue.length === 1) {
-                return {
-                    index: 0, // zero is from the idl.DtsTag specification
-                    name: 'type', // 'type' is from the idl.DtsTag specification
-                    value: indexNameValue[0],
-                }
-            }
-            if (indexNameValue.length !== 3)
-                throw new Error(`Malformed DtsTag: "${ea.value}"`)
-            return {
-                index: Number(indexNameValue[0]),
-                name: indexNameValue[1],
-                value: indexNameValue[2],
-            }
-        })
-        .sort((a, b) => a.index - b.index)
-}
-
-function mixMethodParametersAndTags(node: IDLSignature) : (IDLParameter | SignatureTag)[] {
-    let mix: (IDLParameter | SignatureTag)[] = node.parameters.slice(0)
-    for (const tag of fetchSignatureTags(node))
-        mix.splice(tag.index, 0, tag)
-    return mix
 }

@@ -991,6 +991,8 @@ export class IdlPeerProcessor {
             .map(method => this.makeMaterializedMethod(decl, method))
             .filter(it => !idl.isNamedNode(it.method.signature.returnType) || !PeerGeneratorConfig.ignoreReturnTypes.has(it.method.signature.returnType.name))
 
+        const taggedMethods = decl.methods.filter(m => m.extendedAttributes?.find(it => it.name === IDLExtendedAttributes.DtsTag))
+
         mFields.forEach(f => {
             const field = f.field
             const idlType = field.type
@@ -1015,7 +1017,7 @@ export class IdlPeerProcessor {
         })
         this.library.materializedClasses.set(name,
             new MaterializedClass(name, isDeclInterface, superClass, decl.typeParameters,
-                mFields, mConstructor, mFinalizer, importFeatures, mMethods))
+                mFields, mConstructor, mFinalizer, importFeatures, mMethods, true, taggedMethods))
     }
 
     private makeMaterializedField(prop: idl.IDLProperty): MaterializedField {

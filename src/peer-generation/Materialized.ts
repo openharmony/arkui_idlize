@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import * as idl from "../idl"
+
 import { ArgConvertor, RetConvertor } from "./ArgConvertors"
 import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 import { capitalize } from "../util"
@@ -129,6 +131,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly importFeatures: ImportFeature[],
         public readonly methods: MaterializedMethod[],
         public readonly needBeGenerated: boolean = true,
+        public readonly taggedMethods: idl.IDLMethod[] = [],
     ) {
         PeerMethod.markAndGroupOverloads(methods)
     }

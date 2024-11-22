@@ -14,7 +14,7 @@
  */
 
 import * as idl from "../../idl"
-import { capitalize, removeExt, renameClassToMaterialized } from "../../util";
+import { capitalize, removeExt, renameClassToMaterialized, stringOrNone } from "../../util";
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     BlockStatement,
@@ -256,6 +256,30 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             for (const grouped of groupOverloads(clazz.methods)) {
                 this.overloadsPrinter.printGroupedComponentOverloads(clazz, grouped)
             }
+
+            // TBD: Refactor tagged methods staff
+            const seenTaggedMethods = new Set<string>()
+            clazz.taggedMethods
+                .map(it => methodFromTagged(it))
+                .filter(it => {
+                    if (seenTaggedMethods.has(it.name)) return false
+                    seenTaggedMethods.add(it.name)
+                    return true
+                })
+                .forEach(method => {
+                    // const method = methodFromTagged(taggedMethod)
+                    const signature = new NamedMethodSignature(
+                        method.returnType,
+                        method.parameters.map(it => it.type!),
+                        method.parameters.map(it => it.name)
+                    )
+                    // TBD: Add tagged methods implementation
+                    writer.writeMethodImplementation(new Method(getTaggedName(method)!, signature), writer => {
+                        writer.writeStatement(
+                            writer.makeThrowError("TBD")
+                        )
+                    })
+                })
 
             clazz.methods.forEach(method => {
                 let privateMethod = method
@@ -547,4 +571,37 @@ export function printMaterialized(peerLibrary: PeerLibrary, printerContext: Prin
         result.set(file, text)
     }
     return result
+}
+
+// TBD: Refactor tagged method staff
+function getTaggedName(node: idl.IDLEntry): stringOrNone {
+    return idl.getExtAttribute(node, idl.IDLExtendedAttributes.DtsName) ?? node.name
+}
+
+function paramFromTagged(paramOrTag: idl.IDLParameter | idl.SignatureTag): idl.IDLParameter {
+    const param = paramOrTag as idl.IDLParameter
+    if (param.kind === idl.IDLKind.Parameter) return param
+    const tag = paramOrTag as idl.SignatureTag
+    return idl.createParameter(tag.name, idl.IDLStringType)
+}
+
+function paramsFromTagged(node: idl.IDLSignature): idl.IDLParameter[] {
+    let mix: (idl.IDLParameter | idl.SignatureTag)[] = node.parameters.slice(0)
+    for (const tag of idl.fetchSignatureTags(node))
+        mix.splice(tag.index, 0, tag)
+
+    return mix.map(it => paramFromTagged(it))
+}
+
+function methodFromTagged(method: idl.IDLMethod): idl.IDLMethod {
+    return idl.createMethod(
+        getTaggedName(method)!,
+        paramsFromTagged(method),
+        method.returnType,
+        {
+            isStatic: false,
+            isOptional: false,
+            isAsync: false,
+        }, {}
+    )
 }
