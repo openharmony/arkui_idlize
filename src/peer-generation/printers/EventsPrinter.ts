@@ -40,7 +40,6 @@ import { ImportsCollector } from "../ImportsCollector";
 import { getReferenceResolver, ReferenceResolver } from "../ReferenceResolver"
 import { isImport } from "../idl/common"
 import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter";
-import { collectMaterializedImports } from "../Materialized"
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -349,7 +348,6 @@ abstract class TSEventsVisitorBase {
                 }
             })
         }
-        collectMaterializedImports(imports, this.library)
         imports.print(this.printer, '')
     }
 

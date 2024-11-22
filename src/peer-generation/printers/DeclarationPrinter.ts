@@ -29,7 +29,6 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
             seenEnums.add(decl.name)
         }
         const visitor = new DtsPrintVisitor(type => peerLibrary.resolveTypeReference(type), peerLibrary.language)
-        if ((idl.isInterface(decl) || idl.isClass(decl)) && isMaterialized(decl)) continue
         visitor.visit(decl)
         const text = visitor.output.join("\n")
         if (text)

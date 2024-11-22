@@ -42,7 +42,6 @@ import { Language } from "../../Language";
 import { IDLVoidType, isOptionalType, toIDLType } from "../../idl";
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
-import { collectMaterializedImports } from "../Materialized";
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -114,8 +113,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                         imports.addFeature("UseEventsProperties", './use_properties')
             }
         })
-
-        collectMaterializedImports(imports, this.library)
 
         this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(this.printer, removeExt(this.targetBasename))

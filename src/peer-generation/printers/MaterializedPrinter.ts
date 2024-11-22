@@ -296,6 +296,30 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 this.library.setCurrentContext(undefined)
             })
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
+
+
+        // Write MaterializedClass static
+        printer.writeClass(`${clazz.className}Static`, writer => {
+
+            // write fromPtr(ptr: number):MaterializedClass method
+            const clazzRefType = idl.createReferenceType(clazz.className,
+                clazz.generics?.map(idl.createTypeParameterReference))
+            const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
+            writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
+                const objVar = `obj`
+                writer.writeStatement(writer.makeAssign(objVar,
+                    clazzRefType,
+                    //TODO: Need to pass IDLType instead of string to makeNewObject
+                    writer.makeNewObject(writer.getNodeName(clazzRefType)),
+                    true)
+                )
+                writer.writeStatement(
+                    writer.makeAssign(`${objVar}.peer`, toIDLType("Finalizable"),
+                        writer.makeString(`new Finalizable(ptr, ${clazz.className}.getFinalizer())`), false),
+                )
+                writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
+            })
+        })
     }
 
     visit(): void {

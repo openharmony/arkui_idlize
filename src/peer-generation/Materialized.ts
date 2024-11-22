@@ -164,6 +164,6 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
 
 export function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
     for (const materialized of library.materializedClasses.keys()) {
-        imports.addFeature(materialized, `./Ark${materialized}Materialized`)
+        imports.addFeature(`${materialized}Static`, `./Ark${materialized}Materialized`)
     }
 }

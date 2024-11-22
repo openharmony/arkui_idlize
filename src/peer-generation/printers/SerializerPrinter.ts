@@ -107,11 +107,12 @@ class IdlSerializerPrinter {
             return
         }
         const baseType = idl.createReferenceType("MaterializedBase")
+        const unsafe = writer.language === Language.TS
         writer.writeStatement(
             writer.makeAssign(
                 `base`,
                 baseType,
-                writer.makeCast(writer.makeString(`value`), baseType),
+                writer.makeCast(writer.makeString(`value`), baseType, { unsafe: unsafe }),
                 true,
                 true
             ))
@@ -307,10 +308,30 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
             )
             return
         }
+        // TBD: Use explicit cast for CanvasRenderingContext2D and UIExtensionProxy classes
+        // to avoid errors
+        // for CanvasRenderingContext2D "Types of property 'clip' are incompatible."
+        // for UIExtensionProxy "Types of property 'off' are incompatible."
+        if (["CanvasRenderingContext2D", "UIExtensionProxy"].includes(target.name)) {
+            this.writer.print(`// TBD: remove explicit for ${target.name} class`)
+            const unsafe = this.writer.language === Language.TS
+            this.writer.writeStatement(
+                this.writer.makeReturn(
+                    this.writer.makeCast(
+                        this.writer.makeMethodCall(
+                            `${target.name}Static`, "fromPtr", [this.writer.makeString(`ptr`)]
+                        ),
+                        idl.createReferenceType(target.name),
+                        { unsafe: unsafe }
+                    )
+                )
+            )
+            return
+        }
         this.writer.writeStatement(
             this.writer.makeReturn(
                 this.writer.makeMethodCall(
-                    target.name, "construct", [this.writer.makeString(`ptr`)]
+                    `${target.name}Static`, "fromPtr", [this.writer.makeString(`ptr`)]
                 )
             )
         )
@@ -523,6 +544,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         for (let builder of library.builderClasses.keys()) {
             collector.addFeature(builder, `Ark${builder}Builder`)
         }
+        collectMaterializedImports(collector, library)
         // TODO Refactor to remove dependency on hardcoded paths
         collector.print(destFile.content, (declarationPath ? "." : "./peers/") + `Serializer.${destFile.language.extension}`)
     }

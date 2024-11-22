@@ -21,7 +21,6 @@ import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
 import { CallbackKind, EnumConvertor, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName } from "../ArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
-import { collectMaterializedImports } from "../Materialized";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { PrimitiveType } from "../ArkPrimitiveType";
 import { createSerializerDependencyFilter, getSerializerDeclarations, printSerializerImports } from "./SerializerPrinter";
@@ -143,9 +142,6 @@ class DeserializeCallbacksVisitor {
             imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr"], "@koalaui/interop")
             imports.addFeature("RuntimeType", "./peers/SerializerBase")
 
-            if (this.writer.language === Language.TS) {
-                collectMaterializedImports(imports, this.library)
-            }
             if (this.writer.language === Language.ARKTS) {
                 for (const callback of collectUniqueCallbacks(this.library)) {
                     if (idl.isSyntheticEntry(callback))

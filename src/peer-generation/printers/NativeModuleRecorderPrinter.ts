@@ -22,7 +22,6 @@ import { ImportsCollector } from "../ImportsCollector";
 import { makeSyntheticDeclarationsFiles } from "../idl/IdlSyntheticDeclarations";
 import { Language } from "../../Language";
 import { createParameter, createReferenceType, createUnionType, IDLI32Type, IDLNullType, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLVoidType, toIDLType } from "../../idl";
-import { collectMaterializedImports } from "../Materialized";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
@@ -44,7 +43,6 @@ class NativeModuleRecorderVisitor {
         for (let [module, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
             declarations.forEach(it => imports.addFeature(it.name!, module))
         }
-        collectMaterializedImports(imports, this.library)
         imports.print(this.nativeModuleRecorder, '')
     }
 
