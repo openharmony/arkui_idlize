@@ -24,6 +24,7 @@ import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { PeerLibrary } from "../PeerLibrary";
 import { Language } from "../../Language";
 import { createOptionalType, forceAsNamedNode, IDLType, IDLVoidType, isOptionalType, toIDLType } from "../../idl";
+import { generifiedTypeName } from "../idl/common";
 
 interface BuilderClassFileVisitor {
     printFile(): void
@@ -52,7 +53,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         const currentModule = removeExt(renameClassToBuilderClass(clazz.name, this.peerLibrary.language))
         imports.print(this.printer, currentModule)
 
-        const superType = clazz.superClass?.getSuperType()
+        const superType = generifiedTypeName(clazz.superClass)
 
         writer.writeClass(clazz.name, writer => {
 

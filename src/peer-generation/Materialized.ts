@@ -108,22 +108,11 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
     return copied
 }
 
-export class SuperElement {
-    constructor(
-        public readonly name: string,
-        public readonly generics?: string[]
-    ) { }
-
-    getSuperType(): string {
-        return `${this.name}${this.generics?.length ? `<${this.generics.join(", ")}>` : ``}`
-    }
-}
-
 export class MaterializedClass implements PeerClassBase {
     constructor(
         public readonly className: string,
         public readonly isInterface: boolean,
-        public readonly superClass: SuperElement | undefined,
+        public readonly superClass: idl.IDLReferenceType | undefined,
         public readonly generics: string[] | undefined,
         public readonly fields: MaterializedField[],
         public readonly ctor: MaterializedMethod,

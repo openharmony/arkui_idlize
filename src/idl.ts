@@ -118,8 +118,6 @@ export interface IDLType extends IDLNode {
     _idlTypeBrand: any
 }
 
-export const IDLTopType: IDLType = createPrimitiveType("__TOP__")
-
 export interface IDLTypedef extends IDLEntry {
     kind: IDLKind.Typedef
     type: IDLType
@@ -233,7 +231,7 @@ export interface IDLConstructor extends IDLSignature {
 export interface IDLInterface extends IDLEntry {
     kind: IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface | IDLKind.TupleInterface
     typeParameters?: string[]
-    inheritance: IDLType[]
+    inheritance: IDLReferenceType[]
     constructors: IDLConstructor[]
     constants: IDLConstant[]
     properties: IDLProperty[]
@@ -430,6 +428,16 @@ export function createOptionalType(element:IDLType): IDLOptionalType {
     }
 }
 
+/**
+ * This placeholder is used when a class has no superclass.
+ * Examples:
+ *  class definition:               inheritance:
+ * `C extends T`                  :  [T]
+ * `C implements T`               :  [Top, T]
+ * `C extends T implements I, J`  :  [T, I, J]
+ */
+export const IDLTopType: IDLReferenceType = createReferenceType("__TOP__")
+
 export const IDLPointerType = createPrimitiveType('pointer')
 export const IDLVoidType = createPrimitiveType('void')
 export const IDLBooleanType = createPrimitiveType('boolean')
@@ -593,7 +601,7 @@ export type IDLInterfaceKind = IDLKind.Interface | IDLKind.Class | IDLKind.Anony
 export function createInterface(
     name: string,
     kind: IDLInterfaceKind,
-    inheritance: IDLType[] = [],
+    inheritance: IDLReferenceType[] = [],
     constructors: IDLConstructor[] = [],
     constants: IDLConstant[] = [],
     properties: IDLProperty[] = [],
@@ -1004,7 +1012,7 @@ export function printInterface(idl: IDLInterface): stringOrNone[] {
         .concat(["};"])
 }
 
-export function getSuperType(idl: IDLInterface): IDLType | undefined {
+export function getSuperType(idl: IDLInterface): IDLReferenceType | undefined {
     const parent = idl.inheritance[0]
     return parent && parent !== IDLTopType ? parent : undefined
 }

@@ -14,12 +14,11 @@
  */
 
 import { Field, Method, MethodModifier, MethodSignature, NamedMethodSignature } from "./LanguageWriters"
-import { SuperElement } from "./Materialized"
 import { ImportFeature } from "./ImportsCollector"
 import { Language } from "../Language";
 import { PeerLibrary } from "./PeerLibrary";
 import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
-import { createReferenceType, IDLThisType, IDLType, IDLVoidType } from "../idl"
+import { createReferenceType, IDLReferenceType, IDLThisType, IDLType, IDLVoidType } from "../idl"
 
 function builderMethod(name: string, type: IDLType): Method {
     return new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))
@@ -30,7 +29,7 @@ export class BuilderClass {
         public readonly name: string,
         public readonly generics: string[] | undefined,
         public readonly isInterface: boolean,
-        public readonly superClass: SuperElement | undefined,
+        public readonly superClass: IDLReferenceType | undefined,
         public readonly fields: Field[],
         public readonly constructors: Method[],
         public readonly methods: Method[],

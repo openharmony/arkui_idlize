@@ -46,6 +46,7 @@ import { Language } from "../../Language";
 import { copyMethod } from "../LanguageWriters/LanguageWriter";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLThisType, IDLType, IDLVoidType, isOptionalType, maybeOptional, toIDLType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
+import { generifiedTypeName } from "../idl/common";
 
 interface MaterializedFileVisitor {
     visit(): void
@@ -101,7 +102,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         const printer = this.printer
         printer.print(makeMaterializedPrologue(this.printerContext.language))
 
-        let superClassName = clazz.superClass?.getSuperType()
+        let superClassName = generifiedTypeName(clazz.superClass)
         let selfInterface = clazz.isInterface
             ? `${clazz.className}${clazz.generics?.length ? `<${clazz.generics.join(", ")}>` : ``}`
             : undefined
@@ -329,7 +330,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
         const emptyParameterType = toIDLType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
         const finalizableType = toIDLType('Finalizable')
-        const superClassName = clazz.superClass?.getSuperType() ?? ARK_MATERIALIZEDBASE
+        const superClassName = generifiedTypeName(clazz.superClass) ?? ARK_MATERIALIZEDBASE
 
         const interfaces:string[] = ["MaterializedBase"]
 
@@ -461,7 +462,7 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
         const emptyParameterType = createReferenceType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
         const finalizableType = createReferenceType('Finalizable')
-        const superClassName = clazz.superClass?.getSuperType() ?? ARK_MATERIALIZEDBASE
+        const superClassName = generifiedTypeName(clazz.superClass) ?? ARK_MATERIALIZEDBASE
 
         this.printer.writeClass(clazz.className, writer => {
             const pointerType = IDLPointerType

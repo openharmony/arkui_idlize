@@ -42,3 +42,9 @@ export function typeOrUnion(types: idl.IDLType[], name?: string): idl.IDLType {
     })
     return uniqueTypes.length === 1 ? uniqueTypes[0] : idl.createUnionType(uniqueTypes, name)
 }
+
+export function generifiedTypeName(refType: idl.IDLReferenceType | undefined): string | undefined {
+    if (!refType) return undefined
+    const typeArgs = refType.typeArguments?.map(it => idl.printType(it)).join(",")
+    return `${refType.name}${typeArgs ? `<${typeArgs}>` : ``}`
+}

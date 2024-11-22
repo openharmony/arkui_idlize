@@ -39,7 +39,7 @@ import { PeerClass } from "../PeerClass"
 import { PeerMethod } from "../PeerMethod"
 import { PeerFile } from "../PeerFile"
 import { PeerLibrary } from "../PeerLibrary"
-import { MaterializedClass, MaterializedField, MaterializedMethod, SuperElement } from "../Materialized"
+import { MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
 import { createTypeNameConvertor, Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { convertDeclaration, IdlNameConvertor } from "../LanguageWriters/nameConvertor";
 import {
@@ -884,7 +884,7 @@ export class IdlPeerProcessor {
     private getBuilderMethods(target: idl.IDLInterface, className?: string): Method[] {
         return [
             ...target.inheritance
-                .filter(idl.isReferenceType)
+                .filter(it => it !== idl.IDLTopType)
                 .filter(it => {
                     if (!this.library.resolveTypeReference(it))
                         console.log(`Cannot resolve ${it.name}`)
@@ -963,13 +963,6 @@ export class IdlPeerProcessor {
             return
         }
 
-        const superClassType = idl.getSuperType(decl)
-        const superClass = superClassType ?
-            new SuperElement(
-                idl.forceAsNamedNode(superClassType).name,
-                (superClassType as idl.IDLReferenceType).typeArguments?.map(it => idl.printType(it)))
-            : undefined
-
         const importFeatures = this.collectDeclDependencies(decl)
         const isDeclInterface = idl.isInterface(decl)
 
@@ -1017,7 +1010,7 @@ export class IdlPeerProcessor {
             }
         })
         this.library.materializedClasses.set(name,
-            new MaterializedClass(name, isDeclInterface, superClass, decl.typeParameters,
+            new MaterializedClass(name, isDeclInterface, idl.getSuperType(decl), decl.typeParameters,
                 mFields, mConstructor, mFinalizer, importFeatures, mMethods, true, taggedMethods))
     }
 

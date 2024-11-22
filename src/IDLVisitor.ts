@@ -358,7 +358,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             .filter(it => !!it)
     }
 
-    serializeHeritage(heritage: ts.HeritageClause): idl.IDLType[] {
+    serializeHeritage(heritage: ts.HeritageClause): idl.IDLReferenceType[] {
         return heritage.types.map(it => {
             let name: string
             if (ts.isIdentifier(it.expression)) {
@@ -372,7 +372,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         })
     }
 
-    serializeInheritance(inheritance: ts.NodeArray<ts.HeritageClause> | undefined): idl.IDLType[] {
+    serializeInheritance(inheritance: ts.NodeArray<ts.HeritageClause> | undefined): idl.IDLReferenceType[] {
         return inheritance?.map(it => this.serializeHeritage(it)).flat() ?? []
     }
 
@@ -610,7 +610,13 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     }
 
     serializeIntersectionType(node: ts.IntersectionTypeNode, nameSuggestion?: NameSuggestion): idl.IDLInterface {
-        const inheritance = node.types.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`intersection${index}`)))
+        const toIDLReferenceType = (type: ts.TypeNode, index: number) => {
+            const result = this.serializeType(type, nameSuggestion?.extend(`intersection${index}`))
+            if (!idl.isReferenceType(result))
+                throw new Error(`Can only intersect type references`)
+            return result
+        }
+        const inheritance = node.types.map((it, index) => toIDLReferenceType(it, index))
         const syntheticName = `Intersection_${inheritance.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
         const selectedName = selectName(nameSuggestion, syntheticName)
         return idl.createInterface(
