@@ -85,6 +85,18 @@ export class MethodCallExpression extends FunctionCallExpression {
     }
 }
 
+export class FieldAccessExpression  {
+    constructor(
+        public receiver: string,
+        public field: string,
+        public nullable = false)
+    { }
+    asString(): string {
+        return `${this.receiver}${this.nullable ? "?" : ""}.${this.field}`
+    }
+}
+
+
 export class CheckDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
     asString(): string {
@@ -230,7 +242,7 @@ export class TsEnumEntityStatement implements LanguageStatement {
         // writer.print(this.enumEntity.comment)
         const namespace = idl.getExtAttribute(this.enumEntity, idl.IDLExtendedAttributes.Namespace)
         if (namespace) writer.pushNamespace(namespace)
-            
+
         writer.print(`${this.isExport ? "export " : ""}enum ${this.enumEntity.name} {`)
         writer.pushIndent()
         this.enumEntity.elements.forEach((member, index) => {
@@ -524,6 +536,9 @@ export abstract class LanguageWriter {
     }
     makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(receiver, method, params, nullable)
+    }
+    makeFieldAccess(receiver: string, method: string, nullable?: boolean): LanguageExpression {
+        return new FieldAccessExpression(receiver, method, nullable)
     }
     makeNativeCall(method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(this.nativeReceiver(), method, params, nullable)

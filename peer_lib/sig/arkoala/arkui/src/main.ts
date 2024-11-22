@@ -388,7 +388,7 @@ function checkOverloads() {
     class ArkSideBarContainerComponentTest extends ArkSideBarContainerComponent {
         constructor(peer: ArkSideBarContainerPeer) {
             super()
-            this.peer = peer
+            this.setPeer(peer)
         }
 
         override checkPriority(name: string) {
