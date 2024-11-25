@@ -333,6 +333,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isClassDeclaration(node)) {
         return identString(node.name)
     }
+    if (ts.isMethodDeclaration(node)) {
+        return identString(node.name)
+    }
     if (ts.isEnumDeclaration(node)){
         return identString(node.name)
     }

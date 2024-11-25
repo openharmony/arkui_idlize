@@ -22,6 +22,7 @@ import {
     getLineNumberString,
     identName,
     isAbstract,
+    isStatic,
     nameOrNull,
     zip
 } from "./util"
@@ -99,6 +100,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             }
         })
         this.checkClassInheritance(clazz)
+        this.checkClassStaticMethodsWithoutConstructor(clazz)
         this.interfaceOrClassChecks(clazz)
     }
 
@@ -409,6 +411,17 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
         })
     }
 
+    private checkClassStaticMethodsWithoutConstructor(node: ts.ClassDeclaration) {
+        const staticMethods = node.members.filter(member => ts.isMethodDeclaration(member) && isStatic(member.modifiers));
+        if (staticMethods.length > 0 && !node.members.find(ts.isConstructorDeclaration)) {
+            this.report(
+                node,
+                LinterError.STATIC_METHODS_WITHOUT_CONSTRUCTOR,
+                `Class ${identName(node)} with static methods [${staticMethods.map(identName).join(", ")}] but without a constructor`
+            )
+        }
+    }
+   
     private getMethodsTypes(node: ts.ClassDeclaration): Map<string, ts.FunctionTypeNode> {
         const map = new Map()
         node.members
