@@ -47,7 +47,9 @@ class NativeModuleVisitor {
     }
 
     protected printPeerMethods(peer: PeerClass) {
-        [createConstructPeerMethod(peer)].concat(peer.methods).forEach(it => this.printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
+        const constructMethod = createConstructPeerMethod(peer)
+        this.printPeerMethod(peer, constructMethod, this.nativeModule, this.nativeModuleEmpty, constructMethod.method.signature.returnType, this.nativeFunctions)
+        peer.methods.forEach(it => this.printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
     }
 
     protected printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter, nativeFunctions?: LanguageWriter) {
@@ -66,7 +68,7 @@ class NativeModuleVisitor {
         returnType?: idl.IDLType,
         nativeFunctions?: LanguageWriter
     ) {
-        const component = clazz.generatedName(method.isCallSignature)
+        const component = method.originalParentName // clazz.generatedName(method.isCallSignature)
         clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
         let serializerArgCreated = false
         let args: ({name: string, type: idl.IDLType})[] = []
@@ -87,10 +89,8 @@ class NativeModuleVisitor {
         const parameters = NamedMethodSignature.make(returnType ?? idl.IDLVoidType, maybeReceiver.concat(args))
         let name = `_${component}_${method.overloadedName}`
 
-        if (this.library.language === Language.ARKTS) {
-            if (parameters.returnType === idl.IDLThisType) {
-                parameters.returnType = idl.IDLPointerType
-            }
+        if (parameters.returnType === idl.IDLThisType) {
+            parameters.returnType = idl.IDLPointerType
         }
 
         nativeModule.writeNativeMethodDeclaration(name, parameters)
