@@ -76,14 +76,6 @@ export class StructPrinter {
             if (target === idl.IDLVoidType) {
                 continue
             }
-            if (idl.isContainerType(target) && idl.IDLContainerUtils.isSequence(target)) {
-                const noDeclarationPrimitives = new Set<idl.IDLType>([
-                    idl.IDLU8Type
-                ])
-                if (noDeclarationPrimitives.has(target.elementType[0])) {
-                    continue
-                }
-            }
             const targetType  = idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name)
             let nameAssigned = structs.getNodeName(target)
             if (nameAssigned === 'Tag')
@@ -205,7 +197,15 @@ export class StructPrinter {
         }
     }
 
+    private alreadyHasInt8Method = false
     private writeRuntimeType(target: idl.IDLNode, targetType: IDLType, isOptional: boolean, writer: LanguageWriter) {
+        const typeBooleanOrUint8 = (targetType === idl.IDLBooleanType || target === idl.IDLI8Type) && !isOptional
+        if (typeBooleanOrUint8 && this.alreadyHasInt8Method) {
+            return
+        }
+        if (typeBooleanOrUint8) {
+            this.alreadyHasInt8Method = true
+        }
         const resultType = idl.toIDLType("RuntimeType")
         const op = this.writeRuntimeTypeOp(target, targetType, resultType, isOptional, writer)
         if (op) {

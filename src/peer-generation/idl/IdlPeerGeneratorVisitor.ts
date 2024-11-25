@@ -206,6 +206,17 @@ function mapCInteropRetType(type: idl.IDLType): string {
     }
     if (idl.isPrimitiveType(type)) {
         switch (type) {
+            case idl.IDLI8Type: return PrimitiveType.Int32.getText()
+            case idl.IDLU8Type: return PrimitiveType.Int32.getText()
+            case idl.IDLI16Type: return PrimitiveType.Int32.getText()
+            case idl.IDLU16Type: return PrimitiveType.Int32.getText()
+            case idl.IDLI32Type: return PrimitiveType.Int32.getText()
+            case idl.IDLU32Type: return PrimitiveType.Int32.getText()
+            case idl.IDLI64Type: return PrimitiveType.Int32.getText()
+            case idl.IDLU64Type: return PrimitiveType.Int32.getText()
+            case idl.IDLF16Type: return PrimitiveType.Int32.getText()
+            case idl.IDLF32Type: return PrimitiveType.Int32.getText()
+            case idl.IDLF64Type: return PrimitiveType.Int32.getText()
             case idl.IDLBooleanType: return PrimitiveType.Boolean.getText()
             case idl.IDLNumberType: return PrimitiveType.Int32.getText()
             case idl.IDLStringType:

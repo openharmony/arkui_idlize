@@ -18,7 +18,7 @@ import { BuilderClass } from './BuilderClass';
 import { MaterializedClass } from "./Materialized";
 import { IdlComponentDeclaration, isConflictingDeclaration, isMaterialized } from './idl/IdlPeerGeneratorVisitor';
 import { PeerFile } from "./PeerFile";
-import { AggregateConvertor, ArrayConvertor, BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
+import { AggregateConvertor, ArrayConvertor, BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, NumericConvertor, OptionConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { DependencySorter } from './idl/DependencySorter';
 import { IndentedPrinter } from '../IndentedPrinter';
@@ -180,6 +180,18 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isPrimitiveType(type)) {
             switch (type) {
+                case idl.IDLI8Type: return new NumericConvertor(param, type)
+                case idl.IDLU8Type: return new NumericConvertor(param, type)
+                case idl.IDLI16Type: return new NumericConvertor(param, type)
+                case idl.IDLU16Type: return new NumericConvertor(param, type)
+                case idl.IDLI32Type: return new NumericConvertor(param, type)
+                case idl.IDLU32Type: return new NumericConvertor(param, type)
+                case idl.IDLI64Type: return new NumericConvertor(param, type)
+                case idl.IDLU64Type: return new NumericConvertor(param, type)
+                case idl.IDLF16Type: return new NumericConvertor(param, type)
+                case idl.IDLF32Type: return new NumericConvertor(param, type)
+                case idl.IDLF64Type: return new NumericConvertor(param, type)
+                
                 case idl.IDLBufferType: return new BufferConvertor(param)
                 case idl.IDLBooleanType: return new BooleanConvertor(param)
                 case idl.IDLStringType: return new StringConvertor(param)

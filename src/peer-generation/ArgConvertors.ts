@@ -18,6 +18,8 @@ import { Language } from "../Language"
 import { LibraryInterface } from "../LibraryInterface"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { BlockStatement, BranchStatement, createTypeNameConvertor, generateTypeCheckerName, LanguageExpression, LanguageStatement, LanguageWriter, StringExpression } from "./LanguageWriters"
+import { IDLNodeToStringConvertor } from "./LanguageWriters/convertors/InteropConvertor"
+import { createEmptyReferenceResolver } from "./ReferenceResolver"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -450,6 +452,34 @@ export class NumberConvertor extends BaseArgConvertor {
     }
     interopType(language: Language): string {
         return language == Language.CPP ?  "KInteropNumber" : "number"
+    }
+    isPointerType(): boolean {
+        return true
+    }
+}
+
+export class NumericConvertor extends BaseArgConvertor {
+    private readonly interopNameConvertor = new IDLNodeToStringConvertor(createEmptyReferenceResolver())
+    constructor(param: string, type: idl.IDLPrimitiveType) {
+        // check numericPrimitiveTypes.include(type)
+        super(type, [RuntimeType.NUMBER], false, false, param)
+    }
+    convertorArg(param: string, _: LanguageWriter): string {
+        return param
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.writeMethodCall(`${param}Serializer`, `write${this.interopNameConvertor.convert(this.idlType)}`, [value])
+    }
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(
+            writer.makeString(`${deserializerName}.read${this.interopNameConvertor.convert(this.idlType)}()`)
+        )
+    }
+    nativeType(): idl.IDLType {
+        return this.idlType
+    }
+    interopType(language: Language): string {
+        return createTypeNameConvertor(language, createEmptyReferenceResolver()).convert(this.idlType)
     }
     isPointerType(): boolean {
         return true
