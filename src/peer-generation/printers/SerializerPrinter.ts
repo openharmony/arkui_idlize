@@ -30,14 +30,15 @@ import {
 import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
 import { collectProperties } from '../printers/StructPrinter';
 import { FieldModifier, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter';
-import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
+import { createDeclarationNameConvertor } from '../idl/IdlNameConvertor';
 import { throwException } from "../../util";
 import { IDLEntry } from "../../idl";
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { collectMaterializedImports, getInternalClassName } from '../Materialized';
 import { CallbackKind, generateCallbackKindAccess, stubIsTypeCallback } from '../ArgConvertors';
-import { SourceFile, TsSourceFile } from './SourceFile';
+import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile';
 import { collectUniqueCallbacks } from './CallbacksPrinter';
+
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -504,51 +505,54 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         }
 
         if (declarationPath) { // This is used for OHOS library generation only
-            // TODO Check for compatibility!
-            const makeFeature = (node: idl.IDLEntry) => {
-                let features = []
-                // Enums of OHOS are accessed through namespaces, not directly
-                let ns = idl.getExtAttribute(node, idl.IDLExtendedAttributes.Namespace)
-                if (ns) {
-                    features.push({ feature: ns, module: `./${declarationPath}` }) // TODO resolve
-                }
-                features.push({
-                    feature: convertDeclaration(DeclarationNameConvertor.I, node),
-                    module: `./${declarationPath}` // TODO resolve
-                })
-                return features
+            collectOhosImports(collector, true)
+        }
+    } else if (destFile.language === Language.ARKTS) {
+        const collector = (destFile as ArkTSSourceFile).imports
+        if (!declarationPath) {
+            collector.addFeature("TypeChecker", "#components")
+            for (const callback of collectUniqueCallbacks(library)) {
+                if (idl.isSyntheticEntry(callback))
+                    continue
+                const feature = convertDeclToFeature(library, callback)
+                collector.addFeature(feature.feature, feature.module)
             }
-            serializerDeclarations.filter(it => it.fileName)
-                .filter(it => !idl.isCallback(it) && !(library.files.find(f => f.originalFilename == it.fileName)?.isPredefined))
-                .flatMap(makeFeature)
+    
+            library.files.forEach(peer => peer.serializeImportFeatures
+                .forEach(importFeature => collector.addFeature(importFeature.feature, importFeature.module)))
+            serializerDeclarations.filter(it => isSyntheticDeclaration(it) || it.fileName)
+                .filter(it => !idl.isCallback(it))
+                .map(it => convertDeclToFeature(library, it))
                 .forEach(it => collector.addFeature(it.feature, it.module))
+            for (let builder of library.builderClasses.keys()) {
+                collector.addFeature(builder, `Ark${builder}Builder`)
+            }
+            collectMaterializedImports(collector, library)
+        } else { // This is used for OHOS library generation only
+            collectOhosImports(collector, false)
         }
     }
-    else if (destFile.language === Language.ARKTS) {
-        const collector = new ImportsCollector()
-        collector.addFeature("TypeChecker", "#components")
 
-        for (const callback of collectUniqueCallbacks(library)) {
-            if (idl.isSyntheticEntry(callback))
-                continue
-            const feature = convertDeclToFeature(library, callback)
-            collector.addFeature(feature.feature, feature.module)
+    function collectOhosImports(collector: ImportsCollector, supportsNs: boolean) {
+        // TODO Check for compatibility!
+        const nameCovertor = createDeclarationNameConvertor(destFile.language)
+        const makeFeature = (node: idl.IDLEntry) => {
+            let features = []
+            // Enums of OHOS are accessed through namespaces, not directly
+            let ns = idl.getExtAttribute(node, idl.IDLExtendedAttributes.Namespace)
+            if (supportsNs && ns) {
+                features.push({ feature: ns, module: `./${declarationPath}` }) // TODO resolve
+            }
+            features.push({
+                feature: convertDeclaration(nameCovertor, node),
+                module: `./${declarationPath}` // TODO resolve
+            })
+            return features
         }
-
-        library.files.forEach(peer => peer.serializeImportFeatures
-            .forEach(importFeature => collector.addFeature(importFeature.feature, importFeature.module)))
-
-        serializerDeclarations.filter(it => isSyntheticDeclaration(it) || it.fileName)
-            .filter(it => !idl.isCallback(it))
-            .map(it => convertDeclToFeature(library, it))
+        serializerDeclarations.filter(it => it.fileName)
+            .filter(it => !idl.isCallback(it) && !(library.files.find(f => f.originalFilename == it.fileName)?.isPredefined))
+            .flatMap(makeFeature)
             .forEach(it => collector.addFeature(it.feature, it.module))
-
-        for (let builder of library.builderClasses.keys()) {
-            collector.addFeature(builder, `Ark${builder}Builder`)
-        }
-        collectMaterializedImports(collector, library)
-        // TODO Refactor to remove dependency on hardcoded paths
-        collector.print(destFile.content, (declarationPath ? "." : "./peers/") + `Serializer.${destFile.language.extension}`)
     }
 }
 

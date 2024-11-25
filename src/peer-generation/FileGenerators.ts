@@ -17,7 +17,7 @@ import * as path from "path"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { camelCaseToUpperSnakeCase } from "../util"
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
+import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, TSLanguageWriter } from "./LanguageWriters"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSerializerFile } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
@@ -299,19 +299,25 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     return printer
 }
 
-export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name: string, path: string }, declarationPath?: string): SourceFile {
+export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name: string, path: string, finalizablePath: string }, declarationPath?: string): SourceFile {
+    const lang = library.language
     // TODO Add Java and migrate arkoala code
-    if (library.language == Language.TS || library.language == Language.ARKTS) {
-        const destFile = new TsSourceFile("Serializer" + library.language.extension, getReferenceResolver(library))
+    // TODO Complete refactoring to SourceFiles
+    if (lang === Language.TS || lang === Language.ARKTS) {
+        const destFile = SourceFile.make("Serializer" + lang.extension, lang, getReferenceResolver(library)) as TsSourceFile
         destFile.content.nativeModuleAccessor = nativeModule.name
+        writeSerializerFile(library, destFile, "", declarationPath)
+        writeDeserializerFile(library, destFile, "", declarationPath)
+        // destFile.imports.clear() // TODO fix dependencies
         destFile.imports.addFeatures(["SerializerBase", "RuntimeType", "runtimeType", "CallbackResource"], "./SerializerBase")
         destFile.imports.addFeatures(["DeserializerBase" ], "./DeserializerBase")
         destFile.imports.addFeatures(["int32"], "@koalaui/common")
-        destFile.imports.addFeatures(["KPointer", "nullptr"], "@koalaui/interop")
+        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "nullptr"], "@koalaui/interop")
         destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
-        writeSerializerFile(library, destFile, "", declarationPath)
-        writeDeserializerFile(library, destFile, "", declarationPath)
-        const deserializeCallImpls = makeDeserializeAndCall(library, Language.TS, nativeModule.path) as TsSourceFile
+        destFile.imports.addFeatures(["Finalizable", "MaterializedBase"], nativeModule.finalizablePath)
+
+        const deserializeCallImpls = SourceFile.makeSameAs(destFile)
+        printDeserializeAndCall(library, deserializeCallImpls)
         deserializeCallImpls.imports.clear() // TODO fix dependencies
         deserializeCallImpls.imports.addFeatures(["ResourceHolder"], "@koalaui/interop")
         destFile.merge(deserializeCallImpls)

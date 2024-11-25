@@ -50,6 +50,7 @@ class OHOSVisitor {
 
     peerWriter: LanguageWriter
     nativeWriter: LanguageWriter
+    nativeFunctionsWriter: LanguageWriter
 
     libraryName: string = ""
 
@@ -68,6 +69,7 @@ class OHOSVisitor {
 
         this.peerWriter = createLanguageWriter(library.language, library)
         this.nativeWriter = createLanguageWriter(library.language, library)
+        this.nativeFunctionsWriter = createLanguageWriter(library.language, library)
 
         const fileNamePrefix = this.libraryName.toLowerCase()
         this.implementationStubsFile = new CppSourceFile(`${fileNamePrefix}Impl_template${Language.CPP.extension}`, library)
@@ -299,7 +301,8 @@ class OHOSVisitor {
             })
         })
         printCallbacksKinds(this.library, this.nativeWriter)
-        this.nativeWriter.writeInterface(className, writer => {
+        this.nativeFunctionsWriter.printer.pushIndent(this.nativeWriter.indentDepth() + 1)
+        ;((writer: LanguageWriter) => {
             this.interfaces.forEach(it => {
                 // TODO TBD do we need to provide declaration for "fake" constructor for interfaces?
                 const ctors = it.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
@@ -357,7 +360,7 @@ class OHOSVisitor {
                     { name: "resourceId", type: IDLI32Type }
                 ])
             )
-        })
+        })(this.nativeFunctionsWriter)
     }
 
     private printPeer() {
@@ -370,6 +373,14 @@ class OHOSVisitor {
             this.peerWriter.print(`${nativeModuleGetter},`)
             this.peerWriter.popIndent()
             this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
+            this.peerWriter.nativeModuleAccessor = nativeModuleGetter
+        } else if (this.library.language === Language.ARKTS) {
+            this.peerWriter.print('import {')
+            this.peerWriter.pushIndent()
+            this.peerWriter.print(`${nativeModuleVar},`)
+            this.peerWriter.popIndent()
+            this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
+            this.peerWriter.nativeModuleAccessor = nativeModuleVar
         }
         this.data.forEach(data => {
             this.peerWriter.writeInterface(data.name, writer => {
@@ -378,27 +389,10 @@ class OHOSVisitor {
                 })
             })
         })
-        const enumsByNS: Map<string, Set<IDLEnum>> = new Map();
         this.enums.forEach(e => {
-            const ns = getExtAttribute(e, IDLExtendedAttributes.Namespace) ?? ""
-            const enums = getOrPut(enumsByNS, ns, () => new Set())
-            enums.add(e)
+            const writer = this.peerWriter
+            writer.writeStatement(writer.makeEnumEntity(e, true))
         })
-        for (const [ns, enums] of enumsByNS) {
-            let hasNs = this.peerWriter.language === Language.TS && !!ns
-            if (hasNs) {
-                this.peerWriter.print(`export namespace ${ns} {`)
-                this.peerWriter.pushIndent()
-            }
-            for (const e of enums) {
-                let members = e.elements.map((m, i) => ({ name: m.name, numberId: i, stringId: undefined  }))
-                this.peerWriter.writeEnum(e.name, members, (writer) => {})
-            }
-            if (hasNs) {
-                this.peerWriter.popIndent()
-                this.peerWriter.print(`}`)
-            }
-        }
         this.interfaces.forEach(int => {
             this.peerWriter.writeInterface(`${int.name}Interface`, writer => {
                 int.methods.forEach(method => {
@@ -409,7 +403,11 @@ class OHOSVisitor {
         })
         this.interfaces.forEach(int => {
             this.peerWriter.writeClass(`${int.name}`, writer => {
-                writer.writeFieldDeclaration('peer', createReferenceType("Finalizable"), [FieldModifier.PRIVATE], false)
+                let peerInitExpr: LanguageExpression | undefined = undefined
+                if (this.library.language === Language.ARKTS && int.constructors.length === 0) {
+                    peerInitExpr = writer.makeString("Finalizable.Empty")
+                }
+                writer.writeFieldDeclaration('peer', createReferenceType("Finalizable"), [FieldModifier.PRIVATE], false, peerInitExpr)
                 const ctors = int.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
                 ctors.forEach(ctor => {
                     const signature = writer.makeNamedSignature(ctor.returnType ?? IDLVoidType, ctor.parameters)
@@ -449,7 +447,7 @@ class OHOSVisitor {
                         })
                         
                         const createPeerExpression = writer.makeNewObject("Finalizable", [
-                            writer.makeMethodCall(`${nativeModuleGetter}()`, `_${int.name}_ctor`, params),
+                            writer.makeNativeCall(`_${int.name}_ctor`, params),
                             writer.makeString(`${int.name}.getFinalizer()`)
                         ])
                         writer.writeStatement(
@@ -473,8 +471,7 @@ class OHOSVisitor {
                 // write getFinalizer() method
                 const getFinalizerSig = new MethodSignature(IDLPointerType, [])
                 writer.writeMethodImplementation(new Method("getFinalizer", getFinalizerSig, [MethodModifier.STATIC]), writer => {
-                    const callExpression = writer.makeMethodCall(
-                        `${nativeModuleGetter}()`,
+                    const callExpression = writer.makeNativeCall(
                         `_${int.name}_getFinalizer`, // TODO temporarily removed _${this.libraryName} prefix
                         []
                     );
@@ -537,11 +534,10 @@ class OHOSVisitor {
                                     serializerPushed = true
                                 }
                             } else {
-                                params.push(writer.makeString(it.convertorArg(it.param, writer)))
+                                params.push(writer.makeString(writer.escapeKeyword(it.convertorArg(it.param, writer))))
                             }
                         })
-                        const callExpression = writer.makeMethodCall(
-                            `${nativeModuleGetter}()`,
+                        const callExpression = writer.makeNativeCall(
                             `_${int.name}_${method.name}`, // TODO temporarily removed _${this.libraryName} prefix
                             params
                         )
@@ -667,11 +663,15 @@ class OHOSVisitor {
             finalizablePath: `./${fileNamePrefix}Finalizable`,
         }
 
+        if (this.library.language === Language.ARKTS) {
+            managedCodeModuleInfo.name = `${this.libraryName}NativeModule`
+        }
 
         const nativeModuleTemplate = readLangTemplate(`OHOSNativeModule_template${ext}`, this.library.language)
         const nativeModuleText = nativeModuleTemplate
             .replaceAll('%NATIVE_MODULE_NAME%', this.libraryName)
             .replaceAll('%NATIVE_MODULE_CONTENT%', this.nativeWriter.getOutput().join('\n'))
+            .replaceAll('%NATIVE_FUNCTIONS%', this.nativeFunctionsWriter.getOutput().join('\n'))
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Native${ext}`), nativeModuleText, 'utf-8')
 
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Finalizable${ext}`),
@@ -720,11 +720,6 @@ class OHOSVisitor {
                 .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
                 .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
                 .replaceAll("%SERIALIZER_PATH%", managedCodeModuleInfo.serializerPath)
-        )
-        fs.writeFileSync(path.join(managedOutDir, `DeserializerBase${ext}`),
-            readLangTemplate(`DeserializerBase${ext}`, this.library.language)
-                .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
-                .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
         )
     }
 }

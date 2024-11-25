@@ -3,6 +3,10 @@ import { pointer, KPointer } from "@koalaui/interop"
 
 %NATIVE_MODULE_CONTENT%
 
+export interface %NATIVE_MODULE_NAME%NativeModule {
+%NATIVE_FUNCTIONS%
+}
+
 type NativeModuleType = %NATIVE_MODULE_NAME%NativeModule
 let theModule: NativeModuleType | undefined = undefined
 
