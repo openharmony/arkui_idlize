@@ -79,7 +79,7 @@ export class TSWrappersVisitor {
             params.push(writer.makeString('this.ptr'))
         }
         let serializerPushed = false
-        method.argConvertors.forEach(it => {
+        method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
                 if (!serializerPushed) {
                     params.push(writer.makeMethodCall(`thisSerializer`, 'asArray', []))
@@ -96,7 +96,7 @@ export class TSWrappersVisitor {
 
         writer.writeMethodImplementation(method.method, writer => {
             let serializerCreated = false
-            method.argConvertors.forEach((it, index) => {
+            method.argAndOutConvertors.forEach((it, index) => {
                 if (it.useArray) {
                     if (!serializerCreated) {
                         writer.writeStatement(

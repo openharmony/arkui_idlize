@@ -379,6 +379,7 @@ if (options.dts2peer) {
                     })
                     visitor.visitWholeFile()
                 })
+                idlLibrary.generateSynteticsRequired()
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
                 peerProcessor.process()
                 idlLibrary.analyze()

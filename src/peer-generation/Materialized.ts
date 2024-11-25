@@ -14,8 +14,8 @@
  */
 
 import * as idl from "../idl"
-
-import { ArgConvertor, RetConvertor } from "./ArgConvertors"
+import { ArgConvertor } from "./ArgConvertors"
+import { RetConvertor, createVoidRetConvertor } from "./RetConvertors"
 import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 import { capitalize } from "../util"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
@@ -142,17 +142,10 @@ export class MaterializedClass implements PeerClassBase {
 }
 
 export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedMethod {
-    const destroyPeerReturnType: RetConvertor = {
-        isVoid: true,
-        nativeType: () => PrimitiveType.Void.getText(),
-        interopType: () => PrimitiveType.Void.getText(),
-        macroSuffixPart: () => "V"
-    }
-
     return new MaterializedMethod(
             clazz.className,
             [],
-            destroyPeerReturnType,
+            createVoidRetConvertor(),
             false,
             new Method(
                 'destroyPeer',

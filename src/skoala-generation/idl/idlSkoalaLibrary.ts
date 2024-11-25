@@ -24,7 +24,8 @@ import { cleanPrefix } from "../../peer-generation/PeerLibrary";
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../../peer-generation/LanguageWriters";
-import { ArgConvertor, BaseArgConvertor, BooleanConvertor, ClassConvertor, CustomTypeConvertor, EnumConvertor, ExpressionAssigneer, InterfaceConvertor, NullConvertor, NumberConvertor, RetConvertor, RuntimeType, StringConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from "../../peer-generation/ArgConvertors";
+import { ArgConvertor, BaseArgConvertor, BooleanConvertor, ClassConvertor, CustomTypeConvertor, EnumConvertor, ExpressionAssigneer, InterfaceConvertor, NullConvertor, NumberConvertor, RuntimeType, StringConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from "../../peer-generation/ArgConvertors";
+import { createRegularRetConvertor, createVoidRetConvertor, createRetConvertor } from "../../peer-generation/RetConvertors";
 import { CustomPrintVisitor } from "../../from-idl/DtsPrinter";
 import { Language } from "../../Language";
 import { addSyntheticType, resolveSyntheticType } from "../../from-idl/deserialize";
@@ -477,7 +478,7 @@ export class IdlWrapperProcessor {
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
             if (!isReadOnly) {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [field.type], [field.name])
-                const retConvertor = { isVoid: true, nativeType: () => "void", macroSuffixPart: () => "V" }
+                const retConvertor = createVoidRetConvertor()
                 const setAccessor = new WrapperMethod(
                     name,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]),
@@ -506,7 +507,7 @@ export class IdlWrapperProcessor {
         if (property.isStatic) modifiers.push(FieldModifier.STATIC)
         if (property.isReadonly) modifiers.push(FieldModifier.READONLY)
         const argConvertor = this.library.typeConvertor(property.name, property.type!, undefined, undefined, this)
-        const retConvertor = generateRetConvertor(property.type)
+        const retConvertor = createRetConvertor(this.library, property.type, mapCInteropRetType, [property.name])
         return new WrapperField(
             new Field(property.name, property.type, modifiers),
             argConvertor,
@@ -520,24 +521,21 @@ export class IdlWrapperProcessor {
         // TODO: add convertor to convers method.type, method.name, method.parameters[..].type, method.parameters[..].name
         // TODO: add arg and ret convertors
 
-        let retConvertor = {
-            isVoid: false,
-            nativeType: () => PrimitiveType.NativePointer.getText(),
-            macroSuffixPart: () => ""
-        }
-
+        let retConvertor = createRegularRetConvertor(PrimitiveType.NativePointer.getText())
         if (!idl.isConstructor(idlMethod)) {
-            retConvertor = generateRetConvertor(idlMethod.returnType)
+            retConvertor = createRetConvertor(this.library, idlMethod.returnType, mapCInteropRetType, idlMethod.parameters.map(it => it.name))
         }
 
         let args: idl.IDLType[] = []
         let argsNames: string[] = []
-        let argConvertors = idlMethod.parameters.map(param => {
+        let argAndOutConvertors = idlMethod.parameters.map(param => {
             if (!param.type) throw new Error("Type is needed")
             args.push(idl.maybeOptional(param.type, param.isOptional))
             argsNames.push(param.name)
             return this.library.typeConvertor(param.name, param.type, param.isOptional, undefined, this)
         })
+        if (retConvertor && retConvertor.throughOutArg)
+            argAndOutConvertors.push(retConvertor.outArgConvertor!)
 
         const modifiers = idl.isConstructor(idlMethod) || idlMethod.isStatic ? [MethodModifier.STATIC] : []
 
@@ -548,7 +546,7 @@ export class IdlWrapperProcessor {
             method = new Method(idlMethod.name, new NamedMethodSignature(idlMethod.returnType, args, argsNames), modifiers)
         }
 
-        return new WrapperMethod(decl.name, method, argConvertors, retConvertor)
+        return new WrapperMethod(decl.name, method, argAndOutConvertors, retConvertor)
     }
 
     private collectImports(importsCollector: ImportsCollector, methods: WrapperMethod[]) {
@@ -560,7 +558,7 @@ export class IdlWrapperProcessor {
         })
 
         methods.forEach(it => {
-            it.argConvertors.forEach(conv => {
+            it.argAndOutConvertors.forEach(conv => {
                 if (conv.runtimeTypes.length > 1) {
                     importsCollector.addFeature("unsafeCast", "generated-utils")
                 }
@@ -575,16 +573,6 @@ export class IdlWrapperProcessor {
         })
 
         importsCollector.addFeature(Skoala.NativeModuleImportFeature.feature, Skoala.NativeModuleImportFeature.module)
-    }
-}
-
-function generateRetConvertor(type?: idl.IDLType): RetConvertor {
-    let nativeType = type ? mapCInteropRetType(type) : "void"
-    let isVoid = nativeType == "void"
-    return {
-        isVoid: isVoid,
-        nativeType: () => nativeType,
-        macroSuffixPart: () => isVoid ? "V" : ""
     }
 }
 

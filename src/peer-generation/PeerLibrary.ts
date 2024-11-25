@@ -82,26 +82,39 @@ export class PeerLibrary implements LibraryInterface {
 
     private createContinuationCallbacks(): void {
         const callbacks = collectUniqueCallbacks(this)
-        for (const callback of callbacks) {
-            this.createContinuationCallbackIfNeeded(callback.returnType)
-            this.requestType(this.createContinuationCallbackReference(callback.returnType), true)
-        }
+        for (const callback of callbacks)
+            this.requestType(this.createContinuationCallbackIfNeeded(callback.returnType), true)
     }
-    private createContinuationCallbackIfNeeded(continuationType: idl.IDLType): void {
-        if (idl.isContainerType(continuationType) && idl.IDLContainerUtils.isPromise(continuationType))
-            return this.createContinuationCallbackIfNeeded(continuationType.elementType[0])
-        const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
-        const continuationReference = this.createContinuationCallbackReference(continuationType)
-        const maybeResolved = this.resolveTypeReference(continuationReference)
-        if (maybeResolved)
-            return
-        const callback = idl.createCallback(continuationReference.name, continuationParameters, idl.IDLVoidType, { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }] })
-        this.continuationCallbacks.push(callback)
+    private createContinuationParameters(continuationType: idl.IDLType): idl.IDLParameter[] {
+        const continuationParameters: idl.IDLParameter[] = []
+        if (idl.isContainerType(continuationType) && idl.IDLContainerUtils.isPromise(continuationType)) {
+            const errorType = idl.createOptionalType(idl.createContainerType("sequence", [idl.IDLStringType]))
+            continuationParameters.push(idl.createParameter("error", errorType, true))
+            const promise = continuationType as idl.IDLContainerType
+            if (!idl.isVoidType(promise.elementType[0])) {
+                const valueType = idl.createOptionalType(promise.elementType[0])
+                continuationParameters.unshift(idl.createParameter("value", valueType, true))
+            }
+        } else if (!idl.isVoidType(continuationType))
+            continuationParameters.push(idl.createParameter('value', continuationType))
+        return continuationParameters
+    }
+    private createContinuationCallbackIfNeeded(continuationType: idl.IDLType): idl.IDLReferenceType {
+        const continuationParameters = this.createContinuationParameters(continuationType)
+        const syntheticName = generateSyntheticFunctionName(
+            continuationParameters,
+            idl.IDLVoidType,
+        )
+        const continuationReference = idl.createReferenceType(syntheticName)
+
+        if (!this.resolveTypeReference(continuationReference)) {
+            const callback = idl.createCallback(continuationReference.name, continuationParameters, idl.IDLVoidType, { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }] })
+            this.continuationCallbacks.push(callback)
+        }
+        return continuationReference
     }
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType {
-        if (idl.isContainerType(continuationType) && idl.IDLContainerUtils.isPromise(continuationType))
-            return this.createContinuationCallbackReference(continuationType.elementType[0])
-        const continuationParameters = idl.isVoidType(continuationType) ? [] : [idl.createParameter('value', continuationType)]
+        const continuationParameters = this.createContinuationParameters(continuationType)
         const syntheticName = generateSyntheticFunctionName(
             continuationParameters,
             idl.IDLVoidType,
@@ -373,6 +386,16 @@ export class PeerLibrary implements LibraryInterface {
         return this._orderedDependenciesToGenerate
     }
     private _orderedDependenciesToGenerate: idl.IDLNode[] = []
+
+    generateSynteticsRequired() {
+        for (const file of this.files)
+            for (const entry of file.entries)
+                idl.forEachFunction(entry, function_ => {
+                    const promise = idl.asPromise(function_.returnType)
+                    if (promise)
+                        this.requestType(this.createContinuationCallbackIfNeeded(promise), true)
+                })
+    }
 
     analyze() {///stolen from DeclTable
         this.createContinuationCallbacks()

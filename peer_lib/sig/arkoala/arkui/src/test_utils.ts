@@ -13,9 +13,13 @@ export function setReportTestFailures(report: boolean) {
 }
 
 export function checkTestFailures() {
-    if (reportTestFailures && failedTestsCount > 0) {
-        console.log(`failed tests: ${failedTestsCount}`)
-        process.exit(1)
+    if (reportTestFailures) {
+        if (!failedTestsCount) {
+            console.log(`all tests passed`)
+        } else {
+            console.log(`failed tests: ${failedTestsCount}`)
+            process.exit(1)
+        }
     }
 }
 

@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { ArgConvertor, RetConvertor } from "../peer-generation/ArgConvertors";
+import { ArgConvertor } from "../peer-generation/ArgConvertors";
+import { RetConvertor } from "../peer-generation/RetConvertors";
 import { Field, Method, MethodModifier } from "../peer-generation/LanguageWriters"
 import { capitalize } from "../util"
 import { Skoala } from './utils';
@@ -23,7 +24,7 @@ export class WrapperMethod {
     constructor(
         public originalParentName: string,
         public method: Method,
-        public argConvertors: ArgConvertor[],
+        public argAndOutConvertors: ArgConvertor[],
         public retConvertor: RetConvertor,
     ) { }
 
@@ -71,11 +72,6 @@ export class WrapperMethod {
 
     get apiKind(): string {
         return "Modifier"
-    }
-
-    maybeCRetType(retConvertor: RetConvertor): string | undefined {
-        if (retConvertor.isVoid) return undefined
-        return retConvertor.nativeType()
     }
 
     generateReceiver(): {argName: string, argType: string} | undefined {

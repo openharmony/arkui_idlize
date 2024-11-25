@@ -57,7 +57,7 @@ export class ModifierVisitor {
                 _.makeReturn(
                     method.retConvertor.isVoid ? undefined : _.makeString(method.dummyReturnValue ?? "0"))))
         _.print(`string out("${method.toStringName}(");`)
-        method.argConvertors.forEach((argConvertor, index) => {
+        method.argAndOutConvertors.forEach((argConvertor, index) => {
             if (index > 0) this.dummy.print(`out.append(", ");`)
             _.print(`WriteToString(&out, ${argConvertor.param});`)
         })
@@ -91,41 +91,41 @@ export class ModifierVisitor {
         if (apiParameters.at(0)?.includes(PrimitiveType.NativePointer.getText())) {
             this.real.print(`auto frameNode = reinterpret_cast<FrameNode *>(node);`)
             this.real.print(`CHECK_NULL_VOID(frameNode);`)
-            if (method.argConvertors.length === 1
-                && method.argConvertors.at(0)?.nativeType() === IDLStringType
+            if (method.argAndOutConvertors.length === 1
+                && method.argAndOutConvertors.at(0)?.nativeType() === IDLStringType
             ) {
                 this.real.print(`CHECK_NULL_VOID(${
-                    method.argConvertors.at(0)?.param
+                    method.argAndOutConvertors.at(0)?.param
                 });`)
                 this.real.print(`auto convValue = Converter::Convert<std::string>(*${
-                    method.argConvertors.at(0)?.param
+                    method.argAndOutConvertors.at(0)?.param
                 });`)
-            } else if (method.argConvertors.length === 1
-                && isOptionalType(method.argConvertors[0].nativeType())
-                && method.argConvertors.at(0)?.isPointerType()) {
-                this.real.print(`//auto convValue = ${method.argConvertors.at(0)?.param} ? ` +
-                    `Converter::OptConvert<type>(*${method.argConvertors.at(0)?.param}) : std::nullopt;`)
-            } else if (method.argConvertors.length === 1 && method.argConvertors.at(0)?.isPointerType()) {
+            } else if (method.argAndOutConvertors.length === 1
+                && isOptionalType(method.argAndOutConvertors[0].nativeType())
+                && method.argAndOutConvertors.at(0)?.isPointerType()) {
+                this.real.print(`//auto convValue = ${method.argAndOutConvertors.at(0)?.param} ? ` +
+                    `Converter::OptConvert<type>(*${method.argAndOutConvertors.at(0)?.param}) : std::nullopt;`)
+            } else if (method.argAndOutConvertors.length === 1 && method.argAndOutConvertors.at(0)?.isPointerType()) {
                 this.real.print(`CHECK_NULL_VOID(${
-                    method.argConvertors.at(0)?.param
+                    method.argAndOutConvertors.at(0)?.param
                 });`)
                 this.real.print(`//auto convValue = Converter::OptConvert<type_name>(*${
-                    method.argConvertors.at(0)?.param
+                    method.argAndOutConvertors.at(0)?.param
                 });`)
-            } else if (method.argConvertors.length === 1 &&
-                method.argConvertors.at(0)?.nativeType() === IDLBooleanType) {
+            } else if (method.argAndOutConvertors.length === 1 &&
+                method.argAndOutConvertors.at(0)?.nativeType() === IDLBooleanType) {
                 this.real.print(`auto convValue = Converter::Convert<bool>(${
-                    method.argConvertors.at(0)?.param
+                    method.argAndOutConvertors.at(0)?.param
                 });`)
-            } else if (method.argConvertors.length === 1
-                && method.argConvertors.at(0)?.nativeType() === IDLFunctionType) {
+            } else if (method.argAndOutConvertors.length === 1
+                && method.argAndOutConvertors.at(0)?.nativeType() === IDLFunctionType) {
                 this.real.print(`//auto convValue = [frameNode](input values) { code }`)
             } else {
                 this.real.print(`//auto convValue = Converter::Convert<type>(${
-                    method.argConvertors.at(0)?.param
+                    method.argAndOutConvertors.at(0)?.param
                 });`)
                 this.real.print(`//auto convValue = Converter::OptConvert<type>(${
-                    method.argConvertors.at(0)?.param
+                    method.argAndOutConvertors.at(0)?.param
                 }); // for enums`)
             }
             this.real.print(`//${clazz?.componentName}ModelNG::Set${method.implName.replace("Impl", "")}(frameNode, convValue);`)

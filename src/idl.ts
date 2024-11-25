@@ -1200,7 +1200,7 @@ export const DebugUtils = {
     },
 }
 
-function forEachFunction(node: IDLNode, cb: (node: IDLFunction) => void): void {
+export function forEachFunction(node: IDLNode, cb: (node: IDLFunction) => void): void {
     switch (node.kind) {
         case IDLKind.Interface:
             if (isType(node)) return // TODO remove this check after IDLType stops mimic IDLInterface
@@ -1272,7 +1272,7 @@ function forEachFunction(node: IDLNode, cb: (node: IDLFunction) => void): void {
     }
 }
 
-function asPromise(type?: IDLType): IDLContainerType | undefined {
+export function asPromise(type?: IDLType): IDLContainerType | undefined {
     if (!type) return
     if (!isContainerType(type)) return
     const container = type as IDLContainerType
