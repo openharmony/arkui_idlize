@@ -407,7 +407,8 @@ class OHOSVisitor {
                 if (this.library.language === Language.ARKTS && int.constructors.length === 0) {
                     peerInitExpr = writer.makeString("Finalizable.Empty")
                 }
-                writer.writeFieldDeclaration('peer', createReferenceType("Finalizable"), [FieldModifier.PRIVATE], false, peerInitExpr)
+                // TODO Make peer private again
+                writer.writeFieldDeclaration('peer', createReferenceType("Finalizable"), [/* FieldModifier.PRIVATE */], false, peerInitExpr)
                 const ctors = int.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
                 ctors.forEach(ctor => {
                     const signature = writer.makeNamedSignature(ctor.returnType ?? IDLVoidType, ctor.parameters)
@@ -560,6 +561,30 @@ class OHOSVisitor {
                     })
                 })
             }, undefined, [`${int.name}Interface`])
+
+            // TODO Migrate to MaterializedPrinter
+            if (int.constructors.length === 0) {
+                // Write MaterializedClass static
+                this.peerWriter.writeClass(`${int.name}Internal`, writer => {
+                    // write fromPtr(ptr: number):MaterializedClass method
+                    const clazzRefType = createReferenceType(int.name, int.typeParameters?.map(createTypeParameterReference))
+                    const fromPtrSig = new NamedMethodSignature(clazzRefType, [IDLPointerType], ["ptr"])
+                    writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], int.typeParameters), writer => {
+                        const objVar = `obj`
+                        writer.writeStatement(writer.makeAssign(objVar,
+                            clazzRefType,
+                            //TODO: Need to pass IDLType instead of string to makeNewObject
+                            writer.makeNewObject(writer.getNodeName(clazzRefType)),
+                            true)
+                        )
+                        writer.writeStatement(
+                            writer.makeAssign(`${objVar}.peer`, toIDLType("Finalizable"),
+                                writer.makeString(`new Finalizable(ptr, ${int.name}.getFinalizer())`), false),
+                        )
+                        writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
+                    })
+                })
+            }
         })
     }
 
