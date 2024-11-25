@@ -29,10 +29,8 @@ import {
 } from '../idl/IdlPeerGeneratorVisitor';
 import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
 import { collectProperties } from '../printers/StructPrinter';
-import { FieldModifier, IfStatement, MethodModifier, ProxyStatement, ReturnStatement } from '../LanguageWriters/LanguageWriter';
+import { FieldModifier, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter';
 import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
-
-type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 import { throwException } from "../../util";
 import { IDLEntry } from "../../idl";
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
@@ -40,6 +38,8 @@ import { collectMaterializedImports } from '../Materialized';
 import { CallbackKind, generateCallbackKindAccess, stubIsTypeCallback } from '../ArgConvertors';
 import { SourceFile, TsSourceFile } from './SourceFile';
 import { collectUniqueCallbacks } from './CallbacksPrinter';
+
+type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
 class IdlSerializerPrinter {
     constructor(
@@ -87,11 +87,12 @@ class IdlSerializerPrinter {
         }
         properties.forEach(it => {
             let field = `value_${it.name}`
-            let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
+            const type = this.library.flattenType(it.type)
+            let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
 
             let memberAccess = writer.makeString(`value.${writer.escapeKeyword(it.name)}`)
-            if (writer.language === Language.ARKTS && stubIsTypeCallback(this.library, it.type)) {
-                memberAccess = writer.makeCast(memberAccess, idl.maybeOptional(it.type, it.isOptional))
+            if (writer.language === Language.ARKTS && stubIsTypeCallback(this.library, type)) {
+                memberAccess = writer.makeCast(memberAccess, idl.maybeOptional(type, it.isOptional))
             }
 
             writer.writeStatement(writer.makeAssign(field, undefined, memberAccess, true))
@@ -204,7 +205,7 @@ class IdlSerializerPrinter {
     }
 }
 
-class IdlDeserializerPrinter {///converge w/ IdlSerP?
+class IdlDeserializerPrinter {
     constructor(
         private readonly library: PeerLibrary,
         private readonly destFile: SourceFile,
@@ -266,7 +267,8 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
                 this.declareDeserializer()
             }
             properties.forEach(it => {
-                let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
+                const type = this.library.flattenType(it.type)
+                let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
                 this.writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}_buf`, `valueDeserializer`, (expr) => {
                     if (this.writer.language === Language.CPP)
                         return this.writer.makeAssign(`value.${this.writer.escapeKeyword(it.name)}`, undefined, expr, false)
@@ -420,7 +422,7 @@ class IdlDeserializerPrinter {///converge w/ IdlSerP?
         })
     }
 
-    print(prefix: string, declarationPath?: string) {///converge w/ Ts printers
+    print(prefix: string, declarationPath?: string) {
         const className = "Deserializer"
         const superName = `${className}Base`
         let ctorSignature: NamedMethodSignature | undefined = undefined

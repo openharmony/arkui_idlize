@@ -23,16 +23,18 @@ import { PrimitiveType } from "./ArkPrimitiveType"
 import { DependencySorter } from './idl/DependencySorter';
 import { IndentedPrinter } from '../IndentedPrinter';
 import { createTypeNameConvertor, LanguageWriter } from './LanguageWriters';
-import { isImport, isStringEnum } from './idl/common';
+import { isImport, isStringEnum, typeOrUnion } from './idl/common';
 import { StructPrinter } from './printers/StructPrinter';
 import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NullConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from './ArgConvertors';
 import { Language } from '../Language';
 import { generateSyntheticFunctionName } from '../IDLVisitor';
 import { collectUniqueCallbacks } from './printers/CallbacksPrinter';
-import { IdlNameConvertor } from './LanguageWriters/nameConvertor';
+import { convertType, IdlNameConvertor } from './LanguageWriters/nameConvertor';
 import { LibraryInterface } from '../LibraryInterface';
 import { IdlEntryManager } from './idl/IdlEntryManager';
 import { IDLNodeToStringConvertor } from './LanguageWriters/convertors/InteropConvertor';
+import { UnionFlattener } from './unions';
+import { warn } from '../util';
 
 export class PeerLibrary implements LibraryInterface {
 
@@ -70,6 +72,7 @@ export class PeerLibrary implements LibraryInterface {
     private readonly targetNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(this.language, this)
     private readonly nativeNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(Language.CPP, this)
     private readonly interopNameConvertorInstance: IdlNameConvertor = new IDLNodeToStringConvertor(this)
+    private readonly unionFlattener = new UnionFlattener(this)
 
     readonly continuationCallbacks: idl.IDLCallback[] = []
 
@@ -340,7 +343,7 @@ export class PeerLibrary implements LibraryInterface {
             }
             const decl = this.resolveTypeReference(type)
             if (!decl) {
-                console.log(`WARNING: undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
+                warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
             } else if (isConflictingDeclaration(decl)) {
                 return ArkCustomObject
             }
@@ -430,6 +433,17 @@ export class PeerLibrary implements LibraryInterface {
                 : PrimitiveType.OptionalPrefix + cleanPrefix(this.nativeNameConvertorInstance.convert(it), PrimitiveType.Prefix)
             )
         return new Set(data)
+    }
+
+    flattenType(type: idl.IDLType, name?: string): idl.IDLType {
+        if (idl.isUnionType(type)) {
+            const allTypes = type.types.flatMap(it => convertType(this.unionFlattener, it))
+            const uniqueTypes = new Set(allTypes)
+            return typeOrUnion(
+                uniqueTypes.size === allTypes.length ? type.types : Array.from(uniqueTypes),
+                name)
+        }
+        return type
     }
 }
 

@@ -16,10 +16,12 @@
 import * as idl from "../idl"
 import { Language } from "../Language"
 import { LibraryInterface } from "../LibraryInterface"
+import { warn } from "../util"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { BlockStatement, BranchStatement, createTypeNameConvertor, generateTypeCheckerName, LanguageExpression, LanguageStatement, LanguageWriter, StringExpression } from "./LanguageWriters"
 import { IDLNodeToStringConvertor } from "./LanguageWriters/convertors/InteropConvertor"
 import { createEmptyReferenceResolver } from "./ReferenceResolver"
+import { UnionRuntimeTypeChecker } from "./unions"
 
 export enum RuntimeType {
     UNEXPECTED = -1,
@@ -144,64 +146,6 @@ export class ProxyConvertor extends BaseArgConvertor {
     }
 }
 
-export class UnionRuntimeTypeChecker {
-    private conflictingConvertors: Set<ArgConvertor> = new Set()
-    private duplicateMembers: Set<string> = new Set()
-    private discriminators: [LanguageExpression | undefined, ArgConvertor, number][] = []
-
-    constructor(private convertors: ArgConvertor[]) {
-        this.checkConflicts()
-    }
-    private checkConflicts() {
-        const runtimeTypeConflicts: Map<RuntimeType, ArgConvertor[]> = new Map()
-        this.convertors.forEach(conv => {
-            conv.runtimeTypes.forEach(rtType => {
-                const convertors = runtimeTypeConflicts.get(rtType)
-                if (convertors) convertors.push(conv)
-                else runtimeTypeConflicts.set(rtType, [conv])
-            })
-        })
-        runtimeTypeConflicts.forEach((convertors, rtType) => {
-            if (convertors.length > 1) {
-                const allMembers: Set<string> = new Set()
-                if (rtType === RuntimeType.OBJECT) {
-                    convertors.forEach(convertor => {
-                        convertor.getMembers().forEach(member => {
-                            if (allMembers.has(member)) this.duplicateMembers.add(member)
-                            allMembers.add(member)
-                        })
-                    })
-                }
-                convertors.forEach(convertor => {
-                    this.conflictingConvertors.add(convertor)
-                })
-            }
-        })
-    }
-    makeDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression {
-        const convertor = this.convertors[index]
-        if (this.conflictingConvertors.has(convertor) && writer.language.needsUnionDiscrimination) {
-            const discriminator = convertor.unionDiscriminator(value, index, writer, this.duplicateMembers)
-            this.discriminators.push([discriminator, convertor, index])
-            if (discriminator) return discriminator
-        }
-        return writer.makeNaryOp("||", convertor.runtimeTypes.map(it =>
-            writer.makeNaryOp("==", [
-                writer.makeUnionVariantCondition(
-                    convertor,
-                    value,
-                    `${value}_type`,
-                    RuntimeType[it],
-                    index)])))
-    }
-    reportConflicts(context: string | undefined) {
-        if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
-            console.log(`WARNING: runtime type conflict in "${context}`)
-            this.discriminators.forEach(([discr, conv, n]) =>
-                console.log(`   ${n} : ${conv.constructor.name} : ${discr ? discr.asString() : "<undefined>"}`))
-        }
-    }
-}
 export class BooleanConvertor extends BaseArgConvertor {
     constructor(param: string) {
         super(idl.IDLBooleanType, [RuntimeType.BOOLEAN], false, false, param)
@@ -635,6 +579,23 @@ export class EnumConvertor extends BaseArgConvertor { //
     targetType(writer: LanguageWriter): string {
         return writer.getNodeName(this.idlType) // this.enumTypeName(writer.language)
     }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        switch (writer.language) {
+            case Language.TS:
+                const ordinal = this.isStringEnum
+                    ? writer.ordinalFromEnum(
+                        writer.makeCast(writer.makeString(writer.getObjectAccessor(this, value)), this.idlType),
+                        this.idlType)
+                    : writer.makeUnionVariantCast(writer.getObjectAccessor(this, value), writer.getNodeName(idl.IDLI32Type), this, index)
+                const {low, high} = this.extremumOfOrdinals()
+                return writer.discriminatorFromExpressions(value, this.runtimeTypes[0], [
+                    writer.makeNaryOp(">=", [ordinal, writer.makeString(low!.toString())]),
+                    writer.makeNaryOp("<=",  [ordinal, writer.makeString(high!.toString())])
+                ])
+            case Language.ARKTS: return writer.instanceOf(this, value);
+            default: return undefined
+        }
+    }
     extremumOfOrdinals(): {low: number, high: number} {
         let low: number = Number.MAX_VALUE
         let high: number = Number.MIN_VALUE
@@ -965,11 +926,12 @@ export class InterfaceConvertor extends BaseArgConvertor { //
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
         }
-        //TODO: Need to check this in TypeChecker
-        if (this.declaration.name === "CancelButtonSymbolOptions"
-            && writer.language !== Language.ARKTS) {
-            return writer.makeHasOwnProperty(value, "CancelButtonSymbolOptions",
-                "icon", "SymbolGlyphModifier")
+        if (this.declaration.name === "CancelButtonSymbolOptions") {
+            if (writer.language === Language.ARKTS)
+                //TODO: Need to check this in TypeChecker
+                return this.discriminatorFromFields(value, writer, this.declaration.properties, it => it.name, it => it.isOptional, duplicates)
+            else return writer.makeHasOwnProperty(value,
+                "CancelButtonSymbolOptions", "icon", "SymbolGlyphModifier")
         }
         // Try to figure out interface by examining field sets
         const uniqueFields = this.declaration?.properties.filter(it => !duplicates.has(it.name))
@@ -1396,7 +1358,7 @@ export function makeInterfaceTypeCheckerCall(
 const customObjects = new Set<string>()
 function warnCustomObject(type: string, msg?: string) {
     if (!customObjects.has(type)) {
-        console.log(`WARNING: Use CustomObject for ${msg ? `${msg} ` : ``}type ${type}`)
+        warn(`Use CustomObject for ${msg ? `${msg} ` : ``}type ${type}`)
         customObjects.add(type)
     }
 }

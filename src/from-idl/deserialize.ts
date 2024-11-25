@@ -23,15 +23,14 @@ import {
 } from "./webidl2-utils"
 import { toString } from "./toString"
 import * as idl from "../idl"
-import { isDefined, stringOrNone, typeName } from "../util"
-import { createInterface } from "readline"
+import { isDefined, stringOrNone, warn } from "../util"
 import { generateSyntheticUnionName } from "../IDLVisitor"
 
 const syntheticTypes = new Map<string, idl.IDLEntry>()
 
 export function addSyntheticType(name: string, type: idl.IDLEntry) {
     if (syntheticTypes.has(name))
-        console.log(`WARNING: duplicate synthetic type name "${name}"`) ///throw?
+        warn(`duplicate synthetic type name "${name}"`) ///throw?
     syntheticTypes.set(name, type)
 } // check
 

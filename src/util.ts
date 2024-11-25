@@ -582,3 +582,11 @@ export function groupBy<K, V>(values: V[], selector: (value: V) => K): Map<K, V[
 export function removeExt(filename: string) {
     return filename.replaceAll(path.extname(filename), '')
 }
+
+export function warn(message: string) {
+    console.log(`WARNING: ${message}`)
+}
+
+export function fatal(message: string) {
+    throw new Error(message)
+}

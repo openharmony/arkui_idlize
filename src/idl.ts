@@ -15,6 +15,7 @@
 
 import * as webidl2 from "webidl2"
 import { indentedBy, isDefined, stringOrNone } from "./util";
+import { generateSyntheticIdlNodeName } from "./peer-generation/idl/common";
 
 export enum IDLKind {
     Interface,
@@ -532,7 +533,7 @@ export function createUnionType(types: IDLType[], name?: string): IDLUnionType {
         throw new Error("IDLUnionType should contain at least 2 types")
     return {
         kind: IDLKind.UnionType,
-        name: name ?? "Union_" + types.map(it => forceAsNamedNode(it).name).join("_"),
+        name: name ?? "Union_" + types.map(it => generateSyntheticIdlNodeName(it)).join("_"),
         types: types,
         _idlNodeBrand: innerIdlSymbol,
         _idlTypeBrand: innerIdlSymbol,

@@ -19,7 +19,7 @@ import { collectProperties } from "../printers/StructPrinter";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
 
 class SorterDependenciesCollector extends DependenciesCollector {
-    constructor(library: PeerLibrary) {
+    constructor(public library: PeerLibrary) {
         super(library)
     }
     convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
@@ -44,7 +44,8 @@ class SorterDependenciesCollector extends DependenciesCollector {
         return []
     }
     convertInterface(node: idl.IDLInterface): idl.IDLNode[] {
-        return collectProperties(node, this.library).map(it => this.library.toDeclaration(it.type))
+        return collectProperties(node, this.library).map(it =>
+            this.library.toDeclaration(this.library.flattenType(it.type)))
     }
     convertEnum(node: idl.IDLEnum): idl.IDLNode[] {
         return []

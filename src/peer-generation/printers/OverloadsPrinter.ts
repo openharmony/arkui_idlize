@@ -28,9 +28,10 @@ import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./Ev
 import { PeerMethod } from "../PeerMethod";
 import { PeerLibrary } from "../PeerLibrary";
 import { typeOrUnion } from "../idl/common";
-import { ArgConvertor, UndefinedConvertor, UnionRuntimeTypeChecker } from '../ArgConvertors';
+import { ArgConvertor, UndefinedConvertor } from '../ArgConvertors';
 import { Language } from "../../Language";
 import { ReferenceResolver } from "../ReferenceResolver";
+import { UnionRuntimeTypeChecker } from "../unions";
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))

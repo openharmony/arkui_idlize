@@ -15,7 +15,6 @@
 
 import * as idl from '../../../idl'
 import { PrimitiveType } from '../../ArkPrimitiveType';
-import { ReferenceResolver } from '../../ReferenceResolver';
 import { IdlNameConvertor } from "../nameConvertor";
 import { ConvertResult, InteropConverter } from './InteropConvertor';
 
@@ -32,5 +31,11 @@ export class CppIDLNodeToStringConvertor extends InteropConverter implements Idl
 
     convert(node: idl.IDLNode): string {
         return this.unwrap(node, this.convertNode(node))
+    }
+
+    override convertPrimitiveType(type: idl.IDLPrimitiveType): ConvertResult {
+        return type === idl.IDLNullType
+            ? { text: "Undefined", noPrefix: false }
+            : super.convertPrimitiveType(type)
     }
 }

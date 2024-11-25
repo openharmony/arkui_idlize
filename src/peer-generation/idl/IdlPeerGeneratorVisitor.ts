@@ -30,7 +30,8 @@ import {
     renameClassToMaterialized,
     renameDtsToInterfaces,
     serializerBaseMethods,
-    throwException
+    throwException,
+    warn,
 } from "../../util"
 import { GenericVisitor } from "../../options"
 import { ArgConvertor, RetConvertor } from "../ArgConvertors"
@@ -765,7 +766,7 @@ class PeersGenerator {
     private processOptionAttribute(seenAttributes: Set<string>, property: idl.IDLProperty, peer: PeerClass) {
         const propName = property.name
         if (seenAttributes.has(propName)) {
-            console.log(`WARNING: ignore seen property: ${propName}`)
+            warn(`ignore seen property: ${propName}`)
             return
         }
         seenAttributes.add(propName)
