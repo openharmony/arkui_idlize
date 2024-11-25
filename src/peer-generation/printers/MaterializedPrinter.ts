@@ -299,7 +299,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
 
         // Write MaterializedClass static
-        printer.writeClass(`${clazz.className}Static`, writer => {
+        printer.writeClass(clazz.getInternalName(), writer => {
 
             // write fromPtr(ptr: number):MaterializedClass method
             const clazzRefType = idl.createReferenceType(clazz.className,

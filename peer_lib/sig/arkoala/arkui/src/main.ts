@@ -29,7 +29,7 @@ import { ArkTabContentPeer } from "@arkoala/arkui/peers/ArkTabContentPeer"
 import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleBuilder"
 import { BottomTabBarStyle } from "@arkoala/arkui/ArkBottomTabBarStyleBuilder"
 // TBD: It needs to be possible to use CanvasRenderingContext2D without import
-import { CanvasRenderingContext2D as CanvasRenderingContext2DImpl, CanvasRenderingContext2DStatic } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
+import { CanvasRenderingContext2D as CanvasRenderingContext2DImpl, CanvasRenderingContext2DInternal } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testLength_10_lpx } from "@arkoala/arkui/test_data"
@@ -480,7 +480,7 @@ function checkCanvasRenderingContext2D() {
 
     const ctorPtr = BigInt(123)
     const serializer = new Serializer()
-    serializer.writeCanvasRenderingContext2D(unsafeCast<CanvasRenderingContext2D>(CanvasRenderingContext2DStatic.fromPtr(ctorPtr)))
+    serializer.writeCanvasRenderingContext2D(unsafeCast<CanvasRenderingContext2D>(CanvasRenderingContext2DInternal.fromPtr(ctorPtr)))
     const deserializer = new Deserializer(serializer.asArray().buffer, serializer.length())
     const materializedBase = deserializer.readCanvasRenderingContext2D() as unknown as MaterializedBase
     assertEquals("Deserializer readCanvasRenderingContext2D()", ctorPtr, materializedBase.getPeer()!.ptr)

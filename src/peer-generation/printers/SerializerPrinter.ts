@@ -34,7 +34,7 @@ import { DeclarationNameConvertor } from '../idl/IdlNameConvertor';
 import { throwException } from "../../util";
 import { IDLEntry } from "../../idl";
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
-import { collectMaterializedImports } from '../Materialized';
+import { collectMaterializedImports, getInternalClassName } from '../Materialized';
 import { CallbackKind, generateCallbackKindAccess, stubIsTypeCallback } from '../ArgConvertors';
 import { SourceFile, TsSourceFile } from './SourceFile';
 import { collectUniqueCallbacks } from './CallbacksPrinter';
@@ -321,7 +321,7 @@ class IdlDeserializerPrinter {
                 this.writer.makeReturn(
                     this.writer.makeCast(
                         this.writer.makeMethodCall(
-                            `${target.name}Static`, "fromPtr", [this.writer.makeString(`ptr`)]
+                            getInternalClassName(target.name), "fromPtr", [this.writer.makeString(`ptr`)]
                         ),
                         idl.createReferenceType(target.name),
                         { unsafe: unsafe }
@@ -333,7 +333,7 @@ class IdlDeserializerPrinter {
         this.writer.writeStatement(
             this.writer.makeReturn(
                 this.writer.makeMethodCall(
-                    `${target.name}Static`, "fromPtr", [this.writer.makeString(`ptr`)]
+                    getInternalClassName(target.name), "fromPtr", [this.writer.makeString(`ptr`)]
                 )
             )
         )

@@ -129,6 +129,9 @@ export class MaterializedClass implements PeerClassBase {
         return this.className
     }
 
+    getInternalName(): string {
+        return getInternalClassName(this.className)
+    }
     setGenerationContext(context: string| undefined): void {
        // TODO: set generation context!
     }
@@ -162,8 +165,12 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
         )
 }
 
+export function getInternalClassName(name: string): string {
+    return `${name}Internal`
+}
+
 export function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
-    for (const materialized of library.materializedClasses.keys()) {
-        imports.addFeature(`${materialized}Static`, `./Ark${materialized}Materialized`)
+    for (const materialized of library.materializedClasses.values()) {
+        imports.addFeature(materialized.getInternalName(), `./Ark${materialized.className}Materialized`)
     }
 }
