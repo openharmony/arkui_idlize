@@ -212,6 +212,11 @@ export class CustomPrintVisitor {
                 ? (it.type === IDLStringType ? ` = "${it.initializer}"` : ` = ${it.initializer}`)
                 : undefined
             this.print(`${getName(it)}${initializer ?? ""},`)
+            let originalName = getExtAttribute(it, IDLExtendedAttributes.OriginalEnumMemberName)
+            if (originalName) {
+                const initValue = ` = ${it.name}`
+                this.print(`${originalName}${initValue},`)
+            }
         })
         this.popIndent()
         this.print("}")
