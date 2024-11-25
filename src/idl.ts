@@ -180,6 +180,7 @@ export interface IDLEnumMember extends IDLEntry {
     kind: IDLKind.EnumMember
     parent: IDLEnum
     type: IDLPrimitiveType
+    // TODO: remove undefined case
     initializer: number | string | undefined
 }
 

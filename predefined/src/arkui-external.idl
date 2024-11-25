@@ -17,18 +17,18 @@ interface TextModifier {};
 
 /*[Namespace=text]*/
 dictionary RectWidthStyle {
-    number TIGHT;
-    number MAX;
+    number TIGHT = 0;
+    number MAX = 1;
 };
 
 /*[Namespace=text]*/
 dictionary RectHeightStyle {
-    number TIGHT;
-    number MAX;
-    number INCLUDE_LINE_SPACE_MIDDLE;
-    number INCLUDE_LINE_SPACE_TOP;
-    number INCLUDE_LINE_SPACE_BOTTOM;
-    number STRUT;
+    number TIGHT = 0;
+    number MAX = 1;
+    number INCLUDE_LINE_SPACE_MIDDLE = 2;
+    number INCLUDE_LINE_SPACE_TOP = 3;
+    number INCLUDE_LINE_SPACE_BOTTOM = 4;
+    number STRUT = 5;
 };
 
 /**

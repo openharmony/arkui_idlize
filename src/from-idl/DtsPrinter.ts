@@ -208,14 +208,11 @@ export class CustomPrintVisitor {
         this.print(`${namespace ? "" : "declare "}enum ${node.name} {`)
         this.pushIndent()
         node.elements.forEach(it => {
-            const initializer = (it.initializer !== undefined)
-                ? (it.type === IDLStringType ? ` = "${it.initializer}"` : ` = ${it.initializer}`)
-                : undefined
-            this.print(`${getName(it)}${initializer ?? ""},`)
+            const initializer = (it.type === IDLStringType ? `"${it.initializer}"` : `${it.initializer}`)
+            this.print(`${getName(it)} = ${initializer},`)
             let originalName = getExtAttribute(it, IDLExtendedAttributes.OriginalEnumMemberName)
-            if (originalName) {
-                const initValue = ` = ${it.name}`
-                this.print(`${originalName}${initValue},`)
+            if (originalName && originalName != getName(it)) {
+                this.print(`${originalName} = ${initializer},`)
             }
         })
         this.popIndent()
