@@ -31,6 +31,7 @@ import {
     mesonBuildFile,
     tsCopyrightAndWarning,
     makeDeserializeAndCall,
+    readLangTemplate,
 } from "./FileGenerators"
 import { makeCJNodeTypes, makeCJSerializer } from "./printers/lang/CJPrinters"
 import { makeJavaArkComponents, makeJavaNodeTypes, makeJavaSerializer } from "./printers/lang/JavaPrinters"
@@ -249,7 +250,7 @@ export function generateArkoalaFromIdl(config: {
     if (peerLibrary.language == Language.TS) {
         const declarations = printDeclarations(peerLibrary)
         const index = new IndentedPrinter()
-        index.print(tsCopyrightAndWarning(""))
+        index.print(tsCopyrightAndWarning(readLangTemplate("index-full.d.ts", Language.TS)))
         for (const data of declarations) {
             index.print(data)
         }
