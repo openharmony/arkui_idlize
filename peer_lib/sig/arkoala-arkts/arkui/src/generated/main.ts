@@ -56,6 +56,14 @@ import { Resource } from "./ArkResourceInterfaces"
 
 import { TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/ArkEnumsInterfaces"
 
+import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
+import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
+import { Serializer } from "@arkoala/arkui/peers/Serializer"
+import { CallbackKind } from "@arkoala/arkui/peers/CallbackKind"
+import { ResourceId } from "@koalaui/interop"
+import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
+
+
 const testString1000 = "One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand";
 
 /*
@@ -521,6 +529,73 @@ function checkCallback() {
     assertThrows("Call callback 0", () => { callCallback(0, [2, 4, 6, 8], 4) })
 }
 
+function createDefaultWriteCallback(kind: CallbackKind, callback: object) {
+    return (serializer: Serializer) => {
+        return serializer.holdAndWriteCallback(callback,
+            nativeModule()._TestGetManagedHolder(),
+            nativeModule()._TestGetManagedReleaser(),
+            nativeModule()._TestGetManagedCaller(kind.value),
+        )
+    }
+}
+
+function enqueueCallback(
+    writeCallback: (serializer: Serializer) => ResourceId,
+    readAndCallCallback: (deserializer: Deserializer) => void,
+) {
+    const serializer = Serializer.hold()
+    const resourceId = writeCallback(serializer)
+    /* imitate libace holding resource */
+    nativeModule()._HoldArkoalaResource(resourceId)
+    /* libace stored resource somewhere */
+    const buffer = new byte[serializer.length()]
+    for (let i = 0; i < buffer.length; i++) {
+        buffer[i] = serializer.asArray()[i]
+    }
+    serializer.release()
+
+    /* libace calls stored callback */
+    const deserializer = new Deserializer(buffer, buffer.length)
+    readAndCallCallback(deserializer)
+    /* libace released resource */
+    nativeModule()._ReleaseArkoalaResource(resourceId)
+}
+
+function checkTwoSidesCallback() {
+    nativeModule()._TestSetArkoalaCallbackCaller()
+
+    let callResult1 = "NOT_CALLED"
+    let callResult2 = 0
+    const call2Count = 100
+
+    enqueueCallback(
+        createDefaultWriteCallback(CallbackKind.Kind_Callback_Number_Void, (value: number): void => {
+            callResult1 = `CALLED, value=${value}`
+        }),
+        (deserializer) => {
+            const callback = deserializer.readCallback_Number_Void()
+            callback(194)
+        },
+    )
+    for (let i = 0; i < call2Count; i++) {
+        enqueueCallback(
+            createDefaultWriteCallback(CallbackKind.Kind_Callback_Void, (): void => {
+                callResult2++
+            }),
+            (deserializer) => {
+                const callback = deserializer.readCallback_Void()
+                callback()
+            },
+        )
+    }
+
+    assertEquals("Callback 1 enqueued", "NOT_CALLED", callResult1)
+    assertEquals(`Callback 2 enqueued ${call2Count} times`, 0, callResult2)
+    checkArkoalaCallbacks()
+    assertEquals("Callback 1 read&called", "CALLED, value=194", callResult1)
+    assertEquals(`Callback 2 read&called ${call2Count} times`, call2Count, callResult2)
+}
+
 function checkNativeCallback() {
     const id1 = wrapCallback((args: byte[], length: int): int => {
         return 123456
@@ -659,6 +734,7 @@ export function main(): void {
     checkNativeCallback()
 
     checkNodeAPI()
+    checkTwoSidesCallback()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")

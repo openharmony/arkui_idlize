@@ -47,7 +47,7 @@ compile arkts subset:
     - koala-ci
   before_script:
     - !reference [.setup, script]
-    - PANDA_SDK_VERSION=1.5.0-dev.7123 npm run panda:sdk:install
+    - PANDA_SDK_VERSION=1.5.0-dev.9440 npm run panda:sdk:install
   script:
     - npm run compile:all:arkts
 
@@ -68,7 +68,7 @@ arkts subset sig integration:
     - koala-ci
   before_script:
     - !reference [.setup, script]
-    - PANDA_SDK_VERSION=1.5.0-dev.7123 npm run panda:sdk:install
+    - PANDA_SDK_VERSION=1.5.0-dev.9440 npm run panda:sdk:install
     - npm run fast-arktsc:install --prefix external/arkoala-arkts
   script:
     - npm run sig:arkts:subset:all

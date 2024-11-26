@@ -18,4 +18,5 @@ interface Interop {
     void StartPerf(String str1);
     void EndPerf(String str1);
     pointer DumpPerf(i32 arg);
+    String Utf8ToString(sequence<u8> data, i32 offset, i32 length);
 };

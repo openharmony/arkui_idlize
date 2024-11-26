@@ -48,7 +48,6 @@ import { Language } from '../../Language'
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 import { collectProperties } from './StructPrinter'
 import { CustomPrintVisitor } from "../../from-idl/DtsPrinter"
-import { stubIsTypeCallback } from '../ArgConvertors'
 import { escapeKeyword, IDLType } from "../../idl";
 
 interface InterfacesVisitor {
@@ -565,7 +564,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     private printPropNameWithType(prop: idl.IDLProperty): string {
-        const isOptional = prop.isOptional || stubIsTypeCallback(this.peerLibrary, prop.type)
+        const isOptional = prop.isOptional
         return `${prop.name}${isOptional ? "?" : ""}: ${this.convertType(prop.type)}`
     }
 

@@ -13,18 +13,17 @@
  * limitations under the License.
  */
 
-import {CustomTextDecoder, float32, int32, int64} from "@koalaui/common"
-import {pointer} from "@koalaui/interop"
+import { float32, int32, int64, float32FromBits } from "@koalaui/common"
+import {pointer, KUint8ArrayPtr, KBuffer} from "@koalaui/interop"
 import {RuntimeType, Tags, CallbackResource} from "./SerializerBase";
 import { Length } from "../ArkUnitsInterfaces"
 import { Resource } from "../ArkResourceInterfaces"
+import { NativeModule } from "#components"
 
 export class DeserializerBase {
     private position = 0
-    private readonly buffer: ArrayBuffer
+    private readonly buffer: KBuffer
     private readonly length: int32
-    private view: DataView
-    private static textDecoder: CustomTextDecoder = new CustomTextDecoder()
     private static customDeserializers: CustomDeserializer | undefined = undefined
 
     static registerCustomDeserializer(deserializer: CustomDeserializer) {
@@ -39,10 +38,9 @@ export class DeserializerBase {
         }
     }
 
-    constructor(buffer: ArrayBuffer, length: int32) {
-        this.buffer = buffer
+    constructor(buffer: KUint8ArrayPtr, length: int32) {
+        this.buffer = new KBuffer(buffer)
         this.length = length
-        this.view = new DataView(this.buffer)
     }
 
     static get<T extends DeserializerBase>(
@@ -53,8 +51,8 @@ export class DeserializerBase {
         return factory(args, length);
     }
 
-    asArray(position?: number, length?: number): Uint8Array {
-        return new Uint8Array(this.buffer, position, length)
+    asArray(): KUint8ArrayPtr {
+        return this.buffer.buffer
     }
 
     currentPosition(): int32 {
@@ -73,42 +71,62 @@ export class DeserializerBase {
 
     readInt8(): int32 {
         this.checkCapacity(1)
-        const value = this.view.getInt8(this.position)
+        const value = this.buffer.get(this.position)
         this.position += 1
         return value
     }
 
     readInt32(): int32 {
         this.checkCapacity(4)
-        const value = this.view.getInt32(this.position, true)
+        let res: int32 = 0;
+        for (let i = 0; i < 4; i++) {
+            let byteVal = this.buffer.get(this.position + i) as int32;
+            byteVal &= 0xff
+            res = (res | byteVal << (8 * i)) as int32;
+        }
         this.position += 4
-        return value
+        return res
     }
 
     readPointer(): pointer {
         this.checkCapacity(8)
-        const value = this.view.getBigInt64(this.position, true)
+        let res: int64 = 0;
+        for (let i = 0; i < 8; i++) {
+            let byteVal = this.buffer.get(this.position + i) as int64;
+            byteVal &= 0xff
+            res = (res | byteVal << (8 * i)) as int64;
+        }
         this.position += 8
-        return value
+        return res
     }
 
     readInt64(): int64 {
         this.checkCapacity(8)
-        const value = this.view.getBigInt64(this.position, true)
+        let res: int64 = 0;
+        for (let i = 0; i < 8; i++) {
+            let byteVal = this.buffer.get(this.position + i) as int64;
+            byteVal &= 0xff
+            res = (res | byteVal << (8 * i)) as int64;
+        }
         this.position += 8
-        return value
+        return res
     }
 
     readFloat32(): float32 {
         this.checkCapacity(4)
-        const value = this.view.getFloat32(this.position, true)
+        let res: int32 = 0;
+        for (let i = 0; i < 4; i++) {
+            let byteVal = this.buffer.get(this.position + i) as int32;
+            byteVal &= 0xff
+            res = (res | byteVal << (8 * i)) as int32;
+        }
         this.position += 4
-        return value
+        return float32FromBits(res)
     }
 
     readBoolean(): boolean {
         this.checkCapacity(1)
-        const value = this.view.getInt8(this.position)
+        const value = this.buffer.get(this.position)
         this.position += 1
         return value == 1
     }
@@ -136,7 +154,7 @@ export class DeserializerBase {
         const length = this.readInt32()
         this.checkCapacity(length)
         // read without null-terminated byte
-        const value = DeserializerBase.textDecoder.decode(this.asArray(this.position, length - 1));
+        const value = NativeModule._Utf8ToString(this.buffer.buffer, this.position, length)
         this.position += length
         return value
     }

@@ -147,6 +147,7 @@ function copyArkoalaFiles(config: {
         'sig/arkoala-arkts/arkui/src/generated/ts/NativeModule.ts',
         'sig/arkoala-arkts/arkui/src/generated/peers/SerializerBase.ts',
         'sig/arkoala-arkts/arkui/src/generated/peers/DeserializerBase.ts',
+        'sig/arkoala-arkts/arkui/src/generated/peers/CallbacksChecker.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/ArkResource.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/dts-exports.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/generated-utils.ts',

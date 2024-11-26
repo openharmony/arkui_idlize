@@ -35,7 +35,7 @@ import { throwException } from "../../util";
 import { IDLEntry } from "../../idl";
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { collectMaterializedImports, getInternalClassName } from '../Materialized';
-import { CallbackKind, generateCallbackKindAccess, stubIsTypeCallback } from '../ArgConvertors';
+import { CallbackKind, generateCallbackKindAccess } from '../ArgConvertors';
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile';
 import { collectUniqueCallbacks } from './CallbacksPrinter';
 
@@ -92,10 +92,6 @@ class IdlSerializerPrinter {
             let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
 
             let memberAccess = writer.makeString(`value.${writer.escapeKeyword(it.name)}`)
-            if (writer.language === Language.ARKTS && stubIsTypeCallback(this.library, type)) {
-                memberAccess = writer.makeCast(memberAccess, idl.maybeOptional(type, it.isOptional))
-            }
-
             writer.writeStatement(writer.makeAssign(field, undefined, memberAccess, true))
             typeConvertor.convertorSerialize(`value`, field, writer)
         })
@@ -225,10 +221,6 @@ class IdlDeserializerPrinter {
                 const decl = this.library.resolveTypeReference(prop.type)
                 return decl === undefined || (!idl.isInterface(decl) && !idl.isClass(decl))
             }
-            if (writer.language === Language.ARKTS && collectProperties(target, this.library).some(it => !canDeserializeProperty(it))) {
-                writer.writeStatement(writer.makeThrowError("Waiting for 20642 issue to be fixed"))
-                return
-            }
             if (isMaterialized(target)) {
                 this.generateMaterializedBodyDeserializer(target)
             } else if (isBuilderClass(target)) {
@@ -278,10 +270,6 @@ class IdlDeserializerPrinter {
             })
             if (this.writer.language !== Language.CPP) {
                 const propsAssignees = properties.map(it => {
-                    if (this.writer.language === Language.ARKTS) {
-                        if (stubIsTypeCallback(this.library, it.type))
-                            return `${it.name}: undefined`
-                    }
                     return `${it.name}: ${it.name}_result`
                 })
                 this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeCast(this.writer.makeString(`{${propsAssignees.join(',')}}`), type), true, false))
@@ -431,7 +419,7 @@ class IdlDeserializerPrinter {
             ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLUint8ArrayType, idl.IDLI32Type], ["data", "length"])
             prefix = prefix === "" ? PrimitiveType.Prefix : prefix
         } else if (this.writer.language === Language.ARKTS) {
-            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLBufferType, idl.IDLI32Type], ["data", "length"])
+            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createContainerType("sequence", [idl.IDLU8Type]), idl.IDLI32Type], ["data", "length"])
         }
         const serializerDeclarations = getSerializerDeclarations(this.library,
             createSerializerDependencyFilter(this.writer.language))
@@ -511,6 +499,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         const collector = (destFile as ArkTSSourceFile).imports
         if (!declarationPath) {
             collector.addFeature("TypeChecker", "#components")
+            collector.addFeature("KUint8ArrayPtr", "@koalaui/interop")
             for (const callback of collectUniqueCallbacks(library)) {
                 if (idl.isSyntheticEntry(callback))
                     continue

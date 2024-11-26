@@ -815,9 +815,6 @@ export class AggregateConvertor extends BaseArgConvertor { //
         this.memberConvertors.forEach((it, index) => {
             let memberName = this.members[index][0]
             let memberAccess = `${value}.${memberName}`
-            if (printer.language === Language.ARKTS && stubIsTypeCallback(this.library, this.decl.properties[index].type)) {
-                memberAccess = `${memberAccess}!`
-            }
             printer.writeStatement(
                 printer.makeAssign(`${value}_${memberName}`, undefined,
                     printer.makeString(memberAccess), true))
@@ -850,11 +847,6 @@ export class AggregateConvertor extends BaseArgConvertor { //
             statements.push(assigneer(writer.makeString(bufferName)))
         } else {
             const resultExpression = this.makeAssigneeExpression(this.decl.properties.map(prop => {
-                if (writer.language === Language.ARKTS) {
-                    if (stubIsTypeCallback(this.library, prop.type)) {
-                        return [prop.name, writer.makeString('undefined')]
-                    }
-                }
                 return [prop.name, writer.makeString(`${bufferName}_${prop.name}`)]
             }), writer)
             statements.push(assigneer(resultExpression))
@@ -1352,19 +1344,4 @@ function warnCustomObject(type: string, msg?: string) {
         warn(`Use CustomObject for ${msg ? `${msg} ` : ``}type ${type}`)
         customObjects.add(type)
     }
-}
-
-export function stubIsTypeCallback(resolver: LibraryInterface, type: idl.IDLType): boolean {
-    // TODO dirty stub, because we can not initialize functional type fields
-    if (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.Import))
-        return false
-    const refType = idl.isReferenceType(type) ? type : undefined
-    const decl = refType ? resolver.resolveTypeReference(refType) : undefined
-    if (decl && idl.isCallback(decl)) {
-        return true
-    }
-    if (decl && idl.isTypedef(decl)) {
-        return stubIsTypeCallback(resolver, decl.type)
-    }
-    return false
 }
