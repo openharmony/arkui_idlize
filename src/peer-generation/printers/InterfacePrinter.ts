@@ -448,7 +448,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         //         ], [], []))
         // } else {
         // }
-        this.writer.print(`export declare type ${node.name}${typeParams} = ${type};`)
+        this.writer.print(`export type ${node.name}${typeParams} = ${type};`)
     }
 
     convertCallback(node: idl.IDLCallback) {
@@ -597,7 +597,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
                           returnType: idl.IDLType | undefined): string {
         const paramsType = this.printParameters(parameters)
         const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
-        return `declare type ${node.name}${this.printTypeParameters(node.typeParameters)} = (${paramsType}) => ${retType};`
+        return `type ${node.name}${this.printTypeParameters(node.typeParameters)} = (${paramsType}) => ${retType};`
     }
 
     private isCallback(node: idl.IDLInterface) {
@@ -610,7 +610,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
 
     private printTuple(tuple: idl.IDLInterface) {
         const seenFields = new Set<string>()
-        return ([`declare type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
+        return ([`type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
             .concat(tuple.properties
                 .map(it => this.iDLTypedEntryPrinter(it, it => {
                     //TODO: use ETSConvertor.processTupleType
