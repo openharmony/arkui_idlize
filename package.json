@@ -152,7 +152,7 @@
     "arkoala:har-arm32": "npm run generate:ts && cd external && npm run arkoala:har-arm32",
     "sig:arkts:subset:clean": "cd ./external/arkoala-arkts/arkui && rm -rf src/generated/ && rm -rf build/ && rm -rf unmemoized/",
     "sig:arkts:subset:copy": "npm run make:arkts && cp -r ./out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/ ./external/arkoala-arkts/arkui/src/",
-    "sig:arkts:subset:compile": "cd external/arkoala-arkts/arkui && npm run compile:arkts:unmemoized",
+    "sig:arkts:subset:compile": "cd external/arkoala-arkts/arkui && npm run build:arkui",
     "sig:arkts:subset:all": "npm run sig:arkts:subset:clean && npm run sig:arkts:subset:copy && npm run sig:arkts:subset:compile"
   }
 }
