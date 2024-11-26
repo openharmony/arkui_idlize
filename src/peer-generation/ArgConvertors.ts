@@ -826,6 +826,11 @@ export class AggregateConvertor extends BaseArgConvertor { //
         if (writer.language === Language.CPP) {
             statements.push(writer.makeAssign(bufferName, this.idlType, undefined, true, false))
         }
+        // TODO: Needs to be reworked DeserializerBase.readFunction properly
+        if (writer.language === Language.ARKTS
+            && this.memberConvertors.find(it => it instanceof FunctionConvertor)) {
+            return new BlockStatement([writer.makeThrowError("Not implemented yet")], false)
+        }
         for (let i = 0; i < this.decl.properties.length; i++) {
             const prop = this.decl.properties[i]
             const propConvertor = this.memberConvertors[i]

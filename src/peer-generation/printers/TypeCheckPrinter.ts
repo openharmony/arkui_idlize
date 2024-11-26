@@ -15,9 +15,9 @@ import {
     isBuilderClass,
 } from "../idl/IdlPeerGeneratorVisitor";
 import { getSyntheticDeclarationList } from "../idl/IdlSyntheticDeclarations";
-import { createDeclarationNameConvertor, DeclarationNameConvertor } from "../idl/IdlNameConvertor";
+import { createDeclarationNameConvertor } from "../idl/IdlNameConvertor";
 import { Language } from "../../Language";
-import {IDLBooleanType, toIDLType} from "../../idl";
+import { IDLBooleanType, isReferenceType, toIDLType } from "../../idl";
 import { getReferenceResolver } from '../ReferenceResolver';
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -115,7 +115,7 @@ abstract class TypeCheckerPrinter {
         imports.print(this.writer, 'arkts/type_check')
     }
     protected abstract writeInterfaceChecker(name: string, descriptor: StructDescriptor, type?: idl.IDLType): void
-    protected abstract writeArrayChecker(typeName: string, type: idl.IDLType): void
+    protected abstract writeArrayChecker(typeName: string, type: idl.IDLContainerType): void
 
     print() {
         const importFeatures: ImportFeature[] = []
@@ -188,7 +188,10 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         super(library, createLanguageWriter(Language.ARKTS, getReferenceResolver(library)))
     }
 
-    private writeInstanceofChecker(typeName: string, checkerName: string, fieldsCount: number) {
+    private writeInstanceofChecker(typeName: string,
+                                   checkerName: string,
+                                   fieldsCount: number,
+                                   typeArguments: string[]) {
         const argsNames = Array.from({length: fieldsCount}, (_, index) => `arg${index}`)
         this.writer.writeMethodImplementation(new Method(
             checkerName,
@@ -196,6 +199,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                 [toIDLType('object|string|number|undefined|null'), ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
+            typeArguments
         ), writer => {
             //TODO: hack for now
             typeName = typeName === "Callback" ? "Callback<void, void>" : typeName
@@ -205,11 +209,15 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     }
 
     protected writeInterfaceChecker(name: string, descriptor: StructDescriptor): void {
-        this.writeInstanceofChecker(name, generateTypeCheckerName(name), descriptor.getFields().length)
+        this.writeInstanceofChecker(name, generateTypeCheckerName(name), descriptor.getFields().length, [])
     }
 
-    protected writeArrayChecker(typeName: string, type: idl.IDLType): void {
-        this.writeInstanceofChecker(this.writer.getNodeName(type), generateTypeCheckerName(typeName), 0)
+    protected writeArrayChecker(typeName: string, type: idl.IDLContainerType): void {
+        const typeArguments = type.elementType
+            .filter((it): it is idl.IDLReferenceType => isReferenceType(it))
+            .flatMap(it => it.typeArguments ?? [])
+            .map(it => this.writer.getNodeName(it))
+        this.writeInstanceofChecker(this.writer.getNodeName(type), generateTypeCheckerName(typeName), 0, typeArguments)
     }
 }
 
@@ -253,7 +261,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         })
     }
 
-    protected writeArrayChecker(typeName: string, type: idl.IDLType) {
+    protected writeArrayChecker(typeName: string, type: idl.IDLContainerType) {
         const checkerName = generateTypeCheckerName(typeName)
         this.writer.writeMethodImplementation(new Method(
             checkerName,

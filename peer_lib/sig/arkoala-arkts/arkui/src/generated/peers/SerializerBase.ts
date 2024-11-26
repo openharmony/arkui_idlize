@@ -14,7 +14,6 @@
  */
 import { float32, float64, int8, int32, int64 } from "@koalaui/common"
 import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder } from "@koalaui/interop"
-import { CallbackKind } from "./CallbackKind"
 import { Length } from "../ArkUnitsInterfaces"
 import { Resource } from "../ArkResourceInterfaces"
 import { NativeModule } from "#components"

@@ -67,7 +67,7 @@ export class PeerLibrary implements LibraryInterface {
     readonly declarations: idl.IDLEntry[] = []
     readonly componentsDeclarations: IdlComponentDeclaration[] = []
     readonly conflictedDeclarations: Set<idl.IDLEntry> = new Set()
-    readonly seenArrayTypes: Map<string, idl.IDLType> = new Map()
+    readonly seenArrayTypes: Map<string, idl.IDLContainerType> = new Map()
 
     private readonly targetNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(this.language, this)
     private readonly nativeNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(Language.CPP, this)

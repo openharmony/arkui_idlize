@@ -19,13 +19,14 @@ import {
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
+    MakeCastOptions,
     Method, MethodCallExpression,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
     ObjectArgs
 } from "../LanguageWriter"
-import { TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
+import { TSCastExpression, TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
 import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
 import {AggregateConvertor, ArgConvertor, ArrayConvertor, BaseArgConvertor, CustomTypeConvertor, EnumConvertor, InterfaceConvertor, makeInterfaceTypeCheckerCall, RuntimeType} from "../../ArgConvertors"
 import { Language } from "../../../Language"
@@ -323,5 +324,8 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
         return new NamedMethodSignature(IDLVoidType, [], [])
+    }
+    makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
+        return new TSCastExpression(value, `${this.getNodeName(type)}`, options?.unsafe ?? false)
     }
 }

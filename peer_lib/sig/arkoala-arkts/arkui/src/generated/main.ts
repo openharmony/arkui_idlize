@@ -46,7 +46,6 @@ import { BlurOptions,
     HoverModeAreaType } from "@arkoala/arkui/ArkCommonInterfaces"
 import { Dimension,
     Length,
-    LengthMetrics,
     ResourceColor,
     ResourceStr,
     Font,
@@ -515,7 +514,7 @@ function checkButton() {
     checkResult("bindSheet", () => {
             peer.bindSheetAttribute(false, (): Object => {}, new SheetOptionsImpl(new SheetTitleOptionsImpl("My App")))
         },
-        "bindSheet({.selector=0, .value0=false}, {.resource={.resourceId=100, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=0, .value0={.chars=\"My App\", .length=6}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .scrollSizeMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}, .keyboardAvoidMode={.tag=ARK_TAG_UNDEFINED, .value={}}}})"
+        "bindSheet({.tag=ARK_TAG_OBJECT, .value=false}, {.resource={.resourceId=100, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=0, .value0={.chars=\"My App\", .length=6}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .scrollSizeMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}, .keyboardAvoidMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableHoverMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .hoverModeArea={.tag=ARK_TAG_UNDEFINED, .value={}}, .offset={.tag=ARK_TAG_UNDEFINED, .value={}}}})"
     )
 }
 
@@ -705,17 +704,17 @@ function checkNodeAPI() {
     const child5 = ArkButtonPeer.create(ArkUINodeType.Web, undefined, 0)
 
     checkResult("BasicNodeAPI addChild", () => root.peer.addChild(child1.peer),
-        `addChild(0x${root.peer.ptr}, 0x${child1.peer.ptr})`)
+        `addChild(0x${root.peer.ptr}, 0x${child1.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
     checkResult("BasicNodeAPI insertChildAfter", () => root.peer.insertChildAfter(child4.peer, child1.peer),
-        `insertChildAfter(0x${root.peer.ptr}, 0x${child4.peer.ptr}, 0x${child1.peer.ptr})`)
+        `insertChildAfter(0x${root.peer.ptr}, 0x${child4.peer.ptr}, 0x${child1.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
     checkResult("BasicNodeAPI insertChildBefore", () => root.peer.insertChildBefore(child3.peer, child4.peer),
-        `insertChildBefore(0x${root.peer.ptr}, 0x${child3.peer.ptr}, 0x${child4.peer.ptr})`)
+        `insertChildBefore(0x${root.peer.ptr}, 0x${child3.peer.ptr}, 0x${child4.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
     checkResult("BasicNodeAPI insertChildAt", () => root.peer.insertChildAt(child2.peer, 1),
-        `insertChildAt(0x${root.peer.ptr}, 0x${child2.peer.ptr}, 1)`)
+        `insertChildAt(0x${root.peer.ptr}, 0x${child2.peer.ptr}, 1)markDirty(0x${root.peer.ptr}, 32)`)
     checkResult("BasicNodeAPI insertChildAfter (empty tree case)", () => child4.peer.insertChildAfter(child5.peer, undefined),
-        `insertChildAfter(0x${child4.peer.ptr}, 0x${child5.peer.ptr}, 0x0)`)
+        `insertChildAfter(0x${child4.peer.ptr}, 0x${child5.peer.ptr}, 0x0)markDirty(0x${child4.peer.ptr}, 32)`)
     checkResult("BasicNodeAPI removeChild", () => root.peer.removeChild(child2.peer),
-        `removeChild(0x${root.peer.ptr}, 0x${child2.peer.ptr})`)
+        `removeChild(0x${root.peer.ptr}, 0x${child2.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
     checkResult("BasicNodeAPI dispose", () => child2.peer.dispose(),
         `disposeNode(0x${child2.peer.ptr})`)
     checkResult("BasicNodeAPI dumpTree", () => root.peer.dumpTree(),

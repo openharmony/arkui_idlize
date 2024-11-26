@@ -51,6 +51,18 @@ compile arkts subset:
   script:
     - npm run compile:all:arkts
 
+compile arkts peers:
+  stage: test
+  when: manual
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - PANDA_SDK_VERSION=1.5.0-dev.9440 npm run panda:sdk:install
+  script:
+    - npm run make:compile:arkts:peers
+
 arkts subset tsc:
    stage: test
    tags:

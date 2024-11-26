@@ -16,8 +16,7 @@
 import { convertNode, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 import * as idl from '../../../idl'
 import { ReferenceResolver } from '../../ReferenceResolver'
-import { stringOrNone, throwException } from '../../../util'
-import { IDLEntry } from "../../../idl";
+import { stringOrNone } from '../../../util'
 
 export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNameConvertor {
 
@@ -81,7 +80,7 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
         return `IMPORT_${what}_FROM_${where}`.match(/[a-zA-Z]+/g)!.join('_')
     }
 
-    protected getNamespacePrefix(decl: IDLEntry): stringOrNone {
+    protected getNamespacePrefix(decl: idl.IDLEntry): stringOrNone {
         let namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
         if (namespace !== undefined) {
             namespace += "."
@@ -120,7 +119,7 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
         }
 
         let typeSpec = type.name
-        let typeArgs = type.typeArguments?.map(it => idl.printType(it))
+        let typeArgs = type.typeArguments?.map(it => idl.printType(it)) ?? []
         if (typeSpec === `AttributeModifier`)
             typeArgs = [`object`]
         if (typeSpec === `ContentModifier` || typeSpec === `WrappedBuilder`)
@@ -131,6 +130,9 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
         // FIXME:
         if (namespacePrefix !== '' && typeSpec.startsWith(namespacePrefix)) {
             return `${typeSpec}${maybeTypeArguments}`
+        }
+        if (typeSpec === `Function`) {
+            return this.mapFunctionType(typeArgs)
         }
         return `${namespacePrefix}${typeSpec}${maybeTypeArguments}`
     }
@@ -204,6 +206,9 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
             }`
 
         return name
+    }
+    protected mapFunctionType(typeArgs: string[]): string {
+        return `Function${typeArgs.length ? `<${typeArgs.join(",")}>` : ''}`
     }
 
     /**********************************************************************/

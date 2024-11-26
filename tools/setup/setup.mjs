@@ -5,7 +5,7 @@ import { execSync } from 'child_process';
 
 const CWD = process.cwd()
 const options = program
-    .option(`--template [ts_subset|ts_peers|arkts_subset_tsc]`)
+    .option(`--template [ts_subset|ts_peers|arkts_subset_tsc|arkts_peers_tsc]`)
     .option(`--out <path>`)
     .parse()
     .opts()
@@ -50,7 +50,8 @@ function main() {
             installExternal()
             symlinkSdk()
         },
-        arkts_subset_tsc: installExternal
+        arkts_subset_tsc: installExternal,
+        arkts_peers_tsc: installExternal
     }
 
     fs.rmSync(options.out, { recursive: true, force: true })

@@ -38,7 +38,12 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
                 return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
             }
         }
-        return super.convertTypeReference(type);
+        const typeName = super.convertTypeReference(type)
+        // TODO: Fix for 'TypeError: Type 'Function<R>' is generic but type argument were not provided.'
+        if (typeName === "Function") {
+            return "Function<void>"
+        }
+        return typeName;
     }
 
     override convertContainer(type: idl.IDLContainerType): string {
@@ -113,5 +118,15 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
 
     protected getNamespacePrefix(decl: IDLEntry): stringOrNone {
         return idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace);
+    }
+
+    protected mapFunctionType(typeArgs: string[]): string {
+        // Fix for "TypeError: Type 'Function<R>' is generic but type argument were not provided."
+        // Replace "Function" to "Function<void>"
+        // Use "FunctionN" for ts compatibility
+        if (typeArgs.length === 0) {
+            typeArgs = [this.convert(idl.IDLVoidType)]
+        }
+        return `Function${typeArgs.length - 1}<${typeArgs.join(",")}>`
     }
 }
