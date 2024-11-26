@@ -28,12 +28,12 @@ export class GniVisitor {
 
     printGniEntries(clazz: PeerClass): void {
         const className = makeFileNameFromClassName(clazz.componentName)
-        this.gni.print(`"../arkoala/implementation/${className}_modifier.cpp",`)
+        this.gni.print(`"implementation/${className}_modifier.cpp",`)
     }
 
     printMaterializedClassSourcePaths(clazz: MaterializedClass) {
         const className = makeFileNameFromClassName(clazz.className)
-        this.gni.print(`"../arkoala/implementation/${className}_accessor.cpp",`)
+        this.gni.print(`"implementation/${className}_accessor.cpp",`)
     }
 
     // TODO: have a proper Peer module visitor
@@ -53,10 +53,10 @@ export class GniVisitor {
             this.printMaterializedClassSourcePaths(clazz)
         })
 
-        this.gni.print(`"../arkoala/utility/converter.cpp",`)
-        this.gni.print(`"../arkoala/implementation/view_model_bridge.cpp",`)
-        this.gni.print(`"../arkoala/implementation/all_modifiers.cpp",`)
-        this.gni.print(`"../arkoala/implementation/all_events.cpp",`)
+        this.gni.print(`"utility/converter.cpp",`)
+        this.gni.print(`"implementation/view_model_bridge.cpp",`)
+        this.gni.print(`"implementation/all_modifiers.cpp",`)
+        this.gni.print(`"implementation/all_events.cpp",`)
 
         this.gni.popIndent()
         this.gni.print("]")
