@@ -18,7 +18,6 @@ import { IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveTyp
 import { ReferenceResolver } from "./ReferenceResolver";
 import { ArgConvertor, RuntimeType } from "./ArgConvertors";
 import { LanguageExpression, LanguageWriter } from "./LanguageWriters";
-import { fatal } from "../util";
 
 export class UnionFlattener implements TypeConvertor<IDLType[]> {
     constructor(private resolver: ReferenceResolver) {}
@@ -101,7 +100,7 @@ export class UnionRuntimeTypeChecker {
         if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
             this.discriminators.forEach(([discr, conv, n]) =>
                 console.log(`   ${n} : ${conv.constructor.name} : ${discr ? discr.asString() : "<undefined>"}`))
-            fatal(`runtime type conflict in "${context}`)
+            throw new Error(`runtime type conflict in \`${context}\``)
         }
     }
 }

@@ -7,20 +7,6 @@ package "org.openharmony.idlize.predefined";
 typedef any MethodDecorator;  // this is actually unused
 
 /**
- * Represents a raw buffer of binary data, which is used to store data for the
- * different typed arrays. ArrayBuffers cannot be read from or written to directly,
- * but can be passed to a typed array or DataView Object to interpret the raw
- * buffer as needed.
- */
-[TSType=ArrayBuffer]
-interface ArrayBuffer {
-    /**
-     * Read-only. The length of the ArrayBuffer (in bytes).
-     */
-    readonly attribute number byteLength;
-};
-
-/**
  * A typed array of 8-bit unsigned integer values. The contents are initialized to 0. If the
  * requested number of bytes could not be allocated an exception is raised.
  */

@@ -586,7 +586,3 @@ export function removeExt(filename: string) {
 export function warn(message: string) {
     console.log(`WARNING: ${message}`)
 }
-
-export function fatal(message: string) {
-    throw new Error(message)
-}

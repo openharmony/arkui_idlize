@@ -473,6 +473,9 @@ export class BufferConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return false
     }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return writer.instanceOf(this, value);
+    }
 }
 
 export class StringConvertor extends BaseArgConvertor {
