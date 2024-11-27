@@ -72,20 +72,21 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
             case idl.IDLU16Type:
             case idl.IDLI32Type:
             case idl.IDLU32Type:
-                return 'KInt'
+                return 'int32'
 
             case idl.IDLI64Type:
             case idl.IDLU64Type:
-                return 'KLong'
+                return 'int64'
 
             case idl.IDLF32Type:
-                return 'KFloat'
+                return 'float32'
 
             case idl.IDLF64Type:
+                return 'float64'
             case idl.IDLNumberType:
                 return 'number'
 
-            case idl.IDLStringType: return 'KStringPtr'
+            case idl.IDLStringType: return 'String'
             case idl.IDLFunctionType: return 'Object'
 
             case idl.IDLBufferType: return 'ArrayBuffer'

@@ -14,7 +14,7 @@
  */
 
 import { callCallback } from "../CallbackRegistry"
-import { int32 } from "@koalaui/common"
+import { int32, float32 } from "@koalaui/common"
 import {
   KBoolean,
   KUInt,

@@ -98,17 +98,17 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                         writer.makeString(`${className}.${member.name}`))
                 }
             })
-            const typeName = isTypeString ? "string" : "KInt"
-            let argTypes = [toIDLType(typeName)]
+            const valueType = isTypeString ? idl.IDLStringType : idl.IDLI32Type
+            let argTypes = [valueType]
             let argNames = ["value"]
-            argTypes.push(toIDLType("KInt"))
+            argTypes.push(idl.IDLI32Type)
             argNames.push("ordinal")
             writer.writeConstructorImplementation(className,
                 new NamedMethodSignature(IDLVoidType, argTypes, argNames), (writer) => {
                     writer.writeStatement(writer.makeAssign("this.value", undefined, writer.makeString("value"), false))
                     writer.writeStatement(writer.makeAssign("this.ordinal", undefined, writer.makeString("ordinal"), false))
             })
-            writer.writeFieldDeclaration("value", toIDLType(typeName), [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
+            writer.writeFieldDeclaration("value", valueType, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             writer.writeFieldDeclaration("ordinal", IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             writer.writeMethodImplementation(new Method("of", new MethodSignature(toIDLType(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {

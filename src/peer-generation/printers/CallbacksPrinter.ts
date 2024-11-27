@@ -102,7 +102,7 @@ export function collectUniqueCallbacks(library: PeerLibrary) {
 export function printCallbacksKindsImports(language: Language, writer: LanguageWriter) {
     if (language === Language.ARKTS) {
         const imports = new ImportsCollector()
-        imports.addFeatures(['KInt'], '@koalaui/interop')
+        imports.addFeatures(['int32'], '@koalaui/common')
         imports.print(writer, '')
     }
 }

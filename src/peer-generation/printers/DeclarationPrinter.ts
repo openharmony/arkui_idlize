@@ -18,6 +18,7 @@ import { CustomPrintVisitor as DtsPrintVisitor} from "../../from-idl/DtsPrinter"
 import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
 import { PeerLibrary } from "../PeerLibrary"
 import { LanguageWriter } from "../LanguageWriters"
+import { ImportsCollector } from "../ImportsCollector"
 
 export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
     const result = []
@@ -45,6 +46,9 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
 
 export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter) {
     const seenNames = new Set()
+    const imports = new ImportsCollector()
+    imports.addFeature("int32", "@koalaui/common")
+    imports.print(writer, "")
     for (const decl of peerLibrary.declarations) {
         if (idl.isEnum(decl)) {
             // An ugly hack to avoid double definition of ContentType enum.
