@@ -248,14 +248,19 @@ export function generateArkoalaFromIdl(config: {
         enumImpls.printTo(arkoala.tsArkoalaLib(new TargetFile('EnumsImpl')),)
     }
 
-    if (peerLibrary.language == Language.TS) {
+    if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {
         const declarations = printDeclarations(peerLibrary)
         const index = new IndentedPrinter()
+        // index-full.d.ts for ArkTS is a temporary solution for ets pre-processing.
+        // So reuse the TS version for now.
         index.print(tsCopyrightAndWarning(readLangTemplate("index-full.d.ts", Language.TS)))
+        index.print(readLangTemplate("platform.d.ts", peerLibrary.language))
         for (const data of declarations) {
             index.print(data)
         }
         index.printTo(path.join(arkoala.indexDir(), "index-full.d.ts"))
+    }
+    if (peerLibrary.language == Language.TS) {
         writeFile(
             arkoala.tsArkoalaLib(new TargetFile('NativeModuleEmpty')),
             printNativeModuleEmpty(peerLibrary),

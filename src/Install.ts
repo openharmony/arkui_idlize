@@ -39,9 +39,11 @@ export class ArkoalaInstall extends Install {
         }
     }
     indexDir(): string {
-        if (this.lang == Language.TS)
-            return this.tsTypesDir
-        return this.langDir()
+        switch (this.lang) {
+            case Language.TS: return this.tsTypesDir
+            case Language.ARKTS: return this.arktsTypesDir
+            default: return this.langDir()
+        }
     }
     createDirs(dirs: string[]) {
         for (const dir of dirs) {
@@ -51,8 +53,9 @@ export class ArkoalaInstall extends Install {
     sig = this.mkdir(this.test ? path.join(this.outDir, "sig") : this.outDir)
 
     tsDir = this.mkdir(path.join(this.sig, "arkoala/arkui/src/"))
-    tsTypesDir = this.mkdir(path.join(this.sig, "arkoala/arkui/types/"))
+    tsTypesDir = this.mkdir(path.join(this.sig, `arkoala/arkui/types/`))
     arktsDir = this.mkdir(path.join(this.sig, "arkoala-arkts/arkui/src/generated/"))
+    arktsTypesDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/types/`))
 
     frameworkDir = this.mkdir(path.join(this.sig, "arkoala/framework"))
     tsArkoalaDir = this.mkdir(path.join(this.frameworkDir, "src/generated/"))
