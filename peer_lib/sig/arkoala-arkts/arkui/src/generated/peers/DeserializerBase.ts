@@ -195,7 +195,7 @@ export class DeserializerBase {
                 moduleName: ""
             }) as Resource
         } else if (valueType == RuntimeType.STRING) {
-            return (this.readString() as String)
+            return this.readString()
         } else if (valueType == RuntimeType.NUMBER) {
             return (this.readFloat32() as number)
         } else {

@@ -65,7 +65,7 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
             case idl.IDLPointerType: return 'KPointer'
             case idl.IDLVoidType: return 'void'
             case idl.IDLBooleanType: return 'boolean'
-            
+
             case idl.IDLU8Type:
             case idl.IDLI8Type:
             case idl.IDLI16Type:
@@ -86,7 +86,7 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
             case idl.IDLNumberType:
                 return 'number'
 
-            case idl.IDLStringType: return 'String'
+            case idl.IDLStringType: return 'string'
             case idl.IDLFunctionType: return 'Object'
 
             case idl.IDLBufferType: return 'ArrayBuffer'
