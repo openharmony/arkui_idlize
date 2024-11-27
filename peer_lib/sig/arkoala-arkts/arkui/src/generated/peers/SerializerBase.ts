@@ -302,7 +302,8 @@ export class SerializerBase {
         this.checkCapacity(1)
         let valueType = runtimeType(value)
         this.writeInt8(valueType as int32)
-        if (valueType == RuntimeType.NUMBER) {
+        // TODO: without explicitly checking value for undefined, leads to segmentation fault
+        if (valueType == RuntimeType.NUMBER && value !== undefined) {
             this.writeFloat32(value as float32)
         } else if (valueType == RuntimeType.STRING) {
             this.writeString(value as string)
