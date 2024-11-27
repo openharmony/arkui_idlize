@@ -814,8 +814,8 @@
 |*Screen*| *Component* | Maksimov Nikita | in progress | |
 |`setScreenOptions`| Function | Maksimov Nikita | in progress | |
 |*Scroll*| *Component* | Berezin Kirill | in progress |  |
-|`setScrollOptions`| Function | Berezin Kirill | in progress |  |
-|`scrollable`| Function | Berezin Kirill | In progress |  |
+|`setScrollOptions`| Function | Berezin Kirill | done |  |
+|`scrollable`| Function | Berezin Kirill | done |  |
 |`onScroll`| Function | Berezin Kirill | done |  |
 |`onWillScroll`| Function | Berezin Kirill |blocked IDL |  |
 |`onDidScroll`| Function | Berezin Kirill | in progress |  |
@@ -823,15 +823,15 @@
 |`onScrollStart`| Function | Berezin Kirill | done |  |
 |`onScrollEnd`| Function | Berezin Kirill | done |  |
 |`onScrollStop`| Function | Berezin Kirill | done |  |
-|`scrollBar`| Function | Berezin Kirill | in progress |  |
-|`scrollBarColor`| Function | Berezin Kirill | in progress |  |
-|`scrollBarWidth`| Function | Berezin Kirill | in progress |  |
-|`edgeEffect`| Function | Berezin Kirill | in progress |  |
+|`scrollBar`| Function | Berezin Kirill | done |  |
+|`scrollBarColor`| Function | Berezin Kirill | done |  |
+|`scrollBarWidth`| Function | Berezin Kirill | done |  |
+|`edgeEffect`| Function | Berezin Kirill | done |  |
 |`onScrollFrameBegin`| Function | Berezin Kirill |blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IAPDBZ |
-|`nestedScroll`| Function | Berezin Kirill | in progress |  |
-|`enableScrollInteraction`| Function | Berezin Kirill | In progress |  |
-|`friction`| Function | Berezin Kirill | In progress |  |
-|`scrollSnap`| Function | Berezin Kirill | in progress |  |
+|`nestedScroll`| Function | Berezin Kirill | done |  |
+|`enableScrollInteraction`| Function | Berezin Kirill | done |  |
+|`friction`| Function | Berezin Kirill | done |  |
+|`scrollSnap`| Function | Berezin Kirill | done |  |
 |`enablePaging`| Function | Berezin Kirill | done |  |
 |`initialOffset`| Function | Berezin Kirill | done |  |
 |*ScrollBar*| *Component* | Maksimov Nikita | in progress | |
