@@ -16,7 +16,7 @@
 #include "xml.h"
 #include "parser_impl.h"
 
-OH_XML_XmlSerializerHandle XmlSerializer_constructImpl(const OH_Union_ArrayBuffer_DataView* buffer, const Opt_String* encoding) {
+OH_XML_XmlSerializerHandle XmlSerializer_constructImpl(const OH_Union_Buffer_DataView* buffer, const Opt_String* encoding) {
     return {};
 }
 void XmlSerializer_destructImpl(OH_XML_XmlSerializerHandle thiz) {

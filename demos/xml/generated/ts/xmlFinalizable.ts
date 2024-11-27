@@ -16,6 +16,10 @@
 import { FinalizableBase, NativeThunk, pointer } from "@koalaui/interop"
 import { getXMLNativeModule } from "./xmlNative"
 
+export interface MaterializedBase {
+    getPeer(): Finalizable
+}
+
 export class Finalizable extends FinalizableBase {
     createHandle(): string | undefined {
         return undefined

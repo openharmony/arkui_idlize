@@ -359,6 +359,13 @@ public:
     position += 4;
     return value;
   }
+  OH_Int64 readInt64()
+  {
+    check(8);
+    auto value = *(OH_Int64 *)(data + position);
+    position += 8;
+    return value;
+  }
   OH_Float32 readFloat32()
   {
     check(4);
@@ -413,14 +420,12 @@ public:
     }
     return result;
   }
-/*
-  OH_Function readFunction()
+  OH_Buffer readBuffer()
   {
-    OH_Function result;
-    result.id = readInt32();
-    return result;
+    OH_Int64 data = readInt64();
+    OH_Int64 length = readInt64();
+    return OH_Buffer { (void*)data, length };
   }
-*/
   OH_Undefined readUndefined()
   {
     return OH_Undefined();
@@ -461,6 +466,10 @@ inline void WriteToString(std::string *result, OH_UInt32 value)
 inline void WriteToString(std::string *result, OH_Float32 value)
 {
   result->append(std::to_string(value));
+}
+
+inline void WriteToString(std::string* result, OH_Buffer value) {
+  result->append("{.data=nullptr, .length=0}");
 }
 
 inline void WriteToString(std::string *result, const OH_String *value)

@@ -72,6 +72,11 @@ typedef struct OH_Number {
     OH_Int32 i32;
   };
 } OH_Number;
+typedef struct OH_Buffer
+{
+  void* data;
+  int64_t length;
+} OH_Buffer;
 typedef struct OH_Materialized {
   OH_NativePointer ptr;
 } OH_Materialized;

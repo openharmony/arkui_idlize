@@ -6,7 +6,7 @@ import inject from "@rollup/plugin-inject"
 import commonjs from "@rollup/plugin-commonjs"
 
 export default defineConfig({
-    input: "src/index.ts",
+    input: "src/node/main.ts",
     output: {
         file: "build/node/index.js",
         format: "commonjs",

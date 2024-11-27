@@ -2,11 +2,12 @@ import { int32 } from "@koalaui/common"
 import { pointer, KPointer } from "@koalaui/interop"
 
 export enum CallbackKind {
-    Kind_Callback_Boolean_void,
+    Kind_Callback_Boolean_Void,
     Kind_Callback_EventType_ParseInfo_Boolean = 1,
     Kind_Callback_String_String_Boolean = 2,
-    Kind_Callback_void = 3,
+    Kind_Callback_Void = 3,
 }
+
 export interface XMLNativeModule {
     _XmlSerializer_ctor(thisArray: Uint8Array, thisLength: int32): KPointer 
     _XmlSerializer_getFinalizer(): KPointer 
@@ -15,7 +16,7 @@ export interface XMLNativeModule {
     _XmlSerializer_setDeclaration(self: KPointer): void 
     _XmlSerializer_startElement(self: KPointer, name: string): void 
     _XmlSerializer_endElement(self: KPointer): void 
-    _XmlSerializer_setNamespace(self: KPointer, prefix: string, namespace: string): void 
+    _XmlSerializer_setNamespace(self: KPointer, prefix: string, namespace_: string): void 
     _XmlSerializer_setComment(self: KPointer, text: string): void 
     _XmlSerializer_setCDATA(self: KPointer, text: string): void 
     _XmlSerializer_setText(self: KPointer, text: string): void 
@@ -41,6 +42,7 @@ export interface XMLNativeModule {
     _CheckArkoalaCallbackEvent(buffer: Uint8Array, bufferLength: int32): int32 
     _HoldArkoalaResource(resourceId: int32): void 
     _ReleaseArkoalaResource(resourceId: int32): void 
+    _Utf8ToString(buffer: Uint8Array, position: int32, length: int32): string 
 }
 
 type NativeModuleType = XMLNativeModule

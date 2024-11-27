@@ -9,15 +9,15 @@ import {
     getXMLNativeModule,
 } from './xmlNative'
 export interface ParseOptions {
-     supportDoctype?: boolean
-     ignoreNameSpace?: boolean
-     tagValueCallbackFunction?: ((name: string, value: string) => boolean)
-     attributeValueCallbackFunction?: ((name: string, value: string) => boolean)
-     tokenValueCallbackFunction?: ((eventType: xml.EventType, value: ParseInfo) => boolean)
+    supportDoctype?: boolean
+    ignoreNameSpace?: boolean
+    tagValueCallbackFunction?: ((name: string, value: string) => boolean)
+    attributeValueCallbackFunction?: ((name: string, value: string) => boolean)
+    tokenValueCallbackFunction?: ((eventType: xml.EventType, value: ParseInfo) => boolean)
 }
 export namespace xml {
     export enum EventType {
-        START_DOCUMENT = 0,
+        START_DOCUMENT,
         END_DOCUMENT = 1,
         START_TAG = 2,
         END_TAG = 3,
@@ -36,7 +36,7 @@ export interface XmlSerializerInterface {
     setDeclaration(): void 
     startElement(name: string): void 
     endElement(): void 
-    setNamespace(prefix: string, namespace: string): void 
+    setNamespace(prefix: string, namespace_: string): void 
     setComment(text: string): void 
     setCDATA(text: string): void 
     setText(text: string): void 
@@ -58,15 +58,15 @@ export interface XmlPullParserInterface {
     parse(option: ParseOptions): void 
 }
 export class XmlSerializer implements XmlSerializerInterface {
-    private peer: Finalizable
-     constructor(buffer: ArrayBuffer | DataView, encoding?: string | undefined) {
+    peer: Finalizable
+     constructor(buffer: ArrayBuffer | DataView, encoding?: string) {
         const thisSerializer: Serializer = Serializer.hold()
         let buffer_type: int32 = RuntimeType.UNDEFINED
         buffer_type = runtimeType(buffer)
-        if (((RuntimeType.OBJECT) == (buffer_type)) && (((buffer!.hasOwnProperty("byteLength"))))) {
+        if (buffer instanceof ArrayBuffer) {
             thisSerializer.writeInt8(0)
             const buffer_0 = unsafeCast<ArrayBuffer>(buffer)
-            thisSerializer.writeArrayBuffer(buffer_0)
+            thisSerializer.writeBuffer(buffer_0)
         }
         else if (((RuntimeType.OBJECT == buffer_type))) {
             thisSerializer.writeInt8(1)
@@ -104,8 +104,8 @@ export class XmlSerializer implements XmlSerializerInterface {
     endElement(): void {
         getXMLNativeModule()._XmlSerializer_endElement(this.peer.ptr);
     }
-    setNamespace(prefix: string, namespace: string): void {
-        getXMLNativeModule()._XmlSerializer_setNamespace(this.peer.ptr, prefix, namespace);
+    setNamespace(prefix: string, namespace_: string): void {
+        getXMLNativeModule()._XmlSerializer_setNamespace(this.peer.ptr, prefix, namespace_);
     }
     setComment(text: string): void {
         getXMLNativeModule()._XmlSerializer_setComment(this.peer.ptr, text);
@@ -121,7 +121,7 @@ export class XmlSerializer implements XmlSerializerInterface {
     }
 }
 export class ParseInfo implements ParseInfoInterface {
-    private peer: Finalizable
+    peer: Finalizable
     static getFinalizer(): KPointer {
         return getXMLNativeModule()._ParseInfo_getFinalizer()
     }
@@ -174,9 +174,16 @@ export class ParseInfo implements ParseInfoInterface {
         return result
     }
 }
+export class ParseInfoInternal {
+    public static fromPtr(ptr: KPointer): ParseInfo {
+        const obj: ParseInfo = new ParseInfo()
+        obj.peer = new Finalizable(ptr, ParseInfo.getFinalizer())
+        return obj
+    }
+}
 export class XmlPullParser implements XmlPullParserInterface {
-    private peer: Finalizable
-     constructor(buffer: string, encoding?: string | undefined) {
+    peer: Finalizable
+     constructor(buffer: string, encoding?: string) {
         const thisSerializer: Serializer = Serializer.hold()
         let encoding_type: int32 = RuntimeType.UNDEFINED
         encoding_type = runtimeType(encoding)

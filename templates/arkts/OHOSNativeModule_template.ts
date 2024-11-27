@@ -11,7 +11,10 @@ export class %NATIVE_MODULE_NAME%NativeModule {
 
     static native init(): void;
 
-    // TODO callCallbackfromNative
+    static callCallbackFromNative(id: KInt, args: KUint8ArrayPtr, length: KInt): KInt {
+        // TODO implement callCallbackFromNative
+        return 0
+    }    
 
 %NATIVE_FUNCTIONS%
 }

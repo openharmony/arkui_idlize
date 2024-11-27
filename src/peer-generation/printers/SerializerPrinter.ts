@@ -535,6 +535,13 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
                 feature: convertDeclaration(nameCovertor, node),
                 module: `./${declarationPath}` // TODO resolve
             })
+            // Add <class>Internal support class for materialized classes with no constructor
+            if (idl.isInterface(node) && isMaterialized(node) && node.constructors.length === 0) {
+                features.push({
+                    feature: getInternalClassName(convertDeclaration(nameCovertor, node)), // TODO check/refactor name generation
+                    module: `./${declarationPath}` // TODO resolve
+                })
+            }
             return features
         }
         serializerDeclarations.filter(it => it.fileName)

@@ -72,6 +72,11 @@ typedef struct OH_Number {
     OH_Int32 i32;
   };
 } OH_Number;
+typedef struct OH_Buffer
+{
+  void* data;
+  int64_t length;
+} OH_Buffer;
 typedef struct OH_Materialized {
   OH_NativePointer ptr;
 } OH_Materialized;
@@ -104,30 +109,28 @@ typedef struct Callback_EventType_ParseInfo_Boolean Callback_EventType_ParseInfo
 typedef struct Opt_Callback_EventType_ParseInfo_Boolean Opt_Callback_EventType_ParseInfo_Boolean;
 typedef struct Callback_String_String_Boolean Callback_String_String_Boolean;
 typedef struct Opt_Callback_String_String_Boolean Opt_Callback_String_String_Boolean;
-typedef struct OH_ArrayBuffer OH_ArrayBuffer;
-typedef struct Opt_ArrayBuffer Opt_ArrayBuffer;
-typedef struct Callback_void Callback_void;
-typedef struct Opt_Callback_void Opt_Callback_void;
-typedef struct Callback_Boolean_void Callback_Boolean_void;
-typedef struct Opt_Callback_Boolean_void Opt_Callback_Boolean_void;
+typedef struct Callback_Void Callback_Void;
+typedef struct Opt_Callback_Void Opt_Callback_Void;
+typedef struct Callback_Boolean_Void Callback_Boolean_Void;
+typedef struct Opt_Callback_Boolean_Void Opt_Callback_Boolean_Void;
 typedef OH_Materialized OH_ParseInfo;
 typedef struct Opt_ParseInfo Opt_ParseInfo;
 typedef struct OH_ParseOptions OH_ParseOptions;
 typedef struct Opt_ParseOptions Opt_ParseOptions;
-typedef struct OH_Union_ArrayBuffer_DataView OH_Union_ArrayBuffer_DataView;
-typedef struct Opt_Union_ArrayBuffer_DataView Opt_Union_ArrayBuffer_DataView;
+typedef struct OH_Union_Buffer_DataView OH_Union_Buffer_DataView;
+typedef struct Opt_Union_Buffer_DataView Opt_Union_Buffer_DataView;
 typedef enum OH_xml_EventType {
-    OH_XML_EVENT_TYPE_START_DOCUMENT,
-    OH_XML_EVENT_TYPE_END_DOCUMENT,
-    OH_XML_EVENT_TYPE_START_TAG,
-    OH_XML_EVENT_TYPE_END_TAG,
-    OH_XML_EVENT_TYPE_TEXT,
-    OH_XML_EVENT_TYPE_CDSECT,
-    OH_XML_EVENT_TYPE_COMMENT,
-    OH_XML_EVENT_TYPE_DOCDECL,
-    OH_XML_EVENT_TYPE_INSTRUCTION,
-    OH_XML_EVENT_TYPE_ENTITY_REFERENCE,
-    OH_XML_EVENT_TYPE_WHITESPACE,
+    OH_XML_EVENT_TYPE_START_DOCUMENT = 0,
+    OH_XML_EVENT_TYPE_END_DOCUMENT = 1,
+    OH_XML_EVENT_TYPE_START_TAG = 2,
+    OH_XML_EVENT_TYPE_END_TAG = 3,
+    OH_XML_EVENT_TYPE_TEXT = 4,
+    OH_XML_EVENT_TYPE_CDSECT = 5,
+    OH_XML_EVENT_TYPE_COMMENT = 6,
+    OH_XML_EVENT_TYPE_DOCDECL = 7,
+    OH_XML_EVENT_TYPE_INSTRUCTION = 8,
+    OH_XML_EVENT_TYPE_ENTITY_REFERENCE = 9,
+    OH_XML_EVENT_TYPE_WHITESPACE = 10,
 } OH_xml_EventType;
 typedef struct Opt_xml_EventType {
     OH_Tag tag;
@@ -137,13 +140,9 @@ typedef struct Opt_Int32 {
     OH_Tag tag;
     OH_Int32 value;
 } Opt_Int32;
-typedef struct Opt_Number {
-    OH_Tag tag;
-    OH_Number value;
-} Opt_Number;
 typedef struct Callback_EventType_ParseInfo_Boolean {
     OH_CallbackResource resource;
-    void (*call)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_ParseInfo value, const Callback_Boolean_void continuation);
+    void (*call)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_ParseInfo value, const Callback_Boolean_Void continuation);
 } Callback_EventType_ParseInfo_Boolean;
 typedef struct Opt_Callback_EventType_ParseInfo_Boolean {
     OH_Tag tag;
@@ -151,7 +150,7 @@ typedef struct Opt_Callback_EventType_ParseInfo_Boolean {
 } Opt_Callback_EventType_ParseInfo_Boolean;
 typedef struct Callback_String_String_Boolean {
     OH_CallbackResource resource;
-    void (*call)(const OH_Int32 resourceId, const OH_String name, const OH_String value, const Callback_Boolean_void continuation);
+    void (*call)(const OH_Int32 resourceId, const OH_String name, const OH_String value, const Callback_Boolean_Void continuation);
 } Callback_String_String_Boolean;
 typedef struct Opt_Callback_String_String_Boolean {
     OH_Tag tag;
@@ -165,29 +164,30 @@ typedef struct Opt_CustomObject {
     OH_Tag tag;
     OH_CustomObject value;
 } Opt_CustomObject;
-typedef struct OH_ArrayBuffer {
-    OH_Number byteLength;
-} OH_ArrayBuffer;
-typedef struct Opt_ArrayBuffer {
+typedef struct Opt_Buffer {
     OH_Tag tag;
-    OH_ArrayBuffer value;
-} Opt_ArrayBuffer;
-typedef struct Callback_void {
+    OH_Buffer value;
+} Opt_Buffer;
+typedef struct Callback_Void {
     OH_CallbackResource resource;
     void (*call)(const OH_Int32 resourceId);
-} Callback_void;
-typedef struct Opt_Callback_void {
+} Callback_Void;
+typedef struct Opt_Callback_Void {
     OH_Tag tag;
-    Callback_void value;
-} Opt_Callback_void;
-typedef struct Callback_Boolean_void {
+    Callback_Void value;
+} Opt_Callback_Void;
+typedef struct Opt_Number {
+    OH_Tag tag;
+    OH_Number value;
+} Opt_Number;
+typedef struct Callback_Boolean_Void {
     OH_CallbackResource resource;
     void (*call)(const OH_Int32 resourceId, const OH_Boolean value);
-} Callback_Boolean_void;
-typedef struct Opt_Callback_Boolean_void {
+} Callback_Boolean_Void;
+typedef struct Opt_Callback_Boolean_Void {
     OH_Tag tag;
-    Callback_Boolean_void value;
-} Opt_Callback_Boolean_void;
+    Callback_Boolean_Void value;
+} Opt_Callback_Boolean_Void;
 typedef struct Opt_ParseInfo {
     OH_Tag tag;
     OH_ParseInfo value;
@@ -207,21 +207,21 @@ typedef struct Opt_String {
     OH_Tag tag;
     OH_String value;
 } Opt_String;
-typedef struct OH_Union_ArrayBuffer_DataView {
+typedef struct OH_Union_Buffer_DataView {
     OH_Int32 selector;
     union {
-        OH_ArrayBuffer value0;
+        OH_Buffer value0;
         OH_CustomObject value1;
     };
-} OH_Union_ArrayBuffer_DataView;
-typedef struct Opt_Union_ArrayBuffer_DataView {
+} OH_Union_Buffer_DataView;
+typedef struct Opt_Union_Buffer_DataView {
     OH_Tag tag;
-    OH_Union_ArrayBuffer_DataView value;
-} Opt_Union_ArrayBuffer_DataView;
+    OH_Union_Buffer_DataView value;
+} Opt_Union_Buffer_DataView;
 struct OH_XML_XmlSerializerHandleOpaque;
 typedef struct OH_XML_XmlSerializerHandleOpaque* OH_XML_XmlSerializerHandle;
 typedef struct OH_XML_XmlSerializerModifier {
-    OH_XML_XmlSerializerHandle (*construct)(const OH_Union_ArrayBuffer_DataView* buffer, const Opt_String* encoding);
+    OH_XML_XmlSerializerHandle (*construct)(const OH_Union_Buffer_DataView* buffer, const Opt_String* encoding);
     void (*destruct)(OH_XML_XmlSerializerHandle thiz);
     void (*setAttributes)(OH_NativePointer thisPtr, const OH_String* name, const OH_String* value);
     void (*addEmptyElement)(OH_NativePointer thisPtr, const OH_String* name);

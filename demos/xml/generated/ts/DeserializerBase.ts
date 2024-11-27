@@ -96,6 +96,13 @@ export class DeserializerBase {
         return value
     }
 
+    readInt64(): bigint {
+        this.checkCapacity(8)
+        const value = this.view.getBigInt64(this.position, true)
+        this.position += 8
+        return value
+    }
+
     readFloat32(): float32 {
         this.checkCapacity(4)
         const value = this.view.getFloat32(this.position, true)
@@ -157,24 +164,11 @@ export class DeserializerBase {
                 break
         }
     }
-
-    // readLength(): Length | undefined {
-    //     this.checkCapacity(1)
-    //     const valueType = this.readInt8()
-    //     switch (valueType) {
-    //         case RuntimeType.OBJECT:
-    //             return {
-    //                 id: this.readInt32(),
-    //                 bundleName: "",
-    //                 moduleName: ""
-    //             }
-    //         case RuntimeType.STRING:
-    //             return this.readString()
-    //         case RuntimeType.NUMBER:
-    //             return this.readFloat32()
-    //     }
-    //     return undefined
-    // }
+    readBuffer(): ArrayBuffer {
+        this.readPointer()
+        const length = this.readInt64()
+        return new ArrayBuffer(Number(length))
+    }
 
     readCallbackResource(): CallbackResource {
         return {

@@ -170,24 +170,6 @@ export class DeserializerBase {
         return new ArrayBuffer(Number(length))
     }
 
-    // readLength(): Length | undefined {
-    //     this.checkCapacity(1)
-    //     const valueType = this.readInt8()
-    //     switch (valueType) {
-    //         case RuntimeType.OBJECT:
-    //             return {
-    //                 id: this.readInt32(),
-    //                 bundleName: "",
-    //                 moduleName: ""
-    //             }
-    //         case RuntimeType.STRING:
-    //             return this.readString()
-    //         case RuntimeType.NUMBER:
-    //             return this.readFloat32()
-    //     }
-    //     return undefined
-    // }
-
     readCallbackResource(): CallbackResource {
         return {
             resourceId: this.readInt32(),

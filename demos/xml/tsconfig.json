@@ -5,6 +5,11 @@
         "moduleResolution": "node",
         "outDir": "build/ts",
         "sourceMap": true,
-        "rootDirs": ["src", "generated/ts"]
-    }
+        "baseUrl": ".",
+        "paths": {
+            "#compat": ["./src/node/compat.ts"]
+        }
+    },
+    "include": ["src/**/*.ts", "generated/ts/**/*.ts"],
+    "exclude": ["generated/arkts", "src/panda"]
 }

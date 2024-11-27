@@ -312,9 +312,12 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         destFile.imports.addFeatures(["SerializerBase", "RuntimeType", "runtimeType", "CallbackResource"], "./SerializerBase")
         destFile.imports.addFeatures(["DeserializerBase" ], "./DeserializerBase")
         destFile.imports.addFeatures(["int32"], "@koalaui/common")
-        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "nullptr"], "@koalaui/interop")
+        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "KUint8ArrayPtr", "nullptr"], "@koalaui/interop")
         destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
         destFile.imports.addFeatures(["Finalizable", "MaterializedBase"], nativeModule.finalizablePath)
+        if (lang === Language.TS) {
+            destFile.imports.addFeature("unsafeCast", "./SerializerBase")
+        }
 
         const deserializeCallImpls = SourceFile.makeSameAs(destFile)
         printDeserializeAndCall(library, deserializeCallImpls)
