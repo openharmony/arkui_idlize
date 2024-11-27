@@ -335,10 +335,40 @@ function toIDLProperty(file: string, node: webidl2.AttributeMemberType): idl.IDL
     })
 }
 
+function unescapeString(value: string): string {
+    if (!value.length || value[0] !== '"')
+        return value
+    value = value.slice(1,-1)
+    value = value.replace(/\\((['"\\bfnrtv])|([0-7]{1-3})|x([0-9a-fA-F]{2})|u([0-9a-fA-F]{4}))/g, (_, all, c, oct, h2, u4) => {
+        if (c !== undefined) {
+            switch (c) {
+                case "'": return "'";
+                case '"': return '"';
+                case "\\": return "\\";
+                case "b": return "\b";
+                case "f": return "\f";
+                case "n": return "\n";
+                case "r": return "\r";
+                case "t": return "\t";
+                case "v": return "\v";
+            }
+        } else if (oct !== undefined) {
+            return String.fromCharCode(parseInt(oct, 8));
+        } else if (h2 !== undefined) {
+            return String.fromCharCode(parseInt(h2, 16));
+        } else if (u4 !== undefined) {
+            return String.fromCharCode(parseInt(u4, 16));
+        }
+        throw new Error(`unknown escape sequence: ${_}`);
+    });
+
+    return value;
+}
+
 function toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType, parent: idl.IDLEnum): idl.IDLEnumMember {
     let initializer = undefined
     if (node.default?.type == "string") {
-        initializer = node.default?.value
+        initializer = unescapeString(node.default.value)
     } else if (node.default?.type == "number") {
         initializer = +(node.default?.value)
     } else if (node.default == null) {
@@ -365,10 +395,9 @@ function toExtendedAttributeValue(attr: webidl2.ExtendedAttribute): stringOrNone
     // TODO: be smarter about RHS.
     if (attr.rhs?.value instanceof Array)
         return attr.rhs.value.map(v => v.value).join(",")
-    const value = attr.rhs?.value
-    if (value?.startsWith('"'))
-        return value.slice(1, -1)
-    return value
+    if (typeof(attr.rhs?.value) === 'string')
+        return unescapeString(attr.rhs.value)
+    return
 }
 
 function makeDocs(node: webidl2.AbstractBase): stringOrNone {

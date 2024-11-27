@@ -1247,7 +1247,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
 
             extendedAttributes.push({
                 name: idl.IDLExtendedAttributes.DtsTag,
-                value: extendedAttributeValues.map(value => value.replaceAll('|', '\x7c')).join('|')
+                value: extendedAttributeValues.map(value => value.replaceAll('|', '\\x7c')).join('|')
             })
 
             const tagId = tag.replaceAll('.', '_').replaceAll('"', '').replaceAll("'", '')
