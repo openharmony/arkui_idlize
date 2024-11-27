@@ -149,7 +149,7 @@ export class ExpressionStatement implements LanguageStatement {
     write(writer: LanguageWriter): void {
         const text = this.expression.asString()
         if (text.length > 0) {
-            writer.print(`${this.expression.asString()};`)
+            writer.print(`${this.expression.asString()}${writer.maybeSemicolon()}`)
         }
     }
 }
@@ -432,6 +432,8 @@ export abstract class LanguageWriter {
         return this.printer.indentDepth()
     }
 
+    maybeSemicolon() { return ";" }
+
     abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void
     abstract writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void
     abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[], isDeclared?: boolean): void
@@ -442,11 +444,11 @@ export abstract class LanguageWriter {
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
     abstract writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void): void
-    abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement;
-    abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression;
-    abstract makeThrowError(message: string): LanguageStatement;
-    abstract makeReturn(expr?: LanguageExpression): LanguageStatement;
-    abstract makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement;
+    abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement
+    abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression
+    abstract makeThrowError(message: string): LanguageStatement
+    abstract makeReturn(expr?: LanguageExpression): LanguageStatement
+    abstract makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
     abstract getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
     abstract makeCast(value: LanguageExpression, type: idl.IDLType, options?:MakeCastOptions): LanguageExpression
@@ -491,13 +493,12 @@ export abstract class LanguageWriter {
         this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.SETTER].concat(method.modifiers ?? [])), op)
     }
     writeSuperCall(params: string[]): void {
-        this.printer.print(`super(${params.join(", ")});`)
+        this.printer.print(`super(${params.join(", ")})${this.maybeSemicolon()}`)
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         this.printer.print(`${receiver}${nullable ? "?" : ""}.${method}(${params.join(", ")})`)
     }
     writeStatement(stmt: LanguageStatement) {
-        //this.printer.print(stmt.asString())
         stmt.write(this)
     }
     writeExpressionStatement(smth: LanguageExpression) {

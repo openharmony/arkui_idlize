@@ -14,12 +14,12 @@
  */
 
 import * as idl from '../../idl'
-import { Language } from "../../Language";
+import { Language } from "../../Language"
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { ExpressionStatement, LanguageStatement, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters";
-import { PeerGeneratorConfig } from '../PeerGeneratorConfig';
-import { ImportsCollector } from '../ImportsCollector';
-import { PeerLibrary } from '../PeerLibrary';
+import { ExpressionStatement, LanguageStatement, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
+import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
+import { ImportsCollector } from '../ImportsCollector'
+import { PeerLibrary } from '../PeerLibrary'
 import {
     ArkTSBuiltTypesDependencyFilter,
     convertDeclToFeature,
@@ -27,18 +27,17 @@ import {
     isBuilderClass,
     isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor';
-import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations';
-import { collectProperties } from '../printers/StructPrinter';
-import { FieldModifier, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter';
+import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations'
+import { collectProperties } from '../printers/StructPrinter'
+import { FieldModifier, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter'
 import { createDeclarationNameConvertor } from '../idl/IdlNameConvertor';
-import { throwException } from "../../util";
-import { IDLEntry } from "../../idl";
-import { convertDeclaration } from '../LanguageWriters/nameConvertor';
-import { collectMaterializedImports, getInternalClassName } from '../Materialized';
-import { CallbackKind, generateCallbackKindAccess } from '../ArgConvertors';
-import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile';
-import { collectUniqueCallbacks } from './CallbacksPrinter';
-
+import { throwException } from "../../util"
+import { IDLEntry } from "../../idl"
+import { convertDeclaration } from '../LanguageWriters/nameConvertor'
+import { collectMaterializedImports, getInternalClassName } from '../Materialized'
+import { CallbackKind, generateCallbackKindAccess } from '../ArgConvertors'
+import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
+import { collectUniqueCallbacks } from './CallbacksPrinter'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -506,7 +505,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
                 const feature = convertDeclToFeature(library, callback)
                 collector.addFeature(feature.feature, feature.module)
             }
-    
+
             library.files.forEach(peer => peer.serializeImportFeatures
                 .forEach(importFeature => collector.addFeature(importFeature.feature, importFeature.module)))
             serializerDeclarations.filter(it => isSyntheticDeclaration(it) || it.fileName)
@@ -560,7 +559,7 @@ class DefaultSerializerDependencyFilter implements DependencyFilter {
     shouldAdd(node: IDLEntry): boolean {
         return !PeerGeneratorConfig.ignoreSerialization.includes(node.name!)
             && !this.isParameterized(node)
-            && this.canSerializeDependency(node);
+            && this.canSerializeDependency(node)
     }
     isParameterized(node: idl.IDLEntry) {
         return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)
@@ -580,7 +579,7 @@ class ArkTSSerializerDependencyFilter extends DefaultSerializerDependencyFilter 
     readonly arkTSBuiltTypesFilter = new ArkTSBuiltTypesDependencyFilter()
     override shouldAdd(node: IDLEntry): node is SerializableTarget {
         if (idl.isEnum(node)) {
-            return true;
+            return true
         }
         if (!this.arkTSBuiltTypesFilter.shouldAdd(node)) {
             return false

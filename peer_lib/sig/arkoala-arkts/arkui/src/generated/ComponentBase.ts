@@ -14,15 +14,17 @@
  */
 
 import { PeerNode } from './PeerNode'
+import { NativeModule } from "#components"
 
 export class ComponentBase {
     protected peer?: PeerNode
     setPeer(peer: PeerNode) {
         this.peer = peer
     }
-
-    protected checkPriority(
-        name: string
-    ): boolean { throw new Error("not implemented") }
-    public applyAttributesFinish(): void { throw new Error("not implemented") }
+    protected checkPriority(name: string): boolean {
+        return true
+    }
+    public applyAttributesFinish(): void {
+        NativeModule._ApplyModifierFinish(this.peer!.peer.ptr)
+    }
 }

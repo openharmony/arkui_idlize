@@ -32,8 +32,7 @@ import {AggregateConvertor, ArgConvertor, ArrayConvertor, BaseArgConvertor, Cust
 import { Language } from "../../../Language"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
-import {PeerLibrary} from "../../PeerLibrary";
-import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter";
+import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter"
 import * as idl from "../../../idl"
 import { convertDeclaration } from "../nameConvertor"
 import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
@@ -202,7 +201,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeUnsafeCast(convertor, param)
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
-        super.runtimeType(param, valueType, value);
+        super.runtimeType(param, valueType, value)
     }
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index?: number): LanguageExpression {
         if (convertor instanceof EnumConvertor) {
@@ -215,10 +214,10 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         if (value instanceof MethodCallExpression) {
             return this.makeString(`${enumName}.ofOrdinal(${value.asString()})`)
         }
-        return this.makeString(`Object.values(${enumName})[${value.asString()}]`);
+        return this.makeString(`Object.values(${enumName})[${value.asString()}]`)
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        return this.makeString(`${value.asString()}.ordinal`);
+        return this.makeString(`${value.asString()}.ordinal`)
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
                                 value: string,
@@ -238,36 +237,36 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeValueFromOption(value, destinationConvertor)
     }
     makeCallIsResource(value: string): LanguageExpression {
-        return this.makeString(`isResource(${value})`);
+        return this.makeString(`isResource(${value})`)
     }
     makeEnumEntity(enumEntity: IDLEnum, isExport: boolean): LanguageStatement {
-        return new ArkTSEnumEntityStatement(enumEntity, isExport);
+        return new ArkTSEnumEntityStatement(enumEntity, isExport)
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
-        return super.getObjectAccessor(convertor, value, args);
+        return super.getObjectAccessor(convertor, value, args)
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable: boolean = false) {
         // ArkTS does not support - 'this.?'
-        super.writeMethodCall(receiver, method, params, nullable && receiver !== "this");
+        super.writeMethodCall(receiver, method, params, nullable && receiver !== "this")
     }
     writeProperty(propName: string, propType: IDLType) {
         throw new Error("writeProperty for ArkTS is not implemented yet.")
     }
     override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
         return this.makeCast(this.makeString(`${value}.${convertor?.isStringEnum ? "ordinal" : "value"}`),
-            IDLI32Type).asString();
+            IDLI32Type).asString()
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
         if (convertor instanceof EnumConvertor) {
-            return this.instanceOf(convertor, valueName);
+            return this.instanceOf(convertor, valueName)
         }
-        return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index);
+        return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index)
     }
     makeCastCustomObject(customName: string, isGenericType: boolean): LanguageExpression {
         if (isGenericType) {
             return this.makeCast(this.makeString(customName), toIDLType("Object"))
         }
-        return super.makeCastCustomObject(customName, isGenericType);
+        return super.makeCastCustomObject(customName, isGenericType)
     }
     makeHasOwnProperty(value: string,
                        valueTypeName: string,
@@ -280,7 +279,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeEquals(args: LanguageExpression[]): LanguageExpression {
         // TODO: Error elimination: 'TypeError: Both operands have to be reference types'
         // the '==' operator must be used when one of the operands is a reference
-        return super.makeNaryOp('==', args);
+        return super.makeNaryOp('==', args)
     }
     makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
         return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [

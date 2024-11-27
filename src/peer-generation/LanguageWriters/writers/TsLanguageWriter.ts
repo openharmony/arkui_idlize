@@ -151,12 +151,12 @@ class TsObjectDeclareNodeNameConvertor extends TSTypeNodeNameConvertor {
 
     override convertTuple(node: ts.TupleTypeNode): string {
         this.useOptionalTypes = false
-        const name = super.convertTuple(node);
+        const name = super.convertTuple(node)
         this.useOptionalTypes = true
         return name
     }
     override convertOptional(node: ts.OptionalTypeNode): string {
-        let name = super.convertOptional(node);
+        let name = super.convertOptional(node)
         if (!this.useOptionalTypes) {
             name = name.replace("?", "")
         }
@@ -170,7 +170,7 @@ class TsObjectDeclareNodeNameConvertor extends TSTypeNodeNameConvertor {
         if (node) {
             return super.convert(node)
         }
-        return "undefined";
+        return "undefined"
     }
 }
 
@@ -185,6 +185,8 @@ export class TSLanguageWriter extends LanguageWriter {
         super(printer, resolver, language)
         this.typeConvertor = new TsIDLNodeToStringConverter(this.resolver)
     }
+
+    maybeSemicolon() { return "" }
 
     pushNamespace(namespace: string, ident: boolean = true): void {
         this.print(`export namespace ${namespace} {`)
@@ -289,13 +291,13 @@ export class TSLanguageWriter extends LanguageWriter {
         for (let i = signature.args.length - 1; i >= 0; --i) {
             const prevCanBeOptional = canBeOptional.at(-1) ?? true
             const curr = signature.args[i]
-            
+
             const result = prevCanBeOptional && (idl.isOptionalType(curr) || signature.argDefault(i) !== undefined)
             canBeOptional.push(result)
         }
         canBeOptional.reverse()
         const isOptional = signature.args.map((it, i) => idl.isOptionalType(it) && canBeOptional[i] && !isSetter)
-        const normalizedArgs = signature.args.map((it, i) => 
+        const normalizedArgs = signature.args.map((it, i) =>
             idl.isOptionalType(it) && isOptional[i] ? idl.maybeUnwrapOptionalType(it) : it
         )
         this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${this.escapeKeyword(signature.argName(index))}${isOptional[index] ? "?" : ""}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
@@ -366,10 +368,10 @@ export class TSLanguageWriter extends LanguageWriter {
     }
 
     getTagType(): idl.IDLType {
-        return idl.toIDLType("Tags");
+        return idl.toIDLType("Tags")
     }
     getRuntimeType(): idl.IDLType {
-        return idl.IDLI32Type;
+        return idl.IDLI32Type
     }
     makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
         return this.makeAssign(receiver, undefined,
@@ -382,15 +384,15 @@ export class TSLanguageWriter extends LanguageWriter {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]
     }
     enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
-        return this.makeString(`Object.values(${idl.forceAsNamedNode(enumEntry).name})[${value.asString()}]`);
+        return this.makeString(`Object.values(${idl.forceAsNamedNode(enumEntry).name})[${value.asString()}]`)
     }
     ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
         const enumName = idl.forceAsNamedNode(enumEntry).name
         const decl = idl.isReferenceType(enumEntry) ? this.resolver.resolveTypeReference(enumEntry) : undefined
         if (decl && idl.isEnum(decl) && isStringEnum(decl)) {
-            return this.makeString(`Object.values(${enumName}).indexOf(${value.asString()})`);
+            return this.makeString(`Object.values(${enumName}).indexOf(${value.asString()})`)
         }
-        return value;
+        return value
     }
     override makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor): string {
         if (unsafe) {
