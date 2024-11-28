@@ -17,6 +17,7 @@ function execOut(command) {
 function installExternal() {
     const externalPackagesToInstall = [
         `incremental/compat`,
+        `incremental/compiler-plugin`,
         `incremental/common`,
         `incremental/runtime`,
         `interop`,
