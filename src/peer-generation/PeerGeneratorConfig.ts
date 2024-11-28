@@ -147,8 +147,8 @@ export class PeerGeneratorConfig {
         "TextPickerDialog",
     ])
 
-    public static ignoredCallbacks = new Set([
-        "MonitorDecorator" //vararg
+    public static ignoredCallbacks = new Set<string>([
+        // Empty for now
     ])
 
     static ignoreEntry(name: string, language: Language) {

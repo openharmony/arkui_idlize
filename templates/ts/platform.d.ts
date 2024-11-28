@@ -48,3 +48,21 @@ declare const console: {
 
 }
 
+// TODO: these are symbols to help ohos-typescript frontend (aka ets-tsc)
+// perform @Styles no-receiver recovery 
+// and imitate this.$name struct members
+
+declare interface CommonMethod<T> {
+    /**
+     * Koala extension
+     */
+    __applyStyle(style: (instance: T, ...args: any) => this, ...args: any): T
+
+    /**
+     * TODO: adding .$fields should be done before the type checker.
+     * we workaround that by allowing any fields on structs.
+     */
+    [key: string]: any;
+}
+
+

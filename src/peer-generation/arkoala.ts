@@ -253,7 +253,7 @@ export function generateArkoalaFromIdl(config: {
         const index = new IndentedPrinter()
         // index-full.d.ts for ArkTS is a temporary solution for ets pre-processing.
         // So reuse the TS version for now.
-        index.print(tsCopyrightAndWarning(readLangTemplate("index-full.d.ts", Language.TS)))
+        index.print(tsCopyrightAndWarning(readLangTemplate("index-full.d.ts", peerLibrary.language)))
         index.print(readLangTemplate("platform.d.ts", peerLibrary.language))
         for (const data of declarations) {
             index.print(data)

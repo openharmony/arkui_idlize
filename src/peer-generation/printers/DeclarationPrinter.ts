@@ -39,6 +39,7 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
         const iface = decl.interfaceDeclaration
         if (iface) {
             result.push(`declare const ${decl.name}: ${iface.name}`)
+            result.push(`declare const ${decl.name}Instance: ${decl.attributeDeclaration.name}`)
         }
     }
     return result

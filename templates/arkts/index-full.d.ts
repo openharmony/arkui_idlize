@@ -117,8 +117,10 @@ declare interface DataChangeListener {
     onDataChanged(index: number): void;
 
     onDataChange(index: number): void;
-
+/*
+    // Uncomment for full sdk
     onDatasetChange(dataOperations: DataOperation[]): void;
+*/
 }
 
 declare interface IDataSource {
@@ -145,6 +147,8 @@ interface LazyForEachInterface {
 declare const LazyForEach: LazyForEachInterface;
 
 declare class LocalStorage {
+/*
+  // Uncomment for full sdk
 
   constructor(initializingProperties?: Object);
   static GetShared(): LocalStorage;
@@ -163,6 +167,7 @@ declare class LocalStorage {
   setAndProp<S>(propName: string, defaultValue: S): SubscribedAbstractProperty<S>;
   delete(propName: string): boolean;
   clear(): boolean;
+*/
 }
 
 interface IPropertySubscriber {
@@ -227,3 +232,9 @@ declare abstract class SubscribedAbstractProperty<T> {
     numberOfSubscrbers(): number;
     abstract aboutToBeDeleted(): void;
 }
+
+// Until we have full sdk
+type LinearGradient = any
+declare interface LayoutChild {}
+declare interface ContentModifier<T>{}
+

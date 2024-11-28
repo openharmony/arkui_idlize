@@ -91,7 +91,7 @@ void impl_EmulateClickEvent(KInt nodeId, KFloat x, KFloat y) {
     event.preventDefault.resource.release = [](KInt id){};
     event.preventDefault.call = [](KInt id){};
 
-    GetFullImpl()->getEventsAPI()->getCommonMethodEventsReceiver()->onClick0(nodeId, event);
+    GetFullImpl()->getEventsAPI()->getCommonMethodEventsReceiver()->onClick(nodeId, event);
     */
     fprintf(stderr, "EmulateClickEvent: %d %f %f\n", nodeId, x, y);
     Ark_ClickEvent event = {};
@@ -100,7 +100,7 @@ void impl_EmulateClickEvent(KInt nodeId, KFloat x, KFloat y) {
     event.displayX = { ARK_TAG_FLOAT32, { .f32 = x } };
     event.displayY = { ARK_TAG_FLOAT32, { .f32 = y } };
 
-    Generated::GetArkUiEventsAPI()->getCommonMethodEventsReceiver()->onClick0(nodeId, event);
+    Generated::GetArkUiEventsAPI()->getCommonMethodEventsReceiver()->onClick(nodeId, event);
 }
 KOALA_INTEROP_V3(EmulateClickEvent, KInt, KFloat, KFloat)
 

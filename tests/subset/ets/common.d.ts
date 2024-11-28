@@ -461,7 +461,7 @@ declare class CommonMethod<T> {
     // onClick(event: (event?: ClickEvent) => void): T;
     //onClick(event: Callback<void> | Callback<ClickEvent>, distanceThreshold?: number): T;
     // TODO: temporary!
-    onClick(): T;
+    onClick(event: ) => void): T;
 
     backgroundColor(value: ResourceColor): T;
 }
