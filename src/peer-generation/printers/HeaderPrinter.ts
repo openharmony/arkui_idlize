@@ -85,7 +85,7 @@ class HeaderVisitor {
             this.api.print(`typedef struct ${accessorName} {`)
             this.api.pushIndent()
             const mDestroyPeer = createDestroyPeerMethod(clazz)
-            const methods = [clazz.ctor, clazz.finalizer, mDestroyPeer].concat(clazz.methods)
+            const methods = [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods)
             methods.forEach(method => this.printMethod(method))
             this.api.popIndent()
             this.api.print(`} ${accessorName};\n`)

@@ -30,7 +30,7 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod } from "
 import { groupBy } from "../../util";
 import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
-import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from "../../idl"
+import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from "../../idl";
 import { PeerLibrary } from "../PeerLibrary";
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
@@ -78,8 +78,20 @@ export class ModifierVisitor {
     }
 
     private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnValue: string | undefined = undefined) {
-        if (!method.retConvertor.isVoid) {
-            printer.print(`return ${returnValue ?? "0"};`)
+        if (returnValue) {
+            if (method.retConvertor.isVoid)
+                return
+            printer.print(`return ${returnValue};`) 
+        }
+        else if(method.method.name == 'getFinalizer')
+        {
+            printer.print(`return reinterpret_cast<void *>(&DestroyPeerImpl);`)
+        } 
+        else if (method.method.name == 'ctor'){
+            printer.print(`return new ${method.originalParentName}Peer();`)
+        }
+        else if (!method.retConvertor.isVoid) {
+            printer.print(`return 0;`)
         }
     }
 
@@ -244,7 +256,7 @@ class AccessorVisitor extends ModifierVisitor {
         const namespaceName = clazz.methods[0].implNamespaceName
         this.pushNamespace(namespaceName, false)
         const mDestroyPeer = createDestroyPeerMethod(clazz);
-        [clazz.ctor, clazz.finalizer, mDestroyPeer].concat(clazz.methods).forEach(method => {
+        [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
             this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(m))
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
             this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
