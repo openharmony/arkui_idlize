@@ -458,9 +458,10 @@ declare class CommonMethod<T> {
 
     onGestureRecognizerJudgeBegin(callback: GestureRecognizerJudgeBeginCallback): T;
 
-    onClick(event: (event?: ClickEvent) => void): T;
-
-    onClick(event?: Callback<ClickEvent>, distanceThreshold?: number): T;
+    // onClick(event: (event?: ClickEvent) => void): T;
+    //onClick(event: Callback<void> | Callback<ClickEvent>, distanceThreshold?: number): T;
+    // TODO: temporary!
+    onClick(): T;
 
     backgroundColor(value: ResourceColor): T;
 }
