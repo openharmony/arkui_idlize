@@ -94,7 +94,7 @@ void impl_EmulateClickEvent(KInt nodeId, KFloat x, KFloat y) {
     GetFullImpl()->getEventsAPI()->getCommonMethodEventsReceiver()->onClick(nodeId, event);
     */
     fprintf(stderr, "EmulateClickEvent: %d %f %f\n", nodeId, x, y);
-    Ark_ClickEvent event = {};
+    Ark_ClickEvent event = { 0 };
     event.x = { ARK_TAG_FLOAT32, { .f32 = x } };
     event.y = { ARK_TAG_FLOAT32, { .f32 = y } };
     event.displayX = { ARK_TAG_FLOAT32, { .f32 = x } };

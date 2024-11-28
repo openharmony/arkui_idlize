@@ -16614,8 +16614,7 @@ declare class CommonMethod<T> {
    * @since 11
    */
   // TODO: temporary!
-  // onClick(event: (event?: ClickEvent) => void): T;
-  onClick(event: () => void): T;
+  onClick(event: (event?: ClickEvent) => void): T;
 
   /**
    * Trigger a click event when a click is clicked, move distance should smaller than distanceThreshold.
@@ -16629,8 +16628,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 12
    */
-  // TODO: temporary!
-  //onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
+  onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
 
   /**
    * Trigger a hover event.
