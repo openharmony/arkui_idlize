@@ -45,8 +45,7 @@ namespace ApiImpl {
     void SetRangeUpdater(Ark_NodeHandle nodePtr, Ark_Int32 updaterId);
     void SetLazyItemIndexer(Ark_VMContext vmContext, Ark_NodeHandle nodePtr, Ark_Int32 indexerId);
     Ark_PipelineContext GetPipelineContext(Ark_NodeHandle node);
-    void SetVsyncCallback(Ark_VMContext vmContext, Ark_PipelineContext pipelineContext, Ark_Int32 callbackId);
-    void UnblockVsyncWait(Ark_VMContext vmContext, Ark_PipelineContext pipelineContext);
+    void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback callback);
     void SetChildTotalCount(Ark_NodeHandle node, Ark_Int32 totalCount);
     void ShowCrash(Ark_CharPtr message);
 } // namespace OHOS::Ace::NG::ApiImpl
