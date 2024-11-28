@@ -40,7 +40,7 @@ pg java:run:
   script:
     - JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64 npm run run:java
 
-compile arkts subset:
+run arkts subset:
   stage: test
   tags:
     - idlize-ci
@@ -49,7 +49,7 @@ compile arkts subset:
     - !reference [.setup, script]
     - PANDA_SDK_VERSION=1.5.0-dev.9440 npm run panda:sdk:install
   script:
-    - npm run compile:all:arkts
+    - npm run run:panda:subset
 
 compile arkts peers:
   stage: test

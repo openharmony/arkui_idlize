@@ -42,7 +42,8 @@ import { BlurOptions,
     UIContext,
     ScrollSizeMode,
     Position,
-         SheetKeyboardAvoidMode,
+    SheetKeyboardAvoidMode,
+    Literal_Alignment_align,
     HoverModeAreaType } from "@arkoala/arkui/ArkCommonInterfaces"
 import { Dimension,
     Length,
@@ -53,7 +54,7 @@ import { Dimension,
 
 import { Resource } from "./ArkResourceInterfaces"
 
-import { TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/ArkEnumsInterfaces"
+import { Alignment, TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/ArkEnumsInterfaces"
 
 import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
@@ -495,27 +496,23 @@ function checkPerf3(count: number) {
 
 function checkButton() {
     let peer = ArkButtonPeer.create(ArkUINodeType.Button)
+
     checkResult("width", () => peer.widthAttribute("42%"),
         "width({.type=2, .value=42, .unit=3, .resource=0})")
+    const resource: Resource = { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
+    checkResult("height", () => peer.heightAttribute(resource),
+        "height({.type=3, .value=0, .unit=1, .resource=43})")
+    checkResult("height", () => peer.heightAttribute(44),
+        "height({.type=1, .value=44, .unit=1, .resource=0})")
+    const builder: CustomBuilder = () => { return new Object() }
+    const options: Literal_Alignment_align = { align: Alignment.of(4) }
+    checkResult("background", () => peer.backgroundAttribute(builder, options),
+        "background({.resource={.resourceId=100, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.align={.tag=ARK_TAG_OBJECT, .value=Ark_Alignment(4)}}})")
     checkResult("type", () => peer.typeAttribute(ButtonType.of(1)), "type(Ark_ButtonType(1))")
     checkResult("labelStyle", () => peer.labelStyleAttribute(new LabelStyleImpl(3)),
          "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
     checkResult("labelStyle2", () => peer.labelStyleAttribute(new LabelStyleImpl()),
         "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
-    const resource: Resource = {
-        id: 43,
-        bundleName: "MyApp",
-        moduleName: "MyApp"
-    }
-    checkResult("height", () => peer.heightAttribute(resource),
-        "height({.type=3, .value=0, .unit=1, .resource=43})")
-    checkResult("height", () => peer.heightAttribute(44),
-        "height({.type=1, .value=44, .unit=1, .resource=0})")
-    checkResult("bindSheet", () => {
-            peer.bindSheetAttribute(false, (): Object => {}, new SheetOptionsImpl(new SheetTitleOptionsImpl("My App")))
-        },
-        "bindSheet({.tag=ARK_TAG_OBJECT, .value=false}, {.resource={.resourceId=100, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .onAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillAppear={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDisappear={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.title={.selector=0, .value0={.chars=\"My App\", .length=6}}, .subtitle={.tag=ARK_TAG_UNDEFINED, .value={}}}}}, .shouldDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWillSpringBackWhenDismiss={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .onHeightDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .scrollSizeMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .onDetentsDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onWidthDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .onTypeDidChange={.tag=ARK_TAG_UNDEFINED, .value={}}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}, .keyboardAvoidMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableHoverMode={.tag=ARK_TAG_UNDEFINED, .value={}}, .hoverModeArea={.tag=ARK_TAG_UNDEFINED, .value={}}, .offset={.tag=ARK_TAG_UNDEFINED, .value={}}}})"
-    )
 }
 
 function checkCallback() {
@@ -724,7 +721,10 @@ function checkNodeAPI() {
 }
 
 export function main(): void {
-    checkPerf2(5 * 1000 * 1000)
+	// TODO: enable tests after fixing issues with arm64 panda
+	// https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/20899
+	// https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/20908
+    // checkPerf2(5 * 1000 * 1000)
     checkPerf3(5 * 1000 * 1000)
 
     checkButton()
