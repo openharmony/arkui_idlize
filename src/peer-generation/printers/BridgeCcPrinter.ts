@@ -21,13 +21,15 @@ import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement, Lan
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
-import { forceAsNamedNode, IDLBooleanType, IDLNumberType } from "../../idl";
+import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { createConstructPeerMethod } from "../PeerClass";
+import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 
 class BridgeCcVisitor {
     readonly generatedApi = createLanguageWriter(Language.CPP, this.library)
     readonly customApi = createLanguageWriter(Language.CPP, this.library)
+    private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -61,7 +63,7 @@ class BridgeCcVisitor {
     protected printAPICall(method: PeerMethod, modifierName?: string) {
         const hasReceiver = method.hasReceiver()
         const argAndOutConvertors = method.argAndOutConvertors
-        const isVoid = method.retConvertor.isVoid
+        const isVoid = this.returnTypeConvertor.isVoid(method)
         const modifier = this.generateApiCall(method, modifierName)
         const peerMethod = this.getPeerMethodName(method)
         const receiver = hasReceiver ? [this.getReceiverArgName()] : []
@@ -191,7 +193,7 @@ class BridgeCcVisitor {
                 counter += 1
             }
         })
-        return `${method.retConvertor.isVoid ? 'V' : ''}${counter}`
+        return `${this.returnTypeConvertor.isVoid(method) ? 'V' : ''}${counter}`
     }
 
     private generateCParameters(method: PeerMethod, argAndOutConvertors: ArgConvertor[]): string[] {
@@ -221,18 +223,17 @@ class BridgeCcVisitor {
     }
 
     private printMethod(method: PeerMethod, modifierName?: string) {
-        const retConvertor = method.retConvertor
         const argAndOutConvertors = method.argAndOutConvertors
 
-        let cName = `${method.originalParentName}_${method.overloadedName}`
-        let retValue: string | undefined = retConvertor.interopType
-        this.generatedApi.print(`${retValue} impl_${cName}(${this.generateCParameters(method, argAndOutConvertors).join(", ")}) {`)
+        const cName = `${method.originalParentName}_${method.overloadedName}`
+        const retType = this.returnTypeConvertor.convert(method.returnType)
+        this.generatedApi.print(`${retType} impl_${cName}(${this.generateCParameters(method, argAndOutConvertors).join(", ")}) {`)
         this.generatedApi.pushIndent()
         this.printNativeBody(method, modifierName)
         this.generatedApi.popIndent()
         this.generatedApi.print(`}`)
-        retValue = retConvertor.isVoid ? undefined : retValue
-        let macroArgs = [cName, retValue].concat(this.generateCParameterTypes(argAndOutConvertors, method.hasReceiver()))
+        let macroArgs = [cName, retType === IDLVoidType.name ? undefined : retType]
+            .concat(this.generateCParameterTypes(argAndOutConvertors, method.hasReceiver()))
             .filter(isDefined)
             .join(", ")
         const suffix = this.generateCMacroSuffix(method)

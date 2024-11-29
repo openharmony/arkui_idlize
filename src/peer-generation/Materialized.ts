@@ -15,7 +15,6 @@
 
 import * as idl from "../idl"
 import { ArgConvertor } from "./ArgConvertors"
-import { RetConvertor, createVoidRetConvertor } from "./RetConvertors"
 import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 import { capitalize } from "../util"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
@@ -23,13 +22,12 @@ import { createReferenceType, IDLType, IDLVoidType } from "../idl"
 import { PeerMethod } from "./PeerMethod";
 import { PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary"
-import { PrimitiveType } from "./ArkPrimitiveType"
 
 export class MaterializedField {
     constructor(
         public field: Field,
         public argConvertor: ArgConvertor,
-        public retConvertor: RetConvertor,
+        public outArgConvertor?: ArgConvertor,
         public isNullableOriginalTypeField?: boolean
     ) { }
 }
@@ -38,11 +36,12 @@ export class MaterializedMethod extends PeerMethod {
     constructor(
         originalParentName: string,
         argConvertors: ArgConvertor[],
-        retConvertor: RetConvertor,
+        returnType: IDLType,
         isCallSignature: boolean,
         method: Method,
+        public outArgConvertor?: ArgConvertor,
     ) {
-        super(originalParentName, argConvertors, retConvertor, isCallSignature, method)
+        super(originalParentName, argConvertors, returnType, isCallSignature, method, outArgConvertor)
     }
 
     override get peerMethodName() {
@@ -100,10 +99,10 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
     const copied = new MaterializedMethod(
         method.originalParentName,
         method.argConvertors,
-        method.retConvertor,
+        method.returnType,
         method.isCallSignature,
         overrides.method ?? method.method,
-    )
+        method.outArgConvertor)
     copied.setSameOverloadIndex(method)
     return copied
 }
@@ -145,7 +144,7 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
     return new MaterializedMethod(
             clazz.className,
             [],
-            createVoidRetConvertor(),
+            IDLVoidType,
             false,
             new Method(
                 'destroyPeer',

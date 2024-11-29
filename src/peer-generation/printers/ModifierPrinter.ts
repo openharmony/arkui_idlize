@@ -36,6 +36,7 @@ import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
 import { PeerLibrary } from "../PeerLibrary";
+import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 
 export class ModifierVisitor {
     dummy = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
@@ -43,6 +44,7 @@ export class ModifierVisitor {
     modifiers = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
     getterDeclarations = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
     modifierList = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
+    private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
 
     constructor(
         protected library: PeerLibrary,
@@ -55,7 +57,7 @@ export class ModifierVisitor {
             _.makeCondition(
                 _.makeString("!needGroupedLog(1)"),
                 _.makeReturn(
-                    method.retConvertor.isVoid ? undefined : _.makeString(method.dummyReturnValue ?? "0"))))
+                    this.returnTypeConvertor.isVoid(method) ? undefined : _.makeString(method.dummyReturnValue ?? "0"))))
         _.print(`string out("${method.toStringName}(");`)
         method.argAndOutConvertors.forEach((argConvertor, index) => {
             if (index > 0) this.dummy.print(`out.append(", ");`)
@@ -78,10 +80,11 @@ export class ModifierVisitor {
     }
 
     private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnValue: string | undefined = undefined) {
+        const isVoid = this.returnTypeConvertor.isVoid(method)
         if (returnValue) {
-            if (method.retConvertor.isVoid)
+            if (isVoid)
                 return
-            printer.print(`return ${returnValue};`) 
+            printer.print(`return ${returnValue};`)
         }
         else if(method.method.name == 'getFinalizer')
         {
@@ -94,7 +97,7 @@ export class ModifierVisitor {
         {
             printer.print(`delete peer;`)
         } 
-        else if (!method.retConvertor.isVoid) {
+        else if (!isVoid) {
             if (this.isPointerReturnType(method.method.signature.returnType)) {
                 printer.print(`return nullptr;`)
             }
@@ -164,7 +167,7 @@ export class ModifierVisitor {
         const apiParameters = method.generateAPIParameters(
             createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
         )
-        printMethodDeclaration(printer.printer, method.retType, method.implName, apiParameters)
+        printMethodDeclaration(printer.printer, this.returnTypeConvertor.convert(method.returnType), method.implName, apiParameters)
         printer.print("{")
         printer.pushIndent()
     }

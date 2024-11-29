@@ -19,26 +19,6 @@ import { ArgConvertor, BaseArgConvertor, CallbackConvertor, RuntimeType, Express
 import { LanguageStatement, LanguageWriter } from "./LanguageWriters"
 import { Language } from "../Language"
 
-
-export interface RetConvertor {
-    readonly throughOutArg: boolean
-    readonly outArgConvertor?: ArgConvertor
-
-    readonly nativeType: string
-    readonly interopType: string
-    readonly isVoid: boolean
-}
-
-class RegularRetConvertor implements RetConvertor {
-    readonly interopType: string
-    readonly throughOutArg = false
-    get isVoid() { return this.nativeType === "void" }
-
-    constructor(readonly nativeType: string, interopType?: string) {
-        this.interopType = interopType ?? nativeType
-    }
-}
-
 class PromiseOutArgConvertor extends BaseArgConvertor {
     callbackConvertor: CallbackConvertor
     callback: idl.IDLCallback
@@ -84,36 +64,13 @@ class PromiseOutArgConvertor extends BaseArgConvertor {
     }
 }
 
-class PromiseRetConvertor implements RetConvertor {
-    readonly throughOutArg = true
-    readonly outArgConvertor: PromiseOutArgConvertor
-
-    readonly nativeType: string = "void"
-    readonly interopType: string = "void"
-    readonly isVoid = true
-
-    constructor(library: LibraryInterface, param: string, promise: idl.IDLContainerType) {
-        this.outArgConvertor = new PromiseOutArgConvertor(library, param, promise)
-    }
-}
-
-export function createVoidRetConvertor(): RetConvertor {
-    return new RegularRetConvertor("void")
-}
-
-export function createRegularRetConvertor(nativeType: string, interopType?: string): RetConvertor {
-    return new RegularRetConvertor(nativeType, interopType)
-}
-
-export function createRetConvertor(library: LibraryInterface, type: idl.IDLType|undefined, mapNativeRetType: (type: idl.IDLType) => string, otherParams: string[]): RetConvertor {
-    if (!type)
-        return new RegularRetConvertor("void")
-    if (idl.isContainerType(type) && idl.IDLContainerUtils.isPromise(type)) {
+export function createOutArgConvertor(library: LibraryInterface, type: idl.IDLType|undefined, otherParams: string[]): ArgConvertor | undefined {
+    if (type && idl.isContainerType(type) && idl.IDLContainerUtils.isPromise(type)) {
         const param = (entropy: number) => `outputArgumentForReturningPromise${entropy || ''}`
         let paramEntropy = 0
         while (otherParams?.includes(param(paramEntropy)))
             ++paramEntropy;
-        return new PromiseRetConvertor(library, param(paramEntropy), type as idl.IDLContainerType)
+        return new PromiseOutArgConvertor(library, param(paramEntropy), type)
     }
-    return new RegularRetConvertor(mapNativeRetType(type!))
+    return undefined
 }

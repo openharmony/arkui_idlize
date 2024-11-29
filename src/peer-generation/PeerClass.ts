@@ -17,7 +17,6 @@ import { IDLPointerType, IDLProperty, IDLVoidType } from "../idl"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
 import { PrimitiveType } from "./ArkPrimitiveType"
-import { createRegularRetConvertor } from "./RetConvertors"
 import { Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 
 export interface PeerClassBase {
@@ -61,7 +60,7 @@ export function createConstructPeerMethod(clazz: PeerClass): PeerMethod {
     return new PeerMethod(
             clazz.componentName,
             [],
-            createRegularRetConvertor(PrimitiveType.NativePointer.getText(), PrimitiveType.NativePointer.getText()),
+            IDLPointerType,
             false,
             new Method(
                 'construct',

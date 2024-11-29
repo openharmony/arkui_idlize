@@ -34,7 +34,7 @@ import {
 } from "../../util"
 import { GenericVisitor } from "../../options"
 import { ArgConvertor } from "../ArgConvertors"
-import { createRegularRetConvertor, createVoidRetConvertor, createRetConvertor } from "../RetConvertors"
+import { createOutArgConvertor } from "../PromiseConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { PeerClass } from "../PeerClass"
 import { PeerMethod } from "../PeerMethod"
@@ -186,59 +186,6 @@ export class IdlPredefinedGeneratorVisitor implements GenericVisitor<void> {
 function generateArgConvertor(library: PeerLibrary, param: idl.IDLParameter): ArgConvertor {
     if (!param.type) throw new Error("Type is needed")
     return library.typeConvertor(param.name, param.type, param.isOptional)
-}
-
-// TODO convert to convertor ;)
-function mapCInteropRetType(type: idl.IDLType): string {
-    // probably wrong
-    if (idl.isOptionalType(type)) {
-        return mapCInteropRetType(type.type)
-    }
-    if (idl.isPrimitiveType(type)) {
-        switch (type) {
-            case idl.IDLI8Type: return PrimitiveType.Int32.getText()
-            case idl.IDLU8Type: return PrimitiveType.Int32.getText()
-            case idl.IDLI16Type: return PrimitiveType.Int32.getText()
-            case idl.IDLU16Type: return PrimitiveType.Int32.getText()
-            case idl.IDLI32Type: return PrimitiveType.Int32.getText()
-            case idl.IDLU32Type: return PrimitiveType.Int32.getText()
-            case idl.IDLI64Type: return PrimitiveType.Int32.getText()
-            case idl.IDLU64Type: return PrimitiveType.Int32.getText()
-            case idl.IDLF16Type: return PrimitiveType.Int32.getText()
-            case idl.IDLF32Type: return PrimitiveType.Int32.getText()
-            case idl.IDLF64Type: return PrimitiveType.Int32.getText()
-            case idl.IDLBooleanType: return PrimitiveType.Boolean.getText()
-            case idl.IDLNumberType: return PrimitiveType.Int32.getText()
-            case idl.IDLStringType:
-            case idl.IDLAnyType:
-            case idl.IDLVoidType:
-            case idl.IDLThisType:
-            case idl.IDLUndefinedType:
-            case idl.IDLUnknownType:
-            case idl.IDLBufferType:
-                return "void"
-        }
-    }
-    if (idl.isReferenceType(type)) {
-        /* HACK, fix */
-        if (type.name.endsWith("Attribute"))
-            return "void"
-        return PrimitiveType.NativePointer.getText()
-    }
-    if (idl.isTypeParameterType(type))
-        /* ANOTHER HACK, fix */
-        return "void"
-    if (idl.isUnionType(type))
-        return PrimitiveType.NativePointer.getText()
-    if (idl.isContainerType(type)) {
-        if (idl.IDLContainerUtils.isSequence(type)) {
-            /* HACK, fix */
-            // return array by some way
-            return "void"
-        } else
-            return PrimitiveType.NativePointer.getText()
-    }
-    throw new Error(`mapCInteropType failed for ${idl.IDLKind[type.kind]}`)
 }
 
 class ImportsAggregateCollector extends DependenciesCollector {
@@ -692,7 +639,7 @@ class PeersGenerator {
         return new PeerMethod(
             originalParentName,
             [argConvertor],
-            createVoidRetConvertor(),
+            idl.IDLVoidType,
             false,
             new Method(prop.name, signature, []))
     }
@@ -716,9 +663,10 @@ class PeersGenerator {
         return new PeerMethod(
             originalParentName,
             argConvertors,
-            createRetConvertor(this.library, isThisRet ? idl.IDLVoidType : retType, mapCInteropRetType, argConvertors.map(it => it.param)),
+            isThisRet ? idl.IDLVoidType : retType,
             isCallSignature,
-            new Method(methodName!, signature, method.isStatic ? [MethodModifier.STATIC] : []))
+            new Method(methodName!, signature, method.isStatic ? [MethodModifier.STATIC] : []),
+            createOutArgConvertor(this.library, isThisRet ? idl.IDLVoidType : retType, argConvertors.map(it => it.param)))
     }
 
     private createComponentAttributesDeclaration(clazz: idl.IDLInterface, peer: PeerClass) {
@@ -948,8 +896,7 @@ export class IdlPeerProcessor {
 
         const constructor = idl.isClass(decl) ? decl.constructors[0] : undefined
         const mConstructor = this.makeMaterializedMethod(decl, constructor)
-        const finalizerReturnType = createRegularRetConvertor(PrimitiveType.NativePointer.getText(), PrimitiveType.NativePointer.getText())
-        const mFinalizer = new MaterializedMethod(name, [], finalizerReturnType, false,
+        const mFinalizer = new MaterializedMethod(name, [], idl.IDLPointerType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
         const mFields = decl.properties
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
@@ -970,16 +917,16 @@ export class IdlPeerProcessor {
             if (isSimpleType) {
                 const getSignature = new NamedMethodSignature(idlType, [], [])
                 const getAccessor = new MaterializedMethod(
-                    name, [], f.retConvertor, false,
-                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE]))
+                    name, [], field.type, false,
+                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE]),
+                    f.outArgConvertor)
                 mMethods.push(getAccessor)
             }
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
             if (!isReadOnly) {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idlType], [field.name])
-                const retConvertor = createVoidRetConvertor()
                 const setAccessor = new MaterializedMethod(
-                    name, [f.argConvertor], retConvertor, false,
+                    name, [f.argConvertor], idl.IDLVoidType, false,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]))
                 mMethods.push(setAccessor)
             }
@@ -991,23 +938,27 @@ export class IdlPeerProcessor {
 
     private makeMaterializedField(prop: idl.IDLProperty): MaterializedField {
         const argConvertor = this.library.typeConvertor(prop.name, prop.type!)
-        const retConvertor = createRetConvertor(this.library, prop.type, mapCInteropRetType, [prop.name])
         const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
         return new MaterializedField(
             new Field(prop.name, prop.type, modifiers),
-            argConvertor, retConvertor, prop.isOptional)
+            argConvertor,
+            createOutArgConvertor(this.library, prop.type, [prop.name]),
+            prop.isOptional)
     }
 
     private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined) {
-        const methodName = method === undefined || idl.isConstructor(method) ? "ctor" : method.name
-        const retConvertor = method === undefined || idl.isConstructor(method)
-            ? createRegularRetConvertor(`${decl.name}Peer*`, PrimitiveType.NativePointer.getText())
-            : createRetConvertor(this.library, method.returnType, mapCInteropRetType, method.parameters.map(it => it.name))
-
+        let methodName = "ctor"
+        let returnType: IDLType = idl.IDLPointerType
+        let outArgConvertor = undefined
+        if (method && !idl.isConstructor(method)) {
+            methodName = method.name
+            returnType = method.returnType
+            outArgConvertor = createOutArgConvertor(this.library, method.returnType, method.parameters.map(it => it.name))
+        }
         if (method === undefined) {
             // interface or class without constructors
             const ctor = new Method("ctor", new NamedMethodSignature(idl.createReferenceType(decl.name), [], []), [MethodModifier.STATIC])
-            return new MaterializedMethod(decl.name, [], retConvertor, false, ctor)
+            return new MaterializedMethod(decl.name, [], returnType, false, ctor, outArgConvertor)
         }
 
         const methodTypeParams = getExtAttribute(method, IDLExtendedAttributes.TypeParameters)
@@ -1015,11 +966,12 @@ export class IdlPeerProcessor {
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(method)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
-        return new MaterializedMethod(decl.name, argConvertors, retConvertor, false,
+        return new MaterializedMethod(decl.name, argConvertors, returnType, false,
             new Method(methodName,
                 signature,
                 modifiers,
-                methodTypeParams !== undefined ? [methodTypeParams] : undefined)
+                methodTypeParams !== undefined ? [methodTypeParams] : undefined),
+            outArgConvertor
         )
     }
 

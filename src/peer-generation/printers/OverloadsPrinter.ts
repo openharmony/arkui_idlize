@@ -94,7 +94,7 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
     return new PeerMethod(
         overloads[0].originalParentName,
         typeConvertors,
-        overloads[0].retConvertor,
+        overloads[0].returnType,
         overloads[0].isCallSignature,
         method,
     )

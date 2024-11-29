@@ -26,12 +26,14 @@ import { PeerMethod } from "../PeerMethod";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { Language } from "../../Language";
 import { createDestroyPeerMethod } from "../Materialized";
+import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 
 export function generateEventReceiverName(componentName: string) {
     return `${PeerGeneratorConfig.cppPrefix}ArkUI${componentName}EventsReceiver`
 }
 
 class HeaderVisitor {
+    private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
     constructor(
         private library: PeerLibrary,
         private api: IndentedPrinter,
@@ -54,7 +56,7 @@ class HeaderVisitor {
 
     private printMethod(method: PeerMethod) {
         const apiParameters = method.generateAPIParameters(createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library)))
-        printMethodDeclaration(this.api, method.retType, `(*${method.fullMethodName})`, apiParameters, `;`)
+        printMethodDeclaration(this.api, this.returnTypeConvertor.convert(method.returnType), `(*${method.fullMethodName})`, apiParameters, `;`)
     }
 
     private printClassEpilog(clazz: PeerClass) {

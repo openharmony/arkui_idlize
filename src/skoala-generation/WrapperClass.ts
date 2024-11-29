@@ -14,7 +14,6 @@
  */
 
 import { ArgConvertor } from "../peer-generation/ArgConvertors";
-import { RetConvertor } from "../peer-generation/RetConvertors";
 import { Field, Method, MethodModifier } from "../peer-generation/LanguageWriters"
 import { capitalize } from "../util"
 import { Skoala } from './utils';
@@ -25,7 +24,6 @@ export class WrapperMethod {
         public originalParentName: string,
         public method: Method,
         public argAndOutConvertors: ArgConvertor[],
-        public retConvertor: RetConvertor,
     ) { }
 
     public isMakeMethod(): boolean {
@@ -87,7 +85,6 @@ export class WrapperField {
     constructor(
         public field: Field,
         public argConvertor: ArgConvertor,
-        public retConvertor: RetConvertor,
     ) { }
 }
 

@@ -15,20 +15,22 @@
 
 import { capitalize, isDefined } from "../util"
 import { ArgConvertor } from "./ArgConvertors"
-import { RetConvertor } from "./RetConvertors"
 import { Method, MethodModifier } from "./LanguageWriters"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { mangleMethodName } from "./LanguageWriters/LanguageWriter"
-import { IdlNameConvertor } from "./LanguageWriters/nameConvertor"
+import { convertType, IdlNameConvertor } from "./LanguageWriters/nameConvertor"
+import { IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerUtils, IDLF16Type, IDLF32Type, IDLF64Type, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLKind, IDLNumberType, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUndefinedType, IDLUnknownType, IDLVoidType, isContainerType, isOptionalType, isPrimitiveType, isReferenceType, isTypeParameterType, isUnionType } from "../idl"
+import { InteropReturnTypeConvertor } from "./LanguageWriters/convertors/InteropConvertor"
 
 export class PeerMethod {
     private overloadIndex?: number
     constructor(
         public originalParentName: string,
         public argConvertors: ArgConvertor[],
-        public retConvertor: RetConvertor,
+        public returnType: IDLType,
         public isCallSignature: boolean,
         public method: Method,
+        public outArgConvertor?: ArgConvertor,
     ) { }
 
     get overloadedName(): string {
@@ -57,9 +59,6 @@ export class PeerMethod {
     get dummyReturnValue(): string | undefined {
         return undefined
     }
-    get retType(): string {
-        return this.retConvertor.nativeType
-    }
     get receiverType(): string {
         return "Ark_NodeHandle"
     }
@@ -70,9 +69,7 @@ export class PeerMethod {
         return "Modifier"
     }
     get argAndOutConvertors(): ArgConvertor[] {
-        if (!this.retConvertor || !this.retConvertor.throughOutArg)
-            return this.argConvertors
-        return this.argConvertors.concat(this.retConvertor.outArgConvertor!)
+        return this.argConvertors.concat(this.outArgConvertor ?? [])
     }
 
     hasReceiver(): boolean {
