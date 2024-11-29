@@ -36,7 +36,7 @@
 | Progress                  | Component | Yes       |             | Erokhin Ilya        | Blocked          |                   |           |          |
 | `style, total, value`     | Options   |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `type, value`             | Options   |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
-| `style`                   | Function  |           | HEL         | Erokhin Ilya        | blocked IDL      |                   |           | Medium   |
+| `style`                   | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `color`                   | Function  |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
 | Common                    | Component | Yes       |             | Roman Sedaikin      | in progress      | Roman Sedaikin    | done      |          |
 | `width`                   | Function  |           | ENC,WON,HEL | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High+    |
@@ -105,7 +105,7 @@
 | `ctor(URL)`               | Function  |           | ENC         | Kirill Berezin      | In progress      |                   |           | Medium   |
 | `ctor($rawfile)`          | Function  |           | ENC, WON    | Anton Tarasov       | done             |                   | done      | High     |
 | `objectFit`               | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
-| `autoResize`              | Function  |           | HEL         | Evstigneev Roman    | in progress      |                   |           | Medium   |
+| `autoResize`              | Function  |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
 | `fillColor`               | Function  |           | HEL         | Evstigneev Roman    | done             |                   |           | Medium   |
 | `onFinish`                | Function  |           | ENC         | Evstigneev Roman    | done             |                   |           | Medium   |
 | `onError`                 | Function  |           | ENC         | Evstigneev Roman    | done             |                   |           | Medium   |
@@ -127,7 +127,7 @@
 | `commands`                | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | Tabs                      | Component | No        | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | High     |
 | `barPosition`             | Options   |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
-| `animationDuration`       | Function  |           | HEL         | Tuzhilkin Ivan      | in progress      |                   |           | High     |
+| `animationDuration`       | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
 | `barMode`                 | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
 | `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
 | `vertical`                | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | High     |
@@ -148,8 +148,8 @@
 | `range, selected`         | Options   |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | Medium   |
 | `onChange`                | Function  |           | HEL         | Tuzhilkin Ivan      | done             |                   |           | Medium   |
 | Scroll                    | Component |           |             | Kirill Berezin      | in progress      |                   |           |          |
-| `scrollable`              | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
-| `scrollBar`               | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
+| `scrollable`              | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
+| `scrollBar`               | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
 | `onScrollEdge`            | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
 | Video                     | Component |           |             | Erokhin Ilya        | done             |                   |           |          |
