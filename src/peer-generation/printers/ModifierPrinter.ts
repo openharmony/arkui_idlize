@@ -30,12 +30,12 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod } from "
 import { groupBy } from "../../util";
 import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
-import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from "../../idl";
-import { PeerLibrary } from "../PeerLibrary";
+import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from "../../idl";
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
+import { PeerLibrary } from "../PeerLibrary";
 
 export class ModifierVisitor {
     dummy = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
@@ -91,8 +91,20 @@ export class ModifierVisitor {
             printer.print(`return new ${method.originalParentName}Peer();`)
         }
         else if (!method.retConvertor.isVoid) {
-            printer.print(`return 0;`)
+            if (this.isPointerReturnType(method.method.signature.returnType)) {
+                printer.print(`return nullptr;`)
+            }
+            else{
+                printer.print(`return 0;`)
+            }
         }
+    }
+     
+     private isPointerReturnType(returnType: IDLType): boolean {
+        return isReferenceType(returnType)  ||
+                returnType === IDLThisType ||
+                returnType === IDLPointerType ||
+                returnType === IDLAnyType
     }
 
     private printBodyImplementation(printer: LanguageWriter, method: PeerMethod,
