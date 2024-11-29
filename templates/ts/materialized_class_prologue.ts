@@ -1,6 +1,5 @@
 import { Finalizable } from "./Finalizable"
 import { MaterializedBase } from "./MaterializedBase"
-import { NativePeerNode } from "./PeerNode"
 import { nativeModule } from "@koalaui/arkoala"
 import { Serializer } from "./peers/Serializer"
 import { isResource, isInstanceOf, runtimeType, withLength, withLengthArray, RuntimeType, SerializerBase } from "./peers/SerializerBase"
