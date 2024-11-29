@@ -30,7 +30,7 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod } from "
 import { groupBy } from "../../util";
 import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
-import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from "../../idl";
+import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isNamedNode, isOptionalType, isReferenceType } from "../../idl";
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
@@ -64,12 +64,17 @@ export class ModifierVisitor {
             _.print(`WriteToString(&out, ${argConvertor.param});`)
         })
         _.print(`out.append(")");`)
-        const retVal = method.dummyReturnValue
+        const isVoid = this.returnTypeConvertor.isVoid(method)
+        let retVal = isVoid ? undefined : method.dummyReturnValue
         if (retVal  !== undefined) {
             _.print(`out.append("[return ${retVal}]");`)
         }
         _.print(`appendGroupedLog(1, out);`)
-        this.printReturnStatement(this.dummy, method, retVal)
+        const rt = method.method.signature.returnType
+        if (retVal === undefined && !isVoid) {
+            retVal = "0"
+        }
+        this.printReturnStatement(this.dummy, method, true, retVal)
     }
 
     printModifierImplFunctionBody(method: PeerMethod, clazz: PeerClass | undefined = undefined) {
@@ -79,12 +84,12 @@ export class ModifierVisitor {
         this.printReturnStatement(this.real, method)
     }
 
-    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnValue: string | undefined = undefined) {
+    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, isDummy? : boolean, returnValue: string | undefined = undefined) {
         const isVoid = this.returnTypeConvertor.isVoid(method)
-        if (returnValue) {
-            if (isVoid)
-                return
-            printer.print(`return ${returnValue};`)
+        if (isDummy) {
+            if (returnValue) {
+                printer.print(`return ${returnValue};`)
+            }
         }
         else if(method.method.name == 'getFinalizer')
         {
