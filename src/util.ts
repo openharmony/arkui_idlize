@@ -586,3 +586,12 @@ export function removeExt(filename: string) {
 export function warn(message: string) {
     console.log(`WARNING: ${message}`)
 }
+
+export function hashCodeFromString(value: string): number {
+    let hash = 5381
+    for(let i = 0; i < value.length; i++) {
+        hash = (hash * 33) ^ value.charCodeAt(i)
+        hash |= 0
+    }
+    return hash
+}

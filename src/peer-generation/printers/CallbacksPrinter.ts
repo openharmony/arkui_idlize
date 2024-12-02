@@ -19,7 +19,7 @@ import { CppLanguageWriter, LanguageWriter, NamedMethodSignature } from "../Lang
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
-import { CallbackKind, EnumConvertor, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName } from "../ArgConvertors";
+import { CallbackKind, EnumConvertor, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "../ArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { PrimitiveType } from "../ArkPrimitiveType";
@@ -111,8 +111,8 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
     let callbacksKindsEnum = idl.createEnum(
         CallbackKind, [], {}
     )
-    callbacksKindsEnum.elements = collectUniqueCallbacks(library).map((it, index) => 
-        idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, index)
+    callbacksKindsEnum.elements = collectUniqueCallbacks(library).map(it =>
+        idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, generateCallbackKindValue(it))
     )
     writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, true))
 }
@@ -244,8 +244,8 @@ class DeserializeCallbacksVisitor {
         this.writer.writeFunctionImplementation(`deserializeAndCallCallback`, signature, writer => {
             const kindReference = idl.createReferenceType(`CallbackKind`)
             if (writer.language !== Language.CPP) {
-                writer.writeStatement(writer.makeAssign(`kind`, idl.IDLI32Type, 
-                    writer.makeMethodCall(`thisDeserializer`, `readInt32`, []), 
+                writer.writeStatement(writer.makeAssign(`kind`, idl.IDLI32Type,
+                    writer.makeMethodCall(`thisDeserializer`, `readInt32`, []),
                     true
                 ))
             }
@@ -256,7 +256,7 @@ class DeserializeCallbacksVisitor {
                     ? [`thisArray`, `thisLength`]
                     : [`thisDeserializer`]
                 const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
-                writer.print(`case ${callbacks.indexOf(callback)}/*${callbackKindValue}*/: return deserializeAndCall${callback.name}(${args.join(', ')});`)
+                writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/: return deserializeAndCall${callback.name}(${args.join(', ')});`)
             }
             writer.popIndent()
             writer.print(`}`)

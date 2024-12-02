@@ -16,7 +16,7 @@
 import * as idl from "../idl"
 import { Language } from "../Language"
 import { LibraryInterface } from "../LibraryInterface"
-import { warn } from "../util"
+import { hashCodeFromString, warn } from "../util"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { BlockStatement, BranchStatement, createTypeNameConvertor, generateTypeCheckerName, LanguageExpression, LanguageStatement, LanguageWriter, StringExpression } from "./LanguageWriters"
 import { IDLNodeToStringConvertor } from "./LanguageWriters/convertors/InteropConvertor"
@@ -1170,6 +1170,11 @@ export function generateCallbackKindAccess(callback: idl.IDLCallback, language: 
     if (language == Language.CPP)
         return name
     return `${CallbackKind}.${name}`
+}
+
+export function generateCallbackKindValue(callback: idl.IDLCallback): number {
+    const name = generateCallbackKindName(callback)
+    return hashCodeFromString(name)
 }
 
 export function generateCallbackAPIArguments(library: LibraryInterface, callback: idl.IDLCallback): string[] {

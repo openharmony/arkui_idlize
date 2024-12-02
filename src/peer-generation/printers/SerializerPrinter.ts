@@ -35,7 +35,7 @@ import { throwException } from "../../util"
 import { IDLEntry } from "../../idl"
 import { convertDeclaration } from '../LanguageWriters/nameConvertor'
 import { collectMaterializedImports, getInternalClassName } from '../Materialized'
-import { CallbackKind, generateCallbackKindAccess } from '../ArgConvertors'
+import { generateCallbackKindValue } from '../ArgConvertors'
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
 
@@ -411,7 +411,7 @@ class IdlDeserializerPrinter {
                 }),
                 ...continuation,
                 new ExpressionStatement(writer.makeNativeCall(`_CallCallback`, [
-                    writer.ordinalFromEnum(writer.makeString(`${generateCallbackKindAccess(target, writer.language)}`), idl.createReferenceType(CallbackKind)),
+                    writer.makeString(generateCallbackKindValue(target).toString()),
                     writer.makeString(`${argsSerializer}Serializer.asArray()`),
                     writer.makeString(`${argsSerializer}Serializer.length()`),
                 ])),
