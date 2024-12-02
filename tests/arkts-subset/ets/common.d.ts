@@ -16614,7 +16614,7 @@ declare class CommonMethod<T> {
    * @since 11
    */
   // TODO: temporary!
-  onClick(event: (event?: ClickEvent) => void): T;
+  onClick(event: (event: ClickEvent) => void): T;
 
   /**
    * Trigger a click event when a click is clicked, move distance should smaller than distanceThreshold.
