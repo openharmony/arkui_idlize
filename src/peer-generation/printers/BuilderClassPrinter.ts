@@ -23,7 +23,7 @@ import { ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { PeerLibrary } from "../PeerLibrary";
 import { Language } from "../../Language";
-import { createOptionalType, forceAsNamedNode, IDLType, IDLVoidType, isOptionalType, toIDLType } from "../../idl";
+import { createOptionalType, createReferenceType, forceAsNamedNode, IDLType, IDLVoidType, isOptionalType } from "../../idl";
 import { generifiedTypeName } from "../idl/common";
 
 interface BuilderClassFileVisitor {
@@ -231,7 +231,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             .map(it => this.synthesizeField(it))
         const fields = [...clazz.fields, ...syntheticFields]
 
-        const returnType = toIDLType(clazz.name)
+        const returnType = createReferenceType(clazz.name)
         const constructors = clazz.constructors.map(it => this.convertBuilderMethod(it, returnType, clazz.name))
         const methods = clazz.methods.map(it => this.convertBuilderMethod(it, returnType))
 

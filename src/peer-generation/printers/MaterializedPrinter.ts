@@ -44,7 +44,7 @@ import { PeerLibrary } from "../PeerLibrary";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
 import { copyMethod } from "../LanguageWriters/LanguageWriter";
-import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLThisType, IDLType, IDLVoidType, isOptionalType, maybeOptional, toIDLType } from "../../idl";
+import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLThisType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { generifiedTypeName } from "../idl/common";
 
@@ -53,6 +53,8 @@ interface MaterializedFileVisitor {
     getTargetFile(): TargetFile
     getOutput(): string[]
 }
+
+const FinalizableType = createReferenceType("Finalizable")
 
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     protected readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language, getReferenceResolver(this.library))
@@ -132,9 +134,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         }
 
         printer.writeClass(clazz.className, writer => {
-
-            const finalizableType = toIDLType("Finalizable")
-            writer.writeFieldDeclaration("peer", finalizableType, undefined, true)
+            writer.writeFieldDeclaration("peer", FinalizableType, undefined, true)
 
             // getters and setters for fields
             clazz.fields.forEach(field => {
@@ -191,7 +191,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                     true)
                 )
                 writer.writeStatement(
-                    writer.makeAssign(`${objVar}.peer`, toIDLType("Finalizable"),
+                    writer.makeAssign(`${objVar}.peer`, FinalizableType,
                         writer.makeString(`new Finalizable(ptr, ${clazz.className}.getFinalizer())`), false),
                 )
                 writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
@@ -234,7 +234,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                         true),
                     writer.makeAssign(
                         "this.peer",
-                        finalizableType,
+                        FinalizableType,
                         writer.makeString(`new Finalizable(ctorPtr, ${clazz.className}.getFinalizer())`),
                         false
                     )
@@ -314,7 +314,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                     true)
                 )
                 writer.writeStatement(
-                    writer.makeAssign(`${objVar}.peer`, toIDLType("Finalizable"),
+                    writer.makeAssign(`${objVar}.peer`, FinalizableType,
                         writer.makeString(`new Finalizable(ptr, ${clazz.className}.getFinalizer())`), false),
                 )
                 writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
@@ -352,8 +352,8 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
         imports.push(...clazz.importFeatures)
         printJavaImports(this.printer, imports)
 
-        const emptyParameterType = toIDLType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
-        const finalizableType = toIDLType('Finalizable')
+        const emptyParameterType = createReferenceType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
+        const finalizableType = FinalizableType
         const superClassName = generifiedTypeName(clazz.superClass) ?? ARK_MATERIALIZEDBASE
 
         const interfaces:string[] = ["MaterializedBase"]
@@ -439,7 +439,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 /// Fix 'this' return type. Refac to LW?
                 let returnType = method.method.signature.returnType
                 if (returnType === IDLThisType)
-                    returnType = toIDLType(method.originalParentName)
+                    returnType = createReferenceType(method.originalParentName)
                 this.library.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
                 writePeerMethod(writer, method, true, this.printerContext, this.dumpSerialized, '', 'this.peer.ptr', returnType)
                 this.library.setCurrentContext(undefined)

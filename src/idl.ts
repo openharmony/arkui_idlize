@@ -1157,47 +1157,6 @@ export function decomposeQualifiedName(type: IDLReferenceType): [string | undefi
     return [undefined, typeName]
 }
 
-///don't like this. But type args are stored as strings, not as IDLType as they should
-export function toIDLType(typeName: string): IDLType {
-    if (typeName.includes('import')) {
-        throw new Error(`FAIL ${typeName}`)
-    }
-    if (typeName === 'sequence') {
-        throw new Error('FAIL')
-    }
-    const arrayMatch = typeName.match(/^Array<(.*)>$/)
-    if (arrayMatch) {
-        return createContainerType("sequence", [toIDLType(arrayMatch[1])])
-    }
-    // TODO: mb match /Map<(.*), (.*)>/ and /(.*)\[\]]/
-
-    switch (typeName) {
-        case "boolean": return IDLBooleanType
-        case "null": return IDLUndefinedType
-        case "number": return IDLNumberType
-        case "string": return IDLStringType
-        case "String": return IDLStringType
-        case "undefined": return IDLUndefinedType
-        case "unknown": return IDLUnknownType
-        case "void": return IDLVoidType
-        case "Object": return IDLObjectType
-        case "any": return IDLAnyType
-        case "i8": return IDLI8Type
-        case "u8": return IDLU8Type
-        case "i16": return IDLI16Type
-        case "u16": return IDLU16Type
-        case "i32": return IDLI32Type
-        case "u32": return IDLU32Type
-        case "i64": return IDLI64Type
-        case "u64": return IDLU64Type
-        case "pointer": return IDLPointerType
-        case "this": return IDLThisType
-        case "Uint8Array": return IDLUint8ArrayType
-        case "ArrayBuffer": return IDLBufferType
-        default: return createReferenceType(typeName)
-    }
-}
-
 export function maybeUnwrapOptionalType(type: IDLType): IDLType {
     if (isOptionalType(type)) {
         return type.type

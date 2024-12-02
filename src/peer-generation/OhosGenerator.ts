@@ -15,7 +15,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType, toIDLType } from '../idl'
+import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType } from '../idl'
 import { IndentedPrinter } from "../IndentedPrinter"
 import { Language } from '../Language'
 import { capitalize, getOrPut } from '../util'
@@ -502,7 +502,7 @@ class OHOSVisitor {
                         const objVar = `obj${int.name}`
                         writer.writeStatement(writer.makeAssign(objVar, clazzRefType, writer.makeNewObject(int.name), true))
                         writer.writeStatement(
-                            writer.makeAssign(`${objVar}.peer`, toIDLType("Finalizable"),
+                            writer.makeAssign(`${objVar}.peer`, createReferenceType("Finalizable"),
                                 writer.makeString(`new Finalizable(ptr, ${int.name}.getFinalizer())`), false),
                         )
                         writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
@@ -585,7 +585,7 @@ class OHOSVisitor {
                             true)
                         )
                         writer.writeStatement(
-                            writer.makeAssign(`${objVar}.peer`, toIDLType("Finalizable"),
+                            writer.makeAssign(`${objVar}.peer`, createReferenceType("Finalizable"),
                                 writer.makeString(`new Finalizable(ptr, ${int.name}.getFinalizer())`), false),
                         )
                         writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))

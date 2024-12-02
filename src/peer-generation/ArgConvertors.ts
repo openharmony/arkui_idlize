@@ -50,7 +50,7 @@ export interface ArgConvertor { // todo:
     convertorArg(param: string, writer: LanguageWriter): string
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement
-    interopType(language: Language): string
+    interopType(): idl.IDLType
     nativeType(): idl.IDLType
     targetType(writer: LanguageWriter): string
     isPointerType(): boolean
@@ -74,7 +74,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
     isPointerType(): boolean {
         throw new Error("Define")
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Define")
     }
     targetType(writer: LanguageWriter): string {
@@ -112,7 +112,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
 
 export class ProxyConvertor extends BaseArgConvertor {
     constructor(public convertor: ArgConvertor, suggestedName?: string) {
-        super(suggestedName ? idl.toIDLType(suggestedName) : convertor.idlType, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
+        super(suggestedName ? idl.createReferenceType(suggestedName) : convertor.idlType, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.convertor.convertorArg(param, writer)
@@ -126,8 +126,8 @@ export class ProxyConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return this.convertor.nativeType()
     }
-    interopType(language: Language): string {
-        return this.convertor.interopType(language)
+    interopType(): idl.IDLType {
+        return this.convertor.interopType()
     }
     isPointerType(): boolean {
         return this.convertor.isPointerType()
@@ -156,8 +156,8 @@ export class BooleanConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return idl.IDLBooleanType
     }
-    interopType(language: Language): string {
-        return language == Language.CPP ? PrimitiveType.Boolean.getText() : "KInt"
+    interopType(): idl.IDLType {
+        return idl.IDLBooleanType
     }
     isPointerType(): boolean {
         return false
@@ -178,8 +178,8 @@ export class UndefinedConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return idl.IDLUndefinedType
     }
-    interopType(language: Language): string {
-        return PrimitiveType.NativePointer.getText()
+    interopType(): idl.IDLType {
+        return idl.IDLUndefinedType
     }
     isPointerType(): boolean {
         return false
@@ -201,7 +201,7 @@ export class VoidConvertor extends UndefinedConvertor {
 export class LengthConvertor extends BaseArgConvertor {
     constructor(name: string, param: string, language: Language) {
         // length convertor is only optimized for NAPI interop
-        super(idl.toIDLType(name), [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false,
+        super(idl.createReferenceType(name), [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false,
             (language !== Language.TS && language !== Language.ARKTS), param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -228,14 +228,8 @@ export class LengthConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return idl.IDLLengthType
     }
-    interopType(language: Language): string {
-        switch (language) {
-            case Language.CPP: return 'KLength'
-            case Language.TS: case Language.ARKTS: return 'Length'
-            case Language.JAVA: return 'String'
-            case Language.CJ: return 'String'
-            default: throw new Error("Unsupported language")
-        }
+    interopType(): idl.IDLType {
+        return idl.IDLLengthType
     }
     isPointerType(): boolean {
         return true
@@ -260,7 +254,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
                 public readonly customTypeName: string,
                 private readonly isGenericType: boolean = false,
                 tsType?: string) {
-        super(idl.toIDLType(tsType ?? "Object"), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createReferenceType(tsType ?? "Object"), [RuntimeType.OBJECT], false, true, param)
         warnCustomObject(`${tsType}`)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -287,7 +281,7 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return idl.IDLCustomObjectType
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {
@@ -323,8 +317,8 @@ export class NumberConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return idl.IDLNumberType
     }
-    interopType(language: Language): string {
-        return language == Language.CPP ?  "KInteropNumber" : "number"
+    interopType(): idl.IDLType {
+        return idl.IDLNumberType
     }
     isPointerType(): boolean {
         return true
@@ -351,32 +345,8 @@ export class NumericConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return this.idlType
     }
-    interopType(language: Language): string {
-        return createTypeNameConvertor(language, createEmptyReferenceResolver()).convert(this.idlType)
-    }
-    isPointerType(): boolean {
-        return true
-    }
-}
-
-export class PredefinedConvertor extends BaseArgConvertor {
-    constructor(param: string, tsType: string, private convertorName: string, private cType: idl.IDLType) {
-        super(idl.toIDLType(tsType), [RuntimeType.OBJECT, RuntimeType.UNDEFINED], false, true, param)
-    }
-    convertorArg(param: string, writer: LanguageWriter): string {
-        throw new Error("unused")
-    }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, `write${this.convertorName}`, [value])
-    }
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
-        return assigneer(writer.makeString(`${deserializerName}.read${this.convertorName}()`))
-    }
-    nativeType(): idl.IDLType {
-        return this.cType
-    }
-    interopType(language: Language): string {
-        return language == Language.CPP ? PrimitiveType.Int32.getText() + "*" :  "Int32ArrayPtr"
+    interopType(): idl.IDLType {
+        return this.idlType
     }
     isPointerType(): boolean {
         return true
@@ -402,8 +372,8 @@ export class BufferConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return idl.IDLBufferType
     }
-    interopType(language: Language): string {
-        return language == Language.CPP ?  "Ark_Buffer" : "ArrayBuffer"
+    interopType(): idl.IDLType {
+        return idl.IDLBufferType
     }
     isPointerType(): boolean {
         return false
@@ -433,8 +403,8 @@ export class StringConvertor extends BaseArgConvertor {
     nativeType(): idl.IDLType {
         return idl.IDLStringType
     }
-    interopType(language: Language): string {
-        return "KStringPtr"
+    interopType(): idl.IDLType {
+        return idl.IDLStringType
     }
     isPointerType(): boolean {
         return true
@@ -449,31 +419,6 @@ export class StringConvertor extends BaseArgConvertor {
             return writer.getNodeName(idl.IDLStringType)
         }
         return super.targetType(writer);
-    }
-}
-
-export class ToStringConvertor extends BaseArgConvertor {
-    constructor(param: string) {
-        super(idl.IDLStringType, [RuntimeType.OBJECT], false, false, param)
-    }
-    convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? `(const ${PrimitiveType.String.getText()}*)&${param}` : `(${param}).toString()`
-    }
-    convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
-        writer.writeMethodCall(`${param}Serializer`, `writeString`, [
-            writer.language == Language.CPP ? value : `${value}.toString()`])
-    }
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
-        return assigneer(writer.makeString(`${deserializerName}.readString()`))
-    }
-    nativeType(): idl.IDLType {
-        return idl.IDLStringType
-    }
-    interopType(language: Language): string {
-        return "KStringPtr"
-    }
-    isPointerType(): boolean {
-        return true
     }
 }
 
@@ -502,8 +447,8 @@ export class EnumConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return idl.createReferenceType(this.enumEntry.name)
     }
-    interopType(language: Language): string {
-        return language == Language.CPP ? PrimitiveType.Int32.getText() : "KInt"
+    interopType(): idl.IDLType {
+        return idl.IDLI32Type
     }
     isPointerType(): boolean {
         return false
@@ -548,7 +493,7 @@ export class UnionConvertor extends BaseArgConvertor { //
     private unionChecker: UnionRuntimeTypeChecker
 
     constructor(private library: LibraryInterface, param: string, private type: idl.IDLUnionType) {
-        super(idl.toIDLType(`object`), [], false, true, param)
+        super(idl.IDLObjectType, [], false, true, param)
         this.memberConvertors = type.types.map(member => library.typeConvertor(param, member))
         this.unionChecker = new UnionRuntimeTypeChecker(this.memberConvertors)
         this.runtimeTypes = this.memberConvertors.flatMap(it => it.runtimeTypes)
@@ -606,7 +551,7 @@ export class UnionConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return this.type
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Union")
     }
     isPointerType(): boolean {
@@ -629,7 +574,7 @@ export class ImportTypeConvertor extends BaseArgConvertor { //
         ["Scene", ["isInstanceOf", "\"Scene\""]]])
     private importedName: string
     constructor(param: string, importedName: string) {
-        super(idl.toIDLType("Object"), [RuntimeType.OBJECT], false, true, param)
+        super(idl.IDLObjectType, [RuntimeType.OBJECT], false, true, param)
         this.importedName = importedName
         warnCustomObject(importedName, `imported`)
     }
@@ -647,7 +592,7 @@ export class ImportTypeConvertor extends BaseArgConvertor { //
         // treat ImportType as CustomObject
         return idl.IDLCustomObjectType
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {
@@ -716,8 +661,8 @@ export class OptionConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return idl.createOptionalType(this.type)
     }
-    interopType(language: Language): string {
-        return language == Language.CPP ? PrimitiveType.NativePointer.getText() : "KNativePointer"
+    interopType(): idl.IDLType {
+        return idl.createOptionalType(this.type)
     }
     isPointerType(): boolean {
         return true
@@ -800,7 +745,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return idl.createReferenceType(this.decl.name)
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {
@@ -837,7 +782,7 @@ export class InterfaceConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return this.idlType
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {
@@ -850,7 +795,7 @@ export class InterfaceConvertor extends BaseArgConvertor { //
         // First, tricky special cases
         if (this.declaration.name.endsWith("GestureInterface")) {
             const gestureType = this.declaration.name.slice(0, -"GestureInterface".length)
-            const castExpr = writer.makeCast(writer.makeString(value), idl.toIDLType("GestureComponent<Object>"), { unsafe: true })
+            const castExpr = writer.makeCast(writer.makeString(value), idl.createReferenceType("GestureComponent<Object>"), { unsafe: true })
             return writer.makeNaryOp("===", [
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
@@ -886,7 +831,7 @@ export class ClassConvertor extends InterfaceConvertor { //
 export class FunctionConvertor extends BaseArgConvertor { //
     constructor(private library: LibraryInterface, param: string, protected type: idl.IDLReferenceType) {
         // TODO: pass functions as integers to native side.
-        super(idl.toIDLType("Function"), [RuntimeType.FUNCTION], false, false, param)
+        super(idl.IDLFunctionType, [RuntimeType.FUNCTION], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP ? `makeArkFunctionFromId(${param})` : `registerCallback(${param})`
@@ -903,8 +848,8 @@ export class FunctionConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return idl.IDLFunctionType
     }
-    interopType(language: Language): string {
-        return language == Language.CPP ? PrimitiveType.Int32.getText() : "KInt"
+    interopType(): idl.IDLType {
+        return idl.IDLFunctionType
     }
     isPointerType(): boolean {
         return false
@@ -977,7 +922,7 @@ export class TupleConvertor extends AggregateConvertor { //
     nativeType(): idl.IDLType {
         return idl.createReferenceType(this.decl.name)
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {
@@ -1033,7 +978,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return idl.createContainerType('sequence', [this.elementType])
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {
@@ -1109,7 +1054,7 @@ export class MapConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return idl.createContainerType('record', [this.keyType, this.valueType])
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {
@@ -1156,8 +1101,8 @@ export class DateConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return idl.createReferenceType('Date')
     }
-    interopType(language: Language): string {
-        return language == Language.CPP ? PrimitiveType.Int64.getText() : "KLong"
+    interopType(): idl.IDLType {
+        return idl.IDLDate
     }
     isPointerType(): boolean {
         return false
@@ -1166,7 +1111,7 @@ export class DateConvertor extends BaseArgConvertor { //
 
 export class MaterializedClassConvertor extends BaseArgConvertor { //
     constructor(private library: LibraryInterface, name: string, param: string, private type: idl.IDLInterface) {
-        super(idl.toIDLType(name), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createReferenceType(name), [RuntimeType.OBJECT], false, true, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -1188,7 +1133,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor { //
     nativeType(): idl.IDLType {
         return idl.createReferenceType(this.type.name)
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {

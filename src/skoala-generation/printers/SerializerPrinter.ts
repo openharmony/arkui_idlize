@@ -78,7 +78,7 @@ class IdlSerializerPrinter {
                 ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])
                 break;
             case Language.CPP:
-                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.toIDLType("uint8_t*")], ["data"])
+                ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType("uint8_t*")], ["data"])
                 break;
             case Language.JAVA:
                 ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [], [])

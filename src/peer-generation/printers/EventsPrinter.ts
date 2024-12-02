@@ -366,7 +366,7 @@ interface PeerEvent {
                     : `${PeerEventKind}`
                 writer.writeFieldDeclaration(
                     'kind',
-                    idl.toIDLType(kindType),
+                    idl.createReferenceType(kindType),
                     [FieldModifier.READONLY],
                     false,
                 )
@@ -418,7 +418,7 @@ interface PeerEvent {
         this.printer.pushIndent()
         this.printer.writeStatement(this.printer.makeAssign(
             'kind',
-            idl.toIDLType(PeerEventKind),
+            idl.createReferenceType(PeerEventKind),
             new StringExpression(`eventDeserializer.readInt32()`),
             true,
         ))
@@ -439,7 +439,7 @@ interface PeerEvent {
                         return `${arg.name}?: any`
                     }),
                 ]
-                const constructorType = idl.toIDLType(`{ ${constructorTypeArgs.join(', ')} }`)
+                const constructorType = idl.createReferenceType(`{ ${constructorTypeArgs.join(', ')} }`)
 
                 return {
                     expr: this.printer.makeNaryOp('===', [
@@ -463,7 +463,7 @@ interface PeerEvent {
                         }),
                         this.printer.makeReturn(this.printer.makeCast(
                             new StringExpression(`event`),
-                            idl.toIDLType(callbackEventNameByInfo(info)),
+                            idl.createReferenceType(callbackEventNameByInfo(info)),
                         ))
                     ], false),
                 }

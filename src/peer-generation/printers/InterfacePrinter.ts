@@ -349,7 +349,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         }
 
         writer.writeClass(alias, () => {
-            const enumType = idl.toIDLType(alias)
+            const enumType = idl.createReferenceType(alias)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(`new ${alias}(${it.numberId})`)
@@ -357,7 +357,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             })
 
             const value = 'value'
-            const intType = idl.toIDLType('int')
+            const intType = idl.createReferenceType('int')
             writer.writeFieldDeclaration(value, idl.IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
 
             const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type])

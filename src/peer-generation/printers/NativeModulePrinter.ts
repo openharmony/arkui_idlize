@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "../FileGenerators";
-import { FunctionCallExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createLanguageWriter } from "../LanguageWriters";
+import { FunctionCallExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createInteropArgConvertor, createLanguageWriter } from "../LanguageWriters";
 import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
@@ -21,12 +21,14 @@ import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
 import * as idl from '../../idl'
 import { getReferenceResolver } from "../ReferenceResolver";
+import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 
 class NativeModuleVisitor {
     readonly nativeModulePredefined: Map<string, LanguageWriter>
     readonly nativeModule: LanguageWriter
     readonly nativeModuleEmpty: LanguageWriter
     nativeFunctions?: LanguageWriter
+    protected readonly interopConvertor
 
     protected readonly excludes = new Map<Language, Set<string>>([
         [Language.CJ, new Set([
@@ -44,6 +46,7 @@ class NativeModuleVisitor {
         this.nativeModule = createLanguageWriter(library.language, getReferenceResolver(library))
         this.nativeModuleEmpty = createLanguageWriter(library.language, getReferenceResolver(library))
         this.nativeModulePredefined = new Map()
+        this.interopConvertor = createInteropArgConvertor(library.language)
     }
 
     protected printPeerMethods(peer: PeerClass) {
@@ -70,23 +73,7 @@ class NativeModuleVisitor {
     ) {
         const component = method.originalParentName // clazz.generatedName(method.isCallSignature)
         clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
-        let serializerArgCreated = false
-        let args: ({name: string, type: idl.IDLType})[] = []
-        for (let i = 0; i < method.argAndOutConvertors.length; ++i) {
-            let it = method.argAndOutConvertors[i]
-            if (it.useArray) {
-                if (!serializerArgCreated) {
-                    const array = `thisSerializer`
-                    args.push({ name: `thisArray`, type: idl.createContainerType(/* buffer */ 'sequence', [idl.IDLU8Type]) }, { name: `thisLength`, type: idl.IDLI32Type })
-                    serializerArgCreated = true
-                }
-            } else {
-                // TODO: use language as argument of interop type.
-                args.push({ name: `${it.param}`, type: idl.toIDLType(it.interopType(nativeModule.language)) })
-            }
-        }
-        let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: idl.toIDLType('KPointer') }] : []
-        const parameters = NamedMethodSignature.make(returnType ?? idl.IDLVoidType, maybeReceiver.concat(args))
+        const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
         let name = `_${component}_${method.overloadedName}`
 
         if (parameters.returnType === idl.IDLThisType) {
@@ -199,23 +186,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
     ) {
         const component = clazz.generatedName(method.isCallSignature)
         clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
-        let serializerArgCreated = false
-        let args: ({name: string, type: idl.IDLType})[] = []
-        for (let i = 0; i < method.argAndOutConvertors.length; ++i) {
-            let it = method.argAndOutConvertors[i]
-            if (it.useArray) {
-                if (!serializerArgCreated) {
-                    const array = `thisSerializer`
-                    args.push({ name: `thisArray`, type: idl.IDLUint8ArrayType }, { name: `thisLength`, type: idl.IDLI32Type })
-                    serializerArgCreated = true
-                }
-            } else {
-                // TODO: use language as argument of interop type.
-                args.push({ name: `${it.param}`, type: idl.toIDLType(it.interopType(nativeModule.language)) })
-            }
-        }
-        let maybeReceiver = method.hasReceiver() ? [{ name: 'ptr', type: idl.toIDLType('KPointer') }] : []
-        const parameters = NamedMethodSignature.make(returnType ?? idl.IDLVoidType, maybeReceiver.concat(args))
+        const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
         let name = `_${component}_${method.overloadedName}`
         let nativeName = name.substring(1)
         nativeModule.writeMethodImplementation(new Method(name, parameters, [MethodModifier.PUBLIC, MethodModifier.STATIC]), (printer) => {
@@ -393,6 +364,26 @@ export function printNativeModuleEmpty(peerLibrary: PeerLibrary): string {
     const visitor = new NativeModuleVisitor(peerLibrary)
     visitor.print()
     return nativeModuleEmptyDeclaration(visitor.nativeModuleEmpty.getOutput())
+}
+
+export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType | undefined, interopConvertor: InteropArgConvertor): NamedMethodSignature {
+    const maybeReceiver: ({name: string, type: idl.IDLType})[] = method.hasReceiver()
+        ? [{ name: 'ptr', type: idl.createReferenceType('KPointer') }] : []
+    let serializerArgCreated = false
+    method.argAndOutConvertors.forEach(it => {
+        if (it.useArray) {
+            if (!serializerArgCreated) {
+                maybeReceiver.push({ name: `thisArray`, type: idl.IDLUint8ArrayType }, { name: `thisLength`, type: idl.IDLI32Type })
+                serializerArgCreated = true
+            }
+        } else {
+            maybeReceiver.push({
+                name: `${it.param}`,
+                type: idl.createReferenceType(interopConvertor.convert(it.interopType()))
+            })
+        }
+    })
+    return NamedMethodSignature.make(returnType ?? idl.IDLVoidType, maybeReceiver)
 }
 
 function getReturnValue(type: idl.IDLType): string {

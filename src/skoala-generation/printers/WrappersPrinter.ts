@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLVoidType, toIDLType } from "../../idl"
+import { createReferenceType, IDLVoidType } from "../../idl"
 import { FieldModifier, LanguageExpression, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature } from "../../peer-generation/LanguageWriters"
 import { capitalize, removeExt, snakeCaseToCamelCase } from "../../util"
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass"
@@ -100,7 +100,7 @@ export class TSWrappersVisitor {
                 if (it.useArray) {
                     if (!serializerCreated) {
                         writer.writeStatement(
-                            writer.makeAssign(`thisSerializer`, toIDLType('Serializer'),
+                            writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
                                 writer.makeMethodCall('Serializer', 'hold', []), true)
                         )
                         serializerCreated = true

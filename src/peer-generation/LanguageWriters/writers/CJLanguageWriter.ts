@@ -14,7 +14,7 @@
  */
 
 import * as idl from "../../../idl"
-import { IDLNumberType, IDLType, toIDLType } from "../../../idl"
+import { IDLNumberType, IDLType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { Language } from "../../../Language"
 import { CJKeywords } from "../../../languageSpecificKeywords"
@@ -390,7 +390,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return new StringExpression(`None<${value}>`)
     }
     getTagType(): IDLType {
-        return toIDLType("Tags")
+        return idl.createReferenceType("Tags")
     }
     getRuntimeType(): IDLType {
         return IDLNumberType

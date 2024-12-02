@@ -17,14 +17,15 @@ import { capitalize, dropSuffix, isDefined } from "../../util";
 import { ArgConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
-import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement, LanguageWriter } from "../LanguageWriters";
+import { createInteropArgConvertor, createLanguageWriter, createTypeNameConvertor, ExpressionStatement, LanguageWriter } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
-import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from "../../idl";
+import { forceAsNamedNode, IDLBooleanType, IDLLengthType, IDLNumberType, IDLStringType, IDLVoidType } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { createConstructPeerMethod } from "../PeerClass";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
+import { CppInteropArgConvertor } from "../LanguageWriters/convertors/CppConvertors";
 
 class BridgeCcVisitor {
     readonly generatedApi = createLanguageWriter(Language.CPP, this.library)
@@ -163,23 +164,6 @@ class BridgeCcVisitor {
         this.generatedApi.print(`}`)
     }
 
-    private generateCParameterTypes(argAndOutConvertors: ArgConvertor[], hasReceiver: boolean): string[] {
-        const receiver = hasReceiver ? [PrimitiveType.NativePointer.getText()] : []
-        let ptrCreated = false;
-        for (let i = 0; i < argAndOutConvertors.length; ++i) {
-            let it = argAndOutConvertors[i]
-            if (it.useArray) {
-                if (!ptrCreated) {
-                    receiver.push(`uint8_t*, int32_t`)
-                    ptrCreated = true
-                }
-            } else {
-                receiver.push(it.interopType(this.generatedApi.language))
-            }
-        }
-        return receiver
-    }
-
     private generateCMacroSuffix(method: PeerMethod): string {
         let counter = method.hasReceiver() ? 1 : 0
         let arrayAdded = false
@@ -196,44 +180,37 @@ class BridgeCcVisitor {
         return `${this.returnTypeConvertor.isVoid(method) ? 'V' : ''}${counter}`
     }
 
-    private generateCParameters(method: PeerMethod, argAndOutConvertors: ArgConvertor[]): string[] {
-        let maybeReceiver = method.hasReceiver() ? [`${PrimitiveType.NativePointer.getText()} thisPtr`] : []
+    private generateCParameters(method: PeerMethod): [string, string][] {
+        const maybeReceiver: [string, string][] = method.hasReceiver()
+            ? [[PrimitiveType.NativePointer.getText(), "thisPtr"]] : []
         let ptrCreated = false;
-        for (let i = 0; i < argAndOutConvertors.length; ++i) {
-            let it = argAndOutConvertors[i]
+        method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
                 if (!ptrCreated) {
-                    maybeReceiver.push(`uint8_t* thisArray, int32_t thisLength`)
+                    maybeReceiver.push(["uint8_t*", "thisArray"], ["int32_t", "thisLength"])
                     ptrCreated = true
                 }
             } else {
-                let type = it.interopType(this.generatedApi.language)
-                switch (type) {
-                    case "KStringPtr":
-                        type = `const KStringPtr&`
-                        break
-                    case "KLength":
-                        type = `const KLength&`
-                        break
-                }
-                maybeReceiver.push(`${type} ${this.escapeKeyword(it.param)}`)
+                let typeName = CppInteropArgConvertor.INSTANCE.convert(it.interopType())
+                maybeReceiver.push([typeName, this.escapeKeyword(it.param)])
             }
-        }
+        })
         return maybeReceiver
     }
 
     private printMethod(method: PeerMethod, modifierName?: string) {
-        const argAndOutConvertors = method.argAndOutConvertors
-
         const cName = `${method.originalParentName}_${method.overloadedName}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
-        this.generatedApi.print(`${retType} impl_${cName}(${this.generateCParameters(method, argAndOutConvertors).join(", ")}) {`)
+        const argTypesAndNames = this.generateCParameters(method);
+        const argDecls = argTypesAndNames.map(([type, name]) =>
+            type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
+        this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
         this.generatedApi.pushIndent()
         this.printNativeBody(method, modifierName)
         this.generatedApi.popIndent()
         this.generatedApi.print(`}`)
         let macroArgs = [cName, retType === IDLVoidType.name ? undefined : retType]
-            .concat(this.generateCParameterTypes(argAndOutConvertors, method.hasReceiver()))
+            .concat(argTypesAndNames.map(([type, _]) => type))
             .filter(isDefined)
             .join(", ")
         const suffix = this.generateCMacroSuffix(method)

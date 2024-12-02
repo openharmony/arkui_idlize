@@ -18,6 +18,7 @@ import { throwException } from '../../../util';
 import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../../printers/lang/Java';
 import { ReferenceResolver } from '../../ReferenceResolver';
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "../nameConvertor";
+import { InteropArgConvertor } from './InteropConvertor';
 
 
 class JavaTypeAlias {
@@ -219,4 +220,14 @@ export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias
     }
 
     /**********************************************************************/
+}
+
+export class JavaInteropArgConvertor extends InteropArgConvertor {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLNumberType: return "double"
+            case idl.IDLLengthType: return "String"
+        }
+        return super.convertPrimitiveType(type)
+    }
 }

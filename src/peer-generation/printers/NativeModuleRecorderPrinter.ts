@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createLanguageWriter, LanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
+import { createInteropArgConvertor, createLanguageWriter, LanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
 import { PeerClassBase } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
@@ -21,15 +21,19 @@ import { PeerMethod } from "../PeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
 import { makeSyntheticDeclarationsFiles } from "../idl/IdlSyntheticDeclarations";
 import { Language } from "../../Language";
-import { createParameter, createReferenceType, createUnionType, IDLI32Type, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType, toIDLType } from "../../idl";
+import { createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLI32Type, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType } from "../../idl";
+import { makeInteropSignature } from "./NativeModulePrinter";
+import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
+    private readonly interopConvertor: InteropArgConvertor
 
     constructor(
         protected readonly library: PeerLibrary,
     ) {
         this.nativeModuleRecorder = createLanguageWriter(library.language, this.library)
+        this.interopConvertor = createInteropArgConvertor(library.language)
     }
 
     private printImports() {
@@ -73,23 +77,7 @@ class NativeModuleRecorderVisitor {
         const component = clazz.generatedName(method.isCallSignature)
         const interfaceName = clazz.getComponentName()
         clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
-        let serializerArgCreated = false
-        let args: ({name: string, type: IDLType})[] = []
-        for (let i = 0; i < method.argAndOutConvertors.length; ++i) {
-            let it = method.argAndOutConvertors[i]
-            if (it.useArray) {
-                if (!serializerArgCreated) {
-                    const array = `thisSerializer`
-                    args.push({ name: `thisArray`, type: IDLUint8ArrayType }, { name: `thisLength`, type: IDLI32Type })
-                    serializerArgCreated = true
-                }
-            } else {
-                // TODO: use language as argument of interop type.
-                args.push({ name: `${it.param}`, type: createReferenceType(it.interopType(nativeModuleRecorder.language)) })
-            }
-        }
-        const maybeReceiver:{ name: string, type: IDLType }[] = method.hasReceiver() ? [{ name: 'ptr', type: createReferenceType('KPointer') }] : []
-        const parameters = NamedMethodSignature.make(returnType ?? IDLVoidType, maybeReceiver.concat(args))
+        const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
         let name = `_${component}_${method.overloadedName}`
 
         nativeModuleRecorder.writeMethodImplementation(new Method(name, parameters), (printer) => {
@@ -150,7 +138,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`}))`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("private ptr2object<T>", new NamedMethodSignature(/* looks like temporary solution: */ toIDLType("T"), [IDLPointerType], ["ptr"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("private ptr2object<T>", new NamedMethodSignature(createTypeParameterReference("T"), [IDLPointerType], ["ptr"])), w => {
             w.writeLines(`return this.pointers[ptr as number] as T`)
         })
 

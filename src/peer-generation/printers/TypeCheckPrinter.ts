@@ -17,7 +17,7 @@ import {
 import { getSyntheticDeclarationList } from "../idl/IdlSyntheticDeclarations";
 import { createDeclarationNameConvertor } from "../idl/IdlNameConvertor";
 import { Language } from "../../Language";
-import { IDLBooleanType, isReferenceType, toIDLType } from "../../idl";
+import { IDLBooleanType, isReferenceType } from "../../idl";
 import { getReferenceResolver } from '../ReferenceResolver';
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -196,7 +196,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         this.writer.writeMethodImplementation(new Method(
             checkerName,
             new NamedMethodSignature(IDLBooleanType, 
-                [toIDLType('object|string|number|undefined|null'), ...argsNames.map(_ => IDLBooleanType)],
+                [idl.createReferenceType('object|string|number|undefined|null'), ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
             typeArguments
@@ -234,7 +234,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         this.writer.writeMethodImplementation(new Method(
             generateTypeCheckerName(name),
             new NamedMethodSignature(IDLBooleanType, 
-                [toIDLType('object|string|number|undefined|null|boolean'), ...argsNames.map(_ => IDLBooleanType)],
+                [idl.createReferenceType('object|string|number|undefined|null|boolean'), ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
         ), writer => {
@@ -265,7 +265,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         const checkerName = generateTypeCheckerName(typeName)
         this.writer.writeMethodImplementation(new Method(
             checkerName,
-            new NamedMethodSignature(IDLBooleanType, [toIDLType('object|string|number|undefined|null')], ['value']),
+            new NamedMethodSignature(IDLBooleanType, [idl.createReferenceType('object|string|number|undefined|null')], ['value']),
             [MethodModifier.STATIC],
         ), writer => {
             writer.writeStatement(writer.makeReturn(writer.makeString(`Array.isArray(value)`)))

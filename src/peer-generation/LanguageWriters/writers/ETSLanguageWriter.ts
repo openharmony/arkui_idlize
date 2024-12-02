@@ -27,7 +27,7 @@ import {
     ObjectArgs
 } from "../LanguageWriter"
 import { TSCastExpression, TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType, toIDLType } from '../../../idl'
+import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType } from '../../../idl'
 import {AggregateConvertor, ArgConvertor, ArrayConvertor, BaseArgConvertor, CustomTypeConvertor, EnumConvertor, InterfaceConvertor, makeInterfaceTypeCheckerCall, RuntimeType} from "../../ArgConvertors"
 import { Language } from "../../../Language"
 import { ReferenceResolver } from "../../ReferenceResolver"
@@ -84,14 +84,14 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                     index,
                 ].filter(it => it !== undefined)
                 writer.writeFieldDeclaration(member.name,
-                    toIDLType(this.enumEntity.name),
+                    idl.createReferenceType(this.enumEntity.name),
                     [FieldModifier.STATIC, FieldModifier.READONLY],
                     false,
                     writer.makeString(`new ${className}(${ctorArgs.join(",")})`))
                 let originalName = getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
                 if (originalName) {
                     writer.writeFieldDeclaration(originalName,
-                        toIDLType(this.enumEntity.name),
+                        idl.createReferenceType(this.enumEntity.name),
                         [FieldModifier.STATIC, FieldModifier.READONLY],
                         false,
                         writer.makeString(`${className}.${member.name}`))
@@ -109,7 +109,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
             })
             writer.writeFieldDeclaration("value", valueType, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
             writer.writeFieldDeclaration("ordinal", IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
-            writer.writeMethodImplementation(new Method("of", new MethodSignature(toIDLType(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
+            writer.writeMethodImplementation(new Method("of", new MethodSignature(idl.createReferenceType(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {
                     this.enumEntity.elements.forEach((member) => {
                         const memberName = `${className}.${member.name}`
@@ -121,7 +121,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                     })
                     writer.print("throw new Error(`Enum member '$\{arg0\}' not found`)")
             })
-            writer.writeMethodImplementation(new Method("ofOrdinal", new MethodSignature(toIDLType(this.enumEntity.name), [idl.IDLI32Type]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
+            writer.writeMethodImplementation(new Method("ofOrdinal", new MethodSignature(idl.createReferenceType(this.enumEntity.name), [idl.IDLI32Type]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
                 (writer)=> {
                     this.enumEntity.elements.forEach((member) => {
                         const memberName = `${className}.${member.name}`
@@ -264,7 +264,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeCastCustomObject(customName: string, isGenericType: boolean): LanguageExpression {
         if (isGenericType) {
-            return this.makeCast(this.makeString(customName), toIDLType("Object"))
+            return this.makeCast(this.makeString(customName), idl.IDLObjectType)
         }
         return super.makeCastCustomObject(customName, isGenericType)
     }

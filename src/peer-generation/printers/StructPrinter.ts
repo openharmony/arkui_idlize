@@ -205,7 +205,7 @@ export class StructPrinter {
         if (typeBooleanOrUint8) {
             this.alreadyHasInt8Method = true
         }
-        const resultType = idl.toIDLType("RuntimeType")
+        const resultType = idl.createReferenceType("RuntimeType")
         const op = this.writeRuntimeTypeOp(target, targetType, resultType, isOptional, writer)
         if (op) {
             writer.print("template <>")

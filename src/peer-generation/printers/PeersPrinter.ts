@@ -42,7 +42,7 @@ import { PeerMethod } from "../PeerMethod";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
-import { createOptionalType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isNamedNode, isOptionalType, isPrimitiveType, maybeOptional, toIDLType } from "../../idl";
+import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isNamedNode, isPrimitiveType, maybeOptional } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 
 export function componentToPeerClass(component: string) {
@@ -154,7 +154,7 @@ class PeerFileVisitor {
         const isNode = parentRole !== InheritanceRole.Finalizable
         const signature = new NamedMethodSignature(
             IDLVoidType,
-            [maybeOptional(toIDLType('ArkUINodeType'), !isNode), IDLI32Type, IDLStringType],
+            [maybeOptional(createReferenceType('ArkUINodeType'), !isNode), IDLI32Type, IDLStringType],
             ['nodeType', 'flags', 'name'],
             [undefined, '0', '""'])
 
@@ -170,8 +170,8 @@ class PeerFileVisitor {
     protected printCreateMethod(peer: PeerClass, writer: LanguageWriter): void {
         const peerClass = componentToPeerClass(peer.componentName)
         const signature = new NamedMethodSignature(
-            toIDLType(peerClass),
-            [toIDLType('ArkUINodeType'), createOptionalType(toIDLType('ComponentBase')), IDLI32Type],
+            createReferenceType(peerClass),
+            [createReferenceType('ArkUINodeType'), createOptionalType(createReferenceType('ComponentBase')), IDLI32Type],
             ['nodeType', 'component', 'flags'],
             [undefined, undefined, '0'])
 
@@ -418,7 +418,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
             if (it.useArray) {
                 if (!serializerCreated) {
                     writer.writeStatement(
-                        writer.makeAssign(`thisSerializer`, toIDLType('Serializer'),
+                        writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
                             writer.makeMethodCall('Serializer', 'hold', []), true)
                     )
                     serializerCreated = true
@@ -515,7 +515,7 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
     const retType = signature.returnType
     return [
         writer.makeAssign(`${resultName}`, retType, writer.makeNewObject(forceAsNamedNode(retType).name), true),
-        writer.makeAssign(`${resultName}.peer`, toIDLType("Finalizable"),
+        writer.makeAssign(`${resultName}.peer`, createReferenceType("Finalizable"),
             writer.makeString(`new Finalizable(${peerPtrName}, ${forceAsNamedNode(retType).name}.getFinalizer())`), false),
     ]
 }

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createContainerType, createReferenceType, DebugUtils, forceAsNamedNode, IDLAnyType, IDLBooleanType, IDLCallback, IDLContainerType, IDLContainerUtils, IDLEnum, IDLI16Type, IDLI32Type, IDLI64Type, IDLI8Type, IDLNode, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLU16Type, IDLU32Type, IDLU64Type, IDLU8Type, IDLUint8ArrayType, IDLUnionType, IDLVoidType, isCallback, isContainerType, isOptionalType, isPrimitiveType, isReferenceType, isType, isUnionType, toIDLType } from "../../../idl"
+import { createReferenceType, forceAsNamedNode, IDLContainerType, IDLEnum, IDLNode, IDLType, IDLUint8ArrayType, IDLVoidType } from "../../../idl"
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import { cppKeywords } from "../../../languageSpecificKeywords"
 import { Language } from "../../../Language"

@@ -368,7 +368,7 @@ export class TSLanguageWriter extends LanguageWriter {
     }
 
     getTagType(): idl.IDLType {
-        return idl.toIDLType("Tags")
+        return idl.createReferenceType("Tags")
     }
     getRuntimeType(): idl.IDLType {
         return idl.IDLI32Type

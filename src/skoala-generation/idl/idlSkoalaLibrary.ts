@@ -112,7 +112,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
                 return Function
             }
             if (type.name == 'Optional') {
-                const wrappedType = idl.toIDLType(idl.getExtAttribute(type, idl.IDLExtendedAttributes.TypeArguments)!)
+                const wrappedType = type.typeArguments![0]
                 return this.toDeclaration(wrappedType)
             }
             const decl = this.resolveTypeReference(type)
@@ -255,7 +255,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         protected table: IdlSkoalaLibrary,
         private type: idl.IDLInterface
     ) {
-        super(idl.toIDLType(name), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createReferenceType(name), [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -268,14 +268,14 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         const prefix = writer.language === Language.CPP ? PrimitiveType.Prefix : ""
         const readStatement = writer.makeCast(
             writer.makeMethodCall(`${deserializerName}`, `readWrapper`, []),
-            idl.toIDLType(`${prefix}${this.type.name}`)
+            idl.createReferenceType(`${prefix}${this.type.name}`)
         )
         return assigneer(readStatement)
     }
     nativeType(): idl.IDLType {
         return idl.createReferenceType('Materialized')
     }
-    interopType(language: Language): string {
+    interopType(): idl.IDLType {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {

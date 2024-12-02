@@ -38,7 +38,7 @@ import { PeerClass } from "../PeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
-import { IDLVoidType, isOptionalType, toIDLType } from "../../idl";
+import { createReferenceType, IDLVoidType, isOptionalType } from "../../idl";
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
 
@@ -135,13 +135,13 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         this.printer.writeClass(componentClassName, (writer) => {
             writer.writeMethodImplementation(
                 new Method('getPeer',
-                    new MethodSignature(toIDLType(peerClassName), []
+                    new MethodSignature(createReferenceType(peerClassName), []
                 ), [MethodModifier.PROTECTED], []),
                 writer => writer.writeStatement(
                     writer.makeReturn(
                         writer.makeCast(
                             writer.makeFieldAccess("this", "peer"),
-                            toIDLType(peerClassName),
+                            createReferenceType(peerClassName),
                             {optional: true}
                         )
                     )
@@ -242,7 +242,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
 
     private printComponent(peer: PeerClass) {
         const componentClassName = generateArkComponentName(peer.componentName)
-        const componentType = toIDLType(componentClassName)
+        const componentType = createReferenceType(componentClassName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : COMPONENT_BASE
         const peerClassName = componentToPeerClass(peer.componentName)
 

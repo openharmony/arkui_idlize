@@ -25,10 +25,11 @@ import { ReferenceResolver } from "../ReferenceResolver";
 
 import { CJIDLNodeToStringConvertor } from "./convertors/CJConvertors";
 import { TsIDLNodeToStringConverter } from "./convertors/TSConvertors";
-import { JavaIDLNodeToStringConvertor } from "./convertors/JavaConvertors";
+import { JavaIDLNodeToStringConvertor, JavaInteropArgConvertor } from "./convertors/JavaConvertors";
 import { EtsIDLNodeToStringConvertor } from "./convertors/ETSConvertors";
-import { CppIDLNodeToStringConvertor } from "./convertors/CppConvertors";
+import { CppIDLNodeToStringConvertor, CppInteropArgConvertor } from "./convertors/CppConvertors";
 import { IdlNameConvertor } from "./nameConvertor";
+import { InteropArgConvertor } from "./convertors/InteropConvertor";
 
 //////////////////////////////////////////////////////////////////
 // REEXPORTS
@@ -95,4 +96,15 @@ export function createTypeNameConvertor(language: Language , library: ReferenceR
     if (language === Language.CPP) 
         return new CppIDLNodeToStringConvertor(library)
     throw new Error(`Convertor from IDL to ${language} not implemented`)
+}
+
+export function createInteropArgConvertor(language: Language): InteropArgConvertor {
+    switch (language) {
+        case Language.TS:
+        case Language.ARKTS: return new InteropArgConvertor()
+        case Language.CPP: return CppInteropArgConvertor.INSTANCE
+        case Language.JAVA:
+        case Language.CJ: return new JavaInteropArgConvertor()
+    }
+    throw new Error(`InteropArgConvertor for language ${language} not implemented`)
 }

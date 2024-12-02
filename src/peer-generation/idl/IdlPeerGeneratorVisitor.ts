@@ -707,7 +707,7 @@ class PeersGenerator {
                     content: `export interface ${fixedTypeName} {\n${attributeDeclarations}\n}`})
                 const peerMethod = peer.methods.find((method) => method.overloadedName == name)
                 if (peerMethod !== undefined) {
-                    peerMethod.method.signature.args = [idl.toIDLType(fixedTypeName)]
+                    peerMethod.method.signature.args = [idl.createReferenceType(fixedTypeName)]
                 }
                 return fixedTypeName
             }
