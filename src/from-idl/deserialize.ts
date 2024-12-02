@@ -66,12 +66,19 @@ export function toIDLNode(file: string, node: webidl2.IDLRootType): idl.IDLEntry
     if (isNamespace(node)) {
         return toIDLNamespace(file, node)
     }
+    if (isVersion(node)) {
+        return toIDLVersion(file, node)
+    }
     throw new Error(`unexpected node type: ${toString(node)}`)
 }
 
 
 function isNamespace(node: webidl2.IDLRootType): node is webidl2.NamespaceType {
     return node.type === 'namespace'
+}
+
+function isVersion(node: webidl2.IDLRootType): node is webidl2.NamespaceType {
+    return node.type === 'version'
 }
 
 function isPackage(node: webidl2.IDLRootType): node is webidl2.PackageType {
@@ -322,6 +329,13 @@ function toIDLNamespace(file: string, node: webidl2.NamespaceType): idl.IDLModul
     )
 }
 
+function toIDLVersion(file: string, node: webidl2.VersionType): idl.IDLVersion {
+    return idl.createVersion(
+        node.value,
+        toExtendedAttributes(node.extAttrs),
+        file
+    )
+}
 function toIDLProperty(file: string, node: webidl2.AttributeMemberType): idl.IDLProperty {
     return idl.createProperty(
         node.name,

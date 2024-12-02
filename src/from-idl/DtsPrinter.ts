@@ -18,7 +18,7 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     hasExtAttribute,
     isCallback,
     isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isSyntheticEntry, isTypeParameterType, isTypedef, isUnionType,
-    isPackage, isImport,
+    isPackage, isImport, isVersion,
     IDLExtendedAttributes,
     IDLAccessorAttribute,
     IDLImport,
@@ -46,7 +46,8 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     isNamedNode,
     IDLNode,
     IDLThisType,
-    isOptionalType,} from "../idl"
+    isOptionalType,
+    IDLVersion,} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
@@ -80,6 +81,8 @@ export class CustomPrintVisitor {
             this.printTypedef(node)
         } else if (isModuleType(node)) {
             this.printModuleType(node)
+        } else if (isVersion(node)) {
+            this.printVersion(node)
         } else {
             throw new Error(`Unexpected node kind: ${IDLKind[node.kind!]}`)
         }
@@ -240,6 +243,11 @@ export class CustomPrintVisitor {
     printModuleType(node: IDLModule) {
         let text = getVerbatimDts(node) ?? ""
         this.print(`${text}`)
+    }
+
+    printVersion(node: IDLVersion) {
+        let text = node.value.join(".")
+        this.print(`// version ${text}`)
     }
 
     printImport(node: IDLImport) {

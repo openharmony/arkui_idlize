@@ -9,6 +9,13 @@ We use WebIDL language with several custom extension attributes documented below
   * `package "org.ohos.subsystem"` - describes package where interface belongs to, mapped to package name for languages with the package system
   and used by `import`
   * `import "org.ohos.subsystem.Component"` - described import from another interface definition
+  * JS type names are allowed as IDL entity names.
+  * The `async` marker support for Operation.
+  * The domain of the Operation Parameter name is extended to allow keywords.
+  * The domain of the Record key is extended to allow any type, not only `XXXString`.
+  * The ability to mark the base entity of the Interface/etc with Extended Attributes.
+  * The ability to mark the return type of the Operation with Extended Attributes.
+  * `version 1.2.3-dev456` - semantic-versioning-like meta information for namespaces/global
 
 ## Custom extended attributes
 

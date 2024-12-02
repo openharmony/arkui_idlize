@@ -42,6 +42,7 @@ export enum IDLKind {
     TypeParameterType,
     ModuleType,
     OptionalType,
+    Version,
 }
 
 export enum IDLEntity {
@@ -161,6 +162,11 @@ export interface IDLTypeParameterType extends IDLType, IDLNamedNode {
 
 export interface IDLModule extends IDLEntry {
     kind: IDLKind.ModuleType
+}
+
+export interface IDLVersion extends IDLEntry {
+    kind: IDLKind.Version
+    value: string[]
 }
 
 export interface IDLVariable extends IDLEntry {
@@ -297,7 +303,8 @@ export function forEachChild(node: IDLNode, cb: (entry: IDLNode) => void): void 
         case IDLKind.PrimitiveType:
         case IDLKind.ContainerType:
         case IDLKind.TypeParameterType:
-        case IDLKind.ReferenceType: {
+        case IDLKind.ReferenceType:
+        case IDLKind.Version: {
             break
         }
         case IDLKind.ModuleType: {
@@ -408,6 +415,10 @@ export function isOptionalType(type: IDLNode): type is IDLOptionalType {
     return type.kind === IDLKind.OptionalType
 }
 
+export function isVersion(node: IDLNode): node is IDLVersion {
+    return node.kind === IDLKind.Version
+}
+
 function createPrimitiveType(name: string): IDLPrimitiveType {
     return {
         kind: IDLKind.PrimitiveType,
@@ -484,6 +495,19 @@ export function createModuleType(name:string, extendedAttributes?: IDLExtendedAt
     return {
         kind: IDLKind.ModuleType,
         name: name,
+        extendedAttributes,
+        fileName,
+        _idlNodeBrand: innerIdlSymbol,
+        _idlEntryBrand: innerIdlSymbol,
+        _idlNamedNodeBrand: innerIdlSymbol,
+    }
+}
+
+export function createVersion(value: string[], extendedAttributes?: IDLExtendedAttribute[], fileName?:string): IDLVersion {
+    return {
+        kind: IDLKind.Version,
+        value,
+        name: "version",
         extendedAttributes,
         fileName,
         _idlNodeBrand: innerIdlSymbol,
@@ -1266,6 +1290,7 @@ export function forEachFunction(node: IDLNode, cb: (node: IDLFunction) => void):
         case IDLKind.ModuleType:
         case IDLKind.Package:
         case IDLKind.Import:
+        case IDLKind.Version:
             break
         default: {
             throw new Error(`Unhandled ${node.kind}`)
