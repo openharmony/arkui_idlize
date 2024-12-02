@@ -75,7 +75,7 @@
     "lint:all": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --output-dir out/linter --linter-whitelist whitelist.json",
     "lint:test": "rimraf out/linter && npm run lint:all ; cat out/linter/histogram.txt",
     "check:peers": "npm run setup-out -- --out out/ts-peers  --template ts_peers && npm run idl2peer:compile",
-    "check:subset": "npm run compile && npm run setup-out -- --out out/ts-subset --template ts_subset && node . --api-version 99 --dts2peer --input-dir ./tests/subset/ets/,./tests/subset/resource --output-dir ./out/ts-subset/generated && cp -r tests/subset out/ts-subset/generated/tests && cd out/ts-subset && tsc -p .",
+    "check:subset": "npm run setup-out -- --out out/ts-subset --template ts_subset && npm run make:ts:subset && cp -r tests/subset out/ts-subset/generated/tests && cd out/ts-subset && tsc -p .",
     "check:subset:run": "npm run rollup:host:subset && npm run compile:native-node-host-ts-subset && node out/ts-subset/lib/main.js",
     "check:peers:idl": "npm run setup-out -- --out out/ts-peers  --template ts_peers && npm run idl2peer:compile && npm run compile:native-node-host-full && node tools/check-headers.mjs && node out/ts-peers/lib/main.js",
     "check:peers:run": "npm run check:peers:idl",
@@ -97,6 +97,7 @@
     "compile:native-node-host-full": "npm run configure:native-node-host-full && cd native && meson compile --verbose -C build-node-host-full && meson install -C build-node-host-full",
     "sanity": "npm run check:subset:run && npm run check:peers:run && npm run run:all && npm run lint:test && npm run make:arkts",
     "panda:sdk:install": "npm run panda:sdk:install --prefix external/incremental/tools/panda",
+    "make:ts:subset": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./tests/subset/ets/,./tests/subset/resource --output-dir ./out/ts-subset/generated",
     "make:arkts": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --input-dir ./tests/arkts-subset/ets,./tests/arkts-subset/resource --output-dir ./out/arkts-subset/generated --language arkts",
     "make:arkts:subset:tsc": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --only-integrated --input-dir ./tests/arkts-subset/ets/,./tests/arkts-subset/resource --arkoala-destination ./out/arkts-subset-tsc/generated --generator-target arkoala --language=arkts",
     "make:arkts:peers:tsc": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --only-integrated --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --arkoala-destination ./out/arkts-peers-tsc/generated --generator-target arkoala --language=arkts",
@@ -157,6 +158,9 @@
     "sig:arkts:subset:clean": "cd ./external/arkoala-arkts/arkui && rm -rf src/generated/ && rm -rf build/ && rm -rf unmemoized/",
     "sig:arkts:subset:copy": "npm run make:arkts && cp -r ./out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/ ./external/arkoala-arkts/arkui/src/",
     "sig:arkts:subset:compile": "cd external/arkoala-arkts/arkui && npm run build:arkui-no-common",
-    "sig:arkts:subset:all": "npm run sig:arkts:subset:clean && npm run sig:arkts:subset:copy && npm run sig:arkts:subset:compile"
+    "sig:arkts:subset:all": "npm run sig:arkts:subset:clean && npm run sig:arkts:subset:copy && npm run sig:arkts:subset:compile",
+    "--todo": "remove '--types chai' it is used just because tsc cli does not allow specifying empty types array with console flags",
+    "check:index-full:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ts-subset/generated/sig/arkoala/arkui/types/index-full.d.ts",
+    "check:index-full:arkts": "tsc --target esnext --lib esnext --types chai --noEmit out/arkts-subset/generated/sig/arkoala-arkts/arkui/types/index-full.d.ts"
   }
 }

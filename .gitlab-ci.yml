@@ -149,3 +149,16 @@ publish idlize:
         - sed -i "s/+devel/-dev.$CI_PIPELINE_IID/" package.json
         - KOALA_BZ=1 npm run upload
 
+check index-full:
+    stage: test
+    tags:
+      - idlize-ci
+      - koala-ci
+    before_script:
+      - !reference [.setup, script]
+    script:
+        - cd $CI_PROJECT_DIR
+        - npm run make:ts:subset
+        - npm run check:index-full:ts
+        - npm run make:arkts
+        - npm run check:index-full:arkts
