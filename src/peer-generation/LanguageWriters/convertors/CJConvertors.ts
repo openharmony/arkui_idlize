@@ -154,6 +154,7 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<CJTypeAlias>, I
             case idl.IDLPointerType: return CJTypeAlias.fromTypeName('Int64', false)
             case idl.IDLVoidType: return CJTypeAlias.fromTypeName('Unit', false)
             case idl.IDLBufferType: return CJTypeAlias.fromTypeName('ArrayList<UInt8>', false)
+            case idl.IDLLengthType: return CJTypeAlias.fromTypeName('Ark_Length', false)
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }

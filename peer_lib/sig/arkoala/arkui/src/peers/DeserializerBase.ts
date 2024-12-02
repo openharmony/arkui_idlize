@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {CustomTextDecoder, float32, int32, int64} from "@koalaui/common"
-import {pointer} from "@koalaui/interop"
-import {RuntimeType, Tags, CallbackResource } from "./SerializerBase";
-// import { Length } from "@arkoala/arkui"
+import { CustomTextDecoder, float32, int32, int64 } from "@koalaui/common"
+import { pointer } from "@koalaui/interop"
+import { Tags, CallbackResource } from "./SerializerBase";
 
 export class DeserializerBase {
     private position = 0
@@ -157,24 +156,6 @@ export class DeserializerBase {
                 throw new Error(`Unknown number tag: ${tag}`)
                 break
         }
-    }
-
-    readLength(): Length | undefined {
-        this.checkCapacity(1)
-        const valueType = this.readInt8()
-        switch (valueType) {
-            case RuntimeType.OBJECT:
-                return {
-                    id: this.readInt32(),
-                    bundleName: "",
-                    moduleName: ""
-                }
-            case RuntimeType.STRING:
-                return this.readString()
-            case RuntimeType.NUMBER:
-                return this.readFloat32()
-        }
-        return undefined
     }
 
     readCallbackResource(): CallbackResource {

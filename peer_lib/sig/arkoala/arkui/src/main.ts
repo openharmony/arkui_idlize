@@ -14,7 +14,6 @@
 */
 import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
 import { Serializer } from "@arkoala/arkui/peers/Serializer"
-import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
 import { MaterializedBase } from "@arkoala/arkui/MaterializedBase"
 import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
@@ -74,54 +73,51 @@ function checkSerdeResult(name: string, value: any, expected: any) {
     }
 }
 
-function checkSerdeBaseLength() {
+function checkSerdeLength() {
     const ser = Serializer.hold()
     ser.writeLength("10px")
     ser.writeLength("11vp")
     ser.writeLength("12%")
     ser.writeLength("13lpx")
     ser.writeLength(14)
-    const des = new DeserializerBase(ser.asArray().buffer, ser.length())
-    checkSerdeResult("DeserializerBase.readLength, unit px", des.readLength(), "10px")
-    checkSerdeResult("DeserializerBase.readLength, unit vp", des.readLength(), "11vp")
-    checkSerdeResult("DeserializerBase.readLength, unit %", des.readLength(), "12%")
-    checkSerdeResult("DeserializerBase.readLength, unit lpx", des.readLength(), "13lpx")
-    checkSerdeResult("DeserializerBase.readLength, number", des.readLength(), 14)
+    const des = new Deserializer(ser.asArray().buffer, ser.length())
+    checkSerdeResult("Deserializer.readLength, unit px", des.readLength(), "10px")
+    checkSerdeResult("Deserializer.readLength, unit vp", des.readLength(), "11vp")
+    checkSerdeResult("Deserializer.readLength, unit %", des.readLength(), "12%")
+    checkSerdeResult("Deserializer.readLength, unit lpx", des.readLength(), "13lpx")
+    checkSerdeResult("Deserializer.readLength, number", des.readLength(), 14)
     ser.release()
 }
 
-function checkSerdeBaseText() {
+function checkSerdeText() {
     const ser = Serializer.hold()
     const text = "test text serialization/deserialization"
     ser.writeString(text)
-    const des = new DeserializerBase(ser.asArray().buffer, ser.length())
-    checkSerdeResult("DeserializerBase.readString", des.readString(), text)
+    const des = new Deserializer(ser.asArray().buffer, ser.length())
+    checkSerdeResult("Deserializer.readString", des.readString(), text)
     ser.release()
 }
 
-function checkSerdeBasePrimitive() {
+function checkSerdePrimitive() {
     const ser = Serializer.hold()
     ser.writeNumber(10)
     ser.writeNumber(10.5)
     ser.writeNumber(undefined)
-    const des = new DeserializerBase(ser.asArray().buffer, ser.length())
-    checkSerdeResult("DeserializerBase.readNumber, int", des.readNumber(), 10)
-    checkSerdeResult("DeserializerBase.readNumber, float", des.readNumber(), 10.5)
-    checkSerdeResult("DeserializerBase.readNumber, undefined", des.readNumber(), undefined)
+    const des = new Deserializer(ser.asArray().buffer, ser.length())
+    checkSerdeResult("Deserializer.readNumber, int", des.readNumber(), 10)
+    checkSerdeResult("Deserializer.readNumber, float", des.readNumber(), 10.5)
+    checkSerdeResult("Deserializer.readNumber, undefined", des.readNumber(), undefined)
     ser.release()
 }
 
-function checkSerdeBaseCustomObject() {
+function checkSerdeCustomObject() {
     const ser = Serializer.hold()
-    const pixelMap: PixelMap = {
-        isEditable: true,
-        isStrideAlignment: true,
-    }
-    ser.writeCustomObject("PixelMap", pixelMap)
-    const des = new DeserializerBase(ser.asArray().buffer, ser.length())
-    checkSerdeResult("DeserializerBase.readCustomObject, PixelMap",
-        JSON.stringify(pixelMap),
-        JSON.stringify(des.readCustomObject("PixelMap") as PixelMap))
+    const date = new Date(2024, 11, 28)
+    ser.writeCustomObject("Date", date)
+    const des = new Deserializer(ser.asArray().buffer, ser.length())
+    checkSerdeResult("Deserializer.readCustomObject, Date",
+        JSON.stringify(date),
+        JSON.stringify(des.readCustomObject("Date") as Date))
     ser.release()
 }
 
@@ -747,10 +743,10 @@ function main() {
 
     // checkArrayBuffer()
 
-    checkSerdeBaseLength()
-    checkSerdeBaseText()
-    checkSerdeBasePrimitive()
-    checkSerdeBaseCustomObject()
+    checkSerdeLength()
+    checkSerdeText()
+    checkSerdePrimitive()
+    checkSerdeCustomObject()
 
     checkPerf2(5 * 1000 * 1000)
     checkPerf3(5 * 1000 * 1000)

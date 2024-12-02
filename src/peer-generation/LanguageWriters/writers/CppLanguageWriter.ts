@@ -448,4 +448,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             [undefined, undefined, MethodArgPrintHint.AsPointer]
         )
     }
+    override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {
+        return  undefined
+    }
+    override makeLengthDeserializer(deserializer: string): LanguageStatement | undefined {
+        return  undefined
+    }
 }

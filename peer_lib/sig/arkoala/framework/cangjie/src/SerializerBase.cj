@@ -208,12 +208,6 @@ public open class SerializerBase {
         }
         this.writeInt8(Int8(0))
     }
-    // Length is an important common case.
-    func writeLength(value: Ark_Length) {
-        this.checkCapacity(1)
-        this.writeInt8(RuntimeType.STRING.ordinal)
-        this.writeString(value.value)
-    }
     func writeBuffer(value: ArrayList<UInt8>) {
         // TODO
         // this.writePointer(42)

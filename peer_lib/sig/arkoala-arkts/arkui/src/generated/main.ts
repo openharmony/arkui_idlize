@@ -56,7 +56,6 @@ import { Resource } from "./ArkResourceInterfaces"
 
 import { Alignment, TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/ArkEnumsInterfaces"
 
-import { DeserializerBase } from "@arkoala/arkui/peers/DeserializerBase"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
 import { Serializer } from "@arkoala/arkui/peers/Serializer"
 import { CallbackKind } from "@arkoala/arkui/peers/CallbackKind"
@@ -81,6 +80,62 @@ backdropBlur: 284ms for 5000000 iteration, 57ms per 1M iterations
 widthAttributeString: 502ms for 5000000 iteration, 100ms per 1M iterations
 
 */
+
+function checkSerdeResult(name: string, value: object|string|number|undefined|null, expected: object|string|number|undefined|null) {
+    if (value != expected) {
+        console.log(`TEST ${name} FAILURE: ${value} != ${expected}`)
+    } else {
+        console.log(`TEST ${name} PASS`)
+    }
+}
+
+function checkSerdeLength() {
+    const ser = Serializer.hold()
+    ser.writeLength("10px")
+    ser.writeLength("11vp")
+    ser.writeLength("12%")
+    ser.writeLength("13lpx")
+    ser.writeLength(14)
+    const des = new Deserializer(ser.asArray(), ser.length())
+    checkSerdeResult("Deserializer.readLength, unit px", des.readLength(), "10px")
+    checkSerdeResult("Deserializer.readLength, unit vp", des.readLength(), "11vp")
+    checkSerdeResult("Deserializer.readLength, unit %", des.readLength(), "12%")
+    checkSerdeResult("Deserializer.readLength, unit lpx", des.readLength(), "13lpx")
+    checkSerdeResult("Deserializer.readLength, number", des.readLength(), 14)
+    ser.release()
+}
+
+function checkSerdeText() {
+    const ser = Serializer.hold()
+    const text = "test text serialization/deserialization"
+    ser.writeString(text)
+    const des = new Deserializer(ser.asArray(), ser.length())
+    checkSerdeResult("Deserializer.readString", des.readString(), text)
+    ser.release()
+}
+
+function checkSerdePrimitive() {
+    const ser = Serializer.hold()
+    ser.writeNumber(10)
+    ser.writeNumber(10.5)
+    ser.writeNumber(undefined)
+    const des = new Deserializer(ser.asArray(), ser.length())
+    checkSerdeResult("Deserializer.readNumber, int", des.readNumber(), 10)
+    checkSerdeResult("Deserializer.readNumber, float", des.readNumber(), 10.5)
+    checkSerdeResult("Deserializer.readNumber, undefined", des.readNumber(), undefined)
+    ser.release()
+}
+
+function checkSerdeCustomObject() {
+    const ser = Serializer.hold()
+    const date = new Date(2024, 11, 28)
+    ser.writeCustomObject("Date", date)
+    const des = new Deserializer(ser.asArray(), ser.length())
+    checkSerdeResult("Deserializer.readCustomObject, Date",
+        JSON.stringify(date),
+        JSON.stringify(des.readCustomObject("Date") as Date))
+    ser.release()
+}
 
 let hasTestErrors = false
 
@@ -721,7 +776,12 @@ function checkNodeAPI() {
 }
 
 export function main(): void {
-	// TODO: enable tests after fixing issues with arm64 panda
+    checkSerdeLength()
+    checkSerdeText()
+    checkSerdePrimitive()
+    checkSerdeCustomObject()
+
+    // TODO: enable tests after fixing issues with arm64 panda
 	// https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/20899
 	// https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/20908
     // checkPerf2(5 * 1000 * 1000)

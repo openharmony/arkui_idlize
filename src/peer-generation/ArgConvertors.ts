@@ -198,46 +198,6 @@ export class VoidConvertor extends UndefinedConvertor {
     }
 }
 
-export class LengthConvertorScoped extends BaseArgConvertor {
-    constructor(param: string) {
-        super(idl.IDLLengthType, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)
-    }
-    scopeStart(param: string): string {
-        return `withLengthArray(${param}, (${param}Ptr) => {`
-    }
-    scopeEnd(param: string): string {
-        return '})'
-    }
-    convertorArg(param: string, writer: LanguageWriter): string {
-        return param
-    }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeStatement(
-            printer.makeStatement(
-                printer.makeMethodCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
-            )
-        )
-    }
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
-        return assigneer(writer.makeString(`${deserializerName}.readLength()`))
-    }
-    nativeType(): idl.IDLType {
-        return idl.IDLLengthType
-    }
-    interopType(language: Language): string {
-        switch (language) {
-            case Language.CPP: return PrimitiveType.ObjectHandle.getText()
-            case Language.TS: case Language.ARKTS: return 'object'
-            case Language.JAVA: return 'Object'
-            case Language.CJ: return 'Object'
-            default: throw new Error("Unsupported language")
-        }
-    }
-    isPointerType(): boolean {
-        return true
-    }
-}
-
 export class LengthConvertor extends BaseArgConvertor {
     constructor(name: string, param: string, language: Language) {
         // length convertor is only optimized for NAPI interop

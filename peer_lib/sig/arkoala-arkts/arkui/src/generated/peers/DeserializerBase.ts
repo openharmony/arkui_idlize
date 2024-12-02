@@ -14,10 +14,8 @@
  */
 
 import { float32, int32, int64, float32FromBits } from "@koalaui/common"
-import {pointer, KUint8ArrayPtr, KBuffer} from "@koalaui/interop"
-import {RuntimeType, Tags, CallbackResource} from "./SerializerBase";
-import { Length } from "../ArkUnitsInterfaces"
-import { Resource } from "../ArkResourceInterfaces"
+import { pointer, KUint8ArrayPtr, KBuffer } from "@koalaui/interop"
+import { Tags, CallbackResource } from "./SerializerBase";
 import { NativeModule } from "#components"
 
 export class DeserializerBase {
@@ -185,24 +183,6 @@ export class DeserializerBase {
         }
     }
 
-    readLength(): Length | undefined {
-        this.checkCapacity(1)
-        const valueType = this.readInt8()
-        if (valueType == RuntimeType.OBJECT) {
-            return ({
-                id: this.readInt32(),
-                bundleName: "",
-                moduleName: ""
-            }) as Resource
-        } else if (valueType == RuntimeType.STRING) {
-            return this.readString()
-        } else if (valueType == RuntimeType.NUMBER) {
-            return (this.readFloat32() as number)
-        } else {
-            return undefined
-        }
-    }
-
     static lengthUnitFromInt(unit: int32): string {
         let suffix: string
         switch (unit) {
@@ -249,17 +229,6 @@ export abstract class CustomDeserializer {
 
     next: CustomDeserializer | undefined = undefined
 }
-
-class OurCustomDeserializer extends CustomDeserializer {
-    constructor() {
-        super("PixelMap")
-    }
-    deserialize(deserializer: DeserializerBase, kind: string): object {
-        // return JSON.parse(deserializer.readString())
-        return {}
-    }
-}
-DeserializerBase.registerCustomDeserializer(new OurCustomDeserializer())
 
 class DateDeserializer extends CustomDeserializer {
     constructor() {

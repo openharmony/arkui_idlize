@@ -176,6 +176,9 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
 
             case idl.IDLBufferType:
                 return `ArrayBuffer`
+
+            case idl.IDLLengthType:
+                return 'Length'
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }

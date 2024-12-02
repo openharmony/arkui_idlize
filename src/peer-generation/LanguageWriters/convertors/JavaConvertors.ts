@@ -163,6 +163,7 @@ export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias
             case idl.IDLVoidType: return JavaTypeAlias.fromTypeName('void', false)
             case idl.IDLDate: return JavaTypeAlias.fromTypeName('Date', false)
             case idl.IDLBufferType: return JavaTypeAlias.fromTypeName('byte[]', false)
+            case idl.IDLLengthType: return JavaTypeAlias.fromTypeName('Ark_Length', false)
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }

@@ -149,6 +149,21 @@ class IdlSerializerPrinter {
             ))
     }
 
+    private generateLengthSerializer() {
+        const methodName = idl.IDLLengthType.name
+        const value = "value"
+
+        const serializerBody = this.writer.makeLengthSerializer("this", value)
+        if (!serializerBody) return
+
+        this.library.setCurrentContext(`write${methodName}()`)
+        this.writer.writeMethodImplementation(
+            new Method(`write${methodName}`,
+                new NamedMethodSignature(idl.IDLVoidType, [idl.IDLLengthType], [value])),
+            writer => writer.writeStatement(serializerBody))
+        this.library.setCurrentContext(undefined)
+    }
+
     print(prefix: string, declarationPath?: string) {
         const className = "Serializer"
         const superName = `${className}Base`
@@ -197,6 +212,7 @@ class IdlSerializerPrinter {
                     // callbacks goes through writeCallbackResource function
                 }
             }
+            this.generateLengthSerializer()
         }, superName)
     }
 }
@@ -410,6 +426,21 @@ class IdlDeserializerPrinter {
         })
     }
 
+    private generateLengthDeserializer() {
+        const deserializerBody = this.writer.makeLengthDeserializer("this")
+        if (!deserializerBody) return
+
+        const methodName = idl.IDLLengthType.name
+        const value = "value"
+
+        this.library.setCurrentContext(`read${methodName}()`)
+        this.writer.writeMethodImplementation(
+            new Method(`read${methodName}`,
+                new NamedMethodSignature(idl.createOptionalType(idl.IDLLengthType))),
+            writer => writer.writeStatement(deserializerBody))
+        this.library.setCurrentContext(undefined)
+    }
+
     print(prefix: string, declarationPath?: string) {
         const className = "Deserializer"
         const superName = `${className}Base`
@@ -436,6 +467,7 @@ class IdlDeserializerPrinter {
                     this.generateCallbackDeserializer(decl)
                 }
             }
+            this.generateLengthDeserializer()
         }, superName)
     }
 }

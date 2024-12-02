@@ -14,8 +14,6 @@
  */
 import { float32, float64, int8, int32, int64 } from "@koalaui/common"
 import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder } from "@koalaui/interop"
-import { Length } from "../ArkUnitsInterfaces"
-import { Resource } from "../ArkResourceInterfaces"
 import { NativeModule } from "#components"
 
 /**
@@ -117,6 +115,7 @@ export class SerializerBase {
             current!.next = serializer
         }
     }
+
     resetCurrentPosition(): void { this.position = 0 }
 
     constructor() {
@@ -297,23 +296,20 @@ export class SerializerBase {
         this.setInt32(this.position, encodedLength)
         this.position += encodedLength + 4
     }
-    // Length is an important common case.
-    writeLength(value: Length|undefined) {
-        this.checkCapacity(1)
-        let valueType = runtimeType(value)
-        this.writeInt8(valueType as int32)
-        // TODO: without explicitly checking value for undefined, leads to segmentation fault
-        if (valueType == RuntimeType.NUMBER && value !== undefined) {
-            this.writeFloat32(value as float32)
-        } else if (valueType == RuntimeType.STRING) {
-            this.writeString(value as string)
-        } else if (valueType == RuntimeType.OBJECT) {
-           this.writeInt32((value as Resource).id as int32)
-        }
-    }
     //TODO: Needs to be implemented
     writeBuffer(value: ArrayBuffer) {
         this.writePointer(42)
         this.writeInt64(value.byteLength as int64)
     }
 }
+
+class DateSerializer extends CustomSerializer {
+    constructor() {
+        super(Array.of("Date" as string))
+    }
+
+    serialize(serializer: SerializerBase, value: object, kind: string): void {
+        serializer.writeString((value as Date).toISOString())
+    }
+}
+SerializerBase.registerCustomSerializer(new DateSerializer())

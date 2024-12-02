@@ -22,7 +22,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class SerializerBase {
 
@@ -141,10 +140,6 @@ public class SerializerBase {
             NativeModule._ManagedStringWrite(value, this.buffer.array(), this.buffer.position() + 4);
         buffer.putInt(encodedLength);
         buffer.position(buffer.position() + encodedLength);
-    }
-    public void writeLength(Ark_Length value) {
-        this.buffer.put(RuntimeType.STRING.value);
-        this.writeString(value.value);
     }
     public void writeBuffer(byte[] value) {
         this.checkCapacity(8);
