@@ -216,6 +216,7 @@ export function generateArkoalaFromIdl(config: {
             integrated: true,
             message: "producing [idl]"
         })
+        arkuiComponentsFiles.push(outMaterializedFile)
     }
     if (PeerGeneratorConfig.needInterfaces) {
         const interfaces = printIdlInterfaces(peerLibrary, context)

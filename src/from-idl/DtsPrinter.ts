@@ -51,6 +51,7 @@ import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
 import { IndentedPrinter } from "../IndentedPrinter"
+import { PeerGeneratorConfig } from "../peer-generation/PeerGeneratorConfig"
 
 export class CustomPrintVisitor {
     output: string[] = []
@@ -189,6 +190,8 @@ export class CustomPrintVisitor {
         const isCommonMethod = hasExtAttribute(node, IDLExtendedAttributes.CommonMethod)
         let isProtected = hasExtAttribute(node, IDLExtendedAttributes.Protected)
         if (isCommonMethod) {
+            // TODO: not very clean, but we don't need to print these so far.
+            if (PeerGeneratorConfig.ignorePeerMethod.includes(node.name)) return
             const typeParams = this.currentInterface?.typeParameters
             const returnType = typeParams && typeParams.length > 0 ? typeParams[0] : this.currentInterface!.name
             this.print(`${getName(node)}(value: ${this.printTypeForTS(node.type, undefined, undefined, isCommonMethod)}): ${returnType};`)
