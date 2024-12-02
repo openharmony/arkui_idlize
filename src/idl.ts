@@ -327,9 +327,6 @@ export function forceAsNamedNode(type: IDLNode): IDLNamedNode {
     return type
 }
 
-export function isNullType(type: IDLNode): type is IDLPrimitiveType {
-    return isPrimitiveType(type) && type.name === IDLNullType.name
-}
 export function isUndefinedType(type: IDLNode): type is IDLPrimitiveType {
     return isPrimitiveType(type) && type.name === IDLUndefinedType.name
 }
@@ -469,7 +466,6 @@ export const IDLBigintType = createPrimitiveType("bigint")
 export const IDLNumberType = createPrimitiveType('number')
 export const IDLStringType = createPrimitiveType('String')
 export const IDLAnyType = createPrimitiveType('any')
-export const IDLNullType = createPrimitiveType('null')
 export const IDLUndefinedType = createPrimitiveType('undefined')
 export const IDLUnknownType = createPrimitiveType('unknown')
 export const IDLObjectType = createReferenceType('Object')
@@ -1177,7 +1173,7 @@ export function toIDLType(typeName: string): IDLType {
 
     switch (typeName) {
         case "boolean": return IDLBooleanType
-        case "null": return IDLNullType
+        case "null": return IDLUndefinedType
         case "number": return IDLNumberType
         case "string": return IDLStringType
         case "String": return IDLStringType

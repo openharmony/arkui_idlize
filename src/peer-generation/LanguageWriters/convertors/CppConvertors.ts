@@ -33,9 +33,4 @@ export class CppIDLNodeToStringConvertor extends InteropConverter implements Idl
         return this.unwrap(node, this.convertNode(node))
     }
 
-    override convertPrimitiveType(type: idl.IDLPrimitiveType): ConvertResult {
-        return type === idl.IDLNullType
-            ? { text: "Undefined", noPrefix: false }
-            : super.convertPrimitiveType(type)
-    }
 }

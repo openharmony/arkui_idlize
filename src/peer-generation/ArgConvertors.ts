@@ -198,31 +198,6 @@ export class VoidConvertor extends UndefinedConvertor {
     }
 }
 
-export class NullConvertor extends BaseArgConvertor {
-    constructor(param: string) {
-        super(idl.IDLNullType, [RuntimeType.OBJECT], false, false, param)
-    }
-    convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.makeNull().asString()
-    }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {}
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
-        return assigneer(writer.makeUndefined())
-    }
-    nativeType(): idl.IDLType {
-        return idl.IDLNullType
-    }
-    interopType(language: Language): string {
-        return PrimitiveType.NativePointer.getText()
-    }
-    isPointerType(): boolean {
-        return false
-    }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.makeString(`${value} === null`)
-    }
-}
-
 export class LengthConvertorScoped extends BaseArgConvertor {
     constructor(param: string) {
         super(idl.IDLLengthType, [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false, false, param)

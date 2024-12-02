@@ -26,7 +26,6 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLVoidType,
     IDLStringType,
     IDLUndefinedType,
-    IDLNullType,
     isCallable,
     isAnonymousInterface,
     isTupleInterface,
@@ -312,7 +311,6 @@ export class CustomPrintVisitor {
         if (type === IDLStringType) return "string"
         // if (isCommonMethod && forceAsNamedNode(type).name == "this") return "T"
         if (type === IDLThisType) return "T"
-        if (type === IDLNullType) return "null"
         if (type === IDLVoidType) return "void"
         if (isPrimitiveType(type)) return type.name
         if (isContainerType(type)) {

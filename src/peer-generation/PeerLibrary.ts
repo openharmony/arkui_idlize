@@ -25,7 +25,7 @@ import { IndentedPrinter } from '../IndentedPrinter';
 import { createTypeNameConvertor, LanguageWriter } from './LanguageWriters';
 import { isImport, isStringEnum, typeOrUnion } from './idl/common';
 import { StructPrinter } from './printers/StructPrinter';
-import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NullConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from './ArgConvertors';
+import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from './ArgConvertors';
 import { Language } from '../Language';
 import { generateSyntheticFunctionName } from '../IDLVisitor';
 import { collectUniqueCallbacks } from './printers/CallbacksPrinter';
@@ -207,11 +207,10 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLF16Type: return new NumericConvertor(param, type)
                 case idl.IDLF32Type: return new NumericConvertor(param, type)
                 case idl.IDLF64Type: return new NumericConvertor(param, type)
-                
+
                 case idl.IDLBufferType: return new BufferConvertor(param)
                 case idl.IDLBooleanType: return new BooleanConvertor(param)
                 case idl.IDLStringType: return new StringConvertor(param)
-                case idl.IDLNullType: return new NullConvertor(param)
                 case idl.IDLNumberType: return new NumberConvertor(param)
                 case idl.IDLUndefinedType: return new UndefinedConvertor(param)
                 case idl.IDLVoidType: return new VoidConvertor(param)
@@ -323,7 +322,6 @@ export class PeerLibrary implements LibraryInterface {
     toDeclaration(type: idl.IDLType | idl.IDLTypedef | idl.IDLCallback | idl.IDLEnum | idl.IDLInterface): idl.IDLEntry | idl.IDLType {
         switch (type) {
             case idl.IDLAnyType: return ArkCustomObject
-            case idl.IDLNullType: return idl.IDLNullType
             case idl.IDLVoidType: return idl.IDLVoidType
             case idl.IDLUndefinedType: return idl.IDLUndefinedType
             case idl.IDLUnknownType: return ArkCustomObject

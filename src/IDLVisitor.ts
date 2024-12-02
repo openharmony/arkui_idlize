@@ -84,7 +84,7 @@ const conflictingDeclarationNames = [
 
 function mangleConflictingName(name: string, sourceFile: ts.SourceFile): string {
     const fileName = path.basename(sourceFile.fileName).replaceAll(".d.ts", "").replaceAll(".", "")
-    if (conflictingDeclarationNames.includes(name)) return `${name}_${fileName}`
+    if (conflictingDeclarationNames.includes(name)) return `${name}_${fileName.replaceAll("@", "")}`
     return name
 }
 
@@ -828,7 +828,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             return idl.IDLUndefinedType
         }
         if (type.kind == ts.SyntaxKind.NullKeyword) {
-            return idl.IDLNullType
+            return idl.IDLUndefinedType
         }
         if (type.kind == ts.SyntaxKind.VoidKeyword) {
             return idl.IDLVoidType
@@ -930,7 +930,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 return idl.IDLNumberType
             }
             if (literal.kind == ts.SyntaxKind.NullKeyword) {
-                return idl.IDLNullType
+                return idl.IDLUndefinedType
             }
             if (literal.kind == ts.SyntaxKind.FalseKeyword || literal.kind == ts.SyntaxKind.TrueKeyword) {
                 return idl.IDLBooleanType

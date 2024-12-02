@@ -21,7 +21,7 @@ import { PeerMethod } from "../PeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
 import { makeSyntheticDeclarationsFiles } from "../idl/IdlSyntheticDeclarations";
 import { Language } from "../../Language";
-import { createParameter, createReferenceType, createUnionType, IDLI32Type, IDLNullType, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLVoidType, toIDLType } from "../../idl";
+import { createParameter, createReferenceType, createUnionType, IDLI32Type, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType, toIDLType } from "../../idl";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
@@ -108,8 +108,8 @@ class NativeModuleRecorderVisitor {
                             return printer.makeAssign(`node.${fieldName}`, undefined, expr, false)
                         }, printer)
                     )
-                } else {             
-                    this.nativeModuleRecorder.writeLines(`node.${method.overloadedName}_${method.argAndOutConvertors[i].param} = ${parameters.argsNames[i + 1]}`)               
+                } else {
+                    this.nativeModuleRecorder.writeLines(`node.${method.overloadedName}_${method.argAndOutConvertors[i].param} = ${parameters.argsNames[i + 1]}`)
                 }
             }
         })
@@ -154,7 +154,7 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`return this.pointers[ptr as number] as T`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("private object2ptr", new NamedMethodSignature(IDLPointerType, [createUnionType([IDLObjectType, IDLNullType])], ["object"])), w => {
+        this.nativeModuleRecorder.writeMethodImplementation(new Method("private object2ptr", new NamedMethodSignature(IDLPointerType, [createUnionType([IDLObjectType, IDLUndefinedType])], ["object"])), w => {
             w.writeLines(`if (object == null) return nullptr`)
             w.writeLines(`for (let i = 1; i < this.pointers.length; i++) {`)
             w.pushIndent()
@@ -174,7 +174,7 @@ class NativeModuleRecorderVisitor {
         this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringLength", new NamedMethodSignature(IDLI32Type, [IDLPointerType], ["ptr"])), w => {
             w.writeLines(`return this.ptr2object<string>(ptr).length`)
         })
-        
+
         this.nativeModuleRecorder.writeMethodImplementation(new Method("_StringData", new NamedMethodSignature(IDLVoidType, [IDLPointerType, IDLUint8ArrayType, IDLNumberType], ["ptr", "buffer", "length"])), w => {
             w.writeLines(`let value = this.ptr2object<string>(ptr);`)
             w.writeLines(`(buffer as Uint8Array).set(encodeToData(value))`)
@@ -333,7 +333,7 @@ class NativeModuleRecorderVisitor {
 
         this.printUiElement()
         this.printOtherField()
-    
+
         for (const file of this.library.files) {
             for (const peer of file.peersToGenerate.values()) {
                 this.printInterface(peer)
