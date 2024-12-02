@@ -290,9 +290,8 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     }
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["MaterializedBase"], "../MaterializedBase")
-        imports.addFeatures(["NativeModule"], "#components")
-        imports.addFeatures(["CallbackKind"], "CallbackKind")
-        imports.addFeatures(['KStringPtr', 'nullptr', 'KInt', 'KPointer', 'KLong'], '@koalaui/interop')
+        imports.addFeatures(['nullptr', 'KPointer'], '@koalaui/interop')
+        imports.addFeatures(["int64"], "@koalaui/common")
     }
     imports.print(printer, '')
     writeSerializer(library, printer, "")
@@ -421,17 +420,13 @@ export function makeArkTSDeserializer(library: PeerLibrary): string {
     printer.writeLines(cStyleCopyright)
 
     const imports = new ImportsCollector()
-    imports.addFeatures(["runtimeType", "Tags", "RuntimeType", "CallbackResource"], "./SerializerBase")
+    imports.addFeatures(["runtimeType", "RuntimeType", "CallbackResource"], "./SerializerBase")
     imports.addFeature("DeserializerBase", "./DeserializerBase")
-    imports.addFeature("int32", "@koalaui/common")
-
+    imports.addFeatures(["int32", "int64"], "@koalaui/common")
     imports.addFeature("Serializer", "./Serializer")
-    imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "./SerializerBase")
     imports.addFeatures(["NativeModule"], "#components")
     imports.addFeatures(["CallbackKind"], "CallbackKind")
-    imports.addFeatures(['KStringPtr', 'KInt', 'KPointer'], '@koalaui/interop')
-    imports.addFeatures(['KStringPtr', 'KInt', 'KPointer', 'KLong'], '@koalaui/interop')
-
+    imports.addFeatures(['KPointer'], '@koalaui/interop')
     imports.print(printer, '')
 
     writeDeserializer(library, printer, "")
