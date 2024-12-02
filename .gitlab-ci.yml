@@ -146,7 +146,8 @@ publish idlize:
       - !reference [.setup, script]
     script:
         - cd $CI_PROJECT_DIR
-        - sed -i "s/+devel/-dev.$CI_PIPELINE_IID/" package.json
+        - HASH_HEAD="$(git rev-parse --short HEAD)"
+        - sed -i "s/+devel/-dev.$CI_PIPELINE_IID.$HASH_HEAD/" package.json
         - KOALA_BZ=1 npm run upload
 
 check index-full:
