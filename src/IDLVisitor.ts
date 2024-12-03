@@ -20,6 +20,7 @@ import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, identName,
     isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync,
     nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
+    capitalizeConstantName,
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -1221,8 +1222,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 const tsMemberName = tagType.symbol.name
                 for (let idx=0; idx<enumDeclarationMembers.length; ++idx) {
                     if (identString(enumDeclarationMembers[idx].name) === tsMemberName) {
-                        const idlMemberNames = nameEnumValues(enumDeclaration)
-                        tag = `${getNameWithoutQualifiersLeft(param.type.typeName)}.${idlMemberNames[idx]}`
+                        const idlMemberName = nameEnumValues(enumDeclaration)[idx]
+                        tag = capitalizeConstantName(idlMemberName)
                         break
                     }
                 }

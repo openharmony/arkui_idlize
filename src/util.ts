@@ -170,6 +170,10 @@ export function capitalize(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
+export function capitalizeConstantName(string: string): string {
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase()
+}
+
 export function dropLast(text: string, chars: number): string {
     return text.substring(0, text.length - chars)
 }
