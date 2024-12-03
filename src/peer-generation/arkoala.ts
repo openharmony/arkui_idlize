@@ -71,6 +71,7 @@ import { printManagedCaller } from "./printers/CallbacksPrinter"
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
     apiVersion: number,
+    commentedCode: boolean,
     outDir: string
 }, peerLibrary: PeerLibrary) {
     const libace = config.libaceDestination ?
@@ -89,6 +90,7 @@ export function generateLibaceFromIdl(config: {
         basicVersion: 1,
         fullVersion: config.apiVersion,
         extendedVersion: 6,
+        commentedCode: config.commentedCode,
     })
 
     const converterNamespace = "OHOS::Ace::NG::Converter"

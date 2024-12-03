@@ -45,6 +45,7 @@ export class ModifierVisitor {
     getterDeclarations = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
     modifierList = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
     private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
+    commentedCode = true
 
     constructor(
         protected library: PeerLibrary,
@@ -94,14 +95,14 @@ export class ModifierVisitor {
         else if(method.method.name == 'getFinalizer')
         {
             printer.print(`return reinterpret_cast<void *>(&DestroyPeerImpl);`)
-        } 
+        }
         else if (method.method.name == 'ctor'){
             printer.print(`return new ${method.originalParentName}Peer();`)
         }
         else if(method.method.name == 'destroyPeer')
         {
             printer.print(`delete peer;`)
-        } 
+        }
         else if (!isVoid) {
             if (this.isPointerReturnType(method.method.signature.returnType)) {
                 printer.print(`return nullptr;`)
@@ -111,7 +112,7 @@ export class ModifierVisitor {
             }
         }
     }
-     
+
      private isPointerReturnType(returnType: IDLType): boolean {
         return isReferenceType(returnType)  ||
                 returnType === IDLThisType ||
@@ -136,7 +137,8 @@ export class ModifierVisitor {
                 this.real.print(`auto convValue = Converter::Convert<std::string>(*${
                     method.argAndOutConvertors.at(0)?.param
                 });`)
-            } else if (method.argAndOutConvertors.length === 1
+            } else if (this.commentedCode
+                && method.argAndOutConvertors.length === 1
                 && isOptionalType(method.argAndOutConvertors[0].nativeType())
                 && method.argAndOutConvertors.at(0)?.isPointerType()) {
                 this.real.print(`//auto convValue = ${method.argAndOutConvertors.at(0)?.param} ? ` +
@@ -145,26 +147,33 @@ export class ModifierVisitor {
                 this.real.print(`CHECK_NULL_VOID(${
                     method.argAndOutConvertors.at(0)?.param
                 });`)
-                this.real.print(`//auto convValue = Converter::OptConvert<type_name>(*${
-                    method.argAndOutConvertors.at(0)?.param
-                });`)
+                if (this.commentedCode) {
+                    this.real.print(`//auto convValue = Converter::OptConvert<type_name>(*${
+                        method.argAndOutConvertors.at(0)?.param
+                    });`)
+                }
             } else if (method.argAndOutConvertors.length === 1 &&
                 method.argAndOutConvertors.at(0)?.nativeType() === IDLBooleanType) {
                 this.real.print(`auto convValue = Converter::Convert<bool>(${
                     method.argAndOutConvertors.at(0)?.param
                 });`)
-            } else if (method.argAndOutConvertors.length === 1
+            } else if (this.commentedCode
+                && method.argAndOutConvertors.length === 1
                 && method.argAndOutConvertors.at(0)?.nativeType() === IDLFunctionType) {
                 this.real.print(`//auto convValue = [frameNode](input values) { code }`)
             } else {
-                this.real.print(`//auto convValue = Converter::Convert<type>(${
-                    method.argAndOutConvertors.at(0)?.param
-                });`)
-                this.real.print(`//auto convValue = Converter::OptConvert<type>(${
-                    method.argAndOutConvertors.at(0)?.param
-                }); // for enums`)
+                if (this.commentedCode) {
+                    this.real.print(`//auto convValue = Converter::Convert<type>(${
+                        method.argAndOutConvertors.at(0)?.param
+                    });`)
+                    this.real.print(`//auto convValue = Converter::OptConvert<type>(${
+                        method.argAndOutConvertors.at(0)?.param
+                    }); // for enums`)
+                }
             }
-            this.real.print(`//${clazz?.componentName}ModelNG::Set${method.implName.replace("Impl", "")}(frameNode, convValue);`)
+            if (this.commentedCode) {
+                this.real.print(`//${clazz?.componentName}ModelNG::Set${method.implName.replace("Impl", "")}(frameNode, convValue);`)
+            }
         }
     }
 
@@ -428,12 +437,14 @@ export interface ModifierFileOptions {
     basicVersion: number;
     fullVersion: number;
     extendedVersion: number;
+    commentedCode: boolean
 
     namespaces?: Namespaces
 }
 
 export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions) {
     const visitor = new MultiFileModifiersVisitor(library)
+    visitor.commentedCode = options.commentedCode
     visitor.printRealAndDummyModifiers()
     visitor.emitRealSync(library, libace, options)
 }

@@ -95,6 +95,7 @@ const options = program
     .option('--tracker-status <file>', 'Tracker status file)')
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
+    .option('--no-commented-code', 'Do not generate commented code in modifiers')
     .parse()
     .opts()
 
@@ -404,6 +405,7 @@ if (options.dts2peer) {
                         outDir: outDir,
                         libaceDestination: options.libaceDestination,
                         apiVersion: apiVersion,
+                        commentedCode: options.commentedCode,
                     }, idlLibrary)
                 }
                 if (options.generatorTarget == "tracker") {
