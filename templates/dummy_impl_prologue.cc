@@ -129,6 +129,9 @@ inline Ark_NodeHandle AsNodeHandle(TreeNode* node) {
 inline TreeNode* AsNode(Ark_NodeHandle handle) {
     return reinterpret_cast<TreeNode*>(handle);
 }
+inline TreeNode* AsNode(Ark_NativePointer pointer) {
+    return reinterpret_cast<TreeNode*>(pointer);
+}
 
 void DumpTree(TreeNode *node, Ark_Int32 indent) {
     ARKOALA_LOG("%s[%s: %d]\n", string(indent * 2, ' ').c_str(), node->namePtr(), node->id());
@@ -698,6 +701,11 @@ Ark_Float32 ConvertLengthMetricsUnit(Ark_Float32 value, Ark_Int32 originUnit, Ar
     out.append(")");
     appendGroupedLog(1, out);
     return result;
+}
+
+void EmitOnClick(Ark_NativePointer node, Ark_ClickEvent event) {
+    auto frameNode = AsNode(node);
+    frameNode->callClickEvent(event);
 }
 
 void SetCustomMethodFlag(Ark_NodeHandle node, Ark_Int32 flag) {}

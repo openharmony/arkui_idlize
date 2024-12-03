@@ -13,6 +13,7 @@ export class PeerNode extends IncrementalNode {
     static findPeerByNativeId(id: number): PeerNode | undefined {
         return PeerNode.peerNodeMap.get(id)
     }
+    readonly name: string
 
     private static currentId: int32 = 1000
 
@@ -41,6 +42,8 @@ export class PeerNode extends IncrementalNode {
                 this.peer.removeChild(peer.peer)
             }
         }
+
+        this.name = name
     }
     applyAttributes(attrs: Object) {}
 }

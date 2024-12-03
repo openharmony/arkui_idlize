@@ -14,7 +14,8 @@ const %CPP_PREFIX%ArkUIBasicNodeAPI* %CPP_PREFIX%GetBasicAPI()
         OHOS::Ace::NG::ApiImpl::ApplyModifierFinish,
         OHOS::Ace::NG::ApiImpl::MarkDirty,
         OHOS::Ace::NG::ApiImpl::IsBuilderNode,
-        OHOS::Ace::NG::ApiImpl::ConvertLengthMetricsUnit
+        OHOS::Ace::NG::ApiImpl::ConvertLengthMetricsUnit,
+        OHOS::Ace::NG::ApiImpl::EmitOnClick,
     };
     return &basicNodeAPIImpl;
 }

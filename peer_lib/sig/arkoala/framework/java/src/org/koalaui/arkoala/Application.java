@@ -17,10 +17,17 @@ package org.koalaui.arkoala;
 
 import java.util.function.Consumer;
 
+class EventType {
+    public static final int Click = 1;
+    public static final int Text = 2;
+    public static final int ExitApp = 3;
+}
+
 public class Application {
     UserView view;
     Consumer<PeerNode> builderFunction;
     PeerNode rootNode;
+    boolean exitApp;
 
     Application(UserView view) {
         this.view = view;
@@ -56,7 +63,7 @@ public class Application {
         checkEvents(arg0);
         updateState();
         render();
-        return false;
+        return exitApp;
     }
 
     byte[] eventBuffer = new byte[4 * 60];
@@ -75,6 +82,27 @@ public class Application {
     void render() {
         System.out.println("JAVA: render");
         builderFunction.accept(rootNode);
+    }
+
+    // TODO: make [emitEvent] suitable to get string argument
+    public void emitEvent(int type, int target, int arg0, int arg1) {
+        switch (type) {
+            case EventType.Click: {
+                break;
+            }
+            case EventType.Text: {
+                System.out.println("JAVA: [emitEvent] EventType.Text is not implemented." + type);
+                break;
+            }
+            case EventType.ExitApp: {
+                exitApp = true;
+                break;
+            }
+            default: {
+                System.out.println("JAVA: [emitEvent] type = " + type + " is unknown.");
+                break;
+            }
+        }
     }
 
     public long start() {
