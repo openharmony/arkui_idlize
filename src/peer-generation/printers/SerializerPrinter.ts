@@ -150,6 +150,9 @@ class IdlSerializerPrinter {
     }
 
     private generateLengthSerializer() {
+        // generate Length serializer only if there is such a type
+        if (!this.library.orderedDependenciesToGenerate.some(it => it === idl.IDLLengthType)) return
+
         const methodName = idl.IDLLengthType.name
         const value = "value"
 
@@ -427,6 +430,9 @@ class IdlDeserializerPrinter {
     }
 
     private generateLengthDeserializer() {
+        // generate Length deserializer only if there is such a type
+        if (!this.library.orderedDependenciesToGenerate.some(it => it === idl.IDLLengthType)) return
+
         const deserializerBody = this.writer.makeLengthDeserializer("this")
         if (!deserializerBody) return
 
