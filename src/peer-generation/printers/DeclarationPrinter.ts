@@ -34,6 +34,7 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
         const text = visitor.output.join("\n")
         if (text)
             result.push(text)
+        peerLibrary.handwritten.forEach(it => visitor.visit(it))
     }
     for (const decl of peerLibrary.componentsDeclarations) {
         const iface = decl.interfaceDeclaration

@@ -111,6 +111,10 @@ export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
         const componentName = component.name.replace("Attribute", "")
         if (PeerGeneratorConfig.ignoreComponents.includes(componentName))
             return
+        if (idl.hasExtAttribute(component, IDLExtendedAttributes.HandWrittenImplementation)) {
+                this.peerLibrary.handwritten.push(component)
+                return
+        }
         const compInterface = this.peerLibrary.resolveTypeReference(
             idl.createReferenceType(`${componentName}Interface`),
             this.peerFile.entries)

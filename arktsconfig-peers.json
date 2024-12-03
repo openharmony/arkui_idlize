@@ -10,9 +10,10 @@
             "@koalaui/runtime": ["./external/incremental/runtime/src"]
         }
     },
-    "include": ["out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/**/*\\.ts"],
+    "include": ["out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/**/*.ts"],
     "exclude": [
-        "out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/ts/*\\.ts",
+        "out/**/index.ts",
+        "out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/ts/*.ts",
         "out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/main.ts"
     ]
 }

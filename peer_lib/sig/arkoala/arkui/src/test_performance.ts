@@ -15,7 +15,6 @@
 
 import { nativeModule } from "@koalaui/arkoala"
 import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
-import { ArkNavigationPeer } from "@arkoala/arkui/peers/ArkNavigationPeer"
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 // imports required intarfaces (now generation is disabled)
 // import { NavigationTitleMode } from "@arkoala/arkui/ArkNavigationInterfaces"
@@ -53,22 +52,22 @@ export function startPerformanceTest() {
     let peer = ArkCommonPeer.create(ArkUINodeType.Common);
     RunPerformanceTest("idlize_restoreIdAttribute_testNumber100", TEST_COUNT, CALL_COUNT, () => {
         peer.restoreIdAttribute(testNumber100)
-    });
+    })
     RunPerformanceTest("idlize_keyAttribute_testString1000", TEST_COUNT, CALL_COUNT, () => {
         peer.keyAttribute(testString1000)
-    });
+    })
     RunPerformanceTest("idlize_widthAttribute_testLength_10_percent", TEST_COUNT, CALL_COUNT, () => {
         peer.widthAttribute(testLength_10_percent)
-    });
+    })
     RunPerformanceTest("idlize_widthAttribute_testLength_number100", TEST_COUNT, CALL_COUNT, () => {
         peer.widthAttribute(testLength_number100)
-    });
+    })
     RunPerformanceTest("idlize_paddingAttribute", TEST_COUNT, CALL_COUNT, () => {
         peer.paddingAttribute({
             top: testLength_10_percent, right: testLength_10_percent,
             bottom: testLength_10_percent, left: testLength_10_percent
         })
-    });
+    })
     RunPerformanceTest("idlize_backgroundBlurStyleAttribute", TEST_COUNT, CALL_COUNT, () => {
         peer.backgroundBlurStyleAttribute(0, {
             colorMode: 0,
@@ -78,7 +77,7 @@ export function startPerformanceTest() {
                 grayscale: [1, 1]
             }
         })
-    });
+    })
 
     RunPerformanceTest("idlize_linearGradientAttribute", TEST_COUNT, CALL_COUNT, () => {
         peer.linearGradientAttribute({
@@ -87,7 +86,7 @@ export function startPerformanceTest() {
             direction: 1, //GradientDirection.Top,
             colors: [[0xff0000, 0.0], [0x0000ff, 0.3], [0xffff00, 0.5]]
         })
-    });
+    })
     RunPerformanceTest("idlize_borderAttribute", TEST_COUNT, CALL_COUNT, () => {
         peer.borderAttribute({
             width: 5,
@@ -95,9 +94,5 @@ export function startPerformanceTest() {
             radius: 25,
             style: 1 // BorderStyle.Solid
         })
-    });
-    let navigation = ArkNavigationPeer.create(ArkUINodeType.Common);
-    RunPerformanceTest("idlize_navigation_titleModeAttribute", TEST_COUNT, CALL_COUNT, () => {
-        navigation.titleModeAttribute(/*NavigationTitleMode.Free*/0)
-    });
+    })
 }

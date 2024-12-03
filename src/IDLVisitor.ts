@@ -29,6 +29,7 @@ import { generateSyntheticIdlNodeName, typeOrUnion } from "./peer-generation/idl
 import { IDLKeywords } from "./languageSpecificKeywords"
 import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
 import { ReferenceResolver } from "./peer-generation/ReferenceResolver"
+import { IDLExtendedAttributes } from "./idl"
 
 function escapeIdl(name: string): string {
     if (IDLKeywords.has(name))
@@ -403,6 +404,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         let result: idl.IDLExtendedAttribute[] = this.computeExtendedAttributes(node)
         let name = identName(node.name)
         if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
+            if (PeerGeneratorConfig.handWrittenComponents.includes(PeerGeneratorConfig.mapComponentName(name))) {
+                result.push({ name: IDLExtendedAttributes.HandWrittenImplementation })
+            }
             result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${PeerGeneratorConfig.mapComponentName(name)}"` })
         }
         this.computeExportAttribute(node, result)

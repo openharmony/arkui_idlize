@@ -21,7 +21,6 @@ import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/peers/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/peers/ArkFormComponentPeer"
-import { ArkNavigationPeer } from "@arkoala/arkui/peers/ArkNavigationPeer"
 import { ArkSideBarContainerPeer } from "@arkoala/arkui/peers/ArkSidebarPeer"
 import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
 import { ArkTabContentPeer } from "@arkoala/arkui/peers/ArkTabContentPeer"
@@ -460,14 +459,6 @@ function checkOverloads() {
     stopNativeTest(CALL_GROUP_LOG)
 }
 
-function checkNavigation() {
-    startNativeTest(checkNavigation.name, CALL_GROUP_LOG)
-    let peer = ArkNavigationPeer.create(ArkUINodeType.Navigation)
-    checkResult("backButtonIcon", () => peer.backButtonIconAttribute("attr"),
-        `backButtonIcon({.selector=0, .value0={.chars="attr", .length=4}})`)
-    stopNativeTest(CALL_GROUP_LOG)
-}
-
 function checkTabContent() {
     startNativeTest(checkTabContent.name, CALL_GROUP_LOG)
 
@@ -766,7 +757,6 @@ function main() {
     checkFormComponent()
     checkCommon()
     checkOverloads()
-    checkNavigation()
     setEventsAPI()
     checkEvent_Primitive()
     checkEvent_Interface_Optional()

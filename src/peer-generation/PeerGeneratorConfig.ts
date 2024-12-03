@@ -25,6 +25,11 @@ export class PeerGeneratorConfig {
         "Number", "String", "Function", "Optional", "RelativeIndexable",
     ]
 
+    public static handWrittenComponents = [
+        "Navigation",
+        "CustomComponent"
+    ]
+
     public static ignorePeerMethod = ["attributeModifier"]
 
     public static ignoreComponents = [

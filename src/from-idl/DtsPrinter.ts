@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { indentedBy, stringOrNone, zip } from "../util"
+import { indentedBy, stringOrNone } from "../util"
 import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLModule, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
     getVerbatimDts,
     hasExtAttribute,
@@ -32,7 +32,6 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     getSuperType,
     IDLReferenceType,
     IDLCallable,
-    IDLSignature,
     IDLAnyType,
     IDLContainerUtils,
     IDLContainerType,
@@ -50,7 +49,6 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
-import { IndentedPrinter } from "../IndentedPrinter"
 import { PeerGeneratorConfig } from "../peer-generation/PeerGeneratorConfig"
 
 export class CustomPrintVisitor {
