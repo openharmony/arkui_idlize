@@ -82,6 +82,19 @@ export function isRecordTypeDescription(node: webidl2.IDLTypeDescription): node 
     return node.generic === "record"
 }
 
+export function isUnspecifiedGenericTypeDescription(node: webidl2.IDLTypeDescription): node is webidl2.UnspecifiedGenericTypeDescription {
+    switch (node.generic) {
+        case "FrozenArray":
+        case "ObservableArray":
+        case "Promise":
+        case "record":
+        case "sequence":
+        case "":
+            return false
+    }
+    return true
+}
+
 export function isOptional(node: webidl2.AttributeMemberType | webidl2.OperationMemberType): boolean {
     return node.extAttrs
         .map((it: ExtendedAttribute) => it.name)

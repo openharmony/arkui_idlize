@@ -36,6 +36,7 @@ export enum IDLKind {
     TupleInterface,
     PrimitiveType,
     ContainerType,
+    UnspecifiedGenericType,
     ReferenceType,
     EnumType,
     UnionType,
@@ -150,6 +151,11 @@ export interface IDLContainerType extends IDLType {
 export interface IDLReferenceType extends IDLType, IDLNamedNode {
     kind: IDLKind.ReferenceType
     typeArguments?: IDLType[]
+}
+
+export interface IDLUnspecifiedGenericType extends IDLType, IDLNamedNode {
+    kind: IDLKind.UnspecifiedGenericType
+    typeArguments: IDLType[]
 }
 
 export interface IDLUnionType extends IDLType, IDLNamedNode {
@@ -305,7 +311,8 @@ export function forEachChild(node: IDLNode, cb: (entry: IDLNode) => void): void 
         case IDLKind.ContainerType:
         case IDLKind.TypeParameterType:
         case IDLKind.ReferenceType:
-        case IDLKind.Version: {
+        case IDLKind.Version:
+        case IDLKind.UnspecifiedGenericType: {
             break
         }
         case IDLKind.ModuleType: {
@@ -342,6 +349,9 @@ export function isContainerType(type: IDLNode): type is IDLContainerType {
 }
 export function isReferenceType(type: IDLNode): type is IDLReferenceType {
     return type.kind == IDLKind.ReferenceType
+}
+export function isUnspecifiedGenericType(type: IDLNode): type is IDLUnspecifiedGenericType {
+    return type.kind == IDLKind.UnspecifiedGenericType
 }
 export function isEnum(type: IDLNode): type is IDLEnum {
     return type.kind == IDLKind.Enum
@@ -516,6 +526,17 @@ export function createVersion(value: string[], extendedAttributes?: IDLExtendedA
 export function createReferenceType(name: string, typeArguments?: IDLType[]): IDLReferenceType {
     return {
         kind: IDLKind.ReferenceType,
+        name,
+        typeArguments,
+        _idlNodeBrand: innerIdlSymbol,
+        _idlTypeBrand: innerIdlSymbol,
+        _idlNamedNodeBrand: innerIdlSymbol,
+    }
+}
+
+export function createUnspecifiedGenericType(name: string, typeArguments: IDLType[]): IDLUnspecifiedGenericType {
+    return {
+        kind: IDLKind.UnspecifiedGenericType,
         name,
         typeArguments,
         _idlNodeBrand: innerIdlSymbol,
@@ -843,6 +864,7 @@ export function printType(type: IDLType | IDLInterface | undefined, options?:Pri
             return `(${res})`;
         return res;
     }
+    if (isUnspecifiedGenericType(type)) return `${type.name}<${type.typeArguments.map(it => printType(it)).join(", ")}>`
     if (isUnionType(type)) return `(${type.types.map(it => printType(it)).join(" or ")})`
     if (isTypeParameterType(type)) return type.name
     throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
@@ -913,6 +935,9 @@ function printExtendedAttributes(idl: IDLNode, indentLevel: number): stringOrNon
         break
     case IDLKind.ReferenceType:
         typeArguments = (idl as IDLReferenceType).typeArguments
+        break
+    case IDLKind.UnspecifiedGenericType:
+        typeArguments = (idl as IDLUnspecifiedGenericType).typeArguments
         break
     }
     const attributes: IDLExtendedAttribute[] = Array.from(idl.extendedAttributes || [])
@@ -1243,6 +1268,7 @@ export function forEachFunction(node: IDLNode, cb: (node: IDLFunction) => void):
         case IDLKind.EnumType:
         case IDLKind.PrimitiveType:
         case IDLKind.ReferenceType:
+        case IDLKind.UnspecifiedGenericType:
         case IDLKind.ModuleType:
         case IDLKind.Package:
         case IDLKind.Import:

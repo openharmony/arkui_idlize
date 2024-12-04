@@ -45,7 +45,8 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLNode,
     IDLThisType,
     isOptionalType,
-    IDLVersion,} from "../idl"
+    IDLVersion,
+    isUnspecifiedGenericType,} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
@@ -319,6 +320,8 @@ export class CustomPrintVisitor {
                 return `${type.elementType.map(it => this.printTypeForTS(it)).join(",")}[]`
             return `${mapContainerType(type)}<${type.elementType.map(it => this.printTypeForTS(it)).join(",")}>`
         }
+        if (isUnspecifiedGenericType(type))
+            return `${type.name}<${type.typeArguments.map(it => this.printTypeForTS(it)).join(",")}>`
         if (isReferenceType(type)) return this.toTypeName(type)
         if (isUnionType(type)) return `(${type.types.map(it => this.printTypeForTS(it)).join("|")})`
         if (isTypeParameterType(type)) return type.name
@@ -371,6 +374,7 @@ export class CustomPrintVisitor {
 export function idlToString(name: string, content: string): string {
     let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
     webidl2.parse(content)
+        .filter(it => !!it.type)
         .map(it => toIDLNode(name, it))
         .forEach(it => {
             transformMethodsAsync2ReturnPromise(it)

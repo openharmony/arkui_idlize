@@ -19,7 +19,8 @@ import {
     isPromiseTypeDescription,
     isRecordTypeDescription,
     isSequenceTypeDescription,
-    isSingleTypeDescription, isTypedef, isUnionTypeDescription
+    isSingleTypeDescription, isTypedef, isUnionTypeDescription,
+    isUnspecifiedGenericTypeDescription
 } from "./webidl2-utils"
 import { toString } from "./toString"
 import * as idl from "../idl"
@@ -211,6 +212,13 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
     }
     if (isSequenceTypeDescription(type) || isPromiseTypeDescription(type) || isRecordTypeDescription(type)) {
         return idl.createContainerType(
+            type.generic,
+            type.idlType.map(it => toIDLType(file, it))
+        )
+    }
+
+    if (isUnspecifiedGenericTypeDescription(type)) {
+        return idl.createUnspecifiedGenericType(
             type.generic,
             type.idlType.map(it => toIDLType(file, it))
         )

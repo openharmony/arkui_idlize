@@ -310,7 +310,7 @@ if (options.dts2peer) {
             .map(it => {
                 const idlFile = path.resolve(path.join(dir, it))
                 const content = fs.readFileSync(path.resolve(path.join(dir, it))).toString()
-                const nodes = webidl2.parse(content).map(it => toIDLNode(idlFile, it))
+                const nodes = webidl2.parse(content).filter(it => !!it.type).map(it => toIDLNode(idlFile, it))
                 return new PeerFile(idlFile, nodes, new Set(), true)
             })
     }

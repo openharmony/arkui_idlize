@@ -82,7 +82,7 @@ export function scanIDL(
         .map((file: string) => {
             let content = fs.readFileSync(file).toString()
             let parsed = webidl2.parse(content)
-            return parsed.map(it => toIDLNode(file, it))
+            return parsed.filter(it => !!it.type).map(it => toIDLNode(file, it))
         })
 }
 
