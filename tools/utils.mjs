@@ -1,0 +1,120 @@
+import fs from "fs"
+import chalk from "chalk"
+import path from "path"
+import { fileURLToPath } from 'url'
+import { execSync } from "child_process"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+export const IDLIZE_HOME = path.join(__dirname, "..")
+
+export class Version {
+    constructor(version) {
+        let [major, minor, patch] = version.split(/\./).map(x => +x);
+        this.major = major;
+        this.minor = minor;
+        this.patch = patch;
+    }
+
+    up() {
+        ++this.patch
+        return new Version(`${this.major}.${this.minor}.${this.patch}`)
+    }
+
+    down() {
+        --this.patch
+        return new Version(`${this.major}.${this.minor}.${this.patch}`)
+    }
+
+    toString() {
+        return `${this.major}.${this.minor}.${this.patch}`
+    }
+}
+
+export class Git {
+    checkout(branch) {
+        execSync(`git checkout -b ${branch}`)
+    }
+
+    push(branch) {
+        execSync(`git push ${branch}`)
+    }
+
+    branch() {
+        return execSync("git rev-parse --abbrev-ref HEAD", { encoding: 'utf8'}).toString().trim()
+    }
+
+    checkBranch(branch) {
+        const branches = execSync("git branch", { encoding: 'utf8'}).toString().trim()
+        return branches.includes(branch)
+    }
+
+    deleteBranch(branch) {
+        execSync(`git branch -D ${branch}`)
+    }
+
+    hash() {
+        return execSync("git rev-parse --short HEAD", { encoding: 'utf8'}).toString().trim()
+    }
+
+    commit(message) {
+        execSync(`git commit -m '${message}'`)
+    }
+
+    add(files) {
+        execSync(`git add ${files}`)
+    }
+
+    restore(files) {
+        execSync(`git restore ${files}`)
+    }
+    
+    clean() {
+        execSync("git clean -fd")
+    }
+
+}
+
+export function writeToPackageJson(key, value) {
+    const json = JSON.parse(fs.readFileSync(path.join(IDLIZE_HOME, "package.json"), "utf-8"))
+    json[key] = value
+    fs.writeFileSync(path.join(IDLIZE_HOME, "package.json"), JSON.stringify(json, null, 4), "utf-8")
+
+}
+
+
+const keyIdlizeRegistry = "@azanat:registry"
+const keyKoalaRegistry = "@koalaui:registry"
+const koalaRegistry = "https://rnd-gitlab-msc.huawei.com/api/v4/projects/3921/packages/npm/"
+const idlizeRegistry = "https://nexus.bz-openlab.ru:10443/repository/koala-npm/"
+
+function setRegistry(key, value) {
+    execSync(`npm config --location project set ${key} ${value}`)
+}
+
+function getRegistry(key) {
+    execSync(`npm config --location project get ${key}`)
+}
+
+export function publishToOpenlab(tag, dryRun = false) {
+    setRegistry(keyIdlizeRegistry, idlizeRegistry)
+    setRegistry("strict-ssl", false)
+
+    if (dryRun) {
+        execSync(`npm publish --dry-run --tag ${tag}`)
+    } else {
+        execSync(`npm publish --tag ${tag}`)
+    }
+}
+
+export function publishToGitlab(tag, dryRun = false) {
+    setRegistry(keyIdlizeRegistry, koalaRegistry)
+    setRegistry("strict-ssl", false)
+
+    if (dryRun) {
+        execSync(`npm publish --dry-run --tag ${tag}`)
+    } else {
+        execSync(`npm publish --tag ${tag}`)
+    }
+    setRegistry(keyIdlizeRegistry, idlizeRegistry)
+}

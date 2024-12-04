@@ -13,76 +13,20 @@
  * limitations under the License.
  */
 
-import fs from "fs"
-import chalk from "chalk"
-import path from "path"
 import process from "process"
 import minimist from "minimist"
-import { execSync } from "child_process"
+import { publishToGitlab, publishToOpenlab, writeToPackageJson, Git } from "./utils.mjs"
 
 var options = minimist(process.argv.slice(2))
 
 const dryRun = options['dry-run']
 const tag = options.tag ?? 'next'
+const git = new Git
 
-const CWD = process.cwd()
-const prebuiltPath = path.join(CWD, ".packages")
-
-const keyIdlizeRegistry = "@azanat:registry"
-const keyKoalaRegistry = "@koalaui:registry"
-const koalaRegistry = "https://rnd-gitlab-msc.huawei.com/api/v4/projects/3921/packages/npm/"
-const idlizeRegistry = "https://nexus.bz-openlab.ru:10443/repository/koala-npm/"
-
-function setRegistry(key, value) {
-    execSync(`npm config --location project set ${key} ${value}`)
-}
-
-function getRegistry(key) {
-    execSync(`npm config --location project get ${key}`)
-}
-
-function pack() {
-    if (fs.existsSync(prebuiltPath))
-        fs.rmSync(prebuiltPath, { recursive: true })
-    fs.mkdirSync(prebuiltPath)
-    execSync(`npm pack --pack-destination ${prebuiltPath}`)
-}
-
-function publishToOpenlab() {
-
-    pack()
-    setRegistry(keyIdlizeRegistry, idlizeRegistry)
-    setRegistry("strict-ssl", false)
-
-    let packageName = fs.readdirSync(prebuiltPath)[0]
-    console.log(chalk.green(`> Publishing ${packageName}...`))
-    if (dryRun) {
-        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --dry-run --tag ${tag}`)
-    } else {
-        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --tag ${tag}`)
-    }
-
-}
-
-function publishToGitlab() {
-
-    pack()
-    setRegistry(keyIdlizeRegistry, koalaRegistry)
-    setRegistry("strict-ssl", false)
-
-    let packageName = fs.readdirSync(prebuiltPath)[0]
-    console.log(chalk.green(`> Publishing ${packageName}...`))
-    if (dryRun) {
-        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --dry-run --tag ${tag}`)
-    } else {
-        execSync(`npm publish ${path.join(prebuiltPath, packageName)} --tag ${tag}`)
-    }
-
-    setRegistry(keyIdlizeRegistry, idlizeRegistry)
-}
-
-function publish() {
-    process.env.KOALA_BZ == true ? publishToOpenlab() : publishToGitlab()
+export function publish() {
+    writeToPackageJson("description", `idlize hash: ${git.hash()}`)
+    process.env.KOALA_BZ == true ? publishToOpenlab(tag, dryRun) : publishToGitlab(tag, dryRun)
+    writeToPackageJson("description", "")
 }
 
 publish()

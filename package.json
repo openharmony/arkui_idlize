@@ -54,6 +54,7 @@
   "scripts": {
     "download:sdk": "node ./download-sdk.mjs",
     "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",
+    "release": "npm run compile && npm run webidl2 && node tools/release.mjs",
     "webidl2": "cd ./webidl2.js && npm i && npm run build",
     "setup-out": "node tools/setup/setup.mjs",
     "compile": "npm run download:sdk && rollup -c",
