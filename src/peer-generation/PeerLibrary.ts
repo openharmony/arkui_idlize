@@ -457,13 +457,11 @@ export class PeerLibrary implements LibraryInterface {
         return new Set(data)
     }
 
-    flattenType(type: idl.IDLType, name?: string): idl.IDLType {
+    flattenType(type: idl.IDLType): idl.IDLType {
         if (idl.isUnionType(type)) {
             const allTypes = type.types.flatMap(it => convertType(this.unionFlattener, it))
             const uniqueTypes = new Set(allTypes)
-            return typeOrUnion(
-                uniqueTypes.size === allTypes.length ? type.types : Array.from(uniqueTypes),
-                name)
+            return uniqueTypes.size === allTypes.length ? type : typeOrUnion(Array.from(uniqueTypes))
         }
         return type
     }
