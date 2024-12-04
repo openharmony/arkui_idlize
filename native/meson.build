@@ -58,6 +58,7 @@ sources = [
     external_interop_dir / 'interop-logging.cc',
     external_framework_dir / 'events.cc',
     external_framework_dir / 'callbacks.cc',
+    external_framework_dir / 'vsync.cc'
 ]
 if compile_events_test
     sources += [

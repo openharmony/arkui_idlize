@@ -43,7 +43,6 @@ interface Node {
     // TODO: rename to smth more sensible!
     i32 CheckArkoalaGeneratedEvents(sequence<u8> result, i32 size);
     i32 InjectEvent(sequence<u8> data, i32 size);
-    void EmitEvent(i32 type, i32 target, i32 arg0, i32 arg1);
     void EmulateClickEvent(pointer node, sequence<u8> result, i32 size);
     void EmulateTextInputEvent(i32 nodeId, String text);
 

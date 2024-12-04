@@ -50,7 +50,6 @@ void* FindModule(int kind) {
     return nullptr;
 }
 
-const %CPP_PREFIX%ArkUIEventsAPI* GetArkUiEventsAPI();
 static %CPP_PREFIX%ArkUIAnyAPI* impls[%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%COUNT] = { 0 };
 const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
 
@@ -115,4 +114,16 @@ const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* re
         impls[kind] = impl;
     }
     return impls[kind];
+}
+
+const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
+    return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(
+        GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%BASIC),
+        %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, nullptr));
+}
+
+const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
+    return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedNodeAPI*>(
+        GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED),
+        %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, nullptr));
 }

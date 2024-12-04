@@ -26,19 +26,9 @@
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
 
-const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
-const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
-    return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(
-        GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%BASIC),
-        %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, nullptr));
-}
-
-const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
-    return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedNodeAPI*>(
-        GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED),
-        %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, nullptr));
-}
+const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI();
+const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI();
 
 CustomDeserializer* DeserializerBase::customDeserializers = nullptr;
 
@@ -343,46 +333,6 @@ void impl_SetLazyItemIndexer(KVMContext vmContext, Ark_NativePointer nodePtr, Ar
 }
 KOALA_INTEROP_CTX_V2(SetLazyItemIndexer, Ark_NativePointer, Ark_Int32)
 
-// TODO: map if multiple pipeline contexts.
-static KVMDeferred* currentVsyncDeferred = nullptr;
-
-void vsyncCallback(Ark_PipelineContext context) {
-    if (currentVsyncDeferred) {
-        currentVsyncDeferred->resolve(currentVsyncDeferred, nullptr, 0);
-        currentVsyncDeferred = nullptr;
-    }
-}
-
-void impl_SetVsyncCallback(Ark_NativePointer pipelineContext)
-{
-    Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext) pipelineContext;
-    GetArkUIExtendedNodeAPI()->setVsyncCallback(pipelineContextCast, vsyncCallback);
-}
-KOALA_INTEROP_V1(SetVsyncCallback, Ark_NativePointer)
-
-KVMObjectHandle impl_VSyncAwait(KVMContext vmContext, Ark_NativePointer pipelineContext)
-{
-    Ark_PipelineContext pipelineContextCast = (Ark_PipelineContext)pipelineContext;
-    KVMObjectHandle result = nullptr;
-    KVMDeferred* deferred = CreateDeferred(vmContext, &result);
-    if (currentVsyncDeferred) {
-        LOGE("%s", "Multiple unresolved vsync deferred");
-        currentVsyncDeferred->reject(currentVsyncDeferred, "Wrong");
-    }
-    currentVsyncDeferred = deferred;
-    return result;
-}
-KOALA_INTEROP_CTX_1(VSyncAwait, KVMObjectHandle, Ark_NativePointer)
-
-void impl_UnblockVsyncWait(Ark_NativePointer pipelineContext)
-{
-    if (currentVsyncDeferred) {
-        currentVsyncDeferred->resolve(currentVsyncDeferred, nullptr, 0);
-        currentVsyncDeferred = nullptr;
-    }
-}
-KOALA_INTEROP_V1(UnblockVsyncWait, Ark_NativePointer)
-
 void impl_SetCustomCallback(KVMContext vmContext, Ark_NativePointer nodePtr, Ark_Int32 updaterId)
 {
     Ark_VMContext vmContextCast = (Ark_VMContext) vmContext;
@@ -467,13 +417,6 @@ void impl_SetRangeUpdater(Ark_NativePointer nodePtr, Ark_Int32 updaterId)
     GetArkUIExtendedNodeAPI()->setRangeUpdater(nodePtrCast, updaterId);
 }
 KOALA_INTEROP_V2(SetRangeUpdater, Ark_NativePointer, Ark_Int32)
-
-Ark_NativePointer impl_GetPipelineContext(Ark_NativePointer nodePtr)
-{
-    Ark_NodeHandle nodePtrCast = (Ark_NodeHandle) nodePtr;
-    return GetArkUIExtendedNodeAPI()->getPipelineContext(nodePtrCast);
-}
-KOALA_INTEROP_1(GetPipelineContext, Ark_NativePointer, Ark_NativePointer)
 
 void impl_SetChildTotalCount(Ark_NativePointer nodePtr, Ark_Int32 totalCount)
 {
