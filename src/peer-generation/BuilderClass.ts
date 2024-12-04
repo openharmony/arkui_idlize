@@ -18,7 +18,7 @@ import { ImportFeature } from "./ImportsCollector"
 import { Language } from "../Language";
 import { PeerLibrary } from "./PeerLibrary";
 import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
-import { createReferenceType, IDLReferenceType, IDLThisType, IDLType, IDLVoidType } from "../idl"
+import { createConstructor, createInterface, createMethod, createParameter, createReferenceType, IDLInterface, IDLKind, IDLReferenceType, IDLThisType, IDLType, IDLVoidType } from "../idl"
 
 function builderMethod(name: string, type: IDLType): Method {
     return new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))
@@ -26,6 +26,7 @@ function builderMethod(name: string, type: IDLType): Method {
 
 export class BuilderClass {
     constructor(
+        public readonly declaration: IDLInterface,
         public readonly name: string,
         public readonly generics: string[] | undefined,
         public readonly isInterface: boolean,
@@ -33,7 +34,7 @@ export class BuilderClass {
         public readonly fields: Field[],
         public readonly constructors: Method[],
         public readonly methods: Method[],
-        public readonly importFeatures: ImportFeature[],
+        // public readonly importFeatures: ImportFeature[],
         public readonly needBeGenerated: boolean = true,
     ) { }
 }
@@ -42,27 +43,48 @@ export const CUSTOM_BUILDER_CLASSES: BuilderClass[] = []
 const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set()
 
 export function initCustomBuilderClasses(library: PeerLibrary) {
+    const decl = createInterface(
+        "Indicator",
+        IDLKind.Class,
+        [],
+        [createConstructor([], undefined)],
+        undefined,
+        undefined,
+        [
+            ...["left", "top", "right", "bottom"].map(it => createMethod(it, 
+                [createParameter("value", createReferenceType("Length"))],
+                IDLThisType,
+            )),
+            ...["start", "end"].map(it => createMethod(it, 
+                [createParameter(`value`, createReferenceType("LengthMetrics"))], 
+                IDLThisType,
+            )),
+            createMethod(`dot`, [], createReferenceType(`DotIndicator`)),
+            createMethod(`digit`, [], createReferenceType(`DigitIndicator`)),
+        ]
+    )
     CUSTOM_BUILDER_CLASSES.push(
-        new BuilderClass("Indicator", ["T"], false, undefined,
+        new BuilderClass(decl, "Indicator", ["T"], false, undefined,
             [], // fields
             [new Method("constructor", new MethodSignature(IDLVoidType, []))],
             [
                 ...["left", "top", "right", "bottom"].map(it => builderMethod(it, createReferenceType("Length"))),
                 ...["start", "end"].map(it => builderMethod(it, createReferenceType("LengthMetrics"))),
                 new Method("dot", new MethodSignature(createReferenceType("DotIndicator"), []), [MethodModifier.STATIC]),
+                new Method("digit", new MethodSignature(createReferenceType("DigitIndicator"), []), [MethodModifier.STATIC]),
             ],
-            [], // imports
+            // [], // imports
         )
     )
 
     CUSTOM_BUILDER_CLASSES.forEach(it => {
-        if (library.language === Language.ARKTS) {
-            it.importFeatures.push(
-                ...it.methods.flatMap(it => [...it.signature.args, it.signature.returnType])
-                    .map(it => convertTypeToFeature(library, it))
-                    .filter((it) : it is ImportFeature => it !== undefined)
-            )
-        }
+        // if (library.language === Language.ARKTS) {
+        //     it.importFeatures.push(
+        //         ...it.methods.flatMap(it => [...it.signature.args, it.signature.returnType])
+        //             .map(it => convertTypeToFeature(library, it))
+        //             .filter((it) : it is ImportFeature => it !== undefined)
+        //     )
+        // }
         CUSTOM_BUILDER_CLASSES_SET.add(it.name)
     })
 }

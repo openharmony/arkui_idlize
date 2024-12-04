@@ -51,7 +51,6 @@ import { printEvents, printEventsCArkoalaImpl, printEventsCLibaceImpl } from "./
 import { printGniSources } from "./printers/GniPrinter"
 import { printMesonBuild } from "./printers/MesonPrinter"
 import {
-    printFakeDeclarations as printIdlFakeDeclarations,
     printInterfaces as printIdlInterfaces
 } from "./printers/InterfacePrinter"
 import { printBuilderClasses } from "./printers/BuilderClassPrinter"
@@ -62,7 +61,6 @@ import { Language } from "../Language"
 import { PeerLibrary } from "./PeerLibrary"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { printDeclarations, printEnumsImpl } from "./printers/DeclarationPrinter"
-import { printConflictedDeclarations } from "./printers/ConflictedDeclarationsPrinter";
 import { printNativeModuleRecorder } from "./printers/NativeModuleRecorderPrinter"
 import { IndentedPrinter } from "../IndentedPrinter"
 import { createLanguageWriter, LanguageWriter } from "./LanguageWriters"
@@ -232,18 +230,6 @@ export function generateArkoalaFromIdl(config: {
             arkuiComponentsFiles.push(outComponentFile)
         }
     }
-    const fakeDeclarations = printIdlFakeDeclarations(peerLibrary)
-    for (const [targetFile, data] of fakeDeclarations) {
-        const outComponentFile = arkoala.interface(targetFile)
-        writeFile(outComponentFile, data,
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true,
-                message: "producing [idl, fake]"
-            })
-        if (config.verbose) console.log(data)
-        arkuiComponentsFiles.push(outComponentFile)
-    }
 
     if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {
         let enumImpls = createLanguageWriter(peerLibrary.language, peerLibrary)
@@ -346,14 +332,6 @@ export function generateArkoalaFromIdl(config: {
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
             printNodeTypes(peerLibrary),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true
-            }
-        )
-        writeFile(
-            arkoala.arktsLib(new TargetFile('ConflictedDeclarations')),
-            printConflictedDeclarations(peerLibrary),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true

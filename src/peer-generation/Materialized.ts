@@ -116,7 +116,6 @@ export class MaterializedClass implements PeerClassBase {
         public readonly fields: MaterializedField[],
         public readonly ctor: MaterializedMethod,
         public readonly finalizer: MaterializedMethod,
-        public readonly importFeatures: ImportFeature[],
         public readonly methods: MaterializedMethod[],
         public readonly needBeGenerated: boolean = true,
         public readonly taggedMethods: idl.IDLMethod[] = [],

@@ -474,7 +474,7 @@ export abstract class LanguageWriter {
     abstract ordinalFromEnum(value: LanguageExpression, enumReference: idl.IDLType): LanguageExpression
     abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string
     abstract getNodeName(type: idl.IDLNode): string
-    abstract fork(): LanguageWriter
+    abstract fork(options?: { resolver?: ReferenceResolver }): LanguageWriter
 
     concat(other: PrinterLike): this {
         other.getOutput().forEach(it => this.print(it))

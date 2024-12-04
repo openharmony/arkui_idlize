@@ -43,10 +43,10 @@ declare interface CommonConfiguration<T> {
   contentModifier: ContentModifier<T>
 }
 
-interface ICurve {
+// interface ICurve {
 
-  interpolate(fraction: number): number;
-}
+//   interpolate(fraction: number): number;
+// }
 
 declare interface StateStyles {
 
@@ -476,7 +476,7 @@ declare interface GestureModifier {
   applyGesture(event: UIGestureEvent): void;
 }
 
-declare type GestureRecognizerJudgeBeginCallback = (event: BaseGestureEvent, current: GestureRecognizer, recognizers: Array<GestureRecognizer>) => GestureJudgeResult;
+// declare type GestureRecognizerJudgeBeginCallback = (event: BaseGestureEvent, current: GestureRecognizer, recognizers: Array<GestureRecognizer>) => GestureJudgeResult;
 
 
 declare module 'commonEvent' {

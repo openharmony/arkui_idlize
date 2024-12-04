@@ -20,7 +20,8 @@ interface EmitterProperty {
     emitRate?: number;
 }
 
-declare class ParticleAttribute extends CommonMethod<ParticleAttribute> {
+// ignored in PeerGeneratorConfig
+// declare class ParticleAttribute extends CommonMethod<ParticleAttribute> {
 
-    emitter(value: Array<EmitterProperty>): ParticleAttribute;
-}
+//     emitter(value: Array<EmitterProperty>): ParticleAttribute;
+// }

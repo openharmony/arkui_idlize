@@ -31,7 +31,6 @@ import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor
 import { LibraryInterface } from "../../LibraryInterface";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { IDLNodeToStringConvertor } from "../../peer-generation/LanguageWriters/convertors/InteropConvertor";
-import { IdlEntryManager } from "../../peer-generation/idl/IdlEntryManager";
 import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
 import { createOutArgConvertor } from "../../peer-generation/PromiseConvertors";
 
@@ -60,7 +59,6 @@ export class IdlSkoalaLibrary implements LibraryInterface {
     public readonly serializerDeclarations: Set<idl.IDLInterface> = new Set()
     readonly nameConvertorInstance: IdlNameConvertor = new TSSkoalaTypeNameConvertor(this)
     readonly interopNameConvertorInstance: IdlNameConvertor = new IDLNodeToStringConvertor(this)
-    readonly importTypesStubToSource: Map<string, string> = new Map()
     readonly typeMap = new Map<idl.IDLType, [idl.IDLNode, boolean]>()
     public name: string = ""
 
@@ -77,10 +75,6 @@ export class IdlSkoalaLibrary implements LibraryInterface {
 
     getCurrentContext(): string | undefined {
         return ""
-    }
-
-    get factory(): IdlEntryManager {
-        throw new Error("Method not implemented.");
     }
 
     isComponentDeclaration(iface: idl.IDLInterface): boolean {
@@ -622,17 +616,10 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         this.printer.printTypedef(node)
         this.writer.print(this.printer.output.join("\n"))
     }
-    private replaceImportTypeNodes(text: string): string {///operate on stringOrNone[]
-        for (const [stub, src] of [...this.library.importTypesStubToSource.entries()].reverse()) {
-            text = text.replaceAll(src, stub)
-        }
-        return text
-    }
-
     convertInterface(node: idl.IDLInterface): void {
         this.printer.output = []
         this.printer.printInterface(node)
-        this.writer.print(this.replaceImportTypeNodes(this.printer.output.join("\n")))
+        this.writer.print(this.printer.output.join("\n"))
     }
 }
 

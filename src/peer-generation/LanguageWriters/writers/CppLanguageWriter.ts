@@ -161,8 +161,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     getNodeName(type: IDLNode): string {
         return this.typeConvertor.convert(type)
     }
-    fork(): LanguageWriter {
-        return new CppLanguageWriter(new IndentedPrinter(), this.resolver)
+    fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
+        return new CppLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver)
     }
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
         const superClasses = (superClass ? [superClass] : []).concat(interfaces ?? [])

@@ -1,3 +1,3 @@
 
-declare class BaseSpan<T> extends CommonMethod<T> {
-}
+// declare class BaseSpan<T> extends CommonMethod<T> {
+// }

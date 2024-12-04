@@ -193,8 +193,8 @@ export class TSLanguageWriter extends LanguageWriter {
         if (ident) this.pushIndent()
     }
 
-    fork(): LanguageWriter {
-        return new TSLanguageWriter(new IndentedPrinter(), this.resolver, this.language)
+    fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
+        return new TSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.language)
     }
 
     getNodeName(type: idl.IDLNode): string {

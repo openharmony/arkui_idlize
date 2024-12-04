@@ -56,6 +56,7 @@ import { PrimitiveType } from "./peer-generation/ArkPrimitiveType"
 import { IdlSkoalaLibrary, IldSkoalaFile } from "./skoala-generation/idl/idlSkoalaLibrary"
 import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"
 import { IdlWrapperProcessor } from "./skoala-generation/idl/idlSkoalaLibrary"
+import { fillSyntheticDeclarations } from "./peer-generation/idl/SyntheticDeclarationsFiller"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -380,7 +381,7 @@ if (options.dts2peer) {
                     })
                     visitor.visitWholeFile()
                 })
-                idlLibrary.generateSynteticsRequired()
+                fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
                 peerProcessor.process()
                 idlLibrary.analyze()

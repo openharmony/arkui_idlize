@@ -19,13 +19,11 @@ import { CppLanguageWriter, LanguageWriter, NamedMethodSignature } from "../Lang
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
-import { CallbackKind, EnumConvertor, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "../ArgConvertors";
+import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "../ArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { PrimitiveType } from "../ArkPrimitiveType";
-import { createSerializerDependencyFilter, getSerializerDeclarations, printSerializerImports } from "./SerializerPrinter";
-import { convertDeclToFeature, createDependencyFilter } from "../idl/IdlPeerGeneratorVisitor";
-import { isSyntheticDeclaration } from "../idl/IdlSyntheticDeclarations";
+import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
 
 function collectEntryCallbacks(library: PeerLibrary, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
@@ -57,21 +55,32 @@ function collectEntryCallbacks(library: PeerLibrary, entry: idl.IDLEntry): idl.I
 export function collectUniqueCallbacks(library: PeerLibrary) {
     const foundCallbacksNames = new Set<string>()
     const foundCallbacks: idl.IDLCallback[] = []
+    const addCallback = (callback: idl.IDLCallback) => {
+        if (foundCallbacksNames.has(callback.name))
+            return
+        foundCallbacksNames.add(callback.name)
+        foundCallbacks.push(callback)        
+    }
     for (const file of library.files) {
         for (const decl of file.entries) {
             for (const callback of collectEntryCallbacks(library, decl)) {
-                if (foundCallbacksNames.has(callback.name))
-                    continue
-                foundCallbacksNames.add(callback.name)
-                foundCallbacks.push(callback)
+                addCallback(callback)
             }
+            idl.forEachFunction(decl, function_ => {
+                const promise = idl.asPromise(function_.returnType)
+                if (promise) {
+                    const reference = library.createContinuationCallbackReference(promise)
+                    const callback = library.resolveTypeReference(reference)
+                    addCallback(callback as idl.IDLCallback)
+                }
+            })
         }
     }
-    for (const callback of library.continuationCallbacks) {
-        if (foundCallbacksNames.has(callback.name))
-            continue
-        foundCallbacksNames.add(callback.name)
-        foundCallbacks.push(callback)
+    for (const foundCallback of [...foundCallbacks]) {
+        const continuationRef = library.createContinuationCallbackReference(foundCallback.returnType)
+        const continuation = library.resolveTypeReference(continuationRef)
+        if (continuation && idl.isCallback(continuation))
+            addCallback(continuation)
     }
     return foundCallbacks
         .sort((a, b) => a.name.localeCompare(b.name))
@@ -94,6 +103,8 @@ export function collectUniqueCallbacks(library: PeerLibrary) {
                 return false
             // (value: IgnoredInterface) => void
             if (subtypes.some(it => idl.isNamedNode(it) && PeerGeneratorConfig.ignoreEntry(it.name, library.language)))
+                return false
+            if (subtypes.some(it => idl.isNamedNode(it) && it.name === "this"))
                 return false
             return true
         })
@@ -144,19 +155,10 @@ class DeserializeCallbacksVisitor {
 
             if (this.writer.language === Language.ARKTS) {
                 for (const callback of collectUniqueCallbacks(this.library)) {
-                    if (idl.isSyntheticEntry(callback))
-                        continue
-                    const feature = convertDeclToFeature(this.library, callback)
-                    imports.addFeature(feature.feature, feature.module)
+                    collectDeclItself(this.library, callback, imports)
+                    collectDeclDependencies(this.library, callback, imports, { expandTypedefs: true })
                 }
-                this.library.files.forEach(peer => peer.serializeImportFeatures
-                    .forEach(importFeature => imports.addFeature(importFeature.feature, importFeature.module)))
-        
-                getSerializerDeclarations(this.library, createSerializerDependencyFilter(this.destFile.language)).filter(it => isSyntheticDeclaration(it) || it.fileName)
-                    .filter(it => !idl.isCallback(it))
-                    .map(it => convertDeclToFeature(this.library, it))
-                    .forEach(it => imports.addFeature(it.feature, it.module))
-        
+
                 for (let builder of this.library.builderClasses.keys()) {
                     imports.addFeature(builder, `Ark${builder}Builder`)
                 }

@@ -68,8 +68,8 @@ export function isResource(value: Object): value is Resource {
 }
 
 // Poor man's instanceof, fails on subclasses
-export function isInstanceOf(className: string, value: Object): boolean {
-    return value.constructor.name === className
+export function isInstanceOf(className: string, value: Object | undefined): boolean {
+    return value?.constructor.name === className
 }
 
 export function registerCallback(value: object|undefined): int32 {

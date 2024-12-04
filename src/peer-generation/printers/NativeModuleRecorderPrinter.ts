@@ -19,11 +19,12 @@ import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
-import { makeSyntheticDeclarationsFiles } from "../idl/IdlSyntheticDeclarations";
 import { Language } from "../../Language";
-import { createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLI32Type, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType } from "../../idl";
+import { createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, IDLI32Type, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType } from "../../idl";
 import { makeInteropSignature } from "./NativeModulePrinter";
 import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
+import { generateSyntheticFunctionName } from "../../IDLVisitor";
+import { createAlternativeReferenceResolver } from "../ReferenceResolver";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
@@ -44,9 +45,6 @@ class NativeModuleRecorderVisitor {
         imports.addFeatures(["int32", "asFloat64", "CustomTextEncoder"], "@koalaui/common")
         imports.addFeatures(["encodeToData", "KFloat", "KFloat32ArrayPtr", "KInt", "KInt32ArrayPtr", "KPointer", "KStringPtr", "KUint8ArrayPtr", "nullptr", "pointer", "KBoolean"], "@koalaui/interop")
         imports.addFeatures(["NodePointer", "NativeModuleEmpty"], "@koalaui/arkoala")
-        for (let [module, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
-            declarations.forEach(it => imports.addFeature(it.name!, module))
-        }
         imports.print(this.nativeModuleRecorder, '')
     }
 
@@ -303,16 +301,21 @@ class NativeModuleRecorderVisitor {
     }
 
     printConstructor(writer: LanguageWriter) {
-        const [paramType] = this.library.factory.generateCallback(
-            [createParameter('type', IDLI32Type)],
-            IDLStringType
-        )
-        writer.writeConstructorImplementation("NativeModuleRecorder", new NamedMethodSignature(IDLVoidType, [paramType], ["nameByNodeType"]), w => {
+        const callbackParameters = [createParameter('type', IDLI32Type)]
+        const callbackName = generateSyntheticFunctionName(callbackParameters, IDLStringType)
+        const callback = createCallback(callbackName, callbackParameters, IDLStringType,
+            { extendedAttributes: [{name: IDLExtendedAttributes.Synthetic}]})
+        const alternativeResolver = createAlternativeReferenceResolver(this.library, new Map([[
+            callbackName, callback
+        ]]))
+        const alternativeWriter = writer.fork({resolver: alternativeResolver})
+        alternativeWriter.writeConstructorImplementation("NativeModuleRecorder", new NamedMethodSignature(IDLVoidType, [createReferenceType(callbackName)], ["nameByNodeType"]), w => {
             w.writeSuperCall([])
             w.writeLines(`this.nameByNodeType = nameByNodeType`)
             w.writeLines(`this.pointers[NULL_POINTER] = null`)
             w.writeLines(`this.pointers[FINALIZER_POINTER] = (ptr: pointer) => { this.pointers[ptr as number] = null }`)
         })
+        writer.concat(alternativeWriter)
     }
 
     print(): void {

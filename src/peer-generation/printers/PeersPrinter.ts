@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import * as idl from "../../idl"
 import * as path from "path"
 import { renameDtsToPeer, throwException } from "../../util";
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
@@ -44,6 +45,7 @@ import { printJavaImports } from "./lang/JavaPrinters";
 import { Language } from "../../Language";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isNamedNode, isPrimitiveType, maybeOptional } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
+import { collectDeclDependencies } from "../ImportsCollectorUtils";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -95,18 +97,15 @@ class PeerFileVisitor {
                 if (parentAttributesClass)
                     imports.addFeature(parentAttributesClass, parentModule)
             }
+            if (PeerGeneratorConfig.needInterfaces) {
+                const component = this.library.findComponentByType(idl.createReferenceType(peer.originalClassName!))!
+                collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
+                if (component.interfaceDeclaration)
+                    collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
+            }
         })
         if (this.library.language === Language.TS
             || this.library.language === Language.ARKTS) {
-            const seenNames = new Set<string>()
-            this.file.importFeatures
-                .concat(this.file.serializeImportFeatures)
-                .forEach(it => {
-                    if (!seenNames.has(it.feature)) {
-                        seenNames.add(it.feature)
-                        imports.addFeature(it.feature, it.module)
-                    }
-                })
             imports.addFeature('GestureName', './shared/generated-utils')
             imports.addFeature('GestureComponent', './shared/generated-utils')
             imports.addFeature('CallbackKind', './peers/CallbackKind')

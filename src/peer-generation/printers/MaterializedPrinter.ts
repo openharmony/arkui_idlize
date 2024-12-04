@@ -47,6 +47,10 @@ import { copyMethod } from "../LanguageWriters/LanguageWriter";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLThisType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { generifiedTypeName } from "../idl/common";
+import { collectDeclItself, collectDeclDependencies, convertDeclToFeature, SyntheticModule } from "../ImportsCollectorUtils";
+import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { createDependenciesCollector } from "../idl/IdlDependenciesCollector";
+import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";
 
 interface MaterializedFileVisitor {
     visit(): void
@@ -89,7 +93,19 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     protected collectImports(imports: ImportsCollector) {
-        this.clazz.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+        const decl = this.library.resolveTypeReference(idl.createReferenceType(this.clazz.className))!
+        if (PeerGeneratorConfig.needInterfaces) {
+            collectDeclDependencies(this.library, decl, imports, { expandTypedefs: true })
+            imports.addFeature(
+                createInterfaceDeclName(this.clazz.className),
+                SyntheticModule,
+            )
+        } else {
+            collectDeclDependencies(this.library, decl, (it) => {
+                if ((idl.isInterface(it) || idl.isClass(it)) && isMaterialized(it))
+                    collectDeclItself(this.library, it, imports)
+            })
+        }
     }
 
     private printImports() {
@@ -349,7 +365,6 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
         this.printPackage()
 
         const imports = [{feature: 'org.koalaui.interop.Finalizable', module: ''}]
-        imports.push(...clazz.importFeatures)
         printJavaImports(this.printer, imports)
 
         const emptyParameterType = createReferenceType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)

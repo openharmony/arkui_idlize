@@ -191,8 +191,8 @@ export class CJLanguageWriter extends LanguageWriter {
         this.typeConvertor = new CJIDLNodeToStringConvertor(this.resolver)
         this.typeForeignConvertor = new CJIDLTypeToForeignStringConvertor(this.resolver)
     }
-    fork(): LanguageWriter {
-        return new CJLanguageWriter(new IndentedPrinter(), this.resolver)
+    fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
+        return new CJLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver)
     }
     getNodeName(type: idl.IDLNode): string {
         return this.typeConvertor.convert(type)

@@ -234,7 +234,6 @@ declare abstract class SubscribedAbstractProperty<T> {
 }
 
 // Until we have full sdk
-type LinearGradient = any
 declare interface LayoutChild {}
 declare interface ContentModifier<T>{}
 

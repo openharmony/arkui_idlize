@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import * as idl from "../../idl"
 import * as path from "path"
 import { removeExt, renameDtsToComponent } from "../../util";
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
@@ -41,6 +42,7 @@ import { Language } from "../../Language";
 import { createReferenceType, IDLVoidType, isOptionalType } from "../../idl";
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
+import { collectDeclDependencies } from "../ImportsCollectorUtils";
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -111,9 +113,15 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                     if (convertIdlToCallback(getReferenceResolver(this.library), peer, method, argType))
                         imports.addFeature("UseEventsProperties", './use_properties')
             }
+
+            if (PeerGeneratorConfig.needInterfaces) {
+                const component = this.library.findComponentByType(idl.createReferenceType(peer.originalClassName!))!
+                collectDeclDependencies(this.library, component.attributeDeclaration, imports)
+                if (component.interfaceDeclaration)
+                    collectDeclDependencies(this.library, component.interfaceDeclaration, imports)
+            }
         })
 
-        this.file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         imports.print(this.printer, removeExt(this.targetBasename))
     }
 

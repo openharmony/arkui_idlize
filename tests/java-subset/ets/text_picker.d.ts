@@ -1081,7 +1081,7 @@ declare class TextPickerDialog {
    * @atomicservice
    * @since 11
    */
-  static show(options?: TextPickerDialogOptions): undefined;
+  static show(options?: TextPickerDialogOptions): void;
 }
 
 /**

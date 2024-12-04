@@ -23,8 +23,10 @@ import { ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { PeerLibrary } from "../PeerLibrary";
 import { Language } from "../../Language";
-import { createOptionalType, createReferenceType, forceAsNamedNode, IDLType, IDLVoidType, isOptionalType } from "../../idl";
+import { createOptionalType, createReferenceType, forceAsNamedNode, IDLTopType, IDLType, IDLVoidType, isOptionalType } from "../../idl";
 import { generifiedTypeName } from "../idl/common";
+import { collectDeclDependencies } from "../ImportsCollectorUtils";
+import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 
 interface BuilderClassFileVisitor {
     printFile(): void
@@ -49,7 +51,17 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         const imports = new ImportsCollector()
         imports.addFeature('KBoolean', '@koalaui/interop')
         imports.addFeature('KStringPtr', '@koalaui/interop')
-        clazz.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
+        if (PeerGeneratorConfig.needInterfaces) {
+            collectDeclDependencies(this.peerLibrary, clazz.declaration, imports)
+            if (clazz.declaration.inheritance.length && clazz.declaration.inheritance[0] !== IDLTopType) {
+                const maybeParents = [
+                    ...CUSTOM_BUILDER_CLASSES,
+                    ...this.peerLibrary.buildersToGenerate.values()
+                ]
+                const parentDecl = maybeParents.find(it => it.name === clazz.declaration.inheritance[0].name)
+                collectDeclDependencies(this.peerLibrary, parentDecl!.declaration, imports)
+            }
+        }
         const currentModule = removeExt(renameClassToBuilderClass(clazz.name, this.peerLibrary.language))
         imports.print(this.printer, currentModule)
 
@@ -236,6 +248,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
         const methods = clazz.methods.map(it => this.convertBuilderMethod(it, returnType))
 
         return new BuilderClass(
+            clazz.declaration,
             clazz.name,
             clazz.generics,
             clazz.isInterface,
@@ -243,7 +256,6 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             fields,
             constructors,
             methods,
-            clazz.importFeatures
         )
     }
 
@@ -399,6 +411,7 @@ function processTSBuilderClass(clazz: BuilderClass): BuilderClass {
     const fields = [...clazz.fields, ...ctorFields, ...syntheticFields]
 
     return new BuilderClass(
+        clazz.declaration,
         clazz.name,
         clazz.generics,
         clazz.isInterface,
@@ -406,6 +419,5 @@ function processTSBuilderClass(clazz: BuilderClass): BuilderClass {
         fields,
         constructors,
         methods,
-        clazz.importFeatures
     )
 }

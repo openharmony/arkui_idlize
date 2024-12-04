@@ -29,7 +29,7 @@ import { generateSyntheticIdlNodeName, typeOrUnion } from "./peer-generation/idl
 import { IDLKeywords } from "./languageSpecificKeywords"
 import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
 import { ReferenceResolver } from "./peer-generation/ReferenceResolver"
-import { IDLExtendedAttributes } from "./idl"
+import { IDLVisitorConfig } from "./IDLVisitorConfig"
 
 function escapeIdl(name: string): string {
     if (IDLKeywords.has(name))
@@ -237,10 +237,43 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
 
     /** visit nodes finding exported classes */
     visit(node: ts.Node) {
+        if (ts.isClassDeclaration(node) ||
+            ts.isInterfaceDeclaration(node) ||
+            ts.isTypeAliasDeclaration(node) ||
+            ts.isFunctionDeclaration(node)) {
+            const name = identName(node.name)
+            if (name && IDLVisitorConfig.DeletedDeclarations.includes(name)) {
+                return
+            }
+            if (name && IDLVisitorConfig.StubbedDeclarations.includes(name)) {
+                const decl = idl.createInterface(
+                    name,
+                    idl.IDLKind.Interface,
+                    [],
+                    undefined,
+                    undefined,
+                    [idl.createProperty(`__stub`, idl.IDLStringType)],
+                    undefined,
+                    undefined,
+                    this.collectTypeParameters(node.typeParameters),
+                    {
+                        fileName: node.getSourceFile().fileName,
+                        // extendedAttributes: this.computeComponentExtendedAttributes(node),
+                        documentation: getDocumentation(this.sourceFile, node, this.options.docs)
+                    }
+                )
+                this.output.push(decl)
+                return
+            }
+        }
         if (ts.isClassDeclaration(node)) {
-            this.output.push(this.serializeClass(node))
+            const entry = this.serializeClass(node)
+            if (!PeerGeneratorConfig.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
+                this.output.push(entry)
         } else if (ts.isInterfaceDeclaration(node)) {
-            this.output.push(this.serializeInterface(node))
+            const entry = this.serializeInterface(node)
+            if (!PeerGeneratorConfig.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
+                this.output.push(entry)
         } else if (ts.isModuleDeclaration(node)) {
             if (this.isKnownAmbientModuleDeclaration(node)) {
                 this.output.push(this.serializeAmbientModuleDeclaration(node))
@@ -405,7 +438,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         let name = identName(node.name)
         if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
             if (PeerGeneratorConfig.handWrittenComponents.includes(PeerGeneratorConfig.mapComponentName(name))) {
-                result.push({ name: IDLExtendedAttributes.HandWrittenImplementation })
+                result.push({ name: idl.IDLExtendedAttributes.HandWrittenImplementation })
             }
             result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${PeerGeneratorConfig.mapComponentName(name)}"` })
         }

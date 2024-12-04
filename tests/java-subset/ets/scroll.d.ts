@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-declare interface ScrollAnimationOptions {
+// declare interface ScrollAnimationOptions {
 
-  duration?: number;
+//   duration?: number;
 
-  curve?: Curve | ICurve;
+//   curve?: Curve | ICurve;
 
-  canOverScroll?: boolean;
-}
+//   canOverScroll?: boolean;
+// }
 
 declare class Scroller {
 

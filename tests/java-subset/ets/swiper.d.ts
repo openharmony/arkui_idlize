@@ -29,7 +29,7 @@ declare class Indicator<T> {
 
   static dot(): DotIndicator;
 
-//   static digit(): DigitIndicator;
+  static digit(): DigitIndicator;
 }
 
 declare class DotIndicator extends Indicator<DotIndicator> {
@@ -55,18 +55,18 @@ declare class DotIndicator extends Indicator<DotIndicator> {
 //   maxDisplayCount(maxDisplayCount: number): DotIndicator;
 }
 
-// declare class DigitIndicator extends Indicator<DigitIndicator> {
-//
-//   constructor();
-//
-//   fontColor(value: ResourceColor): DigitIndicator;
-//
-//   selectedFontColor(value: ResourceColor): DigitIndicator;
-//
-//   digitFont(value: Font): DigitIndicator;
-//
-//   selectedDigitFont(value: Font): DigitIndicator;
-// }
+declare class DigitIndicator extends Indicator<DigitIndicator> {
+
+  constructor();
+
+  fontColor(value: ResourceColor): DigitIndicator;
+
+  selectedFontColor(value: ResourceColor): DigitIndicator;
+
+  digitFont(value: Font): DigitIndicator;
+
+  selectedDigitFont(value: Font): DigitIndicator;
+}
 
 declare class SwiperController {
   constructor();

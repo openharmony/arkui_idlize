@@ -2,6 +2,7 @@ import * as idl from '../../idl'
 import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import {
     createLanguageWriter,
+    createTypeNameConvertor,
     generateTypeCheckerName,
     LanguageExpression,
     LanguageWriter,
@@ -10,17 +11,15 @@ import {
     NamedMethodSignature
 } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
-import {
-    convertDeclToFeature,
-    isBuilderClass,
-} from "../idl/IdlPeerGeneratorVisitor";
-import { getSyntheticDeclarationList } from "../idl/IdlSyntheticDeclarations";
-import { createDeclarationNameConvertor } from "../idl/IdlNameConvertor";
+import { createDeclarationNameConvertor, DeclarationNameConvertor } from "../idl/IdlNameConvertor";
 import { Language } from "../../Language";
 import { IDLBooleanType, isReferenceType } from "../../idl";
 import { getReferenceResolver } from '../ReferenceResolver';
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
+import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
+import { isPredefined } from '../idl/IdlPeerGeneratorVisitor';
 
 const builtInInterfaceTypes = new Map<string,
     (writer: LanguageWriter, value: string) => LanguageExpression>([
@@ -64,9 +63,9 @@ class StructDescriptor {
 
 function collectFields(library: PeerLibrary, target: idl.IDLInterface, struct: StructDescriptor): void {
     //TODO: is it need to collect conflicting declarations properties?
-    if (library.conflictedDeclarations.has(target)) {
-        return
-    }
+    // if (library.conflictedDeclarations.has(target)) {
+    //     return
+    // }
 
     //TODO: is recursive property collection necessary?
     // const superType = idl.getSuperType(target)
@@ -93,6 +92,57 @@ function makeStructDescriptor(library: PeerLibrary, target: idl.IDLEntry): Struc
     return result
 }
 
+class TypeCheckSyntheticCollector extends DependenciesCollector {
+    constructor(
+        library: PeerLibrary,
+        private readonly onSyntheticDeclaration: (entry: idl.IDLInterface | idl.IDLContainerType) => void,
+    ) {
+        super(library)
+    }
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+        const decl = this.library.resolveTypeReference(type)
+        if (decl && (idl.isInterface(decl))) this.onSyntheticDeclaration(decl)
+        return super.convertImport(type, importClause)
+    }
+    convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
+        if (idl.IDLContainerUtils.isSequence(type))
+            this.onSyntheticDeclaration(type)
+        return super.convertContainer(type)
+    }
+}
+
+function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface | idl.IDLEnum | idl.IDLContainerType)[] {
+    const seenNames = new Set<string>()
+    const res = new Array<idl.IDLInterface | idl.IDLEnum | idl.IDLContainerType>()
+    const syntheticCollector = new TypeCheckSyntheticCollector(library, (entry) => {
+        const name = idl.isContainerType(entry)
+            ? library.getInteropName(entry)
+            : entry.name
+        if (!seenNames.has(name)) {
+            seenNames.add(name)
+            res.push(entry)
+        }
+    })
+    for (const file of library.files) {
+        for (const decl of file.entries) {
+            if (idl.isModuleType(decl) ||
+                idl.isPackage(decl) ||
+                idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope) ||
+                isPredefined(decl))
+                continue
+            if (PeerGeneratorConfig.ignoreEntry(decl.name, library.language))
+                continue
+            syntheticCollector.convert(decl)
+            if ((idl.isInterface(decl) || idl.isAnonymousInterface(decl) || idl.isEnum(decl) || idl.isClass(decl))
+                && !seenNames.has(decl.name)) {
+                seenNames.add(decl.name)
+                res.push(decl)
+            }
+        }
+    }
+    return res
+}
+
 abstract class TypeCheckerPrinter {
     constructor(
         protected readonly library: PeerLibrary,
@@ -106,11 +156,11 @@ abstract class TypeCheckerPrinter {
         for (const feature of features) {
             imports.addFeature(feature.feature, feature.module)
         }
-        //TODO: needs to collect imports via DeclarationDependenciesCollector, this increases compilation time
-        for (const file of this.library.files) {
-            for (const feature of [...file.serializeImportFeatures, ...file.importFeatures]) {
-                imports.addFeature(feature.feature, feature.module)
-            }
+        for (const dep of collectTypeCheckDeclarations(this.library)) {
+            if (idl.isContainerType(dep))
+                continue
+            collectDeclItself(this.library, dep, imports)
+            collectDeclDependencies(this.library, dep, imports)
         }
         imports.print(this.writer, 'arkts/type_check')
     }
@@ -119,43 +169,19 @@ abstract class TypeCheckerPrinter {
 
     print() {
         const importFeatures: ImportFeature[] = []
-        const interfaces: { name: string, type?: idl.IDLType, descriptor: StructDescriptor }[] = []
-        const seenNames = new Set<string>()
         const declNameConvertor = createDeclarationNameConvertor(this.library.language)
-
-        for (const file of this.library.files) {
-            const builders = file.entries.filter(it => idl.isClass(it) && isBuilderClass(it))
-            const declarations = [
-                ...Array.from(file.declarations),
-                ...file.enums,
-                ...builders,
-                ...this.library.conflictedDeclarations
-            ].filter(it => !PeerGeneratorConfig.ignoreEntry(it.name, this.writer.language))
-            for (const decl of declarations) {
-                if ((idl.isInterface(decl) || idl.isAnonymousInterface(decl) || idl.isEnum(decl) || idl.isClass(decl))
-                    && !seenNames.has(decl.name)) {
-                    seenNames.add(decl.name)
-                    if (!builtInInterfaceTypes.has(decl.name)) {
-                        importFeatures.push(convertDeclToFeature(this.library, decl))
-                    }
-                    interfaces.push({
-                        name: convertDeclaration(declNameConvertor, decl),
-                        type: idl.createReferenceType(decl.name),
-                        descriptor: makeStructDescriptor(this.library, decl)
-                    })
-                }
-            }
-        }
-
-        // Collecting of synthetic types. This is necessary for the arkts
-        getSyntheticDeclarationList()
-            .filter(idl.isInterface)
-            .forEach(it => {
-                importFeatures.push(convertDeclToFeature(this.library, it))
+        const interfaces: { name: string, type?: idl.IDLType, descriptor: StructDescriptor }[] = []
+        const arrays: idl.IDLContainerType[] = []
+        collectTypeCheckDeclarations(this.library).forEach(decl => {
+            if (idl.isContainerType(decl)) {
+                arrays.push(decl)
+            } else {
                 interfaces.push({
-                    name: convertDeclaration(declNameConvertor, it),
-                    descriptor: makeStructDescriptor(this.library, it)
+                    name: convertDeclaration(declNameConvertor, decl),
+                    type: idl.createReferenceType(decl.name),
+                    descriptor: makeStructDescriptor(this.library, decl)
                 })
+            }
         })
 
         interfaces.sort((a, b) => a.name.localeCompare(b.name))
@@ -166,16 +192,9 @@ abstract class TypeCheckerPrinter {
         this.writer.writeClass("TypeChecker", writer => {
             for (const struct of interfaces)
                 this.writeInterfaceChecker(struct.name, struct.descriptor, struct.type)
-
-            const arrayTypes = Array.from(this.library.seenArrayTypes)
-                .sort((a, b) => a[0].localeCompare(b[0]))
-            const processed: Set<string> = new Set()
-            for (const [alias, type] of arrayTypes) {
-                if (processed.has(alias)) {
-                    continue
-                }
-                this.writeArrayChecker(alias, type)
-                processed.add(alias)
+            for (const array of arrays) {
+                const name = this.library.getInteropName(array)
+                this.writeArrayChecker(name, array)
             }
         })
     }

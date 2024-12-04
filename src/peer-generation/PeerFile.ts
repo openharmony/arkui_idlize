@@ -19,9 +19,6 @@ import { ImportFeature } from './ImportsCollector'
 
 export class PeerFile {
     readonly peers: Map<string, PeerClass> = new Map()
-    readonly declarations: Set<idl.IDLEntry> = new Set()
-    readonly importFeatures: ImportFeature[] = []
-    readonly serializeImportFeatures: ImportFeature[] = []
     constructor(
         public readonly originalFilename: string,
         public readonly entries: idl.IDLEntry[],
@@ -36,9 +33,6 @@ export class PeerFile {
         return ""
     }
 
-    get enums(): idl.IDLEnum[] {
-        return this.entries.filter(it => idl.isEnum(it)) as idl.IDLEnum[]
-    }
     get peersToGenerate(): PeerClass[] {
         const peers = Array.from(this.peers.values())
         if (!this.componentsToGenerate.size)

@@ -25,6 +25,7 @@ import {
     LanguageWriter,
     MakeCastOptions,
     Method,
+    MethodArgPrintHint,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
@@ -128,8 +129,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return this.typeConvertor.convert(type)
     }
 
-    fork(): LanguageWriter {
-        return new JavaLanguageWriter(new IndentedPrinter(), this.resolver)
+    fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
+        return new JavaLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver)
     }
 
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {

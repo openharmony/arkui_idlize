@@ -169,8 +169,8 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         super(printer, resolver, Language.ARKTS)
         this.typeConvertor = new EtsIDLNodeToStringConvertor(this.resolver)
     }
-    fork(): LanguageWriter {
-        return new ETSLanguageWriter(new IndentedPrinter(), this.resolver)
+    fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
+        return new ETSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         if (signature.returnType === IDLThisType) {

@@ -722,8 +722,12 @@ export function createMethod(
     name: string,
     parameters: IDLParameter[],
     returnType: IDLType,
-    methodInitializer: IDLMethodInitializer,
-    nodeInitializer: IDLNodeInitializer,
+    methodInitializer: IDLMethodInitializer = {
+        isAsync: false,
+        isStatic: false,
+        isOptional: false,
+    },
+    nodeInitializer: IDLNodeInitializer = {},
     typeParameters: string[] = []
 ): IDLMethod {
     return {

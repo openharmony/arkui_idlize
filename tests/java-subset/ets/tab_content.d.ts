@@ -49,30 +49,30 @@ declare class BottomTabBarStyle {
     padding(value: Padding | Dimension | LocalizedPadding): BottomTabBarStyle;
 }
 
-declare class SubTabBarStyle {
+// declare class SubTabBarStyle {
 
-    constructor(content: ResourceStr);
+//     constructor(content: ResourceStr);
 
-    constructor(content: ResourceStr | ComponentContent);
+//     constructor(content: ResourceStr | ComponentContent);
 
-    static of(content: ResourceStr): SubTabBarStyle;
+//     static of(content: ResourceStr): SubTabBarStyle;
 
-    static of(content: ResourceStr | ComponentContent): SubTabBarStyle;
+//     static of(content: ResourceStr | ComponentContent): SubTabBarStyle;
 
-    indicator(value: IndicatorStyle): SubTabBarStyle;
+//     indicator(value: IndicatorStyle): SubTabBarStyle;
 
-    selectedMode(value: SelectedMode): SubTabBarStyle;
+//     selectedMode(value: SelectedMode): SubTabBarStyle;
 
-    board(value: BoardStyle): SubTabBarStyle;
+//     board(value: BoardStyle): SubTabBarStyle;
 
-    labelStyle(value: LabelStyle): SubTabBarStyle;
+//     labelStyle(value: LabelStyle): SubTabBarStyle;
 
-    padding(value: Padding | Dimension): SubTabBarStyle;
+//     padding(value: Padding | Dimension): SubTabBarStyle;
 
-    padding(padding: LocalizedPadding): SubTabBarStyle;
+//     padding(padding: LocalizedPadding): SubTabBarStyle;
 
-    id(value: string): SubTabBarStyle;
-}
+//     id(value: string): SubTabBarStyle;
+// }
 
 declare interface  TabContentInterface { 
     ():  TabContentAttribute

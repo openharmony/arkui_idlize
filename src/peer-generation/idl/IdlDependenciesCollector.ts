@@ -16,6 +16,8 @@
 import * as idl from '../../idl'
 import { NodeConvertor, convertNode, convertType } from "../LanguageWriters/nameConvertor";
 import { LibraryInterface } from '../../LibraryInterface';
+import { PeerLibrary } from '../PeerLibrary';
+import { Language } from '../../Language';
 
 export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     constructor(protected readonly library: LibraryInterface) {}
@@ -30,7 +32,8 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
         return type.elementType.flatMap(ty => convertType(this, ty))
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
-        return []
+        const maybeDecl = this.library.resolveTypeReference(type)
+        return maybeDecl ? [maybeDecl] : []
     }
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
         const decl = this.library.resolveTypeReference(type)
@@ -84,5 +87,33 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
         if (node === undefined)
             return []
         return convertNode(this, node)
+    }
+}
+
+class TSDependenciesCollector extends DependenciesCollector {}
+
+class ArkTSDependenciesCollector extends DependenciesCollector {
+    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
+        const types = type.name.split(".")
+        if (types.length > 1) {
+            return this.convertTypeReference(idl.createReferenceType(types.slice(-1).join()))
+        }
+        const decl = this.library.resolveTypeReference(type)
+        if (decl && idl.isSyntheticEntry(decl)) {
+            return [
+                decl,
+                ...this.convert(decl),
+            ]
+        }
+        return super.convertTypeReference(type);
+    }
+}
+
+export function createDependenciesCollector(library: PeerLibrary): DependenciesCollector {
+    switch (library.language) {
+        case Language.TS: return new TSDependenciesCollector(library)
+        case Language.ARKTS: return new ArkTSDependenciesCollector(library)
+        // in Java and CJ there is no imports (just files in the same package)
+        default: throw new Error("Not implemented")
     }
 }

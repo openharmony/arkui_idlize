@@ -28,10 +28,10 @@ declare class ImageData {
   constructor(width: number, height: number, data?: Uint8ClampedArray, unit?: LengthMetricsUnit);
 }
 
-declare interface CanvasPattern {
+// declare interface CanvasPattern {
 
-  setTransform(transform?: Matrix2D): void;
-}
+//   setTransform(transform?: Matrix2D): void;
+// }
 
 // interface ImageBitmap {
 

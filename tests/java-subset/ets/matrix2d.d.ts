@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+/*
+TODO that class is 
 declare class Matrix2D {
 
   scaleX?: number;
@@ -45,3 +47,4 @@ declare class Matrix2D {
 
   constructor(unit: LengthMetricsUnit);
 }
+*/

@@ -63,23 +63,23 @@ declare enum GestureJudgeResult {
   REJECT = 1,
 }
 
-class EventTargetInfo {
-  getId(): string;
-}
+// class EventTargetInfo {
+//   getId(): string;
+// }
 
-declare class GestureRecognizer {
+// declare class GestureRecognizer {
 
-  getTag(): string;
+//   getTag(): string;
 
-  getType(): GestureControl.GestureType;
+//   getType(): GestureControl.GestureType;
 
-  isBuiltIn(): boolean;
+//   isBuiltIn(): boolean;
 
-  setEnabled(isEnabled: boolean): void;
+//   setEnabled(isEnabled: boolean): void;
 
-  isEnabled(): boolean;
+//   isEnabled(): boolean;
 
-  getState(): GestureRecognizerState;
+//   getState(): GestureRecognizerState;
 
-  getEventTargetInfo(): EventTargetInfo;
-}
+//   getEventTargetInfo(): EventTargetInfo;
+// }

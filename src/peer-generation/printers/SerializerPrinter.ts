@@ -22,12 +22,10 @@ import { ImportsCollector } from '../ImportsCollector'
 import { PeerLibrary } from '../PeerLibrary'
 import {
     ArkTSBuiltTypesDependencyFilter,
-    convertDeclToFeature,
     DependencyFilter,
     isBuilderClass,
     isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor';
-import { isSyntheticDeclaration, makeSyntheticDeclarationsFiles } from '../idl/IdlSyntheticDeclarations'
 import { collectProperties } from '../printers/StructPrinter'
 import { FieldModifier, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter'
 import { createDeclarationNameConvertor } from '../idl/IdlNameConvertor';
@@ -38,6 +36,7 @@ import { collectMaterializedImports, getInternalClassName } from '../Materialize
 import { generateCallbackKindValue } from '../ArgConvertors'
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
+import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -517,9 +516,6 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         createSerializerDependencyFilter(destFile.language))
     if (destFile.language === Language.TS) {
         const collector = (destFile as TsSourceFile).imports
-        for (let [module, {dependencies, declarations}] of makeSyntheticDeclarationsFiles()) {
-            declarations.forEach(it => collector.addFeature(it.name!, module))
-        }
 
         if (!declarationPath) {
             for (let builder of library.builderClasses.keys()) {
@@ -543,17 +539,15 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
                 const feature = convertDeclToFeature(library, callback)
                 collector.addFeature(feature.feature, feature.module)
             }
-
-            library.files.forEach(peer => peer.serializeImportFeatures
-                .forEach(importFeature => collector.addFeature(importFeature.feature, importFeature.module)))
-            serializerDeclarations.filter(it => isSyntheticDeclaration(it) || it.fileName)
-                .filter(it => !idl.isCallback(it))
-                .map(it => convertDeclToFeature(library, it))
-                .forEach(it => collector.addFeature(it.feature, it.module))
-            for (let builder of library.builderClasses.keys()) {
-                collector.addFeature(builder, `Ark${builder}Builder`)
+            for (const decl of serializerDeclarations) {
+                collectDeclItself(library, decl, collector, {
+                    includeMaterializedInternals: true,
+                })
+                collectDeclDependencies(library, decl, collector, {
+                    expandTypedefs: true,
+                    includeMaterializedInternals: true,
+                })
             }
-            collectMaterializedImports(collector, library)
         } else { // This is used for OHOS library generation only
             collectOhosImports(collector, false)
         }

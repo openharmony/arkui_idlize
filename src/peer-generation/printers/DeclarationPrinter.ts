@@ -15,26 +15,62 @@
 
 import * as idl from "../../idl"
 import { CustomPrintVisitor as DtsPrintVisitor} from "../../from-idl/DtsPrinter"
-import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
+import { isMaterialized, isPredefined } from "../idl/IdlPeerGeneratorVisitor"
 import { PeerLibrary } from "../PeerLibrary"
 import { LanguageWriter } from "../LanguageWriters"
+import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
 import { ImportsCollector } from "../ImportsCollector"
+
+class GeneratorSyntheticPrinter extends DependenciesCollector {
+    constructor(
+        library: PeerLibrary,
+        private readonly onGeneratorSyntheticDependency: (entry: idl.IDLEntry) => void
+    ) {
+        super(library)
+    }
+
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+        const decl = this.library.resolveTypeReference(type)
+        if (decl && !idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import))
+            this.onGeneratorSyntheticDependency(decl)
+        return super.convertImport(type, importClause)
+    }
+}
+
+function printDeclarationIfNeeded(library: PeerLibrary, entry: idl.IDLEntry, seenNames: Set<String>): string {
+    const maybeNamespace = idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Namespace)
+        ? `${idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Namespace)}.`
+        : ``
+    const scopedName = `${maybeNamespace}${entry.name}`
+    if (seenNames.has(scopedName))
+        return ""
+    const visitor = new DtsPrintVisitor(type => library.resolveTypeReference(type), library.language)
+    visitor.visit(entry)
+    const text = visitor.output.join("\n")
+    if (text)
+        seenNames.add(scopedName)
+    return text
+}
 
 export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
     const result = []
-    const seenEnums = new Set<string>()
-    for (const decl of peerLibrary.declarations) {
-        if (idl.isEnum(decl)) {
-            // One more hack to avoid double definition of ContentType enum.
-            if (seenEnums.has(decl.name)) continue
-            seenEnums.add(decl.name)
-        }
-        const visitor = new DtsPrintVisitor(type => peerLibrary.resolveTypeReference(type), peerLibrary.language)
-        visitor.visit(decl)
-        const text = visitor.output.join("\n")
+    const seenEntries = new Set<string>()
+    const syntheticsGenerator = new GeneratorSyntheticPrinter(peerLibrary, (entry) => {
+        const text = printDeclarationIfNeeded(peerLibrary, entry, seenEntries)
         if (text)
             result.push(text)
-        peerLibrary.handwritten.forEach(it => visitor.visit(it))
+    })
+    for (const file of peerLibrary.files) {
+        for (const entry of file.entries) {
+            if (idl.isPackage(entry) || idl.isModuleType(entry) || idl.isImport(entry) || isPredefined(entry))
+                continue
+            syntheticsGenerator.convert(entry)
+            if (idl.isSyntheticEntry(entry))
+                continue
+            const text = printDeclarationIfNeeded(peerLibrary, entry, seenEntries)
+            if (text)
+                result.push(text)
+        }
     }
     for (const decl of peerLibrary.componentsDeclarations) {
         const iface = decl.interfaceDeclaration
@@ -51,12 +87,13 @@ export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter)
     const imports = new ImportsCollector()
     imports.addFeature("int32", "@koalaui/common")
     imports.print(writer, "")
-    for (const decl of peerLibrary.declarations) {
-        if (idl.isEnum(decl)) {
-            // An ugly hack to avoid double definition of ContentType enum.
-            if (seenNames.has(decl.name) && decl.name == "ContentType") continue
-            seenNames.add(decl.name)
-            writer.writeStatement(writer.makeEnumEntity(decl, true))
+    for (const file of peerLibrary.files)
+        for (const decl of file.entries) {
+            if (idl.isEnum(decl)) {
+                // An ugly hack to avoid double definition of ContentType enum.
+                if (seenNames.has(decl.name) && decl.name == "ContentType") continue
+                seenNames.add(decl.name)
+                writer.writeStatement(writer.makeEnumEntity(decl, true))
+            }
         }
-    }
 }

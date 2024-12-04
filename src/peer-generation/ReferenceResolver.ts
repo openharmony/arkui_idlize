@@ -35,3 +35,15 @@ export function createEmptyReferenceResolver(): ReferenceResolver {
 export function getReferenceResolver(library: PeerLibrary): ReferenceResolver {
     return library
 }
+
+/** Please do not store any global instances */
+export function createAlternativeReferenceResolver(mainResolver: ReferenceResolver, alternatives: Map<string, idl.IDLEntry>): ReferenceResolver {
+    return {
+        resolveTypeReference(type, entries) {
+            return mainResolver.resolveTypeReference(type, entries) ?? alternatives.get(type.name)
+        },
+        toDeclaration(type) {
+            return mainResolver.toDeclaration(type)
+        },
+    }
+}
