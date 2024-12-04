@@ -97,7 +97,14 @@ export class ModifierVisitor {
             printer.print(`return reinterpret_cast<void *>(&DestroyPeerImpl);`)
         }
         else if (method.method.name == 'ctor'){
-            printer.print(`return new ${method.originalParentName}Peer();`)
+            const argCount = method.method.signature.args.length
+            
+            const paramNames: string[] = []
+            for (let i = 0; i < argCount; i++) {
+                paramNames.push(method.method.signature.argName(i))
+            }
+            const apiParameters = paramNames.join(', ')
+            printer.print(`return new ${method.originalParentName}Peer(${apiParameters});`)
         }
         else if(method.method.name == 'destroyPeer')
         {
