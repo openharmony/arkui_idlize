@@ -65,8 +65,6 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
             if (idl.isPackage(entry) || idl.isModuleType(entry) || idl.isImport(entry) || isPredefined(entry))
                 continue
             syntheticsGenerator.convert(entry)
-            if (idl.isSyntheticEntry(entry))
-                continue
             const text = printDeclarationIfNeeded(peerLibrary, entry, seenEntries)
             if (text)
                 result.push(text)

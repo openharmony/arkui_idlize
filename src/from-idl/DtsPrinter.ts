@@ -60,9 +60,7 @@ export class CustomPrintVisitor {
 
     visit(node: IDLEntry) {
         if (hasExtAttribute(node, IDLExtendedAttributes.TSType) && this.language == Language.TS) return
-        if (isSyntheticEntry(node)) {
-            return
-        } else if (isInterface(node) || isAnonymousInterface(node) || isTupleInterface(node) || isClass(node)) {
+        if (isInterface(node) || isAnonymousInterface(node) || isTupleInterface(node) || isClass(node)) {
             this.printInterface(node)
         } else if (isMethod(node) || isConstructor(node) || isCallable(node)) {
             this.printMethod(node)
