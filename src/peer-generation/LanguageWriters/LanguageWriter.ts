@@ -589,7 +589,7 @@ export abstract class LanguageWriter {
     makeRuntimeTypeGetterCall(value: string): LanguageExpression {
         return this.makeFunctionCall("runtimeType", [ this.makeString(value) ])
     }
-    makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
+    makeArrayResize(array: string, arrayType: string, length: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression(""))
     }
     makeMapResize(mapTypeName: string, keyType: idl.IDLType, valueType: idl.IDLType, map: string, size: string, deserializer: string): LanguageStatement {

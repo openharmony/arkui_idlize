@@ -13,14 +13,28 @@
  * limitations under the License.
  */
 
+
+declare interface BaseEvent {}
+
+declare interface ClickEvent extends BaseEvent {
+
+    x: number;
+
+    y: number;
+
+    displayX: number;
+
+    displayY: number;
+}
+
 declare interface BlurOptions {
     grayscale: [number, number];
 }
 
-declare interface StateStyles {
+// declare interface StateStyles {
 
-    normal?: any;
-}
+//     normal?: any;
+// }
 
 declare class AttributeModifier<T> {}
 
@@ -56,7 +70,7 @@ declare class CommonMethod<T> {
 
     constructor();
 
-    stateStyles(value: StateStyles): T;
+    // stateStyles(value: StateStyles): T;
 
     backdropBlur(value: number, options?: BlurOptions): T;
 
@@ -93,7 +107,7 @@ declare class CommonMethod<T> {
 
     // onGestureRecognizerJudgeBegin(callback: GestureRecognizerJudgeBeginCallback): T;
 
-    // onClick(event: (event: ClickEvent) => void): T;
+    onClick(event: (event: ClickEvent) => void): T;
 
     // onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
 }
@@ -180,14 +194,14 @@ declare enum ShadowType {
     COLOR,
     BLUR,
 }
-declare interface ShadowOptions {
-    radius: number | Resource;
-    type?: ShadowType;
-    color?: Color | string | Resource | ColoringStrategy;
-    offsetX?: number | Resource;
-    offsetY?: number | Resource;
-    fill?: boolean;
-}
+// declare interface ShadowOptions {
+//     radius: number | Resource;
+//     type?: ShadowType;
+//     color?: Color | string | Resource | ColoringStrategy;
+//     offsetX?: number | Resource;
+//     offsetY?: number | Resource;
+//     fill?: boolean;
+// }
 
 declare interface SizeResult {
     width: number,
@@ -224,12 +238,12 @@ declare type EdgeColors = {
     left?: ResourceColor;
 };
 
-declare interface LocalizedEdgeColors  {
-    top?: ResourceColor;
-    end?: ResourceColor;
-    bottom?: ResourceColor;
-    start?: ResourceColor;
-};
+// declare interface LocalizedEdgeColors  {
+//     top?: ResourceColor;
+//     end?: ResourceColor;
+//     bottom?: ResourceColor;
+//     start?: ResourceColor;
+// };
 
 declare type BorderRadiuses = {
     topLeft?: Length;
@@ -274,7 +288,7 @@ declare interface SheetOptions extends BindOptions {
     height?: SheetSize | Length;
     dragBar?: boolean;
     maskColor?: ResourceColor;
-    detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
+    // detents?: [(SheetSize | Length), (SheetSize | Length)?, (SheetSize | Length)?];
     blurStyle?: BlurStyle;
     showClose?: boolean | Resource;
     preferType?: SheetType;
@@ -285,9 +299,9 @@ declare interface SheetOptions extends BindOptions {
     enableOutsideInteractive?: boolean;
     width?: Dimension;
     borderWidth?: Dimension/*~ | EdgeWidths | LocalizedEdgeWidths*/;
-    borderColor?: ResourceColor/*~ | EdgeColors */| LocalizedEdgeColors;
+    // borderColor?: ResourceColor/*~ | EdgeColors */| LocalizedEdgeColors;
     borderStyle?: BorderStyle/*~ | EdgeStyles*/;
-    shadow?: ShadowOptions | ShadowStyle;
+    // shadow?: ShadowOptions | ShadowStyle;
     //~onHeightDidChange?: Callback<number>;
     mode?: SheetMode;
     //~onDetentsDidChange?: Callback<number>;

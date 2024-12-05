@@ -19,87 +19,49 @@ import { ARK_CUSTOM_OBJECT, cjCustomTypeMapping, convertCJOptional } from '../..
 import { ReferenceResolver } from '../../ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "../nameConvertor"
 
-class CJTypeAlias {
-    // CJ type itself
-    // string representation can contain special characters (e.g. String[])
-    readonly type: {
-        text: string,
-        optional: boolean
-    }
-
-    // synthetic identifier for internal use cases: naming classes/files etc.
-    // string representation contains only letters, numbers and underscores (e.g. Array_String)
-    readonly alias: string
-
-    static fromTypeName(typeName: string, optional: boolean): CJTypeAlias {
-        return new CJTypeAlias({ text: typeName, optional }, optional ? convertCJOptional(typeName) : typeName)
-    }
-
-    static fromTypeAlias(typeAlias: CJTypeAlias, optional: boolean): CJTypeAlias {
-        return new CJTypeAlias({ text: typeAlias.type.text, optional: typeAlias.type.optional }, optional ? convertCJOptional(typeAlias.alias) : typeAlias.alias)
-    }
-
-    constructor(type: { text: string, optional: boolean } | string, alias: string) {
-        if (typeof type === 'string') {
-            this.type = {
-                text: type,
-                optional: false
-            }
-        } else {
-            this.type = type
-        }
-        this.alias = alias
-    }
-}
-
-export class CJIDLNodeToStringConvertor implements NodeConvertor<CJTypeAlias>, IdlNameConvertor {
+export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
     constructor(
         protected resolver: ReferenceResolver
     ) { }
 
     convert(node: idl.IDLNode): string {
-        const typeAlias = convertNode(this, node)
-        const rawType = typeAlias.type.optional ? convertCJOptional(typeAlias.type.text) : typeAlias.type.text 
-        return this.mapTypeName(rawType)
+        return convertNode(this, node)
     }
 
-    /***** TypeConvertor<CJTypeAlias> **********************************/
-    convertOptional(type: idl.IDLOptionalType): CJTypeAlias {
-        return CJTypeAlias.fromTypeName(convertCJOptional(this.convert(type.type)), true)
+    /***** TypeConvertor<string> **********************************/
+    convertOptional(type: idl.IDLOptionalType): string {
+        return `Option<${this.convert(type.type)}>`
     }
-    convertUnion(type: idl.IDLUnionType): CJTypeAlias {
-        const aliases = type.types.map(it => convertType(this, it))
-        return CJTypeAlias.fromTypeName(`Union_${aliases.map(it => it.alias).join('_')}`, false)
+    convertUnion(type: idl.IDLUnionType): string {
+        return type.name
     }
-    convertContainer(type: idl.IDLContainerType): CJTypeAlias {
+    convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
-            const cjTypeAlias = convertType(this, type.elementType[0])
-            return new CJTypeAlias(`ArrayList<${cjTypeAlias.type.text}>`, `Array_${cjTypeAlias.alias}`)
+            return `ArrayList<${convertType(this, type.elementType[0])}>`
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
-            const CJTypeAliases = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
-            return new CJTypeAlias(`Map<${CJTypeAliases[0].type.text}, ${CJTypeAliases[1].type.text}>`, `Map_${CJTypeAliases[0].alias}_${CJTypeAliases[1].alias}`)
+            const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
+            return `Map<${stringes[0]}, ${stringes[1]}>`
         }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
-    convertInterface(node: idl.IDLInterface): CJTypeAlias {
+    convertInterface(node: idl.IDLInterface): string {
         throw new Error('Method not implemented.')
     }
-    convertEnum(node: idl.IDLEnum): CJTypeAlias {
+    convertEnum(node: idl.IDLEnum): string {
+        return node.name
+    }
+    convertTypedef(node: idl.IDLTypedef): string {
         throw new Error('Method not implemented.')
     }
-    convertTypedef(node: idl.IDLTypedef): CJTypeAlias {
-        throw new Error('Method not implemented.')
+    convertCallback(type: idl.IDLCallback): string {
+        return `\{ => ${this.convert(type)}\}`
     }
-    convertCallback(type: idl.IDLCallback): CJTypeAlias {
-        // TODO
-        return CJTypeAlias.fromTypeName(`Callback`, false)
+    convertImport(type: idl.IDLReferenceType, importClause: string): string {
+        return type.name
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): CJTypeAlias {
-        return CJTypeAlias.fromTypeName(type.name, false)
-    }
-    convertTypeReference(type: idl.IDLReferenceType): CJTypeAlias {
+    convertTypeReference(type: idl.IDLReferenceType): string {
         const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
         if (importAttr) {
             return this.convertImport(type, importAttr)
@@ -116,98 +78,65 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<CJTypeAlias>, I
                 return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
             }
         }
-
         let typeSpec = type.name
         if (cjCustomTypeMapping.has(typeSpec)) {
             typeSpec = cjCustomTypeMapping.get(typeSpec)!
         }
-        // const qualifier = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Qualifier)
-        // if (qualifier) {
-        //     typeSpec = `${qualifier}.${typeSpec}`
-        // }
-        if (typeSpec === `Optional`) {
-            return CJTypeAlias.fromTypeName(idl.printType(type.typeArguments![0]), true)
-        }
-        return CJTypeAlias.fromTypeName(typeSpec, false)
+        return typeSpec
     }
-    convertTypeParameter(type: idl.IDLTypeParameterType): CJTypeAlias {
+    convertTypeParameter(type: idl.IDLTypeParameterType): string {
         // TODO
-        return CJTypeAlias.fromTypeName(type.name, false)
+        return type.name
     }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): CJTypeAlias {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
-            case idl.IDLAnyType: return CJTypeAlias.fromTypeName(ARK_CUSTOM_OBJECT, false)
-            case idl.IDLStringType: return CJTypeAlias.fromTypeName('String', false)
-            case idl.IDLBooleanType: return CJTypeAlias.fromTypeName('Bool', false)
-            case idl.IDLNumberType: return CJTypeAlias.fromTypeName('Float64', false)
-            case idl.IDLUndefinedType: return CJTypeAlias.fromTypeName('Ark_Undefined', false)
-            case idl.IDLI8Type: return CJTypeAlias.fromTypeName('Int8', false)
-            case idl.IDLU8Type: return CJTypeAlias.fromTypeName('UInt8', false)
-            case idl.IDLI16Type: return CJTypeAlias.fromTypeName('Int16', false)
-            case idl.IDLU16Type: return CJTypeAlias.fromTypeName('UInt16', false)
-            case idl.IDLI32Type: return CJTypeAlias.fromTypeName('Int32', false)
-            case idl.IDLU32Type: return CJTypeAlias.fromTypeName('UInt32', false)
-            case idl.IDLI64Type: return CJTypeAlias.fromTypeName('Int64', false)
-            case idl.IDLU64Type: return CJTypeAlias.fromTypeName('UInt64', false)
-            case idl.IDLF32Type: return CJTypeAlias.fromTypeName('Float32', false)
-            case idl.IDLF64Type: return CJTypeAlias.fromTypeName('Float64', false)
-            case idl.IDLPointerType: return CJTypeAlias.fromTypeName('Int64', false)
-            case idl.IDLVoidType: return CJTypeAlias.fromTypeName('Unit', false)
-            case idl.IDLBufferType: return CJTypeAlias.fromTypeName('ArrayList<UInt8>', false)
-            case idl.IDLLengthType: return CJTypeAlias.fromTypeName('Ark_Length', false)
+            case idl.IDLAnyType: return ARK_CUSTOM_OBJECT
+            case idl.IDLStringType: return 'String'
+            case idl.IDLBooleanType: return 'Bool'
+            case idl.IDLNumberType: return 'Float64'
+            case idl.IDLUndefinedType: return 'Ark_Undefined'
+            case idl.IDLI8Type: return 'Int8'
+            case idl.IDLU8Type: return 'UInt8'
+            case idl.IDLI16Type: return 'Int16'
+            case idl.IDLU16Type: return 'UInt16'
+            case idl.IDLI32Type: return 'Int32'
+            case idl.IDLU32Type: return 'UInt32'
+            case idl.IDLI64Type: return 'Int64'
+            case idl.IDLU64Type: return 'UInt64'
+            case idl.IDLF32Type: return 'Float32'
+            case idl.IDLF64Type: return 'Float64'
+            case idl.IDLPointerType: return 'Int64'
+            case idl.IDLVoidType: return 'Unit'
+            case idl.IDLBufferType: return 'ArrayList<UInt8>'
+            case idl.IDLLengthType: return 'Ark_Length'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
     private readonly CJPrimitiveToReferenceTypeMap = new Map([
-        ['byte', CJTypeAlias.fromTypeName('Byte', false)],
-        ['short', CJTypeAlias.fromTypeName('Short', false)],
-        ['int', CJTypeAlias.fromTypeName('Integer', false)],
-        ['float', CJTypeAlias.fromTypeName('Float', false)],
-        ['double', CJTypeAlias.fromTypeName('Double', false)],
-        ['boolean', CJTypeAlias.fromTypeName('Boolean', false)],
-        ['char', CJTypeAlias.fromTypeName('Character', false)],
+        ['byte', 'Byte'],
+        ['short', 'Short'],
+        ['int', 'Integer'],
+        ['float', 'Float'],
+        ['double', 'Double'],
+        ['boolean', 'Boolean'],
+        ['char', 'Character'],
     ])
-    private maybeConvertPrimitiveType(CJType: CJTypeAlias): CJTypeAlias {
-        if (this.CJPrimitiveToReferenceTypeMap.has(CJType.type.text)) {
-            return this.CJPrimitiveToReferenceTypeMap.get(CJType.type.text)!
-        }
+    private maybeConvertPrimitiveType(CJType: string): string {
+        // if (this.CJPrimitiveToReferenceTypeMap.has(CJType.type.text)) {
+        //     return this.CJPrimitiveToReferenceTypeMap.get(CJType.type.text)!
+        // }
         return CJType
     }
 
-    private callbackType(decl: idl.IDLCallback): CJTypeAlias {
-        // TODO
-        //const params = decl.parameters.map(it => `${it.isVariadic ? "..." : ""}${it.name}: ${this.library.mapType(it.type)}`)
-        //`((${params.join(", ")}) => ${this.library.mapType(decl.returnType)})`
-        return CJTypeAlias.fromTypeName('Callback', false)
+    private callbackType(decl: idl.IDLCallback): string {
+        return `() -> ${this.convert(decl.returnType)}`
     }
 
     // Tuple + ??? AnonymousClass
-    private productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): CJTypeAlias {
+    private productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
         // // TODO: other types
         if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')
-        const CJTypeAliases = decl.properties.map(it => CJTypeAlias.fromTypeAlias(convertType(this, it.type), it.isOptional))
-        return CJTypeAlias.fromTypeName(`Tuple_${CJTypeAliases.map(it => it.alias, false).join('_')}`, false)
-    }
-
-    private mapTypeName(name: string): string {
-        // stub, should be fixed soon
-        switch (name) {
-            case 'Length': return 'String'
-            case 'KPointer': return 'Int64'
-            case 'KBoolean': return 'Bool'
-            case 'KUInt': return 'UInt32'
-            case 'int32': case 'KInt': return 'Int32'
-            case 'int64': case 'KLong': return 'Int64'
-            case 'float32': case 'KFloat': return 'Float32'
-            case 'Uint8Array': return 'ArrayList<UInt8>'
-            case 'KUint8ArrayPtr': return 'Int64'
-            case 'KInt32ArrayPtr': return 'Int64'
-            case 'KFloat32ArrayPtr': return 'Int64'
-            case 'KStringPtr': return 'String'
-            case 'string': return 'String'
-            case 'ArrayBuffer': return 'ArrayList<UInt8>'
-        }
-        return name
+        return `Tuple_${decl.properties.map(it => convertType(this, it.type)).join('_')}`
     }
     /**********************************************************************/
 }
@@ -228,15 +157,18 @@ export class CJIDLTypeToForeignStringConvertor extends CJIDLNodeToStringConverto
             // Fix, actual mapping has to be due to IDLType
             if (super.convert(type).startsWith('Array'))
                 return `CPointer<UInt8>`
-            if (super.convert(type) == 'String') {
+            if (super.convert(type) == 'String' || super.convert(type) == 'KStringPtr' ) {
                 return `CString`
+            }
+            if (super.convert(type) == 'Object') {
+                return `KPointer`
             }
         }
         return super.convert(type)
     }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): CJTypeAlias {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
-            case idl.IDLBufferType: return CJTypeAlias.fromTypeName('CPointer<UInt8>', false)
+            case idl.IDLBufferType: return 'CPointer<UInt8>'
         }
         return super.convertPrimitiveType(type)
     }

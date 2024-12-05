@@ -17,6 +17,7 @@ import { Language } from "../../Language"
 import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, TSLanguageWriter } from "../LanguageWriters"
+import { CJLanguageWriter } from "../LanguageWriters/writers/CJLanguageWriter"
 import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter"
 import { ReferenceResolver } from "../ReferenceResolver"
 
@@ -31,6 +32,8 @@ export abstract class SourceFile {
             return new TsSourceFile(name, resolver)
         } else if (language === Language.ARKTS) {
             return new ArkTSSourceFile(name, resolver)
+        } else if (language === Language.CJ) {
+            return new CJSourceFile(name, resolver)
         } else {
             return new GenericSourceFile(name, language, resolver)
         }
@@ -174,6 +177,29 @@ export class ArkTSSourceFile extends TsLikeSourceFile {
 
     protected override supportsWriter(writer: LanguageWriter) {
         return writer instanceof ETSLanguageWriter
+    }
+}
+
+export class CJSourceFile extends SourceFile {
+    declare public readonly content: CJLanguageWriter
+
+    constructor(name: string, resolver: ReferenceResolver) {
+        super(name, Language.CJ, resolver)
+    }
+
+    public printToString(): string {
+        let fileWriter = createLanguageWriter(this.language, this.resolver) as TSLanguageWriter
+        fileWriter.print(cStyleCopyright)
+        this.printImports(fileWriter)
+        fileWriter.print("")
+        fileWriter.concat(this.content)
+        return fileWriter.getOutput().join("\n")
+    }
+    public printImports(writer: LanguageWriter): void {
+
+    }
+    protected onMerge(file: this): void {
+
     }
 }
 

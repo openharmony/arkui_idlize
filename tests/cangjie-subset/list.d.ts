@@ -18,7 +18,7 @@ declare interface VisibleListContentInfo {
     itemIndexInGroup?: number
 }
 
-declare type OnScrollVisibleContentChangeCallback = (start: VisibleListContentInfo, end: VisibleListContentInfo) => void;
+// declare type OnScrollVisibleContentChangeCallback = (start: VisibleListContentInfo, end: VisibleListContentInfo) => void;
 declare type Optional<T> = T | undefined
 
 declare interface ListInterface { 
@@ -28,7 +28,7 @@ declare interface ListInterface {
 declare class ListAttribute extends ScrollableCommonMethod<ListAttribute> {
     someOptional(param: Optional<boolean>): ListAttribute
 
-    //~onScrollVisibleContentChange(handler: OnScrollVisibleContentChangeCallback): ListAttribute;
+    // onScrollVisibleContentChange(handler: OnScrollVisibleContentChangeCallback): ListAttribute;
 }
 
 declare const List: ListInterface

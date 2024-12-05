@@ -943,7 +943,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             const param = 'param'
             for (const [index, memberType] of members.entries()) {
                 const memberName = `value${index}`
-                writer.writeFieldDeclaration(memberName, memberType, [FieldModifier.PRIVATE], true, writer.makeString(`None<${writer.getNodeName(memberType)}>`))
+                writer.writeFieldDeclaration(memberName, idl.maybeOptional(memberType, true), [FieldModifier.PRIVATE], true, writer.makeString(`None<${writer.getNodeName(memberType)}>`))
 
                 writer.writeConstructorImplementation(
                     'init',

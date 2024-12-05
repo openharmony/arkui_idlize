@@ -184,7 +184,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
         returnType?: idl.IDLType,
         nativeFunctions?: LanguageWriter
     ) {
-        const component = clazz.generatedName(method.isCallSignature)
+        const component = method.originalParentName // clazz.generatedName(method.isCallSignature)
         clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
         const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
         let name = `_${component}_${method.overloadedName}`
@@ -289,7 +289,7 @@ class CJNativeModuleVisitor extends NativeModuleVisitor {
             const cleanUpStmnts: string[] = []
             method.signature.args.forEach((arg, ordinal) => {
                 const paramName = method.signature.argName(ordinal)
-                if (idl.IDLContainerUtils.isSequence(arg) || this.arrayLikeTypes.has(idl.forceAsNamedNode(arg).name) || idl.forceAsNamedNode(arg).name.startsWith('ArrayList<')) {
+                if (idl.IDLContainerUtils.isSequence(arg) || this.arrayLikeTypes.has(idl.forceAsNamedNode(arg).name) || idl.forceAsNamedNode(arg).name.startsWith('ArrayList<') || idl.forceAsNamedNode(arg).name.startsWith('buffer')) {
                     const varName = `handle_${ordinal}`
                     callParameters.push(`${varName}.pointer`)
                     printer.writeStatement(printer.makeAssign(

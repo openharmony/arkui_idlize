@@ -49,6 +49,12 @@ public enum RuntimeType {
     }
 }
 
+public interface CallbackResource {
+    prop resourceId: Int32
+    prop hold: KPointer
+    prop release: KPointer
+}
+
 /* Serialization extension point */
 public abstract class CustomSerializer {
     public var supported: Array<String>
@@ -105,6 +111,16 @@ public open class SerializerBase {
         // TODO
         println("Unsupported custom serialization for ${kind}, write undefined")
         this.writeInt8(Tag.UNDEFINED.ordinal)
+    }
+    private var heldResources: ArrayList<ResourceId> = ArrayList<ResourceId>()
+    func holdAndWriteCallback(callback: Object, hold: KPointer, release: KPointer, call: KPointer): ResourceId {
+        let resourceId = ResourceHolder.instance().registerAndHold(callback)
+        this.heldResources.append(resourceId)
+        this.writeInt32(resourceId)
+        this.writePointer(hold)
+        this.writePointer(release)
+        this.writePointer(call)
+        return resourceId
     }
     func writeFunction(value: Object): Unit {
         // TODO

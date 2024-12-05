@@ -19,8 +19,13 @@ import std.reflect.*
 
 public abstract class Ark_Object {
 
-    static func getRuntimeType(object: String): RuntimeType {
-        return RuntimeType.STRING
+    static func getRuntimeType(object: ?String): RuntimeType {
+        if(let Some(object) <- object) {
+            return RuntimeType.STRING
+        }
+        else {
+            return RuntimeType.UNDEFINED
+        }
     }
 
     static func getRuntimeType(object: ?Float64): RuntimeType {

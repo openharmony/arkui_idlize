@@ -14,4 +14,9 @@
  */
 package idlize
 
+import std.collection.*
+
 type KPointer = Int64
+type KInt = Int32
+type KStringPtr = String
+type ArrayBuffer = ArrayList<UInt8>

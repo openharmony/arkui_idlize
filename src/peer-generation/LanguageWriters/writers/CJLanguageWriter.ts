@@ -24,6 +24,7 @@ import { EnumConvertor } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import {
     AssignStatement,
+    BranchStatement,
     ExpressionStatement,
     FieldModifier,
     LambdaExpression,
@@ -57,8 +58,17 @@ class CJLambdaExpression extends LambdaExpression {
         return true
     }
     asString(): string {
-        const params = this.signature.args.map((it, i) => `${this.writer.getNodeName(it)} ${this.signature.argName(i)}`)
-        return `(${params.join(", ")}) -> { ${this.bodyAsString()} }`
+        const params = this.signature.args.map((it, i) => `${this.signature.argName(i)}: ${this.writer.getNodeName(it)}`)
+        return `{${params.join(", ")} => ${this.bodyAsString()} }`
+    }
+    override bodyAsString(): string {
+        const writer = this.writer.fork()
+
+        return writer.printer.getOutput()
+            .map(line => line.trim())
+            .filter(line => line !== "")
+            .map(line => line === "{" || line === "}" || this.statementHasSemicolon ? `${line};` : `${line};`)
+            .join(" ")
     }
 }
 
@@ -72,7 +82,14 @@ export class CJCheckDefinedExpression implements LanguageExpression {
 export class CJCastExpression implements LanguageExpression {
     constructor(public value: LanguageExpression, public type: string, private unsafe = false) {}
     asString(): string {
-        return `(${this.value.asString()} as ${this.type})`
+        return `match (${this.value.asString()} as ${this.type}) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")}`
+    }
+}
+
+export class CJUnionCastExpression implements LanguageExpression {
+    constructor(public value: LanguageExpression, public type: string, private unsafe = false) {}
+    asString(): string {
+        return `${this.type}(${this.value.asString})`
     }
 }
 
@@ -105,8 +122,13 @@ export class CJAssignStatement extends AssignStatement {
 
         write(writer: LanguageWriter): void {
             if (this.isDeclared) {
-                const typeSpec = this.type ? ': ' + writer.getNodeName(this.type) : ''
-                writer.print(`${this.isConst ? "let" : "var"} ${this.variableName}${typeSpec} = ${this.expression.asString()}`)
+                const typeSpec =
+                    this.options?.overrideTypeName
+                        ? `: ${this.options.overrideTypeName}`
+                        : this.type ? `: ${writer.getNodeName(this.type)}` : ""
+                const constSpec = this.isConst ? "let" : "var"
+                const initValue = this.expression ? `= ${this.expression.asString()}` : ""
+                writer.print(`${constSpec} ${this.variableName}${typeSpec} ${initValue}`)
             } else {
                 writer.print(`${this.variableName} = ${this.expression.asString()}`)
             }
@@ -178,6 +200,13 @@ class CJCheckOptionalStatement implements LanguageStatement {
 }
 
 
+class CJArrayResizeStatement implements LanguageStatement {
+    constructor(private array: string, private arrayType: string, private length: string, private deserializer: string) {}
+    write(writer: LanguageWriter) {
+        writer.print(`${this.array} = ${this.arrayType}(Int64(${this.length}))`)
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////
 //                           WRITER                           //
@@ -248,13 +277,13 @@ export class CJLanguageWriter extends LanguageWriter {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         name = this.escapeKeyword(name)
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} var ${name}: ${optional ? '?' : ''}${this.getNodeName(type)}${init}`)
+        this.printer.print(`${prefix} var ${name}: ${this.getNodeName(type)}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, modifiers)
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
-        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${idl.isOptionalType(it) ? '?' : ''}${this.getNodeName(it)}`).join(", ")}) {`)
+        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
             this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`)
@@ -266,9 +295,9 @@ export class CJLanguageWriter extends LanguageWriter {
     writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void) {
         let shortName = propName.concat("_container")
         if(!getterLambda) {
-            this.print(`private var ${shortName}: ${idl.isOptionalType(propType) ? '?' : ''}${this.getNodeName(propType)}`)
+            this.print(`private var ${shortName}: ${this.getNodeName(propType)}`)
         }
-        this.print(`${mutable ? "mut " : ""}prop ${propName}: ${idl.isOptionalType(propType) ? '?' : ''}${this.getNodeName(propType)} {`)
+        this.print(`${mutable ? "mut " : ""}prop ${propName}: ${this.getNodeName(propType)} {`)
 
         this.pushIndent()
         this.print(`get() {`)
@@ -302,7 +331,7 @@ export class CJLanguageWriter extends LanguageWriter {
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${idl.isOptionalType(it) ? '?' : ''}${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
+        this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
     }
     nativeReceiver(): string { return 'NativeModule' }
     writeNativeFunctionCall(printer: LanguageWriter, name: string, signature: MethodSignature) {
@@ -322,7 +351,7 @@ export class CJLanguageWriter extends LanguageWriter {
         throw new Error(`makeClassInit`)
     }
     makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
-        throw new Error(`makeArrayInit`)
+        return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>()`)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         throw new Error(`TBD`)
@@ -330,9 +359,20 @@ export class CJLanguageWriter extends LanguageWriter {
     makeArrayLength(array: string, length?: string): LanguageExpression {
         return this.makeString(`${array}.size`)
     }
+    makeArrayResize(array: string, arrayType: string, length: string, deserializer: string): LanguageStatement {
+        return new CJArrayResizeStatement(array, arrayType, length, deserializer)
+    }
+    override makeArrayAccess(value: string, indexVar: string) {
+        return this.makeString(`${value}[Int64(${indexVar})]`)
+    }
     makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName: string): LanguageExpression {
-        varName = this.escapeKeyword(varName)
-        return this.makeString(`let Some(${varName}) <- ${varName}`)
+        if(varName) {
+            varName = this.escapeKeyword(varName)
+            return this.makeString(`let Some(${varName}) <- ${varName}`)
+        } else {
+            const op = equals ? "==" : "!="
+            return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`Int32(${typeVarName})`)])
+        }
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         return new CJLambdaExpression(this, signature, this.resolver, body)
@@ -417,11 +457,11 @@ export class CJLanguageWriter extends LanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    enumFromOrdinal(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        throw new Error('Not yet implemented')
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+        return this.makeString(`${this.getNodeName(enumEntry)}(${value.asString()})`)
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        return value
+        return this.makeString(`Int32(${value.asString()}.value)`)
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
         return new CJEnumEntityStatement(enumEntity, isExport)

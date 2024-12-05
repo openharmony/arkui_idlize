@@ -81,11 +81,11 @@ func peersTest(): Unit {
         "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=5}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
     // union
     labelStyle.maxLines = Option.None
-    labelStyle.font = Font(Option.None, Union_FontWeight_Float64_String("param"), Option.None, Option.None)
+    labelStyle.font = Font(Option.None, Union_FontWeight_Number_String("param"), Option.None, Option.None)
     checkResult("[Union] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
         "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=2, .value2={.chars=\"param\", .length=5}}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
-    labelStyle.font = Font(Option.None, Union_FontWeight_Float64_String(FontWeight.BOLD), Option.None, Option.None)
+    labelStyle.font = Font(Option.None, Union_FontWeight_Number_String(FontWeight.BOLD), Option.None, Option.None)
     checkResult("[Union + Enum] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
         "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=Ark_FontWeight(4)}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
@@ -109,8 +109,8 @@ func peersTest(): Unit {
     // optional
     let listPeer = ArkListPeer.create(ArkUINodeType.List, Option.None, 0);
     checkResult("[Optional] ListPeer.someOptional",
-        { => listPeer.someOptionalAttribute(Union_Bool_Ark_Undefined(false)) },
-        "someOptional({.selector=0, .value0=false})");
+        { => listPeer.someOptionalAttribute(false) },
+        "someOptional({.tag=ARK_TAG_OBJECT, .value=false})");
 
     // enum
     checkResult("[Enum] ButtonPeer.type", { => buttonPeer.typeAttribute(ButtonType.CAPSULE) }, "type(Ark_ButtonType(0))");
@@ -126,15 +126,11 @@ func peersTest(): Unit {
                                     Option.None, 
                                     Option.None, 
                                     Option.None, 
-                                    Option.None, 
-                                    Option.None, 
-                                    Option.None, 
                                     SheetMode.EMBEDDED,
                                     Option.None)
     checkResult("[Enum + Interface] ButtonPeer.bindSheet",
         { => buttonPeer.bindSheetAttribute(false, sheetOptions) },
-        "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .detents={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .shadow={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=Ark_SheetMode(1)}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})");
-
+        "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=Ark_SheetMode(1)}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})")
 }
 
 

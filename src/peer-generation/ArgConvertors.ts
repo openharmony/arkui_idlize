@@ -527,10 +527,10 @@ export class UnionConvertor extends BaseArgConvertor { //
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         const statements: LanguageStatement[] = []
         let selectorBuffer = `${bufferName}_selector`
-        const maybeOptionalUnion = writer.language === Language.CPP
+        const maybeOptionalUnion = writer.language === Language.CPP || writer.language == Language.CJ
             ? this.type
             : idl.createOptionalType(this.type)
-        statements.push(writer.makeAssign(selectorBuffer, idl.IDLI32Type,
+        statements.push(writer.makeAssign(selectorBuffer, idl.IDLI8Type,
             writer.makeString(`${deserializerName}.readInt8()`), true))
         statements.push(writer.makeAssign(bufferName, maybeOptionalUnion, undefined, true, false))
         if (writer.language === Language.CPP)
@@ -541,12 +541,16 @@ export class UnionConvertor extends BaseArgConvertor { //
             const stmt = new BlockStatement([
                 writer.makeSetUnionSelector(bufferName, `${index}`),
                 it.convertorDeserialize(`${bufferName}_u`, deserializerName, (expr) => {
-                    return writer.makeAssign(receiver, undefined, expr, false)
+                    if (writer.language == Language.CJ) {
+                        return writer.makeAssign(receiver, undefined, writer.makeFunctionCall(writer.getNodeName(this.type), [expr]), false)
+                    } else { 
+                        return writer.makeAssign(receiver, undefined, expr, false)
+                    }
                 }, writer),
             ], false)
             return { expr, stmt }
         })
-        statements.push(writer.makeMultiBranchCondition(branches))
+        statements.push(writer.makeMultiBranchCondition(branches, writer.makeThrowError(`One of the branches for ${bufferName} has to be chosen through deserialisation.`)))
         statements.push(assigneer(writer.makeCast(writer.makeString(bufferName), this.type)))
         return new BlockStatement(statements, false)
     }
@@ -646,7 +650,11 @@ export class OptionConvertor extends BaseArgConvertor { //
         statements.push(writer.makeAssign(runtimeBufferName, undefined,
             writer.makeCast(writer.makeString(`${deserializerName}.readInt8()`), writer.getRuntimeType()), true))
         const bufferType = this.nativeType()
-        statements.push(writer.makeAssign(bufferName, bufferType, undefined, true, false))
+        if (writer.language == Language.CJ) {
+            statements.push(writer.makeAssign(bufferName, bufferType, idl.isOptionalType(bufferType) ? writer.makeString('Option.None') : undefined, true, false))
+        } else {
+            statements.push(writer.makeAssign(bufferName, bufferType, undefined, true, false))
+        }
 
         const thenStatement = new BlockStatement([
             this.typeConvertor.convertorDeserialize(`${bufferName}_`, deserializerName, (expr) => {
@@ -732,6 +740,9 @@ export class AggregateConvertor extends BaseArgConvertor { //
         }
         if (writer.language === Language.CPP) {
             statements.push(assigneer(writer.makeString(bufferName)))
+        } else if (writer.language == Language.CJ) {
+            const resultExpression = writer.makeString(`${writer.getNodeName(this.idlType)}(${this.decl.properties.map(prop => `${bufferName}_${prop.name}`).join(", ")})`)
+            statements.push(assigneer(resultExpression))
         } else {
             const resultExpression = this.makeAssigneeExpression(this.decl.properties.map(prop => {
                 return [prop.name, writer.makeString(`${bufferName}_${prop.name}`)]
@@ -968,12 +979,11 @@ export class ArrayConvertor extends BaseArgConvertor { //
         const arrayType = this.idlType
         statements.push(writer.makeAssign(lengthBuffer, idl.IDLI32Type, writer.makeString(`${deserializerName}.readInt32()`), true))
         statements.push(writer.makeAssign(bufferName, arrayType, writer.makeArrayInit(this.type), true, false))
-        statements.push(writer.makeArrayResize(bufferName, lengthBuffer, deserializerName))
-        statements.push(writer.makeLoop(counterBuffer, lengthBuffer, writer.makeBlock([
+        statements.push(writer.makeArrayResize(bufferName, writer.getNodeName(arrayType), lengthBuffer, deserializerName))
+        statements.push(writer.makeLoop(counterBuffer, lengthBuffer,
             this.elementConvertor.convertorDeserialize(`${bufferName}_buf`, deserializerName, (expr) => {
-                return writer.makeAssign(writer.makeArrayAccess(bufferName, counterBuffer).asString(), undefined, expr, false)
-            }, writer)
-        ])))
+                    return writer.makeAssign(writer.makeArrayAccess(bufferName, counterBuffer).asString(), undefined, expr, false)
+            }, writer)))
         statements.push(assigneer(writer.makeString(bufferName)))
         return new BlockStatement(statements, false)
     }

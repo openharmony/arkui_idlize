@@ -180,7 +180,7 @@ declare interface TextPickerOptions {
    * @atomicservice
    * @since 11
    */
-  range: string[] /*~| string[][]*/ | Resource | TextPickerRangeContent[] | TextCascadePickerRangeContent[];
+  // range: string[] /*~| string[][]*/ | Resource | TextPickerRangeContent[] | TextCascadePickerRangeContent[];
 
   /**
    * Value of the current selection.

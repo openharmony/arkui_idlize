@@ -302,7 +302,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeMapInit(type: IDLType): LanguageExpression {
         return this.makeString(`{}`)        
     }
-    makeArrayResize(array: string, length: string, deserializer: string): LanguageStatement {
+    makeArrayResize(array: string, arrayType: string, length: string, deserializer: string): LanguageStatement {
         return new CppArrayResizeStatement(array, length, deserializer)
     }
     makeMapResize(mapTypeName: string, keyType: IDLType, valueType: IDLType, map: string, size: string, deserializer: string): LanguageStatement {
