@@ -20,7 +20,7 @@ import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, identName,
     isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync,
     nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
-    capitalizeConstantName,
+    snakeCaseToCamelCase,
 } from "./util"
 import { GenericVisitor } from "./options"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
@@ -1236,6 +1236,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 return true
 
             let tag: string | undefined
+            let tagEnumValue: string | undefined
             const tagType = this.typeChecker.getTypeFromTypeNode(param.type)
             if ((tagType.flags & ts.TypeFlags.Literal) && !(tagType.flags & ~ts.TypeFlags.Literal))
                 tag = param.type.getText()
@@ -1259,8 +1260,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 const tsMemberName = tagType.symbol.name
                 for (let idx=0; idx<enumDeclarationMembers.length; ++idx) {
                     if (identString(enumDeclarationMembers[idx].name) === tsMemberName) {
-                        const idlMemberName = nameEnumValues(enumDeclaration)[idx]
-                        tag = capitalizeConstantName(idlMemberName)
+                        tagEnumValue = nameEnumValues(enumDeclaration)[idx]
+                        tag = `${getNameWithoutQualifiersLeft(param.type.typeName)}.${tagEnumValue}`
                         break
                     }
                 }
@@ -1290,8 +1291,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 value: extendedAttributeValues.map(value => value.replaceAll('|', '\\x7c')).join('|')
             })
 
-            const tagId = tag.replaceAll('.', '_').replaceAll('"', '').replaceAll("'", '')
-            const [methodNameNext, escapedMethodNameNext] = escapeName(methodName + capitalize(tagId))
+            const [methodNameNext, escapedMethodNameNext] = escapeName(methodName + tagPostfix(tag, tagEnumValue))
             methodName = methodNameNext
             escapedMethodName = escapedMethodNameNext
             return false
@@ -1466,4 +1466,10 @@ function dedupDocumentation(documentation: string): string {
             return false
         })
         .join('\n')
+}
+
+function tagPostfix(tag: string, tagEnumValue?: string) {
+    return tagEnumValue === undefined
+        ? capitalize(tag.replaceAll('"', '').replaceAll("'", ''))
+        : snakeCaseToCamelCase(tagEnumValue, true)
 }

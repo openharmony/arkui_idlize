@@ -430,10 +430,10 @@ export function getNameWithoutQualifiersLeft(node: ts.EntityName | undefined) : 
     throw new Error("Impossible")
 }
 
-export function snakeCaseToCamelCase(input: string): string {
+export function snakeCaseToCamelCase(input: string, tailToLowerCase: boolean = false): string {
     return input
         .split("_")
-        .map(capitalize)
+        .map(it => capitalize(tailToLowerCase ? it.toLowerCase() : it))
         .join("")
 }
 
