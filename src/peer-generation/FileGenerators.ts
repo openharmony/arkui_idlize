@@ -175,7 +175,7 @@ export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
         const createNodeMethod = `create${component}Node`
         createNodeMethods.print(`Ark_NodeHandle ${createNodeMethod}(Ark_Int32 nodeId);`)
         const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(component)}`
-        createNodeSwitch.print(`case ${name}: return ViewModel::${createNodeMethod}(id);`)
+        createNodeSwitch.print(`case ${name}: return GeneratedViewModel::${createNodeMethod}(id);`)
     }
     createNodeSwitch.popIndent(3)
     createNodeMethods.popIndent()

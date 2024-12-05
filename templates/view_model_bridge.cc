@@ -1,11 +1,10 @@
-namespace ViewModel {
+namespace GeneratedViewModel {
 %CREATE_NODE_METHODS%
-    void SetCallbackMethod(ArkUIAPICallbackMethod* method);
-} // namespace ViewModel
+} // namespace GeneratedViewModel
 
 using FrameNodeCreator = Ark_NodeHandle(Ark_Int32 nodeId);
 
-namespace Bridge {
+namespace GeneratedBridge {
     Ark_NodeHandle CreateNode(%CPP_PREFIX%Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags)
     {
         LOGI("Arkoala: Bridge::CreateNode: type=%{public}d, id=%{public}d", type, id);
@@ -18,10 +17,5 @@ namespace Bridge {
 %CREATE_NODE_SWITCH%
             default: return nullptr;
         }
-    }
-
-    void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method)
-    {
-        ViewModel::SetCallbackMethod(reinterpret_cast<ArkUIAPICallbackMethod*>(method));
     }
 }

@@ -1,13 +1,12 @@
+namespace GeneratedApiImpl {
+    Ark_Float32 GetDensity(Ark_Int32 deviceId);
+    Ark_Float32 GetFontScale(Ark_Int32 deviceId);
+    Ark_Float32 GetDesignWidthScale(Ark_Int32 deviceId);
 
-Ark_Float32 GetDensity(Ark_Int32 deviceId);
-Ark_Float32 GetFontScale(Ark_Int32 deviceId);
-Ark_Float32 GetDesignWidthScale(Ark_Int32 deviceId);
-
-namespace ApiImpl {
     // Basic API
     Ark_NodeHandle GetNodeByViewStack();
     void DisposeNode(Ark_NodeHandle node);
-    void DumpTreeNode(ArkUINodeHandle node);
+    void DumpTreeNode(Ark_NodeHandle node);
     Ark_Int32 AddChild(Ark_NodeHandle parent, Ark_NodeHandle child);
     void RemoveChild(Ark_NodeHandle parent, Ark_NodeHandle child);
     Ark_Int32 InsertChildAfter(Ark_NodeHandle parent, Ark_NodeHandle child, Ark_NodeHandle sibling);
@@ -48,11 +47,11 @@ namespace ApiImpl {
     void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback callback);
     void SetChildTotalCount(Ark_NodeHandle node, Ark_Int32 totalCount);
     void ShowCrash(Ark_CharPtr message);
-} // namespace OHOS::Ace::NG::ApiImpl
-
-namespace Bridge {
-    Ark_NodeHandle CreateNode(%CPP_PREFIX%Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags);
     void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method);
+} // namespace OHOS::Ace::NG::GeneratedApiImpl
+
+namespace GeneratedBridge {
+    Ark_NodeHandle CreateNode(%CPP_PREFIX%Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags);
 }
 
 namespace GeneratedEvents {

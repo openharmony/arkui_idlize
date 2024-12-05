@@ -98,7 +98,7 @@ export class ModifierVisitor {
         }
         else if (method.method.name == 'ctor'){
             const argCount = method.method.signature.args.length
-            
+
             const paramNames: string[] = []
             for (let i = 0; i < argCount; i++) {
                 paramNames.push(method.method.signature.argName(i))
@@ -488,7 +488,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.print("")
 
     writer.writeInclude('arkoala-macros.h')
-    writer.writeInclude('core/interfaces/arkoala/arkoala_api.h')
+    writer.writeInclude('arkoala_api_generated.h')
     writer.writeInclude('node_api.h')
     writer.print("")
 
@@ -523,7 +523,6 @@ function printApiImplFile(library: PeerLibrary, filePath: string, options: Modif
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
 
-    writer.writeInclude('core/interfaces/arkoala/arkoala_api.h')
     writer.writeInclude('arkoala_api_generated.h')
     writer.writeInclude('base/utils/utils.h')
     writer.writeInclude('core/pipeline/base/element_register.h')
