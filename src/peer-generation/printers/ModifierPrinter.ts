@@ -461,7 +461,7 @@ function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisit
     writer.writeLines(cStyleCopyright)
 
     writer.writeInclude(`core/components_ng/base/frame_node.h`)
-    writer.writeInclude(`core/interfaces/arkoala/utility/converter.h`)
+    writer.writeInclude(`core/interfaces/native/utility/converter.h`)
     writer.writeInclude(`arkoala_api_generated.h`)
     writer.print("")
 
