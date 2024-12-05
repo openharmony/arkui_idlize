@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-import { IDLPointerType, IDLProperty, IDLVoidType } from "../idl"
+import { IDLI32Type, IDLPointerType, IDLProperty, IDLVoidType } from "../idl"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
 import { PrimitiveType } from "./ArkPrimitiveType"
+import { NumericConvertor } from "./ArgConvertors"
 import { Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 
 export interface PeerClassBase {
@@ -59,12 +60,12 @@ export class PeerClass implements PeerClassBase {
 export function createConstructPeerMethod(clazz: PeerClass): PeerMethod {
     return new PeerMethod(
             clazz.componentName,
-            [],
+            [new NumericConvertor('id', IDLI32Type), new NumericConvertor('flags', IDLI32Type)],
             IDLPointerType,
             false,
             new Method(
                 'construct',
-                new NamedMethodSignature(IDLPointerType, [], []),
+                new NamedMethodSignature(IDLPointerType, [IDLI32Type, IDLI32Type], ['id', 'flags']),
                 [MethodModifier.STATIC]
             )
         )

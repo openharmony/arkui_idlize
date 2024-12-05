@@ -27,9 +27,8 @@ public class NativePeerNode extends Finalizable {
         super(ptr, finalizer);
     }
 
-    public static NativePeerNode create(ArkUINodeType type, int id, int flags) {
-        long ptr = NativeModule._CreateNode(type.value, id, flags);
-        return new NativePeerNode(ptr, NativeModule._GetNodeFinalizer());
+    public static NativePeerNode create(long peerPtr) {
+        return new NativePeerNode(peerPtr, NativeModule._GetNodeFinalizer());
     }
 
     public void dispose() {

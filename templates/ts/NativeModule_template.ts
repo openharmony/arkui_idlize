@@ -86,6 +86,7 @@ export interface NodeOps {
 }
 
 export interface ComponentOps {
+    _ComponentRoot_construct(id: int32, flags: int32): KPointer
 %GENERATED_METHODS%
 }
 

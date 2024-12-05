@@ -49,7 +49,7 @@ export function RunPerformanceTest(testName: string, testCnt: number, callCnt: n
 }
 
 export function startPerformanceTest() {
-    let peer = ArkCommonPeer.create(ArkUINodeType.Common);
+    let peer = ArkCommonPeer.create();
     RunPerformanceTest("idlize_restoreIdAttribute_testNumber100", TEST_COUNT, CALL_COUNT, () => {
         peer.restoreIdAttribute(testNumber100)
     })
@@ -94,5 +94,5 @@ export function startPerformanceTest() {
             radius: 25,
             style: 1 // BorderStyle.Solid
         })
-    })
+    });
 }

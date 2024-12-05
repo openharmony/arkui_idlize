@@ -32,7 +32,7 @@ public class Application {
     Application(UserView view) {
         this.view = view;
         builderFunction = view.getBuilder();
-        rootNode = ArkColumnPeer.create(ArkUINodeType.Column, null, 0);
+        rootNode = ArkColumnPeer.create(null, 0);
     }
 
     public static void main(String[] args) {

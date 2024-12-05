@@ -51,6 +51,8 @@ export class NativeModule {
     return callCallback(id, args, length)
   }
 
+  native static _ComponentRoot_construct(id: int32, flags: int32): KPointer
+
 %GENERATED_METHODS%
 
  // interop

@@ -49,7 +49,7 @@ export function generateArkComponentName(component: string) {
 }
 
 class ComponentPrintResult {
-    constructor(public targetFile: TargetFile, public writer: LanguageWriter) {}
+    constructor(public targetFile: TargetFile, public writer: LanguageWriter) { }
 }
 
 interface ComponentFileVisitor {
@@ -90,7 +90,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             imports.addFeature("KBoolean", "@koalaui/interop")
             imports.addFeature("NodeAttach", "@koalaui/runtime")
             imports.addFeature("remember", "@koalaui/runtime")
-            imports.addFeature("ArkUINodeType", "./peers/ArkUINodeType")
             imports.addFeature("runtimeType", "./peers/SerializerBase")
             imports.addFeature("RuntimeType", "./peers/SerializerBase")
             imports.addFeature("isResource", "./peers/SerializerBase")
@@ -197,7 +196,7 @@ export function ${componentFunctionName}(
     const receiver = remember(() => {
         return new ${componentClassName}()
     })
-    NodeAttach<${peerClassName}>((): ${peerClassName} => ${peerClassName}.create(ArkUINodeType.${peerComponentName}, receiver), (_: ${peerClassName}) => {
+    NodeAttach<${peerClassName}>((): ${peerClassName} => ${peerClassName}.create(receiver), (_: ${peerClassName}) => {
         ${callableMethodName}
         style?.(receiver)
         content_?.()
@@ -213,11 +212,11 @@ class ArkTsComponentFileVisitor extends TSComponentFileVisitor {
     }
 
     protected printComponentFunction(componentClassName: string,
-                                     componentFunctionName: string,
-                                     mappedCallableParams: string,
-                                     peerClassName: string,
-                                     callableMethodName: string | undefined,
-                                     peerComponentName: string) {
+        componentFunctionName: string,
+        mappedCallableParams: string,
+        peerClassName: string,
+        callableMethodName: string | undefined,
+        peerComponentName: string) {
         // Error fix: Class 'ArkTest' is already defined with different type
         // "ArkTest" - already used in ArkTS
         if (componentFunctionName !== "ArkTest") {
@@ -272,8 +271,8 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
                             writer.makeStatement(writer.makeMethodCall(`((${peerClassName})peer)`, `${peerMethod.overloadedName}Attribute`, signature.argsNames.map(it => writer.makeString(it)))),
                             writer.makeReturn(thiz),
                         ])))
-                        writer.writeStatement(writer.makeReturn(thiz))
-                    }
+                    writer.writeStatement(writer.makeReturn(thiz))
+                }
                 )
             })
 

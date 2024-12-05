@@ -106,7 +106,7 @@ export function makeJavaArkComponents(library: PeerLibrary, printerContext: Prin
                     writer.writeStatement(
                         writer.makeAssign(create, createReferenceType(`Supplier<${arkPeer}>`),
                             writer.makeLambda(new MethodSignature(arkPeerType, []), [
-                                writer.makeReturn(writer.makeString(`${arkPeer}.create(${ARK_UI_NODE_TYPE}.${peer.componentName}, ${receiver}, 0)`))
+                                writer.makeReturn(writer.makeString(`${arkPeer}.create(${receiver}, 0)`))
                             ]), true))
                     writer.writeStatement(
                         writer.makeAssign(update, createReferenceType(`Consumer<${arkPeer}>`),

@@ -3,15 +3,15 @@ import { pointer } from "@koalaui/interop"
 import { Finalizable } from "./Finalizable"
 import { ArkUINodeType } from "./peers/ArkUINodeType"
 import { NativeModule } from "#components"
+import { PeerNode } from "./PeerNode"
 
 export class NativePeerNode extends Finalizable {
-    constructor(ptr: pointer, finalizerPtr: pointer) {
-        super(ptr, finalizerPtr)
+    constructor(peer: PeerNode, ptr: pointer) {
+        super(ptr, NativeModule._GetNodeFinalizer())
     }
 
-    static create(type: ArkUINodeType, id: int32, flags: int32): NativePeerNode {
-        const ptr = NativeModule._CreateNode(type as int32, id, flags)
-        return new NativePeerNode(ptr, NativeModule._GetNodeFinalizer())
+    static create(peer: PeerNode, peerPtr: pointer, flags: int32): NativePeerNode {
+        return new NativePeerNode(peer, peerPtr)
     }
 
     dispose() {

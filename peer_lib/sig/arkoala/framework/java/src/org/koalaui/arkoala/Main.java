@@ -42,7 +42,7 @@ public class Main {
     }
 
     static void checkPerf2(int count) {
-        var peer = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
+        var peer = ArkButtonPeer.create(null, 0);
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             if (i % 2 == 0) {
@@ -59,7 +59,7 @@ public class Main {
     }
 
     static void checkPerf3(int count) {
-        var peer = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
+        var peer = ArkButtonPeer.create(null, 0);
         var testLength_10_lpx = new Ark_Length("10lpx");
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
@@ -73,7 +73,7 @@ public class Main {
         System.out.println("Java peer tests");
 
         // interface
-        var buttonPeer = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
+        var buttonPeer = ArkButtonPeer.create(null, 0);
         var labelStyle = new LabelStyle();
         labelStyle.maxLines = new Opt_Number(5);
         TestUtils.checkResult("[Interface + Optional] ButtonPeer.labelStyle",
@@ -104,7 +104,7 @@ public class Main {
             );
 
         // tuple
-        var peer = ArkTestPeer.create(ArkUINodeType.Test, null, 0);
+        var peer = ArkTestPeer.create(null, 0);
         var options = new BlurOptions();
         options.grayscale = new Tuple_double_double(1.0, 2.0);
         TestUtils.checkResult("[Tuple] TestPeer.backdropBlur",
@@ -116,7 +116,7 @@ public class Main {
             "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.5}, .value1={.chars=\"test\", .length=4}, .value2=Ark_EnumDTS(1)})");
 
         // optional
-        var listPeer = ArkListPeer.create(ArkUINodeType.List, null, 0);
+        var listPeer = ArkListPeer.create(null, 0);
         TestUtils.checkResult("[Optional] ListPeer.someOptional",
             () -> { listPeer.someOptionalAttribute(new Opt_Boolean(false)); },
             "someOptional({.tag=ARK_TAG_OBJECT, .value=false})");
@@ -153,7 +153,7 @@ public class Main {
         var dataInfo = new NativeEmbedDataInfo();
         dataInfo.info = new NativeEmbedInfo();
         dataInfo.info.params = new TreeMap<String, String>(Map.of("k1", "v1", "k2", "v2"));
-        var webPeer = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
+        var webPeer = ArkWebPeer.create(null, 0);
         TestUtils.checkResult("[Map] WebPeer.testMethod",
             () -> { webPeer.testMethodAttribute(dataInfo); },
             "testMethod({.info={.tag=ARK_TAG_OBJECT, .value={.params={.tag=ARK_TAG_OBJECT, .value={{.chars=\"k1\", .length=2}: {.chars=\"v1\", .length=2}, {.chars=\"k2\", .length=2}: {.chars=\"v2\", .length=2}}}}}})");
@@ -199,7 +199,7 @@ public class Main {
         // builder classes
         var len = new Ark_Length("10lpx");
         var indicator = DotIndicator.dot().right(len).left(len).itemWidth(len);
-        var swiperPeer = ArkSwiperPeer.create(ArkUINodeType.Swiper, null, 0);
+        var swiperPeer = ArkSwiperPeer.create(null, 0);
         TestUtils.checkResult("[Builder] SwiperPeer.indicator",
             () -> { swiperPeer.indicatorAttribute(indicator); },
             "indicator({._left={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10, .unit=4, .resource=0}}, ._top={.tag=ARK_TAG_UNDEFINED, .value={}}, ._right={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10, .unit=4, .resource=0}}, ._bottom={.tag=ARK_TAG_UNDEFINED, .value={}}, ._start={.tag=ARK_TAG_UNDEFINED, .value={}}, ._end={.tag=ARK_TAG_UNDEFINED, .value={}}, ._itemWidth={.tag=ARK_TAG_OBJECT, .value={.type=2, .value=10, .unit=4, .resource=0}}, ._itemHeight={.tag=ARK_TAG_UNDEFINED, .value={}}})");
@@ -210,14 +210,14 @@ public class Main {
     static void checkIncrementalTree() {
         System.out.println("Java IncremerntalTree tests");
 
-        var root = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
-        var child1 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
+        var root = ArkButtonPeer.create(null, 0);
+        var child1 = ArkWebPeer.create(null, 0);
         child1.incrementalUpdateDone(root);
-        var child2 = ArkColumnPeer.create(ArkUINodeType.Column, null, 0);
+        var child2 = ArkColumnPeer.create(null, 0);
         child2.incrementalUpdateDone(root);
-        var child3 = ArkSwiperPeer.create(ArkUINodeType.Swiper, null, 0);
+        var child3 = ArkSwiperPeer.create(null, 0);
         child3.incrementalUpdateDone(root);
-        var child4 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
+        var child4 = ArkWebPeer.create(null, 0);
         child4.incrementalUpdateDone(child2);
         System.out.println(root.toHierarchy());
 
@@ -230,12 +230,12 @@ public class Main {
     static void checkNodeAPI() {
         System.out.println("Java TreeNode tests");
 
-        var root = ArkColumnPeer.create(ArkUINodeType.Column, null, 0);
-        var child1 = ArkButtonPeer.create(ArkUINodeType.Button, null, 0);
-        var child2 = ArkBlankPeer.create(ArkUINodeType.Blank, null, 0);
-        var child3 = ArkListPeer.create(ArkUINodeType.List, null, 0);
-        var child4 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
-        var child5 = ArkWebPeer.create(ArkUINodeType.Web, null, 0);
+        var root = ArkColumnPeer.create(null, 0);
+        var child1 = ArkButtonPeer.create(null, 0);
+        var child2 = ArkBlankPeer.create(null, 0);
+        var child3 = ArkListPeer.create(null, 0);
+        var child4 = ArkWebPeer.create(null, 0);
+        var child5 = ArkWebPeer.create(null, 0);
 
         TestUtils.checkResult("BasicNodeAPI addChild", () -> root.peer.addChild(child1.peer),
             String.format("addChild(0x%d, 0x%d)markDirty(0x%d, 32)", root.peer.ptr, child1.peer.ptr, root.peer.ptr, root.peer.ptr));
@@ -269,7 +269,7 @@ public class Main {
         }
 
         var component = new ArkSideBarContainerComponentTest();
-        var peer = ArkSideBarContainerPeer.create(ArkUINodeType.Button, component, 0);
+        var peer = ArkSideBarContainerPeer.create(component, 0);
         component.setPeer(peer);
         TestUtils.checkResult("ArkSideBarContainerComponent method overloads",
             () -> component.minSideBarWidth(10.0).minSideBarWidth(new Ark_Length("10lpx")),

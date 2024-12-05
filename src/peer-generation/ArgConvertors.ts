@@ -19,6 +19,7 @@ import { LibraryInterface } from "../LibraryInterface"
 import { hashCodeFromString, warn } from "../util"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { BlockStatement, BranchStatement, createTypeNameConvertor, generateTypeCheckerName, LanguageExpression, LanguageStatement, LanguageWriter, StringExpression } from "./LanguageWriters"
+import { CppIDLNodeToStringConvertor } from "./LanguageWriters/convertors/CppConvertors"
 import { IDLNodeToStringConvertor } from "./LanguageWriters/convertors/InteropConvertor"
 import { createEmptyReferenceResolver } from "./ReferenceResolver"
 import { UnionRuntimeTypeChecker } from "./unions"
@@ -327,11 +328,12 @@ export class NumberConvertor extends BaseArgConvertor {
 
 export class NumericConvertor extends BaseArgConvertor {
     private readonly interopNameConvertor = new IDLNodeToStringConvertor(createEmptyReferenceResolver())
+    private readonly cppNameConvertor = new CppIDLNodeToStringConvertor(createEmptyReferenceResolver())
     constructor(param: string, type: idl.IDLPrimitiveType) {
         // check numericPrimitiveTypes.include(type)
         super(type, [RuntimeType.NUMBER], false, false, param)
     }
-    convertorArg(param: string, _: LanguageWriter): string {
+    convertorArg(param: string, writer: LanguageWriter): string {
         return param
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
@@ -349,7 +351,7 @@ export class NumericConvertor extends BaseArgConvertor {
         return this.idlType
     }
     isPointerType(): boolean {
-        return true
+        return false
     }
 }
 

@@ -17,7 +17,7 @@ import * as idl from "../../idl"
 import * as path from "path"
 import { renameDtsToPeer, throwException } from "../../util";
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
-import { PeerClassBase } from "../PeerClass";
+import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "../inheritance";
 import {
     ExpressionStatement,
@@ -88,8 +88,6 @@ class PeerFileVisitor {
 
         const imports = new ImportsCollector()
         this.file.peersToGenerate.forEach(peer => {
-            if (determineParentRole(peer.originalClassName, peer.parentComponentName) === InheritanceRole.PeerNode)
-                imports.addFeature('PeerNode', './PeerNode')
             if (peer.originalParentFilename) {
                 const parentModule = convertPeerFilenameToModule(peer.originalParentFilename)
                 imports.addFeature(this.generatePeerParentName(peer), parentModule)
@@ -150,16 +148,15 @@ class PeerFileVisitor {
     protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
         // TODO: fully switch to writer!
         const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
-        const isNode = parentRole !== InheritanceRole.Finalizable
         const signature = new NamedMethodSignature(
             IDLVoidType,
-            [maybeOptional(createReferenceType('ArkUINodeType'), !isNode), IDLI32Type, IDLStringType],
-            ['nodeType', 'flags', 'name'],
-            [undefined, '0', '""'])
+            [IDLPointerType, IDLStringType, IDLI32Type],
+            ['peerPtr', 'name', 'flags'],
+            [undefined, '""', '0'])
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => {
             if (parentRole === InheritanceRole.PeerNode || parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
-                writer.writeSuperCall([`nodeType`, 'flags', `name`])
+                writer.writeSuperCall(['peerPtr', `name`, 'flags'])
             } else {
                 throwException(`Unexpected parent inheritance role: ${parentRole}`)
             }
@@ -170,15 +167,46 @@ class PeerFileVisitor {
         const peerClass = componentToPeerClass(peer.componentName)
         const signature = new NamedMethodSignature(
             createReferenceType(peerClass),
-            [createReferenceType('ArkUINodeType'), createOptionalType(createReferenceType('ComponentBase')), IDLI32Type],
-            ['nodeType', 'component', 'flags'],
-            [undefined, undefined, '0'])
-
+            [createOptionalType(createReferenceType('ComponentBase')), IDLI32Type],
+            ['component', 'flags'],
+            [undefined, '0']
+        )
         writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
+            const _peerPtr = '_peerPtr'
+
+            writer.print('/**')
+            writer.print('TODO: Edit PeersPrinter and USE this line')
+            writer.writeStatement(
+                writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
+                    `_${peer.componentName}_${createConstructPeerMethod(peer).overloadedName}`,
+                    [writer.makeString('PeerNode.currentId + 1'), writer.makeString(signature.argName(1))]
+                ), true)
+            )
+            writer.print(' */')
+            
+            // TODO: rm _CreateNode() call and use _Component_construct() call
+            const nodeType = 'nodeType'
+            writer.writeStatement(
+                writer.makeAssign(nodeType, undefined, writer.makeString(`ArkUINodeType.${peer.componentName}`), true)
+            )
+            writer.writeStatement(
+                writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
+                    '_CreateNode',
+                    [
+                        writer.makeString(writer.language == Language.JAVA ? `${nodeType}.value` : writer.language == Language.ARKTS ? `${nodeType} as int32` : `${nodeType}`),
+                        writer.makeString('PeerNode.currentId + 1'), 
+                        writer.makeString(signature.argName(1))
+                    ]
+                ), true)
+            )
             const _peer = '_peer'
-            writer.writeStatement(writer.makeAssign(_peer, undefined, writer.makeString(
-                `${writer.language == Language.CJ ? ' ' : 'new '}${peerClass}(${signature.argName(0)}, ${signature.argName(2)}, "${peer.componentName}")`), true))
-            writer.writeMethodCall(signature.argName(1), 'setPeer', [_peer], true)
+            writer.writeStatement(
+                writer.makeAssign(_peer, undefined,
+                    writer.makeString(
+                        `${writer.language == Language.CJ ? ' ' : 'new '}${peerClass}(${_peerPtr}, "${peer.componentName}", flags)`
+                    ), true)
+            )
+            writer.writeMethodCall(signature.argName(0), 'setPeer', [_peer], true)
             writer.writeStatement(writer.makeReturn(writer.makeString(_peer)))
         })
     }
@@ -227,15 +255,16 @@ class PeerFileVisitor {
     }
 
     protected getDefaultPeerImports(lang: Language) {
-        const defaultPeerImports =  [
+        const defaultPeerImports = [
             `import { int32 } from "@koalaui/common"`,
             `import { nullptr, KPointer, KInt, KBoolean, KStringPtr } from "@koalaui/interop"`,
             `import { isResource, isInstanceOf, runtimeType, RuntimeType } from "./SerializerBase"`,
             `import { Serializer } from "./Serializer"`,
             `import { ArkUINodeType } from "./ArkUINodeType"`,
             `import { ComponentBase } from "../ComponentBase"`,
+            `import { PeerNode } from "../PeerNode"`
         ]
-        switch(lang) {
+        switch (lang) {
             case Language.TS: {
                 return [...defaultPeerImports,
                     `import { nativeModule } from "@koalaui/arkoala"`,]

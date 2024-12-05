@@ -126,6 +126,11 @@ function checkNodeAPI() {
     const ARKUI_TEXT = 1
     const id = 12
     const flags = 7
+    /**
+     * let ptr: pointer = nativeModule()._ComponentRoot_construct(id, flags)
+     * let childPtr1: pointer = nativeModule()._ComponentRoot_construct(id + 1, flags)
+     * let childPtr2: pointer = nativeModule()._ComponentRoot_construct(id + 2, flags)
+     */
     let ptr: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id, flags)
     let childPtr1: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id + 1, flags)
     let childPtr2: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id + 2, flags)
@@ -347,7 +352,7 @@ function checkWriteFunction() {
 function checkButton() {
     startNativeTest(checkButton.name, CALL_GROUP_LOG)
 
-    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create()
 
     const lastResourceId = ResourceHolder.instance().registerAndHold({})
     ResourceHolder.instance().release(lastResourceId)
@@ -372,7 +377,7 @@ function checkButton() {
 function checkCalendar() {
     startNativeTest(checkCalendar.name, CALL_GROUP_LOG)
 
-    let peer = ArkCalendarPickerPeer.create(ArkUINodeType.CalendarPicker)
+    let peer = ArkCalendarPickerPeer.create()
     checkResult("setCalendarOptions: hintRadius", () => peer.setCalendarPickerOptionsAttribute({ hintRadius: 79 }),
         `setCalendarPickerOptions({.tag=ARK_TAG_OBJECT, .value={.hintRadius={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.tag=102, .i32=79}}}, .selected={.tag=ARK_TAG_UNDEFINED, .value={}}}})`)
     const date = new Date()
@@ -389,7 +394,7 @@ function checkCalendar() {
 function checkFormComponent() {
     startNativeTest(checkFormComponent.name, CALL_GROUP_LOG)
 
-    let peer = ArkFormComponentPeer.create(ArkUINodeType.FormComponent)
+    let peer = ArkFormComponentPeer.create()
     checkResult("size int", () => peer.sizeAttribute({ width: 5, height: 6 }),
         `size({.width={.tag=102, .i32=5}, .height={.tag=102, .i32=6}})`)
     checkResult("size float", () => peer.sizeAttribute({ width: 5.5, height: 6.789 }),
@@ -403,7 +408,7 @@ function checkFormComponent() {
 function checkCommon() {
     startNativeTest(checkCommon.name, CALL_GROUP_LOG)
 
-    let peer = ArkCommonPeer.create(ArkUINodeType.Common)
+    let peer = ArkCommonPeer.create()
     // check backgroundBlurStyle and check the heritance by the way
     let backgroundBlurStyle: BackgroundBlurStyleOptions = {
         colorMode: 0,
@@ -445,7 +450,7 @@ function checkOverloads() {
         }
     }
 
-    const peer = ArkSideBarContainerPeer.create(ArkUINodeType.SideBarContainer)
+    const peer = ArkSideBarContainerPeer.create()
     const component = new ArkSideBarContainerComponentTest(peer)
     checkResult("Test number implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth(11),
@@ -462,7 +467,7 @@ function checkOverloads() {
 function checkTabContent() {
     startNativeTest(checkTabContent.name, CALL_GROUP_LOG)
 
-    let peer = ArkTabContentPeer.create(ArkUINodeType.TabContent)
+    let peer = ArkTabContentPeer.create()
     const subTabBarStyle: SubTabBarStyle = new SubTabBarStyle("ContentResource").id("subId")
     assertEquals("SubTabBarStyle content", "ContentResource", subTabBarStyle._content)
     assertEquals("SubTabBarStyle id", "subId", subTabBarStyle._id)
@@ -530,7 +535,7 @@ function checkCanvasRenderingContext2D() {
 }
 
 function checkPerf2(count: number) {
-    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create()
     let start = performance.now()
     for (let i = 0; i < count; i++) {
         peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : { grayscale: [1, 2] })
@@ -540,7 +545,7 @@ function checkPerf2(count: number) {
 }
 
 function checkPerf3(count: number) {
-    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create()
     let start = performance.now()
     for (let i = 0; i < count; i++) {
         peer.widthAttribute(testLength_10_lpx)

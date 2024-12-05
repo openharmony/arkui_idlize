@@ -14,7 +14,7 @@
  */
 
 import { createInteropArgConvertor, createLanguageWriter, LanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
-import { PeerClassBase } from "../PeerClass";
+import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
@@ -100,6 +100,26 @@ class NativeModuleRecorderVisitor {
             }
         })
         clazz.setGenerationContext(undefined)
+    }
+
+    private printConstructMethod(clazz: PeerClass, nativeModuleRecorder: LanguageWriter) {
+        const method = createConstructPeerMethod(clazz)
+        const name = `_${method.originalParentName}_${method.overloadedName}`
+        const signature = method.method.signature
+        const args = signature.args.map((arg, idx) => { return { name: signature.argName(idx), type: arg } })
+        const parameters = NamedMethodSignature.make(IDLPointerType, args)
+
+        nativeModuleRecorder.writeMethodImplementation(new Method(name, parameters), (w) => {
+            w.writeLines(`let element: UIElement = {`)
+            w.pushIndent()
+            w.writeLines(`nodeId: 0,`)
+            w.writeLines(`kind: '',`)
+            w.writeLines(`children: [],`)
+            w.writeLines(`elementId: undefined,`)
+            w.popIndent()
+            w.writeLines(`}`)
+            w.writeLines(`return this.object2ptr(element)`)
+        })
     }
 
     printOtherField() {
@@ -290,6 +310,12 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`if (!inserted) throw Error("Cannot find sibling to insert")`)
             w.writeLines(`return 0`)
         })
+
+        for (const file of this.library.files) {
+            for (const peer of file.peersToGenerate.values()) {
+                this.printConstructMethod(peer, this.nativeModuleRecorder)
+            }
+        }
     }
 
     printClassField() {

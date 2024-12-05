@@ -530,7 +530,7 @@ class BlurOptionsImpl implements BlurOptions {
 }
 
 function checkPerf2(count: number) {
-    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create()
     let start = Date.now()
     for (let i = 0; i < count; i++) {
         peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : new BlurOptionsImpl([1, 2] as [number, number]))
@@ -540,7 +540,7 @@ function checkPerf2(count: number) {
 }
 
 function checkPerf3(count: number) {
-    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create()
     let start = Date.now()
     for (let i = 0; i < count; i++) {
         peer.widthAttribute(testString1000)
@@ -550,7 +550,7 @@ function checkPerf3(count: number) {
 }
 
 function checkButton() {
-    let peer = ArkButtonPeer.create(ArkUINodeType.Button)
+    let peer = ArkButtonPeer.create()
 
     checkResult("width", () => peer.widthAttribute("42%"),
         "width({.type=2, .value=42, .unit=3, .resource=0})")
@@ -748,12 +748,12 @@ function checkNativeCallback() {
 function checkNodeAPI() {
     console.log("TreeNode tests")
 
-    const root = ArkColumnPeer.create(ArkUINodeType.Column, undefined, 0)
-    const child1 = ArkButtonPeer.create(ArkUINodeType.Button, undefined, 0)
-    const child2 = ArkButtonPeer.create(ArkUINodeType.Blank, undefined, 0)
-    const child3 = ArkButtonPeer.create(ArkUINodeType.List, undefined, 0)
-    const child4 = ArkButtonPeer.create(ArkUINodeType.Web, undefined, 0)
-    const child5 = ArkButtonPeer.create(ArkUINodeType.Web, undefined, 0)
+    const root = ArkColumnPeer.create()
+    const child1 = ArkButtonPeer.create()
+    const child2 = ArkButtonPeer.create()
+    const child3 = ArkButtonPeer.create()
+    const child4 = ArkButtonPeer.create()
+    const child5 = ArkButtonPeer.create()
 
     checkResult("BasicNodeAPI addChild", () => root.peer.addChild(child1.peer),
         `addChild(0x${root.peer.ptr}, 0x${child1.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
