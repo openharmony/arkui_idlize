@@ -108,7 +108,11 @@ export class ModifierVisitor {
         }
         else if(method.method.name == 'destroyPeer')
         {
-            printer.print(`delete peer;`)
+            const implClassName = `${method.originalParentName}PeerImpl`
+            printer.print(`auto peerImpl = reinterpret_cast<${implClassName} *>(peer);`)
+            printer.print(`if (peerImpl) {`)
+            printer.print(`    delete peerImpl;`)
+            printer.print(`}`)
         }
         else if (!isVoid) {
             if (this.isPointerReturnType(method.method.signature.returnType)) {
