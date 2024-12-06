@@ -46,7 +46,22 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLThisType,
     isOptionalType,
     IDLVersion,
-    isUnspecifiedGenericType,} from "../idl"
+    isUnspecifiedGenericType,
+    IDLNumberType,
+    IDLI8Type,
+    IDLU8Type,
+    IDLF64Type,
+    IDLI16Type,
+    IDLU32Type,
+    IDLU16Type,
+    IDLU64Type,
+    IDLI64Type,
+    IDLF16Type,
+    IDLF32Type,
+    IDLI32Type,
+    IDLBooleanType,
+    IDLBufferType,
+    IDLUnknownType,} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
@@ -307,12 +322,26 @@ export class CustomPrintVisitor {
     private printTypeForTS(type: IDLType | undefined, undefinedToVoid?: boolean, sequenceToArrayInterface: boolean = false, isCommonMethod = false): string {
         if (!type) throw new Error("Missing type")
         if (isOptionalType(type)) return `${this.printTypeForTS(type.type, undefinedToVoid, sequenceToArrayInterface)} | undefined`
-        if (type === IDLUndefinedType && undefinedToVoid) return "void"
-        if (type === IDLStringType) return "string"
-        // if (isCommonMethod && forceAsNamedNode(type).name == "this") return "T"
-        if (type === IDLThisType) return "T"
-        if (type === IDLVoidType) return "void"
-        if (isPrimitiveType(type)) return type.name
+        if (isPrimitiveType(type)) {
+            switch (type) {
+                case IDLU8Type: case IDLI8Type:
+                case IDLU16Type: case IDLI16Type:
+                case IDLU32Type: case IDLI32Type:
+                case IDLU64Type: case IDLI64Type:
+                case IDLF16Type: case IDLF32Type: case IDLF64Type:
+                case IDLNumberType: 
+                    return "number"
+                case IDLAnyType: return "any"
+                case IDLUnknownType: return "unknown"
+                case IDLBufferType: return "ArrayBuffer"
+                case IDLBooleanType: return "boolean"
+                case IDLUndefinedType: return undefinedToVoid ? "void" : "undefined"
+                case IDLStringType: return "string"
+                case IDLVoidType: return "void"
+                case IDLThisType: return "T"
+                default: throw new Error(`Unknown primitive type ${DebugUtils.debugPrintType(type)}`)
+            }
+        }
         if (isContainerType(type)) {
             if (!sequenceToArrayInterface && IDLContainerUtils.isSequence(type))
                 return `${type.elementType.map(it => this.printTypeForTS(it)).join(",")}[]`
