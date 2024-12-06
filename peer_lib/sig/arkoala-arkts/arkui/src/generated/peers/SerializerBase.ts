@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { float32, float64, int8, int32, int64 } from "@koalaui/common"
+import { float32, float64, int8, int32, int64, int32BitsFromFloat } from "@koalaui/common"
 import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder } from "@koalaui/interop"
 import { NativeModule } from "#components"
 
@@ -264,12 +264,13 @@ export class SerializerBase {
         this.position += 8
     }
     writeFloat32(value: float32) {
+        let bits = int32BitsFromFloat(value)
         // TODO: this is wrong!
         this.checkCapacity(4)
-        this.buffer.set(this.position + 0, ((value      ) & 0xff) as int8)
-        this.buffer.set(this.position + 1, ((value >>  8) & 0xff) as int8)
-        this.buffer.set(this.position + 2, ((value >> 16) & 0xff) as int8)
-        this.buffer.set(this.position + 3, ((value >> 24) & 0xff) as int8)
+        this.buffer.set(this.position + 0, ((bits      ) & 0xff) as int8)
+        this.buffer.set(this.position + 1, ((bits >>  8) & 0xff) as int8)
+        this.buffer.set(this.position + 2, ((bits >> 16) & 0xff) as int8)
+        this.buffer.set(this.position + 3, ((bits >> 24) & 0xff) as int8)
         this.position += 4
     }
     writePointer(value: pointer) {
