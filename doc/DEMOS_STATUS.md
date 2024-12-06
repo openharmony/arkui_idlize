@@ -151,7 +151,7 @@
 | `scrollable`              | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | `scrollBar`               | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
-| `onScrollEdge`            | Function  |           | WON         | Kirill Berezin      | in progress      |                   |           | Medium   |
+| `onScrollEdge`            | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | Video                     | Component |           |             | Erokhin Ilya        | done             |                   |           |          |
 | `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked AceEngine|                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
