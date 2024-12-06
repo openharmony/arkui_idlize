@@ -283,7 +283,7 @@
 |`systemBarEffect`| Function | Lobah Mikhail | done | |
 |`backdropBlur`| Function | Berezin Kirill | done | |
 |`sharedTransition`|Function|Skroba Gleb | done |  |
-|`chainMode`| Function | Berezin Kirill | in progress | |
+|`chainMode`| Function | Berezin Kirill | done | |
 |`dragPreviewOptions`| Function | | | |
 |`overlay`| Function | Roman Sedaikin | done | |
 |`blendMode`| Function | Lobah Mikhail | done | |
@@ -819,7 +819,7 @@
 |`onScroll`| Function | Berezin Kirill | done |  |
 |`onWillScroll`| Function | Berezin Kirill |blocked IDL |  |
 |`onDidScroll`| Function | Berezin Kirill | in progress |  |
-|`onScrollEdge`| Function | Berezin Kirill | in progress |  |
+|`onScrollEdge`| Function | Berezin Kirill | done |  |
 |`onScrollStart`| Function | Berezin Kirill | done |  |
 |`onScrollEnd`| Function | Berezin Kirill | done |  |
 |`onScrollStop`| Function | Berezin Kirill | done |  |
