@@ -50,6 +50,7 @@ export class PeerGeneratorConfig {
     public static rootComponents = [
         "CommonMethod",
         "SecurityComponentMethod",
+        "CommonTransition",
         "CalendarAttribute",
         "ContainerSpanAttribute",
     ]
