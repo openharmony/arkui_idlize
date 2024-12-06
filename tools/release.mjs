@@ -51,6 +51,9 @@ function run() {
     try {
         publishToOpenlab("next")
 
+        writeToPackageJson("version", `${next.toString()}+devel`)
+        writeToPackageJson("description", "")
+
         console.log(`> Checkout to ${newBranch}`)
         git.checkout(`release-${next.toString()}`)
         git.add('.')
@@ -64,9 +67,7 @@ function run() {
         throw new Error("Failed to publish idlize package")
     }
 
-    writeToPackageJson("version", `${next.toString()}+devel`)
-    writeToPackageJson("description", "")
-
+    console.log(`> Link: https://nexus.bz-openlab.ru:10443/repository/koala-npm/%40azanat/idlize/-/idlize-${next.toString()}.tgz`)
     console.log("$ git push")
 
 }

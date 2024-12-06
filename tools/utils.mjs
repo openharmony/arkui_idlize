@@ -78,7 +78,7 @@ export class Git {
 export function writeToPackageJson(key, value) {
     const json = JSON.parse(fs.readFileSync(path.join(IDLIZE_HOME, "package.json"), "utf-8"))
     json[key] = value
-    fs.writeFileSync(path.join(IDLIZE_HOME, "package.json"), JSON.stringify(json, null, 4), "utf-8")
+    fs.writeFileSync(path.join(IDLIZE_HOME, "package.json"), JSON.stringify(json, null, 2), "utf-8")
 
 }
 
