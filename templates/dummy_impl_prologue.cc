@@ -358,7 +358,7 @@ float TreeNode::getYValue() {
 
 namespace OHOS::Ace::NG {
 
-namespace Bridge {
+namespace GeneratedBridge {
 
 Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 flags) {
     TreeNodeDelays::CheckType(type);
@@ -387,10 +387,14 @@ Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
     appendGroupedLog(1, out);
     return result;
 }
+}
+
+namespace GeneratedApiImpl {
+
+static int res_num = 0;
 
 void SetCallbackMethod(%CPP_PREFIX%Ark_APICallbackMethod* method) {
     callbacks = method;
-}
 }
 
 Ark_Float32 GetDensity(Ark_Int32 deviceId) {
@@ -437,10 +441,6 @@ Ark_Float32 GetDesignWidthScale(Ark_Int32 deviceId) {
 
     return result;
 }
-
-namespace ApiImpl {
-
-static int res_num = 0;
 
 Ark_NodeHandle GetNodeByViewStack() {
     Ark_NodeHandle result = (Ark_NodeHandle) 234;
