@@ -27,7 +27,6 @@ export class IDLVisitorConfig {
 
     static readonly StubbedDeclarations = new Array<string>(
         "OnWillScrollCallback",
-        "LinearGradient",
         "ContentModifier",
         "LayoutChild",
         "EmitterProperty",
@@ -35,4 +34,9 @@ export class IDLVisitorConfig {
         "Layoutable",
         "GestureGroupGestureHandlerOptions",
     )
+
+    static readonly ConflictingDeclarationNames = [
+        "TextStyle",
+        "LinearGradient"
+    ]
 }

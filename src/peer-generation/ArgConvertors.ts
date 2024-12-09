@@ -247,10 +247,6 @@ export class LengthConvertor extends BaseArgConvertor {
 }
 
 export class CustomTypeConvertor extends BaseArgConvertor {
-    // TODO: remove
-    private static knownTypes: Map<string, [string, boolean][]> = new Map([
-        // ["LinearGradient", [["angle", true], ["direction", true], ["colors", false], ["repeating", true]]]
-    ])
     constructor(param: string,
                 public readonly customTypeName: string,
                 private readonly isGenericType: boolean = false,
@@ -287,13 +283,6 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return true
-    }
-    override getMembers(): string[] {
-        return CustomTypeConvertor.knownTypes.get(this.customTypeName)?.map(it => it[0]) ?? super.getMembers()
-    }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        const uniqueFields = CustomTypeConvertor.knownTypes.get(this.customTypeName)?.filter(it => !duplicates.has(it[0]))
-        return this.discriminatorFromFields(value, writer, uniqueFields, it => it[0], it => it[1], duplicates)
     }
 }
 
@@ -543,7 +532,7 @@ export class UnionConvertor extends BaseArgConvertor { //
                 it.convertorDeserialize(`${bufferName}_u`, deserializerName, (expr) => {
                     if (writer.language == Language.CJ) {
                         return writer.makeAssign(receiver, undefined, writer.makeFunctionCall(writer.getNodeName(this.type), [expr]), false)
-                    } else { 
+                    } else {
                         return writer.makeAssign(receiver, undefined, expr, false)
                     }
                 }, writer),

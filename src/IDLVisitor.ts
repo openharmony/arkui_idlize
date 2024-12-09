@@ -80,13 +80,11 @@ export function generateSyntheticUnionName(types: idl.IDLType[]) {
     return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
 }
 
-const conflictingDeclarationNames = [
-    "TextStyle",
-]
-
-function mangleConflictingName(name: string, sourceFile: ts.SourceFile): string {
-    const fileName = path.basename(sourceFile.fileName).replaceAll(".d.ts", "").replaceAll(".", "")
-    if (conflictingDeclarationNames.includes(name)) return `${name}_${fileName.replaceAll("@", "")}`
+function mangleConflictingName(name: string, sourceFile: ts.SourceFile | undefined): string {
+    if (IDLVisitorConfig.ConflictingDeclarationNames.includes(name) && sourceFile) {
+        const fileName = path.basename(sourceFile.fileName).replaceAll(".d.ts", "").replaceAll(".", "")
+        return `${name}_${fileName.replaceAll("@", "")}`
+    }
     return name
 }
 
@@ -252,7 +250,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                     [],
                     undefined,
                     undefined,
-                    [idl.createProperty(`__stub`, idl.IDLStringType)],
+                    [idl.createProperty(`stub`, idl.IDLStringType)],
                     undefined,
                     undefined,
                     this.collectTypeParameters(node.typeParameters),
@@ -908,9 +906,16 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         if (ts.isTypeReferenceNode(type)) {
             const declarations = getDeclarationsByNode(this.typeChecker, type.typeName)
-            const typeName = mangleConflictingName(type.typeName.getText(type.typeName.getSourceFile()), type.typeName.getSourceFile())
+            let sourceFile: ts.SourceFile|undefined = undefined
             if (declarations.length == 0)
-                warn(`Do not know type ${typeName}`)
+                warn(`Do not know type ${type.typeName.getText()}`)
+            else if (declarations.length > 1)
+                // If there are multiple declaration select one from the same file, if possible.
+                sourceFile = declarations.find(it => it.getSourceFile() == type.getSourceFile())?.getSourceFile() ?? declarations[0].getSourceFile()
+            else
+                sourceFile = declarations[0].getSourceFile()
+            const typeName = mangleConflictingName(type.typeName.getText(), sourceFile)
+
             // Treat enum member type 'value: EnumName.MemberName`
             // as enum type 'value: EnumName`.
             if (ts.isQualifiedName(type.typeName)) {

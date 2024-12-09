@@ -103,7 +103,7 @@
     "make:arkts:subset:tsc": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --only-integrated --input-dir ./tests/arkts-subset/ets/,./tests/arkts-subset/resource --arkoala-destination ./out/arkts-subset-tsc/generated --generator-target arkoala --language=arkts",
     "make:arkts:peers:tsc": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --only-integrated --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --arkoala-destination ./out/arkts-peers-tsc/generated --generator-target arkoala --language=arkts",
     "make:arkts:peers": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --output-dir ./out/arkts-peers/generated --language arkts",
-    "compile:arkts:runtime": "npm -C external/incremental/runtime run link:incremental",
+    "compile:arkts:runtime": "npm -C external/incremental/runtime run build:incremental",
     "compile:arkts:interop": "cd ./external/interop/ && npm run build:interop && echo ATTENTION: an interop is compiled without unmemoization here!",
     "compile:arkts:peers": "fast-arktsc --input-files ./arktsconfig-peers.json --output-dir ./out/arkts-peers/abc --compiler external/incremental/tools/panda/arkts/arktsc && ninja -C ./out/arkts-peers/abc -f build.ninja",
     "compile:arkts:subset": "fast-arktsc --input-files ./arktsconfig-subset.json --output-dir ./out/arkts-subset/abc --compiler external/incremental/tools/panda/arkts/arktsc && ninja -C ./out/arkts-subset/abc -f build.ninja",
