@@ -10,8 +10,8 @@ import {
 export interface ParseOptions {
     supportDoctype?: boolean
     ignoreNameSpace?: boolean
-    tagValueCallbackFunction?: Function2<KStringPtr,KStringPtr,boolean>
-    attributeValueCallbackFunction?: Function2<KStringPtr,KStringPtr,boolean>
+    tagValueCallbackFunction?: Function2<string,string,boolean>
+    attributeValueCallbackFunction?: Function2<string,string,boolean>
     tokenValueCallbackFunction?: Function2<xml_EventType,ParseInfo,boolean>
 }
 export class xml_EventType {
@@ -26,13 +26,13 @@ export class xml_EventType {
     static readonly INSTRUCTION: xml_EventType = new xml_EventType(8,8)
     static readonly ENTITY_REFERENCE: xml_EventType = new xml_EventType(9,9)
     static readonly WHITESPACE: xml_EventType = new xml_EventType(10,10)
-     constructor(value: KInt, ordinal: KInt) {
+     constructor(value: int32, ordinal: int32) {
         this.value = value
         this.ordinal = ordinal
     }
-    public readonly value: KInt
-    public readonly ordinal: KInt
-    public static of(arg0: KInt): xml_EventType {
+    public readonly value: int32
+    public readonly ordinal: int32
+    public static of(arg0: int32): xml_EventType {
         if ((arg0) == (xml_EventType.START_DOCUMENT.value))
             return xml_EventType.START_DOCUMENT
         if ((arg0) == (xml_EventType.END_DOCUMENT.value))
@@ -57,7 +57,7 @@ export class xml_EventType {
             return xml_EventType.WHITESPACE
         throw new Error(`Enum member '${arg0}' not found`)
     }
-    public static ofOrdinal(arg0: KInt): xml_EventType {
+    public static ofOrdinal(arg0: int32): xml_EventType {
         if ((arg0) == (xml_EventType.START_DOCUMENT.ordinal))
             return xml_EventType.START_DOCUMENT
         if ((arg0) == (xml_EventType.END_DOCUMENT.ordinal))
@@ -84,57 +84,46 @@ export class xml_EventType {
     }
 }
 export interface XmlSerializerInterface {
-    setAttributes(name: KStringPtr, value: KStringPtr): void 
-    addEmptyElement(name: KStringPtr): void 
+    setAttributes(name: string, value: string): void 
+    addEmptyElement(name: string): void 
     setDeclaration(): void 
-    startElement(name: KStringPtr): void 
+    startElement(name: string): void 
     endElement(): void 
-    setNamespace(prefix: KStringPtr, namespace_: KStringPtr): void 
-    setComment(text: KStringPtr): void 
-    setCDATA(text: KStringPtr): void 
-    setText(text: KStringPtr): void 
-    setDocType(text: KStringPtr): void 
+    setNamespace(prefix: string, namespace_: string): void 
+    setComment(text: string): void 
+    setCDATA(text: string): void 
+    setText(text: string): void 
+    setDocType(text: string): void 
 }
 export interface ParseInfoInterface {
     getColumnNumber(): number 
     getDepth(): number 
     getLineNumber(): number 
-    getName(): KStringPtr 
-    getNamespace(): KStringPtr 
-    getPrefix(): KStringPtr 
-    getText(): KStringPtr 
+    getName(): string 
+    getNamespace(): string 
+    getPrefix(): string 
+    getText(): string 
     isEmptyElementTag(): boolean 
     isWhitespace(): boolean 
     getAttributeCount(): number 
 }
 export interface XmlPullParserInterface {
     parse(option: ParseOptions): void 
+    parseXml(option: ParseOptions): void 
 }
 export class XmlSerializer implements XmlSerializerInterface {
     peer: Finalizable
-     constructor(buffer: ArrayBuffer | DataView, encoding?: KStringPtr) {
+     constructor(buffer: string, encoding?: string) {
         const thisSerializer : Serializer = Serializer.hold()
-        let buffer_type : KInt = RuntimeType.UNDEFINED
-        buffer_type = runtimeType(buffer)
-        if (buffer instanceof ArrayBuffer) {
-            thisSerializer.writeInt8(0 as int32)
-            const buffer_0  = buffer as ArrayBuffer
-            thisSerializer.writeBuffer(buffer_0)
-        }
-        else if (((RuntimeType.OBJECT == buffer_type))) {
-            thisSerializer.writeInt8(1 as int32)
-            const buffer_1  = buffer as DataView
-            thisSerializer.writeCustomObject("DataView", buffer_1)
-        }
-        let encoding_type : KInt = RuntimeType.UNDEFINED
+        let encoding_type : int32 = RuntimeType.UNDEFINED
         encoding_type = runtimeType(encoding)
         thisSerializer.writeInt8(encoding_type as int32)
         if ((RuntimeType.UNDEFINED) != (encoding_type)) {
             const encoding_value  = encoding!
             thisSerializer.writeString(encoding_value)
         }
-        this.peer = new Finalizable(XMLNativeModule._XmlSerializer_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlSerializer.getFinalizer())
-        thisSerializer.release();
+        this.peer = new Finalizable(XMLNativeModule._XmlSerializer_ctor(buffer, thisSerializer.asArray(), thisSerializer.length()), XmlSerializer.getFinalizer())
+        thisSerializer.release()
     }
     static getFinalizer(): KPointer {
         return XMLNativeModule._XmlSerializer_getFinalizer()
@@ -142,35 +131,35 @@ export class XmlSerializer implements XmlSerializerInterface {
     getPeer(): Finalizable | undefined {
         return this.peer
     }
-    setAttributes(name: KStringPtr, value: KStringPtr): void {
-        XMLNativeModule._XmlSerializer_setAttributes(this.peer.ptr, name, value);
+    setAttributes(name: string, value: string): void {
+        XMLNativeModule._XmlSerializer_setAttributes(this.peer.ptr, name, value)
     }
-    addEmptyElement(name: KStringPtr): void {
-        XMLNativeModule._XmlSerializer_addEmptyElement(this.peer.ptr, name);
+    addEmptyElement(name: string): void {
+        XMLNativeModule._XmlSerializer_addEmptyElement(this.peer.ptr, name)
     }
     setDeclaration(): void {
-        XMLNativeModule._XmlSerializer_setDeclaration(this.peer.ptr);
+        XMLNativeModule._XmlSerializer_setDeclaration(this.peer.ptr)
     }
-    startElement(name: KStringPtr): void {
-        XMLNativeModule._XmlSerializer_startElement(this.peer.ptr, name);
+    startElement(name: string): void {
+        XMLNativeModule._XmlSerializer_startElement(this.peer.ptr, name)
     }
     endElement(): void {
-        XMLNativeModule._XmlSerializer_endElement(this.peer.ptr);
+        XMLNativeModule._XmlSerializer_endElement(this.peer.ptr)
     }
-    setNamespace(prefix: KStringPtr, namespace_: KStringPtr): void {
-        XMLNativeModule._XmlSerializer_setNamespace(this.peer.ptr, prefix, namespace_);
+    setNamespace(prefix: string, namespace_: string): void {
+        XMLNativeModule._XmlSerializer_setNamespace(this.peer.ptr, prefix, namespace_)
     }
-    setComment(text: KStringPtr): void {
-        XMLNativeModule._XmlSerializer_setComment(this.peer.ptr, text);
+    setComment(text: string): void {
+        XMLNativeModule._XmlSerializer_setComment(this.peer.ptr, text)
     }
-    setCDATA(text: KStringPtr): void {
-        XMLNativeModule._XmlSerializer_setCDATA(this.peer.ptr, text);
+    setCDATA(text: string): void {
+        XMLNativeModule._XmlSerializer_setCDATA(this.peer.ptr, text)
     }
-    setText(text: KStringPtr): void {
-        XMLNativeModule._XmlSerializer_setText(this.peer.ptr, text);
+    setText(text: string): void {
+        XMLNativeModule._XmlSerializer_setText(this.peer.ptr, text)
     }
-    setDocType(text: KStringPtr): void {
-        XMLNativeModule._XmlSerializer_setDocType(this.peer.ptr, text);
+    setDocType(text: string): void {
+        XMLNativeModule._XmlSerializer_setDocType(this.peer.ptr, text)
     }
 }
 export class ParseInfo implements ParseInfoInterface {
@@ -198,19 +187,19 @@ export class ParseInfo implements ParseInfoInterface {
         const result  = XMLNativeModule._ParseInfo_getLineNumber(this.peer.ptr)
         return result
     }
-    getName(): KStringPtr {
+    getName(): string {
         const result  = XMLNativeModule._ParseInfo_getName(this.peer.ptr)
         return result
     }
-    getNamespace(): KStringPtr {
+    getNamespace(): string {
         const result  = XMLNativeModule._ParseInfo_getNamespace(this.peer.ptr)
         return result
     }
-    getPrefix(): KStringPtr {
+    getPrefix(): string {
         const result  = XMLNativeModule._ParseInfo_getPrefix(this.peer.ptr)
         return result
     }
-    getText(): KStringPtr {
+    getText(): string {
         const result  = XMLNativeModule._ParseInfo_getText(this.peer.ptr)
         return result
     }
@@ -236,9 +225,9 @@ export class ParseInfoInternal {
 }
 export class XmlPullParser implements XmlPullParserInterface {
     peer: Finalizable
-     constructor(buffer: KStringPtr, encoding?: KStringPtr) {
+     constructor(buffer: string, encoding?: string) {
         const thisSerializer : Serializer = Serializer.hold()
-        let encoding_type : KInt = RuntimeType.UNDEFINED
+        let encoding_type : int32 = RuntimeType.UNDEFINED
         encoding_type = runtimeType(encoding)
         thisSerializer.writeInt8(encoding_type as int32)
         if ((RuntimeType.UNDEFINED) != (encoding_type)) {
@@ -246,7 +235,7 @@ export class XmlPullParser implements XmlPullParserInterface {
             thisSerializer.writeString(encoding_value)
         }
         this.peer = new Finalizable(XMLNativeModule._XmlPullParser_ctor(buffer, thisSerializer.asArray(), thisSerializer.length()), XmlPullParser.getFinalizer())
-        thisSerializer.release();
+        thisSerializer.release()
     }
     static getFinalizer(): KPointer {
         return XMLNativeModule._XmlPullParser_getFinalizer()
@@ -257,7 +246,13 @@ export class XmlPullParser implements XmlPullParserInterface {
     parse(option: ParseOptions): void {
         const thisSerializer : Serializer = Serializer.hold()
         thisSerializer.writeParseOptions(option)
-        XMLNativeModule._XmlPullParser_parse(this.peer.ptr, thisSerializer.asArray(), thisSerializer.length());
-        thisSerializer.release();
+        XMLNativeModule._XmlPullParser_parse(this.peer.ptr, thisSerializer.asArray(), thisSerializer.length())
+        thisSerializer.release()
+    }
+    parseXml(option: ParseOptions): void {
+        const thisSerializer : Serializer = Serializer.hold()
+        thisSerializer.writeParseOptions(option)
+        XMLNativeModule._XmlPullParser_parseXml(this.peer.ptr, thisSerializer.asArray(), thisSerializer.length())
+        thisSerializer.release()
     }
 }
