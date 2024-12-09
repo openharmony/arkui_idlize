@@ -147,6 +147,13 @@ class CppEnumEntityStatement implements LanguageStatement {
         writer.print(`} ${this._enum.name};`)
     }
 }
+class CPPThrowErrorStatement implements LanguageStatement {
+    constructor(public message: string) { }
+    write(writer: LanguageWriter): void {
+        writer.print(`throw "${this.message}";`)
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////
 //                           WRITER                           //
@@ -183,6 +190,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             super.writeMethodCall(receiver, method, params, nullable)
         }
     }
+    
     writeFieldDeclaration(name: string, type: IDLType, modifiers: FieldModifier[] | undefined, optional: boolean, initExpr?: LanguageExpression): void {
         let filter = function(modifier_name : FieldModifier) {
             return modifier_name !== FieldModifier.STATIC
@@ -256,6 +264,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     override makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}.value`)
+    }
+    override makeThrowError(message: string): LanguageStatement {
+        return new CPPThrowErrorStatement(message)
     }
     makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true, options?:MakeAssignOptions): LanguageStatement {
         return new CppAssignStatement(variableName, type, expr, isDeclared, isConst, options)
