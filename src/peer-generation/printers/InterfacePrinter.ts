@@ -652,7 +652,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         const seenFields = new Set<string>()
         return ([`type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
             .concat(tuple.properties
-                .map(it => this.iDLTypedEntryPrinter(it, it => {
+                .map((it, propIndex) => this.iDLTypedEntryPrinter(it, it => {
                     //TODO: use ETSConvertor.processTupleType
                     let property = it;
                     if (property.isOptional) {
@@ -670,7 +670,8 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
                             it.isStatic,
                             false)
                     }
-                    return [indentedBy(`${this.printPropNameWithType(property)},`, 1)]
+                    const maybeComma = propIndex < tuple.properties.length - 1 ? ',' : ''
+                    return [indentedBy(`${this.printPropNameWithType(property)}${maybeComma}`, 1)]
                 }, seenFields) ).flat())
             .concat(["]"])
     }
