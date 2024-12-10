@@ -307,6 +307,8 @@ class AccessorVisitor extends ModifierVisitor {
         })
         this.popNamespace(namespaceName, false)
         this.printMaterializedClassEpilog(clazz)
+
+        this.printStruct(clazz)
     }
 
     printMaterializedClassProlog(clazz: MaterializedClass) {
@@ -333,6 +335,16 @@ class AccessorVisitor extends ModifierVisitor {
         this.printMethodProlog(printer, method)
         printBody(method)
         this.printMethodEpilog(printer)
+    }
+
+    printStruct(clazz: MaterializedClass): void {
+        const structName = `${clazz.className}Peer`
+
+        this.accessors.print(`struct ${structName} {`)
+        this.accessors.pushIndent()
+        this.accessors.print(`virtual ~${structName}() = default;`)
+        this.accessors.popIndent()
+        this.accessors.print(`};`)
     }
 }
 
