@@ -120,6 +120,7 @@ function checkSerdeCustomObject() {
     ser.release()
 }
 
+
 function checkNodeAPI() {
     startNativeTest(checkNodeAPI.name, CALL_GROUP_LOG)
 

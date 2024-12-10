@@ -31,21 +31,6 @@ dictionary RectHeightStyle {
     number STRUT = 5;
 };
 
-/**
- * PixelMap instance.
- */
-interface PixelMap {
-    /**
-     * Whether the image pixel map can be edited.
-     */
-    readonly attribute boolean isEditable;
-
-    /**
-     * Is it stride Alignment
-     */
-    readonly attribute boolean isStrideAlignment;
-};
-
 
 /**
  * Want is the basic communication component of the system.

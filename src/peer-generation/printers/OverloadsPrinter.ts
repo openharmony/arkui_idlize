@@ -51,10 +51,12 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
         })
         return idl.maybeOptional(typeOrUnion(types, "%PROXY_BEFORE_PEER%"), optional)
     })
+
+    const returnType = typeOrUnion(methods.map(it => it.signature.returnType))
     return new Method(
         methods[0].name,
         new NamedMethodSignature(
-            methods[0].signature.returnType,
+            returnType,
             collapsedArgs,
             (maxMethod.signature as NamedMethodSignature).argsNames
         ),

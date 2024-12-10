@@ -325,14 +325,16 @@ if (options.dts2peer) {
         IdlPredefinedGeneratorVisitor.create({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
-            peerFile: file
+            peerFile: file,
+            targetName: options.generatorTarget ?? ''
         }, 'sys').visitWholeFile()
     })
     scanPredefinedDirectory(PREDEFINED_PATH, "src").forEach(file => {
         IdlPredefinedGeneratorVisitor.create({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
-            peerFile: file
+            peerFile: file,
+            targetName: options.generatorTarget ?? ''
         }, 'src').visitWholeFile()
     })
 

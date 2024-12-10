@@ -1141,8 +1141,16 @@ export class MaterializedClassConvertor extends BaseArgConvertor { //
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.instanceOf(this, value, duplicates)])
+        const declaration = this.library.toDeclaration(this.type)
+        if (idl.isClass(declaration)) {
+            return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
+                [writer.instanceOf(this, value, duplicates)])
+        }
+
+        if (idl.isInterface(declaration)) {
+            const uniqueFields = declaration.properties.filter(it => !duplicates.has(it.name))
+            return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional, duplicates)
+        }
     }
 }
 

@@ -46,22 +46,22 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLThisType,
     isOptionalType,
     IDLVersion,
-    isUnspecifiedGenericType,
-    IDLNumberType,
     IDLI8Type,
     IDLU8Type,
-    IDLF64Type,
     IDLI16Type,
-    IDLU32Type,
     IDLU16Type,
-    IDLU64Type,
+    IDLI32Type,
+    IDLU32Type,
     IDLI64Type,
+    IDLU64Type,
     IDLF16Type,
     IDLF32Type,
-    IDLI32Type,
-    IDLBooleanType,
+    IDLF64Type,
     IDLBufferType,
-    IDLUnknownType,} from "../idl"
+    isUnspecifiedGenericType,
+    IDLUnknownType,
+    IDLBooleanType,
+    IDLNumberType} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
