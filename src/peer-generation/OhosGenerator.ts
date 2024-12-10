@@ -332,6 +332,13 @@ class OHOSVisitor {
                     { name: "argsSize", type: IDLI32Type },
                 ])
             )
+            writer.writeNativeMethodDeclaration("_CallCallbackSync",
+                NamedMethodSignature.make(IDLVoidType, [
+                    { name: "callbackKind", type: IDLI32Type },
+                    { name: "args", type: IDLUint8ArrayType },
+                    { name: "argsSize", type: IDLI32Type },
+                ])
+            )
             writer.writeNativeMethodDeclaration("_CallCallbackResourceHolder",
                 NamedMethodSignature.make(IDLVoidType, [
                     { name: "holder", type: IDLPointerType },

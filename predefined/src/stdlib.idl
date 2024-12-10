@@ -6,3 +6,5 @@ interface RuntimeType {};
 interface Materialized {};
 [TSType=CallbackResource, CPPType=CallbackResource]
 interface CallbackResource {};
+[CPPType=VMContext]
+interface VMContext {};

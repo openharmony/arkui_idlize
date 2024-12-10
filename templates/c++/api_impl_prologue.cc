@@ -32,6 +32,7 @@ struct CallbackBuffer {
 void enqueueArkoalaCallback(const CallbackBuffer* event);
 
 OH_NativePointer getManagedCallbackCaller(CallbackKind kind);
+OH_NativePointer getManagedCallbackCallerSync(CallbackKind kind);
 void holdManagedCallbackResource(OH_Int32 resourceId);
 void releaseManagedCallbackResource(OH_Int32 resourceId);
 

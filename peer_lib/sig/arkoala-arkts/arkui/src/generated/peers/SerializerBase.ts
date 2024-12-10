@@ -99,7 +99,6 @@ export abstract class CustomSerializer {
 }
 
 export class SerializerBase {
-    protected isHolding: boolean = false
     private position = 0
     private buffer: KBuffer
 
@@ -122,7 +121,6 @@ export class SerializerBase {
         this.buffer = new KBuffer(96)
     }
     public release() {
-        this.isHolding = false
         this.releaseResources()
         this.position = 0
     }
@@ -149,13 +147,14 @@ export class SerializerBase {
         }
     }
     private heldResources: Array<ResourceId> = new Array<ResourceId>()
-    holdAndWriteCallback(callback: object, hold: pointer = 0, release: pointer = 0, call: pointer = 0): ResourceId {
+    holdAndWriteCallback(callback: object, hold: pointer = 0, release: pointer = 0, call: pointer = 0, callSync: pointer = 0): ResourceId {
         const resourceId = ResourceHolder.instance().registerAndHold(callback)
         this.heldResources.push(resourceId)
         this.writeInt32(resourceId)
         this.writePointer(hold)
         this.writePointer(release)
         this.writePointer(call)
+        this.writePointer(callSync)
         return resourceId
     }
     holdAndWriteCallbackForPromiseVoid(hold: pointer = 0, release: pointer = 0, call: pointer = 0): [Promise<void>, ResourceId] {

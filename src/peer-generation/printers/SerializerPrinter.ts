@@ -27,7 +27,7 @@ import {
     isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor';
 import { collectProperties } from '../printers/StructPrinter'
-import { FieldModifier, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter'
+import { FieldModifier, MethodModifier, ProxyStatement, TernaryExpression } from '../LanguageWriters/LanguageWriter'
 import { createDeclarationNameConvertor } from '../idl/IdlNameConvertor';
 import { throwException } from "../../util"
 import { IDLEntry } from "../../idl"
@@ -186,21 +186,68 @@ class IdlSerializerPrinter {
 
             // No need for hold() in C++.
             if (writer.language != Language.CPP) {
-                writer.writeFieldDeclaration("cache", idl.createOptionalType(idl.createReferenceType("Serializer")), [FieldModifier.PRIVATE, FieldModifier.STATIC], true, writer.makeNull("Serializer"))
+                const poolType = writer.language === Language.TS || writer.language === Language.ARKTS 
+                    ? idl.createContainerType('sequence', [idl.createReferenceType("Serializer")])
+                    : idl.createReferenceType("Serializer")
+                
+                writer.writeFieldDeclaration("pool", idl.createOptionalType(poolType), [FieldModifier.PRIVATE, FieldModifier.STATIC], true, writer.makeNull())
+                writer.writeFieldDeclaration("poolTop", idl.IDLI32Type, [FieldModifier.PRIVATE, FieldModifier.STATIC], false, writer.makeString('-1'))
 
                 writer.writeMethodImplementation(new Method("hold", new MethodSignature(idl.createReferenceType("Serializer"), []), [MethodModifier.STATIC]),
                 writer => {
-                    writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.cache')), writer.makeBlock([
-                        writer.makeAssign("Serializer.cache", undefined, writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), false)
-                    ])))
-                    writer.writeStatement(writer.makeAssign("serializer", undefined,
-                            writer.makeUnwrapOptional(writer.makeString("Serializer.cache")), true, false))
-                    writer.writeStatement(writer.makeCondition(writer.makeString("serializer.isHolding"),
-                        writer.makeBlock([writer.makeThrowError(("Serializer is already being held. Check if you had released is before"))])),
-                    )
-                    writer.writeStatement(writer.makeAssign("serializer.isHolding", undefined, writer.makeString("true"), false))
-                    writer.writeStatement(writer.makeReturn(writer.makeString("serializer")))
+                    if (writer.language === Language.TS || writer.language === Language.ARKTS) {
+                        writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.pool')), writer.makeBlock([
+                            writer.makeAssign("Serializer.pool", undefined, idl.isContainerType(poolType) ? writer.makeArrayInit(poolType) : undefined, false),
+                            writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(writer.makeString("Serializer.pool")), true, true),
+                            writer.makeLoop("idx", "8", writer.makeStatement(writer.makeMethodCall("pool", "push", [
+                                writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`)
+                            ])))
+                        ])))
+                        writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
+                            writer.makeString("Serializer.pool")), true, true))
+                        writer.writeStatement(writer.makeCondition(writer.makeString("Serializer.poolTop >= pool.length - 1"),
+                            writer.makeBlock([writer.makeThrowError(("Serializer pool is full. Check if you had released serializers before"))])),
+                        )
+                        writer.writeStatement(writer.makeAssign("Serializer.poolTop", undefined,
+                            writer.makeString("Serializer.poolTop + 1"), false))
+                        writer.writeStatement(writer.makeAssign("serializer", undefined,
+                                writer.makeArrayAccess("pool", "Serializer.poolTop"), true, false))
+                        writer.writeStatement(writer.makeReturn(writer.makeString("serializer")))
+                    } else {
+                        writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.pool')), writer.makeBlock([
+                            writer.makeAssign("Serializer.pool", undefined, writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), false)
+                        ])))
+                        writer.writeStatement(writer.makeAssign("serializer", undefined,
+                                writer.makeUnwrapOptional(writer.makeString("Serializer.pool")), true, false))
+                        writer.writeStatement(writer.makeCondition(writer.makeString("serializer.isHolding"),
+                            writer.makeBlock([writer.makeThrowError(("Serializer is already being held. Check if you had released is before"))])),
+                        )
+                        writer.writeStatement(writer.makeAssign("serializer.isHolding", undefined, writer.makeString("true"), false))
+                        writer.writeStatement(writer.makeReturn(writer.makeString("serializer"))) 
+                    }
                 })
+
+                if (writer.language === Language.TS || writer.language === Language.ARKTS) {
+                    writer.writeMethodImplementation(new Method('release', new MethodSignature(idl.IDLVoidType, [])), writer => {
+                        writer.writeStatement(writer.makeCondition(writer.makeString("Serializer.poolTop == -1"),
+                            writer.makeBlock([writer.makeThrowError(("Serializer pool is empty. Check if you had hold serializers before"))])),
+                        )
+                        writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
+                            writer.makeString("Serializer.pool")), true, true))
+                        writer.writeStatement(writer.makeCondition(writer.makeEquals([
+                                writer.makeThis(),
+                                writer.makeArrayAccess("pool", "Serializer.poolTop")
+                            ]), 
+                            writer.makeBlock([
+                                writer.makeAssign("Serializer.poolTop", undefined,
+                                    writer.makeString("Serializer.poolTop - 1"), false),
+                                writer.makeReturn(writer.makeMethodCall('super', 'release', []))
+                            ]
+                        )))
+                        
+                        writer.writeStatement(writer.makeThrowError(("Only last serializer should be released")))
+                    })
+                }
             }
             if (ctorSignature) {
                 const ctorMethod = new Method(superName, ctorSignature)
@@ -358,9 +405,10 @@ class IdlDeserializerPrinter {
             return
         const methodName = this.library.getInteropName(target)
         const type = idl.createReferenceType(target.name)
-        this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
+        this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [idl.IDLBooleanType], ['isSync'], ['false'])), writer => {
             const resourceName = "_resource"
             const callName = "_call"
+            const callSyncName = '_callSync'
             const argsSerializer = "_args"
             const continuationValueName = "_continuationValue"
             const continuationCallbackName = "_continuationCallback"
@@ -372,6 +420,12 @@ class IdlDeserializerPrinter {
             ))
             writer.writeStatement(writer.makeAssign(
                 callName,
+                idl.IDLPointerType,
+                writer.makeMethodCall(`this`, `readPointer`, []),
+                true,
+            ))
+            writer.writeStatement(writer.makeAssign(
+                callSyncName,
                 idl.IDLPointerType,
                 writer.makeMethodCall(`this`, `readPointer`, []),
                 true,
@@ -409,6 +463,8 @@ class IdlDeserializerPrinter {
                     [writer.makeString(`${resourceName}.resourceId`)])),
                 new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writePointer`,
                     [writer.makeString(callName)])),
+                new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writePointer`,
+                    [writer.makeString(callSyncName)])),
                 ...target.parameters.map(it => {
                     const convertor = this.library.typeConvertor(it.name, it.type!, it.isOptional)
                     return new ProxyStatement((writer: LanguageWriter) => {
@@ -416,11 +472,21 @@ class IdlDeserializerPrinter {
                     })
                 }),
                 ...continuation,
-                new ExpressionStatement(writer.makeNativeCall(`_CallCallback`, [
-                    writer.makeString(generateCallbackKindValue(target).toString()),
-                    writer.makeString(`${argsSerializer}Serializer.asArray()`),
-                    writer.makeString(`${argsSerializer}Serializer.length()`),
-                ])),
+                new ExpressionStatement(
+                    new TernaryExpression(
+                        writer.makeString('isSync'),
+                        writer.makeNativeCall(`_CallCallbackSync`, [
+                            writer.makeString(generateCallbackKindValue(target).toString()),
+                            writer.makeString(`${argsSerializer}Serializer.asArray()`),
+                            writer.makeString(`${argsSerializer}Serializer.length()`),
+                        ]),
+                        writer.makeNativeCall(`_CallCallback`, [
+                            writer.makeString(generateCallbackKindValue(target).toString()),
+                            writer.makeString(`${argsSerializer}Serializer.asArray()`),
+                            writer.makeString(`${argsSerializer}Serializer.length()`),
+                        ])
+                    )
+                ),
                 new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `release`, [])),
                 writer.makeReturn(hasContinuation
                     ? writer.makeCast(

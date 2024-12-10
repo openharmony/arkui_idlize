@@ -12,7 +12,12 @@ interface Test {
     void Test_TextPicker_OnAccept(sequence<u8> arr, i32 arg);
     void TestWithBuffer(buffer buffer);
     void TestSetArkoalaCallbackCaller();
+    void TestSetArkoalaCallbackCallerSync();
     pointer TestGetManagedCaller(i32 kind);
+    pointer TestGetManagedCallerSync(i32 kind);
     pointer TestGetManagedHolder();
     pointer TestGetManagedReleaser();
+    
+    
+    void TestCallbackSyncCall(sequence<u8> arr, i32 len);
 };

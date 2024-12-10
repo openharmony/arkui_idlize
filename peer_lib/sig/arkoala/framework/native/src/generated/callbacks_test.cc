@@ -15,6 +15,8 @@
 #include <cstdint>
 #include "common-interop.h"
 #include "interop-logging.h"
+#include "arkoala_api_generated.h"
+#include "Serializers.h"
 
 void CallVoid(KVMContext vmContext, KInt methodId, KInt length, void* args) {
 #if KOALA_USE_NODE_VM || KOALA_USE_HZ_VM || KOALA_USE_PANDA_VM || KOALA_USE_JAVA_VM || KOALA_CJ
@@ -117,4 +119,3 @@ void impl_TestWithBuffer(KInteropBuffer buffer) {
     }
     GetDefaultLogger()->appendGroupedLog(1, result.c_str());
 }
-//KOALA_INTEROP_V1(TestWithBuffer, KInteropBuffer)

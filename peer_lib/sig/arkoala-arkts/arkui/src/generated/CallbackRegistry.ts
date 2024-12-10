@@ -34,7 +34,7 @@ class CallbackRegistry {
     static INSTANCE = new CallbackRegistry()
 
     private callbacks = new Map<int32, CallbackRecord>()
-    private id = 1
+    private id = 1024
 
     constructor() {
         this.callbacks.set(0, new CallbackRecord(
@@ -47,6 +47,11 @@ class CallbackRegistry {
 
     wrap(callback: CallbackType, autoDisposable: boolean): int32 {
         const id = this.id++
+        this.callbacks.set(id, new CallbackRecord(callback, autoDisposable))
+        return id
+    }
+
+    wrapSystem(id: int32, callback: CallbackType, autoDisposable: boolean): int32 {
         this.callbacks.set(id, new CallbackRecord(callback, autoDisposable))
         return id
     }
@@ -74,6 +79,10 @@ export function wrapCallback(callback: CallbackType, autoDisposable: boolean = t
 
 export function disposeCallback(id: int32) {
     CallbackRegistry.INSTANCE.dispose(id)
+}
+
+export function wrapSystemCallback(id:int32, callback: CallbackType): int32 {
+    return CallbackRegistry.INSTANCE.wrapSystem(id, callback, false)
 }
 
 export function callCallback(id: int32, args: KUint8ArrayPtr, length: int32): int32 {

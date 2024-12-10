@@ -225,6 +225,7 @@ function createDefaultWriteCallback(kind: CallbackKind, callback: object) {
             nativeModule()._TestGetManagedHolder(),
             nativeModule()._TestGetManagedReleaser(),
             nativeModule()._TestGetManagedCaller(kind),
+            nativeModule()._TestGetManagedCallerSync(kind)
         )
     }
 }
@@ -260,6 +261,74 @@ function enqueueCallback(
     readAndCallCallback(deserializer)
     /* libace released resource */
     nativeModule()._ReleaseArkoalaResource(resourceId)
+}
+
+function checkCallbackWithReturn() {
+    nativeModule()._TestSetArkoalaCallbackCallerSync()
+
+    let callResult1 = "NOT_CALLED"
+
+    enqueueCallback(
+        createDefaultWriteCallback(CallbackKind.Kind_Callback_Number_Boolean, (x:number): boolean => {
+            return x > 10
+        }),
+        (deserializer) => {
+            const callback = deserializer.readCallback_Number_Boolean(true)
+            const result1 = callback(42)
+            const result2 = callback(0)
+            callResult1 = `CALLED, value1=${result1} value2=${result2}`
+        },
+    )
+
+    assertEquals("Sync Callback 1 with return type read&called immediately", "CALLED, value1=true value2=false", callResult1)
+}
+
+function checkTwoSidesCallbackSync() {
+    nativeModule()._TestSetArkoalaCallbackCallerSync()
+
+    let callResult1 = "NOT_CALLED"
+    enqueueCallback(
+        createDefaultWriteCallback(CallbackKind.Kind_Callback_Number_Void, (value: number): void => {
+            callResult1 = `CALLED, value=${value}`
+        }),
+        (deserializer) => {
+            const callback = deserializer.readCallback_Number_Void(/* isSync */ true)
+            callback(194)
+        },
+    )
+
+    let callResult2 = ""
+    let callResultExpected2 = ""
+    const call2Count = 100
+
+    const func = (value:number) => {
+        if (value > 50) {
+            callResult2 += "more then 50!"
+        } else {
+            callResult2 += "less them 50!"
+        }
+    }
+
+    function doTest(f: (x:number) => void) {
+        for (let i = 0; i < call2Count; ++i) {
+            f(i)
+        }
+    }
+
+    doTest(func)
+    callResultExpected2 = callResult2
+    callResult2 = ""
+
+    enqueueCallback(
+        createDefaultWriteCallback(CallbackKind.Kind_Callback_Number_Void, func),
+        (deserializer) => {
+            const enumerateCallback = deserializer.readCallback_Number_Void(/* isSync */ true)
+            doTest(enumerateCallback)
+        },
+    )
+
+    assertEquals("Sync Callback 1 read&called immediately", "CALLED, value=194", callResult1)
+    assertEquals("Sync Callback 2 read&called immediately", callResultExpected2, callResult2)
 }
 
 function checkTwoSidesCallback() {
@@ -340,7 +409,7 @@ function checkWriteFunction() {
     const s = Serializer.hold()
     s.writeFunction((value: number, flag: boolean) => flag ? value + 10 : value - 10)
     // TBD: id is small number
-    const id = s.asArray()[0]
+    const id = new Int32Array(s.asArray().buffer)[0]
     s.release()
     const args = Serializer.hold()
     args.writeNumber(20)
@@ -738,7 +807,8 @@ function main() {
     // Place where mock of ACE is located.
     process.env.ACE_LIBRARY_PATH = __dirname + "/../../../native"
 
-    // checkArrayBuffer()
+    checkCallbackWithReturn()
+    checkTwoSidesCallbackSync()
 
     checkSerdeLength()
     checkSerdeText()

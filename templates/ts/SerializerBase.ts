@@ -149,6 +149,7 @@ export class SerializerBase {
         this.writePointer(0n)
         this.writePointer(0n)
         this.writePointer(0n)
+        this.writePointer(0n)
     }
     writeCallbackResource(resource: CallbackResource) {
         this.writeInt32(resource.resourceId)

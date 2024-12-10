@@ -105,3 +105,6 @@ typedef struct OH_AnyAPI {
 typedef enum OH_APIKind {
     OH_%LIBRARY_NAME%_API_KIND = 1
 } OH_APIKind;
+
+struct _OH_VMContext;
+typedef struct _OH_VMContext* OH_VMContext;

@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 import { NativeModule, nativeModule } from "#components"
-import { wrapCallback, callCallback } from "./CallbackRegistry"
+import { wrapCallback, callCallback, wrapSystemCallback } from "./CallbackRegistry"
+import { deserializeAndCallCallback } from './peers/CallbackDeserializeCall.ts'
 import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkColumnPeer } from "@arkoala/arkui/peers/ArkColumnPeer"
@@ -562,7 +563,7 @@ function checkButton() {
     const builder: CustomBuilder = () => { return new Object() }
     const options: Literal_Alignment_align = { align: Alignment.of(4) }
     checkResult("background", () => peer.backgroundAttribute(builder, options),
-        "background({.resource={.resourceId=100, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.align={.tag=ARK_TAG_OBJECT, .value=Ark_Alignment(4)}}})")
+        "background({.resource={.resourceId=104, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.align={.tag=ARK_TAG_OBJECT, .value=Ark_Alignment(4)}}})")
     checkResult("type", () => peer.typeAttribute(ButtonType.of(1)), "type(Ark_ButtonType(1))")
     checkResult("labelStyle", () => peer.labelStyleAttribute(new LabelStyleImpl(3)),
          "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
@@ -586,6 +587,7 @@ function createDefaultWriteCallback(kind: CallbackKind, callback: object) {
             nativeModule()._TestGetManagedHolder(),
             nativeModule()._TestGetManagedReleaser(),
             nativeModule()._TestGetManagedCaller(kind.value),
+            nativeModule()._TestGetManagedCallerSync(kind.value),
         )
     }
 }
@@ -645,6 +647,45 @@ function checkTwoSidesCallback() {
     checkArkoalaCallbacks()
     assertEquals("Callback 1 read&called", "CALLED, value=194", callResult1)
     assertEquals(`Callback 2 read&called ${call2Count} times`, call2Count, callResult2)
+}
+
+function checkTwoSidesCallbackSync() {
+    nativeModule()._TestSetArkoalaCallbackCallerSync()
+    wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
+
+    let callResult1 = "NOT_CALLED"
+    enqueueCallback(
+        createDefaultWriteCallback(CallbackKind.Kind_Callback_Number_Void, (value: number): void => {
+            callResult1 = `CALLED, value=${value}`
+        }),
+        (deserializer) => {
+            const callback = deserializer.readCallback_Number_Void(true)
+            callback(194)
+        },
+    )
+
+    assertEquals("Sync Callback 1 read&called immediately", "CALLED, value=194", callResult1)
+}
+
+function checkCallbackWithReturn() {
+    nativeModule()._TestSetArkoalaCallbackCallerSync()
+    wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
+
+    let callResult1 = "NOT_CALLED"
+
+    enqueueCallback(
+        createDefaultWriteCallback(CallbackKind.Kind_Callback_Number_Boolean, (x:number): boolean => {
+            return x > 10
+        }),
+        (deserializer) => {
+            const callback = deserializer.readCallback_Number_Boolean(true)
+            const result1 = callback(42)
+            const result2 = callback(0)
+            callResult1 = `CALLED, value1=${result1} value2=${result2}`
+        },
+    )
+
+    assertEquals("Sync Callback 1 with return type read&called immediately", "CALLED, value1=true value2=false", callResult1)
 }
 
 function checkNativeCallback() {
@@ -776,6 +817,10 @@ function checkNodeAPI() {
 }
 
 export function main(): void {
+
+    checkCallbackWithReturn()
+    checkTwoSidesCallbackSync()
+
     checkSerdeLength()
     checkSerdeText()
     checkSerdePrimitive()
