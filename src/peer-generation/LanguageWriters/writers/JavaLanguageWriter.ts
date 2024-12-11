@@ -29,7 +29,7 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
-    ObjectArgs
+    ObjectArgs,
 } from "../LanguageWriter"
 import {
     CLikeExpressionStatement,
@@ -267,8 +267,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.STATIC, FieldModifier.FINAL]
     }
-    makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
-        throw new Error("Method not implemented.")
+    makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression {
+        return this.makeString(`new ${this.getNodeName(type.elementType[0])}[${size ?? 0}]`)
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
         throw new Error("Method not implemented.")

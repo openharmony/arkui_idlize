@@ -350,8 +350,8 @@ export class TSLanguageWriter extends LanguageWriter {
     makeTupleAlloc(option: string): LanguageStatement {
         return new TsTupleAllocStatement(option)
     }
-    makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
-        return this.makeString(`new Array<${this.getNodeName(type.elementType[0])}>()`)
+    makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression {
+        return this.makeString(`new Array<${this.getNodeName(type.elementType[0])}>(${size?.toString() ?? ''})`)
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
         return this.makeString(`new ${this.getNodeName(type)}(${paramenters.map(it => it.asString()).join(", ")})`)

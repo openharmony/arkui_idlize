@@ -350,8 +350,8 @@ export class CJLanguageWriter extends LanguageWriter {
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
         throw new Error(`makeClassInit`)
     }
-    makeArrayInit(type: idl.IDLContainerType): LanguageExpression {
-        return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>()`)
+    makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression {
+        return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>(${size ?? ''})`)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         throw new Error(`TBD`)
@@ -465,6 +465,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
         return new CJEnumEntityStatement(enumEntity, isExport)
+    }
+    makeEquals(args: LanguageExpression[]): LanguageExpression {
+        return this.makeNaryOp('==', args)
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         this.writeStatement(this.makeAssign(valueType, undefined,

@@ -85,6 +85,9 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
     makeThrowError(message: string): LanguageStatement {
         return new CLikeThrowErrorStatement(message)
     }
+    makeEquals(args: LanguageExpression[]): LanguageExpression {
+        return this.makeNaryOp("==", args)
+    }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         this.printer.print(`${receiver}.${method}(${params.join(", ")});`)
     }

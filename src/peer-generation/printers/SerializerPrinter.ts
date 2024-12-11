@@ -186,68 +186,55 @@ class IdlSerializerPrinter {
 
             // No need for hold() in C++.
             if (writer.language != Language.CPP) {
-                const poolType = writer.language === Language.TS || writer.language === Language.ARKTS 
-                    ? idl.createContainerType('sequence', [idl.createReferenceType("Serializer")])
-                    : idl.createReferenceType("Serializer")
+                const poolType = idl.createContainerType('sequence', [idl.createReferenceType("Serializer")])
                 
                 writer.writeFieldDeclaration("pool", idl.createOptionalType(poolType), [FieldModifier.PRIVATE, FieldModifier.STATIC], true, writer.makeNull())
                 writer.writeFieldDeclaration("poolTop", idl.IDLI32Type, [FieldModifier.PRIVATE, FieldModifier.STATIC], false, writer.makeString('-1'))
 
                 writer.writeMethodImplementation(new Method("hold", new MethodSignature(idl.createReferenceType("Serializer"), []), [MethodModifier.STATIC]),
                 writer => {
-                    if (writer.language === Language.TS || writer.language === Language.ARKTS) {
-                        writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.pool')), writer.makeBlock([
-                            writer.makeAssign("Serializer.pool", undefined, idl.isContainerType(poolType) ? writer.makeArrayInit(poolType) : undefined, false),
-                            writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(writer.makeString("Serializer.pool")), true, true),
-                            writer.makeLoop("idx", "8", writer.makeStatement(writer.makeMethodCall("pool", "push", [
-                                writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`)
-                            ])))
-                        ])))
-                        writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
-                            writer.makeString("Serializer.pool")), true, true))
-                        writer.writeStatement(writer.makeCondition(writer.makeString("Serializer.poolTop >= pool.length - 1"),
-                            writer.makeBlock([writer.makeThrowError(("Serializer pool is full. Check if you had released serializers before"))])),
-                        )
-                        writer.writeStatement(writer.makeAssign("Serializer.poolTop", undefined,
-                            writer.makeString("Serializer.poolTop + 1"), false))
-                        writer.writeStatement(writer.makeAssign("serializer", undefined,
-                                writer.makeArrayAccess("pool", "Serializer.poolTop"), true, false))
-                        writer.writeStatement(writer.makeReturn(writer.makeString("serializer")))
-                    } else {
-                        writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.pool')), writer.makeBlock([
-                            writer.makeAssign("Serializer.pool", undefined, writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), false)
-                        ])))
-                        writer.writeStatement(writer.makeAssign("serializer", undefined,
-                                writer.makeUnwrapOptional(writer.makeString("Serializer.pool")), true, false))
-                        writer.writeStatement(writer.makeCondition(writer.makeString("serializer.isHolding"),
-                            writer.makeBlock([writer.makeThrowError(("Serializer is already being held. Check if you had released is before"))])),
-                        )
-                        writer.writeStatement(writer.makeAssign("serializer.isHolding", undefined, writer.makeString("true"), false))
-                        writer.writeStatement(writer.makeReturn(writer.makeString("serializer"))) 
-                    }
+                    writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.pool')), writer.makeBlock([
+                        writer.makeAssign("Serializer.pool", undefined, idl.isContainerType(poolType) ? writer.makeArrayInit(poolType, 8) : undefined, false),
+                        writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(writer.makeString("Serializer.pool")), true, true),
+                        writer.makeLoop("idx", "8", writer.makeAssign(
+                            `pool[idx]`, 
+                            undefined, 
+                            writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), 
+                            false
+                        ))
+                    ])))
+                    writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
+                        writer.makeString("Serializer.pool")), true, true))
+                    writer.writeStatement(writer.makeCondition(writer.makeString("Serializer.poolTop >= pool.length - 1"),
+                        writer.makeBlock([writer.makeThrowError(("Serializer pool is full. Check if you had released serializers before"))])),
+                    )
+                    writer.writeStatement(writer.makeAssign("Serializer.poolTop", undefined,
+                        writer.makeString("Serializer.poolTop + 1"), false))
+                    writer.writeStatement(writer.makeAssign("serializer", undefined,
+                            writer.makeArrayAccess("pool", "Serializer.poolTop"), true, false))
+                    writer.writeStatement(writer.makeReturn(writer.makeString("serializer")))
                 })
 
-                if (writer.language === Language.TS || writer.language === Language.ARKTS) {
-                    writer.writeMethodImplementation(new Method('release', new MethodSignature(idl.IDLVoidType, [])), writer => {
-                        writer.writeStatement(writer.makeCondition(writer.makeString("Serializer.poolTop == -1"),
-                            writer.makeBlock([writer.makeThrowError(("Serializer pool is empty. Check if you had hold serializers before"))])),
-                        )
-                        writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
-                            writer.makeString("Serializer.pool")), true, true))
-                        writer.writeStatement(writer.makeCondition(writer.makeEquals([
-                                writer.makeThis(),
-                                writer.makeArrayAccess("pool", "Serializer.poolTop")
-                            ]), 
-                            writer.makeBlock([
-                                writer.makeAssign("Serializer.poolTop", undefined,
-                                    writer.makeString("Serializer.poolTop - 1"), false),
-                                writer.makeReturn(writer.makeMethodCall('super', 'release', []))
-                            ]
-                        )))
-                        
-                        writer.writeStatement(writer.makeThrowError(("Only last serializer should be released")))
-                    })
-                }
+                writer.writeMethodImplementation(new Method('release', new MethodSignature(idl.IDLVoidType, []), [MethodModifier.PUBLIC]), writer => {
+                    writer.writeStatement(writer.makeCondition(writer.makeString("Serializer.poolTop == -1"),
+                        writer.makeBlock([writer.makeThrowError(("Serializer pool is empty. Check if you had hold serializers before"))])),
+                    )
+                    writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
+                        writer.makeString("Serializer.pool")), true, true))
+                    writer.writeStatement(writer.makeCondition(writer.makeEquals([
+                            writer.makeThis(),
+                            writer.makeArrayAccess("pool", "Serializer.poolTop")
+                        ]), 
+                        writer.makeBlock([
+                            writer.makeAssign("Serializer.poolTop", undefined,
+                                writer.makeString("Serializer.poolTop - 1"), false),
+                            writer.makeStatement(writer.makeMethodCall('super', 'release', [])),
+                            writer.makeReturn()
+                        ]
+                    )))
+                    
+                    writer.writeStatement(writer.makeThrowError(("Only last serializer should be released")))
+                })
             }
             if (ctorSignature) {
                 const ctorMethod = new Method(superName, ctorSignature)
