@@ -59,10 +59,6 @@ interface IdlPeerGeneratorVisitorOptions {
     peerLibrary: PeerLibrary
 }
 
-interface IdlPredefinedPeerGeneratorVisitorOptions extends IdlPeerGeneratorVisitorOptions {
-    targetName: string
-}
-
 export class IdlComponentDeclaration {
     constructor(
         public readonly name: string,
@@ -73,11 +69,6 @@ export class IdlComponentDeclaration {
 
 const PREDEFINED_PACKAGE = 'org.openharmony.idlize.predefined'
 const PREDEFINED_PACKAGE_TYPES = `${PREDEFINED_PACKAGE}.types`
-
-const PREDEFINED_PACKAGE_BY_TARGET = new Map([
-    [ "arkoala", "org.openharmony.arkui" ],
-    [ "libace", "org.openharmony.arkui" ],
-])
 
 export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
     private readonly sourceFile: string
@@ -116,17 +107,31 @@ export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
     }
 }
 
-export class IdlPredefinedGeneratorVisitor implements GenericVisitor<void> {
+export class IDLInteropPredefinesVisitor implements GenericVisitor<void> {
     readonly peerLibrary: PeerLibrary
     readonly peerFile: PeerFile
-    readonly targetName: string
+
+    constructor(options: IdlPeerGeneratorVisitorOptions) {
+        this.peerLibrary = options.peerLibrary
+        this.peerFile = options.peerFile
+    }
+
+    visitWholeFile(): void {
+        this.peerFile.entries
+            .filter(idl.isInterface)
+            .forEach(it => this.peerLibrary.predefinedDeclarations.push(it))
+    }
+}
+
+export class IDLPredefinesVisitor implements GenericVisitor<void> {
+    readonly peerLibrary: PeerLibrary
+    readonly peerFile: PeerFile
 
     private packageName?: string
 
-    private constructor(options: IdlPredefinedPeerGeneratorVisitorOptions, private mode: 'sys' | 'src') {
+    constructor(options: IdlPeerGeneratorVisitorOptions) {
         this.peerLibrary = options.peerLibrary
         this.peerFile = options.peerFile
-        this.targetName = options.targetName
         const packageDeclarations = this.peerFile.entries.filter(entry => idl.isPackage(entry))
         if (packageDeclarations.length === 1) {
             const [ pkg ] = packageDeclarations
@@ -138,67 +143,32 @@ export class IdlPredefinedGeneratorVisitor implements GenericVisitor<void> {
         }
     }
 
-    static create(options: IdlPredefinedPeerGeneratorVisitorOptions, mode: 'sys' | 'src') {
-        return new IdlPredefinedGeneratorVisitor(options, mode)
-    }
-
     visitWholeFile(): void {
-        if (this.mode === 'sys') {
-            if (this.isPredefinedPackage()) {
-                this.peerFile.entries
-                    .filter(it => idl.isInterface(it))
-                    .forEach(it => this.visitPredefinedDeclaration(it as idl.IDLInterface))
-            }
-        }
-        if (this.mode === 'src') {
-            if (this.isPredefinedTypesPackage()) {
-                this.peerFile.entries.forEach(predefinedEntry => {
-                    if (!predefinedEntry.extendedAttributes) {
-                        predefinedEntry.extendedAttributes = []
-                    }
-                    predefinedEntry.extendedAttributes!.push({
-                        name: idl.IDLExtendedAttributes.Namespace,
-                        value: 'predefined'
-                    })
-                    this.peerLibrary.files.forEach(peerLibraryFile => {
-                        peerLibraryFile.entries.filter(libraryEntry => {
-                            if (libraryEntry.name !== predefinedEntry.name)
-                                return true
-                            if (!idl.isTypedef(libraryEntry))
-                                throw "Only typedefs can be replaced!"
-                            return false
-                        })
+        if (this.isPredefinedTypesPackage()) {
+            this.peerFile.entries.forEach(predefinedEntry => {
+                if (!predefinedEntry.extendedAttributes) {
+                    predefinedEntry.extendedAttributes = []
+                }
+                predefinedEntry.extendedAttributes!.push({
+                    name: idl.IDLExtendedAttributes.Namespace,
+                    value: 'predefined'
+                })
+                this.peerLibrary.files.forEach(peerLibraryFile => {
+                    peerLibraryFile.entries.filter(libraryEntry => {
+                        if (libraryEntry.name !== predefinedEntry.name)
+                            return true
+                        if (!idl.isTypedef(libraryEntry))
+                            throw "Only typedefs can be replaced!"
+                        return false
                     })
                 })
-            }
-            if (this.isPackageMatchWithTarget()) {
-                this.peerLibrary.files.push(this.peerFile)
-            }
+            })
         }
-    }
-
-    private visitPredefinedDeclaration(declaration: idl.IDLInterface) {
-        this.peerLibrary.predefinedDeclarations.push(declaration)
-    }
-
-    private isPredefinedPackage(): boolean {
-        return this.packageName === PREDEFINED_PACKAGE
+        this.peerLibrary.files.push(this.peerFile)
     }
 
     private isPredefinedTypesPackage(): boolean {
         return this.packageName === PREDEFINED_PACKAGE_TYPES
-    }
-    private isPackageMatchWithTarget(): boolean {
-        if (this.targetName === 'all') {
-            return true
-        }
-        if (this.isPredefinedPackage() || this.isPredefinedTypesPackage()) {
-            return true
-        }
-        if (!this.packageName) {
-            return false
-        }
-        return this.packageName === PREDEFINED_PACKAGE_BY_TARGET.get(this.targetName)
     }
 }
 

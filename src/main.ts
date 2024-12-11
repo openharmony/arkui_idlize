@@ -40,9 +40,10 @@ import { generateTracker } from "./peer-generation/Tracker"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { PeerFile } from "./peer-generation/PeerFile"
 import {
+    IDLInteropPredefinesVisitor,
     IdlPeerGeneratorVisitor,
     IdlPeerProcessor,
-    IdlPredefinedGeneratorVisitor
+    IDLPredefinesVisitor,
 } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
 import { generateOhos } from "./peer-generation/OhosGenerator"
 import * as webidl2 from "webidl2"
@@ -322,21 +323,28 @@ if (options.dts2peer) {
     const idlLibrary = new PeerLibrary(lang, toSet(options.generateInterface))
     // collect predefined files
     scanPredefinedDirectory(PREDEFINED_PATH, "sys").forEach(file => {
-        IdlPredefinedGeneratorVisitor.create({
+        new IDLInteropPredefinesVisitor({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
             peerFile: file,
-            targetName: options.generatorTarget ?? ''
-        }, 'sys').visitWholeFile()
+        }).visitWholeFile()
     })
     scanPredefinedDirectory(PREDEFINED_PATH, "src").forEach(file => {
-        IdlPredefinedGeneratorVisitor.create({
+        new IDLPredefinesVisitor({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
             peerFile: file,
-            targetName: options.generatorTarget ?? ''
-        }, 'src').visitWholeFile()
+        }).visitWholeFile()
     })
+    if (["arkoala", "libace", "all", "tracker"].includes(options.generatorTarget)) {
+        scanPredefinedDirectory(PREDEFINED_PATH, "arkoala").forEach(file => {
+            new IDLPredefinesVisitor({
+                sourceFile: file.originalFilename,
+                peerLibrary: idlLibrary,
+                peerFile: file,
+            }).visitWholeFile()
+        })
+    }
 
     // First convert DTS to IDL
     generate(
