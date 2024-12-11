@@ -178,15 +178,24 @@ export class IfStatement implements LanguageStatement {
     ) { }
     write(writer: LanguageWriter): void {
         writer.print(`if (${this.condition.asString()})`)
-        writer.pushIndent()
-        this.thenStatement.write(writer)
-        if (this.insideIfOp) { this.insideIfOp!() }
-        writer.popIndent()
+        this.writeBody(writer, this.thenStatement, () => {
+            if (this.insideIfOp) { this.insideIfOp!() }
+        })
         if (this.elseStatement !== undefined) {
             writer.print("else")
+            this.writeBody(writer, this.elseStatement, () => {
+                if (this.insideElseOp) { this.insideElseOp!() }
+            })
+        }
+    }
+
+    writeBody(writer: LanguageWriter, body:LanguageStatement, op: () => void) {
+        if (!(body instanceof BlockStatement)) {
             writer.pushIndent()
-            this.elseStatement.write(writer)
-            if (this.insideElseOp) { this.insideElseOp!() }
+        }
+        body.write(writer)
+        op()
+        if (!(body instanceof BlockStatement)) {
             writer.popIndent()
         }
     }
