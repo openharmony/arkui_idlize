@@ -48,7 +48,20 @@ public class Application {
         }
     }
 
+    static String printBytes(byte[] bytes, int count) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[ ");
+        for (int i = 0; i < bytes.length && i < count; i++) {
+            sb.append(String.format("0x%02X ", bytes[i]));
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
     public static Application createApplication(String app, String params) {
+        SerializerBase ser = new SerializerBase();
+        ser.writeString("Привет мир 你好");
+        System.out.println("Ser is " + ser.length() + " is " + printBytes(ser.asArray(), ser.length()));
         NativeModule._NativeLog("NativeModule.createApplication " +  app + " , params=" + params);
         UserView view = (UserView)NativeModule._LoadUserView("org.koalaui.arkoala.View" + app, params);
         if (view == null) throw new Error("Cannot load user view");

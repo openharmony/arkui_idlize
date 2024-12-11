@@ -16,9 +16,9 @@ package org.koalaui.arkoala;
 
 import java.util.function.Consumer;
 
-public class ViewLoaderApp extends UserView {
-    ViewLoaderApp(String params) {
-        System.out.println("User ViewLoaderApp() params=" + params);
+public class ViewUserApp extends UserView {
+    ViewUserApp(String params) {
+        System.out.println("User ViewUserApp() params=" + params);
     }
 
     static void view(PeerNode root) {
@@ -26,6 +26,6 @@ public class ViewLoaderApp extends UserView {
     }
 
     Consumer<PeerNode> getBuilder() {
-        return ViewLoaderApp::view;
+        return ViewUserApp::view;
     }
 }
