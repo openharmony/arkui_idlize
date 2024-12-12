@@ -184,6 +184,8 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         peerClassName: string,
         callableMethodName: string | undefined,
         peerComponentName: string) {
+        if (!this.library.componentsDeclarations.find(it => it.name === peerComponentName)?.interfaceDeclaration)
+            return
         this.printer.print(`
 /** @memo */
 export function ${componentFunctionName}(

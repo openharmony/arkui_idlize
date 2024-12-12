@@ -1,2 +1,5 @@
+[Component="Root"]
+interface Root {};
+
 [Component="ComponentRoot"]
 interface ComponentRoot {};

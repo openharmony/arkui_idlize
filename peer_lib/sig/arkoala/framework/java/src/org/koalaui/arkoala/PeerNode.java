@@ -25,12 +25,12 @@ public class PeerNode extends IncrementalNode {
     private static final int INITIAL_ID = 999;
     protected static int currentId = PeerNode.INITIAL_ID;
     public static int nextId() { return ++PeerNode.currentId; }
-
-    private int id = currentId++;
+    private int id = 0;
 
     public NativePeerNode peer;
-    public PeerNode(long peerPtr, String name, int flags) {
+    public PeerNode(long peerPtr, int id, String name, int flags) {
         super(PEER_NODE_TYPE);
+        this.id = id;
         peer = NativePeerNode.create(peerPtr);
     }
 

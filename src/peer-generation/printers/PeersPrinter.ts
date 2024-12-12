@@ -151,13 +151,13 @@ class PeerFileVisitor {
         const parentRole = determineParentRole(peer.originalClassName, peer.originalParentName)
         const signature = new NamedMethodSignature(
             IDLVoidType,
-            [IDLPointerType, IDLStringType, IDLI32Type],
-            ['peerPtr', 'name', 'flags'],
-            [undefined, '""', '0'])
+            [IDLPointerType, IDLI32Type, IDLStringType, IDLI32Type],
+            ['peerPtr', 'id', 'name', 'flags'],
+            [undefined, undefined, '""', '0'])
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => {
             if (parentRole === InheritanceRole.PeerNode || parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
-                writer.writeSuperCall(['peerPtr', `name`, 'flags'])
+                writer.writeSuperCall(['peerPtr', 'id', `name`, 'flags'])
             } else {
                 throwException(`Unexpected parent inheritance role: ${parentRole}`)
             }
@@ -173,38 +173,23 @@ class PeerFileVisitor {
             [undefined, '0']
         )
         writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
+            const peerId = 'peerId'
+            writer.writeStatement(
+                writer.makeAssign(peerId, undefined, writer.makeString('PeerNode.nextId()'), true)
+            )
             const _peerPtr = '_peerPtr'
-
-            writer.print('/**')
-            writer.print('TODO: Edit PeersPrinter and USE this line')
             writer.writeStatement(
                 writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
                     `_${peer.componentName}_${createConstructPeerMethod(peer).overloadedName}`,
-                    [writer.makeString('PeerNode.nextId()'), writer.makeString(signature.argName(1))]
+                    [writer.makeString(peerId), writer.makeString(signature.argName(1))]
                 ), true)
             )
-            writer.print(' */')
-            
-            // TODO: rm _CreateNode() call and use _Component_construct() call
-            const nodeType = 'nodeType'
-            writer.writeStatement(
-                writer.makeAssign(nodeType, undefined, writer.makeString(`ArkUINodeType.${peer.componentName}`), true)
-            )
-            writer.writeStatement(
-                writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
-                    '_CreateNode',
-                    [
-                        writer.makeString(writer.language == Language.JAVA ? `${nodeType}.value` : writer.language == Language.ARKTS ? `${nodeType} as int32` : writer.language == Language.CJ ? `${nodeType}.ordinal` : `${nodeType}`),
-                        writer.makeString('PeerNode.nextId()'), 
-                        writer.makeString(signature.argName(1))
-                    ]
-                ), true)
-            )
+
             const _peer = '_peer'
             writer.writeStatement(
                 writer.makeAssign(_peer, undefined,
                     writer.makeString(
-                        `${writer.language == Language.CJ ? ' ' : 'new '}${peerClass}(${_peerPtr}, "${peer.componentName}", flags)`
+                        `${writer.language == Language.CJ ? ' ' : 'new '}${peerClass}(${_peerPtr}, ${peerId}, "${peer.componentName}", flags)`
                     ), true)
             )
             writer.writeMethodCall(signature.argName(0), 'setPeer', [_peer], true)

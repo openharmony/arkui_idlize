@@ -54,6 +54,10 @@ export class ModifierVisitor {
 
     printDummyImplFunctionBody(method: PeerMethod) {
         let _ = this.dummy
+        if (method.toStringName.includes('construct')) {
+            _.writeLines(`return new TreeNode("${method.originalParentName}", id, flags);`)
+            return
+        }
         _.writeStatement(
             _.makeCondition(
                 _.makeString("!needGroupedLog(1)"),

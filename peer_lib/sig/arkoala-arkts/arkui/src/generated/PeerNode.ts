@@ -2,13 +2,19 @@ import { int32 } from "@koalaui/common"
 import { IncrementalNode } from "@koalaui/runtime"
 import { NativePeerNode } from "./NativePeerNode"
 import { pointer } from "@koalaui/interop"
+import { ArkRootPeer } from "./peers/ArkStaticComponentsPeer"
 
 export const PeerNodeType = 11
 const InitialID = 999
 
 export class PeerNode extends IncrementalNode {
+    static generateRootPeer() {
+        return ArkRootPeer.create()
+    }
     peer: NativePeerNode
+    protected static currentId: int32 = InitialID
     static nextId(): int32 { return ++PeerNode.currentId }
+    private id: int32
 
     private static peerNodeMap = new Map<number, PeerNode>()
 
@@ -17,12 +23,12 @@ export class PeerNode extends IncrementalNode {
     }
     readonly name: string
 
-    protected static currentId: int32 = InitialID
 
-    constructor(peerPtr: pointer, name: string, flags: int32) {
+    constructor(peerPtr: pointer, id: int32, name: string, flags: int32) {
         super(PeerNodeType)
+        this.id = id
         this.peer = NativePeerNode.create(this, peerPtr, flags)
-        PeerNode.peerNodeMap.set(PeerNode.currentId, this)
+        PeerNode.peerNodeMap.set(this.id, this)
         this.onChildInserted = (child: IncrementalNode) => {
             // TODO: rework to avoid search
             let peer = findPeerNode(child)

@@ -125,17 +125,11 @@ function checkSerdeCustomObject() {
 function checkNodeAPI() {
     startNativeTest(checkNodeAPI.name, CALL_GROUP_LOG)
 
-    const ARKUI_TEXT = 1
     const id = 12
     const flags = 7
-    /**
-     * let ptr: pointer = nativeModule()._ComponentRoot_construct(id, flags)
-     * let childPtr1: pointer = nativeModule()._ComponentRoot_construct(id + 1, flags)
-     * let childPtr2: pointer = nativeModule()._ComponentRoot_construct(id + 2, flags)
-     */
-    let ptr: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id, flags)
-    let childPtr1: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id + 1, flags)
-    let childPtr2: pointer = nativeModule()._CreateNode(ARKUI_TEXT, id + 2, flags)
+    let ptr: pointer = nativeModule()._ComponentRoot_construct(id, flags)
+    let childPtr1: pointer = nativeModule()._ComponentRoot_construct(id + 1, flags)
+    let childPtr2: pointer = nativeModule()._ComponentRoot_construct(id + 2, flags)
 
     let stackPtr: pointer = 0
     checkResult("BasicNodeAPI getNodeByViewStack",

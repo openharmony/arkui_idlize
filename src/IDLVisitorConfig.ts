@@ -15,6 +15,7 @@ export class IDLVisitorConfig {
         "Particles",
         "ParticleColorPropertyOptions",
         "ParticlePropertyOptions",
+        "AccelerationOptions",
         "ParticleOptions",
         "EmitterOptions",
         "DataAddOperation",
