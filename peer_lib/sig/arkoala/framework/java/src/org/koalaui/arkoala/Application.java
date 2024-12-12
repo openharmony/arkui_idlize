@@ -60,7 +60,7 @@ public class Application {
 
     public static Application createApplication(String app, String params) {
         SerializerBase ser = new SerializerBase();
-        ser.writeString("Привет мир 你好");
+        ser.writeString("Hello world!");
         System.out.println("Ser is " + ser.length() + " is " + printBytes(ser.asArray(), ser.length()));
         NativeModule._NativeLog("NativeModule.createApplication " +  app + " , params=" + params);
         UserView view = (UserView)NativeModule._LoadUserView("org.koalaui.arkoala.View" + app, params);
