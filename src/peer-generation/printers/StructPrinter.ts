@@ -149,7 +149,7 @@ export class StructPrinter {
                     concreteDeclarations.print(`void (*callSync)(${syncArgs.join(', ')});`)
                 }
                 this.printStructsCTail(nameAssigned, concreteDeclarations)
-                this.writeRuntimeType(target, targetType, false, writeToString)
+                this.writeRuntimeType(target, targetType, idl.isOptionalType(target), writeToString)
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             } else if (isAccessor) {
@@ -158,7 +158,7 @@ export class StructPrinter {
             } else {
                 if (!noBasicDecl && !idl.isPrimitiveType(target))
                     this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
-                this.writeRuntimeType(target, targetType, false, writeToString)
+                this.writeRuntimeType(target, targetType, idl.isOptionalType(target), writeToString)
                 this.printOptionalIfNeeded(undefined, concreteDeclarations, writeToString, target, seenNames)
             }
         }
