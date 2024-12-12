@@ -14,6 +14,7 @@
  */
 
 import * as idl from "../../idl";
+import { maybeTransformManagedCallback } from "../ArgConvertors";
 import { PeerLibrary } from "../PeerLibrary";
 import { collectProperties } from "../printers/StructPrinter";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
@@ -58,22 +59,38 @@ class SorterDependenciesCollector extends DependenciesCollector {
     }
 }
 
+class CachedTransformer {
+    private cache: Map<idl.IDLNode, idl.IDLNode> = new Map()
+    transofrm(node: idl.IDLNode): idl.IDLNode {
+        if (this.cache.has(node))
+            return this.cache.get(node)!
+        if (idl.isCallback(node)) {
+            this.cache.set(node, maybeTransformManagedCallback(node) ?? node)
+            return this.cache.get(node)!
+        }
+        return node
+    }
+}
+
 export class DependencySorter {
     dependenciesCollector: SorterDependenciesCollector
+    private cachedTransformer = new CachedTransformer()
     dependencies = new Set<idl.IDLNode>()
     adjMap = new Map<idl.IDLNode, idl.IDLNode[]>()
+    seen = new Set<idl.IDLNode>()///one for all deps?
 
     constructor(private library: PeerLibrary) {
         this.dependenciesCollector = new SorterDependenciesCollector(library);
     }
 
-    private fillDependencies(target: idl.IDLNode, seen: Set<idl.IDLNode>) {
-        if (seen.has(target)) return
-        seen.add(target)
+    private fillDependencies(target: idl.IDLNode) {
+        if (this.seen.has(target)) return
+        this.seen.add(target)
         // Need to request that declaration.
         this.dependencies.add(target)
         let deps = this.dependenciesCollector.convert(target)
-        deps.forEach(it => this.fillDependencies(it, seen))
+            .map(it => this.cachedTransformer.transofrm(it))
+        deps.forEach(it => this.fillDependencies(it))
 
         // Require structs but do not make dependencies to them from `target`
         if (idl.isContainerType(target)) {
@@ -93,10 +110,10 @@ export class DependencySorter {
     }
 
     addDep(declaration: idl.IDLNode) {
+        declaration = this.cachedTransformer.transofrm(declaration)
         if (this.dependencies.has(declaration)) return
-        let seen = new Set<idl.IDLEntry>()///one for all deps?
         this.dependencies.add(declaration)
-        this.fillDependencies(declaration, seen)
+        this.fillDependencies(declaration)
         // if (seen.size > 0) console.log(`${name}: depends on ${Array.from(seen.keys()).join(",")}`)
     }
 

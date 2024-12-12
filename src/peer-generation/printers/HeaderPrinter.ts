@@ -60,9 +60,6 @@ class HeaderVisitor {
     }
 
     private printClassEpilog(clazz: PeerClass) {
-        if (clazz.methods.length == 0) {
-            this.api.print("int dummy;")
-        }
         this.api.popIndent()
         this.api.print(`} ${PeerGeneratorConfig.cppPrefix}ArkUI${clazz.componentName}Modifier;\n`)
         this.modifiersList.popIndent()

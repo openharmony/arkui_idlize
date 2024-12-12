@@ -19,7 +19,7 @@ import { CppLanguageWriter, LanguageWriter, NamedMethodSignature } from "../Lang
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from "../../Language";
-import { CallbackConvertor, CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "../ArgConvertors";
+import { CallbackConvertor, CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue, maybeTransformManagedCallback } from "../ArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { PrimitiveType } from "../ArkPrimitiveType";
@@ -52,14 +52,16 @@ function collectEntryCallbacks(library: PeerLibrary, entry: idl.IDLEntry): idl.I
     return res
 }
 
-export function collectUniqueCallbacks(library: PeerLibrary) {
+export function collectUniqueCallbacks(library: PeerLibrary, options?: { transformCallbacks?: boolean }) {
     const foundCallbacksNames = new Set<string>()
     const foundCallbacks: idl.IDLCallback[] = []
     const addCallback = (callback: idl.IDLCallback) => {
+        if (options?.transformCallbacks)
+            callback = maybeTransformManagedCallback(callback) ?? callback
         if (foundCallbacksNames.has(callback.name))
             return
         foundCallbacksNames.add(callback.name)
-        foundCallbacks.push(callback)        
+        foundCallbacks.push(callback)
     }
     for (const file of library.files) {
         for (const decl of file.entries) {
@@ -122,7 +124,7 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
     let callbacksKindsEnum = idl.createEnum(
         CallbackKind, [], {}
     )
-    callbacksKindsEnum.elements = collectUniqueCallbacks(library).map(it =>
+    callbacksKindsEnum.elements = collectUniqueCallbacks(library, { transformCallbacks: true }).map(it =>
         idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, generateCallbackKindValue(it))
     )
     writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, true))
@@ -149,12 +151,13 @@ class DeserializeCallbacksVisitor {
             const imports = tsFile.imports
             imports.addFeature("CallbackKind", "./peers/CallbackKind")
             imports.addFeature("Deserializer", "./peers/Deserializer")
-            imports.addFeature("int32", "@koalaui/common")
-            imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback"], "@koalaui/interop")
+            imports.addFeatures(["int32", "int64"], "@koalaui/common")
+            imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer"], "@koalaui/interop")
             imports.addFeature("RuntimeType", "./peers/SerializerBase")
+            imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
 
             if (this.writer.language === Language.ARKTS) {
-                for (const callback of collectUniqueCallbacks(this.library)) {
+                for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
                     collectDeclItself(this.library, callback, imports)
                     collectDeclDependencies(this.library, callback, imports, { expandTypedefs: true })
                 }
@@ -351,7 +354,7 @@ class DeserializeCallbacksVisitor {
 
     visit(): void {
         this.writeImports()
-        const uniqCallbacks = collectUniqueCallbacks(this.library)
+        const uniqCallbacks = collectUniqueCallbacks(this.library, { transformCallbacks: true })
         for (const callback of uniqCallbacks) {
             this.writeCallbackDeserializeAndCall(callback)
         }
@@ -459,7 +462,7 @@ class ManagedCallCallbackVisitor {
 
     visit(): void {
         this.writeImports()
-        const uniqCallbacks = collectUniqueCallbacks(this.library)
+        const uniqCallbacks = collectUniqueCallbacks(this.library, { transformCallbacks: true })
         for (const callback of uniqCallbacks) {
             this.writeCallbackCaller(callback)
             this.writeCallbackCallerSync(callback)

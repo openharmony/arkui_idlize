@@ -498,7 +498,7 @@ interface PeerEvent {
         this.printer.print(`case ${PeerEventKind}.${callbackIdByInfo(callbackInfo)}: properties.${callbackIdByInfo(callbackInfo)}?.(${infoFields}); break`)
     }
 
-    private printEventsDeliverer(infos: IdlCallbackInfo[]) {
+    protected printEventsDeliverer(infos: IdlCallbackInfo[]) {
         this.printer.print(`export function deliverGeneratedPeerEvent(event: PeerEvent, properties: ${PeerEventsProperties}): void {`)
         this.printer.pushIndent()
         this.printer.print(`switch (event.kind) {`)
@@ -545,6 +545,10 @@ class IdlArkTSEventVisitor extends IdlTSEventsVisitor {
     protected printParseFunction(infos: IdlCallbackInfo[]) {
         // Disable event functions printing until deserializer is ready
         // super.printParseFunction(infos);
+    }
+    protected printEventsDeliverer(infos: IdlCallbackInfo[]) {
+        // Disable event functions printing until deserializer is ready
+        // super.printEventsDeliverer(infos);
     }
 }
 

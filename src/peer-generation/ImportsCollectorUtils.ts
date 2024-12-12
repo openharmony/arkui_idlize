@@ -8,6 +8,7 @@ import { PeerLibrary } from "./PeerLibrary"
 import { renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces } from "../util"
 import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName } from "./Materialized"
+import { maybeTransformManagedCallback } from "./ArgConvertors"
 
 export const SyntheticModule = "./SyntheticDeclarations"
 
@@ -48,6 +49,7 @@ export function collectDeclItself(
     emitter: ImportsCollector | ((entry: idl.IDLNode) => void),
     options?: {
         includeMaterializedInternals?: boolean,
+        includeTransformedCallbacks?: boolean,
     },
 ) {
     if (emitter instanceof ImportsCollector) {
@@ -56,6 +58,13 @@ export function collectDeclItself(
         if (options?.includeMaterializedInternals) {
             if ((idl.isInterface(node) || idl.isClass(node)) && isMaterialized(node) && !isBuilderClass(node)) {
                 emitter.addFeature(getInternalClassName(node.name), feature.module)
+            }
+        }
+        if (options?.includeTransformedCallbacks) {
+            if (idl.isCallback(node)) {
+                const maybeTransformed = maybeTransformManagedCallback(node)
+                if (maybeTransformed)
+                    collectDeclItself(library, maybeTransformed, emitter, options)
             }
         }
     } else {
@@ -70,6 +79,7 @@ export function collectDeclDependencies(
     options?: {
         expandTypedefs?: boolean,
         includeMaterializedInternals?: boolean,
+        includeTransformedCallbacks?: boolean,
     },
 ): void {
     const collector = createDependenciesCollector(library)
@@ -86,6 +96,7 @@ export function collectDeclDependencies(
     for (const dep of deps) {
         collectDeclItself(library, dep, emitter, {
             includeMaterializedInternals: options?.includeMaterializedInternals,
+            includeTransformedCallbacks: options?.includeTransformedCallbacks,
         })
     }
 }

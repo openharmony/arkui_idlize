@@ -344,6 +344,33 @@ export class NumericConvertor extends BaseArgConvertor {
     }
 }
 
+export class PointerConvertor extends BaseArgConvertor {
+    constructor(param: string) {
+        // check numericPrimitiveTypes.include(type)
+        super(idl.IDLPointerType, [RuntimeType.NUMBER, RuntimeType.OBJECT], false, false, param)
+    }
+    convertorArg(param: string, writer: LanguageWriter): string {
+        return param
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.writeMethodCall(`${param}Serializer`, `writePointer`, [value])
+    }
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+        return assigneer(
+            writer.makeString(`${deserializerName}.readPointer()`)
+        )
+    }
+    nativeType(): idl.IDLType {
+        return this.idlType
+    }
+    interopType(): idl.IDLType {
+        return this.idlType
+    }
+    isPointerType(): boolean {
+        return false
+    }
+}
+
 export class BufferConvertor extends BaseArgConvertor {
     constructor(param: string) {
         super(idl.IDLBufferType, [RuntimeType.OBJECT], false, true, param)
@@ -866,6 +893,15 @@ export class CallbackConvertor extends BaseArgConvertor {
     ) {
         super(idl.createReferenceType(decl.name), [RuntimeType.FUNCTION], false, true, param)
     }
+
+    private get isTransformed(): boolean {
+        return this.decl !== this.transformedDecl
+    }
+
+    private get transformedDecl(): idl.IDLCallback {
+        return maybeTransformManagedCallback(this.decl) ?? this.decl
+    }
+
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
     }
@@ -878,12 +914,14 @@ export class CallbackConvertor extends BaseArgConvertor {
                 new StringExpression(`${value}.callSync`), idl.IDLPointerType, { unsafe: true }).asString()])
             return
         }
+        if (this.isTransformed)
+            value = `CallbackTransformer.transformFrom${this.library.getInteropName(this.decl)}(${value})`
         writer.writeMethodCall(`${param}Serializer`, `holdAndWriteCallback`, [`${value}`])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter, useSyncVersion: boolean = false): LanguageStatement {
         if (writer.language == Language.CPP) {
-            const callerInvocation = writer.makeString(`getManagedCallbackCaller(${generateCallbackKindAccess(this.decl, writer.language)})`)
-            const callerSyncInvocation = writer.makeString(`getManagedCallbackCallerSync(${generateCallbackKindAccess(this.decl, writer.language)})`)
+            const callerInvocation = writer.makeString(`getManagedCallbackCaller(${generateCallbackKindAccess(this.transformedDecl, writer.language)})`)
+            const callerSyncInvocation = writer.makeString(`getManagedCallbackCallerSync(${generateCallbackKindAccess(this.transformedDecl, writer.language)})`)
             const resourceReadExpr = writer.makeMethodCall(`${deserializerName}`, `readCallbackResource`, [])
             const callReadExpr = writer.makeCast(
                 writer.makeMethodCall(`${deserializerName}`, `readPointerOrDefault`,
@@ -891,7 +929,7 @@ export class CallbackConvertor extends BaseArgConvertor {
                     idl.IDLUndefinedType /* not used */,
                     {
                         unsafe: true,
-                        overrideTypeName: `void(*)(${generateCallbackAPIArguments(this.library, this.decl).join(", ")})`
+                        overrideTypeName: `void(*)(${generateCallbackAPIArguments(this.library, this.transformedDecl).join(", ")})`
                     }
             )
             const callSyncReadExpr = writer.makeCast(
@@ -900,16 +938,19 @@ export class CallbackConvertor extends BaseArgConvertor {
                     idl.IDLUndefinedType /* not used */,
                     {
                         unsafe: true,
-                        overrideTypeName: `void(*)(${[`${PrimitiveType.Prefix}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, this.decl)).join(", ")})`
+                        overrideTypeName: `void(*)(${[`${PrimitiveType.Prefix}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, this.transformedDecl)).join(", ")})`
                     }
             )
             return assigneer(writer.makeString(`{${resourceReadExpr.asString()}, ${callReadExpr.asString()}, ${callSyncReadExpr.asString()}}`))
         }
-        return assigneer(writer.makeString(
-            `${deserializerName}.read${this.library.getInteropName(this.decl)}(${useSyncVersion ? 'true' : ''})`))
+        let result = writer.makeString(
+            `${deserializerName}.read${this.library.getInteropName(this.transformedDecl)}(${useSyncVersion ? 'true' : ''})`)
+        if (this.isTransformed)
+            result = writer.makeMethodCall(`CallbackTransformer`, `transformTo${this.library.getInteropName(this.decl)}`, [result])
+        return assigneer(result)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.decl.name)
+        return idl.createReferenceType(this.transformedDecl.name)
     }
     isPointerType(): boolean {
         return true
@@ -1255,4 +1296,15 @@ function warnCustomObject(type: string, msg?: string) {
         warn(`Use CustomObject for ${msg ? `${msg} ` : ``}type ${type}`)
         customObjects.add(type)
     }
+}
+
+export function maybeTransformManagedCallback(callback: idl.IDLCallback): idl.IDLCallback | undefined {
+    if (callback.name === "CustomBuilder")
+        return idl.createCallback(
+            "CustomNodeBuilder",
+            [idl.createParameter("parentNode", idl.IDLPointerType)],
+            idl.IDLPointerType,
+            { extendedAttributes: [{name: idl.IDLExtendedAttributes.Synthetic}] }
+        )
+    return undefined
 }

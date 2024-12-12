@@ -1,7 +1,23 @@
 import * as idl from "../../idl"
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
+import { maybeTransformManagedCallback } from "../ArgConvertors";
 import { PeerLibrary } from "../PeerLibrary";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
+
+function createTransformedCallbacks(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>) {
+    for (const file of library.files) {
+        for (const entry of file.entries) {
+            if (idl.isCallback(entry)) {
+                const transformedCallback = maybeTransformManagedCallback(entry) ?? entry
+                if (transformedCallback &&
+                    !library.resolveTypeReference(idl.createReferenceType(transformedCallback.name)) &&
+                    !synthesizedEntries.has(transformedCallback.name)) {
+                    synthesizedEntries.set(transformedCallback.name, transformedCallback)
+                }
+            }
+        }
+    }
+}
 
 function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationType: idl.IDLType, synthesizedEntries: Map<string, idl.IDLEntry>): void {
     const continuationParameters = library.createContinuationParameters(continuationType)
@@ -31,7 +47,8 @@ function createContinuationCallbacks(library: PeerLibrary, synthesizedEntries: M
     for (const file of library.files) {
         for (const entry of file.entries) {
             if (idl.isCallback(entry)) {
-                createContinuationCallbackIfNeeded(library, entry.returnType, synthesizedEntries)
+                const transformedCallback = maybeTransformManagedCallback(entry) ?? entry
+                createContinuationCallbackIfNeeded(library, transformedCallback.returnType, synthesizedEntries)
             }
             idl.forEachFunction(entry, function_ => {
                 const promise = idl.asPromise(function_.returnType)
@@ -85,6 +102,7 @@ function createImportsStubs(library: PeerLibrary, synthesizedEntries: Map<string
 /** @deprecated please do not extend this file. Storing synthetic declarations globally seems a bad pattern */
 export function fillSyntheticDeclarations(library: PeerLibrary) {
     const synthesizedEntries = new Map<string, idl.IDLEntry>()
+    createTransformedCallbacks(library, synthesizedEntries)
     createContinuationCallbacks(library, synthesizedEntries)
     createImportsStubs(library, synthesizedEntries)
     library.initSyntheticEntries([...synthesizedEntries.values()])

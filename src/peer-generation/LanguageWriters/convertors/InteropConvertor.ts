@@ -15,6 +15,7 @@
 
 import * as idl from '../../../idl'
 import { capitalize } from '../../../util'
+import { maybeTransformManagedCallback } from '../../ArgConvertors'
 import { PrimitiveType } from '../../ArkPrimitiveType'
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { PeerMethod } from '../../PeerMethod'
@@ -109,7 +110,10 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
         if (PeerGeneratorConfig.isKnownParametrized(refName)) {
             return this.make('CustomObject')
         }
-        const decl = this.resolver.toDeclaration(type)
+        let decl = this.resolver.toDeclaration(type)
+        if (idl.isCallback(decl)) {
+            decl = maybeTransformManagedCallback(decl) ?? decl
+        }
         if (idl.isType(decl)) {
             if (idl.isReferenceType(decl)) {
                 return this.make(`${capitalize(decl.name)}`)
@@ -138,7 +142,7 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
             case idl.IDLNumberType: return this.make(`Number`)
             case idl.IDLStringType: return this.make(`String`)
             case idl.IDLBooleanType: return this.make(`Boolean`)
-            case idl.IDLPointerType: return this.make('void*', true)
+            case idl.IDLPointerType: return this.make('NativePointer')
             case idl.IDLUnknownType:
             case idl.IDLCustomObjectType:
             case idl.IDLAnyType: return this.make(`CustomObject`)
@@ -278,6 +282,7 @@ export class InteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLDate: return 'KLong'
             case idl.IDLUndefinedType:
             case idl.IDLVoidType: return PrimitiveType.NativePointer.getText()
+            case idl.IDLPointerType: return PrimitiveType.NativePointer.getText()
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
     }

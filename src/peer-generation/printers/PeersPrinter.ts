@@ -107,6 +107,7 @@ class PeerFileVisitor {
             imports.addFeature('GestureName', './shared/generated-utils')
             imports.addFeature('GestureComponent', './shared/generated-utils')
             imports.addFeature('CallbackKind', './peers/CallbackKind')
+            imports.addFeature('CallbackTransformer', './peers/CallbackTransformer')
         }
         if (printer.language == Language.TS) {
             imports.addFeature("unsafeCast", "./shared/generated-utils")

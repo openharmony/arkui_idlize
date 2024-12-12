@@ -790,6 +790,19 @@ export function createConstructor(
 export function createCallback(name: string, parameters: IDLParameter[], returnType: IDLType,
         nodeInitializer: IDLNodeInitializer = {}, typeParameters: string[] = []): IDLCallback
 {
+    if (isNamedNode(returnType) && returnType.name === "this")
+        returnType = IDLAnyType
+    parameters = parameters.map(it => {
+        if (it.type && isNamedNode(it.type) && (it.type.name === "T" || it.type.name === "this"))
+            return createParameter(
+                it.name,
+                IDLAnyType,
+                it.isOptional,
+                it.isVariadic,
+                { fileName: it.fileName },
+            )
+        return it
+    })
     return {
         kind: IDLKind.Callback,
         name, parameters, returnType, typeParameters,

@@ -198,15 +198,12 @@ export class StructPrinter {
         }
     }
 
-    private alreadyHasInt8Method = false
+    private prologueDefinedRuntimeTypes = [
+        idl.IDLDate.name,
+    ]
     private writeRuntimeType(target: idl.IDLNode, targetType: IDLType, isOptional: boolean, writer: LanguageWriter) {
-        const typeBooleanOrUint8 = (targetType === idl.IDLBooleanType || target === idl.IDLI8Type) && !isOptional
-        if (typeBooleanOrUint8 && this.alreadyHasInt8Method) {
+        if (idl.isNamedNode(target) && this.prologueDefinedRuntimeTypes.includes(target.name) && !isOptional)
             return
-        }
-        if (typeBooleanOrUint8) {
-            this.alreadyHasInt8Method = true
-        }
         const resultType = idl.createReferenceType("RuntimeType")
         const op = this.writeRuntimeTypeOp(target, targetType, resultType, isOptional, writer)
         if (op) {

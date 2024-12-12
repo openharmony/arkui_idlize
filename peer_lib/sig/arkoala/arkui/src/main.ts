@@ -15,6 +15,7 @@
 import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
 import { Serializer } from "@arkoala/arkui/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
+import { CallbackTransformer } from "@arkoala/arkui/peers/CallbackTransformer"
 import { MaterializedBase } from "@arkoala/arkui/MaterializedBase"
 import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
@@ -403,6 +404,10 @@ function checkTwoSidesPromise() {
         assertEquals("Promise 1 pumped", "FULFILLED", result1)
         assertEquals("Promise 2 pumped", "REJECTED: err line 1, err line 2", result2)
     }, 0)
+}
+
+function checkTransformedCallback() {
+    
 }
 
 function checkWriteFunction() {

@@ -477,6 +477,7 @@ export function renameDtsToPeer(fileName: string, language: Language, withFileEx
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))
         .replace(".d.ts", "")
+        .replace(".idl", "")
         .concat("Peer")
     if (withFileExtension) {
         return renamed.concat(language.extension)

@@ -1,3 +1,5 @@
+import * as idl from './idl'
+
 export class IDLVisitorConfig {
     private constructor() {}
 
@@ -11,6 +13,10 @@ export class IDLVisitorConfig {
         "ParticleAttribute",
         "ParticleModifier",
         "Particles",
+        "ParticleColorPropertyOptions",
+        "ParticlePropertyOptions",
+        "ParticleOptions",
+        "EmitterOptions",
         "DataAddOperation",
         "DataChangeListener",
         "DataChangeOperation",
@@ -23,6 +29,8 @@ export class IDLVisitorConfig {
         "RepeatItemBuilder",
         "RepeatAttribute",
         "TemplateTypedFunc",
+        "PageTransitionEnterInterface",
+        "PageTransitionExitInterface"
     )
 
     static readonly StubbedDeclarations = new Array<string>(
@@ -39,4 +47,8 @@ export class IDLVisitorConfig {
         "TextStyle",
         "LinearGradient"
     ]
+
+    static readonly ReplacedDeclarations = new Map<string, idl.IDLEntry>([
+        ["CustomBuilder", idl.createCallback("CustomBuilder", [], idl.IDLVoidType)],
+    ])
 }

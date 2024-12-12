@@ -95,7 +95,10 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     protected collectImports(imports: ImportsCollector) {
         const decl = this.library.resolveTypeReference(idl.createReferenceType(this.clazz.className))!
         if (PeerGeneratorConfig.needInterfaces) {
-            collectDeclDependencies(this.library, decl, imports, { expandTypedefs: true })
+            collectDeclDependencies(this.library, decl, imports, {
+                expandTypedefs: true,
+                includeTransformedCallbacks: true,
+            })
             imports.addFeature(
                 createInterfaceDeclName(this.clazz.className),
                 SyntheticModule,

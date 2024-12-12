@@ -263,6 +263,13 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 this.output.push(decl)
                 return
             }
+            if (name && IDLVisitorConfig.ReplacedDeclarations.has(name)) {
+                this.output.push({
+                    fileName: node.getSourceFile().fileName,
+                    ...IDLVisitorConfig.ReplacedDeclarations.get(name)!,
+                })
+                return
+            }
         }
         if (ts.isClassDeclaration(node)) {
             const entry = this.serializeClass(node)

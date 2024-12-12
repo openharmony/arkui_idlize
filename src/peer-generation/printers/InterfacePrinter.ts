@@ -54,6 +54,7 @@ import { isBuilderClass, isMaterialized, isPredefined } from '../idl/IdlPeerGene
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { createInterfaceDeclName } from '../TypeNodeNameConvertor'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
+import { maybeTransformManagedCallback } from '../ArgConvertors'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -632,12 +633,19 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         return this.typeNameConvertor.getNodeName(idlType)
     }
 
+    private isMemo(node: idl.IDLEntry): boolean {
+        if (idl.isCallback(node) && node.name == "CustomBuilder")
+            return true
+        return false
+    }
+
     private printCallback(node: idl.IDLCallback | idl.IDLInterface,
                           parameters: idl.IDLParameter[],
                           returnType: idl.IDLType | undefined): string {
+        const maybeMemo = this.isMemo(node) ? `\n/** @memo */\n` : ``
         const paramsType = this.printParameters(parameters)
         const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
-        return `type ${node.name}${this.printTypeParameters(node.typeParameters)} = (${paramsType}) => ${retType};`
+        return `type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${maybeMemo}(${paramsType}) => ${retType};`
     }
 
     private isCallback(node: idl.IDLInterface) {
@@ -697,6 +705,16 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
             const continuation = this.library.resolveTypeReference(continuationReference)!
             this.onSyntheticDeclaration(continuation)
         }
+
+        const transformed = maybeTransformManagedCallback(decl)
+        if (transformed) {
+            this.convert(transformed)
+            this.onSyntheticDeclaration(transformed)
+        }
+
+        const maybeTransformed = maybeTransformManagedCallback(decl)
+        if (maybeTransformed)
+            this.onSyntheticDeclaration(maybeTransformed)
 
         return super.convertCallback(decl)
     }
@@ -1173,8 +1191,10 @@ export function getCommonImports(language: Language) {
     const imports: ImportFeature[] = []
     if (language === Language.ARKTS || language === Language.TS) {
         imports.push({feature: "int32", module: "@koalaui/common"})
+        imports.push({feature: "int64", module: "@koalaui/common"})
         imports.push({feature: "float32", module: "@koalaui/common"})
         imports.push({feature: "KInt", module: "@koalaui/interop"})
+        imports.push({feature: "KPointer", module: "@koalaui/interop"})
         imports.push({feature: "KBoolean", module: "@koalaui/interop"})
         imports.push({feature: "KStringPtr", module: "@koalaui/interop"})
         imports.push({feature: "wrapCallback", module: "@koalaui/interop"})

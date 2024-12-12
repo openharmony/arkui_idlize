@@ -5,3 +5,4 @@ import { isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase, reg
 import { NativeModule } from "#components"
 import { wrapCallback } from "@koalaui/interop"
 import { CallbackKind } from "./peers/CallbackKind"
+import { CallbackTransformer } from "./peers/CallbackTransformer"
