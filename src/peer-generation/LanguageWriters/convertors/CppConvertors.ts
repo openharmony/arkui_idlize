@@ -50,6 +50,7 @@ export class CppInteropArgConvertor extends InteropArgConvertor {
             case idl.IDLLengthType: return "KLength"
             case idl.IDLFunctionType: return PrimitiveType.Int32.getText()
             case idl.IDLDate: return PrimitiveType.Int64.getText()
+            case idl.IDLPointerType: return PrimitiveType.NativePointer.getText()
         }
         return super.convertPrimitiveType(type)
     }

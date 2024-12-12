@@ -18,9 +18,9 @@ package org.koalaui.arkoala;
 import java.util.function.Consumer;
 
 class EventType {
-    public static final int Click = 1;
-    public static final int Text = 2;
-    public static final int ExitApp = 3;
+    public static final int Click = 0;
+    public static final int Text = 1;
+    public static final int ExitApp = 2;
 }
 
 public class Application {

@@ -22,7 +22,9 @@ import java.util.Map;
 
 public class PeerNode extends IncrementalNode {
     private static final int PEER_NODE_TYPE = 11;
-    protected static int currentId = 1000;
+    private static final int INITIAL_ID = 999;
+    protected static int currentId = PeerNode.INITIAL_ID;
+    public static int nextId() { return ++PeerNode.currentId; }
 
     private int id = currentId++;
 

@@ -61,7 +61,8 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     isUnspecifiedGenericType,
     IDLUnknownType,
     IDLBooleanType,
-    IDLNumberType} from "../idl"
+    IDLNumberType,
+    IDLPointerType } from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
@@ -339,6 +340,7 @@ export class CustomPrintVisitor {
                 case IDLStringType: return "string"
                 case IDLVoidType: return "void"
                 case IDLThisType: return "T"
+                case IDLPointerType: return "number|bigint"
                 default: throw new Error(`Unknown primitive type ${DebugUtils.debugPrintType(type)}`)
             }
         }

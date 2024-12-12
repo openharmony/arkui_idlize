@@ -8,11 +8,12 @@ export class NativePeerNode extends Finalizable {
 }
 
 const PeerNodeType = 11
+const InitialID = 999
 
 export class PeerNode extends IncrementalNode {
     peer: NativePeerNode
-    private id: int32 = PeerNode.currentId++
-    protected static currentId: int32 = 1000
+    static nextId(): int32 { return ++PeerNode.currentId }
+    protected static currentId: int32 = InitialID
 
     constructor(peerPtr: pointer, name: string, flags: int32) {
         super(PeerNodeType)

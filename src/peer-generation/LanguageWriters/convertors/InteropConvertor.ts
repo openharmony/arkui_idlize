@@ -151,6 +151,7 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
             case idl.IDLFunctionType: return this.make(`Function`)
             case idl.IDLDate: return this.make(`Date`)
             case idl.IDLBufferType: return this.make('Buffer')
+            case idl.IDLPointerType: return this.make('Pointer')
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -282,7 +283,7 @@ export class InteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLDate: return 'KLong'
             case idl.IDLUndefinedType:
             case idl.IDLVoidType: return PrimitiveType.NativePointer.getText()
-            case idl.IDLPointerType: return PrimitiveType.NativePointer.getText()
+            case idl.IDLPointerType: return "KPointer"//PrimitiveType.NativePointer.getText()
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
     }

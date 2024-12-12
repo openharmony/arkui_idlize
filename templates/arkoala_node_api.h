@@ -57,7 +57,6 @@ typedef struct %CPP_PREFIX%ArkUIBasicNodeAPI {
     Ark_Float32 (*convertLengthMetricsUnit)(Ark_Float32 value,
                                             Ark_Int32 originUnit,
                                             Ark_Int32 targetUnit);
-    void (*sendClickEvent)(Ark_NativePointer node, Ark_ClickEvent event);
 } %CPP_PREFIX%ArkUIBasicNodeAPI;
 
 

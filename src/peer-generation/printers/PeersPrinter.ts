@@ -180,7 +180,7 @@ class PeerFileVisitor {
             writer.writeStatement(
                 writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
                     `_${peer.componentName}_${createConstructPeerMethod(peer).overloadedName}`,
-                    [writer.makeString('PeerNode.currentId + 1'), writer.makeString(signature.argName(1))]
+                    [writer.makeString('PeerNode.nextId()'), writer.makeString(signature.argName(1))]
                 ), true)
             )
             writer.print(' */')
@@ -195,7 +195,7 @@ class PeerFileVisitor {
                     '_CreateNode',
                     [
                         writer.makeString(writer.language == Language.JAVA ? `${nodeType}.value` : writer.language == Language.ARKTS ? `${nodeType} as int32` : `${nodeType}`),
-                        writer.makeString('PeerNode.currentId + 1'), 
+                        writer.makeString('PeerNode.nextId()'), 
                         writer.makeString(signature.argName(1))
                     ]
                 ), true)

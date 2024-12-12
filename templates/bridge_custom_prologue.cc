@@ -425,16 +425,6 @@ void impl_SetChildTotalCount(Ark_NativePointer nodePtr, Ark_Int32 totalCount)
 }
 KOALA_INTEROP_V2(SetChildTotalCount, Ark_NativePointer, Ark_Int32)
 
-void impl_EmulateClickEvent(Ark_NativePointer thisPtr, uint8_t* thisArray, int32_t thisLength) {
-    auto api = GetArkUIBasicNodeAPI();
-    if (api) {
-        Deserializer thisDeserializer(thisArray, thisLength);
-        Ark_ClickEvent event = thisDeserializer.readClickEvent();
-        api->sendClickEvent(thisPtr, event);
-    }
-}
-KOALA_INTEROP_V3(EmulateClickEvent, Ark_NativePointer, uint8_t*, int32_t)
-
 KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, const KStringPtr& viewParams) {
 #ifdef KOALA_USE_JAVA_VM
     JNIEnv* env = reinterpret_cast<JNIEnv*>(vm);

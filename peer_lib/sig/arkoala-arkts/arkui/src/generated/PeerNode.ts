@@ -1,15 +1,14 @@
 import { int32 } from "@koalaui/common"
 import { IncrementalNode } from "@koalaui/runtime"
-import { ArkUINodeType } from "./peers/ArkUINodeType"
 import { NativePeerNode } from "./NativePeerNode"
 import { pointer } from "@koalaui/interop"
 
 export const PeerNodeType = 11
+const InitialID = 999
 
 export class PeerNode extends IncrementalNode {
     peer: NativePeerNode
-    private id: int32 = PeerNode.currentId++
-    static nextId(): int32 { return PeerNode.currentId + 1 }
+    static nextId(): int32 { return ++PeerNode.currentId }
 
     private static peerNodeMap = new Map<number, PeerNode>()
 
@@ -18,12 +17,12 @@ export class PeerNode extends IncrementalNode {
     }
     readonly name: string
 
-    protected static currentId: int32 = 1000
+    protected static currentId: int32 = InitialID
 
     constructor(peerPtr: pointer, name: string, flags: int32) {
         super(PeerNodeType)
         this.peer = NativePeerNode.create(this, peerPtr, flags)
-        PeerNode.peerNodeMap.set(this.id, this)
+        PeerNode.peerNodeMap.set(PeerNode.currentId, this)
         this.onChildInserted = (child: IncrementalNode) => {
             // TODO: rework to avoid search
             let peer = findPeerNode(child)
@@ -50,7 +49,6 @@ export class PeerNode extends IncrementalNode {
     }
     applyAttributes(attrs: Object) {}
 }
-
 
 function findPeerNode(node: IncrementalNode): PeerNode | undefined {
     if (node.isKind(PeerNodeType)) return node as PeerNode
