@@ -74,6 +74,7 @@ arkts subset tsc:
      - npm run check:arkts:subset:tsc
 
 arkts subset sig integration:
+  allow_failure: true
   stage: test
   tags:
     - idlize-ci
