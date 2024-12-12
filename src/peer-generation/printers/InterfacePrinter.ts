@@ -607,7 +607,11 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
 
     private printPropNameWithType(prop: idl.IDLProperty): string {
         const isOptional = prop.isOptional
-        return `${prop.name}${isOptional ? "?" : ""}: ${this.convertType(prop.type)}`
+        const type = this.convertType(prop.type)
+        if (prop.name === "") {
+            return `${type}${isOptional ? "?" : ""}`
+        }
+        return `${prop.name}${isOptional ? "?" : ""}: ${type}`
     }
 
     private printParameters(parameters: idl.IDLParameter[]): string {
@@ -662,9 +666,8 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
             .concat(tuple.properties
                 .map((it, propIndex) => this.iDLTypedEntryPrinter(it, it => {
                     //TODO: use ETSConvertor.processTupleType
-                    let property = it;
-                    if (property.isOptional) {
-                        let types: IDLType[] = []
+                    let types: IDLType[] = []
+                    if (it.isOptional) {
                         if (idl.isUnionType(it.type)) {
                             types = it.type.types
                         } else if (idl.isPrimitiveType(it.type)) {
@@ -672,12 +675,12 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
                         } else {
                             throwException(`Unprocessed type: ${idl.forceAsNamedNode(it.type)}`)
                         }
-                        property = idl.createProperty(it.name,
-                            idl.createUnionType([...types, idl.IDLUndefinedType]),
-                            it.isReadonly,
-                            it.isStatic,
-                            false)
                     }
+                    let property = idl.createProperty("",
+                        it.isOptional ? idl.createUnionType([...types, idl.IDLUndefinedType]) : it.type,
+                        it.isReadonly,
+                        it.isStatic,
+                        false)
                     const maybeComma = propIndex < tuple.properties.length - 1 ? ',' : ''
                     return [indentedBy(`${this.printPropNameWithType(property)}${maybeComma}`, 1)]
                 }, seenFields) ).flat())
