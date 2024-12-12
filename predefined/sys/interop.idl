@@ -5,6 +5,7 @@ interface Interop {
     void StartGroupedLog(i32 index);
     void StopGroupedLog(i32 index);
     void AppendGroupedLog(i32 index, String message);
+    void PrintGroupedLog(i32 index);
     pointer GetStringFinalizer();
     void InvokeFinalizer(pointer ptr1, pointer ptr2);
     pointer GetPtrVectorElement(pointer ptr1, i32 arg);
@@ -19,4 +20,5 @@ interface Interop {
     void EndPerf(String str1);
     pointer DumpPerf(i32 arg);
     String Utf8ToString(sequence<u8> data, i32 offset, i32 length);
+    String StdStringToString(pointer cstring);
 };
