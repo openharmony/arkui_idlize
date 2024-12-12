@@ -32,7 +32,7 @@
 | `active`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `type`                    | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `target`                  | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
-| `params`                  | Function  |           | HEL         | Skroba Gleb         | in progress      |                   |           | High     |
+| `params`                  | Function  |           | HEL         | Skroba Gleb         | blocked IDL      |                   |           | High     |
 | Progress                  | Component | Yes       |             | Erokhin Ilya        | Blocked          |                   |           |          |
 | `style, total, value`     | Options   |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `type, value`             | Options   |           | HEL         | Erokhin Ilya        | done             |                   |           | Medium   |
@@ -151,7 +151,7 @@
 | `scrollable`              | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | `scrollBar`               | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
-| `onScrollEdge`            | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
+| `onScrollEdge`            | Function  |           | WON         | Berezin Kirill      | in progress      |                   |           | Medium   |
 | Video                     | Component |           |             | Erokhin Ilya        | done             |                   |           |          |
 | `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked AceEngine|                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
