@@ -26,8 +26,15 @@ export class PeerGeneratorConfig {
     ]
 
     public static handWrittenComponents = [
+        "LocalStorage",
+        "SyncedPropertyOneWay",
+        "SubscribedAbstractProperty",
+        "SyncedPropertyTwoWay",
         "Navigation",
-        "CustomComponent"
+        "CustomComponent",
+        "AttributeModifier",
+        "AbstractProperty", 
+        "ISinglePropertyChangeSubscriber"
     ]
 
     public static ignorePeerMethod = ["attributeModifier"]
