@@ -138,7 +138,7 @@
     "rollup:ohos:subset:arm32": "npm run check:subset && cross-env mode=subset isOhos=true arch=arm rollup -c rollup.config.components.mjs",
     "rollup:host:subset": "npm run check:subset && cd out/ts-subset && rollup -c",
     "rollup:host:full": "npm run check:peers && cd out/ts-peers && rollup -c",
-    "configure:cj:native": "cd ./native && meson setup -Dsource_set=cangjie-subset -Devents_test=false -Dcallbacks_test=false build-cangjie-native-dummy",
+    "configure:cj:native": "cd ./native && meson setup -Dsource_set=cangjie-subset -Devents_test=false -Dcallbacks_test=true build-cangjie-native-dummy",
     "compile:cj:native": "npm run configure:cj:native && cd native && meson compile --verbose -C build-cangjie-native-dummy",
     "run:cj": "npm run compile && node . --api-version 99 --dts2peer --need-interfaces --input-dir ./tests/cangjie-subset/ --output-dir ./out/cangjie-subset/generated --language cangjie && npm run compile:cj:native && LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH && ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run",
     "run:peers:call_log": "npm run check:peers:run && cd ./peer_lib/call_log && meson setup build && cd ./build && meson compile && ./run_call_log",

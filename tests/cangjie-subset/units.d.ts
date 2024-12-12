@@ -73,3 +73,8 @@ declare interface Font {
   family?: string | Resource;
   style?: FontStyle;
 }
+declare interface MarkStyle {
+  strokeColor?: ResourceColor;
+  size?: Length;
+  strokeWidth?: Length;
+}

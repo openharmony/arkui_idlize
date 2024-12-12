@@ -194,7 +194,7 @@ class PeerFileVisitor {
                 writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
                     '_CreateNode',
                     [
-                        writer.makeString(writer.language == Language.JAVA ? `${nodeType}.value` : writer.language == Language.ARKTS ? `${nodeType} as int32` : `${nodeType}`),
+                        writer.makeString(writer.language == Language.JAVA ? `${nodeType}.value` : writer.language == Language.ARKTS ? `${nodeType} as int32` : writer.language == Language.CJ ? `${nodeType}.ordinal` : `${nodeType}`),
                         writer.makeString('PeerNode.nextId()'), 
                         writer.makeString(signature.argName(1))
                     ]

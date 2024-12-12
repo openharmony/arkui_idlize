@@ -32,7 +32,8 @@ class NativeModuleVisitor {
 
     protected readonly excludes = new Map<Language, Set<string>>([
         [Language.CJ, new Set([
-            "StringData"
+            "StringData",
+            "CheckArkoalaCallbackEvent"
         ])],
         [Language.JAVA, new Set()],
         [Language.CPP, new Set()],

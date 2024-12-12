@@ -4,5 +4,5 @@ interface Loader {
     i32 LoadVirtualMachine(i32 arg0, String arg1, String arg2);
     boolean RunApplication(i32 arg0, i32 arg1);
     pointer StartApplication(String appUrl, String appParams);
-    void EmitEvent(i32 type, i32 target, i32 arg0, i32 arg1);
+    void EmitEvent(i32 eventType, i32 target, i32 arg0, i32 arg1);
 };

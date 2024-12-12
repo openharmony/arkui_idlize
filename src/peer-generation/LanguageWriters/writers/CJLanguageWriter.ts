@@ -37,7 +37,8 @@ import {
     MethodSignature,
     ObjectArgs,
     ReturnStatement,
-    StringExpression
+    StringExpression,
+    TernaryExpression
 } from "../LanguageWriter"
 import { IdlNameConvertor } from "../nameConvertor"
 import { CJIDLTypeToForeignStringConvertor, CJIDLNodeToStringConvertor } from "../convertors/CJConvertors"
@@ -55,20 +56,11 @@ class CJLambdaExpression extends LambdaExpression {
         super(writer, signature, resolver, body)
     }
     protected get statementHasSemicolon(): boolean {
-        return true
+        return false
     }
     asString(): string {
         const params = this.signature.args.map((it, i) => `${this.signature.argName(i)}: ${this.writer.getNodeName(it)}`)
         return `{${params.join(", ")} => ${this.bodyAsString()} }`
-    }
-    override bodyAsString(): string {
-        const writer = this.writer.fork()
-
-        return writer.printer.getOutput()
-            .map(line => line.trim())
-            .filter(line => line !== "")
-            .map(line => line === "{" || line === "}" || this.statementHasSemicolon ? `${line};` : `${line};`)
-            .join(" ")
     }
 }
 
@@ -104,6 +96,15 @@ export class CJMatchExpression implements LanguageExpression {
         output.push(`case _ => throw Exception(\"Unmatched pattern ${this.matchValue.asString()}\")`)
         output.push(`}`)
         return output.join('\n')
+    }
+}
+
+export class CJTernaryExpression implements LanguageExpression {
+    constructor(public condition: LanguageExpression,
+        public trueExpression: LanguageExpression,
+        public falseExpression: LanguageExpression) {}
+    asString(): string {
+        return `if (${this.condition.asString()}) { ${this.trueExpression.asString()} } else { ${this.falseExpression.asString()} }`
     }
 }
 
@@ -156,6 +157,59 @@ class CJMapForEachStatement implements LanguageStatement {
         this.op()
         writer.popIndent()
         writer.print(`}`)
+    }
+}
+
+export class CJEnumWithGetter implements LanguageStatement {
+    constructor(private readonly enumEntity: idl.IDLEnum, private readonly isExport: boolean) {}
+
+    write(writer: LanguageWriter) {
+        const initializers = this.enumEntity.elements.map(it => {
+            return {name: it.name, id: it.initializer}
+        })
+
+        const isStringEnum = initializers.every(it => typeof it.id == 'string')
+
+        let memberValue = 0
+        const members: {
+            name: string,
+            stringId: string | undefined,
+            numberId: number,
+        }[] = []
+        for (const initializer of initializers) {
+            if (typeof initializer.id == 'string') {
+                members.push({name: initializer.name, stringId: initializer.id, numberId: memberValue})
+            }
+            else if (typeof initializer.id == 'number') {
+                memberValue = initializer.id
+                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
+            }
+            else {
+                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
+            }
+            memberValue += 1
+        }
+
+        let enumName = this.enumEntity.name
+        writer.writeClass(enumName, () => {
+            const enumType = idl.createReferenceType(enumName)
+            members.forEach(it => {
+                writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
+                    writer.makeString(`${enumName}(${it.numberId})`)
+                )
+            })
+
+            const value = 'value'
+            const intType = idl.IDLI32Type
+            writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
+
+            const signature = new MethodSignature(idl.IDLVoidType, [intType])
+            writer.writeConstructorImplementation(enumName, signature, () => {
+                writer.writeStatement(
+                    writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
+                )
+            })
+        })
     }
 }
 
@@ -259,10 +313,18 @@ export class CJLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     writeFunctionDeclaration(name: string, signature: MethodSignature): void {
-        throw "Not implemented"
+        this.printer.print(this.generateFunctionDeclaration(name, signature))
     }
     writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
-        throw "Not implemented"
+        this.printer.print(`${this.generateFunctionDeclaration(name, signature)} {`)
+        this.printer.pushIndent()
+        op(this)
+        this.printer.popIndent()
+        this.printer.print('}')
+    }
+    private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
+        const args = signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`)
+        return `public func ${name}(${args.join(", ")})`
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         receiver = this.escapeKeyword(receiver)
@@ -366,7 +428,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString(`${value}[Int64(${indexVar})]`)
     }
     makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName: string): LanguageExpression {
-        if(varName) {
+        if (varName) {
             varName = this.escapeKeyword(varName)
             return this.makeString(`let Some(${varName}) <- ${varName}`)
         } else {
@@ -379,6 +441,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeThrowError(message: string): LanguageStatement {
         return new CJThrowErrorStatement(message)
+    }
+    makeTernary(condition: LanguageExpression, trueExpression: LanguageExpression, falseExpression: LanguageExpression): LanguageExpression {
+        return new CJTernaryExpression(condition, trueExpression, falseExpression)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new ReturnStatement(expr)
@@ -464,6 +529,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString(`Int32(${value.asString()}.value)`)
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
+        return new CJEnumWithGetter(enumEntity, isExport)
         return new CJEnumEntityStatement(enumEntity, isExport)
     }
     makeEquals(args: LanguageExpression[]): LanguageExpression {
@@ -485,7 +551,30 @@ export class CJLanguageWriter extends LanguageWriter {
     override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {
         return this.makeBlock([
             this.makeStatement(this.makeMethodCall(serializer, "writeInt8", [this.makeRuntimeType(RuntimeType.STRING)])),
-            this.makeStatement(this.makeMethodCall(serializer, "writeString", [this.makeString(`${value}.value`)]))
+            this.makeStatement(this.makeMethodCall(serializer, "writeString", [this.makeString(`${value}.getValue1()`)]))
+        ], false)
+    }
+    override makeLengthDeserializer(deserializer: string): LanguageStatement | undefined {
+        const valueType = "valueType"
+
+        return this.makeBlock([
+            this.makeAssign(valueType, undefined, this.makeMethodCall(deserializer, "readInt8", []), true),
+
+            this.makeMultiBranchCondition(
+                [{
+                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.NUMBER, ''),
+                    stmt: this.makeReturn(this.makeString(`Ark_Length(${deserializer}.readFloat32())`))
+                },
+                {
+                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.STRING, ''),
+                    stmt: this.makeReturn(this.makeString(`Ark_Length(${deserializer}.readString())`))
+                },
+                {
+                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.OBJECT, ''),
+                    stmt: this.makeReturn(this.makeString(`Ark_Length(Resource(${deserializer}.readString(), "", 0.0, Option.None, Option.None))`))
+                }],
+                this.makeReturn(this.makeUndefined())
+            ),
         ], false)
     }
 }

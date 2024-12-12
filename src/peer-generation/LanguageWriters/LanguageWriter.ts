@@ -221,7 +221,7 @@ export class MultiBranchIfStatement implements LanguageStatement {
         })
 
         if (this.statements.length > 0 && this.elseStatement !== undefined) {
-            writer.print(" else {")
+            writer.print("else {")
             writer.pushIndent()
             this.elseStatement.write(writer)
             writer.popIndent()

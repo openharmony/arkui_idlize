@@ -179,7 +179,7 @@ declare class TestAttribute extends CommonMethod<TestAttribute> {
 
     testEnumUndefined(value: EnumDTS | undefined): TestAttribute;
 
-    // testFunctionUndefined(value: (a: number) => boolean | undefined): TestAttribute;
+    testFunctionNumberVoid(value: (a: number) => void): TestAttribute;
 
     // union
 

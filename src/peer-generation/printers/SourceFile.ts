@@ -196,7 +196,8 @@ export class CJSourceFile extends SourceFile {
         return fileWriter.getOutput().join("\n")
     }
     public printImports(writer: LanguageWriter): void {
-
+        writer.print(`package idlize\n`)
+        writer.print(`import std.collection.*\n`)
     }
     protected onMerge(file: this): void {
 

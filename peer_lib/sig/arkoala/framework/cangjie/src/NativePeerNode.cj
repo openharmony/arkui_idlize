@@ -19,9 +19,8 @@ public open class NativePeerNode <: Finalizable {
         super(ptr, finalizer)
     }
 
-    public static func create(type_: ArkUINodeType, id: Int32, flags: Int32): NativePeerNode {
-        let ptr = NativeModule._CreateNode(type_.ordinal, id, flags)
-        return NativePeerNode(ptr, NativeModule._GetNodeFinalizer())
+    public static func create(peerPtr: pointer): NativePeerNode {
+        return NativePeerNode(peerPtr, NativeModule._GetNodeFinalizer())
     }
 
     public func dispose() {

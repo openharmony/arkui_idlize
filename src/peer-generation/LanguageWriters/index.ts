@@ -23,7 +23,7 @@ import { CJLanguageWriter } from "./writers/CJLanguageWriter";
 import { Language } from "../../Language";
 import { ReferenceResolver } from "../ReferenceResolver";
 
-import { CJIDLNodeToStringConvertor } from "./convertors/CJConvertors";
+import { CJIDLNodeToStringConvertor, CJInteropArgConvertor } from "./convertors/CJConvertors";
 import { TsIDLNodeToStringConverter } from "./convertors/TSConvertors";
 import { JavaIDLNodeToStringConvertor, JavaInteropArgConvertor } from "./convertors/JavaConvertors";
 import { EtsIDLNodeToStringConvertor } from "./convertors/ETSConvertors";
@@ -103,8 +103,8 @@ export function createInteropArgConvertor(language: Language): InteropArgConvert
         case Language.TS:
         case Language.ARKTS: return new InteropArgConvertor()
         case Language.CPP: return CppInteropArgConvertor.INSTANCE
-        case Language.JAVA:
-        case Language.CJ: return new JavaInteropArgConvertor()
+        case Language.JAVA: return new JavaInteropArgConvertor()
+        case Language.CJ: return new CJInteropArgConvertor()
     }
     throw new Error(`InteropArgConvertor for language ${language} not implemented`)
 }

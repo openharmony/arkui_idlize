@@ -49,11 +49,6 @@ public enum RuntimeType {
     }
 }
 
-public interface CallbackResource {
-    prop resourceId: Int32
-    prop hold: KPointer
-    prop release: KPointer
-}
 
 /* Serialization extension point */
 public abstract class CustomSerializer {
@@ -79,7 +74,7 @@ public open class SerializerBase {
     init() {
         this.buffer = ArrayList<UInt8>(Array<UInt8>(96, repeat: UInt8(0)))
     }
-    public func release() {
+    public open func release() {
         this.isHolding = false
         // todo handle release resources
         this.position = 0
@@ -113,16 +108,27 @@ public open class SerializerBase {
         this.writeInt8(Tag.UNDEFINED.ordinal)
     }
     private var heldResources: ArrayList<ResourceId> = ArrayList<ResourceId>()
-    func holdAndWriteCallback(callback: Object, hold: KPointer, release: KPointer, call: KPointer): ResourceId {
+    func holdAndWriteCallback(callback: Any): ResourceId {
+        let resourceId = ResourceHolder.instance().registerAndHold(callback)
+        this.heldResources.append(resourceId)
+        this.writeInt32(resourceId)
+        this.writePointer(0)
+        this.writePointer(0)
+        this.writePointer(0)
+        this.writePointer(0)
+        return resourceId
+    }
+    func holdAndWriteCallback(callback: Any, hold: KPointer, release: KPointer, call: KPointer, callSync: KPointer): ResourceId {
         let resourceId = ResourceHolder.instance().registerAndHold(callback)
         this.heldResources.append(resourceId)
         this.writeInt32(resourceId)
         this.writePointer(hold)
         this.writePointer(release)
         this.writePointer(call)
+        this.writePointer(callSync)
         return resourceId
     }
-    func writeFunction(value: Object): Unit {
+    func writeFunction(value: Any): Unit {
         // TODO
     }
     private func setBytes<V, T>(position: Int64, value: T): Unit where T <: LittleEndianOrder<V>{

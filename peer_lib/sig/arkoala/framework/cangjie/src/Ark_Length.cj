@@ -15,8 +15,38 @@
 package idlize
 
 public class Ark_Length <: Ark_ObjectBase {
-    var value: String
-    public Ark_Length(v: String) {
-        this.value = v
+    private var selector: Int32
+    public func getSelector(): Int32 {
+        return selector
+    }
+    private var value0: Option<Float32> = None<Float32>
+    init(param: Float32) {
+        value0 = param
+        selector = 0
+    }
+    public func getValue0(): Float32 {
+        if (let Some(value0) <- value0) {
+            return value0
+            } else { throw Exception("Wrong selector value inside Ark_Length") }
+    }
+    private var value1: Option<String> = None<String>
+    init(param: String) {
+        value1 = param
+        selector = 1
+    }
+    public func getValue1(): String {
+        if (let Some(value1) <- value1) {
+            return value1
+            } else { throw Exception("Wrong selector value inside Ark_Length") }
+    }
+    private var value2: Option<Resource> = None<Resource>
+    init(param: Resource) {
+        value2 = param
+        selector = 2
+    }
+    public func getValue2(): Resource {
+        if (let Some(value2) <- value2) {
+            return value2
+            } else { throw Exception("Wrong selector value inside Ark_Length") }
     }
 }

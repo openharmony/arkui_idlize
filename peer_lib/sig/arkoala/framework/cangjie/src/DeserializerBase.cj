@@ -14,37 +14,37 @@
  */
 package idlize
 
+import std.binary.*
 import std.collection.*
+
+public class CallbackResource {
+    public var resourceId: Int32
+    public var hold: pointer
+    public var release: pointer
+    init(resourceId: Int32, hold: pointer, release: pointer) {
+        this.resourceId = resourceId
+        this.hold = hold
+        this.release = release
+    }
+}
 
 public open class DeserializerBase {
     private var position = 0
     private var length = 96
-    private var buffer: ArrayList<UInt8> = ArrayList<UInt8>()
+    private var buffer: Array<UInt8>
 
-    // static registerCustomDeserializer(deserializer: CustomDeserializer) {
-    //     let current = DeserializerBase.customDeserializers
-    //     if (current == undefined) {
-    //         DeserializerBase.customDeserializers = deserializer
-    //     } else {
-    //         while (current.next != undefined) {
-    //             current = current.next
-    //         }
-    //         current.next = deserializer
-    //     }
-    // }
-
-    init(buffer: ArrayList<UInt8>, length: Int64) {
+    init(buffer: Array<UInt8>, length: Int64) {
         this.buffer = buffer
         this.length = length
     }
 
-    static func get<T>(
-        factory: (args: ArrayList<UInt8>, length: Int32) -> T,
-                  args: ArrayList<UInt8>, length: Int32): T where T <: DeserializerBase {
+    // static func get<T>(
+    //     factory: (args: ArrayList<UInt8>, length: Int32) -> T,
+    //               args: ArrayList<UInt8>, length: Int32): T where T <: DeserializerBase {
 
-        // TBD: Use cache
-        return factory(args, length)
-    }
+    //     // TBD: Use cache
+    //     return factory(args, length)
+    // }
 
     func asArray(position: Int64, length: Int64): ArrayList<UInt8> {
         return ArrayList<UInt8>()
@@ -66,51 +66,58 @@ public open class DeserializerBase {
 
     func readInt8(): Int8 {
         this.checkCapacity(1)
-        // let value = this.view.getInt8(this.position)
+        let buffer: Array<Byte> = [this.buffer[this.position]]
         this.position += 1
-        return 0
+        let res = Int8.readLittleEndian(buffer)
+        return res
     }
 
     func readInt32(): Int32 {
         this.checkCapacity(4)
-        // const value = this.view.getInt32(this.position, true)
+        let buffer: Array<Byte> = [this.buffer[this.position], this.buffer[this.position+1], this.buffer[this.position+2], this.buffer[this.position+3]]
         this.position += 4
-        return 0
+        let res = Int32.readLittleEndian(buffer)
+        return res
     }
 
     func readInt64(): Int64 {
         this.checkCapacity(8)
-        // const value = this.view.getBigInt64(this.position, true)
+        let buffer: Array<Byte> = [this.buffer[this.position], this.buffer[this.position+1], this.buffer[this.position+2], this.buffer[this.position+3],
+                                 this.buffer[this.position+4], this.buffer[this.position+5], this.buffer[this.position+6], this.buffer[this.position+7]]
         this.position += 8
-        return 0
+        let res = Int64.readLittleEndian(buffer)
+        return res
     }
 
     func readPointer(): KPointer {
         this.checkCapacity(8)
-        // const value = this.view.getBigInt64(this.position, true)
+        let buffer: Array<Byte> = [this.buffer[this.position], this.buffer[this.position+1], this.buffer[this.position+2], this.buffer[this.position+3],
+                                 this.buffer[this.position+4], this.buffer[this.position+5], this.buffer[this.position+6], this.buffer[this.position+7]]
+        let res = Int64.readLittleEndian(buffer)
         this.position += 8
-        return 0
+        return res
     }
 
     func readFloat32(): Float32 {
         this.checkCapacity(4)
-        // const value = this.view.getFloat32(this.position, true)
+        let buffer: Array<Byte> = [this.buffer[this.position], this.buffer[this.position+1], this.buffer[this.position+2], this.buffer[this.position+3]]
         this.position += 4
-        return 0.0
+        let res = Float32.readLittleEndian(buffer)
+        return res
     }
 
     func readBoolean(): Bool {
-        this.checkCapacity(1)
-        // const value = this.view.getInt8(this.position)
+        let buffer: Array<Byte> = [this.buffer[this.position]]
         this.position += 1
-        return true
+        let res = Bool.readLittleEndian(buffer)
+        return res
     }
 
-    // readFunction(): any {
-    //     // TODO: not exactly correct.
-    //     const id = this.readInt32()
-    //     return id
-    // }
+    func readFunction(): Int32 {
+        // TODO: not exactly correct.
+        let id = this.readInt32()
+        return id
+    }
 
     // readMaterialized(): object {
     //     const ptr = this.readPointer()
@@ -129,58 +136,18 @@ public open class DeserializerBase {
     func readNumber(): Float64 {
         let tag = this.readInt8()
         match (tag) {
-            // case Tags.UNDEFINED.ordinal =>
-            //     return Option.None
-            // case Tag.INT32.ordinal =>
-            //     return Float64(this.readInt32())
-            // case Tag.FLOAT32.ordinal =>
-            //     return Float64(this.readFloat32())
+            case 101 =>
+                throw Exception("Read number can't return undefined.")
+            case 102 =>
+                return Float64(this.readInt32())
+            case 103 =>
+                return Float64(this.readFloat32())
             case _ =>
                 throw Exception("Unknown number tag: ${tag}")
         }
     }
 
-    func readLength(): ?Ark_Length {
-        this.checkCapacity(1)
-        let valueType = this.readInt8()
-        // match (valueType) {
-        //     case RuntimeType.OBJECT =>
-        //         return Ark_Length("")
-        //     case RuntimeType.STRING =>
-        //         return this.readString()
-        //     case RuntimeType.NUMBER =>
-        //         return this.readFloat32()
-        //     case _ => 
-                return Option.None
-        // }
+    func readCallbackResource(): CallbackResource {
+        return CallbackResource(this.readInt32(), this.readPointer(), this.readPointer())
     }
-
-    // readCallbackResource(): CallbackResource {
-    //     return {
-    //         resourceId: this.readInt32(),
-    //         hold: this.readPointer(),
-    //         release: this.readPointer(),
-    //     }
-    // }
-
-    // static lengthUnitFromInt(unit: int32): string {
-    //     let suffix: string
-    //     switch (unit) {
-    //         case 0:
-    //             suffix = "px"
-    //             break
-    //         case 1:
-    //             suffix = "vp"
-    //             break
-    //         case 3:
-    //             suffix = "%"
-    //             break
-    //         case 4:
-    //             suffix = "lpx"
-    //             break
-    //         default:
-    //             suffix = "<unknown>"
-    //     }
-    //     return suffix
-    // }
 }

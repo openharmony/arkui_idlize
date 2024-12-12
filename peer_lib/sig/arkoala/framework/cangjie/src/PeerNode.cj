@@ -17,18 +17,18 @@ package idlize
 import std.collection.*
 
 public open class PeerNode {
+    private static var PEER_NODE_TYPE = 11
     public var peer: NativePeerNode
     
-    // possibly wrong
-    static func getId() {
+    static func nextId() {
         currentId += 1
         return currentId
     }
 
-    private static var currentId: Int32 = 1000
+    protected static var currentId: Int32 = 1000
 
-    public PeerNode(nodeType: ArkUINodeType, flags: Int32, name: String) {
-        this.peer = NativePeerNode.create(nodeType, PeerNode.getId(), flags)
+    PeerNode(peerPtr: pointer, name: String, flags: Int32) {
+        this.peer = NativePeerNode.create(peerPtr)
     }
     func applyAttributes(attrs: HashMap<String, Object>): Unit {}
 }

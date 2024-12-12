@@ -18,6 +18,7 @@ import { throwException } from '../../../util'
 import { ARK_CUSTOM_OBJECT, cjCustomTypeMapping, convertCJOptional } from '../../printers/lang/Cangjie'
 import { ReferenceResolver } from '../../ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "../nameConvertor"
+import { InteropArgConvertor } from './InteropConvertor'
 
 export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
@@ -41,7 +42,7 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
             return `ArrayList<${convertType(this, type.elementType[0])}>`
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
-            const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
+            const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it))
             return `Map<${stringes[0]}, ${stringes[1]}>`
         }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
@@ -56,7 +57,9 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
         throw new Error('Method not implemented.')
     }
     convertCallback(type: idl.IDLCallback): string {
-        return `\{ => ${this.convert(type)}\}`
+        const params = type.parameters.map(it =>
+            `${it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
+        return `\{(${params.join(", ")}) => ${this.convert(type.returnType)}\}`
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): string {
         return type.name
@@ -85,7 +88,6 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
         return typeSpec
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
-        // TODO
         return type.name
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
@@ -112,31 +114,15 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
-    private readonly CJPrimitiveToReferenceTypeMap = new Map([
-        ['byte', 'Byte'],
-        ['short', 'Short'],
-        ['int', 'Integer'],
-        ['float', 'Float'],
-        ['double', 'Double'],
-        ['boolean', 'Boolean'],
-        ['char', 'Character'],
-    ])
-    private maybeConvertPrimitiveType(CJType: string): string {
-        // if (this.CJPrimitiveToReferenceTypeMap.has(CJType.type.text)) {
-        //     return this.CJPrimitiveToReferenceTypeMap.get(CJType.type.text)!
-        // }
-        return CJType
+
+    private callbackType(decl: idl.IDLCallback): string {const params = decl.parameters.map(it =>
+        `${it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
+        return `((${params.join(", ")}) -> ${this.convert(decl.returnType)})`
     }
 
-    private callbackType(decl: idl.IDLCallback): string {
-        return `() -> ${this.convert(decl.returnType)}`
-    }
-
-    // Tuple + ??? AnonymousClass
     private productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
-        // // TODO: other types
         if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')
-        return `Tuple_${decl.properties.map(it => convertType(this, it.type)).join('_')}`
+        return decl.name
     }
     /**********************************************************************/
 }
@@ -169,6 +155,16 @@ export class CJIDLTypeToForeignStringConvertor extends CJIDLNodeToStringConverto
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLBufferType: return 'CPointer<UInt8>'
+        }
+        return super.convertPrimitiveType(type)
+    }
+}
+
+export class CJInteropArgConvertor extends InteropArgConvertor {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLNumberType: return "Float64"
+            case idl.IDLLengthType: return "Ark_Length"
         }
         return super.convertPrimitiveType(type)
     }

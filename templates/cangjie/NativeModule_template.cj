@@ -19,6 +19,7 @@ import std.collection.*
 
 foreign {
     func StringData(ptr: KPointer, data: CPointer<UInt8>, arg2: Int32): Unit
+    func CheckArkoalaCallbackEvent(buffer: CPointer<UInt8>, bufferLength: Int32): Int32
 
 %GENERATED_NATIVE_FUNCTIONS%
 }
@@ -36,13 +37,19 @@ public open class NativeModule {
 // test
 %GENERATED_PREDEFINED_Test%
 
-    public static func _StringData(ptr: Int64, data: ArrayList<UInt8>, arg2: Int32): ArrayList<UInt8> {
+    public static func _StringData(ptr: Int64, data: Array<UInt8>, arg2: Int32): Unit {
         unsafe {
-            let handle_1 = acquireArrayRawData(data.toArray())
+            let handle_1 = acquireArrayRawData(data)
             StringData(ptr, handle_1.pointer, arg2)
-            let outputData = ArrayList<UInt8>(handle_1.array)
             releaseArrayRawData(handle_1)
-            return outputData
+        }
+    }
+    public static func _CheckArkoalaCallbackEvent(buffer: Array<UInt8>, bufferLength: Int32): Int32 {
+        unsafe {
+            let handle_0 = acquireArrayRawData(buffer)
+            let result = CheckArkoalaCallbackEvent(handle_0.pointer, bufferLength)
+            releaseArrayRawData(handle_0);
+            return result
         }
     }
 }

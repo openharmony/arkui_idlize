@@ -46,3 +46,8 @@ void impl_TestSetArkoalaCallbackCaller() {
     setCallbackCaller(deserializeAndCallCallback);
 }
 KOALA_INTEROP_V0(TestSetArkoalaCallbackCaller)
+
+KNativePointer impl_TestGetManagedCallerSync(KInt kind) {
+    return getManagedCallbackCallerSync(static_cast<CallbackKind>(kind));
+}
+KOALA_INTEROP_1(TestGetManagedCallerSync, KNativePointer, KInt)

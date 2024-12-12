@@ -20,23 +20,30 @@ import std.collection.*
 
 type ResourceId = Int32
 
-interface ResourceInfo {
-    mut prop resource: Object
-    mut prop holdersCount: Int32
+class ResourceInfo {
+    public var resource: Any
+    public var holdersCount: Int32
+    init(resource: Any, holdersCount: Int32 ) {
+        this.resource = resource
+        this.holdersCount = holdersCount
+    }
 }
 
 public class ResourceHolder {
-    private static var nextResourceId: ResourceId = 100 
+    private static var nextResourceId: ResourceId = 100
     private var resources: HashMap<ResourceId, ResourceInfo> = HashMap<ResourceId, ResourceInfo>()
     private static var _instance: ?ResourceHolder = Option.None
     static func instance(): ResourceHolder {
-        let resourceHolder = match(ResourceHolder._instance) {
+        ResourceHolder._instance = match (ResourceHolder._instance) {
             case Some(resourceHolder) => resourceHolder
             case _ => ResourceHolder()
         }
-        return resourceHolder
+        if (let Some(rh) <- ResourceHolder._instance) {
+            return rh
+        } else {
+            throw Exception()
+        }
     }
-
     public func hold(resourceId: ResourceId) {
         match(this.resources.get(resourceId)) {
             case Some(resource) => resource.holdersCount++
@@ -45,7 +52,7 @@ public class ResourceHolder {
     }
 
     public func release(resourceId: ResourceId) {
-        let resource = match(this.resources.get(resourceId)) {
+        let resource = match (this.resources.get(resourceId)) {
             case Some(resource) => resource
             case _ => throw Exception("Resource ${resourceId} does not exists, can not hold")
         }
@@ -55,16 +62,13 @@ public class ResourceHolder {
         }
     }
 
-    public func registerAndHold(resource: Object): ResourceId {
+    public func registerAndHold(resource: Any): ResourceId {
         let resourceId = ResourceHolder.nextResourceId + 1
-        // this.resources.set(resourceId, {
-        //     resource: resource,
-        //     holdersCount: 1,
-        // })
+        this.resources.put(resourceId, ResourceInfo(resource, resourceId))
         return resourceId
     }
 
-    public func get(resourceId: ResourceId): Object {
+    public func get(resourceId: ResourceId): Any {
         match(this.resources.get(resourceId)) {
             case Some(resource) => return resource.resource
             case _ => throw Exception("Resource ${resourceId} does not exists")
