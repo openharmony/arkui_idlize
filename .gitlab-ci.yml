@@ -159,8 +159,10 @@ check index-full:
       - !reference [.setup, script]
     script:
         - cd $CI_PROJECT_DIR
-        - npm run make:ts:subset
+        - npm run check:peers
         - npm run check:index-full:ts
+        - npm run make:ts:subset
+        - npm run check:index-full:subset:ts
         - npm run make:arkts
         - npm run check:index-full:arkts
 

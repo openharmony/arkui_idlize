@@ -17,6 +17,7 @@ export class IDLVisitorConfig {
         "ParticlePropertyOptions",
         "AccelerationOptions",
         "ParticleOptions",
+        "AccelerationOptions",
         "EmitterOptions",
         "DataAddOperation",
         "DataChangeListener",
