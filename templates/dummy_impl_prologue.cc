@@ -714,6 +714,7 @@ Ark_Int32 GetCustomMethodFlag(Ark_NodeHandle node) {
 }
 
 void SetCustomCallback(Ark_VMContext context, Ark_NodeHandle node, Ark_Int32 callback) {}
+void SetCustomNodeDestroyCallback(void (*destroy)(Ark_NodeHandle nodeId)) {}
 
 Ark_Int32 MeasureNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data) {
     return AsNode(node)->measure(vmContext, data);

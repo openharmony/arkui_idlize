@@ -23,6 +23,7 @@ namespace GeneratedApiImpl {
     void RegisterCustomNodeAsyncEvent(Ark_NodeHandle node, Ark_Int32 eventType, void* extraParam);
     Ark_Int32 UnregisterCustomNodeEvent(Ark_NodeHandle node, Ark_Int32 eventType);
     void SetCustomCallback(Ark_VMContext context, Ark_NodeHandle node, Ark_Int32 callback);
+    void SetCustomNodeDestroyCallback(void (*destroy)(Ark_NodeHandle nodeId));
     Ark_Int32 MeasureLayoutAndDraw(Ark_VMContext vmContext, Ark_NodeHandle rootPtr);
     Ark_Int32 MeasureNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data);
     Ark_Int32 LayoutNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32 (*data)[2]);

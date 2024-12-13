@@ -30,6 +30,7 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI()
         OHOS::Ace::NG::GeneratedApiImpl::SetCustomMethodFlag,
         OHOS::Ace::NG::GeneratedApiImpl::GetCustomMethodFlag,
         OHOS::Ace::NG::GeneratedApiImpl::SetCustomCallback,
+        OHOS::Ace::NG::GeneratedApiImpl::SetCustomNodeDestroyCallback,
         OHOS::Ace::NG::GeneratedApiImpl::MeasureLayoutAndDraw,
         OHOS::Ace::NG::GeneratedApiImpl::MeasureNode,
         OHOS::Ace::NG::GeneratedApiImpl::LayoutNode,

@@ -94,6 +94,7 @@ typedef struct %CPP_PREFIX%ArkUIExtendedNodeAPI {
     void (*setCustomCallback) (Ark_VMContext  vmContext,
                                Ark_NodeHandle node,
                                Ark_Int32 callbackId);
+    void (*setCustomNodeDestroyCallback)(void (*destroy)(Ark_NodeHandle nodeId));
     // make void instead return type Ark_Int32
     Ark_Int32 (*measureLayoutAndDraw) (Ark_VMContext  vmContext,
                                        Ark_NodeHandle node);
