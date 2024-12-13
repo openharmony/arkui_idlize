@@ -33,8 +33,24 @@ export class PeerGeneratorConfig {
         "Navigation",
         "CustomComponent",
         "AttributeModifier",
-        "AbstractProperty", 
-        "ISinglePropertyChangeSubscriber"
+        "AbstractProperty",
+        "ISinglePropertyChangeSubscriber",
+        "NavigationMenuItem",
+        "NavDestinationContext",
+        "SystemBarStyle",
+        "NavDestinationCommonTitle",
+        "NavDestinationCustomTitle",
+        "NavigationTitleOptions",
+        "ToolbarItem",
+        "NavigationToolbarOptions",
+        "NavigationOptions",
+        "NavPathInfo",
+        "NavPathStack",
+        "NavigationInterception",
+        "NavigationAttribute",
+        "NavContentInfo",
+        "NavigationCommonTitle",
+        "NavigationCustomTitle"
     ]
 
     public static ignorePeerMethod = ["attributeModifier"]
