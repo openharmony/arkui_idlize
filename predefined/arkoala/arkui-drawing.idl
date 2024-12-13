@@ -1,0 +1,57 @@
+
+
+// typedef Canvas DrawingCanvas;
+
+[Entity=Class]
+// interface Canvas {
+interface DrawingCanvas {
+    constructor(PixelMap pixelmap);
+    // void drawRect(common2D.Rect rect);
+    void drawRect(number left, number top, number right, number bottom);
+    // void drawRoundRect(RoundRect roundRect);
+    // void drawNestedRoundRect(RoundRect outer, RoundRect inner);
+    // void drawBackground(Brush brush);
+    // void drawShadow(Path path, common2D.Point3d planeParams, common2D.Point3d devLightPos, number lightRadius, common2D.Color ambientColor, common2D.Color spotColor, ShadowFlag flag);
+    // void drawCircle(number x, number y, number radius);
+    // void drawImage(image.PixelMap pixelmap, number left, number top, optional SamplingOptions samplingOptions);
+    // void drawImageRect(image.PixelMap pixelmap, common2D.Rect dstRect, optional SamplingOptions samplingOptions);
+    // void drawImageRectWithSrc(image.PixelMap pixelmap, common2D.Rect srcRect, common2D.Rect dstRect, optional SamplingOptions samplingOptions, optional SrcRectConstraint constraint);
+    // void drawColor(common2D.Color color, optional BlendMode blendMode);
+    // void drawColor(number alpha, number red, number green, number blue, optional BlendMode blendMode);
+    // void drawOval(common2D.Rect oval);
+    // void drawArc(common2D.Rect arc, number startAngle, number sweepAngle);
+    // void drawPoint(number x, number y);
+    // void drawPoints(sequence<common2D.Point> points, optional PointMode mode);
+    // void drawPath(Path path);
+    // void drawLine(number x0, number y0, number x1, number y1);
+    // void drawSingleCharacter(String text, Font font, number x, number y);
+    // void drawTextBlob(TextBlob blob, number x, number y);
+    // void drawPixelMapMesh(image.PixelMap pixelmap, number meshWidth, number meshHeight, sequence<number> vertices, number vertOffset, sequence<number> colors, number colorOffset);
+    // void drawRegion(Region region);
+    // void attachPen(Pen pen);
+    // void attachBrush(Brush brush);
+    // void detachPen();
+    // void detachBrush();
+    // number save();
+    // number saveLayer(optional (common2D.Rect or undefined) rect, optional (Brush or undefined) brush);
+    // void clear(common2D.Color color);
+    // void restore();
+    // void restoreToCount(number count);
+    // number getSaveCount();
+    // number getWidth();
+    // number getHeight();
+    // common2D.Rect getLocalClipBounds();
+    // Matrix getTotalMatrix();
+    // void scale(number sx, number sy);
+    // void skew(number sx, number sy);
+    // void rotate(number degrees, number sx, number sy);
+    // void translate(number dx, number dy);
+    // void clipPath(Path path, optional ClipOp clipOp, optional boolean doAntiAlias);
+    // void clipRect(common2D.Rect rect, optional ClipOp clipOp, optional boolean doAntiAlias);
+    // void concatMatrix(Matrix matrix);
+    // void clipRegion(Region region, optional ClipOp clipOp);
+    // void clipRoundRect(RoundRect roundRect, optional ClipOp clipOp, optional boolean doAntiAlias);
+    // boolean isClipEmpty();
+    // void setMatrix(Matrix matrix);
+    // void resetMatrix();
+};
