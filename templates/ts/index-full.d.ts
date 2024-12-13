@@ -3,9 +3,9 @@ declare const Component: ClassDecorator & ((options: ComponentOptions) => ClassD
 declare const ComponentV2: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
 
 declare interface EntryOptions {
-  routeName? : string,
-  storage? : LocalStorage,
-  useSharedStorage? : boolean,
+    routeName? : string,
+    storage? : LocalStorage,
+    useSharedStorage? : boolean,
 }
 
 declare const Entry: ClassDecorator & ((options?: LocalStorage | EntryOptions) => ClassDecorator);
@@ -41,7 +41,7 @@ declare const Link: PropertyDecorator;
 declare const ObjectLink: PropertyDecorator;
 
 declare interface ProvideOptions {
-  allowOverride?: string,
+    allowOverride?: string,
 }
 
 declare const Provide: PropertyDecorator & ((value: string | ProvideOptions) => PropertyDecorator);
@@ -90,11 +90,11 @@ declare class ForEachAttribute extends DynamicNode<ForEachAttribute> {
 }
 
 interface ForEachInterface {
-  (
-    arr: Array<any>,
-    itemGenerator: (item: any, index: number) => void,
-    keyGenerator?: (item: any, index: number) => string,
-  ): ForEachAttribute;
+    (
+        arr: Array<any>,
+        itemGenerator: (item: any, index: number) => void,
+        keyGenerator?: (item: any, index: number) => string,
+    ): ForEachAttribute;
 }
 
 declare const ForEach: ForEachInterface;
@@ -136,10 +136,30 @@ declare class LazyForEachAttribute extends DynamicNode<LazyForEachAttribute> {
 
 interface LazyForEachInterface {
     (
-     dataSource: IDataSource,
-     itemGenerator: (item: any, index: number) => void,
-     keyGenerator?: (item: any, index: number) => string,
+        dataSource: IDataSource,
+        itemGenerator: (item: any, index: number) => void,
+        keyGenerator?: (item: any, index: number) => string,
     ): LazyForEachAttribute;
 }
 
 declare const LazyForEach: LazyForEachInterface;
+
+declare function setTimeout(handler: Function | string, delay?: number, ...arguments: any[]): number;
+
+declare function setInterval(handler: Function | string, delay: number, ...arguments: any[]): number;
+
+declare function clearInterval(intervalID?: number): void;
+
+declare class TextEncoder {
+    encode(input?: string): Uint8Array;
+    encodeInto(input?: string): Uint8Array;
+    encodeInto(input: string, dest: Uint8Array): { read: number; written: number };
+}
+
+declare class TextDecoder {
+    decode(input: Uint8Array, options?: { stream?: false }): string;
+}
+
+declare class performance {
+    static now(): number;
+}

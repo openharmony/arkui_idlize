@@ -53,7 +53,7 @@ export class ArkoalaInstall extends Install {
     sig = this.mkdir(this.test ? path.join(this.outDir, "sig") : this.outDir)
 
     tsDir = this.mkdir(path.join(this.sig, "arkoala/arkui/src/"))
-    tsTypesDir = this.mkdir(path.join(this.sig, `arkoala/arkui/types/`))
+    tsTypesDir = this.mkdir(path.join(this.sig, `arkoala/arkui-types/`))
     arktsDir = this.mkdir(path.join(this.sig, "arkoala-arkts/arkui/src/generated/"))
     arktsTypesDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/types/`))
 
