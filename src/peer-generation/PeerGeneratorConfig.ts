@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import * as ts from 'typescript'
 import { Language } from '../Language'
 
 export class PeerGeneratorConfig {
@@ -25,7 +24,7 @@ export class PeerGeneratorConfig {
         "Number", "String", "Function", "Optional", "RelativeIndexable",
     ]
 
-    public static handWrittenComponents = [
+    public static handWritten = [
         "LocalStorage",
         "SyncedPropertyOneWay",
         "SubscribedAbstractProperty",
@@ -50,7 +49,11 @@ export class PeerGeneratorConfig {
         "NavigationAttribute",
         "NavContentInfo",
         "NavigationCommonTitle",
-        "NavigationCustomTitle"
+        "NavigationCustomTitle",
+        "AbstractProperty",
+        "ISinglePropertyChangeSubscriber",
+        "PageTransitionEnterInterface",
+        "PageTransitionExitInterface"
     ]
 
     public static ignorePeerMethod = ["attributeModifier"]

@@ -31,8 +31,6 @@ export class IDLVisitorConfig {
         "RepeatItemBuilder",
         "RepeatAttribute",
         "TemplateTypedFunc",
-        "PageTransitionEnterInterface",
-        "PageTransitionExitInterface"
     )
 
     static readonly StubbedDeclarations = new Array<string>(
