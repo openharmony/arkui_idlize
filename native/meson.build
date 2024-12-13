@@ -140,7 +140,7 @@ node_include_dirs = [
 node_sources = [
     external_interop_dir / 'napi/convertors-napi.cc'
 ]
-cj_cflags = ['-DKOALA_CJ']
+cj_cflags = ['-DKOALA_CJ', '-DINTEROP_LIBRARY_NAME=' + cj_library_name]
 cj_include_dirs = [
     external_interop_dir / 'cangjie'
 ]
@@ -161,7 +161,7 @@ endif
 node_module_prefix = ''
 node_module_suffix = 'node'
 
-arkts_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI']
+arkts_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + arkts_library_name]
 arkts_include_dirs = [
     external_interop_dir / 'ets',
 ]
