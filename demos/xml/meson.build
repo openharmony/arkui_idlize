@@ -85,7 +85,7 @@ elif is_panda
     library_name = 'XML_NativeBridgeArk'
     platform_build_dir = 'build/panda'
 
-    cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI']
+    cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
     cflags += [
         '-DETS_NATIVE_MODULE_CLASS_NAME=XMLNativeModule',
         '-DETS_NATIVE_MODULE_FILE_NAME=xmlNative',
