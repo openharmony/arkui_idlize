@@ -144,6 +144,7 @@ function copyArkoalaFiles(config: {
         'sig/arkoala-arkts/arkui/src/generated/NativePeerNode.ts',
         'sig/arkoala-arkts/arkui/src/generated/arkts/index.ts',
         'sig/arkoala-arkts/arkui/src/generated/ts/index.ts',
+        'sig/arkoala-arkts/arkui/src/generated/Events.ts',
         'sig/arkoala-arkts/arkui/src/generated/ts/arkts-stdlib.ts',
         'sig/arkoala-arkts/arkui/src/generated/ts/NativeModule.ts',
         'sig/arkoala-arkts/arkui/src/generated/peers/SerializerBase.ts',
@@ -291,7 +292,7 @@ export function generateArkoalaFromIdl(config: {
             arkoala.tsLib(new TargetFile('index')),
             makeArkuiModule(arkuiComponentsFiles),
             {
-                onlyIntegrated: config.onlyIntegrated,
+                onlyIntegrated: config.onlyIntegrated
             }
         )
         writeFile(
@@ -344,6 +345,7 @@ export function generateArkoalaFromIdl(config: {
             makeArkuiModule(arkuiComponentsFiles),
             {
                 onlyIntegrated: config.onlyIntegrated,
+                integrated: true
             }
         )
         writeFile(

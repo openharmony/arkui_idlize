@@ -86,67 +86,62 @@ declare const LocalStorageProp: (value: string) => PropertyDecorator;
 
 declare const Reusable: ClassDecorator;
 
-declare class ForEachAttribute extends DynamicNode<ForEachAttribute> {
-}
-
-interface ForEachInterface {
-  (
-    arr: Array<any>,
-    itemGenerator: (item: any, index: number) => void,
-    keyGenerator?: (item: any, index: number) => string,
-  ): ForEachAttribute;
-}
-
-declare const ForEach: ForEachInterface;
-
-declare interface DataChangeListener {
-    onDataReloaded(): void;
-
-    onDataAdded(index: number): void;
-
-    onDataAdd(index: number): void;
-
-    onDataMoved(from: number, to: number): void;
-
-    onDataMove(from: number, to: number): void;
-
-    onDataDeleted(index: number): void;
-
-    onDataDelete(index: number): void;
-
-    onDataChanged(index: number): void;
-
-    onDataChange(index: number): void;
-/*
-    // Uncomment for full sdk
-    onDatasetChange(dataOperations: DataOperation[]): void;
-*/
-}
-
-declare interface IDataSource {
+declare interface IDataSource<T> {
     totalCount(): number;
 
-    getData(index: number): any;
+    getData(index: number): T;
 
     registerDataChangeListener(listener: DataChangeListener): void;
 
     unregisterDataChangeListener(listener: DataChangeListener): void;
 }
 
-declare class LazyForEachAttribute extends DynamicNode<LazyForEachAttribute> {
-}
-
-interface LazyForEachInterface {
+declare class LazyForEachAttribute extends DynamicNode<LazyForEachAttribute> {}
+interface LazyForEachInterface<T> {
     (
-     dataSource: IDataSource,
-     itemGenerator: (item: any, index: number) => void,
-     keyGenerator?: (item: any, index: number) => string,
+        dataSource: IDataSource<T>,
+        itemGenerator: (item: T, index: number) => void,
+        keyGenerator?: (item: T, index: number) => string
     ): LazyForEachAttribute;
 }
 
-declare const LazyForEach: LazyForEachInterface;
+declare function ForEach<T> (
+    arr: Array<T>,
+    itemGenerator: (item: T, index: number) => void,
+    keyGenerator?: (item: T, index: number) => string,
+): ForEachAttribute<T>;
+
+declare class ForEachAttribute<T> extends DynamicNode<ForEachAttribute<T>> {
+}
+
+interface ForEachInterface<T> {
+    (
+        arr: Array<T>,
+        itemGenerator: (item: T, index: number) => void,
+        keyGenerator?: (item: T, index: number) => string,
+    ): ForEachAttribute<T>
+// TODO: have overloads for [] and Array
+    /*
+      (
+        arr: T[],
+        itemGenerator: (item: T, index: number) => void,
+        keyGenerator?: (item: T, index: number) => string,
+      ): ForEachAttribute<T>;
+    */
+}
+
+declare function LazyForEach<T>(
+    dataSource: IDataSource<T>,
+    itemGenerator: (item: T, index: number) => void,
+    keyGenerator?: (item: T, index: number) => string,
+): LazyForEachAttribute // extends LazyForEachInterface<T> {}
 
 // Until we have full sdk
 declare interface LayoutChild {}
 declare interface ContentModifier<T>{}
+
+declare const PageTransitionEnter: PageTransitionEnterInterface
+declare const PageTransitionExit: PageTransitionExitInterface
+
+declare const Navigation: NavigationInterface
 

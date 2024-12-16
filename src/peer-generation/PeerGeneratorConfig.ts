@@ -53,7 +53,8 @@ export class PeerGeneratorConfig {
         "AbstractProperty",
         "ISinglePropertyChangeSubscriber",
         "PageTransitionEnterInterface",
-        "PageTransitionExitInterface"
+        "PageTransitionExitInterface",
+        "CommonTransition"
     ]
 
     public static ignorePeerMethod = ["attributeModifier"]
@@ -128,6 +129,7 @@ export class PeerGeneratorConfig {
         // "equals(id: TextMenuItemId): boolean" method leads to the "cycle detected" message
         // "TextMenuItemId", // SyntaxError: Unexpected token, expected 'private' or identifier [ArkTextCommonInterfaces.ts:52:24]
         "AnimatableArithmetic", // Unused generic class
+        "DataChangeListener"
     ]
 
     public static ignoreReturnTypes = new Set<string>([
