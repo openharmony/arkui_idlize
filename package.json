@@ -157,8 +157,8 @@
     "sig:arkts:subset:compile": "cd external/arkoala-arkts/arkui && npm run build:arkui-no-common",
     "sig:arkts:subset:all": "npm run sig:arkts:subset:clean && npm run sig:arkts:subset:copy && npm run sig:arkts:subset:compile",
     "--todo": "remove '--types chai' it is used just because tsc cli does not allow specifying empty types array with console flags",
-    "check:index-full:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ts-peers/generated/sig/arkoala/arkui/types/index-full.d.ts",
-    "check:index-full:subset:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ts-subset/generated/sig/arkoala/arkui/types/index-full.d.ts",
+    "check:index-full:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ts-peers/generated/sig/arkoala/arkui-types/index-full.d.ts",
+    "check:index-full:subset:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ts-subset/generated/sig/arkoala/arkui-types/index-full.d.ts",
     "check:index-full:arkts": "tsc --target esnext --lib esnext --types chai --noEmit out/arkts-subset/generated/sig/arkoala-arkts/arkui/types/index-full.d.ts"
   }
 }
