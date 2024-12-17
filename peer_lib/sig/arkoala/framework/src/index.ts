@@ -1,5 +1,6 @@
 export * from "./generated/NativeModule"
 export * from "./generated/NativeModuleEmpty"
+export * from "./Finalizable"
 
 export function createUiDetachedRoot(
     peerFactory: () => any,

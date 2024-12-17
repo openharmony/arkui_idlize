@@ -394,7 +394,7 @@ export class BufferConvertor extends BaseArgConvertor {
         return idl.IDLBufferType
     }
     isPointerType(): boolean {
-        return false
+        return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.instanceOf(this, value);

@@ -64,12 +64,6 @@ typedef enum Ark_RuntimeType
   ARK_RUNTIME_MATERIALIZED = 9,
 } Ark_RuntimeType;
 
-typedef struct Ark_Buffer
-{
-  void* data;
-  int64_t length;
-} Ark_Buffer;
-
 typedef float Ark_Float32;
 typedef double Ark_Float64;
 typedef int32_t Ark_Int32;
@@ -192,3 +186,9 @@ typedef struct Ark_CallbackResource {
   void (*hold)(Ark_Int32 resourceId);
   void (*release)(Ark_Int32 resourceId);
 } Ark_CallbackResource;
+
+typedef struct Ark_Buffer {
+  Ark_CallbackResource resource;
+  Ark_NativePointer data;
+  Ark_Int64 length;
+} Ark_Buffer;

@@ -54,6 +54,7 @@ import {
     startNativeTest,
     stopNativeTest,
 } from "./test_utils"
+import { PixelMap } from "@arkoala/arkui/ArkPixelMapMaterialized"
 import { nativeModule } from "@koalaui/arkoala"
 import { mkdirSync, writeFileSync } from "fs"
 import { CallbackKind } from "@arkoala/arkui/peers/CallbackKind"
@@ -802,9 +803,39 @@ function checkArrayBuffer() {
     }, "42 37")
 }
 
+function checkPassToNativeBuffer() {
+    checkResult("ArrayBuffer", () => {
+        const buffer = new ArrayBuffer(256)
+        const pm = new PixelMap()
+        pm.readPixelsToBufferSync(buffer)
+    }, "new PixelMap()[return (PixelMapPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]readPixelsToBufferSync({.data=nullptr, .length=256})")
+}
+
+function checkReadAndMutateBuffer() {
+    const bufferSize = 10
+    const buffer = new ArrayBuffer(bufferSize)
+    const uint8array = new Uint8Array(buffer)
+    for (let i = 0; i < bufferSize; ++i) {
+        uint8array[i] = i + 1
+    }
+    const serializer = Serializer.hold()
+    serializer.writeBuffer(buffer)
+    nativeModule()._TestReadAndMutateManagedBuffer(serializer.asArray(), serializer.length())
+
+    let isSame = true
+    for (let i = 0; i < bufferSize; ++i) {
+        isSame = isSame && (i + 1) * 2 === uint8array[i]
+    }
+    serializer.release()
+    assertTrue("Buffer mutated correctly", isSame)
+}
+
 function main() {
     // Place where mock of ACE is located.
     process.env.ACE_LIBRARY_PATH = __dirname + "/../../../native"
+
+    checkReadAndMutateBuffer()
+    checkPassToNativeBuffer()
 
     checkCallbackWithReturn()
     checkTwoSidesCallbackSync()

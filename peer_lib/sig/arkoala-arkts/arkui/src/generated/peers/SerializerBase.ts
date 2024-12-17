@@ -298,7 +298,12 @@ export class SerializerBase {
     }
     //TODO: Needs to be implemented
     writeBuffer(value: ArrayBuffer) {
-        this.writePointer(42)
+        this.writeCallbackResource({
+            resourceId: -1,
+            hold: 0,
+            release: 0
+        })
+        this.writePointer(0)
         this.writeInt64(value.byteLength as int64)
     }
 }

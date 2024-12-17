@@ -33,12 +33,14 @@ class NativeModuleVisitor {
     protected readonly excludes = new Map<Language, Set<string>>([
         [Language.CJ, new Set([
             "StringData",
-            "CheckArkoalaCallbackEvent"
+            "CheckArkoalaCallbackEvent",
+            "MaterializeBuffer",
+            "GetNativeBufferPointer",
         ])],
-        [Language.JAVA, new Set()],
-        [Language.CPP, new Set()],
+        [Language.JAVA, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
+        [Language.CPP, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
         [Language.TS, new Set()],
-        [Language.ARKTS, new Set()],
+        [Language.ARKTS, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
     ])
 
     constructor(
