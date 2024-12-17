@@ -164,6 +164,8 @@ check index-full:
         - npm run make:ts:subset
         - npm run check:index-full:subset:ts
         - npm run make:arkts
+        - npm run check:index-full:arkts:subset
+        - npm run make:arkts:peers
         - npm run check:index-full:arkts
 
 check generated XML demo:
