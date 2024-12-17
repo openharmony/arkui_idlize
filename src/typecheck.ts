@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLEntry, IDLNode, forEachChild, isCallback, isClass, isEnum, isInterface, isTypedef } from "./idl"
+import { IDLEntry, IDLInterfaceSubkind, IDLNode, forEachChild, isCallback, isEnum, isInterface, isTypedef } from "./idl"
 
 export enum TypeKind {
     Primitive,
@@ -102,15 +102,15 @@ export class TypeChecker {
 
     recordType(idl: IDLNode) {
         if (isInterface(idl)) {
-            this.createTypeInfo(idl, TypeKind.Interface)
-            return
+            switch (idl.subkind) {
+                case IDLInterfaceSubkind.Interface:
+                    return this.createTypeInfo(idl, TypeKind.Interface)
+                case IDLInterfaceSubkind.Class:
+                    return this.createTypeInfo(idl, TypeKind.Class)
+            }
         }
         if (isEnum(idl)) {
             this.createTypeInfo(idl, TypeKind.Enum)
-            return
-        }
-        if (isClass(idl)) {
-            this.createTypeInfo(idl, TypeKind.Class)
             return
         }
         if (isCallback(idl)) {

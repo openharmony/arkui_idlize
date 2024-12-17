@@ -15,7 +15,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType } from '../idl'
+import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isMethod, isReferenceType, isType, isUnionType } from '../idl'
 import { IndentedPrinter } from "../IndentedPrinter"
 import { Language } from '../Language'
 import { capitalize, getOrPut } from '../util'
@@ -261,7 +261,7 @@ class OHOSVisitor {
     }
 
     private requestTypes(entry: IDLEntry) {
-        if (isClass(entry)) {
+        if (isInterface(entry) && entry.subkind === IDLInterfaceSubkind.Class) {
             entry.constructors.forEach(it => this.requestTypes(it))
             entry.methods.forEach(it => this.requestTypes(it))
             entry.properties.forEach(it => this.requestType(it.type))
@@ -651,7 +651,7 @@ class OHOSVisitor {
             if (file.isPredefined) return
             file.entries.forEach(entry => {
                 this.requestTypes(entry)
-                if (isInterface(entry) || isClass(entry)) {
+                if (isInterface(entry)) {
                     if (isMaterialized(entry)) {
                         this.interfaces.push(entry)
                     } else {

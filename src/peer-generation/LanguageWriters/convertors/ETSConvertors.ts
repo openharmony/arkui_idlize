@@ -94,7 +94,7 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
         return super.convertPrimitiveType(type)
     }
     protected override productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
-        if (idl.isAnonymousInterface(decl)) {
+        if (decl.subkind === idl.IDLInterfaceSubkind.AnonymousInterface) {
             return decl.name
         }
         return super.productType(decl, isTuple, includeFieldNames)

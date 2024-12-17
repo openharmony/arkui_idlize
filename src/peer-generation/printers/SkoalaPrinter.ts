@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import * as idl from '../../idl'
-import { IDLEntry, IDLMethod, IDLInterface, isInterface, isClass, printType } from "../../idl"
+import { IDLEntry, IDLMethod, IDLInterface, isInterface } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { capitalize, toCamelCase } from "../../util"
 
@@ -32,7 +32,7 @@ export class SkoalaCCodeGenerator {
     private visit(node: IDLEntry, printer: IndentedPrinter): void {
         console.log(`Processing IDLEntry with kind: ${node.kind}, name: ${(node as any).name || "Unnamed"}`)
 
-        if (isInterface(node) || isClass(node)) {
+        if (isInterface(node)) {
             this.visitInterface(node as IDLInterface, printer)
         } else {
             console.log(`Skipping unsupported IDLEntry kind: ${node.kind}`)

@@ -114,6 +114,32 @@ class Context {
     }
 }
 
+function mergeSetGetProperties(properties: idl.IDLProperty[]): idl.IDLProperty[] {
+    return properties.reduce((members, it) => {
+        const maybeMemberIndex = members.findIndex(member => it.name === member.name &&
+            idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Accessor) &&
+            idl.hasExtAttribute(member, idl.IDLExtendedAttributes.Accessor)
+        )
+        if (maybeMemberIndex >= 0) {
+            const member = members[maybeMemberIndex]
+            members[maybeMemberIndex] = idl.createProperty(
+                member.name,
+                member.type,
+                false,
+                member.isStatic,
+                member.isOptional,
+                {
+                    ...member,
+                    extendedAttributes: member.extendedAttributes?.filter(it => it.name != idl.IDLExtendedAttributes.Accessor),
+                }
+            )
+        } else {
+            members.push(it)
+        }
+        return members
+    }, new Array<idl.IDLProperty>)
+}
+
 export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     private output: idl.IDLEntry[] = []
     private seenNames = new Set<string>()
@@ -140,7 +166,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         if (this.globalConstants.length > 0 || this.globalFunctions.length > 0) {
             this.output.push(idl.createInterface(
                 `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replaceAll("@", "").replaceAll(".", "_")}`,
-                idl.IDLKind.Interface,
+                idl.IDLInterfaceSubkind.Interface,
                 [],
                 [],
                 this.globalConstants,
@@ -246,7 +272,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             if (name && IDLVisitorConfig.StubbedDeclarations.includes(name)) {
                 const decl = idl.createInterface(
                     name,
-                    idl.IDLKind.Interface,
+                    idl.IDLInterfaceSubkind.Interface,
                     [],
                     undefined,
                     undefined,
@@ -506,7 +532,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         this.context.enter(nameSuggestion.name)
         return idl.createInterface(
             mangleConflictingName(nameSuggestion.name, node.getSourceFile()),
-            idl.IDLKind.Class,
+            idl.IDLInterfaceSubkind.Class,
             inheritance,
             node.members.filter(ts.isConstructorDeclaration).map(it => this.serializeConstructor(it as ts.ConstructorDeclaration, childNameSuggestion)),
             [],
@@ -525,9 +551,10 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             .map(it => this.serializeConstructor(it as ts.ConstructSignatureDeclaration, nameSuggestion))
     }
     pickProperties(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLProperty[] {
-        return members
+        const properties = members
             .filter(it => (ts.isPropertySignature(it) || ts.isPropertyDeclaration(it) || this.isCommonMethodUsedAsProperty(it)) && !isPrivate(it.modifiers))
             .map(it => this.serializeProperty(it, nameSuggestion))
+        return mergeSetGetProperties(properties)
     }
     pickMethods(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLMethod[] {
         return members
@@ -539,9 +566,10 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             .map(it => this.serializeCallable(it, nameSuggestion))
     }
     pickAccessors(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion | undefined): idl.IDLProperty[] {
-        return members
+        const properties = members
             .filter(it => (ts.isGetAccessorDeclaration(it) || ts.isSetAccessorDeclaration(it)))
             .map(it => this.serializeAccessor(it as ts.GetAccessorDeclaration | ts.SetAccessorDeclaration, nameSuggestion))
+        return mergeSetGetProperties(properties)
     }
 
     fakeOverrides(node: ts.InterfaceDeclaration): ts.TypeElement[] {
@@ -586,7 +614,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         this.context.enter(nameSuggestion.name)
         return idl.createInterface(
             mangleConflictingName(nameSuggestion.name, node.getSourceFile()),
-            idl.IDLKind.Interface,
+            idl.IDLInterfaceSubkind.Interface,
             inheritance,
             this.pickConstructors(node.members, childNameSuggestion),
             [],
@@ -622,7 +650,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         const selectedName = selectName(nameSuggestion, syntheticName)
         return idl.createInterface(
             selectedName,
-            idl.IDLKind.AnonymousInterface,
+            idl.IDLInterfaceSubkind.AnonymousInterface,
             [],
             this.pickConstructors(node.members, nameSuggestion),
             [],
@@ -641,7 +669,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         const selectedName = selectName(nameSuggestion, syntheticName)
         return idl.createInterface(
             selectedName,
-            idl.IDLKind.TupleInterface,
+            idl.IDLInterfaceSubkind.Tuple,
             [], [], [], properties, [], [],
             this.collectTypeParameters(typeParameters), {
             fileName: node.getSourceFile().fileName,
@@ -661,7 +689,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         const selectedName = selectName(nameSuggestion, syntheticName)
         return idl.createInterface(
             selectedName,
-            idl.IDLKind.AnonymousInterface,
+            idl.IDLInterfaceSubkind.AnonymousInterface,
             inheritance,
             [], [], [], [], [], [], {
             fileName: node.getSourceFile().fileName,

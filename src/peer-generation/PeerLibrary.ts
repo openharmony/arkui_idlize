@@ -259,19 +259,16 @@ export class PeerLibrary implements LibraryInterface {
             if (isMaterialized(declaration)) {
                 return new MaterializedClassConvertor(this, declarationName, param, declaration)
             }
-            return new InterfaceConvertor(this, declarationName, param, declaration)
-        }
-        if (idl.isClass(declaration)) {
-            if (isMaterialized(declaration)) {
-                return new MaterializedClassConvertor(this, declarationName, param, declaration)
+            switch (declaration.subkind) {
+                case idl.IDLInterfaceSubkind.Interface:
+                    return new InterfaceConvertor(this, declarationName, param, declaration)
+                case idl.IDLInterfaceSubkind.Class:
+                    return new ClassConvertor(this, declarationName, param, declaration)
+                case idl.IDLInterfaceSubkind.AnonymousInterface:
+                    return new AggregateConvertor(this, param, type, declaration as idl.IDLInterface)
+                case idl.IDLInterfaceSubkind.Tuple:
+                    return new TupleConvertor(this, param, type, declaration as idl.IDLInterface)
             }
-            return new ClassConvertor(this, declarationName, param, declaration)
-        }
-        if (declaration.kind === idl.IDLKind.AnonymousInterface) {
-            return new AggregateConvertor(this, param, type, declaration as idl.IDLInterface)
-        }
-        if (declaration.kind === idl.IDLKind.TupleInterface) {
-            return new TupleConvertor(this, param, type, declaration as idl.IDLInterface)
         }
         throw new Error(`Unknown decl ${declarationName} of kind ${declaration.kind}`)
     }
@@ -410,7 +407,7 @@ export class PeerLibrary implements LibraryInterface {
 
     allLiteralTypes(): Map<string, string[]> {
         const data: Array<[string, string[]]> =
-            this.allEntries(idl.isAnonymousInterface)
+            this.allEntries((it): it is idl.IDLInterface => idl.isInterface(it) && it.subkind === idl.IDLInterfaceSubkind.AnonymousInterface)
                 .map(it => [
                     this.nativeNameConvertorInstance.convert(it),
                     it.properties.map(p => p.name)])

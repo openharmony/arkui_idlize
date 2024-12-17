@@ -18,7 +18,7 @@ import { ImportFeature } from "./ImportsCollector"
 import { Language } from "../Language";
 import { PeerLibrary } from "./PeerLibrary";
 import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
-import { createConstructor, createInterface, createMethod, createParameter, createReferenceType, IDLInterface, IDLKind, IDLReferenceType, IDLThisType, IDLType, IDLVoidType } from "../idl"
+import { createConstructor, createInterface, createMethod, createParameter, createReferenceType, IDLInterface, IDLInterfaceSubkind, IDLKind, IDLReferenceType, IDLThisType, IDLType, IDLVoidType } from "../idl"
 
 function builderMethod(name: string, type: IDLType): Method {
     return new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))
@@ -45,7 +45,7 @@ const CUSTOM_BUILDER_CLASSES_SET: Set<String> = new Set()
 export function initCustomBuilderClasses(library: PeerLibrary) {
     const decl = createInterface(
         "Indicator",
-        IDLKind.Class,
+        IDLInterfaceSubkind.Class,
         [],
         [createConstructor([], undefined)],
         undefined,

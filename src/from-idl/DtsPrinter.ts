@@ -17,7 +17,7 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     getVerbatimDts,
     hasExtAttribute,
     isCallback,
-    isClass, isConstructor, isContainerType, isEnum, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isSyntheticEntry, isTypeParameterType, isTypedef, isUnionType,
+    isConstructor, isContainerType, isEnum, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isSyntheticEntry, isTypeParameterType, isTypedef, isUnionType,
     isPackage, isImport, isVersion,
     IDLExtendedAttributes,
     IDLAccessorAttribute,
@@ -27,8 +27,6 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLStringType,
     IDLUndefinedType,
     isCallable,
-    isAnonymousInterface,
-    isTupleInterface,
     getSuperType,
     IDLReferenceType,
     IDLCallable,
@@ -62,7 +60,8 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLUnknownType,
     IDLBooleanType,
     IDLNumberType,
-    IDLPointerType } from "../idl"
+    IDLPointerType, 
+    IDLInterfaceSubkind} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
@@ -76,7 +75,7 @@ export class CustomPrintVisitor {
 
     visit(node: IDLEntry) {
         if (hasExtAttribute(node, IDLExtendedAttributes.TSType) && this.language == Language.TS) return
-        if (isInterface(node) || isAnonymousInterface(node) || isTupleInterface(node) || isClass(node)) {
+        if (isInterface(node)) {
             this.printInterface(node)
         } else if (isMethod(node) || isConstructor(node) || isCallable(node)) {
             this.printMethod(node)
@@ -144,7 +143,7 @@ export class CustomPrintVisitor {
             }
             let interfaces = node.inheritance
             let keyword = "extends"
-            if (isClass(node)) {
+            if (node.subkind === IDLInterfaceSubkind.Class) {
                 const superType = getSuperType(node)
                 if (superType)
                     typeSpec += ` extends ${this.printTypeForTS(superType)}`
@@ -176,10 +175,10 @@ export class CustomPrintVisitor {
     printMethod(node: IDLMethod | IDLConstructor | IDLCallable, isGlobal: boolean = false) {
         const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
         this.openNamespace(namespace)
-        const returnType = node.returnType && !(isConstructor(node) && isClass(this.currentInterface!))
+        const returnType = node.returnType && !(isConstructor(node) && this.currentInterface!.subkind === IDLInterfaceSubkind.Class)
             ? `: ${this.printTypeForTS(node.returnType, true)}` : ""
         const name = isConstructor(node)
-            ? isClass(this.currentInterface!) ? "constructor" : "new"
+            ? this.currentInterface!.subkind === IDLInterfaceSubkind.Class ? "constructor" : "new"
             : getName(node)
         const typeParams = (node.typeParameters && node.typeParameters.length > 0) ? `<${node.typeParameters.join(",")}>` : ""
         let preamble = ""
@@ -361,7 +360,7 @@ export class CustomPrintVisitor {
         if (isReferenceType(node)) {
             const synthDecl = this.resolver(node)
             if (synthDecl && isSyntheticEntry(synthDecl)) {
-                if (isInterface(synthDecl) || isAnonymousInterface(synthDecl) || isTupleInterface(synthDecl)) {
+                if (isInterface(synthDecl)) {
                     const isTuple = getExtAttribute(synthDecl, IDLExtendedAttributes.Entity) === IDLEntity.Tuple
                     return this.literal(synthDecl, isTuple, !isTuple)
                 }
@@ -374,7 +373,7 @@ export class CustomPrintVisitor {
             return IDLAnyType.name
         }
         let typeSpec = isNamedNode(node) ? node.name : "MISSING_TYPE_NAME"
-        if ((isInterface(node) || isClass(node) || isAnonymousInterface(node) || isTupleInterface(node) || isCallback(node) || isTypedef(node)) && node.typeParameters?.length)
+        if ((isInterface(node) || isCallback(node) || isTypedef(node)) && node.typeParameters?.length)
             typeSpec = `${typeSpec}<${node.typeParameters?.join(",")}>`
         if (isReferenceType(node) && node.typeArguments)
             typeSpec = `${typeSpec}<${node.typeArguments.map(it => this.toTypeName(it))}>`

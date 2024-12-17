@@ -27,7 +27,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): I
 
     const originalBasename = path.basename(node.fileName!)
     let fileName = renameDtsToInterfaces(originalBasename, library.language)
-    if ((idl.isInterface(node) || idl.isClass(node)) && !library.isComponentDeclaration(node)) {
+    if (idl.isInterface(node) && !library.isComponentDeclaration(node)) {
         if (isBuilderClass(node)) {
             fileName = renameClassToBuilderClass(node.name, library.language)
         } else if (isMaterialized(node)) {
@@ -56,7 +56,7 @@ export function collectDeclItself(
         const feature = convertDeclToFeature(library, node)
         emitter.addFeature(feature.feature, feature.module)
         if (options?.includeMaterializedInternals) {
-            if ((idl.isInterface(node) || idl.isClass(node)) && isMaterialized(node) && !isBuilderClass(node)) {
+            if (idl.isInterface(node) && isMaterialized(node) && !isBuilderClass(node)) {
                 emitter.addFeature(getInternalClassName(node.name), feature.module)
             }
         }

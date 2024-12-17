@@ -67,7 +67,7 @@ export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias
     }
 
     convertInterface(node: idl.IDLInterface): JavaTypeAlias {
-        if (idl.isTupleInterface(node) && 1==1) {
+        if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
             return this.productType(node, true, false)
         }
         return JavaTypeAlias.fromTypeName(node.name, false)

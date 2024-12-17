@@ -52,7 +52,7 @@ export interface DeclarationConvertor<T> {
 }
 
 export function convertDeclaration<T>(convertor: DeclarationConvertor<T>, decl: idl.IDLEntry): T {
-    if (idl.isInterface(decl) || idl.isClass(decl) || idl.isAnonymousInterface(decl) || idl.isTupleInterface(decl))
+    if (idl.isInterface(decl))
         return convertor.convertInterface(decl)
     if (idl.isEnum(decl)) return convertor.convertEnum(decl)
     if (idl.isEnumMember(decl)) return convertor.convertEnum(decl.parent)

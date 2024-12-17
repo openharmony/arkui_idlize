@@ -105,7 +105,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             )
         } else {
             collectDeclDependencies(this.library, decl, (it) => {
-                if ((idl.isInterface(it) || idl.isClass(it)) && isMaterialized(it))
+                if (idl.isInterface(it) && isMaterialized(it))
                     collectDeclItself(this.library, it, imports)
             })
         }

@@ -106,7 +106,7 @@ function toIDLImport(node: webidl2.ImportType): idl.IDLImport {
 function toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInterface {
     const result = idl.createInterface(
         node.name,
-        isClass(node) ? idl.IDLKind.Class : idl.IDLKind.Interface,
+        isClass(node) ? idl.IDLInterfaceSubkind.Class : idl.IDLInterfaceSubkind.Interface,
         (()=>{
             if (!node.inheritance)
                 return []

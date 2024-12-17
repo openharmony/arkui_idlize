@@ -19,10 +19,8 @@ import { generateSyntheticIdlNodeName } from "./peer-generation/idl/common";
 
 export enum IDLKind {
     Interface,
-    Class,
     Package,
     Import,
-    AnonymousInterface,
     Callback,
     Const,
     Property,
@@ -33,7 +31,6 @@ export enum IDLKind {
     Enum,
     EnumMember,
     Typedef,
-    TupleInterface,
     PrimitiveType,
     ContainerType,
     UnspecifiedGenericType,
@@ -243,8 +240,16 @@ export interface IDLConstructor extends IDLSignature {
     kind: IDLKind.Constructor
 }
 
+export enum IDLInterfaceSubkind {
+    Interface,
+    Class,
+    AnonymousInterface,
+    Tuple,
+}
+
 export interface IDLInterface extends IDLEntry {
-    kind: IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface | IDLKind.TupleInterface
+    kind: IDLKind.Interface,
+    subkind: IDLInterfaceSubkind,
     typeParameters?: string[]
     inheritance: IDLReferenceType[]
     constructors: IDLConstructor[]
@@ -271,12 +276,7 @@ export interface IDLCallback extends IDLEntry, IDLSignature {
 export function forEachChild(node: IDLNode, cb: (entry: IDLNode) => void): void {
     cb(node)
     switch (node.kind) {
-        case IDLKind.Interface:
-            if (isType(node)) return // TODO remove this check after IDLType stops mimic IDLInterface
-            // passthrough
-        case IDLKind.Class:
-        case IDLKind.TupleInterface:
-        case IDLKind.AnonymousInterface: {
+        case IDLKind.Interface: {
             let iface = node as IDLInterface
             iface.inheritance.forEach((value) => forEachChild(value, cb))
             iface.constructors.forEach((value) => forEachChild(value, cb))
@@ -373,15 +373,6 @@ export function isPackage(type: IDLNode): type is IDLPackage {
 }
 export function isImport(type: IDLNode): type is IDLImport {
     return type.kind == IDLKind.Import
-}
-export function isAnonymousInterface(node: IDLNode): node is IDLInterface {
-    return node.kind === IDLKind.AnonymousInterface
-}
-export function isTupleInterface(node: IDLNode): node is IDLInterface {
-    return node.kind === IDLKind.TupleInterface
-}
-export function isClass(node: IDLNode): node is IDLInterface {
-    return node.kind === IDLKind.Class
 }
 export function isCallable(node: IDLNode): node is IDLCallable {
     return node.kind === IDLKind.Callable
@@ -641,10 +632,9 @@ export function createEnumMember(
     }
 }
 
-export type IDLInterfaceKind = IDLKind.Interface | IDLKind.Class | IDLKind.AnonymousInterface | IDLKind.TupleInterface
 export function createInterface(
     name: string,
-    kind: IDLInterfaceKind,
+    subkind: IDLInterfaceSubkind,
     inheritance: IDLReferenceType[] = [],
     constructors: IDLConstructor[] = [],
     constants: IDLConstant[] = [],
@@ -655,8 +645,9 @@ export function createInterface(
     nodeInitializer: IDLNodeInitializer = {},
 ): IDLInterface {
     return {
+        kind: IDLKind.Interface,
         name,
-        kind,
+        subkind,
         typeParameters,
         inheritance,
         constructors,
@@ -936,9 +927,6 @@ function printExtendedAttributes(idl: IDLNode, indentLevel: number): stringOrNon
     let typeArguments: IDLType[]|undefined
     switch(idl.kind) {
     case IDLKind.Interface:
-    case IDLKind.Class:
-    case IDLKind.AnonymousInterface:
-    case IDLKind.TupleInterface:
         typeParameters = (idl as IDLInterface).typeParameters
         break
     case IDLKind.Callback:
@@ -1050,8 +1038,7 @@ export function printCallback(idl: IDLCallback): stringOrNone[] {
 
 export function printScoped(idl: IDLEntry): stringOrNone[] {
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
-    if (idl.kind == IDLKind.AnonymousInterface) return printInterface(idl as IDLInterface)
-    if (idl.kind == IDLKind.TupleInterface) return printInterface(idl as IDLInterface)
+    if (idl.kind === IDLKind.Interface) return printInterface(idl as IDLInterface)
     throw new Error(`Unexpected scoped: ${idl.kind} ${idl.name}`)
 }
 
@@ -1129,11 +1116,7 @@ export function printTypedef(idl: IDLTypedef): stringOrNone[] {
 }
 
 export function printIDL(idl: IDLNode, options?: Partial<IDLPrintOptions>): stringOrNone[] {
-    if (idl.kind == IDLKind.Class
-        || idl.kind == IDLKind.Interface
-        || idl.kind == IDLKind.AnonymousInterface
-        || idl.kind == IDLKind.TupleInterface
-    ) return printInterface(idl as IDLInterface)
+    if (idl.kind == IDLKind.Interface) return printInterface(idl as IDLInterface)
     if (idl.kind == IDLKind.Enum) return printEnum(idl as IDLEnum, options?.disableEnumInitializers ?? false)
     if (idl.kind == IDLKind.Typedef) return printTypedef(idl as IDLTypedef)
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
@@ -1225,12 +1208,7 @@ export const DebugUtils = {
 
 export function forEachFunction(node: IDLNode, cb: (node: IDLFunction) => void): void {
     switch (node.kind) {
-        case IDLKind.Interface:
-            if (isType(node)) return // TODO remove this check after IDLType stops mimic IDLInterface
-            // passthrough
-        case IDLKind.Class:
-        case IDLKind.TupleInterface:
-        case IDLKind.AnonymousInterface: {
+        case IDLKind.Interface: {
             const concrete = node as IDLInterface
             concrete.inheritance.forEach((value) => forEachFunction(value, cb))
             concrete.constructors.forEach((value) => forEachFunction(value, cb))

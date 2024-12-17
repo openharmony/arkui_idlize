@@ -84,9 +84,7 @@ function collectFields(library: PeerLibrary, target: idl.IDLInterface, struct: S
 function makeStructDescriptor(library: PeerLibrary, target: idl.IDLEntry): StructDescriptor {
     const result = new StructDescriptor()
     if (idl.isInterface(target)
-        || idl.isAnonymousInterface(target)
-        || idl.isSyntheticEntry(target)
-        || idl.isClass(target)) {
+        || idl.isSyntheticEntry(target)) {
         collectFields(library, target as idl.IDLInterface, result)
     }
     return result
@@ -133,7 +131,8 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
             if (PeerGeneratorConfig.ignoreEntry(decl.name, library.language))
                 continue
             syntheticCollector.convert(decl)
-            if ((idl.isInterface(decl) || idl.isAnonymousInterface(decl) || idl.isEnum(decl) || idl.isClass(decl))
+            if ((idl.isInterface(decl) && decl.subkind != idl.IDLInterfaceSubkind.Tuple ||
+                idl.isEnum(decl))
                 && !seenNames.has(decl.name)) {
                 seenNames.add(decl.name)
                 res.push(decl)

@@ -42,21 +42,21 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
     }
 
     convertInterface(node: idl.IDLInterface): ConvertResult {
-        if (idl.isAnonymousInterface(node) && 1==1) {
-            return node.name
-                ? this.make(node.name)
-                : this.make(this.computeTargetTypeLiteralName(node), true)
-        }
-        if ((idl.isInterface(node) || idl.isClass(node)) && 1==1) {
-            if (node.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.Namespace && it.value === 'predefined')) {
-                return this.make(node.name, true)
-            }
-            return this.make(node.name)
-        }
-        if (idl.isTupleInterface(node)) {
-            return node.name
-                ? this.make(node.name)
-                : this.make(`Tuple_${node.properties.map(it => this.convertNode(idl.maybeOptional(it.type, it.isOptional)).text).join("_")}`, true)
+        switch (node.subkind) {
+            case idl.IDLInterfaceSubkind.AnonymousInterface:
+                return node.name
+                    ? this.make(node.name)
+                    : this.make(this.computeTargetTypeLiteralName(node), true)
+            case idl.IDLInterfaceSubkind.Interface:
+            case idl.IDLInterfaceSubkind.Class:
+                if (node.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.Namespace && it.value === 'predefined')) {
+                    return this.make(node.name, true)
+                }
+                return this.make(node.name)
+            case idl.IDLInterfaceSubkind.Tuple:
+                return node.name
+                    ? this.make(node.name)
+                    : this.make(`Tuple_${node.properties.map(it => this.convertNode(idl.maybeOptional(it.type, it.isOptional)).text).join("_")}`, true)
         }
         throw new Error("Unknown interface type")
     }

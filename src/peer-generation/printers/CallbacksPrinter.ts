@@ -31,23 +31,23 @@ function collectEntryCallbacks(library: PeerLibrary, entry: idl.IDLEntry): idl.I
     if (idl.isCallback(entry)) {
         res.push(entry)
     }
-    if ([idl.IDLKind.Interface, idl.IDLKind.AnonymousInterface].includes(entry.kind!)) {
-        // TODO support methods in interfaces (should be processed as properties with function type)
-        // const decl = entry as idl.IDLInterface
-        // decl.methods.forEach(method => {
-        //     const syntheticName = generateSyntheticFunctionName(
-        //         (type) => cleanPrefix(library.getTypeName(type), PrimitiveType.Prefix), 
-        //         method.parameters, method.returnType)
-        //     const selectedName = decl.kind === idl.IDLKind.AnonymousInterface
-        //         ? syntheticName
-        //         : selectName(NameSuggestion.make(`Type_${decl.name}_${method.name}`), syntheticName)
-        //     res.push(idl.createCallback(
-        //         selectedName,
-        //         method.parameters,
-        //         method.returnType,
-        //     ))
-        // })
-    }
+    // TODO support methods in interfaces (should be processed as properties with function type)
+    // if ([idl.IDLKind.Interface, idl.IDLKind.AnonymousInterface].includes(entry.kind!)) {
+    //     const decl = entry as idl.IDLInterface
+    //     decl.methods.forEach(method => {
+    //         const syntheticName = generateSyntheticFunctionName(
+    //             (type) => cleanPrefix(library.getTypeName(type), PrimitiveType.Prefix), 
+    //             method.parameters, method.returnType)
+    //         const selectedName = decl.kind === idl.IDLKind.AnonymousInterface
+    //             ? syntheticName
+    //             : selectName(NameSuggestion.make(`Type_${decl.name}_${method.name}`), syntheticName)
+    //         res.push(idl.createCallback(
+    //             selectedName,
+    //             method.parameters,
+    //             method.returnType,
+    //         ))
+    //     })
+    // }
     if (entry.scope)
         res.push(...entry.scope.flatMap(it => collectEntryCallbacks(library, it)))
     return res

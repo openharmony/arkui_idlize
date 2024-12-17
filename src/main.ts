@@ -22,7 +22,6 @@ import { generate } from "./idlize"
 import {
     forEachChild,
     IDLEntry,
-    isClass,
     isEnum,
     isInterface,
     isSyntheticEntry,
@@ -359,7 +358,6 @@ if (options.dts2peer) {
                 entries = entries.filter(newEntry =>
                     !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
                         if (([newEntry, entry].every(isInterface)
-                            || [newEntry, entry].every(isClass)
                             || [newEntry, entry].every(isEnum)
                             || [newEntry, entry].every(isSyntheticEntry))) {
                             if (newEntry.name === entry.name) {
@@ -448,14 +446,14 @@ function correctOverloadedProperties(entry: IDLEntry, idlLibrary: PeerLibrary) {
     if (idlLibrary.language !== Language.ARKTS) {
         return;
     }
-    if (!isInterface(entry) && !isClass(entry)) {
+    if (!isInterface(entry)) {
         return;
     }
     if (entry.inheritance.length !== 1) {
         return;
     }
     const firstParent = idlLibrary.toDeclaration(entry.inheritance[0])
-    if (!isInterface(firstParent) && !isClass(firstParent)) {
+    if (!isInterface(firstParent)) {
         return;
     }
     entry.properties.forEach(prop => {

@@ -203,9 +203,13 @@ class SyntheticDependencyConfigurableFilter implements DependencyFilter {
     ) {}
     shouldAdd(node: idl.IDLEntry): boolean {
         if (!idl.isSyntheticEntry(node)) return true
-        if (this.config.skipAnonymousInterfaces && node.kind == idl.IDLKind.AnonymousInterface) return false
+        if (idl.isInterface(node)) {
+            if (node.subkind === idl.IDLInterfaceSubkind.AnonymousInterface && this.config.skipAnonymousInterfaces)
+                return false
+            if (node.subkind === idl.IDLInterfaceSubkind.Tuple && this.config.skipTuples)
+                return false
+        }
         if (this.config.skipCallbacks && node.kind == idl.IDLKind.Callback) return false
-        if (this.config.skipTuples && node.kind == idl.IDLKind.TupleInterface) return false
         return true
     }
 }
@@ -244,7 +248,7 @@ class ComponentsCompleter {
             if (!idl.isReferenceType(parent))
                 throw new Error("Expected component parent type to be a reference type")
             const parentDecl = this.library.resolveTypeReference(parent)
-            if (!parentDecl || !idl.isClass(parentDecl))
+            if (!parentDecl || !idl.isInterface(parentDecl) || parentDecl.subkind !== idl.IDLInterfaceSubkind.Class)
                 throw new Error("Expected parent to be a class")
             if (!this.library.isComponentDeclaration(parentDecl)) {
                 this.library.componentsDeclarations.push(
@@ -269,10 +273,11 @@ class ComponentsCompleter {
     }
 
     private isSubclass(component: idl.IDLInterface, maybeParent: idl.IDLInterface): boolean {
-        const parentDecl = idl.getSuperType(component)
+        const parentRef = idl.getSuperType(component)
+        const parentDecl = parentRef ? this.library.resolveTypeReference(parentRef) : undefined
         return isDefined(parentDecl) && (
-            idl.forceAsNamedNode(parentDecl).name === maybeParent.name ||
-            idl.isClass(parentDecl) && this.isSubclass(parentDecl, maybeParent))
+            parentDecl.name === maybeParent.name ||
+            idl.isInterface(parentDecl) && this.isSubclass(parentDecl, maybeParent))
     }
 }
 
@@ -340,31 +345,6 @@ class PeersGenerator {
         seenAttributes.add(propName)
         // const type = this.fixTypeLiteral(propName, property.type, peer)
         peer.attributesFields.push(property)
-    }
-
-    /**
-     * Arkts needs a named type as its argument method, not an anonymous type
-     * at which producing 'SyntaxError: Invalid Type' error
-     */
-    private fixTypeLiteral(name: string, type: idl.IDLType, peer: PeerClass): string {
-        if (idl.isReferenceType(type)) {
-            const decl = this.library.resolveTypeReference(type)
-            if (decl && idl.isAnonymousInterface(decl)) {
-                const fixedTypeName = capitalize(name) + "ValuesType"
-                const attributeDeclarations = decl.properties
-                    .map(it => `  ${it.name}${it.isOptional ? "?" : ""}: ${this.library.mapType(it.type)}`)
-                    .join('\n')
-                peer.attributesTypes.push({
-                    typeName: fixedTypeName,
-                    content: `export interface ${fixedTypeName} {\n${attributeDeclarations}\n}`})
-                const peerMethod = peer.methods.find((method) => method.overloadedName == name)
-                if (peerMethod !== undefined) {
-                    peerMethod.method.signature.args = [idl.createReferenceType(fixedTypeName)]
-                }
-                return fixedTypeName
-            }
-        }
-        return this.library.mapType(type)
     }
 
     private fillInterface(peer: PeerClass, iface: idl.IDLInterface) {
@@ -458,7 +438,7 @@ export class IdlPeerProcessor {
                     return true
                 })
                 .map(it => this.library.resolveTypeReference(it)!)
-                .filter(it => idl.isInterface(it) || idl.isClass(it))
+                .filter(it => idl.isInterface(it))
                 .flatMap(it => this.getBuilderMethods(it as idl.IDLInterface, target.name)),
             ...target.methods.map(it => this.toBuilderMethod(it, className))]
     }
@@ -486,7 +466,7 @@ export class IdlPeerProcessor {
 
         const isDeclInterface = idl.isInterface(decl)
 
-        const constructor = idl.isClass(decl) ? decl.constructors[0] : undefined
+        const constructor = decl.subkind === idl.IDLInterfaceSubkind.Class ? decl.constructors[0] : undefined
         const mConstructor = this.makeMaterializedMethod(decl, constructor)
         const mFinalizer = new MaterializedMethod(name, [], idl.IDLPointerType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
@@ -584,8 +564,8 @@ export class IdlPeerProcessor {
         for (const dep of allDeclarations) {
             if (PeerGeneratorConfig.ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language))
                 continue
-            const isPeerDecl = (idl.isInterface(dep) || idl.isClass(dep)) && this.library.isComponentDeclaration(dep)
-            if (!isPeerDecl && (idl.isClass(dep) || idl.isInterface(dep))) {
+            const isPeerDecl = idl.isInterface(dep) && this.library.isComponentDeclaration(dep)
+            if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {
                 if (isBuilderClass(dep)) {
                     this.processBuilder(dep)
                     continue
@@ -696,6 +676,9 @@ export function isMaterialized(declaration: idl.IDLInterface): boolean {
         return false;
     if (isBuilderClass(declaration))
         return false
+    if (declaration.subkind === idl.IDLInterfaceSubkind.AnonymousInterface ||
+        declaration.subkind === idl.IDLInterfaceSubkind.Tuple)
+        return false
 
     // TODO: parse Builder classes separatly
 
@@ -705,7 +688,7 @@ export function isMaterialized(declaration: idl.IDLInterface): boolean {
 }
 
 export function checkTSDeclarationMaterialized(decl: idl.IDLNode): boolean {
-    return (idl.isInterface(decl) || idl.isClass(decl) || idl.isAnonymousInterface(decl) || idl.isTupleInterface(decl))
+    return (idl.isInterface(decl))
             && isMaterialized(decl)
 }
 

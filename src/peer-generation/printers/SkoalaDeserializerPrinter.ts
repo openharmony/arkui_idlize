@@ -1,4 +1,4 @@
-import { IDLEntry, IDLInterface, isInterface, isClass } from "../../idl"
+import { IDLEntry, IDLInterface, isInterface } from "../../idl"
 import { IndentedPrinter } from "../../IndentedPrinter"
 import { cStyleCopyright } from "../FileGenerators"
 import * as fs from "fs"
@@ -51,7 +51,7 @@ export class SkoalaDeserializerPrinter {
 
     public generateSkoalaDeserializer(printer: IndentedPrinter): void {
         this.entries.forEach(entry => {
-            if (isInterface(entry) || isClass(entry)) {
+            if (isInterface(entry)) {
                 this.visitSkoalaDeserializer(entry as IDLInterface, printer)
             }
         })

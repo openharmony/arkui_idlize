@@ -251,7 +251,7 @@ class IdlSerializerPrinter {
                 }, ctorMethod)
             }
             for (const decl of serializerDeclarations) {
-                if (idl.isInterface(decl) || idl.isClass(decl) || idl.isAnonymousInterface(decl) || idl.isTupleInterface(decl)) {
+                if (idl.isInterface(decl)) {
                     this.generateInterfaceSerializer(decl, prefix)
                 } else if (idl.isCallback(decl)) {
                     // callbacks goes through writeCallbackResource function
@@ -276,11 +276,6 @@ class IdlDeserializerPrinter {
         const methodName = this.library.getInteropName(target)
         const type = idl.createReferenceType(target.name)
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
-            const canDeserializeProperty = (prop: idl.IDLProperty): boolean => {
-                if (!idl.isReferenceType(prop.type)) return true
-                const decl = this.library.resolveTypeReference(prop.type)
-                return decl === undefined || (!idl.isInterface(decl) && !idl.isClass(decl))
-            }
             if (isMaterialized(target)) {
                 this.generateMaterializedBodyDeserializer(target)
             } else if (isBuilderClass(target)) {
@@ -315,7 +310,7 @@ class IdlDeserializerPrinter {
 
         if (this.writer.language === Language.CPP)
             this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeString(`{}`), true, false))
-        if (idl.isInterface(target) || idl.isClass(target)) {
+        if ([idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Class].includes(target.subkind)) {
             if (properties.length > 0) {
                 this.declareDeserializer()
             }
@@ -543,7 +538,7 @@ class IdlDeserializerPrinter {
                 writer.print("}")   
             }
             for (const decl of serializerDeclarations) {
-                if (idl.isInterface(decl) || idl.isClass(decl) || idl.isAnonymousInterface(decl) || idl.isTupleInterface(decl)) {
+                if (idl.isInterface(decl)) {
                     this.generateInterfaceDeserializer(decl, prefix)
                 } else if (idl.isCallback(decl)) {
                     this.generateCallbackDeserializer(decl)
@@ -687,8 +682,9 @@ class DefaultSerializerDependencyFilter implements DependencyFilter {
     }
 
     canSerializeDependency(dep: idl.IDLEntry): dep is SerializableTarget  {
-        if (idl.isClass(dep) || idl.isInterface(dep))
-            return true
+        if (idl.isInterface(dep)) {
+            return [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)
+        }
         if (idl.isCallback(dep))
             return true
         return false

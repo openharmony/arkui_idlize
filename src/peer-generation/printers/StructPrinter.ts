@@ -88,7 +88,7 @@ export class StructPrinter {
             }
             seenNames.add(nameAssigned)
             let isPointer = this.isPointerDeclaration(target)
-            let isAccessor = (idl.isClass(target) || idl.isInterface(target)) && isMaterialized(target)
+            let isAccessor = idl.isInterface(target) && isMaterialized(target)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
             if (idl.isEnum(target) || idl.isEnumMember(target)) {
                 const enumTarget = idl.isEnumMember(target) ? target.parent : target
@@ -117,7 +117,7 @@ export class StructPrinter {
                         concreteDeclarations.print(`${structs.getNodeName(it)} value${index};`))
                     concreteDeclarations.popIndent()
                     concreteDeclarations.print("};")
-                } else if (idl.isClass(target) || idl.isInterface(target) || idl.isAnonymousInterface(target) || idl.isTupleInterface(target)) {
+                } else if (idl.isInterface(target)) {
                     const properties = collectProperties(target, this.library)
                     if (properties.length === 0) {
                         concreteDeclarations.print(`void *handle;`) // avoid empty structs
@@ -226,7 +226,7 @@ export class StructPrinter {
                 writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeRuntimeType(RuntimeType.UNDEFINED))
         } else if (idl.isEnum(target)) {
             result = writer.makeRuntimeType(RuntimeType.NUMBER)
-        } else if ((idl.isInterface(target) || idl.isClass(target)) && isMaterialized(target)) {
+        } else if (idl.isInterface(target) && isMaterialized(target)) {
             return undefined
         } else if (idl.isUnionType(target)) {
             return writer => {
@@ -416,7 +416,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                     printer.print(`}`)
                 })
                 printer.print(`result->append("}");`);
-            } else if (idl.isTupleInterface(target)) {
+            } else if (idl.isInterface(target) && target.subkind === idl.IDLInterfaceSubkind.Tuple) {
                 printer.print(`result->append("{");`)
                 collectProperties(target, this.library)
                     .forEach((field, index) => {
@@ -444,7 +444,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                 printer.popIndent()
                 printer.print("}")
                 printer.print(`result->append("}");`)
-            } else if (idl.isClass(target) || idl.isInterface(target) || idl.isAnonymousInterface(target)) {
+            } else if (idl.isInterface(target)) {
                 printer.print(`result->append("{");`)
                 collectProperties(target, this.library)
                     .forEach((field, index) => {

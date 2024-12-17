@@ -70,7 +70,7 @@ class ImportsStubsGenerator extends DependenciesCollector {
         if (!decl || idl.isTypedef(decl) && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)) {
             this.synthesizedEntries.set(type.name, idl.createInterface(
                 type.name,
-                idl.IDLKind.Interface,
+                idl.IDLInterfaceSubkind.Interface,
                 undefined,
                 undefined,
                 undefined,
