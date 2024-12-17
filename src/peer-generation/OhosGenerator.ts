@@ -687,8 +687,6 @@ class OHOSVisitor {
 
         this.interfaces = interfaces
 
-        this.library.analyze()
-
         this.printManaged()
         this.printC()
 

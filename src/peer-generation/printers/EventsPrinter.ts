@@ -266,10 +266,7 @@ abstract class CEventsVisitorBase {
 
     private printReceiversList(callbacks: Map<string, CallbackInfoBase[]>) {
         for (const componentName of callbacks.keys()) {
-            if (this.library.shouldGenerateComponent(componentName))
-                this.receiversList.print(`Get${componentName}EventsReceiver,`)
-            else
-                this.receiversList.print(`nullptr,`)
+            this.receiversList.print(`Get${componentName}EventsReceiver,`)
         }
     }
 
@@ -278,8 +275,6 @@ abstract class CEventsVisitorBase {
         const groupedCallbacks = groupCallbacks(listedCallbacks)
         this.printEventsKinds(listedCallbacks)
         for (const [name, callbacks] of groupedCallbacks) {
-            if (!this.library.shouldGenerateComponent(name))
-                continue
             this.impl.pushNamespace(name, false)
             for (const callback of callbacks) {
                 this.printEventImpl(name, callback)
@@ -287,8 +282,6 @@ abstract class CEventsVisitorBase {
             this.impl.popNamespace(false)
         }
         for (const [name, callbacks] of groupedCallbacks) {
-            if (!this.library.shouldGenerateComponent(name))
-                continue
             this.printReceiver(name, callbacks)
         }
         this.printReceiversList(groupedCallbacks)
@@ -513,14 +506,13 @@ interface PeerEvent {
 
     print(): void {
         const callbacks = collectCallbacks(this.library)
-        const filteredCallbacks = callbacks.filter(it => this.library.shouldGenerateComponent(it.componentName))
         this.printImports()
         this.printEventsEnum(callbacks)
-        this.printEventsClasses(filteredCallbacks)
-        this.printNameByKindRetriever(filteredCallbacks)
-        this.printParseFunction(filteredCallbacks)
-        this.printProperties(filteredCallbacks)
-        this.printEventsDeliverer(filteredCallbacks)
+        this.printEventsClasses(callbacks)
+        this.printNameByKindRetriever(callbacks)
+        this.printParseFunction(callbacks)
+        this.printProperties(callbacks)
+        this.printEventsDeliverer(callbacks)
     }
 }
 

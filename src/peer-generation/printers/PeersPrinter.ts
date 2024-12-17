@@ -46,6 +46,7 @@ import { Language } from "../../Language";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isNamedNode, isPrimitiveType, maybeOptional } from "../../idl";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
+import { findComponentByType } from "../ComponentsCollector";
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -96,7 +97,7 @@ class PeerFileVisitor {
                     imports.addFeature(parentAttributesClass, parentModule)
             }
             if (PeerGeneratorConfig.needInterfaces) {
-                const component = this.library.findComponentByType(idl.createReferenceType(peer.originalClassName!))!
+                const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
                 collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
                 if (component.interfaceDeclaration)
                     collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })

@@ -25,8 +25,9 @@ import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { PrimitiveType } from "../ArkPrimitiveType";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
 import { CJMatchExpression } from "../LanguageWriters/writers/CJLanguageWriter";
+import { LibraryInterface } from "../../LibraryInterface";
 
-function collectEntryCallbacks(library: PeerLibrary, entry: idl.IDLEntry): idl.IDLCallback[] {
+function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
     if (idl.isCallback(entry)) {
         res.push(entry)
@@ -53,7 +54,7 @@ function collectEntryCallbacks(library: PeerLibrary, entry: idl.IDLEntry): idl.I
     return res
 }
 
-export function collectUniqueCallbacks(library: PeerLibrary, options?: { transformCallbacks?: boolean }) {
+export function collectUniqueCallbacks(library: LibraryInterface, options?: { transformCallbacks?: boolean }) {
     const foundCallbacksNames = new Set<string>()
     const foundCallbacks: idl.IDLCallback[] = []
     const addCallback = (callback: idl.IDLCallback) => {

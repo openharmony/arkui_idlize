@@ -16,7 +16,7 @@
 import * as idl from '../idl'
 import { BuilderClass } from './BuilderClass';
 import { MaterializedClass } from "./Materialized";
-import { IdlComponentDeclaration, isMaterialized, isPredefined } from './idl/IdlPeerGeneratorVisitor';
+import { isMaterialized, isPredefined } from './idl/IdlPeerGeneratorVisitor';
 import { PeerFile } from "./PeerFile";
 import { AggregateConvertor, ArrayConvertor, BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, NumericConvertor, OptionConvertor,  PointerConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
 import { PrimitiveType } from "./ArkPrimitiveType"
@@ -59,18 +59,14 @@ export class PeerLibrary implements LibraryInterface {
 
     constructor(
         public language: Language,
-        public componentsToGenerate: Set<string>,
     ) {}
 
     public name: string = ""
 
     readonly customComponentMethods: string[] = []
-    readonly componentsDeclarations: IdlComponentDeclaration[] = []
 
     private readonly targetNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(this.language, this)
-    private readonly nativeNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(Language.CPP, this)
     private readonly interopNameConvertorInstance: IdlNameConvertor = new IDLNodeToStringConvertor(this)
-    private readonly unionFlattener = new UnionFlattener(this)
 
     get libraryPrefix(): string {
         return this.name ? this.name + "_" : ""
@@ -109,25 +105,6 @@ export class PeerLibrary implements LibraryInterface {
 
     findFileByOriginalFilename(filename: string): PeerFile | undefined {
         return this.files.find(it => it.originalFilename === filename)
-    }
-
-    findComponentByDeclaration(iface: idl.IDLInterface): IdlComponentDeclaration | undefined {
-        return this.componentsDeclarations.find(it =>
-            it.interfaceDeclaration === iface || it.attributeDeclaration === iface)
-    }
-
-    findComponentByType(type: idl.IDLType): IdlComponentDeclaration | undefined {
-        return this.componentsDeclarations.find(it =>
-            idl.forceAsNamedNode(type).name === it.interfaceDeclaration?.name ||
-            idl.forceAsNamedNode(type).name === it.attributeDeclaration.name)
-    }
-
-    isComponentDeclaration(iface: idl.IDLInterface): boolean {
-        return this.findComponentByDeclaration(iface) !== undefined
-    }
-
-    shouldGenerateComponent(name: string): boolean {
-        return !this.componentsToGenerate.size || this.componentsToGenerate.has(name)
     }
 
     mapType(type: idl.IDLType): string {
@@ -354,83 +331,8 @@ export class PeerLibrary implements LibraryInterface {
         this.typeMap.set(type, [decl, useToGenerate])
     }
 
-    public get orderedDependencies(): idl.IDLNode[] {
-        return this._orderedDependencies
-    }
-    private _orderedDependencies: idl.IDLNode[] = []
-
-    public get orderedDependenciesToGenerate(): idl.IDLNode[] {
-        return this._orderedDependenciesToGenerate
-    }
-    private _orderedDependenciesToGenerate: idl.IDLNode[] = []
-
-    analyze() {///stolen from DeclTable
-        const callbacks = collectUniqueCallbacks(this, { transformCallbacks: true })
-
-        let orderer = new DependencySorter(this)
-        for (let declaration of this.typeMap.values()) {
-            orderer.addDep(declaration[0])
-        }
-        for (const callback of callbacks) orderer.addDep(callback)
-        this._orderedDependencies = orderer.getToposorted()
-        this._orderedDependencies.unshift(ArkInt32)
-
-        let toGenerateOrderer = new DependencySorter(this)
-        for (let declaration of this.typeMap.values()) {
-            if (declaration[1])
-                toGenerateOrderer.addDep(declaration[0])
-        }
-        for (const callback of callbacks) toGenerateOrderer.addDep(callback)
-        this._orderedDependenciesToGenerate = toGenerateOrderer.getToposorted()
-    }
-
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         new StructPrinter(this).generateStructs(structs, typedefs, writeToString)
-    }
-
-    private allTypes<T extends idl.IDLType>(predicate: (e: idl.IDLNode) => e is T): T[] {
-        return this._orderedDependencies.filter(predicate)
-    }
-
-    private allEntries<T extends idl.IDLEntry>(predicate: (e: idl.IDLNode) => e is T): T[] {
-        return this._orderedDependencies.filter(predicate)
-    }
-
-    allUnionTypes(): Map<string, {id: number, name: string}[]> {
-        const data: Array<[string, {id: number, name: string}[]]> =
-            this.allTypes(idl.isUnionType)
-                .map(it => [
-                    this.nativeNameConvertorInstance.convert(it),
-                    it.types.map((e, index) => { return {id: index, name: "value" + index }})])
-        return new Map(data)
-    }
-
-    allLiteralTypes(): Map<string, string[]> {
-        const data: Array<[string, string[]]> =
-            this.allEntries((it): it is idl.IDLInterface => idl.isInterface(it) && it.subkind === idl.IDLInterfaceSubkind.AnonymousInterface)
-                .map(it => [
-                    this.nativeNameConvertorInstance.convert(it),
-                    it.properties.map(p => p.name)])
-        return new Map(data)
-    }
-
-    allOptionalTypes(): Set<string> {
-        const data = this._orderedDependencies
-            .filter(it => it !== idl.IDLVoidType)
-            .map(it => idl.isType(it)
-                ? this.nativeNameConvertorInstance.convert(idl.createOptionalType(it))
-                : PrimitiveType.OptionalPrefix + cleanPrefix(this.nativeNameConvertorInstance.convert(it), PrimitiveType.Prefix)
-            )
-        return new Set(data)
-    }
-
-    flattenType(type: idl.IDLType): idl.IDLType {
-        if (idl.isUnionType(type)) {
-            const allTypes = type.types.flatMap(it => convertType(this.unionFlattener, it))
-            const uniqueTypes = new Set(allTypes)
-            return uniqueTypes.size === allTypes.length ? type : typeOrUnion(Array.from(uniqueTypes))
-        }
-        return type
     }
 }
 

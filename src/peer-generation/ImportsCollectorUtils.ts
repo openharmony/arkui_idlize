@@ -9,6 +9,7 @@ import { renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterf
 import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName } from "./Materialized"
 import { maybeTransformManagedCallback } from "./ArgConvertors"
+import { isComponentDeclaration } from "./ComponentsCollector"
 
 export const SyntheticModule = "./SyntheticDeclarations"
 
@@ -27,7 +28,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): I
 
     const originalBasename = path.basename(node.fileName!)
     let fileName = renameDtsToInterfaces(originalBasename, library.language)
-    if (idl.isInterface(node) && !library.isComponentDeclaration(node)) {
+    if (idl.isInterface(node) && !isComponentDeclaration(library, node)) {
         if (isBuilderClass(node)) {
             fileName = renameClassToBuilderClass(node.name, library.language)
         } else if (isMaterialized(node)) {

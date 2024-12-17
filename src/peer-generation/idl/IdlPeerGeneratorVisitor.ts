@@ -44,6 +44,7 @@ import { PrimitiveType } from "../ArkPrimitiveType"
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { Language } from "../../Language"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
+import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
 
 /**
  * Theory of operations.
@@ -59,53 +60,8 @@ interface IdlPeerGeneratorVisitorOptions {
     peerLibrary: PeerLibrary
 }
 
-export class IdlComponentDeclaration {
-    constructor(
-        public readonly name: string,
-        public readonly interfaceDeclaration: idl.IDLInterface | undefined,
-        public readonly attributeDeclaration: idl.IDLInterface,
-    ) {}
-}
-
 const PREDEFINED_PACKAGE = 'org.openharmony.idlize.predefined'
 const PREDEFINED_PACKAGE_TYPES = `${PREDEFINED_PACKAGE}.types`
-
-export class IdlPeerGeneratorVisitor implements GenericVisitor<void> {
-    private readonly sourceFile: string
-
-    static readonly serializerBaseMethods = serializerBaseMethods()
-
-    readonly peerLibrary: PeerLibrary
-    readonly peerFile: PeerFile
-
-    constructor(options: IdlPeerGeneratorVisitorOptions) {
-        this.sourceFile = options.sourceFile
-        this.peerLibrary = options.peerLibrary
-        this.peerFile = options.peerFile
-    }
-
-    visitWholeFile(): void {
-        this.peerFile.entries
-            .filter(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Component))
-            .forEach(it => this.visitComponent(it as idl.IDLInterface))
-    }
-
-    visitComponent(component: idl.IDLInterface) {
-        const componentName = component.name.replace("Attribute", "")
-        if (PeerGeneratorConfig.ignoreComponents.includes(componentName))
-            return
-        if (idl.hasExtAttribute(component, IDLExtendedAttributes.HandWrittenImplementation)) {
-            return
-        }
-        const compInterface = this.peerLibrary.resolveTypeReference(
-            idl.createReferenceType(`${componentName}Interface`),
-            this.peerFile.entries)
-        if (!compInterface || idl.isInterface(compInterface)) {
-            this.peerLibrary.componentsDeclarations.push(
-                new IdlComponentDeclaration(componentName, compInterface, component))
-        }
-    }
-}
 
 export class IDLInteropPredefinesVisitor implements GenericVisitor<void> {
     readonly peerLibrary: PeerLibrary
@@ -234,53 +190,6 @@ class ArkTSSyntheticDependencyConfigurableFilter extends SyntheticDependencyConf
     }
 }
 
-class ComponentsCompleter {
-    constructor(
-        private readonly library: PeerLibrary,
-    ) {}
-
-    public process(): void {
-        for (let i = 0; i < this.library.componentsDeclarations.length; i++) {
-            const attributes = this.library.componentsDeclarations[i].attributeDeclaration
-            const parent = idl.getSuperType(attributes)
-            if (!parent)
-                continue
-            if (!idl.isReferenceType(parent))
-                throw new Error("Expected component parent type to be a reference type")
-            const parentDecl = this.library.resolveTypeReference(parent)
-            if (!parentDecl || !idl.isInterface(parentDecl) || parentDecl.subkind !== idl.IDLInterfaceSubkind.Class)
-                throw new Error("Expected parent to be a class")
-            if (!this.library.isComponentDeclaration(parentDecl)) {
-                this.library.componentsDeclarations.push(
-                    new IdlComponentDeclaration(parentDecl.name, undefined, parentDecl))
-            }
-        }
-        // topological sort
-        const components = this.library.componentsDeclarations
-        for (let i = 0; i < components.length; i++) {
-            for (let j = i + 1; j < components.length; j++) {
-                if (this.isSubclassComponent(components[i], components[j])) {
-                    components.splice(i, 0, ...components.splice(j, 1))
-                    i--
-                    break
-                }
-            }
-        }
-    }
-
-    private isSubclassComponent(a: IdlComponentDeclaration, b: IdlComponentDeclaration) {
-        return this.isSubclass(a.attributeDeclaration, b.attributeDeclaration)
-    }
-
-    private isSubclass(component: idl.IDLInterface, maybeParent: idl.IDLInterface): boolean {
-        const parentRef = idl.getSuperType(component)
-        const parentDecl = parentRef ? this.library.resolveTypeReference(parentRef) : undefined
-        return isDefined(parentDecl) && (
-            parentDecl.name === maybeParent.name ||
-            idl.isInterface(parentDecl) && this.isSubclass(parentDecl, maybeParent))
-    }
-}
-
 class PeersGenerator {
     constructor(
         private readonly library: PeerLibrary,
@@ -289,7 +198,7 @@ class PeersGenerator {
     private processProperty(prop: idl.IDLProperty, peer: PeerClass, parentName?: string): PeerMethod | undefined {
         if (PeerGeneratorConfig.ignorePeerMethod.includes(prop.name))
             return
-        this.library.requestType(prop.type, this.library.shouldGenerateComponent(peer.componentName))
+        this.library.requestType(prop.type, true)
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional)
         const signature = new NamedMethodSignature(idl.IDLThisType, [maybeOptional(prop.type, prop.isOptional)], ["value"])
@@ -314,7 +223,7 @@ class PeersGenerator {
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         method.parameters.forEach(param => {
-            this.library.requestType(param.type!, this.library.shouldGenerateComponent(peer.componentName))
+            this.library.requestType(param.type!, true)
         })
         const signature = generateSignature(method, isThisRet ? idl.IDLThisType : retType)
         return new PeerMethod(
@@ -360,7 +269,7 @@ class PeersGenerator {
         peer.originalClassName = clazz.name
         const parent = idl.getSuperType(clazz)
         if (parent) {
-            const parentComponent = this.library.findComponentByType(parent)!
+            const parentComponent = findComponentByType(this.library, parent)!
             const parentDecl = this.library.resolveTypeReference(parent as idl.IDLReferenceType)
             peer.originalParentName = idl.forceAsNamedNode(parent).name
             peer.originalParentFilename = parentDecl?.fileName
@@ -556,15 +465,14 @@ export class IdlPeerProcessor {
 
     process(): void {
         initCustomBuilderClasses(this.library)
-        new ComponentsCompleter(this.library).process()
         const peerGenerator = new PeersGenerator(this.library)
-        for (const component of this.library.componentsDeclarations)
+        for (const component of collectComponents(this.library))
             peerGenerator.generatePeer(component)
         const allDeclarations = this.library.files.flatMap(file => file.entries)
         for (const dep of allDeclarations) {
             if (PeerGeneratorConfig.ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language))
                 continue
-            const isPeerDecl = idl.isInterface(dep) && this.library.isComponentDeclaration(dep)
+            const isPeerDecl = idl.isInterface(dep) && isComponentDeclaration(this.library, dep)
             if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {
                 if (isBuilderClass(dep)) {
                     this.processBuilder(dep)

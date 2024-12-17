@@ -28,17 +28,22 @@ import { CustomPrintVisitor } from "../../from-idl/DtsPrinter";
 import { Language } from "../../Language";
 import { addSyntheticType, resolveSyntheticType } from "../../from-idl/deserialize";
 import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "../../peer-generation/LanguageWriters/nameConvertor";
-import { LibraryInterface } from "../../LibraryInterface";
+import { LibraryFileInterface, LibraryInterface } from "../../LibraryInterface";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { IDLNodeToStringConvertor } from "../../peer-generation/LanguageWriters/convertors/InteropConvertor";
 import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
 import { createOutArgConvertor } from "../../peer-generation/PromiseConvertors";
 
-export class IldSkoalaFile {
+export class IldSkoalaFile implements LibraryFileInterface {
     readonly wrapperClasses: Map<string, [WrapperClass, any|undefined]> = new Map()
     readonly baseName: string
     readonly importsCollector: ImportsCollector
     readonly declarations: Set<idl.IDLEntry>
+
+    processedDeclarationsList: Array<idl.IDLEntry> | undefined
+    get entries(): idl.IDLEntry[] {
+        return this.processedDeclarationsList!
+    }
 
     constructor(
         public readonly originalFilename: string,
@@ -401,6 +406,7 @@ export class IdlWrapperProcessor {
                 }
                 file.declarations.delete(importModule)
             })
+            file.processedDeclarationsList = [...file.declarations]
         }
     }
 

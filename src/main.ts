@@ -40,7 +40,6 @@ import { PeerLibrary } from "./peer-generation/PeerLibrary"
 import { PeerFile } from "./peer-generation/PeerFile"
 import {
     IDLInteropPredefinesVisitor,
-    IdlPeerGeneratorVisitor,
     IdlPeerProcessor,
     IDLPredefinesVisitor,
 } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
@@ -312,14 +311,14 @@ if (options.dts2peer) {
                 const idlFile = path.resolve(path.join(dir, it))
                 const content = fs.readFileSync(path.resolve(path.join(dir, it))).toString()
                 const nodes = webidl2.parse(content).filter(it => !!it.type).map(it => toIDLNode(idlFile, it))
-                return new PeerFile(idlFile, nodes, new Set(), true)
+                return new PeerFile(idlFile, nodes, true)
             })
     }
 
     const PREDEFINED_PATH = path.join(__dirname, "..", "predefined")
 
     options.docs = "all"
-    const idlLibrary = new PeerLibrary(lang, toSet(options.generateInterface))
+    const idlLibrary = new PeerLibrary(lang)
     // collect predefined files
     scanPredefinedDirectory(PREDEFINED_PATH, "sys").forEach(file => {
         new IDLInteropPredefinesVisitor({
@@ -371,7 +370,7 @@ if (options.dts2peer) {
                     transformMethodsAsync2ReturnPromise(it)
                     correctOverloadedProperties(it, idlLibrary)
                 })
-                const file = new PeerFile(sourceFile.fileName, entries, idlLibrary.componentsToGenerate)
+                const file = new PeerFile(sourceFile.fileName, entries)
                 idlLibrary.files.push(file)
             },
             onEnd(outDir) {
@@ -380,19 +379,9 @@ if (options.dts2peer) {
                     // TODO find better place for setup?
                     PrimitiveType.Prefix = "OH_"
                 }
-                // Visit IDL peer files
-                idlLibrary.files.forEach(file => {
-                    const visitor = new IdlPeerGeneratorVisitor({
-                        sourceFile: file.originalFilename,
-                        peerLibrary: idlLibrary,
-                        peerFile: file,
-                    })
-                    visitor.visitWholeFile()
-                })
                 fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
                 peerProcessor.process()
-                idlLibrary.analyze()
 
                 if (options.generatorTarget == "arkoala" ||
                     options.generatorTarget == "all") {

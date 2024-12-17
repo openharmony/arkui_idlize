@@ -37,6 +37,8 @@ import { generateCallbackKindValue, maybeTransformManagedCallback } from '../Arg
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
 import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
+import { collectDeclarationTargets } from '../DeclarationTargetCollector'
+import { flattenUnionType } from '../unions'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -86,7 +88,7 @@ class IdlSerializerPrinter {
         }
         properties.forEach(it => {
             let field = `value_${it.name}`
-            const type = this.library.flattenType(it.type)
+            const type = flattenUnionType(this.library, it.type)
             let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
 
             let memberAccess = writer.makeString(`value.${writer.escapeKeyword(it.name)}`)
@@ -150,7 +152,7 @@ class IdlSerializerPrinter {
 
     private generateLengthSerializer() {
         // generate Length serializer only if there is such a type
-        if (!this.library.orderedDependenciesToGenerate.some(it => it === idl.IDLLengthType)) return
+        if (!collectDeclarationTargets(this.library).some(it => it === idl.IDLLengthType)) return
 
         const methodName = idl.IDLLengthType.name
         const value = "value"
@@ -315,7 +317,7 @@ class IdlDeserializerPrinter {
                 this.declareDeserializer()
             }
             properties.forEach(it => {
-                const type = this.library.flattenType(it.type)
+                const type = flattenUnionType(this.library, it.type)
                 let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
                 this.writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}_buf`, `valueDeserializer`, (expr) => {
                     if (this.writer.language === Language.CPP)
@@ -492,7 +494,7 @@ class IdlDeserializerPrinter {
 
     private generateLengthDeserializer() {
         // generate Length deserializer only if there is such a type
-        if (!this.library.orderedDependenciesToGenerate.some(it => it === idl.IDLLengthType)) return
+        if (!collectDeclarationTargets(this.library).some(it => it === idl.IDLLengthType)) return
 
         const deserializerBody = this.writer.makeLengthDeserializer("this")
         if (!deserializerBody) return
@@ -574,7 +576,7 @@ export function writeDeserializerFile(library: PeerLibrary, destFile: SourceFile
 
 export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {
     const seenNames = new Set<string>()
-    return library.orderedDependenciesToGenerate
+    return collectDeclarationTargets(library)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => {
             const seen = seenNames.has(it.name!)

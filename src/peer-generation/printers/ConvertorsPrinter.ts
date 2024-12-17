@@ -16,6 +16,7 @@
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { PeerLibrary } from "../PeerLibrary";
 import { LanguageWriter } from "../LanguageWriters";
+import { DeclarationTargets } from "../DeclarationTargetCollector";
 
 export const SELECTOR_ID_PREFIX = "SELECTOR_ID_"
 
@@ -39,7 +40,7 @@ class ConvertorsPrinter {
         this.writer.print('void AssignOptionalTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        for (const [typename, selectors] of this.library.allUnionTypes()) {
+        for (const [typename, selectors] of DeclarationTargets.allUnionTypes(this.library)) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignUnionTo(std::optional<T>& dst,`)
             this.writer.print(`                   const ${typename}& src)`)
@@ -91,7 +92,7 @@ class ConvertorsPrinter {
         this.writer.print("}")
         this.writer.popIndent()
         this.writer.pushIndent()
-        this.library.allOptionalTypes().forEach(optionalName => {
+        DeclarationTargets.allOptionalTypes(this.library).forEach(optionalName => {
             this.writer.print(`ASSIGN_OPT(${optionalName})`)
         })
         //this.writer.popIndent()
@@ -104,7 +105,7 @@ class ConvertorsPrinter {
         this.writer.print('void AssignLiteralTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        for (const [name, fields] of this.library.allLiteralTypes()) {
+        for (const [name, fields] of DeclarationTargets.allLiteralTypes(this.library)) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignLiteralTo(std::optional<T>& dst,`)
             this.writer.print(`                     const ${this.writer.escapeKeyword(name)}& src)`)

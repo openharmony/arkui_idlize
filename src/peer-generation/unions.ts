@@ -18,6 +18,8 @@ import { IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveTyp
 import { ReferenceResolver } from "./ReferenceResolver";
 import { ArgConvertor, RuntimeType } from "./ArgConvertors";
 import { LanguageExpression, LanguageWriter } from "./LanguageWriters";
+import { LibraryInterface } from "../LibraryInterface";
+import { typeOrUnion } from "./idl/common";
 
 export class UnionFlattener implements TypeConvertor<IDLType[]> {
     constructor(private resolver: ReferenceResolver) {}
@@ -103,4 +105,14 @@ export class UnionRuntimeTypeChecker {
             throw new Error(`runtime type conflict in \`${context}\``)
         }
     }
+}
+
+export function flattenUnionType(library: LibraryInterface, type: IDLType): IDLType {
+    const unionFlattener = new UnionFlattener(library)
+    if (isUnionType(type)) {
+        const allTypes = type.types.flatMap(it => convertType(unionFlattener, it))
+        const uniqueTypes = new Set(allTypes)
+        return uniqueTypes.size === allTypes.length ? type : typeOrUnion(Array.from(uniqueTypes))
+    }
+    return type
 }

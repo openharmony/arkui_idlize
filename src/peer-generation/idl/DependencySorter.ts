@@ -14,13 +14,15 @@
  */
 
 import * as idl from "../../idl";
+import { LibraryInterface } from "../../LibraryInterface";
 import { maybeTransformManagedCallback } from "../ArgConvertors";
 import { PeerLibrary } from "../PeerLibrary";
 import { collectProperties } from "../printers/StructPrinter";
+import { flattenUnionType } from "../unions";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
 
 class SorterDependenciesCollector extends DependenciesCollector {
-    constructor(public library: PeerLibrary) {
+    constructor(public library: LibraryInterface) {
         super(library)
     }
     convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
@@ -46,7 +48,7 @@ class SorterDependenciesCollector extends DependenciesCollector {
     }
     convertInterface(node: idl.IDLInterface): idl.IDLNode[] {
         return collectProperties(node, this.library).map(it =>
-            this.library.toDeclaration(this.library.flattenType(it.type)))
+            this.library.toDeclaration(flattenUnionType(this.library, it.type)))
     }
     convertEnum(node: idl.IDLEnum): idl.IDLNode[] {
         return []
@@ -79,7 +81,7 @@ export class DependencySorter {
     adjMap = new Map<idl.IDLNode, idl.IDLNode[]>()
     seen = new Set<idl.IDLNode>()///one for all deps?
 
-    constructor(private library: PeerLibrary) {
+    constructor(private library: LibraryInterface) {
         this.dependenciesCollector = new SorterDependenciesCollector(library);
     }
 

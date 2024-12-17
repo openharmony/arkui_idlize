@@ -55,6 +55,7 @@ import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { createInterfaceDeclName } from '../TypeNodeNameConvertor'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { maybeTransformManagedCallback } from '../ArgConvertors'
+import { isComponentDeclaration } from '../ComponentsCollector'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -99,7 +100,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
 
     convertInterface(node: idl.IDLInterface): void {
-        if (!this.peerLibrary.isComponentDeclaration((node))) {
+        if (!isComponentDeclaration(this.peerLibrary, (node))) {
             this.printer.output = []
             this.printer.printInterface(node)
             this.writer.print('export ' + this.printer.output.join("\n"))
@@ -109,7 +110,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         let extendsClause = this.extendsClause(node)
 
         let classOrInterface = node.subkind === idl.IDLInterfaceSubkind.Class ? `class` : `interface`
-        if (this.peerLibrary.isComponentDeclaration(node))
+        if (isComponentDeclaration(this.peerLibrary, node))
             // because we write `ArkBlank implements BlankAttributes`
             classOrInterface = `interface`
         printer.print(`export declare ${classOrInterface} ${node.name} ${extendsClause} {`)
@@ -424,7 +425,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         const imports = collectJavaImports(type.properties.map(it => it.type))
         printJavaImports(writer, imports)
         // TODO: *Attribute classes are empty for now
-        const members = this.peerLibrary.isComponentDeclaration(type) ? []
+        const members = isComponentDeclaration(this.peerLibrary, type) ? []
             : type.properties.map(it => {
                 return {name: it.name, type: idl.maybeOptional(it.type, it.isOptional), modifiers: [FieldModifier.PUBLIC]}
             })
@@ -1096,7 +1097,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
 
         writer.print('import std.collection.*\n')
 
-        const members = this.peerLibrary.isComponentDeclaration(type) ? []
+        const members = isComponentDeclaration(this.peerLibrary, type) ? []
             : type.properties.map(it => {
                 return {name: writer.escapeKeyword(it.name), type: idl.maybeOptional(it.type, it.isOptional), modifiers: [FieldModifier.PUBLIC]}
             })

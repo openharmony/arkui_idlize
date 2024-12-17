@@ -20,6 +20,7 @@ import { PeerLibrary } from "../PeerLibrary"
 import { LanguageWriter } from "../LanguageWriters"
 import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
 import { ImportsCollector } from "../ImportsCollector"
+import { collectComponents } from "../ComponentsCollector"
 
 class GeneratorSyntheticPrinter extends DependenciesCollector {
     constructor(
@@ -70,7 +71,7 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
                 result.push(text)
         }
     }
-    for (const decl of peerLibrary.componentsDeclarations) {
+    for (const decl of collectComponents(peerLibrary)) {
         const iface = decl.interfaceDeclaration
         if (iface) {
             result.push(`declare const ${decl.name}: ${iface.name}`)

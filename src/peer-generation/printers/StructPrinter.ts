@@ -20,7 +20,7 @@ import { Language } from "../../Language"
 import { camelCaseToUpperSnakeCase } from "../../util"
 import { RuntimeType } from "../ArgConvertors"
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
+import { createLanguageWriter, createTypeNameConvertor, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isImport, isStringEnum } from "../idl/common"
 import { generateCallbackAPIArguments } from "../ArgConvertors"
@@ -28,6 +28,8 @@ import { isBuilderClass, isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
 import { cleanPrefix, PeerLibrary } from "../PeerLibrary"
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter"
 import { LibraryInterface } from "../../LibraryInterface"
+import { collectDeclarationTargets } from "../DeclarationTargetCollector"
+import { flattenUnionType } from "../unions"
 
 export class StructPrinter {
     constructor(private library: PeerLibrary) {}
@@ -72,7 +74,7 @@ export class StructPrinter {
         const seenNames = new Set<string>()
         seenNames.clear()
         const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
-        for (const target of this.library.orderedDependencies) {
+        for (const target of collectDeclarationTargets(this.library)) {
             if (target === idl.IDLVoidType) {
                 continue
             }
@@ -123,7 +125,7 @@ export class StructPrinter {
                         concreteDeclarations.print(`void *handle;`) // avoid empty structs
                     }
                     properties.forEach(it => {
-                        const type = this.library.flattenType(it.type)
+                        const type = flattenUnionType(this.library, it.type)
                         concreteDeclarations.print(`${structs.getNodeName(idl.maybeOptional(type, it.isOptional))} ${concreteDeclarations.escapeKeyword(it.name)};`)
                     })
                 } else if (idl.isContainerType(target)) {

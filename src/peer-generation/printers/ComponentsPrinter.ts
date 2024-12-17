@@ -43,6 +43,7 @@ import { createReferenceType, IDLVoidType, isOptionalType } from "../../idl";
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
+import { collectComponents, findComponentByType } from "../ComponentsCollector";
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -114,7 +115,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             }
 
             if (PeerGeneratorConfig.needInterfaces) {
-                const component = this.library.findComponentByType(idl.createReferenceType(peer.originalClassName!))!
+                const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
                 collectDeclDependencies(this.library, component.attributeDeclaration, imports)
                 if (component.interfaceDeclaration)
                     collectDeclDependencies(this.library, component.interfaceDeclaration, imports)
@@ -184,7 +185,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         peerClassName: string,
         callableMethodName: string | undefined,
         peerComponentName: string) {
-        if (!this.library.componentsDeclarations.find(it => it.name === peerComponentName)?.interfaceDeclaration)
+        if (!collectComponents(this.library).find(it => it.name === peerComponentName)?.interfaceDeclaration)
             return
         this.printer.print(`
 /** @memo */
