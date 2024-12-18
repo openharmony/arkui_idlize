@@ -271,8 +271,6 @@ export class PeerLibrary implements LibraryInterface {
         return undefined
     }
 
-    readonly typeMap = new Map<idl.IDLType | idl.IDLEntry, [idl.IDLNode, boolean]>()
-
     getInteropName(node: idl.IDLNode) {
         return this.interopNameConvertorInstance.convert(node)
     }
@@ -319,16 +317,6 @@ export class PeerLibrary implements LibraryInterface {
                 : decl
         }
         return type
-    }
-
-    requestType(type: idl.IDLType | idl.IDLInterface  | idl.IDLEnum , useToGenerate: boolean) {
-        let declaration = this.typeMap.get(type)
-        if (declaration) {
-            declaration[1] ||= useToGenerate
-            return
-        }
-        const decl = this.toDeclaration(type)
-        this.typeMap.set(type, [decl, useToGenerate])
     }
 
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {

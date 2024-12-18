@@ -198,7 +198,6 @@ class PeersGenerator {
     private processProperty(prop: idl.IDLProperty, peer: PeerClass, parentName?: string): PeerMethod | undefined {
         if (PeerGeneratorConfig.ignorePeerMethod.includes(prop.name))
             return
-        this.library.requestType(prop.type, true)
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional)
         const signature = new NamedMethodSignature(idl.IDLThisType, [maybeOptional(prop.type, prop.isOptional)], ["value"])
@@ -222,9 +221,6 @@ class PeersGenerator {
         const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T")
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
-        method.parameters.forEach(param => {
-            this.library.requestType(param.type!, true)
-        })
         const signature = generateSignature(method, isThisRet ? idl.IDLThisType : retType)
         return new PeerMethod(
             originalParentName,
@@ -443,7 +439,6 @@ export class IdlPeerProcessor {
         }
 
         const methodTypeParams = getExtAttribute(method, IDLExtendedAttributes.TypeParameters)
-        method.parameters.forEach(it => this.library.requestType(it.type!, true))
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(method)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []

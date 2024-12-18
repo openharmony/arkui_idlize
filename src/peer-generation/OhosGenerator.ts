@@ -79,10 +79,6 @@ class OHOSVisitor {
     private static knownBasicTypes = new Set(['ArrayBuffer', 'DataView'])
 
     mapType(type: IDLType | IDLEnum): string {
-        if (isType(type)) {
-            this.library.requestType(type, true)
-        }
-
         const typeName = isEnum(type)
             ? type.name
             : isContainerType(type) || isUnionType(type)
@@ -254,26 +250,6 @@ class OHOSVisitor {
     private apiName(clazz: IDLInterface): string {
         if (hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)) return capitalize(this.libraryName)
         return capitalize(clazz.name)
-    }
-
-    private requestType(type: IDLType | IDLEnum) {
-        this.library.requestType(type, true)
-    }
-
-    private requestTypes(entry: IDLEntry) {
-        if (isInterface(entry) && entry.subkind === IDLInterfaceSubkind.Class) {
-            entry.constructors.forEach(it => this.requestTypes(it))
-            entry.methods.forEach(it => this.requestTypes(it))
-            entry.properties.forEach(it => this.requestType(it.type))
-        } else if (isConstructor(entry)) {
-            entry.parameters.forEach(it => this.requestType(it.type!))
-        } else if (isMethod(entry) || isCallback(entry)) {
-            entry.parameters.forEach(it => this.requestType(it.type!))
-            this.requestType(entry.returnType)
-        } else if (isEnum(entry)) {
-            entry.elements.forEach(it => this.requestType(it.type))
-        }
-        entry.scope?.forEach(it => this.requestTypes(it))
     }
 
     private printManaged() {
@@ -650,7 +626,6 @@ class OHOSVisitor {
         this.library.files.forEach(file => {
             if (file.isPredefined) return
             file.entries.forEach(entry => {
-                this.requestTypes(entry)
                 if (isInterface(entry)) {
                     if (isMaterialized(entry)) {
                         this.interfaces.push(entry)
