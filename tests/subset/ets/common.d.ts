@@ -484,6 +484,8 @@ declare class CommonMethod<T> {
 
     border(value: BorderOptions): T;
 
+    size(value: SizeOptions): T;
+
     onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
 
     attributeModifier(modifier: AttributeModifier<T>): T

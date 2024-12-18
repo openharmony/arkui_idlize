@@ -466,11 +466,11 @@ function checkFormComponent() {
 
     let peer = ArkFormComponentPeer.create()
     checkResult("size int", () => peer.sizeAttribute({ width: 5, height: 6 }),
-        `size({.width={.tag=102, .i32=5}, .height={.tag=102, .i32=6}})`)
+        `size({.width={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=5, .unit=1, .resource=0}}, .height={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=6, .unit=1, .resource=0}}})`)
     checkResult("size float", () => peer.sizeAttribute({ width: 5.5, height: 6.789 }),
-        `size({.width={.tag=103, .f32=5.5}, .height={.tag=103, .f32=6.789}})`)
+        `size({.width={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=5.5, .unit=1, .resource=0}}, .height={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=6.789, .unit=1, .resource=0}}})`)
     checkResult("size zero", () => peer.sizeAttribute({ width: 0.0, height: 0.0 }),
-        `size({.width={.tag=102, .i32=0}, .height={.tag=102, .i32=0}})`)
+        `size({.width={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=0, .unit=1, .resource=0}}, .height={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=0, .unit=1, .resource=0}}})`)
 
     stopNativeTest(CALL_GROUP_LOG)
 }
