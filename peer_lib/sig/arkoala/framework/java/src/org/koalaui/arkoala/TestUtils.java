@@ -38,7 +38,7 @@ public class TestUtils {
         NativeModule._StopGroupedLog(TEST_GROUP_LOG);
         String out = getNativeString(NativeModule._GetGroupedLog(TEST_GROUP_LOG));
         // remove out comments like /* some text */
-        String actual = out.replaceAll("\\s?\\/\\*.*?\\*\\/", "");
+        String actual = out.replaceAll("\\s?\\/\\*.*?\\*\\/", "").replaceAll(" \n", "");
         if (reportTestFailures) {
             if (actual.equals(expected)) {
                 System.out.println(String.format("TEST %s PASS", name));

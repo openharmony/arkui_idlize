@@ -28,7 +28,7 @@ import {
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod } from "../Materialized";
 import { groupBy } from "../../util";
-import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
+import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageStatement, LanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
 import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isNamedNode, isOptionalType, isReferenceType } from "../../idl";
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
@@ -54,32 +54,32 @@ export class ModifierVisitor {
 
     printDummyImplFunctionBody(method: PeerMethod) {
         let _ = this.dummy
-        if (method.toStringName.includes('construct')) {
-            _.writeLines(`return new TreeNode("${method.originalParentName}", id, flags);`)
-            return
-        }
+        const isVoid = this.returnTypeConvertor.isVoid(method)
+        let retVal = isVoid ? undefined : (method.dummyReturnValue ?? "0")
+
         _.writeStatement(
             _.makeCondition(
                 _.makeString("!needGroupedLog(1)"),
-                _.makeReturn(
-                    this.returnTypeConvertor.isVoid(method) ? undefined : _.makeString(method.dummyReturnValue ?? "0"))))
+                method.toStringName == "construct"
+                    ? this.makeConstructReturnStatement(_, method)
+                    : _.makeReturn(retVal ? _.makeString(retVal) : undefined)
+            )
+        )
         _.print(`string out("${method.toStringName}(");`)
         method.argAndOutConvertors.forEach((argConvertor, index) => {
             if (index > 0) this.dummy.print(`out.append(", ");`)
             _.print(`WriteToString(&out, ${argConvertor.param});`)
         })
-        _.print(`out.append(")");`)
-        const isVoid = this.returnTypeConvertor.isVoid(method)
-        let retVal = isVoid ? undefined : method.dummyReturnValue
-        if (retVal  !== undefined) {
-            _.print(`out.append("[return ${retVal}]");`)
+        _.print(`out.append(") \\n");`)
+        if (retVal !== undefined) {
+            _.print(`out.append("[return ${retVal}] \\n");`)
         }
         _.print(`appendGroupedLog(1, out);`)
-        const rt = method.method.signature.returnType
-        if (retVal === undefined && !isVoid) {
-            retVal = "0"
+        if (method.toStringName == "construct") {
+            _.writeStatement(this.makeConstructReturnStatement(_, method))
+        } else {
+            this.printReturnStatement(this.dummy, method, true, retVal)
         }
-        this.printReturnStatement(this.dummy, method, true, retVal)
     }
 
     printModifierImplFunctionBody(method: PeerMethod, clazz: PeerClass | undefined = undefined) {
@@ -89,18 +89,21 @@ export class ModifierVisitor {
         this.printReturnStatement(this.real, method)
     }
 
-    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, isDummy? : boolean, returnValue: string | undefined = undefined) {
+    private makeConstructReturnStatement(printer: LanguageWriter, method: PeerMethod): LanguageStatement {
+        return printer.makeReturn(printer.makeString(`new TreeNode("${method.originalParentName}", id, flags);`))
+    }
+
+    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, isDummy?: boolean, returnValue: string | undefined = undefined) {
         const isVoid = this.returnTypeConvertor.isVoid(method)
         if (isDummy) {
             if (returnValue) {
                 printer.print(`return ${returnValue};`)
             }
         }
-        else if(method.method.name == 'getFinalizer')
-        {
+        else if (method.method.name == 'getFinalizer') {
             printer.print(`return reinterpret_cast<void *>(&DestroyPeerImpl);`)
         }
-        else if (method.method.name == 'ctor'){
+        else if (method.method.name == 'ctor') {
             const argCount = method.method.signature.args.length
 
             const paramNames: string[] = []
@@ -110,8 +113,7 @@ export class ModifierVisitor {
             const apiParameters = paramNames.join(', ')
             printer.print(`return new ${method.originalParentName}Peer(${apiParameters});`)
         }
-        else if(method.method.name == 'destroyPeer')
-        {
+        else if (method.method.name == 'destroyPeer') {
             const implClassName = `${method.originalParentName}PeerImpl`
             printer.print(`auto peerImpl = reinterpret_cast<${implClassName} *>(peer);`)
             printer.print(`if (peerImpl) {`)
@@ -122,17 +124,17 @@ export class ModifierVisitor {
             if (this.isPointerReturnType(method.method.signature.returnType)) {
                 printer.print(`return nullptr;`)
             }
-            else{
+            else {
                 printer.print(`return 0;`)
             }
         }
     }
 
-     private isPointerReturnType(returnType: IDLType): boolean {
-        return isReferenceType(returnType)  ||
-                returnType === IDLThisType ||
-                returnType === IDLPointerType ||
-                returnType === IDLAnyType
+    private isPointerReturnType(returnType: IDLType): boolean {
+        return isReferenceType(returnType) ||
+            returnType === IDLThisType ||
+            returnType === IDLPointerType ||
+            returnType === IDLAnyType
     }
 
     private printBodyImplementation(printer: LanguageWriter, method: PeerMethod,

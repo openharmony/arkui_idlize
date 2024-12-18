@@ -49,7 +49,8 @@ export function checkResult(name: string, test: () => void, expected: string) {
     stopNativeLog(TEST_GROUP_LOG)
     const out = getNativeLog(TEST_GROUP_LOG)
     // remove out comments like /* some text */
-    const actual =  out.replace(/\s?\/\*.*?\*\//g, "");
+    const actual = out.replace(/\s?\/\*.*?\*\//g, "")
+        .replaceAll(" \n", "")
     if (reportTestFailures) {
         if (actual != expected) {
             failedTestsCount++

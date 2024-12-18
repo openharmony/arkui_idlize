@@ -159,6 +159,7 @@ export function checkResult(name: string, test: () => void, expected: string) {
     test()
     NativeModule._StopGroupedLog(1)
     const actual = getNativeLog()
+        .replaceAll(" \n", "")
     if (actual != expected) {
         console.log(`TEST ${name} FAIL:\n  EXPECTED "${expected}"\n  ACTUAL   "${actual}"`)
         hasTestErrors = true
