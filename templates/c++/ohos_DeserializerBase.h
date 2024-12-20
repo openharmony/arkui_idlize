@@ -105,7 +105,13 @@ inline void convertor(T value) = delete;
 
 // TODO: restore full printing!
 template <typename T>
-inline void WriteToString(std::string *result, T value) = delete;
+inline void WriteToString(std::string *result, const T value) = delete;
+
+template <typename T>
+void WriteToString(std::string *result, const T *const value)
+{
+  result->append("0x" + std::to_string(reinterpret_cast<std::uintptr_t>(value)));
+}
 
 struct Error
 {
@@ -139,11 +145,6 @@ inline void WriteToString(std::string *result, OH_Tag value)
   result->append(tagName(value));
 }
 
-template <>
-inline void WriteToString(std::string *result, OH_NativePointer value)
-{
-  result->append("0x" + std::to_string((uint64_t)value));
-}
 /*
 template <>
 inline void WriteToString(std::string *result, OH_ObjectHandle value)

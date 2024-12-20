@@ -126,11 +126,10 @@ void SetDrawNodeDelay(GENERATED_Ark_NodeType type, Ark_Int64 nanoseconds) {
 inline Ark_NodeHandle AsNodeHandle(TreeNode* node) {
     return reinterpret_cast<Ark_NodeHandle>(node);
 }
-inline TreeNode* AsNode(Ark_NodeHandle handle) {
-    return reinterpret_cast<TreeNode*>(handle);
-}
-inline TreeNode* AsNode(Ark_NativePointer pointer) {
-    return reinterpret_cast<TreeNode*>(pointer);
+
+template<typename From>
+constexpr TreeNode *AsNode(From ptr) {
+    return reinterpret_cast<TreeNode *>(ptr);
 }
 
 void DumpTree(TreeNode *node, Ark_Int32 indent) {
@@ -458,22 +457,18 @@ Ark_NodeHandle GetNodeByViewStack() {
 }
 
 void DisposeNode(Ark_NodeHandle node) {
-    AsNode(node)->dispose();
-
     if (needGroupedLog(2)) {
         std::string _logData;
         _logData.append("  GetBasicNodeApi()->disposeNode(peer" + std::to_string((uintptr_t)node) + ");\n");
         appendGroupedLog(2, _logData);
     }
-
-    if (!needGroupedLog(1)) {
-        return;
+    if (needGroupedLog(1)) {
+        string out("disposeNode(");
+        WriteToString(&out, node);
+        out.append(")");
+        appendGroupedLog(1, out);
     }
-
-    string out("disposeNode(");
-    WriteToString(&out, node);
-    out.append(")");
-    appendGroupedLog(1, out);
+    AsNode(node)->dispose();
 }
 
 void DumpTreeNode(Ark_NodeHandle node) {
