@@ -111,17 +111,10 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
     }
 
     protected mapCallback(decl: idl.IDLCallback): string {
-        const types = decl.parameters.map(it => {
-            return `${this.convert(it.isOptional ? idl.createOptionalType(it.type!) : it.type!)}`
-        })
-        return `Function${types.length}<${types.join(",")}${types.length > 0 ? "," : ""}${this.convert(decl.returnType)}>`
-    }
-
-    protected mapCallback1(decl: idl.IDLCallback): string {
-        const types = decl.parameters.map(it => {
+        const params = decl.parameters.map(it => {
             return `${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}`
         })
-        return `((${types.join(", ")}) => ${this.convert(decl.returnType)})`
+        return `((${params.join(",")}) => ${this.convert(decl.returnType)})`
     }
 
     protected getNamespacePrefix(decl: IDLEntry): stringOrNone {

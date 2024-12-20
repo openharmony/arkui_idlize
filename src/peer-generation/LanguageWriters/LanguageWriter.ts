@@ -291,7 +291,7 @@ export abstract class LambdaExpression implements LanguageExpression {
     constructor(
         private originalWriter: LanguageWriter,
         protected signature: MethodSignature,
-        private resolver: ReferenceResolver,
+        protected resolver: ReferenceResolver,
         private body?: LanguageStatement[]) { }
 
     protected abstract get statementHasSemicolon(): boolean

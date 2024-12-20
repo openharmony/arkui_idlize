@@ -47,7 +47,7 @@ run arkts subset:
     - koala-ci
   before_script:
     - !reference [.setup, script]
-    - PANDA_SDK_VERSION=1.5.0-dev.9440 npm run panda:sdk:install
+    - PANDA_SDK_VERSION=1.5.0-dev.12828 npm run panda:sdk:install
   script:
     - npm run run:panda:subset
 
@@ -59,7 +59,7 @@ compile arkts peers:
     - koala-ci
   before_script:
     - !reference [.setup, script]
-    - PANDA_SDK_VERSION=1.5.0-dev.9440 npm run panda:sdk:install
+    - PANDA_SDK_VERSION=1.5.0-dev.12828 npm run panda:sdk:install
   script:
     - npm run make:compile:arkts:peers
 
@@ -81,7 +81,7 @@ arkts subset sig integration:
     - koala-ci
   before_script:
     - !reference [.setup, script]
-    - PANDA_SDK_VERSION=1.5.0-dev.9440 npm run panda:sdk:install
+    - PANDA_SDK_VERSION=1.5.0-dev.12828 npm run panda:sdk:install
   script:
     - npm run sig:arkts:subset:all
 
@@ -175,7 +175,7 @@ check generated XML demo:
       - koala-ci
     before_script:
       - !reference [.setup, script]
-      - PANDA_SDK_VERSION=1.5.0-dev.9440 npm run panda:sdk:install
+      - PANDA_SDK_VERSION=1.5.0-dev.12828 npm run panda:sdk:install
       - chmod +x external/incremental/tools/panda/arkts/ark{,tsc,link,disasm}
       - npm run compile --prefix external/interop
       - npm run compile --prefix external/incremental/common

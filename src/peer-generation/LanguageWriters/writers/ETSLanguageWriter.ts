@@ -16,6 +16,7 @@
 import { IndentedPrinter } from "../../../IndentedPrinter"
 import {
     FieldModifier,
+    LambdaExpression,
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
@@ -34,7 +35,7 @@ import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
 import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter"
 import * as idl from "../../../idl"
-import { convertDeclaration } from "../nameConvertor"
+import { convertDeclaration, IdlNameConvertor } from "../nameConvertor"
 import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
 import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
 
@@ -137,6 +138,36 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
     }
 }
 
+export class ETSLambdaExpression extends LambdaExpression {
+    constructor(
+        writer: LanguageWriter,
+        private convertor: IdlNameConvertor,
+        signature: MethodSignature,
+        resolver: ReferenceResolver,
+        body?: LanguageStatement[]) {
+        super(writer, signature, resolver, body)
+    }
+    protected get statementHasSemicolon(): boolean {
+        return false
+    }
+    asString(): string {
+        const params = this.signature.args.map((it, i) => {
+            const maybeOptional = idl.isOptionalType(it) ? "?" : ""
+            return `${this.signature.argName(i)}${maybeOptional}: ${this.convertor.convert(it)}`
+        })
+        // Workaround to fix ArkTS error: SyntaxError: Unexpected token, arrow (=>)
+        // Issue: https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/21333
+        let isRetTypeCallback = idl.isCallback(this.signature.returnType)
+        if (idl.isReferenceType(this.signature.returnType)) {
+            const resolved = this.resolver.resolveTypeReference(
+                idl.createReferenceType(this.signature.returnType.name))
+            isRetTypeCallback = resolved !== undefined && idl.isCallback(resolved)
+        }
+        return `(${params.join(", ")})${isRetTypeCallback 
+            ? "" : `:${this.convertor.convert(this.signature.returnType)}`} => { ${this.bodyAsString()} }`
+    }
+}
+
 ////////////////////////////////////////////////////////////////
 //                           UTILS                            //
 ////////////////////////////////////////////////////////////////
@@ -182,7 +213,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
-        return new TSLambdaExpression(this, this.typeConvertor, signature, this.resolver, body)
+        return new ETSLambdaExpression(this, this.typeConvertor, signature, this.resolver, body)
     }
     makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, op)
