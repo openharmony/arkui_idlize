@@ -492,8 +492,8 @@ export class EnumConvertor extends BaseArgConvertor { //
         }
     }
     extremumOfOrdinals(): {low: number, high: number} {
-        let low: number = 0
-        let high: number = 0
+        let low: number = Number.MAX_VALUE
+        let high: number = Number.MIN_VALUE
         this.enumEntry.elements.forEach((member, index) => {
             let value = index
             if ((typeof member.initializer === 'number') && !this.isStringEnum) {
@@ -1009,9 +1009,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
         printer.writeStatement(printer.makeLoop(loopCounter, valueLength))
         printer.pushIndent()
         printer.writeStatement(
-            printer.makeAssign(`${value}_element`,
-                this.elementType,
-                printer.makeArrayAccess(value, loopCounter), true))
+            printer.makeAssign(`${value}_element`, undefined, printer.makeArrayAccess(value, loopCounter), true))
         this.elementConvertor.convertorSerialize(param, this.elementConvertor.getObjectAccessor(printer.language, `${value}_element`), printer)
         printer.popIndent()
         printer.print(`}`)

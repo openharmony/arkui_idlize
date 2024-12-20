@@ -556,24 +556,10 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
 
     private printInterfaceName(idlInterface: idl.IDLInterface): string {
         let superType = idl.getSuperType(idlInterface)
-
-        // Built-in enums cannot be used as constrained type parameters
-        const typeParameters = idlInterface.typeParameters?.map(it => {
-            const types = it.split("extends").map(it => it.trim())
-            const typeParameter = types[0]
-            const extendable = types[1]
-            if (extendable != undefined) {
-                const type = this.peerLibrary.resolveTypeReference(idl.createReferenceType(extendable))
-                if (type !== undefined && idl.isEnum(type)) {
-                    return typeParameter
-                }
-            }
-            return it
-        })
         const parentTypeArgs = this.printTypeParameters(
             (superType as idl.IDLReferenceType)?.typeArguments?.map(it => idl.printType(it)))
         return [idlInterface.name,
-            `${this.printTypeParameters(typeParameters)}`,
+            this.printTypeParameters(idlInterface.typeParameters),
             superType
                 ? ` extends ${idl.forceAsNamedNode(superType).name}${parentTypeArgs}`
                 : ""
