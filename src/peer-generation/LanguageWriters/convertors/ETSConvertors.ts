@@ -89,7 +89,7 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
             case idl.IDLStringType: return 'string'
             case idl.IDLFunctionType: return 'Object'
 
-            case idl.IDLBufferType: return 'ArrayBuffer'
+            case idl.IDLBufferType: return 'NativeBuffer'
         }
         return super.convertPrimitiveType(type)
     }

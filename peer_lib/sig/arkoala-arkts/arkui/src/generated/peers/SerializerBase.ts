@@ -15,6 +15,7 @@
 import { float32, float64, int8, int32, int64, int32BitsFromFloat } from "@koalaui/common"
 import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder } from "@koalaui/interop"
 import { NativeModule } from "#components"
+import { NativeBuffer } from "../NativeBuffer"
 
 /**
  * Value representing possible JS runtime object type.
@@ -297,14 +298,14 @@ export class SerializerBase {
         this.position += encodedLength + 4
     }
     //TODO: Needs to be implemented
-    writeBuffer(value: ArrayBuffer) {
+    writeBuffer(value: NativeBuffer) {
         this.writeCallbackResource({
-            resourceId: -1,
-            hold: 0,
-            release: 0
+            resourceId: value.resourceId,
+            hold: value.hold,
+            release: value.release
         })
-        this.writePointer(0)
-        this.writeInt64(value.byteLength as int64)
+        this.writePointer(value.data)
+        this.writeInt64(value.length as int64)
     }
 }
 

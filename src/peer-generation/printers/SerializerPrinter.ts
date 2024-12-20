@@ -606,6 +606,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
     } else if (destFile.language === Language.ARKTS) {
         const collector = (destFile as ArkTSSourceFile).imports
         if (!declarationPath) {
+            collector.addFeature("NativeBuffer", "./NativeBuffer")
             collector.addFeature("TypeChecker", "#components")
             collector.addFeature("KUint8ArrayPtr", "@koalaui/interop")
             collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")

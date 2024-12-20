@@ -154,6 +154,7 @@ function copyArkoalaFiles(config: {
         'sig/arkoala-arkts/arkui/src/generated/shared/ArkResource.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/dts-exports.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/generated-utils.ts',
+        'sig/arkoala-arkts/arkui/src/generated/NativeBuffer.ts',
     ])
 }
 
