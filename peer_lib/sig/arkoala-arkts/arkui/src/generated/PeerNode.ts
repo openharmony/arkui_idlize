@@ -23,6 +23,10 @@ export class PeerNode extends IncrementalNode {
     }
     readonly name: string
 
+    setInsertMark(mark: pointer, upDirection: boolean) {
+        // TODO: implement me.
+    }
+
 
     constructor(peerPtr: pointer, id: int32, name: string, flags: int32) {
         super(PeerNodeType)
