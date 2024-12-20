@@ -15,7 +15,7 @@
 
 import * as idl from "../../idl"
 import {
-    ExpressionStatement,
+    ExpressionStatement, LanguageExpression,
     LanguageWriter,
     Method,
     MethodModifier,
@@ -158,8 +158,15 @@ export class OverloadsPrinter {
     }
 
     printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
-        const argsConditions = collapsedMethod.signature.args.map((_, argIndex) =>
-            runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
+        const argsConditions: LanguageExpression[] = []
+        collapsedMethod.signature.args
+            .forEach((type, argIndex) => {
+                    // Create type selector for Optional and Union types
+                    if (idl.isOptionalType(type) || idl.isUnionType(type)) {
+                        argsConditions.push(runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
+                    }
+                }
+            )
         this.printer.print(`if (${this.printer.makeNaryOp("&&", argsConditions).asString()}) {`)
         this.printer.pushIndent()
         this.printPeerCallAndReturn(peer, collapsedMethod, peerMethod)
