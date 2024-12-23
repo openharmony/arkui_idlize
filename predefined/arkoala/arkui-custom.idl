@@ -112,3 +112,11 @@ interface UnifiedData {
     boolean hasType(String type);
     sequence<String> getTypes();
 };
+
+callback Callback_RangeUpdate = void (i32 index, pointer mark);
+
+[Entity=Class]
+interface LazyForEachOps {
+    static pointer NeedMoreElements(pointer node, pointer mark, i32 direction);
+    static void OnRangeUpdate(pointer node, Callback_RangeUpdate updater);
+};
