@@ -60,8 +60,9 @@ export interface XmlPullParserInterface {
 }
 export class XmlSerializer implements XmlSerializerInterface {
     peer: Finalizable
-     constructor(buffer: string, encoding?: string) {
+     constructor(buffer: ArrayBuffer, encoding?: string) {
         const thisSerializer: Serializer = Serializer.hold()
+        thisSerializer.writeBuffer(buffer)
         let encoding_type: int32 = RuntimeType.UNDEFINED
         encoding_type = runtimeType(encoding)
         thisSerializer.writeInt8(encoding_type)
@@ -69,7 +70,7 @@ export class XmlSerializer implements XmlSerializerInterface {
             const encoding_value = encoding!
             thisSerializer.writeString(encoding_value)
         }
-        this.peer = new Finalizable(getXMLNativeModule()._XmlSerializer_ctor(buffer, thisSerializer.asArray(), thisSerializer.length()), XmlSerializer.getFinalizer())
+        this.peer = new Finalizable(getXMLNativeModule()._XmlSerializer_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlSerializer.getFinalizer())
         thisSerializer.release()
     }
     static getFinalizer(): KPointer {
@@ -172,8 +173,9 @@ export class ParseInfoInternal {
 }
 export class XmlPullParser implements XmlPullParserInterface {
     peer: Finalizable
-     constructor(buffer: string, encoding?: string) {
+     constructor(buffer: ArrayBuffer, encoding?: string) {
         const thisSerializer: Serializer = Serializer.hold()
+        thisSerializer.writeBuffer(buffer)
         let encoding_type: int32 = RuntimeType.UNDEFINED
         encoding_type = runtimeType(encoding)
         thisSerializer.writeInt8(encoding_type)
@@ -181,7 +183,7 @@ export class XmlPullParser implements XmlPullParserInterface {
             const encoding_value = encoding!
             thisSerializer.writeString(encoding_value)
         }
-        this.peer = new Finalizable(getXMLNativeModule()._XmlPullParser_ctor(buffer, thisSerializer.asArray(), thisSerializer.length()), XmlPullParser.getFinalizer())
+        this.peer = new Finalizable(getXMLNativeModule()._XmlPullParser_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlPullParser.getFinalizer())
         thisSerializer.release()
     }
     static getFinalizer(): KPointer {

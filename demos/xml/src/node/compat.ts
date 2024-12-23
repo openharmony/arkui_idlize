@@ -2,9 +2,15 @@ import { checkArkoalaCallbacks } from "../../generated/ts/CallbacksChecker";
 import { ParseInfo, XmlPullParser, xml } from "../../generated/ts/xml"
 
 export type EventType = xml.EventType
+export type OHBuffer = ArrayBuffer
 export const EventType = xml.EventType
 
 export { ParseInfo, XmlPullParser }
+
+export function encodeText(text:string): OHBuffer {
+    const enc = new TextEncoder()
+    return enc.encode(text).buffer as OHBuffer
+}
 
 export function runEventLoop() {
     let finished = false

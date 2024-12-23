@@ -92,6 +92,15 @@ public:
         position += 4;
     }
 
+    void writeInt64(OH_Int64 value) {
+#ifdef KOALA_NO_UNALIGNED_ACCESS
+        memcpy(data + position, &value, 8);
+#else
+        *((OH_Int64*)(data + position)) = value;
+#endif
+        position += 8;
+    }
+
     void writeFloat32(OH_Float32 value) {
         *((OH_Float32*)(data + position)) = value;
         position += 4;
@@ -154,9 +163,15 @@ public:
         throw "Trying to pass materialized class back from native code -- is that really needed?";
     }
 
-    void writeBuffer(uint8_t* buffer, int size) {
+    void append(uint8_t* buffer, int size) {
         memcpy(data + position, buffer, size);
         position += size;
+    }
+
+    void writeBuffer(OH_Buffer buffer) {
+        writeCallbackResource(buffer.resource);
+        writePointer((void*)buffer.data);
+        writeInt64(buffer.length);
     }
 };
 

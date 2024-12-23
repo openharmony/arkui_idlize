@@ -185,7 +185,7 @@ check generated XML demo:
       - npm run build:incremental:inc --prefix external/incremental/runtime
       # TODO Remove this patch once we have proper Buffer passing implementation
       - npm run download:sdk
-      - sed -ie 's/ArrayBuffer | DataView/string/' interface_sdk-js/api/\@ohos.xml.d.ts
+      - sed -ie 's/ArrayBuffer | DataView/ArrayBuffer/' interface_sdk-js/api/\@ohos.xml.d.ts
     script:
       - npm run run:xml
       - npm run run:xml:arkts

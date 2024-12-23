@@ -16,6 +16,9 @@ export class %NATIVE_MODULE_NAME%NativeModule {
         return 0
     }    
 
+    // demo
+    native static _AllocateNativeBuffer(length: KInt, retBuffer: KUint8ArrayPtr, init:KUint8ArrayPtr): void;
+
 %NATIVE_FUNCTIONS%
 }
 

@@ -1,6 +1,6 @@
 import { int32 } from "@koalaui/common"
 import { KPointer, KInt, KStringPtr, pointer } from "@koalaui/interop"
-import { RuntimeType, runtimeType } from "./SerializerBase"
+import { RuntimeType, runtimeType, NativeBuffer } from "./SerializerBase"
 import { Serializer } from "./xmlSerializer"
 import { Finalizable } from "./xmlFinalizable"
 
@@ -10,9 +10,9 @@ import {
 export interface ParseOptions {
     supportDoctype?: boolean
     ignoreNameSpace?: boolean
-    tagValueCallbackFunction?: Function2<string,string,boolean>
-    attributeValueCallbackFunction?: Function2<string,string,boolean>
-    tokenValueCallbackFunction?: Function2<xml_EventType,ParseInfo,boolean>
+    tagValueCallbackFunction?: ((name: string,value: string) => boolean)
+    attributeValueCallbackFunction?: ((name: string,value: string) => boolean)
+    tokenValueCallbackFunction?: ((eventType: xml_EventType,value: ParseInfo) => boolean)
 }
 export class xml_EventType {
     static readonly START_DOCUMENT: xml_EventType = new xml_EventType(0,0)
@@ -113,8 +113,9 @@ export interface XmlPullParserInterface {
 }
 export class XmlSerializer implements XmlSerializerInterface {
     peer: Finalizable
-     constructor(buffer: string, encoding?: string) {
+     constructor(buffer: NativeBuffer, encoding?: string) {
         const thisSerializer : Serializer = Serializer.hold()
+        thisSerializer.writeBuffer(buffer)
         let encoding_type : int32 = RuntimeType.UNDEFINED
         encoding_type = runtimeType(encoding)
         thisSerializer.writeInt8(encoding_type as int32)
@@ -122,7 +123,7 @@ export class XmlSerializer implements XmlSerializerInterface {
             const encoding_value  = encoding!
             thisSerializer.writeString(encoding_value)
         }
-        this.peer = new Finalizable(XMLNativeModule._XmlSerializer_ctor(buffer, thisSerializer.asArray(), thisSerializer.length()), XmlSerializer.getFinalizer())
+        this.peer = new Finalizable(XMLNativeModule._XmlSerializer_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlSerializer.getFinalizer())
         thisSerializer.release()
     }
     static getFinalizer(): KPointer {
@@ -225,8 +226,9 @@ export class ParseInfoInternal {
 }
 export class XmlPullParser implements XmlPullParserInterface {
     peer: Finalizable
-     constructor(buffer: string, encoding?: string) {
+     constructor(buffer: NativeBuffer, encoding?: string) {
         const thisSerializer : Serializer = Serializer.hold()
+        thisSerializer.writeBuffer(buffer)
         let encoding_type : int32 = RuntimeType.UNDEFINED
         encoding_type = runtimeType(encoding)
         thisSerializer.writeInt8(encoding_type as int32)
@@ -234,7 +236,7 @@ export class XmlPullParser implements XmlPullParserInterface {
             const encoding_value  = encoding!
             thisSerializer.writeString(encoding_value)
         }
-        this.peer = new Finalizable(XMLNativeModule._XmlPullParser_ctor(buffer, thisSerializer.asArray(), thisSerializer.length()), XmlPullParser.getFinalizer())
+        this.peer = new Finalizable(XMLNativeModule._XmlPullParser_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlPullParser.getFinalizer())
         thisSerializer.release()
     }
     static getFinalizer(): KPointer {

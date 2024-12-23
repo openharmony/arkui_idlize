@@ -1,9 +1,10 @@
-import { EventType, eventTypeStr, ParseInfo, XmlPullParser } from "#compat"
+import { EventType, eventTypeStr, ParseInfo, XmlPullParser, encodeText } from "#compat"
 
 export function run() {
     const sampleXml = `<foo valOfFoo="xx">Hello<bar>124</bar>World</foo>`
     console.log(`PARSING ${sampleXml}`)
-    const parser = new XmlPullParser(sampleXml)
+    const buffer = encodeText(sampleXml)
+    const parser = new XmlPullParser(buffer)
     parser.parse({
         ignoreNameSpace: true,
         supportDoctype: false,

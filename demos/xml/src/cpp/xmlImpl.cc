@@ -16,7 +16,7 @@
 #include "xml.h"
 #include "parser_impl.h"
 
-OH_XML_XmlSerializerHandle XmlSerializer_constructImpl(const OH_String* buffer, const Opt_String* encoding) {
+OH_XML_XmlSerializerHandle XmlSerializer_constructImpl(const OH_Buffer* buffer, const Opt_String* encoding) {
     return {};
 }
 void XmlSerializer_destructImpl(OH_XML_XmlSerializerHandle thiz) {
@@ -77,7 +77,7 @@ OH_Number ParseInfo_getAttributeCountImpl(OH_NativePointer thisPtr) {
     return {};
 }
 
-OH_XML_XmlPullParserHandle XmlPullParser_constructImpl(const OH_String* buffer, const Opt_String* encoding) {
+OH_XML_XmlPullParserHandle XmlPullParser_constructImpl(const OH_Buffer* buffer, const Opt_String* encoding) {
     const ExpatParser* parser = new ExpatParser(*buffer);
     return (OH_XML_XmlPullParserHandle) parser;
 }

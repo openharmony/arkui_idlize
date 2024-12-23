@@ -8,7 +8,7 @@ export enum CallbackKind {
 }
 
 export interface XMLNativeModule {
-    _XmlSerializer_ctor(buffer: string, thisArray: Uint8Array, thisLength: int32): KPointer 
+    _XmlSerializer_ctor(thisArray: Uint8Array, thisLength: int32): KPointer 
     _XmlSerializer_getFinalizer(): KPointer 
     _XmlSerializer_setAttributes(self: KPointer, name: string, value: string): void 
     _XmlSerializer_addEmptyElement(self: KPointer, name: string): void 
@@ -31,18 +31,21 @@ export interface XMLNativeModule {
     _ParseInfo_isEmptyElementTag(self: KPointer): boolean 
     _ParseInfo_isWhitespace(self: KPointer): boolean 
     _ParseInfo_getAttributeCount(self: KPointer): number 
-    _XmlPullParser_ctor(buffer: string, thisArray: Uint8Array, thisLength: int32): KPointer 
+    _XmlPullParser_ctor(thisArray: Uint8Array, thisLength: int32): KPointer 
     _XmlPullParser_getFinalizer(): KPointer 
     _XmlPullParser_parse(self: KPointer, thisArray: Uint8Array, thisLength: int32): void 
     _XmlPullParser_parseXml(self: KPointer, thisArray: Uint8Array, thisLength: int32): void 
     _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void 
     _CallCallback(callbackKind: int32, args: Uint8Array, argsSize: int32): void 
+    _CallCallbackSync(callbackKind: int32, args: Uint8Array, argsSize: int32): void 
     _CallCallbackResourceHolder(holder: KPointer, resourceId: int32): void 
     _CallCallbackResourceReleaser(releaser: KPointer, resourceId: int32): void 
     _CheckArkoalaCallbackEvent(buffer: Uint8Array, bufferLength: int32): int32 
     _HoldArkoalaResource(resourceId: int32): void 
     _ReleaseArkoalaResource(resourceId: int32): void 
     _Utf8ToString(buffer: Uint8Array, position: int32, length: int32): string 
+    _MaterializeBuffer(data: KPointer, length: int32, resourceId: int32, holdPtr: KPointer, releasePtr: KPointer): ArrayBuffer 
+    _GetNativeBufferPointer(data: ArrayBuffer): KPointer 
 }
 
 type NativeModuleType = XMLNativeModule

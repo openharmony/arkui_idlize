@@ -19,6 +19,7 @@
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
 #include <deque>
+#include <unordered_map>
 
 CustomDeserializer * DeserializerBase::customDeserializers = nullptr;
 

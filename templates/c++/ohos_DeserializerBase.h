@@ -423,9 +423,10 @@ public:
   }
   OH_Buffer readBuffer()
   {
-    OH_Int64 data = readInt64();
+    OH_CallbackResource resource = readCallbackResource();
+    OH_NativePointer data = readPointer();
     OH_Int64 length = readInt64();
-    return OH_Buffer { (void*)data, length };
+    return OH_Buffer { resource, (void*)data, length };
   }
   OH_Undefined readUndefined()
   {

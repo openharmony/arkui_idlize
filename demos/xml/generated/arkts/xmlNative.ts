@@ -44,7 +44,10 @@ export class XMLNativeModule {
         return 0
     }    
 
-    native static _XmlSerializer_ctor(buffer: string, thisArray: KUint8ArrayPtr, thisLength: int32): KPointer 
+    // demo
+    native static _AllocateNativeBuffer(length: KInt, retBuffer: KUint8ArrayPtr, init:KUint8ArrayPtr): void;
+
+    native static _XmlSerializer_ctor(thisArray: KUint8ArrayPtr, thisLength: int32): KPointer 
     native static _XmlSerializer_getFinalizer(): KPointer 
     native static _XmlSerializer_setAttributes(self: KPointer, name: string, value: string): void 
     native static _XmlSerializer_addEmptyElement(self: KPointer, name: string): void 
@@ -67,18 +70,20 @@ export class XMLNativeModule {
     native static _ParseInfo_isEmptyElementTag(self: KPointer): boolean 
     native static _ParseInfo_isWhitespace(self: KPointer): boolean 
     native static _ParseInfo_getAttributeCount(self: KPointer): number 
-    native static _XmlPullParser_ctor(buffer: string, thisArray: KUint8ArrayPtr, thisLength: int32): KPointer 
+    native static _XmlPullParser_ctor(thisArray: KUint8ArrayPtr, thisLength: int32): KPointer 
     native static _XmlPullParser_getFinalizer(): KPointer 
     native static _XmlPullParser_parse(self: KPointer, thisArray: KUint8ArrayPtr, thisLength: int32): void 
     native static _XmlPullParser_parseXml(self: KPointer, thisArray: KUint8ArrayPtr, thisLength: int32): void 
     native static _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void 
     native static _CallCallback(callbackKind: int32, args: KUint8ArrayPtr, argsSize: int32): void 
+    native static _CallCallbackSync(callbackKind: int32, args: KUint8ArrayPtr, argsSize: int32): void 
     native static _CallCallbackResourceHolder(holder: KPointer, resourceId: int32): void 
     native static _CallCallbackResourceReleaser(releaser: KPointer, resourceId: int32): void 
     native static _CheckArkoalaCallbackEvent(buffer: KUint8ArrayPtr, bufferLength: int32): int32 
     native static _HoldArkoalaResource(resourceId: int32): void 
     native static _ReleaseArkoalaResource(resourceId: int32): void 
     native static _Utf8ToString(buffer: KUint8ArrayPtr, position: int32, length: int32): string 
+    native static _ManagedStringWrite(str: string, arr: KUint8ArrayPtr, len: int32): int32 
 }
 
 let theModule: XMLNativeModule

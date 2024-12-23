@@ -36,7 +36,7 @@ KInt impl_CheckArkoalaCallbackEvent(KByte* result, KInt size) {
     switch (frontEventKind) 
     {
         case Event_CallCallback:
-            serializer.writeBuffer(callbackCallSubqueue.front().buffer, sizeof(CallbackBuffer::buffer));
+            serializer.append(callbackCallSubqueue.front().buffer, sizeof(CallbackBuffer::buffer));
             break;
         case Event_HoldManagedResource:
         case Event_ReleaseManagedResource:
@@ -95,3 +95,50 @@ extern "C" const OH_AnyAPI* GetAnyAPI(int kind, int version) {
     }
     return impls[kind];
 }
+
+struct Counter {
+    int count;
+    void* data;
+};
+
+static int bufferResourceId = 0;
+static std::unordered_map<int, Counter> refCounterMap;
+
+int allocate_buffer(int len, void** mem) {
+    char* data = new char[len];
+    (*mem) = data;
+    int id = ++bufferResourceId;
+    refCounterMap[id] = Counter { 1, (void*)data };
+    return id;
+}
+
+void releaseBuffer(int resourceId) {
+    if (refCounterMap.find(resourceId) != refCounterMap.end()) {
+        Counter& record = refCounterMap[resourceId];
+        --record.count;
+        if (record.count <= 0) {
+            delete[] (char*)record.data;
+        }
+    }
+}
+
+void holdBuffer(int resourceId) {
+    if (refCounterMap.find(resourceId) != refCounterMap.end()) {
+        Counter& record = refCounterMap[resourceId];
+        ++record.count;
+    }
+}
+
+void impl_AllocateNativeBuffer(KInt len, KByte* ret, KByte* init) {
+    void* mem;
+    int resourceId = allocate_buffer(len, &mem);
+    memcpy((KByte*)mem, init, len);
+    SerializerBase ser { ret };
+    ser.writeInt32(resourceId);
+    ser.writePointer((void*)&holdBuffer);
+    ser.writePointer((void*)&releaseBuffer);
+    ser.writePointer(mem);
+    ser.writeInt64(len);
+
+}
+KOALA_INTEROP_V3(AllocateNativeBuffer, KInt, KByte*, KByte*);

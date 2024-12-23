@@ -82,6 +82,28 @@ export interface CallbackResource {
     release: pointer
 }
 
+
+export class NativeBuffer {
+    public data:pointer = 0
+    public length: int64 = 0
+    public resourceId: int32 = 0
+    public hold:pointer = 0
+    public release: pointer = 0
+
+    constructor(data:pointer, length: int64, resourceId: int32, hold:pointer, release: pointer) {
+        this.data = data
+        this.length = length
+        this.resourceId = resourceId
+        this.hold = hold
+        this.release = release
+    }
+
+    static wrap(data:pointer, length: int64, resourceId: int32, hold:pointer, release: pointer): NativeBuffer {
+        return new NativeBuffer(data, length, resourceId, hold, release)
+    }
+}
+
+
 /* Serialization extension point */
 export abstract class CustomSerializer {
     protected supported: Array<string>
@@ -267,9 +289,14 @@ export class SerializerBase {
         // this.setInt32(this.position, encodedLength)
         // this.position += encodedLength + 4
     }
-    //TODO: Needs to be implemented
-    writeBuffer(value: ArrayBuffer) {
-        this.writePointer(42)
-        this.writeInt64(value.byteLength as int64)
+    
+    writeBuffer(value: NativeBuffer) {
+        this.writeCallbackResource({
+            resourceId: value.resourceId,
+            hold: value.hold,
+            release: value.release
+        })
+        this.writePointer(value.data)
+        this.writeInt64(value.length as int64)
     }
 }

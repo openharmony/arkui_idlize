@@ -15,7 +15,7 @@
 
 import { float32, int32, int64, float32FromBits } from "@koalaui/common"
 import { KBuffer, KUint8ArrayPtr, pointer } from "@koalaui/interop"
-import { Tags, CallbackResource } from "./SerializerBase"
+import { Tags, CallbackResource, NativeBuffer } from "./SerializerBase"
 import { %NATIVE_MODULE_ACCESSOR% } from "%NATIVE_MODULE_PATH%"
 
 export class DeserializerBase {
@@ -178,10 +178,12 @@ export class DeserializerBase {
         }
     }
 
-    readBuffer(): ArrayBuffer {
-        this.readPointer()
+    readBuffer(): NativeBuffer {
+        /* not implemented */
+        const resource = this.readCallbackResource()
+        const data = this.readPointer()
         const length = this.readInt64()
-        return new ArrayBuffer(length)
+        return NativeBuffer.wrap(data, length, resource.resourceId, resource.hold, resource.release)
     }
 
     readUint8ClampedArray(): Uint8ClampedArray {
