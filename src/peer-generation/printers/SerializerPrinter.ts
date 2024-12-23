@@ -578,6 +578,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
     const seenNames = new Set<string>()
     return collectDeclarationTargets(library)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
+        .filter(it => !idl.isHandwritten(it))
         .filter(it => {
             const seen = seenNames.has(it.name!)
             seenNames.add(it.name!)

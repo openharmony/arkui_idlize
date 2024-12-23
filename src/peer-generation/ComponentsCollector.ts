@@ -25,7 +25,7 @@ export function collectComponents(library: LibraryInterface): IdlComponentDeclar
             if (!idl.isInterface(entry) || !idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component))
                 continue
             const componentName = entry.name.replace("Attribute", "")
-            if (PeerGeneratorConfig.ignoreComponents.includes(componentName))
+            if (PeerGeneratorConfig.ignoreComponents.includes(componentName) || idl.isHandwritten(entry))
                 continue
             if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation))
                 continue

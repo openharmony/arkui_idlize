@@ -1338,3 +1338,7 @@ export function mixMethodParametersAndTags(node: IDLSignature) : (IDLParameter |
         mix.splice(tag.index, 0, tag)
     return mix
 }
+
+export function isHandwritten(decl: IDLEntry): boolean {
+    return hasExtAttribute(decl, IDLExtendedAttributes.HandWrittenImplementation)
+}

@@ -465,7 +465,7 @@ export class IdlPeerProcessor {
             peerGenerator.generatePeer(component)
         const allDeclarations = this.library.files.flatMap(file => file.entries)
         for (const dep of allDeclarations) {
-            if (PeerGeneratorConfig.ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language))
+            if (PeerGeneratorConfig.ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language) || idl.isHandwritten(dep))
                 continue
             const isPeerDecl = idl.isInterface(dep) && isComponentDeclaration(this.library, dep)
             if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {
@@ -575,7 +575,7 @@ function generateSignature(
 }
 
 export function isMaterialized(declaration: idl.IDLInterface): boolean {
-    if (PeerGeneratorConfig.isMaterializedIgnored(declaration.name))
+    if (PeerGeneratorConfig.isMaterializedIgnored(declaration.name) || idl.isHandwritten(declaration))
         return false;
     if (isBuilderClass(declaration))
         return false

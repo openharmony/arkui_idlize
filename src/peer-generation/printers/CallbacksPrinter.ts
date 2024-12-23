@@ -95,8 +95,13 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
                         return it.elementType
                     if (idl.isUnionType(it))
                         return it.types
+                    if (idl.isOptionalType(it))
+                        return it.type
                     return it
                 })
+            // handwritten types are not serializable
+            if (subtypes.some(it => idl.isNamedNode(it) && PeerGeneratorConfig.handWritten.includes(it.name)))
+                return false
             // can not process callbacks with type arguments used inside
             // (value: SomeInterface<T>) => void
             if (subtypes.some(it => idl.isReferenceType(it) && it.typeArguments))
