@@ -146,6 +146,3 @@ declare const PageTransitionEnter: PageTransitionEnterInterface
 declare const PageTransitionExit: PageTransitionExitInterface
 
 declare const Navigation: NavigationInterface
-
-declare const NavDestination: NavDestinationInterface
-declare const NavDestinationInstance: NavDestinationAttribute

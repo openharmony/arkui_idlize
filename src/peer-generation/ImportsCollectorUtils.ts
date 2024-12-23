@@ -12,6 +12,7 @@ import { maybeTransformManagedCallback } from "./ArgConvertors"
 import { isComponentDeclaration } from "./ComponentsCollector"
 
 export const SyntheticModule = "./SyntheticDeclarations"
+export const HandwrittenModule = "../handwritten"
 
 export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): ImportFeature {
     const featureNameConvertor = createFeatureNameConvertor(library.language)
@@ -23,6 +24,8 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): I
     }
     if (!idl.isEntry(node))
         throw new Error("Expected to have an entry")
+    if (idl.isHandwritten(node))
+        return { feature: node.name, module: HandwrittenModule }
     if (idl.isSyntheticEntry(node))
         return { feature: node.name, module: SyntheticModule }
 

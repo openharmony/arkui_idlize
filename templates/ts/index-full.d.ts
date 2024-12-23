@@ -164,8 +164,3 @@ declare class performance {
     static now(): number;
 }
 
-// Handwritten
-
-declare const NavDestination: NavDestinationInterface
-declare const NavDestinationInstance: NavDestinationAttribute
-
