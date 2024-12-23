@@ -205,6 +205,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             ["string", () => idl.IDLStringType],
             ["Boolean", () => idl.IDLBooleanType], // nasty typo in SDK
             ["ArrayBuffer", () => idl.IDLBufferType],
+            ["DataView", () => idl.IDLBufferType],
             ["Int8Array", () => idl.IDLBufferType], // ["Int8Array", () => idl.createContainerType('sequence', [idl.IDLI8Type])],
             ["Uint8Array", () => idl.IDLBufferType], // ["Uint8Array", () => idl.createContainerType('sequence', [idl.IDLU8Type])],
             ["Uint8ClampedArray", () => idl.IDLBufferType], // ["Uint8ClampedArray", () => idl.createContainerType('sequence', [idl.IDLU8Type])],
