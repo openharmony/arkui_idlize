@@ -1211,7 +1211,7 @@ export function getCommonImports(language: Language) {
         imports.push({feature: "remember", module: "@koalaui/runtime"})
     }
     if (language === Language.ARKTS) {
-        imports.push({feature: "NativeBuffer", module: "./NativeBuffer"})
+        imports.push({feature: "NativeBuffer", module: "@koalaui/interop"})
     }
     return imports
 }

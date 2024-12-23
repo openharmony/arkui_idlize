@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 import { float32, float64, int8, int32, int64, int32BitsFromFloat } from "@koalaui/common"
-import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder } from "@koalaui/interop"
+import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder, NativeBuffer } from "@koalaui/interop"
 import { NativeModule } from "#components"
-import { NativeBuffer } from "../NativeBuffer"
 
 /**
  * Value representing possible JS runtime object type.

@@ -152,6 +152,7 @@ abstract class TypeCheckerPrinter {
         const imports = new ImportsCollector()
         imports.addFeature('KBoolean', '@koalaui/interop')
         imports.addFeature('KStringPtr', '@koalaui/interop')
+        imports.addFeature('NativeBuffer', '@koalaui/interop')
         for (const feature of features) {
             imports.addFeature(feature.feature, feature.module)
         }

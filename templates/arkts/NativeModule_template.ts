@@ -29,7 +29,7 @@ import {
 } from "@koalaui/interop"
 
 import { Length } from "../ArkUnitsInterfaces"
-import { NativeBuffer } from '../NativeBuffer'
+import { NativeBuffer } from '@koalaui/interop'
 
 let theModule: NativeModule
 
