@@ -453,9 +453,9 @@ function checkCalendar() {
     const date = new Date()
     checkResult("setCalendarOptions: selected", () => peer.setCalendarPickerOptionsAttribute({ selected: date }),
         `setCalendarPickerOptions({.tag=ARK_TAG_OBJECT, .value={.hintRadius={.tag=ARK_TAG_UNDEFINED, .value={}}, .selected={.tag=ARK_TAG_OBJECT, .value=${date.getTime()}}}})`)
-    checkResult("edgeAlign1", () => peer.edgeAlignAttribute(2, { dx: 5, dy: 6 }),
+    checkResult("edgeAlign1", () => peer.edgeAlign0Attribute(2, { dx: 5, dy: 6 }),
         `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5, .unit=1, .resource=0}, .dy={.type=1, .value=6, .unit=1, .resource=0}}})`)
-    checkResult("edgeAlign2", () => peer.edgeAlignAttribute(2),
+    checkResult("edgeAlign2", () => peer.edgeAlign0Attribute(2),
         `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_UNDEFINED, .value={}})`)
 
     stopNativeTest(CALL_GROUP_LOG)

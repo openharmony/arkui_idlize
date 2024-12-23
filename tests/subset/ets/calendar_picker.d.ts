@@ -17,6 +17,7 @@ declare interface CalendarPickerInterface {
 
 declare class CalendarPickerAttribute extends CommonMethod<CalendarPickerAttribute> {
     edgeAlign(alignType: CalendarAlign, offset?: Offset): CalendarPickerAttribute;
+    edgeAlign(alignType: Optional<CalendarAlign>, offset?: Offset): CalendarPickerAttribute;
 
     altEdgeAlign(alignType: CalendarAlign, offset?: AltOffset): CalendarPickerAttribute;
 }
