@@ -52,7 +52,10 @@ function main() {
             symlinkSdk()
         },
         arkts_subset_tsc: installExternal,
-        arkts_peers_tsc: installExternal
+        arkts_peers_tsc: () => {
+            installExternal()
+            symlinkSdk()
+        },
     }
 
     fs.rmSync(options.out, { recursive: true, force: true })
