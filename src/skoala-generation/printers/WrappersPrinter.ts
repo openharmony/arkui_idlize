@@ -15,6 +15,7 @@
 
 import { createReferenceType, IDLVoidType } from "../../idl"
 import { FieldModifier, LanguageExpression, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature } from "../../peer-generation/LanguageWriters"
+import { NativeModuleType } from "../../peer-generation/NativeModuleType"
 import { capitalize, removeExt, snakeCaseToCamelCase } from "../../util"
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass"
 import { IldSkoalaFile } from "../idl/idlSkoalaLibrary"
@@ -69,7 +70,7 @@ export class TSWrappersVisitor {
         writer.writeMethodImplementation(clazz.finalizer.method, writer => {
             writer.writeStatement(
                 writer.makeReturn(
-                    writer.makeNativeCall(Skoala.nativeMethod(clazz.className, clazz.finalizer!.toStringName), [])))
+                    writer.makeNativeCall(NativeModuleType.Generated, Skoala.nativeMethod(clazz.className, clazz.finalizer!.toStringName), [])))
         })
     }
 
@@ -91,7 +92,7 @@ export class TSWrappersVisitor {
             }
         })
 
-        let call = writer.makeNativeCall(Skoala.nativeMethod(method.originalParentName, method.toStringName), params)
+        let call = writer.makeNativeCall(NativeModuleType.Generated, Skoala.nativeMethod(method.originalParentName, method.toStringName), params)
         let returnType = method.method.signature.returnType
 
         writer.writeMethodImplementation(method.method, writer => {

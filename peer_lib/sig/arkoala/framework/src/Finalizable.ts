@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-import { pointer, FinalizableBase, NativeThunk } from "@koalaui/interop"
-import { nativeModule } from "./generated/NativeModule"
+import { pointer, FinalizableBase, NativeThunk, InteropNativeModule } from "@koalaui/interop"
 
 export class NativeThunkImpl extends NativeThunk {
     constructor(obj: pointer, finalizer: pointer, name?: string) {
         super(obj, finalizer, name)
     }
     destroyNative(ptr: pointer, finalizer: pointer): void {
-        nativeModule()._InvokeFinalizer(ptr, finalizer)
+        InteropNativeModule._InvokeFinalizer(ptr, finalizer)
     }
 }
 

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { nativeModuleDeclaration, nativeModuleEmptyDeclaration } from "../FileGenerators";
+import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
 import { FunctionCallExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createInteropArgConvertor, createLanguageWriter } from "../LanguageWriters";
 import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
@@ -20,17 +20,26 @@ import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { Language } from "../../Language";
 import * as idl from '../../idl'
-import { getReferenceResolver } from "../ReferenceResolver";
 import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
+import { NativeModuleType } from "../NativeModuleType";
+import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
+import { CJLanguageWriter } from "../LanguageWriters/writers/CJLanguageWriter";
 
-class NativeModuleVisitor {
-    readonly nativeModulePredefined: Map<string, LanguageWriter>
-    readonly nativeModule: LanguageWriter
-    readonly nativeModuleEmpty: LanguageWriter
-    nativeFunctions?: LanguageWriter
-    protected readonly interopConvertor
+class NativeModulePrinterBase {
+    readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library)
 
-    protected readonly excludes = new Map<Language, Set<string>>([
+    constructor(
+        protected readonly library: PeerLibrary,
+        protected readonly language: Language,
+    ) {}
+
+    protected printMethod(method: Method) {
+        this.nativeModule.writeNativeMethodDeclaration(method.name, method.signature)
+    }
+}
+
+class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
+    private static readonly excludes = new Map<Language, Set<string>>([
         [Language.CJ, new Set([
             "StringData",
             "CheckArkoalaCallbackEvent",
@@ -44,70 +53,22 @@ class NativeModuleVisitor {
     ])
 
     constructor(
-        protected readonly library: PeerLibrary,
+        library: PeerLibrary,
+        language: Language,
+        private readonly entries: idl.IDLInterface[],
     ) {
-        this.nativeModule = createLanguageWriter(library.language, getReferenceResolver(library))
-        this.nativeModuleEmpty = createLanguageWriter(library.language, getReferenceResolver(library))
-        this.nativeModulePredefined = new Map()
-        this.interopConvertor = createInteropArgConvertor(library.language)
+        super(library, language)
     }
 
-    protected printPeerMethods(peer: PeerClass) {
-        const constructMethod = createConstructPeerMethod(peer)
-        this.printPeerMethod(peer, constructMethod, this.nativeModule, this.nativeModuleEmpty, constructMethod.method.signature.returnType, this.nativeFunctions)
-        peer.methods.forEach(it => this.printPeerMethod(peer, it, this.nativeModule, this.nativeModuleEmpty, undefined, this.nativeFunctions))
-    }
-
-    protected printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter, nativeFunctions?: LanguageWriter) {
-        this.library.materializedToGenerate.forEach(clazz => {
-            this.printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, idl.IDLPointerType)
-            this.printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, idl.IDLPointerType)
-            clazz.methods.forEach(method => {
-                const returnType = method.tsReturnType()
-                this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty,
-                    returnType && idl.isPrimitiveType(returnType) ? returnType : idl.IDLPointerType)
-            })
-        })
-    }
-
-    printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
-        returnType?: idl.IDLType,
-        nativeFunctions?: LanguageWriter
-    ) {
-        const component = method.originalParentName // clazz.generatedName(method.isCallSignature)
-        clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
-        const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
-        let name = `_${component}_${method.overloadedName}`
-
-        if (parameters.returnType === idl.IDLThisType) {
-            parameters.returnType = idl.IDLPointerType
-        }
-
-        nativeModule.writeNativeMethodDeclaration(name, parameters)
-
-        nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
-            printer.writePrintLog(name)
-            if (returnType !== undefined && returnType !== idl.IDLVoidType) {
-                printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
-            }
-        })
-        clazz.setGenerationContext(undefined)
-    }
-
-    shouldPrintPredefineMethod(inputMethod:idl.IDLMethod): boolean {
-        const langExcludes = this.excludes.get(this.library.language)
-        if (langExcludes) {
-            return !langExcludes.has(inputMethod.name)
-        }
-        return true
-    }
-
-    makeMethodFromIdl(inputMethod:idl.IDLMethod, printer: LanguageWriter): Method {
-        let signature = printer.makeNamedSignature(
+    private makeInteropMethodFromIdl(inputMethod: idl.IDLMethod, language: Language): Method {
+        let signature = NamedMethodSignature.make(
             inputMethod.returnType,
-            inputMethod.parameters
+            inputMethod.parameters.map(it => ({
+                name: it.name,
+                type:  it.isOptional ? idl.createOptionalType(it.type!) : it.type!
+            }))
         )
-        if (this.library.language === Language.TS) {
+        if (language === Language.TS) {
             function patchType(type:idl.IDLType): idl.IDLType {
                 if (type === idl.IDLBooleanType) {
                     return idl.IDLNumberType
@@ -121,252 +82,346 @@ class NativeModuleVisitor {
         return new Method('_' + inputMethod.name, signature)
     }
 
-    printPredefinedMethod(inputMethod:idl.IDLMethod, printer:LanguageWriter) {
-        if (!this.shouldPrintPredefineMethod(inputMethod)) {
-            return
-        }
-
-        const method = this.makeMethodFromIdl(inputMethod, printer)
-        printer.writeNativeMethodDeclaration(method.name, method.signature)
-        this.nativeModuleEmpty.writeMethodImplementation(method, (printer) => {
-            printer.writePrintLog(method.name)
-            if (method.signature.returnType !== undefined && idl.forceAsNamedNode(method.signature.returnType).name !== 'void') {
-                printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(method.signature.returnType))))
+    visit(): void {
+        for (const entry of this.entries) {
+            for (const idlMethod of entry.methods) {
+                if (NativeModulePredefinedVisitor.excludes.get(this.language)?.has(idlMethod.name))
+                    continue
+                const method = this.makeInteropMethodFromIdl(idlMethod, this.language)
+                this.printMethod(method)
             }
+        }
+    }
+}
+
+class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
+    private readonly interopConvertor = createInteropArgConvertor(this.language)
+
+    constructor(
+        library: PeerLibrary,
+        language: Language,
+    ) {
+        super(library, language)
+    }
+
+    private printPeerMethods(peer: PeerClass) {
+        const constructMethod = createConstructPeerMethod(peer)
+        this.printPeerMethod(constructMethod, constructMethod.method.signature.returnType)
+        peer.methods.forEach(it => this.printPeerMethod(it, undefined))
+    }
+
+    private printMaterializedMethods() {
+        this.library.materializedToGenerate.forEach(clazz => {
+            this.printPeerMethod(clazz.ctor, idl.IDLPointerType)
+            this.printPeerMethod(clazz.finalizer, idl.IDLPointerType)
+            clazz.methods.forEach(method => {
+                const returnType = method.tsReturnType()
+                this.printPeerMethod(method, returnType && idl.isPrimitiveType(returnType) ? returnType : idl.IDLPointerType)
+            })
         })
     }
 
-    printPredefined() {
-        this.nativeModuleEmpty.pushIndent()
-        this.nativeFunctions?.pushIndent()
-        for (const declaration of this.library.predefinedDeclarations) {
-            const writer = createLanguageWriter(this.library.language, getReferenceResolver(this.library))
-            this.nativeModulePredefined.set(
-                declaration.name,
-                writer
-            )
-            writer.pushIndent()
-            for (const method of declaration.methods) {
-                this.printPredefinedMethod(method, writer)
-            }
-            writer.popIndent()
+    private printPeerMethod(method: PeerMethod, returnType?: idl.IDLType) {
+        const component = method.originalParentName
+        const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
+        let name = `_${component}_${method.overloadedName}`
+
+        if (parameters.returnType === idl.IDLThisType) {
+            parameters.returnType = idl.IDLPointerType
         }
-        this.nativeFunctions?.popIndent()
-        this.nativeModuleEmpty.popIndent()
+
+        this.printMethod(new Method(name, parameters))
     }
 
-    print(): void {
-        console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
-        this.printPredefined()
-        this.nativeModule.pushIndent()
-        this.nativeModuleEmpty.pushIndent()
+    visit(): void {
         for (const file of this.library.files) {
             for (const peer of file.peersToGenerate.values()) {
                 this.printPeerMethods(peer)
             }
         }
-        this.printMaterializedMethods(this.nativeModule, this.nativeModuleEmpty, this.nativeFunctions)
-        this.nativeModule.popIndent()
-        this.nativeModuleEmpty.popIndent()
+        this.printMaterializedMethods()
     }
 }
 
-class CJNativeModuleVisitor extends NativeModuleVisitor {
-    private arrayLikeTypes = new Set([
-        'Uint8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'ArrayBuffer'])
-    private stringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string'])
+function writeNativeModuleEmptyImplementation(method: Method, writer: LanguageWriter) {
+    writer.writeMethodImplementation(method, writer => {
+        writer.writePrintLog(method.name)
+        if (method.signature.returnType !== undefined && method.signature.returnType !== idl.IDLVoidType) {
+            writer.writeStatement(writer.makeReturn(writer.makeString(getReturnValue(method.signature.returnType))))
+        }
+    })
+}
 
-    constructor(
-        protected readonly library: PeerLibrary,
-    ) {
-        super(library)
-        this.nativeFunctions = createLanguageWriter(library.language, getReferenceResolver(library))
+class TSNativeModulePredefinedVisitor extends NativeModulePredefinedVisitor {
+    readonly nativeModuleEmpty: LanguageWriter = createLanguageWriter(this.language, this.library)
+
+    protected printMethod(method: Method): void {
+        super.printMethod(method)
+        writeNativeModuleEmptyImplementation(method, this.nativeModuleEmpty)
     }
+}
 
-    override printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter,
-        returnType?: idl.IDLType,
-        nativeFunctions?: LanguageWriter
-    ) {
-        const component = method.originalParentName // clazz.generatedName(method.isCallSignature)
-        clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
-        const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
-        let name = `_${component}_${method.overloadedName}`
-        let nativeName = name.substring(1)
-        nativeModule.writeMethodImplementation(new Method(name, parameters, [MethodModifier.PUBLIC, MethodModifier.STATIC]), (printer) => {
-            let functionCallArgs: Array<string> = []
-            printer.print('unsafe {')
-            printer.pushIndent()
-            for(let param of parameters.args) {
-                let ordinal = parameters.args.indexOf(param)
-                if (idl.isContainerType(param) || this.arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
-                    functionCallArgs.push(`handle_${ordinal}.pointer`)
-                    printer.print(`let handle_${ordinal} = acquireArrayRawData(${parameters.argsNames[ordinal]}.toArray())`)
-                } else if (this.stringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
-                    printer.print(`let ${parameters.argsNames[ordinal]} =  LibC.mallocCString(${parameters.argsNames[ordinal]})`)
-                    functionCallArgs.push(parameters.argsNames[ordinal])
-                } else {
-                    functionCallArgs.push(parameters.argsNames[ordinal])
-                }
-            }
-            const resultVarName = 'result'
-            let shouldReturn = false
-            if (returnType === idl.IDLVoidType) {
-                printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))).asString()}`)
+class TSNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisitor {
+    readonly nativeModuleEmpty: LanguageWriter = createLanguageWriter(Language.TS, this.library)
+
+    protected printMethod(method: Method): void {
+        super.printMethod(method)
+        writeNativeModuleEmptyImplementation(method, this.nativeModuleEmpty)
+    }
+}
+
+const cjArrayLikeTypes = new Set([
+    'Uint8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'ArrayBuffer'])
+const cjAtringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string'])
+function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter, nativeFunctions: LanguageWriter) {
+    method = new Method(method.name, method.signature, [MethodModifier.PUBLIC, MethodModifier.STATIC])
+    const signature = method.signature as NamedMethodSignature
+    const nativeName = method.name.substring(1)
+    nativeModule.writeMethodImplementation(method, (printer) => {
+        let functionCallArgs: Array<string> = []
+        printer.print('unsafe {')
+        printer.pushIndent()
+        for(let param of signature.args) {
+            let ordinal = signature.args.indexOf(param)
+            if (idl.isContainerType(param) || cjArrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                functionCallArgs.push(`handle_${ordinal}.pointer`)
+                printer.print(`let handle_${ordinal} = acquireArrayRawData(${signature.argsNames[ordinal]}.toArray())`)
+            } else if (cjAtringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                printer.print(`let ${signature.argsNames[ordinal]} =  LibC.mallocCString(${signature.argsNames[ordinal]})`)
+                functionCallArgs.push(signature.argsNames[ordinal])
             } else {
-                printer.writeStatement(
-                    printer.makeAssign(
-                        resultVarName,
-                        undefined,
-                        new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))),
-                        true
-                    )
+                functionCallArgs.push(signature.argsNames[ordinal])
+            }
+        }
+        const resultVarName = 'result'
+        let shouldReturn = false
+        if (signature.returnType === idl.IDLVoidType) {
+            printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))).asString()}`)
+        } else {
+            printer.writeStatement(
+                printer.makeAssign(
+                    resultVarName,
+                    undefined,
+                    new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))),
+                    true
                 )
-                shouldReturn = true
+            )
+            shouldReturn = true
+        }
+        for(let param of signature.args) {
+            let ordinal = signature.args.indexOf(param)
+            if (idl.isContainerType(param) || cjArrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                printer.print(`releaseArrayRawData(handle_${ordinal})`)
+            } else if (cjAtringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                printer.print(`LibC.free(${signature.argsNames[ordinal]})`)
             }
-            for(let param of parameters.args) {
-                let ordinal = parameters.args.indexOf(param)
-                if (idl.isContainerType(param) || this.arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
-                    printer.print(`releaseArrayRawData(handle_${ordinal})`)
-                } else if (this.stringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
-                    printer.print(`LibC.free(${parameters.argsNames[ordinal]})`)
-                }
-            }
-
-            if (shouldReturn) {
-                printer.writeStatement(printer.makeReturn(printer.makeString(resultVarName)))
-            }
-            printer.popIndent()
-            printer.print('}')
-        })
-        if (nativeFunctions) {
-            nativeFunctions!.pushIndent()
-            nativeFunctions!.writeNativeMethodDeclaration(nativeName, parameters)
-            nativeFunctions!.popIndent()
         }
 
-        nativeModuleEmpty.writeMethodImplementation(new Method(name, parameters), (printer) => {
-            printer.writePrintLog(name)
-            if (returnType !== undefined
-                && idl.forceAsNamedNode(returnType).name !== idl.IDLVoidType.name
-                && idl.forceAsNamedNode(returnType).name !== 'Void'
-            ) {
-                printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(returnType))))
-            }
-        })
-        clazz.setGenerationContext(undefined)
-    }
-
-    override printMaterializedMethods(nativeModule: LanguageWriter, nativeModuleEmpty: LanguageWriter, nativeFunctions?: LanguageWriter) {
-        this.library.materializedToGenerate.forEach(clazz => {
-            this.printPeerMethod(clazz, clazz.ctor, nativeModule, nativeModuleEmpty, idl.IDLPointerType)
-            this.printPeerMethod(clazz, clazz.finalizer, nativeModule, nativeModuleEmpty, idl.IDLPointerType)
-            const component = clazz.generatedName(false)
-            if (nativeFunctions) {
-                nativeFunctions!.pushIndent()
-                nativeFunctions!.writeNativeMethodDeclaration(`${component}_${clazz.ctor.method.name}`, clazz.finalizer.method.signature)
-                nativeFunctions!.writeNativeMethodDeclaration(`${component}_${clazz.finalizer.method.name}`, clazz.finalizer.method.signature)
-                nativeFunctions!.popIndent()
-            }
-            clazz.methods.forEach(method => {
-                const returnType = method.tsReturnType()
-                this.printPeerMethod(clazz, method, nativeModule, nativeModuleEmpty, idl.IDLPointerType, nativeFunctions)
-            })
-        })
-    }
-
-    override printPredefinedMethod(inputMethod:idl.IDLMethod, printer:LanguageWriter) {
-        if (!this.shouldPrintPredefineMethod(inputMethod)) {
-            return
+        if (shouldReturn) {
+            printer.writeStatement(printer.makeReturn(printer.makeString(resultVarName)))
         }
-        const method = this.makeMethodFromIdl(inputMethod, printer)
-        method.modifiers = [MethodModifier.PUBLIC, MethodModifier.STATIC]
-
-        const foreightMethodName = method.name.substring(1)
-        const func = printer.makeNativeMethodNamedSignature(inputMethod.returnType, inputMethod.parameters)
-
-        this.nativeFunctions!.writeNativeMethodDeclaration(foreightMethodName, func)
-        printer.writeMethodImplementation(method, printer => {
-            printer.print('unsafe {')
-            printer.pushIndent()
-            const callParameters: string[] = []
-            const cleanUpStmnts: string[] = []
-            method.signature.args.forEach((arg, ordinal) => {
-                const paramName = method.signature.argName(ordinal)
-                if (idl.IDLContainerUtils.isSequence(arg) || this.arrayLikeTypes.has(idl.forceAsNamedNode(arg).name) || idl.forceAsNamedNode(arg).name.startsWith('ArrayList<') || idl.forceAsNamedNode(arg).name.startsWith('buffer')) {
-                    const varName = `handle_${ordinal}`
-                    callParameters.push(`${varName}.pointer`)
-                    printer.writeStatement(printer.makeAssign(
-                        varName,
-                        undefined,
-                        printer.makeString(`acquireArrayRawData(${paramName}.toArray())`),
-                        true
-                    ))
-                    cleanUpStmnts.push(`releaseArrayRawData(${varName})`)
-                } else if (this.stringLikeTypes.has(idl.forceAsNamedNode(arg).name)) {
-                    const varName = `cstr_${ordinal}`
-                    callParameters.push(varName)
-                    printer.writeStatement(printer.makeAssign(
-                        varName,
-                        undefined,
-                        printer.makeString(`LibC.mallocCString(${paramName})`),
-                        true
-                    ))
-                    cleanUpStmnts.push(`LibC.free(${varName})`)
-                } else {
-                    callParameters.push(paramName)
-                }
-            })
-
-            const resultVarName = 'result'
-            let shouldReturn = false
-            const callExpr = printer.makeFunctionCall(foreightMethodName, callParameters.map((x) => printer.makeString(x)))
-            if (idl.forceAsNamedNode(method.signature.returnType).name === 'void') {
-                printer.writeStatement(printer.makeStatement(callExpr))
-            } else {
-                printer.writeStatement(
-                    printer.makeAssign(
-                        resultVarName,
-                        undefined,
-                        callExpr,
-                        true
-                    )
-                )
-                shouldReturn = true
-            }
-            cleanUpStmnts.forEach((str) => {
-                printer.writeStatement(printer.makeStatement(printer.makeString(str)))
-            })
-
-            if (shouldReturn) {
-                printer.writeStatement(printer.makeReturn(printer.makeString(resultVarName)))
-            }
-            printer.popIndent()
-            printer.print('}')
-        })
-
-        this.nativeModuleEmpty.writeMethodImplementation(method, (printer) => {
-            printer.writePrintLog(method.name)
-            if (inputMethod.returnType !== undefined
-                && idl.forceAsNamedNode(inputMethod.returnType).name !== idl.IDLVoidType.name
-                && idl.forceAsNamedNode(inputMethod.returnType).name !== 'Void'
-            ) {
-                printer.writeStatement(printer.makeReturn(printer.makeString(getReturnValue(inputMethod.returnType))))
-            }
-        })
+        printer.popIndent()
+        printer.print('}')
+    })
+    if (nativeFunctions) {
+        nativeFunctions!.pushIndent()
+        nativeFunctions!.writeNativeMethodDeclaration(nativeName, signature)
+        nativeFunctions!.popIndent()
     }
 }
 
-export function printNativeModule(peerLibrary: PeerLibrary, nativeBridgePath: string): string {
-    const lang = peerLibrary.language
-    const visitor = (lang == Language.CJ) ? new CJNativeModuleVisitor(peerLibrary) : new NativeModuleVisitor(peerLibrary)
-    visitor.print()
-    return nativeModuleDeclaration(visitor.nativeModule, visitor.nativeModulePredefined, nativeBridgePath, false, lang, visitor.nativeFunctions)
+class CJNativeModulePredefinedVisitor extends NativeModulePredefinedVisitor {
+    readonly nativeFunctions = createLanguageWriter(Language.CJ, this.library)
+
+    protected printMethod(method: Method): void {
+        writeCJNativeModuleMethod(method, this.nativeModule, this.nativeFunctions)
+    }
 }
 
-export function printNativeModuleEmpty(peerLibrary: PeerLibrary): string {
-    const visitor = new NativeModuleVisitor(peerLibrary)
-    visitor.print()
-    return nativeModuleEmptyDeclaration(visitor.nativeModuleEmpty.getOutput())
+class CJNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisitor {
+    readonly nativeFunctions = createLanguageWriter(Language.CJ, this.library)
+
+    protected printMethod(method: Method): void {
+        writeCJNativeModuleMethod(method, this.nativeModule, this.nativeFunctions)
+    }
+}
+
+function createPredefinedNativeModuleVisitor(library: PeerLibrary, language: Language, entries: idl.IDLInterface[]): NativeModulePredefinedVisitor {
+    switch (language) {
+        case Language.TS:
+            return new TSNativeModulePredefinedVisitor(library, language, entries)
+        case Language.CJ:
+            return new CJNativeModulePredefinedVisitor(library, language, entries)
+        case Language.ARKTS:
+        case Language.JAVA:
+            return new NativeModulePredefinedVisitor(library, language, entries)
+        default:
+            throw new Error("Not supported language for NativeModule")
+    }
+}
+
+function createArkUIGeneratedNativeModuleVisitor(library: PeerLibrary, language: Language): NativeModuleArkUIGeneratedVisitor {
+    switch (language) {
+        case Language.TS:
+            return new TSNativeModuleArkUIGeneratedVisitor(library, language)
+        case Language.CJ:
+            return new CJNativeModuleArkUIGeneratedVisitor(library, language)
+        case Language.ARKTS:
+        case Language.JAVA:
+            return new NativeModuleArkUIGeneratedVisitor(library, language)
+        default:
+            throw new Error("Not supported language for NativeModule")
+    }
+}
+
+function collectNativeModuleImports(module: NativeModuleType, file: SourceFile) {
+    if (file.language === Language.TS || file.language === Language.ARKTS) {
+        const tsFile = file as TsSourceFile
+        tsFile.imports.addFeatures([
+            "KInt",
+            "KBoolean",
+            "KFloat",
+            "KUInt",
+            "KStringPtr",
+            "KPointer",
+            "KNativePointer",
+            "KInt32ArrayPtr",
+            "KUint8ArrayPtr",
+            "KFloat32ArrayPtr",
+            "pointer"
+        ], "@koalaui/interop")
+        tsFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
+        if (module === NativeModuleType.ArkUI)
+            tsFile.imports.addFeature('loadLibraries', '@koalaui/interop')
+        if (file.language === Language.ARKTS) {
+            tsFile.imports.addFeature('NativeBuffer', '@koalaui/interop')
+            if (module === NativeModuleType.Generated)
+                tsFile.imports.addFeature('Length', '../ArkUnitsInterfaces')
+        }
+    }
+}
+
+function printNativeModuleRegistration(language: Language, module: NativeModuleType, file: SourceFile): void {
+    switch (language) {
+        case Language.TS:
+            const tsFile = file as TsSourceFile
+            tsFile.imports.addFeature('registerNativeModule', '@koalaui/interop')
+            tsFile.content.print(`registerNativeModule("${module.name}", ${module.name})`)
+            break
+    }
+}
+
+export function printArkUILibrariesLoader(file: SourceFile) {
+    const template = readLangTemplate(`librariesLoader`, file.language)
+    switch (file.language) {
+        case Language.TS:
+            const tsFile = file as TsSourceFile
+            tsFile.imports.addFeatures(['withByteArray', 'Access', 'callCallback', 'nullptr', 'InteropNativeModule', 'loadLibraries', 'providePlatformDefinedData', 'NativeStringBase', 'ArrayDecoder', 'CallbackRegistry'], '@koalaui/interop')
+            tsFile.content.writeLines(template)
+            break
+        case Language.ARKTS:
+            const arktsFile = file as ArkTSSourceFile
+            arktsFile.imports.addFeatures(['loadLibraries'], "@koalaui/interop")
+            arktsFile.content.writeLines(template)
+            break
+        default:
+            throw new Error("Not implemented")
+    }
+}
+
+export function printPredefinedNativeModule(library: PeerLibrary, module: NativeModuleType): SourceFile {
+    const language = library.language
+    const entries = collectPredefinedNativeModuleEntries(library, module)
+    const visitor = createPredefinedNativeModuleVisitor(library, language, entries)
+    visitor.visit()
+    const file = SourceFile.make(`${module.name}${language.extension}`, language, library)
+    collectNativeModuleImports(module, file)
+    file.content.writeClass(module.name, writer => {
+        writer.concat(visitor.nativeModule)
+        const maybeTemplate = maybeReadLangTemplate(`${module}_functions`, language)
+        if (maybeTemplate)
+            writer.writeLines(maybeTemplate)
+    })
+    printNativeModuleRegistration(language, module, file)
+    return file
+}
+
+export function printTSPredefinedEmptyNativeModule(library: PeerLibrary, module: NativeModuleType): SourceFile {
+    const entries = collectPredefinedNativeModuleEntries(library, module)
+    const visitor = new TSNativeModulePredefinedVisitor(library, library.language, entries)
+    visitor.visit()
+    const file = SourceFile.make("", library.language, library)
+    collectNativeModuleImports(module, file)
+    file.content.writeClass(`${module.name}Empty`, writer => {
+        writer.concat(visitor.nativeModuleEmpty)
+    })
+    return file
+}
+
+export function printCJPredefinedNativeFunctions(library: PeerLibrary, module: NativeModuleType): SourceFile {
+    const entries = collectPredefinedNativeModuleEntries(library, module)
+    const visitor = new CJNativeModulePredefinedVisitor(library, library.language, entries)
+    visitor.visit()
+    const writer = createLanguageWriter(Language.CJ, library) as CJLanguageWriter
+    writer.writeCJForeign(writer => {
+        writer.concat(visitor.nativeFunctions)
+        const maybeTemplate = maybeReadLangTemplate(`${module.name}_nativeFunctions`, Language.CJ)
+        if (maybeTemplate)
+            writer.writeLines(maybeTemplate)
+    })
+    const file = SourceFile.make("", library.language, library)
+    collectNativeModuleImports(module, file)
+    file.content.concat(writer)
+    return file
+}
+
+export function printArkUIGeneratedNativeModule(library: PeerLibrary, module: NativeModuleType): SourceFile {
+    const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
+    visitor.visit()
+    const file = SourceFile.make("", library.language, library)
+    collectNativeModuleImports(module, file)
+    file.content.writeClass(module.name, writer => {
+        writer.concat(visitor.nativeModule)
+    })
+    printNativeModuleRegistration(library.language, module, file)
+    return file
+}
+
+export function printTSArkUIGeneratedEmptyNativeModule(library: PeerLibrary, module: NativeModuleType): SourceFile {
+    const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language) as TSNativeModuleArkUIGeneratedVisitor
+    visitor.visit()
+    const file = SourceFile.make("", library.language, library)
+    collectNativeModuleImports(module, file)
+    file.content.writeClass(`${module.name}Empty`, writer => {
+        writer.concat(visitor.nativeModuleEmpty)
+    })
+    return file
+}
+
+export function printCJArkUIGeneratedNativeFunctions(library: PeerLibrary, module: NativeModuleType): SourceFile {
+    const visitor = new CJNativeModuleArkUIGeneratedVisitor(library, library.language)
+    visitor.visit()
+    const writer = createLanguageWriter(Language.CJ, library) as CJLanguageWriter
+    writer.writeCJForeign(writer => {
+        writer.concat(visitor.nativeFunctions)
+    })
+    const file = SourceFile.make("", library.language, library)
+    collectNativeModuleImports(module, file)
+    file.content.concat(writer)
+    return file
+}
+
+export function collectPredefinedNativeModuleEntries(library: PeerLibrary, module: NativeModuleType): idl.IDLInterface[] {
+    switch (module) {
+        case NativeModuleType.Interop:
+            return library.predefinedDeclarations.filter(it => it.name === "Interop" || it.name === "Loader")
+        case NativeModuleType.Test:
+            return library.predefinedDeclarations.filter(it => it.name === "Test")
+        case NativeModuleType.ArkUI:
+            return library.predefinedDeclarations.filter(it => it.name === "Node")
+        default:
+            throw new Error(`NativeModuleType.${module} is not predefined`)
+    }
 }
 
 export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType | undefined, interopConvertor: InteropArgConvertor): NamedMethodSignature {

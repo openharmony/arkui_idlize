@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { NativeModule } from "#components"
 import { int32 } from "@koalaui/common"
 
 export interface ArkoalaControl {

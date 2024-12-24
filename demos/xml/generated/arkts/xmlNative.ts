@@ -34,10 +34,10 @@ export class CallbackKind {
 export class XMLNativeModule {
     static {
         loadLibrary("XML_NativeBridgeArk")
-        XMLNativeModule.init()
+        XMLNativeModule.init(["xmlNative/XMLNativeModule", "xmlNative/ArkUINativeModule"])
     }
 
-    static native init(): void;
+    static native init(modules: string[]): void
 
     static callCallbackFromNative(id: KInt, args: KUint8ArrayPtr, length: KInt): KInt {
         // TODO implement callCallbackFromNative
@@ -74,23 +74,12 @@ export class XMLNativeModule {
     native static _XmlPullParser_getFinalizer(): KPointer 
     native static _XmlPullParser_parse(self: KPointer, thisArray: KUint8ArrayPtr, thisLength: int32): void 
     native static _XmlPullParser_parseXml(self: KPointer, thisArray: KUint8ArrayPtr, thisLength: int32): void 
-    native static _InvokeFinalizer(ptr: KPointer, finalizer: KPointer): void 
-    native static _CallCallback(callbackKind: int32, args: KUint8ArrayPtr, argsSize: int32): void 
-    native static _CallCallbackSync(callbackKind: int32, args: KUint8ArrayPtr, argsSize: int32): void 
-    native static _CallCallbackResourceHolder(holder: KPointer, resourceId: int32): void 
-    native static _CallCallbackResourceReleaser(releaser: KPointer, resourceId: int32): void 
+}
+
+export class ArkUINativeModule {
     native static _CheckArkoalaCallbackEvent(buffer: KUint8ArrayPtr, bufferLength: int32): int32 
     native static _HoldArkoalaResource(resourceId: int32): void 
     native static _ReleaseArkoalaResource(resourceId: int32): void 
     native static _Utf8ToString(buffer: KUint8ArrayPtr, position: int32, length: int32): string 
     native static _ManagedStringWrite(str: string, arr: KUint8ArrayPtr, len: int32): int32 
 }
-
-let theModule: XMLNativeModule
-
-export function getXMLNativeModule(): XMLNativeModule {
-    if (theModule) return theModule
-    theModule = new XMLNativeModule()
-    return theModule
-}
-

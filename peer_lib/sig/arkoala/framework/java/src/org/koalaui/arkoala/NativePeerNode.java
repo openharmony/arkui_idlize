@@ -28,30 +28,30 @@ public class NativePeerNode extends Finalizable {
     }
 
     public static NativePeerNode create(long peerPtr) {
-        return new NativePeerNode(peerPtr, NativeModule._GetNodeFinalizer());
+        return new NativePeerNode(peerPtr, ArkUINativeModule._GetNodeFinalizer());
     }
 
     public void dispose() {
-        NativeModule._DisposeNode(ptr);
+        ArkUINativeModule._DisposeNode(ptr);
     }
 
     public void addChild(NativePeerNode node) {
-        NativeModule._AddChild(ptr, node.ptr);
+        ArkUINativeModule._AddChild(ptr, node.ptr);
     }
     public void removeChild(NativePeerNode node) {
-        NativeModule._RemoveChild(ptr, node.ptr);
+        ArkUINativeModule._RemoveChild(ptr, node.ptr);
     }
     public void insertChildBefore(NativePeerNode node, NativePeerNode sibling) {
-        NativeModule._InsertChildBefore(ptr, node.ptr, sibling == null ? 0 : sibling.ptr);
+        ArkUINativeModule._InsertChildBefore(ptr, node.ptr, sibling == null ? 0 : sibling.ptr);
     }
     public void insertChildAfter(NativePeerNode node, NativePeerNode sibling) {
-        NativeModule._InsertChildAfter(ptr, node.ptr, sibling == null ? 0 : sibling.ptr);
+        ArkUINativeModule._InsertChildAfter(ptr, node.ptr, sibling == null ? 0 : sibling.ptr);
     }
     public void insertChildAt(NativePeerNode node, int position) {
-        NativeModule._InsertChildAt(ptr, node.ptr, position);
+        ArkUINativeModule._InsertChildAt(ptr, node.ptr, position);
     }
 
     public void dumpTree() {
-        NativeModule._DumpTreeNode(ptr);
+        ArkUINativeModule._DumpTreeNode(ptr);
     }
 }

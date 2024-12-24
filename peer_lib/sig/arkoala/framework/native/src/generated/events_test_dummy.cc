@@ -1,3 +1,5 @@
+#define KOALA_INTEROP_MODULE TestNativeModule
+
 #include "events.h"
 #include "common-interop.h"
 #include "Serializers.h"

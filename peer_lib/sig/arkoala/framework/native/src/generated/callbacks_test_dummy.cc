@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include <cstdint>
+
+#define KOALA_INTEROP_MODULE TestNativeModule
 #include "common-interop.h"
 
 void CallVoid(KVMContext vmContext, KInt methodId, KInt length, void* args) {

@@ -21,6 +21,7 @@ import * as fs from "fs"
 import { Language } from "../../Language"
 import { EnumConvertor } from "../ArgConvertors"
 import { ReferenceResolver } from "../ReferenceResolver"
+import { NativeModuleType } from "../NativeModuleType"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -435,8 +436,6 @@ export abstract class LanguageWriter {
         public language: Language,
     ) {}
 
-    nativeModuleAccessor = 'nativeModule'
-
     indentDepth(): number {
         return this.printer.indentDepth()
     }
@@ -550,14 +549,14 @@ export abstract class LanguageWriter {
     makeFieldAccess(receiver: string, method: string, nullable?: boolean): LanguageExpression {
         return new FieldAccessExpression(receiver, method, nullable)
     }
-    makeNativeCall(method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
-        return new MethodCallExpression(this.nativeReceiver(), method, params, nullable)
+    makeNativeCall(nativeModule: NativeModuleType, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
+        return new MethodCallExpression(this.nativeReceiver(nativeModule), method, params, nullable)
     }
     makeBlock(statements: LanguageStatement[], inScope: boolean = true) {
         return new BlockStatement(statements, inScope)
     }
-    nativeReceiver(): string {
-        return this.nativeModuleAccessor + "()"
+    nativeReceiver(nativeModule: NativeModuleType): string {
+        return nativeModule.name
     }
     makeDefinedCheck(value: string): LanguageExpression {
         return new CheckDefinedExpression(value)

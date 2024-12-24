@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { float32, int32 } from "@koalaui/common"
-import { pointer, ResourceHolder, ResourceId } from "@koalaui/interop"
-import { %NATIVE_MODULE_ACCESSOR% as nativeModule, CallbackKind } from "%NATIVE_MODULE_PATH%"
+import { InteropNativeModule, pointer, ResourceHolder, ResourceId } from "@koalaui/interop"
+import { %NATIVE_MODULE_ACCESSOR%, CallbackKind } from "%NATIVE_MODULE_PATH%"
 
 /**
  * Value representing possible JS runtime object type.
@@ -158,7 +158,7 @@ export class SerializerBase {
     }
     private releaseResources() {
         for (const resourceId of this.heldResources)
-            nativeModule()._ReleaseArkoalaResource(resourceId)
+            %NATIVE_MODULE_ACCESSOR%._ReleaseArkoalaResource(resourceId)
         // todo think about effective array clearing/pushing
         this.heldResources = []
     }
@@ -230,7 +230,7 @@ export class SerializerBase {
         throw new Error("unimplemented")
         // this.checkCapacity(4 + value.length * 4) // length, data
         // let encodedLength =
-        //     nativeModule()._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
+        //     %NATIVE_MODULE_ACCESSOR%._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
         // this.view.setInt32(this.position, encodedLength, true)
         // this.position += encodedLength + 4
     }
@@ -241,7 +241,7 @@ export class SerializerBase {
             hold: 0,
             release: 0
         })
-        const ptr = nativeModule()._GetNativeBufferPointer(buffer)
+        const ptr = InteropNativeModule._GetNativeBufferPointer(buffer)
         this.writePointer(ptr)
         this.writeInt64(BigInt(buffer.byteLength))
     }

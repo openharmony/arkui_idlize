@@ -1,8 +1,7 @@
-import { dlopen } from "node:process"
-import { constants } from "node:os"
-import { fileURLToPath } from "node:url"
+import { registerNativeModule } from "@koalaui/interop"
 
-const module = { exports: {} }
-dlopen(module, fileURLToPath(new URL('Xml_NativeBridgeNapi.node', import.meta.url)), constants.dlopen.RTLD_NOW)
+const NativeModule = {}
+registerNativeModule("NativeModule", NativeModule)
+registerNativeModule("InteropNativeModule", NativeModule)
 
-export default module.exports
+export default NativeModule

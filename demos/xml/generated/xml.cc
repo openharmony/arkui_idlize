@@ -15,6 +15,7 @@
 
 #include "xml.h"
 
+#define KOALA_INTEROP_MODULE XMLNativeModule
 #include "common-interop.h"
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
@@ -862,6 +863,7 @@ OH_NativePointer getManagedCallbackCallerSync(CallbackKind kind)
     }
     return nullptr;
 }
+
 enum CallbackEventKind {
     Event_CallCallback = 0,
     Event_HoldManagedResource = 1,

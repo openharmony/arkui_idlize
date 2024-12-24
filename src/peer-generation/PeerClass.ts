@@ -21,7 +21,6 @@ import { NumericConvertor } from "./ArgConvertors"
 import { Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 
 export interface PeerClassBase {
-    setGenerationContext(context: string| undefined): void
     generatedName(isCallSignature: boolean): string
 
     // TBD: update
@@ -34,8 +33,6 @@ export class PeerClass implements PeerClassBase {
         public readonly componentName: string,
         public readonly originalFilename: string,
     ) { }
-
-    setGenerationContext(context: string| undefined): void {}
 
     generatedName(isCallSignature: boolean): string{
         return isCallSignature ? this.originalInterfaceName! : this.originalClassName!

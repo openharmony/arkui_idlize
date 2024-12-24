@@ -31,6 +31,7 @@ import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPri
 import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter'
 import { CppSourceFile } from './printers/SourceFile'
 import { StructPrinter } from './printers/StructPrinter'
+import { NativeModuleType } from './NativeModuleType'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -51,6 +52,7 @@ class OHOSVisitor {
     peerWriter: LanguageWriter
     nativeWriter: LanguageWriter
     nativeFunctionsWriter: LanguageWriter
+    arkUIFunctionsWriter: LanguageWriter
 
     libraryName: string = ""
 
@@ -70,6 +72,7 @@ class OHOSVisitor {
         this.peerWriter = createLanguageWriter(library.language, library)
         this.nativeWriter = createLanguageWriter(library.language, library)
         this.nativeFunctionsWriter = createLanguageWriter(library.language, library)
+        this.arkUIFunctionsWriter = createLanguageWriter(library.language, library)
 
         const fileNamePrefix = this.libraryName.toLowerCase()
         this.implementationStubsFile = new CppSourceFile(`${fileNamePrefix}Impl_template${Language.CPP.extension}`, library)
@@ -259,6 +262,7 @@ class OHOSVisitor {
 
     private printNative() {
         const className = `${this.libraryName}NativeModule`
+        NativeModuleType.Generated.name = className
         this.callbacks.forEach(callback => {
             if (this.library.language === Language.TS) {
                 const params = callback.parameters.map(it => `${it.name}:${this.nativeWriter.getNodeName(it.type!)}`).join(', ')
@@ -277,6 +281,7 @@ class OHOSVisitor {
             })
         })
         printCallbacksKinds(this.library, this.nativeWriter)
+
         this.nativeFunctionsWriter.printer.pushIndent(this.nativeWriter.indentDepth() + 1)
         ;((writer: LanguageWriter) => {
             this.interfaces.forEach(it => {
@@ -295,38 +300,10 @@ class OHOSVisitor {
                     writer.writeNativeMethodDeclaration(`_${it.name}_${method.name}`, signature)  // TODO temporarily removed _${this.libraryName} prefix
                 })
             })
-            writer.writeNativeMethodDeclaration("_InvokeFinalizer",
-                NamedMethodSignature.make(IDLVoidType, [
-                    { name: "ptr", type: IDLPointerType },
-                    { name: "finalizer", type: IDLPointerType },
-                ])
-            )
-            writer.writeNativeMethodDeclaration("_CallCallback",
-                NamedMethodSignature.make(IDLVoidType, [
-                    { name: "callbackKind", type: IDLI32Type },
-                    { name: "args", type: IDLUint8ArrayType },
-                    { name: "argsSize", type: IDLI32Type },
-                ])
-            )
-            writer.writeNativeMethodDeclaration("_CallCallbackSync",
-                NamedMethodSignature.make(IDLVoidType, [
-                    { name: "callbackKind", type: IDLI32Type },
-                    { name: "args", type: IDLUint8ArrayType },
-                    { name: "argsSize", type: IDLI32Type },
-                ])
-            )
-            writer.writeNativeMethodDeclaration("_CallCallbackResourceHolder",
-                NamedMethodSignature.make(IDLVoidType, [
-                    { name: "holder", type: IDLPointerType },
-                    { name: "resourceId", type: IDLI32Type },
-                ])
-            )
-            writer.writeNativeMethodDeclaration("_CallCallbackResourceReleaser",
-                NamedMethodSignature.make(IDLVoidType, [
-                    { name: "releaser", type: IDLPointerType },
-                    { name: "resourceId", type: IDLI32Type },
-                ])
-            )
+        })(this.nativeFunctionsWriter)
+
+        this.arkUIFunctionsWriter.printer.pushIndent(this.nativeWriter.indentDepth() + 1)
+        ;((writer: LanguageWriter) => {
             writer.writeNativeMethodDeclaration("_CheckArkoalaCallbackEvent",
                 NamedMethodSignature.make(IDLI32Type, [
                     { name: "buffer", type: IDLUint8ArrayType },
@@ -375,27 +352,23 @@ class OHOSVisitor {
                     ])
                 )
             }
-        })(this.nativeFunctionsWriter)
+        })(this.arkUIFunctionsWriter)
     }
 
     private printPeer() {
         const nativeModuleVar = `${this.libraryName}NativeModule`
-        const nativeModuleGetter = `get${nativeModuleVar}`
         if (this.library.language === Language.TS) {
             this.peerWriter.print('import {')
             this.peerWriter.pushIndent()
             this.peerWriter.print(`${nativeModuleVar},`)
-            this.peerWriter.print(`${nativeModuleGetter},`)
             this.peerWriter.popIndent()
             this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
-            this.peerWriter.nativeModuleAccessor = nativeModuleGetter
         } else if (this.library.language === Language.ARKTS) {
             this.peerWriter.print('import {')
             this.peerWriter.pushIndent()
             this.peerWriter.print(`${nativeModuleVar},`)
             this.peerWriter.popIndent()
             this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
-            this.peerWriter.nativeModuleAccessor = nativeModuleVar
         }
         this.data.forEach(data => {
             this.peerWriter.writeInterface(data.name, writer => {
@@ -463,7 +436,7 @@ class OHOSVisitor {
                         })
                         
                         const createPeerExpression = writer.makeNewObject("Finalizable", [
-                            writer.makeNativeCall(`_${int.name}_ctor`, params),
+                            writer.makeNativeCall(NativeModuleType.Generated, `_${int.name}_ctor`, params),
                             writer.makeString(`${int.name}.getFinalizer()`)
                         ])
                         writer.writeStatement(
@@ -488,6 +461,7 @@ class OHOSVisitor {
                 const getFinalizerSig = new MethodSignature(IDLPointerType, [])
                 writer.writeMethodImplementation(new Method("getFinalizer", getFinalizerSig, [MethodModifier.STATIC]), writer => {
                     const callExpression = writer.makeNativeCall(
+                        NativeModuleType.Generated,
                         `_${int.name}_getFinalizer`, // TODO temporarily removed _${this.libraryName} prefix
                         []
                     );
@@ -554,6 +528,7 @@ class OHOSVisitor {
                             }
                         })
                         const callExpression = writer.makeNativeCall(
+                            NativeModuleType.Generated,
                             `_${int.name}_${method.name}`, // TODO temporarily removed _${this.libraryName} prefix
                             params
                         )
@@ -609,6 +584,7 @@ class OHOSVisitor {
 
         this.cppWriter.writeLines(
             readLangTemplate('api_impl_prologue.cc', Language.CPP)
+                .replaceAll("%INTEROP_MODULE_NAME%", `${this.libraryName.toUpperCase()}NativeModule`)
                 .replaceAll("%API_HEADER_PATH%", `${this.libraryName.toLowerCase()}.h`)
                 .replaceAll("%CALLBACK_KINDS%", callbackKindsPrinter.getOutput().join("\n"))
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
@@ -694,7 +670,7 @@ class OHOSVisitor {
         const ext = this.library.language.extension
 
         const managedCodeModuleInfo = {
-            name: `get${this.libraryName}NativeModule`,
+            name: `${this.libraryName}NativeModule`,
             path: `./${fileNamePrefix}Native`,
             serializerPath: `./${fileNamePrefix}Serializer`,
             finalizablePath: `./${fileNamePrefix}Finalizable`,
@@ -709,7 +685,9 @@ class OHOSVisitor {
             .replaceAll('%NATIVE_MODULE_NAME%', this.libraryName)
             .replaceAll('%NATIVE_MODULE_CONTENT%', this.nativeWriter.getOutput().join('\n'))
             .replaceAll('%NATIVE_FUNCTIONS%', this.nativeFunctionsWriter.getOutput().join('\n'))
-        fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Native${ext}`), nativeModuleText, 'utf-8')
+            .replaceAll('%ARKUI_FUNCTIONS%', this.arkUIFunctionsWriter.getOutput().join('\n'))
+            .replaceAll('%OUTPUT_FILE%', managedCodeModuleInfo.path.replace('./', ''))
+        fs.writeFileSync(path.join(managedOutDir, `${managedCodeModuleInfo.path}${ext}`), nativeModuleText, 'utf-8')
 
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Finalizable${ext}`),
             readLangTemplate(`OHOSFinalizable_template${ext}`, this.library.language)

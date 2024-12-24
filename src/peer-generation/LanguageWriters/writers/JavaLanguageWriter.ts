@@ -137,7 +137,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         let genericsClause = generics?.length ? `<${generics.join(', ')}> ` : ``
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        this.printer.print(`class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
+        this.printer.print(`public class ${name}${genericsClause}${extendsClause}${implementsClause} {`) // TODO check for multiple classes in file
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -233,7 +233,6 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
-    nativeReceiver(): string { return 'NativeModule' }
     applyToObject(p: BaseArgConvertor, param: string, value: string, args?: ObjectArgs): LanguageStatement {
         throw new Error("Method not implemented.")
     }

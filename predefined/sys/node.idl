@@ -2,6 +2,7 @@ package "org.openharmony.idlize.predefined";
 
 interface Node {
     pointer CreateNode(i32 node_t, i32 arg0, i32 arg1);
+    pointer GetNodeFinalizer();
     pointer GetNodeByViewStack();
     void DisposeNode(pointer ptr0);
     void DumpTreeNode(pointer ptr0);
@@ -44,10 +45,9 @@ interface Node {
     i32 CheckArkoalaGeneratedEvents(sequence<u8> result, i32 size);
     i32 InjectEvent(sequence<u8> data, i32 size);
 
-    void CallCallback(i32 callbackKind, sequence<u8> args, i32 argsSize);
-    void CallCallbackSync(i32 callbackKind, sequence<u8> args, i32 argsSize);
-    void CallCallbackResourceHolder(pointer holder, i32 resourceId);
-    void CallCallbackResourceReleaser(pointer releaser, i32 resourceId);
+    void StartPerf(String str1);
+    void EndPerf(String str1);
+    pointer DumpPerf(i32 arg);
     i32 CheckArkoalaCallbackEvent(sequence<u8> buffer, i32 bufferLength);
     void HoldArkoalaResource(i32 resourceId);
     void ReleaseArkoalaResource(i32 resourceId);

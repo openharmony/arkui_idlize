@@ -1,8 +1,8 @@
 import { int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
 import { Finalizable } from "./Finalizable"
-import { nativeModule } from "@koalaui/arkoala";
 import { IncrementalNode } from "@koalaui/runtime"
+import { ArkUINativeModule } from "@koalaui/arkoala"
 
 export class NativePeerNode extends Finalizable {
 }
@@ -26,5 +26,5 @@ export class PeerNode extends IncrementalNode {
 
 
 function getNodeFinalizer() : pointer {
-    return nativeModule()._GetNodeFinalizer()
+    return ArkUINativeModule._GetNodeFinalizer()
 }

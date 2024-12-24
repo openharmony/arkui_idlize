@@ -60,7 +60,7 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
             switch (type.elementType[0]) {
                 case idl.IDLU8Type: return 'Uint8Array' // should be changed to Array
                 case idl.IDLI32Type: return 'Int32Array' // should be changed to Array
-                case idl.IDLF32Type: return 'Float32Array' // should be changed to Array
+                case idl.IDLF32Type: return 'KFloat32ArrayPtr' // should be changed to Array
                 default: return `Array<${this.convert(type.elementType[0])}>`
             }
         }

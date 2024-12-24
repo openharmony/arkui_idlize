@@ -25,8 +25,12 @@ export class ImportsCollector {
      * @param feature Feature to be imported from @module
      * @param module Module name - can be package started with `@` or relative path from current package root
      */
-    addFeature(feature: string, module: string) {
-        module = path.normalize(module)
+    addFeature(feature: ImportFeature): void
+    addFeature(feature: string, module: string): void
+    addFeature(feature: string | ImportFeature, module?: string) {
+        if (typeof feature != "string")
+            return this.addFeature(feature.feature, feature.module)
+        module = path.normalize(module!)
         // Checking for name collisions between modules
         // TODO: needs to be done more effectively
         const featureInAnotherModule = [...this.moduleToFeatures.entries()]
@@ -58,6 +62,11 @@ export class ImportsCollector {
     }
 
     print(printer: LanguageWriter, currentModule: string) {
+        this.printToLines(currentModule).forEach(it => printer.print(it))
+    }
+
+    printToLines(currentModule: string): string[] {
+        const lines = new Array<string>()
         const currentModuleDir = path.dirname(currentModule)
         this.moduleToFeatures.forEach((features, module) => {
             if (!module.startsWith('@') && !module.startsWith('#')) {
@@ -65,8 +74,9 @@ export class ImportsCollector {
                     return
                 module = `./${path.relative(currentModuleDir, module)}`
             }
-            printer.print(`import { ${Array.from(features).join(', ')} } from "${module}"`)
+            lines.push(`import { ${Array.from(features).join(', ')} } from "${module}"`)
         })
+        return lines
     }
 }
 

@@ -388,6 +388,13 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
+    writeCJForeign(op: (writer: CJLanguageWriter) => void) {
+        this.print(`foreign {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.print('}')
+    }
     private writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string): void {
         let prefix = modifiers
             ?.filter(it => this.supportedModifiers.includes(it))
@@ -395,7 +402,6 @@ export class CJLanguageWriter extends LanguageWriter {
         prefix = prefix ? prefix + " " : ""
         this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
     }
-    nativeReceiver(): string { return 'NativeModule' }
     writeNativeFunctionCall(printer: LanguageWriter, name: string, signature: MethodSignature) {
         printer.print(`return unsafe { ${name}(${signature.args.map((it, index) => `${signature.argName(index)}`).join(", ")}) }`)
     }

@@ -34,6 +34,8 @@ export abstract class SourceFile {
             return new ArkTSSourceFile(name, resolver)
         } else if (language === Language.CJ) {
             return new CJSourceFile(name, resolver)
+        } else if (language === Language.JAVA) {
+            return new JavaSourceFile(name, resolver)
         } else {
             return new GenericSourceFile(name, language, resolver)
         }
@@ -100,8 +102,10 @@ export class CppSourceFile extends SourceFile {
         if (this.isHeaderFile) {
             includeGuard = makeIncludeGuardDefine(this.name)
             fileWriter.print(`#ifndef ${includeGuard}\n#define ${includeGuard}\n`)
+        } else {
+            fileWriter.print("#define KOALA_INTEROP_MODULE NotSpecifiedInteropModule")
         }
-        
+
         this.printImports(fileWriter)
         fileWriter.print("")
         fileWriter.concat(this.content)
@@ -202,6 +206,34 @@ export class CJSourceFile extends SourceFile {
     protected onMerge(file: this): void {
 
     }
+}
+
+export class JavaSourceFile extends SourceFile {
+    declare public readonly content: CJLanguageWriter
+    public packageName: string = "org.koalaui.arkoala";
+
+    constructor(name: string, resolver: ReferenceResolver) {
+        super(name, Language.JAVA, resolver)
+    }
+
+    public printToString(): string {
+        let printer = createLanguageWriter(Language.JAVA, this.resolver)
+        printer.print(cStyleCopyright)
+        printer.print(`package ${this.packageName};`)
+        printer.print('')
+        printer.concat(this.content)
+
+        return printer.getOutput().join('\n')
+    }
+    
+    public printImports(writer: LanguageWriter): void {
+        // TODO implement
+    }
+
+    protected onMerge(file: this): void {
+        // todo implement
+    }
+
 }
 
 /** @deprecated Each destination language should have its own SourceFile implementation */

@@ -14,7 +14,8 @@
  */
 import { float32, int32, int64 } from "@koalaui/common"
 import { pointer, wrapCallback, ResourceId, ResourceHolder, KPointer } from "@koalaui/interop"
-import { nativeModule } from "@koalaui/arkoala"
+import { InteropNativeModule } from "@koalaui/interop"
+import { ArkUINativeModule } from "@koalaui/arkoala"
 
 // imports required interfaces (now generation is disabled)
 // import { Resource } from "@arkoala/arkui"
@@ -192,7 +193,7 @@ export class SerializerBase {
     }
     private releaseResources() {
         for (const resourceId of this.heldResources)
-            nativeModule()._ReleaseArkoalaResource(resourceId)
+            ArkUINativeModule._ReleaseArkoalaResource(resourceId)
         // todo think about effective array clearing/pushing
         this.heldResources = []
     }
@@ -261,7 +262,7 @@ export class SerializerBase {
     writeString(value: string) {
         this.checkCapacity(4 + value.length * 4) // length, data
         let encodedLength =
-            nativeModule()._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
+            InteropNativeModule._ManagedStringWrite(value, new Uint8Array(this.view.buffer, 0), this.position + 4)
         this.view.setInt32(this.position, encodedLength, true)
         this.position += encodedLength + 4
     }
@@ -272,7 +273,7 @@ export class SerializerBase {
             hold: 0,
             release: 0
         })
-        const ptr = nativeModule()._GetNativeBufferPointer(buffer)
+        const ptr = InteropNativeModule._GetNativeBufferPointer(buffer)
         this.writePointer(ptr)
         this.writeInt64(buffer.byteLength)
     }

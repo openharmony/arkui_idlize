@@ -6,10 +6,10 @@ import { pointer, KPointer, KInt, KStringPtr, KUint8ArrayPtr } from "@koalaui/in
 export class %NATIVE_MODULE_NAME%NativeModule {
     static {
         loadLibrary("%NATIVE_MODULE_NAME%_NativeBridgeArk")
-        %NATIVE_MODULE_NAME%NativeModule.init()
+        %NATIVE_MODULE_NAME%NativeModule.init(["%OUTPUT_FILE%/XMLNativeModule", "%OUTPUT_FILE%/ArkUINativeModule"])
     }
 
-    static native init(): void;
+    static native init(modules: string[]): void
 
     static callCallbackFromNative(id: KInt, args: KUint8ArrayPtr, length: KInt): KInt {
         // TODO implement callCallbackFromNative
@@ -22,11 +22,6 @@ export class %NATIVE_MODULE_NAME%NativeModule {
 %NATIVE_FUNCTIONS%
 }
 
-let theModule: %NATIVE_MODULE_NAME%NativeModule
-
-export function get%NATIVE_MODULE_NAME%NativeModule(): %NATIVE_MODULE_NAME%NativeModule {
-    if (theModule) return theModule
-    theModule = new %NATIVE_MODULE_NAME%NativeModule()
-    return theModule
+export class ArkUINativeModule {
+%ARKUI_FUNCTIONS%
 }
-

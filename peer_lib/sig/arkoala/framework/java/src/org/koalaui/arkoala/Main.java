@@ -25,6 +25,7 @@ import java.util.TreeMap;
 
 public class Main {
     public static void main(String[] args) {
+        Runtime.getRuntime().loadLibrary("NativeBridgeJni");
         perfTests();
         peerTests();
         checkIncrementalTree();
@@ -253,7 +254,7 @@ public class Main {
             String.format("disposeNode(0x%d)", child2.peer.ptr));
         TestUtils.checkResult("BasicNodeAPI dumpTree", () -> root.peer.dumpTree(),
             String.format("dumpTreeNode(0x%d)", root.peer.ptr));
-        TestUtils.checkResult("BasicNodeAPI measureLayoutAndDraw", () -> NativeModule._MeasureLayoutAndDraw(root.peer.ptr),
+        TestUtils.checkResult("BasicNodeAPI measureLayoutAndDraw", () -> ArkUINativeModule._MeasureLayoutAndDraw(root.peer.ptr),
             String.format("measureLayoutAndDraw(0x%d)", root.peer.ptr));
 
         System.out.println();

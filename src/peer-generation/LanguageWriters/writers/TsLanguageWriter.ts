@@ -249,6 +249,11 @@ export class TSLanguageWriter extends LanguageWriter {
         if (prefix) prefix += " "
         this.printer.print(`${prefix}${name}${optional ? "?"  : ""}: ${this.getNodeName(type)}${init}`)
     }
+    writeNativeMethodDeclaration(name: string, signature: MethodSignature, isNative?: boolean): void {
+        this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
+            writer.writeStatement(writer.makeThrowError("Not implemented"))
+        })
+    }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
     }

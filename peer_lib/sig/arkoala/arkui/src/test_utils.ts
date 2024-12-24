@@ -1,5 +1,5 @@
-import { nativeModule } from "@koalaui/arkoala"
-import { withStringResult } from "@koalaui/interop"
+import { ArkUINativeModule } from "@koalaui/arkoala"
+import { withStringResult, InteropNativeModule } from "@koalaui/interop"
 
 export const TEST_GROUP_LOG = 1
 export const CALL_GROUP_LOG = 2
@@ -24,23 +24,23 @@ export function checkTestFailures() {
 }
 
 export function startNativeTest(testName: string, group: number) {
-    nativeModule()._AppendGroupedLog(group, `void TEST_${testName}() {\n`)
+    InteropNativeModule._AppendGroupedLog(group, `void TEST_${testName}() {\n`)
 }
 
 export function stopNativeTest(group: number) {
-    nativeModule()._AppendGroupedLog(group, `}\n`)
+    InteropNativeModule._AppendGroupedLog(group, `}\n`)
 }
 
 export function startNativeLog(group: number) {
-    nativeModule()._StartGroupedLog(group)
+    InteropNativeModule._StartGroupedLog(group)
 }
 
 export function stopNativeLog(group: number) {
-    nativeModule()._StopGroupedLog(group)
+    InteropNativeModule._StopGroupedLog(group)
 }
 
 export function getNativeLog(group: number): string {
-    return withStringResult(nativeModule()._GetGroupedLog(group))!
+    return withStringResult(InteropNativeModule._GetGroupedLog(group))!
 }
 
 export function checkResult(name: string, test: () => void, expected: string) {

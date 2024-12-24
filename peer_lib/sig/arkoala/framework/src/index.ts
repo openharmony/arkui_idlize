@@ -1,5 +1,7 @@
-export * from "./generated/NativeModule"
-export * from "./generated/NativeModuleEmpty"
+export * from "./generated/ArkUINativeModule"
+export * from "./generated/ArkUINativeModuleEmpty"
+export * from "./generated/TestNativeModule"
+export * from "./generated/TestNativeModuleEmpty"
 export * from "./Finalizable"
 
 export function createUiDetachedRoot(

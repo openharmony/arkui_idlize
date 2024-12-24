@@ -18,7 +18,6 @@
 
 #include "dynamic-loader.h"
 #include "callbacks.h"
-#include "common-interop.h"
 #include "interop-logging.h"
 #include "arkoala_api_generated.h"
 

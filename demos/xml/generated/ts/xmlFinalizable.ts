@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-import { FinalizableBase, NativeThunk, pointer } from "@koalaui/interop"
-import { getXMLNativeModule } from "./xmlNative"
+import { FinalizableBase, InteropNativeModule, NativeThunk, pointer } from "@koalaui/interop"
 
 export interface MaterializedBase {
     getPeer(): Finalizable
@@ -39,6 +38,6 @@ export class NativeThunkImpl extends NativeThunk {
         super(ptr, finalizer, name)
     }
     destroyNative(ptr: pointer, finalizer: pointer): void {
-        getXMLNativeModule()._InvokeFinalizer(ptr, finalizer)
+        InteropNativeModule._InvokeFinalizer(ptr, finalizer)
     }
 }

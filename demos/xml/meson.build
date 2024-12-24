@@ -8,7 +8,7 @@ is_panda = get_option('target_vm') == 'panda'
 
 external_interop_dir = '../../external/interop/src/cpp'
 
-cflags = []
+cflags = ['-DKOALA_INTEROP_MODULE=NativeModule']
 ldflags = []
 
 include_dirs = [

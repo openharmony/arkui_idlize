@@ -14,7 +14,7 @@
  */
 import { float32, float64, int8, int32, int64, int32BitsFromFloat } from "@koalaui/common"
 import { pointer, KUint8ArrayPtr, KBuffer, ResourceId, ResourceHolder } from "@koalaui/interop"
-import { %NATIVE_MODULE_ACCESSOR% as NativeModule } from "%NATIVE_MODULE_PATH%"
+import { ArkUINativeModule } from "%NATIVE_MODULE_PATH%"
 
 /**
  * Value representing possible JS runtime object type.
@@ -187,7 +187,7 @@ export class SerializerBase {
     }
     private releaseResources() {
         for (const resourceId of this.heldResources)
-            NativeModule._ReleaseArkoalaResource(resourceId)
+            ArkUINativeModule._ReleaseArkoalaResource(resourceId)
         // todo think about effective array clearing/pushing
         this.heldResources = new Array<ResourceId>()
     }

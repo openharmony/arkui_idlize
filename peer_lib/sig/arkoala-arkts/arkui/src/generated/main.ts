@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NativeModule, nativeModule } from "#components"
+import { ArkUINativeModule, TestNativeModule, NativeModuleLoader } from "#components"
 import { wrapCallback, callCallback, wrapSystemCallback } from "./CallbackRegistry"
 import { deserializeAndCallCallback } from './peers/CallbackDeserializeCall.ts'
 import { assertEquals, assertThrows } from "./test_utils"
@@ -60,7 +60,7 @@ import { Alignment, TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arku
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
 import { Serializer } from "@arkoala/arkui/peers/Serializer"
 import { CallbackKind } from "@arkoala/arkui/peers/CallbackKind"
-import { ResourceId } from "@koalaui/interop"
+import { ResourceId, InteropNativeModule, loadLibraries } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
 
 
@@ -141,11 +141,11 @@ function checkSerdeCustomObject() {
 let hasTestErrors = false
 
 export function getNativeLog(): string {
-    let ptr = NativeModule._GetGroupedLog(1)
-    let length = NativeModule._StringLength(ptr)
+    let ptr = InteropNativeModule._GetGroupedLog(1)
+    let length = InteropNativeModule._StringLength(ptr)
     let data = new byte[length]
-    NativeModule._StringData(ptr, data, length)
-    NativeModule._InvokeFinalizer(ptr, NativeModule._GetStringFinalizer())
+    InteropNativeModule._StringData(ptr, data, length)
+    InteropNativeModule._InvokeFinalizer(ptr, InteropNativeModule._GetStringFinalizer())
     // TODO: better string decoding.
     let result = new StringBuilder()
     for (let i = 0; i < length; i++) {
@@ -155,9 +155,9 @@ export function getNativeLog(): string {
 }
 
 export function checkResult(name: string, test: () => void, expected: string) {
-    NativeModule._StartGroupedLog(1)
+    InteropNativeModule._StartGroupedLog(1)
     test()
-    NativeModule._StopGroupedLog(1)
+    InteropNativeModule._StopGroupedLog(1)
     const actual = getNativeLog()
         .replaceAll(" \n", "")
     if (actual != expected) {
@@ -585,10 +585,10 @@ function checkCallback() {
 function createDefaultWriteCallback(kind: CallbackKind, callback: object) {
     return (serializer: Serializer) => {
         return serializer.holdAndWriteCallback(callback,
-            nativeModule()._TestGetManagedHolder(),
-            nativeModule()._TestGetManagedReleaser(),
-            nativeModule()._TestGetManagedCaller(kind.value),
-            nativeModule()._TestGetManagedCallerSync(kind.value),
+            TestNativeModule._TestGetManagedHolder(),
+            TestNativeModule._TestGetManagedReleaser(),
+            TestNativeModule._TestGetManagedCaller(kind.value),
+            TestNativeModule._TestGetManagedCallerSync(kind.value),
         )
     }
 }
@@ -600,7 +600,7 @@ function enqueueCallback(
     const serializer = Serializer.hold()
     const resourceId = writeCallback(serializer)
     /* imitate libace holding resource */
-    nativeModule()._HoldArkoalaResource(resourceId)
+    ArkUINativeModule._HoldArkoalaResource(resourceId)
     /* libace stored resource somewhere */
     const buffer = new byte[serializer.length()]
     for (let i = 0; i < buffer.length; i++) {
@@ -612,11 +612,11 @@ function enqueueCallback(
     const deserializer = new Deserializer(buffer, buffer.length)
     readAndCallCallback(deserializer)
     /* libace released resource */
-    nativeModule()._ReleaseArkoalaResource(resourceId)
+    ArkUINativeModule._ReleaseArkoalaResource(resourceId)
 }
 
 function checkTwoSidesCallback() {
-    nativeModule()._TestSetArkoalaCallbackCaller()
+    TestNativeModule._TestSetArkoalaCallbackCaller()
 
     let callResult1 = "NOT_CALLED"
     let callResult2 = 0
@@ -651,7 +651,7 @@ function checkTwoSidesCallback() {
 }
 
 function checkTwoSidesCallbackSync() {
-    nativeModule()._TestSetArkoalaCallbackCallerSync()
+    TestNativeModule._TestSetArkoalaCallbackCallerSync()
     wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
 
     let callResult1 = "NOT_CALLED"
@@ -669,7 +669,7 @@ function checkTwoSidesCallbackSync() {
 }
 
 function checkCallbackWithReturn() {
-    nativeModule()._TestSetArkoalaCallbackCallerSync()
+    TestNativeModule._TestSetArkoalaCallbackCallerSync()
     wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
 
     let callResult1 = "NOT_CALLED"
@@ -693,9 +693,9 @@ function checkNativeCallback() {
     const id1 = wrapCallback((args: byte[], length: int): int => {
         return 123456
     })
-    assertEquals("NativeCallback without args", 123456, nativeModule()._TestCallIntNoArgs(id1))
+    assertEquals("NativeCallback without args", 123456, TestNativeModule._TestCallIntNoArgs(id1))
     assertThrows("NativeCallback without args called again", () => { callCallback(id1, [], 0) })
-    assertThrows("NativeCallback without args called again from native", () => { nativeModule()._TestCallIntNoArgs(id1) })
+    assertThrows("NativeCallback without args called again from native", () => { TestNativeModule._TestCallIntNoArgs(id1) })
 
     const id2 = wrapCallback((args: byte[], length: int): int => {
         const buf = new ArrayBuffer(length)
@@ -711,7 +711,7 @@ function checkNativeCallback() {
         return sum
     })
     const arr2: int[] = [100, 200, 300, -1000]
-    assertEquals("NativeCallback Int32Array sum", -400, nativeModule()._TestCallIntIntArraySum(id2, arr2, arr2.length))
+    assertEquals("NativeCallback Int32Array sum", -400, TestNativeModule._TestCallIntIntArraySum(id2, arr2, arr2.length))
 
     const id3 = wrapCallback((args: byte[], length: int): int => {
         const buf = new ArrayBuffer(length)
@@ -729,7 +729,7 @@ function checkNativeCallback() {
         return 0
     })
     const arr3: int[] = [100, 200, 300, -1000]
-    nativeModule()._TestCallVoidIntArrayPrefixSum(id3, arr3, arr3.length)
+    TestNativeModule._TestCallVoidIntArrayPrefixSum(id3, arr3, arr3.length)
     assertEquals("NativeCallback Int32Array PrefixSum [0]", 100, arr3[0])
     assertEquals("NativeCallback Int32Array PrefixSum [1]", 300, arr3[1])
     assertEquals("NativeCallback Int32Array PrefixSum [2]", 600, arr3[2])
@@ -748,7 +748,7 @@ function checkNativeCallback() {
             args[i] = view.getUint8(i) as byte
         }
         if (args32[0] + args32[1] < args32[2]) {
-            return nativeModule()._TestCallIntRecursiveCallback(id3 + 1, args, args.length)
+            return TestNativeModule._TestCallIntRecursiveCallback(id3 + 1, args, args.length)
         }
         return 1
     }, false)
@@ -765,7 +765,7 @@ function checkNativeCallback() {
         for (let i = 0; i < length; i++) {
             args[i] = view.getUint8(i) as byte
         }
-        nativeModule()._TestCallIntRecursiveCallback(id4, args, args.length)
+        TestNativeModule._TestCallIntRecursiveCallback(id4, args, args.length)
         for (let i = 0; i < length; i++) {
             view.setUint8(i, args[i]);
         }
@@ -784,7 +784,7 @@ function checkNativeCallback() {
         }
         return sum
     }, false)
-    nativeModule()._TestCallIntMemory(id5, 1000)
+    TestNativeModule._TestCallIntMemory(id5, 1000)
 }
 
 function checkNodeAPI() {
@@ -813,12 +813,14 @@ function checkNodeAPI() {
         `disposeNode(0x${child2.peer.ptr})`)
     checkResult("BasicNodeAPI dumpTree", () => root.peer.dumpTree(),
         `dumpTreeNode(0x${root.peer.ptr})`)
-    checkResult("BasicNodeAPI measureLayoutAndDraw", () => NativeModule._MeasureLayoutAndDraw(root.peer.ptr),
+    checkResult("BasicNodeAPI measureLayoutAndDraw", () => ArkUINativeModule._MeasureLayoutAndDraw(root.peer.ptr),
         `measureLayoutAndDraw(0x${root.peer.ptr})`)
 }
 
 export function main(): void {
-
+    loadLibraries(["ArkoalaNative_ark"])
+    NativeModuleLoader.init([])
+    
     checkCallbackWithReturn()
     checkTwoSidesCallbackSync()
 

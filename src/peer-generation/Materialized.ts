@@ -130,9 +130,6 @@ export class MaterializedClass implements PeerClassBase {
     getInternalName(): string {
         return getInternalClassName(this.className)
     }
-    setGenerationContext(context: string| undefined): void {
-       // TODO: set generation context!
-    }
 
     generatedName(isCallSignature: boolean): string{
         return this.className

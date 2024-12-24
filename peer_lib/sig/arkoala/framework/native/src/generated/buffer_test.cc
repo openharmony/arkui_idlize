@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <cstdint>
+#define KOALA_INTEROP_MODULE TestNativeModule
 #include "common-interop.h"
 #include "arkoala_api_generated.h"
 #include "Serializers.h"

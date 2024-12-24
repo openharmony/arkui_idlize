@@ -6,7 +6,6 @@ import { Finalizable } from "./xmlFinalizable"
 
 import {
     XMLNativeModule,
-    getXMLNativeModule,
 } from './xmlNative'
 export interface ParseOptions {
     supportDoctype?: boolean
@@ -70,50 +69,50 @@ export class XmlSerializer implements XmlSerializerInterface {
             const encoding_value = encoding!
             thisSerializer.writeString(encoding_value)
         }
-        this.peer = new Finalizable(getXMLNativeModule()._XmlSerializer_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlSerializer.getFinalizer())
+        this.peer = new Finalizable(XMLNativeModule._XmlSerializer_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlSerializer.getFinalizer())
         thisSerializer.release()
     }
     static getFinalizer(): KPointer {
-        return getXMLNativeModule()._XmlSerializer_getFinalizer()
+        return XMLNativeModule._XmlSerializer_getFinalizer()
     }
     getPeer(): Finalizable | undefined {
         return this.peer
     }
     setAttributes(name: string, value: string): void {
-        getXMLNativeModule()._XmlSerializer_setAttributes(this.peer.ptr, name, value)
+        XMLNativeModule._XmlSerializer_setAttributes(this.peer.ptr, name, value)
     }
     addEmptyElement(name: string): void {
-        getXMLNativeModule()._XmlSerializer_addEmptyElement(this.peer.ptr, name)
+        XMLNativeModule._XmlSerializer_addEmptyElement(this.peer.ptr, name)
     }
     setDeclaration(): void {
-        getXMLNativeModule()._XmlSerializer_setDeclaration(this.peer.ptr)
+        XMLNativeModule._XmlSerializer_setDeclaration(this.peer.ptr)
     }
     startElement(name: string): void {
-        getXMLNativeModule()._XmlSerializer_startElement(this.peer.ptr, name)
+        XMLNativeModule._XmlSerializer_startElement(this.peer.ptr, name)
     }
     endElement(): void {
-        getXMLNativeModule()._XmlSerializer_endElement(this.peer.ptr)
+        XMLNativeModule._XmlSerializer_endElement(this.peer.ptr)
     }
     setNamespace(prefix: string, namespace_: string): void {
-        getXMLNativeModule()._XmlSerializer_setNamespace(this.peer.ptr, prefix, namespace_)
+        XMLNativeModule._XmlSerializer_setNamespace(this.peer.ptr, prefix, namespace_)
     }
     setComment(text: string): void {
-        getXMLNativeModule()._XmlSerializer_setComment(this.peer.ptr, text)
+        XMLNativeModule._XmlSerializer_setComment(this.peer.ptr, text)
     }
     setCDATA(text: string): void {
-        getXMLNativeModule()._XmlSerializer_setCDATA(this.peer.ptr, text)
+        XMLNativeModule._XmlSerializer_setCDATA(this.peer.ptr, text)
     }
     setText(text: string): void {
-        getXMLNativeModule()._XmlSerializer_setText(this.peer.ptr, text)
+        XMLNativeModule._XmlSerializer_setText(this.peer.ptr, text)
     }
     setDocType(text: string): void {
-        getXMLNativeModule()._XmlSerializer_setDocType(this.peer.ptr, text)
+        XMLNativeModule._XmlSerializer_setDocType(this.peer.ptr, text)
     }
 }
 export class ParseInfo implements ParseInfoInterface {
     peer: Finalizable
     static getFinalizer(): KPointer {
-        return getXMLNativeModule()._ParseInfo_getFinalizer()
+        return XMLNativeModule._ParseInfo_getFinalizer()
     }
     getPeer(): Finalizable | undefined {
         return this.peer
@@ -124,43 +123,43 @@ export class ParseInfo implements ParseInfoInterface {
         return objParseInfo
     }
     getColumnNumber(): number {
-        const result = getXMLNativeModule()._ParseInfo_getColumnNumber(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_getColumnNumber(this.peer.ptr)
         return result
     }
     getDepth(): number {
-        const result = getXMLNativeModule()._ParseInfo_getDepth(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_getDepth(this.peer.ptr)
         return result
     }
     getLineNumber(): number {
-        const result = getXMLNativeModule()._ParseInfo_getLineNumber(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_getLineNumber(this.peer.ptr)
         return result
     }
     getName(): string {
-        const result = getXMLNativeModule()._ParseInfo_getName(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_getName(this.peer.ptr)
         return result
     }
     getNamespace(): string {
-        const result = getXMLNativeModule()._ParseInfo_getNamespace(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_getNamespace(this.peer.ptr)
         return result
     }
     getPrefix(): string {
-        const result = getXMLNativeModule()._ParseInfo_getPrefix(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_getPrefix(this.peer.ptr)
         return result
     }
     getText(): string {
-        const result = getXMLNativeModule()._ParseInfo_getText(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_getText(this.peer.ptr)
         return result
     }
     isEmptyElementTag(): boolean {
-        const result = getXMLNativeModule()._ParseInfo_isEmptyElementTag(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_isEmptyElementTag(this.peer.ptr)
         return result
     }
     isWhitespace(): boolean {
-        const result = getXMLNativeModule()._ParseInfo_isWhitespace(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_isWhitespace(this.peer.ptr)
         return result
     }
     getAttributeCount(): number {
-        const result = getXMLNativeModule()._ParseInfo_getAttributeCount(this.peer.ptr)
+        const result = XMLNativeModule._ParseInfo_getAttributeCount(this.peer.ptr)
         return result
     }
 }
@@ -183,11 +182,11 @@ export class XmlPullParser implements XmlPullParserInterface {
             const encoding_value = encoding!
             thisSerializer.writeString(encoding_value)
         }
-        this.peer = new Finalizable(getXMLNativeModule()._XmlPullParser_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlPullParser.getFinalizer())
+        this.peer = new Finalizable(XMLNativeModule._XmlPullParser_ctor(thisSerializer.asArray(), thisSerializer.length()), XmlPullParser.getFinalizer())
         thisSerializer.release()
     }
     static getFinalizer(): KPointer {
-        return getXMLNativeModule()._XmlPullParser_getFinalizer()
+        return XMLNativeModule._XmlPullParser_getFinalizer()
     }
     getPeer(): Finalizable | undefined {
         return this.peer
@@ -195,13 +194,13 @@ export class XmlPullParser implements XmlPullParserInterface {
     parse(option: ParseOptions): void {
         const thisSerializer: Serializer = Serializer.hold()
         thisSerializer.writeParseOptions(option)
-        getXMLNativeModule()._XmlPullParser_parse(this.peer.ptr, thisSerializer.asArray(), thisSerializer.length())
+        XMLNativeModule._XmlPullParser_parse(this.peer.ptr, thisSerializer.asArray(), thisSerializer.length())
         thisSerializer.release()
     }
     parseXml(option: ParseOptions): void {
         const thisSerializer: Serializer = Serializer.hold()
         thisSerializer.writeParseOptions(option)
-        getXMLNativeModule()._XmlPullParser_parseXml(this.peer.ptr, thisSerializer.asArray(), thisSerializer.length())
+        XMLNativeModule._XmlPullParser_parseXml(this.peer.ptr, thisSerializer.asArray(), thisSerializer.length())
         thisSerializer.release()
     }
 }

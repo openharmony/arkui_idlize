@@ -1,6 +1,6 @@
 import { Finalizable } from "./Finalizable"
 import { MaterializedBase } from "./MaterializedBase"
-import { nativeModule } from "@koalaui/arkoala"
+import { ArkUIGeneratedNativeModule } from "./ArkUIGeneratedNativeModule"
 import { Serializer } from "./peers/Serializer"
 import { isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase } from "./peers/SerializerBase"
 import { unsafeCast } from "./shared/generated-utils"

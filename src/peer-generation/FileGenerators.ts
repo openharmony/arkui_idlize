@@ -31,6 +31,8 @@ import { createReferenceType, IDLVoidType } from "../idl"
 import { createEmptyReferenceResolver, getReferenceResolver, ReferenceResolver } from "./ReferenceResolver"
 import { MethodArgPrintHint } from "./LanguageWriters/LanguageWriter"
 import { SourceFile, TsSourceFile } from "./printers/SourceFile"
+import { convertDeclToFeature } from "./ImportsCollectorUtils"
+import { NativeModuleType } from "./NativeModuleType"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -91,35 +93,6 @@ import {
     pointer
 } from "@koalaui/interop"
 `.trim()
-
-export function nativeModuleDeclaration(methods: LanguageWriter, predefinedMethods: Map<string, LanguageWriter>, nativeBridgePath: string, useEmpty: boolean, language: Language, nativeMethods?: LanguageWriter): string {
-
-    let text = readLangTemplate("NativeModule_template" + language.extension, language)
-        .replace("%NATIVE_BRIDGE_PATH%", nativeBridgePath)
-        .replace("%USE_EMPTY%", useEmpty.toString())
-        .replaceAll("%GENERATED_METHODS%", methods.getOutput().join('\n'))
-        .replaceAll("%GENERATED_NATIVE_FUNCTIONS%", nativeMethods ? nativeMethods.getOutput().join('\n') : "")
-    for (const [title, printer] of predefinedMethods) {
-        text = text.replaceAll(`%GENERATED_PREDEFINED_${title}%`, printer.getOutput().join('\n'))
-    }
-
-    return `
-  ${language == Language.TS ? importTsInteropTypes : ""}
-
-${text}
-`
-}
-
-export function nativeModuleEmptyDeclaration(methods: string[]): string {
-    return `
-${importTsInteropTypes}
-import { NativeModule, NativeModuleIntegrated, NodePointer, PipelineContext } from "./NativeModule"
-import { nullptr } from "@koalaui/interop"
-
-${readTemplate('NativeModuleEmpty_template.ts')
-    .replaceAll("%GENERATED_EMPTY_METHODS%", methods.join('\n'))}
-`
-}
 
 export function libraryCcDeclaration(): string {
     return readTemplate('library_template.cc')
@@ -283,7 +256,7 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     if (printer.language == Language.TS) {
         imports.addFeatures(["MaterializedBase"], "../MaterializedBase")
         imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
-        imports.addFeatures(["nativeModule"], "@koalaui/arkoala")
+        imports.addFeatures(["InteropNativeModule"], "@koalaui/interop")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
         imports.addFeatures(["ResourceHolder", "nullptr"], "@koalaui/interop")
         imports.addFeature('KPointer', '@koalaui/interop')
@@ -304,19 +277,21 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
     // TODO Complete refactoring to SourceFiles
     if (lang === Language.TS || lang === Language.ARKTS) {
         const destFile = SourceFile.make("Serializer" + lang.extension, lang, getReferenceResolver(library)) as TsSourceFile
-        destFile.content.nativeModuleAccessor = nativeModule.name
         writeSerializerFile(library, destFile, "", declarationPath)
         writeDeserializerFile(library, destFile, "", declarationPath)
         // destFile.imports.clear() // TODO fix dependencies
         destFile.imports.addFeatures(["SerializerBase", "RuntimeType", "runtimeType", "CallbackResource"], "./SerializerBase")
         destFile.imports.addFeatures(["DeserializerBase" ], "./DeserializerBase")
         destFile.imports.addFeatures(["int32"], "@koalaui/common")
-        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "KUint8ArrayPtr", "nullptr"], "@koalaui/interop")
+        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "KUint8ArrayPtr", "nullptr", "InteropNativeModule"], "@koalaui/interop")
         destFile.imports.addFeature("wrapSystemCallback", "@koalaui/interop")
-        destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
+        destFile.imports.addFeatures(["CallbackKind"], nativeModule.path)
         destFile.imports.addFeatures(["Finalizable", "MaterializedBase"], nativeModule.finalizablePath)
         if (lang === Language.TS) {
             destFile.imports.addFeature("unsafeCast", "./SerializerBase")
+        }
+        if (lang === Language.ARKTS) {
+            destFile.imports.addFeatures(["InteropNativeModule"], nativeModule.path)
         }
 
         const deserializeCallImpls = SourceFile.makeSameAs(destFile)
@@ -407,8 +382,7 @@ import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
 import { CallbackKind } from "./CallbackKind"
 import { Serializer } from "./Serializer"
-import { nativeModule } from "@koalaui/arkoala"
-import { KPointer } from "@koalaui/interop"
+import { KPointer, ${NativeModuleType.Interop.name} } from "@koalaui/interop"
 
 ${deserializer.getOutput().join("\n")}
 
@@ -425,7 +399,7 @@ export function makeArkTSDeserializer(library: PeerLibrary): string {
     imports.addFeature("DeserializerBase", "./DeserializerBase")
     imports.addFeatures(["int32", "int64"], "@koalaui/common")
     imports.addFeature("Serializer", "./Serializer")
-    imports.addFeatures(["NativeModule"], "#components")
+    imports.addFeatures([NativeModuleType.Generated.name], "#components")
     imports.addFeatures(["CallbackKind"], "CallbackKind")
     imports.addFeatures(['KPointer'], '@koalaui/interop')
     imports.print(printer, '')
@@ -481,8 +455,23 @@ function readTemplate(name: string): string {
     return template
 }
 
+function useLangExtIfNeeded(file: string, lang: Language): string {
+    if (path.extname(file))
+        return file
+    return `${file}${lang.extension}`
+}
+
 export function readLangTemplate(name: string, lang: Language): string {
+    name = useLangExtIfNeeded(name, lang)
     return fs.readFileSync(path.join(__dirname, `../templates/${lang.directory}/${name}`), 'utf8')
+}
+
+export function maybeReadLangTemplate(name: string, lang: Language): string | undefined {
+    name = useLangExtIfNeeded(name, lang)
+    const file = path.join(__dirname, `../templates/${lang.directory}/${name}`)
+    if (!fs.existsSync(file))
+        return undefined
+    return fs.readFileSync(file, 'utf8')
 }
 
 export function makeAPI(

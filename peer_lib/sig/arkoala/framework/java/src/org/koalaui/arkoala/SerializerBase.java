@@ -137,7 +137,7 @@ public class SerializerBase {
     public void writeString(String value) {
         this.checkCapacity(4 + value.length() * 4 + 1);
         int encodedLength =
-            NativeModule._ManagedStringWrite(value, this.buffer.array(), this.buffer.position() + 4);
+            InteropNativeModule._ManagedStringWrite(value, this.buffer.array(), this.buffer.position() + 4);
         buffer.putInt(encodedLength);
         buffer.position(buffer.position() + encodedLength);
     }

@@ -27,7 +27,6 @@ export class PeerNode extends IncrementalNode {
         // TODO: implement me.
     }
 
-
     constructor(peerPtr: pointer, id: int32, name: string, flags: int32) {
         super(PeerNodeType)
         this.id = id

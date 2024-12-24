@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { nativeModule } from "@koalaui/arkoala"
+import { ArkUINativeModule } from "@koalaui/arkoala"
 import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
 import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 // imports required intarfaces (now generation is disabled)
@@ -36,16 +36,16 @@ enum DumpOptions {
 export function RunPerformanceTest(testName: string, testCnt: number, callCnt: number, testFunc: () => void) {
     for (let i = 0; i < testCnt; ++i) {
         for (let j = 0; j < callCnt; ++j) {
-            nativeModule()._StartPerf("perf_counter_self_cost")
+            ArkUINativeModule._StartPerf("perf_counter_self_cost")
             // do nothing ===> perf_counter_self_cost about 0.838 us.
-            nativeModule()._EndPerf("perf_counter_self_cost")
-            nativeModule()._StartPerf(testName)
+            ArkUINativeModule._EndPerf("perf_counter_self_cost")
+            ArkUINativeModule._StartPerf(testName)
             testFunc()
-            nativeModule()._EndPerf(testName)
+            ArkUINativeModule._EndPerf(testName)
         }
     }
-    console.log(withStringResult(nativeModule()._DumpPerf(DumpOptions.AVERAGE)))
-    nativeModule()._DumpPerf(DumpOptions.CLEAR)
+    console.log(withStringResult(ArkUINativeModule._DumpPerf(DumpOptions.AVERAGE)))
+    ArkUINativeModule._DumpPerf(DumpOptions.CLEAR)
 }
 
 export function startPerformanceTest() {

@@ -26,17 +26,17 @@ public class TestUtils {
     public static int failedTestsCount = 0;
 
     public static String getNativeString(long ptr) {
-        int length = NativeModule._StringLength(ptr);
+        int length = InteropNativeModule._StringLength(ptr);
         byte[] bytes = new byte[length];
-        NativeModule._StringData(ptr, bytes, length);
+        InteropNativeModule._StringData(ptr, bytes, length);
         return new String(bytes);
     }
 
     public static void checkResult(String name, Runnable test, String expected) {
-        NativeModule._StartGroupedLog(TEST_GROUP_LOG);
+        InteropNativeModule._StartGroupedLog(TEST_GROUP_LOG);
         test.run();
-        NativeModule._StopGroupedLog(TEST_GROUP_LOG);
-        String out = getNativeString(NativeModule._GetGroupedLog(TEST_GROUP_LOG));
+        InteropNativeModule._StopGroupedLog(TEST_GROUP_LOG);
+        String out = getNativeString(InteropNativeModule._GetGroupedLog(TEST_GROUP_LOG));
         // remove out comments like /* some text */
         String actual = out.replaceAll("\\s?\\/\\*.*?\\*\\/", "").replaceAll(" \n", "");
         if (reportTestFailures) {

@@ -3,7 +3,7 @@ import { pointer } from "@koalaui/interop"
 import { Finalizable } from "./Finalizable"
 import { PeerNode } from "./PeerNode"
 import { ArkUINodeType } from "./peers/ArkUINodeType"
-import { nativeModule } from "@koalaui/arkoala";
+import { ArkUINativeModule } from "@koalaui/arkoala";
 
 export class NativePeerNode extends Finalizable {
     constructor(ptr: pointer, finalizerPtr: pointer) {
@@ -11,30 +11,30 @@ export class NativePeerNode extends Finalizable {
     }
 
     static create(peer: PeerNode, peerPtr: pointer, flags: int32): NativePeerNode {
-        return new NativePeerNode(peerPtr, nativeModule()._GetNodeFinalizer())
+        return new NativePeerNode(peerPtr, ArkUINativeModule._GetNodeFinalizer())
     }
 
     dispose() {
-        nativeModule()._DisposeNode(this.ptr);
+        ArkUINativeModule._DisposeNode(this.ptr);
     }
 
     addChild(node: NativePeerNode) {
-        nativeModule()._AddChild(this.ptr, node.ptr);
+        ArkUINativeModule._AddChild(this.ptr, node.ptr);
     }
     removeChild(node: NativePeerNode) {
-        nativeModule()._RemoveChild(this.ptr, node.ptr);
+        ArkUINativeModule._RemoveChild(this.ptr, node.ptr);
     }
     insertChildBefore(node: NativePeerNode, sibling: NativePeerNode | undefined) {
-        nativeModule()._InsertChildBefore(this.ptr, node.ptr, sibling == undefined ? 0 : sibling.ptr);
+        ArkUINativeModule._InsertChildBefore(this.ptr, node.ptr, sibling == undefined ? 0 : sibling.ptr);
     }
     insertChildAfter(node: NativePeerNode, sibling: NativePeerNode | undefined) {
-        nativeModule()._InsertChildAfter(this.ptr, node.ptr, sibling == undefined ? 0 : sibling.ptr);
+        ArkUINativeModule._InsertChildAfter(this.ptr, node.ptr, sibling == undefined ? 0 : sibling.ptr);
     }
     insertChildAt(node: NativePeerNode, position: int32) {
-        nativeModule()._InsertChildAt(this.ptr, node.ptr, position);
+        ArkUINativeModule._InsertChildAt(this.ptr, node.ptr, position);
     }
 
     dumpTree() {
-        nativeModule()._DumpTreeNode(this.ptr);
+        ArkUINativeModule._DumpTreeNode(this.ptr);
     }
 }

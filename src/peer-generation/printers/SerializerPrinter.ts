@@ -39,6 +39,7 @@ import { collectUniqueCallbacks } from './CallbacksPrinter'
 import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { flattenUnionType } from '../unions'
+import { NativeModuleType } from '../NativeModuleType'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -469,12 +470,12 @@ class IdlDeserializerPrinter {
                 new ExpressionStatement(
                     writer.makeTernary(
                         writer.makeString('isSync'),
-                        writer.makeNativeCall(`_CallCallbackSync`, [
+                        writer.makeNativeCall(NativeModuleType.Interop, `_CallCallbackSync`, [
                             writer.makeString(generateCallbackKindValue(target).toString()),
                             writer.makeString(`${argsSerializer}Serializer.asArray()`),
                             writer.makeString(`${argsSerializer}Serializer.length()`),
                         ]),
-                        writer.makeNativeCall(`_CallCallback`, [
+                        writer.makeNativeCall(NativeModuleType.Interop, `_CallCallback`, [
                             writer.makeString(generateCallbackKindValue(target).toString()),
                             writer.makeString(`${argsSerializer}Serializer.asArray()`),
                             writer.makeString(`${argsSerializer}Serializer.length()`),
@@ -610,6 +611,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
             collector.addFeature("TypeChecker", "#components")
             collector.addFeature("KUint8ArrayPtr", "@koalaui/interop")
             collector.addFeature("NativeBuffer", "@koalaui/interop")
+            collector.addFeature("InteropNativeModule", "@koalaui/interop")
             collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
             for (const callback of collectUniqueCallbacks(library)) {
                 if (idl.isSyntheticEntry(callback))

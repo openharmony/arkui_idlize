@@ -75,7 +75,6 @@ class NativeModuleRecorderVisitor {
     private printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModuleRecorder: LanguageWriter, returnType?: IDLType) {
         const component = clazz.generatedName(method.isCallSignature)
         const interfaceName = clazz.getComponentName()
-        clazz.setGenerationContext(`${method.isCallSignature ? "" : method.overloadedName}()`)
         const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
         let name = `_${component}_${method.overloadedName}`
 
@@ -100,7 +99,6 @@ class NativeModuleRecorderVisitor {
                 }
             }
         })
-        clazz.setGenerationContext(undefined)
     }
 
     private printConstructMethod(clazz: PeerClass, nativeModuleRecorder: LanguageWriter) {
