@@ -198,6 +198,8 @@ export class OverloadsPrinter {
             this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
             if (returnType === idl.IDLThisType) {
                 this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
+            } else {
+                this.printer.writeStatement(this.printer.makeReturn())
             }
         } else {
             this.printer.writeStatement(
