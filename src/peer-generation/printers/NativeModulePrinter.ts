@@ -291,10 +291,9 @@ function collectNativeModuleImports(module: NativeModuleType, file: SourceFile) 
             "pointer"
         ], "@koalaui/interop")
         tsFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
-        if (module === NativeModuleType.ArkUI)
-            tsFile.imports.addFeature('loadLibraries', '@koalaui/interop')
         if (file.language === Language.ARKTS) {
             tsFile.imports.addFeature('NativeBuffer', '@koalaui/interop')
+            tsFile.imports.addFeature('NativeModuleLoader', './NativeModuleLoader')
             if (module === NativeModuleType.Generated)
                 tsFile.imports.addFeature('Length', '../ArkUnitsInterfaces')
         }
@@ -316,12 +315,11 @@ export function printArkUILibrariesLoader(file: SourceFile) {
     switch (file.language) {
         case Language.TS:
             const tsFile = file as TsSourceFile
-            tsFile.imports.addFeatures(['withByteArray', 'Access', 'callCallback', 'nullptr', 'InteropNativeModule', 'loadLibraries', 'providePlatformDefinedData', 'NativeStringBase', 'ArrayDecoder', 'CallbackRegistry'], '@koalaui/interop')
+            tsFile.imports.addFeatures(['withByteArray', 'Access', 'callCallback', 'nullptr', 'InteropNativeModule', 'registerLoadedLibrary', 'providePlatformDefinedData', 'NativeStringBase', 'ArrayDecoder', 'CallbackRegistry'], '@koalaui/interop')
             tsFile.content.writeLines(template)
             break
         case Language.ARKTS:
             const arktsFile = file as ArkTSSourceFile
-            arktsFile.imports.addFeatures(['loadLibraries'], "@koalaui/interop")
             arktsFile.content.writeLines(template)
             break
         default:
@@ -338,7 +336,7 @@ export function printPredefinedNativeModule(library: PeerLibrary, module: Native
     collectNativeModuleImports(module, file)
     file.content.writeClass(module.name, writer => {
         writer.concat(visitor.nativeModule)
-        const maybeTemplate = maybeReadLangTemplate(`${module}_functions`, language)
+        const maybeTemplate = maybeReadLangTemplate(`${module.name}_functions`, language)
         if (maybeTemplate)
             writer.writeLines(maybeTemplate)
     })

@@ -1,5 +1,5 @@
 import { int32 } from "@koalaui/common"
-import { pointer, KPointer, registerNativeModule } from "@koalaui/interop"
+import { pointer, KPointer, registerNativeModule, registerLoadedLibrary } from "@koalaui/interop"
 
 %NATIVE_MODULE_CONTENT%
 
@@ -11,3 +11,4 @@ export class %NATIVE_MODULE_NAME%NativeModule {
 
 registerNativeModule("%NATIVE_MODULE_NAME%NativeModule", %NATIVE_MODULE_NAME%NativeModule)
 registerNativeModule("ArkUINativeModule", %NATIVE_MODULE_NAME%NativeModule)
+registerLoadedLibrary(LOAD_NATIVE)

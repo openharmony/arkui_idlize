@@ -1,5 +1,5 @@
-declare const NATIVE_LIB_PATH: string
-loadLibraries([NATIVE_LIB_PATH])
+declare const LOAD_NATIVE: string
+registerLoadedLibrary(LOAD_NATIVE)
 
 class NativeString extends NativeStringBase {
     constructor(ptr: KPointer) {

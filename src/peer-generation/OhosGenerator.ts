@@ -337,11 +337,6 @@ class OHOSVisitor {
                         { name: "releasePtr", type: IDLPointerType },
                     ])
                 )
-                writer.writeNativeMethodDeclaration("_GetNativeBufferPointer",
-                    NamedMethodSignature.make(IDLPointerType, [
-                        { name: "data", type: IDLBufferType },
-                    ])
-                )
             }
             if (writer.language === Language.ARKTS) {
                 writer.writeNativeMethodDeclaration("_ManagedStringWrite", 
