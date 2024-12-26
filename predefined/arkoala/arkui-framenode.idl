@@ -18,7 +18,7 @@ interface FrameNode {
     [Optional] FrameNode getNextSibling();
     [Optional] FrameNode getPreviousSibling();
     [Optional] FrameNode getParent();
-    number getChildrenCount();
+    i32 getChildrenCount();
     void dispose();
     // Position getPositionToWindow();
     // Position getPositionToParent();

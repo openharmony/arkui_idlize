@@ -29,6 +29,11 @@ public class Application {
     PeerNode rootNode;
     boolean exitApp;
 
+    static {
+        // TODO library name is user-defined, how to provide it or ensure that library was loaded?
+        Runtime.getRuntime().loadLibrary("NativeBridgeJni");
+    }
+
     Application(UserView view) {
         this.view = view;
         builderFunction = view.getBuilder();
@@ -36,7 +41,6 @@ public class Application {
     }
 
     public static void main(String[] args) {
-        Runtime.getRuntime().loadLibrary("NativeBridgeJni"); // TODO library name is user-defined, how to provide it or ensure that library was loaded?
         var app = Application.createApplication("init", "");
         var root = app.start();
         try {
@@ -60,9 +64,6 @@ public class Application {
     }
 
     public static Application createApplication(String app, String params) {
-        SerializerBase ser = new SerializerBase();
-        ser.writeString("Hello world!");
-        System.out.println("Ser is " + ser.length() + " is " + printBytes(ser.asArray(), ser.length()));
         InteropNativeModule._NativeLog("NativeModule.createApplication " +  app + " , params=" + params);
         UserView view = (UserView)ArkUINativeModule._LoadUserView("org.koalaui.arkoala.View" + app, params);
         if (view == null) throw new Error("Cannot load user view");

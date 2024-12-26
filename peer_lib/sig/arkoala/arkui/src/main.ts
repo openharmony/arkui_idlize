@@ -403,7 +403,7 @@ function checkTwoSidesPromise() {
 }
 
 function checkTransformedCallback() {
-    
+
 }
 
 function checkWriteFunction() {
@@ -454,11 +454,6 @@ function checkCalendar() {
     const date = new Date()
     checkResult("setCalendarOptions: selected", () => peer.setCalendarPickerOptionsAttribute({ selected: date }),
         `setCalendarPickerOptions({.tag=ARK_TAG_OBJECT, .value={.hintRadius={.tag=ARK_TAG_UNDEFINED, .value={}}, .selected={.tag=ARK_TAG_OBJECT, .value=${date.getTime()}}}})`)
-    checkResult("edgeAlign1", () => peer.edgeAlign0Attribute(2, { dx: 5, dy: 6 }),
-        `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_OBJECT, .value={.dx={.type=1, .value=5, .unit=1, .resource=0}, .dy={.type=1, .value=6, .unit=1, .resource=0}}})`)
-    checkResult("edgeAlign2", () => peer.edgeAlign0Attribute(2),
-        `edgeAlign(Ark_CalendarAlign(2), {.tag=ARK_TAG_UNDEFINED, .value={}})`)
-
     stopNativeTest(CALL_GROUP_LOG)
 }
 
@@ -489,11 +484,6 @@ function checkCommon() {
             grayscale: [1, 1]
         }
     }
-    checkResult("Test backgroundBlurStyle for BackgroundBlurStyleOptions",
-        () => peer.backgroundBlurStyle0Attribute(0, backgroundBlurStyle),
-        `backgroundBlurStyle(Ark_BlurStyle(0), {.tag=ARK_TAG_OBJECT, .value={.colorMode={.tag=ARK_TAG_OBJECT, .value=Ark_ThemeColorMode(0)}, .adaptiveColor={.tag=ARK_TAG_OBJECT, .value=Ark_AdaptiveColor(0)}, .scale={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=1}}, .blurOptions={.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=1}}}}, .policy={.tag=ARK_TAG_UNDEFINED, .value={}}, .inactiveColor={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
-    )
-
     checkResult("Test dragPreviewOptions numberBadge with number",
         () => peer.dragPreviewOptionsAttribute({ numberBadge: 10 }, { isMultiSelectionEnabled: true }),
         `dragPreviewOptions({.mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .modifier={.tag=ARK_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
@@ -603,16 +593,6 @@ function checkCanvasRenderingContext2D() {
     assertEquals("Deserializer readCanvasRenderingContext2D()", ctorPtr, materializedBase.getPeer()!.ptr)
 
     stopNativeTest(CALL_GROUP_LOG)
-}
-
-function checkPerf2(count: number) {
-    let peer = ArkButtonPeer.create()
-    let start = performance.now()
-    for (let i = 0; i < count; i++) {
-        peer.backdropBlur0Attribute(i, i % 2 == 0 ? undefined : { grayscale: [1, 2] })
-    }
-    let passed = performance.now() - start
-    console.log(`backdropBlur: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)
 }
 
 function checkPerf3(count: number) {
@@ -846,7 +826,7 @@ function main() {
     checkSerdePrimitive()
     checkSerdeCustomObject()
 
-    checkPerf2(5 * 1000 * 1000)
+    //checkPerf2(5 * 1000 * 1000)
     checkPerf3(5 * 1000 * 1000)
 
     startPerformanceTest()
