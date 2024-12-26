@@ -399,7 +399,7 @@ export class CustomPrintVisitor {
     }
 }
 
-export function idlToString(name: string, content: string): string {
+export function idlToDtsString(name: string, content: string): string {
     let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
     webidl2.parse(content)
         .filter(it => !!it.type)

@@ -29,8 +29,13 @@ export class PeerFile implements LibraryFileInterface {
 
     public packageName(): string {
         let packageTag = this.entries.find(it => idl.isPackage(it)) as idl.IDLPackage
-        if (packageTag) return packageTag.name
-        return ""
+        if (packageTag === undefined) {
+            return ""
+        }
+        if (packageTag.name.startsWith('"') && packageTag.name.endsWith('"')) {
+            return packageTag.name.slice(1, packageTag.name.length - 1)
+        }
+        return packageTag.name
     }
 
     get peersToGenerate(): PeerClass[] {
