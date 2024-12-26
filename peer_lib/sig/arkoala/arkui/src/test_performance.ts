@@ -69,7 +69,7 @@ export function startPerformanceTest() {
         })
     })
     RunPerformanceTest("idlize_backgroundBlurStyleAttribute", TEST_COUNT, CALL_COUNT, () => {
-        peer.backgroundBlurStyleAttribute(0, {
+        peer.backgroundBlurStyle0Attribute(0, {
             colorMode: 0,
             adaptiveColor: 0,
             scale: 1,
@@ -80,7 +80,7 @@ export function startPerformanceTest() {
     })
 
     RunPerformanceTest("idlize_linearGradientAttribute", TEST_COUNT, CALL_COUNT, () => {
-        peer.linearGradientAttribute({
+        peer.linearGradient0Attribute({
             angle: 70,
             repeating: false,
             direction: 1, //GradientDirection.Top,

@@ -45,6 +45,8 @@ export class IDLVisitorConfig {
         "Layoutable",
         "GestureGroupGestureHandlerOptions",
         "LocalizedPadding",
+        "ColumnOptionsV2",
+        "RowOptionsV2",
     )
 
     static readonly ConflictingDeclarationNames = [

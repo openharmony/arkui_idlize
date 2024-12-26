@@ -490,7 +490,7 @@ function checkCommon() {
         }
     }
     checkResult("Test backgroundBlurStyle for BackgroundBlurStyleOptions",
-        () => peer.backgroundBlurStyleAttribute(0, backgroundBlurStyle),
+        () => peer.backgroundBlurStyle0Attribute(0, backgroundBlurStyle),
         `backgroundBlurStyle(Ark_BlurStyle(0), {.tag=ARK_TAG_OBJECT, .value={.colorMode={.tag=ARK_TAG_OBJECT, .value=Ark_ThemeColorMode(0)}, .adaptiveColor={.tag=ARK_TAG_OBJECT, .value=Ark_AdaptiveColor(0)}, .scale={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=1}}, .blurOptions={.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=1}}}}, .policy={.tag=ARK_TAG_UNDEFINED, .value={}}, .inactiveColor={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
     )
 
@@ -609,7 +609,7 @@ function checkPerf2(count: number) {
     let peer = ArkButtonPeer.create()
     let start = performance.now()
     for (let i = 0; i < count; i++) {
-        peer.backdropBlurAttribute(i, i % 2 == 0 ? undefined : { grayscale: [1, 2] })
+        peer.backdropBlur0Attribute(i, i % 2 == 0 ? undefined : { grayscale: [1, 2] })
     }
     let passed = performance.now() - start
     console.log(`backdropBlur: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)

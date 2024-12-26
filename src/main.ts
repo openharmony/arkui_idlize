@@ -329,7 +329,7 @@ if (options.dts2peer) {
     const idlLibrary = new PeerLibrary(lang)
     // collect predefined files
     scanPredefinedDirectory(PREDEFINED_PATH, "sys").forEach(file => {
-        new IDLPredefinesVisitor({
+        new IDLInteropPredefinesVisitor({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
             peerFile: file,

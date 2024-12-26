@@ -339,6 +339,13 @@ declare type Padding = {
     left?: Length;
 };
 
+declare interface LinearGradientOptions {
+    angle?: number | string;
+    direction?: GradientDirection;
+    colors: Array<[ResourceColor, number]>;
+    repeating?: boolean;
+}
+
 declare interface LocalizedEdgeWidths {
     top?: LengthMetrics;
     end?: LengthMetrics;
@@ -457,6 +464,8 @@ declare class CommonMethod<T> {
 
     backdropBlur(value: number, options?: BlurOptions): T;
 
+    backdropBlur(radius: Optional<number>, options?: BlurOptions): T;
+
     width(value: Length): T;
 
     height(value: Length): T;
@@ -472,15 +481,13 @@ declare class CommonMethod<T> {
     bindSheet(isShow: Optional<boolean>, builder: CustomBuilder, options?: SheetOptions): T;
 
     backgroundBlurStyle(value: BlurStyle, options?: BackgroundBlurStyleOptions): T;
+    backgroundBlurStyle(style: Optional<BlurStyle>, options?: BackgroundBlurStyleOptions): T;
 
     dragPreviewOptions(value: DragPreviewOptions, options?: DragInteractionOptions): T;
 
-    linearGradient(value: {
-        angle?: number | string;
-        direction?: GradientDirection;
-        colors: Array<[ResourceColor, number]>;
-        repeating?: boolean;
-    }): T;
+    linearGradient(value: LinearGradientOptions): T;
+
+    linearGradient(options: Optional<LinearGradientOptions>): T;
 
     border(value: BorderOptions): T;
 

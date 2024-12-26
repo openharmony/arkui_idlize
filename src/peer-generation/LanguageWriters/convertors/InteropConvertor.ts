@@ -139,6 +139,8 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
             case idl.IDLU32Type: return this.make(`UInt32`)
             case idl.IDLI64Type: return this.make(`Int64`)
             case idl.IDLU64Type: return this.make(`UInt64`)
+            case idl.IDLF32Type: return this.make(`Float32`)
+            case idl.IDLF64Type: return this.make(`Float64`)
             case idl.IDLNumberType: return this.make(`Number`)
             case idl.IDLStringType: return this.make(`String`)
             case idl.IDLBooleanType: return this.make(`Boolean`)
