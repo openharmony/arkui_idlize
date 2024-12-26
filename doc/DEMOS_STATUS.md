@@ -76,7 +76,7 @@
 | `direction`               | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `align`                   | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `aspectRatio`             | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
-| `overlay`                 | Function  |           | ENC         | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
+| `overlay`                 | Function  |           | ENC         | Lobah Mikhail       | in progress      | Roman Sedaikin    | done      | Medium   |
 | `linearGradient`          | Function  |           | ENC         | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High     |
 | `sweepGradient`           | Function  |           | ENC         | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High     |
 | `radialGradient`          | Function  |           | ENC         | Erokhin Ilya        | done             | Roman Sedaikin    | done      | High     |
@@ -151,7 +151,7 @@
 | `scrollable`              | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | `scrollBar`               | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | `onScroll`                | Function  |           | WON         | Kirill Berezin      | done             |                   |           | Medium   |
-| `onScrollEdge`            | Function  |           | WON         | Berezin Kirill      | in progress      |                   |           | Medium   |
+| `onScrollEdge`            | Function  |           | WON         | Berezin Kirill      | done             |                   |           | Medium   |
 | Video                     | Component |           |             | Erokhin Ilya        | done             |                   |           |          |
 | `controller, src`         | Options   |           | WON         | Erokhin Ilya        | blocked AceEngine|                   |           | Low      |
 | `autoPlay`                | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Low      |
