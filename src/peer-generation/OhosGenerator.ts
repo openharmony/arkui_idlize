@@ -394,6 +394,9 @@ class OHOSVisitor {
                 // TODO Make peer private again
                 writer.writeFieldDeclaration('peer', createReferenceType("Finalizable"), [/* FieldModifier.PRIVATE */], false, peerInitExpr)
                 const ctors = int.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
+                if (ctors.length === 0)
+                    // create empty constructor anyway
+                    ctors.push({parameters: [], returnType: undefined})
                 ctors.forEach(ctor => {
                     const signature = writer.makeNamedSignature(ctor.returnType ?? IDLVoidType, ctor.parameters)
                     // TODO remove duplicated code from writePeerMethod (PeersPrinter.ts)
