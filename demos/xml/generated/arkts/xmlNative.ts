@@ -59,6 +59,7 @@ export class XMLNativeModule {
     native static _XmlSerializer_setCDATA(self: KPointer, text: string): void 
     native static _XmlSerializer_setText(self: KPointer, text: string): void 
     native static _XmlSerializer_setDocType(self: KPointer, text: string): void 
+    native static _ParseInfo_ctor(): KPointer 
     native static _ParseInfo_getFinalizer(): KPointer 
     native static _ParseInfo_getColumnNumber(self: KPointer): number 
     native static _ParseInfo_getDepth(self: KPointer): number 

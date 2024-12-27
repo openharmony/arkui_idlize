@@ -288,6 +288,8 @@ class OHOSVisitor {
             this.interfaces.forEach(it => {
                 // TODO TBD do we need to provide declaration for "fake" constructor for interfaces?
                 const ctors = it.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
+                if (ctors.length === 0)
+                    ctors.push({parameters: [], returnType: undefined})
                 ctors.forEach(ctor => {
                     const signature = makePeerCallSignature(this.library, ctor.parameters, IDLPointerType)
                     writer.writeNativeMethodDeclaration(`_${it.name}_ctor`, signature)

@@ -44,6 +44,9 @@ export class XMLNativeModule {
     static _XmlSerializer_setDocType(self: KPointer, text: string): void {
         throw new Error("Not implemented")
     }
+    static _ParseInfo_ctor(): KPointer {
+        throw new Error("Not implemented")
+    }
     static _ParseInfo_getFinalizer(): KPointer {
         throw new Error("Not implemented")
     }

@@ -111,16 +111,14 @@ export class XmlSerializer implements XmlSerializerInterface {
 }
 export class ParseInfo implements ParseInfoInterface {
     peer: Finalizable
+     constructor() {
+        this.peer = new Finalizable(XMLNativeModule._ParseInfo_ctor(), ParseInfo.getFinalizer())
+    }
     static getFinalizer(): KPointer {
         return XMLNativeModule._ParseInfo_getFinalizer()
     }
     getPeer(): Finalizable | undefined {
         return this.peer
-    }
-    static construct(ptr: KPointer): ParseInfo {
-        const objParseInfo: ParseInfo = new ParseInfo()
-        objParseInfo.peer = new Finalizable(ptr, ParseInfo.getFinalizer())
-        return objParseInfo
     }
     getColumnNumber(): number {
         const result = XMLNativeModule._ParseInfo_getColumnNumber(this.peer.ptr)
