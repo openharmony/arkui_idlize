@@ -1,5 +1,5 @@
 import { int32 } from "@koalaui/common"
-import { pointer, KPointer, registerNativeModule } from "@koalaui/interop"
+import { pointer, KPointer, registerNativeModule, registerLoadedLibrary } from "@koalaui/interop"
 
 export enum CallbackKind {
     Kind_Callback_Boolean_Void = 313269291,
@@ -105,9 +105,9 @@ export class XMLNativeModule {
     static _MaterializeBuffer(data: KPointer, length: int32, resourceId: int32, holdPtr: KPointer, releasePtr: KPointer): ArrayBuffer {
         throw new Error("Not implemented")
     }
-    static _GetNativeBufferPointer(data: ArrayBuffer): KPointer {
-        throw new Error("Not implemented")
-    }
 }
 
 registerNativeModule("XMLNativeModule", XMLNativeModule)
+registerNativeModule("ArkUINativeModule", XMLNativeModule)
+declare const LOAD_NATIVE: any
+registerLoadedLibrary(LOAD_NATIVE)
