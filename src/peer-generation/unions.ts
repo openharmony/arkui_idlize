@@ -89,7 +89,7 @@ export class UnionRuntimeTypeChecker {
             this.discriminators.push([discriminator, convertor, index])
             if (discriminator) return discriminator
         }
-        return writer.makeNaryOp("||", convertor.runtimeTypes.map(it =>
+        return writer.makeNaryOp("||", convertor.runtimeTypes.map((it, index) =>
             writer.makeNaryOp("==", [
                 writer.makeUnionVariantCondition(
                     convertor,

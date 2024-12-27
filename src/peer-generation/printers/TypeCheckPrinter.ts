@@ -275,6 +275,21 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
                         stmt: writer.makeReturn(writer.makeString('true'))
                     }
                 }), throwErrorStatement)
+            } else if (isReferenceType(type)) {
+                const resolved = this.library.resolveTypeReference(type)
+                if (resolved !== undefined && idl.isEnum(resolved)) {
+                    checkStatement = writer.makeMultiBranchCondition(resolved.elements.map(it => {
+                        return {
+                            expr: writer.makeNaryOp("&&", [
+                                writer.makeNaryOp('===', [
+                                    writer.makeString("value"),
+                                    writer.makeString(`${name}.${it.name}`)
+                                ])
+                            ]),
+                            stmt: writer.makeReturn(writer.makeString('true'))
+                        }
+                    }), throwErrorStatement)
+                }
             }
             writer.writeStatement(checkStatement)
         })

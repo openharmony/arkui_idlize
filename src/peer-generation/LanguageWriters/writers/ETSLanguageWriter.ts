@@ -29,7 +29,18 @@ import {
 } from "../LanguageWriter"
 import { TSCastExpression, TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
 import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType } from '../../../idl'
-import {AggregateConvertor, ArgConvertor, ArrayConvertor, BaseArgConvertor, CustomTypeConvertor, EnumConvertor, InterfaceConvertor, makeInterfaceTypeCheckerCall, RuntimeType} from "../../ArgConvertors"
+import {
+    AggregateConvertor,
+    ArgConvertor,
+    ArrayConvertor,
+    BaseArgConvertor,
+    CustomTypeConvertor,
+    EnumConvertor,
+    InterfaceConvertor,
+    makeInterfaceTypeCheckerCall,
+    RuntimeType,
+    UnionConvertor
+} from "../../ArgConvertors"
 import { Language } from "../../../Language"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
@@ -72,69 +83,42 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
     constructor(private readonly enumEntity: IDLEnum, private readonly isExport: boolean) {}
 
     write(writer: LanguageWriter) {
-        // writer.print(this.enumEntity.comment)
-        const className = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
-        writer.writeClass(className, (writer) => {
-            let isTypeString = true
-            this.enumEntity.elements.forEach((member, index) => {
-                // writer.print(member.comment)
+        const enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
+        const members
+            = this.enumEntity.elements
+            .flatMap((member, index) => {
                 const initText = member.initializer ?? index
-                isTypeString &&= (typeof initText !== "number")
-                const ctorArgs = [
-                    isTypeString ? `"${initText}"` : initText,
-                    index,
-                ].filter(it => it !== undefined)
-                writer.writeFieldDeclaration(member.name,
-                    idl.createReferenceType(this.enumEntity.name),
-                    [FieldModifier.STATIC, FieldModifier.READONLY],
-                    false,
-                    writer.makeString(`new ${className}(${ctorArgs.join(",")})`))
-                let originalName = getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
-                if (originalName) {
-                    writer.writeFieldDeclaration(originalName,
-                        idl.createReferenceType(this.enumEntity.name),
-                        [FieldModifier.STATIC, FieldModifier.READONLY],
-                        false,
-                        writer.makeString(`${className}.${member.name}`))
+                const isTypeString = typeof initText !== "number"
+                const originalName = getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
+                const res: {
+                    name: string,
+                    alias: string | undefined,
+                    stringId: string | undefined,
+                    numberId: number
+                }[] = [{
+                    name: member.name,
+                    alias: undefined,
+                    stringId: isTypeString ? initText : undefined,
+                    numberId: initText as number
+                }]
+                if (originalName !== undefined) {
+                    res.push({
+                        name: originalName,
+                        alias: undefined,
+                        stringId: isTypeString ? initText : undefined,
+                        numberId: initText as number
+                    })
+                    //TODO: enums do not support member aliases
+                    // res.push({
+                    //     name: originalName,
+                    //     alias: member.name,
+                    //     stringId: undefined,
+                    //     numberId: initText as number
+                    // })
                 }
+                return res
             })
-            const valueType = isTypeString ? idl.IDLStringType : idl.IDLI32Type
-            let argTypes = [valueType]
-            let argNames = ["value"]
-            argTypes.push(idl.IDLI32Type)
-            argNames.push("ordinal")
-            writer.writeConstructorImplementation(className,
-                new NamedMethodSignature(IDLVoidType, argTypes, argNames), (writer) => {
-                    writer.writeStatement(writer.makeAssign("this.value", undefined, writer.makeString("value"), false))
-                    writer.writeStatement(writer.makeAssign("this.ordinal", undefined, writer.makeString("ordinal"), false))
-            })
-            writer.writeFieldDeclaration("value", valueType, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
-            writer.writeFieldDeclaration("ordinal", IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.READONLY], false)
-            writer.writeMethodImplementation(new Method("of", new MethodSignature(idl.createReferenceType(this.enumEntity.name), [argTypes[0]]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
-                (writer)=> {
-                    this.enumEntity.elements.forEach((member) => {
-                        const memberName = `${className}.${member.name}`
-                        writer.writeStatement(
-                            writer.makeCondition(
-                                writer.makeEquals([writer.makeString('arg0'), writer.makeString(`${memberName}.value`)]),
-                                writer.makeReturn(writer.makeString(memberName)))
-                        )
-                    })
-                    writer.print("throw new Error(`Enum member '$\{arg0\}' not found`)")
-            })
-            writer.writeMethodImplementation(new Method("ofOrdinal", new MethodSignature(idl.createReferenceType(this.enumEntity.name), [idl.IDLI32Type]), [MethodModifier.PUBLIC, MethodModifier.STATIC]),
-                (writer)=> {
-                    this.enumEntity.elements.forEach((member) => {
-                        const memberName = `${className}.${member.name}`
-                        writer.writeStatement(
-                            writer.makeCondition(
-                                writer.makeEquals([writer.makeString('arg0'), writer.makeString(`${memberName}.ordinal`)]),
-                                writer.makeReturn(writer.makeString(memberName)))
-                        )
-                    })
-                    writer.print("throw new Error(`Enum member '$\{arg0\}' not found`)")
-            })
-        })
+        writer.writeEnum(enumName, members)
     }
 }
 
@@ -232,20 +216,14 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         super.runtimeType(param, valueType, value)
     }
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index?: number): LanguageExpression {
-        if (convertor instanceof EnumConvertor) {
-            return this.makeString(value)
-        }
         return this.makeString(`${value} as ${type}`)
     }
     enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        if (value instanceof MethodCallExpression) {
-            return this.makeString(`${enumName}.ofOrdinal(${value.asString()})`)
-        }
-        return this.makeString(`Object.values(${enumName})[${value.asString()}]`)
+        return this.makeString(`${value.asString()} as ${enumName}`)
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        return this.makeString(`${value.asString()}.ordinal`)
+        return this.makeCast(this.makeString(`${value.asString()}`), IDLI32Type)
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
                                 value: string,
@@ -260,7 +238,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         if (destinationConvertor instanceof EnumConvertor) {
-            return this.makeString(`${value}!`)
+            return this.makeCast(this.makeString(value), destinationConvertor.idlType)
         }
         return super.makeValueFromOption(value, destinationConvertor)
     }
@@ -281,12 +259,20 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         throw new Error("writeProperty for ArkTS is not implemented yet.")
     }
     override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
-        return this.makeCast(this.makeString(`${value}.${convertor?.isStringEnum ? "ordinal" : "value"}`),
+        return this.makeCast(this.makeString(`${value}${convertor?.isStringEnum ? "" : ".valueOf()"}`),
             IDLI32Type).asString()
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
         if (convertor instanceof EnumConvertor) {
             return this.instanceOf(convertor, valueName)
+        }
+        // TODO: in ArkTS SerializerBase.runtimeType returns RuntimeType.OBJECT for enum type and not RuntimeType.NUMBER as in TS
+        if (convertor instanceof UnionConvertor && index !== undefined) {
+            const idlType = (convertor.nativeType() as idl.IDLUnionType).types[index]
+            if (idlType !== undefined && idl.isReferenceType(idlType)) {
+                const resolved = this.resolver.resolveTypeReference(idl.createReferenceType(idlType.name))
+                type = resolved != undefined && idl.isEnum(resolved) ? RuntimeType[RuntimeType.OBJECT] : type
+            }
         }
         return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index)
     }
@@ -345,7 +331,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 cppConvertor.convert(convertor.idlType), this)
         }
         if (convertor instanceof EnumConvertor) {
-            return this.makeString(`${value} instanceof ${this.typeConvertor.convert(convertor.enumEntry)}`)
+            return makeEnumTypeCheckerCall(value, this.getNodeName(convertor.idlType), this)
         }
         return super.instanceOf(convertor, value, duplicateMembers)
     }

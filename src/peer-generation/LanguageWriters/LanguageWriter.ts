@@ -443,7 +443,7 @@ export abstract class LanguageWriter {
     maybeSemicolon() { return ";" }
 
     abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void
-    abstract writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void
+    abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], op?: (writer: LanguageWriter) => void): void
     abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature): void
