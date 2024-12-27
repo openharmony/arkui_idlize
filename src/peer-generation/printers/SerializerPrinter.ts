@@ -25,10 +25,10 @@ import {
     DependencyFilter,
     isBuilderClass,
     isMaterialized,
-} from '../idl/IdlPeerGeneratorVisitor';
+} from '../idl/IdlPeerGeneratorVisitor'
 import { collectProperties } from '../printers/StructPrinter'
 import { FieldModifier, MethodModifier, ProxyStatement, TernaryExpression } from '../LanguageWriters/LanguageWriter'
-import { createDeclarationNameConvertor } from '../idl/IdlNameConvertor';
+import { createDeclarationNameConvertor } from '../idl/IdlNameConvertor'
 import { throwException } from "../../util"
 import { IDLEntry } from "../../idl"
 import { convertDeclaration } from '../LanguageWriters/nameConvertor'
@@ -190,14 +190,14 @@ class IdlSerializerPrinter {
             // No need for hold() in C++.
             if (writer.language != Language.CPP) {
                 const poolType = idl.createContainerType('sequence', [idl.createReferenceType("Serializer")])
-                
+
                 writer.writeFieldDeclaration("pool", idl.createOptionalType(poolType), [FieldModifier.PRIVATE, FieldModifier.STATIC], true, writer.makeNull('ArrayList<Serializer>'))
                 writer.writeFieldDeclaration("poolTop", idl.IDLI32Type, [FieldModifier.PRIVATE, FieldModifier.STATIC], false, writer.makeString('-1'))
 
                 writer.writeMethodImplementation(new Method("hold", new MethodSignature(idl.createReferenceType("Serializer"), []), [MethodModifier.STATIC]),
                 writer => {
                     writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.pool')), writer.makeBlock(
-                        writer.language == Language.CJ ? 
+                        writer.language == Language.CJ ?
                         [
                             new ExpressionStatement(writer.makeString("Serializer.pool = ArrayList<Serializer>(8, {idx => Serializer()})"))
                         ]:
@@ -205,9 +205,9 @@ class IdlSerializerPrinter {
                             writer.makeAssign("Serializer.pool", undefined, idl.isContainerType(poolType) ? writer.makeArrayInit(poolType, 8) : undefined, false),
                             writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(writer.makeString("Serializer.pool")), true, true),
                             writer.makeLoop("idx", "8", writer.makeAssign(
-                                `pool[idx]`, 
-                                undefined, 
-                                writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`), 
+                                `pool[idx]`,
+                                undefined,
+                                writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`),
                                 false
                             ))
                         ]
@@ -236,7 +236,7 @@ class IdlSerializerPrinter {
                             writer.makeEquals([
                                 writer.makeThis(),
                                 writer.makeArrayAccess("pool", "Serializer.poolTop")
-                        ]), 
+                        ]),
                         writer.makeBlock([
                             writer.makeAssign("Serializer.poolTop", undefined,
                                 writer.makeString("Serializer.poolTop - 1"), false),
@@ -244,7 +244,7 @@ class IdlSerializerPrinter {
                             writer.makeReturn()
                         ]
                     )))
-                    
+
                     writer.writeStatement(writer.makeThrowError(("Only last serializer should be released")))
                 })
             }
@@ -538,7 +538,7 @@ class IdlDeserializerPrinter {
                 writer.pushIndent()
                 writer.print("super(data, length)")
                 writer.popIndent()
-                writer.print("}")   
+                writer.print("}")
             }
             for (const decl of serializerDeclarations) {
                 if (idl.isInterface(decl)) {

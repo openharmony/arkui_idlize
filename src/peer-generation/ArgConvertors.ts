@@ -451,13 +451,16 @@ export class EnumConvertor extends BaseArgConvertor { //
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeEnumCast(param, false, this)
     }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        value = printer.ordinalFromEnum(printer.makeString(value), idl.createReferenceType(this.enumEntry.name)).asString()
-        printer.writeMethodCall(`${param}Serializer`, "writeInt32", [value])
+    convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
+        value =
+            this.isStringEnum
+                ? writer.ordinalFromEnum(writer.makeString(value), idl.createReferenceType(this.enumEntry.name)).asString()
+                : writer.makeEnumCast(value, false, this)
+        writer.writeMethodCall(`${param}Serializer`, "writeInt32", [value])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
         const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])
-        const enumExpr = writer.language === Language.ARKTS || this.isStringEnum && writer.language !== Language.CPP
+        const enumExpr = this.isStringEnum
             ? writer.enumFromOrdinal(readExpr, idl.createReferenceType(this.enumEntry.name))
             : writer.makeCast(readExpr, idl.createReferenceType(this.enumEntry.name))
         return assigneer(enumExpr)
