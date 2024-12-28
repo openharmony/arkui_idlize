@@ -1,7 +1,7 @@
 import { int32 } from "@koalaui/common"
 import { IncrementalNode } from "@koalaui/runtime"
 import { NativePeerNode } from "./NativePeerNode"
-import { pointer } from "@koalaui/interop"
+import { nullptr, pointer } from "@koalaui/interop"
 import { ArkRootPeer } from "./peers/ArkStaticComponentsPeer"
 
 export const PeerNodeType = 11
@@ -22,9 +22,12 @@ export class PeerNode extends IncrementalNode {
         return PeerNode.peerNodeMap.get(id)
     }
     readonly name: string
+    private insertMark: pointer = nullptr
+    private insertDirection: int32 = 0
 
     setInsertMark(mark: pointer, upDirection: boolean) {
-        // TODO: implement me.
+        this.insertMark = mark
+        this.insertDirection = upDirection ? 0 : 1
     }
 
     constructor(peerPtr: pointer, id: int32, name: string, flags: int32) {
@@ -36,6 +39,16 @@ export class PeerNode extends IncrementalNode {
             // TODO: rework to avoid search
             let peer = findPeerNode(child)
             if (peer) {
+                let peerPtr = peer.peer.ptr
+                if (this.insertMark != nullptr) {
+                    if (this.insertDirection == 0) {
+                        this.peer.insertChildBefore(peerPtr, this.insertMark)
+                    } else {
+                        this.peer.insertChildAfter(peerPtr, this.insertMark)
+                    }
+                    this.insertMark = peerPtr
+                    return
+                }
                 // Find the closest peer node backward.
                 let sibling: PeerNode | undefined = undefined
                 for (let node = child.previousSibling; node; node = node!.previousSibling) {
@@ -44,13 +57,13 @@ export class PeerNode extends IncrementalNode {
                         break
                 }
             }
-            this.peer.insertChildAfter(peer.peer, sibling?.peer)
+            this.peer.insertChildAfter(peerPtr, sibling?.peer?.ptr ?? nullptr)
             }
         }
         this.onChildRemoved = (child: IncrementalNode) => {
             let peer = findPeerNode(child)
             if (peer) {
-                this.peer.removeChild(peer.peer)
+                this.peer.removeChild(peer.peer.ptr)
             }
         }
 

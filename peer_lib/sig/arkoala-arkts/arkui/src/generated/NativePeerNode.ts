@@ -17,23 +17,22 @@ export class NativePeerNode extends Finalizable {
         ArkUINativeModule._DisposeNode(this.ptr);
     }
 
-    addChild(node: NativePeerNode) {
-        ArkUINativeModule._AddChild(this.ptr, node.ptr);
+    addChild(node: pointer) {
+        ArkUINativeModule._AddChild(this.ptr, node)
     }
-    removeChild(node: NativePeerNode) {
-        ArkUINativeModule._RemoveChild(this.ptr, node.ptr);
+    removeChild(node: pointer) {
+        ArkUINativeModule._RemoveChild(this.ptr, node)
     }
-    insertChildBefore(node: NativePeerNode, sibling: NativePeerNode | undefined) {
-        ArkUINativeModule._InsertChildBefore(this.ptr, node.ptr, sibling == undefined ? 0 : sibling.ptr);
+    insertChildBefore(node: pointer, sibling: pointer) {
+        ArkUINativeModule._InsertChildBefore(this.ptr, node, sibling)
     }
-    insertChildAfter(node: NativePeerNode, sibling: NativePeerNode | undefined) {
-        ArkUINativeModule._InsertChildAfter(this.ptr, node.ptr, sibling == undefined ? 0 : sibling.ptr);
+    insertChildAfter(node: pointer, sibling: pointer) {
+        ArkUINativeModule._InsertChildAfter(this.ptr, node, sibling)
     }
-    insertChildAt(node: NativePeerNode, position: int32) {
-        ArkUINativeModule._InsertChildAt(this.ptr, node.ptr, position);
+    insertChildAt(node: pointer, position: int32) {
+        ArkUINativeModule._InsertChildAt(this.ptr, node, position)
     }
-
     dumpTree() {
-        ArkUINativeModule._DumpTreeNode(this.ptr);
+        ArkUINativeModule._DumpTreeNode(this.ptr)
     }
 }

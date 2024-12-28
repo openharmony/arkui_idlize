@@ -789,6 +789,38 @@ void SetChildTotalCount(Ark_NodeHandle node, Ark_Int32 totalCount) {}
 void ShowCrash(Ark_CharPtr message) {}
 }
 
+Ark_NativePointer NeedMoreElements(Ark_NativePointer node,
+                                   Ark_NativePointer mark,
+                                   Ark_Int32 direction) {
+    return AsNode(node)->needMoreElements(mark, direction);
+}
+
+struct NodeData {
+    Callback_RangeUpdate updater;
+    NodeData(const Callback_RangeUpdate* updater): updater(*updater) {}
+};
+void OnRangeUpdate(Ark_NativePointer nodePtr,
+                   Ark_Int32 totalCount,
+                  const Callback_RangeUpdate* updater) {
+    auto* node = AsNode(nodePtr);
+    updater->resource.hold(updater->resource.resourceId);
+    node->setCustomVoidData(new NodeData(updater));
+}
+
+void SetCurrentIndex(Ark_NativePointer nodePtr,
+                     Ark_Int32 index) {
+    auto* node = AsNode(nodePtr);
+    Ark_NativePointer mark = (Ark_NativePointer)0x1;
+    if (index >= 0 && index < (int)node->children()->size()) {
+        mark = (*node->children())[index];
+    }
+    NodeData* data = (NodeData*)node->customVoidData();
+    if (data) {
+        data->updater.call(data->updater.resource.resourceId, index, mark);
+    }
+}
+
+
 namespace GeneratedEvents {
     const %CPP_PREFIX%ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;
     const %CPP_PREFIX%ArkUIEventsAPI* %CPP_PREFIX%GetArkUiEventsAPI() { return g_OverriddenEventsImpl; }
