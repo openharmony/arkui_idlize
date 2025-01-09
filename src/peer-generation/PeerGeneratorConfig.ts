@@ -24,12 +24,18 @@ export class PeerGeneratorConfig {
         "Number", "String", "Function", "Optional", "RelativeIndexable",
     ]
 
+    private static customComponents = [
+        "BaseCustomComponent",
+        "CustomComponent",
+        "CustomComponentV2",
+    ]
+
     public static handWritten = [
+        ...this.customComponents,
         "LocalStorage",
         "SyncedPropertyOneWay",
         "SubscribedAbstractProperty",
         "SyncedPropertyTwoWay",
-        "CustomComponent",
         "AttributeModifier",
         "AbstractProperty",
         "SubscribaleAbstract",
@@ -101,7 +107,6 @@ export class PeerGeneratorConfig {
 
     private static ignoreMaterialized = [
         // TBD
-        "CustomComponent",
         "Layoutable",
         "LayoutChild",
         "Measurable",
@@ -153,7 +158,7 @@ export class PeerGeneratorConfig {
     ])
 
     private static ignoredEntriesJava = new Set([
-        "CustomComponent",
+        ...this.customComponents,
         "AnimationRange",
         "EventTargetInfo",
         "GestureRecognizer",
