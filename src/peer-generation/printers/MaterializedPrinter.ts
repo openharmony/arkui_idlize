@@ -27,7 +27,7 @@ import {
     MethodSignature,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { copyMaterializedMethod, MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
+import { copyMaterializedMethod, getInternalClassName, MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
 import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector";
@@ -108,6 +108,13 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 if (idl.isInterface(it) && isMaterialized(it))
                     collectDeclItself(this.library, it, imports)
             })
+            if (this.clazz.superClass) {
+                let name = this.clazz.superClass.name
+                if (this.clazz.isInterface) {
+                    name = getInternalClassName(name)
+                }
+                collectDeclItself(this.library, idl.createReferenceType(name), imports)
+            }
         }
     }
 
@@ -123,22 +130,18 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         const printer = this.printer
         printer.print(makeMaterializedPrologue(this.printerContext.language))
 
-        let superClassName = generifiedTypeName(clazz.superClass)
-        let selfInterface = clazz.isInterface
-            ? `${clazz.className}${clazz.generics?.length ? `<${clazz.generics.join(", ")}>` : ``}`
-            : undefined
+        if (clazz.isInterface) {
+            // generate interface declarations for ArkTS only
+            if (Language.ARKTS == this.printerContext.language) {
+                writeInterface(clazz.decl, printer);
+            }
+        }
+
+        let superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz))
 
         const interfaces: string[] = ["MaterializedBase"]
         if (clazz.isInterface) {
-            // self-interface is not supported ArkTS
-            if (this.library.language == Language.ARKTS) {
-                selfInterface = createInterfaceDeclName(selfInterface!)
-            }
-            if (selfInterface) interfaces.push(selfInterface)
-            if (superClassName && !this.library.materializedClasses.has(superClassName)) {
-                interfaces.push(superClassName)
-                superClassName = undefined
-            }
+            interfaces.push(this.clazz.className)
         }
 
         // TODO: workarond for ContentModifier<T> which returns WrappedBuilder<[T]>
@@ -152,7 +155,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             classTypeParameters = ["T extends Object"]
         }
 
-        printer.writeClass(clazz.className, writer => {
+        const implementationClassName = clazz.getImplementationName()
+
+        printer.writeClass(implementationClassName, writer => {
             writer.writeFieldDeclaration("peer", FinalizableType, undefined, true)
 
             // getters and setters for fields
@@ -197,25 +202,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
             })
 
-            // write construct(ptr: number) method
-            const clazzRefType = idl.createReferenceType(clazz.className,
-                clazz.generics?.map(idl.createTypeParameterReference))
-            const constructSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
-            writer.writeMethodImplementation(new Method("construct", constructSig, [MethodModifier.STATIC], classTypeParameters), writer => {
-                const objVar = `obj${clazz.className}`
-                writer.writeStatement(writer.makeAssign(objVar,
-                    clazzRefType,
-                    //TODO: Need to pass IDLType instead of string to makeNewObject
-                    writer.makeNewObject(writer.getNodeName(clazzRefType)),
-                    true)
-                )
-                writer.writeStatement(
-                    writer.makeAssign(`${objVar}.peer`, FinalizableType,
-                        writer.makeString(`new Finalizable(ptr, ${clazz.className}.getFinalizer())`), false),
-                )
-                writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
-            })
-
             const pointerType = IDLPointerType
             // makePrivate(clazz.ctor.method)
             this.library.setCurrentContext(`${clazz.className}.constructor`)
@@ -229,10 +215,14 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 ctorSig.argsNames,
                 ctorSig.defaults)
 
-            writer.writeConstructorImplementation(clazz.className, sigWithPointer, writer => {
+            writer.writeConstructorImplementation(implementationClassName, sigWithPointer, writer => {
 
                 if (superClassName) {
-                    writer.writeSuperCall([]);
+                    let params:string[] = []
+                    // workaround for MutableStyledString which does not have a constructor
+                    // the same as in the parent StyledString class
+                    if (superClassName === "StyledString") params = [`""`]
+                    writer.writeSuperCall(params);
                 }
 
                 const allOptional = ctorSig.args.every(it => isOptionalType(it))
@@ -248,13 +238,13 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 }
                 let ctorStatements: LanguageStatement = writer.makeBlock([
                     writer.makeAssign("ctorPtr", IDLPointerType,
-                        writer.makeMethodCall(clazz.className, "ctor",
+                        writer.makeMethodCall(implementationClassName, "ctor",
                             ctorSig.args.map((it, index) => writer.makeString(`${ctorSig.argsNames[index]}`))),
                         true),
                     writer.makeAssign(
                         "this.peer",
                         FinalizableType,
-                        writer.makeString(`new Finalizable(ctorPtr, ${clazz.className}.getFinalizer())`),
+                        writer.makeString(`new Finalizable(ctorPtr, ${implementationClassName}.getFinalizer())`),
                         false
                     )
                 ])
@@ -306,7 +296,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 if (!privateMethod.method.modifiers?.includes(MethodModifier.PRIVATE))
                     privateMethod = copyMaterializedMethod(method, {
                         method: copyMethod(method.method, {
-                            modifiers: (method.method.modifiers ?? []).concat([MethodModifier.PRIVATE])
+                            modifiers: (method.method.modifiers ?? [])
+                                .filter(it => it !== MethodModifier.PUBLIC)
+                                .concat([MethodModifier.PRIVATE])
                         })
                     })
                 const returnType = privateMethod.tsReturnType()
@@ -314,31 +306,17 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 writePeerMethod(writer, privateMethod, true, this.printerContext, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)
                 this.library.setCurrentContext(undefined)
             })
+
+            if (clazz.isInterface) {
+                writeFromPtrMethod(clazz, writer, classTypeParameters)
+            }
+
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
 
-
-        // Write MaterializedClass static
-        printer.writeClass(clazz.getInternalName(), writer => {
-
-            // write fromPtr(ptr: number):MaterializedClass method
-            const clazzRefType = idl.createReferenceType(clazz.className,
-                clazz.generics?.map(idl.createTypeParameterReference))
-            const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
-            writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
-                const objVar = `obj`
-                writer.writeStatement(writer.makeAssign(objVar,
-                    clazzRefType,
-                    //TODO: Need to pass IDLType instead of string to makeNewObject
-                    writer.makeNewObject(writer.getNodeName(clazzRefType)),
-                    true)
-                )
-                writer.writeStatement(
-                    writer.makeAssign(`${objVar}.peer`, FinalizableType,
-                        writer.makeString(`new Finalizable(ptr, ${clazz.className}.getFinalizer())`), false),
-                )
-                writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
-            })
-        })
+        if (!clazz.isInterface) {
+            // Write internal Materialized class with fromPtr(ptr) method
+            printer.writeClass(getInternalClassName(clazz.className), writer => writeFromPtrMethod(clazz, writer, classTypeParameters))
+        }
     }
 
     visit(): void {
@@ -348,6 +326,28 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     getTargetFile(): TargetFile {
         return new TargetFile(renameClassToMaterialized(this.clazz.className, this.printerContext.language))
     }
+}
+
+function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, classTypeParameters?: string[]) {
+    // write "fromPtr(ptr: number): MaterializedClass" method
+    const className = clazz.getImplementationName()
+    const clazzRefType = idl.createReferenceType(className,
+        clazz.generics?.map(idl.createTypeParameterReference))
+    const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
+    writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
+        const objVar = `obj`
+        writer.writeStatement(writer.makeAssign(objVar,
+            clazzRefType,
+            //TODO: Need to pass IDLType instead of string to makeNewObject
+            writer.makeNewObject(writer.getNodeName(clazzRefType)),
+            true)
+        )
+        writer.writeStatement(
+            writer.makeAssign(`${objVar}.peer`, idl.createReferenceType("Finalizable"),
+                writer.makeString(`new Finalizable(ptr, ${className}.getFinalizer())`), false),
+        )
+        writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
+    })
 }
 
 class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
@@ -614,6 +614,24 @@ export function printMaterialized(peerLibrary: PeerLibrary, printerContext: Prin
         result.set(file, text)
     }
     return result
+}
+
+function getSuperName(clazz: MaterializedClass): string | undefined {
+    const superClass = clazz.superClass
+    if (!superClass) return undefined
+    return clazz.isInterface ? getInternalClassName(superClass.name) : superClass.name
+}
+
+function writeInterface(decl: idl.IDLInterface, writer: LanguageWriter) {
+    writer.writeInterface(decl.name, writer => {
+        for (const m of decl.methods) {
+            writer.writeMethodDeclaration(m.name,
+                new NamedMethodSignature(
+                    m.returnType,
+                    m.parameters.map(it => it.type!),
+                    m.parameters.map(it => it.name)));
+        }
+    })
 }
 
 // TBD: Refactor tagged method staff

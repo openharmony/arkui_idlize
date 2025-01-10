@@ -94,6 +94,10 @@ export class PeerMethod {
         }
     }
 
+    getImplementationName(): string {
+        return this.originalParentName
+    }
+
     static markAndGroupOverloads(methods: PeerMethod[]): PeerMethod[] {
         let groupedMethods: PeerMethod[] = []
         for (const peerMethod of methods) {

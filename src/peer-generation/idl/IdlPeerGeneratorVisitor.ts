@@ -34,7 +34,7 @@ import { PeerClass } from "../PeerClass"
 import { PeerMethod } from "../PeerMethod"
 import { PeerFile } from "../PeerFile"
 import { PeerLibrary } from "../PeerLibrary"
-import { MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
+import { getInternalClassName, MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { BuilderClass, initCustomBuilderClasses, isCustomBuilderClass } from "../BuilderClass";
 import { isRoot } from "../inheritance";
@@ -369,11 +369,12 @@ export class IdlPeerProcessor {
             return
         }
 
-        const isDeclInterface = idl.isInterface(decl)
+        const isDeclInterface = idl.isInterfaceSubkind(decl)
+        const implemenationParentName = isDeclInterface ? getInternalClassName(name) : name
 
         const constructor = decl.subkind === idl.IDLInterfaceSubkind.Class ? decl.constructors[0] : undefined
-        const mConstructor = this.makeMaterializedMethod(decl, constructor)
-        const mFinalizer = new MaterializedMethod(name, [], idl.IDLPointerType, false,
+        const mConstructor = this.makeMaterializedMethod(decl, constructor, implemenationParentName)
+        const mFinalizer = new MaterializedMethod(name, implemenationParentName,[], idl.IDLPointerType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
         const mFields = decl.properties
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
@@ -381,7 +382,7 @@ export class IdlPeerProcessor {
             .map(it => this.makeMaterializedField(it))
         const mMethods = decl.methods
             // TODO: Properly handle methods with return Promise<T> type
-            .map(method => this.makeMaterializedMethod(decl, method))
+            .map(method => this.makeMaterializedMethod(decl, method, implemenationParentName))
             .filter(it => !idl.isNamedNode(it.method.signature.returnType) || !PeerGeneratorConfig.ignoreReturnTypes.has(it.method.signature.returnType.name))
 
         const taggedMethods = decl.methods.filter(m => m.extendedAttributes?.find(it => it.name === IDLExtendedAttributes.DtsTag))
@@ -394,7 +395,7 @@ export class IdlPeerProcessor {
             if (isSimpleType) {
                 const getSignature = new NamedMethodSignature(idlType, [], [])
                 const getAccessor = new MaterializedMethod(
-                    name, [], field.type, false,
+                    name, implemenationParentName, [], field.type, false,
                     new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE]),
                     f.outArgConvertor)
                 mMethods.push(getAccessor)
@@ -403,13 +404,13 @@ export class IdlPeerProcessor {
             if (!isReadOnly) {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idlType], [field.name])
                 const setAccessor = new MaterializedMethod(
-                    name, [f.argConvertor], idl.IDLVoidType, false,
+                    name, implemenationParentName, [f.argConvertor], idl.IDLVoidType, false,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]))
                 mMethods.push(setAccessor)
             }
         })
         this.library.materializedClasses.set(name,
-            new MaterializedClass(name, isDeclInterface, idl.getSuperType(decl), decl.typeParameters,
+            new MaterializedClass(decl, name, isDeclInterface, idl.getSuperType(decl), decl.typeParameters,
                 mFields, mConstructor, mFinalizer, mMethods, true, taggedMethods))
     }
 
@@ -423,7 +424,7 @@ export class IdlPeerProcessor {
             prop.isOptional)
     }
 
-    private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined) {
+    private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined, implemenationParentName: string) {
         let methodName = "ctor"
         let returnType: IDLType = idl.IDLPointerType
         let outArgConvertor = undefined
@@ -435,14 +436,14 @@ export class IdlPeerProcessor {
         if (method === undefined) {
             // interface or class without constructors
             const ctor = new Method("ctor", new NamedMethodSignature(idl.createReferenceType(decl.name), [], []), [MethodModifier.STATIC])
-            return new MaterializedMethod(decl.name, [], returnType, false, ctor, outArgConvertor)
+            return new MaterializedMethod(decl.name, implemenationParentName, [], returnType, false, ctor, outArgConvertor)
         }
 
         const methodTypeParams = getExtAttribute(method, IDLExtendedAttributes.TypeParameters)
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(method)
         const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
-        return new MaterializedMethod(decl.name, argConvertors, returnType, false,
+        return new MaterializedMethod(decl.name, implemenationParentName, argConvertors, returnType, false,
             new Method(methodName,
                 signature,
                 modifiers,

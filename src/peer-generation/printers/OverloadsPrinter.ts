@@ -189,7 +189,7 @@ export class OverloadsPrinter {
         })
         const isStatic = collapsedMethod.modifiers?.includes(MethodModifier.STATIC)
         const receiver = isStatic
-            ? peerMethod.originalParentName
+            ? peerMethod.getImplementationName()
             : this.isComponent ? `this.getPeer()` : `this`
         const postfix = this.isComponent ? "Attribute" : "_serialize"
         const methodName = `${peerMethod.overloadedName}${postfix}`

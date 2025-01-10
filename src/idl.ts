@@ -389,6 +389,12 @@ export function isProperty(node: IDLNode): node is IDLProperty {
 export function isCallback(node: IDLNode): node is IDLCallback {
     return node.kind === IDLKind.Callback
 }
+export function isInterfaceSubkind(idl: IDLInterface): boolean {
+    return idl.subkind === IDLInterfaceSubkind.Interface
+}
+export function isClassSubkind(idl: IDLInterface): boolean {
+    return idl.subkind === IDLInterfaceSubkind.Class
+}
 export function isConstant(node: IDLNode): node is IDLConstant {
     return node.kind === IDLKind.Const
 }

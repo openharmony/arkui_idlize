@@ -521,8 +521,10 @@ export function renameClassToBuilderClass(className: string, language: Language,
 }
 
 export function renameClassToMaterialized(className: string, language: Language, withFileExtension: boolean = true) {
+
+    const name = className.endsWith("Internal") ? className.substring(0, className.length - "Internal".length) : className
     const renamed = "Ark"
-        .concat(snakeCaseToCamelCase(className))
+        .concat(snakeCaseToCamelCase(name))
         .concat("Materialized")
 
     if (withFileExtension) {

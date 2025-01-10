@@ -1,8 +1,10 @@
 import * as idl from "../../idl"
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { maybeTransformManagedCallback } from "../ArgConvertors";
+import { getInternalClassName } from "../Materialized";
 import { PeerLibrary } from "../PeerLibrary";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
+import { isMaterialized } from "./IdlPeerGeneratorVisitor";
 
 function createTransformedCallbacks(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>) {
     for (const file of library.files) {
@@ -99,11 +101,35 @@ function createImportsStubs(library: PeerLibrary, synthesizedEntries: Map<string
     }
 }
 
+function createMaterializedInternal(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
+    for (const file of library.files) {
+        for (const entry of file.entries) {
+            if (idl.isInterface(entry) && isMaterialized(entry)) {
+                const name = getInternalClassName(entry.name)
+                synthesizedEntries.set(name, idl.createInterface(
+                    name,
+                    idl.IDLInterfaceSubkind.Interface,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    [idl.createMethod("__stub", [], idl.IDLVoidType)],
+                    undefined,
+                    undefined,
+                    { fileName: entry?.fileName ?? 'generator_synthetic.d.ts', },
+                ))
+
+            }
+        }
+    }
+}
+
 /** @deprecated please do not extend this file. Storing synthetic declarations globally seems a bad pattern */
 export function fillSyntheticDeclarations(library: PeerLibrary) {
     const synthesizedEntries = new Map<string, idl.IDLEntry>()
     createTransformedCallbacks(library, synthesizedEntries)
     createContinuationCallbacks(library, synthesizedEntries)
     createImportsStubs(library, synthesizedEntries)
+    createMaterializedInternal(library, synthesizedEntries)
     library.initSyntheticEntries([...synthesizedEntries.values()])
 }

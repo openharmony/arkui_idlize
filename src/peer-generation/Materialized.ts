@@ -35,6 +35,7 @@ export class MaterializedField {
 export class MaterializedMethod extends PeerMethod {
     constructor(
         originalParentName: string,
+        public implementationParentName: string,
         argConvertors: ArgConvertor[],
         returnType: IDLType,
         isCallSignature: boolean,
@@ -87,6 +88,10 @@ export class MaterializedMethod extends PeerMethod {
         }
     }
 
+    override getImplementationName(): string {
+        return this.implementationParentName
+    }
+
     tsReturnType(): IDLType | undefined {
         return this.method.signature.returnType
     }
@@ -98,6 +103,7 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
 }) {
     const copied = new MaterializedMethod(
         method.originalParentName,
+        method.implementationParentName,
         method.argConvertors,
         method.returnType,
         method.isCallSignature,
@@ -109,6 +115,7 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
 
 export class MaterializedClass implements PeerClassBase {
     constructor(
+        public readonly decl: idl.IDLInterface,
         public readonly className: string,
         public readonly isInterface: boolean,
         public readonly superClass: idl.IDLReferenceType | undefined,
@@ -127,8 +134,8 @@ export class MaterializedClass implements PeerClassBase {
         return this.className
     }
 
-    getInternalName(): string {
-        return getInternalClassName(this.className)
+    getImplementationName(): string {
+        return this.isInterface ? getInternalClassName(this.className) : this.className
     }
 
     generatedName(isCallSignature: boolean): string{
@@ -139,6 +146,7 @@ export class MaterializedClass implements PeerClassBase {
 export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedMethod {
     return new MaterializedMethod(
             clazz.className,
+            clazz.getImplementationName(),
             [],
             IDLVoidType,
             false,
@@ -159,6 +167,6 @@ export function getInternalClassName(name: string): string {
 
 export function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
     for (const materialized of library.materializedClasses.values()) {
-        imports.addFeature(materialized.getInternalName(), `./Ark${materialized.className}Materialized`)
+        imports.addFeature(getInternalClassName(materialized.className), `./Ark${materialized.className}Materialized`)
     }
 }

@@ -54,7 +54,7 @@ import {
     startNativeTest,
     stopNativeTest,
 } from "./test_utils"
-import { PixelMap } from "@arkoala/arkui/ArkPixelMapMaterialized"
+import { PixelMapInternal } from "@arkoala/arkui/ArkPixelMapMaterialized"
 import { ArkUINativeModule, TestNativeModule } from "@koalaui/arkoala"
 import { ArkUIGeneratedNativeModule } from "./ArkUIGeneratedNativeModule"
 import { mkdirSync, writeFileSync } from "fs"
@@ -787,7 +787,7 @@ function checkArrayBuffer() {
 function checkPassToNativeBuffer() {
     checkResult("ArrayBuffer", () => {
         const buffer = new ArrayBuffer(256)
-        const pm = new PixelMap()
+        const pm = new PixelMapInternal()
         pm.readPixelsToBufferSync(buffer)
     }, "new PixelMap()[return (PixelMapPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]readPixelsToBufferSync({.data=nullptr, .length=256})")
 }
