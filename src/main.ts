@@ -56,6 +56,7 @@ import { IdlSkoalaLibrary, IldSkoalaFile } from "./skoala-generation/idl/idlSkoa
 import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"
 import { IdlWrapperProcessor } from "./skoala-generation/idl/idlSkoalaLibrary"
 import { fillSyntheticDeclarations } from "./peer-generation/idl/SyntheticDeclarationsFiller"
+import { LibarktsGenerator } from "./libarkts-generation/LibarktsGenerator"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -300,20 +301,14 @@ if (options.idl2dts) {
 }
 
 if (options.idl2peer) {
-    PeerGeneratorConfig.needInterfaces = options.needInterfaces
-    const generatedPeersDir = options.outputDir ?? "./out/peers/generated"
-    const lang = Language.fromString(options.language ?? "ts")
-    const idlLibrary = new PeerLibrary(lang)
+    const outDir = options.outputDir ?? "./out"
+    const language = Language.fromString(options.language ?? "ts")
 
-    scanNotPredefinedDirectory(options.inputDir).forEach(
-        (file: PeerFile) => idlLibrary.files.push(file)
-    )
+    const idlLibrary = new PeerLibrary(language)
+    idlLibrary.files.push(...scanNotPredefinedDirectory(options.inputDir))
+    new IdlPeerProcessor(idlLibrary).process()
 
-    PrimitiveType.Prefix = "OH_"
-    const peerProcessor = new IdlPeerProcessor(idlLibrary)
-    peerProcessor.process()
-
-    generateTarget(idlLibrary, generatedPeersDir, lang)
+    generateTarget(idlLibrary, outDir, language)
 
     didJob = true
 }
@@ -429,6 +424,9 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
     }
     if (options.generatorTarget == "ohos") {
         generateOhos(outDir, idlLibrary)
+    }
+    if (options.generatorTarget == "libarkts") {
+        new LibarktsGenerator(outDir, idlLibrary).print()
     }
     if (options.plugin) {
         loadPlugin(options.plugin)

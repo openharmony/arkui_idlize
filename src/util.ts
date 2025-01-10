@@ -14,6 +14,7 @@
  */
 
 import * as path from 'path'
+import * as fs from "fs"
 import * as ts from "typescript"
 import { Language } from './Language';
 
@@ -596,9 +597,23 @@ export function warn(message: string) {
 
 export function hashCodeFromString(value: string): number {
     let hash = 5381
-    for(let i = 0; i < value.length; i++) {
+    for (let i = 0; i < value.length; i++) {
         hash = (hash * 33) ^ value.charCodeAt(i)
         hash |= 0
     }
     return hash
+}
+
+export function forceWriteFile(filePath: string, content: string): void {
+    path.dirname(filePath).split(path.sep).reduce(
+        (last, dir) => {
+            const dirPath = path.join(last, dir)
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath)
+            }
+            return dirPath
+        },
+        "."
+    )
+    fs.writeFileSync(filePath, content)
 }

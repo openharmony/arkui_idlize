@@ -50,6 +50,12 @@ export class IndentedPrinter {
     printTo(file: string): void {
         fs.writeFileSync(file, this.getOutput().join("\n"))
     }
+
+    withIndent(prints: (printer: IndentedPrinter) => void): void {
+        this.pushIndent()
+        prints(this)
+        this.popIndent()
+    }
 }
 
 export class IndentedPrinterWithHeader extends IndentedPrinter {

@@ -1,0 +1,75 @@
+[Entity=Class] interface AstNode {};
+
+[Entity=Class] interface ScriptFunction: AstNode {};
+
+[Entity=Class] interface Statement {};
+
+[Entity=Class] interface Expression: AstNode {};
+
+[Entity=Class] interface ScriptFunction: AstNode {};
+
+[Entity=Class] interface TSTypeParameterDeclaration: AstNode {};
+
+[Entity=Class] interface TypeNode: AstNode {};
+
+[Entity=Class] interface Context {};
+
+[Entity=Class] interface Binder {};
+
+[Entity=Class] interface FunctionScope {};
+
+[Entity=Class] interface Identifier: AstNode {};
+
+dictionary ScriptFunctionFlags {
+    i32 NONE = 0;
+    i32 GENERATOR = 1;
+    i32 ASYNC = 2;
+    i32 ARROW = 4;
+    i32 EXPRESSION = 8;
+    i32 OVERLOAD = 16;
+    i32 CONSTRUCTOR = 32;
+    i32 METHOD = 64;
+    i32 CONCURRENT = 128;
+    i32 STATIC_INITIALIZER = 256;
+    i32 INSTANCE_INITIALIZER = 512;
+    i32 GENERATED_CONSTRUCTOR = 1024;
+    i32 SENDABLE = 2048;
+};
+dictionary ModifierFlags {
+
+};
+
+[Entity=Class] interface FunctionDeclaration: Statement {
+    constructor(ScriptFunction func);
+
+    ScriptFunction Function();
+};
+
+[Entity=Class] interface FunctionSignature {
+    constructor(
+        TSTypeParameterDeclaration typeParams,
+        sequence<Expression> params,
+        TypeNode returnTypeAnnotation
+    );
+
+    sequence<Expression> Params();
+
+    TSTypeParameterDeclaration TypeParams();
+
+    TypeNode ReturnType();
+
+    void ReturnType(TypeNode type);
+
+    i32 DefaultParamIndex();
+};
+
+[Entity=Class] interface ScriptFunction: AstNode {
+    constructor(
+        Context context,
+        sequence<Expression> databody,
+        FunctionSignature datasignature,
+        ScriptFunctionFlags datafuncFlags,
+        ModifierFlags dataflags,
+        boolean datadeclare
+    );
+};
