@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { createReferenceType, IDLVoidType } from "../../idl"
-import { FieldModifier, LanguageExpression, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature } from "../../peer-generation/LanguageWriters"
+import { createReferenceType, IDLVoidType } from "@idlize/core/idl"
+import { FieldModifier, LanguageExpression, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../../peer-generation/LanguageWriters"
 import { NativeModuleType } from "../../peer-generation/NativeModuleType"
-import { capitalize, removeExt, snakeCaseToCamelCase } from "../../util"
+import { capitalize, removeExt } from "@idlize/core"
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass"
 import { IldSkoalaFile } from "../idl/idlSkoalaLibrary"
 import { Skoala } from "../utils"

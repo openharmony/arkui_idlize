@@ -13,22 +13,20 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../../IndentedPrinter"
+import { IndentedPrinter } from '@idlize/core'
 import {
-    FieldModifier,
     LambdaExpression,
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
     MakeCastOptions,
-    Method, MethodCallExpression,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
     ObjectArgs
 } from "../LanguageWriter"
-import { TSCastExpression, TSLambdaExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType } from '../../../idl'
+import { TSCastExpression, TSLanguageWriter } from "./TsLanguageWriter"
+import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType } from '@idlize/core/idl'
 import {
     AggregateConvertor,
     ArgConvertor,
@@ -42,11 +40,11 @@ import {
     RuntimeType,
     UnionConvertor
 } from "../../ArgConvertors"
-import { Language } from "../../../Language"
+import { Language } from  '@idlize/core'
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
 import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter"
-import * as idl from "../../../idl"
+import * as idl from '@idlize/core/idl'
 import { convertDeclaration, IdlNameConvertor } from "../nameConvertor"
 import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
 import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
@@ -150,7 +148,7 @@ export class ETSLambdaExpression extends LambdaExpression {
                 idl.createReferenceType(this.signature.returnType.name))
             isRetTypeCallback = resolved !== undefined && idl.isCallback(resolved)
         }
-        return `(${params.join(", ")})${isRetTypeCallback 
+        return `(${params.join(", ")})${isRetTypeCallback
             ? "" : `:${this.convertor.convert(this.signature.returnType)}`} => { ${this.bodyAsString()} }`
     }
 }

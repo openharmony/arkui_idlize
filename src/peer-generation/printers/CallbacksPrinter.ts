@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
+import * as idl from '@idlize/core/idl'
 import { PeerLibrary } from "../PeerLibrary";
 import { CppLanguageWriter, LanguageWriter, NamedMethodSignature } from "../LanguageWriters";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
-import { Language } from "../../Language";
+import { Language } from  '@idlize/core'
 import { CallbackConvertor, CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue, maybeTransformManagedCallback } from "../ArgConvertors";
 import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";

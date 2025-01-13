@@ -14,8 +14,8 @@
  */
 
 import { createLanguageWriter, LanguageWriter, Method, NamedMethodSignature } from "../../peer-generation/LanguageWriters"
-import { Language } from "../../Language"
-import * as idl from '../../idl'
+import { Language } from "@idlize/core"
+import * as idl from '@idlize/core/idl'
 import { IdlSkoalaLibrary } from "../idl/idlSkoalaLibrary"
 
 export function makeTSSerializerFromIdl(library: IdlSkoalaLibrary): string {

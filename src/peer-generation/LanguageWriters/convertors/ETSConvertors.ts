@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-import * as idl from "../../../idl";
-import { TsIDLNodeToStringConverter } from "./TSConvertors";
-import { createReferenceType, IDLEntry, IDLReferenceType } from "../../../idl";
-import { createDeclarationNameConvertor, DeclarationNameConvertor } from "../../idl/IdlNameConvertor";
-import { convertDeclaration } from "../nameConvertor";
-import { Language } from "../../../Language";
-import { stringOrNone } from "../../../util";
+import * as idl from "@idlize/core/idl"
+import { TsIDLNodeToStringConverter } from "./TSConvertors"
+import { createReferenceType, IDLEntry, IDLReferenceType } from "@idlize/core/idl"
+import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
+import { convertDeclaration } from "../nameConvertor"
+import { Language, stringOrNone } from "@idlize/core"
 
 export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
     convertTypeReference(type: IDLReferenceType): string {

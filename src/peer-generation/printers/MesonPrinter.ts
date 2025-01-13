@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../IndentedPrinter"
+import { IndentedPrinter } from '@idlize/core'
 import { makeFileNameFromClassName } from "../FileGenerators"
 import { PeerClass } from "../PeerClass"
 import { PeerLibrary } from "../PeerLibrary"
@@ -53,7 +53,7 @@ export class MesonVisitor {
         })
         this.printer.popIndent()
         this.printer.print(")")
-        
+
         this.printer.print("")
 
         this.printer.print("generated_include_directories = include_directories('generated/interface')")

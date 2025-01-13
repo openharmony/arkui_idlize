@@ -14,12 +14,12 @@
  */
 import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
 import { FunctionCallExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createInteropArgConvertor, createLanguageWriter } from "../LanguageWriters";
-import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
+import { createConstructPeerMethod } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
-import { Language } from "../../Language";
-import * as idl from '../../idl'
+import { Language } from  '@idlize/core'
+import * as idl from  '@idlize/core/idl'
 import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { NativeModuleType } from "../NativeModuleType";
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";

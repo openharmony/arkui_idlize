@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
+import * as idl from '@idlize/core/idl'
 import * as path from "path"
-import { renameDtsToPeer, throwException } from "../../util";
+import { renameDtsToPeer, throwException, Language } from '@idlize/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import { InheritanceRole, determineParentRole, isHeir, isRoot } from "../inheritance";
@@ -42,8 +42,9 @@ import { PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
-import { Language } from "../../Language";
-import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType, IDLVoidType, isNamedNode, isPrimitiveType, maybeOptional } from "../../idl";
+import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,
+        IDLVoidType, isNamedNode, isPrimitiveType
+} from '@idlize/core'
 import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { findComponentByType } from "../ComponentsCollector";

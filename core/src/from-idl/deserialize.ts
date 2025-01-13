@@ -14,6 +14,7 @@
  */
 
 import * as webidl2 from "webidl2"
+import * as fs from "fs"
 import {
     isAttribute, isCallback, isClass, isConstructor, isDictionary, isEnum, isInterface, isOperation, isOptional,
     isPromiseTypeDescription,
@@ -25,7 +26,7 @@ import {
 import { toString } from "./toString"
 import * as idl from "../idl"
 import { isDefined, stringOrNone, warn } from "../util"
-import { generateSyntheticUnionName } from "../IDLVisitor"
+import { generateSyntheticUnionName } from "../peer-generation/idl/common"
 
 const syntheticTypes = new Map<string, idl.IDLEntry>()
 
@@ -449,4 +450,9 @@ function toIDLEnum(file: string, node: webidl2.EnumType): idl.IDLEnum {
 function findExtendedAttribute(extAttrs: webidl2.ExtendedAttribute[], name: idl.IDLExtendedAttributes): stringOrNone {
     const attr = extAttrs.find(it => it.name === name)
     return attr ? toExtendedAttributeValue(attr) : undefined
+}
+
+export function toIDL(file: string): idl.IDLEntry[] {
+    const content = fs.readFileSync(file).toString()
+    return webidl2.parse(content).map(it => toIDLNode(file, it))
 }

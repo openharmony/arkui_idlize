@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
+import * as idl from '@idlize/core/idl'
 import * as path from "path"
-import { removeExt, renameDtsToComponent } from "../../util";
+import { removeExt, renameDtsToComponent, Language } from '@idlize/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { isCommonMethod } from "../inheritance";
 import { componentToPeerClass } from "./PeersPrinter";
@@ -38,8 +38,7 @@ import { PeerFile } from "../PeerFile";
 import { PeerClass } from "../PeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
-import { Language } from "../../Language";
-import { createReferenceType, IDLVoidType, isOptionalType } from "../../idl";
+import { createReferenceType, IDLVoidType, isOptionalType } from '@idlize/core'
 import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";

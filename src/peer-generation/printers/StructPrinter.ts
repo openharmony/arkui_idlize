@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
-import { IDLType } from "../../idl"
-import { IndentedPrinter } from "../../IndentedPrinter"
-import { Language } from "../../Language"
-import { camelCaseToUpperSnakeCase } from "../../util"
+import * as idl from "@idlize/core/idl"
+import { IDLType } from "@idlize/core/idl"
+import { IndentedPrinter, Language, camelCaseToUpperSnakeCase } from "@idlize/core"
 import { RuntimeType } from "../ArgConvertors"
 import { PrimitiveType } from "../ArkPrimitiveType"
-import { createLanguageWriter, createTypeNameConvertor, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
+import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isImport, isStringEnum } from "../idl/common"
 import { generateCallbackAPIArguments } from "../ArgConvertors"
@@ -174,10 +172,10 @@ export class StructPrinter {
     }
 
     private printOptionalIfNeeded(
-        forwardDeclarations: LanguageWriter | undefined, 
-        concreteDeclarations: LanguageWriter, 
-        writeToString: LanguageWriter, 
-        target: idl.IDLNode, 
+        forwardDeclarations: LanguageWriter | undefined,
+        concreteDeclarations: LanguageWriter,
+        writeToString: LanguageWriter,
+        target: idl.IDLNode,
         seenNames: Set<String>,
     ) {
         const isPointer = this.isPointerDeclaration(target)

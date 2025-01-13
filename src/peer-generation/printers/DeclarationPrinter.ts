@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
-import { CustomPrintVisitor as DtsPrintVisitor} from "../../from-idl/DtsPrinter"
-import { isMaterialized, isPredefined } from "../idl/IdlPeerGeneratorVisitor"
+import * as idl from '@idlize/core/idl'
+import { CustomPrintVisitor as DtsPrintVisitor} from '@idlize/core'
+import { isPredefined } from "../idl/IdlPeerGeneratorVisitor"
 import { PeerLibrary } from "../PeerLibrary"
 import { LanguageWriter } from "../LanguageWriters"
 import { DependenciesCollector } from "../idl/IdlDependenciesCollector"

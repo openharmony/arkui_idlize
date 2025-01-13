@@ -13,18 +13,15 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../IndentedPrinter";
+import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language } from '@idlize/core'
 import { getNodeTypes, makeAPI, makeConverterHeader, makeCSerializers } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
 import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } from "../LanguageWriters";
-import { camelCaseToUpperSnakeCase } from "../../util";
-import { maybeOptional } from "../../idl";
 import { PeerLibrary } from "../PeerLibrary";
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { getReferenceResolver } from "../ReferenceResolver";
-import { Language } from "../../Language";
 import { createDestroyPeerMethod } from "../Materialized";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 

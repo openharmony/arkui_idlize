@@ -60,12 +60,11 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLUnknownType,
     IDLBooleanType,
     IDLNumberType,
-    IDLPointerType, 
+    IDLPointerType,
     IDLInterfaceSubkind} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
-import { PeerGeneratorConfig } from "../peer-generation/PeerGeneratorConfig"
 
 export class CustomPrintVisitor {
     output: string[] = []
@@ -203,7 +202,7 @@ export class CustomPrintVisitor {
         let isProtected = hasExtAttribute(node, IDLExtendedAttributes.Protected)
         if (isCommonMethod) {
             // TODO: not very clean, but we don't need to print these so far.
-            if (PeerGeneratorConfig.ignorePeerMethod.includes(node.name)) return
+            // if (PeerGeneratorConfig.ignorePeerMethod.includes(node.name)) return
             const typeParams = this.currentInterface?.typeParameters
             const returnType = typeParams && typeParams.length > 0 ? typeParams[0] : this.currentInterface!.name
             this.print(`${getName(node)}(value: ${this.printTypeForTS(node.type, undefined, undefined, isCommonMethod)}): ${returnType};`)
@@ -329,7 +328,7 @@ export class CustomPrintVisitor {
                 case IDLU32Type: case IDLI32Type:
                 case IDLU64Type: case IDLI64Type:
                 case IDLF16Type: case IDLF32Type: case IDLF64Type:
-                case IDLNumberType: 
+                case IDLNumberType:
                     return "number"
                 case IDLAnyType: return "any"
                 case IDLUnknownType: return "unknown"

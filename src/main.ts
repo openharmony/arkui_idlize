@@ -16,9 +16,7 @@
 import { program } from "commander"
 import * as fs from "fs"
 import * as path from "path"
-import { fromIDL } from "./from-idl/common"
-import { idlToDtsString } from "./from-idl/DtsPrinter"
-import { generate } from "./idlize"
+import { fromIDL, toIDL, generate, defaultCompilerOptions, idlToDtsString, Language } from "@idlize/core"
 import {
     forEachChild,
     IDLEntry,
@@ -27,12 +25,11 @@ import {
     isSyntheticEntry,
     toIDLString,
     transformMethodsAsync2ReturnPromise
-} from "./idl"
+} from "@idlize/core/idl"
 import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
 import { IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { defaultCompilerOptions, toSet } from "./util"
 import { initRNG } from "./rand_utils"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { generateTracker } from "./peer-generation/Tracker"
@@ -44,10 +41,7 @@ import {
     IDLPredefinesVisitor,
 } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
 import { generateOhos } from "./peer-generation/OhosGenerator"
-import * as webidl2 from "webidl2"
-import { toIDLNode } from "./from-idl/deserialize"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./peer-generation/arkoala"
-import { Language } from "./Language"
 import { loadPlugin } from "./peer-generation/plugin-api"
 import { SkoalaDeserializerPrinter } from "./peer-generation/printers/SkoalaDeserializerPrinter"
 import { PrimitiveType } from "./peer-generation/ArkPrimitiveType"
@@ -453,8 +447,7 @@ function scanDirectory(isPredefined: boolean, dir: string, ...subdirs: string[])
         .filter(it => it.endsWith(".idl"))
         .map(it => {
             const idlFile = path.resolve(path.join(dir, it))
-            const content = fs.readFileSync(path.resolve(path.join(dir, it))).toString()
-            const nodes = webidl2.parse(content).filter(it => !!it.type).map(it => toIDLNode(idlFile, it))
+            const nodes = toIDL(idlFile)
             return new PeerFile(idlFile, nodes, isPredefined)
         })
 }

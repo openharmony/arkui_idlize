@@ -13,19 +13,16 @@
  * limitations under the License.
  */
 
-import { IDLI32Type, IDLType, IDLVoidType } from "../../../idl"
+import { IDLI32Type } from "@idlize/core/idl"
 import { PeerLibrary } from "../../PeerLibrary"
-import { ImportFeature } from "../../ImportsCollector"
 import {
     createLanguageWriter,
-    FieldModifier,
     LanguageWriter,
-    MethodSignature,
 } from "../../LanguageWriters"
 import { getReferenceResolver } from "../../ReferenceResolver"
 import { writeDeserializer, writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
-import { ARK_OBJECTBASE, ARK_UI_NODE_TYPE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./Cangjie"
+import { ARK_UI_NODE_TYPE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./Cangjie"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 
 export function makeCJSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {

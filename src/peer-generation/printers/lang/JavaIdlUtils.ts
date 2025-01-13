@@ -1,4 +1,4 @@
-import * as idl from "../../../idl"
+import * as idl from "@idlize/core/idl"
 import { convertType, TypeConvertor } from "../../LanguageWriters/nameConvertor"
 import { ImportFeature } from "../../ImportsCollector"
 

@@ -14,11 +14,11 @@
  */
 
 import { Field, Method, MethodModifier, MethodSignature, NamedMethodSignature } from "./LanguageWriters"
-import { ImportFeature } from "./ImportsCollector"
-import { Language } from "../Language";
 import { PeerLibrary } from "./PeerLibrary";
-import { convertTypeToFeature } from "./idl/IdlPeerGeneratorVisitor";
-import { createConstructor, createInterface, createMethod, createParameter, createReferenceType, IDLInterface, IDLInterfaceSubkind, IDLKind, IDLReferenceType, IDLThisType, IDLType, IDLVoidType } from "../idl"
+import {
+    createConstructor, createInterface, createMethod, createParameter, createReferenceType, IDLInterface, IDLInterfaceSubkind,
+    IDLReferenceType, IDLThisType, IDLType, IDLVoidType
+} from "@idlize/core/idl"
 
 function builderMethod(name: string, type: IDLType): Method {
     return new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))
@@ -51,12 +51,12 @@ export function initCustomBuilderClasses(library: PeerLibrary) {
         undefined,
         undefined,
         [
-            ...["left", "top", "right", "bottom"].map(it => createMethod(it, 
+            ...["left", "top", "right", "bottom"].map(it => createMethod(it,
                 [createParameter("value", createReferenceType("Length"))],
                 IDLThisType,
             )),
-            ...["start", "end"].map(it => createMethod(it, 
-                [createParameter(`value`, createReferenceType("LengthMetrics"))], 
+            ...["start", "end"].map(it => createMethod(it,
+                [createParameter(`value`, createReferenceType("LengthMetrics"))],
                 IDLThisType,
             )),
             createMethod(`dot`, [], createReferenceType(`DotIndicator`)),

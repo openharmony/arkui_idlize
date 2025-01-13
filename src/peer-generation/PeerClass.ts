@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-import { IDLI32Type, IDLPointerType, IDLProperty, IDLVoidType } from "../idl"
+import { IDLI32Type, IDLPointerType, IDLProperty } from '@idlize/core/idl'
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
-import { PrimitiveType } from "./ArkPrimitiveType"
 import { NumericConvertor } from "./ArgConvertors"
 import { Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 

@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-import { createReferenceType, forceAsNamedNode, IDLContainerType, IDLEnum, IDLNode, IDLType, IDLUint8ArrayType, IDLVoidType } from "../../../idl"
-import { IndentedPrinter } from "../../../IndentedPrinter"
-import { cppKeywords } from "../../../languageSpecificKeywords"
-import { Language } from "../../../Language"
+import { createReferenceType, forceAsNamedNode, IDLContainerType, IDLEnum, IDLNode, IDLType, IDLUint8ArrayType, IDLVoidType } from '@idlize/core'
+import { IndentedPrinter, cppKeywords, Language, throwException } from '@idlize/core'
 import { ArgConvertor, BaseArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { PrimitiveType } from "../../ArkPrimitiveType"
 import {
     AssignStatement,
     BlockStatement,
-    ExpressionStatement,
     FieldModifier,
     LanguageExpression,
     LanguageStatement,
@@ -46,8 +43,7 @@ import {
     CLikeReturnStatement
 } from "./CLikeLanguageWriter"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlNameConvertor, TypeConvertor } from "../nameConvertor"
-import { throwException } from "../../../util";
+import { IdlNameConvertor } from "../nameConvertor"
 import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
 
 ////////////////////////////////////////////////////////////////

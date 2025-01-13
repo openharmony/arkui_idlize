@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from '../../../idl'
-import { PrimitiveType } from '../../ArkPrimitiveType';
-import { IdlNameConvertor } from "../nameConvertor";
-import { ConvertResult, InteropArgConvertor, InteropConverter } from './InteropConvertor';
+import * as idl from '@idlize/core/idl'
+import { PrimitiveType } from '../../ArkPrimitiveType'
+import { IdlNameConvertor } from "../nameConvertor"
+import { ConvertResult, InteropArgConvertor, InteropConverter } from './InteropConvertor'
 
 export class CppIDLNodeToStringConvertor extends InteropConverter implements IdlNameConvertor {
     private unwrap(type: idl.IDLNode, result:ConvertResult): string {

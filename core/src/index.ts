@@ -1,3 +1,5 @@
+import { fromIDL } from "./from-idl/common"
+
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from "./idl"
+export * from "./idlize"
+export * from "./Language"
+export * from "./languageSpecificKeywords"
+export * from "./options"
+export * from "./util"
+export * from "./IndentedPrinter"
 
-import { IDLType } from '@idlize/core/idl'
-import { LanguageWriter } from "../LanguageWriters";
+export * from "./peer-generation/idl/common"
+export { fromIDL }  from "./from-idl/common"
+export { idlToDtsString, CustomPrintVisitor }  from "./from-idl/DtsPrinter"
+export { toIDL, addSyntheticType, resolveSyntheticType } from "./from-idl/deserialize"
 
-export interface ImportTable {
-    getImportsForTypes(types: IDLType[]): string[]
-    setImportsForType(type: IDLType, imports: string[]): void
-    printImportsForTypes(types: IDLType[], printer: LanguageWriter): void
-}

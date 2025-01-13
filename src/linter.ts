@@ -14,9 +14,9 @@
  */
 
 import * as ts from "typescript"
-import { GenericVisitor } from "./options"
 import * as path from "path"
 import {
+    GenericVisitor, cppKeywords,
     asString,
     getDeclarationsByNode,
     getLineNumberString,
@@ -25,9 +25,8 @@ import {
     isStatic,
     nameOrNull,
     zip
-} from "./util"
+} from "@idlize/core"
 import { LinterWhitelist } from "./LinterWhitelist"
-import { cppKeywords } from "./languageSpecificKeywords"
 import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
 import { LinterError, LinterMessage } from "./LinterMessage"
 
@@ -421,7 +420,7 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             )
         }
     }
-   
+
     private getMethodsTypes(node: ts.ClassDeclaration): Map<string, ts.FunctionTypeNode> {
         const map = new Map()
         node.members

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../IndentedPrinter";
+import { IndentedPrinter } from '@idlize/core'
 import { getNodeTypes, makeNodeTypes } from "../FileGenerators";
 import { PeerLibrary } from "../PeerLibrary";
 

@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-import * as idl from "../idl"
+import * as idl from '@idlize/core/idl'
 import { PeerClass } from "./PeerClass"
-import { ImportFeature } from './ImportsCollector'
 import { LibraryFileInterface } from "../LibraryInterface"
 
 export class PeerFile implements LibraryFileInterface {

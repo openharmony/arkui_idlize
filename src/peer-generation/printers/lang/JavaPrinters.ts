@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "../../../idl"
+import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "@idlize/core/idl"
 import { PeerLibrary } from "../../PeerLibrary"
 import { PeerMethod } from "../../PeerMethod"
 import { ImportFeature } from "../../ImportsCollector"
@@ -176,18 +176,18 @@ export class JavaEnum extends IdlSyntheticTypeBase {
                     writer.makeString(`new ${this.name}(${it.numberId})`)
                 )
             })
-    
+
             const value = 'value'
             const intType = IDLI32Type
             writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
-    
+
             const signature = new MethodSignature(IDLVoidType, [intType])
             writer.writeConstructorImplementation(this.name, signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
                 )
             })
-    
+
             const getIntValue = new Method('getIntValue', new MethodSignature(intType, []), [MethodModifier.PUBLIC])
             writer.writeMethodImplementation(getIntValue, () => {
                 writer.writeStatement(

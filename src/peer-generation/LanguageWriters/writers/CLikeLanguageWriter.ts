@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-import { IDLType } from "../../../idl"
-import { IndentedPrinter } from "../../../IndentedPrinter"
-import { Language } from "../../../Language"
+import { IDLType } from '@idlize/core/idl'
+import { IndentedPrinter, Language } from "@idlize/core"
 import { PrimitiveType } from "../../ArkPrimitiveType"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodArgPrintHint, MethodModifier, MethodSignature, ReturnStatement } from "../LanguageWriter"

@@ -1,8 +1,7 @@
-import * as idl from '../../idl'
+import * as idl from "@idlize/core/idl"
 import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import {
     createLanguageWriter,
-    createTypeNameConvertor,
     generateTypeCheckerName,
     LanguageExpression,
     LanguageWriter,
@@ -11,9 +10,9 @@ import {
     NamedMethodSignature
 } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
-import { createDeclarationNameConvertor, DeclarationNameConvertor } from "../idl/IdlNameConvertor";
-import { Language } from "../../Language";
-import { getExtAttribute, IDLBooleanType, isReferenceType } from "../../idl";
+import { createDeclarationNameConvertor } from "../idl/IdlNameConvertor";
+import { Language } from "@idlize/core"
+import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlize/core/idl"
 import { getReferenceResolver } from '../ReferenceResolver';
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -214,7 +213,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         const argsNames = Array.from({length: fieldsCount}, (_, index) => `arg${index}`)
         this.writer.writeMethodImplementation(new Method(
             checkerName,
-            new NamedMethodSignature(IDLBooleanType, 
+            new NamedMethodSignature(IDLBooleanType,
                 [idl.createReferenceType('object|string|number|undefined|null'), ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
@@ -252,7 +251,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         const argsNames = descriptor.getFields().map(it => `duplicated_${it.name}`)
         this.writer.writeMethodImplementation(new Method(
             generateTypeCheckerName(name),
-            new NamedMethodSignature(IDLBooleanType, 
+            new NamedMethodSignature(IDLBooleanType,
                 [idl.createReferenceType('object|string|number|undefined|null|boolean'), ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],

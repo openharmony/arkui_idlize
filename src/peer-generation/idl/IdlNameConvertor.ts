@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { Language } from '../../Language'
+import * as idl from '@idlize/core/idl'
+import { Language } from '@idlize/core'
 import { DeclarationConvertor } from '../LanguageWriters/nameConvertor'
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
@@ -60,9 +60,9 @@ export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
 export function createDeclarationNameConvertor(language: Language): DeclarationNameConvertor {
     switch (language) {
         case Language.ARKTS: return ETSDeclarationNameConvertor.I
-        case Language.JAVA: 
-        case Language.CPP: 
-        case Language.CJ: 
+        case Language.JAVA:
+        case Language.CPP:
+        case Language.CJ:
         case Language.TS: return DeclarationNameConvertor.I
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
@@ -71,9 +71,9 @@ export function createDeclarationNameConvertor(language: Language): DeclarationN
 export function createFeatureNameConvertor(language: Language): DeclarationNameConvertor {
     switch (language) {
         case Language.ARKTS: return ETSFeatureNameConvertor.I
-        case Language.JAVA: 
-        case Language.CPP: 
-        case Language.CJ: 
+        case Language.JAVA:
+        case Language.CPP:
+        case Language.CJ:
         case Language.TS: return TSFeatureNameConvertor.I
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }

@@ -1,4 +1,4 @@
-import * as idl from "../../idl"
+import * as idl from '@idlize/core/idl'
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { maybeTransformManagedCallback } from "../ArgConvertors";
 import { getInternalClassName } from "../Materialized";

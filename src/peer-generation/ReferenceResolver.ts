@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from "../idl";
+import * as idl from '@idlize/core/idl'
 import { PeerLibrary } from "./PeerLibrary";
 
 export interface ReferenceResolver {

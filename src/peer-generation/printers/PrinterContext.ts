@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { Language } from '../../Language';
-import { ImportTable } from './ImportTable';
-import { SynthesizedTypesRegistry } from './SynthesizedTypesRegistry';
+import { Language } from '@idlize/core'
+import { ImportTable } from './ImportTable'
+import { SynthesizedTypesRegistry } from './SynthesizedTypesRegistry'
 
 export interface PrinterContext {
     get language(): Language

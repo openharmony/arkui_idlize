@@ -16,7 +16,7 @@
 import * as path from "path"
 import * as fs from "fs"
 import { TargetFile } from "../peer-generation/printers/TargetFile"
-import { Language } from "../Language"
+import { Language } from "@idlize/core"
 
 class Install {
     mkdir(path: string): string {

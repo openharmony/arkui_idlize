@@ -13,39 +13,30 @@
  * limitations under the License.
  */
 
-import {
-    IDLOptionalType,
-    IDLUnionType,
-    IDLContainerType,
-    IDLReferenceType,
-    IDLTypeParameterType,
-    IDLPrimitiveType
-} from "../idl";
 import { TypeConvertor } from "../peer-generation/LanguageWriters/nameConvertor"
-import { PrimitiveType } from "../peer-generation/ArkPrimitiveType"
-import * as idl from "../idl"
-import { throwException } from "../util"
+import * as idl from "@idlize/core/idl"
+import { throwException } from "@idlize/core"
 
 export class NativeTypeConvertor implements TypeConvertor<string> {
-    convertOptional(type: IDLOptionalType): string {
+    convertOptional(type: idl.IDLOptionalType): string {
         throw new Error("Method not implemented.");
     }
-    convertUnion(type: IDLUnionType): string {
+    convertUnion(type: idl.IDLUnionType): string {
         throw new Error("Method not implemented.");
     }
-    convertContainer(type: IDLContainerType): string {
+    convertContainer(type: idl.IDLContainerType): string {
         return `KNativePointer`
     }
-    convertImport(type: IDLReferenceType, importClause: string): string {
+    convertImport(type: idl.IDLReferenceType, importClause: string): string {
         throw new Error("Method not implemented.");
     }
-    convertTypeReference(type: IDLReferenceType): string {
+    convertTypeReference(type: idl.IDLReferenceType): string {
         return `KNativePointer`
     }
-    convertTypeParameter(type: IDLTypeParameterType): string {
+    convertTypeParameter(type: idl.IDLTypeParameterType): string {
         throw new Error("Method not implemented.");
     }
-    convertPrimitiveType(type: IDLPrimitiveType): string {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLI32Type: return `KInt`
             case idl.IDLBooleanType: return `KBoolean`

@@ -15,7 +15,7 @@
 
 import { ArgConvertor } from "../peer-generation/ArgConvertors";
 import { Field, Method, MethodModifier } from "../peer-generation/LanguageWriters"
-import { capitalize } from "../util"
+import { capitalize } from "@idlize/core"
 import { Skoala } from './utils';
 
 export class WrapperMethod {
@@ -27,7 +27,7 @@ export class WrapperMethod {
     ) { }
 
     public isMakeMethod(): boolean {
-        return this.toStringName.startsWith("make") 
+        return this.toStringName.startsWith("make")
         && (this.method.modifiers ? this.method.modifiers.includes(MethodModifier.STATIC) : true)
     }
 

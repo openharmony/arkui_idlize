@@ -14,8 +14,8 @@
  */
 
 import * as webidl2 from "webidl2"
-import { ExtendedAttribute } from "webidl2";
-import { IDLEntity } from "../idl";
+import { ExtendedAttribute } from "webidl2"
+import { IDLEntity } from "../idl"
 
 export function isEnum(node: webidl2.IDLRootType): node is webidl2.EnumType {
     return node.type === "enum"

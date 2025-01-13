@@ -16,7 +16,7 @@
 import { LinterError, LinterMessage } from "./LinterMessage";
 
 import * as fs from "fs"
-import { identName } from "./util";
+import { identName } from "@idlize/core"
 
 export class LinterWhitelist {
     suppressErrors = new Set<LinterError>()

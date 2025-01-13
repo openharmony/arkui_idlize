@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '../../../idl'
-import { throwException } from '../../../util'
+import * as idl from '@idlize/core/idl'
 import { ARK_CUSTOM_OBJECT, cjCustomTypeMapping, convertCJOptional } from '../../printers/lang/Cangjie'
 import { ReferenceResolver } from '../../ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "../nameConvertor"

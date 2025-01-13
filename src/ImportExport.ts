@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as ts from 'typescript';
-import { arrayAt, getDeclarationsByNode } from './util';
+import * as ts from 'typescript'
+import { arrayAt, getDeclarationsByNode } from '@idlize/core'
 
 export class ImportExport {
     constructor(

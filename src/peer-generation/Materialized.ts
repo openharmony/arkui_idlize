@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import * as idl from "../idl"
+import * as idl from '@idlize/core/idl'
 import { ArgConvertor } from "./ArgConvertors"
 import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
-import { capitalize } from "../util"
-import { ImportFeature, ImportsCollector } from "./ImportsCollector"
-import { createReferenceType, IDLType, IDLVoidType } from "../idl"
+import { capitalize } from '@idlize/core'
+import { ImportsCollector } from "./ImportsCollector"
+import { createReferenceType, IDLType, IDLVoidType } from '@idlize/core/idl'
 import { PeerMethod } from "./PeerMethod";
 import { PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary"

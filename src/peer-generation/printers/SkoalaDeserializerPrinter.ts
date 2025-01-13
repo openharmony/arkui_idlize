@@ -1,5 +1,5 @@
-import { IDLEntry, IDLInterface, isInterface } from "../../idl"
-import { IndentedPrinter } from "../../IndentedPrinter"
+import { IDLEntry, IDLInterface, isInterface } from "@idlize/core/idl"
+import { IndentedPrinter } from "@idlize/core"
 import { cStyleCopyright } from "../FileGenerators"
 import * as fs from "fs"
 import * as path from "path"
@@ -7,7 +7,7 @@ import * as path from "path"
 export class SkoalaDeserializerPrinter {
     static generateDeserializer(outputDir: string, generatedIDLMap: Map<string, IDLEntry[]>) {
         let combinedDeserializerPrinter = new IndentedPrinter()
-        
+
         combinedDeserializerPrinter.print(cStyleCopyright)
 
         combinedDeserializerPrinter.print(`#ifndef DESERIALIZER_H`)

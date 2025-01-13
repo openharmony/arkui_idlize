@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
+import * as idl from '@idlize/core/idl'
 import {
     getExtAttribute,
     IDLExtendedAttributes,
     IDLType,
     maybeOptional
-} from "../../idl"
+} from '@idlize/core/idl'
 import {
     capitalize,
     isDefined,
-    serializerBaseMethods,
     warn,
-} from "../../util"
-import { GenericVisitor } from "../../options"
+    GenericVisitor,
+    Language
+} from '@idlize/core'
 import { ArgConvertor } from "../ArgConvertors"
 import { createOutArgConvertor } from "../PromiseConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -39,10 +39,7 @@ import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } fr
 import { BuilderClass, initCustomBuilderClasses, isCustomBuilderClass } from "../BuilderClass";
 import { isRoot } from "../inheritance";
 import { ImportFeature } from "../ImportsCollector";
-import { DeclarationNameConvertor } from "./IdlNameConvertor";
-import { PrimitiveType } from "../ArkPrimitiveType"
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
-import { Language } from "../../Language"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
 import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
 

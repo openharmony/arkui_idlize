@@ -14,19 +14,18 @@
  */
 import * as ts from "typescript"
 import * as path from "path"
-import { parse } from 'comment-parser'
-import * as idl from "./idl"
+import { parse } from "comment-parser"
+import { OptionValues } from "commander"
+import * as idl from "@idlize/core/idl"
 import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, identName,
     isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync,
     nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
-    snakeCaseToCamelCase,
-} from "./util"
-import { GenericVisitor } from "./options"
+    snakeCaseToCamelCase, IDLKeywords, GenericVisitor,
+    generateSyntheticUnionName
+} from "@idlize/core"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
-import { OptionValues } from "commander"
 import { generateSyntheticIdlNodeName, typeOrUnion } from "./peer-generation/idl/common"
-import { IDLKeywords } from "./languageSpecificKeywords"
 import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
 import { ReferenceResolver } from "./peer-generation/ReferenceResolver"
 import { IDLVisitorConfig } from "./IDLVisitorConfig"
@@ -74,10 +73,6 @@ export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], re
     let prefix = isAsync ? "AsyncCallback" : "Callback"
     const names = parameters.map(it => `${generateSyntheticIdlNodeName(it.type!)}`).concat(generateSyntheticIdlNodeName(returnType))
     return `${prefix}_${names.join("_").replaceAll(".", "_")}`
-}
-
-export function generateSyntheticUnionName(types: idl.IDLType[]) {
-    return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
 }
 
 function mangleConflictingName(name: string, sourceFile: ts.SourceFile | undefined): string {

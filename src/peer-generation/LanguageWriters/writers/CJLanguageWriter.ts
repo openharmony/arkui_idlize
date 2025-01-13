@@ -13,18 +13,14 @@
  * limitations under the License.
  */
 
-import * as idl from "../../../idl"
-import { IDLNumberType, IDLType } from "../../../idl"
-import { IndentedPrinter } from "../../../IndentedPrinter"
-import { Language } from "../../../Language"
-import { CJKeywords } from "../../../languageSpecificKeywords"
-import { isDefined } from "../../../util"
+import * as idl from  '@idlize/core/idl'
+import { IDLNumberType, IDLType } from '@idlize/core/idl'
+import { IndentedPrinter, Language, CJKeywords, isDefined } from  '@idlize/core'
 import { ArgConvertor, BaseArgConvertor, RuntimeType } from "../../ArgConvertors"
 import { EnumConvertor } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import {
     AssignStatement,
-    BranchStatement,
     ExpressionStatement,
     FieldModifier,
     LambdaExpression,
@@ -37,8 +33,7 @@ import {
     MethodSignature,
     ObjectArgs,
     ReturnStatement,
-    StringExpression,
-    TernaryExpression
+    StringExpression
 } from "../LanguageWriter"
 import { IdlNameConvertor } from "../nameConvertor"
 import { CJIDLTypeToForeignStringConvertor, CJIDLNodeToStringConvertor } from "../convertors/CJConvertors"

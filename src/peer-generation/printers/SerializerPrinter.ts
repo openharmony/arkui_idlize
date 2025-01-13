@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { Language } from "../../Language"
+import * as idl from '@idlize/core/idl'
+import { Language, throwException } from '@idlize/core'
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { ExpressionStatement, LanguageStatement, LanguageWriter, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
@@ -27,10 +27,9 @@ import {
     isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor'
 import { collectProperties } from '../printers/StructPrinter'
-import { FieldModifier, MethodModifier, ProxyStatement, TernaryExpression } from '../LanguageWriters/LanguageWriter'
+import { FieldModifier, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter'
 import { createDeclarationNameConvertor } from '../idl/IdlNameConvertor'
-import { throwException } from "../../util"
-import { IDLEntry } from "../../idl"
+import { IDLEntry } from "@idlize/core/idl"
 import { convertDeclaration } from '../LanguageWriters/nameConvertor'
 import { collectMaterializedImports, getInternalClassName } from '../Materialized'
 import { generateCallbackKindValue, maybeTransformManagedCallback } from '../ArgConvertors'

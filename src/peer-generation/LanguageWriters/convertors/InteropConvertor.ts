@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as idl from '../../../idl'
-import { capitalize } from '../../../util'
+import * as idl from '@idlize/core/idl'
+import { capitalize } from '@idlize/core'
 import { maybeTransformManagedCallback } from '../../ArgConvertors'
 import { PrimitiveType } from '../../ArkPrimitiveType'
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'

@@ -15,7 +15,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { Language } from './Language'
+import { Language } from '@idlize/core'
 import { TargetFile } from './peer-generation/printers/TargetFile'
 
 class Install {

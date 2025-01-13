@@ -19,8 +19,11 @@ import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
-import { Language } from "../../Language";
-import { createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, IDLI32Type, IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType } from "../../idl";
+import { Language } from '@idlize/core'
+import {
+    createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, IDLI32Type,
+    IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType
+} from "@idlize/core/idl"
 import { makeInteropSignature } from "./NativeModulePrinter";
 import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";

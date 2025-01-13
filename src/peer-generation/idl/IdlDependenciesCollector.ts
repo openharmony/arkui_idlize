@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
-import { NodeConvertor, convertNode, convertType } from "../LanguageWriters/nameConvertor";
-import { LibraryInterface } from '../../LibraryInterface';
-import { PeerLibrary } from '../PeerLibrary';
-import { Language } from '../../Language';
-import { isMaterialized } from './IdlPeerGeneratorVisitor';
-import { getInternalClassName } from '../Materialized';
+import * as idl from '@idlize/core/idl'
+import { NodeConvertor, convertNode, convertType } from "../LanguageWriters/nameConvertor"
+import { LibraryInterface } from '../../LibraryInterface'
+import { PeerLibrary } from '../PeerLibrary'
+import { Language } from '@idlize/core'
+import { isMaterialized } from './IdlPeerGeneratorVisitor'
+import { getInternalClassName } from '../Materialized'
 
 export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     constructor(protected readonly library: LibraryInterface) {}

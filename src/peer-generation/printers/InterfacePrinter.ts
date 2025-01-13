@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '../../idl'
+import * as idl from '@idlize/core/idl'
 import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
 import {
@@ -32,23 +32,22 @@ import {
     removeExt,
     renameDtsToInterfaces,
     stringOrNone,
-    throwException
-} from '../../util'
+    throwException,
+    IndentedPrinter,
+    Language,
+    CustomPrintVisitor
+} from '@idlize/core'
 import { ImportFeature, ImportsCollector } from '../ImportsCollector'
 import { PeerFile } from '../PeerFile'
-import { IndentedPrinter } from "../../IndentedPrinter"
 import { TargetFile } from '../printers/TargetFile'
 import { PrinterContext } from '../printers/PrinterContext'
 import { convertDeclaration, DeclarationConvertor } from "../LanguageWriters/nameConvertor";
-import { tsCopyrightAndWarning } from '../FileGenerators'
 import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../printers/lang/Java'
 import { printJavaImports } from '../printers/lang/JavaPrinters'
 import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
-import { Language } from '../../Language'
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 import { collectProperties } from './StructPrinter'
-import { CustomPrintVisitor } from "../../from-idl/DtsPrinter"
-import { escapeKeyword, IDLType } from "../../idl";
+import { escapeKeyword, IDLType } from '@idlize/core/idl'
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { isBuilderClass, isMaterialized, isPredefined } from '../idl/IdlPeerGeneratorVisitor'
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'

@@ -15,16 +15,14 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, DebugUtils, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isMethod, isNamedNode, isReferenceType, isType, isUnionType } from '../idl'
-import { IndentedPrinter } from "../IndentedPrinter"
-import { Language } from '../Language'
-import { capitalize, getOrPut } from '../util'
+import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, DebugUtils, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isReferenceType, isUnionType } from '@idlize/core/idl'
+import { IndentedPrinter, Language, capitalize } from '@idlize/core'
 import { ArgConvertor, generateCallbackAPIArguments } from './ArgConvertors'
 import { PrimitiveType } from './ArkPrimitiveType'
 import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { qualifiedName } from './idl/common'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
-import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, FieldModifier, LanguageExpression, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
+import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
 import { PeerLibrary } from './PeerLibrary'
 import { printBridgeCcForOHOS } from './printers/BridgeCcPrinter'
 import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
@@ -342,7 +340,7 @@ class OHOSVisitor {
                 )
             }
             if (writer.language === Language.ARKTS) {
-                writer.writeNativeMethodDeclaration("_ManagedStringWrite", 
+                writer.writeNativeMethodDeclaration("_ManagedStringWrite",
                     NamedMethodSignature.make(IDLI32Type, [
                         { name: "str", type: IDLStringType },
                         { name: "arr", type: IDLUint8ArrayType },
@@ -435,7 +433,7 @@ class OHOSVisitor {
                                 it.convertorSerialize(`this`, it.param, writer)
                             }
                         })
-                        
+
                         const createPeerExpression = writer.makeNewObject("Finalizable", [
                             writer.makeNativeCall(NativeModuleType.Generated, `_${int.name}_ctor`, params),
                             writer.makeString(`${int.name}.getFinalizer()`)
@@ -475,7 +473,7 @@ class OHOSVisitor {
                     // TODO add better (platform-agnostic) way to return Finalizable
                     writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
                 })
-                
+
                 // write construct(ptr: number) method
                 if (ctors.length === 0) {
                     const typeArguments = int.typeParameters

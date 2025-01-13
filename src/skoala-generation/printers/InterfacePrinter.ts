@@ -15,7 +15,7 @@
 
 import { LanguageWriter } from "../../peer-generation/LanguageWriters"
 import { IldSkoalaFile, TSDeclConvertor, IdlSkoalaLibrary } from "../idl/idlSkoalaLibrary"
-import * as idl from '../../idl'
+import * as idl from "@idlize/core/idl"
 import { convertDeclaration } from "../../peer-generation/LanguageWriters/nameConvertor"
 
 

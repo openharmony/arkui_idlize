@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../../IndentedPrinter"
-import { Language } from "../../../Language"
+import { IndentedPrinter, Language  } from '@idlize/core'
 import { TSTypeNodeNameConvertor } from "../../TypeNodeNameConvertor"
 import {
     AssignStatement,
@@ -30,16 +29,15 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
-    NamedMethodSignature,
     ObjectArgs,
     ReturnStatement,
     StringExpression
 } from "../LanguageWriter"
-import * as idl from '../../../idl'
+import * as idl from '@idlize/core/idl'
 import * as ts from 'typescript'
 import { ArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { convertType, IdlNameConvertor, TypeConvertor } from "../nameConvertor"
+import { IdlNameConvertor } from "../nameConvertor"
 import { TsIDLNodeToStringConverter } from "../convertors/TSConvertors"
 import { isStringEnum } from "../../idl/common"
 

@@ -14,7 +14,7 @@
  */
 
 import * as ts from "typescript";
-import { asString, heritageDeclarations, identName } from "../util";
+import { asString, heritageDeclarations, identName } from "@idlize/core"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 
 export enum InheritanceRole {

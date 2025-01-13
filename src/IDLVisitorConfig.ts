@@ -1,6 +1,6 @@
-import * as idl from './idl'
+import * as idl from '@idlize/core/idl'
 import * as ts from "typescript"
-import { identName } from './util'
+import { identName } from '@idlize/core'
 
 export class IDLVisitorConfig {
     private constructor() {}
@@ -60,7 +60,7 @@ export class IDLVisitorConfig {
 
     static customSerializePropertyType(property: ts.MethodDeclaration | ts.MethodSignature, propertyName: string): idl.IDLType | undefined {
         if (!ts.isClassDeclaration(property.parent)) return
-        
+
         switch (identName(property.parent.name)) {
             case "ScrollableCommonMethod":
             case "ScrollAttribute": {

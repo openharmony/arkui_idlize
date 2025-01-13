@@ -16,7 +16,8 @@
   ],
   "workspaces": [
     "webidl2.js",
-    "demos/*"
+    "demos/*",
+    "core"
   ],
   "license": "Apache-2.0",
   "keywords": [],
@@ -30,8 +31,7 @@
     "minimist": "^1.2.8",
     "node-addon-api": "^8.0.0",
     "node-api-headers": "^1.1.0",
-    "typescript": "^4.9.5",
-    "webidl2": "file:webidl2.js"
+    "typescript": "^4.9.5"
   },
   "devDependencies": {
     "@koalaui/fast-arktsc": "next",
@@ -57,7 +57,7 @@
     "release": "npm run compile && npm run webidl2 && node tools/release.mjs",
     "webidl2": "cd ./webidl2.js && npm i && npm run build",
     "setup-out": "node tools/setup/setup.mjs",
-    "compile": "npm run download:sdk && rollup -c",
+    "compile": "npm run download:sdk && npm run compile -C core && rollup -c",
     "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out",
     "run": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --input-file common.d.ts --verify-idl --common-to-attributes --docs=opt",
     "run:all": "npm run compile && node . --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/arkui,./interface_sdk-js/api/global --verify-idl --common-to-attributes --docs=opt",

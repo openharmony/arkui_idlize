@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-import { capitalize, dropSuffix, isDefined } from "../../util";
+import { capitalize, dropSuffix, isDefined, Language } from '@idlize/core'
 import { ArgConvertor } from "../ArgConvertors";
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { createInteropArgConvertor, createLanguageWriter, createTypeNameConvertor, ExpressionStatement, LanguageWriter } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
-import { Language } from "../../Language";
-import { forceAsNamedNode, IDLBooleanType, IDLLengthType, IDLNumberType, IDLStringType, IDLVoidType } from "../../idl";
+import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlize/core/idl'
 import { getReferenceResolver } from "../ReferenceResolver";
 import { createConstructPeerMethod } from "../PeerClass";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";

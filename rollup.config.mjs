@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import commonjs from "@rollup/plugin-commonjs";
 import nodeResolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import * as path from "path";
@@ -50,7 +51,7 @@ export default {
     plugins: [
         typescript({
             outputToFilesystem: false,
-            module: "ESNext",
+            module: "esnext",
             sourceMap: ENABLE_SOURCE_MAPS,
             declarationMap: false,
             declaration: false,
@@ -58,7 +59,7 @@ export default {
         }),
         nodeResolve({
             extensions: [".js", ".mjs", ".cjs", ".ts", ".cts", ".mts"]
-        }),
+        })
     ],
 }
 

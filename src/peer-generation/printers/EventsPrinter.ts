@@ -14,8 +14,8 @@
  */
 
 import * as ts from "typescript"
-import * as idl from "../../idl"
-import { IndentedPrinter } from "../../IndentedPrinter"
+import * as idl from '@idlize/core/idl'
+import { IndentedPrinter, Language } from '@idlize/core'
 import {
     BlockStatement,
     CppLanguageWriter,
@@ -35,12 +35,11 @@ import { PeerLibrary } from "../PeerLibrary"
 import { ArgConvertor } from "../ArgConvertors"
 import { PeerClass } from "../PeerClass"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
-import { Language } from "../../Language"
 import { ImportsCollector } from "../ImportsCollector";
 import { getReferenceResolver, ReferenceResolver } from "../ReferenceResolver"
 import { isImport } from "../idl/common"
 import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter";
-import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from "../ImportsCollectorUtils"
+import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils"
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"

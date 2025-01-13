@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from "../../../IndentedPrinter"
-import { Language } from "../../../Language"
+import { IndentedPrinter, Language } from '@idlize/core'
 import {
     AssignStatement,
     CheckOptionalStatement,
@@ -25,7 +24,6 @@ import {
     LanguageWriter,
     MakeCastOptions,
     Method,
-    MethodArgPrintHint,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
@@ -37,10 +35,10 @@ import {
     CLikeLoopStatement,
     CLikeReturnStatement
 } from "./CLikeLanguageWriter"
-import * as idl from '../../../idl'
+import * as idl from '@idlize/core/idl'
 import { ArgConvertor, BaseArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { convertType, IdlNameConvertor, TypeConvertor } from "../nameConvertor"
+import { IdlNameConvertor } from "../nameConvertor"
 import { JavaIDLNodeToStringConvertor } from "../convertors/JavaConvertors"
 
 ////////////////////////////////////////////////////////////////

@@ -22,7 +22,7 @@ import { TSWrappersVisitor } from "./printers/WrappersPrinter"
 import { TargetFile } from "../peer-generation/printers/TargetFile"
 import { createLanguageWriter, LanguageWriter } from "../peer-generation/LanguageWriters"
 import { makeTSSerializerFromIdl } from "./printers/SerializerPrinter"
-import { Language } from "../Language"
+import { Language } from "@idlize/core"
 import { IdlSkoalaLibrary } from "./idl/idlSkoalaLibrary"
 
 export function generateIdlSkoala(outDir: string, skoalaLibrary: IdlSkoalaLibrary, options: OptionValues) {

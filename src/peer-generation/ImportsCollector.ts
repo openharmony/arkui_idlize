@@ -14,9 +14,8 @@
  */
 
 import { posix as path } from "path"
-import { getOrPut, renameDtsToPeer } from "../util";
+import { getOrPut, renameDtsToPeer, Language } from "@idlize/core"
 import { LanguageWriter } from "./LanguageWriters";
-import { Language } from '../Language';
 
 export class ImportsCollector {
     private readonly moduleToFeatures: Map<string, Set<string>> = new Map()

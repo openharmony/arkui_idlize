@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
+import * as idl from '@idlize/core/idl'
 import {
     ExpressionStatement,
     LanguageExpression,
@@ -24,13 +24,12 @@ import {
     StringExpression
 } from "../LanguageWriters";
 import { PeerClassBase } from "../PeerClass";
-import { isDefined } from "../../util";
+import { isDefined, Language } from '@idlize/core'
 import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./EventsPrinter";
 import { PeerMethod } from "../PeerMethod";
 import { PeerLibrary } from "../PeerLibrary";
 import { typeOrUnion } from "../idl/common";
 import { ArgConvertor, UndefinedConvertor } from '../ArgConvertors';
-import { Language } from "../../Language";
 import { ReferenceResolver } from "../ReferenceResolver";
 import { UnionRuntimeTypeChecker } from "../unions";
 

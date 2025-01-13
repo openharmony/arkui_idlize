@@ -1,7 +1,7 @@
 import * as path from "node:path"
 import { PeerLibrary } from "../peer-generation/PeerLibrary"
 import { LibPrinter } from "./LibPrinter"
-import { forceWriteFile } from "../util"
+import { forceWriteFile } from "@idlize/core"
 
 export class LibarktsGenerator {
     constructor(

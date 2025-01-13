@@ -1,5 +1,5 @@
-import * as idl from "../idl"
-import { Language } from "../Language";
+import * as idl from "@idlize/core/idl"
+import { Language } from "@idlize/core"
 import { LibraryInterface } from "../LibraryInterface";
 import { PrimitiveType } from "./ArkPrimitiveType";
 import { isComponentDeclaration } from "./ComponentsCollector";

@@ -13,15 +13,26 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlize/core/idl"
-import { Language, capitalize } from "@idlize/core"
+import * as idl from "../../idl"
+import { Language } from "../../Language"
+import { capitalize } from "../../util"
 
-export function isImport(decl: idl.IDLNode): boolean {
-    return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)
-}
-
-export function isStringEnum(decl: idl.IDLEnum): boolean {
-    return decl.elements.some(e => e.type === idl.IDLStringType)
+export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
+    if (idl.isPrimitiveType(type)) return capitalize(type.name)
+    if (idl.isContainerType(type)) {
+        const typeArgs = type.elementType.map(it => generateSyntheticIdlNodeName(it)).join("_")
+        switch (type.containerKind) {
+            case "sequence": return "Array_" + typeArgs
+            case "record": return "Map_" + typeArgs
+            case "Promise": return "Promise_" + typeArgs
+            default: throw new Error(`Unknown container type ${idl.DebugUtils.debugPrintType(type)}`)
+        }
+    }
+    if (idl.isNamedNode(type))
+        return type.name
+    if (idl.isOptionalType(type))
+        return `Opt_${generateSyntheticIdlNodeName(type.type)}`
+    throw `Can not compute type name of ${idl.IDLKind[type.kind]}`
 }
 
 export function qualifiedName(decl: idl.IDLNode, language: Language): string {
@@ -49,20 +60,6 @@ export function generifiedTypeName(refType: idl.IDLReferenceType | undefined, re
     return `${refName ? refName : refType.name}${typeArgs ? `<${typeArgs}>` : ``}`
 }
 
-export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
-    if (idl.isPrimitiveType(type)) return capitalize(type.name)
-    if (idl.isContainerType(type)) {
-        const typeArgs = type.elementType.map(it => generateSyntheticIdlNodeName(it)).join("_")
-        switch (type.containerKind) {
-            case "sequence": return "Array_" + typeArgs
-            case "record": return "Map_" + typeArgs
-            case "Promise": return "Promise_" + typeArgs
-            default: throw new Error(`Unknown container type ${idl.DebugUtils.debugPrintType(type)}`)
-        }
-    }
-    if (idl.isNamedNode(type))
-        return type.name
-    if (idl.isOptionalType(type))
-        return `Opt_${generateSyntheticIdlNodeName(type.type)}`
-    throw `Can not compute type name of ${idl.IDLKind[type.kind]}`
+export function generateSyntheticUnionName(types: idl.IDLType[]) {
+    return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
 }

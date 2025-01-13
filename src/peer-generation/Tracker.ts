@@ -15,13 +15,12 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import * as idl from "../idl"
 
-import { IndentedPrinter } from "../IndentedPrinter";
-import { MaterializedClass } from "./Materialized";
-import { IDLEnum } from '../idl';
-import { PeerLibrary } from './PeerLibrary';
-import { PeerClass } from './PeerClass';
+import { IndentedPrinter } from '@idlize/core'
+import { MaterializedClass } from "./Materialized"
+import { IDLEnum } from '@idlize/core/idl'
+import { PeerLibrary } from './PeerLibrary'
+import { PeerClass } from './PeerClass'
 
 const STATUSES = ["Total", "In Progress", "Done", "Blocked"]
 

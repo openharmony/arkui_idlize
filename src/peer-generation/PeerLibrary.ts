@@ -13,27 +13,21 @@
  * limitations under the License.
  */
 
-import * as idl from '../idl'
+import * as idl from '@idlize/core/idl'
 import { BuilderClass } from './BuilderClass';
 import { MaterializedClass } from "./Materialized";
 import { isMaterialized, isPredefined } from './idl/IdlPeerGeneratorVisitor';
 import { PeerFile } from "./PeerFile";
 import { AggregateConvertor, ArrayConvertor, BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, NumericConvertor, OptionConvertor,  PointerConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
-import { PrimitiveType } from "./ArkPrimitiveType"
-import { DependencySorter } from './idl/DependencySorter';
-import { IndentedPrinter } from '../IndentedPrinter';
+import { IndentedPrinter, Language, warn } from '@idlize/core'
 import { createTypeNameConvertor, LanguageWriter } from './LanguageWriters';
-import { isImport, isStringEnum, typeOrUnion } from './idl/common';
+import { isImport, isStringEnum } from './idl/common';
 import { StructPrinter } from './printers/StructPrinter';
 import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from './ArgConvertors';
-import { Language } from '../Language';
 import { generateSyntheticFunctionName } from '../IDLVisitor';
-import { collectUniqueCallbacks } from './printers/CallbacksPrinter';
-import { convertType, IdlNameConvertor } from './LanguageWriters/nameConvertor';
+import { IdlNameConvertor } from './LanguageWriters/nameConvertor';
 import { LibraryInterface } from '../LibraryInterface';
 import { IDLNodeToStringConvertor } from './LanguageWriters/convertors/InteropConvertor';
-import { UnionFlattener } from './unions';
-import { warn } from '../util';
 
 export class PeerLibrary implements LibraryInterface {
     private _syntheticEntries: idl.IDLEntry[] = []

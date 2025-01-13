@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Language } from "../../Language"
+import { Language } from "@idlize/core"
 import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { CppLanguageWriter, createLanguageWriter, LanguageWriter, TSLanguageWriter } from "../LanguageWriters"
@@ -52,7 +52,7 @@ export abstract class SourceFile {
     ) {
         this.content = createLanguageWriter(language, resolver)
     }
-    
+
     public merge(file: this) {
         if (this.language !== file.language) {
             throw new TypeError("language mismatch")
@@ -60,7 +60,7 @@ export abstract class SourceFile {
         this.content.concat(file.content)
         this.onMerge(file)
     }
-    
+
     public abstract printToString(): string;
     // TODO make protected
     public abstract printImports(writer: LanguageWriter): void;
@@ -140,7 +140,7 @@ abstract class TsLikeSourceFile extends SourceFile {
 
     private get moduleName(): string {
         // TODO set proper module name
-        return `./${this.name.replace(/\.ts$/, "")}` 
+        return `./${this.name.replace(/\.ts$/, "")}`
     }
 
     public printToString(): string {
@@ -151,7 +151,7 @@ abstract class TsLikeSourceFile extends SourceFile {
         fileWriter.concat(this.content)
         return fileWriter.getOutput().join("\n")
     }
-    
+
     public printImports(writer: LanguageWriter): void {
         if (!this.supportsWriter(writer)) throw new TypeError("illegal language writer")
         this.imports.print(writer, this.moduleName)
@@ -225,7 +225,7 @@ export class JavaSourceFile extends SourceFile {
 
         return printer.getOutput().join('\n')
     }
-    
+
     public printImports(writer: LanguageWriter): void {
         // TODO implement
     }

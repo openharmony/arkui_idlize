@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from "../idl"
-import { Language } from "../Language"
+import * as idl from "@idlize/core/idl"
+import { Language, hashCodeFromString, warn } from "@idlize/core"
 import { LibraryInterface } from "../LibraryInterface"
-import { hashCodeFromString, warn } from "../util"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { BlockStatement, BranchStatement, createTypeNameConvertor, generateTypeCheckerName, LanguageExpression, LanguageStatement, LanguageWriter, StringExpression } from "./LanguageWriters"
 import { CppIDLNodeToStringConvertor } from "./LanguageWriters/convertors/CppConvertors"

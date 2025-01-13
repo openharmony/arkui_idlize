@@ -1348,3 +1348,7 @@ export function mixMethodParametersAndTags(node: IDLSignature) : (IDLParameter |
 export function isHandwritten(decl: IDLEntry): boolean {
     return hasExtAttribute(decl, IDLExtendedAttributes.HandWrittenImplementation)
 }
+
+export function isStringEnum(decl: IDLEnum): boolean {
+    return decl.elements.some(e => e.type === IDLStringType)
+}

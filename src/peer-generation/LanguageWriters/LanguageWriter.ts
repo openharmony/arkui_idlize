@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-import * as idl from "../../idl"
-import { IndentedPrinter } from "../../IndentedPrinter"
-import { stringOrNone } from "../../util"
+import * as idl from "@idlize/core/idl"
+import { IndentedPrinter, Language } from "@idlize/core"
+import { stringOrNone } from "@idlize/core"
 import {ArgConvertor, BaseArgConvertor, RuntimeType} from "../ArgConvertors"
 import * as fs from "fs"
-import { Language } from "../../Language"
 import { EnumConvertor } from "../ArgConvertors"
 import { ReferenceResolver } from "../ReferenceResolver"
 import { NativeModuleType } from "../NativeModuleType"

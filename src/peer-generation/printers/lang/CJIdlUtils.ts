@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from "../../../idl"
+import * as idl from "@idlize/core/idl"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../../LanguageWriters/nameConvertor"
 import { ImportFeature } from "../../ImportsCollector"
 
