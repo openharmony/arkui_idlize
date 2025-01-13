@@ -78,3 +78,17 @@ declare interface SizeOptions {
   width?: Length;
   height?: Length;
 }
+
+declare interface ConstraintSizeOptions {
+  minWidth?: Length;
+  maxWidth?: Length;
+  minHeight?: Length;
+  maxHeight?: Length;
+}
+
+declare interface DirectionalEdgesT<T> {
+  start: T;
+  end: T;
+  top: T;
+  bottom: T;
+}

@@ -21,6 +21,49 @@ declare type ComponentContent = import('../api/arkui/ComponentContent').Componen
 
 declare type AnimationRange<T> = [from: T, to: T];
 
+declare type PromptActionDialogController = import('../api/@ohos.promptAction').promptAction.DialogController;
+
+
+declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').default.NavDestinationInfo;
+
+declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.NavigationInfo;
+
+declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.RouterPageInfo;
+
+declare type Margin = Padding;
+declare interface GeometryInfo extends SizeResult {
+    borderWidth: EdgeWidth
+    margin: Margin
+    padding: Padding
+}
+
+declare interface Layoutable {
+    measureResult: MeasureResult
+    layout(position: Position): void
+    getMargin() : DirectionalEdgesT<number>
+    getPadding() : DirectionalEdgesT<number>
+    getBorderWidth() : DirectionalEdgesT<number>
+}
+
+declare interface Measurable {
+    measure(constraint: ConstraintSizeOptions) : MeasureResult
+    getMargin() : DirectionalEdgesT<number>
+    getPadding() : DirectionalEdgesT<number>
+    getBorderWidth() : DirectionalEdgesT<number>
+}
+
+declare interface MeasureResult extends SizeResult {}
+
+declare interface LayoutChild {
+    name: string
+    id: string
+    constraint: ConstraintSizeOptions
+    borderInfo: LayoutBorderInfo
+    position: Position
+    measure(childConstraint: ConstraintSizeOptions): void
+    layout(childLayoutInfo: LayoutInfo): void
+}
+
 declare interface Callback<T, V = void> {
   (data: T): V;
 }
@@ -543,6 +586,8 @@ declare class CommonAttribute extends CommonMethod<CommonAttribute> {
 }
 
 declare const Common: CommonInterface
+
+declare type Theme = import('../api/@ohos.arkui.theme').Theme;
 
 declare class BaseCustomComponent extends CommonAttribute {
     build(): void;

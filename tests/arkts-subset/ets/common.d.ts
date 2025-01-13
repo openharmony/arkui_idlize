@@ -22500,6 +22500,8 @@ declare type ComponentContent<T = Object> = import('../api/arkui/ComponentConten
  */
 declare type Theme = import('../api/@ohos.arkui.theme').Theme;
 
+declare type PromptActionDialogController = import('../api/@ohos.promptAction').promptAction.DialogController;
+
 declare class BaseCustomComponent extends CommonAttribute {
   build(): void;
   aboutToAppear?(): void;
