@@ -13,7 +13,7 @@ import {
 import { PeerLibrary } from "../PeerLibrary";
 import { createDeclarationNameConvertor, DeclarationNameConvertor } from "../idl/IdlNameConvertor";
 import { Language } from "../../Language";
-import { IDLBooleanType, isReferenceType } from "../../idl";
+import { getExtAttribute, IDLBooleanType, isReferenceType } from "../../idl";
 import { getReferenceResolver } from '../ReferenceResolver';
 import { convertDeclaration } from '../LanguageWriters/nameConvertor';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -279,14 +279,16 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
                 const resolved = this.library.resolveTypeReference(type)
                 if (resolved !== undefined && idl.isEnum(resolved)) {
                     checkStatement = writer.makeMultiBranchCondition(resolved.elements.map(it => {
+                        const origMemName = getExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName)
+                        const memberName = origMemName !== undefined ? origMemName : it.name
                         return {
                             expr: writer.makeNaryOp("&&", [
-                                writer.makeNaryOp('===', [
+                                writer.makeNaryOp("===", [
                                     writer.makeString("value"),
-                                    writer.makeString(`${name}.${it.name}`)
+                                    writer.makeString(`${name}.${memberName}`)
                                 ])
                             ]),
-                            stmt: writer.makeReturn(writer.makeString('true'))
+                            stmt: writer.makeReturn(writer.makeString("true"))
                         }
                     }), throwErrorStatement)
                 }

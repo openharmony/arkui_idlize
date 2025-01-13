@@ -519,8 +519,8 @@ export class CJLanguageWriter extends LanguageWriter {
     makeUnionSelector(value: string, valueType: string): LanguageStatement {
         return this.makeAssign(valueType, undefined, this.makeMethodCall(value, "getSelector", []), false)
     }
-    makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
-        return this.makeString(`${valueType} == ${index}`)
+    makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string, convertorIndex?: number): LanguageExpression {
+        return this.makeString(`${valueType} == ${convertorIndex}`)
     }
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index: number) {
         return this.makeMethodCall(value, `getValue${index}`, [])

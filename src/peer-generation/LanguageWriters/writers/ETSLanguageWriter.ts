@@ -38,6 +38,7 @@ import {
     EnumConvertor,
     InterfaceConvertor,
     makeInterfaceTypeCheckerCall,
+    OptionConvertor,
     RuntimeType,
     UnionConvertor
 } from "../../ArgConvertors"
@@ -95,12 +96,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                     alias: string | undefined,
                     stringId: string | undefined,
                     numberId: number
-                }[] = [{
-                    name: member.name,
-                    alias: undefined,
-                    stringId: isTypeString ? initText : undefined,
-                    numberId: initText as number
-                }]
+                }[] = []
                 if (originalName !== undefined) {
                     res.push({
                         name: originalName,
@@ -115,6 +111,13 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                     //     stringId: undefined,
                     //     numberId: initText as number
                     // })
+                } else {
+                    res.push({
+                        name: member.name,
+                            alias: undefined,
+                        stringId: isTypeString ? initText : undefined,
+                        numberId: initText as number
+                    })
                 }
                 return res
             })
@@ -262,19 +265,24 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeCast(this.makeString(`${value}${convertor?.isStringEnum ? "" : ".valueOf()"}`),
             IDLI32Type).asString()
     }
-    makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
+    makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string,
+                              convertorIndex: number,
+                              runtimeTypeIndex: number): LanguageExpression {
         if (convertor instanceof EnumConvertor) {
             return this.instanceOf(convertor, valueName)
         }
         // TODO: in ArkTS SerializerBase.runtimeType returns RuntimeType.OBJECT for enum type and not RuntimeType.NUMBER as in TS
-        if (convertor instanceof UnionConvertor && index !== undefined) {
-            const idlType = (convertor.nativeType() as idl.IDLUnionType).types[index]
+        if (convertor instanceof UnionConvertor || convertor instanceof OptionConvertor) {
+            // Unwrapping of type
+            const idlType = convertor instanceof UnionConvertor
+                ? (convertor.nativeType() as idl.IDLUnionType).types[runtimeTypeIndex]
+                : idl.maybeUnwrapOptionalType(convertor.nativeType())
             if (idlType !== undefined && idl.isReferenceType(idlType)) {
                 const resolved = this.resolver.resolveTypeReference(idl.createReferenceType(idlType.name))
                 type = resolved != undefined && idl.isEnum(resolved) ? RuntimeType[RuntimeType.OBJECT] : type
             }
         }
-        return super.makeUnionVariantCondition(convertor, valueName, valueType, type, index)
+        return super.makeUnionVariantCondition(convertor, valueName, valueType, type, convertorIndex)
     }
     makeCastCustomObject(customName: string, isGenericType: boolean): LanguageExpression {
         if (isGenericType) {

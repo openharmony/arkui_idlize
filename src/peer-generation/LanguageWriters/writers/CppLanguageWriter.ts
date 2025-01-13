@@ -293,8 +293,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override makeUnionSelector(value: string, valueType: string): LanguageStatement {
         return this.makeAssign(valueType, undefined, this.makeString(`${value}.selector`), false)
     }
-    override makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string, index: number) {
-        return this.makeString(`${valueType} == ${index}`)
+    override makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string, convertorIndex: number) {
+        return this.makeString(`${valueType} == ${convertorIndex}`)
     }
     override makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index: number) {
         return this.makeString(`${value}.value${index}`)

@@ -215,8 +215,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
                               _valueName: string,
                               valueType: string,
                               _type: string,
-                              index: number): LanguageExpression {
-        return this.makeString(`${valueType} == ${index}`)
+                              convertorIndex: number): LanguageExpression {
+        return this.makeString(`${valueType} == ${convertorIndex}`)
     }
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index: number) {
         return this.makeMethodCall(value, `getValue${index}`, [])

@@ -585,7 +585,9 @@ export abstract class LanguageWriter {
     makeUnionSelector(value: string, valueType: string): LanguageStatement {
         return this.makeAssign(valueType, undefined, this.makeString(`runtimeType(${value})`), false)
     }
-    makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string, index?: number): LanguageExpression {
+    makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string,
+                              _convertorIndex?: number,
+                              _runtimeTypeIndex?: number): LanguageExpression {
         return this.makeString(`RuntimeType.${type.toUpperCase()} == ${valueType}`)
     }
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index?: number): LanguageExpression {

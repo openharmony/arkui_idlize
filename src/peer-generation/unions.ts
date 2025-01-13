@@ -82,21 +82,22 @@ export class UnionRuntimeTypeChecker {
             }
         })
     }
-    makeDiscriminator(value: string, index: number, writer: LanguageWriter): LanguageExpression {
-        const convertor = this.convertors[index]
+    makeDiscriminator(value: string, convertorIndex: number, writer: LanguageWriter): LanguageExpression {
+        const convertor = this.convertors[convertorIndex]
         if (this.conflictingConvertors.has(convertor) && writer.language.needsUnionDiscrimination) {
-            const discriminator = convertor.unionDiscriminator(value, index, writer, this.duplicateMembers)
-            this.discriminators.push([discriminator, convertor, index])
+            const discriminator = convertor.unionDiscriminator(value, convertorIndex, writer, this.duplicateMembers)
+            this.discriminators.push([discriminator, convertor, convertorIndex])
             if (discriminator) return discriminator
         }
-        return writer.makeNaryOp("||", convertor.runtimeTypes.map((it, index) =>
+        return writer.makeNaryOp("||", convertor.runtimeTypes.map((it, runtimeTypeIndex) =>
             writer.makeNaryOp("==", [
                 writer.makeUnionVariantCondition(
                     convertor,
                     value,
                     `${value}_type`,
                     RuntimeType[it],
-                    index)])))
+                    convertorIndex,
+                    runtimeTypeIndex)])))
     }
     reportConflicts(context: string | undefined) {
         if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
