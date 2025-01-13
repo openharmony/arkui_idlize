@@ -14,6 +14,10 @@ export function pullEvents() {
     checkArkoalaCallbacks()
 }
 
+export function init() {
+    new XMLNativeModule()
+}
+
 function makeBuffer(len: int32, init:byte[]): OHBuffer {
     const data = new byte[64];
     XMLNativeModule._AllocateNativeBuffer(len, data, init);
