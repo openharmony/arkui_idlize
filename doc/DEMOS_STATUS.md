@@ -76,7 +76,7 @@
 | `direction`               | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `align`                   | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
 | `aspectRatio`             | Function  |           |             | Roman Sedaikin      | done             | Roman Sedaikin    | done      | Medium   |
-| `overlay`                 | Function  |           | ENC         | Lobah Mikhail       | in progress      | Roman Sedaikin    | done      | Medium   |
+| `overlay`                 | Function  |           | ENC         | Lobah Mikhail       | done             | Roman Sedaikin    | done      | Medium   |
 | `linearGradient`          | Function  |           | ENC         | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High     |
 | `sweepGradient`           | Function  |           | ENC         | Roman Sedaikin      | done             | Roman Sedaikin    | done      | High     |
 | `radialGradient`          | Function  |           | ENC         | Erokhin Ilya        | done             | Roman Sedaikin    | done      | High     |
