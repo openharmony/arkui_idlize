@@ -30,7 +30,7 @@ import {
     NamedMethodSignature,
     createLanguageWriter
 } from "../LanguageWriters";
-import { MaterializedMethod } from "../Materialized";
+import { getInternalClassName, MaterializedMethod } from "../Materialized";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile";
@@ -502,18 +502,11 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
                 result = [writer.makeReturn(writer.makeString("this"))]
             } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
                 if (isNamedNode(returnType) && returnType.name === method.originalParentName) {
-                    if (method.hasReceiver()) {
-                        // TODO: interesting question if we shall reassign ptr to the value returned by the native op.
-                        result = [
-                            // writer.makeAssign(`this.peer!.ptr`, undefined, writer.makeString(returnValName), false),
-                            writer.makeReturn(writer.makeString("this"))
-                        ]
-                    } else {
-                        result = [
-                            ...constructMaterializedObject(writer, signature, "obj", returnValName),
-                            writer.makeReturn(writer.makeString("obj"))
-                        ]
-                    }
+                    result = [
+                        ...constructMaterializedObject(writer, signature, "obj", returnValName),
+                        writer.makeReturn(writer.makeString("obj"))
+                    ]
+
                 } else if (!isPrimitiveType(returnType)) {
                     result = [
                         writer.makeThrowError("Object deserialization is not implemented.")
@@ -534,6 +527,18 @@ function returnsThis(method: PeerMethod, returnType: IDLType) {
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,
     resultName: string, peerPtrName: string): LanguageStatement[] {
     const retType = signature.returnType
+    /*
+    // TODO: Use "ClassNameInternal.fromPtr(ptr)"
+    // once java is generated in the same way as typescript for materialized classes
+    const internalClassName = getInternalClassName(forceAsNamedNode(retType).name)
+    return [
+        writer.makeAssign(
+            `${resultName}`,
+            retType,
+            writer.makeMethodCall(internalClassName, "fromPtr", [writer.makeString(peerPtrName)]),
+            true),
+    ]
+    */
     return [
         writer.makeAssign(`${resultName}`, retType, writer.makeNewObject(forceAsNamedNode(retType).name), true),
         writer.makeAssign(`${resultName}.peer`, createReferenceType("Finalizable"),
