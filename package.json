@@ -22,6 +22,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
+    "@koalaui/interop": "^1.4.1",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@types/node": "^18.0.0",
     "@types/webidl2": "file:webidl2.js/types",
@@ -52,6 +53,8 @@
     "source-map-support": "^0.5.21"
   },
   "scripts": {
+    "switch:develop": "node tools/devenv.mjs on",
+    "switch:release": "node tools/devenv.mjs off",
     "download:sdk": "node ./download-sdk.mjs",
     "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",
     "release": "npm run compile && npm run webidl2 && node tools/release.mjs",
