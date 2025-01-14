@@ -15,10 +15,9 @@
 
 import * as idl from '@idlize/core/idl'
 import { posix as path } from "path"
-import { isImport, isStringEnum } from '../../peer-generation/idl/common';
 import { DeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
-import { capitalize, isDefined, throwException, Language, CustomPrintVisitor, addSyntheticType, resolveSyntheticType } from '@idlize/core'
+import { capitalize, isDefined, throwException, Language, CustomPrintVisitor, addSyntheticType, resolveSyntheticType, isImport, isStringEnum } from '@idlize/core'
 import { PrimitiveType } from "../../peer-generation/ArkPrimitiveType";
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";

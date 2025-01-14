@@ -24,11 +24,10 @@ import {
     StringExpression
 } from "../LanguageWriters";
 import { PeerClassBase } from "../PeerClass";
-import { isDefined, Language } from '@idlize/core'
+import { isDefined, Language, typeOrUnion } from '@idlize/core'
 import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./EventsPrinter";
 import { PeerMethod } from "../PeerMethod";
 import { PeerLibrary } from "../PeerLibrary";
-import { typeOrUnion } from "../idl/common";
 import { ArgConvertor, UndefinedConvertor } from '../ArgConvertors';
 import { ReferenceResolver } from "../ReferenceResolver";
 import { UnionRuntimeTypeChecker } from "../unions";

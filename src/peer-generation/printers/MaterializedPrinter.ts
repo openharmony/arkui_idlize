@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { capitalize, removeExt, renameClassToMaterialized, stringOrNone, Language } from '@idlize/core'
+import { capitalize, removeExt, renameClassToMaterialized, stringOrNone, Language, generifiedTypeName } from '@idlize/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     createLanguageWriter,
@@ -44,7 +44,6 @@ import { printJavaImports } from "./lang/JavaPrinters";
 import { copyMethod } from "../LanguageWriters/LanguageWriter";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLThisType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlize/core/idl'
 import { getReferenceResolver } from "../ReferenceResolver";
-import { generifiedTypeName } from "../idl/common";
 import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../ImportsCollectorUtils";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";

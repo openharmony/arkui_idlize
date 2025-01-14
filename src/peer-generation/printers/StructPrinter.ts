@@ -14,13 +14,11 @@
  */
 
 import * as idl from "@idlize/core/idl"
-import { IDLType } from "@idlize/core/idl"
-import { IndentedPrinter, Language, camelCaseToUpperSnakeCase } from "@idlize/core"
+import { IndentedPrinter, Language, camelCaseToUpperSnakeCase, isImportAttr, isStringEnum } from "@idlize/core"
 import { RuntimeType } from "../ArgConvertors"
 import { PrimitiveType } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { isImport, isStringEnum } from "../idl/common"
 import { generateCallbackAPIArguments } from "../ArgConvertors"
 import { isBuilderClass, isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
 import { cleanPrefix, PeerLibrary } from "../PeerLibrary"
@@ -201,7 +199,7 @@ export class StructPrinter {
     private prologueDefinedRuntimeTypes = [
         idl.IDLDate.name,
     ]
-    private writeRuntimeType(target: idl.IDLNode, targetType: IDLType, isOptional: boolean, writer: LanguageWriter) {
+    private writeRuntimeType(target: idl.IDLNode, targetType: idl.IDLType, isOptional: boolean, writer: LanguageWriter) {
         if (idl.isNamedNode(target) && this.prologueDefinedRuntimeTypes.includes(target.name) && !isOptional)
             return
         const resultType = idl.createReferenceType("RuntimeType")
@@ -217,7 +215,7 @@ export class StructPrinter {
     }
 
     private writeRuntimeTypeOp(
-        target: idl.IDLNode, targetType: IDLType, resultType: IDLType, isOptional: boolean, writer: LanguageWriter
+        target: idl.IDLNode, targetType: idl.IDLType, resultType: idl.IDLType, isOptional: boolean, writer: LanguageWriter
     ) : ((writer: LanguageWriter) => void) | undefined
     {
         let result: LanguageExpression
@@ -465,7 +463,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         if (idl.isNamedNode(target) && PeerGeneratorConfig.ignoreSerialization.includes(target.name)) return true
         if (idl.isPrimitiveType(target)) return true
         if (idl.isEnum(target)) return true
-        if (isImport(target)) return true
+        if (isImportAttr(target)) return true
         return false
     }
 }

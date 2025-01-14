@@ -1,4 +1,3 @@
-import { indentedBy, stringOrNone } from "./util"
 
 /*
 * Copyright (c) 2024 Huawei Device Co., Ltd.
@@ -16,6 +15,7 @@ import { indentedBy, stringOrNone } from "./util"
 */
 
 import * as fs from "fs"
+import { indentedBy, stringOrNone } from "./util"
 
 export class IndentedPrinter {
     constructor (private output: string[] = []) {}

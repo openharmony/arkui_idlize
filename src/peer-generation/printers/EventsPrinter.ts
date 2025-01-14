@@ -15,7 +15,7 @@
 
 import * as ts from "typescript"
 import * as idl from '@idlize/core/idl'
-import { IndentedPrinter, Language } from '@idlize/core'
+import { IndentedPrinter, Language, isImportAttr } from '@idlize/core'
 import {
     BlockStatement,
     CppLanguageWriter,
@@ -37,7 +37,6 @@ import { PeerClass } from "../PeerClass"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { ImportsCollector } from "../ImportsCollector";
 import { getReferenceResolver, ReferenceResolver } from "../ReferenceResolver"
-import { isImport } from "../idl/common"
 import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils"
 
@@ -101,7 +100,7 @@ export function canProcessCallback(callback: CallbackInfoBase): boolean {
 
 export function convertIdlToCallback(resolver: ReferenceResolver, peer: PeerClassBase, method: PeerMethod, argType: idl.IDLNode): IdlCallbackInfo | undefined {
     if (idl.isReferenceType(argType)) {
-        if (isImport(argType)) {
+        if (isImportAttr(argType)) {
             return undefined
         }
 

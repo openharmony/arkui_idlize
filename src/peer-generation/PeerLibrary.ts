@@ -19,9 +19,8 @@ import { MaterializedClass } from "./Materialized";
 import { isMaterialized, isPredefined } from './idl/IdlPeerGeneratorVisitor';
 import { PeerFile } from "./PeerFile";
 import { AggregateConvertor, ArrayConvertor, BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, NumericConvertor, OptionConvertor,  PointerConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
-import { IndentedPrinter, Language, warn } from '@idlize/core'
+import { IndentedPrinter, Language, warn, isImportAttr, isStringEnum } from '@idlize/core'
 import { createTypeNameConvertor, LanguageWriter } from './LanguageWriters';
-import { isImport, isStringEnum } from './idl/common';
 import { StructPrinter } from './printers/StructPrinter';
 import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from './ArgConvertors';
 import { generateSyntheticFunctionName } from '../IDLVisitor';
@@ -180,7 +179,7 @@ export class PeerLibrary implements LibraryInterface {
             if (type.name === 'Date') {
                 return new DateConvertor(param)
             }
-            if (isImport(type))
+            if (isImportAttr(type))
                 return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
         if (idl.isReferenceType(type)) {
@@ -211,7 +210,7 @@ export class PeerLibrary implements LibraryInterface {
             return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type), false, this.targetNameConvertorInstance.convert(type)) // assume some predefined type
 
         const declarationName = declaration.name!
-        if (isImport(declaration)) {
+        if (isImportAttr(declaration)) {
             return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
         if (idl.isEnum(declaration)) {
@@ -282,7 +281,7 @@ export class PeerLibrary implements LibraryInterface {
             case "object":
             case "Object": return ArkCustomObject
         }
-        if (isImport(type)) {
+        if (isImportAttr(type)) {
             return ArkCustomObject
         }
         if (idl.isReferenceType(type)) {

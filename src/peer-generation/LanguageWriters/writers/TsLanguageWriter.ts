@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter, Language  } from '@idlize/core'
+import { IndentedPrinter, Language, isStringEnum  } from '@idlize/core'
 import { TSTypeNodeNameConvertor } from "../../TypeNodeNameConvertor"
 import {
     AssignStatement,
@@ -39,7 +39,6 @@ import { ArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
 import { IdlNameConvertor } from "../nameConvertor"
 import { TsIDLNodeToStringConverter } from "../convertors/TSConvertors"
-import { isStringEnum } from "../../idl/common"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //

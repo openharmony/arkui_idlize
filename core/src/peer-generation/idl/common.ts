@@ -63,3 +63,7 @@ export function generifiedTypeName(refType: idl.IDLReferenceType | undefined, re
 export function generateSyntheticUnionName(types: idl.IDLType[]) {
     return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
 }
+
+export function isImportAttr(decl: idl.IDLNode): boolean {
+    return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)
+}

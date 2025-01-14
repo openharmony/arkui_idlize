@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { removeExt, renameClassToBuilderClass, Language } from '@idlize/core'
+import { removeExt, renameClassToBuilderClass, Language, generifiedTypeName } from '@idlize/core'
 import { LanguageWriter, MethodModifier, Method, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
 import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES } from "../BuilderClass";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
@@ -23,7 +23,6 @@ import { ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { PeerLibrary } from "../PeerLibrary";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLTopType, IDLType, IDLVoidType, isOptionalType } from '@idlize/core/idl'
-import { generifiedTypeName } from "../idl/common";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 
