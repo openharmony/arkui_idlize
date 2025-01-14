@@ -227,7 +227,7 @@ export class PeerLibrary implements LibraryInterface {
             return new TypeAliasConvertor(this, param, declaration)
         }
         if (idl.isInterface(declaration)) {
-            if (isMaterialized(declaration)) {
+            if (isMaterialized(declaration, this)) {
                 return new MaterializedClassConvertor(this, declarationName, param, declaration)
             }
             switch (declaration.subkind) {

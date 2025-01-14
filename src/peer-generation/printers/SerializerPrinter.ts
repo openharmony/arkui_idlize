@@ -59,7 +59,7 @@ class IdlSerializerPrinter {
             new Method(`write${methodName}`,
                 new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target.name)], ["value"])),
             writer => {
-                if (isMaterialized(target)) {
+                if (isMaterialized(target, this.library)) {
                     this.generateMaterializedBodySerializer(target, writer)
                 } else {
                     this.generateInterfaceBodySerializer(target, writer)
@@ -278,7 +278,7 @@ class IdlDeserializerPrinter {
         const methodName = this.library.getInteropName(target)
         const type = idl.createReferenceType(target.name)
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
-            if (isMaterialized(target)) {
+            if (isMaterialized(target, this.library)) {
                 this.generateMaterializedBodyDeserializer(target)
             } else if (isBuilderClass(target)) {
                 this.generateBuilderClassDeserializer(target, type)
@@ -649,7 +649,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
                 module: `./${declarationPath}` // TODO resolve
             })
             // Add <class>Internal support class for materialized classes with no constructor
-            if (idl.isInterface(node) && isMaterialized(node) && node.constructors.length === 0) {
+            if (idl.isInterface(node) && isMaterialized(node, library) && node.constructors.length === 0) {
                 features.push({
                     feature: getInternalClassName(convertDeclaration(nameCovertor, node)), // TODO check/refactor name generation
                     module: `./${declarationPath}` // TODO resolve

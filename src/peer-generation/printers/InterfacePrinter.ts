@@ -474,7 +474,7 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
                     continue
                 if (idl.isInterface(entry) && (
                     isBuilderClass(entry) ||
-                    isMaterialized(entry)))
+                    isMaterialized(entry, this.peerLibrary)))
                     continue
                 convertDeclaration(declarationConverter, entry)
             }
@@ -545,7 +545,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
             .concat(idlInterface.constants
                 .map(it => this.iDLTypedEntryPrinter(it, it => this.printConstant(it), seenFields)).flat())
             .concat(idlInterface.properties
-                .map(it => this.iDLTypedEntryPrinter(it, it => this.printProperty(it, isMaterialized(idlInterface)), seenFields) ).flat())
+                .map(it => this.iDLTypedEntryPrinter(it, it => this.printProperty(it, isMaterialized(idlInterface, this.peerLibrary)), seenFields) ).flat())
             .concat(idlInterface.methods
                 .map(it => this.iDLTypedEntryPrinter(it, it => this.printMethod(it), seenFields) ).flat())
             .concat(idlInterface.callables
@@ -749,7 +749,7 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
                 this.onSyntheticDeclaration(continuation)
             }
         })
-        if (isMaterialized(decl) && !isBuilderClass(decl)) {
+        if (isMaterialized(decl, this.library) && !isBuilderClass(decl)) {
             this.onSyntheticDeclaration(idl.createInterface(
                 createInterfaceDeclName(decl.name),
                 idl.IDLInterfaceSubkind.Interface,
@@ -824,7 +824,7 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
                     PeerGeneratorConfig.ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
                 syntheticGenerator.convert(entry)
-                if (idl.isInterface(entry) && (isMaterialized(entry) || isBuilderClass(entry)))
+                if (idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry)))
                     continue
                 registerEntry(entry)
             }
@@ -879,7 +879,7 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
                 if (PeerGeneratorConfig.ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
                 syntheticGenerator.convert(entry)
-                if (idl.isInterface(entry) && (isMaterialized(entry) || isBuilderClass(entry)))
+                if (idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry)))
                     continue
                 onEntry(entry)
             }

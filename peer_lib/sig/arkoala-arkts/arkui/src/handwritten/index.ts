@@ -20,6 +20,8 @@ export interface SubscribaleAbstract {}
 export interface ISinglePropertyChangeSubscriber {}
 export interface IPropertySubscriber {}
 export interface AbstractProperty {}
+export interface BaseCustomComponent {}
 export interface CustomComponent {}
+export interface CustomComponentV2 {}
 export interface AttributeModifier<T> {}
 export interface PageTransitionEnterInterface {}

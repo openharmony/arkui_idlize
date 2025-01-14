@@ -95,6 +95,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             collectDeclDependencies(this.library, decl, imports, {
                 expandTypedefs: true,
                 includeTransformedCallbacks: true,
+                includeMaterializedInternals: true,
             })
             imports.addFeature(
                 createInterfaceDeclName(this.clazz.className),
@@ -102,7 +103,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             )
         } else {
             collectDeclDependencies(this.library, decl, (it) => {
-                if (idl.isInterface(it) && isMaterialized(it))
+                if (idl.isInterface(it) && isMaterialized(it, this.library))
                     collectDeclItself(this.library, it, imports)
             })
             if (this.clazz.superClass) {

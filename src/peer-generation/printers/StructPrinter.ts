@@ -88,7 +88,7 @@ export class StructPrinter {
             }
             seenNames.add(nameAssigned)
             let isPointer = this.isPointerDeclaration(target)
-            let isAccessor = idl.isInterface(target) && isMaterialized(target)
+            let isAccessor = idl.isInterface(target) && isMaterialized(target, this.library)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
             if (idl.isEnum(target) || idl.isEnumMember(target)) {
                 const enumTarget = idl.isEnumMember(target) ? target.parent : target
@@ -226,7 +226,7 @@ export class StructPrinter {
                 writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeRuntimeType(RuntimeType.UNDEFINED))
         } else if (idl.isEnum(target)) {
             result = writer.makeRuntimeType(RuntimeType.NUMBER)
-        } else if (idl.isInterface(target) && isMaterialized(target)) {
+        } else if (idl.isInterface(target) && isMaterialized(target, this.library)) {
             return undefined
         } else if (idl.isUnionType(target)) {
             return writer => {

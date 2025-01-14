@@ -34,7 +34,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): I
     if (idl.isInterface(node) && !isComponentDeclaration(library, node)) {
         if (isBuilderClass(node)) {
             fileName = renameClassToBuilderClass(node.name, library.language)
-        } else if (isMaterialized(node)) {
+        } else if (isMaterialized(node, library)) {
             fileName = renameClassToMaterialized(node.name, library.language)
         }
     }
@@ -60,7 +60,7 @@ export function collectDeclItself(
         const feature = convertDeclToFeature(library, node)
         emitter.addFeature(feature.feature, feature.module)
         if (options?.includeMaterializedInternals) {
-            if (idl.isInterface(node) && isMaterialized(node) && !isBuilderClass(node)) {
+            if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node)) {
                 emitter.addFeature(getInternalClassName(node.name), feature.module)
             }
         }

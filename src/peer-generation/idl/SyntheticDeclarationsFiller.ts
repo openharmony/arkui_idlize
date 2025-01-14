@@ -104,7 +104,7 @@ function createImportsStubs(library: PeerLibrary, synthesizedEntries: Map<string
 function createMaterializedInternal(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
     for (const file of library.files) {
         for (const entry of file.entries) {
-            if (idl.isInterface(entry) && isMaterialized(entry)) {
+            if (idl.isInterface(entry) && isMaterialized(entry, library)) {
                 const name = getInternalClassName(entry.name)
                 synthesizedEntries.set(name, idl.createInterface(
                     name,

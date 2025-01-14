@@ -302,7 +302,7 @@ class AccessorVisitor extends ModifierVisitor {
         this.printMaterializedClassProlog(clazz)
         // Materialized class methods share the same namespace
         // so take the first one.
-        const namespaceName = clazz.methods[0].implNamespaceName
+        const namespaceName = clazz.ctor.implNamespaceName
         this.pushNamespace(namespaceName, false)
         const mDestroyPeer = createDestroyPeerMethod(clazz);
         [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {

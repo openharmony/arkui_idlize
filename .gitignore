@@ -2,6 +2,7 @@
 /.rollup.cache/
 /.vscode/
 /build/
+/core/build/
 /generated/
 /out/
 /.packages/

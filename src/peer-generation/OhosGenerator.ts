@@ -627,7 +627,7 @@ class OHOSVisitor {
             if (file.isPredefined) return
             file.entries.forEach(entry => {
                 if (isInterface(entry)) {
-                    if (isMaterialized(entry)) {
+                    if (isMaterialized(entry, this.library)) {
                         this.interfaces.push(entry)
                     } else {
                         this.data.push(entry)

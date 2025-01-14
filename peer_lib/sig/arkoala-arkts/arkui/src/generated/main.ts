@@ -517,17 +517,17 @@ function checkNodeAPI() {
     const child4 = ArkButtonPeer.create()
     const child5 = ArkButtonPeer.create()
 
-    checkResult("BasicNodeAPI addChild", () => root.peer.addChild(child1.peer),
+    checkResult("BasicNodeAPI addChild", () => root.peer.addChild(child1.peer.ptr),
         `addChild(0x${root.peer.ptr}, 0x${child1.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
-    checkResult("BasicNodeAPI insertChildAfter", () => root.peer.insertChildAfter(child4.peer, child1.peer),
+    checkResult("BasicNodeAPI insertChildAfter", () => root.peer.insertChildAfter(child4.peer.ptr, child1.peer.ptr),
         `insertChildAfter(0x${root.peer.ptr}, 0x${child4.peer.ptr}, 0x${child1.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
-    checkResult("BasicNodeAPI insertChildBefore", () => root.peer.insertChildBefore(child3.peer, child4.peer),
+    checkResult("BasicNodeAPI insertChildBefore", () => root.peer.insertChildBefore(child3.peer.ptr, child4.peer.ptr),
         `insertChildBefore(0x${root.peer.ptr}, 0x${child3.peer.ptr}, 0x${child4.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
-    checkResult("BasicNodeAPI insertChildAt", () => root.peer.insertChildAt(child2.peer, 1),
+    checkResult("BasicNodeAPI insertChildAt", () => root.peer.insertChildAt(child2.peer.ptr, 1),
         `insertChildAt(0x${root.peer.ptr}, 0x${child2.peer.ptr}, 1)markDirty(0x${root.peer.ptr}, 32)`)
-    checkResult("BasicNodeAPI insertChildAfter (empty tree case)", () => child4.peer.insertChildAfter(child5.peer, undefined),
+    checkResult("BasicNodeAPI insertChildAfter (empty tree case)", () => child4.peer.insertChildAfter(child5.peer.ptr, 0),
         `insertChildAfter(0x${child4.peer.ptr}, 0x${child5.peer.ptr}, 0x0)markDirty(0x${child4.peer.ptr}, 32)`)
-    checkResult("BasicNodeAPI removeChild", () => root.peer.removeChild(child2.peer),
+    checkResult("BasicNodeAPI removeChild", () => root.peer.removeChild(child2.peer.ptr),
         `removeChild(0x${root.peer.ptr}, 0x${child2.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
     checkResult("BasicNodeAPI dispose", () => child2.peer.dispose(),
         `disposeNode(0x${child2.peer.ptr})`)

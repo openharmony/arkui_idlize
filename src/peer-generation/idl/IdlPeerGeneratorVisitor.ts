@@ -42,6 +42,7 @@ import { ImportFeature } from "../ImportsCollector";
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
 import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
+import { ReferenceResolver } from '../ReferenceResolver'
 
 /**
  * Theory of operations.
@@ -470,7 +471,7 @@ export class IdlPeerProcessor {
                 if (isBuilderClass(dep)) {
                     this.processBuilder(dep)
                     continue
-                } else if (isMaterialized(dep)) {
+                } else if (isMaterialized(dep, this.library)) {
                     this.processMaterialized(dep)
                     continue
                 }
@@ -572,9 +573,9 @@ function generateSignature(
     )
 }
 
-export function isMaterialized(declaration: idl.IDLInterface): boolean {
+export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
     if (PeerGeneratorConfig.isMaterializedIgnored(declaration.name) || idl.isHandwritten(declaration))
-        return false;
+        return false
     if (isBuilderClass(declaration))
         return false
     if (declaration.subkind === idl.IDLInterfaceSubkind.AnonymousInterface ||
@@ -585,12 +586,14 @@ export function isMaterialized(declaration: idl.IDLInterface): boolean {
 
     // A materialized class is a class or an interface with methods
     // excluding components and related classes
-    return declaration.methods.length > 0
-}
+    if (declaration.methods.length > 0) return true
 
-export function checkTSDeclarationMaterialized(decl: idl.IDLNode): boolean {
-    return (idl.isInterface(decl))
-            && isMaterialized(decl)
+    // Or a class or an interface derived from materialized class
+    if (idl.hasSuperType(declaration)) {
+        const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!) as idl.IDLInterface
+        return isMaterialized(superType, resolver)
+    }
+    return false
 }
 
 export function convertTypeToFeature(library: PeerLibrary, type: IDLType): ImportFeature | undefined {
