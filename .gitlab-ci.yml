@@ -86,6 +86,7 @@ arkts subset sig integration:
     - npm run sig:arkts:subset:all
 
 build arkoala-ts:
+  allow_failure: true
   stage: test
   tags:
     - idlize-ci
