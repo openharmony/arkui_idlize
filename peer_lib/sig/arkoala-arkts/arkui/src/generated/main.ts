@@ -282,7 +282,7 @@ function checkButton() {
     checkResult("height", () => peer.heightAttribute(44),
         "height({.type=1, .value=44, .unit=1, .resource=0})")
     const builder: CustomBuilder = (): void => { }
-    const options: Literal_Alignment_align = { align: 4 as Alignment }
+    const options: Literal_Alignment_align = { align: Alignment.Center }
     checkResult("background", () => peer.backgroundAttribute(builder, options),
         "background({.resource={.resourceId=104, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.align={.tag=ARK_TAG_OBJECT, .value=Ark_Alignment(4)}}})")
     checkResult("type", () => peer.typeAttribute(ButtonType.Circle), "type(Ark_ButtonType(1))")

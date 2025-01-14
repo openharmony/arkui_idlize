@@ -94,7 +94,12 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                     alias: string | undefined,
                     stringId: string | undefined,
                     numberId: number
-                }[] = []
+                }[] = [{
+                    name: member.name,
+                    alias: undefined,
+                    stringId: isTypeString ? initText : undefined,
+                    numberId: initText as number
+                }]
                 if (originalName !== undefined) {
                     res.push({
                         name: originalName,
@@ -109,13 +114,6 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                     //     stringId: undefined,
                     //     numberId: initText as number
                     // })
-                } else {
-                    res.push({
-                        name: member.name,
-                            alias: undefined,
-                        stringId: isTypeString ? initText : undefined,
-                        numberId: initText as number
-                    })
                 }
                 return res
             })
