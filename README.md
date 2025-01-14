@@ -90,10 +90,10 @@ The output is in `out/ts-subset` directory
 To run
 
 ```bash
-cd idlize
+cd idlize/linter
 npm i
 npm run compile
-node . --linter --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/component
+node . --input-dir ../interface_sdk-js/api/@internal/component/ets/
 ```
 
 Results are in `./<outputDir>/linter.txt` if  `--output-dir` parameter specified, otherwise printed to stdout.

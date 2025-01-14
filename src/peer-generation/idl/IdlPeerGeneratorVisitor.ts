@@ -25,7 +25,8 @@ import {
     isDefined,
     warn,
     GenericVisitor,
-    Language
+    Language,
+    isRoot
 } from '@idlize/core'
 import { ArgConvertor } from "../ArgConvertors"
 import { createOutArgConvertor } from "../PromiseConvertors"
@@ -37,7 +38,6 @@ import { PeerLibrary } from "../PeerLibrary"
 import { getInternalClassName, MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { BuilderClass, initCustomBuilderClasses, isCustomBuilderClass } from "../BuilderClass";
-import { isRoot } from "../inheritance";
 import { ImportFeature } from "../ImportsCollector";
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"

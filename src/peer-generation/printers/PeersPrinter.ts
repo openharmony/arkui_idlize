@@ -15,10 +15,9 @@
 
 import * as idl from '@idlize/core/idl'
 import * as path from "path"
-import { renameDtsToPeer, throwException, Language } from '@idlize/core'
+import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot } from '@idlize/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
-import { InheritanceRole, determineParentRole, isHeir, isRoot } from "../inheritance";
 import {
     ExpressionStatement,
     LanguageExpression,

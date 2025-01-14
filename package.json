@@ -17,13 +17,13 @@
   "workspaces": [
     "webidl2.js",
     "demos/*",
-    "core"
+    "core",
+    "linter"
   ],
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
     "@koalaui/interop": "^1.4.1",
-    "@rollup/plugin-commonjs": "^26.0.1",
     "@types/node": "^18.0.0",
     "@types/webidl2": "file:webidl2.js/types",
     "commander": "^10.0.0",
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@koalaui/fast-arktsc": "next",
+    "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-replace": "^5.0.7",
     "@rollup/plugin-terser": "^0.4.4",
@@ -76,8 +77,8 @@
     "tracker": "npm run compile && node . --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --output-dir ./doc --generator-target tracker --tracker-status ./doc/COMPONENTS_STATUS.md",
     "dts2peer:all": "npm run compile && npm run dts2peer:libace && npm run dts2peer:arkoala",
     "dts2peer": "npm run compile && node . --api-version 99 --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --output-dir ./out/ts-peers/generated --need-interfaces",
-    "lint": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --input-file common.d.ts --output-dir linter --linter-whitelist whitelist.json",
-    "lint:all": "npm run compile && node . --linter --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --output-dir out/linter --linter-whitelist whitelist.json",
+    "lint": "npm run -C linter compile && node ./linter --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --input-file common.d.ts --output-dir linter --whitelist linter/whitelist.json",
+    "lint:all": "npm run -C linter compile && node ./linter --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --output-dir out/linter --whitelist ./linter/whitelist.json",
     "lint:test": "rimraf out/linter && npm run lint:all ; cat out/linter/histogram.txt",
     "check:peers": "npm run setup-out -- --out out/ts-peers  --template ts_peers && npm run idl2peer:compile",
     "check:subset": "npm run setup-out -- --out out/ts-subset --template ts_subset && npm run make:ts:subset && cp -r tests/subset out/ts-subset/generated/tests && cd out/ts-subset && tsc -p .",

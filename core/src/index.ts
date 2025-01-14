@@ -14,8 +14,10 @@ import { fromIDL } from "./from-idl/common"
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from "./config"
 export * from "./idl"
 export * from "./idlize"
+export * from "./inheritance"
 export * from "./Language"
 export * from "./languageSpecificKeywords"
 export * from "./options"

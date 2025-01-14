@@ -22,11 +22,10 @@ import {
     isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync,
     nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
     snakeCaseToCamelCase, IDLKeywords, GenericVisitor,
-    generateSyntheticUnionName
+    generateSyntheticUnionName, isCommonMethodOrSubclass
 } from "@idlize/core"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { generateSyntheticIdlNodeName, typeOrUnion } from "./peer-generation/idl/common"
-import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
 import { ReferenceResolver } from "./peer-generation/ReferenceResolver"
 import { IDLVisitorConfig } from "./IDLVisitorConfig"
 

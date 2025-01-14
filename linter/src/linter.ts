@@ -24,12 +24,11 @@ import {
     isAbstract,
     isStatic,
     nameOrNull,
-    zip
+    zip,
+    isCommonMethodOrSubclass
 } from "@idlize/core"
 import { LinterWhitelist } from "./LinterWhitelist"
-import { isCommonMethodOrSubclass } from "./peer-generation/inheritance"
 import { LinterError, LinterMessage } from "./LinterMessage"
-
 
 const suppressed = new Set([
     LinterError.UNION_CONTAINS_ENUM,

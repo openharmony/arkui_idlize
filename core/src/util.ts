@@ -617,3 +617,14 @@ export function forceWriteFile(filePath: string, content: string): void {
     )
     fs.writeFileSync(filePath, content)
 }
+
+export function findVersion() {
+    if (process.env.npm_package_version) return process.env.npm_package_version
+    let packageJson = path.join(__dirname, '..', 'package.json')
+    try {
+        let json = fs.readFileSync(packageJson).toString()
+        return json ? JSON.parse(json).version : undefined
+    } catch (e) {
+        return undefined
+    }
+}

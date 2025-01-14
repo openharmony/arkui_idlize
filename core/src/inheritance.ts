@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as ts from "typescript";
-import { asString, heritageDeclarations, identName } from "@idlize/core"
-import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import * as ts from "typescript"
+import { generatorConfiguration } from "./config"
+import { asString, heritageDeclarations, identName } from "./util"
 
 export enum InheritanceRole {
     Finalizable,
@@ -25,9 +24,23 @@ export enum InheritanceRole {
     Standalone,
 }
 
+export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
+    let name = identName(decl.name)!
+    let isSubclass = isRoot(name)
+    decl.heritageClauses?.forEach(it => {
+        heritageDeclarations(typeChecker, it).forEach(it => {
+            let name = asString(it.name)
+            isSubclass = isSubclass || isRoot(name)
+            if (!ts.isClassDeclaration(it)) return isSubclass
+            isSubclass = isSubclass || isCommonMethodOrSubclass(typeChecker, it)
+        })
+    })
+    return isSubclass
+}
+
 export function determineInheritanceRole(name: string): InheritanceRole {
-    if (PeerGeneratorConfig.rootComponents.includes(name)) return InheritanceRole.Root
-    if (PeerGeneratorConfig.standaloneComponents.includes(name)) return InheritanceRole.Standalone
+    if (generatorConfiguration().paramArray<string>("rootComponents").includes(name)) return InheritanceRole.Root
+    if (generatorConfiguration().paramArray<string>("standaloneComponents").includes(name)) return InheritanceRole.Standalone
     return InheritanceRole.Heir
 }
 
@@ -45,20 +58,6 @@ export function determineParentRole(name: string|undefined, parent: string | und
 
 export function isCommonMethod(name: string): boolean {
     return name === "CommonMethod"
-}
-
-export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
-    let name = identName(decl.name)!
-    let isSubclass = isRoot(name)
-    decl.heritageClauses?.forEach(it => {
-        heritageDeclarations(typeChecker, it).forEach(it => {
-            let name = asString(it.name)
-            isSubclass = isSubclass || isRoot(name)
-            if (!ts.isClassDeclaration(it)) return isSubclass
-            isSubclass = isSubclass || isCommonMethodOrSubclass(typeChecker, it)
-        })
-    })
-    return isSubclass
 }
 
 export function isRoot(name: string): boolean {

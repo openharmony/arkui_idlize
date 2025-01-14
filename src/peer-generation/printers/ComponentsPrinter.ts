@@ -15,9 +15,8 @@
 
 import * as idl from '@idlize/core/idl'
 import * as path from "path"
-import { removeExt, renameDtsToComponent, Language } from '@idlize/core'
+import { removeExt, renameDtsToComponent, Language, isCommonMethod } from '@idlize/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
-import { isCommonMethod } from "../inheritance";
 import { componentToPeerClass } from "./PeersPrinter";
 import { collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import {
