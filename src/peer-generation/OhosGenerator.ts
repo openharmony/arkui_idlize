@@ -15,9 +15,10 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, DebugUtils, forceAsNamedNode, getExtAttribute, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isReferenceType, isUnionType } from '@idlize/core/idl'
+import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, createParameter, forceAsNamedNode, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isReferenceType, isUnionType } from '@idlize/core/idl'
 import { IndentedPrinter, Language, capitalize, qualifiedName } from '@idlize/core'
 import { ArgConvertor, generateCallbackAPIArguments } from './ArgConvertors'
+import { createOutArgConvertor } from './PromiseConvertors'
 import { PrimitiveType } from './ArkPrimitiveType'
 import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
@@ -150,14 +151,14 @@ class OHOSVisitor {
         }
         let isGlobalScope = hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)
         clazz.methods.forEach(method => {
+            const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
             let params = new Array<NameType>()
             if (!method.isStatic && !isGlobalScope) {
                 params.push(new NameType("thiz", handleType))
             }
-            params = params.concat(method.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!))))
-            let returnType = this.mapType(method.returnType)
-            const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
-            const args = generateCParameters(method, argConvertors, _h)
+            params = params.concat(adjustedSignature.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!))))
+            let returnType = this.mapType(adjustedSignature.returnType)
+            const args = generateCParameters(method, adjustedSignature.convertors, _h)
             _h.print(`${returnType} (*${method.name})(${args});`)
             let implName = `${clazz.name}_${method.name}Impl`
             _c.print(`&${implName},`)
@@ -271,9 +272,10 @@ class OHOSVisitor {
         this.callbackInterfaces.forEach(int => {
             this.nativeWriter.writeInterface(int.name, writer => {
                 int.methods.forEach(method => {
+                    const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
                     writer.writeMethodDeclaration(
                         method.name,
-                        writer.makeNamedSignature(method.returnType, method.parameters)
+                        writer.makeNamedSignature(adjustedSignature.returnType, adjustedSignature.parameters)
                     )
                 })
             })
@@ -379,7 +381,8 @@ class OHOSVisitor {
         this.interfaces.forEach(int => {
             this.peerWriter.writeInterface(`${int.name}Interface`, writer => {
                 int.methods.forEach(method => {
-                    const signature = writer.makeNamedSignature(method.returnType, method.parameters)
+                    const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
+                    const signature = writer.makeNamedSignature(adjustedSignature.returnType, adjustedSignature.parameters)
                     writer.writeMethodDeclaration(method.name, signature)
                 })
             })
@@ -490,17 +493,17 @@ class OHOSVisitor {
                 }
 
                 int.methods.forEach(method => {
-                    const signature = writer.makeNamedSignature(method.returnType, method.parameters)
+                    const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
+                    const signature = writer.makeNamedSignature(adjustedSignature.returnType, adjustedSignature.parameters)
                     writer.writeMethodImplementation(new Method(method.name, signature), writer => {
                         // TODO remove duplicated code from writePeerMethod (PeersPrinter.ts)
-                        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
-                        let scopes = argConvertors.filter(it => it.isScoped)
+                        let scopes = adjustedSignature.convertors.filter(it => it.isScoped)
                         scopes.forEach(it => {
                             writer.pushIndent()
                             writer.print(it.scopeStart?.(it.param, writer.language))
                         })
                         let serializerCreated = false
-                        argConvertors.forEach((it) => {
+                        adjustedSignature.convertors.forEach((it) => {
                             if (it.useArray) {
                                 if (!serializerCreated) {
                                     writer.writeStatement(
@@ -514,7 +517,7 @@ class OHOSVisitor {
                         })
                         let serializerPushed = false
                         let params = [ writer.makeString('this.peer.ptr')]
-                        argConvertors.forEach(it => {
+                        adjustedSignature.convertors.forEach(it => {
                             if (it.useArray) {
                                 if (!serializerPushed) {
                                     params.push(writer.makeMethodCall(`thisSerializer`, 'asArray', []))
@@ -530,7 +533,7 @@ class OHOSVisitor {
                             `_${int.name}_${method.name}`, // TODO temporarily removed _${this.libraryName} prefix
                             params
                         )
-                        if (method.returnType === IDLVoidType) {
+                        if (adjustedSignature.returnType === IDLVoidType) {
                             writer.writeStatement(writer.makeStatement(callExpression))
                         } else {
                             writer.writeStatement(writer.makeAssign("result", undefined, callExpression, true, true))
@@ -543,7 +546,7 @@ class OHOSVisitor {
                                 writer.print(it.scopeEnd!(it.param, writer.language))
                             })
                         }
-                        if (method.returnType !== IDLVoidType) {
+                        if (adjustedSignature.returnType !== IDLVoidType) {
                             writer.writeStatement(writer.makeReturn(writer.makeString("result")))
                         }
                     })
@@ -746,6 +749,28 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary): void {
     visitor.execute(outDir, managedOutDir)
 }
 
+
+type AdjustedSignature = {
+    convertors: ArgConvertor[]
+    parameters: IDLParameter[]
+    returnType: IDLType,
+};
+function adjustSignature(library: PeerLibrary, parameters: IDLParameter[], returnType: IDLType): AdjustedSignature {
+    const convertors = parameters.map(parameter => generateArgConvertor(library, parameter))
+    const outConvertor = createOutArgConvertor(library, returnType, parameters.map(parameter => parameter.name))
+    if(outConvertor) {
+        convertors.push(outConvertor)
+        parameters = parameters.slice()
+        parameters.push(createParameter(outConvertor.param, outConvertor.idlType))
+        returnType = IDLVoidType
+    }
+    return {
+        convertors,
+        parameters,
+        returnType,
+    }
+}
+
 function generateArgConvertor(library: PeerLibrary, param: IDLParameter): ArgConvertor {
     if (!param.type) throw new Error("Type is needed")
     return library.typeConvertor(param.name, param.type, param.isOptional)
@@ -756,7 +781,7 @@ function generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: 
     let args = isConstructor(method) ? [] : [`${PrimitiveType.NativePointer} thisPtr`]
     for (let i = 0; i < argConvertors.length; ++i) {
         const typeName = writer.getNodeName(argConvertors[i].nativeType())
-        const argName = writer.escapeKeyword(method.parameters[i].name)
+        const argName = writer.escapeKeyword(argConvertors[i].param)
         args.push(`const ${typeName}* ${argName}`)
     }
     return args.join(", ")
@@ -764,11 +789,11 @@ function generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: 
 
 function makePeerCallSignature(library: PeerLibrary, parameters: IDLParameter[], returnType: IDLType, thisArg?: string) {
     // TODO remove duplicated code from NativeModuleVisitor::printPeerMethod (NativeModulePrinter.ts)
-    const argConvertors = parameters.map(param => generateArgConvertor(library, param))
+    const adjustedSignature = adjustSignature(library, parameters, returnType)
     const args: ({name: string, type: IDLType})[] = thisArg ? [{ name: thisArg, type: IDLPointerType }] : []
     let serializerArgCreated = false
-    for (let i = 0; i < argConvertors.length; ++i) {
-        let it = argConvertors[i]
+    for (let i = 0; i < adjustedSignature.convertors.length; ++i) {
+        let it = adjustedSignature.convertors[i]
         if (it.useArray) {
             if (!serializerArgCreated) {
                 args.push(
@@ -778,8 +803,8 @@ function makePeerCallSignature(library: PeerLibrary, parameters: IDLParameter[],
                 serializerArgCreated = true
             }
         } else {
-            args.push({ name: `${it.param}`, type: parameters[i].type! })
+            args.push({ name: `${it.param}`, type: adjustedSignature.parameters[i].type! })
         }
     }
-    return NamedMethodSignature.make(returnType, args)
+    return NamedMethodSignature.make(adjustedSignature.returnType, args)
 }
