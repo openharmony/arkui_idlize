@@ -1,4 +1,4 @@
-public static func _StringData(ptr: Int64, data: Array<UInt8>, arg2: Int32): Unit {
+public static func _StringData(ptr: KPointer, data: Array<UInt8>, arg2: Int32): Unit {
     unsafe {
         let handle_1 = acquireArrayRawData(data)
         StringData(ptr, handle_1.pointer, arg2)

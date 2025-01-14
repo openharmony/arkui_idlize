@@ -14,25 +14,16 @@
  */
 package idlize
 
-public enum Tag {
-    |UNDEFINED
-    |INT32
-    |FLOAT32
-    |STRING
-    |LENGTH
-    |RESOURCE
-    |OBJECT
-    prop ordinal: Int8 {
-        get() {
-            match (this) {
-                case UNDEFINED => 101
-                case INT32 => 102
-                case FLOAT32 => 103
-                case STRING => 104
-                case LENGTH => 105
-                case RESOURCE => 106
-                case OBJECT => 107
-            }
-        }
+public open class Tag {
+    public static var UNDEFINED: Tag = Tag(101)
+    public static var INT32: Tag = Tag(102)
+    public static var FLOAT32: Tag = Tag(103)
+    public static var STRING: Tag = Tag(104)
+    public static var LENGTH: Tag = Tag(105)
+    public static var RESOURCE: Tag = Tag(106)
+    public static var OBJECT: Tag = Tag(107)
+    public var value: Int8
+    Tag (arg0: Int8) {
+        value = arg0
     }
 }

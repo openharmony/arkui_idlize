@@ -28,7 +28,7 @@ import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCal
 import * as idl from "@idlize/core/idl"
 import { createEmptyReferenceResolver, getReferenceResolver, ReferenceResolver } from "./ReferenceResolver"
 import { MethodArgPrintHint } from "./LanguageWriters/LanguageWriter"
-import { SourceFile, TsSourceFile } from "./printers/SourceFile"
+import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
 import { NativeModuleType } from "./NativeModuleType"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
@@ -295,6 +295,15 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         printDeserializeAndCall(library, deserializeCallImpls)
         deserializeCallImpls.imports.clear() // TODO fix dependencies
         deserializeCallImpls.imports.addFeatures(["ResourceHolder"], "@koalaui/interop")
+        destFile.merge(deserializeCallImpls)
+        return destFile
+    } if (lang === Language.CJ) {
+        const destFile = SourceFile.make("Serializer" + lang.extension, lang, getReferenceResolver(library)) as CJSourceFile
+        // destFile.content.nativeModuleAccessor = nativeModule.name
+        writeSerializerFile(library, destFile, "", declarationPath)
+        writeDeserializerFile(library, destFile, "", declarationPath)
+        const deserializeCallImpls = SourceFile.makeSameAs(destFile)
+        printDeserializeAndCall(library, deserializeCallImpls)
         destFile.merge(deserializeCallImpls)
         return destFile
     } else {

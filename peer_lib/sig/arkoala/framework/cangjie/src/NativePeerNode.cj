@@ -15,23 +15,23 @@
 package idlize
 
 public open class NativePeerNode <: Finalizable {
-    public NativePeerNode(ptr: Int64, finalizer: Int64) {
+    public NativePeerNode(ptr: UInt64, finalizer: UInt64) {
         super(ptr, finalizer)
     }
 
-    public static func create(peerPtr: pointer): NativePeerNode {
-        return NativePeerNode(peerPtr, NativeModule._GetNodeFinalizer())
+    public static func create(peerPtr: KPointer): NativePeerNode {
+        return NativePeerNode(peerPtr, ArkUINativeModule._GetNodeFinalizer())
     }
 
     public func dispose() {
-        NativeModule._DisposeNode(this.ptr)
+        ArkUINativeModule._DisposeNode(this.ptr)
     }
 
     public func addChild(node: NativePeerNode) {
-        NativeModule._AddChild(this.ptr, node.ptr)
+        ArkUINativeModule._AddChild(this.ptr, node.ptr)
     }
     public func removeChild(node: NativePeerNode) {
-        NativeModule._RemoveChild(this.ptr, node.ptr)
+        ArkUINativeModule._RemoveChild(this.ptr, node.ptr)
     }
     public func insertChildBefore(node: NativePeerNode, sibling: NativePeerNode) {
         // NativeModule._InsertChildBefore(this.ptr, node.ptr, sibling == null ? 0 : sibling.ptr)
@@ -40,10 +40,10 @@ public open class NativePeerNode <: Finalizable {
         // NativeModule._InsertChildAfter(this.ptr, node.ptr, sibling == null ? 0 : sibling.ptr)
     }
     public func insertChildAt(node: NativePeerNode, position: Int32) {
-        NativeModule._InsertChildAt(this.ptr, node.ptr, position)
+        ArkUINativeModule._InsertChildAt(this.ptr, node.ptr, position)
     }
 
     public func dumpTree() {
-        NativeModule._DumpTreeNode(this.ptr)
+        ArkUINativeModule._DumpTreeNode(this.ptr)
     }
 }

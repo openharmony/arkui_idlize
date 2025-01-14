@@ -109,7 +109,7 @@ interface UnifiedData {
     // attribute UnifiedDataProperties properties;
     // void addRecord(UnifiedRecord record_);
     // sequence<UnifiedRecord> getRecords();
-    boolean hasType(String type);
+    boolean hasType(String UnifiedData_type);
     sequence<String> getTypes();
 };
 

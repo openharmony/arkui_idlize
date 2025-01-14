@@ -31,6 +31,7 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
+    NamedMethodSignature,
     ObjectArgs,
     ReturnStatement,
     StringExpression
@@ -100,6 +101,15 @@ export class CJTernaryExpression implements LanguageExpression {
         public falseExpression: LanguageExpression) {}
     asString(): string {
         return `if (${this.condition.asString()}) { ${this.trueExpression.asString()} } else { ${this.falseExpression.asString()} }`
+    }
+}
+
+export class CJNewObjectExpression implements LanguageExpression {
+    constructor(
+        private objectName: string,
+        private params: LanguageExpression[]) { }
+    asString(): string {
+        return `${this.objectName}(${this.params.map(it => it.asString()).join(", ")})`
     }
 }
 
@@ -322,9 +332,13 @@ export class CJLanguageWriter extends LanguageWriter {
         return `public func ${name}(${args.join(", ")})`
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
-        receiver = this.escapeKeyword(receiver)
         params = params.map(argName => this.escapeKeyword(argName))
         if (nullable) {
+            if (receiver == 'this') {
+                this.printer.print('let thisObj = this')
+                super.writeMethodCall('thisObj', method, params, false)
+                return
+            }
             this.printer.print(`if (let Some(${receiver}) <- ${receiver}) { ${receiver}.${method}(${params.join(", ")}) }`)
         } else {
             super.writeMethodCall(receiver, method, params, nullable)
@@ -334,7 +348,7 @@ export class CJLanguageWriter extends LanguageWriter {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         name = this.escapeKeyword(name)
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix} var ${name}: ${this.getNodeName(type)}${init}`)
+        this.printer.print(`${prefix ? prefix.concat(" ") : ""}var ${name}: ${this.getNodeName(type)}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, modifiers)
@@ -400,12 +414,12 @@ export class CJLanguageWriter extends LanguageWriter {
     writeNativeFunctionCall(printer: LanguageWriter, name: string, signature: MethodSignature) {
         printer.print(`return unsafe { ${name}(${signature.args.map((it, index) => `${signature.argName(index)}`).join(", ")}) }`)
     }
-    writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
-        this.print(`func ${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.typeForeignConvertor.convert(it)}`).join(", ")}): ${this.typeForeignConvertor.convert(signature.returnType)}`)
+    writeNativeMethodDeclaration(name: string, signature: NamedMethodSignature): void {
+        let signture = `${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.typeForeignConvertor.convert(it)}`).join(", ")}`
+        this.print(`func ${name}(${signture}): ${this.typeForeignConvertor.convert(signature.returnType)}`)
     }
     override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: EnumConvertor | undefined): string {
-        // TODO: remove after switching to IDL
-        return `${enumName}.getIntValue()`
+        return `${enumName}.value`
     }
     makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
@@ -463,6 +477,9 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeDefinedCheck(value: string): LanguageExpression {
         return new CJCheckDefinedExpression(value)
+    }
+    makeNewObject(objectName: string, params: LanguageExpression[] = []): LanguageExpression {
+        return new CJNewObjectExpression(objectName, params)
     }
     writePrintLog(message: string): void {
         this.print(`println("${message}")`)
@@ -534,7 +551,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return new CJEnumEntityStatement(enumEntity, isExport)
     }
     makeEquals(args: LanguageExpression[]): LanguageExpression {
-        return this.makeNaryOp('==', args)
+        return this.makeString(`refEq(${args.map(arg => `${arg.asString()}`).join(`, `)})`)
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         this.writeStatement(this.makeAssign(valueType, undefined,

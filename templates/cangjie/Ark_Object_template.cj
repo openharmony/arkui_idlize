@@ -73,6 +73,8 @@ public abstract class Ark_Object {
         }
     }
 
+%GET_FUNCTION_RUNTIME%
+
     static func getRuntimeType<T>(object: T): RuntimeType where T <: Ark_Object {
         return object.runtimeType()
     }

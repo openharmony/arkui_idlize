@@ -874,6 +874,7 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
                 if (idl.isModuleType(entry) ||
                     idl.isPackage(entry) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
+                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType) ||
                     isPredefined(entry))
                     continue
                 if (PeerGeneratorConfig.ignoreEntry(entry.name, this.peerLibrary.language))
@@ -1095,14 +1096,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
                 )
             })
-
-            const getIntValue = new Method('getIntValue', new MethodSignature(intType, []), [MethodModifier.PUBLIC])
-            writer.writeMethodImplementation(getIntValue, () => {
-                writer.writeStatement(
-                    writer.makeReturn(writer.makeString(value))
-                )
-            })
-        }, ARK_OBJECTBASE, [INT_VALUE_GETTER])
+        }, ARK_OBJECTBASE)
 
         return new CJDeclaration(alias, writer)
     }

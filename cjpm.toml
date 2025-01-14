@@ -1,5 +1,5 @@
 [dependencies]
-
+  KoalaRuntime = { path = "./external/incremental-cj/runtime"}
 [package]
   cjc-version = "0.56.4"
   compile-option = "-L ./native/build-cangjie-native-dummy -l NativeBridgeCJ"

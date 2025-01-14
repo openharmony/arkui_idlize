@@ -15,10 +15,10 @@
 package idlize
 
 public open class Finalizable {
-    public var ptr: Int64
-    public var finalizer: Int64
+    public var ptr: KPointer
+    public var finalizer: KPointer
 
-    public Finalizable(ptr: Int64, finalizer: Int64) {
+    public Finalizable(ptr: KPointer, finalizer: KPointer) {
         this.ptr = ptr
         this.finalizer = finalizer
     }

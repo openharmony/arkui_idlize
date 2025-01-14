@@ -16,9 +16,10 @@
 
 package idlize
 
-public open class Ark_MaterializedBase <: Ark_ObjectBase {
-    public var peer: ?Finalizable = None
+public abstract class MaterializedBase <: Ark_ObjectBase {
+    var peer: Option<Finalizable> = Option.None
 
-    // internal interface to call constructors that only create materialized class wrappers at Java side
-    protected Ark_MaterializedBase() {}
+    public func getPeer(): ?Finalizable {
+        return this.peer
+    }
 }

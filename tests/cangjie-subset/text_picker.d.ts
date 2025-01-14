@@ -309,7 +309,7 @@ declare interface DividerOptions {
    * @crossplatform
    * @since 12
    */
-  strokeWidth?: Dimension;
+  // strokeWidth?: Dimension;
 
   /**
    * The color of Divider.
@@ -575,7 +575,7 @@ declare class TextPickerAttribute extends CommonMethod<TextPickerAttribute> {
    * @crossplatform
    * @since 12
    */
-  gradientHeight(value: Dimension): TextPickerAttribute;
+  // gradientHeight(value: Dimension): TextPickerAttribute;
 }
 
 /**

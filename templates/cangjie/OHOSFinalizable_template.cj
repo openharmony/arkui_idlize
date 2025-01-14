@@ -12,8 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package idlize
 
-public interface IntValueGetter {
-    func getIntValue(): Int32
+public abstract class MaterializedBase {
+    func getPeer(): Finalizable
+}
+
+export class Finalizable {
+    public var ptr: pointer
+    public var finalizerPtr: pointer
+
+    public static func Empty: Finalizable = Finalizable(0, 0)
+
+    init (ptr: pointer, finalizerPtr: pointer) {
+        this.ptr = ptr
+        this.finalizerPtr = finalizerPtr
+    }
+
+    func release(): pointer {
+        let result = this.ptr
+        this.ptr = nullptr
+        return result
+    }
 }

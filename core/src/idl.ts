@@ -58,6 +58,7 @@ export enum IDLExtendedAttributes {
     Accessor = "Accessor",
     Async = "Async",
     CallSignature = "CallSignature",
+    CJType = "CJType",
     CommonMethod = "CommonMethod",
     Component = "Component",
     ComponentInterface = "ComponentInterface",

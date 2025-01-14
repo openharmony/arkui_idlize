@@ -182,7 +182,7 @@ class IdlSerializerPrinter {
             this.writer.print("import java.util.function.Supplier;")
         }
         this.writer.writeClass(className, writer => {
-            if (writer.language == Language.JAVA)
+            if (writer.language == Language.JAVA || writer.language == Language.CJ)
                 writer.writeFieldDeclaration('nullptr', idl.IDLPointerType, [FieldModifier.STATIC, FieldModifier.PRIVATE], false, writer.makeString('0'))
 
 
@@ -230,8 +230,6 @@ class IdlSerializerPrinter {
                     writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
                         writer.makeString("Serializer.pool")), true, true))
                     writer.writeStatement(writer.makeCondition(
-                            writer.language == Language.CJ ?
-                            writer.makeString(`refEq(this, pool[Int64(Serializer.poolTop)])`) :
                             writer.makeEquals([
                                 writer.makeThis(),
                                 writer.makeArrayAccess("pool", "Serializer.poolTop")

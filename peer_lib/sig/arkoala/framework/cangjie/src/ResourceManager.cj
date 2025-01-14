@@ -63,7 +63,8 @@ public class ResourceHolder {
     }
 
     public func registerAndHold(resource: Any): ResourceId {
-        let resourceId = ResourceHolder.nextResourceId + 1
+        ResourceHolder.nextResourceId += 1
+        let resourceId = ResourceHolder.nextResourceId
         this.resources.put(resourceId, ResourceInfo(resource, resourceId))
         return resourceId
     }

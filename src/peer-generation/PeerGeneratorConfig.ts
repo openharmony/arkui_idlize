@@ -170,20 +170,13 @@ export class PeerGeneratorConfig {
         "Dimension",
     ])
 
-    private static ignoredEntriesCJ = new Set([
-        "CallbackResource",
-        "Dimension",
-        "RuntimeType"
-    ])
-
     public static ignoredCallbacks = new Set<string>([
         // Empty for now
     ])
 
     static ignoreEntry(name: string, language: Language) {
         return PeerGeneratorConfig.ignoredEntriesCommon.has(name) ||
-            language === Language.JAVA && PeerGeneratorConfig.ignoredEntriesJava.has(name) ||
-            language === Language.CJ && PeerGeneratorConfig.ignoredEntriesCJ.has(name)
+            language === Language.JAVA && PeerGeneratorConfig.ignoredEntriesJava.has(name)
     }
 
     static ignoreMethod(name: string, language: Language) {

@@ -63,7 +63,8 @@ import { printDeclarations, printEnumsImpl } from "./printers/DeclarationPrinter
 import { createLanguageWriter, LanguageWriter } from "./LanguageWriters"
 import { printManagedCaller } from "./printers/CallbacksPrinter"
 import { NativeModuleType } from "./NativeModuleType"
-import { printArkUIGeneratedNativeModule, printArkUILibrariesLoader, printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule, printTSPredefinedEmptyNativeModule } from "./printers/NativeModulePrinter"
+import { printArkUIGeneratedNativeModule, printArkUILibrariesLoader, printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions, printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule, printTSPredefinedEmptyNativeModule } from "./printers/NativeModulePrinter"
+import { makeGetFunctionRuntimeType } from "./printers/lang/CJIdlUtils"
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
@@ -467,17 +468,32 @@ export function generateArkoalaFromIdl(config: {
     }
 
     if (peerLibrary.language == Language.CJ) {
-        writeIntegratedFile(
+        writeIntegratedFile( 
             arkoala.cjLib(new TargetFile(NativeModuleType.ArkUI.name)),
-            printPredefinedNativeModule(peerLibrary, NativeModuleType.ArkUI).printToString(),
+            printCJPredefinedNativeFunctions(peerLibrary, NativeModuleType.ArkUI).printToString().concat(
+                printPredefinedNativeModule(peerLibrary, NativeModuleType.ArkUI).content.getOutput().join('\n')
+            )
         )
         writeIntegratedFile(
             arkoala.cjLib(new TargetFile(NativeModuleType.Test.name)),
-            printPredefinedNativeModule(peerLibrary, NativeModuleType.Test).printToString(),
+            printCJPredefinedNativeFunctions(peerLibrary, NativeModuleType.Test).printToString().concat(
+                printPredefinedNativeModule(peerLibrary, NativeModuleType.Test).content.getOutput().join('\n')
+            )
         )
         writeIntegratedFile(
             arkoala.cjLib(new TargetFile(NativeModuleType.Generated.name)),
-            printArkUIGeneratedNativeModule(peerLibrary, NativeModuleType.Generated).printToString()
+            printCJArkUIGeneratedNativeFunctions(peerLibrary, NativeModuleType.Generated).printToString().concat(
+                printArkUIGeneratedNativeModule(peerLibrary, NativeModuleType.Generated).content.getOutput().join('\n')
+            )
+        )
+        writeIntegratedFile(
+            arkoala.cjLib(new TargetFile(NativeModuleType.Interop.name)),
+            printCJPredefinedNativeFunctions(peerLibrary, NativeModuleType.Interop).printToString().concat(
+                printPredefinedNativeModule(peerLibrary, NativeModuleType.Interop).content.getOutput().join('\n')
+            )
+        )
+        writeIntegratedFile( 
+            arkoala.cjLib(new TargetFile('Ark_Object')), makeGetFunctionRuntimeType(peerLibrary)
         )
         writeFile(arkoala.peer(new TargetFile('CallbackKind', '')),
             makeCallbacksKinds(peerLibrary, peerLibrary.language),

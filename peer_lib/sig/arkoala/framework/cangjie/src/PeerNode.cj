@@ -15,9 +15,10 @@
 package idlize
 
 import std.collection.*
+import KoalaRuntime.*
 
-public open class PeerNode {
-    private static var PEER_NODE_TYPE = 11
+public open class PeerNode <: IncrementalNode {
+    private static var PEER_NODE_TYPE: UInt32 = 11
     public var peer: NativePeerNode
     
     static func nextId() {
@@ -27,7 +28,8 @@ public open class PeerNode {
 
     protected static var currentId: Int32 = 1000
 
-    PeerNode(peerPtr: pointer, name: String, flags: Int32) {
+    PeerNode(peerPtr: pointer, id: Int32, name: String, flags: Int32) {
+        super(PEER_NODE_TYPE)
         this.peer = NativePeerNode.create(peerPtr)
     }
     func applyAttributes(attrs: HashMap<String, Object>): Unit {}

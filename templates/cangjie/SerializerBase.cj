@@ -206,7 +206,7 @@ public open class SerializerBase {
     func writeFloat32(value: Float32): Unit {
         this.setBytes(this.position, value)
     }
-    func writePointer(ptr: UInt64): Unit {
+    func writePointer(ptr: Int64): Unit {
         this.setBytes(this.position, ptr)
     }
     func writeBoolean(value: ?Bool): Unit {

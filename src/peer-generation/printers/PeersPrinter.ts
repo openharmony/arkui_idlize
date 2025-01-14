@@ -541,6 +541,7 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
     return [
         writer.makeAssign(`${resultName}`, retType, writer.makeNewObject(forceAsNamedNode(retType).name), true),
         writer.makeAssign(`${resultName}.peer`, createReferenceType("Finalizable"),
-            writer.makeString(`new Finalizable(${peerPtrName}, ${forceAsNamedNode(retType).name}.getFinalizer())`), false),
+            writer.makeNewObject('Finalizable', [writer.makeString(peerPtrName), writer.makeString(`${forceAsNamedNode(retType).name}.getFinalizer()`)]),
+            false),
     ]
 }

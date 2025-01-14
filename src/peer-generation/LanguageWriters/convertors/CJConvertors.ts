@@ -95,7 +95,7 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
             case idl.IDLStringType: return 'String'
             case idl.IDLBooleanType: return 'Bool'
             case idl.IDLNumberType: return 'Float64'
-            case idl.IDLUndefinedType: return 'Ark_Undefined'
+            case idl.IDLUndefinedType: return 'Unit' // might be wrong
             case idl.IDLI8Type: return 'Int8'
             case idl.IDLU8Type: return 'UInt8'
             case idl.IDLI16Type: return 'Int16'
@@ -106,7 +106,7 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
             case idl.IDLU64Type: return 'UInt64'
             case idl.IDLF32Type: return 'Float32'
             case idl.IDLF64Type: return 'Float64'
-            case idl.IDLPointerType: return 'Int64'
+            case idl.IDLPointerType: return 'UInt64'
             case idl.IDLVoidType: return 'Unit'
             case idl.IDLBufferType: return 'ArrayList<UInt8>'
             case idl.IDLLengthType: return 'Ark_Length'

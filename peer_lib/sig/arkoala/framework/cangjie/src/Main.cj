@@ -19,6 +19,8 @@ import std.time.DateTime
 import std.math.round
 import std.collection.*
 
+import KoalaRuntime.*
+
 public func assertEquals(name: String, expected: String, actual: String): Unit {
     if (expected != actual) {
         println("TEST ${name} FAIL:\n  EXPECTED \"${expected}\"\n  ACTUAL   \"${actual}\"")
@@ -27,10 +29,10 @@ public func assertEquals(name: String, expected: String, actual: String): Unit {
     }
 }
 
-public func getNativeString(ptr: Int64): String {
-    let length = NativeModule._StringLength(ptr)
+public func getNativeString(ptr: UInt64): String {
+    let length = InteropNativeModule._StringLength(ptr)
     var data = Array<UInt8>(Int64(length), repeat: UInt8(0))
-    NativeModule._StringData(ptr, data, length)
+    InteropNativeModule._StringData(ptr, data, length)
     var result = StringBuilder()
     for (i in 0..length) {
         result.append(Rune(data[Int64(i)]))
@@ -39,16 +41,11 @@ public func getNativeString(ptr: Int64): String {
 }
 
 public func checkResult(name: String, test: () -> Unit, expected: String) {
-    NativeModule._StartGroupedLog(1)
+    InteropNativeModule._StartGroupedLog(1)
     test()
-    NativeModule._StopGroupedLog(1)
-    let actual = getNativeString(NativeModule._GetGroupedLog(1))
-    if (actual != expected) {
-        println("TEST ${name} FAIL:\n  EXPECTED \"${expected}\"\n  ACTUAL   \"${actual}\"")
-        throw Exception("TEST ${name} FAIL")
-    } else {
-        println("TEST ${name} PASS")
-    }
+    InteropNativeModule._StopGroupedLog(1)
+    let actual = getNativeString(InteropNativeModule._GetGroupedLog(1))
+    assertEquals(name, expected, actual)
 }
 
 func checkPerf2(count: Int64) {
@@ -85,45 +82,43 @@ func peersTest(): Unit {
     let labelStyle = LabelStyle(Option.None, 5.0, Option.None, Option.None, Option.None, Option.None)
     checkResult("[Interface + Optional] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=5}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
+        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=5}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}}) \n")
     // union
     labelStyle.maxLines = Option.None
     labelStyle.font = Font(Option.None, Union_FontWeight_Number_String("param"), Option.None, Option.None)
     checkResult("[Union] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=2, .value2={.chars=\"param\", .length=5}}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
+        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=2, .value2={.chars=\"param\", .length=5}}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}}) \n");
     labelStyle.font = Font(Option.None, Union_FontWeight_Number_String(FontWeight.BOLD), Option.None, Option.None)
     checkResult("[Union + Enum] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=Ark_FontWeight(4)}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})");
+        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=Ark_FontWeight(4)}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}}) \n")
     let resource = Resource("bundle_name", "module_name", 10.0, Option.None, 2000.0)   
     labelStyle.font = Font(Option.None, Option.None, Union_String_Resource(resource), Option.None)
     checkResult("[Union + Resource] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_UNDEFINED, .value={}}, .family={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.bundleName={.chars=\"bundle_name\", .length=11}, .moduleName={.chars=\"module_name\", .length=11}, .id={.tag=102, .i32=10}, .params={.tag=ARK_TAG_UNDEFINED, .value={}}, .type_={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}})"
+        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_UNDEFINED, .value={}}, .family={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.bundleName={.chars=\"bundle_name\", .length=11}, .moduleName={.chars=\"module_name\", .length=11}, .id={.tag=102, .i32=10}, .params={.tag=ARK_TAG_UNDEFINED, .value={}}, .type_={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}}) \n"
         )
     // tuple
     let peer = ArkTestPeer.create(Option.None, 0)
     let options = BlurOptions(Tuple_Number_Number(1.0, 2.0))
     checkResult("[Tuple] TestPeer.backdropBlur",
         { => peer.backdropBlurAttribute(42.0, options) },
-        "backdropBlur({.tag=102, .i32=42}, {.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=2}}}})");
+        "backdropBlur({.tag=102, .i32=42}, {.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=2}}}}) \n");
     let tuple1 = Tuple_Number_String_EnumDTS(5.5, "test", EnumDTS.ELEM_1)
     checkResult("[Tuple + Enum] TestPeer.testTupleNumberStringEnum",
         { => peer.testTupleNumberStringEnumAttribute(tuple1) },
-        "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.5}, .value1={.chars=\"test\", .length=4}, .value2=Ark_EnumDTS(1)})")
+        "testTupleNumberStringEnum({.value0={.tag=103, .f32=5.5}, .value1={.chars=\"test\", .length=4}, .value2=Ark_EnumDTS(1)}) \n")
 
     // optional
     let listPeer = ArkListPeer.create(Option.None, 0);
     checkResult("[Optional] ListPeer.someOptional",
         { => listPeer.someOptionalAttribute(false) },
-        "someOptional({.tag=ARK_TAG_OBJECT, .value=false})");
+        "someOptional({.tag=ARK_TAG_OBJECT, .value=false}) \n");
 
     // enum
-    checkResult("[Enum] ButtonPeer.type", { => buttonPeer.typeAttribute(ButtonType.CAPSULE) }, "type(Ark_ButtonType(0))");
+    checkResult("[Enum] ButtonPeer.type", { => buttonPeer.typeAttribute(ButtonType.CAPSULE) }, "type(Ark_ButtonType(0)) \n");
     let sheetOptions = SheetOptions(Option.None,
-                                    Option.None, 
-                                    Option.None, 
                                     Option.None, 
                                     Option.None, 
                                     Option.None, 
@@ -137,16 +132,16 @@ func peersTest(): Unit {
                                     Option.None)
     checkResult("[Enum + Interface] ButtonPeer.bindSheet",
         { => buttonPeer.bindSheetAttribute(false, sheetOptions) },
-        "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .width={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderWidth={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=Ark_SheetMode(1)}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}})")
+        "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=Ark_SheetMode(1)}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}}) \n")
 }
 
 func createDefaultWriteCallback(kind: CallbackKind, callback: Any) {
     return {serializer: Serializer => 
         serializer.holdAndWriteCallback(callback,
-            NativeModule._TestGetManagedHolder(),
-            NativeModule._TestGetManagedReleaser(),
-            NativeModule._TestGetManagedCaller(kind.value),
-            NativeModule._TestGetManagedCallerSync(kind.value)
+            TestNativeModule._TestGetManagedHolder(),
+            TestNativeModule._TestGetManagedReleaser(),
+            TestNativeModule._TestGetManagedCaller(kind.value),
+            TestNativeModule._TestGetManagedCallerSync(kind.value)
         )
     }
 }
@@ -156,7 +151,7 @@ func enqueueCallback(
 ): Unit {
     let serializer = Serializer.hold()
     let resourceId = writeCallback(serializer)
-    NativeModule._HoldArkoalaResource(resourceId)
+    ArkUINativeModule._HoldArkoalaResource(resourceId)
     let buffer = Array<UInt8>(Int64(serializer.length()), repeat: 0)
     for (i in 0..buffer.size) {
         buffer[i] = serializer.asArray()[i]
@@ -167,7 +162,7 @@ func enqueueCallback(
     let deserializer = Deserializer(buffer, buffer.size)
     readAndCallCallback(deserializer)
     /* libace released resource */
-    NativeModule._ReleaseArkoalaResource(resourceId)
+    ArkUINativeModule._ReleaseArkoalaResource(resourceId)
 }
 
 class callResult {
@@ -176,7 +171,7 @@ class callResult {
 }
 
 func checkTwoSidesCallback() {
-    NativeModule._TestSetArkoalaCallbackCaller()
+    TestNativeModule._TestSetArkoalaCallbackCaller()
 
     let call2Count = 100
 
@@ -192,26 +187,27 @@ func checkTwoSidesCallback() {
             callback(42.0)
         }
     )
-    // for (i in 0..call2Count) {
-    //     enqueueCallback(
-    //         createDefaultWriteCallback(CallbackKind.Kind_Callback_Void, { =>
-    //             callResult.callResult2++
-    //         }),
-    //         { deserializer =>
-    //             let callback = deserializer.readCallback_Void(false)
-    //             callback()
-    //         }
-    //     )
-    // }
+    for (i in 0..call2Count) {
+        enqueueCallback(
+            createDefaultWriteCallback(CallbackKind.Kind_Callback_Void, { =>
+                callResult.callResult2++
+            }),
+            { deserializer =>
+                let callback = deserializer.readCallback_Void(false)
+                callback()
+            }
+        )
+    }
 
     assertEquals("Callback 1 enqueued", "NOT_CALLED", callResult.callResult1.toString())
-    // assertEquals("Callback 2 enqueued ${call2Count} times", 0.toString(), callResult.callResult2.toString())
+    assertEquals("Callback 2 enqueued ${call2Count} times", 0.toString(), callResult.callResult2.toString())
     checkArkoalaCallbacks()
     assertEquals("Callback 1 read&called", "CALLED, value=42.000000", callResult.callResult1.toString())
-    // assertEquals("Callback 2 read&called ${call2Count} times", call2Count.toString(), callResult.callResult2.toString())
+    assertEquals("Callback 2 read&called ${call2Count} times", call2Count.toString(), callResult.callResult2.toString())
 }
 
 main(): Unit {
+    getCallsiteKey()
     checkPerf2(100)
     checkPerf3(100)
     peersTest()
