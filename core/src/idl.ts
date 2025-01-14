@@ -303,12 +303,18 @@ export function forEachChild(node: IDLNode, cb: (entry: IDLNode) => void): void 
         case IDLKind.Enum: {
             break
         }
-        case IDLKind.Property:
         case IDLKind.Parameter:
+            let parameter = node as IDLParameter
+            if (parameter.type) forEachChild(parameter.type, cb)
+            break
+        case IDLKind.ContainerType:
+            let container = node as IDLContainerType
+            if (container.elementType) container.elementType.forEach((value) => forEachChild(value, cb))
+            break
+        case IDLKind.Property:
         case IDLKind.Typedef:
         case IDLKind.EnumType:
         case IDLKind.PrimitiveType:
-        case IDLKind.ContainerType:
         case IDLKind.TypeParameterType:
         case IDLKind.ReferenceType:
         case IDLKind.Version:
@@ -379,6 +385,9 @@ export function isCallable(node: IDLNode): node is IDLCallable {
 }
 export function isMethod(node: IDLNode): node is IDLMethod {
     return node.kind === IDLKind.Method
+}
+export function isParameter(node: IDLNode): node is IDLParameter {
+    return node.kind === IDLKind.Parameter
 }
 export function isConstructor(node: IDLNode): node is IDLConstructor {
     return node.kind === IDLKind.Constructor
@@ -1129,12 +1138,18 @@ export function printIDL(idl: IDLNode, options?: Partial<IDLPrintOptions>): stri
     if (idl.kind == IDLKind.ModuleType) return printModule(idl as IDLModule)
     if (idl.kind == IDLKind.Package) return printPackage(idl as IDLPackage)
     if (idl.kind == IDLKind.Import) return printImport(idl as IDLImport)
-    throw new Error(`unexpected kind: ${idl.kind}`)
+
+    if (options?.allowUnknownKinds) {
+        return [`${IDLKind[idl.kind]} ${"name" in idl ? idl.name : ""}`]
+    } else {
+        throw new Error(`unexpected kind: ${idl.kind}`)
+    }
 }
 
 export interface IDLPrintOptions {
     verifyIdl: boolean
     disableEnumInitializers: boolean
+    allowUnknownKinds: boolean
 }
 
 export function toIDLString(entries: IDLEntry[], options: Partial<IDLPrintOptions>): string {

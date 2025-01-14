@@ -49,6 +49,7 @@ import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"
 import { IdlWrapperProcessor } from "./skoala-generation/idl/idlSkoalaLibrary"
 import { fillSyntheticDeclarations } from "./peer-generation/idl/SyntheticDeclarationsFiller"
 import { LibarktsGenerator } from "./libarkts-generation/LibarktsGenerator"
+import { Es2PandaTransformer } from "./libarkts-generation/Es2PandaTransformer"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -275,6 +276,10 @@ if (options.idl2peer) {
     const idlLibrary = new PeerLibrary(language)
     idlLibrary.files.push(...scanNotPredefinedDirectory(options.inputDir))
     new IdlPeerProcessor(idlLibrary).process()
+
+    if (options.generatorTarget == "libarkts") {
+        (new Es2PandaTransformer(idlLibrary)).transform()
+    }
 
     generateTarget(idlLibrary, outDir, language)
 
