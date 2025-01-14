@@ -82,6 +82,6 @@ export class ImportsCollector {
 export type ImportFeature = { feature: string, module: string }
 
 export function convertPeerFilenameToModule(filename: string) {
-    const basename = renameDtsToPeer(path.basename(filename), Language.TS, false)
+    const basename = renameDtsToPeer(path.basename(filename.replaceAll('\\', '/')), Language.TS, false)
     return `./peers/${basename}`
 }

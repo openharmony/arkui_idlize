@@ -2,6 +2,6 @@
 	path = external
 	url = https://gitee.com/openharmony-sig/arkcompiler_ets_frontend
 [submodule "webidl2.js"]
-	path = webidl2.js
+	path = core/webidl2.js
 	url = https://gitee.com/nikolay-igotti/webidl2.js
 	branch = main

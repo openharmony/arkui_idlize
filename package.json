@@ -10,12 +10,10 @@
     "whitelist.json",
     "peer_lib/**/*",
     "templates/**/*",
-    "webidl2.js/dist/**/*",
-    "webidl2.js/package.json",
     "predefined/**/*"
   ],
   "workspaces": [
-    "webidl2.js",
+    "core/webidl2.js",
     "demos/*",
     "core",
     "linter"
@@ -23,6 +21,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
+    "@idlize/core": "1.0.0-devel",
     "@koalaui/interop": "^1.4.1",
     "@types/node": "^18.0.0",
     "@types/webidl2": "file:webidl2.js/types",

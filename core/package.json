@@ -16,8 +16,8 @@
     "files": [
         "build/src/**/*.js",
         "build/src/**/*.d.ts",
-        "../webidl2.js/dist/**/*",
-        "../webidl2.js/package.json"
+        "./webidl2.js/dist/**/*",
+        "./webidl2.js/package.json"
     ],
     "engines": {
         "npm": ">= 8",
