@@ -341,7 +341,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(`${PrimitiveType.Void.getText()}()`)
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
-        return this.makeString(`${PrimitiveType.Prefix.toUpperCase()}RUNTIME_${RuntimeType[rt]}`)
+        return this.makeString(`INTEROP_RUNTIME_${RuntimeType[rt]}`)
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         // TODO: maybe use std::move?

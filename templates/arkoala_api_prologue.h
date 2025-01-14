@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+%INTEROP_TYPES_HEADER
+
 #ifndef GENERATED_FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
 #define GENERATED_FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
 
@@ -39,59 +41,47 @@
 extern "C" {
 #endif
 
-typedef enum Ark_Tag
-{
-  ARK_TAG_UNDEFINED = 101,
-  ARK_TAG_INT32 = 102,
-  ARK_TAG_FLOAT32 = 103,
-  ARK_TAG_STRING = 104,
-  ARK_TAG_LENGTH = 105,
-  ARK_TAG_RESOURCE = 106,
-  ARK_TAG_OBJECT = 107,
-} Ark_Tag;
+typedef InteropTag Ark_Tag;
+typedef InteropRuntimeType Ark_RuntimeType;
 
-typedef enum Ark_RuntimeType
-{
-  ARK_RUNTIME_UNEXPECTED = -1,
-  ARK_RUNTIME_NUMBER = 1,
-  ARK_RUNTIME_STRING = 2,
-  ARK_RUNTIME_OBJECT = 3,
-  ARK_RUNTIME_BOOLEAN = 4,
-  ARK_RUNTIME_UNDEFINED = 5,
-  ARK_RUNTIME_BIGINT = 6,
-  ARK_RUNTIME_FUNCTION = 7,
-  ARK_RUNTIME_SYMBOL = 8,
-  ARK_RUNTIME_MATERIALIZED = 9,
-} Ark_RuntimeType;
+typedef InteropFloat32 Ark_Float32;
+typedef InteropFloat64 Ark_Float64;
+typedef InteropInt32 Ark_Int32;
+typedef InteropUInt32 Ark_UInt32;
+typedef InteropInt64 Ark_Int64;
+typedef InteropInt8 Ark_Int8;
+typedef InteropBoolean Ark_Boolean;
+typedef InteropCharPtr Ark_CharPtr;
+typedef InteropNativePointer Ark_NativePointer;
+typedef InteropString Ark_String;
+typedef InteropCallbackResource Ark_CallbackResource;
+typedef InteropNumber Ark_Number;
+typedef InteropMaterialized Ark_Materialized;
+typedef InteropCustomObject Ark_CustomObject;
+typedef InteropUndefined Ark_Undefined;
+typedef InteropVMContext Ark_VMContext;
+typedef InteropBuffer Ark_Buffer;
+typedef InteropLength Ark_Length;
+typedef InteropNodeHandle Ark_NodeHandle;
+typedef InteropPipelineContext Ark_PipelineContext;
+typedef InteropCustomObject Ark_CustomObject;
+typedef InteropDate Ark_Date;
+typedef InteropFunction Ark_Function;
 
-typedef float Ark_Float32;
-typedef double Ark_Float64;
-typedef int32_t Ark_Int32;
-typedef unsigned int Ark_UInt32; // TODO: update unsigned int
-typedef int64_t Ark_Int64;
-typedef int8_t Ark_Int8;
-typedef uint8_t Ark_UInt8;
-typedef int64_t Ark_Date;
-typedef int8_t Ark_Boolean;
-typedef const char* Ark_CharPtr;
-typedef void* Ark_NativePointer;
+// TODO: generate!
+typedef struct Opt_Ark_Callback {
+  Ark_Tag tag;
+  Ark_CustomObject value;
+} Opt_Ark_Callback;
 
-struct _Ark_VMContext;
-typedef struct _Ark_VMContext* Ark_VMContext;
-struct _Ark_PipelineContext;
-typedef struct _Ark_PipelineContext* Ark_PipelineContext;
-struct _Ark_VMObject;
-typedef struct _Ark_VMObject* Ark_VMObject;
-struct _Ark_Node;
-typedef struct _Ark_Node* Ark_NodeHandle;
-struct _Ark_Canvas;
-typedef struct _Ark_Canvas* Ark_CanvasHandle;
-typedef struct Ark_Deferred {
-    void* handler;
-    void* context;
-    void (*resolve)(struct Ark_Deferred* thiz, uint8_t* data, int32_t length);
-    void (*reject)(struct Ark_Deferred* thiz, const char* message);
-} Ark_Deferred;
+enum %CPP_PREFIX%Ark_APIVariantKind {
+    %CPP_PREFIX%BASIC = 10,
+    %CPP_PREFIX%FULL = 11,
+    %CPP_PREFIX%GRAPHICS = 12,
+    %CPP_PREFIX%EXTENDED = 13,
+    GENERIC_SERVICE = 14,
+    %CPP_PREFIX%COUNT = GENERIC_SERVICE + 1
+};
 
 enum Ark_APINodeFlags {
     %CPP_PREFIX%CUSTOM_NONE = 0,
@@ -106,89 +96,7 @@ enum Ark_APICustomOp {
     %CPP_PREFIX%LAYOUT = 2,
     %CPP_PREFIX%DRAW = 3
 };
-struct Ark_ObjectHandleOpaque;
-typedef struct Ark_ObjectHandleOpaque* Ark_ObjectHandle;
 
-// Binary layout of Ark_String must match that of KStringPtrImpl.
-typedef struct Ark_String {
-  const char* chars;
-  Ark_Int32 length;
-} Ark_String;
+struct _Ark_Canvas;
+typedef struct _Ark_Canvas* Ark_CanvasHandle;
 
-typedef struct Ark_Empty {
-  Ark_Int32 dummy; // Empty structs are forbidden in C.
-} Ark_Empty;
-
-typedef struct Ark_Number {
-  Ark_Int8 tag;
-  union {
-    Ark_Float32 f32;
-    Ark_Int32 i32;
-  };
-} Ark_Number;
-
-// Binary layout of Ark_Length must match that of KLength.
-typedef struct Ark_Length
-{
-  Ark_Int8 type;
-  Ark_Float32 value;
-  Ark_Int32 unit;
-  Ark_Int32 resource;
-} Ark_Length;
-
-typedef struct Ark_CustomObject {
-  char kind[20];
-  Ark_Int32 id;
-  // Data of custom object.
-  union {
-    Ark_Int32 ints[4];
-    Ark_Float32 floats[4];
-    void* pointers[4];
-    Ark_String string;
-  };
-} Ark_CustomObject;
-
-typedef struct Ark_Undefined {
-  Ark_Int32 dummy; // Empty structs are forbidden in C.
-} Ark_Undefined;
-
-typedef struct Ark_Void {
-  Ark_Int32 dummy; // Empty structs are forbidden in C.
-} Ark_Void;
-
-typedef struct Ark_Function {
-  Ark_Int32 id;
-} Ark_Function;
-typedef Ark_Function Ark_Callback;
-typedef Ark_Function Ark_ErrorCallback;
-
-typedef struct Ark_Materialized {
-  Ark_NativePointer ptr;
-} Ark_Materialized;
-
-// TODO: generate!
-typedef struct Opt_Ark_Callback {
-  enum Ark_Tag tag;
-  Ark_CustomObject value;
-} Opt_Ark_Callback;
-
-enum %CPP_PREFIX%Ark_APIVariantKind {
-    %CPP_PREFIX%BASIC = 10,
-    %CPP_PREFIX%FULL = 11,
-    %CPP_PREFIX%GRAPHICS = 12,
-    %CPP_PREFIX%EXTENDED = 13,
-    GENERIC_SERVICE = 14,
-    %CPP_PREFIX%COUNT = GENERIC_SERVICE + 1
-};
-
-typedef struct Ark_CallbackResource {
-  Ark_Int32 resourceId;
-  void (*hold)(Ark_Int32 resourceId);
-  void (*release)(Ark_Int32 resourceId);
-} Ark_CallbackResource;
-
-typedef struct Ark_Buffer {
-  Ark_CallbackResource resource;
-  Ark_NativePointer data;
-  Ark_Int64 length;
-} Ark_Buffer;

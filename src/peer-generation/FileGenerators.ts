@@ -359,6 +359,7 @@ export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, 
     return `
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
+#include "callbacks.h"
 #include "arkoala_api_generated.h"
 #include <string>
 
@@ -483,6 +484,12 @@ export function makeAPI(
     prologue = prologue
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%INTEROP_TYPES_HEADER`, 
+            fs.readFileSync(
+                path.resolve(__dirname, '..', 'node_modules', '@koalaui', 'interop', 'src', 'cpp', 'interop-types.h'),
+                'utf-8'
+            )
+        )
     epilogue = epilogue
         .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
 

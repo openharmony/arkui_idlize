@@ -60,7 +60,7 @@ KInt impl_CheckArkoalaCallbackEvent(KByte* result, KInt size) {
     switch (frontEventKind)
     {
         case Event_CallCallback:
-            serializer.append(callbackCallSubqueue.front().buffer, sizeof(CallbackBuffer::buffer));
+            memcpy(result + serializer.length(), callbackCallSubqueue.front().buffer, sizeof(CallbackBuffer::buffer));
             break;
         case Event_HoldManagedResource:
         case Event_ReleaseManagedResource:

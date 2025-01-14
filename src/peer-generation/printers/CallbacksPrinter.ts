@@ -152,6 +152,7 @@ class DeserializeCallbacksVisitor {
             cppFile.addInclude("arkoala_api_generated.h")
             cppFile.addInclude("callback_kind.h")
             cppFile.addInclude("Serializers.h")
+            cppFile.addInclude("callbacks.h")
             cppFile.addInclude("common-interop.h")
         }
 

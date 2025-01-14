@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+%INTEROP_TYPES_HEADER
+
 #ifndef %INCLUDE_GUARD_DEFINE%
 #define %INCLUDE_GUARD_DEFINE%
 
@@ -25,86 +27,34 @@
 extern "C" {
 #endif
 
-enum OH_Tag
-{
-  OH_TAG_UNDEFINED = 101,
-  OH_TAG_INT32 = 102,
-  OH_TAG_FLOAT32 = 103,
-  OH_TAG_STRING = 104,
-  OH_TAG_LENGTH = 105,
-  OH_TAG_RESOURCE = 106,
-  OH_TAG_OBJECT = 107,
-};
+typedef InteropTag OH_Tag;
+typedef InteropRuntimeType OH_RuntimeType;
 
-enum OH_RuntimeType
-{
-  OH_RUNTIME_UNEXPECTED = -1,
-  OH_RUNTIME_NUMBER = 1,
-  OH_RUNTIME_STRING = 2,
-  OH_RUNTIME_OBJECT = 3,
-  OH_RUNTIME_BOOLEAN = 4,
-  OH_RUNTIME_UNDEFINED = 5,
-  OH_RUNTIME_BIGINT = 6,
-  OH_RUNTIME_FUNCTION = 7,
-  OH_RUNTIME_SYMBOL = 8,
-  OH_RUNTIME_MATERIALIZED = 9,
-};
+typedef InteropFloat32 OH_Float32;
+typedef InteropFloat64 OH_Float64;
+typedef InteropInt32 OH_Int32;
+typedef InteropUInt32 OH_UInt32;
+typedef InteropInt64 OH_Int64;
+typedef InteropInt8 OH_Int8;
+typedef InteropBoolean OH_Boolean;
+typedef InteropCharPtr OH_CharPtr;
+typedef InteropNativePointer OH_NativePointer;
+typedef InteropString OH_String;
+typedef InteropCallbackResource OH_CallbackResource;
+typedef InteropNumber OH_Number;
+typedef InteropMaterialized OH_Materialized;
+typedef InteropCustomObject OH_CustomObject;
+typedef InteropUndefined OH_Undefined;
+// typedef InteropAPIKind OH_APIKind;
+typedef InteropVMContext OH_VMContext;
+typedef InteropBuffer OH_Buffer;
+typedef InteropLength OH_Length;
+typedef InteropFunction OH_Function;
 
-typedef float OH_Float32;
-typedef double OH_Float64;
-typedef int32_t OH_Int32;
-typedef unsigned int OH_UInt32;
-typedef int64_t OH_Int64;
-typedef int8_t OH_Int8;
-typedef int8_t OH_Boolean;
-typedef const char* OH_CharPtr;
-typedef void* OH_NativePointer;
-typedef const char* OH_String;
-typedef struct OH_CallbackResource {
-  OH_Int32 resourceId;
-  void (*hold)(OH_Int32 resourceId);
-  void (*release)(OH_Int32 resourceId);
-} OH_CallbackResource;
-typedef struct OH_Number {
-  OH_Int8 tag;
-  union {
-    OH_Float32 f32;
-    OH_Int32 i32;
-  };
-} OH_Number;
-typedef struct OH_Materialized {
-  OH_NativePointer ptr;
-} OH_Materialized;
-typedef struct OH_CustomObject {
-  char kind[20];
-  OH_Int32 id;
-  // Data of custom object.
-  union {
-    OH_Int32 ints[4];
-    OH_Float32 floats[4];
-    void* pointers[4];
-    OH_String string;
-  };
-} OH_CustomObject;
-typedef struct OH_Undefined {
-  OH_Int32 dummy; // Empty structs are forbidden in C.
-} OH_Undefined;
-
-// TODO: wrong, provide real definitions.
-typedef void* OH_DataView;
+typedef enum OH_APIKind {
+    OH_XML_API_KIND = 100
+} OH_APIKind;
 
 typedef struct OH_AnyAPI {
     OH_Int32 version;
 } OH_AnyAPI;
-
-typedef enum OH_APIKind {
-    OH_%LIBRARY_NAME%_API_KIND = 1
-} OH_APIKind;
-
-struct _OH_VMContext;
-typedef struct _OH_VMContext* OH_VMContext;
-typedef struct OH_Buffer {
-  OH_CallbackResource resource;
-  OH_NativePointer data;
-  OH_Int64 length;
-} OH_Buffer;

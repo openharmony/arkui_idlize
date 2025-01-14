@@ -19,6 +19,7 @@
 #include "common-interop.h"
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
+#include "callbacks.h"
 #include "events.h"
 
 const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);

@@ -12,6 +12,143 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef _INTEROP_TYPES_H_
+#define _INTEROP_TYPES_H_
+
+#include <stdint.h>
+
+typedef enum InteropTag
+{
+  INTEROP_TAG_UNDEFINED = 101,
+  INTEROP_TAG_INT32 = 102,
+  INTEROP_TAG_FLOAT32 = 103,
+  INTEROP_TAG_STRING = 104,
+  INTEROP_TAG_LENGTH = 105,
+  INTEROP_TAG_RESOURCE = 106,
+  INTEROP_TAG_OBJECT = 107,
+} InteropTag;
+
+typedef enum InteropRuntimeType
+{
+  INTEROP_RUNTIME_UNEXPECTED = -1,
+  INTEROP_RUNTIME_NUMBER = 1,
+  INTEROP_RUNTIME_STRING = 2,
+  INTEROP_RUNTIME_OBJECT = 3,
+  INTEROP_RUNTIME_BOOLEAN = 4,
+  INTEROP_RUNTIME_UNDEFINED = 5,
+  INTEROP_RUNTIME_BIGINT = 6,
+  INTEROP_RUNTIME_FUNCTION = 7,
+  INTEROP_RUNTIME_SYMBOL = 8,
+  INTEROP_RUNTIME_MATERIALIZED = 9,
+} InteropRuntimeType;
+
+typedef float InteropFloat32;
+typedef double InteropFloat64;
+typedef int32_t InteropInt32;
+typedef unsigned int InteropUInt32; // TODO: update unsigned int
+typedef int64_t InteropInt64;
+typedef int8_t InteropInt8;
+typedef uint8_t InteropUInt8;
+typedef int64_t InteropDate;
+typedef int8_t InteropBoolean;
+typedef const char* InteropCharPtr;
+typedef void* InteropNativePointer;
+
+struct _InteropVMContext;
+typedef struct _InteropVMContext* InteropVMContext;
+struct _InteropPipelineContext;
+typedef struct _InteropPipelineContext* InteropPipelineContext;
+struct _InteropVMObject;
+typedef struct _InteropVMObject* InteropVMObject;
+struct _InteropNode;
+typedef struct _InteropNode* InteropNodeHandle;
+typedef struct InteropDeferred {
+    void* handler;
+    void* context;
+    void (*resolve)(struct InteropDeferred* thiz, uint8_t* data, int32_t length);
+    void (*reject)(struct InteropDeferred* thiz, const char* message);
+} InteropDeferred;
+
+struct InteropObjectHandleOpaque;
+typedef struct InteropObjectHandleOpaque* InteropObjectHandle;
+
+// Binary layout of InteropString must match that of KStringPtrImpl.
+typedef struct InteropString {
+  const char* chars;
+  InteropInt32 length;
+} InteropString;
+
+typedef struct InteropEmpty {
+  InteropInt32 dummy; // Empty structs are forbidden in C.
+} InteropEmpty;
+
+typedef struct InteropNumber {
+  InteropInt8 tag;
+  union {
+    InteropFloat32 f32;
+    InteropInt32 i32;
+  };
+} InteropNumber;
+
+// Binary layout of InteropLength must match that of KLength.
+typedef struct InteropLength
+{
+  InteropInt8 type;
+  InteropFloat32 value;
+  InteropInt32 unit;
+  InteropInt32 resource;
+} InteropLength;
+
+typedef struct InteropCustomObject {
+  char kind[20];
+  InteropInt32 id;
+  // Data of custom object.
+  union {
+    InteropInt32 ints[4];
+    InteropFloat32 floats[4];
+    void* pointers[4];
+    InteropString string;
+  };
+} InteropCustomObject;
+
+typedef struct InteropUndefined {
+  InteropInt32 dummy; // Empty structs are forbidden in C.
+} InteropUndefined;
+
+typedef struct InteropVoid {
+  InteropInt32 dummy; // Empty structs are forbidden in C.
+} InteropVoid;
+
+typedef struct InteropFunction {
+  InteropInt32 id;
+} InteropFunction;
+typedef InteropFunction InteropCallback;
+typedef InteropFunction InteropErrorCallback;
+
+typedef struct InteropMaterialized {
+  InteropNativePointer ptr;
+} InteropMaterialized;
+
+typedef struct InteropCallbackResource {
+  InteropInt32 resourceId;
+  void (*hold)(InteropInt32 resourceId);
+  void (*release)(InteropInt32 resourceId);
+} InteropCallbackResource;
+
+typedef struct InteropBuffer {
+  InteropCallbackResource resource;
+  InteropNativePointer data;
+  InteropInt64 length;
+} InteropBuffer;
+
+typedef struct InteropAnyAPI {
+    InteropInt32 version;
+} InteropAPI;
+
+
+#endif // _INTEROP_TYPES_H_
+
+
 #ifndef OH_XML_H
 #define OH_XML_H
 
@@ -25,89 +162,34 @@
 extern "C" {
 #endif
 
-enum OH_Tag
-{
-  OH_TAG_UNDEFINED = 101,
-  OH_TAG_INT32 = 102,
-  OH_TAG_FLOAT32 = 103,
-  OH_TAG_STRING = 104,
-  OH_TAG_LENGTH = 105,
-  OH_TAG_RESOURCE = 106,
-  OH_TAG_OBJECT = 107,
-};
+typedef InteropTag OH_Tag;
+typedef InteropRuntimeType OH_RuntimeType;
 
-enum OH_RuntimeType
-{
-  OH_RUNTIME_UNEXPECTED = -1,
-  OH_RUNTIME_NUMBER = 1,
-  OH_RUNTIME_STRING = 2,
-  OH_RUNTIME_OBJECT = 3,
-  OH_RUNTIME_BOOLEAN = 4,
-  OH_RUNTIME_UNDEFINED = 5,
-  OH_RUNTIME_BIGINT = 6,
-  OH_RUNTIME_FUNCTION = 7,
-  OH_RUNTIME_SYMBOL = 8,
-  OH_RUNTIME_MATERIALIZED = 9,
-};
-
-typedef float OH_Float32;
-typedef double OH_Float64;
-typedef int32_t OH_Int32;
-typedef unsigned int OH_UInt32;
-typedef int64_t OH_Int64;
-typedef int8_t OH_Int8;
-typedef int8_t OH_Boolean;
-typedef const char* OH_CharPtr;
-typedef void* OH_NativePointer;
-typedef const char* OH_String;
-typedef struct OH_CallbackResource {
-  OH_Int32 resourceId;
-  void (*hold)(OH_Int32 resourceId);
-  void (*release)(OH_Int32 resourceId);
-} OH_CallbackResource;
-typedef struct OH_Number {
-  OH_Int8 tag;
-  union {
-    OH_Float32 f32;
-    OH_Int32 i32;
-  };
-} OH_Number;
-typedef struct OH_Materialized {
-  OH_NativePointer ptr;
-} OH_Materialized;
-typedef struct OH_CustomObject {
-  char kind[20];
-  OH_Int32 id;
-  // Data of custom object.
-  union {
-    OH_Int32 ints[4];
-    OH_Float32 floats[4];
-    void* pointers[4];
-    OH_String string;
-  };
-} OH_CustomObject;
-typedef struct OH_Undefined {
-  OH_Int32 dummy; // Empty structs are forbidden in C.
-} OH_Undefined;
-
-// TODO: wrong, provide real definitions.
-typedef void* OH_DataView;
-
-typedef struct OH_AnyAPI {
-    OH_Int32 version;
-} OH_AnyAPI;
+typedef InteropFloat32 OH_Float32;
+typedef InteropFloat64 OH_Float64;
+typedef InteropInt32 OH_Int32;
+typedef InteropUInt32 OH_UInt32;
+typedef InteropInt64 OH_Int64;
+typedef InteropInt8 OH_Int8;
+typedef InteropBoolean OH_Boolean;
+typedef InteropCharPtr OH_CharPtr;
+typedef InteropNativePointer OH_NativePointer;
+typedef InteropString OH_String;
+typedef InteropCallbackResource OH_CallbackResource;
+typedef InteropNumber OH_Number;
+typedef InteropMaterialized OH_Materialized;
+typedef InteropCustomObject OH_CustomObject;
+typedef InteropUndefined OH_Undefined;
+typedef InteropAnyAPI OH_AnyAPI;
+// typedef InteropAPIKind OH_APIKind;
+typedef InteropVMContext OH_VMContext;
+typedef InteropBuffer OH_Buffer;
+typedef InteropLength OH_Length;
 
 typedef enum OH_APIKind {
-    OH_XML_API_KIND = 1
+    OH_XML_API_KIND = 100
 } OH_APIKind;
 
-struct _OH_VMContext;
-typedef struct _OH_VMContext* OH_VMContext;
-typedef struct OH_Buffer {
-  OH_CallbackResource resource;
-  OH_NativePointer data;
-  OH_Int64 length;
-} OH_Buffer;
 typedef struct Callback_EventType_ParseInfo_Boolean Callback_EventType_ParseInfo_Boolean;
 typedef struct Opt_Callback_EventType_ParseInfo_Boolean Opt_Callback_EventType_ParseInfo_Boolean;
 typedef struct Callback_String_String_Boolean Callback_String_String_Boolean;

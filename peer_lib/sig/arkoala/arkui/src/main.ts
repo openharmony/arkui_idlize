@@ -433,12 +433,12 @@ function checkButton() {
     checkResult("height", () => peer.heightAttribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
         "height({.type=2, .value=0, .unit=1, .resource=43})")
     checkResult("background", () => peer.backgroundAttribute(() => {}, {align: 4}),
-        `background({.resource={.resourceId=${lastResourceId+1}, .hold=0, .release=0}, .call=0}, {.tag=ARK_TAG_OBJECT, .value={.align={.tag=ARK_TAG_OBJECT, .value=Ark_Alignment(4)}}})`)
+        `background({.resource={.resourceId=${lastResourceId+1}, .hold=0, .release=0}, .call=0}, {.tag=INTEROP_TAG_OBJECT, .value={.align={.tag=INTEROP_TAG_OBJECT, .value=Ark_Alignment(4)}}})`)
     checkResult("type", () => peer.typeAttribute(1), "type(Ark_ButtonType(1))")
     checkResult("labelStyle", () => peer.labelStyleAttribute({ maxLines: 3 }),
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
     checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}})")
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
     //nativeModule()._MeausureLayoutAndDraw(peer.peer.ptr)
     assertTrue("ButtonPeer finalizer", peer!.peer!.finalizer != nullptr)
 
@@ -450,10 +450,10 @@ function checkCalendar() {
 
     let peer = ArkCalendarPickerPeer.create()
     checkResult("setCalendarOptions: hintRadius", () => peer.setCalendarPickerOptionsAttribute({ hintRadius: 79 }),
-        `setCalendarPickerOptions({.tag=ARK_TAG_OBJECT, .value={.hintRadius={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.tag=102, .i32=79}}}, .selected={.tag=ARK_TAG_UNDEFINED, .value={}}, .start={.tag=ARK_TAG_UNDEFINED, .value={}}, .end={.tag=ARK_TAG_UNDEFINED, .value={}}}})`)
+        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.tag=102, .i32=79}}}, .selected={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
     const date = new Date()
     checkResult("setCalendarOptions: selected", () => peer.setCalendarPickerOptionsAttribute({ selected: date }),
-        `setCalendarPickerOptions({.tag=ARK_TAG_OBJECT, .value={.hintRadius={.tag=ARK_TAG_UNDEFINED, .value={}}, .selected={.tag=ARK_TAG_OBJECT, .value=${date.getTime()}}, .start={.tag=ARK_TAG_UNDEFINED, .value={}}, .end={.tag=ARK_TAG_UNDEFINED, .value={}}}})`)
+        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selected={.tag=INTEROP_TAG_OBJECT, .value=${date.getTime()}}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
     stopNativeTest(CALL_GROUP_LOG)
 }
 
@@ -462,11 +462,11 @@ function checkFormComponent() {
 
     let peer = ArkFormComponentPeer.create()
     checkResult("size int", () => peer.sizeAttribute({ width: 5, height: 6 }),
-        `size({.width={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=5, .unit=1, .resource=0}}, .height={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=6, .unit=1, .resource=0}}})`)
+        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=5, .unit=1, .resource=0}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=6, .unit=1, .resource=0}}})`)
     checkResult("size float", () => peer.sizeAttribute({ width: 5.5, height: 6.789 }),
-        `size({.width={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=5.5, .unit=1, .resource=0}}, .height={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=6.789, .unit=1, .resource=0}}})`)
+        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=5.5, .unit=1, .resource=0}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=6.789, .unit=1, .resource=0}}})`)
     checkResult("size zero", () => peer.sizeAttribute({ width: 0.0, height: 0.0 }),
-        `size({.width={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=0, .unit=1, .resource=0}}, .height={.tag=ARK_TAG_OBJECT, .value={.type=1, .value=0, .unit=1, .resource=0}}})`)
+        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=0, .unit=1, .resource=0}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=0, .unit=1, .resource=0}}})`)
 
     stopNativeTest(CALL_GROUP_LOG)
 }
@@ -486,12 +486,12 @@ function checkCommon() {
     }
     checkResult("Test dragPreviewOptions numberBadge with number",
         () => peer.dragPreviewOptionsAttribute({ numberBadge: 10 }, { isMultiSelectionEnabled: true }),
-        `dragPreviewOptions({.mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .modifier={.tag=ARK_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableEdgeAutoScroll={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableHapticFeedback={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
+        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableEdgeAutoScroll={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableHapticFeedback={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with boolean",
         () => peer.dragPreviewOptionsAttribute({ numberBadge: true }, { defaultAnimationBeforeLifting: false }),
-        `dragPreviewOptions({.mode={.tag=ARK_TAG_UNDEFINED, .value={}}, .modifier={.tag=ARK_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=true}}}, {.tag=ARK_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=ARK_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=ARK_TAG_OBJECT, .value=false}, .enableEdgeAutoScroll={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableHapticFeedback={.tag=ARK_TAG_UNDEFINED, .value={}}}})`
+        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0=true}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_OBJECT, .value=false}, .enableEdgeAutoScroll={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableHapticFeedback={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)
@@ -535,10 +535,10 @@ function checkTabContent() {
 
     checkResult("new SubTabBarStyle()",
         () => peer.tabBar1Attribute(subTabBarStyle),
-        `tabBar({.selector=0, .value0={._content={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.chars="ContentResource", .length=15}}}, ._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_UNDEFINED, .value={}}, ._id={.tag=ARK_TAG_OBJECT, .value={.chars="subId", .length=5}}}})`)
+        `tabBar({.selector=0, .value0={._content={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.chars="ContentResource", .length=15}}}, ._indicator={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._board={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._padding={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._id={.tag=INTEROP_TAG_OBJECT, .value={.chars="subId", .length=5}}}})`)
     checkResult("SubTabBarStyle.of()",
         () => peer.tabBar1Attribute(SubTabBarStyle.of("content2")),
-        `tabBar({.selector=0, .value0={._content={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.chars="content2", .length=8}}}, ._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_UNDEFINED, .value={}}, ._id={.tag=ARK_TAG_UNDEFINED, .value={}}}})`)
+        `tabBar({.selector=0, .value0={._content={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.chars="content2", .length=8}}}, ._indicator={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._board={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._padding={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._id={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
 
     const bottomTabBarStyle: BottomTabBarStyle = new BottomTabBarStyle("Icon", "Text").padding(10).id("bottomId")
     assertEquals("BottomTabBarStyle icon", "Icon", bottomTabBarStyle._icon)
@@ -548,7 +548,7 @@ function checkTabContent() {
 
     checkResult("new BottomTabBarStyle()",
         () => peer.tabBar1Attribute(bottomTabBarStyle),
-        `tabBar({.selector=0, .value0={._content={.tag=ARK_TAG_UNDEFINED, .value={}}, ._indicator={.tag=ARK_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=ARK_TAG_UNDEFINED, .value={}}, ._board={.tag=ARK_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, ._padding={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0={.selector=1, .value1={.type=1, .value=10, .unit=1, .resource=0}}}}, ._id={.tag=ARK_TAG_OBJECT, .value={.chars="bottomId", .length=8}}}})`
+        `tabBar({.selector=0, .value0={._content={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._indicator={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._board={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._padding={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.selector=1, .value1={.type=1, .value=10, .unit=1, .resource=0}}}}, ._id={.tag=INTEROP_TAG_OBJECT, .value={.chars="bottomId", .length=8}}}})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)
@@ -567,7 +567,7 @@ function checkCanvasRenderingContext2D() {
 
     checkResult("new CanvasRenderingContext2D()",
         () => canvasRenderingContext2D = unsafeCast<CanvasRenderingContext2D>(new CanvasRenderingContext2DImpl()),
-        `new CanvasPath()[return (CanvasPathPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderer()[return (CanvasRendererPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderingContext2D({.tag=ARK_TAG_UNDEFINED, .value={}})[return (CanvasRenderingContext2DPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`
+        `new CanvasPath()[return (CanvasPathPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderer()[return (CanvasRendererPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderingContext2D({.tag=INTEROP_TAG_UNDEFINED, .value={}})[return (CanvasRenderingContext2DPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`
     )
 
     checkResult("CanvasRenderingContext2D width",

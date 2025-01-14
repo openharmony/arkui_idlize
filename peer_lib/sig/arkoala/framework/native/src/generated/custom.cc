@@ -28,11 +28,11 @@ struct MyDeserializer : CustomDeserializer {
     virtual bool supports(const string& kind) {
         return std::find(supported.begin(), supported.end(), kind) != supported.end();
     }
-    virtual Ark_CustomObject deserialize(DeserializerBase* deserializer, const string& kind) {
-        Ark_String value = deserializer->readString();
+    virtual InteropCustomObject deserialize(DeserializerBase* deserializer, const string& kind) {
+        InteropString value = deserializer->readString();
         (void)value;
         //fprintf(stderr, "native deserialize() for %s, got %s\n", kind.c_str(), value.chars);
-        Ark_CustomObject result;
+        InteropCustomObject result;
         strcpy(result.kind, "NativeError");
         result.id = 0;
         strcat(result.kind, kind.c_str());
@@ -50,8 +50,8 @@ struct DateDeserializer final : CustomDeserializer {
     virtual bool supports(const string& kind) {
         return std::find(supported.begin(), supported.end(), kind) != supported.end();
     }
-    virtual Ark_CustomObject deserialize(DeserializerBase* deserializer, const string& kind) {
-        Ark_CustomObject result = {};
+    virtual InteropCustomObject deserialize(DeserializerBase* deserializer, const string& kind) {
+        InteropCustomObject result = {};
         result.string = deserializer->readString();
         strncpy(result.kind, kind.c_str(), sizeof(result.kind) - 1);
         return result;
