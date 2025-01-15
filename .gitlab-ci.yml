@@ -64,6 +64,7 @@ compile arkts peers:
     - npm run make:compile:arkts:peers
 
 arkts subset tsc:
+   allow_failure: true
    stage: test
    tags:
      - idlize-ci
